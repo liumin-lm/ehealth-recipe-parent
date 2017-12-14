@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<!-- 阿里云消息队列(ons) 消息生产者 -->
+	<bean id="producer" class="com.aliyun.openservices.ons.api.bean.ProducerBean" init-method="start" destroy-method="shutdown">
+		<property name="properties" >
+			<props>
+				<prop key="ProducerId">${ons_pid}</prop>
+				<prop key="AccessKey">${ons_ak}</prop>
+				<prop key="SecretKey">${ons_sk}</prop>
+			</props>
+		</property>
+	</bean>
+
+	<!-- 发布 -->
+	<bean class="ctd.net.broadcast.ons.OnsPublisher" id="onsPublisher">
+		<property name="producer" ref="producer"/>
+	</bean>
+
+	<!-- 消息消费者-->
+	<bean id="consumer" class="com.aliyun.openservices.ons.api.bean.ConsumerBean" init-method="start" destroy-method="shutdown">
+		<property name="properties" >
+			<props>
+				<prop key="ConsumerId">${ons_cid}</prop>
+				<prop key="AccessKey">${ons_ak}</prop>
+				<prop key="SecretKey">${ons_sk}</prop>
+				<!--将消费者线程数固定为50个.
+                <prop key="ConsumeThreadNums">50</prop>
+                -->
+			</props>
+		</property>
+		<property name="subscriptionTable">
+			<map>
+				<!--
+                <entry value-ref="onsTopListener">
+                    <key>
+                        <bean class="com.aliyun.openservices.ons.api.bean.Subscription">
+                            <property name="topic" value="${ons_topic}"/>
+                            <property name="expression" value="*"/>
+                        </bean>
+                    </key>
+                </entry>
+                -->
+				<!--更多的订阅添加entry节点即可-->
+			</map>
+		</property>
+	</bean>
+
+	<!-- 订阅 -->
+	<bean class="ctd.net.broadcast.ons.OnsSubscriber" id="onsSubscriber">
+		<property name="consumer" ref="consumer"/>
+	</bean>
+
+</beans>

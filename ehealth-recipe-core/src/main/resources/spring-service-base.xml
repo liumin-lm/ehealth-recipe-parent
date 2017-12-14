@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<s:beans xmlns:s="http://www.springframework.org/schema/beans"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.ngarihealth.com/schema/ssdev"
+         xsi:schemaLocation="http://www.springframework.org/schema/beans
+				http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.ngarihealth.com/schema/ssdev
+						http://www.ngarihealth.com/schema/ssdev/ssdev.xsd">
+
+    <!--base-api -->
+    <reference interface="com.ngari.base.organconfig.service.IOrganConfigService" id="eh.organConfigService"/>
+    <reference interface="com.ngari.base.department.service.IDepartmentService" id="eh.departmentService"/>
+    <reference interface="com.ngari.base.doctor.service.IDoctorService" id="eh.doctorService"/>
+    <reference interface="com.ngari.base.employment.service.IEmploymentService" id="eh.employmentService"/>
+    <reference interface="com.ngari.base.push.service.ISmsPushService" id="eh.smsPushService"/>
+    <reference interface="com.ngari.base.patient.service.IPatientService" id="eh.patientService"/>
+    <reference interface="com.ngari.base.payment.service.IPaymentService" id="eh.paymentService"/>
+    <reference interface="com.ngari.base.esign.service.IESignBaseService" id="eh.eSignService"/>
+
+    <reference interface="com.ngari.base.address.service.IAddressService" id="eh.remoteAddressService"/>
+    <reference interface="com.ngari.base.hisconfig.service.IHisConfigService" id="eh.remoteHisConfigService"/>
+    <reference interface="com.ngari.base.operationrecords.service.IOperationRecordsService" id="eh.remoteOperationRecordsService"/>
+    <reference interface="com.ngari.base.organ.service.IOrganService" id="eh.remoteOrganService"/>
+    <reference interface="com.ngari.base.searchcontent.service.ISearchContentService" id="eh.remoteSearchContentService"/>
+    <reference interface="com.ngari.base.sysparamter.service.ISysParamterService" id="eh.remoteSysParamterService"/>
+    <reference interface="com.ngari.base.hisservice.service.IRecipeHisService" id="eh.remoteRecipeHisService"/>
+    <reference interface="com.ngari.base.searchservice.service.ISearchService" id="eh.remoteSearchService"/>
+
+    <!--bus-api-->
+    <reference interface="com.ngari.bus.busactionlog.service.IBusActionLogService" id="eh.busActionLogService"/>
+    <reference interface="com.ngari.bus.coupon.service.ICouponService" id="eh.couponService"/>
+    <reference interface="com.ngari.bus.consult.service.IConsultService" id="eh.remoteConsultService"/>
+
+</s:beans>

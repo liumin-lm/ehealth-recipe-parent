@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:apollo="http://www.ctrip.com/schema/apollo"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.ctrip.com/schema/apollo http://www.ctrip.com/schema/apollo.xsd">
+
+	<!--<context:property-placeholder location="classpath:config.properties" file-encoding="UTF-8" />-->
+	<apollo:config />
+	<!--<apollo:config namespaces="DEV.publicUrl"/>-->
+
+	<import resource="classpath:/ctd/util/exp/spring-expr-base.xml"/>
+	<import resource="spring-hibernate.xml" />
+	<import resource="spring-controller.xml"/>
+	<!--<import resource="spring-mq.xml"/>-->
+	<import resource="spring-service.xml" />
+	<!--<import resource="spring-redis.xml"/>-->
+	<import resource="spring-service-base.xml" />
+	<import resource="spring-service-his-center.xml" />
+
+	<bean id="dictionaryService" class="ctd.dictionary.service.DictionaryLocalService" />
+	<bean id="mvcDictionaryLoader" class="ctd.mvc.controller.support.DictionaryLoader">
+		<property name="expiresSeconds" value="15" />
+		<property name="localService" ref="dictionaryService" />
+	</bean>
+
+	<!--药企对接通用实现(国药协议)-->
+	<bean id="commonRemoteService" class="recipe.drugsenterprise.CommonRemoteService"></bean>
+
+	<!--钥世圈对接实现-->
+	<bean id="ysqRemoteService" class="recipe.drugsenterprise.YsqRemoteService"></bean>
+
+	<!--测试药企-->
+	<bean id="testRemoteService" class="recipe.drugsenterprise.TestRemoteService"></bean>
+
+	<!-- 处方对接HIS服务 -->
+	<bean id="recipeToHisService" class="recipe.hisservice.RecipeToHisService"></bean>
+
+	<bean id="busTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" destroy-method="shutdown">
+		<!-- 线程池活跃的线程数 -->
+		<property name="corePoolSize" value="5" />
+		<!-- 线程池最大活跃的线程数 -->
+		<property name="maxPoolSize" value="100" />
+		<!-- 队列的最大容量 -->
+		<property name="queueCapacity" value="100" />
+	</bean>
+
+	<bean class="recipe.prescription.bean.PrescriptionConstants" id="prescriptionConstants">
+		<property name="TargetNamespace" value="http://121.43.189.212:820/PAWebService.asmx"/>
+		<property name="NAMESPACE" value="WinningPAWebservice"/>
+	</bean>
+
+	<bean id="tokenUpdateService" class="recipe.service.TokenUpdateService" init-method="updateTokenAfterInit" ></bean>
+</beans>

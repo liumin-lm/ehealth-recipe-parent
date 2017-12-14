@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mappings xmlns="http://dozer.sourceforge.net" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://dozer.sourceforge.net
+          http://dozer.sourceforge.net/schema/beanmapping.xsd">
+    <configuration>
+        <map-null>false</map-null>
+        <map-empty-string>false</map-empty-string>
+        <custom-converters>
+            <converter type="ctd.util.dozer.converter.StringToDateConverter">
+                <class-a>java.lang.String</class-a>
+                <class-b>java.util.Date</class-b>
+            </converter>
+        </custom-converters>
+    </configuration>
+
+    <mapping map-null="false" map-empty-string="true">
+        <class-a>com.ngari.recipe.entity.DrugList</class-a>
+        <class-b>com.ngari.recipe.entity.DrugList</class-b>
+    </mapping>
+
+    <mapping map-null="false" map-empty-string="true">
+        <class-a>com.ngari.recipe.entity.OrganDrugList</class-a>
+        <class-b>com.ngari.recipe.entity.OrganDrugList</class-b>
+    </mapping>
+
+    <mapping map-null="false" map-empty-string="true">
+        <class-a>com.ngari.recipe.entity.DrugsEnterprise</class-a>
+        <class-b>com.ngari.recipe.entity.DrugsEnterprise</class-b>
+    </mapping>
+
+</mappings>

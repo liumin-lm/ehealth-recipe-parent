@@ -1,0 +1,11 @@
+.svn/
+target/
+.settings/
+.classpath
+.project
+.myeclipse
+.DS_Store*
+*.iml
+*.class
+*.log
+.idea

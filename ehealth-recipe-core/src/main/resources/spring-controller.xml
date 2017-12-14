@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ssdev="http://www.ngarihealth.com/schema/ssdev"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       			http://www.ngarihealth.com/schema/ssdev http://www.ngarihealth.com/schema/ssdev/ssdev.xsd">
+
+    <!-- service register center -->
+    <ssdev:applicationDomain name="eh" registryAddress="${zk}" serverId="recipe"/>
+    <ssdev:connector url="${url}" deployHost="${deployHost}">
+        <ssdev:filter id="json"/>
+        <ssdev:filter id="urt"/>
+    </ssdev:connector>
+
+    <!-- pub/sub -->
+    <ssdev:publisher id="publisher"/>
+
+    <!-- log -->
+    <ssdev:logger type="broadcast">
+        <ssdev:serverNodeExDataBuilder id="datasourceExData"/>
+        <ssdev:serverNodePerfLogExDataBuilder id="datasourcePerfLogExData"/>
+    </ssdev:logger>
+
+    <!-- remote loader -->
+    <ssdev:reference interface="ctd.controller.ConfigurableLoader" id="eh.userRemoteLoader"/>
+    <ssdev:reference interface="ctd.controller.ConfigurableLoader" id="eh.roleRemoteLoader"/>
+    <ssdev:reference interface="ctd.controller.ConfigurableLoader" id="eh.accessTokenRemoteLoader"/>
+    <ssdev:reference interface="ctd.controller.ConfigurableLoader" id="eh.dictionaryRemoteLoader"/>
+    <ssdev:reference interface="ctd.controller.ConfigurableLoader" id="eh.appRemoteLoader"/>
+    <ssdev:reference interface="ctd.controller.ConfigurableLoader" id="eh.categoryNodeRemoteLoader"/>
+    <ssdev:reference interface="ctd.controller.ConfigurableLoader" id="eh.schemaRemoteLoader"/>
+    <ssdev:reference id="eh.tenantRemoteLoader" interface="ctd.controller.ConfigurableLoader"/>
+
+    <!-- remote updater -->
+    <ssdev:reference interface="ctd.controller.updater.ConfigurableItemUpdater" id="eh.userUpdater"/>
+    <ssdev:reference interface="ctd.controller.updater.ConfigurableUpdater" id="eh.roleUpdater"/>
+    <ssdev:reference interface="ctd.controller.updater.ConfigurableUpdater" id="eh.accessTokenUpdater"/>
+    <ssdev:reference interface="ctd.controller.updater.ConfigurableItemUpdater" id="eh.dictionaryUpdater"/>
+    <ssdev:reference interface="ctd.controller.updater.ConfigurableItemUpdater" id="eh.applicationUpdater"/>
+    <ssdev:reference interface="ctd.controller.updater.ConfigurableItemUpdater" id="eh.categoryNodeUpdater"/>
+    <ssdev:reference interface="ctd.controller.updater.ConfigurableItemUpdater" id="eh.schemaUpdater"/>
+    <ssdev:reference id="eh.tenantUpdater" interface="ctd.controller.updater.ConfigurableItemUpdater"/>
+
+    <!-- user -->
+    <bean id="userController" class="ctd.account.user.UserController">
+        <property name="loader" ref="eh.userRemoteLoader"/>
+        <property name="updater" ref="eh.userUpdater"/>
+    </bean>
+    <bean id="userWatcher" class="ctd.account.user.UserWatcher" lazy-init="false">
+        <property name="controller" ref="userController"/>
+    </bean>
+
+    <!-- role -->
+    <bean id="roleController" class="ctd.account.role.RoleController">
+        <property name="loader" ref="eh.roleRemoteLoader"/>
+        <property name="updater" ref="eh.roleUpdater"/>
+    </bean>
+    <bean id="roleWatcher" class="ctd.account.role.RoleWatcher" lazy-init="false">
+        <property name="controller" ref="roleController"/>
+    </bean>
+
+    <!-- accessToken -->
+    <bean id="accessTokenController" class="ctd.access.AccessTokenController">
+        <property name="loader" ref="eh.accessTokenRemoteLoader" />
+        <property name="updater" ref="eh.accessTokenUpdater" />
+    </bean>
+    <bean id="accessTokenWatcher" class="ctd.access.AccessTokenWatcher" lazy-init="false">
+        <property name="controller" ref="accessTokenController"/>
+    </bean>
+
+    <!-- dictionary -->
+    <bean id="dictionaryController" class="ctd.dictionary.DictionaryController">
+        <property name="loader" ref="eh.dictionaryRemoteLoader"/>
+        <property name="updater" ref="eh.dictionaryUpdater"/>
+    </bean>
+    <bean id="dictionaryWatcher" class="ctd.dictionary.DictionaryWatcher" lazy-init="false">
+        <property name="controller" ref="dictionaryController"/>
+    </bean>
+
+    <!-- application -->
+    <bean id="applicationController" class="ctd.app.ApplicationController">
+        <property name="loader" ref="eh.appRemoteLoader"/>
+        <property name="updater" ref="eh.applicationUpdater"/>
+    </bean>
+    <bean id="applicationWatcher" class="ctd.app.ApplicationWatcher" lazy-init="false">
+        <property name="controller" ref="applicationController"/>
+    </bean>
+
+    <!-- categoryNode -->
+    <bean id="categoryNodeController" class="ctd.security.CategoryNodeController">
+        <property name="loader" ref="eh.categoryNodeRemoteLoader"/>
+        <property name="updater" ref="eh.categoryNodeUpdater"/>
+    </bean>
+    <bean id="categoryNodeWatcher" class="ctd.security.CategoryNodeWatcher" lazy-init="false">
+        <property name="controller" ref="categoryNodeController"/>
+    </bean>
+
+    <!-- schema -->
+    <bean id="schemaController" class="ctd.schema.SchemaController">
+        <property name="loader" ref="eh.schemaRemoteLoader"/>
+        <property name="updater" ref="eh.schemaUpdater"/>
+    </bean>
+    <bean id="schemaWatcher" class="ctd.schema.SchemaWatcher" lazy-init="false">
+        <property name="controller" ref="schemaController"/>
+    </bean>
+
+    <!-- Tenant -->
+    <bean id="tenantController" class="ctd.account.tenant.TenantController">
+        <property name="loader" ref="eh.tenantRemoteLoader"/>
+        <property name="updater" ref="eh.tenantUpdater"/>
+    </bean>
+    <bean id="tenantWatcher" class="ctd.account.tenant.TenantWatcher">
+        <property name="controller" ref="tenantController"/>
+    </bean>
+
+    <!-- session updater -->
+    <bean class="ctd.account.session.SessionItemManager"/>
+</beans>
