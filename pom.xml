@@ -216,21 +216,4 @@
             <version>0.8.0</version>
         </dependency>
     </dependencies>
-    <profiles>
-        <profile>
-            <id>local</id>
-            <properties>
-                <env>local</env>
-            </properties>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-        </profile>
-        <profile>
-            <id>pro</id>
-            <properties>
-                <env>pro</env>
-            </properties>
-        </profile>
-    </profiles>
 </project>

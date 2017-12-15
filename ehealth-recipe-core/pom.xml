@@ -39,6 +39,23 @@
             <version>${project.parent.version}</version>
         </dependency>
     </dependencies>
+    <profiles>
+        <profile>
+            <id>local</id>
+            <properties>
+                <env>local</env>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>pro</id>
+            <properties>
+                <env>pro</env>
+            </properties>
+        </profile>
+    </profiles>
     <build>
         <filters>
             <filter>src/main/env/${env}-env.properties</filter>
@@ -59,16 +76,6 @@
             </resource>
         </resources>
         <plugins>
-            <plugin>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.0.0</version>
-                <configuration>
-                    <excludes>
-                        <exclude>*.xml</exclude>
-                        <exclude>*.properties</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
             <plugin>
                 <configuration>
                     <descriptors>
