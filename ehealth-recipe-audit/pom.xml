@@ -3,7 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>ehealth-recipe</artifactId>
+        <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
@@ -14,12 +14,12 @@
     <description>审核处方</description>
     <dependencies>
         <dependency>
-            <groupId>ngari</groupId>
+            <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-recipe-api</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
-            <groupId>ngari</groupId>
+            <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-recipe-common</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
