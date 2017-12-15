@@ -49,11 +49,6 @@
             <version>0.2.6-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>ssdev</groupId>
-            <artifactId>ssdev-mvc</artifactId>
-            <version>${ssdev.version}</version>
-        </dependency>
-        <dependency>
             <groupId>it.sauronsoftware</groupId>
             <artifactId>jave</artifactId>
             <version>1.0.3</version>
