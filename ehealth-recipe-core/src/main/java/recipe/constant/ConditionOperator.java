@@ -9,11 +9,11 @@ package recipe.constant;
 public class ConditionOperator
 {
 
-    public static String EQUAL = "=";
+    public static final String EQUAL = "=";
 
     public static String NOT_EQUAL = "<>";
 
-    public static String GREAT_EQUAL = ">=";
+    public static final String GREAT_EQUAL = ">=";
 
     public static String GREAT = ">";
 
@@ -21,9 +21,9 @@ public class ConditionOperator
 
     public static String LESS = "<";
 
-    public static String IN = "in";
+    public static final String IN = "in";
 
     public static String LIKE = "like";
 
-    public static String BETWEEN = "between";
+    public static final String BETWEEN = "between";
 }

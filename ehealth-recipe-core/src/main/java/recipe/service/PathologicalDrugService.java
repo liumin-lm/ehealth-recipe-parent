@@ -22,7 +22,7 @@ public class PathologicalDrugService {
     /**
      * logger
      */
-    private static final Logger logger = LoggerFactory.getLogger(PathologicalDrugService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PathologicalDrugService.class);
 
     @RpcService
     public List<DrugList> findPathologicalDrugList(PathologicalDrug pDrug, int start, int limit) {

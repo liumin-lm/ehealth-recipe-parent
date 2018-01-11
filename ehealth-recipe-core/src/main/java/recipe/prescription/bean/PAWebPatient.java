@@ -4,6 +4,7 @@ import java.util.List;
 
 /**
  * Created by jiangtingfeng on 2017/11/15.
+ * @author jiangtingfeng
  */
 public class PAWebPatient {
 
@@ -17,13 +18,19 @@ public class PAWebPatient {
 
     private String medicareType;
 
-    // 过敏信息
+    /**
+     * 过敏信息
+     */
     private List<AuditAllergy> allergies;
 
-    // 诊断信息
+    /**
+     * 诊断信息
+     */
     private List<AuditDiagnose> diagnoses;
 
-    // 检查单信息
+    /**
+     * 检查单信息
+     */
     private String prescription;
 
     public String getAdmNo() {

@@ -2,28 +2,43 @@ package recipe.prescription.bean;
 
 /**
  * Created by jiangtingfeng on 2017/11/2.
+ * @author jiangtingfeng
  */
 public class BaseData
 {
-    // 调用来源
+    /**
+     * 调用来源
+     */
     private int source;
 
-    // 医院编码
+    /**
+     * 医院编码
+     */
     private String hospCode;
 
-    // 科室代码
+    /**
+     * 科室代码
+     */
     private String deptCode;
 
-    // 科室名称
+    /**
+     * 科室名称
+     */
     private String deptName;
 
-    // 医生代码
+    /**
+     * 医生代码
+     */
     private String doctCode;
 
-    // 医生名称
+    /**
+     * 医生名称
+     */
     private String doctName;
 
-    // 医生级别
+    /**
+     * 医生级别
+     */
     private String doctType;
 
     public int getSource() {

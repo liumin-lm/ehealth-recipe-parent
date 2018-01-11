@@ -47,7 +47,7 @@ import java.util.Map;
 @RpcBean("recipeHisService")
 public class RecipeHisService extends RecipeBaseService {
 
-    private static final Logger logger = LoggerFactory.getLogger(RecipeHisService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecipeHisService.class);
 
     private IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
 
@@ -120,7 +120,7 @@ public class RecipeHisService extends RecipeBaseService {
             service.recipeSend(request);
         } else {
             result = false;
-            logger.error("recipeSendHis 医院HIS未启用[organId:" + sendOrganId + ",recipeId:" + recipeId + "]");
+            LOGGER.error("recipeSendHis 医院HIS未启用[organId:" + sendOrganId + ",recipeId:" + recipeId + "]");
         }
         return result;
     }
@@ -172,7 +172,7 @@ public class RecipeHisService extends RecipeBaseService {
             flag = service.recipeUpdate(request);
         } else {
             flag = false;
-            logger.error("recipeStatusUpdate 医院HIS未启用[organId:" + sendOrganId + ",recipeId:" + recipeId + "]");
+            LOGGER.error("recipeStatusUpdate 医院HIS未启用[organId:" + sendOrganId + ",recipeId:" + recipeId + "]");
         }
 
         return flag;
@@ -215,7 +215,7 @@ public class RecipeHisService extends RecipeBaseService {
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "同步HIS退款返回：" + backInfo);
         } else {
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "recipeRefund[RecipeRefundService] HIS未启用");
-            logger.error("recipeRefund 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipe.getRecipeId() + "]");
+            LOGGER.error("recipeRefund 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipe.getRecipeId() + "]");
         }
 
         return backInfo;
@@ -261,7 +261,7 @@ public class RecipeHisService extends RecipeBaseService {
             } else {
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "HIS更新购药方式返回：写入his失败");
                 if (!RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
-                    logger.error("HIS drugTake synchronize error. recipeId=" + recipeId);
+                    LOGGER.error("HIS drugTake synchronize error. recipeId=" + recipeId);
                     //配送到家同步失败则返回异常,医院取药不需要管，医院处方默认是医院取药
 //                        HisCallBackService.havePayFail(_dbRecipe.getRecipeId());
                     result.setCode(RecipeResultBean.FAIL);
@@ -283,7 +283,7 @@ public class RecipeHisService extends RecipeBaseService {
             }
         } else {
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "recipeDrugTake[DrugTakeUpdateService] HIS未启用");
-            logger.error("recipeDrugTake 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipe.getRecipeId() + "]");
+            LOGGER.error("recipeDrugTake 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipe.getRecipeId() + "]");
             result.setCode(RecipeResultBean.FAIL);
             result.setError("医院HIS未启用。");
         }
@@ -304,7 +304,7 @@ public class RecipeHisService extends RecipeBaseService {
             RecipeListQueryReqTO request = new RecipeListQueryReqTO(recipeCodes, organId);
             service.listQuery(request);
         } else {
-            logger.error("recipeListQuery 医院HIS未启用[organId:" + organId + ",recipeIds:" + JSONUtils.toString(recipeCodes) + "]");
+            LOGGER.error("recipeListQuery 医院HIS未启用[organId:" + organId + ",recipeIds:" + JSONUtils.toString(recipeCodes) + "]");
         }
     }
 
@@ -353,7 +353,7 @@ public class RecipeHisService extends RecipeBaseService {
         } else {
             result = false;
             RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.FINISH, RecipeStatusConstant.FINISH, "recipeFinish[RecipeStatusUpdateService] HIS未启用");
-            logger.error("recipeFinish 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipeId + "]");
+            LOGGER.error("recipeFinish 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipeId + "]");
         }
 
         return result;
@@ -383,10 +383,8 @@ public class RecipeHisService extends RecipeBaseService {
             RecipeListQueryReqTO request = new RecipeListQueryReqTO(recipe.getRecipeCode(), recipe.getClinicOrgan());
             Integer status = service.listSingleQuery(request);
             //审核通过的处方才能点击
-            if (Integer.valueOf(RecipeStatusConstant.CHECK_PASS).equals(status)) {
-
-            } else {
-                logger.error("recipeSingleQuery recipeId=" + recipeId + " not check pass status!");
+            if (!Integer.valueOf(RecipeStatusConstant.CHECK_PASS).equals(status)) {
+                LOGGER.error("recipeSingleQuery recipeId=" + recipeId + " not check pass status!");
                 if (null == status) {
                     backInfo = "医院接口异常，请稍后再试！";
                 } else {
@@ -394,7 +392,7 @@ public class RecipeHisService extends RecipeBaseService {
                 }
             }
         } else {
-            logger.error("recipeSingleQuery 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipeId + "]");
+            LOGGER.error("recipeSingleQuery 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipeId + "]");
             backInfo = "医院系统维护中！";
 
         }
@@ -428,7 +426,7 @@ public class RecipeHisService extends RecipeBaseService {
 
             return backList;
         } else {
-            logger.error("getDrugInfoFromHis 医院HIS未启用[organId:" + organId + "]");
+            LOGGER.error("getDrugInfoFromHis 医院HIS未启用[organId:" + organId + "]");
         }
 
         return null;
@@ -484,7 +482,7 @@ public class RecipeHisService extends RecipeBaseService {
                 }
             }
             if (CollectionUtils.isNotEmpty(emptyOrganCode)) {
-                logger.error("scanDrugStock 医院配置药品存在编号为空的数据. drugIdList={}", JSONUtils.toString(emptyOrganCode));
+                LOGGER.error("scanDrugStock 医院配置药品存在编号为空的数据. drugIdList={}", JSONUtils.toString(emptyOrganCode));
                 result.setCode(RecipeResultBean.FAIL);
                 result.setError("医院配置药品存在编号为空的数据");
                 return result;
@@ -496,9 +494,7 @@ public class RecipeHisService extends RecipeBaseService {
 //                result.setCode(RecipeResultBean.FAIL);
                 result.setError("HIS返回为NULL");
             } else {
-                if (Integer.valueOf(0).equals(response.getMsgCode())) {
-                    //校验通过
-                } else {
+                if (!Integer.valueOf(0).equals(response.getMsgCode())) {
                     String organCodeStr = response.getMsg();
                     List<String> nameList = new ArrayList<>();
                     if (StringUtils.isNotEmpty(organCodeStr)) {
@@ -509,13 +505,13 @@ public class RecipeHisService extends RecipeBaseService {
                     result.setCode(RecipeResultBean.FAIL);
                     result.setError(showMsg.toString());
                     result.setExtendValue("1");
-                    logger.error("scanDrugStock 存在无库存药品. response={} ", JSONUtils.toString(response));
+                    LOGGER.error("scanDrugStock 存在无库存药品. response={} ", JSONUtils.toString(response));
                 }
             }
         } else {
             result.setCode(RecipeResultBean.FAIL);
             result.setError("医院HIS未启用。");
-            logger.error("scanDrugStock 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipe.getRecipeId() + "]");
+            LOGGER.error("scanDrugStock 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipe.getRecipeId() + "]");
         }
 
         return result;
@@ -529,7 +525,7 @@ public class RecipeHisService extends RecipeBaseService {
      */
     private boolean skipHis(Recipe recipe) {
         if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
-            //TODO 中药，膏方处方目前不需要对接HIS
+            // 中药，膏方处方目前不需要对接HIS
             return true;
         }
 

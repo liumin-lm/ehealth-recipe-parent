@@ -57,7 +57,7 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
             num = drugListDAO.getSpecifyNum(organId, drugType);
         }
 
-        return num;
+        return num.longValue();
     }
 
     @RpcService

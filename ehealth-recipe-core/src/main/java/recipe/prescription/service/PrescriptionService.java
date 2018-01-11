@@ -23,12 +23,12 @@ import java.util.List;
 
 /**
  * 合理用药服务
- * Created by Chuwei on 2017/3/23.
+ * @author jiangtingfeng
  */
 @RpcBean("prescriptionService")
 public class PrescriptionService {
 
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(PrescriptionService.class);
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(PrescriptionService.class);
 
     /**
      * 医生在开处方时，校验合理用药
@@ -108,9 +108,10 @@ public class PrescriptionService {
         // 诊断信息
         List<AuditDiagnose> diagnoses = new ArrayList<>();
         // 多个诊断的情况
-        if (recipe.getOrganDiseaseName().contains(";")) {
-            String[] a = recipe.getOrganDiseaseName().split(";");
-            String[] b = recipe.getOrganDiseaseId().split(";");
+        String s = ";";
+        if (recipe.getOrganDiseaseName().contains(s)) {
+            String[] a = recipe.getOrganDiseaseName().split(s);
+            String[] b = recipe.getOrganDiseaseId().split(s);
             for (int i =0; i< a.length; i++) {
                 AuditDiagnose auditDiagnose = new AuditDiagnose();
                 auditDiagnose.setType(RecipeSystemConstant.IDC10_DIAGNOSE_TYPE);

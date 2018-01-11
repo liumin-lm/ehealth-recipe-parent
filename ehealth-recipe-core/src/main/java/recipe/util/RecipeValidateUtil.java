@@ -43,7 +43,8 @@ public class RecipeValidateUtil {
             throw new DAOException(DAOException.VALUE_NEEDED,
                     "drugId is required!");
         }
-        if (detail.getUseDose() == null || detail.getUseDose() <= 0d) {
+        double d = 0d;
+        if (detail.getUseDose() == null || detail.getUseDose() <= d) {
             throw new DAOException(DAOException.VALUE_NEEDED,
                     "useDose is required!");
         }
@@ -53,7 +54,7 @@ public class RecipeValidateUtil {
                 throw new DAOException(DAOException.VALUE_NEEDED,
                         "useDays is required!");
             }
-            if (detail.getUseTotalDose() == null || detail.getUseTotalDose() <= 0d) {
+            if (detail.getUseTotalDose() == null || detail.getUseTotalDose() <= d) {
                 throw new DAOException(DAOException.VALUE_NEEDED,
                         "useTotalDose is required!");
             }
@@ -105,7 +106,8 @@ public class RecipeValidateUtil {
         }
 
         //判断诊断备注是否超过50字
-        if (StringUtils.isNotEmpty(recipe.getMemo()) && recipe.getMemo().length() > 50) {
+        int i = 50;
+        if (StringUtils.isNotEmpty(recipe.getMemo()) && recipe.getMemo().length() > i) {
             throw new DAOException("备注内容字数限制50字");
         }
 
@@ -123,7 +125,7 @@ public class RecipeValidateUtil {
 
         PatientBean patient = iPatientService.get(recipe.getMpiid());
         //解决旧版本因为wx2.6患者身份证为null，而业务申请不成功
-        if (patient == null || StringUtils.isEmpty(patient.getIdcard())) {
+        if (patient == null || StringUtils.isEmpty(patient.getCertificate())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该患者还未填写身份证信息，不能开处方");
         }
 

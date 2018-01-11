@@ -1,6 +1,6 @@
 package recipe.util;
 
-import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
 import ctd.util.JSONUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -19,6 +19,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.constant.RecipeSystemConstant;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,9 +28,12 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
 
+/**
+ * @author yuyun
+ */
 public class HttpHelper
 {
-    private static final Logger log = LoggerFactory.getLogger(HttpHelper.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpHelper.class);
 
     public static String sendPostRequest(String url, Map<String, String> headers, String requestParamsJsonString) throws IOException {
         CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -55,22 +59,30 @@ public class HttpHelper
             response.close();
             return result;
         } catch (IOException e) {
-            log.error("sendPostRequest exception, errorMessage[{}], stackTrace[{}]", e.getMessage(), JSONObject.toJSONString(e.getStackTrace()));
+            LOGGER.error("sendPostRequest exception, error ", e);
             throw e;
         }
     }
 
     public static String getHttpResult(String urlvalue) {
         String inputLine = "";
-
+        BufferedReader in = null;
         try {
             URL url = new URL(urlvalue);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-            BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection
-                    .getInputStream()));
-            inputLine = in.readLine().toString();
+            in = new BufferedReader(new InputStreamReader(urlConnection
+                    .getInputStream(), RecipeSystemConstant.DEFAULT_CHARACTER_ENCODING));
+            inputLine = in.readLine();
         } catch (Exception e) {
-            log.error("getHttpResult"+e);
+            LOGGER.error("getHttpResult"+e);
+        }  finally {
+            try {
+                if (in != null) {
+                    in.close();
+                }
+            } catch (IOException e) {
+                LOGGER.error("error", e);
+            }
         }
 
         return inputLine;
@@ -104,14 +116,14 @@ public class HttpHelper
         CloseableHttpClient httpclient = HttpClients.createDefault();
         HttpPost httpPost = new HttpPost(uri);
         //拼接参数
-        List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+        List<NameValuePair> nvps = Lists.newArrayList();
         nvps.add(new BasicNameValuePair("username", "vip"));
         nvps.add(new BasicNameValuePair("password", "secret"));
         HttpEntity entity = new StringEntity(JSONUtils.toString(dataMap), ContentType.APPLICATION_JSON);
         httpPost.setEntity(entity);
         CloseableHttpResponse response2 = httpclient.execute(httpPost);
         try {
-            log.info("doPost.response2.getStatusLine()="+response2.getStatusLine());
+            LOGGER.info("doPost.response2.getStatusLine()="+response2.getStatusLine());
             HttpEntity entity2 = response2.getEntity();
 
             // do something useful with the response body
@@ -131,7 +143,7 @@ public class HttpHelper
         // HttpEntity entity=new StringEntity(JSONUtils.toString(dataMap), ContentType.APPLICATION_JSON);
         CloseableHttpResponse response2 = httpclient.execute(httpGet);
         try {
-            log.info("doGet.response2.getStatusLine()="+response2.getStatusLine());
+            LOGGER.info("doGet.response2.getStatusLine()="+response2.getStatusLine());
             HttpEntity entity2 = response2.getEntity();
 
             // do something useful with the response body

@@ -9,12 +9,15 @@ import org.joda.time.format.DateTimeFormat;
 import java.util.Date;
 import java.util.regex.Pattern;
 
+/**
+ * @author yuyun
+ */
 public class ChinaIDNumberUtil
 {
-	private static final Pattern pattern = Pattern.compile("[0-9]{17}");
-	private static final char[] validateCodes = { '1', '0', 'X', '9', '8', '7',
+	private static final Pattern PATTERN = Pattern.compile("[0-9]{17}");
+	private static final char[] VALIDATE_CODES = { '1', '0', 'X', '9', '8', '7',
 			'6', '5', '4', '3', '2' };
-	private static final int[] wi = { 7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10,
+	private static final int[] WI = { 7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10,
 			5, 8, 4, 2 };
 
 	public static String convert15To18(String rawIdNumber)
@@ -27,17 +30,21 @@ public class ChinaIDNumberUtil
 			suffix="-"+suffix;
 		}
 		int len = idNumber.length();
-		if (!(len == 15 || len == 18)) {
+		int len15 = 15;
+		int len17 = 17;
+		int len18 = 18;
+		int age120 = 120;
+		if (!(len == len15 || len == len18)) {
 			throw new ValidateException("lenth!= 15 or 18");
 		}
 		String ai = "";
 		ai = idNumber.substring(0, 6) + "19" + idNumber.substring(6, 15);
-		if (len == 18) {
+		if (len == len18) {
 			ai = idNumber.substring(0, 17);
 		} else {
 			ai = idNumber.substring(0, 6) + "19" + idNumber.substring(6, 15);
 		}
-		if (!pattern.matcher(ai).matches()) {
+		if (!PATTERN.matcher(ai).matches()) {
 			throw new ValidateException("[0-17] must be number");
 		}
 
@@ -47,19 +54,19 @@ public class ChinaIDNumberUtil
 					.parseLocalDate(birth);
 			LocalDate now = new LocalDate();
 			int age = Years.yearsBetween(birthDay, now).getYears();
-			if (age < 0 || age > 120) {
+			if (age < 0 || age > age120) {
 				throw new ValidateException("BirthdayOverflow[" + birth + "]");
 			}
 		} catch (RuntimeException e) {
 			throw new ValidateException("BirthdayDateInvaid[" + birth + "]");
 		}
 		int sum = 0;
-		for (int i = 0; i < 17; i++) {
-			sum += Integer.parseInt(String.valueOf(ai.charAt(i))) * wi[i];
+		for (int i = 0; i < len17; i++) {
+			sum += Integer.parseInt(String.valueOf(ai.charAt(i))) * WI[i];
 		}
 		int mod = sum % 11;
-		char c = validateCodes[mod];
-		if (idNumber.length() == 18 && idNumber.charAt(17) != c) {
+		char c = VALIDATE_CODES[mod];
+		if (idNumber.length() == len18 && idNumber.charAt(len17) != c) {
 			throw new ValidateException("validatecode was wrong!");
 
 		}
@@ -116,7 +123,7 @@ public class ChinaIDNumberUtil
 	 */
 	public static Integer getAgeFromIDNumber(String idNumber) throws ValidateException{
 		isValidIDNumber(idNumber);
-		
+		int age120 = 120;
 		String birth = idNumber.substring(6, 14);
 		Integer age;
 		try {
@@ -124,7 +131,7 @@ public class ChinaIDNumberUtil
 					.parseLocalDate(birth);
 			LocalDate now = new LocalDate();
 			age = Years.yearsBetween(birthDay, now).getYears();
-			if (age < 0 || age > 120) {
+			if (age < 0 || age > age120) {
 				throw new ValidateException("BirthdayOverflow[" + birth + "]");
 			}
 		} catch (RuntimeException e) {
@@ -136,7 +143,8 @@ public class ChinaIDNumberUtil
 	
 	private static void isValidIDNumber(String idNumber) throws ValidateException {
 		int len = idNumber.length();
-		if (len != 18) {
+		int len18 = 18;
+		if (len != len18) {
 			throw new ValidateException("lenth!=18");
 		}
 	}

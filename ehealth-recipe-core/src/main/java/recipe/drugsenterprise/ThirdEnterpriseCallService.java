@@ -1,6 +1,7 @@
 package recipe.drugsenterprise;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -38,20 +39,24 @@ import java.util.*;
 /**
  * 第三方药企调用接口,历史原因存在一些平台的接口
  * company: ngarihealth
- * author: 0184/yu_yun
- * date:2017/4/20.
+ * @author: 0184/yu_yun
+ * @date:2017/4/20.
  */
 @RpcBean("takeDrugService")
 public class ThirdEnterpriseCallService {
 
-    private static final Logger logger = LoggerFactory.getLogger(ThirdEnterpriseCallService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ThirdEnterpriseCallService.class);
 
     public static final Integer REQUEST_OK = 200;
 
-    //重复调用
+    /**
+     * 重复调用
+     */
     private static final int REQUEST_ERROR_REAPET = 222;
 
-    //请求参数不正确
+    /**
+     * 请求参数不正确
+     */
     private static final int REQUEST_ERROR = 412;
 
     /**
@@ -61,7 +66,7 @@ public class ThirdEnterpriseCallService {
      */
     @RpcService
     public ThirdResultBean readyToSend(Map<String, Object> paramMap) {
-        logger.info("readyToSend param : " + JSONUtils.toString(paramMap));
+        LOGGER.info("readyToSend param : " + JSONUtils.toString(paramMap));
 
         ThirdResultBean backMsg = ThirdResultBean.getFail();
         int code = validateRecipe(paramMap, backMsg, RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.WAIT_SEND);
@@ -70,7 +75,7 @@ public class ThirdEnterpriseCallService {
             backMsg.setCode(REQUEST_OK);
             return backMsg;
         } else if (REQUEST_ERROR == code) {
-            logger.error("recipeId=[{}], readyToSend:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
+            LOGGER.error("recipeId=[{}], readyToSend:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
             return backMsg;
         }
 
@@ -83,10 +88,11 @@ public class ThirdEnterpriseCallService {
         //此处为发药人
         String sender = MapValueUtil.getString(paramMap, "sender");
 
-        Map<String, Object> attrMap = new HashMap<>();
+        Map<String, Object> attrMap = Maps.newHashMap();
         attrMap.put("startSendDate", DateConversion.parseDate(sendDateStr, DateConversion.DEFAULT_DATE_TIME));
         attrMap.put("sender", sender);
-        attrMap.put("remindFlag", 1);    //以免进行处方失效前提醒
+        //以免进行处方失效前提醒
+        attrMap.put("remindFlag", 1);
         //更新处方信息
         Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.WAIT_SEND, attrMap);
 
@@ -133,7 +139,7 @@ public class ThirdEnterpriseCallService {
                         Double tax;
                         Double totalRatePrice;
                         for (HashMap<String, Object> detailMap : detailList) {
-                            detailAttrMap = new HashMap<>();
+                            detailAttrMap = Maps.newHashMap();
                             if (drugSearchFlag) {
                                 dtlId = detailIdAndDrugId.get(MapValueUtil.getInteger(detailMap, "drugId"));
                             } else {
@@ -173,8 +179,8 @@ public class ThirdEnterpriseCallService {
                             }
 
                             if (null != dtlId) {
-                                boolean _detailRs = recipeDetailDAO.updateRecipeDetailByRecipeDetailId(dtlId, detailAttrMap);
-                                if (_detailRs) {
+                                boolean detailRs1 = recipeDetailDAO.updateRecipeDetailByRecipeDetailId(dtlId, detailAttrMap);
+                                if (detailRs1) {
                                     detailRs = true;
                                 } else {
                                     detailRs = false;
@@ -199,7 +205,7 @@ public class ThirdEnterpriseCallService {
         backMsg.setCode(code);
         backMsg.setMsg(errorMsg);
         backMsg.setRecipe(null);
-        logger.info("readyToSend:" + JSONUtils.toString(backMsg));
+        LOGGER.info("readyToSend:" + JSONUtils.toString(backMsg));
 
         return backMsg;
     }
@@ -212,7 +218,7 @@ public class ThirdEnterpriseCallService {
      */
     @RpcService
     public ThirdResultBean toSend(Map<String, Object> paramMap) {
-        logger.info("toSend param : " + JSONUtils.toString(paramMap));
+        LOGGER.info("toSend param : " + JSONUtils.toString(paramMap));
 
         ThirdResultBean backMsg = ThirdResultBean.getFail();
         int code = validateRecipe(paramMap, backMsg, RecipeStatusConstant.WAIT_SEND, RecipeStatusConstant.IN_SEND);
@@ -221,12 +227,12 @@ public class ThirdEnterpriseCallService {
             backMsg.setCode(REQUEST_OK);
             return backMsg;
         } else if (REQUEST_ERROR == code) {
-            logger.error("recipeId=[{}], toSend:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
+            LOGGER.error("recipeId=[{}], toSend:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
             return backMsg;
         }
 
         sendImpl(backMsg, paramMap);
-        logger.info("toSend:" + JSONUtils.toString(backMsg));
+        LOGGER.info("toSend:" + JSONUtils.toString(backMsg));
 
         return backMsg;
     }
@@ -239,17 +245,18 @@ public class ThirdEnterpriseCallService {
      */
     @RpcService
     public List<ThirdResultBean> send(List<Map<String, Object>> list) {
-        logger.info("send param : " + JSONUtils.toString(list));
+        LOGGER.info("send param : " + JSONUtils.toString(list));
 
         List<ThirdResultBean> result = new ArrayList<>();
         for(Map<String, Object> paramMap : list){
             ThirdResultBean thirdResultBean = ThirdResultBean.getFail();
+            thirdResultBean.setRecipeCode(MapValueUtil.getString(paramMap, "recipeCode"));
             int code = validateRecipe(paramMap, thirdResultBean, RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.IN_SEND);
 
             if (REQUEST_ERROR_REAPET == code) {
                 thirdResultBean.setCode(REQUEST_OK);
             } else if (REQUEST_ERROR == code) {
-                logger.error("recipeId=[{}], send:{}", thirdResultBean.getBusId(), JSONUtils.toString(thirdResultBean));
+                LOGGER.error("recipeId=[{}], send:{}", thirdResultBean.getBusId(), JSONUtils.toString(thirdResultBean));
             } else if (REQUEST_OK == code) {
                 sendImpl(thirdResultBean, paramMap);
             }
@@ -278,9 +285,11 @@ public class ThirdEnterpriseCallService {
         //此处为配送人
         String sender = MapValueUtil.getString(paramMap, "sender");
 
-        Map<String, Object> attrMap = new HashMap<>();
+        Map<String, Object> attrMap = Maps.newHashMap();
         attrMap.put("sendDate", sendDate);
         attrMap.put("sender", sender);
+        //以免进行处方失效前提醒
+        attrMap.put("remindFlag", 1);
         String recipeFeeStr = MapValueUtil.getString(paramMap, "recipeFee");
         if (StringUtils.isNotEmpty(recipeFeeStr)) {
             attrMap.put("totalMoney", new BigDecimal(recipeFeeStr));
@@ -300,13 +309,13 @@ public class ThirdEnterpriseCallService {
             orderAttr.put("trackingNumber", trackingNumber);
             orderService.finishOrder(recipe.getOrderCode(), recipe.getPayMode(), orderAttr);
             RecipeResultBean resultBean = orderService.updateOrderInfo(recipe.getOrderCode(), orderAttr, null);
-            logger.info("toSend 订单更新 result={}", JSONUtils.toString(resultBean));
+            LOGGER.info("toSend 订单更新 result={}", JSONUtils.toString(resultBean));
 
             String company = logisticsCompany;
             try {
                 company = DictionaryController.instance().get("eh.cdr.dictionary.LogisticsCompany").getText(logisticsCompany);
             } catch (ControllerException e) {
-                logger.error("toSend get logisticsCompany error. logisticsCompany=" + logisticsCompany);
+                LOGGER.error("toSend get logisticsCompany error. logisticsCompany=" + logisticsCompany);
             }
             //记录日志
             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.IN_SEND, "配送中,配送人：" + sender
@@ -329,7 +338,7 @@ public class ThirdEnterpriseCallService {
      */
     @RpcService
     public ThirdResultBean finishRecipe(Map<String, Object> paramMap) {
-        logger.info("finishRecipe param : " + JSONUtils.toString(paramMap));
+        LOGGER.info("finishRecipe param : " + JSONUtils.toString(paramMap));
 
         ThirdResultBean backMsg = ThirdResultBean.getFail();
         int code = validateRecipe(paramMap, backMsg, RecipeStatusConstant.IN_SEND, RecipeStatusConstant.FINISH);
@@ -338,7 +347,7 @@ public class ThirdEnterpriseCallService {
             backMsg.setCode(REQUEST_OK);
             return backMsg;
         } else if (REQUEST_ERROR == code) {
-            logger.error("recipeId=[{}], finishRecipe:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
+            LOGGER.error("recipeId=[{}], finishRecipe:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
             return backMsg;
         }
 
@@ -351,9 +360,9 @@ public class ThirdEnterpriseCallService {
         //此处为配送人
         String sender = MapValueUtil.getString(paramMap, "sender");
 
-        Map<String, Object> attrMap = new HashMap<>();
-        attrMap.put("giveDate", (StringUtils.isEmpty(sendDateStr) ? DateTime.now().toDate() :
-                DateConversion.parseDate(sendDateStr, DateConversion.DEFAULT_DATE_TIME)));
+        Map<String, Object> attrMap = Maps.newHashMap();
+        attrMap.put("giveDate", StringUtils.isEmpty(sendDateStr) ? DateTime.now().toDate() :
+                DateConversion.parseDate(sendDateStr, DateConversion.DEFAULT_DATE_TIME));
         attrMap.put("giveFlag", 1);
         attrMap.put("giveUser", sender);
         //如果是货到付款还要更新付款时间和付款状态
@@ -395,7 +404,7 @@ public class ThirdEnterpriseCallService {
         backMsg.setCode(code);
         backMsg.setMsg(errorMsg);
         backMsg.setRecipe(null);
-        logger.info("finishRecipe:" + JSONUtils.toString(backMsg));
+        LOGGER.info("finishRecipe:" + JSONUtils.toString(backMsg));
 
         return backMsg;
     }
@@ -408,13 +417,13 @@ public class ThirdEnterpriseCallService {
      */
     @RpcService
     public ThirdResultBean updateRecipeInfo(Map<String, Object> paramMap) {
-        logger.info("updateRecipeInfo param : " + JSONUtils.toString(paramMap));
+        LOGGER.info("updateRecipeInfo param : " + JSONUtils.toString(paramMap));
 
         ThirdResultBean backMsg = ThirdResultBean.getFail();
         int code = validateRecipe(paramMap, backMsg, null, null);
 
         if (REQUEST_OK != code) {
-            logger.error("recipeId=[{}], updateRecipeInfo:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
+            LOGGER.error("recipeId=[{}], updateRecipeInfo:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
             return backMsg;
         }
 
@@ -447,7 +456,7 @@ public class ThirdEnterpriseCallService {
                     String invoiceNo;
                     Date invoiceDate;
                     for (HashMap<String, Object> detailMap : detailList) {
-                        detailAttrMap = new HashMap<>();
+                        detailAttrMap = Maps.newHashMap();
                         if (drugSearchFlag) {
                             dtlId = detailIdAndDrugId.get(MapValueUtil.getInteger(detailMap, "drugId"));
                         } else {
@@ -461,8 +470,8 @@ public class ThirdEnterpriseCallService {
                         detailAttrMap.put("invoiceDate", invoiceDate);
 
                         if (null != dtlId) {
-                            boolean _detailRs = recipeDetailDAO.updateRecipeDetailByRecipeDetailId(dtlId, detailAttrMap);
-                            if (_detailRs) {
+                            boolean detailRs1 = recipeDetailDAO.updateRecipeDetailByRecipeDetailId(dtlId, detailAttrMap);
+                            if (detailRs1) {
                                 detailRs = true;
                             } else {
                                 detailRs = false;
@@ -500,7 +509,7 @@ public class ThirdEnterpriseCallService {
         backMsg.setCode(code);
         backMsg.setMsg(errorMsg);
         backMsg.setRecipe(null);
-        logger.info("updateRecipeInfo:" + JSONUtils.toString(backMsg));
+        LOGGER.info("updateRecipeInfo:" + JSONUtils.toString(backMsg));
 
         return backMsg;
     }
@@ -513,11 +522,11 @@ public class ThirdEnterpriseCallService {
      */
     @RpcService
     public Map<String, Object> setDrugInventory(Map<String, Object> paramMap) {
-        logger.info("setDrugInventory param : " + JSONUtils.toString(paramMap));
+        LOGGER.info("setDrugInventory param : " + JSONUtils.toString(paramMap));
 
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
 
-        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> map = Maps.newHashMap();
         int code = REQUEST_OK;
         String msg = "";
 
@@ -564,13 +573,13 @@ public class ThirdEnterpriseCallService {
      */
     @RpcService
     public ThirdResultBean recordDrugStoreResult(Map<String, Object> paramMap) {
-        logger.info("recordDrugStoreResult param : " + JSONUtils.toString(paramMap));
+        LOGGER.info("recordDrugStoreResult param : " + JSONUtils.toString(paramMap));
 
         ThirdResultBean backMsg = ThirdResultBean.getFail();
         int code = validateRecipe(paramMap, backMsg, null, null);
 
         if (REQUEST_OK != code) {
-            logger.error("recipeId=[{}], recordDrugStoreResult:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
+            LOGGER.error("recipeId=[{}], recordDrugStoreResult:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
             return backMsg;
         }
 
@@ -582,14 +591,15 @@ public class ThirdEnterpriseCallService {
         Recipe recipe = backMsg.getRecipe();
         Integer recipeId = recipe.getRecipeId();
         String errorMsg = "";
-        Map<String, Object> attrMap = new HashMap<>();
+        Map<String, Object> attrMap = Maps.newHashMap();
         String sendDateStr = MapValueUtil.getString(paramMap, "sendDate");
         String result = MapValueUtil.getString(paramMap, "result");
-        if ("1".equals(result)) {
+        String result1 = "1";
+        if (result1.equals(result)) {
             //取药成功
             //修改处方单信息
-            attrMap.put("giveDate", (StringUtils.isEmpty(sendDateStr) ? DateTime.now().toDate() :
-                    DateConversion.parseDate(sendDateStr, DateConversion.DEFAULT_DATE_TIME)));
+            attrMap.put("giveDate", StringUtils.isEmpty(sendDateStr) ? DateTime.now().toDate() :
+                    DateConversion.parseDate(sendDateStr, DateConversion.DEFAULT_DATE_TIME));
             attrMap.put("giveFlag", 1);
             attrMap.put("payFlag", 1);
             attrMap.put("payDate", attrMap.get("giveDate"));
@@ -630,7 +640,7 @@ public class ThirdEnterpriseCallService {
         backMsg.setCode(code);
         backMsg.setMsg(errorMsg);
         backMsg.setRecipe(null);
-        logger.info("recordDrugStoreResult:" + JSONUtils.toString(backMsg));
+        LOGGER.info("recordDrugStoreResult:" + JSONUtils.toString(backMsg));
 
         return backMsg;
     }
@@ -643,13 +653,13 @@ public class ThirdEnterpriseCallService {
      */
     @RpcService
     public ThirdResultBean userConfirm(Map<String, Object> paramMap) {
-        logger.info("userConfirm param : " + JSONUtils.toString(paramMap));
+        LOGGER.info("userConfirm param : " + JSONUtils.toString(paramMap));
 
         ThirdResultBean backMsg = ThirdResultBean.getFail();
         int code = validateRecipe(paramMap, backMsg, null, null);
 
         if (REQUEST_OK != code) {
-            logger.error("recipeId=[{}], userConfirm:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
+            LOGGER.error("recipeId=[{}], userConfirm:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
             return backMsg;
         }
 
@@ -658,7 +668,8 @@ public class ThirdEnterpriseCallService {
         backMsg.setMsg("");
         String errorMsg = "";
         String result = MapValueUtil.getString(paramMap, "result");
-        if ("1".equals(result)) {
+        String result1 = "1";
+        if (result1.equals(result)) {
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
             RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -666,10 +677,12 @@ public class ThirdEnterpriseCallService {
             String sendMethod = MapValueUtil.getString(paramMap, "sendMethod");
             RecipeOrder order = null;
             Integer payMode = null;
+            String sendMethod0 = "0";
+            String sendMethod1 = "1";
             if (StringUtils.isNotEmpty(sendMethod)) {
-                if ("0".equals(sendMethod)) {
+                if (sendMethod0.equals(sendMethod)) {
                     payMode = RecipeBussConstant.PAYMODE_COD;
-                } else if ("1".equals(sendMethod)) {
+                } else if (sendMethod1.equals(sendMethod)) {
                     payMode = RecipeBussConstant.PAYMODE_TFDS;
                 } else {
                     code = REQUEST_ERROR;
@@ -691,7 +704,7 @@ public class ThirdEnterpriseCallService {
             }
 
             if (REQUEST_OK == code) {
-                Map<String, Object> orderAttrMap = new HashMap<>();
+                Map<String, Object> orderAttrMap = Maps.newHashMap();
 
                 String receiver = MapValueUtil.getString(paramMap, "receiver");
                 String mobile = MapValueUtil.getString(paramMap, "recMobile");
@@ -795,7 +808,7 @@ public class ThirdEnterpriseCallService {
                     String appid = MapValueUtil.getString(paramMap, "appid");
                     if (StringUtils.isNotEmpty(appid)) {
                         IWXServiceInterface wxService = ApplicationUtils.getService(IWXServiceInterface.class, "wxService");
-                        Map<String, String> paramsMap = new HashMap<>();
+                        Map<String, String> paramsMap = Maps.newHashMap();
                         paramsMap.put("module", "orderList");
 //                        paramsMap.put("cid", order.getOrderId().toString());
                         String wxUrl = wxService.getSinglePageUrl(appid, paramsMap);
@@ -814,7 +827,7 @@ public class ThirdEnterpriseCallService {
             backMsg.setMsg(errorMsg);
         }
         backMsg.setRecipe(null);
-        logger.info("userConfirm:" + JSONUtils.toString(backMsg));
+        LOGGER.info("userConfirm:" + JSONUtils.toString(backMsg));
 
         return backMsg;
     }
@@ -847,12 +860,14 @@ public class ThirdEnterpriseCallService {
             recipe = recipeDAO.getByRecipeId(recipeId);
         } else {
             Integer organId = MapValueUtil.getInteger(paramMap, "organId");
-            String recipeCodeStr = MapValueUtil.getString(paramMap, "recipeCode");//该编号有可能组成: 机构ID-处方编号
+            //该编号有可能组成: 机构ID-处方编号
+            String recipeCodeStr = MapValueUtil.getString(paramMap, "recipeCode");
             if (StringUtils.isNotEmpty(recipeCodeStr)) {
                 if (recipeCodeStr.contains(YsqRemoteService.YSQ_SPLIT)) {
                     String[] recipeCodeInfo = recipeCodeStr.split(
                             YsqRemoteService.YSQ_SPLIT);
-                    if (null != recipeCodeInfo && 2 == recipeCodeInfo.length) {
+                    Integer length2 = 2;
+                    if (null != recipeCodeInfo && length2 == recipeCodeInfo.length) {
                         organId = Integer.parseInt(recipeCodeInfo[0]);
                         recipeCodeStr = recipeCodeInfo[1];
                     }
@@ -906,8 +921,8 @@ public class ThirdEnterpriseCallService {
      * @return
      */
     private Map getOrderInfoMap(Recipe recipe, Map<String, Object> paramMap) {
-        Map<String, Object> attrMap = new HashMap<>();
-        //TODO 由于只有钥世圈在用，所以实际支付价格跟总价一致，无需考虑优惠券
+        Map<String, Object> attrMap = Maps.newHashMap();
+        // 由于只有钥世圈在用，所以实际支付价格跟总价一致，无需考虑优惠券
         if (!RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode()) && !RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
             return attrMap;
         }
@@ -942,7 +957,7 @@ public class ThirdEnterpriseCallService {
             Integer goodId;
             BigDecimal salePrice;
             BigDecimal drugCost;
-            Map<String, Object> changeAttr = new HashMap<>();
+            Map<String, Object> changeAttr = Maps.newHashMap();
             for (Map<String, String> detailInfo : list) {
                 changeAttr.clear();
                 goodId = MapValueUtil.getInteger(detailInfo, "goodId");
@@ -1018,7 +1033,7 @@ public class ThirdEnterpriseCallService {
         if (null == drugsEnterprise) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "DrugsEnterprise is null");
         }
-        logger.info(JSONUtils.toString(drugsEnterprise));
+        LOGGER.info(JSONUtils.toString(drugsEnterprise));
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise target = drugsEnterpriseDAO.get(drugsEnterprise.getId());
         if (null == target) {

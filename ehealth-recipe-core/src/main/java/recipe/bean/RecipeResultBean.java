@@ -35,14 +35,6 @@ public class RecipeResultBean implements Serializable {
 
     private DepStyleBean style;
 
-    public Map<String, String> getExt() {
-        return ext;
-    }
-
-    public void setExt(Map<String, String> ext) {
-        this.ext = ext;
-    }
-
     public RecipeResultBean() {
     }
 
@@ -104,6 +96,14 @@ public class RecipeResultBean implements Serializable {
 
     public void setExtendValue(String extendValue) {
         this.extendValue = extendValue;
+    }
+
+    public Map<String, String> getExt() {
+        return ext;
+    }
+
+    public void setExt(Map<String, String> ext) {
+        this.ext = ext;
     }
 
     public DepStyleBean getStyle() {

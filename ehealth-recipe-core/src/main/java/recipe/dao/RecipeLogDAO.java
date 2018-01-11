@@ -12,13 +12,13 @@ import java.util.List;
 /**
  * 处方流程记录
  * company: ngarihealth
- * author: 0184/yu_yun
- * date:2016/4/29.
+ * @author: 0184/yu_yun
+ * @date:2016/4/29.
  */
 @RpcSupportDAO
 public abstract class RecipeLogDAO extends HibernateSupportDelegateDAO<RecipeLog> {
 
-    private static final Log logger = LogFactory.getLog(RecipeLogDAO.class);
+    private static final Log LOGGER = LogFactory.getLog(RecipeLogDAO.class);
 
     public RecipeLogDAO() {
         super();
@@ -31,6 +31,11 @@ public abstract class RecipeLogDAO extends HibernateSupportDelegateDAO<RecipeLog
         return true;
     }
 
+    /**
+     * 根据处方id查询
+     * @param recipeId
+     * @return
+     */
     @DAOMethod(orderBy = " id asc")
     public abstract List<RecipeLog> findByRecipeId(Integer recipeId);
 

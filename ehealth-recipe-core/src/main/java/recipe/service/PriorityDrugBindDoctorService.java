@@ -33,10 +33,10 @@ import java.util.*;
  * @author jiangtingfeng
  * @date 2017/10/23.
  */
-@RpcBean("priorityDrugBindDoctorService")
+@RpcBean(value = "priorityDrugBindDoctorService", mvc_authentication = false)
 public class PriorityDrugBindDoctorService
 {
-    private static final Log logger = LogFactory.getLog(PriorityDrugBindDoctorService.class);
+    private static final Log LOGGER = LogFactory.getLog(PriorityDrugBindDoctorService.class);
 
     /**
      * 获取重点药品信息
@@ -78,7 +78,7 @@ public class PriorityDrugBindDoctorService
         IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
         List<Map<String, Object>> result = Lists.newArrayList();
 
-        logger.info("Enter PriorityDrugBindDoctorService.getDoctorsForDishingOutDrug " +
+        LOGGER.info("Enter PriorityDrugBindDoctorService.getDoctorsForDishingOutDrug " +
             "GetPriorityDrugsTO = " + getPriorityDrugsTO);
 
         if (null == getPriorityDrugsTO || null == getPriorityDrugsTO.getDrugId()){

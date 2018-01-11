@@ -24,7 +24,7 @@ import java.util.List;
 @RpcBean("recipeLogService")
 public class RecipeLogService {
 
-    private static final Log logger = LogFactory.getLog(RecipeLogService.class);
+    private static final Log LOGGER = LogFactory.getLog(RecipeLogService.class);
 
     /**
      * 保存处方操作记录
@@ -46,7 +46,7 @@ public class RecipeLogService {
         }
         log.setMemo(StringUtils.defaultString(log.getMemo(), ""));
         log.setExpand(StringUtils.defaultString(log.getExpand(), ""));
-        logger.info("saveRecipeLog : " + JSONUtils.toString(log));
+        LOGGER.info("saveRecipeLog : " + JSONUtils.toString(log));
         dao.saveRecipeLog(log);
     }
 

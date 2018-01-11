@@ -1,6 +1,5 @@
 package recipe.service;
 
-import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +16,8 @@ import java.util.List;
  */
 public class RecipeBaseService {
 
-    /** logger */
-    private static final Logger logger = LoggerFactory.getLogger(RecipeBaseService.class);
+    /** LOGGER */
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecipeBaseService.class);
 
 
     /**
@@ -37,10 +36,10 @@ public class RecipeBaseService {
                 copyProperties(dest, origin);
             } catch (InstantiationException e) {
                 dest = null;
-                logger.error("InstantiationException getBean error. statck={}", JSONUtils.toString(e.getStackTrace()));
+                LOGGER.error("InstantiationException getBean error ", e);
             } catch (IllegalAccessException e) {
                 dest = null;
-                logger.error("IllegalAccessException getBean error. statck={}", JSONUtils.toString(e.getStackTrace()));
+                LOGGER.error("IllegalAccessException getBean error ", e);
             }
         }
 
@@ -61,7 +60,7 @@ public class RecipeBaseService {
         try {
             BeanUtils.copyProperties(origin, dest);
         } catch (BeansException e) {
-            logger.error("BeansException copyProperties error. statck={}", JSONUtils.toString(e.getStackTrace()));
+            LOGGER.error("BeansException copyProperties error ", e);
         }
     }
 

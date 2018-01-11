@@ -21,11 +21,21 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Created by zhongzx on 2016/10/25 0025.
+ * @author zhongzx
  * 审方dao
  */
 @RpcSupportDAO
 public abstract class RecipeCheckDAO extends HibernateSupportDelegateDAO<RecipeCheck> {
+
+    /**
+     * 2-患者姓名
+     */
+    private static final int SEARCH_FLAG_PN = 2;
+
+    /**
+     * 3-病历号
+     */
+    private static final int SEARCH_FLAG_BL = 3;
 
     public RecipeCheckDAO() {
         super();
@@ -85,10 +95,10 @@ public abstract class RecipeCheckDAO extends HibernateSupportDelegateDAO<RecipeC
                     if (0 == searchFlag || 1 == searchFlag) {
                         hql.append(" where r.doctorName like:searchString ");
                     }
-                    else if (2 == searchFlag) {
+                    else if (SEARCH_FLAG_PN == searchFlag) {
                         hql.append(" where r.patientName like:searchString ");
                     }
-                    else if (3 == searchFlag) {
+                    else if (SEARCH_FLAG_BL == searchFlag) {
                         hql.append(" where r.patientID like:searchString ");
                     }
                     else {
@@ -108,10 +118,15 @@ public abstract class RecipeCheckDAO extends HibernateSupportDelegateDAO<RecipeC
                     setResult(q.list());
                 }
             };
-        HibernateSessionTemplate.instance().executeReadOnly(action);
+        HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
 
+    /**
+     * 根据处方id获取处方审核记录
+     * @param recipeId
+     * @return
+     */
     @DAOMethod(sql = "from RecipeCheck where recipeId=:recipeId order by checkDate desc")
     public abstract List<RecipeCheck> findByRecipeId(@DAOParam("recipeId") Integer recipeId);
 }

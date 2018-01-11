@@ -9,6 +9,9 @@ package recipe.prescription.pawebservice;
 
 import recipe.prescription.bean.PrescriptionConstants;
 
+/**
+ * @author jiangtingfeng
+ */
 public class PAWebServiceLocator extends org.apache.axis.client.Service implements PAWebService {
 
     private static final long serialVersionUID = 1938957651929348159L;
@@ -25,14 +28,18 @@ public class PAWebServiceLocator extends org.apache.axis.client.Service implemen
         super(wsdlLoc, sName);
     }
 
-    // Use to get a proxy class for PAWebServiceSoap12
+    /**
+     * Use to get a proxy class for PAWebServiceSoap12
+     */
     private String PAWebServiceSoap12_address = PrescriptionConstants.TargetNamespace;
 
     public String getPAWebServiceSoap12Address() {
         return PAWebServiceSoap12_address;
     }
 
-    // The WSDD service name defaults to the port name.
+    /**
+     * The WSDD service name defaults to the port name.
+     */
     private String PAWebServiceSoap12WSDDServiceName = "PAWebServiceSoap12";
 
     public String getPAWebServiceSoap12WSDDServiceName() {
@@ -56,9 +63,9 @@ public class PAWebServiceLocator extends org.apache.axis.client.Service implemen
 
     public PAWebServiceSoap_PortType getPAWebServiceSoap12(java.net.URL portAddress) throws javax.xml.rpc.ServiceException {
         try {
-           PAWebServiceSoap12Stub _stub = new PAWebServiceSoap12Stub(portAddress, this);
-            _stub.setPortName(getPAWebServiceSoap12WSDDServiceName());
-            return _stub;
+           PAWebServiceSoap12Stub stub = new PAWebServiceSoap12Stub(portAddress, this);
+            stub.setPortName(getPAWebServiceSoap12WSDDServiceName());
+            return stub;
         }
         catch (org.apache.axis.AxisFault e) {
             return null;
@@ -70,14 +77,18 @@ public class PAWebServiceLocator extends org.apache.axis.client.Service implemen
     }
 
 
-    // Use to get a proxy class for PAWebServiceSoap
+    /**
+     * Use to get a proxy class for PAWebServiceSoap
+     */
     private String PAWebServiceSoap_address =  PrescriptionConstants.TargetNamespace;
 
     public String getPAWebServiceSoapAddress() {
         return PAWebServiceSoap_address;
     }
 
-    // The WSDD service name defaults to the port name.
+    /**
+     * The WSDD service name defaults to the port name.
+     */
     private String PAWebServiceSoapWSDDServiceName = "PAWebServiceSoap";
 
     public String getPAWebServiceSoapWSDDServiceName() {
@@ -101,9 +112,9 @@ public class PAWebServiceLocator extends org.apache.axis.client.Service implemen
 
     public PAWebServiceSoap_PortType getPAWebServiceSoap(java.net.URL portAddress) throws javax.xml.rpc.ServiceException {
         try {
-            PAWebServiceSoap_BindingStub _stub = new PAWebServiceSoap_BindingStub(portAddress, this);
-            _stub.setPortName(getPAWebServiceSoapWSDDServiceName());
-            return _stub;
+            PAWebServiceSoap_BindingStub stub = new PAWebServiceSoap_BindingStub(portAddress, this);
+            stub.setPortName(getPAWebServiceSoapWSDDServiceName());
+            return stub;
         }
         catch (org.apache.axis.AxisFault e) {
             return null;
@@ -124,14 +135,14 @@ public class PAWebServiceLocator extends org.apache.axis.client.Service implemen
     public java.rmi.Remote getPort(Class serviceEndpointInterface) throws javax.xml.rpc.ServiceException {
         try {
             if ( PAWebServiceSoap_PortType.class.isAssignableFrom(serviceEndpointInterface)) {
-                PAWebServiceSoap12Stub _stub = new PAWebServiceSoap12Stub(new java.net.URL(PAWebServiceSoap12_address), this);
-                _stub.setPortName(getPAWebServiceSoap12WSDDServiceName());
-                return _stub;
+                PAWebServiceSoap12Stub stub = new PAWebServiceSoap12Stub(new java.net.URL(PAWebServiceSoap12_address), this);
+                stub.setPortName(getPAWebServiceSoap12WSDDServiceName());
+                return stub;
             }
             if (PAWebServiceSoap_PortType.class.isAssignableFrom(serviceEndpointInterface)) {
-                PAWebServiceSoap_BindingStub _stub = new PAWebServiceSoap_BindingStub(new java.net.URL(PAWebServiceSoap_address), this);
-                _stub.setPortName(getPAWebServiceSoapWSDDServiceName());
-                return _stub;
+                PAWebServiceSoap_BindingStub stub = new PAWebServiceSoap_BindingStub(new java.net.URL(PAWebServiceSoap_address), this);
+                stub.setPortName(getPAWebServiceSoapWSDDServiceName());
+                return stub;
             }
         }
         catch (Throwable t) {
@@ -150,16 +161,16 @@ public class PAWebServiceLocator extends org.apache.axis.client.Service implemen
             return getPort(serviceEndpointInterface);
         }
         String inputPortName = portName.getLocalPart();
-        if ("PAWebServiceSoap12".equals(inputPortName)) {
+        if (getPAWebServiceSoap12WSDDServiceName().equals(inputPortName)) {
             return getPAWebServiceSoap12();
         }
-        else if ("PAWebServiceSoap".equals(inputPortName)) {
+        else if (getPAWebServiceSoapWSDDServiceName().equals(inputPortName)) {
             return getPAWebServiceSoap();
         }
         else  {
-            java.rmi.Remote _stub = getPort(serviceEndpointInterface);
-            ((org.apache.axis.client.Stub) _stub).setPortName(portName);
-            return _stub;
+            java.rmi.Remote stub = getPort(serviceEndpointInterface);
+            ((org.apache.axis.client.Stub) stub).setPortName(portName);
+            return stub;
         }
     }
 
@@ -183,11 +194,11 @@ public class PAWebServiceLocator extends org.apache.axis.client.Service implemen
     */
     public void setEndpointAddress(String portName, String address) throws javax.xml.rpc.ServiceException {
 
-if ("PAWebServiceSoap12".equals(portName)) {
+if (getPAWebServiceSoap12WSDDServiceName().equals(portName)) {
             setPAWebServiceSoap12EndpointAddress(address);
         }
         else
-if ("PAWebServiceSoap".equals(portName)) {
+if (getPAWebServiceSoapWSDDServiceName().equals(portName)) {
             setPAWebServiceSoapEndpointAddress(address);
         }
         else

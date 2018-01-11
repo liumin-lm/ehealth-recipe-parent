@@ -4,33 +4,52 @@ import java.util.List;
 
 /**
  * Created by jiangtingfeng on 2017/11/2.
+ * @author jiangtingfeng
  */
 public class DetailsData {
-    // HIS系统时间
+    /**
+     * HIS系统时间
+     */
     private String time;
 
-    // 门诊住院标识
+    /**
+     * 门诊住院标识
+     */
     private String hospFlag;
 
-    // 就诊类型
+    /**
+     * 就诊类型
+     */
     private String admType;
 
-    // 就诊号
+    /**
+     * 就诊号
+     */
     private String admNo;
 
-    // 检验就诊号
+    /**
+     * 检验就诊号
+     */
     private String lisAdmNo;
 
-    // 床位号
+    /**
+     * 床位号
+     */
     private String bedNo;
 
-    // 病区
+    /**
+     * 病区
+     */
     private String areaCode;
 
-    // 病人信息
+    /**
+     * 病人信息
+     */
     private AuditPatient patient;
 
-    // 处方信息
+    /**
+     * 处方信息
+     */
     private List<AuditPrescription> prescriptions;
 
     public String getTime() {

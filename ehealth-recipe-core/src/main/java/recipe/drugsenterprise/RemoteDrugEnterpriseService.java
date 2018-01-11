@@ -27,13 +27,13 @@ import static ctd.util.AppContextHolder.getBean;
 /**
  * 业务使用药企对接类，具体实现在CommonRemoteService
  * company: ngarihealth
- * author: 0184/yu_yun
- * date:2017/3/7.
+ * @author: 0184/yu_yun
+ * @date:2017/3/7.
  */
 @RpcBean("remoteDrugEnterpriseService")
 public class RemoteDrugEnterpriseService {
 
-    private static final Logger logger = LoggerFactory.getLogger(RemoteDrugEnterpriseService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RemoteDrugEnterpriseService.class);
 
     private static final String COMMON_SERVICE = "commonRemoteService";
 
@@ -53,7 +53,7 @@ public class RemoteDrugEnterpriseService {
                 result.setDrugsEnterprise(enterprise);
             }
         }
-        logger.info("pushSingleRecipeInfo recipeId:{}, result:{}", recipeId, JSONUtils.toString(result));
+        LOGGER.info("pushSingleRecipeInfo recipeId:{}, result:{}", recipeId, JSONUtils.toString(result));
         return result;
     }
 
@@ -85,7 +85,7 @@ public class RemoteDrugEnterpriseService {
         if (DrugEnterpriseResult.SUCCESS.equals(result.getCode()) && null != result.getAccessDrugEnterpriseService()) {
             result = result.getAccessDrugEnterpriseService().pushRecipeInfo(Collections.singletonList(recipeId), dep);
         }
-        logger.info("pushSingleRecipeInfoWithDepId recipeId:{}, result:{}", recipeId, JSONUtils.toString(result));
+        LOGGER.info("pushSingleRecipeInfoWithDepId recipeId:{}, result:{}", recipeId, JSONUtils.toString(result));
         return result;
     }
 
@@ -102,10 +102,10 @@ public class RemoteDrugEnterpriseService {
         AccessDrugEnterpriseService drugEnterpriseService = null;
         if (null == drugsEnterprise) {
             //药企对象为空，则通过处方id获取相应药企实现
-            DrugEnterpriseResult _result = this.getServiceByRecipeId(recipeId);
-            if (DrugEnterpriseResult.SUCCESS.equals(_result.getCode())) {
-                drugEnterpriseService = _result.getAccessDrugEnterpriseService();
-                drugsEnterprise = _result.getDrugsEnterprise();
+            DrugEnterpriseResult result1 = this.getServiceByRecipeId(recipeId);
+            if (DrugEnterpriseResult.SUCCESS.equals(result1.getCode())) {
+                drugEnterpriseService = result1.getAccessDrugEnterpriseService();
+                drugsEnterprise = result1.getDrugsEnterprise();
             }
         } else {
             drugEnterpriseService = this.getServiceByDep(drugsEnterprise);
@@ -114,7 +114,7 @@ public class RemoteDrugEnterpriseService {
         if (null != drugEnterpriseService) {
             result = drugEnterpriseService.scanStock(recipeId, drugsEnterprise);
         }
-        logger.info("scanStock recipeId:{}, result:{}", recipeId, JSONUtils.toString(result));
+        LOGGER.info("scanStock recipeId:{}, result:{}", recipeId, JSONUtils.toString(result));
         return result.getCode().equals(DrugEnterpriseResult.SUCCESS) ? true : false;
     }
 
@@ -132,7 +132,7 @@ public class RemoteDrugEnterpriseService {
         if (DrugEnterpriseResult.SUCCESS.equals(result.getCode()) && null != result.getAccessDrugEnterpriseService()) {
             result = result.getAccessDrugEnterpriseService().pushCheckResult(recipeId, checkFlag, result.getDrugsEnterprise());
         }
-        logger.info("pushCheckResult recipeId:{}, result:{}", recipeId, JSONUtils.toString(result));
+        LOGGER.info("pushCheckResult recipeId:{}, result:{}", recipeId, JSONUtils.toString(result));
         return result;
     }
 
@@ -148,9 +148,9 @@ public class RemoteDrugEnterpriseService {
         if (CollectionUtils.isNotEmpty(recipeIds) && null != drugsEnterprise) {
             AccessDrugEnterpriseService drugEnterpriseService = this.getServiceByDep(drugsEnterprise);
             result = drugEnterpriseService.findSupportDep(recipeIds, drugsEnterprise);
-            logger.info("findSupportDep recipeIds={}, DrugEnterpriseResult={}", JSONUtils.toString(recipeIds), JSONUtils.toString(result));
+            LOGGER.info("findSupportDep recipeIds={}, DrugEnterpriseResult={}", JSONUtils.toString(recipeIds), JSONUtils.toString(result));
         } else {
-            logger.error("findSupportDep param error. recipeIds={}, drugsEnterprise={}", JSONUtils.toString(recipeIds), JSONUtils.toString(drugsEnterprise));
+            LOGGER.error("findSupportDep param error. recipeIds={}, drugsEnterprise={}", JSONUtils.toString(recipeIds), JSONUtils.toString(drugsEnterprise));
         }
 
         return result;
@@ -176,11 +176,11 @@ public class RemoteDrugEnterpriseService {
                     if (CollectionUtils.isNotEmpty(drugIdList)) {
                         drugEnterpriseService = this.getServiceByDep(drugsEnterprise);
                         if (null != drugEnterpriseService) {
-                            logger.info("syncDrugTask 开始同步药企[{}]药品，药品数量[{}]", drugsEnterprise.getName(), drugIdList.size());
+                            LOGGER.info("syncDrugTask 开始同步药企[{}]药品，药品数量[{}]", drugsEnterprise.getName(), drugIdList.size());
                             drugEnterpriseService.syncEnterpriseDrug(drugsEnterprise, drugIdList);
                         }
                     } else {
-                        logger.error("syncDrugTask 药企[{}]无可同步药品.", drugsEnterprise.getName());
+                        LOGGER.error("syncDrugTask 药企[{}]无可同步药品.", drugsEnterprise.getName());
                     }
                 }
             }
@@ -234,7 +234,7 @@ public class RemoteDrugEnterpriseService {
             }
         }
 
-        logger.info("getServiceByRecipeId recipeId:{}, result:{}", recipeId, result.toString());
+        LOGGER.info("getServiceByRecipeId recipeId:{}, result:{}", recipeId, result.toString());
         return result;
     }
 
@@ -254,10 +254,10 @@ public class RemoteDrugEnterpriseService {
                 beanName = callSys+"RemoteService";
             }
             try {
-                logger.info("getServiceByDep 获取[{}]协议实现.service=[{}]",drugsEnterprise.getName(),beanName);
+                LOGGER.info("getServiceByDep 获取[{}]协议实现.service=[{}]",drugsEnterprise.getName(),beanName);
                 drugEnterpriseService = getBean(beanName, AccessDrugEnterpriseService.class);
             } catch (Exception e) {
-                logger.error("getServiceByDep 未找到[{}]药企实现，使用通用协议处理. beanName={}",drugsEnterprise.getName(),beanName);
+                LOGGER.error("getServiceByDep 未找到[{}]药企实现，使用通用协议处理. beanName={}",drugsEnterprise.getName(),beanName);
                 drugEnterpriseService = getBean(COMMON_SERVICE, AccessDrugEnterpriseService.class);
             }
         }

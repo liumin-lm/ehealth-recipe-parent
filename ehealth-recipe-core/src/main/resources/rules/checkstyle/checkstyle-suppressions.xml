@@ -5,4 +5,21 @@
         "http://www.puppycrawl.com/dtds/suppressions_1_0.dtd">
 <suppressions>
     <suppress checks="MagicNumber" files="RecipeValidateUtil.java"/>
+    <suppress checks="MemberName" files="UpdateDrugsEpCallable.java"/>
+    <suppress checks="MemberName" files="PAWebMedicines.java"/>
+    <suppress checks="MemberName" files="PAWebResponse.java"/>
+    <suppress checks="ParameterName" files="PAWebResponse.java"/>
+    <suppress checks="MemberName" files="PAWebService.java"/>
+    <suppress checks="MemberName" files="PAWebServiceLocator.java"/>
+    <suppress checks="MethodName" files="PAWebServiceSoap12Stub.java"/>
+    <suppress checks="LocalVariableName" files="PAWebServiceSoap12Stub.java"/>
+    <suppress checks="ParameterName" files="PAWebServiceSoap12Stub.java"/>
+    <suppress checks="MethodName" files="PAWebServiceSoap_BindingStub.java"/>
+    <suppress checks="LocalVariableName" files="PAWebServiceSoap_BindingStub.java"/>
+    <suppress checks="ParameterName" files="PAWebServiceSoap_BindingStub.java"/>
+    <suppress checks="TypeName" files="PAWebServiceSoap_BindingStub.java"/>
+    <suppress checks="MethodName" files="PAWebServiceSoap_PortType.java"/>
+    <suppress checks="ParameterName" files="PAWebServiceSoap_PortType.java"/>
+    <suppress checks="TypeName" files="PAWebServiceSoap_PortType.java"/>
+
 </suppressions>

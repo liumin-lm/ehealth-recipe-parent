@@ -35,6 +35,21 @@ public class HospitalRecipeBean implements Serializable {
     private static final long serialVersionUID = 8115518792159620416L;
 
     /**
+     * 配送方式 药店取药 2
+     */
+    private static final String DELIVERYTYPE_TFDS = "2";
+
+    /**
+     * 支付标识 已支付 1
+     */
+    private static final String ISPAY_TURE = "1";
+
+    /**
+     * 卡类型 医保卡 2
+     */
+    private static final String CARD_TYPE_YBK = "2";
+
+    /**
      * 机构组织代码（平台约定）
      */
     private String organID;
@@ -186,6 +201,11 @@ public class HospitalRecipeBean implements Serializable {
 
     private List<String> recipeCodeList;
 
+    /**
+     * 是否监护人标记 监护人 1
+     */
+    public static final String GUARDIAN_FLAG = "1";
+
     public HospitalRecipeBean() {
     }
 
@@ -209,7 +229,7 @@ public class HospitalRecipeBean implements Serializable {
         recipe.setValueDays((null == this.valueDays) ? 1 : Integer.parseInt(this.valueDays));
 
         //默认2 药店取药
-        if ("2".equals(this.deliveryType)) {
+        if (DELIVERYTYPE_TFDS.equals(this.deliveryType)) {
             recipe.setGiveMode(RecipeBussConstant.GIVEMODE_TFDS);
             recipe.setPayMode(RecipeBussConstant.PAYMODE_TFDS);
         } else {
@@ -217,7 +237,7 @@ public class HospitalRecipeBean implements Serializable {
             recipe.setPayMode(RecipeBussConstant.PAYMODE_TO_HOS);
         }
 
-        if ("1".equals(this.isPay)) {
+        if (ISPAY_TURE.equals(this.isPay)) {
             recipe.setPayFlag(1);
             recipe.setPayDate(createDate);
         }
@@ -263,9 +283,9 @@ public class HospitalRecipeBean implements Serializable {
                     //某机构内，药品编码与药品详情关系
                     Map<String, DrugList> drugRel = Maps.newHashMap();
                     for (DrugList drug : drugList) {
-                        String _organDrugCode = codeIdRel.get(drug.getDrugId());
-                        if (StringUtils.isNotEmpty(_organDrugCode)) {
-                            drugRel.put(_organDrugCode, drug);
+                        String organDrugCode1 = codeIdRel.get(drug.getDrugId());
+                        if (StringUtils.isNotEmpty(organDrugCode1)) {
+                            drugRel.put(organDrugCode1, drug);
                         }
                     }
 
@@ -293,9 +313,9 @@ public class HospitalRecipeBean implements Serializable {
                             recipedetail.setUseDays((null == hosDetail.getUseDays()) ? 1 : Integer.parseInt(hosDetail.getUseDays()));
                             recipedetail.setUseTotalDose((null == hosDetail.getDosageTotal()) ? 1 : Double.parseDouble(hosDetail.getDosageTotal()));
                             recipedetail.setPack((null == hosDetail.getPack()) ? drug.getPack() : Integer.parseInt(hosDetail.getPack()));
-                            //TODO 用法
+                            //用法
                             recipedetail.setUsePathways(StringUtils.defaultString(hosDetail.getAdmission(), drug.getUsePathways()));
-                            //TODO 频次
+                            //频次
                             recipedetail.setUsingRate(StringUtils.defaultString(hosDetail.getFrequency(), drug.getUsingRate()));
 
                             //设置价格
@@ -321,7 +341,7 @@ public class HospitalRecipeBean implements Serializable {
         PatientBean patient = new PatientBean();
         patient.setPatientName(this.patientName);
         patient.setIdcard(this.certID);
-        if ("1".equals(this.guardianFlag)) {
+        if (GUARDIAN_FLAG.equals(this.guardianFlag)) {
             //监护人模式
             patient.setGuardianFlag(true);
             patient.setGuardianName(this.guardianName);
@@ -342,8 +362,8 @@ public class HospitalRecipeBean implements Serializable {
         if (StringUtils.isNotEmpty(this.cardNo)) {
             HealthCardBean card = new HealthCardBean();
             //卡类型（1医院就诊卡  2医保卡 3医院病历号）
-            //TODO 卡类型字典需要对照
-            if ("2".equals(this.cardType)) {
+            //卡类型字典需要对照
+            if (CARD_TYPE_YBK.equals(this.cardType)) {
                 //医保卡
                 card.setCardType("2");
             } else {
@@ -378,7 +398,7 @@ public class HospitalRecipeBean implements Serializable {
         this.originOrganID = LocalStringUtil.toString(recipe.getOriginClinicOrgan());
         this.recipeNo = LocalStringUtil.toString(recipe.getRecipeCode());
         this.originRecipeNo = LocalStringUtil.toString(recipe.getOriginRecipeCode());
-        this.certID = LocalStringUtil.toString(patient.getIdcard());
+        this.certID = LocalStringUtil.toString(patient.getCertificate());
         this.patientName = LocalStringUtil.toString(patient.getPatientName());
         this.mobile = patient.getMobile();
         this.recipeType = LocalStringUtil.toString(recipe.getRecipeType());
@@ -398,29 +418,13 @@ public class HospitalRecipeBean implements Serializable {
         //就诊卡处理
         if (CollectionUtils.isNotEmpty(cards)) {
             HealthCardBean card = cards.get(0);
-            if ("2".equals(card.getCardType())) {
+            if (CARD_TYPE_YBK.equals(card.getCardType())) {
                 this.cardType = "2";
             } else {
                 this.cardType = "1";
             }
             this.cardNo = card.getCardId();
         }
-
-        /*List<Integer> drugIdList = FluentIterable.from(details).transform(new Function<Recipedetail, Integer>() {
-            @Override
-            public Integer apply(Recipedetail input) {
-                return input.getDrugId();
-            }
-        }).toList();
-
-        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(recipe.getClinicOrgan(),drugIdList);
-        Map<Integer,String> drugCodeIdRel = new HashMap<>();
-        for(OrganDrugList organDrug : organDrugList){
-            if(StringUtils.isNotEmpty(organDrug.getOrganDrugCode())) {
-                drugCodeIdRel.put(organDrug.getDrugId(), organDrug.getOrganDrugCode());
-            }
-        }*/
 
         List<HospitalRecipeDetailBean> hosDetailList = new ArrayList<>(details.size());
         HospitalRecipeDetailBean hosDetail;

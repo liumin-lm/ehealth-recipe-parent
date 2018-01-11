@@ -34,16 +34,16 @@ import java.util.Map;
 
 /**
  * company: ngarihealth
- * author: 0184/yu_yun
- * date:2017/7/31.
+ * @author: 0184/yu_yun
+ * @date:2017/7/31.
  */
 @RpcBean("remoteRecipeService")
 public class RemoteRecipeService extends BaseService<RecipeBean> implements IRecipeService {
 
     /**
-     * logger
+     * LOGGER
      */
-    private static final Logger logger = LoggerFactory.getLogger(RemoteRecipeService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RemoteRecipeService.class);
 
     @RpcService
     @Override
@@ -97,7 +97,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public RecipeListResTO<Integer> findDoctorIdSortByCount(RecipeListReqTO request) {
-        logger.info("findDoctorIdSortByCount request={}", JSONUtils.toString(request));
+        LOGGER.info("findDoctorIdSortByCount request={}", JSONUtils.toString(request));
         RecipeListService service = ApplicationUtils.getRecipeService(RecipeListService.class);
         List<Integer> organIds = MapValueUtil.getList(request.getConditions(), "organIds");
         List<Integer> doctorIds = service.findDoctorIdSortByCount(request.getStart(), request.getLimit(), organIds);
@@ -141,7 +141,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public RecipeListResTO<RecipeRollingInfoBean> findLastesRecipeList(RecipeListReqTO request) {
-        logger.info("findLastesRecipeList request={}", JSONUtils.toString(request));
+        LOGGER.info("findLastesRecipeList request={}", JSONUtils.toString(request));
         RecipeListService service = ApplicationUtils.getRecipeService(RecipeListService.class);
         List<Integer> organIds = MapValueUtil.getList(request.getConditions(), "organIds");
         List<RecipeRollingInfoBean> recipeList = service.findLastesRecipeList(organIds, request.getStart(), request.getLimit());
@@ -154,10 +154,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public QueryResult<Map> findRecipesByInfo(Integer organId, Integer status,
-                                              Integer doctor, String mpiid, Date bDate, Date eDate, Integer dateType,
+                                              Integer doctor, String patientName, Date bDate, Date eDate, Integer dateType,
                                               Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        return recipeDAO.findRecipesByInfo(organId, status, doctor, mpiid, bDate, eDate, dateType, depart, start, limit, organIds, giveMode);
+        return recipeDAO.findRecipesByInfo(organId, status, doctor, patientName, bDate, eDate, dateType, depart, start, limit, organIds, giveMode);
     }
 
     @RpcService
@@ -198,9 +198,24 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return recipeDAO.findPatientMpiIdForOp(mpiIds, organIds);
     }
 
+    @RpcService
     @Override
     public List<String> findCommonDiseasByDoctorAndOrganId(int doctorId, int organId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         return recipeDAO.findCommonDiseasByDoctorAndOrganId(doctorId, organId);
+    }
+
+    @RpcService
+    @Override
+    public List<String> findHistoryMpiIdsByDoctorId(int doctorId, Integer start, Integer limit) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        return recipeDAO.findHistoryMpiIdsByDoctorId(doctorId, start,limit);
+    }
+
+    @RpcService
+    @Override
+    public void synPatientStatusToRecipe(String mpiId) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        recipeDAO.updatePatientStatusByMpiId(mpiId);
     }
 }

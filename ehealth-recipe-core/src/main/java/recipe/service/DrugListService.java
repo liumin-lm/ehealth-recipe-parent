@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.google.common.collect.Maps;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
 import com.ngari.recipe.entity.DrugList;
@@ -22,6 +23,7 @@ import java.util.*;
 
 /**
  * Created by zhongzx on 2016/4/28 0028.
+ * @author zhongzx
  * 药品服务
  */
 @RpcBean("drugListService")
@@ -72,7 +74,7 @@ public class DrugListService {
         //一级类目
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         List<DictionaryItem> firstList = drugListDAO.findChildByDrugClass(organId, drugType, parentKey);
-        HashMap<String, Object> map = new HashMap<>();
+        HashMap<String, Object> map = Maps.newHashMap();
         map.put("hot", hotList);
         map.put("first", firstList);
         return map;
@@ -209,7 +211,7 @@ public class DrugListService {
         //再获取二级有效目录
         for (DictionaryItem first : firstList) {
             List<DictionaryItem> childList = drugListDAO.findChildByDrugClass(null, null, first.getKey());
-            HashMap<String, Object> map = new HashMap<String, Object>();
+            HashMap<String, Object> map = Maps.newHashMap();
             map.put("key", first.getKey());
             map.put("text", first.getText());
             map.put("leaf", first.isLeaf());
@@ -240,7 +242,7 @@ public class DrugListService {
         //再获取二级有效目录
         for (DictionaryItem first : firstList) {
             List<DictionaryItem> childList = drugListDAO.findChildByDrugClass(organId, drugType, first.getKey());
-            HashMap<String, Object> map = new HashMap<String, Object>();
+            HashMap<String, Object> map = Maps.newHashMap();
             map.put("key", first.getKey());
             map.put("text", first.getText());
             map.put("leaf", first.isLeaf());
@@ -279,7 +281,7 @@ public class DrugListService {
     @RpcService
     public List<DrugList> queryDrugsInDrugClass(String drugClass, int start, int limit) {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-        // TODO: 2017/3/13 0013  因为梅州药品的原因 患者端 写死查询邵逸夫的药品
+        //  2017/3/13 0013  因为梅州药品的原因 患者端 写死查询邵逸夫的药品
         List<DrugList> drugList = drugListDAO.findDrugListsByOrganOrDrugClass(1, null, drugClass, start, limit);
         return drugList;
     }
@@ -297,7 +299,7 @@ public class DrugListService {
     public List<DrugList> searchDrugByNameOrPyCode(String drugName, String mpiId, int start, int limit) {
         saveSearchContendForDrug(drugName, mpiId);
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-        //todo 因为 梅州药品的原因 患者端 写死查询邵逸夫的药品
+        //因为 梅州药品的原因 患者端 写死查询邵逸夫的药品
         return drugListDAO.searchDrugListWithES(1, null, drugName, start, limit);
     }
 
@@ -342,7 +344,7 @@ public class DrugListService {
     public boolean updatePyCode() {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         List<DrugList> drugLists = drugListDAO.findAll();
-        Map<String, Object> changeAttr = new HashMap<>();
+        Map<String, Object> changeAttr = Maps.newHashMap();
         for (DrugList drugList : drugLists) {
             String pyCode = PyConverter.getFirstLetter(drugList.getSaleName());
             changeAttr.put("pyCode", pyCode);
@@ -361,7 +363,7 @@ public class DrugListService {
     public boolean updateDrugCatalog() {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         List<DrugList> dList = drugListDAO.findAll();
-        Map<String, Object> changeAttr = new HashMap<>();
+        Map<String, Object> changeAttr = Maps.newHashMap();
         for (DrugList drugList : dList) {
             String drugClass = drugList.getDrugClass();
             if (6 == drugClass.length()) {

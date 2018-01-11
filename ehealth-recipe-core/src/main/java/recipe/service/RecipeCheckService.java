@@ -39,13 +39,13 @@ import java.util.*;
 public class RecipeCheckService {
 
     /**
-     * logger
+     * LOGGER
      */
-    private static final Logger logger = LoggerFactory.getLogger(RecipeCheckService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecipeCheckService.class);
 
     private IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
 
-    private IDoctorService IDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
+    private IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
 
     /**
      * zhongzx
@@ -170,7 +170,7 @@ public class RecipeCheckService {
         //取recipe需要的字段
         Recipe recipe = rDao.getByRecipeId(recipeId);
         if (null == recipe) {
-            logger.error("findRecipeAndDetailsAndCheckById recipeId={} can't find.", recipeId);
+            LOGGER.error("findRecipeAndDetailsAndCheckById recipeId={} can't find.", recipeId);
             throw new DAOException(ErrorCode.SERVICE_ERROR, "无法找到该处方单");
         }
         Integer doctorId = recipe.getDoctor();
@@ -209,7 +209,7 @@ public class RecipeCheckService {
             e.printStackTrace();
         }
         //取医生的手机号
-        DoctorBean doctor = IDoctorService.get(doctorId);
+        DoctorBean doctor = iDoctorService.get(doctorId);
         if (null == doctor) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "doctor is null!");
         }
@@ -228,7 +228,7 @@ public class RecipeCheckService {
         p.setPatientType(patient.getPatientType());
         //加上手机号 和 身份证信息（脱敏）
         p.setMobile(patient.getMobile());
-        p.setIdcard(hideIdCard(patient.getIdcard()));
+        p.setIdcard(hideIdCard(patient.getCertificate()));
         p.setMpiId(patient.getMpiId());
         //返回map对象
         Map<String, Object> map = Maps.newHashMap();
@@ -376,7 +376,7 @@ public class RecipeCheckService {
                 }
             }
         } catch (ControllerException e) {
-            logger.error("获取审核不通过原因字典文本出错reasonIds:" + JSONUtils.toString(reList));
+            LOGGER.error("获取审核不通过原因字典文本出错reasonIds:" + JSONUtils.toString(reList));
         }
         return reasonList;
     }
@@ -447,7 +447,11 @@ public class RecipeCheckService {
         return resMap;
     }
 
-    //脱敏身份证号
+    /**
+     * 脱敏身份证号
+     * @param idCard
+     * @return
+     */
     private String hideIdCard(String idCard) {
         if (StringUtils.isEmpty(idCard)) {
             return "";
@@ -494,17 +498,17 @@ public class RecipeCheckService {
          * 保存患者搜索记录
          */
         if (!StringUtils.isEmpty(searchString)) {
-            ISearchContentService ISearchContentService = ApplicationUtils.getBaseService(ISearchContentService.class);
+            ISearchContentService iSearchContentService = ApplicationUtils.getBaseService(ISearchContentService.class);
             SearchContentBean content = new SearchContentBean();
             content.setDoctorId(doctorId);
             content.setContent(searchString);
             content.setBussType(4);
-            ISearchContentService.addSearchContent(content, 1);
+            iSearchContentService.addSearchContent(content, 1);
         }
 
-        DoctorBean doctor = IDoctorService.get(doctorId);
+        DoctorBean doctor = iDoctorService.get(doctorId);
         if (null == doctor) {
-            logger.error("doctor is null");
+            LOGGER.error("doctor is null");
             throw new DAOException(ErrorCode.SERVICE_ERROR, "doctorId = " + doctorId + " 找不到该医生");
         }
         Set<Integer> organs = new HashSet<>();
@@ -586,8 +590,8 @@ public class RecipeCheckService {
     private List<Integer> findAPOrganIdsByDoctorId(Integer doctorId) {
         List<Integer> organIds = null;
         if (null != doctorId) {
-            IDoctorService IDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
-            organIds = IDoctorService.findAPOrganIdsByDoctorId(doctorId);
+            IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
+            organIds = iDoctorService.findAPOrganIdsByDoctorId(doctorId);
         }
 
         return organIds;

@@ -13,21 +13,21 @@
         <priority>3</priority>
     </rule>
 
-    <rule name="AbstractClassShouldStartWithAbstractNamingRule"
-          language="java"
-          since="1.4"
-          message="java.naming.AbstractClassShouldStartWithAbstractNamingRule.rule.msg"
-          class="com.alibaba.p3c.pmd.lang.java.rule.naming.AbstractClassShouldStartWithAbstractNamingRule">
-        <priority>2</priority>
-        <example>
-            <![CDATA[
-    abstract class BaseControllerDemo{
-    }
-    abstract class AbstractActionDemo{
-    }
-            ]]>
-        </example>
-    </rule>
+    <!--<rule name="AbstractClassShouldStartWithAbstractNamingRule"-->
+          <!--language="java"-->
+          <!--since="1.4"-->
+          <!--message="java.naming.AbstractClassShouldStartWithAbstractNamingRule.rule.msg"-->
+          <!--class="com.alibaba.p3c.pmd.lang.java.rule.naming.AbstractClassShouldStartWithAbstractNamingRule">-->
+        <!--<priority>2</priority>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+    <!--abstract class BaseControllerDemo{-->
+    <!--}-->
+    <!--abstract class AbstractActionDemo{-->
+    <!--}-->
+            <!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
 
     <rule name="ExceptionClassShouldEndWithExceptionRule"
           language="java"
@@ -91,26 +91,26 @@
         </example>
     </rule>
 
-    <rule name="ServiceOrDaoClassShouldEndWithImplRule"
-          language="java"
-          since="1.6"
-          message="java.naming.ServiceOrDaoClassShouldEndWithImplRule.rule.msg"
-          class="com.alibaba.p3c.pmd.lang.java.rule.naming.ServiceOrDaoClassShouldEndWithImplRule">
-        <priority>2</priority>
-        <example>
-            <![CDATA[
-    public interface DemoService{
-        void f();
-    }
-    public class DemoServiceImpl implements DemoService {
-        @Override
-        public void f(){
-            System.out.println("hello world");
-        }
-    }
-            ]]>
-        </example>
-    </rule>
+    <!--<rule name="ServiceOrDaoClassShouldEndWithImplRule"-->
+          <!--language="java"-->
+          <!--since="1.6"-->
+          <!--message="java.naming.ServiceOrDaoClassShouldEndWithImplRule.rule.msg"-->
+          <!--class="com.alibaba.p3c.pmd.lang.java.rule.naming.ServiceOrDaoClassShouldEndWithImplRule">-->
+        <!--<priority>2</priority>-->
+        <!--<example>-->
+            <!--<![CDATA[-->
+    <!--public interface DemoService{-->
+        <!--void f();-->
+    <!--}-->
+    <!--public class DemoServiceImpl implements DemoService {-->
+        <!--@Override-->
+        <!--public void f(){-->
+            <!--System.out.println("hello world");-->
+        <!--}-->
+    <!--}-->
+            <!--]]>-->
+        <!--</example>-->
+    <!--</rule>-->
 
     <rule name="PackageNamingRule"
           language="java"

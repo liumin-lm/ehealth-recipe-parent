@@ -2,6 +2,7 @@ package recipe.prescription.bean;
 
 /**
  * Created by jiangtingfeng on 2017/11/15.
+ * @author jiangtingfeng
  */
 public class Issue {
     private String title;

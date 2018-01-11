@@ -12,6 +12,12 @@ public class ThirdResultBean extends RecipeResultBean{
 
     private Recipe recipe;
 
+    private String recipeCode;
+
+    public ThirdResultBean(Integer code) {
+        setCode(code);
+    }
+
     public Recipe getRecipe() {
         return recipe;
     }
@@ -20,8 +26,12 @@ public class ThirdResultBean extends RecipeResultBean{
         this.recipe = recipe;
     }
 
-    public ThirdResultBean(Integer code) {
-        setCode(code);
+    public String getRecipeCode() {
+        return recipeCode;
+    }
+
+    public void setRecipeCode(String recipeCode) {
+        this.recipeCode = recipeCode;
     }
 
     public static ThirdResultBean getSuccess() {

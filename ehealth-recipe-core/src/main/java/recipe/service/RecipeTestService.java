@@ -29,7 +29,7 @@ import java.util.Map;
 public class RecipeTestService {
 
     /** logger */
-    private static final Logger logger = LoggerFactory.getLogger(RecipeTestService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecipeTestService.class);
 
     @RpcService
     public String testanyway() {
@@ -67,11 +67,14 @@ public class RecipeTestService {
     @RpcService
     public void testSendMsg(String bussType, Integer bussId, Integer organId) {
         SmsInfoBean info = new SmsInfoBean();
-        info.setBusId(bussId);// 业务表主键
-        info.setBusType(bussType);// 业务类型
+        // 业务表主键
+        info.setBusId(bussId);
+        // 业务类型
+        info.setBusType(bussType);
         info.setSmsType(bussType);
         info.setStatus(0);
-        info.setOrganId(organId);// 短信服务对应的机构， 0代表通用机构
+        // 短信服务对应的机构， 0代表通用机构
+        info.setOrganId(organId);
         info.setExtendValue("康复药店");
         info.setExtendWithoutPersist(JSONUtils.toString(Arrays.asList("2c9081814d720593014d758dd0880020")));
         ISmsPushService smsPushService = ApplicationUtils.getBaseService(ISmsPushService.class);

@@ -17,13 +17,12 @@ import java.util.List;
 
 /**
  * @author Chuwei
- * @date 2017/1/2.
  */
 
 @RpcSupportDAO
 public abstract class DispensatoryDAO extends HibernateSupportDelegateDAO<Dispensatory> {
 
-    private static final Logger logger = LoggerFactory.getLogger(DispensatoryDAO.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DispensatoryDAO.class);
 
     public DispensatoryDAO() {
         super();
@@ -32,20 +31,41 @@ public abstract class DispensatoryDAO extends HibernateSupportDelegateDAO<Dispen
     }
 
 
+    /**
+     * 根据页面Id和信息来源获取
+     * @param pageId
+     * @param source
+     * @return
+     */
     @DAOMethod
     public abstract Dispensatory getByPageIdAndSource(String pageId, int source);
 
+    /**
+     * 根据页面Id和信息来源更新
+     * @param pageId
+     * @param name
+     * @param source
+     */
     @DAOMethod(sql = "update Dispensatory set name=:name where pageId =:pageId and source = :source")
     public abstract void updateByPageId(@DAOParam("pageId") String pageId,
                                         @DAOParam("name") String name,
                                         @DAOParam("source") int source);
 
+    /**
+     * 保存
+     * @param list
+     */
     public void saveDispensatory(List<Dispensatory> list) {
         for (Dispensatory dispensatory : list) {
             save(dispensatory);
         }
     }
 
+    /**
+     * 根据名字获取
+     * @param name
+     * @return
+     */
     public Dispensatory getByNameLike(final String name) {
         HibernateStatelessResultAction<Dispensatory> action = new AbstractHibernateStatelessResultAction<Dispensatory>() {
             @Override
@@ -59,10 +79,15 @@ public abstract class DispensatoryDAO extends HibernateSupportDelegateDAO<Dispen
                 }
             }
         };
-        HibernateSessionTemplate.instance().executeReadOnly(action);
+        HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
 
+    /**
+     * 根据药品id获取
+     * @param drugId
+     * @return
+     */
     @DAOMethod
     public abstract Dispensatory getByDrugId(Integer drugId);
 }

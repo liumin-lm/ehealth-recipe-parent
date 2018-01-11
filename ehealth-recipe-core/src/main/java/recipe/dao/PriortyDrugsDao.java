@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * 重点药品表
- * Created by jiangtingfeng on 2017/10/23.
+ * @author jiangtingfeng
  */
 @RpcSupportDAO
 public abstract class PriortyDrugsDao extends HibernateSupportDelegateDAO<PriortyDrug>{
@@ -20,6 +20,10 @@ public abstract class PriortyDrugsDao extends HibernateSupportDelegateDAO<Priort
         this.setKeyField("id");
     }
 
+    /**
+     * 获取药品
+     * @return
+     */
     @DAOMethod(sql = " from PriortyDrug order by sort desc")
     public abstract List<PriortyDrug> findPriortyDrugs();
 }

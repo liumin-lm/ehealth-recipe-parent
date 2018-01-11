@@ -51,4 +51,8 @@ public class ParameterConstant {
      */
     public static final String KEY_RECIPE_CANCEL_DAYS = "RECIPE_CANCEL_DAYS";
 
+    /**
+     * 钥匙圈健康商城地址
+     */
+    public static final String KEY_YSQ_SKIP_SHOPPING_URL = "YSQ_SKIP_SHOPPING_URL";
 }

@@ -27,7 +27,6 @@ import recipe.util.ApplicationUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,9 +40,9 @@ import java.util.Map;
 public class RecipePatientService extends RecipeBaseService {
 
     /**
-     * logger
+     * LOGGER
      */
-    private static final Logger logger = LoggerFactory.getLogger(RecipePatientService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecipePatientService.class);
 
     /**
      * 获取供应商列表
@@ -81,7 +80,7 @@ public class RecipePatientService extends RecipeBaseService {
         }
 
         List<DrugsEnterprise> depList = recipeService.findSupportDepList(recipeIds, organId, null, false, null);
-        logger.info("findSupportDepList recipeIds={}, 匹配到药企数量[{}]", JSONUtils.toString(recipeIds), depList.size());
+        LOGGER.info("findSupportDepList recipeIds={}, 匹配到药企数量[{}]", JSONUtils.toString(recipeIds), depList.size());
         if (CollectionUtils.isNotEmpty(depList)) {
             //设置默认值
             depListBean.setSigle(true);
@@ -103,8 +102,8 @@ public class RecipePatientService extends RecipeBaseService {
                         Object listObj = drugEnterpriseResult.getObject();
                         if (null != listObj && listObj instanceof List) {
                             List<DepDetailBean> ysqList = (List) listObj;
-                            for (DepDetailBean _subDep : ysqList) {
-                                _subDep.setDepId(dep.getId());
+                            for (DepDetailBean d : ysqList) {
+                                d.setDepId(dep.getId());
                             }
                             depDetailList.addAll(ysqList);
                         }
@@ -189,20 +188,21 @@ public class RecipePatientService extends RecipeBaseService {
         Integer supportMode = dep.getPayModeSupport();
         String giveModeText = "";
         List<Integer> payModeList = new ArrayList<>();
-        if (1 == supportMode) {
+        //配送模式支持 0:不支持 1:线上付款 2:货到付款 3:药店取药 8:货到付款和药店取药 9:都支持
+        if (RecipeBussConstant.DEP_SUPPORT_ONLINE.equals(supportMode)) {
             payModeList.add(RecipeBussConstant.PAYMODE_ONLINE);
             giveModeText = "配送到家";
             //无法配送时间文案提示
             depDetailBean.setUnSendTitle(iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_UNSEND_TIP, null));
-        } else if (2 == supportMode) {
+        } else if (RecipeBussConstant.DEP_SUPPORT_COD.equals(supportMode)) {
             payModeList.add(RecipeBussConstant.PAYMODE_COD);
             giveModeText = "配送到家";
-        } else if (3 == supportMode) {
+        } else if (RecipeBussConstant.DEP_SUPPORT_TFDS.equals(supportMode)) {
             payModeList.add(RecipeBussConstant.PAYMODE_TFDS);
-        } else if (8 == supportMode) {
+        } else if (RecipeBussConstant.DEP_SUPPORT_COD_TFDS.equals(supportMode)) {
             payModeList.add(RecipeBussConstant.PAYMODE_COD);
             payModeList.add(RecipeBussConstant.PAYMODE_TFDS);
-        } else if (9 == supportMode) {
+        } else if (RecipeBussConstant.DEP_SUPPORT_ALL.equals(supportMode)) {
             payModeList.add(RecipeBussConstant.PAYMODE_ONLINE);
             payModeList.add(RecipeBussConstant.PAYMODE_COD);
             payModeList.add(RecipeBussConstant.PAYMODE_TFDS);

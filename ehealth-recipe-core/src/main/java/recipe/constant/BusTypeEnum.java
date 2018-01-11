@@ -38,7 +38,7 @@ public enum BusTypeEnum {
     MINDGIFT(20, "mindgift", "心意", "心意", "mindgift", "mgt", "mgt-reno"),
     LIVECOURSE(21, "livecourse", "课程直播", "课程直播", "livecourse", "lvcs", "lvcs-ref");
 
-    public static final String dtLong = "yyyyMMddHHmmssSSS";
+    public static final String DT_LONG = "yyyyMMddHHmmssSSS";
     /**
      * 业务类型id 暂时未使用
      **/
@@ -58,7 +58,7 @@ public enum BusTypeEnum {
     /**
      * 运营平台配置的标识值 与code值一一对应
      **/
-    private String os_businessTypeKey;
+    private String osBusinessTypeKey;
     /**
      * 业务支付申请单前缀
      **/
@@ -68,12 +68,12 @@ public enum BusTypeEnum {
      **/
     private String refundPrefix;
 
-    BusTypeEnum(int id, String code, String name, String desc, String os_businessTypeKey, String applyPrefix, String refundPrefix) {
+    BusTypeEnum(int id, String code, String name, String desc, String osBusinessTypeKey, String applyPrefix, String refundPrefix) {
         this.id = id;
         this.code = code;
         this.name = name;
         this.desc = desc;
-        this.os_businessTypeKey = os_businessTypeKey;
+        this.osBusinessTypeKey = osBusinessTypeKey;
         this.applyPrefix = applyPrefix;
         this.refundPrefix = refundPrefix;
     }
@@ -122,7 +122,7 @@ public enum BusTypeEnum {
     }
 
     public String getOsBusinessTypeKey() {
-        return this.os_businessTypeKey;
+        return this.osBusinessTypeKey;
     }
 
     /**
@@ -173,7 +173,7 @@ public enum BusTypeEnum {
      */
     protected static String getCurrentTime() {
         Date date = new Date();
-        DateFormat df = new SimpleDateFormat(dtLong);
+        DateFormat df = new SimpleDateFormat(DT_LONG);
         return df.format(date);
     }
 

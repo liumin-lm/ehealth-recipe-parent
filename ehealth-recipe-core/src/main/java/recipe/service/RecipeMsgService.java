@@ -24,7 +24,7 @@ import java.util.List;
  */
 public class RecipeMsgService {
 
-    private static final Logger logger = LoggerFactory.getLogger(RecipeMsgService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecipeMsgService.class);
 
     private static ISmsPushService iSmsPushService = ApplicationUtils.getBaseService(ISmsPushService.class);
 
@@ -247,9 +247,9 @@ public class RecipeMsgService {
             smsInfo.setOrganId(recipe.getClinicOrgan());
             smsInfo.setExtendValue(String.valueOf(success));
             iSmsPushService.pushMsg(smsInfo);
-            logger.info("doAfterMedicalInsurancePaySuccess success, recipeId[{}]", recipeId);
+            LOGGER.info("doAfterMedicalInsurancePaySuccess success, recipeId[{}]", recipeId);
         } else {
-            logger.info("doAfterMedicalInsurancePaySuccess recipe is null, recipeId[{}]", recipeId);
+            LOGGER.info("doAfterMedicalInsurancePaySuccess recipe is null, recipeId[{}]", recipeId);
         }
     }
 }

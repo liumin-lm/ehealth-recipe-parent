@@ -2,24 +2,37 @@ package recipe.prescription.bean;
 
 /**
  * Created by jiangtingfeng on 2017/11/2.
+ * @author jiangtingfeng
  */
 public class AuditLisItem {
-    // 检验代码
+    /**
+     * 检验代码
+     */
     private String code;
 
-    // 检验名称
+    /**
+     * 检验名称
+     */
     private String name;
 
-    // 检验值
+    /**
+     * 检验值
+     */
     private String val;
 
-    // 单位
+    /**
+     * 单位
+     */
     private String uom;
 
-    // 上限
+    /**
+     * 上限
+     */
     private String upper;
 
-    // 下限
+    /**
+     * 下限
+     */
     private String lower;
 
     public String getCode() {

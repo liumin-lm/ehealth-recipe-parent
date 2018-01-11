@@ -16,6 +16,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * @author yuyun
+ */
 public class DateConversion
 {
 
@@ -139,42 +142,6 @@ public class DateConversion
 	}
 
 	/**
-	 * 根据星期几返回 日期
-	 * 
-	 * @param weekday
-	 * @return
-	 */
-	public static Date getDateByWeekday(int weekday) {
-
-		if (weekday == 7){
-			weekday = 1;
-		}
-		else{
-			weekday = weekday + 1;
-		}
-		Calendar c = Calendar.getInstance();
-		int week = c.getFirstDayOfWeek();
-		week = c.get(Calendar.DAY_OF_WEEK);
-		Date dt = c.getTime();
-		if (weekday > week) {
-			c.add(Calendar.DAY_OF_MONTH, weekday - week);
-		}
-		if (weekday < week) {
-			c.add(Calendar.DAY_OF_MONTH, 7 - (week - weekday));
-		}
-
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-		dt = c.getTime();
-		String dateStr = getDateFormatter(dt, "yyyy-MM-dd");
-		try {
-			dt = formatter.parse(dateStr);
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-		return dt;
-	}
-
-	/**
 	 * 根据时间字符串 和指定格式 返回日期
 	 * 
 	 * @param dateStr
@@ -182,7 +149,7 @@ public class DateConversion
 	 * @return
 	 */
 	public static Date getCurrentDate(String dateStr, String format) {
-		Date currentTime = new Date();
+		Date currentTime = null;
 		SimpleDateFormat formatter = new SimpleDateFormat(format);
 		try {
 			currentTime = formatter.parse(dateStr);
@@ -264,68 +231,6 @@ public class DateConversion
 		return weekDays[w];
 	}
 
-	/**
-	 * 转换业务列表申请时间
-	 * 
-	 * @author luf
-	 * @param appointDate
-	 *            业务申请时间
-	 * @return String
-	 */
-	public static String convertRequestDateForBuss(Date appointDate) {
-		String requestDate = new String();
-		long appointDateTime = appointDate.getTime();
-		long diff = (new Date()).getTime() - appointDateTime;
-		long yesterday = (DateConversion.getDaysAgo(1)).getTime();
-		long minute = diff / 1000 / 60;
-		long hour = minute / 60;
-		long day = hour / 24;
-		if(minute==0){
-			return "1分钟内";
-		}
-		if (minute < 0) {
-			requestDate = DateConversion.getDateFormatter(appointDate,
-					"yyyy-MM-dd HH:mm");
-		} else if (hour < 1) {
-			requestDate = minute + "分钟前";
-		} else if (hour <= 24 && day < 1) {
-			requestDate = hour + "小时前";
-		} else if (day < 2 && appointDateTime > yesterday) {
-			String Time = DateConversion.getDateFormatter(appointDate, "HH:mm");
-			requestDate = "昨天 " + Time;
-		} else {
-			requestDate = DateConversion.getDateFormatter(appointDate,
-					"yyyy-MM-dd HH:mm");
-		}
-		return requestDate;
-	}
-
-    public static String convertRequestDateForBussNew(Date appointDate){
-        String requestDate = new String();
-        long appointDateTime = appointDate.getTime();
-        long diff = (new Date()).getTime() - appointDateTime;
-        long yesterday = (DateConversion.getDaysAgo(1)).getTime();
-        long minute = diff / 1000 / 60;
-        long hour = minute / 60;
-        long day = hour / 24;
-        if(minute==0){
-            return "1分钟内";
-        }
-        if (minute < 0) {
-            requestDate = DateConversion.getDateFormatter(appointDate,
-                    "yyyy-MM-dd HH:mm");
-        } else if (hour < 1) {
-            requestDate = minute + "分钟前";
-        } else if (hour <= 24 && day < 1) {
-            requestDate = hour + "小时前";
-        } else if (day < 2 && appointDateTime > yesterday) {
-            String Time = DateConversion.getDateFormatter(appointDate, "HH:mm");
-            requestDate = "昨天 " + Time;
-        } else {
-            requestDate = DateConversion.getDateFormatter(appointDate,DEFAULT_DATETIME_BUSS);
-        }
-        return requestDate;
-    }
 
 	/**
 	 * Date类型转Timestamp
@@ -403,7 +308,8 @@ public class DateConversion
 		long temp = start;
 		while (temp < end) {
 			Date[] d= new Date[2];
-			d[0] = new Date(temp);// startTime
+			// startTime
+			d[0] = new Date(temp);
 			temp = temp + interval;
 			if (temp <= end) {
 				d[1] = new Date(temp);
@@ -524,8 +430,8 @@ public class DateConversion
         endCal.set(Calendar.SECOND, 0);
 		endCal.set(Calendar.MILLISECOND,0);
 
-        long between_days=(endCal.getTimeInMillis()-startCal.getTimeInMillis())/(1000*3600*24);
-        return Integer.parseInt(String.valueOf(between_days));
+        long betweenDays=(endCal.getTimeInMillis()-startCal.getTimeInMillis())/(1000*3600*24);
+        return Integer.parseInt(String.valueOf(betweenDays));
     }
 
 	/**
@@ -563,14 +469,6 @@ public class DateConversion
 		return now.getTime();
 	}
 
-	public static void main(String[] args) throws Exception {
-		Date date = new Date();
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd 00:00:00");
-		System.out.println(isSameDay(null,null));
-		System.out.println(isSameDay(null,new Date()));
-	}
-
-
 	/**
 	 * 出生日期获取年岁
 	 * @param birthDate
@@ -582,7 +480,9 @@ public class DateConversion
 		LocalDate birthDay = DateTimeFormat.forPattern("yyyy-MM-dd").parseLocalDate(birthDate);
 		LocalDate now = new LocalDate();
 		int age = Years.yearsBetween(birthDay, now).getYears();
-		if (age < 0 || age > 120) {
+		int age0 = 0;
+		int age120 = 120;
+		if (age < age0 || age > age120) {
 			return -1;
 		}
 		return  age;
@@ -629,11 +529,11 @@ public class DateConversion
             return d;
         }
 
-        String _format = DEFAULT_DATE_TIME;
+        String format1 = DEFAULT_DATE_TIME;
         if(StringUtils.isNotEmpty(format)){
-            _format = format;
+			format1 = format;
         }
-        DateFormat df = new SimpleDateFormat(_format);
+        DateFormat df = new SimpleDateFormat(format1);
 
         try {
             d = df.parse(str);
@@ -697,69 +597,6 @@ public class DateConversion
 	}
 
 
-    /**
-     * 根据时间计算 上午 中午 下午 晚上 凌晨
-     *
-     * @param paramDate
-     * @return
-     */
-    public static String getDateType(Date paramDate) {
-        SimpleDateFormat sdf2 = new SimpleDateFormat("HH:mm");
-        String myDate = sdf2.format(paramDate); // 去医院取号时间
-        String dateType = ""; //时间类型
-        if (myDate != null) {
-            int hour = Integer.parseInt(myDate.substring(0, 2)); //获取小时
-            if (hour > 6 && hour < 12) {
-                dateType = "上午";
-            }
-            if (hour == 12) {
-                dateType = "中午";
-            }
-            if (hour > 12 && hour < 18) {
-                dateType = "下午";
-            }
-            if (hour >= 18 && hour < 23) {
-                dateType = "晚上";
-            }
-            if (hour >= 0 && hour <= 6) {
-                dateType = "凌晨";
-            }
-        }
-        return dateType;
-    }
-
-	/**
-	 * 排班-上午且startTime>10:00，[10:00]前取号
-	 * 排班-下午号且startTime>15:00,[15:00]取号
-	 * 排班-晚上或全天的，以12点为限，小于12点则[10:00]取号，大于12点则[15:00]取号
-	 * @param workType
-	 * @param startTimeDate
-	 * @return
-	 * 短信-消息取号时间处理专用
-	 */
-	public static String getTakeNoTimeA(int workType,Date startTimeDate) {
-		String takeNoTimeA=getDateFormatter(startTimeDate, "HH:mm");
-
-		Date date= getFormatDate(startTimeDate,"HH:mm");
-		if (workType == 1) {
-			if (date.after(parseDate("10:00", "HH:mm"))) {
-				takeNoTimeA = "10:00";
-			}
-		} else if (workType == 2) {
-			if (date.after(parseDate("15:00", "HH:mm"))) {
-				takeNoTimeA = "15:00";
-			}
-		} else {
-			if (date.after(parseDate("10:00", "HH:mm"))) {
-				takeNoTimeA = "15:00";
-			} else {
-				takeNoTimeA = "10:00";
-			}
-		}
-		return takeNoTimeA;
-	}
-
-
 	/**
 	 * 时间显示规则：
 	 * 1、1小时内：按分钟显示  如5分钟前
@@ -777,10 +614,6 @@ public class DateConversion
 		long oneSecond = 1000;
 		long oneMinute = 60 * oneSecond;
 		long oneHour = 60 * oneMinute;
-		long oneDay = 24 * oneHour;
-		long twoDay = 2 * oneDay;
-		long oneMonth = 30 * oneDay;
-		long oneYear = 12 * oneMonth;
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(currentDate);
 		int cD = calendar.get(Calendar.DATE);
@@ -792,31 +625,40 @@ public class DateConversion
 		int mY = calendar.get(Calendar.YEAR);
 
 		SimpleDateFormat sdf = new SimpleDateFormat();
-		if(cY==mY){ // 今年内
-			if(cM==mM){ // 一个月内
-				if(cD==mD){ // 今天内
-					if(minusMillisSeconds<oneHour){ // 1小时内 格式： x分钟前
+		if(cY==mY){
+			// 今年内
+			if(cM==mM){
+				// 一个月内
+				if(cD==mD){
+					// 今天内
+					if(minusMillisSeconds<oneHour){
+						// 1小时内 格式： x分钟前
 						long x = (long)minusMillisSeconds/oneMinute;
 						if(x==0){
 							x=1;
 						}
 						text = x + "分钟前";
-					}else{ // 一小时前  格式：HH:mm
+					}else{
+						// 一小时前  格式：HH:mm
 						sdf.applyPattern("HH:mm");
 						text = sdf.format(date);
 					}
-				}else if((cD-mD)==1){ // 昨天 格式：昨天 HH:mm
+				}else if((cD-mD)==1){
+					// 昨天 格式：昨天 HH:mm
 					sdf.applyPattern("昨天 HH:mm");
 					text = sdf.format(date);
-				}else{ // 昨天以前 格式：x月x日 HH:mm
+				}else{
+					// 昨天以前 格式：x月x日 HH:mm
 					sdf.applyPattern("MM月dd日 HH:mm");
 					text = sdf.format(date);
 				}
-			}else{ // 昨天以前 格式：x月x日 HH:mm
+			}else{
+				// 昨天以前 格式：x月x日 HH:mm
 				sdf.applyPattern("MM月dd日 HH:mm");
 				text = sdf.format(date);
 			}
-		}else{ // 今年以前   格式： x年x月x日 HH:mm
+		}else{
+			// 今年以前   格式： x年x月x日 HH:mm
 			sdf.applyPattern("yyyy年MM月dd日 HH:mm");
 			text = sdf.format(date);
 		}
@@ -832,8 +674,8 @@ public class DateConversion
 		long time1 = cal.getTimeInMillis();
 		cal.setTime(bdate);
 		long time2 = cal.getTimeInMillis();
-		long between_days=(time2-time1)/(1000*3600*24);
-		return Integer.parseInt(String.valueOf(between_days));
+		long betweenDays=(time2-time1)/(1000*3600*24);
+		return Integer.parseInt(String.valueOf(betweenDays));
 	}
 
 	public static  String formatDate(Date d)
@@ -888,9 +730,9 @@ public class DateConversion
 		c2.setTime(endDate);
 		int year =c2.get(Calendar.YEAR)-c1.get(Calendar.YEAR);
 		if (c1.get(Calendar.DATE) <= c2.get(Calendar.DATE)) {
-			return (year * 12 + c2.get(Calendar.MONTH) - c1.get(Calendar.MONTH));
+			return year * 12 + c2.get(Calendar.MONTH) - c1.get(Calendar.MONTH);
 		}
-		return (year * 12 + c2.get(Calendar.MONTH) - c1.get(Calendar.MONTH) - 1);
+		return year * 12 + c2.get(Calendar.MONTH) - c1.get(Calendar.MONTH) - 1;
 	}
 
 	/**
@@ -898,12 +740,12 @@ public class DateConversion
 	 * @param Date
 	 * @return
      */
-	public static List<Date> getStartAndEndDateByMonth(Date Date){
+	public static List<Date> getStartAndEndDateByMonth(Date date){
 		Calendar c = Calendar.getInstance();
-		c.setTime(Date);
+		c.setTime(date);
 		c.set(Calendar.DAY_OF_MONTH, 1);
 		Date startDate = c.getTime();
-		c.set(Calendar.DATE, c.getActualMaximum(c.DATE));
+		c.set(Calendar.DATE, c.getActualMaximum(Calendar.DATE));
 		Date endDate = c.getTime();
 		List<Date> list = new ArrayList<>();
 		list.add(startDate);

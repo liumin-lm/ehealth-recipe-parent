@@ -66,4 +66,10 @@ public class RecipeSystemConstant {
 
     /** 时间点：一个月*/
     public static final int ONE_MONTH_AGO = 30;
+
+    /**
+     * 编码
+     */
+    public static final String DEFAULT_CHARACTER_ENCODING = "UTF-8";
+
 }
