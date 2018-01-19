@@ -3,9 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>ngari</groupId>
+    <parent>
+        <groupId>ngari</groupId>
+        <artifactId>ehealth-parent</artifactId>
+        <version>0.18.0.release-SNAPSHOT</version>
+    </parent>
     <artifactId>ehealth-recipe-parent</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.3.1-SNAPSHOT</version>
     <name>处方</name>
     <description>处方项目</description>
     <packaging>pom</packaging>
@@ -17,12 +21,12 @@
         <module>ehealth-recipe-purchase</module>
         <module>ehealth-recipe-common</module>
     </modules>
-    <properties>
-        <java.version>1.7</java.version>
-        <ssdev.version>3.4.0-SNAPSHOT</ssdev.version>
-        <ssdev.weixin.version>1.6.0-SNAPSHOT</ssdev.weixin.version>
-        <spring.version>4.2.6.RELEASE</spring.version>
-    </properties>
+    <!--<properties>-->
+        <!--<java.version>1.7</java.version>-->
+        <!--<ssdev.version>3.4.0-SNAPSHOT</ssdev.version>-->
+        <!--<ssdev.weixin.version>1.6.0-SNAPSHOT</ssdev.weixin.version>-->
+        <!--<spring.version>4.2.6.RELEASE</spring.version>-->
+    <!--</properties>-->
     <dependencies>
         <dependency>
             <groupId>ssdev</groupId>
@@ -58,14 +62,14 @@
         </plugins>
     </build>
 
-    <distributionManagement>
-        <repository>
-            <id>releases</id>
-            <url>http://maven.ngarihealth.com:8081/nexus/content/repositories/releases</url>
-        </repository>
-        <snapshotRepository>
-            <id>snapshots</id>
-            <url>http://maven.ngarihealth.com:8081/nexus/content/repositories/snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
+    <!--<distributionManagement>-->
+        <!--<repository>-->
+            <!--<id>releases</id>-->
+            <!--<url>http://maven.ngarihealth.com:8081/nexus/content/repositories/releases</url>-->
+        <!--</repository>-->
+        <!--<snapshotRepository>-->
+            <!--<id>snapshots</id>-->
+            <!--<url>http://maven.ngarihealth.com:8081/nexus/content/repositories/snapshots</url>-->
+        <!--</snapshotRepository>-->
+    <!--</distributionManagement>-->
 </project>

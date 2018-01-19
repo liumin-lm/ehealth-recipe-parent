@@ -6,8 +6,10 @@
     <parent>
         <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>1.3.1-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
+
     <packaging>jar</packaging>
     <name>处方API</name>
     <description>处方API</description>
