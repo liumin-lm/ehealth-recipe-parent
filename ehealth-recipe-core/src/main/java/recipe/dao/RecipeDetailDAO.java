@@ -15,14 +15,18 @@ import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @author yuyun
+ */
 @RpcSupportDAO
 public abstract class RecipeDetailDAO extends
         HibernateSupportDelegateDAO<Recipedetail> {
 
-    public static final Logger log = Logger.getLogger(RecipeDetailDAO.class);
+    public static final Logger LOGGER = Logger.getLogger(RecipeDetailDAO.class);
 
     public RecipeDetailDAO() {
         super();
@@ -34,10 +38,9 @@ public abstract class RecipeDetailDAO extends
      * 保持从his导入的处方详情数据
      */
     public void saveRecipeDetail(Recipedetail recipedetail) {
-        log.info("保存服务:" + JSONUtils.toString(recipedetail));
+        LOGGER.info("保存服务:" + JSONUtils.toString(recipedetail));
 
         if (recipedetail.getRecipeId() == null) {
-//			log.error("RecipeId is required!");
             throw new DAOException("RecipeId is required!");
         }
         if (recipedetail.getCreateDt() == null) {
@@ -59,6 +62,11 @@ public abstract class RecipeDetailDAO extends
     @DAOMethod(sql = "from Recipedetail where recipeId=:recipeId and status=1")
     public abstract List<Recipedetail> findByRecipeId(@DAOParam("recipeId") int recipeId);
 
+    /**
+     * 根据处方id集合查询
+     * @param recipeIds
+     * @return
+     */
     @DAOMethod(sql = "from Recipedetail where recipeId in :recipeIds and status=1")
     public abstract List<Recipedetail> findByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
 
@@ -80,6 +88,11 @@ public abstract class RecipeDetailDAO extends
     @DAOMethod(sql = "select useTotalDose from Recipedetail where recipeId=:recipeId and status=1")
     public abstract List<Double> findUseTotalDoseByRecipeId(@DAOParam("recipeId") int recipeId);
 
+    /**
+     * 根据id查询
+     * @param recipeDetailId
+     * @return
+     */
     @DAOMethod(sql = "from Recipedetail where recipeDetailId=:recipeDetailId")
     public abstract Recipedetail getByRecipeDetailId(@DAOParam("recipeDetailId") int recipeDetailId);
 
@@ -131,8 +144,10 @@ public abstract class RecipeDetailDAO extends
                 Query q = ss.createQuery(hql.toString());
 
                 q.setParameter(keyName, keyValue);
-                for (String key : changeAttr.keySet()) {
-                    q.setParameter(key, changeAttr.get(key));
+                Iterator<Map.Entry<String, Object>> it = changeAttr.entrySet().iterator();
+                while (it.hasNext()){
+                    Map.Entry<String, Object> m = it.next();
+                    q.setParameter(m.getKey(), m.getValue());
                 }
 
                 int flag = q.executeUpdate();
@@ -145,10 +160,8 @@ public abstract class RecipeDetailDAO extends
 
     /**
      * 通过处方明细ID获取处方明细
-     *
-     * @param recipeDetailId 处方明细id
-     * @author xiebz
-     * @date 2015-12-23 下午2:20:00
+     * @param recipeDetailId
+     * @return
      */
     @DAOMethod
     public abstract Recipedetail getByRecipeDetailId(Integer recipeDetailId);
@@ -170,7 +183,7 @@ public abstract class RecipeDetailDAO extends
                 setResult(q.list());
             }
         };
-        HibernateSessionTemplate.instance().executeReadOnly(action);
+        HibernateSessionTemplate.instance().execute(action);
         List<String> drugNameList = action.getResult();
         for (String drugName : drugNameList) {
             drugNames.append("、" + drugName);
@@ -187,6 +200,11 @@ public abstract class RecipeDetailDAO extends
     @DAOMethod(sql = "update Recipedetail set status=0 where recipeId=:recipeId")
     public abstract void updateDetailInvalidByRecipeId(@DAOParam("recipeId") int recipeId);
 
+    /**
+     * 根据id及状态查询数量
+     * @param recipeId
+     * @return
+     */
     @DAOMethod(sql = "select count(*) from Recipedetail where recipeId=:recipeId and status=1")
     public abstract Long getCountByRecipeId(@DAOParam("recipeId") int recipeId);
 

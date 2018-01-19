@@ -94,15 +94,8 @@ public class RecipeMsgInfo {
     public static String WX_patient_hisFail = "非常抱歉，由于医院系统故障，您于{checkDate}支付的处方单未能成功支付到医院，该笔款项将为您退回，建议您稍后尝试重新支付，或选择其他支付方式。";
 
     /**
-     * 患者货到付款配送成功给患者发微信推送
-     */
-//    public static String WX_patient_reachPayFinish = "您于{checkDate}购买的药品已被签收，如有疑问，请通过" + ParamUtils.getParam(ParameterConstant.KEY_CUSTOMER_TEL,SystemConstant.CUSTOMER_TEL) + "联系小纳。";
-
-    /**
      * 患者线上支付成功，待医院取药，给患者发微信推送
      */
     public static String WX_patient_reachHos_payOnline = "您于{checkDate}购买的药品已支付成功，为避免订单失效给您带来不便，请尽快到医院取药。";
 
-    //患者线上支付成功，已医院取药，或者到院支付成功，已医院取药，给患者发微信
-//    public static String WX_patient_getDrugFinish = "您于{checkDate}购买的药品已取药成功，如有疑问，请通过" + ParamUtils.getParam(ParameterConstant.KEY_CUSTOMER_TEL,SystemConstant.CUSTOMER_TEL) + "联系小纳。";
 }

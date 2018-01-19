@@ -41,7 +41,7 @@ import java.util.*;
 @RpcBean("recipeListService")
 public class RecipeListService {
 
-    private static final Logger logger = LoggerFactory.getLogger(RecipeListService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecipeListService.class);
 
     public static final String LIST_TYPE_RECIPE = "1";
 
@@ -59,7 +59,7 @@ public class RecipeListService {
     @RpcService
     public List<Map<String, Object>> findRecipesForDoctor(Integer doctorId, Integer recipeId, Integer limit) {
         Assert.notNull(doctorId, "findRecipesForDoctor doctor is null.");
-        recipeId = (null == recipeId || Integer.valueOf(0).equals(recipeId)) ? Integer.MAX_VALUE : recipeId;
+        recipeId = (null == recipeId || Integer.valueOf(0).equals(recipeId)) ? Integer.valueOf(Integer.MAX_VALUE) : recipeId;
 
         List<Map<String, Object>> list = new ArrayList<>(0);
         IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
@@ -68,7 +68,7 @@ public class RecipeListService {
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
 
         List<Recipe> recipeList = recipeDAO.findRecipesForDoctor(doctorId, recipeId, 0, limit);
-        logger.info("findRecipesForDoctor recipeList size={}", recipeList.size());
+        LOGGER.info("findRecipesForDoctor recipeList size={}", recipeList.size());
         if (CollectionUtils.isNotEmpty(recipeList)) {
             List<String> patientIds = new ArrayList<>(0);
             Map<Integer, Recipe> recipeMap = Maps.newHashMap();
@@ -104,10 +104,10 @@ public class RecipeListService {
 
             for (Recipe recipe : recipeList) {
                 String mpiId = recipe.getMpiid();
-                HashMap<String, Object> _map = Maps.newHashMap();
-                _map.put("recipe", recipeMap.get(recipe.getRecipeId()));
-                _map.put("patient", patientMap.get(mpiId));
-                list.add(_map);
+                HashMap<String, Object> map = Maps.newHashMap();
+                map.put("recipe", recipeMap.get(recipe.getRecipeId()));
+                map.put("patient", patientMap.get(mpiId));
+                list.add(map);
             }
         }
 
@@ -244,13 +244,13 @@ public class RecipeListService {
                             RecipeOrder order = (RecipeOrder) resultBean.getObject();
                             List<PatientRecipeBean> recipeList = (List<PatientRecipeBean>) order.getList();
                             if (CollectionUtils.isNotEmpty(recipeList)) {
-                                //TODO 前端要求，先去掉数组形式，否则前端不好处理
+                                // 前端要求，先去掉数组形式，否则前端不好处理
 //                                List<PatientRecipeBean> subList = new ArrayList<>(5);
 //                                PatientRecipeBean _bean;
                                 for (PatientRecipeBean recipe : recipeList) {
 //                                    _bean = new PatientRecipeBean();
 //                                    _bean.setRecordType(LIST_TYPE_RECIPE);
-                                    //TODO 当前订单只有一个处方，处方内的患者信息使用订单的信息就可以
+                                    // 当前订单只有一个处方，处方内的患者信息使用订单的信息就可以
 //                                    _bean.setPatientName(record.getPatientName());
 //                                    _bean.setPhoto(record.getPhoto());
 //                                    _bean.setPatientSex(record.getPatientSex());

@@ -23,54 +23,53 @@ import recipe.service.RecipeLogService;
 import recipe.util.ApplicationUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 /**
  * company: ngarihealth
- * author: 0184/yu_yun
- * date:2017/9/12.
+ * @author: 0184/yu_yun
+ * @date:2017/9/12.
  */
 public class RecipeToHisService {
 
     /**
-     * logger
+     * LOGGER
      */
-    private static final Logger logger = LoggerFactory.getLogger(RecipeToHisService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecipeToHisService.class);
 
     public void recipeSend(RecipeSendRequestTO request) {
         IRecipeHisService hisService = ApplicationUtils.getBaseService(IRecipeHisService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Integer recipeId = Integer.valueOf(request.getRecipeID());
-        logger.info("recipeSend recipeId={}, request={}", recipeId, JSONUtils.toString(request));
+        LOGGER.info("recipeSend recipeId={}, request={}", recipeId, JSONUtils.toString(request));
         try {
 
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, null);
             HisResTO resTO = hisService.recipeSend(request);
-            logger.info("recipeSend recipeId={}, response={}", recipeId, JSONUtils.toString(resTO));
+            LOGGER.info("recipeSend recipeId={}, response={}", recipeId, JSONUtils.toString(resTO));
             if (resTO.isSuccess()) {
-                logger.info("recipeSend recipeId={}, 调用BASE 处方写入服务成功!", recipeId);
+                LOGGER.info("recipeSend recipeId={}, 调用BASE 处方写入服务成功!", recipeId);
             } else {
                 //失败发送系统消息
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.HIS_FAIL, null);
                 //日志记录
                 RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECKING_HOS,
                         RecipeStatusConstant.HIS_FAIL, "his写入失败，调用前置机处方写入服务失败");
-                logger.error("recipeSend recipeId={}, 调用BASE 处方写入服务错误!", recipeId);
+                LOGGER.error("recipeSend recipeId={}, 调用BASE 处方写入服务错误!", recipeId);
             }
         } catch (Exception e) {
-            logger.error("recipeSend recipeId={}, error={}", request.getRecipeID(), JSONUtils.toString(e.getStackTrace()));
+            LOGGER.error("recipeSend recipeId={}, error ", request.getRecipeID(), e);
         }
     }
 
     public Integer listSingleQuery(RecipeListQueryReqTO request) {
         IRecipeHisService hisService = ApplicationUtils.getBaseService(IRecipeHisService.class);
-        logger.info("listSingleQuery request={}", JSONUtils.toString(request));
+        LOGGER.info("listSingleQuery request={}", JSONUtils.toString(request));
 
         try {
             HisResTO resTO = hisService.listQuery(request);
-            logger.info("listSingleQuery response={}", JSONUtils.toString(resTO));
+            LOGGER.info("listSingleQuery response={}", JSONUtils.toString(resTO));
             RecipeListQueryResTO response = getResponseObj(resTO.getResponse(), RecipeListQueryResTO.class);
             Integer busStatus = null;
             if (null == response || null == response.getMsgCode()) {
@@ -107,7 +106,7 @@ public class RecipeToHisService {
             }
             return busStatus;
         } catch (Exception e) {
-            logger.error("listSingleQuery error={} . ", JSONUtils.toString(e.getStackTrace()));
+            LOGGER.error("listSingleQuery error ", e);
         }
         return null;
     }
@@ -115,11 +114,11 @@ public class RecipeToHisService {
 
     public void listQuery(RecipeListQueryReqTO request) {
         IRecipeHisService hisService = ApplicationUtils.getBaseService(IRecipeHisService.class);
-        logger.info("listQuery request={}", JSONUtils.toString(request));
+        LOGGER.info("listQuery request={}", JSONUtils.toString(request));
 
         try {
             HisResTO resTO = hisService.listQuery(request);
-            logger.info("listQuery response={}", JSONUtils.toString(resTO));
+            LOGGER.info("listQuery response={}", JSONUtils.toString(resTO));
             RecipeListQueryResTO response = getResponseObj(resTO.getResponse(), RecipeListQueryResTO.class);
             if (null == response || null == response.getMsgCode()) {
                 return;
@@ -154,31 +153,31 @@ public class RecipeToHisService {
             }
 
         } catch (Exception e) {
-            logger.error("listQuery error={} . ", JSONUtils.toString(e.getStackTrace()));
+            LOGGER.error("listQuery error ", e);
         }
     }
 
 
     public RecipeRefundResTO recipeRefund(RecipeRefundReqTO request) {
         IRecipeHisService hisService = ApplicationUtils.getBaseService(IRecipeHisService.class);
-        logger.info("recipeRefund request={}", JSONUtils.toString(request));
+        LOGGER.info("recipeRefund request={}", JSONUtils.toString(request));
         RecipeRefundResTO response = null;
         try {
             HisResTO resTO = hisService.recipeRefund(request);
-            logger.info("recipeRefund response={}", JSONUtils.toString(resTO));
+            LOGGER.info("recipeRefund response={}", JSONUtils.toString(resTO));
             response = getResponseObj(resTO.getResponse(), RecipeRefundResTO.class);
         } catch (Exception e) {
-            logger.error("recipeRefund error={} . ", JSONUtils.toString(e.getStackTrace()));
+            LOGGER.error("recipeRefund error ", e);
         }
         return response;
     }
 
     public Recipedetail payNotify(PayNotifyReqTO request) {
         IRecipeHisService hisService = ApplicationUtils.getBaseService(IRecipeHisService.class);
-        logger.info("payNotify request={}", JSONUtils.toString(request));
+        LOGGER.info("payNotify request={}", JSONUtils.toString(request));
         try {
             HisResTO resTO = hisService.payNotify(request);
-            logger.info("payNotify response={}", JSONUtils.toString(resTO));
+            LOGGER.info("payNotify response={}", JSONUtils.toString(resTO));
             PayNotifyResTO response = getResponseObj(resTO.getResponse(), PayNotifyResTO.class);
             if (null == response || null == response.getMsgCode()) {
                 return null;
@@ -188,7 +187,7 @@ public class RecipeToHisService {
             detail.setPharmNo(response.getData().getWindows());
             return detail;
         } catch (Exception e) {
-            logger.error("payNotify error={} . ", JSONUtils.toString(e.getStackTrace()));
+            LOGGER.error("payNotify error ", e);
         }
         return null;
     }
@@ -211,17 +210,17 @@ public class RecipeToHisService {
             //查询限定范围内容的药品数据，返回的是该医院 无效的药品信息
             request.setData(drugInfoList);
         }
-        logger.info("queryDrugInfo request={}", JSONUtils.toString(request));
+        LOGGER.info("queryDrugInfo request={}", JSONUtils.toString(request));
 
         try {
             HisResTO resTO = hisService.queryDrugInfo(request);
-            logger.info("queryDrugInfo response={}", JSONUtils.toString(resTO));
+            LOGGER.info("queryDrugInfo response={}", JSONUtils.toString(resTO));
             DrugInfoResponseTO response = getResponseObj(resTO.getResponse(), DrugInfoResponseTO.class);
             if (null != response && Integer.valueOf(0).equals(response.getMsgCode())) {
                 return (null != response.getData()) ? response.getData() : new ArrayList<DrugInfoTO>();
             }
         } catch (Exception e) {
-            logger.error("queryDrugInfo error={} . ", JSONUtils.toString(e.getStackTrace()));
+            LOGGER.error("queryDrugInfo error ", e);
         }
         return null;
     }
@@ -229,28 +228,28 @@ public class RecipeToHisService {
 
     public Boolean drugTakeChange(DrugTakeChangeReqTO request) {
         IRecipeHisService hisService = ApplicationUtils.getBaseService(IRecipeHisService.class);
-        logger.info("drugTakeChange request={}", JSONUtils.toString(request));
+        LOGGER.info("drugTakeChange request={}", JSONUtils.toString(request));
         Boolean response = false;
         try {
             HisResTO resTO = hisService.drugTakeChange(request);
-            logger.info("drugTakeChange response={}", JSONUtils.toString(resTO));
+            LOGGER.info("drugTakeChange response={}", JSONUtils.toString(resTO));
             response = resTO.isSuccess();
         } catch (Exception e) {
-            logger.error("drugTakeChange error={} . ", JSONUtils.toString(e.getStackTrace()));
+            LOGGER.error("drugTakeChange error ", e);
         }
         return response;
     }
 
     public Boolean recipeUpdate(RecipeStatusUpdateReqTO request) {
         IRecipeHisService hisService = ApplicationUtils.getBaseService(IRecipeHisService.class);
-        logger.info("recipeUpdate request={}", JSONUtils.toString(request));
+        LOGGER.info("recipeUpdate request={}", JSONUtils.toString(request));
         Boolean response = false;
         try {
             HisResTO resTO = hisService.recipeUpdate(request);
-            logger.info("recipeUpdate response={}", JSONUtils.toString(resTO));
+            LOGGER.info("recipeUpdate response={}", JSONUtils.toString(resTO));
             response = resTO.isSuccess();
         } catch (Exception e) {
-            logger.error("recipeUpdate error={} . ", JSONUtils.toString(e.getStackTrace()));
+            LOGGER.error("recipeUpdate error ", e);
         }
         return response;
     }
@@ -296,41 +295,41 @@ public class RecipeToHisService {
         request.setData(data);
 
         DrugInfoResponseTO response = null;
-        logger.info("scanDrugStock request={}", JSONUtils.toString(request));
+        LOGGER.info("scanDrugStock request={}", JSONUtils.toString(request));
         try {
             HisResTO resTO = hisService.scanDrugStock(request);
-            logger.info("scanDrugStock response={}", JSONUtils.toString(resTO));
+            LOGGER.info("scanDrugStock response={}", JSONUtils.toString(resTO));
             response = getResponseObj(resTO.getResponse(), DrugInfoResponseTO.class);
         } catch (Exception e) {
-            logger.error("scanDrugStock error={} . ", JSONUtils.toString(e.getStackTrace()));
+            LOGGER.error("scanDrugStock error ", e);
         }
         return response;
     }
 
     public RecipeQueryResTO recipeQuery(RecipeQueryReqTO request) {
         IRecipeHisService hisService = ApplicationUtils.getBaseService(IRecipeHisService.class);
-        logger.info("recipeQuery request={}", JSONUtils.toString(request));
+        LOGGER.info("recipeQuery request={}", JSONUtils.toString(request));
         RecipeQueryResTO response = null;
         try {
             HisResTO resTO = hisService.recipeQuery(request);
-            logger.info("recipeQuery response={}", JSONUtils.toString(resTO));
+            LOGGER.info("recipeQuery response={}", JSONUtils.toString(resTO));
             response = getResponseObj(resTO.getResponse(), RecipeQueryResTO.class);
         } catch (Exception e) {
-            logger.error("recipeQuery error={} . ", JSONUtils.toString(e.getStackTrace()));
+            LOGGER.error("recipeQuery error ", e);
         }
         return response;
     }
 
     public DetailQueryResTO detailQuery(DetailQueryReqTO request) {
         IRecipeHisService hisService = ApplicationUtils.getBaseService(IRecipeHisService.class);
-        logger.info("detailQuery request={}", JSONUtils.toString(request));
+        LOGGER.info("detailQuery request={}", JSONUtils.toString(request));
         DetailQueryResTO response = null;
         try {
             HisResTO resTO = hisService.detailQuery(request);
-            logger.info("detailQuery response={}", JSONUtils.toString(resTO));
+            LOGGER.info("detailQuery response={}", JSONUtils.toString(resTO));
             response = getResponseObj(resTO.getResponse(), DetailQueryResTO.class);
         } catch (Exception e) {
-            logger.error("detailQuery error={} . ", JSONUtils.toString(e.getStackTrace()));
+            LOGGER.error("detailQuery error ", e);
         }
         return response;
     }

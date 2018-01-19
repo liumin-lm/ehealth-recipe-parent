@@ -67,7 +67,8 @@ public class LocalStringUtil
         if (value == null){
             return null;
         }
-        char seperator = '.', padChar = '0';
+        char seperator = '.';
+        char padChar = '0';
         if(value.toString().indexOf(seperator)>0){
             Long temp = Math.round(value*Math.pow(10, afterDotBits));
             String regex = "(?<=\\d+)\\B(?=\\d{" + afterDotBits + "}$)";
@@ -109,7 +110,8 @@ public class LocalStringUtil
             return numeric;
         }
         numeric = numeric.trim();
-        if (!numeric.matches("^\\d+(\\.\\d+)?$")) {
+        String regex1 = "^\\d+(\\.\\d+)?$";
+        if (!numeric.matches(regex1)) {
             return numeric;
         }
         String regex = "\\B(?=((\\d{3})+(?!\\d)))";
@@ -184,7 +186,8 @@ public class LocalStringUtil
      * @return
      */
     public static String coverName(String name) {
-        String emoji = name.replaceFirst("[\\ud800\\udc00-\\udbff\\udfff\\ud800-\\udfff]", "");//处理患者姓名头为emoji表情的情况
+        //处理患者姓名头为emoji表情的情况
+        String emoji = name.replaceFirst("[\\ud800\\udc00-\\udbff\\udfff\\ud800-\\udfff]", "");
         if (StringUtils.isEmpty(emoji)) {
             return name + "**";
         } else if (name.length() == emoji.length()) {

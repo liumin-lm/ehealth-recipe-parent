@@ -5,7 +5,9 @@ import com.ngari.base.patient.model.PatientBean;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
+import org.apache.commons.lang3.StringUtils;
 import recipe.constant.RecipeBussConstant;
+import recipe.constant.RecipeStatusConstant;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -13,8 +15,8 @@ import java.util.List;
 
 /**
  * company: ngarihealth
- * author: 0184/yu_yun
- * date:2017/9/14.
+ * @author: 0184/yu_yun
+ * @date:2017/9/14.
  */
 public class HisRequestInit {
 
@@ -36,7 +38,15 @@ public class HisRequestInit {
                 .getRecipeType().toString() : null);
         if (null != patient) {
             // 患者信息
-            requestTO.setCertID(patient.getRawIdcard());
+            String idCard = patient.getCertificate();
+            if(StringUtils.isNotEmpty(idCard)){
+                //没有身份证儿童的证件处理
+                String childFlag = "-";
+                if(idCard.contains(childFlag)){
+                    idCard = idCard.split(childFlag)[0];
+                }
+            }
+            requestTO.setCertID(idCard);
             requestTO.setPatientName(patient.getPatientName());
             requestTO.setMobile(patient.getMobile());
             // 简要病史
@@ -113,7 +123,7 @@ public class HisRequestInit {
         }
 
         if (null != patient) {
-            requestTO.setCertID(patient.getRawIdcard());
+            requestTO.setCertID(patient.getCertificate());
             requestTO.setPatientName(patient.getPatientName());
             requestTO.setPatientSex(patient.getPatientSex());
             requestTO.setMobile(patient.getMobile());
@@ -141,7 +151,7 @@ public class HisRequestInit {
         requestTO.setPayType("1");
         if (null != patient) {
             // 患者信息
-            requestTO.setCertID(patient.getRawIdcard());
+            requestTO.setCertID(patient.getCertificate());
             requestTO.setPatientName(patient.getPatientName());
         }
 
@@ -167,7 +177,7 @@ public class HisRequestInit {
 
         if (null != patient) {
             requestTO.setPatientName(patient.getPatientName());
-            requestTO.setCertID(patient.getRawIdcard());
+            requestTO.setCertID(patient.getCertificate());
         }
 
         //takeDrugsType 取药方式 0-医院药房取药 1-物流配送(国药) 2-外配药(钥世圈)
@@ -218,7 +228,7 @@ public class HisRequestInit {
 
         if (null != patient) {
             // 患者信息
-            requestTO.setCertID(patient.getRawIdcard());
+            requestTO.setCertID(patient.getCertificate());
             requestTO.setPatientName(patient.getPatientName());
         }
 
@@ -241,13 +251,13 @@ public class HisRequestInit {
         requestTO.setOrderNo(str.toString());
 
         //如果平台状态是 13-未支付 14-未操作 15-药师审核未通过 则医院状态置为 2-已取消
-        if (9 == recipe.getStatus() || 10 == recipe.getStatus() || 11 == recipe.getStatus()
-                || 12 == recipe.getStatus() || 13 == recipe.getStatus() || 14 == recipe.getStatus()
-                || 15 == recipe.getStatus()) {
+        if (RecipeStatusConstant.REVOKE == recipe.getStatus() || RecipeStatusConstant.DELETE == recipe.getStatus() || RecipeStatusConstant.HIS_FAIL == recipe.getStatus()
+                || RecipeStatusConstant.NO_DRUG == recipe.getStatus() || RecipeStatusConstant.NO_PAY == recipe.getStatus() || RecipeStatusConstant.NO_OPERATOR == recipe.getStatus()
+                || RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
             requestTO.setRecipeStatus("2");
         }
         // 如果平台状态是 6-已完成 则医院状态置为 1-已发药
-        if (6 == recipe.getStatus()) {
+        if (RecipeStatusConstant.FINISH == recipe.getStatus()) {
             requestTO.setRecipeStatus("1");
         }
 

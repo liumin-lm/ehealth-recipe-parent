@@ -36,6 +36,9 @@ public class RecipeBean implements Serializable {
     @Dictionary(id = "eh.base.dictionary.Organ")
     private Integer clinicOrgan;
 
+    @ItemProperty(alias = "开方机构名称")
+    private String organName;
+
     @ItemProperty(alias = "处方来源机构")
     @Dictionary(id = "eh.base.dictionary.Organ")
     private Integer originClinicOrgan;
@@ -412,6 +415,14 @@ public class RecipeBean implements Serializable {
 
     public void setClinicOrgan(Integer clinicOrgan) {
         this.clinicOrgan = clinicOrgan;
+    }
+
+    public String getOrganName() {
+        return organName;
+    }
+
+    public void setOrganName(String organName) {
+        this.organName = organName;
     }
 
     public Integer getOriginClinicOrgan() {

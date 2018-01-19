@@ -19,12 +19,12 @@ import java.util.List;
 /**
  * 通用药企对接服务(国药协议)
  * company: ngarihealth
- * author: 0184/yu_yun
- * date:2016/10/19.
+ * @author: 0184/yu_yun
+ * @date:2016/10/19.
  */
 public abstract class AccessDrugEnterpriseService {
 
-    private static final Logger logger = LoggerFactory.getLogger(AccessDrugEnterpriseService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AccessDrugEnterpriseService.class);
 
     /**
      * 单个线程处理药企药品数量
@@ -32,7 +32,8 @@ public abstract class AccessDrugEnterpriseService {
     protected static final int ONCETIME_DEAL_NUM = 100;
 
     public void updateAccessTokenById(Integer code, Integer depId) {
-        if (-2 == code) {
+        Integer i = -2;
+        if (i.equals(code)) {
             updateAccessToken(Arrays.asList(depId));
         }
     }
@@ -54,7 +55,7 @@ public abstract class AccessDrugEnterpriseService {
                 try {
                     new RecipeBusiThreadPool(callables).execute();
                 } catch (InterruptedException e) {
-                    logger.error("updateAccessToken 线程池异常");
+                    LOGGER.error("updateAccessToken 线程池异常");
                 }
             }
         }
@@ -84,7 +85,7 @@ public abstract class AccessDrugEnterpriseService {
             try {
                 address.append(DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area));
             } catch (ControllerException e) {
-                logger.error("getAddressDic 获取地址数据类型失败*****area:" + area);
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area);
             }
         }
     }
@@ -113,6 +114,7 @@ public abstract class AccessDrugEnterpriseService {
      * 推送处方
      *
      * @param recipeIds 处方ID集合
+     * @param enterprise
      * @return
      */
     public abstract DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise);
@@ -128,7 +130,8 @@ public abstract class AccessDrugEnterpriseService {
 
     /**
      * 定时同步药企库存
-     *
+     * @param drugsEnterprise
+     * @param drugIdList
      * @return
      */
     public abstract DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList);
@@ -138,14 +141,15 @@ public abstract class AccessDrugEnterpriseService {
      *
      * @param recipeId  处方ID
      * @param checkFlag 审核结果 1:审核通过 0:审核失败
+     * @param enterprise
      * @return
      */
     public abstract DrugEnterpriseResult pushCheckResult(Integer recipeId, Integer checkFlag, DrugsEnterprise enterprise);
 
     /**
      * 查找供应商
-     *
-     * @param recipeId
+     * @param recipeIds
+     * @param enterprise
      * @return
      */
     public abstract DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, DrugsEnterprise enterprise);

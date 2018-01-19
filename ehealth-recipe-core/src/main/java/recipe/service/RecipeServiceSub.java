@@ -1,12 +1,15 @@
 package recipe.service;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.doctor.model.RelationDoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.operationrecords.model.OperationRecordsBean;
 import com.ngari.base.operationrecords.service.IOperationRecordsService;
+import com.ngari.base.organ.model.OrganBean;
+import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
@@ -41,7 +44,7 @@ import java.util.*;
  */
 public class RecipeServiceSub {
 
-    private static final Logger logger = LoggerFactory.getLogger(RecipeServiceSub.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecipeServiceSub.class);
 
     private static final String UNSIGN = "unsign";
 
@@ -50,6 +53,8 @@ public class RecipeServiceSub {
     private static IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
 
     private static IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
+
+    private static IOrganService iOrganService = ApplicationUtils.getBaseService(IOrganService.class);
 
     private static ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
 
@@ -67,7 +72,9 @@ public class RecipeServiceSub {
 
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         IOperationRecordsService iOperationRecordsService = ApplicationUtils.getBaseService(IOperationRecordsService.class);
-
+        if(null == recipe){
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "recipe is required!");
+        }
         RecipeValidateUtil.validateSaveRecipeData(recipe);
         RecipeUtil.setDefaultData(recipe);
 
@@ -101,13 +108,14 @@ public class RecipeServiceSub {
         }
 
         String patientName = iPatientService.getNameByMpiId(mpiId);
-
         if (StringUtils.isEmpty(patientName)) {
             patientName = "未知";
         }
-        String doctorName = iDoctorService.getNameById(recipe.getDoctor());
-        recipe.setDoctorName(doctorName);
         recipe.setPatientName(patientName);
+        recipe.setDoctorName(iDoctorService.getNameById(recipe.getDoctor()));
+        OrganBean organBean = iOrganService.get(recipe.getClinicOrgan());
+        recipe.setOrganName(organBean.getShortName());
+
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
         recipe.setRecipeId(recipeId);
 
@@ -183,7 +191,7 @@ public class RecipeServiceSub {
                     if (takeMedicineSize != organDrugList.size()) {
                         String errorDrugName = Joiner.on(",").join(takeOutDrugName);
                         //外带药和处方药混合开具是不允许的
-                        logger.error("setDetailsInfo 存在外带药且混合开具. recipeId=[{}], drugIds={}, 外带药={}", recipe.getRecipeId(),
+                        LOGGER.error("setDetailsInfo 存在外带药且混合开具. recipeId=[{}], drugIds={}, 外带药={}", recipe.getRecipeId(),
                                 JSONUtils.toString(drugIds), errorDrugName);
                         throw new DAOException(ErrorCode.SERVICE_ERROR, errorDrugName+"不能开具在一张处方上");
                     } else {
@@ -203,7 +211,7 @@ public class RecipeServiceSub {
                     }
                 }
                 if(CollectionUtils.isNotEmpty(noFilterDrugName)){
-                    logger.error("setDetailsInfo 存在无法配送的药品. recipeId=[{}], drugIds={}, noFilterDrugName={}",
+                    LOGGER.error("setDetailsInfo 存在无法配送的药品. recipeId=[{}], drugIds={}, noFilterDrugName={}",
                             recipe.getRecipeId(), JSONUtils.toString(drugIds), JSONUtils.toString(noFilterDrugName));
                     throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(noFilterDrugName)+"无法配送！");
                 }
@@ -211,9 +219,9 @@ public class RecipeServiceSub {
                 noFilterDrugName.clear();
                 List<String> firstDrugDepIds = drugDepRel.get(drugIds.get(0));
                 for(Integer drugId : drugDepRel.keySet()){
-                    List<String> _depIds = drugDepRel.get(drugId);
+                    List<String> depIds = drugDepRel.get(drugId);
                     boolean filterFlag = false;
-                    for(String depId : _depIds){
+                    for(String depId : depIds){
                         //匹配到一个药企相同则可跳过
                         if(firstDrugDepIds.contains(depId)){
                             filterFlag = true;
@@ -223,11 +231,11 @@ public class RecipeServiceSub {
                     if(!filterFlag){
                         noFilterDrugName.add(drugListMap.get(drugId).getDrugName());
                     }else{
-                        firstDrugDepIds.retainAll(_depIds);
+                        firstDrugDepIds.retainAll(depIds);
                     }
                 }
                 if(CollectionUtils.isNotEmpty(noFilterDrugName)){
-                    logger.error("setDetailsInfo 存在无法一起配送的药品. recipeId=[{}], drugIds={}, noFilterDrugName={}",
+                    LOGGER.error("setDetailsInfo 存在无法一起配送的药品. recipeId=[{}], drugIds={}, noFilterDrugName={}",
                             recipe.getRecipeId(), JSONUtils.toString(drugIds), JSONUtils.toString(noFilterDrugName));
                     throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(noFilterDrugName)+"不能开具在一张处方上！");
                 }
@@ -262,7 +270,7 @@ public class RecipeServiceSub {
                         detail.setOrganDrugCode(organDrug.getOrganDrugCode());
                         BigDecimal price = organDrug.getSalePrice();
                         if (null == price) {
-                            logger.error("setDetailsInfo 药品ID：" + drug.getDrugId() + " 在医院(ID为" + organId + ")的价格为NULL！");
+                            LOGGER.error("setDetailsInfo 药品ID：" + drug.getDrugId() + " 在医院(ID为" + organId + ")的价格为NULL！");
                             throw new DAOException(ErrorCode.SERVICE_ERROR, "药品数据异常！");
                         }
                         detail.setSalePrice(price);
@@ -275,10 +283,10 @@ public class RecipeServiceSub {
                 }
                 success = true;
             } else {
-                logger.error("setDetailsInfo organDrugList或者drugList为空. recipeId=[{}], drugIds={}", recipe.getRecipeId(), JSONUtils.toString(drugIds));
+                LOGGER.error("setDetailsInfo organDrugList或者drugList为空. recipeId=[{}], drugIds={}", recipe.getRecipeId(), JSONUtils.toString(drugIds));
             }
         } else {
-            logger.error("setDetailsInfo 详情里没有药品ID. recipeId=[{}]", recipe.getRecipeId());
+            LOGGER.error("setDetailsInfo 详情里没有药品ID. recipeId=[{}]", recipe.getRecipeId());
         }
 
         recipe.setTotalMoney(totalMoney);
@@ -300,7 +308,7 @@ public class RecipeServiceSub {
         try {
             PatientBean p = iPatientService.get(recipe.getMpiid());
             if (null == p) {
-                logger.error("createParamMap 病人不存在. recipeId={}, mpiId={}", recipe.getRecipeId(), recipe.getMpiid());
+                LOGGER.error("createParamMap 病人不存在. recipeId={}, mpiId={}", recipe.getRecipeId(), recipe.getMpiid());
                 return paramMap;
             }
             //模板类型，西药模板
@@ -362,9 +370,8 @@ public class RecipeServiceSub {
                 }
                 i++;
             }
-//            logger.info("createParamMap paramMap:" + JSONUtils.toString(paramMap));
         } catch (Exception e) {
-            logger.error("createParamMap 组装参数错误. recipeId={}, error={} ", recipe.getRecipeId(), JSONUtils.toString(e.getStackTrace()));
+            LOGGER.error("createParamMap 组装参数错误. recipeId={}, error ", recipe.getRecipeId(), e);
         }
         return paramMap;
     }
@@ -384,7 +391,7 @@ public class RecipeServiceSub {
         try {
             PatientBean p = iPatientService.get(recipe.getMpiid());
             if (null == p) {
-                logger.error("createParamMapForChineseMedicine 病人不存在. recipeId={}, mpiId={}", recipe.getRecipeId(), recipe.getMpiid());
+                LOGGER.error("createParamMapForChineseMedicine 病人不存在. recipeId={}, mpiId={}", recipe.getRecipeId(), recipe.getMpiid());
                 return paramMap;
             }
             //模板类型，中药类模板
@@ -442,9 +449,8 @@ public class RecipeServiceSub {
                 paramMap.put("tcmUsingRate", d.getUsingRate());
                 i++;
             }
-//            logger.info("createParamMapForChineseMedicine paramMap:" + JSONUtils.toString(paramMap));
         } catch (Exception e) {
-            logger.error("createParamMapForChineseMedicine 组装参数错误. recipeId={}, error={} ", recipe.getRecipeId(), JSONUtils.toString(e.getStackTrace()));
+            LOGGER.error("createParamMapForChineseMedicine 组装参数错误. recipeId={}, error ", recipe.getRecipeId(), e);
         }
         return paramMap;
     }
@@ -465,7 +471,8 @@ public class RecipeServiceSub {
         }
 
         List<Recipe> recipes;
-        boolean hasUnsignRecipe = false; // 是否含有未签名的数据
+        // 是否含有未签名的数据
+        boolean hasUnsignRecipe = false;
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
 
@@ -555,38 +562,38 @@ public class RecipeServiceSub {
         for (Recipe recipe : recipes) {
             //对处方数据进行分类
             String mpiid = recipe.getMpiid();
-            HashMap<String, Object> _map = Maps.newHashMap();
-            _map.put("recipe", recipeMap.get(recipe.getRecipeId()));
-            _map.put("patient", patientMap.get(mpiid));
+            HashMap<String, Object> map = Maps.newHashMap();
+            map.put("recipe", recipeMap.get(recipe.getRecipeId()));
+            map.put("patient", patientMap.get(mpiid));
 
             //新开处方与历史处方JSON结构不同
             if (0 == mark) {
                 if (hasUnsignRecipe) {
                     if (recipe.getStatus() <= RecipeStatusConstant.UNSIGN) {
                         //未签名处方
-                        unsignMapList.add(_map);
+                        unsignMapList.add(map);
                     } else if (RecipeStatusConstant.UNCHECK == recipe.getStatus()) {
                         //未审核处方
-                        uncheckMapList.add(_map);
+                        uncheckMapList.add(map);
                     }
                 } else {
-                    uncheckMapList.add(_map);
+                    uncheckMapList.add(map);
                 }
             } else {
-                list.add(_map);
+                list.add(map);
             }
         }
 
         if (!unsignMapList.isEmpty()) {
-            HashMap<String, Object> _map = Maps.newHashMap();
-            _map.put(UNSIGN, unsignMapList);
-            list.add(_map);
+            HashMap<String, Object> map = Maps.newHashMap();
+            map.put(UNSIGN, unsignMapList);
+            list.add(map);
         }
 
         if (!uncheckMapList.isEmpty()) {
-            HashMap<String, Object> _map = Maps.newHashMap();
-            _map.put(UNCHECK, uncheckMapList);
-            list.add(_map);
+            HashMap<String, Object> map = Maps.newHashMap();
+            map.put(UNCHECK, uncheckMapList);
+            list.add(map);
         }
 
         return list;
@@ -686,8 +693,10 @@ public class RecipeServiceSub {
 
     public static void setPatientMoreInfo(PatientBean patient, int doctorId) {
         RelationDoctorBean relationDoctor = iDoctorService.getByMpiidAndDoctorId(patient.getMpiId(), doctorId);
-        Boolean relationFlag = false;  //是否关注
-        Boolean signFlag = false; //是否签约
+        //是否关注
+        Boolean relationFlag = false;
+        //是否签约
+        Boolean signFlag = false;
         List<String> labelNames = Lists.newArrayList();
         if (relationDoctor != null) {
             relationFlag = true;
@@ -709,7 +718,7 @@ public class RecipeServiceSub {
         p.setPatientSex(patient.getPatientSex());
         p.setBirthday(patient.getBirthday());
         p.setPatientType(patient.getPatientType());
-        p.setIdcard(patient.getIdcard());
+        p.setIdcard(patient.getCertificate());
         p.setMobile(patient.getMobile());
         p.setMpiId(patient.getMpiId());
         p.setPhoto(patient.getPhoto());
@@ -813,15 +822,17 @@ public class RecipeServiceSub {
             }
 
             //审核不通过处方单详情增加二次签名标记
-            if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && (recipe.canMedicalPay() || effective)) {
+            boolean b = RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && (recipe.canMedicalPay() || effective);
+            if (b) {
                 map.put("secondSignFlag", iOrganConfigService.getEnableSecondsignByOrganId(recipe.getClinicOrgan()));
             }
         } else {
             RecipeOrder order = orderDAO.getOrderByRecipeId(recipeId);
             map.put("tips", getTipsByStatusForPatient(recipe, order));
-            if (null != recipe.getEnterpriseId() && RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())
+            boolean b = null != recipe.getEnterpriseId() && RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())
                     && (recipe.getStatus() == RecipeStatusConstant.WAIT_SEND || recipe.getStatus() == RecipeStatusConstant.IN_SEND
-                    || recipe.getStatus() == RecipeStatusConstant.FINISH)) {
+                    || recipe.getStatus() == RecipeStatusConstant.FINISH);
+            if (b) {
                 DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                 map.put("depTel", drugsEnterpriseDAO.getTelById(recipe.getEnterpriseId()));
             }
@@ -855,13 +866,12 @@ public class RecipeServiceSub {
             }
 
             //药品价格显示处理
-            if (RecipeStatusConstant.FINISH == recipe.getStatus() ||
+            boolean b1 = RecipeStatusConstant.FINISH == recipe.getStatus() ||
                     (1 == recipe.getChooseFlag() && !RecipeUtil.isCanncelRecipe(recipe.getStatus()) &&
                             (RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(recipe.getPayMode())
                                     || RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode())
-                                    || RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode())))) {
-                //显示价格
-            } else {
+                                    || RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode())));
+            if (!b1) {
                 recipe.setTotalMoney(null);
             }
         }
@@ -1009,7 +1019,13 @@ public class RecipeServiceSub {
         String recipeGetModeTip = "";
         // 该处方不是只能配送处方，可以显示 到院取药 的文案
         if (1 != recipe.getChooseFlag() && !Integer.valueOf(1).equals(recipe.getDistributionFlag())) {
-            recipeGetModeTip = iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_GETMODE_TIP, null);
+            String organName = StringUtils.isEmpty(recipe.getOrganName())?"医院":recipe.getOrganName();
+            // 邵逸夫特殊处理院区
+            if(1 == recipe.getClinicOrgan()){
+                organName = "浙大附属邵逸夫医院庆春院区";
+            }
+            recipeGetModeTip = iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_GETMODE_TIP,null);
+            recipeGetModeTip = LocalStringUtil.processTemplate(recipeGetModeTip, ImmutableMap.of("orgName", organName));
         }
         return recipeGetModeTip;
 
@@ -1071,96 +1087,119 @@ public class RecipeServiceSub {
 
     /**
      * 往咨询界面发送处方卡片
-     *
      * @param recipe
      * @param details
      * @param rMap
+     * @param send true:发送卡片
      */
-    public static void sendRecipeTagToPatient(Recipe recipe, List<Recipedetail> details, Map<String, Object> rMap) {
-        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+    public static void sendRecipeTagToPatient(Recipe recipe, List<Recipedetail> details,
+                                              Map<String, Object> rMap, boolean send) {
         IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
 
-        if (StringUtils.isNotEmpty(recipe.getMpiid()) && null != recipe.getDoctor()) {
+        RecipeTagMsgBean recipeTagMsg = getRecipeMsgTag(recipe, details);
+        //由于就诊人改造，已经可以知道申请人的信息，所以可以直接往当前咨询发消息
+        if (StringUtils.isNotEmpty(recipe.getRequestMpiId()) && null != recipe.getDoctor()) {
+            sendRecipeMsgTag(recipe.getRequestMpiId(), recipe.getDoctor(), recipeTagMsg, rMap, send);
+        }else if (StringUtils.isNotEmpty(recipe.getMpiid()) && null != recipe.getDoctor()) {
             //处方的患者编号在咨询单里其实是就诊人编号，不是申请人编号
-            List<String> requestMpiIds = iConsultService.findPendingConsultByMpiIdAndDoctor(recipe.getMpiid(), recipe.getDoctor());
+            List<String> requestMpiIds = iConsultService.findPendingConsultByMpiIdAndDoctor(recipe.getMpiid(),
+                    recipe.getDoctor());
             if (CollectionUtils.isNotEmpty(requestMpiIds)) {
-                //获取诊断疾病名称
-                String diseaseName = recipe.getOrganDiseaseName();
-                List<String> drugNames = Lists.newArrayList();
-                if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
-                    for (Recipedetail r : details) {
-                        drugNames.add(r.getDrugName() + " * " + BigDecimal.valueOf(r.getUseDose()).toBigInteger().toString() + r.getUseDoseUnit());
-                    }
-                } else {
-                    //组装药品名称   药品名+商品名+规格
-                    List<Integer> drugIds = Lists.newArrayList();
-                    for (Recipedetail r : details) {
-                        drugIds.add(r.getDrugId());
-                    }
-                    List<DrugList> drugLists = drugListDAO.findByDrugIds(drugIds);
-                    for (DrugList drugList : drugLists) {
-                        //判断非空
-                        String drugName = StringUtils.isEmpty(drugList.getDrugName()) ? "" : drugList.getDrugName();
-                        String saleName = StringUtils.isEmpty(drugList.getSaleName()) ? "" : drugList.getSaleName();
-                        String drugSpec = StringUtils.isEmpty(drugList.getDrugSpec()) ? "" : drugList.getDrugSpec();
-
-                        //数据库中saleName字段可能包含与drugName相同的字符串,增加判断条件，将这些相同的名字过滤掉
-                        StringBuilder drugAndSale = new StringBuilder("");
-                        if (StringUtils.isNotEmpty(saleName)) {
-                            String[] strArray = saleName.split("\\s+");
-                            for (String saleName1 : strArray) {
-                                if (!saleName1.equals(drugName)) {
-                                    drugAndSale.append(saleName1 + " ");
-                                }
-                            }
-                        }
-                        drugAndSale.append(drugName + " ");
-                        //拼装
-                        drugNames.add(drugAndSale + drugSpec);
-                    }
-                }
-
-                RecipeTagMsgBean recipeTagMsg = new RecipeTagMsgBean();
-                recipeTagMsg.setDiseaseName(diseaseName);
-                recipeTagMsg.setDrugNames(drugNames);
-                if (null != recipe.getRecipeId()) {
-                    recipeTagMsg.setRecipeId(recipe.getRecipeId());
-                }
-
                 for (String requestMpiId : requestMpiIds) {
-                    //根据mpi，requestMode 获取当前咨询单consultId
-                    Integer consultId = null;
-                    List<Integer> consultIds =
-                            iConsultService.findApplyingConsultByRequestMpiAndDoctorId(
-                                    requestMpiId,
-                                    recipe.getDoctor(),
-                                    RecipeSystemConstant.CONSULT_TYPE_RECIPE);
-                    if (CollectionUtils.isNotEmpty(consultIds)) {
-                        consultId = consultIds.get(0);
-                    }
-                    if (consultId != null) {
-                        if (null != rMap && null == rMap.get("consultId")) {
-                            rMap.put("consultId", consultId);
-                        }
+                    sendRecipeMsgTag(requestMpiId, recipe.getDoctor(), recipeTagMsg, rMap, send);
+                }
+            }
+        }
+    }
 
-                        ConsultBean consultBean = iConsultService.get(consultId);
-                        if (consultBean != null) {
-                            //判断咨询单状态是否为处理中
-                            if (consultBean.getConsultStatus() == RecipeSystemConstant.CONSULT_STATUS_HANDLING) {
-                                if (StringUtils.isEmpty(consultBean.getSessionID())) {
-                                    recipeTagMsg.setSessionID(null);
-                                } else {
-                                    recipeTagMsg.setSessionID(consultBean.getSessionID());
-                                }
-                                logger.info("doSignRecipeExt recipeTagMsg={}", JSONUtils.toString(recipeTagMsg));
-                                //将消息存入数据库consult_msg，并发送环信消息
-                                iConsultService.handleRecipeMsg(consultBean, recipeTagMsg);
-                            }
+    private static void sendRecipeMsgTag(String requestMpiId, int doctorId, RecipeTagMsgBean recipeTagMsg,
+                                         Map<String, Object> rMap, boolean send){
+        IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
+
+        //根据申请人mpiid，requestMode 获取当前咨询单consultId
+        Integer consultId = null;
+        List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(requestMpiId,
+                                        doctorId, RecipeSystemConstant.CONSULT_TYPE_RECIPE);
+        if (CollectionUtils.isNotEmpty(consultIds)) {
+            consultId = consultIds.get(0);
+        }
+        if (consultId != null) {
+            if (null != rMap && null == rMap.get("consultId")) {
+                rMap.put("consultId", consultId);
+            }
+
+            if(send) {
+                ConsultBean consultBean = iConsultService.get(consultId);
+                if (consultBean != null) {
+                    //判断咨询单状态是否为处理中
+                    if (consultBean.getConsultStatus() == RecipeSystemConstant.CONSULT_STATUS_HANDLING) {
+                        if (StringUtils.isEmpty(consultBean.getSessionID())) {
+                            recipeTagMsg.setSessionID(null);
+                        } else {
+                            recipeTagMsg.setSessionID(consultBean.getSessionID());
                         }
+                        LOGGER.info("sendRecipeMsgTag recipeTagMsg={}", JSONUtils.toString(recipeTagMsg));
+                        //将消息存入数据库consult_msg，并发送环信消息
+                        iConsultService.handleRecipeMsg(consultBean, recipeTagMsg);
                     }
                 }
             }
         }
+    }
+
+    /**
+     * 获取处方卡片信息
+     * @param recipe
+     * @param details
+     * @return
+     */
+    private static RecipeTagMsgBean getRecipeMsgTag(Recipe recipe, List<Recipedetail> details){
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+
+        //获取诊断疾病名称
+        String diseaseName = recipe.getOrganDiseaseName();
+        List<String> drugNames = Lists.newArrayList();
+        if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
+            for (Recipedetail r : details) {
+                drugNames.add(r.getDrugName() + " * " + BigDecimal.valueOf(r.getUseDose()).toBigInteger().toString() + r.getUseDoseUnit());
+            }
+        } else {
+            //组装药品名称   药品名+商品名+规格
+            List<Integer> drugIds = Lists.newArrayList();
+            for (Recipedetail r : details) {
+                drugIds.add(r.getDrugId());
+            }
+            List<DrugList> drugLists = drugListDAO.findByDrugIds(drugIds);
+            for (DrugList drugList : drugLists) {
+                //判断非空
+                String drugName = StringUtils.isEmpty(drugList.getDrugName()) ? "" : drugList.getDrugName();
+                String saleName = StringUtils.isEmpty(drugList.getSaleName()) ? "" : drugList.getSaleName();
+                String drugSpec = StringUtils.isEmpty(drugList.getDrugSpec()) ? "" : drugList.getDrugSpec();
+
+                //数据库中saleName字段可能包含与drugName相同的字符串,增加判断条件，将这些相同的名字过滤掉
+                StringBuilder drugAndSale = new StringBuilder("");
+                if (StringUtils.isNotEmpty(saleName)) {
+                    String[] strArray = saleName.split("\\s+");
+                    for (String saleName1 : strArray) {
+                        if (!saleName1.equals(drugName)) {
+                            drugAndSale.append(saleName1 + " ");
+                        }
+                    }
+                }
+                drugAndSale.append(drugName + " ");
+                //拼装
+                drugNames.add(drugAndSale + drugSpec);
+            }
+        }
+
+        RecipeTagMsgBean recipeTagMsg = new RecipeTagMsgBean();
+        recipeTagMsg.setDiseaseName(diseaseName);
+        recipeTagMsg.setDrugNames(drugNames);
+        if (null != recipe.getRecipeId()) {
+            recipeTagMsg.setRecipeId(recipe.getRecipeId());
+        }
+
+        return recipeTagMsg;
     }
 
     /**
@@ -1171,7 +1210,7 @@ public class RecipeServiceSub {
      * @return
      */
     public static Map<String, Object> cancelRecipeImpl(Integer recipeId, Integer flag, String name, String message) {
-        logger.info("cancelRecipe [recipeId：" + recipeId + "]");
+        LOGGER.info("cancelRecipe [recipeId：" + recipeId + "]");
         //获取订单
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder order = orderDAO.getOrderByRecipeId(recipeId);
@@ -1235,9 +1274,8 @@ public class RecipeServiceSub {
             if (result) {
                 msg = "处方撤销成功";
                 //向患者推送处方撤销消息
-                if (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() && recipe.canMedicalPay()) {
+                if (!(RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() && recipe.canMedicalPay())) {
                     //医保的处方待审核时患者无法看到处方，不发送撤销消息提示
-                } else {
                     RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.REVOKE);
                 }
                 memo.append(msg);
@@ -1263,7 +1301,7 @@ public class RecipeServiceSub {
         RecipeLogService.saveRecipeLog(recipeId, beforeStatus, recipe.getStatus(), memo.toString());
         rMap.put("result", result);
         rMap.put("msg", msg);
-        logger.info("cancelRecipe execute ok! rMap:" + JSONUtils.toString(rMap));
+        LOGGER.info("cancelRecipe execute ok! rMap:" + JSONUtils.toString(rMap));
         return rMap;
     }
 }

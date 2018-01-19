@@ -18,16 +18,16 @@ import java.util.List;
 /**
  * 药企相关接口
  * company: ngarihealth
- * author: 0184/yu_yun
- * date:2016/6/2.
+ * @author: 0184/yu_yun
+ * @date:2016/6/2.
  */
 @RpcBean("drugsEnterpriseService")
 public class DrugsEnterpriseService {
 
     /**
-     * logger
+     * LOGGER
      */
-    private static final Logger logger = LoggerFactory.getLogger(DrugsEnterpriseService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DrugsEnterpriseService.class);
 
     /**
      * 有效药企查询 status为1
@@ -75,7 +75,7 @@ public class DrugsEnterpriseService {
         if (null == drugsEnterprise) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "DrugsEnterprise is null");
         }
-        logger.info(JSONUtils.toString(drugsEnterprise));
+        LOGGER.info(JSONUtils.toString(drugsEnterprise));
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise target = drugsEnterpriseDAO.get(drugsEnterprise.getId());
         if (null == target) {

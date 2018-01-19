@@ -26,7 +26,7 @@ import java.util.List;
 @RpcBean("organAndDrugsepRelationService")
 public class OrganAndDrugsepRelationService {
 
-    private static final Log logger = LogFactory.getLog(OrganAndDrugsepRelationService.class);
+    private static final Log LOGGER = LogFactory.getLog(OrganAndDrugsepRelationService.class);
 
 
     /**
@@ -38,7 +38,7 @@ public class OrganAndDrugsepRelationService {
      */
     @RpcService
     public List<OrganAndDrugsepRelation> addDrugEntRelationByOrganIdAndEntIds(Integer organId, List<Integer> entpriseIds) {
-        logger.info("机构药企维护:[organId:" + organId + ",entpriseIds:" + JSONUtils.toString(entpriseIds));
+        LOGGER.info("机构药企维护:[organId:" + organId + ",entpriseIds:" + JSONUtils.toString(entpriseIds));
         if (ObjectUtils.isEmpty(organId)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "organId is empty!");
         }
@@ -70,7 +70,7 @@ public class OrganAndDrugsepRelationService {
      */
     @RpcService
     public void deleteDrugEntRelationByOrganIdAndEntId(Integer organId, Integer entId) {
-        logger.info("机构药企维护删除:[organId:" + organId + ",drugsEnterpriseId:" + entId);
+        LOGGER.info("机构药企维护删除:[organId:" + organId + ",drugsEnterpriseId:" + entId);
         if (ObjectUtils.isEmpty(organId)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "organId is empty!");
         }

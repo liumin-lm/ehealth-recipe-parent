@@ -5,7 +5,7 @@ import ctd.util.annotation.RpcService;
 import java.util.Map;
 
 /**
- * Created by zhangx on 2016/4/17.
+ * @author yuyun
  */
 public interface IWXServiceInterface {
 

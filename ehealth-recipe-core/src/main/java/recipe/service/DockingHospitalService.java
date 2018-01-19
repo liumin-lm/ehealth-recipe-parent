@@ -1,6 +1,8 @@
 package recipe.service;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.ngari.base.employment.model.EmploymentBean;
 import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.base.organ.model.OrganBean;
@@ -30,21 +32,24 @@ import recipe.util.ApplicationUtils;
 import recipe.util.DateConversion;
 import recipe.util.SqlOperInfo;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 对接第三方医院服务
  * company: ngarihealth
- * author: 0184/yu_yun
- * date:2017/4/17.
+ * @author: 0184/yu_yun
+ * @date:2017/4/17.
  */
 @RpcBean("dockingHospitalService")
 public class DockingHospitalService {
 
     /**
-     * logger
+     * LOGGER
      */
-    private static final Logger logger = LoggerFactory.getLogger(DockingHospitalService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DockingHospitalService.class);
 
     private IOrganService iOrganService = ApplicationUtils.getBaseService(IOrganService.class);
 
@@ -54,6 +59,16 @@ public class DockingHospitalService {
 
     private IPatientService iPatientService =
             ApplicationUtils.getBaseService(IPatientService.class);
+
+    /**
+     * 撤销标识
+     */
+    private static final int CANCEL_FLAG = 2;
+
+    /**
+     * 更新标识
+     */
+    private static final int UPDATE_FLAG = 3;
 
     /**
      * 接收第三方处方 (上级医院调用)
@@ -107,10 +122,10 @@ public class DockingHospitalService {
                             recipe.setCheckOrgan(originClinicOrgan);
                             recipe.setCheckDateYs(recipe.getSignDate());
                         } else {
-                            logger.error("platformRecipeCreate 审核医生在平台没有执业点.");
+                            LOGGER.error("platformRecipeCreate 审核医生在平台没有执业点.");
                         }
                     } else {
-                        logger.error("platformRecipeCreate 审核医生工号(auditDoctor)为空.");
+                        LOGGER.error("platformRecipeCreate 审核医生工号(auditDoctor)为空.");
                     }
 
                     //设置患者信息
@@ -124,7 +139,7 @@ public class DockingHospitalService {
                             recipe.setMpiid(patient.getMpiId());
                         }
                     } catch (Exception e) {
-                        logger.error("创建平台患者失败，e=" + e.getMessage());
+                        LOGGER.error("创建平台患者失败，e=" + e.getMessage());
                         result.setMsgCode(HosRecipeResult.FAIL);
                         result.setMsg(prefix + "创建平台患者失败");
                         break;
@@ -143,7 +158,7 @@ public class DockingHospitalService {
                     Integer recipeId = recipeService.saveRecipeDataForHos(recipe, details);
                     if (null != recipeId) {
                         //创建订单数据
-                        Map<String, String> orderMap = new HashMap<>();
+                        Map<String, String> orderMap = Maps.newHashMap();
                         orderMap.put("operMpiId", recipe.getMpiid());
                         //PayWayEnum.UNKNOW
                         orderMap.put("payway", "-1");
@@ -155,7 +170,7 @@ public class DockingHospitalService {
                             if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
                                 OrganBean subOrgan = iOrganService.get(recipe.getClinicOrgan());
                                 //到店取药则自动完成用户确认操作
-                                Map<String, Object> paramMap = new HashMap<>();
+                                Map<String, Object> paramMap = Maps.newHashMap();
                                 paramMap.put("result", "1");
                                 paramMap.put("recipeId", recipeId);
                                 paramMap.put("drugstore", subOrgan.getName());
@@ -173,7 +188,7 @@ public class DockingHospitalService {
                                             //发送下级医院处方
 //                                                    sendSubOrganHisRecipe(recipeId, hospitalRecipe.getSubOrganId());
                                             allRecipeId.add(recipeId);
-                                            logger.info("platformRecipeCreate 接收医院处方成功，recipeId=" + recipeId);
+                                            LOGGER.info("platformRecipeCreate 接收医院处方成功，recipeId=" + recipeId);
                                             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "收到[" + organName + "]处方成功");
                                         } else {
                                             orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.CANCEL_AUTO);
@@ -238,7 +253,7 @@ public class DockingHospitalService {
     @RpcService
     public HosRecipeResult platformRecipeCancel(HospitalRecipeBean hospitalRecipe) {
         //传入数据校验
-        HosRecipeResult result = validateHospitalRecipe(hospitalRecipe, 2);
+        HosRecipeResult result = validateHospitalRecipe(hospitalRecipe, CANCEL_FLAG);
         if (HosRecipeResult.FAIL.equals(result.getMsgCode())) {
             return result;
         }
@@ -250,7 +265,7 @@ public class DockingHospitalService {
 
         List<String> recipeCodeList = hospitalRecipe.getRecipeCodeList();
         HosRecipeResult subResult;
-        List<HosRecipeResult> failList = new ArrayList<>(5);
+        List<HosRecipeResult> failList = Lists.newArrayList();
         for (String recipeCode : recipeCodeList) {
             subResult = HosRecipeResult.getSuccess();
             Recipe recipe = recipeDAO.getByOriginRecipeCodeAndOriginClinicOrgan(recipeCode, Integer.parseInt(hospitalRecipe.getOrganID()));
@@ -287,7 +302,7 @@ public class DockingHospitalService {
             }
         }
 
-        //TODO 批量数据结果返回结构不明确
+        //批量数据结果返回结构不明确
 
         return result;
     }
@@ -301,7 +316,7 @@ public class DockingHospitalService {
     @RpcService
     public HosRecipeResult platformRecipeStatusUpdate(HospitalRecipeBean hospitalRecipe) {
         //传入数据校验
-        HosRecipeResult result = validateHospitalRecipe(hospitalRecipe, 3);
+        HosRecipeResult result = validateHospitalRecipe(hospitalRecipe, UPDATE_FLAG);
         if (HosRecipeResult.FAIL.equals(result.getMsgCode())) {
             return result;
         }
@@ -320,13 +335,17 @@ public class DockingHospitalService {
         //处方状态
         //0已接受 1已支付 2已发药 8已取消
         String recipeStatus = hospitalRecipe.getRecipeStatus();
-        if ("0".equals(recipeStatus)) {
-            Map<String, Object> _attrMap = new HashMap<>();
-            _attrMap.put("recipeCode", hospitalRecipe.getRecipeNo());
-            recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), _attrMap);
-        } else if ("8".equals(recipeStatus) || "2".equals(recipeStatus)) {
-            Map<String, Object> paramMap = new HashMap<>();
-            if ("2".equals(recipeStatus)) {
+        String accept = "0";
+        String pay = "1";
+        String send = "2";
+        String cancel = "8";
+        if (accept.equals(recipeStatus)) {
+            Map<String, Object> attrMap = Maps.newHashMap();
+            attrMap.put("recipeCode", hospitalRecipe.getRecipeNo());
+            recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap);
+        } else if (cancel.equals(recipeStatus) || send.equals(recipeStatus)) {
+            Map<String, Object> paramMap = Maps.newHashMap();
+            if (send.equals(recipeStatus)) {
                 paramMap.put("result", "1");
             } else {
                 paramMap.put("result", "0");
@@ -338,13 +357,11 @@ public class DockingHospitalService {
             ThirdResultBean backMap = takeDrugService.recordDrugStoreResult(paramMap);
             if (null != backMap && ThirdEnterpriseCallService.REQUEST_OK.equals(backMap.getCode())) {
                 //成功
-                logger.info("platformRecipeStatusUpdate 处理成功. recipeStatus=[{}]", recipeStatus);
+                LOGGER.info("platformRecipeStatusUpdate 处理成功. recipeStatus=[{}]", recipeStatus);
             } else {
                 result.setMsgCode(HosRecipeResult.FAIL);
                 result.setMsg("平台处方状态更新失败,原因：" + backMap.getMsg());
             }
-        } else if ("1".equals(recipeStatus)) {
-
         }
 
         return result;
@@ -400,14 +417,14 @@ public class DockingHospitalService {
             for (Recipe recipe : dbList) {
                 hospitalRecipeBean = new HospitalRecipeBean();
                 try {
-                    RecipeResultBean _result = hospitalRecipeBean.parseRecipe(recipe, recipeDetailDAO.findByRecipeId(recipe.getRecipeId()),
+                    RecipeResultBean result1 = hospitalRecipeBean.parseRecipe(recipe, recipeDetailDAO.findByRecipeId(recipe.getRecipeId()),
                             patient, iPatientService.findAllHealthCard(recipe.getMpiid(), recipe.getClinicOrgan()));
-                    if (RecipeResultBean.SUCCESS.equals(_result.getCode())) {
+                    if (RecipeResultBean.SUCCESS.equals(result1.getCode())) {
                         backList.add(hospitalRecipeBean);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    logger.error("platformRecipeSearch 解析平台处方出错. recipeId=[{}]", recipe.getRecipeId());
+                    LOGGER.error("platformRecipeSearch 解析平台处方出错. recipeId=[{}]", recipe.getRecipeId());
                 }
             }
         }
@@ -429,7 +446,7 @@ public class DockingHospitalService {
             RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
             Integer subOrgan = Integer.parseInt(subOrganId);
             //发送HIS消息
-            //TODO 发送下级医院处方
+            //发送下级医院处方
             hisService.recipeSendHis(recipeId, subOrgan);
             return true;
         }
@@ -510,15 +527,15 @@ public class DockingHospitalService {
             result.setMsg("传入参数为空");
             return result;
         }
-
         if (1 == flag) {
             //新增
             List<HospitalRecipeBean> hospitalRecipeList = (List<HospitalRecipeBean>) obj;
             HospitalRecipeBean hospitalRecipe;
-            String prefix = "处方";
+            StringBuilder prefix = new StringBuilder("处方");
             for (int i = 0; i < hospitalRecipeList.size(); i++) {
                 hospitalRecipe = hospitalRecipeList.get(i);
-                prefix = prefix + i + ":";
+                prefix = prefix.append(i+":");
+
                 if (StringUtils.isEmpty(hospitalRecipe.getRecipeType())) {
                     result.setMsg(prefix + "处方类型为空");
                     return result;
@@ -549,7 +566,7 @@ public class DockingHospitalService {
                     return result;
                 }
 
-                if ("1".equals(hospitalRecipe.getGuardianFlag())) {
+                if (HospitalRecipeBean.GUARDIAN_FLAG.equals(hospitalRecipe.getGuardianFlag())) {
                     //监护人模式
                     if (StringUtils.isEmpty(hospitalRecipe.getPatientBirthDay())) {
                         result.setMsg(prefix + "患者出生日期为空");
@@ -574,7 +591,7 @@ public class DockingHospitalService {
                     return result;
                 }
             }
-        } else if (2 == flag) {
+        } else if (CANCEL_FLAG == flag) {
             HospitalRecipeBean hospitalRecipe = (HospitalRecipeBean) obj;
             if (CollectionUtils.isEmpty(hospitalRecipe.getRecipeCodeList())) {
                 result.setMsg("处方编号集合为空");
@@ -591,7 +608,7 @@ public class DockingHospitalService {
                 return result;
             }
 
-        } else if (3 == flag) {
+        } else if (UPDATE_FLAG == flag) {
             HospitalRecipeBean hospitalRecipe = (HospitalRecipeBean) obj;
             if (StringUtils.isEmpty(hospitalRecipe.getRecipeNo())) {
                 result.setMsg("处方编号为空");

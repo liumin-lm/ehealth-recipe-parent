@@ -1,6 +1,5 @@
 package recipe.util;
 
-import java.text.ParseException;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -11,6 +10,7 @@ import java.util.regex.Pattern;
  */
 public class ValidateUtil {
     private static final String NUMERIC_REGEX = "^\\d+(\\.\\d+)?$";
+    private static Pattern p = Pattern.compile("^((13[0-9])|(17[0-9])|(15[0-9])|(18[0-9]))\\d{8}$");
 
     public static boolean nullOrZeroDouble(Double value){
         if(value==null || value==0) {
@@ -211,18 +211,8 @@ public class ValidateUtil {
         return !isStrictNumeric(value.trim());
     }
 
-
-
-    public static void main(String[] args) throws ParseException {
-        Boolean x = null;
-        Boolean y = false;
-        System.out.println(isTrue(x));
-
-    }
-
     public static boolean isMobile(String mobile){
 
-        Pattern p = Pattern.compile("^((13[0-9])|(17[0-9])|(15[0-9])|(18[0-9]))\\d{8}$");
         Matcher m = p.matcher(mobile);
         return m.matches();
     }

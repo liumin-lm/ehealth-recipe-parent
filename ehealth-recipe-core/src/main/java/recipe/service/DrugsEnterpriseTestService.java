@@ -23,11 +23,13 @@ import java.util.Map;
 /**
  * 药企数据准备类，前端不进行调用
  * company: ngarihealth
- * author: 0184/yu_yun
- * date:2016/7/18.
+ * @author: 0184/yu_yun
+ * @date:2016/7/18.
  */
 public class DrugsEnterpriseTestService {
-    public static final Logger logger = Logger.getLogger(DrugsEnterpriseTestService.class);
+    public static final Logger LOGGER = Logger.getLogger(DrugsEnterpriseTestService.class);
+    private static final String OS_NAME = "os.name";
+    private static final String WINDOWS = "windows";
 
     /**
      * 分析药品数据，哪些需要加，哪些需要改
@@ -36,7 +38,7 @@ public class DrugsEnterpriseTestService {
      */
     public Map<String, Object> analysisDrugList(List<Integer> drugIdList, int organId, boolean useFile) throws IOException {
         String filePth = "/home/cdr_update_1.sql";
-        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+        if (System.getProperty(OS_NAME).toLowerCase().contains(WINDOWS)) {
             filePth = "d:/cdr_update_1.sql";
         }
         FileWriter fw = null;
@@ -215,7 +217,9 @@ public class DrugsEnterpriseTestService {
         }
 
         if (bl) {
-            if (drugName.startsWith("*") || drugName.contains("赠药")) {
+            String s1 = "*";
+            String s2 = "赠药";
+            if (drugName.startsWith(s1) || drugName.contains(s2)) {
                 bl = false;
             }
         }

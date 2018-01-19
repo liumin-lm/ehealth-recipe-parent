@@ -38,9 +38,15 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "患者医院病历号")
     private String patientID;
 
+    @ItemProperty(alias = "患者状态 1正常  9注销")
+    private int patientStatus;
+
     @ItemProperty(alias = "开方机构")
     @Dictionary(id = "eh.base.dictionary.Organ")
     private Integer clinicOrgan;
+
+    @ItemProperty(alias = "开方机构名称")
+    private String organName;
 
     @ItemProperty(alias = "处方来源机构")
     @Dictionary(id = "eh.base.dictionary.Organ")
@@ -430,6 +436,15 @@ public class Recipe implements Serializable {
         this.memo = memo;
     }
 
+    @Column(name = "patientStatus")
+    public int getPatientStatus() {
+        return patientStatus;
+    }
+
+    public void setPatientStatus(int patientStatus) {
+        this.patientStatus = patientStatus;
+    }
+
     @Transient
     public BigDecimal getPrice1() {
         return price1;
@@ -502,6 +517,15 @@ public class Recipe implements Serializable {
 
     public void setClinicOrgan(Integer clinicOrgan) {
         this.clinicOrgan = clinicOrgan;
+    }
+
+    @Column(name = "organName")
+    public String getOrganName() {
+        return organName;
+    }
+
+    public void setOrganName(String organName) {
+        this.organName = organName;
     }
 
     @Column(name = "OriginClinicOrgan")
@@ -1090,7 +1114,8 @@ public class Recipe implements Serializable {
     }
 
     public boolean canMedicalPay() {
-        return (new Integer(1).equals(medicalPayFlag)) ? true : false;
+        Integer useMedicalFlag = 1;
+        return (useMedicalFlag.equals(medicalPayFlag)) ? true : false;
     }
 
     @Column(name = "DistributionFlag")
@@ -1103,7 +1128,8 @@ public class Recipe implements Serializable {
     }
 
     public boolean onlyDistribution() {
-        return (new Integer(1).equals(distributionFlag)) ? true : false;
+        Integer distribution = 1;
+        return (distribution.equals(distributionFlag)) ? true : false;
     }
 
     @Column(name = "RecipeMemo")

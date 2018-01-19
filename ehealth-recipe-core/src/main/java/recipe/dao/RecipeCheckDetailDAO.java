@@ -8,7 +8,7 @@ import ctd.util.annotation.RpcSupportDAO;
 import java.util.List;
 
 /**
- * Created by zhongzx on 2016/10/25 0025.
+ * @author zhongzx
  * 审方详情dao
  */
 @RpcSupportDAO
@@ -20,6 +20,11 @@ public abstract class RecipeCheckDetailDAO extends HibernateSupportDelegateDAO<R
         this.setKeyField("checkDetailId");
     }
 
+    /**
+     * 根据id获取
+     * @param checkId
+     * @return
+     */
     @DAOMethod(limit = 0)
     public abstract List<RecipeCheckDetail> findByCheckId(Integer checkId);
 

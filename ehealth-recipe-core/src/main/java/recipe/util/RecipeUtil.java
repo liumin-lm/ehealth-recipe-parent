@@ -1,5 +1,6 @@
 package recipe.util;
 
+import com.google.common.collect.Maps;
 import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.recipe.entity.*;
@@ -102,11 +103,11 @@ public class RecipeUtil {
      * @return
      */
     public static Map<String, String> getParamFromOgainConfig(RecipeOrder order) {
-        IOrganConfigService IOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
+        IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
         Integer organId = order.getOrganId();
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = Maps.newHashMap();
         if (null != organId) {
-            OrganConfigBean organConfig = IOrganConfigService.get(organId);
+            OrganConfigBean organConfig = iOrganConfigService.get(organId);
             if (null != organConfig) {
                 map.put("serviceChargeDesc", organConfig.getServiceChargeDesc());
                 map.put("serviceChargeRemark", organConfig.getServiceChargeRemark());

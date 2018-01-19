@@ -3,15 +3,22 @@ package recipe.prescription.bean;
 /**
  * 过敏源信息
  * Created by jiangtingfeng on 2017/11/2.
+ * @author jiangtingfeng
  */
 public class AuditAllergy {
-    // 过敏类型
+    /**
+     * 过敏类型
+     */
     private String type;
 
-    // 过敏源名称
+    /**
+     * 过敏源名称
+     */
     private String name;
 
-    // 过敏源代码
+    /**
+     * 过敏源代码
+     */
     private String code;
 
     public String getType() {

@@ -7,6 +7,9 @@
 
 package recipe.prescription.pawebservice;
 
+/**
+ * @author jiangtingfeng
+ */
 public class PAWebServiceSoap_BindingStub extends org.apache.axis.client.Stub implements PAWebServiceSoap_PortType {
     private java.util.Vector cachedSerClasses = new java.util.Vector();
     private java.util.Vector cachedSerQNames = new java.util.Vector();

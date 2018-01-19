@@ -49,9 +49,11 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
         implements DBDictionaryItemLoader<DrugList> {
 
     /**
-     * logger
+     * LOGGER
      */
-    private static final Logger logger = LoggerFactory.getLogger(DrugListDAO.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DrugListDAO.class);
+
+    private static Pattern p = Pattern.compile("(?<=<em>).+?(?=</em>)");
 
     public DrugListDAO() {
         super();
@@ -84,7 +86,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 }
             }
         };
-        HibernateSessionTemplate.instance().executeReadOnly(action);
+        HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
 
@@ -114,7 +116,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 }
             }
         };
-        HibernateSessionTemplate.instance().executeReadOnly(action);
+        HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
 
@@ -173,7 +175,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 setResult(drugListList);
             }
         };
-        HibernateSessionTemplate.instance().executeReadOnly(action);
+        HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
 
@@ -212,7 +214,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 setResult(q.list());
             }
         };
-        HibernateSessionTemplate.instance().executeReadOnly(action);
+        HibernateSessionTemplate.instance().execute(action);
         List<DrugList> drugList = action.getResult();
         //取出根据别名查询得到的drugId 作为去DrugList表中查询的入参
         List<Integer> idList = new ArrayList<>();
@@ -238,7 +240,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
         searchTO.setDrugType(null == drugType ? "" : String.valueOf(drugType));
         searchTO.setStart(start);
         searchTO.setLimit(limit);
-        logger.info("searchDrugListWithES DrugSearchTO={} ", JSONUtils.toString(searchTO));
+        LOGGER.info("searchDrugListWithES DrugSearchTO={} ", JSONUtils.toString(searchTO));
         List<String> drugInfo = searchService.findDrugList(searchTO);
         List<DrugList> dList = new ArrayList<>(drugInfo.size());
         // 将String转化成DrugList对象返回给前端
@@ -248,7 +250,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 try {
                     drugList = JSONUtils.parse(s, DrugList.class);
                 } catch (Exception e) {
-                    logger.error("searchDrugListWithES parse error.  String=" + s);
+                    LOGGER.error("searchDrugListWithES parse error.  String=" + s);
                 }
                 //该高亮字段给微信端使用:highlightedField
                 //该高亮字段给ios前端使用:highlightedFieldForIos
@@ -258,10 +260,10 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 dList.add(drugList);
             }
 
-            logger.info("searchDrugListWithES result DList.size = " + dList.size());
+            LOGGER.info("searchDrugListWithES result DList.size = " + dList.size());
             RecipeUtil.getHospitalPrice(dList);
         } else {
-            logger.info("searchDrugListWithES result isEmpty! drugName = " + drugName);
+            LOGGER.info("searchDrugListWithES result isEmpty! drugName = " + drugName);
         }
 
         return dList;
@@ -275,13 +277,11 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
      */
     public List<String> getListByHighlightedField(String highlightedField) {
         List list = new ArrayList();
-
-        Pattern p = Pattern.compile("(?<=<em>).+?(?=</em>)");
         Matcher m = p.matcher(highlightedField);
         while (m.find()) {
             list.add(m.group().trim());
         }
-//        logger.info("highlightedField is " + list.toString());
+//        LOGGER.info("highlightedField is " + list.toString());
         return list;
     }
 
@@ -352,7 +352,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 setResult(drugListList);
             }
         };
-        HibernateSessionTemplate.instance().executeReadOnly(action);
+        HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
 
@@ -395,10 +395,10 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
             @SuppressWarnings("unchecked")
             @Override
             public void execute(StatelessSession ss) throws DAOException {
-                String hql = new String("select a From DrugList a, Recipe b,Recipedetail c, OrganDrugList o where "
+                String hql = "select a From DrugList a, Recipe b,Recipedetail c, OrganDrugList o where "
                         + "b.doctor=:doctor and a.status=1 and a.drugId=c.drugId and b.clinicOrgan=:organId "
                         + "and a.drugType=:drugType and b.createDate>=:halfYear and o.drugId=a.drugId and o.organId=:organId and o.status=1 "
-                        + "and b.recipeId=c.recipeId group by c.drugId order by count(*) desc");
+                        + "and b.recipeId=c.recipeId group by c.drugId order by count(*) desc";
                 Query q = ss.createQuery(hql);
                 q.setParameter("doctor", doctor);
                 q.setParameter("organId", organId);
@@ -413,7 +413,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 setResult(drugListList);
             }
         };
-        HibernateSessionTemplate.instance().executeReadOnly(action);
+        HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
 
@@ -454,7 +454,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
             list = var.getItems();
 
         } catch (ControllerException e) {
-            logger.error("getDrugClass() error : " + e);
+            LOGGER.error("getDrugClass() error : " + e);
         }
         return list;
     }
@@ -473,7 +473,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
 
         List<DictionaryItem> list = getDrugClass(parentKey, 3);
         for (DictionaryItem dictionaryItem : list) {
-            HashMap<String, Object> map = new HashMap<String, Object>();
+            HashMap<String, Object> map = Maps.newHashMap();
             map.put("key", dictionaryItem.getKey());
             map.put("text", dictionaryItem.getText());
             map.put("leaf", dictionaryItem.isLeaf());
@@ -532,7 +532,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 setResult(drugListList);
             }
         };
-        HibernateSessionTemplate.instance().executeReadOnly(action);
+        HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
 
@@ -561,14 +561,6 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
             }
         }
         //现在 按照字典的录入顺序显示
-        //类目按照拼音正序排序
-        /*final Collator collator = Collator.getInstance(java.util.Locale.CHINA);
-        Collections.sort(itemList, new Comparator<DictionaryItem>() {
-            @Override
-            public int compare(DictionaryItem o1, DictionaryItem o2) {
-                return collator.compare(o1.getText(), o2.getText());
-            }
-        });*/
         return itemList;
     }
 
@@ -682,6 +674,11 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
     public abstract List<DrugList> findAll();
 
 
+    /**
+     * 根据organid获取
+     * @param organId
+     * @return
+     */
     @DAOMethod(sql = " select d from DrugList d,SaleDrugList s where d.drugId=s.drugId and s.status=1 and s.organId=:organId ", limit = 9999)
     public abstract List<DrugList> findDrugsByDepId(@DAOParam("organId") Integer organId);
 
@@ -710,13 +707,14 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 try {
                     useDose = Double.parseDouble(info[0]);
                 } catch (NumberFormatException e) {
-                    StringBuilder _useDose = new StringBuilder(10);
+                    StringBuilder useDose1 = new StringBuilder(10);
                     if (StringUtils.isNotEmpty(info[0])) {
                         char[] chars = info[0].toCharArray();
                         for (char c : chars) {
                             //48-57在ascii中对应 0-9，46为.
-                            if ((c >= 48 && c <= 57) || c == 46) {
-                                _useDose.append(c);
+                            boolean b = (c >= 48 && c <= 57) || c == 46;
+                            if (b) {
+                                useDose1.append(c);
                             } else {
                                 //遇到中间有其他字符则只取前面的数据
                                 break;
@@ -724,8 +722,8 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                         }
                     }
 
-                    if (_useDose.length() > 0) {
-                        useDose = Double.parseDouble(_useDose.toString());
+                    if (useDose1.length() > 0) {
+                        useDose = Double.parseDouble(useDose1.toString());
                     } else {
                         useDose = 0d;
                     }
@@ -809,7 +807,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 setResult(new QueryResult<DrugList>(total, query.getFirstResult(), query.getMaxResults(), lists));
             }
         };
-        HibernateSessionTemplate.instance().executeReadOnly(action);
+        HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
 
@@ -833,7 +831,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 }
             }
         };
-        HibernateSessionTemplate.instance().executeReadOnly(action);
+        HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
 
@@ -852,7 +850,8 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 StringBuilder hql = new StringBuilder("select d, count(d.drugId) as drugNum from DrugList d, OrganDrugList o, " +
                         "Recipedetail rp, Recipe r where r.recipeId = rp.recipeId and r.status =6 and rp.status = 1 " +
                         "and d.drugId = rp.drugId and d.drugId = o.drugId and d.status =1 and o.status = 1 and o.organId = 1 " +
-                        "group by d.drugId order by drugNum desc");// TODO: 2017/3/13 0013 暂时只展示邵逸夫的药品
+                        "group by d.drugId order by drugNum desc");
+                // 2017/3/13 0013 暂时只展示邵逸夫的药品
                 Query q = ss.createQuery(hql.toString());
                 if (start != null && limit != null) {
                     q.setMaxResults(limit);
@@ -867,7 +866,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 setResult(drugList);
             }
         };
-        HibernateSessionTemplate.instance().executeReadOnly(action);
+        HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
 

@@ -6,8 +6,8 @@
 		<property name="url" value="${db.url}" />
 		<property name="username" value="${db.username}" />
 		<property name="password" value="${db.password}" />
-		<property name="filters" value="stat,config" />
-        <property name="connectionProperties" value="config.decrypt=true" />
+		<property name="filters" value="mergeStat,config,log4j" />
+		<property name="connectionProperties" value="config.decrypt=true;druid.stat.slowSqlMillis=3000;druid.stat.logSlowSql=true" />
 
 		<property name="maxActive" value="${db.maxActive}" />
 		<property name="initialSize" value="${db.initialSize}" />
@@ -19,8 +19,8 @@
 		<property name="testWhileIdle" value="true" />
 		<property name="testOnBorrow" value="false" />
 		<property name="testOnReturn" value="false" />
-		<property name="poolPreparedStatements" value="true" />
-		<property name="maxPoolPreparedStatementPerConnectionSize" value="20" />
+		<!--<property name="poolPreparedStatements" value="true" />-->
+		<!--<property name="maxPoolPreparedStatementPerConnectionSize" value="20" />-->
 	</bean>
 	<bean id="mySessionFactory" class="ctd.persistence.support.hibernate.MyLocalSessionFactoryBean">
 		<property name="dataSource" ref="dataSource" />

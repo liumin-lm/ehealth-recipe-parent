@@ -206,4 +206,18 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     List<String> findCommonDiseasByDoctorAndOrganId(int doctorId, int organId);
+
+    /**
+     *  就诊人改造：获取医生的历史患者MpiId：从处方表中查询
+     * @param doctorId
+     * @return
+     */
+    @RpcService
+    List<String> findHistoryMpiIdsByDoctorId(int doctorId,Integer start, Integer limit);
+
+    /**
+     * 同步患者注销状态到处方表
+     */
+    @RpcService
+    void synPatientStatusToRecipe(String mpiId);
 }

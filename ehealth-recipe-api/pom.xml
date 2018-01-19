@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>ehealth-recipe</artifactId>
+        <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
@@ -39,7 +39,7 @@
                 <executions>
                     <execution>
                         <id>check</id>
-                        <phase>compile</phase>
+                        <!--<phase>compile</phase>-->
                         <goals>
                             <goal>check</goal>
                             <goal>checkstyle</goal>
@@ -73,7 +73,7 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <phase>compile</phase>
+                        <!--<phase>compile</phase>-->
                         <goals>
                             <goal>check</goal>
                         </goals>
@@ -106,7 +106,7 @@
                     这样一来，当我们使用mvn compile这样的命令之后，会自动执行 findbug 插件的 check 这个goal。-->
                     <execution>
                         <id>findbugs</id>
-                        <phase>compile</phase>
+                        <!--<phase>compile</phase>-->
                         <goals>
                             <goal>findbugs</goal>
                             <!--<goal>gui</goal>-->

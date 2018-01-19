@@ -2,7 +2,6 @@ package recipe.serviceprovider;
 
 
 import com.ngari.recipe.IBaseService;
-import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,9 +19,9 @@ import java.util.List;
 public class BaseService<T> implements IBaseService<T> {
 
     /**
-     * logger
+     * LOGGER
      */
-    private static final Logger logger = LoggerFactory.getLogger(BaseService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BaseService.class);
 
     @Override
     public T get(Object id) {
@@ -47,7 +46,7 @@ public class BaseService<T> implements IBaseService<T> {
         try {
             BeanUtils.copyProperties(origin, dest);
         } catch (BeansException e) {
-            logger.error("BeansException copyProperties error. statck={}", JSONUtils.toString(e.getStackTrace()));
+            LOGGER.error("BeansException copyProperties error ", e);
         }
     }
 
@@ -67,10 +66,10 @@ public class BaseService<T> implements IBaseService<T> {
                 copyProperties(dest, origin);
             } catch (InstantiationException e) {
                 dest = null;
-                logger.error("InstantiationException getBean error. statck={}", JSONUtils.toString(e.getStackTrace()));
+                LOGGER.error("InstantiationException getBean error ", e);
             } catch (IllegalAccessException e) {
                 dest = null;
-                logger.error("IllegalAccessException getBean error. statck={}", JSONUtils.toString(e.getStackTrace()));
+                LOGGER.error("IllegalAccessException getBean error ", e);
             }
         }
 

@@ -1,5 +1,8 @@
 package recipe.prescription.bean;
 
+/**
+ * @author yuyun
+ */
 public class PrescriptionConstants {
 
     public static String CRMSWEBSRV = "CRMS_WEBSRV";
@@ -17,6 +20,6 @@ public class PrescriptionConstants {
     public void setTargetNamespace(String targetNamespace){ PrescriptionConstants.TargetNamespace = targetNamespace;}
 
     public String getNAMESPACE(){ return NAMESPACE; }
-    public void setNAMESPACE(String NAMESPACE){ PrescriptionConstants.NAMESPACE = NAMESPACE;}
+    public void setNAMESPACE(String namespace){ PrescriptionConstants.NAMESPACE = namespace;}
 
 }

@@ -3,15 +3,22 @@ package recipe.prescription.bean;
 /**
  * 诊断信息
  * Created by jiangtingfeng on 2017/11/2.
+ * @author jiangtingfeng
  */
 public class AuditDiagnose {
-    // 诊断类型
+    /**
+     * 诊断类型
+     */
     private String type;
 
-    // 诊断名称
+    /**
+     * 诊断名称
+     */
     private String name;
 
-    // 诊断代码
+    /**
+     * 诊断代码
+     */
     private String code;
 
     public String getType() {

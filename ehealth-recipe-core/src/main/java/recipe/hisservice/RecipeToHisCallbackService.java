@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
+ * @author yuyun
  * 接收处方与HIS交互回调消息
  * 写入HIS处方服务类，由于老版本HIS只会通过BASE调用接口，回调消息也只能通过BASE中转
  */
@@ -26,9 +27,9 @@ import java.util.List;
 public class RecipeToHisCallbackService {
 
     /**
-     * logger
+     * LOGGER
      */
-    private static final Logger logger = LoggerFactory.getLogger(RecipeToHisCallbackService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecipeToHisCallbackService.class);
 
     /**
      * @param response
@@ -36,7 +37,7 @@ public class RecipeToHisCallbackService {
      */
     @RpcService
     public void sendSuccess(HisSendResTO response) {
-        logger.info("recipeSend recive success. recipeId={}, response={}", response.getRecipeId(), JSONUtils.toString(response));
+        LOGGER.info("recipeSend recive success. recipeId={}, response={}", response.getRecipeId(), JSONUtils.toString(response));
         List<OrderRepTO> repList = response.getData();
         if (CollectionUtils.isNotEmpty(repList)) {
             RecipeCheckPassResult result = new RecipeCheckPassResult();
@@ -55,7 +56,8 @@ public class RecipeToHisCallbackService {
                 detail.setRecipeDetailId(Integer.valueOf(rep.getOrderID()));
                 detail.setOrderNo(LocalStringUtil.toString(rep.getOrderNo()));
                 detail.setDrugGroup(LocalStringUtil.toString(rep.getSetNo()));
-                detail.setPharmNo(LocalStringUtil.toString(rep.getPharmNo()));//取药窗口是否都是返回同一窗口
+                //取药窗口是否都是返回同一窗口
+                detail.setPharmNo(LocalStringUtil.toString(rep.getPharmNo()));
                 detail.setMemo(LocalStringUtil.toString(rep.getRemark()));
                 list.add(detail);
             }
@@ -67,10 +69,10 @@ public class RecipeToHisCallbackService {
             result.setRecipeCode(recipeNo);
             result.setPatientID(patientId);
             result.setDetailList(list);
-            logger.info("recipeSend recive success. recipeId={}, checkPassSuccess result={}", response.getRecipeId(), JSONUtils.toString(result));
+            LOGGER.info("recipeSend recive success. recipeId={}, checkPassSuccess result={}", response.getRecipeId(), JSONUtils.toString(result));
             HisCallBackService.checkPassSuccess(result, true);
         } else {
-            logger.error("recipeSend recive success. recipeId={}, data is empty. ");
+            LOGGER.error("recipeSend recive success. recipeId={}, data is empty. ");
         }
     }
 
@@ -82,7 +84,7 @@ public class RecipeToHisCallbackService {
      */
     @RpcService
     public void sendFail(HisSendResTO response) {
-        logger.error("recipeSend recive fail. recipeId={}, response={}", response.getRecipeId(), JSONUtils.toString(response));
+        LOGGER.error("recipeSend recive fail. recipeId={}, response={}", response.getRecipeId(), JSONUtils.toString(response));
         // 给申请医生，患者发送推送消息
         HisCallBackService.checkPassFail(Integer.valueOf(response.getRecipeId()), response.getMsgCode(), response.getMsg());
     }

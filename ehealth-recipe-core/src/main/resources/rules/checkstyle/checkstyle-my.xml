@@ -30,7 +30,7 @@
     <module name="TreeWalker">
         <!-- javadoc的检查 -->
         <!-- 检查所有的interface和class -->
-        <module name="JavadocType" />
+        <!--<module name="JavadocType" />-->
 
         <!-- 命名方面的检查 -->
         <!-- 局部的final变量，包括catch中的参数的检查 -->
@@ -42,7 +42,7 @@
             <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$" />
         </module>
         <!-- 仅仅是static型的变量（不包括static final型）的检查 -->
-        <module name="StaticVariableName" />
+        <!--<module name="StaticVariableName" />-->
         <!-- 类型(Class或Interface)名的检查 -->
         <module name="TypeName" />
         <!-- 非static型变量的检查 -->
@@ -63,18 +63,18 @@
         </module>-->
         <!-- 每行不超过150个字-->
         <module name="LineLength">
-            <property name="max" value="170" />
+            <property name="max" value="800" />
         </module>
         <!-- 方法不超过150行 -->
-        <module name="MethodLength">
-            <property name="tokens" value="METHOD_DEF" />
-            <property name="max" value="150" />
-        </module>
-        <!-- 方法的参数个数不超过5个。 并且不对构造方法进行检查-->
-        <module name="ParameterNumber">
-            <property name="max" value="5" />
-            <property name="tokens" value="METHOD_DEF" />
-        </module>
+        <!--<module name="MethodLength">-->
+            <!--<property name="tokens" value="METHOD_DEF" />-->
+            <!--<property name="max" value="150" />-->
+        <!--</module>-->
+        <!--&lt;!&ndash; 方法的参数个数不超过5个。 并且不对构造方法进行检查&ndash;&gt;-->
+        <!--<module name="ParameterNumber">-->
+            <!--<property name="max" value="5" />-->
+            <!--<property name="tokens" value="METHOD_DEF" />-->
+        <!--</module>-->
 
         <!-- 空格检查 -->
         <!-- 允许方法名后紧跟左边圆括号"(" -->
@@ -89,7 +89,7 @@
         -->
         <module name="ModifierOrder" />
         <!-- 多余的关键字 -->
-        <module name="RedundantModifier" />
+        <!--<module name="RedundantModifier" />-->
 
         <!-- 对区域的检查 -->
         <!-- 不能出现空白区域 -->
@@ -114,7 +114,7 @@
         <module name="StringLiteralEquality" />
         <!-- if最多嵌套3层 -->
         <module name="NestedIfDepth">
-            <property name="max" value="3" />
+            <property name="max" value="7" />
         </module>
         <!-- try最多被嵌套2层 -->
         <module name="NestedTryDepth">
@@ -130,11 +130,11 @@
         </module>-->
         <!-- 确保一个类有package声明 -->
         <module name="PackageDeclaration" />
-        <!-- 一个方法中最多有3个return -->
+        <!-- 一个方法中最多有3个return
         <module name="ReturnCount">
             <property name="max" value="4" />
             <property name="format" value="^$" />
-        </module>
+        </module>-->
         <!--
             根据 Sun 编码规范， class 或 interface 中的顺序如下： 1.class 声明。首先是 public,
             然后是protected , 然后是 package level （不包括access modifier ） 最后是private .
@@ -142,7 +142,7 @@
             level （不包括access modifier ） 最后是private . (多个class放在一个java文件中的情况）
             3.构造函数 4.方法
         -->
-        <module name="DeclarationOrder" />
+        <!--<module name="DeclarationOrder" />-->
         <!-- 同一行不能有多个声明 -->
         <module name="MultipleVariableDeclarations" />
         <!-- 不必要的圆括号 -->

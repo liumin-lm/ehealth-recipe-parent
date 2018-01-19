@@ -27,9 +27,15 @@ import java.util.List;
 @RpcSupportDAO
 public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<EnterpriseAddress> {
 
-    private static final Log logger = LogFactory.getLog(EnterpriseAddressDAO.class);
+    private static final Log LOGGER = LogFactory.getLog(EnterpriseAddressDAO.class);
 
 
+    /**
+     * 根据id和地址获取药企配送地址
+     * @param enterpriseId
+     * @param address
+     * @return
+     */
     @DAOMethod(sql = "From EnterpriseAddress where enterpriseId=:enterpriseId and address=:address")
     public abstract List<EnterpriseAddress> findByEnterpriseIdAndAddress(@DAOParam("enterpriseId") Integer enterpriseId,
                                                                          @DAOParam("address") String address);
@@ -116,7 +122,7 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
      * @return
      */
     public List<EnterpriseAddress> findByEnterPriseId(final Integer enterpriseId) {
-        logger.info("findByEnterPriseId: 药企ID[" + enterpriseId + "]");
+        LOGGER.info("findByEnterPriseId: 药企ID[" + enterpriseId + "]");
         if (null == enterpriseId) {
             throw new DAOException(DAOException.VALUE_NEEDED, "enterpriseId is needed");
         }
@@ -129,7 +135,7 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
                 setResult(q.list());
             }
         };
-        HibernateSessionTemplate.instance().executeReadOnly(action);
+        HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
 
@@ -145,7 +151,7 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
     public QueryResult<EnterpriseAddress> queryEnterpriseAddressByLimitAndStart(final Integer enterpriseId,
                                                                                 final Integer status,
                                                                                 final int start, final int limit) {
-        logger.info("查询药企配送地址queryEnterpriseAddressByLimitAndStart:[enterpriseId=" + enterpriseId + ";status="
+        LOGGER.info("查询药企配送地址queryEnterpriseAddressByLimitAndStart:[enterpriseId=" + enterpriseId + ";status="
                 + status + ";start=" + start + ";limit=" + limit);
         HibernateStatelessResultAction<QueryResult<EnterpriseAddress>> action = new AbstractHibernateStatelessResultAction<QueryResult<EnterpriseAddress>>() {
             @SuppressWarnings("unchecked")
@@ -179,7 +185,7 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
                 setResult(new QueryResult<EnterpriseAddress>(total, query.getFirstResult(), query.getMaxResults(), query.list()));
             }
         };
-        HibernateSessionTemplate.instance().executeReadOnly(action);
+        HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
 }

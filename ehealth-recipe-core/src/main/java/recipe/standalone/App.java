@@ -3,7 +3,7 @@ package recipe.standalone;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
- * Created by sean on 15/6/20.
+ * @author yuyun
  */
 public class App {
     public static void main(String[] args){

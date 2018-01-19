@@ -1,14 +1,17 @@
 package recipe.bean;
 
+import java.io.Serializable;
+
 /**
  * 药企展示样式类
  * company: ngarihealth
  * @author: 0184/yu_yun
  * date:2017/7/25.
  */
-public class DepStyleBean
+public class DepStyleBean implements Serializable
 {
 
+    private static final long serialVersionUID = -3852059598102268215L;
     /**
      * 价格字体大小
      */

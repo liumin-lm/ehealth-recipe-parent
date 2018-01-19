@@ -14,7 +14,7 @@ import org.apache.commons.lang3.StringUtils;
  * <p>
  * company: ngarihealth
  * @author: 0184/yu_yun
- * @date:2017/8/4.
+ * @date: 2017/8/4.
  */
 public class ApplicationUtils {
 

@@ -25,6 +25,10 @@ public class DrugDistributionPriceService {
     private IBusActionLogService iBusActionLogService =
             ApplicationUtils.getBaseService(IBusActionLogService.class);
 
+    /**
+     * 地域编码长度
+     */
+    private static final int ADDR_LENGTH = 2;
 
     public DrugDistributionPriceService() {
         drugDistributionPriceDAO = DAOFactory.getDAO(DrugDistributionPriceDAO.class);
@@ -52,14 +56,16 @@ public class DrugDistributionPriceService {
         }
         DrugDistributionPrice oldPrice = drugDistributionPriceDAO.getByEnterpriseIdAndAddrArea(price.getEnterpriseId(), price.getAddrArea());
         StringBuffer logMsg = new StringBuffer();
-        if (price.getId() == null) {//新增
+        if (price.getId() == null) {
+            //新增
             if (oldPrice != null) {
                 throw new DAOException("price is exist");
             }
             price = drugDistributionPriceDAO.save(price);
             logMsg.append(" 新增:").append(price.toString());
 
-        } else {//更新
+        } else {
+            //更新
             if (oldPrice == null) {
                 throw new DAOException("price is not exist");
             }
@@ -113,9 +119,11 @@ public class DrugDistributionPriceService {
         if (addrArea == null || StringUtils.isEmpty(addrArea.trim())) {
             throw new DAOException(DAOException.VALUE_NEEDED, "addrArea is enterpriseId");
         }
-        int length = addrArea.length();//获取地域编码长度
+        //获取地域编码长度
+        int length = addrArea.length();
         DrugDistributionPrice price = null;
-        while (length >= 2) {
+
+        while (length >= ADDR_LENGTH) {
             price = drugDistributionPriceDAO.getByEnterpriseIdAndAddrArea(enterpriseId, addrArea.substring(0, length));
             if (price != null) {
                 break;

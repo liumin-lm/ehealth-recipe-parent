@@ -26,7 +26,7 @@ import java.util.List;
 @RpcBean("enterpriseAddressService")
 public class EnterpriseAddressService {
 
-    private static final Log log = LogFactory.getLog(EnterpriseAddressService.class);
+    private static final Log LOGGER = LogFactory.getLog(EnterpriseAddressService.class);
 
     /**
      * zhongzx
@@ -86,17 +86,17 @@ public class EnterpriseAddressService {
         //0-能配送 1-省不能配送 2-市不能配送 3-区域不能配送
         int flag = 0;
         if (!addressCanSend(list, address1)) {
-            log.error("allAddressCanSend address1不能配送！depId:" + recipe.getEnterpriseId() + ",address1:" + address1);
+            LOGGER.error("allAddressCanSend address1不能配送！depId:" + recipe.getEnterpriseId() + ",address1:" + address1);
             flag = 1;
             return flag;
         }
         if (!addressCanSend(list, address2)) {
-            log.error("allAddressCanSend address2不能配送！depId:" + recipe.getEnterpriseId() + ",address2:" + address2);
+            LOGGER.error("allAddressCanSend address2不能配送！depId:" + recipe.getEnterpriseId() + ",address2:" + address2);
             flag = 2;
             return flag;
         }
         if (!addressCanSend(list, address3)) {
-            log.error("allAddressCanSend address3不能配送！depId:" + recipe.getEnterpriseId() + ",address3:" + address3);
+            LOGGER.error("allAddressCanSend address3不能配送！depId:" + recipe.getEnterpriseId() + ",address3:" + address3);
             flag = 3;
             return flag;
         }
@@ -118,7 +118,6 @@ public class EnterpriseAddressService {
 
         //查询对应药企配送的地址
         //没有子订单而且配送药企为空，则提示
-        //TODO
         if (null == depId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "药企ID为空");
         }
@@ -130,17 +129,17 @@ public class EnterpriseAddressService {
         //0-能配送 1-省不能配送 2-市不能配送 3-区域不能配送
         int flag = 0;
         if (!addressCanSend(list, address1)) {
-            log.error("address1不能配送！depId:" + depId + ",address1:" + address1);
+            LOGGER.error("address1不能配送！depId:" + depId + ",address1:" + address1);
             flag = 1;
             return flag;
         }
         if (!addressCanSend(list, address2)) {
-            log.error("address2不能配送！depId:" + depId + ",address2:" + address2);
+            LOGGER.error("address2不能配送！depId:" + depId + ",address2:" + address2);
             flag = 2;
             return flag;
         }
         if (!addressCanSend(list, address3)) {
-            log.error("address3不能配送！depId:" + depId + ",address3:" + address3);
+            LOGGER.error("address3不能配送！depId:" + depId + ",address3:" + address3);
             flag = 3;
             return flag;
         }

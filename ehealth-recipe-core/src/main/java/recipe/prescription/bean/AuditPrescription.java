@@ -5,36 +5,58 @@ import java.util.List;
 /**
  * 处方信息
  * Created by jiangtingfeng on 2017/11/2.
+ * @author jiangtingfeng
  */
-public class AuditPrescription {
-    // 处方号
+public class
+AuditPrescription {
+    /**
+     * 处方号
+     */
     private String id;
 
-    // 处方理由
+    /**
+     * 处方理由
+     */
     private String reason;
 
-    // 是否当前处方
+    /**
+     * 是否当前处方
+     */
     private String isCur;
 
-    // 是否新开处方
+    /**
+     * 是否新开处方
+     */
     private String isNew;
 
-    // 医嘱类型
+    /**
+     * 医嘱类型
+     */
     private String presType;
 
-    // 处方时间
+    /**
+     * 处方时间
+     */
     private String presTime;
 
-    // 医生代码
+    /**
+     * 医生代码
+     */
     private String doctCode;
 
-    // 医生名称
+    /**
+     * 医生名称
+     */
     private String doctName;
 
-    // 科室代码
+    /**
+     * 科室代码
+     */
     private String deptCode;
 
-    // 科室名称
+    /**
+     * 科室名称
+     */
     private String deptName;
 
     private List<AuditMedicine> medicines;

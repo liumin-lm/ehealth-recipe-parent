@@ -23,7 +23,6 @@ import recipe.util.RecipeUtil;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +34,7 @@ import java.util.Map;
  */
 public class HisCallBackService {
 
-    private static final Logger logger = LoggerFactory.getLogger(HisCallBackService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HisCallBackService.class);
 
     /**
      * 处方HIS审核通过成功
@@ -54,7 +53,7 @@ public class HisCallBackService {
         Map<String, Object> attrMap = Maps.newHashMap();
         Recipe recipe = recipeDAO.get(result.getRecipeId());
         if (null == recipe) {
-            logger.error("checkPassSuccess 处方对象不存在");
+            LOGGER.error("checkPassSuccess 处方对象不存在");
             return;
         }
         if (StringUtils.isNotEmpty(result.getRecipeCode())) {
@@ -126,11 +125,14 @@ public class HisCallBackService {
             //更新医院-药品对应表的价格
             recipeService.updateDrugPrice(recipe.getClinicOrgan(), priceMap);
         }
-        //写入his成功后，生成pdf并签名
         try {
+            //写入his成功后，生成pdf并签名
             recipeService.generateRecipePdfAndSign(recipe.getRecipeId());
+
+            //发送卡片
+            RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipe.getRecipeId()), null, true);
         } catch (Exception e) {
-            logger.error("checkPassSuccess 签名服务异常. error={}", JSONUtils.toString(e.getStackTrace()));
+            LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. error ", e);
         }
         //生成文件成功后再去更新处方状态
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), status, null);
@@ -146,10 +148,10 @@ public class HisCallBackService {
         //配送处方标记 1:只能配送 更改处方取药方式
         if (Integer.valueOf(1).equals(recipe.getDistributionFlag())) {
             RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-            RecipeResultBean _result = hisService.recipeDrugTake(recipe.getRecipeId(), PayConstant.PAY_FLAG_NOT_PAY, null);
-            if (RecipeResultBean.FAIL.equals(_result.getCode())) {
-                logger.error("checkPassSuccess recipeId=[{}]更改取药方式失败，error=[{}]", recipe.getRecipeId(), _result.getError());
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "更改取药方式失败，错误:" + _result.getError());
+            RecipeResultBean result1 = hisService.recipeDrugTake(recipe.getRecipeId(), PayConstant.PAY_FLAG_NOT_PAY, null);
+            if (RecipeResultBean.FAIL.equals(result1.getCode())) {
+                LOGGER.error("checkPassSuccess recipeId=[{}]更改取药方式失败，error=[{}]", recipe.getRecipeId(), result1.getError());
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "更改取药方式失败，错误:" + result1.getError());
             }
         }
     }
@@ -164,10 +166,11 @@ public class HisCallBackService {
             return;
         }
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Map<String, Object> paramMap = new HashMap<>();
+        Map<String, Object> paramMap = Maps.newHashMap();
         //612: 表示无库存
         //614: 表示指定产地的没有库存
-        if (null != errCode && (612 == errCode || 614 == errCode)) {
+        boolean b = null != errCode && (612 == errCode || 614 == errCode);
+        if (b) {
             paramMap.put("distributionFlag", 1);
         }
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.HIS_FAIL, paramMap);
@@ -224,7 +227,7 @@ public class HisCallBackService {
         }
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        logger.error("havePayFail HIS线上支付返回：写入his失败*****recipe:" + JSONUtils.toString(recipe));
+        LOGGER.error("havePayFail HIS线上支付返回：写入his失败*****recipe:" + JSONUtils.toString(recipe));
 
         Map<String, Object> attrMap = Maps.newHashMap();
         attrMap.put("chooseFlag", 0);
@@ -270,7 +273,7 @@ public class HisCallBackService {
                 try {
                     recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
                 } catch (Exception e) {
-                    logger.error("havePayRecipesFromHis HIS获取信息更新处方状态时存在相同处方数据,recipeCode:" + recipeCode + ",clinicOrgan:" + organId);
+                    LOGGER.error("havePayRecipesFromHis HIS获取信息更新处方状态时存在相同处方数据,recipeCode:" + recipeCode + ",clinicOrgan:" + organId);
                 }
                 if (null != recipe) {
                     Integer recipeId = recipe.getRecipeId();
@@ -278,7 +281,7 @@ public class HisCallBackService {
                     if (null != recipeId) {
                         //先进行比较状态是否需要更新，可能HIS返回的仍是已支付的状态
                         if (beforeStatus == RecipeStatusConstant.HAVE_PAY) {
-                            logger.info("havePayRecipesFromHis recipeId=[{}], 已是已支付状态，无需更新", recipeId);
+                            LOGGER.info("havePayRecipesFromHis recipeId=[{}], 已是已支付状态，无需更新", recipeId);
                             continue;
                         }
                         if (null == recipe.getPayDate()) {
@@ -335,7 +338,7 @@ public class HisCallBackService {
                 try {
                     recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
                 } catch (Exception e) {
-                    logger.error("finishRecipesFromHis HIS获取信息更新处方状态时存在相同处方数据,recipeCode:" + recipeCode + ",clinicOrgan:" + organId);
+                    LOGGER.error("finishRecipesFromHis HIS获取信息更新处方状态时存在相同处方数据,recipeCode:" + recipeCode + ",clinicOrgan:" + organId);
                 }
                 if (null != recipe) {
                     Integer recipeId = recipe.getRecipeId();

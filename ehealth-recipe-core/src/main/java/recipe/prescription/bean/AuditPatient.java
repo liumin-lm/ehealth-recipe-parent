@@ -5,51 +5,82 @@ import java.util.List;
 /**
  * 病人信息
  * Created by jiangtingfeng on 2017/11/2.
+ * @author jiangtingfeng
  */
 public class AuditPatient {
-    // 病人姓名
+    /**
+     * 病人姓名
+     */
     private String name;
 
-    // 生日
+    /**
+     * 生日
+     */
     private String birthDate;
 
-    // 性別
+    /**
+     * 性別
+     */
     private String gender;
 
-    // 体重
+    /**
+     * 体重
+     */
     private String weight;
 
-    // 身高
+    /**
+     * 身高
+     */
     private String height;
 
-    // 身份证号
+    /**
+     * 身份证号
+     */
     private String idCard;
 
-    // 病历卡号
+    /**
+     * 病历卡号
+     */
     private String mrCard;
 
-    // 卡类型
+    /**
+     * 卡类型
+     */
     private String cardType;
 
-    // 卡号
+    /**
+     * 卡号
+     */
     private String cardNo;
 
-    // 怀孕时间
+    /**
+     * 怀孕时间
+     */
     private String pTime;
 
-    // 怀孕单位
+    /**
+     * 怀孕单位
+     */
     private String pUnit;
 
-    // 是否为婴儿
+    /**
+     * 是否为婴儿
+     */
     private String isInfant;
 
-    // 过敏信息
+    /**
+     * 过敏信息
+     */
     private List<AuditAllergy> allergies;
 
-    // 诊断信息
+    /**
+     * 诊断信息
+     */
     private List<AuditDiagnose> diagnoses;
 
-    // 检查单信息
+    /**
+     * 检查单信息
+     */
     private List<AuditLisForm> lisForms;
 
     public String getName() {

@@ -1,5 +1,6 @@
 package recipe.thread;
 
+import com.google.common.collect.Maps;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -11,7 +12,6 @@ import recipe.util.HttpHelper;
 import recipe.util.MapValueUtil;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -42,7 +42,7 @@ public class UpdateDrugsEpCallable implements Callable<String> {
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(this._drugsEnterpriseId);
         if (null != drugsEnterprise && StringUtils.isNotEmpty(drugsEnterprise.getAuthenUrl())) {
             String logPrefix = "UpdateDrugsEpCallable 更新药企token功能，药企ID:" + this._drugsEnterpriseId + "(" + drugsEnterprise.getName() + ")***";
-            Map<String, Object> map = new HashMap<>();
+            Map<String, Object> map = Maps.newHashMap();
             map.put("userid", drugsEnterprise.getUserId());
             map.put("password", drugsEnterprise.getPassword());
 
@@ -52,7 +52,8 @@ public class UpdateDrugsEpCallable implements Callable<String> {
                 if (StringUtils.isNotEmpty(backMsg)) {
                     Map backMap = JSONUtils.parse(backMsg, Map.class);
                     // code 1成功
-                    if (1 == MapValueUtil.getInteger(backMap, "code")) {
+                    String code = "code";
+                    if (1 == MapValueUtil.getInteger(backMap, code)) {
                         //成功
                         String token = MapValueUtil.getString(backMap, "access_token");
                         logger.debug(logPrefix + "token:" + token);

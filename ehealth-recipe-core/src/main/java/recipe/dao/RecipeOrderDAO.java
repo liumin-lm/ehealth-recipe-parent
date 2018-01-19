@@ -18,8 +18,8 @@ import java.util.Map;
 
 /**
  * company: ngarihealth
- * author: 0184/yu_yun
- * date:2017/2/13.
+ * @author: 0184/yu_yun
+ * @date:2017/2/13.
  */
 @RpcSupportDAO
 public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeOrder> {
@@ -39,21 +39,51 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     @DAOMethod(sql = "from RecipeOrder where orderCode=:orderCode")
     public abstract RecipeOrder getByOrderCode(@DAOParam("orderCode") String orderCode);
 
+    /**
+     * 根据流水号获取订单
+     * @param tradeNo
+     * @return
+     */
     @DAOMethod
     public abstract RecipeOrder getByOutTradeNo(String tradeNo);
 
+    /**
+     * 根据传芳id获取订单编号
+     * @param recipeId
+     * @return
+     */
     @DAOMethod(sql = "select order.orderCode from RecipeOrder order, Recipe recipe where order.orderCode=recipe.orderCode and order.effective=1 and recipe.recipeId=:recipeId")
     public abstract String getOrderCodeByRecipeId(@DAOParam("recipeId") Integer recipeId);
 
+    /**
+     * 根据处方id获取订单编号
+     * @param recipeId
+     * @return
+     */
     @DAOMethod(sql = "select order.orderCode from RecipeOrder order, Recipe recipe where order.orderCode=recipe.orderCode and recipe.recipeId=:recipeId")
     public abstract String getOrderCodeByRecipeIdWithoutCheck(@DAOParam("recipeId") Integer recipeId);
 
+    /**
+     * 根据处方id获取订单
+     * @param recipeId
+     * @return
+     */
     @DAOMethod(sql = "select order from RecipeOrder order, Recipe recipe where order.orderCode=recipe.orderCode and order.effective=1 and recipe.recipeId=:recipeId")
     public abstract RecipeOrder getOrderByRecipeId(@DAOParam("recipeId") Integer recipeId);
 
+    /**
+     * 根据处方id获取药企id
+     * @param recipeId
+     * @return
+     */
     @DAOMethod(sql = "select order.enterpriseId from RecipeOrder order, Recipe recipe where order.orderCode=recipe.orderCode and recipe.recipeId=:recipeId")
     public abstract Integer getEnterpriseIdByRecipeId(@DAOParam("recipeId") Integer recipeId);
 
+    /**
+     * 根据支付标识查询订单集合
+     * @param payFlag
+     * @return
+     */
     @DAOMethod
     public abstract List<RecipeOrder> findByPayFlag(Integer payFlag);
 
@@ -83,7 +113,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 setResult(count > 0);
             }
         };
-        HibernateSessionTemplate.instance().executeReadOnly(action);
+        HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
 

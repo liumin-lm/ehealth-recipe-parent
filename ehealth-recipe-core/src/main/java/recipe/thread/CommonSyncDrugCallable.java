@@ -1,5 +1,6 @@
 package recipe.thread;
 
+import com.google.common.collect.Maps;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -13,7 +14,6 @@ import recipe.util.MapValueUtil;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -45,11 +45,10 @@ public class CommonSyncDrugCallable implements Callable<String> {
         String logInfo = "药企id={" + this.drugsEnterprise.getId() + "},名称={"
                 + drugsEnterprise.getName() + "},药品数量={" + this.drugIdList.size() + "}";
         logger.info("SyncDrugCallable start " + logInfo);
-        Map<String, Object> sendMap = new HashMap<>();
-        Map<String, Object> detailMap = new HashMap<>();
+        Map<String, Object> sendMap = Maps.newHashMap();
+        Map<String, Object> detailMap = Maps.newHashMap();
 
         sendMap.put("access_token", this.drugsEnterprise.getToken());
-        //TODO
         sendMap.put("action", "xxxxxx");
         sendMap.put("data", detailMap);
         detailMap.put("dtl", drugIdList);

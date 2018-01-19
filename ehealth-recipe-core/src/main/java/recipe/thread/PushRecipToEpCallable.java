@@ -1,5 +1,6 @@
 package recipe.thread;
 
+import com.google.common.collect.Maps;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.DrugsEnterpriseDAO;
@@ -67,13 +68,13 @@ public class PushRecipToEpCallable implements Callable<String> {
             //推送成功的处方集合
             List<Integer> succList = new ArrayList<>();
             //记录推送失败的原因
-            Map<Integer, String> errInfo = new HashMap<>();
+            Map<Integer, String> errInfo = Maps.newHashMap();
 
             String method = "setPrscription";
             for (Map<String, Object> recipeInfo : recipesList) {
                 Integer recipeId = MapValueUtil.getInteger(recipeInfo, "recipeid");
                 if (null != recipeId) {
-                    sendMap = new HashMap<>();
+                    sendMap = Maps.newHashMap();
                     sendMap.put("access_token", de.getToken());
                     sendMap.put("action", method);
                     sendMap.put("data", recipeInfo);
@@ -170,7 +171,7 @@ public class PushRecipToEpCallable implements Callable<String> {
 
         if (!drugsIdList.isEmpty()) {
             String method = "setGoods";
-            Map<String, Object> sendMap = new HashMap<>();
+            Map<String, Object> sendMap = Maps.newHashMap();
             sendMap.put("access_token", de.getToken());
             sendMap.put("action", method);
 
