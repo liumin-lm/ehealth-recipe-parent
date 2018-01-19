@@ -641,8 +641,6 @@ public class RecipeService {
             recipe.setRequestMpiId(requestPatient.getMpiId());
             // urt用于系统消息推送
             recipe.setRequestUrt(requestPatient.getUrt());
-            // 开处方时设置患者默认状态为1：账号正常状态
-            recipe.setPatientStatus(1);
         }
         recipe.setStatus(RecipeStatusConstant.UNSIGN);
         recipe.setSignDate(DateTime.now().toDate());
@@ -722,13 +720,13 @@ public class RecipeService {
         }
         //复制修改的数据
         BeanUtils.map(recipe, dbRecipe);
-        //将原先处方单详情的记录都置为无效 status=0
-        recipeDetailDAO.updateDetailInvalidByRecipeId(recipeId);
         //设置药品价格
         boolean isSucc = RecipeServiceSub.setDetailsInfo(dbRecipe, recipedetails);
         if (!isSucc) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "药品详情数据有误");
         }
+        //将原先处方单详情的记录都置为无效 status=0
+        recipeDetailDAO.updateDetailInvalidByRecipeId(recipeId);
         Integer dbRecipeId = recipeDAO.updateOrSaveRecipeAndDetail(dbRecipe, recipedetails, true);
         //记录日志
         RecipeLogService.saveRecipeLog(dbRecipeId, beforeStatus, beforeStatus, "修改处方单");

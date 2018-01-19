@@ -5,6 +5,7 @@ import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
@@ -30,6 +31,9 @@ public class RecipeUtil {
      * @param recipedetails
      */
     public static void getRecipeTotalPriceRange(Recipe recipe, List<Recipedetail> recipedetails) {
+        if(CollectionUtils.isEmpty(recipedetails)){
+            return;
+        }
         List<Integer> drugIds = new ArrayList<>();
         for (Recipedetail recipedetail : recipedetails) {
             drugIds.add(recipedetail.getDrugId());
@@ -223,6 +227,10 @@ public class RecipeUtil {
 
         if (null == recipe.getPushFlag()) {
             recipe.setPushFlag(0);
+        }
+
+        if (null == recipe.getPatientStatus()) {
+            recipe.setPatientStatus(1);
         }
 
     }

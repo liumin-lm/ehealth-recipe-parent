@@ -39,7 +39,7 @@ public class Recipe implements Serializable {
     private String patientID;
 
     @ItemProperty(alias = "患者状态 1正常  9注销")
-    private int patientStatus;
+    private Integer patientStatus;
 
     @ItemProperty(alias = "开方机构")
     @Dictionary(id = "eh.base.dictionary.Organ")
@@ -437,11 +437,11 @@ public class Recipe implements Serializable {
     }
 
     @Column(name = "patientStatus")
-    public int getPatientStatus() {
+    public Integer getPatientStatus() {
         return patientStatus;
     }
 
-    public void setPatientStatus(int patientStatus) {
+    public void setPatientStatus(Integer patientStatus) {
         this.patientStatus = patientStatus;
     }
 
