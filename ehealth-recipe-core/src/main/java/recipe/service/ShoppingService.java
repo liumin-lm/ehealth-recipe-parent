@@ -387,5 +387,15 @@ public class ShoppingService {
         return orderDAO.findShoppingOrdersWithConditions(changeAttr, start, limit);
     }
 
+    /**
+     * 根据订单编号获取药品详情列表
+     * @param orderCode
+     * @return
+     */
+    @RpcService
+    public List<ShoppingDrug> findDrugsByOrderCode(String orderCode){
+        ShoppingDrugDAO drugDAO = DAOFactory.getDAO(ShoppingDrugDAO.class);
+        return drugDAO.findByOrderCode(orderCode);
+    }
 
 }
