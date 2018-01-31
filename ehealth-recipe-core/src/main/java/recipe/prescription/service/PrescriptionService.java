@@ -1,5 +1,6 @@
 package recipe.prescription.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.recipe.entity.DrugList;
@@ -8,15 +9,22 @@ import com.ngari.recipe.entity.Recipedetail;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
+
 import org.slf4j.LoggerFactory;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.DrugListDAO;
 import recipe.prescription.bean.*;
+import recipe.prescription.pawebservice.PAWebServiceLocator;
+import recipe.prescription.pawebservice.PAWebServiceSoap12Stub;
 import recipe.util.ApplicationUtils;
 import recipe.util.DateConversion;
 
+import javax.xml.rpc.holders.IntHolder;
+import javax.xml.rpc.holders.StringHolder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -28,7 +36,7 @@ import java.util.List;
 @RpcBean("prescriptionService")
 public class PrescriptionService {
 
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(PrescriptionService.class);
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(PrescriptionService.class);
 
     /**
      * 医生在开处方时，校验合理用药
@@ -39,7 +47,7 @@ public class PrescriptionService {
      */
     @RpcService
     public String getPAAnalysis(Recipe recipe, List<Recipedetail> recipedetails) throws Exception {
-        /*PAWebServiceSoap12Stub binding;
+        PAWebServiceSoap12Stub binding;
         IntHolder getPAResultsResult = new IntHolder();
         StringHolder uiResults = new StringHolder();
         StringHolder hisResults = new StringHolder();
@@ -77,7 +85,7 @@ public class PrescriptionService {
             String drugName = medicines.get(0).getIssues().get(0).getNameA();
             String detal = medicines.get(0).getIssues().get(0).getDetail().replaceAll("\r\n","");
             return drugName + detal;
-        }*/
+        }
         return null;
     }
 
