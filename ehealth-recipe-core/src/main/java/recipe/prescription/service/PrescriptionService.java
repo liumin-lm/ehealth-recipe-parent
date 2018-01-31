@@ -38,7 +38,7 @@ import java.util.List;
 @RpcBean("prescriptionService")
 public class PrescriptionService {
 
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(PrescriptionService.class);
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(PrescriptionService.class);
 
     /**
      * 医生在开处方时，校验合理用药
@@ -61,7 +61,7 @@ public class PrescriptionService {
         String baseDateToString = JSONUtils.toString(baseData);
         String detailsDataToString = JSONUtils.toString(detailsData);
 
-        logger.info("getPAAnalysis request baseDate={}, detailsDate={}", baseDateToString, detailsDataToString);
+        LOGGER.info("getPAAnalysis request baseDate={}, detailsDate={}", baseDateToString, detailsDataToString);
         try {
             binding = (PAWebServiceSoap12Stub) new PAWebServiceLocator().getPAWebServiceSoap12();
             if(binding!=null){
@@ -69,13 +69,12 @@ public class PrescriptionService {
                 binding.setTimeout(20000);
                 binding.getPAResults(1006, baseDateToString, detailsDataToString, getPAResultsResult, uiResults, hisResults);
             }
-        } catch (javax.xml.rpc.ServiceException jre) {
-            if(jre.getLinkedCause()!=null) {
-                logger.error(jre.getLinkedCause().getMessage());
-            }
+        } catch (Exception e) {
+            LOGGER.error("getPAAnalysis getPAResults error. ", e);
             return null;
         }
-        logger.info("getPAAnalysis response={}", uiResults.value);
+
+        LOGGER.info("getPAAnalysis response={}", uiResults.value);
         // 将字符串转化成java对象
         JSONObject json = JSONObject.parseObject(uiResults.value);
         if (null == json) {
@@ -88,6 +87,7 @@ public class PrescriptionService {
             String detal = medicines.get(0).getIssues().get(0).getDetail().replaceAll("\r\n","");
             return drugName + detal;
         }
+
         return null;
     }
 
