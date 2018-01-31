@@ -11,6 +11,7 @@ import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.entity.ShoppingDrug;
 import com.ngari.recipe.entity.ShoppingOrder;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -28,9 +29,7 @@ import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
 import java.net.URLEncoder;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 健康商城服务类
@@ -396,6 +395,70 @@ public class ShoppingService {
     public List<ShoppingDrug> findDrugsByOrderCode(String orderCode){
         ShoppingDrugDAO drugDAO = DAOFactory.getDAO(ShoppingDrugDAO.class);
         return drugDAO.findByOrderCode(orderCode);
+    }
+
+    @RpcService
+    public QueryResult<Map<String,Object>> findShoppingOrdersWithInfo(String bDate, String eDate, String mpiId, String orderCode,
+                                                          Integer status, Integer start, Integer limit){
+        //通过条件获取List<ShoppingOrder>
+        if (null == start || "".equals(start)){
+            start = 0;
+        }
+        if (null == limit || "".equals(limit)){
+            limit = 10;
+        }
+        ShoppingOrderDAO orderDAO = DAOFactory.getDAO(ShoppingOrderDAO.class);
+        QueryResult<ShoppingOrder> queryResult = orderDAO.findShoppingOrdersWithInfo(bDate, eDate, mpiId, orderCode, status, start, limit);
+        List<ShoppingOrder> shoppingOrders = new ArrayList<>();
+        if (queryResult.getItems() != null && queryResult.getItems().size() > 0){
+            shoppingOrders = queryResult.getItems();
+        }
+        Set<String> set = new HashSet<>();
+        if (shoppingOrders != null && shoppingOrders.size() > 0 ){
+            for (ShoppingOrder so : shoppingOrders) {
+                set.add(so.getMpiId());
+            }
+        }
+        List<String> mpiIdList = new ArrayList<>();
+        if (set.size() > 0 && set != null){
+            mpiIdList.addAll(set);
+        }
+        List<Map<String, Object>> list = new ArrayList<>();
+        if (mpiIdList != null && mpiIdList.size() > 0) {
+            List<PatientBean> patientBeanList = iPatientService.findByMpiIdIn(mpiIdList);
+            for (ShoppingOrder so : shoppingOrders) {
+                for (PatientBean patient : patientBeanList) {
+                    if (so.getMpiId().equals(patient.getMpiId())) {
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("patient", patient);
+                        map.put("ShoppingOrder", so);
+                        list.add(map);
+                    }
+                }
+            }
+        }
+        return new QueryResult<>(queryResult.getTotal(),start,limit, list);
+    }
+
+    /**
+     * 获取患者信息:patient对象以及收货人详细信息
+     * @param mpiId
+     * @return
+     */
+    @RpcService
+    public Map<String,Object> getPatientAndAddressByMpiId(String orderCode ,String mpiId){
+        Map<String, Object> map = Maps.newHashMap();
+        //获得订单信息
+        ShoppingOrderDAO orderDAO = DAOFactory.getDAO(ShoppingOrderDAO.class);
+        ShoppingOrder byMpiIdAndOrderCode = orderDAO.getByMpiIdAndOrderCode(mpiId ,orderCode);
+        //获得收获人信息
+        List<AddressBean> addressList = iAddressService.findByMpiId(mpiId);
+        //获得药品详情
+        List<ShoppingDrug> drugsByOrderCode = this.findDrugsByOrderCode(orderCode);
+        map.put("shoppingOrder",byMpiIdAndOrderCode);
+        map.put("addressBean",addressList);
+        map.put("shoppingDrug",drugsByOrderCode);
+        return map;
     }
 
 }
