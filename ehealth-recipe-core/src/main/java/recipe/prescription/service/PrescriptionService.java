@@ -17,6 +17,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.LoggerFactory;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.DrugListDAO;
+import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
 import recipe.prescription.bean.*;
 import recipe.prescription.pawebservice.PAWebServiceLocator;
 import recipe.prescription.pawebservice.PAWebServiceSoap12Stub;
@@ -180,5 +182,21 @@ public class PrescriptionService {
         detailsData.setAdmNo(DateConversion.formatDateTime(new Date()));
         detailsData.setPatient(auditPatient);
         detailsData.setPrescriptions(prescriptions);
+    }
+
+    /**
+     * 内部测试方法
+     * @param recipeId
+     * @return
+     * @throws Exception
+     */
+    @RpcService
+    public String testGetPAAnalysis(int recipeId) throws Exception{
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        List<Recipedetail> details = detailDAO.findByRecipeId(recipeId);
+        return getPAAnalysis(recipe, details);
     }
 }
