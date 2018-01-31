@@ -59,7 +59,7 @@ public class PrescriptionService {
         String baseDateToString = JSONUtils.toString(baseData);
         String detailsDataToString = JSONUtils.toString(detailsData);
 
-        logger.info("request for PAWebService:"+baseDateToString + detailsDataToString);
+        logger.info("getPAAnalysis request baseDate={}, detailsDate={}", baseDateToString, detailsDataToString);
         try {
             binding = (PAWebServiceSoap12Stub) new PAWebServiceLocator().getPAWebServiceSoap12();
             if(binding!=null){
@@ -73,7 +73,7 @@ public class PrescriptionService {
             }
             return null;
         }
-        logger.info("response from PAWebService:" + uiResults.value);
+        logger.info("getPAAnalysis response={}", uiResults.value);
         // 将字符串转化成java对象
         JSONObject json = JSONObject.parseObject(uiResults.value);
         if (null == json) {
@@ -151,12 +151,12 @@ public class PrescriptionService {
         // 药品信息
         List<AuditMedicine> medicines = new ArrayList<>();
         for (Recipedetail recipedetail : recipedetails) {
-            DrugList drug = drugListDAO.get(recipedetail.getDrugId());
+//            DrugList drug = drugListDAO.get(recipedetail.getDrugId());
             AuditMedicine medicine = new AuditMedicine();
-            medicine.setName(drug.getDrugName());
+            medicine.setName(recipedetail.getDrugName());
             medicine.setHisCode(String.valueOf(recipedetail.getDrugId()));
             medicine.setGroup(recipedetail.getDrugGroup());
-            medicine.setUnit(drug.getUseDoseUnit());
+            medicine.setUnit(recipedetail.getUseDoseUnit());
             medicine.setDose(String.valueOf(recipedetail.getUseDose()));
             medicine.setFreq(recipedetail.getUsingRate());
             medicine.setPath(recipedetail.getUsePathways());
