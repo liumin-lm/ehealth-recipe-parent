@@ -218,4 +218,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         recipeDAO.updatePatientStatusByMpiId(mpiId);
     }
+
+    @Override
+    public void saveRecipeDataFromPayment(List<RecipeBean> recipeBeans) {
+
+    }
 }

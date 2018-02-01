@@ -220,4 +220,11 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     void synPatientStatusToRecipe(String mpiId);
+
+    /**
+     * 从缴费记录中保存电子处方数据
+     * @param recipeBeans
+     */
+    @RpcService
+    void saveRecipeDataFromPayment(List<RecipeBean> recipeBeans);
 }
