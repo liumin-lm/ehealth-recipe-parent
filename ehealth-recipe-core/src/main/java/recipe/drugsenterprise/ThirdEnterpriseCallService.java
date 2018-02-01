@@ -417,13 +417,14 @@ public class ThirdEnterpriseCallService {
      */
     @RpcService
     public ThirdResultBean updateRecipeInfo(Map<String, Object> paramMap) {
-        LOGGER.info("updateRecipeInfo param : " + JSONUtils.toString(paramMap));
+        //国药会大量重复调用，故去掉该日志
+//        LOGGER.info("updateRecipeInfo param : " + JSONUtils.toString(paramMap));
 
         ThirdResultBean backMsg = ThirdResultBean.getFail();
         int code = validateRecipe(paramMap, backMsg, null, null);
 
         if (REQUEST_OK != code) {
-            LOGGER.error("recipeId=[{}], updateRecipeInfo:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
+            LOGGER.error("updateRecipeInfo error. info={}, recipeId=[{}]",  JSONUtils.toString(backMsg), backMsg.getBusId());
             return backMsg;
         }
 
