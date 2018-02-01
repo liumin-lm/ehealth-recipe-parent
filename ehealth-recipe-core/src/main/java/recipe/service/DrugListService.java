@@ -330,6 +330,7 @@ public class DrugListService {
             content.setMpiId(mpiId);
             content.setContent(drugName);
             content.setBussType(2);
+            content.setSubType(2);
             iSearchContentService.addSearchContent(content, 0);
         }
     }
