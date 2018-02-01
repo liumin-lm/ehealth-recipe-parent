@@ -436,7 +436,7 @@ public class ThirdEnterpriseCallService {
         if (null != listObj) {
             if (listObj instanceof List) {
                 List<HashMap<String, Object>> detailList = (List<HashMap<String, Object>>) paramMap.get("dtl");
-                if (!detailList.isEmpty()) {
+                if (CollectionUtils.isNotEmpty(detailList)) {
                     RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
 
                     boolean drugSearchFlag = false;
@@ -494,7 +494,7 @@ public class ThirdEnterpriseCallService {
         String trackingNumber = MapValueUtil.getString(paramMap, "trackingNumber");
         Map<String, Object> orderAttr = getOrderInfoMap(recipe, paramMap);
         //此处为物流公司字典
-        orderAttr.put("logisticsCompany", Integer.valueOf(logisticsCompany));
+        orderAttr.put("logisticsCompany", StringUtils.isEmpty(logisticsCompany)?null:Integer.valueOf(logisticsCompany));
         orderAttr.put("trackingNumber", trackingNumber);
         RecipeResultBean resultBean = orderService.updateOrderInfo(recipe.getOrderCode(), orderAttr, null);
 
