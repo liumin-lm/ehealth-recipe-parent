@@ -1,5 +1,6 @@
 package recipe.prescription.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.recipe.entity.DrugList;
@@ -8,15 +9,24 @@ import com.ngari.recipe.entity.Recipedetail;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
+
 import org.slf4j.LoggerFactory;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.DrugListDAO;
+import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
 import recipe.prescription.bean.*;
+import recipe.prescription.pawebservice.PAWebServiceLocator;
+import recipe.prescription.pawebservice.PAWebServiceSoap12Stub;
 import recipe.util.ApplicationUtils;
 import recipe.util.DateConversion;
 
+import javax.xml.rpc.holders.IntHolder;
+import javax.xml.rpc.holders.StringHolder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -39,7 +49,7 @@ public class PrescriptionService {
      */
     @RpcService
     public String getPAAnalysis(Recipe recipe, List<Recipedetail> recipedetails) throws Exception {
-        /*PAWebServiceSoap12Stub binding;
+        PAWebServiceSoap12Stub binding;
         IntHolder getPAResultsResult = new IntHolder();
         StringHolder uiResults = new StringHolder();
         StringHolder hisResults = new StringHolder();
@@ -51,7 +61,7 @@ public class PrescriptionService {
         String baseDateToString = JSONUtils.toString(baseData);
         String detailsDataToString = JSONUtils.toString(detailsData);
 
-        logger.info("request for PAWebService:"+baseDateToString + detailsDataToString);
+        LOGGER.info("getPAAnalysis request baseDate={}, detailsDate={}", baseDateToString, detailsDataToString);
         try {
             binding = (PAWebServiceSoap12Stub) new PAWebServiceLocator().getPAWebServiceSoap12();
             if(binding!=null){
@@ -59,13 +69,12 @@ public class PrescriptionService {
                 binding.setTimeout(20000);
                 binding.getPAResults(1006, baseDateToString, detailsDataToString, getPAResultsResult, uiResults, hisResults);
             }
-        } catch (javax.xml.rpc.ServiceException jre) {
-            if(jre.getLinkedCause()!=null) {
-                logger.error(jre.getLinkedCause().getMessage());
-            }
+        } catch (Exception e) {
+            LOGGER.error("getPAAnalysis getPAResults error. ", e);
             return null;
         }
-        logger.info("response from PAWebService:" + uiResults.value);
+
+        LOGGER.info("getPAAnalysis response={}", uiResults.value);
         // 将字符串转化成java对象
         JSONObject json = JSONObject.parseObject(uiResults.value);
         if (null == json) {
@@ -77,7 +86,8 @@ public class PrescriptionService {
             String drugName = medicines.get(0).getIssues().get(0).getNameA();
             String detal = medicines.get(0).getIssues().get(0).getDetail().replaceAll("\r\n","");
             return drugName + detal;
-        }*/
+        }
+
         return null;
     }
 
@@ -143,12 +153,12 @@ public class PrescriptionService {
         // 药品信息
         List<AuditMedicine> medicines = new ArrayList<>();
         for (Recipedetail recipedetail : recipedetails) {
-            DrugList drug = drugListDAO.get(recipedetail.getDrugId());
+//            DrugList drug = drugListDAO.get(recipedetail.getDrugId());
             AuditMedicine medicine = new AuditMedicine();
-            medicine.setName(drug.getDrugName());
+            medicine.setName(recipedetail.getDrugName());
             medicine.setHisCode(String.valueOf(recipedetail.getDrugId()));
             medicine.setGroup(recipedetail.getDrugGroup());
-            medicine.setUnit(drug.getUseDoseUnit());
+            medicine.setUnit(recipedetail.getUseDoseUnit());
             medicine.setDose(String.valueOf(recipedetail.getUseDose()));
             medicine.setFreq(recipedetail.getUsingRate());
             medicine.setPath(recipedetail.getUsePathways());
@@ -172,5 +182,21 @@ public class PrescriptionService {
         detailsData.setAdmNo(DateConversion.formatDateTime(new Date()));
         detailsData.setPatient(auditPatient);
         detailsData.setPrescriptions(prescriptions);
+    }
+
+    /**
+     * 内部测试方法
+     * @param recipeId
+     * @return
+     * @throws Exception
+     */
+    @RpcService
+    public String testGetPAAnalysis(int recipeId) throws Exception{
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        List<Recipedetail> details = detailDAO.findByRecipeId(recipeId);
+        return getPAAnalysis(recipe, details);
     }
 }

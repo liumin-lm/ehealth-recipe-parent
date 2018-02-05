@@ -1,6 +1,8 @@
 package recipe.dao;
 
 import com.ngari.recipe.entity.ShoppingDrug;
+import ctd.persistence.annotation.DAOMethod;
+import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
 import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResultAction;
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
@@ -15,7 +17,7 @@ import java.util.List;
  * @author liuya
  */
 @RpcSupportDAO
-public class ShoppingDrugDAO extends HibernateSupportDelegateDAO<ShoppingDrug> {
+public abstract class ShoppingDrugDAO extends HibernateSupportDelegateDAO<ShoppingDrug> {
     public ShoppingDrugDAO() {
         super();
         this.setEntityName(ShoppingDrug.class.getName());
@@ -40,4 +42,13 @@ public class ShoppingDrugDAO extends HibernateSupportDelegateDAO<ShoppingDrug> {
         };
         HibernateSessionTemplate.instance().executeTrans(action);
     }
+
+    /**
+     * 获取药品详情
+     * @param orderCode
+     * @return
+     */
+    @DAOMethod(sql = "from ShoppingDrug where orderCode=:orderCode")
+    public abstract List<ShoppingDrug> findByOrderCode(@DAOParam("orderCode")String orderCode);
+
 }

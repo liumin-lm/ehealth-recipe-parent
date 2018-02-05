@@ -5,8 +5,10 @@ import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.HisSendResTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeRollingInfoBean;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import ctd.persistence.DAOFactory;
@@ -217,5 +219,18 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public void synPatientStatusToRecipe(String mpiId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         recipeDAO.updatePatientStatusByMpiId(mpiId);
+    }
+
+    @Override
+    public void saveRecipeDataFromPayment(RecipeBean recipeBean, List<RecipeDetailBean> recipeDetailBeans) {
+
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        List<Recipedetail> recipedetails = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(recipeDetailBeans)) {
+            for (RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
+                recipedetails.add(getBean(recipeDetailBean,Recipedetail.class));
+            }
+        }
+        recipeDAO.updateOrSaveRecipeAndDetail(getBean(recipeBean,Recipe.class),recipedetails,false);
     }
 }

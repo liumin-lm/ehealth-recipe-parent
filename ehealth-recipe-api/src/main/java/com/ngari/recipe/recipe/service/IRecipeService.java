@@ -5,6 +5,7 @@ import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeRollingInfoBean;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
@@ -220,4 +221,12 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     void synPatientStatusToRecipe(String mpiId);
+
+    /**
+     * 从缴费记录中保存电子处方数据
+     * @param recipeBean
+     * @param recipeDetailBeans
+     */
+    @RpcService
+    void saveRecipeDataFromPayment(RecipeBean recipeBean, List<RecipeDetailBean> recipeDetailBeans);
 }
