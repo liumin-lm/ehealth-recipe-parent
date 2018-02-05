@@ -119,13 +119,17 @@ public class RecipeCheckService {
                 recipe.setOrganDiseaseName(r.getOrganDiseaseName());
                 recipe.setChecker(r.getChecker());
                 //组装需要的患者数据
-                PatientBean p = iPatientService.get(r.getMpiid());
                 PatientBean patient = new PatientBean();
-                patient.setPatientName(p.getPatientName());
-                patient.setPatientSex(p.getPatientSex());
-                Date birthDay = p.getBirthday();
-                if (null != birthDay) {
-                    patient.setAge(DateConversion.getAge(birthDay));
+                try {
+                    PatientBean p = iPatientService.get(r.getMpiid());
+                    patient.setPatientName(p.getPatientName());
+                    patient.setPatientSex(p.getPatientSex());
+                    Date birthDay = p.getBirthday();
+                    if (null != birthDay) {
+                        patient.setAge(DateConversion.getAge(birthDay));
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("covertRecipeListPageInfo patient is error. mpiId={}, ", r.getMpiid(), e);
                 }
                 //显示一条详情数据
                 List<Recipedetail> details = detailDAO.findByRecipeId(r.getRecipeId());
