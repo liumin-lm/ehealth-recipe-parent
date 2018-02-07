@@ -8,8 +8,10 @@ import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeRollingInfoBean;
 import ctd.persistence.DAOFactory;
+import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
@@ -402,4 +404,26 @@ public class RecipeListService {
         return msg;
     }
 
+    /**
+     * 查找指定医生和患者间开的处方单列表
+     * @param doctorId
+     * @param mpiId
+     * @param start
+     * @param limit
+     * @return
+     */
+    @RpcService
+    public List<RecipeBean> findRecipeListByDoctorAndPatient(Integer doctorId, String mpiId, int start, int limit) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        List<RecipeBean> list = new ArrayList<>();
+        List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId,mpiId,start,limit);
+        if (CollectionUtils.isNotEmpty(recipes)) {
+            for (Recipe recipe : recipes) {
+                RecipeBean recipeBean = new RecipeBean();
+                BeanUtils.copy(recipe,recipeBean);
+                list.add(recipeBean);
+            }
+        }
+        return list;
+    }
 }

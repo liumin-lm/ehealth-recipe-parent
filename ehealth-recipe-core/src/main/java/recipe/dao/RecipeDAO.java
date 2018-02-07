@@ -1255,4 +1255,34 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      */
     @DAOMethod(sql = "update Recipe set patientStatus=0 where mpiId =:mpiId")
     public abstract void updatePatientStatusByMpiId(@DAOParam("mpiId") String mpiId);
+
+    /**
+     * 查找指定医生和患者间开的处方单列表
+     * @param doctorId
+     * @param mpiId
+     * @param start
+     * @param limit
+     * @return
+     */
+    public List<Recipe> findRecipeListByDoctorAndPatient(final Integer doctorId, final String mpiId,
+                                                          final Integer start, final Integer limit) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String hql = "from Recipe where doctor=:doctorId and mpiid=:mpiId order by createDate desc";
+                Query query = ss.createQuery(hql);
+                query.setParameter("doctor", doctorId);
+                query.setParameter("mpiid", mpiId);
+                if (null != start && null != limit) {
+                    query.setFirstResult(start);
+                    query.setMaxResults(limit);
+                }
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+
+        List<Recipe> recipes = action.getResult();
+        return recipes;
+    }
 }
