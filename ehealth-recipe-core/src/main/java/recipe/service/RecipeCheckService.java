@@ -260,12 +260,7 @@ public class RecipeCheckService {
         String orderCode = recipe.getOrderCode();
         if (!StringUtils.isEmpty(orderCode)){
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
-            order.setDrugStoreName(recipeOrder.getDrugStoreName());
-            order.setDrugStoreAddr(recipeOrder.getDrugStoreAddr());
-            order.setTrackingNumber(recipeOrder.getTrackingNumber());
-            order.setLogisticsCompany(recipeOrder.getLogisticsCompany());
-            order.setActualPrice(recipeOrder.getActualPrice());
-            order.setTotalFee(recipeOrder.getTotalFee());
+            order = recipeOrder;
         }else{
             order = null;
         }
