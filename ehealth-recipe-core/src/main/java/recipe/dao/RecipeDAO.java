@@ -1269,7 +1269,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                String hql = "from Recipe where doctor=:doctorId and mpiid=:mpiId order by createDate desc";
+                String hql = "from Recipe where doctor=:doctor and mpiid=:mpiid order by createDate desc";
                 Query query = ss.createQuery(hql);
                 query.setParameter("doctor", doctorId);
                 query.setParameter("mpiid", mpiId);
