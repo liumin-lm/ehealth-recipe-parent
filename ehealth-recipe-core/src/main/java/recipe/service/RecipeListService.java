@@ -420,25 +420,27 @@ public class RecipeListService {
         IPatientService patientService = ApplicationUtils.getBaseService(IPatientService.class);
 
         List<Map<String,Object>> list = new ArrayList<>();
-        Map<String, Object> map = new HashMap<>();
         List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId,mpiId,start,limit);
         PatientBean patient = patientService.get(mpiId);
-        map.put("patient", patient);
         if (CollectionUtils.isNotEmpty(recipes)) {
-            Recipe recipe = recipes.get(0);
-            recipe.setRecipeDrugName(recipeDetailDAO.getDrugNamesByRecipeId(recipe.getRecipeId()));
-            recipe.setRecipeShowTime(recipe.getCreateDate());
-            boolean effective = false;
-            //只有审核未通过的情况需要看订单状态
-            if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
-                effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
-            }
-            Map<String, String> tipMap = RecipeServiceSub.getTipsByStatus(recipe.getStatus(), recipe, effective);
-            recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
+            for(Recipe recipe : recipes){
+                Map<String, Object> map = new HashMap<>();
+                recipe.setRecipeDrugName(recipeDetailDAO.getDrugNamesByRecipeId(recipe.getRecipeId()));
+                recipe.setRecipeShowTime(recipe.getCreateDate());
+                boolean effective = false;
+                //只有审核未通过的情况需要看订单状态
+                if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
+                    effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
+                }
+                Map<String, String> tipMap = RecipeServiceSub.getTipsByStatus(recipe.getStatus(), recipe, effective);
+                recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
 
-            map.put("recipe", recipes.get(0));
+                map.put("recipe", recipes.get(0));
+                map.put("patient", patient);
+                list.add(map);
+            }
+
         }
-        list.add(map);
         return list;
     }
 
