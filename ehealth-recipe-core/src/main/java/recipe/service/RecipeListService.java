@@ -413,17 +413,19 @@ public class RecipeListService {
      * @return
      */
     @RpcService
-    public List<RecipeBean> findRecipeListByDoctorAndPatient(Integer doctorId, String mpiId, int start, int limit) {
+    public List<Map<String,Object>> findRecipeListByDoctorAndPatient(Integer doctorId, String mpiId, int start, int limit) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        List<RecipeBean> list = new ArrayList<>();
+        IPatientService patientService = ApplicationUtils.getBaseService(IPatientService.class);
+        List<Map<String,Object>> list = new ArrayList<>();
+        Map<String, Object> map = new HashMap<>();
         List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId,mpiId,start,limit);
+        PatientBean patient = patientService.get(mpiId);
+        map.put("patient", patient);
         if (CollectionUtils.isNotEmpty(recipes)) {
-            for (Recipe recipe : recipes) {
-                RecipeBean recipeBean = new RecipeBean();
-                BeanUtils.copy(recipe,recipeBean);
-                list.add(recipeBean);
-            }
+            map.put("recipe", recipes.get(0));
         }
+        list.add(map);
         return list;
     }
+
 }
