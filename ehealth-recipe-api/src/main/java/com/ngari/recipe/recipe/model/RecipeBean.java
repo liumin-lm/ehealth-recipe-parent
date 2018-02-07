@@ -283,6 +283,8 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "患者状态")
     private Integer patientStatus;
 
+    @ItemProperty(alias = "医生名字")
+    private String doctorName;
 
     public RecipeBean() {
     }
@@ -378,6 +380,14 @@ public class RecipeBean implements Serializable {
             this.setTakeMedicine(0);
         }
 
+    }
+
+    public String getDoctorName() {
+        return doctorName;
+    }
+
+    public void setDoctorName(String doctorName) {
+        this.doctorName = doctorName;
     }
 
     public Integer getPatientStatus() {
