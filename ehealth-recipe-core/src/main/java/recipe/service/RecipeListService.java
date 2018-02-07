@@ -435,7 +435,7 @@ public class RecipeListService {
                 Map<String, String> tipMap = RecipeServiceSub.getTipsByStatus(recipe.getStatus(), recipe, effective);
                 recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
 
-                map.put("recipe", recipes.get(0));
+                map.put("recipe", recipe);
                 map.put("patient", patient);
                 list.add(map);
             }
