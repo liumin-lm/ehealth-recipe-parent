@@ -415,13 +415,27 @@ public class RecipeListService {
     @RpcService
     public List<Map<String,Object>> findRecipeListByDoctorAndPatient(Integer doctorId, String mpiId, int start, int limit) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         IPatientService patientService = ApplicationUtils.getBaseService(IPatientService.class);
+
         List<Map<String,Object>> list = new ArrayList<>();
         Map<String, Object> map = new HashMap<>();
         List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId,mpiId,start,limit);
         PatientBean patient = patientService.get(mpiId);
         map.put("patient", patient);
         if (CollectionUtils.isNotEmpty(recipes)) {
+            Recipe recipe = recipes.get(0);
+            recipe.setRecipeDrugName(recipeDetailDAO.getDrugNamesByRecipeId(recipe.getRecipeId()));
+            recipe.setRecipeShowTime(recipe.getCreateDate());
+            boolean effective = false;
+            //只有审核未通过的情况需要看订单状态
+            if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
+                effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
+            }
+            Map<String, String> tipMap = RecipeServiceSub.getTipsByStatus(recipe.getStatus(), recipe, effective);
+            recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
+
             map.put("recipe", recipes.get(0));
         }
         list.add(map);
