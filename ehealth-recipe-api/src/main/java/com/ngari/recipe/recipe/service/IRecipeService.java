@@ -11,6 +11,7 @@ import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -229,4 +230,22 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     void saveRecipeDataFromPayment(RecipeBean recipeBean, List<RecipeDetailBean> recipeDetailBeans);
+
+    /**
+     * 根据日期范围，机构归类的业务量(天，月)
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    @RpcService
+    HashMap<Integer, Long> getCountByDateAreaGroupByOrgan(final String startDate, final String endDate);
+
+    /**
+     * 根据日期范围，机构归类的业务量(小时)
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    @RpcService
+    HashMap<Object,Integer> getCountByHourAreaGroupByOrgan(final Date startDate, final Date endDate);
 }

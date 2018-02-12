@@ -752,4 +752,16 @@ public class DateConversion
 		list.add(endDate);
 		return list;
 	}
+
+	public static Date convertFromStringDate(String dateStr)
+	{
+		Date date = new Date();
+		SimpleDateFormat formatter = new SimpleDateFormat(YYYY_MM_DD);
+		try {
+			date = formatter.parse(dateStr);
+		} catch (ParseException e) {
+			return null;
+		}
+		return date;
+	}
 }
