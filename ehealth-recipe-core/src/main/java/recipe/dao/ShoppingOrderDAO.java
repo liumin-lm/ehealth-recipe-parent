@@ -12,8 +12,10 @@ import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction
 import ctd.util.annotation.RpcSupportDAO;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
+import recipe.util.DateConversion;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -78,11 +80,14 @@ public abstract class ShoppingOrderDAO extends HibernateSupportDelegateDAO<Shopp
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hqlCount = new StringBuilder("select count(*) ");
                 StringBuilder hql = new StringBuilder(" from ShoppingOrder where 1=1 ");
+                String tempBDate = bDate + " 00:00:00";
+                String tempEDate = eDate + " 23:59:59";
+
                 if (!StringUtils.isEmpty(bDate)){
-                    hql.append(" and saleTime>='" + bDate +"'" );
+                    hql.append(" and saleTime>='" + tempBDate +"'" );
                 }
                 if (!StringUtils.isEmpty(eDate)){
-                    hql.append(" and saleTime<='" + eDate +"'" );
+                    hql.append(" and saleTime<='" + tempEDate +"'" );
                 }
                 if (!StringUtils.isEmpty(mpiId)){
                     hql.append(" and mpiId='" + mpiId +"'" );
