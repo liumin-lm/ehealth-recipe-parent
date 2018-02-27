@@ -1,8 +1,10 @@
 package recipe.dao;
 
+import com.alibaba.druid.util.StringUtils;
 import com.ngari.recipe.entity.ShoppingOrder;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
+import ctd.persistence.bean.QueryResult;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
 import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResultAction;
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
@@ -10,7 +12,10 @@ import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction
 import ctd.util.annotation.RpcSupportDAO;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
+import recipe.util.DateConversion;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -68,4 +73,45 @@ public abstract class ShoppingOrderDAO extends HibernateSupportDelegateDAO<Shopp
 
     }
 
+    public QueryResult<ShoppingOrder> findShoppingOrdersWithInfo(final String bDate, final String eDate, final String mpiId, final String orderCode,
+                                                  final Integer status, final int start, final int limit){
+        HibernateStatelessResultAction<QueryResult<ShoppingOrder>> action = new AbstractHibernateStatelessResultAction<QueryResult<ShoppingOrder>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hqlCount = new StringBuilder("select count(*) ");
+                StringBuilder hql = new StringBuilder(" from ShoppingOrder where 1=1 ");
+                String tempBDate = bDate + " 00:00:00";
+                String tempEDate = eDate + " 23:59:59";
+
+                if (!StringUtils.isEmpty(bDate)){
+                    hql.append(" and saleTime>='" + tempBDate +"'" );
+                }
+                if (!StringUtils.isEmpty(eDate)){
+                    hql.append(" and saleTime<='" + tempEDate +"'" );
+                }
+                if (!StringUtils.isEmpty(mpiId)){
+                    hql.append(" and mpiId='" + mpiId +"'" );
+                }
+                if (!StringUtils.isEmpty(orderCode)){
+                    hql.append(" and orderCode='" + orderCode +"'" );
+                }
+                if (status != null && !status.equals("")){
+                    hql.append(" and status='" + status +"'" );
+                }
+                Query qCount = ss.createQuery(hqlCount.append(hql.toString()).toString());
+                Long total = 0L;
+                total = (Long) qCount.uniqueResult();
+                Query q = ss.createQuery(hql.toString());
+                q.setFirstResult(start);
+                q.setMaxResults(limit);
+                List<ShoppingOrder> list = new ArrayList<>();
+                if (q.list() != null && q.list().size() > 0){
+                    list = q.list();
+                }
+                setResult(new QueryResult<ShoppingOrder>(total,start,limit, list));
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }

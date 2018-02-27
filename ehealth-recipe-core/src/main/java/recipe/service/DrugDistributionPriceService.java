@@ -20,8 +20,6 @@ import java.util.List;
  **/
 @RpcBean("drugDistributionPriceService")
 public class DrugDistributionPriceService {
-    private DrugDistributionPriceDAO drugDistributionPriceDAO;
-
     private IBusActionLogService iBusActionLogService =
             ApplicationUtils.getBaseService(IBusActionLogService.class);
 
@@ -29,10 +27,6 @@ public class DrugDistributionPriceService {
      * 地域编码长度
      */
     private static final int ADDR_LENGTH = 2;
-
-    public DrugDistributionPriceService() {
-        drugDistributionPriceDAO = DAOFactory.getDAO(DrugDistributionPriceDAO.class);
-    }
 
     /**
      * 保存或更新配送价格
@@ -54,6 +48,8 @@ public class DrugDistributionPriceService {
         if (price.getDistributionPrice() == null) {
             price.setDistributionPrice(new BigDecimal(0));
         }
+        DrugDistributionPriceDAO drugDistributionPriceDAO = DAOFactory.getDAO(DrugDistributionPriceDAO.class);
+
         DrugDistributionPrice oldPrice = drugDistributionPriceDAO.getByEnterpriseIdAndAddrArea(price.getEnterpriseId(), price.getAddrArea());
         StringBuffer logMsg = new StringBuffer();
         if (price.getId() == null) {
@@ -86,6 +82,8 @@ public class DrugDistributionPriceService {
         if (enterpriseId == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "price is enterpriseId");
         }
+        DrugDistributionPriceDAO drugDistributionPriceDAO = DAOFactory.getDAO(DrugDistributionPriceDAO.class);
+
         DrugDistributionPrice price = drugDistributionPriceDAO.get(enterpriseId);
         if (price == null) {
             throw new DAOException("this enterpriseId is not exist");
@@ -100,7 +98,7 @@ public class DrugDistributionPriceService {
         if (id == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "price is enterpriseId");
         }
-        drugDistributionPriceDAO.deleteById(id);
+        DAOFactory.getDAO(DrugDistributionPriceDAO.class).deleteById(id);
     }
 
     @RpcService
@@ -108,7 +106,7 @@ public class DrugDistributionPriceService {
         if (enterpriseId == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "enterpriseId is enterpriseId");
         }
-        return drugDistributionPriceDAO.findByEnterpriseId(enterpriseId);
+        return DAOFactory.getDAO(DrugDistributionPriceDAO.class).findByEnterpriseId(enterpriseId);
     }
 
     @RpcService
@@ -119,6 +117,8 @@ public class DrugDistributionPriceService {
         if (addrArea == null || StringUtils.isEmpty(addrArea.trim())) {
             throw new DAOException(DAOException.VALUE_NEEDED, "addrArea is enterpriseId");
         }
+        DrugDistributionPriceDAO drugDistributionPriceDAO = DAOFactory.getDAO(DrugDistributionPriceDAO.class);
+
         //获取地域编码长度
         int length = addrArea.length();
         DrugDistributionPrice price = null;

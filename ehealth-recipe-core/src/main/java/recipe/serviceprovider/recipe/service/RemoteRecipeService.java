@@ -5,8 +5,10 @@ import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.HisSendResTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeRollingInfoBean;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import ctd.persistence.DAOFactory;
@@ -27,10 +29,7 @@ import recipe.serviceprovider.BaseService;
 import recipe.util.ApplicationUtils;
 import recipe.util.MapValueUtil;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * company: ngarihealth
@@ -217,5 +216,44 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public void synPatientStatusToRecipe(String mpiId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         recipeDAO.updatePatientStatusByMpiId(mpiId);
+    }
+
+    @Override
+    public void saveRecipeDataFromPayment(RecipeBean recipeBean, List<RecipeDetailBean> recipeDetailBeans) {
+
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        List<Recipedetail> recipedetails = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(recipeDetailBeans)) {
+            for (RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
+                recipedetails.add(getBean(recipeDetailBean,Recipedetail.class));
+            }
+        }
+        recipeDAO.updateOrSaveRecipeAndDetail(getBean(recipeBean,Recipe.class),recipedetails,false);
+    }
+
+
+    /**
+     * 根据日期范围，机构归类的业务量(天，月)
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    @RpcService
+    @Override
+    public HashMap<Integer, Long> getCountByDateAreaGroupByOrgan(final String startDate, final String endDate) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        return recipeDAO.getCountByDateAreaGroupByOrgan(startDate, endDate);
+    }
+    /**
+     * 根据日期范围，机构归类的业务量(小时)
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    @RpcService
+    @Override
+    public HashMap<Object,Integer> getCountByHourAreaGroupByOrgan(final Date startDate, final Date endDate) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        return recipeDAO.getCountByHourAreaGroupByOrgan(startDate, endDate);
     }
 }

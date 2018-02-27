@@ -5,11 +5,13 @@ import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeRollingInfoBean;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -220,4 +222,30 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     void synPatientStatusToRecipe(String mpiId);
+
+    /**
+     * 从缴费记录中保存电子处方数据
+     * @param recipeBean
+     * @param recipeDetailBeans
+     */
+    @RpcService
+    void saveRecipeDataFromPayment(RecipeBean recipeBean, List<RecipeDetailBean> recipeDetailBeans);
+
+    /**
+     * 根据日期范围，机构归类的业务量(天，月)
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    @RpcService
+    HashMap<Integer, Long> getCountByDateAreaGroupByOrgan(final String startDate, final String endDate);
+
+    /**
+     * 根据日期范围，机构归类的业务量(小时)
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    @RpcService
+    HashMap<Object,Integer> getCountByHourAreaGroupByOrgan(final Date startDate, final Date endDate);
 }

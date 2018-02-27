@@ -417,13 +417,14 @@ public class ThirdEnterpriseCallService {
      */
     @RpcService
     public ThirdResultBean updateRecipeInfo(Map<String, Object> paramMap) {
-        LOGGER.info("updateRecipeInfo param : " + JSONUtils.toString(paramMap));
+        //国药会大量重复调用，故去掉该日志
+//        LOGGER.info("updateRecipeInfo param : " + JSONUtils.toString(paramMap));
 
         ThirdResultBean backMsg = ThirdResultBean.getFail();
         int code = validateRecipe(paramMap, backMsg, null, null);
 
         if (REQUEST_OK != code) {
-            LOGGER.error("recipeId=[{}], updateRecipeInfo:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
+            LOGGER.error("updateRecipeInfo error. info={}, recipeId=[{}]",  JSONUtils.toString(backMsg), backMsg.getBusId());
             return backMsg;
         }
 
@@ -435,7 +436,7 @@ public class ThirdEnterpriseCallService {
         if (null != listObj) {
             if (listObj instanceof List) {
                 List<HashMap<String, Object>> detailList = (List<HashMap<String, Object>>) paramMap.get("dtl");
-                if (!detailList.isEmpty()) {
+                if (CollectionUtils.isNotEmpty(detailList)) {
                     RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
 
                     boolean drugSearchFlag = false;
@@ -493,7 +494,7 @@ public class ThirdEnterpriseCallService {
         String trackingNumber = MapValueUtil.getString(paramMap, "trackingNumber");
         Map<String, Object> orderAttr = getOrderInfoMap(recipe, paramMap);
         //此处为物流公司字典
-        orderAttr.put("logisticsCompany", Integer.valueOf(logisticsCompany));
+        orderAttr.put("logisticsCompany", StringUtils.isEmpty(logisticsCompany)?null:Integer.valueOf(logisticsCompany));
         orderAttr.put("trackingNumber", trackingNumber);
         RecipeResultBean resultBean = orderService.updateOrderInfo(recipe.getOrderCode(), orderAttr, null);
 

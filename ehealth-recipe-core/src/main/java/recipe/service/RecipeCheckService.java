@@ -119,13 +119,17 @@ public class RecipeCheckService {
                 recipe.setOrganDiseaseName(r.getOrganDiseaseName());
                 recipe.setChecker(r.getChecker());
                 //组装需要的患者数据
-                PatientBean p = iPatientService.get(r.getMpiid());
                 PatientBean patient = new PatientBean();
-                patient.setPatientName(p.getPatientName());
-                patient.setPatientSex(p.getPatientSex());
-                Date birthDay = p.getBirthday();
-                if (null != birthDay) {
-                    patient.setAge(DateConversion.getAge(birthDay));
+                try {
+                    PatientBean p = iPatientService.get(r.getMpiid());
+                    patient.setPatientName(p.getPatientName());
+                    patient.setPatientSex(p.getPatientSex());
+                    Date birthDay = p.getBirthday();
+                    if (null != birthDay) {
+                        patient.setAge(DateConversion.getAge(birthDay));
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("covertRecipeListPageInfo patient is error. mpiId={}, ", r.getMpiid(), e);
                 }
                 //显示一条详情数据
                 List<Recipedetail> details = detailDAO.findByRecipeId(r.getRecipeId());
@@ -209,12 +213,11 @@ public class RecipeCheckService {
             e.printStackTrace();
         }
         //取医生的手机号
-        DoctorBean doctor = iDoctorService.get(doctorId);
-        if (null == doctor) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "doctor is null!");
-        }
         DoctorBean doc = new DoctorBean();
-        doc.setMobile(doctor.getMobile());
+        DoctorBean doctor = iDoctorService.get(doctorId);
+        if (null != doctor) {
+            doc.setMobile(doctor.getMobile());
+        }
 
         //取patient需要的字段
         PatientBean patient = iPatientService.get(recipe.getMpiid());
@@ -256,12 +259,7 @@ public class RecipeCheckService {
         String orderCode = recipe.getOrderCode();
         if (!StringUtils.isEmpty(orderCode)){
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
-            order.setDrugStoreName(recipeOrder.getDrugStoreName());
-            order.setDrugStoreAddr(recipeOrder.getDrugStoreAddr());
-            order.setTrackingNumber(recipeOrder.getTrackingNumber());
-            order.setLogisticsCompany(recipeOrder.getLogisticsCompany());
-            order.setActualPrice(recipeOrder.getActualPrice());
-            order.setTotalFee(recipeOrder.getTotalFee());
+            order = recipeOrder;
         }else{
             order = null;
         }
