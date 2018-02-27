@@ -8,8 +8,10 @@ import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeRollingInfoBean;
 import ctd.persistence.DAOFactory;
+import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
@@ -400,6 +402,46 @@ public class RecipeListService {
         }
 
         return msg;
+    }
+
+    /**
+     * 查找指定医生和患者间开的处方单列表
+     * @param doctorId
+     * @param mpiId
+     * @param start
+     * @param limit
+     * @return
+     */
+    @RpcService
+    public List<Map<String,Object>> findRecipeListByDoctorAndPatient(Integer doctorId, String mpiId, int start, int limit) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        IPatientService patientService = ApplicationUtils.getBaseService(IPatientService.class);
+
+        List<Map<String,Object>> list = new ArrayList<>();
+        List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId,mpiId,start,limit);
+        PatientBean patient = patientService.get(mpiId);
+        if (CollectionUtils.isNotEmpty(recipes)) {
+            for(Recipe recipe : recipes){
+                Map<String, Object> map = new HashMap<>();
+                recipe.setRecipeDrugName(recipeDetailDAO.getDrugNamesByRecipeId(recipe.getRecipeId()));
+                recipe.setRecipeShowTime(recipe.getCreateDate());
+                boolean effective = false;
+                //只有审核未通过的情况需要看订单状态
+                if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
+                    effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
+                }
+                Map<String, String> tipMap = RecipeServiceSub.getTipsByStatus(recipe.getStatus(), recipe, effective);
+                recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
+
+                map.put("recipe", recipe);
+                map.put("patient", patient);
+                list.add(map);
+            }
+
+        }
+        return list;
     }
 
 }

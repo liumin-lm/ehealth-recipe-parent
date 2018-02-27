@@ -213,12 +213,11 @@ public class RecipeCheckService {
             e.printStackTrace();
         }
         //取医生的手机号
-        DoctorBean doctor = iDoctorService.get(doctorId);
-        if (null == doctor) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "doctor is null!");
-        }
         DoctorBean doc = new DoctorBean();
-        doc.setMobile(doctor.getMobile());
+        DoctorBean doctor = iDoctorService.get(doctorId);
+        if (null != doctor) {
+            doc.setMobile(doctor.getMobile());
+        }
 
         //取patient需要的字段
         PatientBean patient = iPatientService.get(recipe.getMpiid());
@@ -260,12 +259,7 @@ public class RecipeCheckService {
         String orderCode = recipe.getOrderCode();
         if (!StringUtils.isEmpty(orderCode)){
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
-            order.setDrugStoreName(recipeOrder.getDrugStoreName());
-            order.setDrugStoreAddr(recipeOrder.getDrugStoreAddr());
-            order.setTrackingNumber(recipeOrder.getTrackingNumber());
-            order.setLogisticsCompany(recipeOrder.getLogisticsCompany());
-            order.setActualPrice(recipeOrder.getActualPrice());
-            order.setTotalFee(recipeOrder.getTotalFee());
+            order = recipeOrder;
         }else{
             order = null;
         }

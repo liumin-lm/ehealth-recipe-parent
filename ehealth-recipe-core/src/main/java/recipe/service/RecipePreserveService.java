@@ -1,5 +1,8 @@
 package recipe.service;
 
+import com.ngari.base.BaseAPI;
+import com.ngari.base.doctor.model.DoctorBean;
+import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeLog;
 import ctd.persistence.DAOFactory;
@@ -54,5 +57,11 @@ public class RecipePreserveService {
     public List<RecipeLog> findByRecipeId(Integer recipeId) {
         RecipeLogService service = ApplicationUtils.getRecipeService(RecipeLogService.class);
         return service.findByRecipeId(recipeId);
+    }
+
+    @RpcService
+    public DoctorBean getDoctorTest(Integer doctorId) {
+        IDoctorService doctorService = BaseAPI.getService(IDoctorService.class);
+        return doctorService.getBeanByDoctorId(doctorId);
     }
 }

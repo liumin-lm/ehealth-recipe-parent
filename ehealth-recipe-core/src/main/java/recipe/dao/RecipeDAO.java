@@ -19,6 +19,7 @@ import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcService;
 import ctd.util.annotation.RpcSupportDAO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -125,8 +126,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      * @param clinicOrgan
      * @return
      */
-    @DAOMethod
-    public abstract Recipe getByRecipeCodeAndClinicOrgan(String recipeCode, Integer clinicOrgan);
+    @DAOMethod(sql = "from Recipe where recipeCode=:recipeCode and clinicOrgan=:clinicOrgan and fromflag=1")
+    public abstract Recipe getByRecipeCodeAndClinicOrgan(@DAOParam("recipeCode")String recipeCode,
+                                                         @DAOParam("clinicOrgan")Integer clinicOrgan);
 
     /**
      * 根据处方来源源处方号及处方来源机构查询处方详情
@@ -1255,4 +1257,80 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      */
     @DAOMethod(sql = "update Recipe set patientStatus=0 where mpiId =:mpiId")
     public abstract void updatePatientStatusByMpiId(@DAOParam("mpiId") String mpiId);
+
+    /**
+     * 查找指定医生和患者间开的处方单列表
+     * @param doctorId
+     * @param mpiId
+     * @param start
+     * @param limit
+     * @return
+     */
+    public List<Recipe> findRecipeListByDoctorAndPatient(final Integer doctorId, final String mpiId,
+                                                          final Integer start, final Integer limit) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String hql = "from Recipe where doctor=:doctor and mpiid=:mpiid order by createDate desc";
+                Query query = ss.createQuery(hql);
+                query.setParameter("doctor", doctorId);
+                query.setParameter("mpiid", mpiId);
+                if (null != start && null != limit) {
+                    query.setFirstResult(start);
+                    query.setMaxResults(limit);
+                }
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+
+        List<Recipe> recipes = action.getResult();
+        return recipes;
+    }
+
+    //根据日期范围，机构归类的业务量（天，月）
+    public HashMap<Integer, Long> getCountByDateAreaGroupByOrgan(final String startDate, final String endDate) {
+        HibernateStatelessResultAction<HashMap<Integer, Long>> action = new AbstractHibernateStatelessResultAction<HashMap<Integer, Long>>() {
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder(
+                        "select clinicOrgan, count(*) as count from Recipe a  where a.createDate between :startDate and :endDate  group by clinicOrgan");
+                Query query = ss.createQuery(hql.toString());
+                Date dStartDate = DateConversion.convertFromStringDate(startDate);
+                Date dEndDate = DateConversion.convertFromStringDate(endDate);
+                Date sTime = DateConversion.firstSecondsOfDay(dStartDate);
+                Date eTime = DateConversion.lastSecondsOfDay(dEndDate);
+                query.setParameter("startDate", sTime);
+                query.setParameter("endDate", eTime);
+                List<Object[]> oList = query.list();
+                HashMap<Integer, Long> organCount = new HashMap<Integer, Long>();
+                for (Object[] co : oList) {
+                    organCount.put((Integer) co[0],(Long) co[1]);
+                }
+                setResult(organCount);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    //根据日期范围，机构归类的业务量（小时）
+    public HashMap<Object,Integer> getCountByHourAreaGroupByOrgan(final Date startDate, final Date endDate) {
+        HibernateStatelessResultAction<HashMap<Object,Integer>> action = new AbstractHibernateStatelessResultAction<HashMap<Object,Integer>>() {
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder(
+                        "select count(*) as count, HOUR(a.createDate) as hour from Recipe a  where a.createDate between :startDate and :endDate  group by HOUR(a.createDate)");
+                Query query = ss.createQuery(hql.toString());
+                query.setParameter("startDate", startDate);
+                query.setParameter("endDate", endDate);
+                List<Object[]> oList = query.list();
+                HashMap<Object,Integer> organCount = new HashMap<Object,Integer>();
+                for (Object[] co : oList) {
+                    organCount.put(co[1], ((Long) co[0]).intValue());
+                }
+                setResult(organCount);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }

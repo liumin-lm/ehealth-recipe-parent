@@ -29,10 +29,7 @@ import recipe.serviceprovider.BaseService;
 import recipe.util.ApplicationUtils;
 import recipe.util.MapValueUtil;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * company: ngarihealth
@@ -232,5 +229,31 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             }
         }
         recipeDAO.updateOrSaveRecipeAndDetail(getBean(recipeBean,Recipe.class),recipedetails,false);
+    }
+
+
+    /**
+     * 根据日期范围，机构归类的业务量(天，月)
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    @RpcService
+    @Override
+    public HashMap<Integer, Long> getCountByDateAreaGroupByOrgan(final String startDate, final String endDate) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        return recipeDAO.getCountByDateAreaGroupByOrgan(startDate, endDate);
+    }
+    /**
+     * 根据日期范围，机构归类的业务量(小时)
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    @RpcService
+    @Override
+    public HashMap<Object,Integer> getCountByHourAreaGroupByOrgan(final Date startDate, final Date endDate) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        return recipeDAO.getCountByHourAreaGroupByOrgan(startDate, endDate);
     }
 }

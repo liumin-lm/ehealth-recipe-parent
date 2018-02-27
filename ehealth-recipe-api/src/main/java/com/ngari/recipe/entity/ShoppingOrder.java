@@ -42,6 +42,7 @@ public class ShoppingOrder implements java.io.Serializable {
     @ItemProperty(alias = "订单优惠金额")
     private BigDecimal couponFee;
     @ItemProperty(alias = "支付方式")
+    @Dictionary(id = "eh.cdr.dictionary.ShoppingPayWay")
     private Integer payWay;
     @ItemProperty(alias = "收货人")
     private String receiver;
