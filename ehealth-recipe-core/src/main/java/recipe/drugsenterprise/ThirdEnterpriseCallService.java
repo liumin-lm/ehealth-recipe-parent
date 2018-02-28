@@ -418,7 +418,7 @@ public class ThirdEnterpriseCallService {
     @RpcService
     public ThirdResultBean updateRecipeInfo(Map<String, Object> paramMap) {
         //国药会大量重复调用，故去掉该日志
-//        LOGGER.info("updateRecipeInfo param : " + JSONUtils.toString(paramMap));
+        LOGGER.info("updateRecipeInfo param : " + JSONUtils.toString(paramMap));
 
         ThirdResultBean backMsg = ThirdResultBean.getFail();
         int code = validateRecipe(paramMap, backMsg, null, null);
@@ -503,9 +503,9 @@ public class ThirdEnterpriseCallService {
             errorMsg = "";
         }
 
-        if (null != recipeId) {
-            RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.UNKNOW, RecipeStatusConstant.UNKNOW, "updateRecipeInfo info=" + JSONUtils.toString(paramMap));
-        }
+//        if (null != recipeId) {
+//            RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.UNKNOW, RecipeStatusConstant.UNKNOW, "updateRecipeInfo info=" + JSONUtils.toString(paramMap));
+//        }
 
         backMsg.setCode(code);
         backMsg.setMsg(errorMsg);
