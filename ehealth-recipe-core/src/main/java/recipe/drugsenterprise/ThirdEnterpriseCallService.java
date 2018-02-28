@@ -443,8 +443,8 @@ public class ThirdEnterpriseCallService {
                     //药品和详情关系 key:drugId  value:detailId
                     Map<Integer, Integer> detailIdAndDrugId = new HashMap<>(detailList.size());
                     //判断是传了dtlId或者drugId
-                    Integer drugId = MapValueUtil.getInteger(detailList.get(0), "drugId");
-                    if (null != drugId) {
+                    String drugId = MapValueUtil.getString(detailList.get(0), "drugId");
+                    if (StringUtils.isNotEmpty(drugId)) {
                         drugSearchFlag = true;
                         List<Recipedetail> dbDetailList = recipeDetailDAO.findByRecipeId(recipeId);
                         for (Recipedetail recipedetail : dbDetailList) {
