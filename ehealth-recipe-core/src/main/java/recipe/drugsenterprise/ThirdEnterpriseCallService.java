@@ -418,7 +418,7 @@ public class ThirdEnterpriseCallService {
     @RpcService
     public ThirdResultBean updateRecipeInfo(Map<String, Object> paramMap) {
         //国药会大量重复调用，故去掉该日志
-//        LOGGER.info("updateRecipeInfo param : " + JSONUtils.toString(paramMap));
+        LOGGER.info("updateRecipeInfo param : " + JSONUtils.toString(paramMap));
 
         ThirdResultBean backMsg = ThirdResultBean.getFail();
         int code = validateRecipe(paramMap, backMsg, null, null);
@@ -443,8 +443,8 @@ public class ThirdEnterpriseCallService {
                     //药品和详情关系 key:drugId  value:detailId
                     Map<Integer, Integer> detailIdAndDrugId = new HashMap<>(detailList.size());
                     //判断是传了dtlId或者drugId
-                    Integer drugId = MapValueUtil.getInteger(detailList.get(0), "drugId");
-                    if (null != drugId) {
+                    String drugId = MapValueUtil.getString(detailList.get(0), "drugId");
+                    if (StringUtils.isNotEmpty(drugId)) {
                         drugSearchFlag = true;
                         List<Recipedetail> dbDetailList = recipeDetailDAO.findByRecipeId(recipeId);
                         for (Recipedetail recipedetail : dbDetailList) {
@@ -503,9 +503,9 @@ public class ThirdEnterpriseCallService {
             errorMsg = "";
         }
 
-        if (null != recipeId) {
-            RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.UNKNOW, RecipeStatusConstant.UNKNOW, "updateRecipeInfo info=" + JSONUtils.toString(paramMap));
-        }
+//        if (null != recipeId) {
+//            RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.UNKNOW, RecipeStatusConstant.UNKNOW, "updateRecipeInfo info=" + JSONUtils.toString(paramMap));
+//        }
 
         backMsg.setCode(code);
         backMsg.setMsg(errorMsg);
