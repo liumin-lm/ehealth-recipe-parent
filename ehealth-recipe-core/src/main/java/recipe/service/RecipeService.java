@@ -681,6 +681,7 @@ public class RecipeService {
 //                    iSysParamterService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
             rMap.put("signResult", false);
             rMap.put("recipeId", recipeId);
+            rMap.put("scanDrugStock", true);
             rMap.put("msg", "很抱歉，当前库存不足无法开处方，请联系客服："+
                     iSysParamterService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
             return rMap;
