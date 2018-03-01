@@ -671,6 +671,16 @@ public class RecipeService {
                 return rMap;
             }
         }
+
+        //药企库存实时查询
+        RecipePatientService recipePatientService = ApplicationUtils.getRecipeService(RecipePatientService.class);
+        RecipeResultBean recipeResultBean = recipePatientService.findSupportDepList(0, Arrays.asList(recipeId));
+        if(RecipeResultBean.FAIL.equals(recipeResultBean.getCode())){
+            LOGGER.info("doSignRecipe scanStock enterprise error. result={} ", JSONUtils.toString(recipeResultBean));
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "很抱歉，当前库存不足无法开处方，请联系客服：" +
+                    iSysParamterService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
+        }
+
         //HIS消息发送
         boolean result = hisService.recipeSendHis(recipeId, null);
         rMap.put("signResult", result);
