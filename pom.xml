@@ -9,7 +9,6 @@
         <version>1.1.0.feature5-SNAPSHOT</version>
     </parent>
     <artifactId>ehealth-recipe-parent</artifactId>
-    <version>2.0.2-SNAPSHOT</version>
     <name>处方</name>
     <description>处方项目</description>
     <packaging>pom</packaging>
