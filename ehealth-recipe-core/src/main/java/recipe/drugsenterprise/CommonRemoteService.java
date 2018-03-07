@@ -335,9 +335,9 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
                     if (null != goodsidObj && goodsidObj instanceof List) {
                         List<Integer> errorIds = (List<Integer>) goodsidObj;
                         if (CollectionUtils.isNotEmpty(errorIds)) {
-                            //将药企对该药品可配送的记录置为无效
-                            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-                            saleDrugListDAO.updateInvalidByOrganIdAndDrugIds(drugsEnterprise.getId(), errorIds);
+                            //将药企对该药品可配送的记录置为无效， 由于开处方的时候已经做过实时校验，所以患者端这边可以不去修改药品的状态
+//                            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+//                            saleDrugListDAO.updateInvalidByOrganIdAndDrugIds(drugsEnterprise.getId(), errorIds);
                             logInfo.append("goodsInfo:[");
                             for(Integer e : errorIds){
                                 logInfo.append(e+"-"+drugInfo.get(e)+",");
