@@ -666,6 +666,7 @@ public class RecipeService {
                 rMap.put("recipeId", recipeId);
                 rMap.put("msg", scanResult.getError());
                 if (EXTEND_VALUE_FLAG.equals(scanResult.getExtendValue())) {
+                    //这个字段为true，前端展示框内容为msg，走二次确认配送流程
                     rMap.put("scanDrugStock", true);
                 }
                 return rMap;
@@ -681,7 +682,8 @@ public class RecipeService {
 //                    iSysParamterService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
             rMap.put("signResult", false);
             rMap.put("recipeId", recipeId);
-            rMap.put("scanDrugStock", true);
+            //错误信息弹出框，只有 确定  按钮
+            rMap.put("errorFlag", true);
             rMap.put("msg", "很抱歉，当前库存不足无法开处方，请联系客服："+
                     iSysParamterService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
             return rMap;
@@ -691,6 +693,7 @@ public class RecipeService {
         boolean result = hisService.recipeSendHis(recipeId, null);
         rMap.put("signResult", result);
         rMap.put("recipeId", recipeId);
+        rMap.put("errorFlag", false);
 
         LOGGER.info("doSignRecipe execute ok! rMap:" + JSONUtils.toString(rMap));
         return rMap;
