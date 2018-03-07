@@ -663,7 +663,7 @@ public class RecipeService {
             RecipeResultBean scanResult = hisService.scanDrugStockByRecipeId(recipeId);
             if (RecipeResultBean.FAIL.equals(scanResult.getCode())) {
                 rMap.put("signResult", false);
-                rMap.put("recipeId", recipe.getRecipeId());
+                rMap.put("recipeId", recipeId);
                 rMap.put("msg", scanResult.getError());
                 if (EXTEND_VALUE_FLAG.equals(scanResult.getExtendValue())) {
                     rMap.put("scanDrugStock", true);
@@ -671,6 +671,22 @@ public class RecipeService {
                 return rMap;
             }
         }
+
+        //药企库存实时查询
+        RecipePatientService recipePatientService = ApplicationUtils.getRecipeService(RecipePatientService.class);
+        RecipeResultBean recipeResultBean = recipePatientService.findSupportDepList(0, Arrays.asList(recipeId));
+        if(RecipeResultBean.FAIL.equals(recipeResultBean.getCode())){
+            LOGGER.error("doSignRecipe scanStock enterprise error. result={} ", JSONUtils.toString(recipeResultBean));
+//            throw new DAOException(ErrorCode.SERVICE_ERROR, "很抱歉，当前库存不足无法开处方，请联系客服：" +
+//                    iSysParamterService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
+            rMap.put("signResult", false);
+            rMap.put("recipeId", recipeId);
+            rMap.put("scanDrugStock", true);
+            rMap.put("msg", "很抱歉，当前库存不足无法开处方，请联系客服："+
+                    iSysParamterService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
+            return rMap;
+        }
+
         //HIS消息发送
         boolean result = hisService.recipeSendHis(recipeId, null);
         rMap.put("signResult", result);
