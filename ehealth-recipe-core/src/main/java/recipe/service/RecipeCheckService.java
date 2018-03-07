@@ -580,8 +580,10 @@ public class RecipeCheckService {
     public List<OrganBean> findCheckOrganList(Integer doctorId){
         List<OrganBean> organList = Lists.newArrayList();
         List<Integer> organIds = findAPOrganIdsByDoctorId(doctorId);
-        IOrganService organService = ApplicationUtils.getBaseService(IOrganService.class);
-
+        if(CollectionUtils.isNotEmpty(organIds)) {
+            IOrganService organService = ApplicationUtils.getBaseService(IOrganService.class);
+            organList = organService.findByIdIn(organIds);
+        }
         return organList;
     }
 

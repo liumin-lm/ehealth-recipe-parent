@@ -218,6 +218,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         recipeDAO.updatePatientStatusByMpiId(mpiId);
     }
 
+    @RpcService
     @Override
     public void saveRecipeDataFromPayment(RecipeBean recipeBean, List<RecipeDetailBean> recipeDetailBeans) {
 
