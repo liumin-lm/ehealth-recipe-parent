@@ -1,8 +1,11 @@
 package recipe.service;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.doctor.model.DoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
+import com.ngari.base.organ.model.OrganBean;
+import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
@@ -565,6 +568,21 @@ public class RecipeCheckService {
             }
         }
         return mapList;
+    }
+
+    /**
+     *
+     * 获取药师能审核的机构
+     * @param doctorId 药师ID
+     * @return
+     */
+    @RpcService
+    public List<OrganBean> findCheckOrganList(Integer doctorId){
+        List<OrganBean> organList = Lists.newArrayList();
+        List<Integer> organIds = findAPOrganIdsByDoctorId(doctorId);
+        IOrganService organService = ApplicationUtils.getBaseService(IOrganService.class);
+
+        return organList;
     }
 
     /**
