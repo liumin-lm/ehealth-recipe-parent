@@ -39,7 +39,7 @@ public class MapValueUtil {
             return (Integer) obj;
         }
 
-        if (obj instanceof String) {
+        if (obj instanceof String && StringUtils.isNotEmpty(obj.toString())) {
             try {
                 return Integer.valueOf(obj.toString());
             } catch (NumberFormatException e) {
