@@ -81,7 +81,7 @@ public class RecipeCheckService {
      * @return
      */
     @RpcService
-    public List<Map<String, Object>> findRecipeListWithPageExt(AuditListReq request) {
+    public List<Map<String, Object>> findRecipeListWithPageExt(AuditListReq request, int start, int limit) {
         LOGGER.info("findRecipeListWithPageExt request={}", JSONUtils.toString(request));
         if(null == request.getDoctorId() || null == request.getStatus()){
             return Lists.newArrayList();
@@ -93,7 +93,7 @@ public class RecipeCheckService {
         }
         RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
         List<Recipe> list = rDao.findRecipeByFlag(request.getOrganIdList(), request.getStatus(),
-                request.getStart(), request.getLimit());
+                start, limit);
         List<Map<String, Object>> mapList = covertRecipeListPageInfo(list);
         return mapList;
     }
