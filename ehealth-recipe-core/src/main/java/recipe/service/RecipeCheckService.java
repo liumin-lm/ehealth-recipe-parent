@@ -582,7 +582,15 @@ public class RecipeCheckService {
         List<Integer> organIds = findAPOrganIdsByDoctorId(doctorId);
         if(CollectionUtils.isNotEmpty(organIds)) {
             IOrganService organService = ApplicationUtils.getBaseService(IOrganService.class);
-            organList = organService.findByIdIn(organIds);
+            List<OrganBean> detailOrgan = organService.findByIdIn(organIds);
+            OrganBean organBean;
+            for(OrganBean bean : detailOrgan){
+                organBean = new OrganBean();
+                organBean.setOrganId(bean.getOrganId());
+                organBean.setShortName(bean.getShortName());
+                organBean.setName(bean.getName());
+                organList.add(organBean);
+            }
         }
         return organList;
     }
