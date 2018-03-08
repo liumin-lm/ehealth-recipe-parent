@@ -7,13 +7,11 @@ import java.io.Serializable;
  * author: 0184/yu_yun
  * date:2018/3/8
  */
-public class CommonListRequest extends CommonRequest implements Serializable{
+public class CommonListRequest extends CommonRequest{
 
-    private static final long serialVersionUID = -1775474631275097922L;
+    private int start;
 
-    protected int start;
-
-    protected int limit;
+    private int limit;
 
     public int getStart() {
         return start;

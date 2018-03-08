@@ -13,13 +13,16 @@ import java.util.List;
  */
 public class AuditListReq extends CommonListRequest implements Serializable {
 
-    private static final long serialVersionUID = 1570662230675042297L;
+    private static final long serialVersionUID = 6157100388773406840L;
 
     private Integer doctorId;
 
     private Integer status;
 
     private List<Integer> organIdList;
+
+    public AuditListReq() {
+    }
 
     public Integer getDoctorId() {
         return doctorId;

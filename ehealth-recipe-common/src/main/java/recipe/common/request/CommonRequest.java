@@ -8,11 +8,9 @@ import java.util.Map;
  * author: 0184/yu_yun
  * date:2018/3/8
  */
-public class CommonRequest implements Serializable {
+public class CommonRequest{
 
-    private static final long serialVersionUID = 5309718417804896046L;
-
-    protected Map<String, Object> conditions;
+    private Map<String, Object> conditions;
 
     public Map<String, Object> getConditions() {
         return conditions;
