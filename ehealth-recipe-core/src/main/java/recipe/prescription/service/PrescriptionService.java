@@ -3,7 +3,6 @@ package recipe.prescription.service;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
-import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.controller.exception.ControllerException;
@@ -13,7 +12,6 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
-
 import org.slf4j.LoggerFactory;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.DrugListDAO;

@@ -12,10 +12,8 @@ import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction
 import ctd.util.annotation.RpcSupportDAO;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
-import recipe.util.DateConversion;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
