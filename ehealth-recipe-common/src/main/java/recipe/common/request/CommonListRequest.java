@@ -7,9 +7,9 @@ package recipe.common.request;
  */
 public class CommonListRequest extends CommonRequest{
 
-    private int start;
+    protected int start;
 
-    private int limit;
+    protected int limit;
 
     public int getStart() {
         return start;

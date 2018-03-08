@@ -7,9 +7,9 @@ package recipe.common.response;
  */
 public class CommonResponse {
 
-    private Integer code;
+    protected Integer code;
 
-    private String msg;
+    protected String msg;
 
     public Integer getCode() {
         return code;

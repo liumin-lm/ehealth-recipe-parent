@@ -9,7 +9,7 @@ import java.util.Map;
  */
 public class CommonRequest {
 
-    private Map<String, Object> conditions;
+    protected Map<String, Object> conditions;
 
     public Map<String, Object> getConditions() {
         return conditions;
