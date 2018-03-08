@@ -4,6 +4,7 @@ import recipe.common.request.CommonRequest;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 审核处方列表请求
@@ -46,5 +47,10 @@ public class AuditListReq extends CommonRequest implements Serializable {
 
     public void setOrganIdList(List<Integer> organIdList) {
         this.organIdList = organIdList;
+    }
+
+    @Override
+    public void setConditions(Map<String, Object> conditions) {
+        super.setConditions(conditions);
     }
 }
