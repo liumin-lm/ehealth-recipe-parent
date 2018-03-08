@@ -1,5 +1,6 @@
 package recipe.common.request;
 
+import java.io.Serializable;
 import java.util.Map;
 
 /**
@@ -7,7 +8,9 @@ import java.util.Map;
  * author: 0184/yu_yun
  * date:2018/3/8
  */
-public class CommonRequest {
+public class CommonRequest implements Serializable {
+
+    private static final long serialVersionUID = 5309718417804896046L;
 
     protected Map<String, Object> conditions;
 
