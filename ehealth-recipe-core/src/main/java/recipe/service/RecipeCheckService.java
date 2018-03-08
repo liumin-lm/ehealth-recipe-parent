@@ -82,6 +82,7 @@ public class RecipeCheckService {
      */
     @RpcService
     public List<Map<String, Object>> findRecipeListWithPageExt(AuditListReq request) {
+        LOGGER.info("findRecipeListWithPageExt request={}", JSONUtils.toString(request));
         if(null == request.getDoctorId() || null == request.getStatus()){
             return Lists.newArrayList();
         }
