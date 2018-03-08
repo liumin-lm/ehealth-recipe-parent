@@ -183,8 +183,10 @@ public class CommonRecipeService {
             for (OrganDrugList organDrug : organDrugList) {
                 if (durgId.equals(organDrug.getDrugId())) {
                     commonRecipeDrug.setDrugStatus(organDrug.getStatus());
-                    commonRecipeDrug.setSalePrice(organDrug.getSalePrice().multiply(
-                            new BigDecimal(commonRecipeDrug.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP));
+                    if(null != commonRecipeDrug.getUseTotalDose()) {
+                        commonRecipeDrug.setSalePrice(organDrug.getSalePrice().multiply(
+                                new BigDecimal(commonRecipeDrug.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP));
+                    }
                     break;
                 }
             }
