@@ -118,7 +118,7 @@ public class CommonRecipeService {
      * @param limit
      * @return
      */
-    public List<CommonRecipe> getCommonRecipeListExt(Integer organId, Integer doctorId, List<Integer> recipeType,
+    public List<CommonRecipe> findCommonRecipeListExt(Integer organId, Integer doctorId, List<Integer> recipeType,
                                                      int start, int limit) {
         CommonRecipeDAO commonRecipeDAO = DAOFactory.getDAO(CommonRecipeDAO.class);
         LOGGER.info("getCommonRecipeListExt  organId={}, doctorId={}, recipeType={}", organId, doctorId,
