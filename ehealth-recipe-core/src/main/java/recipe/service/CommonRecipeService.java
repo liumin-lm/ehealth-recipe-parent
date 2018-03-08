@@ -118,6 +118,7 @@ public class CommonRecipeService {
      * @param limit
      * @return
      */
+    @RpcService
     public List<CommonRecipe> findCommonRecipeListExt(Integer organId, Integer doctorId, List<Integer> recipeType,
                                                      int start, int limit) {
         CommonRecipeDAO commonRecipeDAO = DAOFactory.getDAO(CommonRecipeDAO.class);
