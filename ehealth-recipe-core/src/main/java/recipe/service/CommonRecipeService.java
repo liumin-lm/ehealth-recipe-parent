@@ -1,24 +1,23 @@
 package recipe.service;
 
 import com.google.common.collect.Maps;
-import com.ngari.base.organ.model.OrganBean;
-import com.ngari.base.organ.service.IOrganService;
 import com.ngari.recipe.entity.CommonRecipe;
 import com.ngari.recipe.entity.CommonRecipeDrug;
 import com.ngari.recipe.entity.OrganDrugList;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.constant.ErrorCode;
 import recipe.dao.CommonRecipeDAO;
 import recipe.dao.CommonRecipeDrugDAO;
 import recipe.dao.OrganDrugListDAO;
-import recipe.util.ApplicationUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -32,7 +31,7 @@ import java.util.*;
 @RpcBean("commonRecipeService")
 public class CommonRecipeService {
 
-    private static final Log LOGGER = LogFactory.getLog(CommonRecipeService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecipeService.class);
 
     /**
      * 新增或更新常用方
@@ -93,32 +92,43 @@ public class CommonRecipeService {
      * @param limit
      * @return
      */
+    @Deprecated
     @RpcService
     public List<CommonRecipe> getCommonRecipeList(Integer organId, Integer doctorId, String recipeType, int start, int limit) {
-        IOrganService iorganService = ApplicationUtils.getBaseService(IOrganService.class);
         CommonRecipeDAO commonRecipeDAO = DAOFactory.getDAO(CommonRecipeDAO.class);
         LOGGER.info("CommonRecipeService.getCommonRecipeList  recipeType = " + recipeType + "doctorId" + doctorId +
                 "organId = " + organId);
 
-        OrganBean organ = iorganService.get(organId);
-        // 检验机构是否还存在，机构注销抛异常
-        if (null != organ) {
-            Integer status = organ.getStatus();
-            // OrganStatus.dic  注销
-            Integer status9 = 9;
-            if (status9.equals(status)) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "organ has been shut down");
-            }
-        }
         if (null != doctorId) {
-            // 获取所有常用方列表
-            String allCommonRecipeFlag = "0";
-            if (allCommonRecipeFlag.equals(recipeType)) {
+            if(StringUtils.isNotEmpty(recipeType) && !"0".equals(recipeType)){
+                return commonRecipeDAO.findByRecipeType(Arrays.asList(Integer.valueOf(recipeType)), doctorId, start, limit);
+            }else{
                 return commonRecipeDAO.findByDoctorId(doctorId, start, limit);
             }
-            // 根据常用方类型获取常用方列表
-            else if (StringUtils.isNotEmpty(recipeType)) {
+        }
+        return null;
+    }
+
+    /**
+     * 获取常用方扩展
+     * @param organId
+     * @param doctorId
+     * @param recipeType
+     * @param start
+     * @param limit
+     * @return
+     */
+    public List<CommonRecipe> getCommonRecipeListExt(Integer organId, Integer doctorId, List<Integer> recipeType,
+                                                     int start, int limit) {
+        CommonRecipeDAO commonRecipeDAO = DAOFactory.getDAO(CommonRecipeDAO.class);
+        LOGGER.info("getCommonRecipeListExt  organId={}, doctorId={}, recipeType={}", organId, doctorId,
+                JSONUtils.toString(recipeType));
+
+        if (null != doctorId) {
+            if(CollectionUtils.isNotEmpty(recipeType)){
                 return commonRecipeDAO.findByRecipeType(recipeType, doctorId, start, limit);
+            }else{
+                return commonRecipeDAO.findByDoctorId(doctorId, start, limit);
             }
         }
         return null;
@@ -135,7 +145,7 @@ public class CommonRecipeService {
     public Boolean checkCommonRecipeExist(Integer doctorId, String recipeType) {
         CommonRecipeDAO commonRecipeDAO = DAOFactory.getDAO(CommonRecipeDAO.class);
         if (null != doctorId && StringUtils.isNotEmpty(recipeType)) {
-            List<CommonRecipe> list = commonRecipeDAO.findByRecipeType(recipeType, doctorId, 0, 10);
+            List<CommonRecipe> list = commonRecipeDAO.findByRecipeType(Arrays.asList(Integer.valueOf(recipeType)), doctorId, 0, 10);
             LOGGER.info("Do CommonRecipe.checkCommonRecipeExistByRecipeType the doctorId = " + doctorId + ",recipeType" + recipeType);
             if (null != list && list.isEmpty()) {
                 return false;
@@ -183,8 +193,9 @@ public class CommonRecipeService {
             for (OrganDrugList organDrug : organDrugList) {
                 if (durgId.equals(organDrug.getDrugId())) {
                     commonRecipeDrug.setDrugStatus(organDrug.getStatus());
+                    commonRecipeDrug.setSalePrice(organDrug.getSalePrice());
                     if(null != commonRecipeDrug.getUseTotalDose()) {
-                        commonRecipeDrug.setSalePrice(organDrug.getSalePrice().multiply(
+                        commonRecipeDrug.setDrugCost(organDrug.getSalePrice().multiply(
                                 new BigDecimal(commonRecipeDrug.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP));
                     }
                     break;

@@ -30,8 +30,8 @@ public abstract class CommonRecipeDAO extends HibernateSupportDelegateDAO<Common
      * @param limit
      * @return
      */
-    @DAOMethod(sql = "from CommonRecipe where recipeType=:recipeType and doctorId=:doctorId order by createDt desc")
-    public abstract List<CommonRecipe> findByRecipeType(@DAOParam("recipeType") String recipeType,
+    @DAOMethod(sql = "from CommonRecipe where recipeType in (:recipeType) and doctorId=:doctorId order by createDt desc")
+    public abstract List<CommonRecipe> findByRecipeType(@DAOParam("recipeType") List<Integer> recipeType,
                                                         @DAOParam("doctorId") Integer doctorId,
                                                         @DAOParam(pageStart = true) int start,
                                                         @DAOParam(pageLimit = true) int limit);
