@@ -261,7 +261,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
             }
 
             LOGGER.info("searchDrugListWithES result DList.size = " + dList.size());
-            RecipeUtil.getHospitalPrice(dList);
+            RecipeUtil.getHospitalPrice(organId, dList);
         } else {
             LOGGER.info("searchDrugListWithES result isEmpty! drugName = " + drugName);
         }
@@ -374,7 +374,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 10);
         // 添加医院价格
         if (!dList.isEmpty()) {
-            RecipeUtil.getHospitalPrice(dList);
+            RecipeUtil.getHospitalPrice(organId, dList);
         }
         return dList;
     }
@@ -430,7 +430,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
         List<DrugList> dList = this.findCommonDrugListsWithPage(doctor, organId, drugType, 0, 20);
         // 添加医院价格
         if (!dList.isEmpty()) {
-            RecipeUtil.getHospitalPrice(dList);
+            RecipeUtil.getHospitalPrice(organId, dList);
         }
         return dList;
     }

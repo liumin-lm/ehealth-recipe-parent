@@ -77,7 +77,7 @@ public class RecipeUtil {
      *
      * @param dList
      */
-    public static void getHospitalPrice(List<DrugList> dList) {
+    public static void getHospitalPrice(Integer organId, List<DrugList> dList) {
         List drugIds = new ArrayList();
         for (DrugList drugList : dList) {
             if (null != drugList) {
@@ -86,9 +86,7 @@ public class RecipeUtil {
         }
 
         OrganDrugListDAO dao = DAOFactory.getDAO(OrganDrugListDAO.class);
-
-        List<OrganDrugList> organDrugList = dao.findByDrugId(drugIds);
-
+        List<OrganDrugList> organDrugList = dao.findByOrganIdAndDrugIds(organId, drugIds);
         // 设置医院价格
         for (DrugList drugList : dList) {
             for (OrganDrugList odlist : organDrugList) {

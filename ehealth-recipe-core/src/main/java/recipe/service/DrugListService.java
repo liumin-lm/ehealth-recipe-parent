@@ -394,7 +394,7 @@ public class DrugListService {
                 limit);
         // 添加医院价格
         if (!dList.isEmpty()) {
-            RecipeUtil.getHospitalPrice(dList);
+            RecipeUtil.getHospitalPrice(organId, dList);
         }
         return dList;
     }

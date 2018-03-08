@@ -1,5 +1,6 @@
 package com.ngari.recipe.entity;
 
+import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
@@ -29,8 +30,9 @@ public class CommonRecipe implements java.io.Serializable{
     @ItemProperty(alias="常用方Id")
     private Integer commonRecipeId;
 
-    @ItemProperty(alias="处方类型：1西药方 2中成药方 3草药方")
-    private String recipeType;
+    @ItemProperty(alias="处方类型")
+    @Dictionary(id = "eh.cdr.dictionary.RecipeType")
+    private Integer recipeType;
 
     @ItemProperty(alias="创建时间")
     private Date createDt;
@@ -62,11 +64,11 @@ public class CommonRecipe implements java.io.Serializable{
     }
 
     @Column(name = "RecipeType", nullable = false)
-    public String getRecipeType() {
+    public Integer getRecipeType() {
         return recipeType;
     }
 
-    public void setRecipeType(String recipeType) {
+    public void setRecipeType(Integer recipeType) {
         this.recipeType = recipeType;
     }
 
