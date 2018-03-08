@@ -1,10 +1,7 @@
 package recipe.audit.list.request;
 
-import recipe.common.request.CommonRequest;
-
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 审核处方列表请求
@@ -12,7 +9,7 @@ import java.util.Map;
  * author: 0184/yu_yun
  * date:2018/3/8
  */
-public class AuditListReq extends CommonRequest implements Serializable {
+public class AuditListReq implements Serializable {
 
     private static final long serialVersionUID = 6157100388773406840L;
 
@@ -49,8 +46,4 @@ public class AuditListReq extends CommonRequest implements Serializable {
         this.organIdList = organIdList;
     }
 
-    @Override
-    public void setConditions(Map<String, Object> conditions) {
-        super.setConditions(conditions);
-    }
 }
