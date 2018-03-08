@@ -24,6 +24,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.audit.list.request.AuditListReq;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
@@ -70,6 +71,28 @@ public class RecipeCheckService {
 
         RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
         List<Recipe> list = rDao.findRecipeByFlag(organIds, flag, start, limit);
+        List<Map<String, Object>> mapList = covertRecipeListPageInfo(list);
+        return mapList;
+    }
+
+    /**
+     * 查询审核处方列表扩展
+     * @param request
+     * @return
+     */
+    @RpcService
+    public List<Map<String, Object>> findRecipeListWithPageExt(AuditListReq request) {
+        if(null == request.getDoctorId() || null == request.getStatus()){
+            return Lists.newArrayList();
+        }
+
+        if(CollectionUtils.isEmpty(request.getOrganIdList())) {
+            List<Integer> organIds = findAPOrganIdsByDoctorId(request.getDoctorId());
+            request.setOrganIdList(organIds);
+        }
+        RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
+        List<Recipe> list = rDao.findRecipeByFlag(request.getOrganIdList(), request.getStatus(),
+                request.getStart(), request.getLimit());
         List<Map<String, Object>> mapList = covertRecipeListPageInfo(list);
         return mapList;
     }
