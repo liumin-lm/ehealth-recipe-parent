@@ -45,8 +45,9 @@ public abstract class OrganDrugListDAO extends
      * @param drugIds
      * @return
      */
-    @DAOMethod(sql = "from OrganDrugList where drugId in (:drugIds)")
-    public abstract List<OrganDrugList> findByDrugId(@DAOParam("drugIds") List drugIds);
+    @DAOMethod(sql = "from OrganDrugList where organId=:organId and drugId in (:drugIds)")
+    public abstract List<OrganDrugList> findByOrganIdAndDrugIdWithoutStatus(@DAOParam("organId") int organId,
+                                                                            @DAOParam("drugIds") List drugIds);
 
     /**
      * 通过药品id及机构id获取
@@ -64,8 +65,10 @@ public abstract class OrganDrugListDAO extends
      * @param limit
      * @return
      */
-    @DAOMethod(sql = "select new com.ngari.his.recipe.mode.DrugInfoTO(od.organDrugCode,d.pack,d.unit,od.producerCode) from OrganDrugList od, DrugList d where od.drugId=d.drugId and od.organId=:organId and od.organDrugCode is not null and od.status=1")
-    public abstract List<DrugInfoTO> findDrugInfoByOrganId(@DAOParam("organId") int organId, @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
+    @DAOMethod(sql = "select new com.ngari.his.recipe.mode.DrugInfoTO(od.organDrugCode,d.pack,d.unit,od.producerCode) " +
+            "from OrganDrugList od, DrugList d where od.drugId=d.drugId and od.organId=:organId and od.organDrugCode is not null and od.status=1")
+    public abstract List<DrugInfoTO> findDrugInfoByOrganId(@DAOParam("organId") int organId, @DAOParam(pageStart = true)
+            int start, @DAOParam(pageLimit = true) int limit);
 
     /**
      * 通过机构id及药品id列表获取

@@ -177,8 +177,7 @@ public class CommonRecipeService {
         }
 
         // 查询机构药品表，同步药品状态
-        List<OrganDrugList> organDrugList = organDrugListDAO.findByDrugId(drugIds);
-
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIdWithoutStatus(commonRecipe.getOrganId(), drugIds);
         for (CommonRecipeDrug commonRecipeDrug : drugList) {
             Integer durgId = commonRecipeDrug.getDrugId();
             for (OrganDrugList organDrug : organDrugList) {
