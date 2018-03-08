@@ -216,12 +216,12 @@ public class CommonRecipeService {
      */
     public static void validateParam(CommonRecipe commonRecipe) {
         Integer doctorId = commonRecipe.getDoctorId();
-        String recipeType = commonRecipe.getRecipeType();
+        Integer recipeType = commonRecipe.getRecipeType();
         String commonRecipeName = commonRecipe.getCommonRecipeName();
 
         if (null == doctorId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "doctorId can not be null or empty");
-        } else if (StringUtils.isEmpty(recipeType)) {
+        } else if (null == recipeType) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "请填写处方类型");
         } else if (StringUtils.isEmpty(commonRecipeName)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "请填写处方名称");
