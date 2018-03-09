@@ -44,7 +44,8 @@ public class CommonRecipeService {
     public void addCommonRecipe(CommonRecipe commonRecipe, List<CommonRecipeDrug> drugList) {
         CommonRecipeDAO commonRecipeDAO = DAOFactory.getDAO(CommonRecipeDAO.class);
         CommonRecipeDrugDAO commonRecipeDrugDAO = DAOFactory.getDAO(CommonRecipeDrugDAO.class);
-
+        LOGGER.error("addCommonRecipe param. commonRecipe={}, drugList={}", JSONUtils.toString(commonRecipe),
+                JSONUtils.toString(drugList));
         if (null != commonRecipe && CollectionUtils.isNotEmpty(drugList)) {
             Integer commonRecipeId = commonRecipe.getCommonRecipeId();
             LOGGER.info("addCommonRecipe commonRecipeId={} ", commonRecipeId);
@@ -240,6 +241,8 @@ public class CommonRecipeService {
             drug.setDrugCost(null);
             drug.setCreateDt(now);
             if(RecipeUtil.isTcmType(recipeType)) {
+                drug.setUsePathways(null);
+                drug.setUsingRate(null);
                 drug.setUseTotalDose(drug.getUseDose());
             }
         }
