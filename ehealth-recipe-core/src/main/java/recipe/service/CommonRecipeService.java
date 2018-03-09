@@ -18,6 +18,7 @@ import recipe.constant.ErrorCode;
 import recipe.dao.CommonRecipeDAO;
 import recipe.dao.CommonRecipeDrugDAO;
 import recipe.dao.OrganDrugListDAO;
+import recipe.util.RecipeUtil;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -44,28 +45,22 @@ public class CommonRecipeService {
         CommonRecipeDAO commonRecipeDAO = DAOFactory.getDAO(CommonRecipeDAO.class);
         CommonRecipeDrugDAO commonRecipeDrugDAO = DAOFactory.getDAO(CommonRecipeDrugDAO.class);
 
-        if (null != commonRecipe && null != drugList && !drugList.isEmpty()) {
+        if (null != commonRecipe && CollectionUtils.isNotEmpty(drugList)) {
             Integer commonRecipeId = commonRecipe.getCommonRecipeId();
-
-            LOGGER.info("CommonRecipeService.addCommonRecipe  commonRecipeId = " + commonRecipeId);
-            Date now = DateTime.now().toDate();
-            // commonRecipeId不为空表示更新常用方操作，空表示新增常用方操作
-            if (null != commonRecipeId) {
-                commonRecipeDAO.remove(commonRecipeId);
-            }
-            validateParam(commonRecipe);
-            commonRecipe.setCreateDt(now);
-            commonRecipeDAO.save(commonRecipe);
-            getTotalDrugPay(drugList);
-            // 如果在插入药品时数据库报错，需要将数据回滚
+            LOGGER.info("addCommonRecipe commonRecipeId={} ", commonRecipeId);
+            validateParam(commonRecipe, drugList);
             try {
-                commonRecipeDrugDAO.addCommonRecipeDrugList(drugList, commonRecipe.getCommonRecipeId(), now);
+                commonRecipe.setCommonRecipeId(null);
+                commonRecipeDAO.save(commonRecipe);
+                commonRecipeDrugDAO.addCommonRecipeDrugList(drugList, commonRecipe.getCommonRecipeId());
+                commonRecipeDAO.remove(commonRecipeId);
             } catch (DAOException e) {
-                commonRecipeDAO.remove(commonRecipe.getCommonRecipeId());
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "insert fail errormsg = " + e.getMessage());
+                LOGGER.error("addCommonRecipe add to db error. commonRecipe={}, drugList={}", JSONUtils.toString(commonRecipe),
+                        JSONUtils.toString(drugList), e);
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "常用方添加出错");
             }
         } else {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "commonRecipe or drugList is null");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "常用方数据不完整，请重试");
         }
     }
 
@@ -146,14 +141,15 @@ public class CommonRecipeService {
     public Boolean checkCommonRecipeExist(Integer doctorId, String recipeType) {
         CommonRecipeDAO commonRecipeDAO = DAOFactory.getDAO(CommonRecipeDAO.class);
         if (null != doctorId && StringUtils.isNotEmpty(recipeType)) {
-            List<CommonRecipe> list = commonRecipeDAO.findByRecipeType(Arrays.asList(Integer.valueOf(recipeType)), doctorId, 0, 10);
-            LOGGER.info("Do CommonRecipe.checkCommonRecipeExistByRecipeType the doctorId = " + doctorId + ",recipeType" + recipeType);
-            if (null != list && list.isEmpty()) {
+            List<CommonRecipe> list = commonRecipeDAO.findByRecipeType(Arrays.asList(Integer.valueOf(recipeType)), doctorId, 0, 1);
+            LOGGER.info("checkCommonRecipeExist the doctorId={}, recipeType={} ", doctorId, recipeType);
+            if (CollectionUtils.isEmpty(list)) {
                 return false;
             } else {
                 return true;
             }
         }
+
         return false;
     }
 
@@ -215,42 +211,31 @@ public class CommonRecipeService {
      *
      * @param commonRecipe
      */
-    public static void validateParam(CommonRecipe commonRecipe) {
+    public static void validateParam(CommonRecipe commonRecipe, List<CommonRecipeDrug> drugList) {
         Integer doctorId = commonRecipe.getDoctorId();
         Integer recipeType = commonRecipe.getRecipeType();
         String commonRecipeName = commonRecipe.getCommonRecipeName();
 
-        if (null == doctorId) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "doctorId can not be null or empty");
-        } else if (null == recipeType) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "请填写处方类型");
-        } else if (StringUtils.isEmpty(commonRecipeName)) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "请填写处方名称");
+        if (null == doctorId || null == recipeType || StringUtils.isEmpty(commonRecipeName)) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "常用方必填参数为空");
         }
+
         // 常用方名称校验
         CommonRecipeDAO commonRecipeDAO = DAOFactory.getDAO(CommonRecipeDAO.class);
-        List<CommonRecipe> list = commonRecipeDAO.findByDoctorId(doctorId, 0, 10);
-
-        for (CommonRecipe cr : list) {
-            if (commonRecipeName.equals(cr.getCommonRecipeName())) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "常用方名称已存在");
-            }
+        long count = commonRecipeDAO.existSameName(commonRecipe.getDoctorId(), commonRecipeName);
+        if(count > 0){
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "已存在相同常用方名称");
         }
-    }
 
-    /**
-     * 计算单个药品在处方中的总价：单价x数量
-     *
-     * @param list
-     * @return
-     */
-    public void getTotalDrugPay(List<CommonRecipeDrug> list) {
-        for (CommonRecipeDrug commonRecipeDrug : list) {
-            if (null != commonRecipeDrug.getSalePrice()) {
-                // 计算出总价格
-                BigDecimal drugCost = commonRecipeDrug.getSalePrice().multiply(new BigDecimal(commonRecipeDrug.getUseTotalDose()))
-                        .divide(BigDecimal.ONE, 3, RoundingMode.UP);
-                commonRecipeDrug.setDrugCost(drugCost);
+        Date now = DateTime.now().toDate();
+        commonRecipe.setCreateDt(now);
+        commonRecipe.setLastModify(now);
+
+        for(CommonRecipeDrug drug : drugList){
+            drug.setSalePrice(null);
+            drug.setDrugCost(null);
+            if(RecipeUtil.isTcmType(recipeType)) {
+                drug.setUseTotalDose(drug.getUseDose());
             }
         }
     }

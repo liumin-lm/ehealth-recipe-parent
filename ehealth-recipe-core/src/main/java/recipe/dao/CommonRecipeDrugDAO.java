@@ -50,14 +50,13 @@ public abstract class CommonRecipeDrugDAO extends HibernateSupportDelegateDAO<Co
      * @param now
      * @throws DAOException
      */
-    public void addCommonRecipeDrugList(final List<CommonRecipeDrug> drugList, final Integer commonRecipeId, final Date now)
+    public void addCommonRecipeDrugList(final List<CommonRecipeDrug> drugList, final Integer commonRecipeId)
             throws DAOException {
         HibernateStatelessResultAction action = new AbstractHibernateStatelessResultAction() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
 
                 for (CommonRecipeDrug commonRecipeDrug : drugList) {
-                    commonRecipeDrug.setCreateDt(now);
                     commonRecipeDrug.setCommonRecipeId(commonRecipeId);
                     ss.insert(commonRecipeDrug);
                 }
