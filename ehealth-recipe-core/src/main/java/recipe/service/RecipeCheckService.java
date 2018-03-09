@@ -64,15 +64,11 @@ public class RecipeCheckService {
      */
     @RpcService
     public List<Map<String, Object>> findRecipeListWithPage(int doctorId, int flag, int start, int limit) {
-        List<Integer> organIds = findAPOrganIdsByDoctorId(doctorId);
-        if (CollectionUtils.isEmpty(organIds)) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "该药师没有配置能审核的机构");
-        }
-
-        RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
-        List<Recipe> list = rDao.findRecipeByFlag(organIds, flag, start, limit);
-        List<Map<String, Object>> mapList = covertRecipeListPageInfo(list);
-        return mapList;
+        AuditListReq request = new AuditListReq();
+        request.setOrganIdList(null);
+        request.setDoctorId(doctorId);
+        request.setStatus(flag);
+        return findRecipeListWithPageExt(request, start, limit);
     }
 
     /**
@@ -111,14 +107,14 @@ public class RecipeCheckService {
      */
     @RpcService
     public List<Map<String, Object>> findRecipeListWithPageForPC(int doctorId, int flag, int start, int limit) {
-        List<Integer> organIds = findAPOrganIdsByDoctorId(doctorId);
-        if (CollectionUtils.isEmpty(organIds)) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "该药师没有配置能审核的机构");
-        }
-
         RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
-        List<Recipe> list = rDao.findRecipeByFlag(organIds, flag, start, limit);
-        List<Map<String, Object>> mapList = covertRecipeListPageInfo(list);
+
+        List<Integer> organIds = findAPOrganIdsByDoctorId(doctorId);
+        AuditListReq request = new AuditListReq();
+        request.setOrganIdList(organIds);
+        request.setDoctorId(doctorId);
+        request.setStatus(flag);
+        List<Map<String, Object>> mapList = findRecipeListWithPageExt(request, start, limit);
 
         Long count = rDao.getRecipeCountByFlag(organIds, flag);
         Map<String, Object> countMap = Maps.newHashMap();
