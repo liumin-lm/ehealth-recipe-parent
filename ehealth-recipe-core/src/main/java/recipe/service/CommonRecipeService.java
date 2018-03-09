@@ -222,7 +222,7 @@ public class CommonRecipeService {
 
         // 常用方名称校验
         CommonRecipeDAO commonRecipeDAO = DAOFactory.getDAO(CommonRecipeDAO.class);
-        CommonRecipe dbCommonRecipe = commonRecipeDAO.existSameName(commonRecipe.getDoctorId(), commonRecipeName);
+        CommonRecipe dbCommonRecipe = commonRecipeDAO.getByDoctorIdAndName(commonRecipe.getDoctorId(), commonRecipeName);
         if(null != dbCommonRecipe){
             throw new DAOException(ErrorCode.SERVICE_ERROR, "已存在相同常用方名称");
         }

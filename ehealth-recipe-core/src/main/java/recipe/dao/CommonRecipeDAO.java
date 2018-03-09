@@ -56,7 +56,7 @@ public abstract class CommonRecipeDAO extends HibernateSupportDelegateDAO<Common
      * @return
      */
     @DAOMethod(sql = "from CommonRecipe where doctorId=:doctorId and commonRecipeName=:commonRecipeName")
-    public abstract CommonRecipe existSameName(@DAOParam("doctorId") Integer doctorId,
+    public abstract CommonRecipe getByDoctorIdAndName(@DAOParam("doctorId") Integer doctorId,
                                   @DAOParam("commonRecipeName") String commonRecipeName);
 
 
