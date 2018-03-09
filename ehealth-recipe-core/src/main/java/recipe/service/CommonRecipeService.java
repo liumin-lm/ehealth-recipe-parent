@@ -229,7 +229,7 @@ public class CommonRecipeService {
         // 常用方名称校验
         CommonRecipeDAO commonRecipeDAO = DAOFactory.getDAO(CommonRecipeDAO.class);
         CommonRecipe dbCommonRecipe = commonRecipeDAO.getByDoctorIdAndName(commonRecipe.getDoctorId(), commonRecipeName);
-        if(null != dbCommonRecipe){
+        if(null != dbCommonRecipe && !dbCommonRecipe.getCommonRecipeId().equals(commonRecipe.getCommonRecipeId())){
             throw new DAOException(ErrorCode.SERVICE_ERROR, "已存在相同常用方名称");
         }
 
@@ -241,6 +241,7 @@ public class CommonRecipeService {
             drug.setSalePrice(null);
             drug.setDrugCost(null);
             drug.setCreateDt(now);
+            drug.setLastModify(now);
             if(RecipeUtil.isTcmType(recipeType)) {
                 drug.setUsePathways(null);
                 drug.setUsingRate(null);
