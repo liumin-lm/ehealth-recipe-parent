@@ -422,7 +422,7 @@ public class RecipeListService {
         PatientBean patient = patientService.get(mpiId);
         if (CollectionUtils.isNotEmpty(recipes)) {
             for(Recipe recipe : recipes){
-                Map<String, Object> map = new HashMap<>();
+                Map<String, Object> map = Maps.newHashMap();
                 recipe.setRecipeDrugName(recipeDetailDAO.getDrugNamesByRecipeId(recipe.getRecipeId()));
                 recipe.setRecipeShowTime(recipe.getCreateDate());
                 boolean effective = false;

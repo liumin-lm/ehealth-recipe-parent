@@ -1287,7 +1287,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         return recipes;
     }
 
-    //根据日期范围，机构归类的业务量（天，月）
+    /**
+     * 根据日期范围，机构归类的业务量（天，月）
+     * @param startDate 起始日期
+     * @param endDate 结束日期
+     */
     public HashMap<Integer, Long> getCountByDateAreaGroupByOrgan(final String startDate, final String endDate) {
         HibernateStatelessResultAction<HashMap<Integer, Long>> action = new AbstractHibernateStatelessResultAction<HashMap<Integer, Long>>() {
             public void execute(StatelessSession ss) throws Exception {
@@ -1301,7 +1305,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 query.setParameter("startDate", sTime);
                 query.setParameter("endDate", eTime);
                 List<Object[]> oList = query.list();
-                HashMap<Integer, Long> organCount = new HashMap<Integer, Long>();
+                HashMap<Integer, Long> organCount = Maps.newHashMap();
                 for (Object[] co : oList) {
                     organCount.put((Integer) co[0],(Long) co[1]);
                 }
@@ -1312,7 +1316,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         return action.getResult();
     }
 
-    //根据日期范围，机构归类的业务量（小时）
+    /**
+     * 根据日期范围，机构归类的业务量（小时）
+     * @param startDate 起始日期
+     * @param endDate 结束日期
+     * @return
+     */
     public HashMap<Object,Integer> getCountByHourAreaGroupByOrgan(final Date startDate, final Date endDate) {
         HibernateStatelessResultAction<HashMap<Object,Integer>> action = new AbstractHibernateStatelessResultAction<HashMap<Object,Integer>>() {
             public void execute(StatelessSession ss) throws Exception {
@@ -1322,7 +1331,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 query.setParameter("startDate", startDate);
                 query.setParameter("endDate", endDate);
                 List<Object[]> oList = query.list();
-                HashMap<Object,Integer> organCount = new HashMap<Object,Integer>();
+                HashMap<Object,Integer> organCount = Maps.newHashMap();
                 for (Object[] co : oList) {
                     organCount.put(co[1], ((Long) co[0]).intValue());
                 }
