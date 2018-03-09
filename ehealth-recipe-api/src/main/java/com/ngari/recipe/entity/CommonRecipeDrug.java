@@ -190,7 +190,7 @@ public class CommonRecipeDrug implements java.io.Serializable{
         this.salePrice = salePrice;
     }
 
-    @Column(name = "DrugCost",precision = 10, scale = 3)
+    @Column(name = "DrugCost")
     public BigDecimal getDrugCost() {
         return drugCost;
     }
