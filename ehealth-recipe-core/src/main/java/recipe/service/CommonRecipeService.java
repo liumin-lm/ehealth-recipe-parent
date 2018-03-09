@@ -53,12 +53,13 @@ public class CommonRecipeService {
             try {
                 commonRecipe.setCommonRecipeId(null);
                 commonRecipeDAO.save(commonRecipe);
-//                commonRecipeDrugDAO.addCommonRecipeDrugList(drugList, commonRecipe.getCommonRecipeId());
                 for (CommonRecipeDrug commonRecipeDrug : drugList) {
-                    commonRecipeDrug.setCommonRecipeId(commonRecipeId);
+                    commonRecipeDrug.setCommonRecipeId(commonRecipe.getCommonRecipeId());
                     commonRecipeDrugDAO.save(commonRecipeDrug);
                 }
-                commonRecipeDAO.remove(commonRecipeId);
+                if(null != commonRecipeId) {
+                    commonRecipeDAO.remove(commonRecipeId);
+                }
             } catch (DAOException e) {
                 LOGGER.error("addCommonRecipe add to db error. commonRecipe={}, drugList={}", JSONUtils.toString(commonRecipe),
                         JSONUtils.toString(drugList), e);
