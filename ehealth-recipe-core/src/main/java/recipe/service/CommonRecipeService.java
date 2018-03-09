@@ -234,6 +234,7 @@ public class CommonRecipeService {
         for(CommonRecipeDrug drug : drugList){
             drug.setSalePrice(null);
             drug.setDrugCost(null);
+            drug.setCreateDt(now);
             if(RecipeUtil.isTcmType(recipeType)) {
                 drug.setUseTotalDose(drug.getUseDose());
             }
