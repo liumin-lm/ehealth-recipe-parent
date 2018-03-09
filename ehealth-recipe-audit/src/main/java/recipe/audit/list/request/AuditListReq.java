@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * 审核处方列表请求
  * company: ngarihealth
- * author: 0184/yu_yun
+ * @author: 0184/yu_yun
  * date:2018/3/8
  */
 public class AuditListReq implements Serializable {
