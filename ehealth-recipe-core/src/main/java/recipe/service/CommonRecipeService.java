@@ -32,7 +32,7 @@ import java.util.*;
 @RpcBean("commonRecipeService")
 public class CommonRecipeService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RecipeService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommonRecipeService.class);
 
     /**
      * 新增或更新常用方
