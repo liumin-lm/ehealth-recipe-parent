@@ -19,7 +19,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Access(AccessType.PROPERTY)
 public class CommonRecipe implements java.io.Serializable{
 
-    private static final long serialVersionUID = -3198894418652536489L;
+    private static final long serialVersionUID = 1500970890296225446L;
 
     @ItemProperty(alias="医生身份ID")
     private Integer doctorId;
