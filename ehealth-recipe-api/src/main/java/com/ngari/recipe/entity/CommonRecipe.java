@@ -5,6 +5,7 @@ import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 
 import static javax.persistence.GenerationType.IDENTITY;
@@ -17,7 +18,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Entity
 @Table(name = "cdr_commonRecipe")
 @Access(AccessType.PROPERTY)
-public class CommonRecipe implements java.io.Serializable{
+public class CommonRecipe implements Serializable{
 
     private static final long serialVersionUID = 1500970890296225446L;
 
