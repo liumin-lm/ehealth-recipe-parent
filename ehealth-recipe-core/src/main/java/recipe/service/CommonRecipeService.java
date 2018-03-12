@@ -97,8 +97,7 @@ public class CommonRecipeService {
     @RpcService
     public List<CommonRecipe> getCommonRecipeList(Integer organId, Integer doctorId, String recipeType, int start, int limit) {
         CommonRecipeDAO commonRecipeDAO = DAOFactory.getDAO(CommonRecipeDAO.class);
-        LOGGER.info("CommonRecipeService.getCommonRecipeList  recipeType = " + recipeType + "doctorId" + doctorId +
-                "organId = " + organId);
+        LOGGER.info("getCommonRecipeList  recipeType={}, doctorId={}, organId={} ", recipeType, doctorId, organId);
 
         if (null != doctorId) {
             if(StringUtils.isNotEmpty(recipeType) && !"0".equals(recipeType)){
