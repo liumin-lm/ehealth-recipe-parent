@@ -1,4 +1,4 @@
-package recipe.bean;
+package recipe.dao.bean;
 
 
 

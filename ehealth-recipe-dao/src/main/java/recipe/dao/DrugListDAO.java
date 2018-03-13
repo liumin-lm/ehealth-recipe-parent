@@ -5,10 +5,12 @@ import com.google.common.collect.Maps;
 import com.ngari.base.searchservice.model.DrugSearchTO;
 import com.ngari.base.searchservice.service.ISearchService;
 import com.ngari.recipe.entity.DrugList;
+import com.ngari.recipe.entity.OrganDrugList;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryItem;
 import ctd.dictionary.service.DictionaryLocalService;
 import ctd.dictionary.service.DictionarySliceRecordSet;
+import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.bean.QueryResult;
@@ -31,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
 import recipe.util.ApplicationUtils;
 import recipe.util.DateConversion;
-import recipe.util.RecipeUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,6 +43,7 @@ import java.util.regex.Pattern;
 
 /**
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  */
 @RpcSupportDAO(serviceId = "drugList")
@@ -93,6 +95,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
     /**
      * 根据药品Id获取药品记录
      * (不包括机构没有配置的药品)
+     *
      * @param drugId 药品id
      * @return
      * @author yaozh
@@ -261,7 +264,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
             }
 
             LOGGER.info("searchDrugListWithES result DList.size = " + dList.size());
-            RecipeUtil.getHospitalPrice(organId, dList);
+            getHospitalPrice(organId, dList);
         } else {
             LOGGER.info("searchDrugListWithES result isEmpty! drugName = " + drugName);
         }
@@ -374,7 +377,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 10);
         // 添加医院价格
         if (!dList.isEmpty()) {
-            RecipeUtil.getHospitalPrice(organId, dList);
+            getHospitalPrice(organId, dList);
         }
         return dList;
     }
@@ -430,7 +433,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
         List<DrugList> dList = this.findCommonDrugListsWithPage(doctor, organId, drugType, 0, 20);
         // 添加医院价格
         if (!dList.isEmpty()) {
-            RecipeUtil.getHospitalPrice(organId, dList);
+            getHospitalPrice(organId, dList);
         }
         return dList;
     }
@@ -676,6 +679,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
 
     /**
      * 根据organid获取
+     *
      * @param organId
      * @return
      */
@@ -764,7 +768,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                     }
                     hql.append(" and (");
                     hql.append(" drugName like :keyword or producer like :keyword or saleName like :keyword or approvalNumber like :keyword ");
-                    if (drugId != null){
+                    if (drugId != null) {
                         hql.append(" or drugId =:drugId");
                     }
                     hql.append(")");
@@ -901,4 +905,29 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
         return action.getResult();
     }
 
+    /**
+     * 药品获取医院价格
+     *
+     * @param dList
+     */
+    public void getHospitalPrice(Integer organId, List<DrugList> dList) {
+        List drugIds = new ArrayList();
+        for (DrugList drugList : dList) {
+            if (null != drugList) {
+                drugIds.add(drugList.getDrugId());
+            }
+        }
+
+        OrganDrugListDAO dao = DAOFactory.getDAO(OrganDrugListDAO.class);
+        List<OrganDrugList> organDrugList = dao.findByOrganIdAndDrugIds(organId, drugIds);
+        // 设置医院价格
+        for (DrugList drugList : dList) {
+            for (OrganDrugList odlist : organDrugList) {
+                if (null != drugList && null != odlist && drugList.getDrugId().equals(odlist.getDrugId())) {
+                    drugList.setHospitalPrice(odlist.getSalePrice());
+                    break;
+                }
+            }
+        }
+    }
 }

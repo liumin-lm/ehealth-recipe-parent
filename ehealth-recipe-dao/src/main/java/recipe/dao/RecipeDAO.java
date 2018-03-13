@@ -27,12 +27,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
-import recipe.bean.PatientRecipeBean;
 import recipe.constant.ConditionOperator;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.service.RecipeListService;
+import recipe.dao.bean.PatientRecipeBean;
 import recipe.util.ApplicationUtils;
 import recipe.util.DateConversion;
 import recipe.util.SqlOperInfo;
@@ -282,7 +281,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 StringBuilder hql = new StringBuilder();
                 hql.append("select s.type,s.recordCode,s.recordId,s.mpiId,s.diseaseName,s.status,s.fee," +
                         "s.recordDate,s.couponId,s.medicalPayFlag,s.recipeType from (");
-                hql.append("SELECT " + RecipeListService.LIST_TYPE_RECIPE + " as type,null as couponId, t.MedicalPayFlag as medicalPayFlag, t.RecipeID as recordCode,t.RecipeID as recordId," +
+                hql.append("SELECT 1 as type,null as couponId, t.MedicalPayFlag as medicalPayFlag, t.RecipeID as recordCode,t.RecipeID as recordId," +
                         "t.MPIID as mpiId,t.OrganDiseaseName as diseaseName,t.Status,t.TotalMoney as fee," +
                         "t.SignDate as recordDate,t.RecipeType as recipeType FROM cdr_recipe t " +
                         "left join cdr_recipeorder k on t.OrderCode=k.OrderCode ");
@@ -292,7 +291,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                     hql.append("and t.RecipeID not in (:notInRecipeIds) ");
                 }
                 hql.append("UNION ALL ");
-                hql.append("SELECT " + RecipeListService.LIST_TYPE_ORDER + " as type,o.CouponId as couponId, 0 as medicalPayFlag, " +
+                hql.append("SELECT 2 as type,o.CouponId as couponId, 0 as medicalPayFlag, " +
                         "o.OrderCode as recordCode,o.OrderId as recordId,o.MpiId as mpiId,'' as diseaseName," +
                         "o.Status,o.ActualPrice as fee,o.CreateTime as recordDate,0 as recipeType FROM cdr_recipeorder o " +
                         "WHERE o.MpiId IN (:mpiIdList) and o.Effective = 1 ");

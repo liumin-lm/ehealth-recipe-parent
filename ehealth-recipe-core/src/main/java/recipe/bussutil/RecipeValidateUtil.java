@@ -1,4 +1,4 @@
-package recipe.util;
+package recipe.bussutil;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
@@ -18,6 +18,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.util.ApplicationUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,7 @@ import java.util.Map;
 
 /**
  * 处方校验类
+ *
  * @author yu_yun
  */
 public class RecipeValidateUtil {

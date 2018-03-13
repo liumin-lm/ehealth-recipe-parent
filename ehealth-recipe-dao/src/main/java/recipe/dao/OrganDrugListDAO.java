@@ -17,7 +17,7 @@ import ctd.util.annotation.RpcSupportDAO;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import org.springframework.util.ObjectUtils;
-import recipe.bean.DrugListAndOrganDrugList;
+import recipe.dao.bean.DrugListAndOrganDrugList;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -25,6 +25,7 @@ import java.util.List;
 
 /**
  * 医疗机构用药目录dao
+ *
  * @author yuyun
  */
 @RpcSupportDAO
@@ -42,6 +43,7 @@ public abstract class OrganDrugListDAO extends
 
     /**
      * 通过drugid获取
+     *
      * @param drugIds
      * @return
      */
@@ -51,6 +53,7 @@ public abstract class OrganDrugListDAO extends
 
     /**
      * 通过药品id及机构id获取
+     *
      * @param organId
      * @param drugId
      * @return
@@ -60,6 +63,7 @@ public abstract class OrganDrugListDAO extends
 
     /**
      * 通过机构id获取
+     *
      * @param organId
      * @param start
      * @param limit
@@ -72,6 +76,7 @@ public abstract class OrganDrugListDAO extends
 
     /**
      * 通过机构id及药品id列表获取
+     *
      * @param organId
      * @param drugIds
      * @return
@@ -81,6 +86,7 @@ public abstract class OrganDrugListDAO extends
 
     /**
      * 通过机构id及机构药品编码获取
+     *
      * @param organId
      * @param drugCodes
      * @return
@@ -90,6 +96,7 @@ public abstract class OrganDrugListDAO extends
 
     /**
      * 通过机构id，药品编码列表获取
+     *
      * @param organId
      * @param drugCodes
      * @return
@@ -98,7 +105,7 @@ public abstract class OrganDrugListDAO extends
     public abstract List<String> findNameByOrganIdAndDrugCodes(@DAOParam("organId") int organId, @DAOParam("drugCodes") List<String> drugCodes);
 
     /**
-     *  根据organId查询该机构是否存在可用的有效药品。
+     * 根据organId查询该机构是否存在可用的有效药品。
      */
     public int getCountByOrganIdAndStatus(final List<Integer> organIdList) {
         HibernateStatelessResultAction<Long> action = new AbstractHibernateStatelessResultAction<Long>() {
@@ -122,6 +129,7 @@ public abstract class OrganDrugListDAO extends
 
     /**
      * 根据医院药品编码 和机构编码查询 医院药品
+     *
      * @param organId
      * @param organDrugCode
      * @return
@@ -131,6 +139,7 @@ public abstract class OrganDrugListDAO extends
 
     /**
      * 通过药品id及机构id获取
+     *
      * @param drugId
      * @param organId
      * @return
@@ -140,6 +149,7 @@ public abstract class OrganDrugListDAO extends
 
     /**
      * 通过机构id及药品id更新药品价格
+     *
      * @param organId
      * @param drugId
      * @param salePrice
@@ -180,7 +190,7 @@ public abstract class OrganDrugListDAO extends
                             }
                             hql.append(" and (");
                             hql.append(" d.drugName like :keyword or d.producer like :keyword or d.saleName like :keyword or d.approvalNumber like :keyword ");
-                            if (drugId != null){
+                            if (drugId != null) {
                                 hql.append(" or d.drugId =:drugId");
                             }
                             hql.append(")");
@@ -246,6 +256,7 @@ public abstract class OrganDrugListDAO extends
 
     /**
      * 根据机构id获取数量
+     *
      * @param organId
      * @return
      */
@@ -254,6 +265,7 @@ public abstract class OrganDrugListDAO extends
 
     /**
      * 更新机构id
+     *
      * @param newOrganId
      * @param oldOrganId
      */
@@ -262,6 +274,7 @@ public abstract class OrganDrugListDAO extends
 
     /**
      * 根据药品编码列表更新状态
+     *
      * @param organDrugCodeList
      * @param status
      */

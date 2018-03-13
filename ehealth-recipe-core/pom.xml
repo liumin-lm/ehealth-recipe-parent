@@ -45,16 +45,6 @@
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
-            <groupId>${project.parent.groupId}</groupId>
-            <artifactId>ehealth-base-api</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.parent.groupId}</groupId>
-            <artifactId>ehealth-his-api</artifactId>
-            <version>0.2.6-SNAPSHOT</version>
-        </dependency>
-        <dependency>
             <groupId>it.sauronsoftware</groupId>
             <artifactId>jave</artifactId>
             <version>1.0.3</version>

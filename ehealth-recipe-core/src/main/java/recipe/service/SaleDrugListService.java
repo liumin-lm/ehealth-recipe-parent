@@ -9,11 +9,11 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.log4j.Logger;
-import recipe.bean.DrugListAndSaleDrugList;
 import recipe.constant.ErrorCode;
 import recipe.dao.DrugListDAO;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.SaleDrugListDAO;
+import recipe.dao.bean.DrugListAndSaleDrugList;
 
 import java.util.Date;
 
