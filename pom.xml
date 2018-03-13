@@ -19,6 +19,7 @@
         <module>ehealth-recipe-audit</module>
         <module>ehealth-recipe-purchase</module>
         <module>ehealth-recipe-common</module>
+        <module>ehealth-recipe-dao</module>
     </modules>
     <!--<properties>-->
         <!--<java.version>1.7</java.version>-->
