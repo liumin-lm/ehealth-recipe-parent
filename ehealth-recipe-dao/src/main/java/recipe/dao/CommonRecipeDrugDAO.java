@@ -11,7 +11,6 @@ import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction
 import ctd.util.annotation.RpcSupportDAO;
 import org.hibernate.StatelessSession;
 
-import java.util.Date;
 import java.util.List;
 
 /**
