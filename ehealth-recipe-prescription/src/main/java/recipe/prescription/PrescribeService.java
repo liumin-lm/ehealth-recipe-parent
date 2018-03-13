@@ -1,4 +1,4 @@
-package recipe.service;
+package recipe.prescription;
 
 import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.common.RecipeCommonResTO;
