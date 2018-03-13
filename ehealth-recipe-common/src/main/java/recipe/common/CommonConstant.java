@@ -7,8 +7,8 @@ package recipe.common;
  */
 public class CommonConstant {
 
-    public static final Integer SUCCESS = 0;
+    public static final String SUCCESS = "000";
 
-    public static final Integer FAIL = 1;
+    public static final String FAIL = "001";
 
 }

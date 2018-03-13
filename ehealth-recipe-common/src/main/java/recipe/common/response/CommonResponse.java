@@ -7,15 +7,19 @@ package recipe.common.response;
  */
 public class CommonResponse {
 
-    protected Integer code;
+    protected String code;
 
     protected String msg;
 
-    public Integer getCode() {
+
+    public CommonResponse() {
+    }
+
+    public String getCode() {
         return code;
     }
 
-    public void setCode(Integer code) {
+    public void setCode(String code) {
         this.code = code;
     }
 
@@ -25,5 +29,13 @@ public class CommonResponse {
 
     public void setMsg(String msg) {
         this.msg = msg;
+    }
+
+    @Override
+    public String toString() {
+        return "CommonResponse{" +
+                "code='" + code + '\'' +
+                ", msg='" + msg + '\'' +
+                '}';
     }
 }
