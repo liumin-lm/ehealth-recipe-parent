@@ -15,8 +15,23 @@ import java.io.Serializable;
  */
 public class HosRecipeResult extends CommonResponse implements Serializable {
 
+    private String recipeCode;
+
     public HosRecipeResult() {
 
+    }
+
+    public String getRecipeCode() {
+        return recipeCode;
+    }
+
+    public void setRecipeCode(String recipeCode) {
+        this.recipeCode = recipeCode;
+    }
+
+    @Override
+    public String toString() {
+        return JSONUtils.toString(this);
     }
 
     public static void main(String[] args) {
