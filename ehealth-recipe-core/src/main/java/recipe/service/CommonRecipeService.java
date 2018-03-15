@@ -44,8 +44,8 @@ public class CommonRecipeService {
     public void addCommonRecipe(CommonRecipe commonRecipe, List<CommonRecipeDrug> drugList) {
         CommonRecipeDAO commonRecipeDAO = DAOFactory.getDAO(CommonRecipeDAO.class);
         CommonRecipeDrugDAO commonRecipeDrugDAO = DAOFactory.getDAO(CommonRecipeDrugDAO.class);
-        LOGGER.error("addCommonRecipe param. commonRecipe={}, drugList={}", JSONUtils.toString(commonRecipe),
-                JSONUtils.toString(drugList));
+//        LOGGER.info("addCommonRecipe param. commonRecipe={}, drugList={}", JSONUtils.toString(commonRecipe),
+//                JSONUtils.toString(drugList));
         if (null != commonRecipe && CollectionUtils.isNotEmpty(drugList)) {
             Integer commonRecipeId = commonRecipe.getCommonRecipeId();
             LOGGER.info("addCommonRecipe commonRecipeId={} ", commonRecipeId);
@@ -166,15 +166,14 @@ public class CommonRecipeService {
      */
     @RpcService
     public Map getCommonRecipeDetails(Integer commonRecipeId) {
-        LOGGER.info("CommonRecipeService.getCommonRecipeDrugList  commonRecipeId = " + commonRecipeId);
+        if (null == commonRecipeId) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "commonRecipeId is null");
+        }
+        LOGGER.info("getCommonRecipeDetails commonRecipeId={}", commonRecipeId);
 
         CommonRecipeDrugDAO commonRecipeDrugDAO = DAOFactory.getDAO(CommonRecipeDrugDAO.class);
         CommonRecipeDAO commonRecipeDAO = DAOFactory.getDAO(CommonRecipeDAO.class);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-
-        if (null == commonRecipeId) {
-            throw new DAOException(DAOException.VALUE_NEEDED, "commonRecipeId is null");
-        }
 
         List<CommonRecipeDrug> drugList = commonRecipeDrugDAO.findByCommonRecipeId(commonRecipeId);
         CommonRecipe commonRecipe = commonRecipeDAO.get(commonRecipeId);
@@ -184,8 +183,6 @@ public class CommonRecipeService {
             if (null != commonRecipeDrug && null != commonRecipeDrug.getDrugId()) {
                 drugIds.add(commonRecipeDrug.getDrugId());
             }
-            LOGGER.info("CommonRecipeService.getCommonRecipeDrugList  drugIds = " + drugIds);
-
         }
 
         // 查询机构药品表，同步药品状态
