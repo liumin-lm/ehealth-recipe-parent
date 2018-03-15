@@ -58,8 +58,16 @@ public interface IDrugService extends IBaseService<DrugListBean> {
      * 供organDAO-queryOrganCanRecipe使用 查询能开某个药品的机构
      * @param organIds
      * @param drugId
-     * @return
+     * @return List 机构ID
      */
     @RpcService
     List<Integer> queryOrganCanRecipe(List<Integer> organIds,Integer drugId);
+
+    /**
+     * 获取重点药品关联的医生ID
+     * @param drugId 药品ID
+     * @return List 医生ID
+     */
+    @RpcService
+    List<Integer> findPriorityDoctorList(Integer drugId);
 }

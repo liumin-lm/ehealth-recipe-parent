@@ -1,5 +1,6 @@
 package recipe.serviceprovider.drug.service;
 
+import com.google.common.collect.Lists;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
 import com.ngari.recipe.drug.model.DrugListBean;
@@ -10,6 +11,7 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
+import recipe.dao.PriortyDrugsBindDoctorDao;
 import recipe.serviceprovider.BaseService;
 import recipe.util.MapValueUtil;
 
@@ -81,5 +83,13 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         return organDrugListDAO.queryOrganCanRecipe(organIds, drugId);
     }
 
-
+    @RpcService
+    @Override
+    public List<Integer> findPriorityDoctorList(Integer drugId) {
+        if (null == drugId){
+            return Lists.newArrayList();
+        }
+        PriortyDrugsBindDoctorDao priortyDrugsBindDoctorDao = DAOFactory.getDAO(PriortyDrugsBindDoctorDao.class);
+        return priortyDrugsBindDoctorDao.findPriortyDrugBindDoctors(drugId);
+    }
 }
