@@ -196,6 +196,7 @@ public class CommonRecipeService {
                 if (durgId.equals(organDrug.getDrugId())) {
                     commonRecipeDrug.setDrugStatus(organDrug.getStatus());
                     commonRecipeDrug.setSalePrice(organDrug.getSalePrice());
+                    commonRecipeDrug.setPrice1(organDrug.getSalePrice().doubleValue());
                     if(null != commonRecipeDrug.getUseTotalDose()) {
                         commonRecipeDrug.setDrugCost(organDrug.getSalePrice().multiply(
                                 new BigDecimal(commonRecipeDrug.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP));

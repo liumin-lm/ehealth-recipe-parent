@@ -53,6 +53,9 @@ public class CommonRecipeDrug implements java.io.Serializable{
     @ItemProperty(alias="销售价格")
     private BigDecimal salePrice;
 
+    @ItemProperty(alias="销售单价")
+    private Double price1;
+
     @ItemProperty(alias="总药物金额")
     private BigDecimal drugCost;
 
@@ -188,6 +191,15 @@ public class CommonRecipeDrug implements java.io.Serializable{
 
     public void setSalePrice(BigDecimal salePrice) {
         this.salePrice = salePrice;
+    }
+
+    @Transient
+    public Double getPrice1() {
+        return price1;
+    }
+
+    public void setPrice1(Double price1) {
+        this.price1 = price1;
     }
 
     @Column(name = "DrugCost")
