@@ -38,6 +38,10 @@ public class PrescriptionService {
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(PrescriptionService.class);
 
+    @RpcService
+    public String getPAAnalysis(Recipe recipe, List<Recipedetail> recipedetails) throws Exception {
+        return null;
+    }
     /**
      * 医生在开处方时，校验合理用药
      * @param recipe 处方信息
@@ -45,9 +49,8 @@ public class PrescriptionService {
      * @return 返回null表示用药没有异常，反之表示有异常，前端弹框提示，提示信息为返回的字符串信息
      * @throws Exception
      */
-    @RpcService
-    public String getPAAnalysis(Recipe recipe, List<Recipedetail> recipedetails) throws Exception {
-       /* PAWebServiceSoap12Stub binding;
+    public String analysisImpl(Recipe recipe, List<Recipedetail> recipedetails) throws Exception {
+        PAWebServiceSoap12Stub binding;
         IntHolder getPAResultsResult = new IntHolder();
         StringHolder uiResults = new StringHolder();
         StringHolder hisResults = new StringHolder();
@@ -84,7 +87,7 @@ public class PrescriptionService {
             String drugName = medicines.get(0).getIssues().get(0).getNameA();
             String detal = medicines.get(0).getIssues().get(0).getDetail().replaceAll("\r\n","");
             return drugName + detal;
-        }*/
+        }
 
         return null;
     }
@@ -195,6 +198,6 @@ public class PrescriptionService {
 
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         List<Recipedetail> details = detailDAO.findByRecipeId(recipeId);
-        return getPAAnalysis(recipe, details);
+        return analysisImpl(recipe, details);
     }
 }
