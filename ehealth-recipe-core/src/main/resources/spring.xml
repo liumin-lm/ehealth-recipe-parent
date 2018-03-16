@@ -11,6 +11,7 @@
 	<apollo:config />
 	<!--<apollo:config namespaces="DEV.publicUrl"/>-->
 
+	<import resource="classpath:/ctd/util/exp/spring-expr-base.xml"/>
 	<import resource="spring-hibernate.xml" />
 	<import resource="spring-controller.xml"/>
 	<!--<import resource="spring-mq.xml"/>-->
