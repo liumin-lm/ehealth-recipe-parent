@@ -505,13 +505,15 @@ public class RecipeCheckService {
      * @param doctorId
      * @param searchString 搜索内容
      * @param searchFlag   0-开方医生 1-审方医生 2-患者姓名 3-病历号
+     * @param organId 限定机构条件
      * @param start
      * @param limit
      * @return
      * @author zhongzx
      */
     @RpcService
-    public List<Map<String, Object>> searchRecipeForChecker(Integer doctorId, String searchString, Integer searchFlag, Integer start, Integer limit) {
+    public List<Map<String, Object>> searchRecipeForChecker(Integer doctorId, String searchString, Integer searchFlag,
+                                                            Integer organId, Integer start, Integer limit) {
         RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
 
@@ -533,12 +535,15 @@ public class RecipeCheckService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "doctorId = " + doctorId + " 找不到该医生");
         }
         Set<Integer> organs = new HashSet<>();
-        List<Integer> organIds = findAPOrganIdsByDoctorId(doctorId);
-
-        if (null == organIds || organIds.size() == 0) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "该药师没有配置能审核的机构");
+        if(null != organId) {
+            organs.add(organId);
+        }else{
+            List<Integer> organIds = findAPOrganIdsByDoctorId(doctorId);
+            if (null == organIds || organIds.size() == 0) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "该药师没有配置能审核的机构");
+            }
+            organs.addAll(organIds);
         }
-        organs.addAll(organIds);
 
         List<Recipe> recipeList = recipeCheckDAO.searchRecipe(organs,
             searchFlag,searchString, start, limit);
