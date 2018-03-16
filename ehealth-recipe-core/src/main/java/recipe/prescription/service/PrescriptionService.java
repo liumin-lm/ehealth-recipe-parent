@@ -47,7 +47,7 @@ public class PrescriptionService {
      */
     @RpcService
     public String getPAAnalysis(Recipe recipe, List<Recipedetail> recipedetails) throws Exception {
-        PAWebServiceSoap12Stub binding;
+       /* PAWebServiceSoap12Stub binding;
         IntHolder getPAResultsResult = new IntHolder();
         StringHolder uiResults = new StringHolder();
         StringHolder hisResults = new StringHolder();
@@ -84,7 +84,7 @@ public class PrescriptionService {
             String drugName = medicines.get(0).getIssues().get(0).getNameA();
             String detal = medicines.get(0).getIssues().get(0).getDetail().replaceAll("\r\n","");
             return drugName + detal;
-        }
+        }*/
 
         return null;
     }
