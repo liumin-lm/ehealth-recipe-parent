@@ -429,7 +429,7 @@ public class ShoppingService {
             for (ShoppingOrder so : shoppingOrders) {
                 for (PatientBean patient : patientBeanList) {
                     if (so.getMpiId().equals(patient.getMpiId())) {
-                        Map<String, Object> map = new HashMap<>();
+                        Map<String, Object> map = Maps.newHashMap();
                         map.put("patient", patient);
                         map.put("ShoppingOrder", so);
                         list.add(map);

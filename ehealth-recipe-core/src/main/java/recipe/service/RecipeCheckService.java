@@ -1,8 +1,11 @@
 package recipe.service;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.doctor.model.DoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
+import com.ngari.base.organ.model.OrganBean;
+import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
@@ -21,6 +24,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.audit.list.request.AuditListReq;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
@@ -60,13 +64,32 @@ public class RecipeCheckService {
      */
     @RpcService
     public List<Map<String, Object>> findRecipeListWithPage(int doctorId, int flag, int start, int limit) {
-        List<Integer> organIds = findAPOrganIdsByDoctorId(doctorId);
-        if (CollectionUtils.isEmpty(organIds)) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "该药师没有配置能审核的机构");
+        AuditListReq request = new AuditListReq();
+        request.setOrganIdList(null);
+        request.setDoctorId(doctorId);
+        request.setStatus(flag);
+        return findRecipeListWithPageExt(request, start, limit);
+    }
+
+    /**
+     * 查询审核处方列表扩展
+     * @param request
+     * @return
+     */
+    @RpcService
+    public List<Map<String, Object>> findRecipeListWithPageExt(AuditListReq request, int start, int limit) {
+        LOGGER.info("findRecipeListWithPageExt request={}", JSONUtils.toString(request));
+        if(null == request.getDoctorId() || null == request.getStatus()){
+            return Lists.newArrayList();
         }
 
+        if(CollectionUtils.isEmpty(request.getOrganIdList())) {
+            List<Integer> organIds = findAPOrganIdsByDoctorId(request.getDoctorId());
+            request.setOrganIdList(organIds);
+        }
         RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
-        List<Recipe> list = rDao.findRecipeByFlag(organIds, flag, start, limit);
+        List<Recipe> list = rDao.findRecipeByFlag(request.getOrganIdList(), request.getStatus(),
+                start, limit);
         List<Map<String, Object>> mapList = covertRecipeListPageInfo(list);
         return mapList;
     }
@@ -84,14 +107,14 @@ public class RecipeCheckService {
      */
     @RpcService
     public List<Map<String, Object>> findRecipeListWithPageForPC(int doctorId, int flag, int start, int limit) {
-        List<Integer> organIds = findAPOrganIdsByDoctorId(doctorId);
-        if (CollectionUtils.isEmpty(organIds)) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "该药师没有配置能审核的机构");
-        }
-
         RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
-        List<Recipe> list = rDao.findRecipeByFlag(organIds, flag, start, limit);
-        List<Map<String, Object>> mapList = covertRecipeListPageInfo(list);
+
+        List<Integer> organIds = findAPOrganIdsByDoctorId(doctorId);
+        AuditListReq request = new AuditListReq();
+        request.setOrganIdList(organIds);
+        request.setDoctorId(doctorId);
+        request.setStatus(flag);
+        List<Map<String, Object>> mapList = findRecipeListWithPageExt(request, start, limit);
 
         Long count = rDao.getRecipeCountByFlag(organIds, flag);
         Map<String, Object> countMap = Maps.newHashMap();
@@ -482,13 +505,15 @@ public class RecipeCheckService {
      * @param doctorId
      * @param searchString 搜索内容
      * @param searchFlag   0-开方医生 1-审方医生 2-患者姓名 3-病历号
+     * @param organId 限定机构条件
      * @param start
      * @param limit
      * @return
      * @author zhongzx
      */
     @RpcService
-    public List<Map<String, Object>> searchRecipeForChecker(Integer doctorId, String searchString, Integer searchFlag, Integer start, Integer limit) {
+    public List<Map<String, Object>> searchRecipeForChecker(Integer doctorId, String searchString, Integer searchFlag,
+                                                            Integer organId, Integer start, Integer limit) {
         RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
 
@@ -510,12 +535,15 @@ public class RecipeCheckService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "doctorId = " + doctorId + " 找不到该医生");
         }
         Set<Integer> organs = new HashSet<>();
-        List<Integer> organIds = findAPOrganIdsByDoctorId(doctorId);
-
-        if (null == organIds || organIds.size() == 0) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "该药师没有配置能审核的机构");
+        if(null != organId) {
+            organs.add(organId);
+        }else{
+            List<Integer> organIds = findAPOrganIdsByDoctorId(doctorId);
+            if (null == organIds || organIds.size() == 0) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "该药师没有配置能审核的机构");
+            }
+            organs.addAll(organIds);
         }
-        organs.addAll(organIds);
 
         List<Recipe> recipeList = recipeCheckDAO.searchRecipe(organs,
             searchFlag,searchString, start, limit);
@@ -565,6 +593,31 @@ public class RecipeCheckService {
             }
         }
         return mapList;
+    }
+
+    /**
+     *
+     * 获取药师能审核的机构
+     * @param doctorId 药师ID
+     * @return
+     */
+    @RpcService
+    public List<OrganBean> findCheckOrganList(Integer doctorId){
+        List<OrganBean> organList = Lists.newArrayList();
+        List<Integer> organIds = findAPOrganIdsByDoctorId(doctorId);
+        if(CollectionUtils.isNotEmpty(organIds)) {
+            IOrganService organService = ApplicationUtils.getBaseService(IOrganService.class);
+            List<OrganBean> detailOrgan = organService.findByIdIn(organIds);
+            OrganBean organBean;
+            for(OrganBean bean : detailOrgan){
+                organBean = new OrganBean();
+                organBean.setOrganId(bean.getOrganId());
+                organBean.setShortName(bean.getShortName());
+                organBean.setName(bean.getName());
+                organList.add(organBean);
+            }
+        }
+        return organList;
     }
 
     /**

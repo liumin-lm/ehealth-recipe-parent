@@ -3,7 +3,6 @@ package recipe.prescription.service;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
-import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.controller.exception.ControllerException;
@@ -13,7 +12,6 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
-
 import org.slf4j.LoggerFactory;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.DrugListDAO;
@@ -40,6 +38,10 @@ public class PrescriptionService {
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(PrescriptionService.class);
 
+    @RpcService
+    public String getPAAnalysis(Recipe recipe, List<Recipedetail> recipedetails) throws Exception {
+        return null;
+    }
     /**
      * 医生在开处方时，校验合理用药
      * @param recipe 处方信息
@@ -47,8 +49,7 @@ public class PrescriptionService {
      * @return 返回null表示用药没有异常，反之表示有异常，前端弹框提示，提示信息为返回的字符串信息
      * @throws Exception
      */
-    @RpcService
-    public String getPAAnalysis(Recipe recipe, List<Recipedetail> recipedetails) throws Exception {
+    public String analysisImpl(Recipe recipe, List<Recipedetail> recipedetails) throws Exception {
         PAWebServiceSoap12Stub binding;
         IntHolder getPAResultsResult = new IntHolder();
         StringHolder uiResults = new StringHolder();
@@ -197,6 +198,6 @@ public class PrescriptionService {
 
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         List<Recipedetail> details = detailDAO.findByRecipeId(recipeId);
-        return getPAAnalysis(recipe, details);
+        return analysisImpl(recipe, details);
     }
 }

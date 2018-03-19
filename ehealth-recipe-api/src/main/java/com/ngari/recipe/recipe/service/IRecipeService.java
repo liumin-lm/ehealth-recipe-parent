@@ -212,6 +212,8 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     /**
      *  就诊人改造：获取医生的历史患者MpiId：从处方表中查询
      * @param doctorId
+     * @param start
+     * @param limit
      * @return
      */
     @RpcService
@@ -219,6 +221,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     /**
      * 同步患者注销状态到处方表
+     * @param mpiId
      */
     @RpcService
     void synPatientStatusToRecipe(String mpiId);

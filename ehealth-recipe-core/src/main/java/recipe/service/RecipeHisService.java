@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.bean.RecipeCheckPassResult;
 import recipe.bean.RecipeResultBean;
+import recipe.bussutil.RecipeUtil;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.OrganDrugListDAO;
@@ -33,7 +34,6 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisService;
 import recipe.util.ApplicationUtils;
-import recipe.util.RecipeUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
