@@ -6,6 +6,7 @@ import java.util.List;
 /**
  * 第三方医院处方对象
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * date:2017/4/17.
  */
@@ -67,6 +68,8 @@ public class HospitalRecipeDTO implements Serializable {
 
     private String checkerName;
 
+    private String checkerNumber;
+
     private String checkerTel;
 
     private String checkFailMemo;
@@ -85,6 +88,8 @@ public class HospitalRecipeDTO implements Serializable {
 
     private String distributionFlag;
 
+    private String payFlag;
+
     private String recipeMemo;
 
     private String tcmUsePathways;
@@ -93,7 +98,7 @@ public class HospitalRecipeDTO implements Serializable {
 
     private String tcmNum;
 
-    private List<HospitalRecipeDTO> drugList;
+    private List<HospitalDrugDTO> drugList;
 
     public String getClinicId() {
         return clinicId;
@@ -311,6 +316,14 @@ public class HospitalRecipeDTO implements Serializable {
         this.checkerName = checkerName;
     }
 
+    public String getCheckerNumber() {
+        return checkerNumber;
+    }
+
+    public void setCheckerNumber(String checkerNumber) {
+        this.checkerNumber = checkerNumber;
+    }
+
     public String getCheckerTel() {
         return checkerTel;
     }
@@ -383,6 +396,14 @@ public class HospitalRecipeDTO implements Serializable {
         this.distributionFlag = distributionFlag;
     }
 
+    public String getPayFlag() {
+        return payFlag;
+    }
+
+    public void setPayFlag(String payFlag) {
+        this.payFlag = payFlag;
+    }
+
     public String getRecipeMemo() {
         return recipeMemo;
     }
@@ -415,11 +436,11 @@ public class HospitalRecipeDTO implements Serializable {
         this.tcmNum = tcmNum;
     }
 
-    public List<HospitalRecipeDTO> getDrugList() {
+    public List<HospitalDrugDTO> getDrugList() {
         return drugList;
     }
 
-    public void setDrugList(List<HospitalRecipeDTO> drugList) {
+    public void setDrugList(List<HospitalDrugDTO> drugList) {
         this.drugList = drugList;
     }
 }
