@@ -34,7 +34,7 @@
         <Bug pattern="DLS_DEAD_LOCAL_STORE" />
     </Match>
     <Match>
-        <Class name="recipe.service.DockingHospitalService" />
+        <Class name="recipe.service.HosPrescriptionService" />
         <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE" />
     </Match>
     <Match>
