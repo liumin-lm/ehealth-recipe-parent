@@ -11,8 +11,8 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>ehealth-recipe-common</artifactId>
     <packaging>jar</packaging>
-    <name>共用模块</name>
-    <description>共用模块</description>
+    <name>common</name>
+    <description>common</description>
     <build>
         <resources>
             <resource>
