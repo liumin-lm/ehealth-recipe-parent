@@ -1,6 +1,6 @@
 package recipe.prescription;
 
-import com.ngari.base.BaseAPI;
+import com.google.common.collect.Maps;
 import com.ngari.base.employment.model.EmploymentBean;
 import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.base.organ.model.OrganBean;
@@ -24,8 +24,11 @@ import recipe.dao.RecipeDAO;
 import recipe.prescription.bean.HosRecipeResult;
 import recipe.prescription.bean.HospitalRecipeDTO;
 import recipe.prescription.dataprocess.PrescribeProcess;
+import recipe.util.ApplicationUtils;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author： 0184/yu_yun
@@ -94,7 +97,7 @@ public class PrescribeService {
 
             Recipe recipe = PrescribeProcess.convertNgariRecipe(hospitalRecipeDTO);
             if (null != recipe) {
-                IOrganService organService = BaseAPI.getService(IOrganService.class);
+                IOrganService organService = ApplicationUtils.getBaseService(IOrganService.class);
                 Integer originClinicOrgan = recipe.getOriginClinicOrgan();
                 OrganBean organ = organService.get(originClinicOrgan);
                 if (null == organ) {
@@ -103,7 +106,7 @@ public class PrescribeService {
                     return result;
                 }
 
-                IEmploymentService employmentService = BaseAPI.getService(IEmploymentService.class);
+                IEmploymentService employmentService = ApplicationUtils.getBaseService(IEmploymentService.class);
                 //设置医生信息
                 EmploymentBean employment = employmentService.getByJobNumberAndOrganId(
                         hospitalRecipeDTO.getDoctorNumber(), originClinicOrgan);
@@ -125,7 +128,7 @@ public class PrescribeService {
                         LOG.error("createPrescription 审核医生工号(checkerNumber)为空");
                     }
 
-                    IPatientService patientService = BaseAPI.getService(IPatientService.class);
+                    IPatientService patientService = ApplicationUtils.getBaseService(IPatientService.class);
                     PatientBean patient = patientService.getByIdCard(hospitalRecipeDTO.getCertificate());
                     if (null == patient) {
                         result.setCode(CommonConstant.FAIL);
@@ -149,6 +152,7 @@ public class PrescribeService {
                     recipe.setStatus(RecipeStatusConstant.CHECK_PASS);
                     Integer recipeId = null;
                     if (null != recipeId) {
+//                        ApplicationUtils.getRecipeService(RecipeOrderService.class);
 //                        //创建订单数据
 //                        Map<String, String> orderMap = Maps.newHashMap();
 //                        orderMap.put("operMpiId", recipe.getMpiid());
