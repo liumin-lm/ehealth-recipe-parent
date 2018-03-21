@@ -1,7 +1,7 @@
 package recipe.prescription.bean;
 
+import com.ngari.recipe.entity.Recipe;
 import ctd.util.JSONUtils;
-import recipe.common.ResponseUtils;
 import recipe.common.response.CommonResponse;
 
 import java.io.Serializable;
@@ -15,7 +15,13 @@ import java.io.Serializable;
  */
 public class HosRecipeResult extends CommonResponse implements Serializable {
 
+    private static final long serialVersionUID = 2809725502013933071L;
+
     private String recipeCode;
+
+    private Integer recipeId;
+
+    private Recipe recipe;
 
     public HosRecipeResult() {
 
@@ -29,15 +35,25 @@ public class HosRecipeResult extends CommonResponse implements Serializable {
         this.recipeCode = recipeCode;
     }
 
+    public Integer getRecipeId() {
+        return recipeId;
+    }
+
+    public void setRecipeId(Integer recipeId) {
+        this.recipeId = recipeId;
+    }
+
+    public Recipe getRecipe() {
+        return recipe;
+    }
+
+    public void setRecipe(Recipe recipe) {
+        this.recipe = recipe;
+    }
+
     @Override
     public String toString() {
         return JSONUtils.toString(this);
     }
 
-    public static void main(String[] args) {
-        HosRecipeResult result = ResponseUtils.getSuccessResponse(HosRecipeResult.class);
-        System.out.println(result.toString());
-        HosRecipeResult failResponse = ResponseUtils.getFailResponse(HosRecipeResult.class, null);
-        System.out.println(failResponse.toString());
-    }
 }

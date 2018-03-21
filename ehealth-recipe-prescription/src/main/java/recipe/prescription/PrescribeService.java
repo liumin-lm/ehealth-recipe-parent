@@ -152,63 +152,7 @@ public class PrescribeService {
                     recipe.setStatus(RecipeStatusConstant.CHECK_PASS);
                     Integer recipeId = null;
                     if (null != recipeId) {
-//                        ApplicationUtils.getRecipeService(RecipeOrderService.class);
-//                        //创建订单数据
-//                        Map<String, String> orderMap = Maps.newHashMap();
-//                        orderMap.put("operMpiId", recipe.getMpiid());
-//                        //PayWayEnum.UNKNOW
-//                        orderMap.put("payway", "-1");
-//                        orderMap.put("payMode", recipe.getPayMode().toString());
-//                        OrderCreateResult orderCreateResult = orderService.createOrder(Collections.singletonList(recipeId), orderMap, 1);
-//                        if (null != orderCreateResult && OrderCreateResult.SUCCESS.equals(orderCreateResult.getCode())) {
-//                            recipe.setOrderCode(orderCreateResult.getOrderCode());
-//                            //到店取药流程处理
-//                            if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
-//                                OrganBean subOrgan = iOrganService.get(recipe.getClinicOrgan());
-//                                //到店取药则自动完成用户确认操作
-//                                Map<String, Object> paramMap = Maps.newHashMap();
-//                                paramMap.put("result", "1");
-//                                paramMap.put("recipeId", recipeId);
-//                                paramMap.put("drugstore", subOrgan.getName());
-//                                paramMap.put("drugstoreAddr", subOrgan.getAddress());
-//                                paramMap.put("wxUrl", "false");
-//                                ThirdResultBean backMap = takeDrugService.userConfirm(paramMap);
-//                                if (null != backMap && ThirdEnterpriseCallService.REQUEST_OK.equals(backMap.getCode())) {
-//                                    //由于医院发过来的处方已药师审核通过，所以需要自动审核完成
-//                                    boolean bl = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECK_PASS_YS, null);
-//                                    if (bl) {
-//                                        recipe.setStatus(RecipeStatusConstant.CHECK_PASS_YS);
-//                                        //到店取药审核完成是带取药状态
-//                                        RecipeResultBean orderChangeResult = orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("status", OrderStatusConstant.READY_GET_DRUG), null);
-//                                        if (null != orderChangeResult && RecipeResultBean.SUCCESS.equals(orderChangeResult.getCode())) {
-//                                            //发送下级医院处方
-////                                                    sendSubOrganHisRecipe(recipeId, hospitalRecipe.getSubOrganId());
-//                                            allRecipeId.add(recipeId);
-//                                            LOGGER.info("platformRecipeCreate 接收医院处方成功，recipeId=" + recipeId);
-//                                            RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "收到[" + organName + "]处方成功");
-//                                        } else {
-//                                            orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.CANCEL_AUTO);
-//                                            recipeService.delRecipeForce(recipeId);
-//                                            result.setMsgCode(HosRecipeResult.FAIL);
-//                                            result.setMsg(prefix + "修改订单状态失败");
-//                                        }
-//                                    } else {
-//                                        orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.CANCEL_AUTO);
-//                                        recipeService.delRecipeForce(recipeId);
-//                                        result.setMsgCode(HosRecipeResult.FAIL);
-//                                        result.setMsg(prefix + "修改处方单状态失败");
-//                                    }
-//                                } else {
-//                                    result.setMsgCode(HosRecipeResult.FAIL);
-//                                    result.setMsg(prefix + "订单用户确认失败,原因：" + backMap.getMsg());
-//                                }
-//                            }
-//                        } else {
-//                            //删除处方
-//                            recipeService.delRecipeForce(recipeId);
-//                            result.setMsgCode(HosRecipeResult.FAIL);
-//                            result.setMsg(prefix + "订单创建失败,原因：" + orderCreateResult.getMsg());
-//                        }
+
                     } else {
                         result.setCode(CommonConstant.FAIL);
                         result.setMsg("处方创建失败");
