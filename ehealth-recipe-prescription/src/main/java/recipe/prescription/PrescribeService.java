@@ -169,7 +169,7 @@ public class PrescribeService {
 
             return result;
         } else {
-            LOG.error("createPrescription recipeList is empty. param={}", recipeInfo);
+            LOG.error("createPrescription recipe is empty. param={}", recipeInfo);
             return ResponseUtils.getFailResponse(HosRecipeResult.class, "未知错误-处方对象为空");
         }
     }
