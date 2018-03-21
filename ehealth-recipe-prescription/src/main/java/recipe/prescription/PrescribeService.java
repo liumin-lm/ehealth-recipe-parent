@@ -86,10 +86,19 @@ public class PrescribeService {
                 return result;
             }
 
+            IOrganService organService = ApplicationUtils.getBaseService(IOrganService.class);
+            OrganBean organ = organService.get(Integer.parseInt(hospitalRecipeDTO.getClinicOrgan()));
+            if (null == organ) {
+                result.setCode(CommonConstant.FAIL);
+                result.setMsg("平台未找到相关机构");
+                return result;
+            }
+
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            Recipe dbRecipe = recipeDAO.getByOriginRecipeCodeAndOriginClinicOrgan(hospitalRecipeDTO.getRecipeCode(),
+            Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrgan(hospitalRecipeDTO.getRecipeCode(),
                     Integer.parseInt(hospitalRecipeDTO.getClinicOrgan()));
             if (null != dbRecipe) {
+                result.setRecipeId(dbRecipe.getRecipeId());
                 result.setCode(CommonConstant.FAIL);
                 result.setMsg("平台已存在该处方");
                 return result;
@@ -97,19 +106,11 @@ public class PrescribeService {
 
             Recipe recipe = PrescribeProcess.convertNgariRecipe(hospitalRecipeDTO);
             if (null != recipe) {
-                IOrganService organService = ApplicationUtils.getBaseService(IOrganService.class);
-                Integer originClinicOrgan = recipe.getOriginClinicOrgan();
-                OrganBean organ = organService.get(originClinicOrgan);
-                if (null == organ) {
-                    result.setCode(CommonConstant.FAIL);
-                    result.setMsg("平台未找到相关机构");
-                    return result;
-                }
-
+                recipe.setOrganName(organ.getShortName());
                 IEmploymentService employmentService = ApplicationUtils.getBaseService(IEmploymentService.class);
                 //设置医生信息
                 EmploymentBean employment = employmentService.getByJobNumberAndOrganId(
-                        hospitalRecipeDTO.getDoctorNumber(), originClinicOrgan);
+                        hospitalRecipeDTO.getDoctorNumber(), recipe.getClinicOrgan());
                 if (null != employment) {
                     recipe.setDoctor(employment.getDoctorId());
                     recipe.setDepart(employment.getDepartment());
@@ -118,7 +119,7 @@ public class PrescribeService {
                     String checkerNumber = hospitalRecipeDTO.getCheckerNumber();
                     if (StringUtils.isNotEmpty(checkerNumber)) {
                         EmploymentBean checkEmployment = employmentService.getByJobNumberAndOrganId(
-                                checkerNumber, originClinicOrgan);
+                                checkerNumber, recipe.getCheckOrgan());
                         if (null != checkEmployment) {
                             recipe.setChecker(checkEmployment.getDoctorId());
                         } else {
@@ -131,25 +132,23 @@ public class PrescribeService {
                     IPatientService patientService = ApplicationUtils.getBaseService(IPatientService.class);
                     PatientBean patient = patientService.getByIdCard(hospitalRecipeDTO.getCertificate());
                     if (null == patient) {
+                        //TODO 创建患者 ...
                         result.setCode(CommonConstant.FAIL);
                         result.setMsg("获取平台患者失败");
                         return result;
                     } else {
-                        //创建患者
                         recipe.setMpiid(patient.getMpiId());
-                        recipe.setPatientName(hospitalRecipeDTO.getPatientName());
+                        recipe.setPatientStatus(patient.getStatus());
                     }
 
                     //创建详情数据
                     List<Recipedetail> details = PrescribeProcess.convertNgariDetail(hospitalRecipeDTO);
                     if (CollectionUtils.isEmpty(details)) {
                         result.setCode(CommonConstant.FAIL);
-                        result.setMsg("存在下级医院无法开具的药品");
+                        result.setMsg("药品详情转换错误");
                         return result;
                     }
 
-                    //初始化处方状态为待处理
-                    recipe.setStatus(RecipeStatusConstant.CHECK_PASS);
                     Integer recipeId = null;
                     if (null != recipeId) {
 
