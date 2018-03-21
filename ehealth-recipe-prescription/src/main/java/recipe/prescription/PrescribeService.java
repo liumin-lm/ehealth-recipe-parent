@@ -1,6 +1,5 @@
 package recipe.prescription;
 
-import com.google.common.collect.Maps;
 import com.ngari.base.employment.model.EmploymentBean;
 import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.base.organ.model.OrganBean;
@@ -19,16 +18,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
-import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.prescription.bean.HosRecipeResult;
 import recipe.prescription.bean.HospitalRecipeDTO;
 import recipe.prescription.dataprocess.PrescribeProcess;
 import recipe.util.ApplicationUtils;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author： 0184/yu_yun
@@ -95,6 +91,7 @@ public class PrescribeService {
             }
 
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+
             Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrgan(hospitalRecipeDTO.getRecipeCode(),
                     Integer.parseInt(hospitalRecipeDTO.getClinicOrgan()));
             if (null != dbRecipe) {
@@ -149,12 +146,17 @@ public class PrescribeService {
                         return result;
                     }
 
-                    Integer recipeId = null;
-                    if (null != recipeId) {
-
-                    } else {
+                    //写入DB
+                    try {
+                        Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
+                        LOG.info("createPrescription 写入DB成功. recipeId={}", recipeId);
+                        result.setRecipeId(recipeId);
+                        result.setRecipe(recipe);
+                    } catch (Exception e) {
+                        LOG.error("createPrescription 写入DB失败. recipe={}, detail={}", JSONUtils.toString(recipe),
+                                JSONUtils.toString(details), e);
                         result.setCode(CommonConstant.FAIL);
-                        result.setMsg("处方创建失败");
+                        result.setMsg("写入DB失败");
                     }
                 } else {
                     result.setCode(CommonConstant.FAIL);

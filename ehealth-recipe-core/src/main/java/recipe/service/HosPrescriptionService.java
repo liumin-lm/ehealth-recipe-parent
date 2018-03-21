@@ -1,11 +1,21 @@
 package recipe.service;
 
+import com.google.common.collect.Maps;
+import com.ngari.base.organ.model.OrganBean;
+import com.ngari.recipe.entity.Recipe;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import recipe.bean.OrderCreateResult;
 import recipe.common.CommonConstant;
+import recipe.constant.RecipeBussConstant;
 import recipe.prescription.PrescribeService;
 import recipe.prescription.bean.HosRecipeResult;
 import recipe.util.ApplicationUtils;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * 对接第三方医院服务
@@ -15,6 +25,9 @@ import recipe.util.ApplicationUtils;
  */
 @RpcBean("hosPrescriptionService")
 public class HosPrescriptionService {
+
+    /** logger */
+    private static final Logger LOG = LoggerFactory.getLogger(HosPrescriptionService.class);
 
     /**
      * 接收第三方处方
@@ -27,7 +40,28 @@ public class HosPrescriptionService {
         PrescribeService prescribeService = ApplicationUtils.getRecipeService(PrescribeService.class);
         HosRecipeResult result = prescribeService.createPrescription(recipeInfo);
         if(CommonConstant.SUCCESS.equals(result.getCode())){
+            RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 
+            //创建订单
+            Recipe recipe = result.getRecipe();
+            Integer recipeId = result.getRecipeId();
+            Map<String, String> orderMap = Maps.newHashMap();
+            orderMap.put("operMpiId", recipe.getMpiid());
+            //PayWayEnum.UNKNOW
+            orderMap.put("payway", "-1");
+            orderMap.put("payMode", recipe.getPayMode().toString());
+            OrderCreateResult orderCreateResult = orderService.createOrder(
+                    Collections.singletonList(recipeId), orderMap, 1);
+            if (null != orderCreateResult && OrderCreateResult.SUCCESS.equals(orderCreateResult.getCode())) {
+                result.setRecipe(null);
+            } else {
+                LOG.warn("createPrescription 创建订单失败. recipeId={}", recipeId);
+                //删除处方
+                recipeService.delRecipeForce(recipeId);
+                result.setCode(CommonConstant.FAIL);
+                result.setMsg("处方["+result.getRecipeCode()+"]订单创建失败, 原因：" + orderCreateResult.getMsg());
+            }
         }
 
         return result;
