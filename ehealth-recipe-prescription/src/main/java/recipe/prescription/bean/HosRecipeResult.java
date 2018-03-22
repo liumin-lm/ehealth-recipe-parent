@@ -23,6 +23,8 @@ public class HosRecipeResult extends CommonResponse implements Serializable {
 
     private Recipe recipe;
 
+    private HospitalRecipeDTO hospitalRecipe;
+
     public HosRecipeResult() {
 
     }
@@ -49,6 +51,14 @@ public class HosRecipeResult extends CommonResponse implements Serializable {
 
     public void setRecipe(Recipe recipe) {
         this.recipe = recipe;
+    }
+
+    public HospitalRecipeDTO getHospitalRecipe() {
+        return hospitalRecipe;
+    }
+
+    public void setHospitalRecipe(HospitalRecipeDTO hospitalRecipe) {
+        this.hospitalRecipe = hospitalRecipe;
     }
 
     @Override

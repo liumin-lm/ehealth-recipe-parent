@@ -1,32 +1,40 @@
 package recipe.service;
 
 import com.google.common.collect.Maps;
-import com.ngari.base.organ.model.OrganBean;
 import com.ngari.recipe.entity.Recipe;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.bean.OrderCreateResult;
+import recipe.bean.RecipeResultBean;
 import recipe.common.CommonConstant;
+import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.prescription.PrescribeService;
 import recipe.prescription.bean.HosRecipeResult;
+import recipe.prescription.bean.HospitalRecipeDTO;
 import recipe.util.ApplicationUtils;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Map;
 
 /**
  * 对接第三方医院服务
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * @date:2017/4/17.
  */
 @RpcBean("hosPrescriptionService")
 public class HosPrescriptionService {
 
-    /** logger */
+    /**
+     * logger
+     */
     private static final Logger LOG = LoggerFactory.getLogger(HosPrescriptionService.class);
 
     /**
@@ -39,13 +47,21 @@ public class HosPrescriptionService {
     public HosRecipeResult createPrescription(String recipeInfo) {
         PrescribeService prescribeService = ApplicationUtils.getRecipeService(PrescribeService.class);
         HosRecipeResult result = prescribeService.createPrescription(recipeInfo);
-        if(CommonConstant.SUCCESS.equals(result.getCode())){
+        if (CommonConstant.SUCCESS.equals(result.getCode())) {
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 
-            //创建订单
             Recipe recipe = result.getRecipe();
+            HospitalRecipeDTO hospitalRecipe = result.getHospitalRecipe();
             Integer recipeId = result.getRecipeId();
+            //已支付的处方不需要创建订单
+            if (1 == recipe.getPayFlag() && RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode())) {
+                result.setRecipe(null);
+                result.setHospitalRecipe(null);
+                return result;
+            }
+
+            //创建订单
             Map<String, String> orderMap = Maps.newHashMap();
             orderMap.put("operMpiId", recipe.getMpiid());
             //PayWayEnum.UNKNOW
@@ -54,16 +70,40 @@ public class HosPrescriptionService {
             OrderCreateResult orderCreateResult = orderService.createOrder(
                     Collections.singletonList(recipeId), orderMap, 1);
             if (null != orderCreateResult && OrderCreateResult.SUCCESS.equals(orderCreateResult.getCode())) {
-                result.setRecipe(null);
+                //更新订单数据
+                Map<String, Object> orderAttr = Maps.newHashMap();
+                orderAttr.put("status", OrderStatusConstant.READY_GET_DRUG);
+                orderAttr.put("effective", 1);
+                orderAttr.put("payFlag", recipe.getPayFlag());
+                orderAttr.put("registerFee", BigDecimal.ZERO);
+                orderAttr.put("expressFee", StringUtils.isEmpty(hospitalRecipe.getExpressFee()) ?
+                        BigDecimal.ZERO : new BigDecimal(hospitalRecipe.getExpressFee()));
+                orderAttr.put("decoctionFee", StringUtils.isEmpty(hospitalRecipe.getDecoctionFee()) ?
+                        BigDecimal.ZERO : new BigDecimal(hospitalRecipe.getDecoctionFee()));
+                orderAttr.put("couponFee", StringUtils.isEmpty(hospitalRecipe.getCouponFee()) ?
+                        BigDecimal.ZERO : new BigDecimal(hospitalRecipe.getCouponFee()));
+                orderAttr.put("recipeFee", recipe.getTotalMoney());
+                orderAttr.put("totalFee", StringUtils.isEmpty(hospitalRecipe.getOrderTotalFee()) ?
+                        BigDecimal.ZERO : new BigDecimal(hospitalRecipe.getOrderTotalFee()));
+                orderAttr.put("actualPrice", StringUtils.isEmpty(hospitalRecipe.getActualFee()) ?
+                        BigDecimal.ZERO : new BigDecimal(hospitalRecipe.getActualFee()));
+
+                RecipeResultBean resultBean = orderService.updateOrderInfo(
+                        orderCreateResult.getOrderCode(), orderAttr, null);
+                LOG.info("createPrescription 订单更新 orderCode={}, result={}",
+                        orderCreateResult.getOrderCode(), JSONUtils.toString(resultBean));
             } else {
-                LOG.warn("createPrescription 创建订单失败. recipeId={}", recipeId);
+                LOG.warn("createPrescription 创建订单失败. recipeId={}, result={}",
+                        recipeId, JSONUtils.toString(orderCreateResult));
                 //删除处方
                 recipeService.delRecipeForce(recipeId);
                 result.setCode(CommonConstant.FAIL);
-                result.setMsg("处方["+result.getRecipeCode()+"]订单创建失败, 原因：" + orderCreateResult.getMsg());
+                result.setMsg("处方[" + result.getRecipeCode() + "]订单创建失败, 原因：" + orderCreateResult.getMsg());
             }
         }
 
+        result.setRecipe(null);
+        result.setHospitalRecipe(null);
         return result;
     }
 
@@ -276,7 +316,6 @@ public class HosPrescriptionService {
 //
 //        return false;
 //    }
-
 
 
 }

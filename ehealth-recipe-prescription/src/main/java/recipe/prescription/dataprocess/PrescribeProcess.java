@@ -166,9 +166,12 @@ public class PrescribeProcess {
             organDrugCode.add(hosDetail.getDrugCode());
         }
 
-        if(CollectionUtils.isEmpty(organDrugCode)){
+        if (CollectionUtils.isEmpty(organDrugCode)) {
             return recipeDetails;
         }
+        Integer recipeType = Integer.parseInt(hospitalRecipeDTO.getRecipeType());
+        boolean isTcmType = (RecipeBussConstant.RECIPETYPE_TCM.equals(recipeType)
+                || RecipeBussConstant.RECIPETYPE_HP.equals(recipeType)) ? true : false;
 
         //从base_organdruglist获取平台药品ID数据
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(
@@ -222,12 +225,24 @@ public class PrescribeProcess {
                                     1 : Integer.parseInt(hosDetail.getUesDays()));
                             recipedetail.setUseTotalDose(StringUtils.isEmpty(hosDetail.getTotal()) ?
                                     1 : Double.parseDouble(hosDetail.getTotal()));
-                            //用法
-                            recipedetail.setUsePathways(StringUtils.defaultString(hosDetail.getUsePathways(),
-                                    drug.getUsePathways()));
-                            //频次
-                            recipedetail.setUsingRate(StringUtils.defaultString(hosDetail.getUsingRate(),
-                                    drug.getUsingRate()));
+
+                            //中药或者膏方
+                            if (isTcmType) {
+                                //用法
+                                recipedetail.setUsePathways(StringUtils.defaultString(hospitalRecipeDTO.getTcmUsePathways(),
+                                        drug.getUsePathways()));
+                                //频次
+                                recipedetail.setUsingRate(StringUtils.defaultString(hospitalRecipeDTO.getTcmUsingRate(),
+                                        drug.getUsingRate()));
+                            } else {
+                                //用法
+                                recipedetail.setUsePathways(StringUtils.defaultString(hosDetail.getUsePathways(),
+                                        drug.getUsePathways()));
+                                //频次
+                                recipedetail.setUsingRate(StringUtils.defaultString(hosDetail.getUsingRate(),
+                                        drug.getUsingRate()));
+                            }
+
                             //设置价格
                             recipedetail.setSalePrice(StringUtils.isEmpty(hosDetail.getDrugFee()) ?
                                     BigDecimal.ZERO : new BigDecimal(hosDetail.getDrugFee()));
