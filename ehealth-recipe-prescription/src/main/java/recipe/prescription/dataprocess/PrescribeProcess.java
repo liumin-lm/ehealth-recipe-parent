@@ -134,6 +134,7 @@ public class PrescribeProcess {
             recipe.setValueDays(3);
             recipe.setPushFlag(0);
             recipe.setRemindFlag(0);
+            recipe.setGiveFlag(0);
             recipe.setStatus(StringUtils.isEmpty(hospitalRecipeDTO.getStatus()) ?
                     RecipeStatusConstant.CHECK_PASS : Integer.parseInt(hospitalRecipeDTO.getStatus()));
             return recipe;
