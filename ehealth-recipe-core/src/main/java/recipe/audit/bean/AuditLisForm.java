@@ -1,4 +1,4 @@
-package recipe.prescription.bean;
+package recipe.audit.bean;
 
 import java.util.List;
 

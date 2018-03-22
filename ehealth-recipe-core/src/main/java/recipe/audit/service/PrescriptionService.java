@@ -1,4 +1,4 @@
-package recipe.prescription.service;
+package recipe.audit.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.base.patient.model.PatientBean;
@@ -13,13 +13,13 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.LoggerFactory;
+import recipe.audit.bean.*;
+import recipe.audit.pawebservice.PAWebServiceLocator;
+import recipe.audit.pawebservice.PAWebServiceSoap12Stub;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
-import recipe.prescription.bean.*;
-import recipe.prescription.pawebservice.PAWebServiceLocator;
-import recipe.prescription.pawebservice.PAWebServiceSoap12Stub;
 import recipe.util.ApplicationUtils;
 import recipe.util.DateConversion;
 
