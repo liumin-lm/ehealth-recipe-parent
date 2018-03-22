@@ -1383,7 +1383,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateStatelessResultAction<HashMap<Integer, Long>> action = new AbstractHibernateStatelessResultAction<HashMap<Integer, Long>>() {
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder(
-                        "select clinicOrgan, count(*) as count from Recipe a  where a.createDate between :startDate and :endDate  group by clinicOrgan");
+                        "select clinicOrgan, count(*) as count from Recipe a  where a.fromflag=1 and a.createDate between :startDate and :endDate  group by clinicOrgan");
                 Query query = ss.createQuery(hql.toString());
                 Date dStartDate = DateConversion.convertFromStringDate(startDate);
                 Date dEndDate = DateConversion.convertFromStringDate(endDate);
@@ -1413,7 +1413,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateStatelessResultAction<HashMap<Object,Integer>> action = new AbstractHibernateStatelessResultAction<HashMap<Object,Integer>>() {
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder(
-                        "select count(*) as count, HOUR(a.createDate) as hour from Recipe a  where a.createDate between :startDate and :endDate  group by HOUR(a.createDate)");
+                        "select count(*) as count, HOUR(a.createDate) as hour from Recipe a  where a.fromflag=1 and a.createDate between :startDate and :endDate  group by HOUR(a.createDate)");
                 Query query = ss.createQuery(hql.toString());
                 query.setParameter("startDate", startDate);
                 query.setParameter("endDate", endDate);
@@ -1421,6 +1421,43 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 HashMap<Object,Integer> organCount = Maps.newHashMap();
                 for (Object[] co : oList) {
                     organCount.put(co[1], ((Long) co[0]).intValue());
+                }
+                setResult(organCount);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    //根据机构归类的业务量
+    public HashMap<Integer, Long> getCountGroupByOrgan() {
+        HibernateStatelessResultAction<HashMap<Integer, Long>> action = new AbstractHibernateStatelessResultAction<HashMap<Integer, Long>>() {
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder(
+                        "select clinicOrgan, count(*) as count from Recipe a where a.fromflag=1 group by clinicOrgan");
+                Query query = ss.createQuery(hql.toString());
+                List<Object[]> oList = query.list();
+                HashMap<Integer, Long> organCount = new HashMap<Integer, Long>();
+                for (Object[] co : oList) {
+                    organCount.put((Integer) co[0],(Long) co[1]);
+                }
+                setResult(organCount);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    public HashMap<Integer, Long> getRecipeRequestCountGroupByDoctor() {
+        HibernateStatelessResultAction<HashMap<Integer, Long>> action = new AbstractHibernateStatelessResultAction<HashMap<Integer, Long>>() {
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder(
+                        "select doctor, count(*) as count from Recipe a where a.doctor > 0 and a.fromflag=1  group by doctor");
+                Query query = ss.createQuery(hql.toString());
+                List<Object[]> oList = query.list();
+                HashMap<Integer, Long> organCount = new HashMap<Integer, Long>();
+                for (Object[] co : oList) {
+                    organCount.put((Integer) co[0],(Long) co[1]);
                 }
                 setResult(organCount);
             }

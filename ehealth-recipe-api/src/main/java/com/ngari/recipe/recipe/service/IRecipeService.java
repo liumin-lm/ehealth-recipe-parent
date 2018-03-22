@@ -253,7 +253,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     HashMap<Object,Integer> getCountByHourAreaGroupByOrgan(final Date startDate, final Date endDate);
 
     /**
-     *
+     *处方导出Excel
      * @param organId
      * @param status
      * @param doctor
@@ -270,4 +270,10 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     List<Map> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType,
                                                final Integer depart, List<Integer> organIds, Integer giveMode,Integer fromflag);
+
+    @RpcService
+    HashMap<Integer, Long> getCountGroupByOrgan();
+
+    @RpcService
+    HashMap<Integer, Long> getRecipeRequestCountGroupByDoctor();
 }
