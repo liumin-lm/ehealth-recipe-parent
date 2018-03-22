@@ -124,6 +124,8 @@ public class PrescribeProcess {
                     1 : Integer.parseInt(hospitalRecipeDTO.getDistributionFlag()));
             if (1 == recipe.getDistributionFlag()) {
                 recipe.setTakeMedicine(1);
+            }else{
+                recipe.setTakeMedicine(0);
             }
 
             //中药处理
