@@ -1,16 +1,16 @@
 /**
- * PAWebServiceSoap12Stub.java
+ * PAWebServiceSoap_BindingStub.java
  *
  * This file was auto-generated from WSDL
  * by the Apache Axis 1.4 Apr 22, 2006 (06:55:48 PDT) WSDL2Java emitter.
  */
 
-package recipe.prescription.pawebservice;
+package recipe.audit.pawebservice;
 
 /**
  * @author jiangtingfeng
  */
-public class PAWebServiceSoap12Stub extends org.apache.axis.client.Stub implements PAWebServiceSoap_PortType {
+public class PAWebServiceSoap_BindingStub extends org.apache.axis.client.Stub implements PAWebServiceSoap_PortType {
     private java.util.Vector cachedSerClasses = new java.util.Vector();
     private java.util.Vector cachedSerQNames = new java.util.Vector();
     private java.util.Vector cachedSerFactories = new java.util.Vector();
@@ -140,16 +140,16 @@ public class PAWebServiceSoap12Stub extends org.apache.axis.client.Stub implemen
 
     }
 
-    public PAWebServiceSoap12Stub() throws org.apache.axis.AxisFault {
+    public PAWebServiceSoap_BindingStub() throws org.apache.axis.AxisFault {
          this(null);
     }
 
-    public PAWebServiceSoap12Stub(java.net.URL endpointURL, javax.xml.rpc.Service service) throws org.apache.axis.AxisFault {
+    public PAWebServiceSoap_BindingStub(java.net.URL endpointURL, javax.xml.rpc.Service service) throws org.apache.axis.AxisFault {
          this(service);
          super.cachedEndpoint = endpointURL;
     }
 
-    public PAWebServiceSoap12Stub(javax.xml.rpc.Service service) throws org.apache.axis.AxisFault {
+    public PAWebServiceSoap_BindingStub(javax.xml.rpc.Service service) throws org.apache.axis.AxisFault {
         if (service == null) {
             super.service = new org.apache.axis.client.Service();
         } else {
@@ -202,7 +202,7 @@ public class PAWebServiceSoap12Stub extends org.apache.axis.client.Stub implemen
         _call.setEncodingStyle(null);
         _call.setProperty(org.apache.axis.client.Call.SEND_TYPE_ATTR, Boolean.FALSE);
         _call.setProperty(org.apache.axis.AxisEngine.PROP_DOMULTIREFS, Boolean.FALSE);
-        _call.setSOAPVersion(org.apache.axis.soap.SOAPConstants.SOAP12_CONSTANTS);
+        _call.setSOAPVersion(org.apache.axis.soap.SOAPConstants.SOAP11_CONSTANTS);
         _call.setOperationName(new javax.xml.namespace.QName("WinningPAWebservice", "CRMS_WEBSRV"));
 
         setRequestHeaders(_call);
@@ -248,7 +248,7 @@ public class PAWebServiceSoap12Stub extends org.apache.axis.client.Stub implemen
         _call.setEncodingStyle(null);
         _call.setProperty(org.apache.axis.client.Call.SEND_TYPE_ATTR, Boolean.FALSE);
         _call.setProperty(org.apache.axis.AxisEngine.PROP_DOMULTIREFS, Boolean.FALSE);
-        _call.setSOAPVersion(org.apache.axis.soap.SOAPConstants.SOAP12_CONSTANTS);
+        _call.setSOAPVersion(org.apache.axis.soap.SOAPConstants.SOAP11_CONSTANTS);
         _call.setOperationName(new javax.xml.namespace.QName("WinningPAWebservice", "IMDS_WEBSRV"));
 
         setRequestHeaders(_call);
@@ -294,65 +294,39 @@ public class PAWebServiceSoap12Stub extends org.apache.axis.client.Stub implemen
         _call.setEncodingStyle(null);
         _call.setProperty(org.apache.axis.client.Call.SEND_TYPE_ATTR, Boolean.FALSE);
         _call.setProperty(org.apache.axis.AxisEngine.PROP_DOMULTIREFS, Boolean.FALSE);
-        _call.setSOAPVersion(org.apache.axis.soap.SOAPConstants.SOAP12_CONSTANTS);
+        _call.setSOAPVersion(org.apache.axis.soap.SOAPConstants.SOAP11_CONSTANTS);
         _call.setOperationName(new javax.xml.namespace.QName("WinningPAWebservice", "GetPAResults"));
 
         setRequestHeaders(_call);
         setAttachments(_call);
-        try {
-            Object _resp =
-                _call.invoke(new Object[] {new Integer(funId), baseData,
-                    detailsData});
+ try {        Object _resp = _call.invoke(new Object[] {new Integer(funId), baseData, detailsData});
 
-            if (_resp instanceof java.rmi.RemoteException) {
-                throw (java.rmi.RemoteException)_resp;
-            }
-            else {
-                extractAttachments(_call);
-                java.util.Map _output;
-                _output = _call.getOutputParams();
-                try {
-                    getPAResultsResult.value =
-                        ((Integer)_output.get(new javax.xml.namespace.QName(
-                            "WinningPAWebservice",
-                            "GetPAResultsResult"))).intValue();
-                }
-                catch (Exception _exception) {
-                    getPAResultsResult.value =
-                        ((Integer)org.apache.axis.utils.JavaUtils.convert(
-                            _output.get(new javax.xml.namespace.QName(
-                                "WinningPAWebservice",
-                                "GetPAResultsResult")),
-                            int.class)).intValue();
-                }
-                try {
-                    uiResults.value =
-                        (String)_output.get(new javax.xml.namespace.QName(
-                            "WinningPAWebservice",
-                            "uiResults"));
-                }
-                catch (Exception _exception) {
-                    uiResults.value =
-                        (String)org.apache.axis.utils.JavaUtils.convert(_output.get(
-                            new javax.xml.namespace.QName("WinningPAWebservice",
-                                "uiResults")), String.class);
-                }
-                try {
-                    hisResults.value =
-                        (String)_output.get(new javax.xml.namespace.QName(
-                            "WinningPAWebservice",
-                            "hisResults"));
-                }
-                catch (Exception _exception) {
-                    hisResults.value =
-                        (String)org.apache.axis.utils.JavaUtils.convert(_output.get(
-                            new javax.xml.namespace.QName("WinningPAWebservice",
-                                "hisResults")), String.class);
-                }
-            }
-        } catch (org.apache.axis.AxisFault axisFaultException) {
-                throw axisFaultException;
+        if (_resp instanceof java.rmi.RemoteException) {
+            throw (java.rmi.RemoteException)_resp;
         }
+        else {
+            extractAttachments(_call);
+            java.util.Map _output;
+            _output = _call.getOutputParams();
+            try {
+                getPAResultsResult.value = ((Integer) _output.get(new javax.xml.namespace.QName("WinningPAWebservice", "GetPAResultsResult"))).intValue();
+            } catch (Exception _exception) {
+                getPAResultsResult.value = ((Integer) org.apache.axis.utils.JavaUtils.convert(_output.get(new javax.xml.namespace.QName("WinningPAWebservice", "GetPAResultsResult")), int.class)).intValue();
+            }
+            try {
+                uiResults.value = (String) _output.get(new javax.xml.namespace.QName("WinningPAWebservice", "uiResults"));
+            } catch (Exception _exception) {
+                uiResults.value = (String) org.apache.axis.utils.JavaUtils.convert(_output.get(new javax.xml.namespace.QName("WinningPAWebservice", "uiResults")), String.class);
+            }
+            try {
+                hisResults.value = (String) _output.get(new javax.xml.namespace.QName("WinningPAWebservice", "hisResults"));
+            } catch (Exception _exception) {
+                hisResults.value = (String) org.apache.axis.utils.JavaUtils.convert(_output.get(new javax.xml.namespace.QName("WinningPAWebservice", "hisResults")), String.class);
+            }
+        }
+  } catch (org.apache.axis.AxisFault axisFaultException) {
+  throw axisFaultException;
+}
     }
 
     public void getPAResultsEx(int funId, String baseData, String detailsData, org.apache.axis.types.UnsignedInt timeOut, javax.xml.rpc.holders.IntHolder getPAResultsExResult, javax.xml.rpc.holders.StringHolder uiResults, javax.xml.rpc.holders.StringHolder hisResults) throws java.rmi.RemoteException {
@@ -366,7 +340,7 @@ public class PAWebServiceSoap12Stub extends org.apache.axis.client.Stub implemen
         _call.setEncodingStyle(null);
         _call.setProperty(org.apache.axis.client.Call.SEND_TYPE_ATTR, Boolean.FALSE);
         _call.setProperty(org.apache.axis.AxisEngine.PROP_DOMULTIREFS, Boolean.FALSE);
-        _call.setSOAPVersion(org.apache.axis.soap.SOAPConstants.SOAP12_CONSTANTS);
+        _call.setSOAPVersion(org.apache.axis.soap.SOAPConstants.SOAP11_CONSTANTS);
         _call.setOperationName(new javax.xml.namespace.QName("WinningPAWebservice", "GetPAResultsEx"));
 
         setRequestHeaders(_call);
@@ -412,7 +386,7 @@ public class PAWebServiceSoap12Stub extends org.apache.axis.client.Stub implemen
         _call.setEncodingStyle(null);
         _call.setProperty(org.apache.axis.client.Call.SEND_TYPE_ATTR, Boolean.FALSE);
         _call.setProperty(org.apache.axis.AxisEngine.PROP_DOMULTIREFS, Boolean.FALSE);
-        _call.setSOAPVersion(org.apache.axis.soap.SOAPConstants.SOAP12_CONSTANTS);
+        _call.setSOAPVersion(org.apache.axis.soap.SOAPConstants.SOAP11_CONSTANTS);
         _call.setOperationName(new javax.xml.namespace.QName("WinningPAWebservice", "GetAdminAccounts"));
 
         setRequestHeaders(_call);
@@ -446,7 +420,7 @@ public class PAWebServiceSoap12Stub extends org.apache.axis.client.Stub implemen
         _call.setEncodingStyle(null);
         _call.setProperty(org.apache.axis.client.Call.SEND_TYPE_ATTR, Boolean.FALSE);
         _call.setProperty(org.apache.axis.AxisEngine.PROP_DOMULTIREFS, Boolean.FALSE);
-        _call.setSOAPVersion(org.apache.axis.soap.SOAPConstants.SOAP12_CONSTANTS);
+        _call.setSOAPVersion(org.apache.axis.soap.SOAPConstants.SOAP11_CONSTANTS);
         _call.setOperationName(new javax.xml.namespace.QName("WinningPAWebservice", "GetClientVersion"));
 
         setRequestHeaders(_call);

@@ -1,4 +1,4 @@
-package recipe.prescription.bean;
+package recipe.audit.bean;
 
 /**
  * Created by jiangtingfeng on 2017/11/2.
