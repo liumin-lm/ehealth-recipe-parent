@@ -132,7 +132,7 @@ public class HisCallBackService {
             //发送卡片
             RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipe.getRecipeId()), null, true);
         } catch (Exception e) {
-            LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. error ", e);
+            LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. ", e);
         }
         //生成文件成功后再去更新处方状态
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), status, null);
