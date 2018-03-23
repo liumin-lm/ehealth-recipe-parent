@@ -77,6 +77,8 @@ public class PrescribeProcess {
             recipe.setMemo(hospitalRecipeDTO.getMemo());
             recipe.setTotalMoney(StringUtils.isEmpty(hospitalRecipeDTO.getRecipeFee()) ?
                     BigDecimal.ZERO : new BigDecimal(hospitalRecipeDTO.getRecipeFee()));
+            recipe.setActualPrice(StringUtils.isEmpty(hospitalRecipeDTO.getRecipeFee()) ?
+                    BigDecimal.ZERO : new BigDecimal(hospitalRecipeDTO.getRecipeFee()));
 
             //处方审核信息
             if (StringUtils.isNotEmpty(hospitalRecipeDTO.getCheckerNumber())) {
