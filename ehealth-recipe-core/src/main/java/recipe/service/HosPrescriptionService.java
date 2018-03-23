@@ -81,13 +81,13 @@ public class HosPrescriptionService {
                     orderAttr.put("effective", 1);
                     orderAttr.put("payFlag", recipe.getPayFlag());
                     orderAttr.put("registerFee", BigDecimal.ZERO);
+                    orderAttr.put("recipeFee", recipe.getTotalMoney());
                     orderAttr.put("expressFee", StringUtils.isEmpty(hospitalRecipe.getExpressFee()) ?
                             BigDecimal.ZERO : new BigDecimal(hospitalRecipe.getExpressFee()));
                     orderAttr.put("decoctionFee", StringUtils.isEmpty(hospitalRecipe.getDecoctionFee()) ?
                             BigDecimal.ZERO : new BigDecimal(hospitalRecipe.getDecoctionFee()));
                     orderAttr.put("couponFee", StringUtils.isEmpty(hospitalRecipe.getCouponFee()) ?
                             BigDecimal.ZERO : new BigDecimal(hospitalRecipe.getCouponFee()));
-                    orderAttr.put("recipeFee", recipe.getTotalMoney());
                     orderAttr.put("totalFee", StringUtils.isEmpty(hospitalRecipe.getOrderTotalFee()) ?
                             BigDecimal.ZERO : new BigDecimal(hospitalRecipe.getOrderTotalFee()));
                     orderAttr.put("actualPrice", StringUtils.isEmpty(hospitalRecipe.getActualFee()) ?
