@@ -175,6 +175,13 @@ public class RecipeOrderService extends RecipeBaseService {
             Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
             if(null == calculateFee || Integer.valueOf(1).equals(calculateFee)) {
                 setOrderFee(result, order, recipeIds, recipeList, payModeSupport, extInfo, toDbFlag);
+            }else{
+                order.setRecipeFee(BigDecimal.ZERO);
+                order.setCouponFee(BigDecimal.ZERO);
+                order.setRegisterFee(BigDecimal.ZERO);
+                order.setExpressFee(BigDecimal.ZERO);
+                order.setTotalFee(BigDecimal.ZERO);
+                order.setActualPrice(BigDecimal.ZERO.doubleValue());
             }
             if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == toDbFlag) {
                 boolean saveFlag = saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
