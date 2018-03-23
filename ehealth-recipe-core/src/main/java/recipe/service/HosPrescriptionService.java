@@ -91,7 +91,7 @@ public class HosPrescriptionService {
                     orderAttr.put("totalFee", StringUtils.isEmpty(hospitalRecipe.getOrderTotalFee()) ?
                             BigDecimal.ZERO : new BigDecimal(hospitalRecipe.getOrderTotalFee()));
                     orderAttr.put("actualPrice", StringUtils.isEmpty(hospitalRecipe.getActualFee()) ?
-                            BigDecimal.ZERO : new BigDecimal(hospitalRecipe.getActualFee()));
+                            0d : new BigDecimal(hospitalRecipe.getActualFee()).doubleValue());
 
                     RecipeResultBean resultBean = orderService.updateOrderInfo(
                             orderCreateResult.getOrderCode(), orderAttr, null);

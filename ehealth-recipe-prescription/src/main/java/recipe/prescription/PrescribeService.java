@@ -152,6 +152,7 @@ public class PrescribeService {
                         LOG.info("createPrescription 写入DB成功. recipeId={}", recipeId);
                         result.setRecipeId(recipeId);
                         result.setRecipe(recipe);
+                        result.setHospitalRecipe(hospitalRecipeDTO);
                     } catch (Exception e) {
                         LOG.error("createPrescription 写入DB失败. recipe={}, detail={}", JSONUtils.toString(recipe),
                                 JSONUtils.toString(details), e);
