@@ -92,7 +92,7 @@ public class PrescribeService {
 
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
-            Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrgan(hospitalRecipeDTO.getRecipeCode(),
+            Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(hospitalRecipeDTO.getRecipeCode(),
                     Integer.parseInt(hospitalRecipeDTO.getClinicOrgan()));
             if (null != dbRecipe) {
                 result.setRecipeId(dbRecipe.getRecipeId());

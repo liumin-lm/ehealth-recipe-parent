@@ -68,6 +68,8 @@ public class HosPrescriptionService {
             //PayWayEnum.UNKNOW
             orderMap.put("payway", "-1");
             orderMap.put("payMode", recipe.getPayMode().toString());
+            orderMap.put("decoctionFlag", "0");
+            orderMap.put("gfFeeFlag", "0");
             OrderCreateResult orderCreateResult = orderService.createOrder(
                     Collections.singletonList(recipeId), orderMap, 1);
             if (null != orderCreateResult && OrderCreateResult.SUCCESS.equals(orderCreateResult.getCode())) {
