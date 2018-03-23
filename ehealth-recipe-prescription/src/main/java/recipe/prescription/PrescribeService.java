@@ -120,10 +120,10 @@ public class PrescribeService {
                         if (null != checkEmployment) {
                             recipe.setChecker(checkEmployment.getDoctorId());
                         } else {
-                            LOG.error("createPrescription 审核医生在平台没有执业点");
+                            LOG.warn("createPrescription 审核医生在平台没有执业点");
                         }
                     } else {
-                        LOG.error("createPrescription 审核医生工号(checkerNumber)为空");
+                        LOG.warn("createPrescription 审核医生工号(checkerNumber)为空");
                     }
 
                     IPatientService patientService = ApplicationUtils.getBaseService(IPatientService.class);

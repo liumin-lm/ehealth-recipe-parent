@@ -74,25 +74,25 @@ public class HosPrescriptionService {
             OrderCreateResult orderCreateResult = orderService.createOrder(
                     Collections.singletonList(recipeId), orderMap, 1);
             if (null != orderCreateResult && OrderCreateResult.SUCCESS.equals(orderCreateResult.getCode())) {
-                //更新订单数据
-                Map<String, Object> orderAttr = Maps.newHashMap();
-                orderAttr.put("status", OrderStatusConstant.READY_PAY);
-                orderAttr.put("effective", 1);
-                orderAttr.put("payFlag", recipe.getPayFlag());
-                orderAttr.put("registerFee", BigDecimal.ZERO);
-                orderAttr.put("expressFee", StringUtils.isEmpty(hospitalRecipe.getExpressFee()) ?
-                        BigDecimal.ZERO : new BigDecimal(hospitalRecipe.getExpressFee()));
-                orderAttr.put("decoctionFee", StringUtils.isEmpty(hospitalRecipe.getDecoctionFee()) ?
-                        BigDecimal.ZERO : new BigDecimal(hospitalRecipe.getDecoctionFee()));
-                orderAttr.put("couponFee", StringUtils.isEmpty(hospitalRecipe.getCouponFee()) ?
-                        BigDecimal.ZERO : new BigDecimal(hospitalRecipe.getCouponFee()));
-                orderAttr.put("recipeFee", recipe.getTotalMoney());
-                orderAttr.put("totalFee", StringUtils.isEmpty(hospitalRecipe.getOrderTotalFee()) ?
-                        BigDecimal.ZERO : new BigDecimal(hospitalRecipe.getOrderTotalFee()));
-                orderAttr.put("actualPrice", StringUtils.isEmpty(hospitalRecipe.getActualFee()) ?
-                        BigDecimal.ZERO : new BigDecimal(hospitalRecipe.getActualFee()));
-
                 try {
+                    //更新订单数据
+                    Map<String, Object> orderAttr = Maps.newHashMap();
+                    orderAttr.put("status", OrderStatusConstant.READY_PAY);
+                    orderAttr.put("effective", 1);
+                    orderAttr.put("payFlag", recipe.getPayFlag());
+                    orderAttr.put("registerFee", BigDecimal.ZERO);
+                    orderAttr.put("expressFee", StringUtils.isEmpty(hospitalRecipe.getExpressFee()) ?
+                            BigDecimal.ZERO : new BigDecimal(hospitalRecipe.getExpressFee()));
+                    orderAttr.put("decoctionFee", StringUtils.isEmpty(hospitalRecipe.getDecoctionFee()) ?
+                            BigDecimal.ZERO : new BigDecimal(hospitalRecipe.getDecoctionFee()));
+                    orderAttr.put("couponFee", StringUtils.isEmpty(hospitalRecipe.getCouponFee()) ?
+                            BigDecimal.ZERO : new BigDecimal(hospitalRecipe.getCouponFee()));
+                    orderAttr.put("recipeFee", recipe.getTotalMoney());
+                    orderAttr.put("totalFee", StringUtils.isEmpty(hospitalRecipe.getOrderTotalFee()) ?
+                            BigDecimal.ZERO : new BigDecimal(hospitalRecipe.getOrderTotalFee()));
+                    orderAttr.put("actualPrice", StringUtils.isEmpty(hospitalRecipe.getActualFee()) ?
+                            BigDecimal.ZERO : new BigDecimal(hospitalRecipe.getActualFee()));
+
                     RecipeResultBean resultBean = orderService.updateOrderInfo(
                             orderCreateResult.getOrderCode(), orderAttr, null);
                     LOG.info("createPrescription 订单更新 orderCode={}, result={}",
