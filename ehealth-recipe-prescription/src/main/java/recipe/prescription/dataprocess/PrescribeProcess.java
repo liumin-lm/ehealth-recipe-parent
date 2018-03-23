@@ -363,9 +363,8 @@ public class PrescribeProcess {
                 result.setMsg("处方创建时间为空");
                 return result;
             } else {
-                try {
-                    DateConversion.parseDate(recipe.getCreateDate(), DateConversion.DEFAULT_DATE_TIME);
-                } catch (Exception e) {
+                Date cDate = DateConversion.parseDate(recipe.getCreateDate(), DateConversion.DEFAULT_DATE_TIME);
+                if(null == cDate){
                     //格式为 yyyy-MM-dd HH:mm:ss
                     result.setMsg("处方创建时间格式错误");
                     return result;

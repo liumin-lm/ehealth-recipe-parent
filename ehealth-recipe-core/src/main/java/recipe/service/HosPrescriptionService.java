@@ -70,12 +70,13 @@ public class HosPrescriptionService {
             orderMap.put("payMode", recipe.getPayMode().toString());
             orderMap.put("decoctionFlag", "0");
             orderMap.put("gfFeeFlag", "0");
+            orderMap.put("calculateFee", "0");
             OrderCreateResult orderCreateResult = orderService.createOrder(
                     Collections.singletonList(recipeId), orderMap, 1);
             if (null != orderCreateResult && OrderCreateResult.SUCCESS.equals(orderCreateResult.getCode())) {
                 //更新订单数据
                 Map<String, Object> orderAttr = Maps.newHashMap();
-                orderAttr.put("status", OrderStatusConstant.READY_GET_DRUG);
+                orderAttr.put("status", OrderStatusConstant.READY_PAY);
                 orderAttr.put("effective", 1);
                 orderAttr.put("payFlag", recipe.getPayFlag());
                 orderAttr.put("registerFee", BigDecimal.ZERO);

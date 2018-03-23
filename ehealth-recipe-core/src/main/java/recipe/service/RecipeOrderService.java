@@ -87,7 +87,8 @@ public class RecipeOrderService extends RecipeBaseService {
      * @param recipeIds 合并处方单ID
      * @param extInfo   {"operMpiId":"当前操作者编码","addressId":"当前选中地址","payway":"支付方式（payway）","payMode":"处方支付方式",
      *                  "decoctionFlag":"1(1：代煎，0：不代煎)", "gfFeeFlag":"1(1：表示需要制作费，0：不需要)", “depId”:"指定药企ID",
-     *                  "expressFee":"快递费","gysCode":"药店编码","sendMethod":"送货方式","payMethod":"支付方式","appId":"公众号ID"}
+     *                  "expressFee":"快递费","gysCode":"药店编码","sendMethod":"送货方式","payMethod":"支付方式","appId":"公众号ID",
+     *                  "calculateFee":"1(1:需要，0:不需要)"}
      *                  <p>
      *                  ps: decoctionFlag是中药处方时设置为1，gfFeeFlag是膏方时设置为1
      *                  gysCode, sendMethod, payMethod 字段为钥世圈字段，会在findSupportDepList接口中给出
@@ -165,8 +166,16 @@ public class RecipeOrderService extends RecipeBaseService {
 
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
             Recipe firstRecipe = recipeList.get(0);
+            // 暂时还是设置成处方单的患者，不然用户历史处方列表不好查找
+            order.setMpiId(firstRecipe.getMpiid());
+            order.setOrganId(firstRecipe.getClinicOrgan());
+            order.setOrderCode(this.getOrderCode(order.getMpiId()));
+            order.setStatus(OrderStatusConstant.READY_PAY);
             //设置订单各种费用和配送地址
-            setOrderFee(result, order, recipeIds, recipeList, payModeSupport, extInfo, toDbFlag);
+            Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
+            if(null == calculateFee || Integer.valueOf(1).equals(calculateFee)) {
+                setOrderFee(result, order, recipeIds, recipeList, payModeSupport, extInfo, toDbFlag);
+            }
             if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == toDbFlag) {
                 boolean saveFlag = saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
                 if (saveFlag) {
@@ -342,22 +351,17 @@ public class RecipeOrderService extends RecipeBaseService {
                              Map<String, String> extInfo, Integer toDbFlag) {
         IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        //当前操作人的编码，用于获取地址列表信息等
-        String operMpiId = MapValueUtil.getString(extInfo, "operMpiId");
-        Recipe firstRecipe = recipeList.get(0);
-        // 暂时还是设置成处方单的患者，不然用户历史处方列表不好查找
-        order.setMpiId(firstRecipe.getMpiid());
-        order.setOrganId(firstRecipe.getClinicOrgan());
-        order.setOrderCode(this.getOrderCode(order.getMpiId()));
-        order.setStatus(OrderStatusConstant.READY_PAY);
-
         OrganConfigBean organConfig = iOrganConfigService.get(order.getOrganId());
+
         if (null == organConfig) {
             //只有需要真正保存订单时才提示
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("开方机构缺少配置");
             return;
         }
+        //当前操作人的编码，用于获取地址列表信息等
+        String operMpiId = MapValueUtil.getString(extInfo, "operMpiId");
+
         //设置挂号费
         if (payModeSupport.isSupportMedicalInsureance() || payModeSupport.isSupportCOD()
                 || payModeSupport.isSupportTFDS() || payModeSupport.isSupportComplex()) {
