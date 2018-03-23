@@ -92,10 +92,19 @@ public class HosPrescriptionService {
                 orderAttr.put("actualPrice", StringUtils.isEmpty(hospitalRecipe.getActualFee()) ?
                         BigDecimal.ZERO : new BigDecimal(hospitalRecipe.getActualFee()));
 
-                RecipeResultBean resultBean = orderService.updateOrderInfo(
-                        orderCreateResult.getOrderCode(), orderAttr, null);
-                LOG.info("createPrescription 订单更新 orderCode={}, result={}",
-                        orderCreateResult.getOrderCode(), JSONUtils.toString(resultBean));
+                try {
+                    RecipeResultBean resultBean = orderService.updateOrderInfo(
+                            orderCreateResult.getOrderCode(), orderAttr, null);
+                    LOG.info("createPrescription 订单更新 orderCode={}, result={}",
+                            orderCreateResult.getOrderCode(), JSONUtils.toString(resultBean));
+                } catch (Exception e) {
+                    LOG.warn("createPrescription 订单更新失败. recipeId={}, orderCode={}",
+                            recipeId, orderCreateResult.getOrderCode(), e);
+                    //删除处方
+                    recipeService.delRecipeForce(recipeId);
+                    result.setCode(CommonConstant.FAIL);
+                    result.setMsg("处方[" + result.getRecipeCode() + "]订单更新失败");
+                }
             } else {
                 LOG.warn("createPrescription 创建订单失败. recipeId={}, result={}",
                         recipeId, JSONUtils.toString(orderCreateResult));

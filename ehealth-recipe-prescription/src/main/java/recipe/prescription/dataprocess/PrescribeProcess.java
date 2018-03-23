@@ -79,23 +79,25 @@ public class PrescribeProcess {
                     BigDecimal.ZERO : new BigDecimal(hospitalRecipeDTO.getRecipeFee()));
 
             //处方审核信息
-            recipe.setCheckOrgan(StringUtils.isEmpty(hospitalRecipeDTO.getCheckOrgan()) ?
-                    null : Integer.parseInt(hospitalRecipeDTO.getCheckOrgan()));
-            recipe.setCheckerTel(hospitalRecipeDTO.getCheckerTel());
-            recipe.setCheckFailMemo(hospitalRecipeDTO.getCheckFailMemo());
-            recipe.setSupplementaryMemo(hospitalRecipeDTO.getSupplementaryMemo());
-            if (StringUtils.isEmpty(hospitalRecipeDTO.getCheckDate())) {
-                recipe.setCheckDate(createDate);
-                recipe.setCheckDateYs(createDate);
-            } else {
-                try {
-                    Date checkDate = DateConversion.parseDate(hospitalRecipeDTO.getCheckDate(),
-                            DateConversion.DEFAULT_DATE_TIME);
-                    recipe.setCheckDate(checkDate);
-                    recipe.setCheckDateYs(checkDate);
-                } catch (Exception e) {
+            if (StringUtils.isNotEmpty(hospitalRecipeDTO.getCheckerNumber())) {
+                recipe.setCheckOrgan(StringUtils.isEmpty(hospitalRecipeDTO.getCheckOrgan()) ?
+                        null : Integer.parseInt(hospitalRecipeDTO.getCheckOrgan()));
+                recipe.setCheckerTel(hospitalRecipeDTO.getCheckerTel());
+                recipe.setCheckFailMemo(hospitalRecipeDTO.getCheckFailMemo());
+                recipe.setSupplementaryMemo(hospitalRecipeDTO.getSupplementaryMemo());
+                if (StringUtils.isEmpty(hospitalRecipeDTO.getCheckDate())) {
                     recipe.setCheckDate(createDate);
                     recipe.setCheckDateYs(createDate);
+                } else {
+                    try {
+                        Date checkDate = DateConversion.parseDate(hospitalRecipeDTO.getCheckDate(),
+                                DateConversion.DEFAULT_DATE_TIME);
+                        recipe.setCheckDate(checkDate);
+                        recipe.setCheckDateYs(checkDate);
+                    } catch (Exception e) {
+                        recipe.setCheckDate(createDate);
+                        recipe.setCheckDateYs(createDate);
+                    }
                 }
             }
 
@@ -124,7 +126,7 @@ public class PrescribeProcess {
                     1 : Integer.parseInt(hospitalRecipeDTO.getDistributionFlag()));
             if (1 == recipe.getDistributionFlag()) {
                 recipe.setTakeMedicine(1);
-            }else{
+            } else {
                 recipe.setTakeMedicine(0);
             }
 
@@ -364,7 +366,7 @@ public class PrescribeProcess {
                 return result;
             } else {
                 Date cDate = DateConversion.parseDate(recipe.getCreateDate(), DateConversion.DEFAULT_DATE_TIME);
-                if(null == cDate){
+                if (null == cDate) {
                     //格式为 yyyy-MM-dd HH:mm:ss
                     result.setMsg("处方创建时间格式错误");
                     return result;
