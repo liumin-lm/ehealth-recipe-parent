@@ -88,7 +88,8 @@ public class PrescriptionService {
         if (CollectionUtils.isNotEmpty(medicines) && CollectionUtils.isNotEmpty(medicines.get(0).getIssues())) {
             String drugName = medicines.get(0).getIssues().get(0).getNameA();
             String detal = medicines.get(0).getIssues().get(0).getDetail().replaceAll("\r\n", "");
-            return drugName + detal;
+            String Lvl = medicines.get(0).getIssues().get(0).getLvl();
+            return Lvl+" ["+drugName + "] " + detal;
         }
 
         return null;
