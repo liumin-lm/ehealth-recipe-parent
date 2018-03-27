@@ -85,11 +85,19 @@ public class PrescriptionService {
         }
         PAWebResponse res = json.toJavaObject(PAWebResponse.class);
         List<PAWebMedicines> medicines = res.getMedicines();
-        if (CollectionUtils.isNotEmpty(medicines) && CollectionUtils.isNotEmpty(medicines.get(0).getIssues())) {
-            String drugName = medicines.get(0).getIssues().get(0).getNameA();
-            String detal = medicines.get(0).getIssues().get(0).getDetail().replaceAll("\r\n", "");
-            String Lvl = medicines.get(0).getIssues().get(0).getLvl();
-            return Lvl+" ["+drugName + "] " + detal;
+        if (CollectionUtils.isNotEmpty(medicines)) {
+            StringBuilder backStr = new StringBuilder();
+            List<Issue> issues;
+            for (PAWebMedicines medicine : medicines) {
+                String medicineName = medicine.getName();
+                issues = medicine.getIssues();
+                if (CollectionUtils.isNotEmpty(issues)) {
+                    for (Issue issue : issues) {
+                        backStr.append(issue.getLvl() + " " + medicineName + " " + issue.getDetail());
+                    }
+                }
+            }
+            return backStr.toString();
         }
 
         return null;
