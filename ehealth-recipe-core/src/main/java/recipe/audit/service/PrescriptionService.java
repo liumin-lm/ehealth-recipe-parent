@@ -93,8 +93,8 @@ public class PrescriptionService {
                 issues = medicine.getIssues();
                 if (CollectionUtils.isNotEmpty(issues)) {
                     for (Issue issue : issues) {
-                        backStr.append("*[" + issue.getLvl() + "]" + medicineName +
-                                issue.getDetail().replaceAll("\\r\\n", "")+" ");
+                        backStr.append("*[" + issue.getLvl() + "]" + medicineName + " " +
+                                issue.getDetail().replaceAll("\\r\\n", "") + " ");
                     }
                 }
             }
