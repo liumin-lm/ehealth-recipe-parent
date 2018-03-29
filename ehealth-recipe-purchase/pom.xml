@@ -5,8 +5,8 @@
     <parent>
         <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>2.0.1-SNAPSHOT</version>
-        <relativePath>2.0.1-SNAPSHOT</relativePath>
+        <version>1.1.0.release-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>ehealth-recipe-purchase</artifactId>
@@ -16,7 +16,12 @@
     <dependencies>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>ehealth-recipe-api</artifactId>
+            <artifactId>ehealth-recipe-entity</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>ehealth-recipe-dao</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>

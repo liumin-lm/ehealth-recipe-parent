@@ -8,10 +8,8 @@ import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeRollingInfoBean;
 import ctd.persistence.DAOFactory;
-import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
@@ -20,7 +18,6 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
-import recipe.bean.PatientRecipeBean;
 import recipe.bean.RecipeResultBean;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.ParameterConstant;
@@ -28,6 +25,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.dao.bean.PatientRecipeBean;
 import recipe.util.ApplicationUtils;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
@@ -424,7 +422,7 @@ public class RecipeListService {
         PatientBean patient = patientService.get(mpiId);
         if (CollectionUtils.isNotEmpty(recipes)) {
             for(Recipe recipe : recipes){
-                Map<String, Object> map = new HashMap<>();
+                Map<String, Object> map = Maps.newHashMap();
                 recipe.setRecipeDrugName(recipeDetailDAO.getDrugNamesByRecipeId(recipe.getRecipeId()));
                 recipe.setRecipeShowTime(recipe.getCreateDate());
                 boolean effective = false;

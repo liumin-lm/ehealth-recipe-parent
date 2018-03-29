@@ -44,7 +44,6 @@ public class RecipeToHisService {
         Integer recipeId = Integer.valueOf(request.getRecipeID());
         LOGGER.info("recipeSend recipeId={}, request={}", recipeId, JSONUtils.toString(request));
         try {
-
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, null);
             HisResTO resTO = hisService.recipeSend(request);
             LOGGER.info("recipeSend recipeId={}, response={}", recipeId, JSONUtils.toString(resTO));
@@ -59,7 +58,7 @@ public class RecipeToHisService {
                 LOGGER.error("recipeSend recipeId={}, 调用BASE 处方写入服务错误!", recipeId);
             }
         } catch (Exception e) {
-            LOGGER.error("recipeSend recipeId={}, error ", request.getRecipeID(), e);
+            LOGGER.error("recipeSend error. recipeId={} ", request.getRecipeID(), e);
         }
     }
 

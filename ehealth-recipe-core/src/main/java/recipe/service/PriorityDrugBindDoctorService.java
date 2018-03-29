@@ -71,6 +71,7 @@ public class PriorityDrugBindDoctorService
      * @param getPriorityDrugsTO
      * @return
      */
+    @Deprecated
     @RpcService
     public List<Map<String, Object>> getDoctorsForDishingOutDrug(GetPriorityDrugsTO getPriorityDrugsTO) {
         PriortyDrugsBindDoctorDao priortyDrugsBindDoctorDao = DAOFactory.getDAO(PriortyDrugsBindDoctorDao.class);
