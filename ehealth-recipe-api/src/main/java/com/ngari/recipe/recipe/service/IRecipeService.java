@@ -151,7 +151,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     QueryResult<Map> findRecipesByInfo(Integer organId, Integer status,
                                        Integer doctor, String mpiid, Date bDate, Date eDate, Integer dateType,
-                                       Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode);
+                                       Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode,Integer fromflag);
 
     /**
      * 运营平台使用
@@ -173,7 +173,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     Map<String, Integer> getStatisticsByStatus(Integer organId,
                                                Integer status, Integer doctor, String mpiid,
                                                Date bDate, Date eDate, Integer dateType,
-                                               Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode);
+                                               Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode,Integer fromflag);
 
     /**
      * 运营平台使用 根据电话号查询处方单
@@ -251,4 +251,29 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     HashMap<Object,Integer> getCountByHourAreaGroupByOrgan(final Date startDate, final Date endDate);
+
+    /**
+     *处方导出Excel
+     * @param organId
+     * @param status
+     * @param doctor
+     * @param patientName
+     * @param bDate
+     * @param eDate
+     * @param dateType
+     * @param depart
+     * @param organIds
+     * @param giveMode
+     * @param fromflag
+     * @return
+     */
+    @RpcService
+    List<Map> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType,
+                                               final Integer depart, List<Integer> organIds, Integer giveMode,Integer fromflag);
+
+    @RpcService
+    HashMap<Integer, Long> getCountGroupByOrgan();
+
+    @RpcService
+    HashMap<Integer, Long> getRecipeRequestCountGroupByDoctor();
 }

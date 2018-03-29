@@ -6,13 +6,14 @@
     <parent>
         <groupId>ngari</groupId>
         <artifactId>ehealth-parent</artifactId>
-        <version>1.1.0.feature5-SNAPSHOT</version>
+        <version>1.1.0.release-SNAPSHOT</version>
     </parent>
     <artifactId>ehealth-recipe-parent</artifactId>
     <name>处方</name>
     <description>处方项目</description>
     <packaging>pom</packaging>
     <modules>
+        <module>ehealth-recipe-entity</module>
         <module>ehealth-recipe-api</module>
         <module>ehealth-recipe-core</module>
         <module>ehealth-recipe-prescription</module>

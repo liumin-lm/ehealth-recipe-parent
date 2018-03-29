@@ -1,4 +1,4 @@
-package recipe.prescription.bean;
+package recipe.audit.bean;
 
 /**
  * 过敏源信息

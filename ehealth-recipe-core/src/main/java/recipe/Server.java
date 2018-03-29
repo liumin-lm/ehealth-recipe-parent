@@ -6,26 +6,27 @@ import java.io.*;
 
 /**
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  */
 public class Server {
-    @SuppressWarnings({"unused"})
+
     public static void main(String[] args) {
         ClassPathXmlApplicationContext appContext = new ClassPathXmlApplicationContext("spring.xml");
     }
 
-    private static String getString(String... args){
+    private static String getString(String... args) {
         StringBuilder sb = new StringBuilder();
         sb.append("*").append(args.length).append("\r\n");
-        for(String arg : args){
+        for (String arg : args) {
             sb.append("$").append(arg.length()).append("\r\n");
             sb.append(arg).append("\r\n");
         }
         return sb.toString();
     }
 
-    public static void initFile2(){
-        String file= "D:/360Downloads/rmo.txt";
+    public static void initFile2() {
+        String file = "D:/360Downloads/rmo.txt";
         BufferedWriter w = null;
         BufferedReader br = null;
         StringBuilder sb = new StringBuilder();
@@ -38,7 +39,7 @@ public class Server {
             while ((line = br.readLine()) != null) {
                 String[] s = line.split(",");
                 sb.setLength(0);
-                sb.append(getString(s[0],s[1],s[2]));
+                sb.append(getString(s[0], s[1], s[2]));
                 w.append(sb.toString());
 
                 System.out.println("文件内容: " + s.length);
@@ -53,7 +54,7 @@ public class Server {
             e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
-        } finally{
+        } finally {
             try {
                 w.flush();
                 w.close();

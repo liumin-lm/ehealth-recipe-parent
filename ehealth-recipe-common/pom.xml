@@ -5,14 +5,14 @@
     <parent>
         <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>1.1.0.feature5-SNAPSHOT</version>
+        <version>1.1.0.release-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>ehealth-recipe-common</artifactId>
     <packaging>jar</packaging>
-    <name>共用模块</name>
-    <description>共用模块</description>
+    <name>common</name>
+    <description>common</description>
     <build>
         <resources>
             <resource>
