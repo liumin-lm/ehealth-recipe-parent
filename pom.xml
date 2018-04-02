@@ -43,7 +43,7 @@
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-his-api</artifactId>
-            <version>0.2.6-SNAPSHOT</version>
+            <version>0.2.14</version>
         </dependency>
     </dependencies>
     <build>
