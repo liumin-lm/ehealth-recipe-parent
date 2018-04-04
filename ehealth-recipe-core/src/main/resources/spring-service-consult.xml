@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<s:beans xmlns:s="http://www.springframework.org/schema/beans"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.ngarihealth.com/schema/ssdev"
+         xsi:schemaLocation="http://www.springframework.org/schema/beans
+				http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.ngarihealth.com/schema/ssdev
+						http://www.ngarihealth.com/schema/ssdev/ssdev.xsd">
+
+
+    <!-- consult  基础项目-->
+
+    <reference interface="com.ngari.consult.common.service.IConsultService" id="consult.consultService"/>
+    <reference interface="com.ngari.consult.common.service.IConsultInfoService" id="consult.consultInfoService"/>
+    <reference interface="com.ngari.consult.message.service.IConsultMessageService" id="consult.consultMessageService"/>
+    <reference interface="com.ngari.consult.process.service.ICommonConsultService" id="consult.commonConsultService"/>
+
+
+
+
+
+</s:beans>
