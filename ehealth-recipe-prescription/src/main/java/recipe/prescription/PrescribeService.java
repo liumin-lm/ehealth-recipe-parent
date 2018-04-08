@@ -21,6 +21,7 @@ import recipe.common.ResponseUtils;
 import recipe.dao.RecipeDAO;
 import recipe.prescription.bean.HosRecipeResult;
 import recipe.prescription.bean.HospitalRecipeDTO;
+import recipe.prescription.bean.HospitalSearchQO;
 import recipe.prescription.dataprocess.PrescribeProcess;
 import recipe.util.ApplicationUtils;
 
@@ -175,5 +176,11 @@ public class PrescribeService {
         }
     }
 
+    @RpcService
+    public HosRecipeResult cancelPrescription(HospitalSearchQO searchQO){
+
+
+        return ResponseUtils.getSuccessResponse(HosRecipeResult.class);
+    }
 
 }

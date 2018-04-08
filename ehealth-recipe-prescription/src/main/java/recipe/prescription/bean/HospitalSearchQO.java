@@ -56,6 +56,11 @@ public class HospitalSearchQO implements Serializable {
      */
     private String endDate;
 
+    /**
+     * 处方编号
+     */
+    private String recipeCode;
+
     public String getOrganID() {
         return organID;
     }
