@@ -1,6 +1,7 @@
 package recipe.util;
 
 import com.ngari.base.BaseAPI;
+import com.ngari.patient.service.BasicAPI;
 import ctd.util.AppContextHolder;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,6 +29,10 @@ public class ApplicationUtils {
 
     public static <T> T getBaseService(Class<T> clazz) {
         return BaseAPI.getService(clazz);
+    }
+
+    public static <T> T getBasicService(Class<T> clazz) {
+        return BasicAPI.getService(clazz);
     }
 
     public static <T> T getRecipeService(Class<T> clazz) {

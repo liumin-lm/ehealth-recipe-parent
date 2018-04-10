@@ -40,6 +40,11 @@
             <artifactId>ehealth-base-api</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-patient-api</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
         <!--<dependency>-->
             <!--<groupId>ngari</groupId>-->
             <!--<artifactId>ehealth-consult-api</artifactId>-->
