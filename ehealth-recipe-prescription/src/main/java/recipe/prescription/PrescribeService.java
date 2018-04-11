@@ -21,6 +21,7 @@ import recipe.common.ResponseUtils;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeLogDAO;
+import recipe.prescription.bean.HosBussResult;
 import recipe.prescription.bean.HosRecipeResult;
 import recipe.prescription.bean.HospitalRecipeDTO;
 import recipe.prescription.bean.HospitalSearchQO;
@@ -61,7 +62,7 @@ public class PrescribeService {
     /**
      * 创建处方
      *
-     * @param recipeInfo
+     * @param recipeInfo 处方json格式数据
      * @return
      */
     @RpcService
@@ -181,11 +182,47 @@ public class PrescribeService {
         }
     }
 
-    @RpcService
-    public HosRecipeResult cancelPrescription(HospitalSearchQO searchQO) {
+    /**
+     * 查询处方
+     *
+     * @param searchQO 查询条件
+     * @return
+     */
+    public HosBussResult getPrescription(HospitalSearchQO searchQO) {
         if (null == searchQO || StringUtils.isEmpty(searchQO.getClinicOrgan())
                 || StringUtils.isEmpty(searchQO.getRecipeCode())) {
-            return ResponseUtils.getFailResponse(HosRecipeResult.class, "查询参数缺失");
+            return ResponseUtils.getFailResponse(HosBussResult.class, "查询参数缺失");
+        }
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+
+        Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(searchQO.getRecipeCode(),
+                Integer.parseInt(searchQO.getClinicOrgan()));
+        if (null != dbRecipe) {
+            HospitalRecipeDTO hospitalRecipeDTO = PrescribeProcess.convertHospitalRecipe(dbRecipe);
+            if (null != hospitalRecipeDTO) {
+                HosBussResult result = ResponseUtils.getSuccessResponse(HosBussResult.class);
+                result.setPrescription(hospitalRecipeDTO);
+                //TODO 物流信息设置
+                return result;
+            }
+
+            return ResponseUtils.getFailResponse(HosBussResult.class, "编号为[" + searchQO.getRecipeCode() + "]处方获取失败");
+        }
+
+        return ResponseUtils.getFailResponse(HosBussResult.class, "找不到编号为[" + searchQO.getRecipeCode() + "]处方");
+    }
+
+    /**
+     * 撤销处方
+     *
+     * @param searchQO 查询条件
+     * @return
+     */
+    @RpcService
+    public HosBussResult cancelPrescription(HospitalSearchQO searchQO) {
+        if (null == searchQO || StringUtils.isEmpty(searchQO.getClinicOrgan())
+                || StringUtils.isEmpty(searchQO.getRecipeCode())) {
+            return ResponseUtils.getFailResponse(HosBussResult.class, "查询参数缺失");
         }
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
@@ -196,15 +233,17 @@ public class PrescribeService {
             Boolean result = recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(),
                     RecipeStatusConstant.REVOKE, null);
             if (!result) {
-                return ResponseUtils.getFailResponse(HosRecipeResult.class, "编号为[" + searchQO.getRecipeCode() + "]处方更新失败");
+                return ResponseUtils.getFailResponse(HosBussResult.class, "编号为[" + searchQO.getRecipeCode() + "]处方更新失败");
             }
 
             //记录日志
             recipeLogDAO.saveRecipeLog(dbRecipe.getRecipeId(), dbRecipe.getStatus(),
                     RecipeStatusConstant.REVOKE, "医院处方撤销成功");
+            return ResponseUtils.getSuccessResponse(HosRecipeResult.class);
         }
 
-        return ResponseUtils.getFailResponse(HosRecipeResult.class, "找不到编号为[" + searchQO.getRecipeCode() + "]处方");
+        return ResponseUtils.getFailResponse(HosBussResult.class, "找不到编号为[" + searchQO.getRecipeCode() + "]处方");
     }
+
 
 }
