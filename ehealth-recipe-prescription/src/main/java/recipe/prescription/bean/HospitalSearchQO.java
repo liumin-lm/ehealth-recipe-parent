@@ -5,6 +5,7 @@ import java.io.Serializable;
 /**
  * 医院处方查询条件对象
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * date:2017/5/5.
  */
@@ -14,7 +15,12 @@ public class HospitalSearchQO implements Serializable {
     /**
      * 机构组织代码（平台约定）
      */
-    private String organID;
+    private String clinicOrgan;
+
+    /**
+     * 处方编号
+     */
+    private String recipeCode;
 
     /**
      * 卡类型（1医院就诊卡  2医保卡3 医院病历号）
@@ -56,17 +62,20 @@ public class HospitalSearchQO implements Serializable {
      */
     private String endDate;
 
-    /**
-     * 处方编号
-     */
-    private String recipeCode;
-
-    public String getOrganID() {
-        return organID;
+    public String getClinicOrgan() {
+        return clinicOrgan;
     }
 
-    public void setOrganID(String organID) {
-        this.organID = organID;
+    public void setClinicOrgan(String clinicOrgan) {
+        this.clinicOrgan = clinicOrgan;
+    }
+
+    public String getRecipeCode() {
+        return recipeCode;
+    }
+
+    public void setRecipeCode(String recipeCode) {
+        this.recipeCode = recipeCode;
     }
 
     public String getCardType() {
