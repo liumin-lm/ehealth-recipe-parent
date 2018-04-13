@@ -18,9 +18,11 @@
 
     <reference interface="com.ngari.base.address.service.IAddressService" id="eh.remoteAddressService"/>
     <reference interface="com.ngari.base.hisconfig.service.IHisConfigService" id="eh.remoteHisConfigService"/>
-    <reference interface="com.ngari.base.operationrecords.service.IOperationRecordsService" id="eh.remoteOperationRecordsService"/>
+    <reference interface="com.ngari.base.operationrecords.service.IOperationRecordsService"
+               id="eh.remoteOperationRecordsService"/>
     <reference interface="com.ngari.base.organ.service.IOrganService" id="eh.remoteOrganService"/>
-    <reference interface="com.ngari.base.searchcontent.service.ISearchContentService" id="eh.remoteSearchContentService"/>
+    <reference interface="com.ngari.base.searchcontent.service.ISearchContentService"
+               id="eh.remoteSearchContentService"/>
     <reference interface="com.ngari.base.sysparamter.service.ISysParamterService" id="eh.remoteSysParamterService"/>
     <reference interface="com.ngari.base.hisservice.service.IRecipeHisService" id="eh.remoteRecipeHisService"/>
     <reference interface="com.ngari.base.searchservice.service.ISearchService" id="eh.remoteSearchService"/>
