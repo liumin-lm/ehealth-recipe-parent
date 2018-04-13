@@ -7,8 +7,8 @@ import com.ngari.base.doctor.model.GetPriorityDrugsTO;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.employment.model.EmploymentBean;
 import com.ngari.base.employment.service.IEmploymentService;
-import com.ngari.bus.consult.model.ConsultSetBean;
-import com.ngari.bus.consult.service.IConsultService;
+import com.ngari.patient.dto.ConsultSetDTO;
+import com.ngari.patient.service.ConsultSetService;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.PriortyDrug;
 import com.ngari.recipe.entity.PriortyDrugBindDoctor;
@@ -23,7 +23,10 @@ import recipe.dao.PriortyDrugsBindDoctorDao;
 import recipe.dao.PriortyDrugsDao;
 import recipe.util.ApplicationUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 重点药品选择医生开处方(药品和医生均在数据库配置)
@@ -150,8 +153,8 @@ public class PriorityDrugBindDoctorService
         if (employment != null) {
             doctor.setDepartment(employment.getDepartment());
         }
-        IConsultService iConsultService = ApplicationUtils.getBaseService(IConsultService.class);
-        ConsultSetBean consultSet = iConsultService.getNoDisCountSet(doctorId);
+        ConsultSetService consultSetService = ApplicationUtils.getBasicService(ConsultSetService.class);
+        ConsultSetDTO consultSet = consultSetService.getNoDisCountSet(doctorId);
         docInfo.put("doctor", doctor);
         docInfo.put("consultSet", consultSet);
         docInfoList.add(docInfo);

@@ -18,6 +18,7 @@
 	<import resource="spring-service.xml" />
 	<!--<import resource="spring-redis.xml"/>-->
 	<import resource="spring-service-base.xml" />
+    <import resource="spring-service-basic.xml" />
     <import resource="spring-service-consult.xml" />
 	<import resource="spring-service-his-center.xml" />
 

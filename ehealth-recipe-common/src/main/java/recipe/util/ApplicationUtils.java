@@ -1,6 +1,7 @@
 package recipe.util;
 
 import com.ngari.base.BaseAPI;
+import com.ngari.consult.ConsultAPI;
 import com.ngari.patient.service.BasicAPI;
 import ctd.util.AppContextHolder;
 import org.apache.commons.lang3.StringUtils;
@@ -25,8 +26,6 @@ public class ApplicationUtils {
 
     private static String HIS_DOMAIN = "his";
 
-    private static String CONSULT_DOMAIN = "eh";
-
     public static <T> T getBaseService(Class<T> clazz) {
         return BaseAPI.getService(clazz);
     }
@@ -46,7 +45,7 @@ public class ApplicationUtils {
     }
 
     public static <T> T getConsultService(Class<T> clazz) {
-        return getBaseService(clazz);
+        return ConsultAPI.getService(clazz);
     }
 
     public static <T> T getService(Class<T> clazz, String serviceName) {
