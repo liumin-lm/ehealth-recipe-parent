@@ -24,8 +24,6 @@ public class ApplicationUtils {
 
     private static String RECIPE_DOMAIN = "eh";
 
-    private static String HIS_DOMAIN = "his";
-
     public static <T> T getBaseService(Class<T> clazz) {
         return BaseAPI.getService(clazz);
     }
