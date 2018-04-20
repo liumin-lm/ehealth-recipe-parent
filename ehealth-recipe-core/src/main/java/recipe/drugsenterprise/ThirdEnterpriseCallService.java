@@ -507,19 +507,19 @@ public class ThirdEnterpriseCallService {
 //            RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.UNKNOW, RecipeStatusConstant.UNKNOW, "updateRecipeInfo info=" + JSONUtils.toString(paramMap));
 //        }
 
-//        String recipeCodeStr = MapValueUtil.getString(paramMap, "recipeCode");
-//        if(StringUtils.isNotEmpty(recipeCodeStr)) {
-//            //钥世圈采用该字段协议
-//            if (recipe.getStatus().equals(RecipeStatusConstant.CHECK_PASS_YS)
-//                    || recipe.getStatus().equals(RecipeStatusConstant.WAIT_SEND)) {
-//                paramMap.put("sendDate", DateTime.now().toString(DateConversion.DEFAULT_DATE_TIME));
-//                paramMap.put("sender", "system");
-//                //执行待配送
-//                readyToSend(paramMap);
-//                //执行配送中
-//                toSend(paramMap);
-//            }
-//        }
+        String recipeCodeStr = MapValueUtil.getString(paramMap, "recipeCode");
+        if(StringUtils.isNotEmpty(recipeCodeStr)) {
+            //钥世圈采用该字段协议
+            if (recipe.getStatus().equals(RecipeStatusConstant.CHECK_PASS_YS)
+                    || recipe.getStatus().equals(RecipeStatusConstant.WAIT_SEND)) {
+                paramMap.put("sendDate", DateTime.now().toString(DateConversion.DEFAULT_DATE_TIME));
+                paramMap.put("sender", "system");
+                //执行待配送
+                readyToSend(paramMap);
+                //执行配送中
+                toSend(paramMap);
+            }
+        }
 
         backMsg.setCode(code);
         backMsg.setMsg(errorMsg);
