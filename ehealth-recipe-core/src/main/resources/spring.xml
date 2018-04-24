@@ -22,12 +22,6 @@
     <import resource="spring-service-consult.xml" />
 	<import resource="spring-service-his-center.xml" />
 
-	<bean id="dictionaryService" class="ctd.dictionary.service.DictionaryLocalService" />
-	<bean id="mvcDictionaryLoader" class="ctd.mvc.controller.support.DictionaryLoader">
-		<property name="expiresSeconds" value="15" />
-		<property name="localService" ref="dictionaryService" />
-	</bean>
-
 	<!--药企对接通用实现(国药协议)-->
 	<bean id="commonRemoteService" class="recipe.drugsenterprise.CommonRemoteService"></bean>
 
