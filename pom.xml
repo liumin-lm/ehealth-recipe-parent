@@ -6,20 +6,21 @@
     <parent>
         <groupId>ngari</groupId>
         <artifactId>ehealth-parent</artifactId>
-        <version>1.1.0.feature5-SNAPSHOT</version>
+        <version>1.1.0.release-SNAPSHOT</version>
     </parent>
     <artifactId>ehealth-recipe-parent</artifactId>
-    <version>2.0.2-SNAPSHOT</version>
     <name>处方</name>
     <description>处方项目</description>
     <packaging>pom</packaging>
     <modules>
+        <module>ehealth-recipe-entity</module>
         <module>ehealth-recipe-api</module>
         <module>ehealth-recipe-core</module>
         <module>ehealth-recipe-prescription</module>
         <module>ehealth-recipe-audit</module>
         <module>ehealth-recipe-purchase</module>
         <module>ehealth-recipe-common</module>
+        <module>ehealth-recipe-dao</module>
     </modules>
     <!--<properties>-->
         <!--<java.version>1.7</java.version>-->
@@ -32,6 +33,17 @@
             <groupId>ssdev</groupId>
             <artifactId>ssdev-mvc</artifactId>
             <version>${ssdev.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>ehealth-base-api</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>ehealth-his-api</artifactId>
+            <version>0.2.6-SNAPSHOT</version>
         </dependency>
     </dependencies>
     <build>

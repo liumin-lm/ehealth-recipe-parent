@@ -1,6 +1,5 @@
 package recipe.service;
 
-import com.ngari.base.BaseAPI;
 import com.ngari.base.doctor.model.DoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.recipe.entity.Recipe;
@@ -61,7 +60,7 @@ public class RecipePreserveService {
 
     @RpcService
     public DoctorBean getDoctorTest(Integer doctorId) {
-        IDoctorService doctorService = BaseAPI.getService(IDoctorService.class);
+        IDoctorService doctorService = ApplicationUtils.getBaseService(IDoctorService.class);
         return doctorService.getBeanByDoctorId(doctorId);
     }
 }

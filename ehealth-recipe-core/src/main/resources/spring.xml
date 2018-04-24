@@ -47,7 +47,7 @@
 		<property name="queueCapacity" value="100" />
 	</bean>
 
-	<bean class="recipe.prescription.bean.PrescriptionConstants" id="prescriptionConstants">
+	<bean class="recipe.audit.bean.PrescriptionConstants" id="prescriptionConstants">
 		<property name="TargetNamespace" value="http://121.43.189.212:820/PAWebService.asmx"/>
 		<property name="NAMESPACE" value="WinningPAWebservice"/>
 	</bean>
