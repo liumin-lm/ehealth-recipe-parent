@@ -3,15 +3,19 @@ package recipe.dao;
 import com.ngari.recipe.entity.RecipeLog;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcSupportDAO;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.joda.time.DateTime;
 
 import java.util.List;
 
 /**
  * 处方流程记录
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * @date:2016/4/29.
  */
@@ -27,12 +31,26 @@ public abstract class RecipeLogDAO extends HibernateSupportDelegateDAO<RecipeLog
     }
 
     public boolean saveRecipeLog(RecipeLog log) {
+        log.setMemo(StringUtils.defaultString(log.getMemo(), ""));
+        log.setExpand(StringUtils.defaultString(log.getExpand(), ""));
+        LOGGER.info("saveRecipeLog : " + JSONUtils.toString(log));
         save(log);
         return true;
     }
 
+    public void saveRecipeLog(Integer recipeId, Integer beforeStatus, Integer afterStatus, String memo) {
+        RecipeLog recipeLog = new RecipeLog();
+        recipeLog.setRecipeId(recipeId);
+        recipeLog.setModifyDate(DateTime.now().toDate());
+        recipeLog.setBeforeStatus(beforeStatus);
+        recipeLog.setAfterStatus(afterStatus);
+        recipeLog.setMemo(memo);
+        saveRecipeLog(recipeLog);
+    }
+
     /**
      * 根据处方id查询
+     *
      * @param recipeId
      * @return
      */

@@ -17,9 +17,9 @@ import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.payment.model.PaymentBean;
 import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.sysparamter.service.ISysParamterService;
-import com.ngari.bus.consult.model.ConsultSetBean;
-import com.ngari.bus.consult.service.IConsultService;
 import com.ngari.his.recipe.mode.DrugInfoTO;
+import com.ngari.patient.dto.ConsultSetDTO;
+import com.ngari.patient.service.ConsultSetService;
 import com.ngari.recipe.entity.*;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -45,7 +45,9 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateRecipeStatusFromHisCallable;
-import recipe.util.*;
+import recipe.util.ApplicationUtils;
+import recipe.util.DateConversion;
+import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -53,6 +55,7 @@ import java.util.*;
 /**
  * 处方服务类
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * @date:2016/4/27.
  */
@@ -115,7 +118,7 @@ public class RecipeService {
     @RpcService
     public Map<String, Object> openRecipeOrNot(Integer doctorId) {
         IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
-        IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
+        ConsultSetService consultSetService = ApplicationUtils.getBasicService(ConsultSetService.class);
 
         Boolean canCreateRecipe = false;
         String tips = "";
@@ -137,7 +140,7 @@ public class RecipeService {
         //能否开医保处方
         boolean medicalFlag = false;
         if (canCreateRecipe) {
-            ConsultSetBean set = iConsultService.getSetByDoctorId(doctorId);
+            ConsultSetDTO set = consultSetService.getBeanByDoctorId(doctorId);
             if (null != set && null != set.getMedicarePrescription()) {
                 medicalFlag = (true == set.getMedicarePrescription()) ? true : false;
             }
@@ -678,7 +681,7 @@ public class RecipeService {
         //药企库存实时查询
         RecipePatientService recipePatientService = ApplicationUtils.getRecipeService(RecipePatientService.class);
         RecipeResultBean recipeResultBean = recipePatientService.findSupportDepList(0, Arrays.asList(recipeId));
-        if(RecipeResultBean.FAIL.equals(recipeResultBean.getCode())){
+        if (RecipeResultBean.FAIL.equals(recipeResultBean.getCode())) {
             LOGGER.error("doSignRecipe scanStock enterprise error. result={} ", JSONUtils.toString(recipeResultBean));
 //            throw new DAOException(ErrorCode.SERVICE_ERROR, "很抱歉，当前库存不足无法开处方，请联系客服：" +
 //                    iSysParamterService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
@@ -686,7 +689,7 @@ public class RecipeService {
             rMap.put("recipeId", recipeId);
             //错误信息弹出框，只有 确定  按钮
             rMap.put("errorFlag", true);
-            rMap.put("msg", "很抱歉，当前库存不足无法开处方，请联系客服："+
+            rMap.put("msg", "很抱歉，当前库存不足无法开处方，请联系客服：" +
                     iSysParamterService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
             return rMap;
         }
@@ -983,7 +986,7 @@ public class RecipeService {
      * 定时任务:同步HIS医院药品信息
      */
     @RpcService
-    public void drugInfoSynTask(){
+    public void drugInfoSynTask() {
         drugInfoSynTaskExt(null);
     }
 
@@ -1018,7 +1021,7 @@ public class RecipeService {
                         }
 
 //                        if (CollectionUtils.isNotEmpty(unuseDrugs)) {
-                            //暂时不启用自动修改
+                        //暂时不启用自动修改
 //                            organDrugListDAO.updateStatusByOrganDrugCode(unuseDrugs, 0);
 //                        }
                         startIndex += 100;
