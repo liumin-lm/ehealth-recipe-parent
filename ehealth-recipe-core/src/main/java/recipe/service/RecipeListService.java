@@ -6,12 +6,17 @@ import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.sysparamter.service.ISysParamterService;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.PatientService;
+import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.RecipeRollingInfoBean;
+import com.ngari.recipe.recipe.service.IRecipeService;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.entity.mpi.Patient;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -446,4 +451,20 @@ public class RecipeListService {
         return list;
     }
 
+    /**
+     * 获取医生开过处方的历史患者列表
+     * @param doctorId
+     * @param start
+     * @return
+     */
+    @RpcService
+    public List<PatientDTO> findHistoryPatientsFromRecipeByDoctor(Integer doctorId, int start, int limit) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        final List<String> mpiList = recipeDAO.findHistoryMpiIdsByDoctorId(doctorId, start, limit);
+        if (mpiList.size() == 0) {
+            return new ArrayList<>();
+        }
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        return patientService.getPatients(mpiList,doctorId);
+    }
 }
