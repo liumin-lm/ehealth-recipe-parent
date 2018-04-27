@@ -1033,6 +1033,9 @@ public class ThirdEnterpriseCallService {
         drugsEnterprise.setSort(100);
         //默认添加的药企当作测试药企处理
         drugsEnterprise.setCallSys("test");
+        Date now = DateTime.now().toDate();
+        drugsEnterprise.setCreateDate(now);
+        drugsEnterprise.setLastModify(now);
         DrugsEnterprise newDrugsEnterprise = drugsEnterpriseDAO.save(drugsEnterprise);
         return newDrugsEnterprise;
     }
