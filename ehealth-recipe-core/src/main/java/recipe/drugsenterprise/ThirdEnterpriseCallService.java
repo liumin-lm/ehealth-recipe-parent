@@ -1031,6 +1031,8 @@ public class ThirdEnterpriseCallService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "DrugsEnterprise exist!");
         }
         drugsEnterprise.setSort(100);
+        //默认添加的药企当作测试药企处理
+        drugsEnterprise.setCallSys("test");
         DrugsEnterprise newDrugsEnterprise = drugsEnterpriseDAO.save(drugsEnterprise);
         return newDrugsEnterprise;
     }
