@@ -382,6 +382,7 @@ public class RecipeOrderService extends RecipeBaseService {
             }
         }
         //设置处方总费用
+        //TODO 药企是需要自己结算费用的，需要重新设置
         BigDecimal recipeFee = BigDecimal.ZERO;
         for (Recipe recipe : recipeList) {
             if (null != recipe) {

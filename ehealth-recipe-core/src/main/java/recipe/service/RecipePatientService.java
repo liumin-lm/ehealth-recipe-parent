@@ -184,6 +184,9 @@ public class RecipePatientService extends RecipeBaseService {
         DepDetailBean depDetailBean = new DepDetailBean();
         depDetailBean.setDepId(dep.getId());
         depDetailBean.setDepName(dep.getName());
+
+        //TODO 如果是价格自定义的药企，则需要设置单独价格
+
         depDetailBean.setRecipeFee(totalMoney);
         Integer supportMode = dep.getPayModeSupport();
         String giveModeText = "";
