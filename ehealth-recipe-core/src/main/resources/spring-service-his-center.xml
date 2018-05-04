@@ -6,6 +6,6 @@
 						http://www.ngarihealth.com/schema/ssdev
 						http://www.ngarihealth.com/schema/ssdev/ssdev.xsd">
 
-    <reference interface="com.ngari.his.recipe.service.IRecipeHisService" id="his.iRecipeHisService" />
+    <reference interface="com.ngari.his.recipe.service.IRecipeHisService" id="his.iRecipeHisService"/>
 
 </s:beans>

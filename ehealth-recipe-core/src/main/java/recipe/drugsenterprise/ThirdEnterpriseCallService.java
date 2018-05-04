@@ -507,6 +507,20 @@ public class ThirdEnterpriseCallService {
 //            RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.UNKNOW, RecipeStatusConstant.UNKNOW, "updateRecipeInfo info=" + JSONUtils.toString(paramMap));
 //        }
 
+        String recipeCodeStr = MapValueUtil.getString(paramMap, "recipeCode");
+        if(StringUtils.isNotEmpty(recipeCodeStr)) {
+            //钥世圈采用该字段协议
+            if (recipe.getStatus().equals(RecipeStatusConstant.CHECK_PASS_YS)
+                    || recipe.getStatus().equals(RecipeStatusConstant.WAIT_SEND)) {
+                paramMap.put("sendDate", DateTime.now().toString(DateConversion.DEFAULT_DATE_TIME));
+                paramMap.put("sender", "system");
+                //执行待配送
+                readyToSend(paramMap);
+                //执行配送中
+                toSend(paramMap);
+            }
+        }
+
         backMsg.setCode(code);
         backMsg.setMsg(errorMsg);
         backMsg.setRecipe(null);
@@ -1017,6 +1031,11 @@ public class ThirdEnterpriseCallService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "DrugsEnterprise exist!");
         }
         drugsEnterprise.setSort(100);
+        //默认添加的药企当作测试药企处理
+        drugsEnterprise.setCallSys("test");
+        Date now = DateTime.now().toDate();
+        drugsEnterprise.setCreateDate(now);
+        drugsEnterprise.setLastModify(now);
         DrugsEnterprise newDrugsEnterprise = drugsEnterpriseDAO.save(drugsEnterprise);
         return newDrugsEnterprise;
     }

@@ -6,12 +6,17 @@ import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.sysparamter.service.ISysParamterService;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.PatientService;
+import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.RecipeRollingInfoBean;
+import com.ngari.recipe.recipe.service.IRecipeService;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.entity.mpi.Patient;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -32,9 +37,13 @@ import recipe.util.MapValueUtil;
 
 import java.util.*;
 
+import static recipe.service.RecipeServiceSub.convertPatientForRAP;
+import static recipe.service.RecipeServiceSub.convertRecipeForRAP;
+
 /**
  * 处方业务一些列表查询
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * @date:2017/2/13.
  */
@@ -87,7 +96,7 @@ public class RecipeListService {
                 }
                 Map<String, String> tipMap = RecipeServiceSub.getTipsByStatus(recipe.getStatus(), recipe, effective);
                 recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
-                recipeMap.put(recipe.getRecipeId(), RecipeServiceSub.convertRecipeForRAP(recipe));
+                recipeMap.put(recipe.getRecipeId(), convertRecipeForRAP(recipe));
             }
 
             Map<String, PatientBean> patientMap = Maps.newHashMap();
@@ -97,7 +106,7 @@ public class RecipeListService {
                     for (PatientBean patient : patientList) {
                         //设置患者数据
                         RecipeServiceSub.setPatientMoreInfo(patient, doctorId);
-                        patientMap.put(patient.getMpiId(), RecipeServiceSub.convertPatientForRAP(patient));
+                        patientMap.put(patient.getMpiId(), convertPatientForRAP(patient));
                     }
                 }
             }
@@ -404,6 +413,7 @@ public class RecipeListService {
 
     /**
      * 查找指定医生和患者间开的处方单列表
+     *
      * @param doctorId
      * @param mpiId
      * @param start
@@ -411,17 +421,17 @@ public class RecipeListService {
      * @return
      */
     @RpcService
-    public List<Map<String,Object>> findRecipeListByDoctorAndPatient(Integer doctorId, String mpiId, int start, int limit) {
+    public List<Map<String, Object>> findRecipeListByDoctorAndPatient(Integer doctorId, String mpiId, int start, int limit) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         IPatientService patientService = ApplicationUtils.getBaseService(IPatientService.class);
 
-        List<Map<String,Object>> list = new ArrayList<>();
-        List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId,mpiId,start,limit);
-        PatientBean patient = patientService.get(mpiId);
+        List<Map<String, Object>> list = new ArrayList<>();
+        List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId, mpiId, start, limit);
+        PatientBean patient = RecipeServiceSub.convertPatientForRAP(patientService.get(mpiId));
         if (CollectionUtils.isNotEmpty(recipes)) {
-            for(Recipe recipe : recipes){
+            for (Recipe recipe : recipes) {
                 Map<String, Object> map = Maps.newHashMap();
                 recipe.setRecipeDrugName(recipeDetailDAO.getDrugNamesByRecipeId(recipe.getRecipeId()));
                 recipe.setRecipeShowTime(recipe.getCreateDate());
@@ -432,8 +442,7 @@ public class RecipeListService {
                 }
                 Map<String, String> tipMap = RecipeServiceSub.getTipsByStatus(recipe.getStatus(), recipe, effective);
                 recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
-
-                map.put("recipe", recipe);
+                map.put("recipe", RecipeServiceSub.convertRecipeForRAP(recipe));
                 map.put("patient", patient);
                 list.add(map);
             }
@@ -442,4 +451,20 @@ public class RecipeListService {
         return list;
     }
 
+    /**
+     * 获取医生开过处方的历史患者列表
+     * @param doctorId
+     * @param start
+     * @return
+     */
+    @RpcService
+    public List<PatientDTO> findHistoryPatientsFromRecipeByDoctor(Integer doctorId, int start, int limit) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        final List<String> mpiList = recipeDAO.findHistoryMpiIdsByDoctorId(doctorId, start, limit);
+        if (mpiList.size() == 0) {
+            return new ArrayList<>();
+        }
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        return patientService.getPatients(mpiList,doctorId);
+    }
 }

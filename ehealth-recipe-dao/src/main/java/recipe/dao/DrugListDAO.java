@@ -7,9 +7,8 @@ import com.ngari.base.searchservice.service.ISearchService;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.OrganDrugList;
 import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import ctd.dictionary.DictionaryItem;
-import ctd.dictionary.service.DictionaryLocalService;
-import ctd.dictionary.service.DictionarySliceRecordSet;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -20,7 +19,6 @@ import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResu
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.persistence.support.impl.dictionary.DBDictionaryItemLoader;
-import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcService;
 import ctd.util.annotation.RpcSupportDAO;
@@ -448,14 +446,10 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
      */
     @RpcService
     public List<DictionaryItem> getDrugClass(String parentKey, int sliceType) {
-        DictionaryLocalService ser = AppContextHolder.getBean("dictionaryService", DictionaryLocalService.class);
         List<DictionaryItem> list = new ArrayList<DictionaryItem>();
         try {
-            DictionarySliceRecordSet var = ser.getSlice(
-                    "eh.base.dictionary.DrugClass", parentKey, sliceType, "",
-                    0, 1000);
-            list = var.getItems();
-
+            list = DictionaryController.instance().get("eh.base.dictionary.DrugClass")
+                    .getSlice(parentKey, sliceType, "");
         } catch (ControllerException e) {
             LOGGER.error("getDrugClass() error : " + e);
         }

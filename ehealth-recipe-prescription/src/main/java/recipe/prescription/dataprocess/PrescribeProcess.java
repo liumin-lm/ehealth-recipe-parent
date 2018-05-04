@@ -1,10 +1,7 @@
 package recipe.prescription.dataprocess;
 
 import com.google.common.collect.Maps;
-import com.ngari.recipe.entity.DrugList;
-import com.ngari.recipe.entity.OrganDrugList;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -18,6 +15,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
+import recipe.dao.RecipeOrderDAO;
 import recipe.prescription.PrescribeService;
 import recipe.prescription.bean.HosRecipeResult;
 import recipe.prescription.bean.HospitalDrugDTO;
@@ -312,6 +310,46 @@ public class PrescribeProcess {
 //
 //        return patient;
 //    }
+
+
+    /**
+     * 将平台处方转成医院处方格式
+     * @param dbRecipe
+     * @return
+     */
+    public static HospitalRecipeDTO convertHospitalRecipe(Recipe dbRecipe){
+        HospitalRecipeDTO hospitalRecipeDTO = new HospitalRecipeDTO();
+        hospitalRecipeDTO.setStatus(dbRecipe.getStatus().toString());
+        hospitalRecipeDTO.setPatientName(dbRecipe.getPatientName());
+        hospitalRecipeDTO.setDoctorName(dbRecipe.getDoctorName());
+        hospitalRecipeDTO.setRecipeCode(dbRecipe.getRecipeCode());
+        hospitalRecipeDTO.setOrganDiseaseId(dbRecipe.getOrganDiseaseId());
+        hospitalRecipeDTO.setOrganDiseaseName(dbRecipe.getOrganDiseaseName());
+        hospitalRecipeDTO.setPatientNumber(dbRecipe.getPatientID());
+        hospitalRecipeDTO.setRecipeType(dbRecipe.getRecipeType().toString());
+        hospitalRecipeDTO.setMemo(dbRecipe.getMemo());
+        hospitalRecipeDTO.setRecipeMemo(dbRecipe.getRecipeMemo());
+
+        //订单信息
+        if(StringUtils.isNotEmpty(dbRecipe.getRecipeCode())) {
+            RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+            RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
+            if(null != order){
+                hospitalRecipeDTO.setActualFee(order.getActualPrice().toString());
+                hospitalRecipeDTO.setCouponFee(order.getCouponFee().toPlainString());
+                hospitalRecipeDTO.setDecoctionFee(order.getDecoctionFee().toPlainString());
+                hospitalRecipeDTO.setExpressFee(order.getExpressFee().toPlainString());
+                hospitalRecipeDTO.setOrderTotalFee(order.getTotalFee().toPlainString());
+                hospitalRecipeDTO.setMedicalFee("0");
+                hospitalRecipeDTO.setRecipeFee(order.getRecipeFee().toPlainString());
+
+            }
+
+        }
+
+        return hospitalRecipeDTO;
+    }
+
 
     /**
      * 校验医院处方信息

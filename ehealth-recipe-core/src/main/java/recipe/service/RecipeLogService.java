@@ -46,7 +46,7 @@ public class RecipeLogService {
         }
         log.setMemo(StringUtils.defaultString(log.getMemo(), ""));
         log.setExpand(StringUtils.defaultString(log.getExpand(), ""));
-        LOGGER.info("saveRecipeLog : " + JSONUtils.toString(log));
+//        LOGGER.info("saveRecipeLog : " + JSONUtils.toString(log));
         dao.saveRecipeLog(log);
     }
 

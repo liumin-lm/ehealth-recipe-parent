@@ -14,10 +14,12 @@ import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.sysparamter.service.ISysParamterService;
-import com.ngari.bus.consult.model.ConsultBean;
-import com.ngari.bus.consult.model.ConsultSetBean;
-import com.ngari.bus.consult.model.RecipeTagMsgBean;
-import com.ngari.bus.consult.service.IConsultService;
+import com.ngari.consult.ConsultBean;
+import com.ngari.consult.common.service.IConsultService;
+import com.ngari.consult.message.model.RecipeTagMsgBean;
+import com.ngari.consult.message.service.IConsultMessageService;
+import com.ngari.patient.dto.ConsultSetDTO;
+import com.ngari.patient.service.ConsultSetService;
 import com.ngari.recipe.entity.*;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
@@ -33,7 +35,10 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.constant.*;
 import recipe.dao.*;
-import recipe.util.*;
+import recipe.util.ApplicationUtils;
+import recipe.util.DateConversion;
+import recipe.util.LocalStringUtil;
+import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -42,6 +47,7 @@ import java.util.*;
 
 /**
  * 供recipeService调用
+ *
  * @author liuya
  */
 public class RecipeServiceSub {
@@ -74,7 +80,7 @@ public class RecipeServiceSub {
 
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         IOperationRecordsService iOperationRecordsService = ApplicationUtils.getBaseService(IOperationRecordsService.class);
-        if(null == recipe){
+        if (null == recipe) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipe is required!");
         }
         RecipeValidateUtil.validateSaveRecipeData(recipe);
@@ -195,7 +201,7 @@ public class RecipeServiceSub {
                         //外带药和处方药混合开具是不允许的
                         LOGGER.error("setDetailsInfo 存在外带药且混合开具. recipeId=[{}], drugIds={}, 外带药={}", recipe.getRecipeId(),
                                 JSONUtils.toString(drugIds), errorDrugName);
-                        throw new DAOException(ErrorCode.SERVICE_ERROR, errorDrugName+"不能开具在一张处方上");
+                        throw new DAOException(ErrorCode.SERVICE_ERROR, errorDrugName + "不能开具在一张处方上");
                     } else {
                         //外带处方， 同时也设置成只能配送处方
                         recipe.setTakeMedicine(1);
@@ -207,39 +213,39 @@ public class RecipeServiceSub {
                 Map<Integer, List<String>> drugDepRel = saleDrugListDAO.findDrugDepRelation(drugIds);
                 //无法配送药品校验
                 List<String> noFilterDrugName = new ArrayList<>();
-                for(Integer drugId : drugIds){
-                    if(CollectionUtils.isEmpty(drugDepRel.get(drugId))){
+                for (Integer drugId : drugIds) {
+                    if (CollectionUtils.isEmpty(drugDepRel.get(drugId))) {
                         noFilterDrugName.add(drugListMap.get(drugId).getDrugName());
                     }
                 }
-                if(CollectionUtils.isNotEmpty(noFilterDrugName)){
+                if (CollectionUtils.isNotEmpty(noFilterDrugName)) {
                     LOGGER.error("setDetailsInfo 存在无法配送的药品. recipeId=[{}], drugIds={}, noFilterDrugName={}",
                             recipe.getRecipeId(), JSONUtils.toString(drugIds), JSONUtils.toString(noFilterDrugName));
-                    throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(noFilterDrugName)+"无法配送！");
+                    throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(noFilterDrugName) + "无法配送！");
                 }
 
                 noFilterDrugName.clear();
                 List<String> firstDrugDepIds = drugDepRel.get(drugIds.get(0));
-                for(Integer drugId : drugDepRel.keySet()){
+                for (Integer drugId : drugDepRel.keySet()) {
                     List<String> depIds = drugDepRel.get(drugId);
                     boolean filterFlag = false;
-                    for(String depId : depIds){
+                    for (String depId : depIds) {
                         //匹配到一个药企相同则可跳过
-                        if(firstDrugDepIds.contains(depId)){
+                        if (firstDrugDepIds.contains(depId)) {
                             filterFlag = true;
                             break;
                         }
                     }
-                    if(!filterFlag){
+                    if (!filterFlag) {
                         noFilterDrugName.add(drugListMap.get(drugId).getDrugName());
-                    }else{
+                    } else {
                         firstDrugDepIds.retainAll(depIds);
                     }
                 }
-                if(CollectionUtils.isNotEmpty(noFilterDrugName)){
+                if (CollectionUtils.isNotEmpty(noFilterDrugName)) {
                     LOGGER.error("setDetailsInfo 存在无法一起配送的药品. recipeId=[{}], drugIds={}, noFilterDrugName={}",
                             recipe.getRecipeId(), JSONUtils.toString(drugIds), JSONUtils.toString(noFilterDrugName));
-                    throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(noFilterDrugName)+"不能开具在一张处方上！");
+                    throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(noFilterDrugName) + "不能开具在一张处方上！");
                 }
 
                 for (Recipedetail detail : recipedetails) {
@@ -720,8 +726,8 @@ public class RecipeServiceSub {
         p.setPatientSex(patient.getPatientSex());
         p.setBirthday(patient.getBirthday());
         p.setPatientType(patient.getPatientType());
-        p.setIdcard(patient.getCertificate());
-        p.setMobile(patient.getMobile());
+//        p.setIdcard(patient.getCertificate());
+//        p.setMobile(patient.getMobile());
         p.setMpiId(patient.getMpiId());
         p.setPhoto(patient.getPhoto());
         p.setSignFlag(patient.getSignFlag());
@@ -781,7 +787,7 @@ public class RecipeServiceSub {
         map.put("patient", patient);
         map.put("recipedetails", recipedetails);
         if (isDoctor) {
-            IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
+            ConsultSetService consultSetService = ApplicationUtils.getBasicService(ConsultSetService.class);
             IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
 
             // 获取处方单药品总价
@@ -811,7 +817,7 @@ public class RecipeServiceSub {
             map.put("cancelFlag", cancelFlag);
             //能否开医保处方
             boolean medicalFlag = false;
-            ConsultSetBean set = iConsultService.getSetByDoctorId(recipe.getDoctor());
+            ConsultSetDTO set = consultSetService.getBeanByDoctorId(recipe.getDoctor());
             if (null != set && null != set.getMedicarePrescription()) {
                 medicalFlag = (true == set.getMedicarePrescription()) ? true : false;
             }
@@ -1021,12 +1027,12 @@ public class RecipeServiceSub {
         String recipeGetModeTip = "";
         // 该处方不是只能配送处方，可以显示 到院取药 的文案
         if (1 != recipe.getChooseFlag() && !Integer.valueOf(1).equals(recipe.getDistributionFlag())) {
-            String organName = StringUtils.isEmpty(recipe.getOrganName())?"医院":recipe.getOrganName();
+            String organName = StringUtils.isEmpty(recipe.getOrganName()) ? "医院" : recipe.getOrganName();
             // 邵逸夫特殊处理院区
-            if(1 == recipe.getClinicOrgan()){
+            if (1 == recipe.getClinicOrgan()) {
                 organName = "浙大附属邵逸夫医院庆春院区";
             }
-            recipeGetModeTip = iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_GETMODE_TIP,null);
+            recipeGetModeTip = iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_GETMODE_TIP, null);
             recipeGetModeTip = LocalStringUtil.processTemplate(recipeGetModeTip, ImmutableMap.of("orgName", organName));
         }
         return recipeGetModeTip;
@@ -1089,10 +1095,11 @@ public class RecipeServiceSub {
 
     /**
      * 往咨询界面发送处方卡片
+     *
      * @param recipe
      * @param details
      * @param rMap
-     * @param send true:发送卡片
+     * @param send    true:发送卡片
      */
     public static void sendRecipeTagToPatient(Recipe recipe, List<Recipedetail> details,
                                               Map<String, Object> rMap, boolean send) {
@@ -1102,7 +1109,7 @@ public class RecipeServiceSub {
         //由于就诊人改造，已经可以知道申请人的信息，所以可以直接往当前咨询发消息
         if (StringUtils.isNotEmpty(recipe.getRequestMpiId()) && null != recipe.getDoctor()) {
             sendRecipeMsgTag(recipe.getRequestMpiId(), recipe.getDoctor(), recipeTagMsg, rMap, send);
-        }else if (StringUtils.isNotEmpty(recipe.getMpiid()) && null != recipe.getDoctor()) {
+        } else if (StringUtils.isNotEmpty(recipe.getMpiid()) && null != recipe.getDoctor()) {
             //处方的患者编号在咨询单里其实是就诊人编号，不是申请人编号
             List<String> requestMpiIds = iConsultService.findPendingConsultByMpiIdAndDoctor(recipe.getMpiid(),
                     recipe.getDoctor());
@@ -1115,13 +1122,14 @@ public class RecipeServiceSub {
     }
 
     private static void sendRecipeMsgTag(String requestMpiId, int doctorId, RecipeTagMsgBean recipeTagMsg,
-                                         Map<String, Object> rMap, boolean send){
+                                         Map<String, Object> rMap, boolean send) {
         IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
+        IConsultMessageService iConsultMessageService = ApplicationUtils.getConsultService(IConsultMessageService.class);
 
         //根据申请人mpiid，requestMode 获取当前咨询单consultId
         Integer consultId = null;
         List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(requestMpiId,
-                                        doctorId, RecipeSystemConstant.CONSULT_TYPE_RECIPE);
+                doctorId, RecipeSystemConstant.CONSULT_TYPE_RECIPE);
         if (CollectionUtils.isNotEmpty(consultIds)) {
             consultId = consultIds.get(0);
         }
@@ -1130,7 +1138,7 @@ public class RecipeServiceSub {
                 rMap.put("consultId", consultId);
             }
 
-            if(send) {
+            if (send) {
                 ConsultBean consultBean = iConsultService.get(consultId);
                 if (consultBean != null) {
                     //判断咨询单状态是否为处理中
@@ -1142,7 +1150,7 @@ public class RecipeServiceSub {
                         }
                         LOGGER.info("sendRecipeMsgTag recipeTagMsg={}", JSONUtils.toString(recipeTagMsg));
                         //将消息存入数据库consult_msg，并发送环信消息
-                        iConsultService.handleRecipeMsg(consultBean, recipeTagMsg);
+                        iConsultMessageService.handleRecipeMsg(consultBean, recipeTagMsg);
                     }
                 }
             }
@@ -1151,11 +1159,12 @@ public class RecipeServiceSub {
 
     /**
      * 获取处方卡片信息
+     *
      * @param recipe
      * @param details
      * @return
      */
-    private static RecipeTagMsgBean getRecipeMsgTag(Recipe recipe, List<Recipedetail> details){
+    private static RecipeTagMsgBean getRecipeMsgTag(Recipe recipe, List<Recipedetail> details) {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
 
         //获取诊断疾病名称
