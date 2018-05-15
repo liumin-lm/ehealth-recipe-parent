@@ -119,6 +119,8 @@ public class RecipePatientService extends RecipeBaseService {
 
             //判断是否需要展示供应商详情列表，如果遇上钥世圈的药企，则都展示供应商列表
             List<DepDetailBean> depDetailList = new ArrayList<>();
+            //有些药企数据配置有问题，需要从列表中去掉
+            List<DrugsEnterprise> delDep = Lists.newArrayList();
             for (DrugsEnterprise dep : depList) {
                 //钥世圈需要从接口获取支持药店列表
                 if (DrugEnterpriseConstant.COMPANY_YSQ.equals(dep.getCallSys())) {
@@ -156,6 +158,8 @@ public class RecipePatientService extends RecipeBaseService {
                             } catch (Exception e) {
                                 LOGGER.warn("findSupportDepList 重新计算药企ID为[{}]的结算价格出错. drugIds={}", dep.getId(),
                                         JSONUtils.toString(drugIds), e);
+                                //此处应该要把出错的药企从返回列表中剔除
+                                delDep.add(dep);
                                 continue;
                             }
 
@@ -176,6 +180,10 @@ public class RecipePatientService extends RecipeBaseService {
                     depListBean.setSigle(false);
                     break;
                 }
+            }
+
+            if(CollectionUtils.isNotEmpty(delDep)) {
+                depList.removeAll(delDep);
             }
 
             //有可能钥世圈支持配送，实际从接口处没有获取到药店
