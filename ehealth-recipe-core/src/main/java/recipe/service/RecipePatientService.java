@@ -37,6 +37,7 @@ import java.util.Map;
 /**
  * 患者端服务
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * @date:2017/6/30.
  */
@@ -95,6 +96,27 @@ public class RecipePatientService extends RecipeBaseService {
                 return resultBean;
             }
 
+            //该详情数据包含了所有处方的详情，可能存在同一种药品数据
+            List<Recipedetail> details = detailDAO.findByRecipeIds(recipeIds);
+            List<Recipedetail> backDetails = new ArrayList<>(details.size());
+            Map<Integer, Double> drugIdCountRel = Maps.newHashMap();
+            Recipedetail backDetail;
+            for (Recipedetail recipedetail : details) {
+                Integer drugId = recipedetail.getDrugId();
+                if (drugIdCountRel.containsKey(drugId)) {
+                    drugIdCountRel.put(drugId, drugIdCountRel.get(recipedetail.getDrugId()) + recipedetail.getUseTotalDose());
+                } else {
+                    backDetail = new Recipedetail();
+                    backDetail.setDrugId(recipedetail.getDrugId());
+                    backDetail.setDrugName(recipedetail.getDrugName());
+                    backDetail.setDrugUnit(recipedetail.getDrugUnit());
+                    backDetail.setDrugSpec(recipedetail.getDrugSpec());
+                    backDetail.setUseDoseUnit(recipedetail.getUseDoseUnit());
+                    backDetails.add(backDetail);
+                    drugIdCountRel.put(drugId, recipedetail.getUseTotalDose());
+                }
+            }
+
             //判断是否需要展示供应商详情列表，如果遇上钥世圈的药企，则都展示供应商列表
             List<DepDetailBean> depDetailList = new ArrayList<>();
             for (DrugsEnterprise dep : depList) {
@@ -116,6 +138,37 @@ public class RecipePatientService extends RecipeBaseService {
                     }
                 } else {
                     parseDrugsEnterprise(dep, totalMoney, depDetailList);
+                    //如果是价格自定义的药企，则需要设置单独价格
+                    SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+                    List<Integer> drugIds = Lists.newArrayList(drugIdCountRel.keySet());
+                    if (Integer.valueOf(0).equals(dep.getSettlementMode()) &&
+                            (RecipeBussConstant.DEP_SUPPORT_ONLINE.equals(dep.getPayModeSupport())
+                                    || RecipeBussConstant.DEP_SUPPORT_ALL.equals(dep.getPayModeSupport()))) {
+                        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(dep.getId(), drugIds);
+                        if (CollectionUtils.isNotEmpty(saleDrugLists)) {
+                            BigDecimal total = BigDecimal.ZERO;
+                            try {
+                                for (SaleDrugList saleDrug : saleDrugLists) {
+                                    //保留3位小数
+                                    total = total.add(saleDrug.getPrice().multiply(new BigDecimal(drugIdCountRel.get(saleDrug.getDrugId())))
+                                            .divide(BigDecimal.ONE, 3, RoundingMode.UP));
+                                }
+                            } catch (Exception e) {
+                                LOGGER.warn("findSupportDepList 重新计算药企ID为[{}]的结算价格出错. drugIds={}", dep.getId(),
+                                        JSONUtils.toString(drugIds), e);
+                                continue;
+                            }
+
+                            //重置药企处方价格
+                            for (DepDetailBean depDetailBean : depDetailList) {
+                                if (depDetailBean.getDepId().equals(dep.getId())) {
+                                    depDetailBean.setRecipeFee(total);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
                 }
 
                 //只是查询的话减少处理量
@@ -144,26 +197,6 @@ public class RecipePatientService extends RecipeBaseService {
                 depListBean.setSigle(false);
             }
 
-            //该详情数据包含了所有处方的详情，可能存在同一种药品数据
-            List<Recipedetail> details = detailDAO.findByRecipeIds(recipeIds);
-            List<Recipedetail> backDetails = new ArrayList<>(details.size());
-            Map<Integer, Double> drugIdCountRel = Maps.newHashMap();
-            Recipedetail backDetail;
-            for (Recipedetail recipedetail : details) {
-                Integer drugId = recipedetail.getDrugId();
-                if (drugIdCountRel.containsKey(drugId)) {
-                    drugIdCountRel.put(drugId, drugIdCountRel.get(recipedetail.getDrugId()) + recipedetail.getUseTotalDose());
-                } else {
-                    backDetail = new Recipedetail();
-                    backDetail.setDrugId(recipedetail.getDrugId());
-                    backDetail.setDrugName(recipedetail.getDrugName());
-                    backDetail.setDrugUnit(recipedetail.getDrugUnit());
-                    backDetail.setDrugSpec(recipedetail.getDrugSpec());
-                    backDetail.setUseDoseUnit(recipedetail.getUseDoseUnit());
-                    backDetails.add(backDetail);
-                    drugIdCountRel.put(drugId, recipedetail.getUseTotalDose());
-                }
-            }
             //重置药品数量
             for (Recipedetail recipedetail : backDetails) {
                 recipedetail.setUseTotalDose(drugIdCountRel.get(recipedetail.getDrugId()));
@@ -173,39 +206,7 @@ public class RecipePatientService extends RecipeBaseService {
             if (recipeIds.size() <= 1) {
                 depListBean.setRecipeGetModeTip(RecipeServiceSub.getRecipeGetModeTip(recipeList.get(0)));
             }
-            //如果是价格自定义的药企，则需要设置单独价格
-            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-            List<Integer> drugIds = Lists.newArrayList(drugIdCountRel.keySet());
-            List<SaleDrugList> saleDrugLists = null;
-            for (DrugsEnterprise dep : depList) {
-                if (Integer.valueOf(0).equals(dep.getSettlementMode()) &&
-                        (RecipeBussConstant.DEP_SUPPORT_ONLINE.equals(dep.getPayModeSupport())
-                        || RecipeBussConstant.DEP_SUPPORT_ALL.equals(dep.getPayModeSupport()))) {
-                    saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(dep.getId(), drugIds);
-                    if(CollectionUtils.isNotEmpty(saleDrugLists)){
-                        BigDecimal total = BigDecimal.ZERO;
-                        try {
-                            for(SaleDrugList saleDrug : saleDrugLists){
-                                //保留3位小数
-                                total = total.add(saleDrug.getPrice().multiply(new BigDecimal(drugIdCountRel.get(saleDrug.getDrugId())))
-                                        .divide(BigDecimal.ONE, 3, RoundingMode.UP));
-                            }
-                        } catch (Exception e) {
-                            LOGGER.warn("findSupportDepList 重新计算药企ID为[{}]的结算价格出错. drugIds={}", dep.getId(),
-                                    JSONUtils.toString(drugIds), e);
-                            continue;
-                        }
 
-                        //重置药企处方价格
-                        for(DepDetailBean depDetailBean : depDetailList){
-                             if(depDetailBean.getDepId().equals(dep.getId())){
-                                 depDetailBean.setRecipeFee(total);
-                                 break;
-                             }
-                        }
-                    }
-                }
-            }
         } else {
             resultBean.setCode(RecipeResultBean.FAIL);
             resultBean.setMsg("很抱歉，当前库存不足无法购买，请联系客服：" +
