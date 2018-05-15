@@ -157,7 +157,7 @@ public class RecipePatientService extends RecipeBaseService {
                                 LOGGER.warn("findSupportDepList 重新计算药企ID为[{}]的结算价格出错. drugIds={}", dep.getId(),
                                         JSONUtils.toString(drugIds), e);
                                 //此处应该要把出错的药企从返回列表中剔除
-                                depDetailList.remove(depDetailList.size());
+                                depDetailList.remove(depDetailList.size()-1);
                                 continue;
                             }
 
