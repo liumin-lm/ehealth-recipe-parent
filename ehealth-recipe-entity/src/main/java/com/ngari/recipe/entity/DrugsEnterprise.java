@@ -44,6 +44,9 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "药企实现类简称，默认使用 common， 也就是国药的一套实现")
     private String callSys;
 
+    @ItemProperty(alias = "结算方式 0:药店价格 1:医院价格")
+    private Integer settlementMode;
+
     @ItemProperty(alias = "调用接口标识")
     private String token;
 
@@ -131,6 +134,15 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setCallSys(String callSys) {
         this.callSys = callSys;
+    }
+
+    @Column(name = "settlementMode")
+    public Integer getSettlementMode() {
+        return settlementMode;
+    }
+
+    public void setSettlementMode(Integer settlementMode) {
+        this.settlementMode = settlementMode;
     }
 
     @Column(name = "Token")

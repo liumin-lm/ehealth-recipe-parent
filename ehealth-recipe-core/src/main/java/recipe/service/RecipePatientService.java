@@ -1,10 +1,12 @@
 package recipe.service;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.SaleDrugList;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -22,10 +24,12 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.dao.SaleDrugListDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.util.ApplicationUtils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -169,6 +173,39 @@ public class RecipePatientService extends RecipeBaseService {
             if (recipeIds.size() <= 1) {
                 depListBean.setRecipeGetModeTip(RecipeServiceSub.getRecipeGetModeTip(recipeList.get(0)));
             }
+            //如果是价格自定义的药企，则需要设置单独价格
+            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+            List<Integer> drugIds = Lists.newArrayList(drugIdCountRel.keySet());
+            List<SaleDrugList> saleDrugLists = null;
+            for (DrugsEnterprise dep : depList) {
+                if (Integer.valueOf(0).equals(dep.getSettlementMode()) &&
+                        (RecipeBussConstant.DEP_SUPPORT_ONLINE.equals(dep.getPayModeSupport())
+                        || RecipeBussConstant.DEP_SUPPORT_ALL.equals(dep.getPayModeSupport()))) {
+                    saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(dep.getId(), drugIds);
+                    if(CollectionUtils.isNotEmpty(saleDrugLists)){
+                        BigDecimal total = BigDecimal.ZERO;
+                        try {
+                            for(SaleDrugList saleDrug : saleDrugLists){
+                                //保留3位小数
+                                total = total.add(saleDrug.getPrice().multiply(new BigDecimal(drugIdCountRel.get(saleDrug.getDrugId())))
+                                        .divide(BigDecimal.ONE, 3, RoundingMode.UP));
+                            }
+                        } catch (Exception e) {
+                            LOGGER.warn("findSupportDepList 重新计算药企ID为[{}]的结算价格出错. drugIds={}", dep.getId(),
+                                    JSONUtils.toString(drugIds), e);
+                            continue;
+                        }
+
+                        //重置药企处方价格
+                        for(DepDetailBean depDetailBean : depDetailList){
+                             if(depDetailBean.getDepId().equals(dep.getId())){
+                                 depDetailBean.setRecipeFee(total);
+                                 break;
+                             }
+                        }
+                    }
+                }
+            }
         } else {
             resultBean.setCode(RecipeResultBean.FAIL);
             resultBean.setMsg("很抱歉，当前库存不足无法购买，请联系客服：" +
@@ -184,9 +221,6 @@ public class RecipePatientService extends RecipeBaseService {
         DepDetailBean depDetailBean = new DepDetailBean();
         depDetailBean.setDepId(dep.getId());
         depDetailBean.setDepName(dep.getName());
-
-        //TODO 如果是价格自定义的药企，则需要设置单独价格
-
         depDetailBean.setRecipeFee(totalMoney);
         Integer supportMode = dep.getPayModeSupport();
         String giveModeText = "";
