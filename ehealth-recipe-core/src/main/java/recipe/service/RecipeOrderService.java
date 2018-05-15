@@ -394,7 +394,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             }
         }
-        //TODO 药企是需要自己结算费用的，需要重新设置
+        //药企是需要自己结算费用的，需要重新设置
         //在线支付才需要重新计算
         if (payModeSupport.isSupportOnlinePay() && null != order.getEnterpriseId() && 0 != order.getEnterpriseId()) {
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
