@@ -1395,6 +1395,7 @@ public class RecipeService {
             try {
                 wxAccount = getWxAppIdForRecipeFromOps(null, organId);
             } catch (Exception e) {
+                LOGGER.warn("findSupportDepList getWxAppIdForRecipeFromOps error. organId={}", organId, e);
                 wxAccount = null;
             }
             //需要判断医院HIS是否开通
