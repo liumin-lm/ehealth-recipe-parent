@@ -57,162 +57,167 @@ public class RecipePatientService extends RecipeBaseService {
      */
     @RpcService
     public RecipeResultBean findSupportDepList(int findDetail, List<Integer> recipeIds) {
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-        RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-        ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
+        RecipeResultBean resultBean = null;
+        try {
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+            RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+            ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
 
-        RecipeResultBean resultBean = RecipeResultBean.getSuccess();
-        List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
-        if (CollectionUtils.isEmpty(recipeList)) {
-            resultBean.setCode(RecipeResultBean.FAIL);
-            resultBean.setMsg("处方不存在");
-            return resultBean;
-        }
-
-        DepListBean depListBean = new DepListBean();
-        Integer organId = recipeList.get(0).getClinicOrgan();
-        BigDecimal totalMoney = BigDecimal.ZERO;
-        for (Recipe recipe : recipeList) {
-            if (!recipe.getClinicOrgan().equals(organId)) {
+            resultBean = RecipeResultBean.getSuccess();
+            List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
+            if (CollectionUtils.isEmpty(recipeList)) {
                 resultBean.setCode(RecipeResultBean.FAIL);
-                resultBean.setMsg("选择处方的机构不一致，请重新选择");
+                resultBean.setMsg("处方不存在");
                 return resultBean;
             }
 
-            totalMoney = totalMoney.add(recipe.getTotalMoney());
-        }
-
-        List<DrugsEnterprise> depList = recipeService.findSupportDepList(recipeIds, organId, null, false, null);
-        LOGGER.info("findSupportDepList recipeIds={}, 匹配到药企数量[{}]", JSONUtils.toString(recipeIds), depList.size());
-        if (CollectionUtils.isNotEmpty(depList)) {
-            //设置默认值
-            depListBean.setSigle(true);
-            //只需要查询是否存在多个供应商
-            if (0 == findDetail && depList.size() > 1) {
-                depListBean.setSigle(false);
-                resultBean.setObject(depListBean);
-                return resultBean;
-            }
-
-            //该详情数据包含了所有处方的详情，可能存在同一种药品数据
-            List<Recipedetail> details = detailDAO.findByRecipeIds(recipeIds);
-            List<Recipedetail> backDetails = new ArrayList<>(details.size());
-            Map<Integer, Double> drugIdCountRel = Maps.newHashMap();
-            Recipedetail backDetail;
-            for (Recipedetail recipedetail : details) {
-                Integer drugId = recipedetail.getDrugId();
-                if (drugIdCountRel.containsKey(drugId)) {
-                    drugIdCountRel.put(drugId, drugIdCountRel.get(recipedetail.getDrugId()) + recipedetail.getUseTotalDose());
-                } else {
-                    backDetail = new Recipedetail();
-                    backDetail.setDrugId(recipedetail.getDrugId());
-                    backDetail.setDrugName(recipedetail.getDrugName());
-                    backDetail.setDrugUnit(recipedetail.getDrugUnit());
-                    backDetail.setDrugSpec(recipedetail.getDrugSpec());
-                    backDetail.setUseDoseUnit(recipedetail.getUseDoseUnit());
-                    backDetails.add(backDetail);
-                    drugIdCountRel.put(drugId, recipedetail.getUseTotalDose());
-                }
-            }
-
-            //判断是否需要展示供应商详情列表，如果遇上钥世圈的药企，则都展示供应商列表
-            List<DepDetailBean> depDetailList = new ArrayList<>();
-            for (DrugsEnterprise dep : depList) {
-                //钥世圈需要从接口获取支持药店列表
-                if (DrugEnterpriseConstant.COMPANY_YSQ.equals(dep.getCallSys())) {
-                    //需要从接口获取药店列表
-                    DrugEnterpriseResult drugEnterpriseResult = remoteDrugService.findSupportDep(recipeIds, dep);
-                    if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
-                        Object listObj = drugEnterpriseResult.getObject();
-                        if (null != listObj && listObj instanceof List) {
-                            List<DepDetailBean> ysqList = (List) listObj;
-                            for (DepDetailBean d : ysqList) {
-                                d.setDepId(dep.getId());
-                            }
-                            depDetailList.addAll(ysqList);
-                        }
-                        //设置样式
-                        resultBean.setStyle(drugEnterpriseResult.getStyle());
-                    }
-                } else {
-                    parseDrugsEnterprise(dep, totalMoney, depDetailList);
-                    //如果是价格自定义的药企，则需要设置单独价格
-                    SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-                    List<Integer> drugIds = Lists.newArrayList(drugIdCountRel.keySet());
-                    if (Integer.valueOf(0).equals(dep.getSettlementMode()) &&
-                            (RecipeBussConstant.DEP_SUPPORT_ONLINE.equals(dep.getPayModeSupport())
-                                    || RecipeBussConstant.DEP_SUPPORT_ALL.equals(dep.getPayModeSupport()))) {
-                        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(dep.getId(), drugIds);
-                        if (CollectionUtils.isNotEmpty(saleDrugLists)) {
-                            BigDecimal total = BigDecimal.ZERO;
-                            try {
-                                for (SaleDrugList saleDrug : saleDrugLists) {
-                                    //保留3位小数
-                                    total = total.add(saleDrug.getPrice().multiply(new BigDecimal(drugIdCountRel.get(saleDrug.getDrugId())))
-                                            .divide(BigDecimal.ONE, 3, RoundingMode.UP));
-                                }
-                            } catch (Exception e) {
-                                LOGGER.warn("findSupportDepList 重新计算药企ID为[{}]的结算价格出错. drugIds={}", dep.getId(),
-                                        JSONUtils.toString(drugIds), e);
-                                //此处应该要把出错的药企从返回列表中剔除
-                                depDetailList.remove(depDetailList.size()-1);
-                                continue;
-                            }
-
-                            //重置药企处方价格
-                            for (DepDetailBean depDetailBean : depDetailList) {
-                                if (depDetailBean.getDepId().equals(dep.getId())) {
-                                    depDetailBean.setRecipeFee(total);
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
+            DepListBean depListBean = new DepListBean();
+            Integer organId = recipeList.get(0).getClinicOrgan();
+            BigDecimal totalMoney = BigDecimal.ZERO;
+            for (Recipe recipe : recipeList) {
+                if (!recipe.getClinicOrgan().equals(organId)) {
+                    resultBean.setCode(RecipeResultBean.FAIL);
+                    resultBean.setMsg("选择处方的机构不一致，请重新选择");
+                    return resultBean;
                 }
 
-                //只是查询的话减少处理量
-                if (0 == findDetail && depDetailList.size() > 1) {
+                totalMoney = totalMoney.add(recipe.getTotalMoney());
+            }
+
+            List<DrugsEnterprise> depList = recipeService.findSupportDepList(recipeIds, organId, null, false, null);
+            LOGGER.info("findSupportDepList recipeIds={}, 匹配到药企数量[{}]", JSONUtils.toString(recipeIds), depList.size());
+            if (CollectionUtils.isNotEmpty(depList)) {
+                //设置默认值
+                depListBean.setSigle(true);
+                //只需要查询是否存在多个供应商
+                if (0 == findDetail && depList.size() > 1) {
                     depListBean.setSigle(false);
-                    break;
+                    resultBean.setObject(depListBean);
+                    return resultBean;
                 }
-            }
 
-            //有可能钥世圈支持配送，实际从接口处没有获取到药店
-            if (CollectionUtils.isEmpty(depDetailList)) {
+                //该详情数据包含了所有处方的详情，可能存在同一种药品数据
+                List<Recipedetail> details = detailDAO.findByRecipeIds(recipeIds);
+                List<Recipedetail> backDetails = new ArrayList<>(details.size());
+                Map<Integer, Double> drugIdCountRel = Maps.newHashMap();
+                Recipedetail backDetail;
+                for (Recipedetail recipedetail : details) {
+                    Integer drugId = recipedetail.getDrugId();
+                    if (drugIdCountRel.containsKey(drugId)) {
+                        drugIdCountRel.put(drugId, drugIdCountRel.get(recipedetail.getDrugId()) + recipedetail.getUseTotalDose());
+                    } else {
+                        backDetail = new Recipedetail();
+                        backDetail.setDrugId(recipedetail.getDrugId());
+                        backDetail.setDrugName(recipedetail.getDrugName());
+                        backDetail.setDrugUnit(recipedetail.getDrugUnit());
+                        backDetail.setDrugSpec(recipedetail.getDrugSpec());
+                        backDetail.setUseDoseUnit(recipedetail.getUseDoseUnit());
+                        backDetails.add(backDetail);
+                        drugIdCountRel.put(drugId, recipedetail.getUseTotalDose());
+                    }
+                }
+
+                //判断是否需要展示供应商详情列表，如果遇上钥世圈的药企，则都展示供应商列表
+                List<DepDetailBean> depDetailList = new ArrayList<>();
+                for (DrugsEnterprise dep : depList) {
+                    //钥世圈需要从接口获取支持药店列表
+                    if (DrugEnterpriseConstant.COMPANY_YSQ.equals(dep.getCallSys())) {
+                        //需要从接口获取药店列表
+                        DrugEnterpriseResult drugEnterpriseResult = remoteDrugService.findSupportDep(recipeIds, dep);
+                        if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
+                            Object listObj = drugEnterpriseResult.getObject();
+                            if (null != listObj && listObj instanceof List) {
+                                List<DepDetailBean> ysqList = (List) listObj;
+                                for (DepDetailBean d : ysqList) {
+                                    d.setDepId(dep.getId());
+                                }
+                                depDetailList.addAll(ysqList);
+                            }
+                            //设置样式
+                            resultBean.setStyle(drugEnterpriseResult.getStyle());
+                        }
+                    } else {
+                        parseDrugsEnterprise(dep, totalMoney, depDetailList);
+                        //如果是价格自定义的药企，则需要设置单独价格
+                        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+                        List<Integer> drugIds = Lists.newArrayList(drugIdCountRel.keySet());
+                        if (Integer.valueOf(0).equals(dep.getSettlementMode()) &&
+                                (RecipeBussConstant.DEP_SUPPORT_ONLINE.equals(dep.getPayModeSupport())
+                                        || RecipeBussConstant.DEP_SUPPORT_ALL.equals(dep.getPayModeSupport()))) {
+                            List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(dep.getId(), drugIds);
+                            if (CollectionUtils.isNotEmpty(saleDrugLists)) {
+                                BigDecimal total = BigDecimal.ZERO;
+                                try {
+                                    for (SaleDrugList saleDrug : saleDrugLists) {
+                                        //保留3位小数
+                                        total = total.add(saleDrug.getPrice().multiply(new BigDecimal(drugIdCountRel.get(saleDrug.getDrugId())))
+                                                .divide(BigDecimal.ONE, 3, RoundingMode.UP));
+                                    }
+                                } catch (Exception e) {
+                                    LOGGER.warn("findSupportDepList 重新计算药企ID为[{}]的结算价格出错. drugIds={}", dep.getId(),
+                                            JSONUtils.toString(drugIds), e);
+                                    //此处应该要把出错的药企从返回列表中剔除
+                                    depDetailList.remove(depDetailList.size()-1);
+                                    continue;
+                                }
+
+                                //重置药企处方价格
+                                for (DepDetailBean depDetailBean : depDetailList) {
+                                    if (depDetailBean.getDepId().equals(dep.getId())) {
+                                        depDetailBean.setRecipeFee(total);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+
+                    //只是查询的话减少处理量
+                    if (0 == findDetail && depDetailList.size() > 1) {
+                        depListBean.setSigle(false);
+                        break;
+                    }
+                }
+
+                //有可能钥世圈支持配送，实际从接口处没有获取到药店
+                if (CollectionUtils.isEmpty(depDetailList)) {
+                    resultBean.setCode(RecipeResultBean.FAIL);
+                    resultBean.setMsg("很抱歉，当前库存不足无法购买，请联系客服：" +
+                            iSysParamterService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
+                    return resultBean;
+                }
+
+                depListBean.setList(depDetailList);
+                resultBean.setObject(depListBean);
+                //只需要查询是否存在多个供应商， 就不需要设置其他额外信息
+                if (0 == findDetail) {
+                    return resultBean;
+                }
+
+                if (depDetailList.size() > 1) {
+                    depListBean.setSigle(false);
+                }
+
+                //重置药品数量
+                for (Recipedetail recipedetail : backDetails) {
+                    recipedetail.setUseTotalDose(drugIdCountRel.get(recipedetail.getDrugId()));
+                }
+                depListBean.setDetails(backDetails);
+                //患者处方取药方式提示
+                if (recipeIds.size() <= 1) {
+                    depListBean.setRecipeGetModeTip(RecipeServiceSub.getRecipeGetModeTip(recipeList.get(0)));
+                }
+
+            } else {
                 resultBean.setCode(RecipeResultBean.FAIL);
                 resultBean.setMsg("很抱歉，当前库存不足无法购买，请联系客服：" +
                         iSysParamterService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
-                return resultBean;
             }
-
-            depListBean.setList(depDetailList);
-            resultBean.setObject(depListBean);
-            //只需要查询是否存在多个供应商， 就不需要设置其他额外信息
-            if (0 == findDetail) {
-                return resultBean;
-            }
-
-            if (depDetailList.size() > 1) {
-                depListBean.setSigle(false);
-            }
-
-            //重置药品数量
-            for (Recipedetail recipedetail : backDetails) {
-                recipedetail.setUseTotalDose(drugIdCountRel.get(recipedetail.getDrugId()));
-            }
-            depListBean.setDetails(backDetails);
-            //患者处方取药方式提示
-            if (recipeIds.size() <= 1) {
-                depListBean.setRecipeGetModeTip(RecipeServiceSub.getRecipeGetModeTip(recipeList.get(0)));
-            }
-
-        } else {
-            resultBean.setCode(RecipeResultBean.FAIL);
-            resultBean.setMsg("很抱歉，当前库存不足无法购买，请联系客服：" +
-                    iSysParamterService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
+        } catch (Exception e) {
+            LOGGER.error("findSupportDepList error. ", e);
         }
 
         return resultBean;
