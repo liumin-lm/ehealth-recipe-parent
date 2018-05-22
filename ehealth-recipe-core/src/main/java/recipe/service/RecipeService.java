@@ -1391,9 +1391,9 @@ public class RecipeService {
         if (null == payMode || RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)
                 || RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(payMode)) {
             //只支持线上付款后配送，则需要判断医院是否有付款帐号
-            String wxAccount = null;
+            String wxAccount = "wxc09d89b5978714fd";
             try {
-                wxAccount = getWxAppIdForRecipeFromOps(null, organId);
+//                wxAccount = getWxAppIdForRecipeFromOps(null, organId);
             } catch (Exception e) {
                 LOGGER.warn("findSupportDepList getWxAppIdForRecipeFromOps error. organId={}", organId, e);
                 wxAccount = null;
