@@ -163,9 +163,13 @@ public class RecipeListService {
             map.put("haveFinished", false);
         }
 
-        map.put("title", title);
-        map.put("unSendTitle", iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_UNSEND_TIP, null));
-        map.put("recipeGetModeTip", recipeGetModeTip);
+        try {
+            map.put("title", title);
+            map.put("unSendTitle", iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_UNSEND_TIP, null));
+            map.put("recipeGetModeTip", recipeGetModeTip);
+        } catch (Exception e) {
+            LOGGER.warn("getLastestPendingRecipe", e);
+        }
 
         return map;
     }
