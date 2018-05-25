@@ -23,7 +23,8 @@ import java.util.concurrent.Callable;
  */
 public class UpdateDrugsEpCallable implements Callable<String> {
 
-    private Logger logger = LoggerFactory.getLogger(UpdateDrugsEpCallable.class);
+    /** logger */
+    private static final Logger logger = LoggerFactory.getLogger(UpdateDrugsEpCallable.class);
 
     private Integer _drugsEnterpriseId;
 
@@ -56,7 +57,6 @@ public class UpdateDrugsEpCallable implements Callable<String> {
                     if (1 == MapValueUtil.getInteger(backMap, code)) {
                         //成功
                         String token = MapValueUtil.getString(backMap, "access_token");
-                        logger.debug(logPrefix + "token:" + token);
                         if (StringUtils.isNotEmpty(token)) {
                             drugsEnterpriseDAO.updateTokenById(this._drugsEnterpriseId, token);
                         }
@@ -65,10 +65,10 @@ public class UpdateDrugsEpCallable implements Callable<String> {
                     }
                 }
             } catch (IOException e) {
-                logger.error(logPrefix + "更新失败:" + e.getMessage());
+                logger.error(logPrefix + "更新失败. ", e);
             }
         } else {
-            logger.error("UpdateDrugsEpCallable 更新药企token功能，药企ID:" + this._drugsEnterpriseId + " 药企 AuthenUrl为空");
+            logger.warn("UpdateDrugsEpCallable 更新药企token功能，药企ID:" + this._drugsEnterpriseId + " 药企 AuthenUrl为空");
         }
 
         return null;

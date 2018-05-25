@@ -386,8 +386,8 @@ public class ThirdEnterpriseCallService {
             Map<String, Object> orderAttr = getOrderInfoMap(recipe, paramMap);
             orderService.finishOrder(recipe.getOrderCode(), recipe.getPayMode(), orderAttr);
             //保存至电子病历
-            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-            recipeService.saveRecipeDocIndex(recipe);
+//            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+//            recipeService.saveRecipeDocIndex(recipe);
             //记录日志
             RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.IN_SEND, RecipeStatusConstant.FINISH, "配送到家处方单完成,配送人：" + sender);
             //HIS消息发送
@@ -630,7 +630,7 @@ public class ThirdEnterpriseCallService {
                 //完成订单，不需要检查订单有效性，就算失效的订单也直接变成已完成
                 orderService.finishOrder(recipe.getOrderCode(), recipe.getPayMode(), orderAttr);
                 //保存至电子病历
-                recipeService.saveRecipeDocIndex(recipe);
+//                recipeService.saveRecipeDocIndex(recipe);
                 //记录日志
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.FINISH, "到店取药订单完成");
                 //HIS消息发送
