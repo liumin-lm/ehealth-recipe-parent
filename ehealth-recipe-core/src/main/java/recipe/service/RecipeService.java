@@ -1672,7 +1672,7 @@ public class RecipeService {
      */
     @RpcService
     public RecipeResultBean getHomePageTaskForPatient(String mpiid) {
-        LOGGER.info("getHomePageTaskForPatient mpiId[{}] start in", mpiid);
+        LOGGER.info("getHomePageTaskForPatient mpiId={}", mpiid);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         //根据mpiid获取当前患者所有家庭成员(包括自己)
         List<String> allMpiIds = getAllMemberPatientsByCurrentPatient(mpiid);
@@ -1694,7 +1694,6 @@ public class RecipeService {
             resultBean.setExtendValue("1");
             resultBean.setMsg(String.valueOf(recipeIds.size()));
         }
-        LOGGER.info("getHomePageTaskForPatient mpiId[{}] end", mpiid);
         return resultBean;
     }
 
