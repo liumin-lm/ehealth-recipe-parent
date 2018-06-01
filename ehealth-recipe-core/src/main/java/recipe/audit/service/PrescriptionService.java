@@ -40,7 +40,7 @@ public class PrescriptionService {
 
     @RpcService
     public String getPAAnalysis(Recipe recipe, List<Recipedetail> recipedetails) throws Exception {
-        return null;
+        return "对或红霉素等其他大环内酯类或酮内酯类药物过敏者禁用。";
     }
 
     /**
