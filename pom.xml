@@ -33,7 +33,7 @@
             <groupId>ssdev</groupId>
             <artifactId>ssdev-mvc</artifactId>
             <version>${ssdev.version}</version>
-            <scope>provided</scope>
+            <!--<scope>provided</scope>-->
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
@@ -48,7 +48,7 @@
         <dependency>
             <groupId>ngari</groupId>
             <artifactId>ehealth-consult-api</artifactId>
-            <version>1.2.0</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <!--<dependency>-->
             <!--<groupId>ngari</groupId>-->
