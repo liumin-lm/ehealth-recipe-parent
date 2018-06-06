@@ -4,12 +4,12 @@ import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ngari.base.hisservice.model.HisResTO;
-import com.ngari.base.hisservice.service.IRecipeHisService;
 import com.ngari.his.recipe.mode.*;
+import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.DAOFactory;
+import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -20,7 +20,6 @@ import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.service.HisCallBackService;
 import recipe.service.RecipeLogService;
-import recipe.util.ApplicationUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,37 +38,31 @@ public class RecipeToHisService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeToHisService.class);
 
     public void recipeSend(RecipeSendRequestTO request) {
-        IRecipeHisService hisService = ApplicationUtils.getBaseService(IRecipeHisService.class);
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Integer recipeId = Integer.valueOf(request.getRecipeID());
         LOGGER.info("recipeSend recipeId={}, request={}", recipeId, JSONUtils.toString(request));
+        recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, null);
         try {
-            recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, null);
-            HisResTO resTO = hisService.recipeSend(request);
-            LOGGER.info("recipeSend recipeId={}, response={}", recipeId, JSONUtils.toString(resTO));
-            if (resTO.isSuccess()) {
-                LOGGER.info("recipeSend recipeId={}, 调用BASE 处方写入服务成功!", recipeId);
-            } else {
-                //失败发送系统消息
-                recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.HIS_FAIL, null);
-                //日志记录
-                RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECKING_HOS,
-                        RecipeStatusConstant.HIS_FAIL, "his写入失败，调用前置机处方写入服务失败");
-                LOGGER.error("recipeSend recipeId={}, 调用BASE 处方写入服务错误!", recipeId);
-            }
+            hisService.recipeSend(request);
+            LOGGER.info("recipeSend 调用前置机处方写入服务成功! recipeId=" + request.getRecipeID());
         } catch (Exception e) {
-            LOGGER.error("recipeSend error. recipeId={} ", request.getRecipeID(), e);
+            LOGGER.error("recipeSend HIS接口调用失败. request={}", JSONUtils.toString(request), e);
+            //失败发送系统消息
+            recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.HIS_FAIL, null);
+            //日志记录
+            RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECKING_HOS,
+                    RecipeStatusConstant.HIS_FAIL, "his写入失败，调用前置机处方写入服务失败");
+            LOGGER.error("recipeSend recipeId={}, 调用BASE 处方写入服务错误!", recipeId);
         }
     }
 
     public Integer listSingleQuery(RecipeListQueryReqTO request) {
-        IRecipeHisService hisService = ApplicationUtils.getBaseService(IRecipeHisService.class);
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("listSingleQuery request={}", JSONUtils.toString(request));
-
         try {
-            HisResTO resTO = hisService.listQuery(request);
-            LOGGER.info("listSingleQuery response={}", JSONUtils.toString(resTO));
-            RecipeListQueryResTO response = getResponseObj(resTO.getResponse(), RecipeListQueryResTO.class);
+            RecipeListQueryResTO response = hisService.listQuery(request);
+            LOGGER.info("listSingleQuery response={}", JSONUtils.toString(response));
             Integer busStatus = null;
             if (null == response || null == response.getMsgCode()) {
                 return busStatus;
@@ -112,13 +105,11 @@ public class RecipeToHisService {
 
 
     public void listQuery(RecipeListQueryReqTO request) {
-        IRecipeHisService hisService = ApplicationUtils.getBaseService(IRecipeHisService.class);
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("listQuery request={}", JSONUtils.toString(request));
-
         try {
-            HisResTO resTO = hisService.listQuery(request);
-            LOGGER.info("listQuery response={}", JSONUtils.toString(resTO));
-            RecipeListQueryResTO response = getResponseObj(resTO.getResponse(), RecipeListQueryResTO.class);
+            RecipeListQueryResTO response = hisService.listQuery(request);
+            LOGGER.info("listQuery response={}", JSONUtils.toString(response));
             if (null == response || null == response.getMsgCode()) {
                 return;
             }
@@ -158,13 +149,12 @@ public class RecipeToHisService {
 
 
     public RecipeRefundResTO recipeRefund(RecipeRefundReqTO request) {
-        IRecipeHisService hisService = ApplicationUtils.getBaseService(IRecipeHisService.class);
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("recipeRefund request={}", JSONUtils.toString(request));
         RecipeRefundResTO response = null;
         try {
-            HisResTO resTO = hisService.recipeRefund(request);
-            LOGGER.info("recipeRefund response={}", JSONUtils.toString(resTO));
-            response = getResponseObj(resTO.getResponse(), RecipeRefundResTO.class);
+            response = hisService.recipeRefund(request);
+            LOGGER.info("recipeRefund response={}", JSONUtils.toString(response));
         } catch (Exception e) {
             LOGGER.error("recipeRefund error ", e);
         }
@@ -172,12 +162,11 @@ public class RecipeToHisService {
     }
 
     public Recipedetail payNotify(PayNotifyReqTO request) {
-        IRecipeHisService hisService = ApplicationUtils.getBaseService(IRecipeHisService.class);
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("payNotify request={}", JSONUtils.toString(request));
         try {
-            HisResTO resTO = hisService.payNotify(request);
-            LOGGER.info("payNotify response={}", JSONUtils.toString(resTO));
-            PayNotifyResTO response = getResponseObj(resTO.getResponse(), PayNotifyResTO.class);
+            PayNotifyResTO response = hisService.payNotify(request);
+            LOGGER.info("payNotify response={}", JSONUtils.toString(response));
             if (null == response || null == response.getMsgCode()) {
                 return null;
             }
@@ -198,8 +187,7 @@ public class RecipeToHisService {
      * @return
      */
     public List<DrugInfoTO> queryDrugInfo(List<DrugInfoTO> drugInfoList, int organId) {
-        IRecipeHisService hisService = ApplicationUtils.getBaseService(IRecipeHisService.class);
-
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         DrugInfoRequestTO request = new DrugInfoRequestTO();
         request.setOrganId(organId);
         if (CollectionUtils.isEmpty(drugInfoList)) {
@@ -212,9 +200,8 @@ public class RecipeToHisService {
         LOGGER.info("queryDrugInfo request={}", JSONUtils.toString(request));
 
         try {
-            HisResTO resTO = hisService.queryDrugInfo(request);
-            LOGGER.info("queryDrugInfo response={}", JSONUtils.toString(resTO));
-            DrugInfoResponseTO response = getResponseObj(resTO.getResponse(), DrugInfoResponseTO.class);
+            DrugInfoResponseTO response = hisService.queryDrugInfo(request);
+            LOGGER.info("queryDrugInfo response={}", JSONUtils.toString(response));
             if (null != response && Integer.valueOf(0).equals(response.getMsgCode())) {
                 return (null != response.getData()) ? response.getData() : new ArrayList<DrugInfoTO>();
             }
@@ -226,13 +213,12 @@ public class RecipeToHisService {
 
 
     public Boolean drugTakeChange(DrugTakeChangeReqTO request) {
-        IRecipeHisService hisService = ApplicationUtils.getBaseService(IRecipeHisService.class);
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("drugTakeChange request={}", JSONUtils.toString(request));
         Boolean response = false;
         try {
-            HisResTO resTO = hisService.drugTakeChange(request);
-            LOGGER.info("drugTakeChange response={}", JSONUtils.toString(resTO));
-            response = resTO.isSuccess();
+            response = hisService.drugTakeChange(request);
+            LOGGER.info("drugTakeChange response={}", JSONUtils.toString(response));
         } catch (Exception e) {
             LOGGER.error("drugTakeChange error ", e);
         }
@@ -240,13 +226,12 @@ public class RecipeToHisService {
     }
 
     public Boolean recipeUpdate(RecipeStatusUpdateReqTO request) {
-        IRecipeHisService hisService = ApplicationUtils.getBaseService(IRecipeHisService.class);
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("recipeUpdate request={}", JSONUtils.toString(request));
         Boolean response = false;
         try {
-            HisResTO resTO = hisService.recipeUpdate(request);
-            LOGGER.info("recipeUpdate response={}", JSONUtils.toString(resTO));
-            response = resTO.isSuccess();
+            response = hisService.recipeUpdate(request);
+            LOGGER.info("recipeUpdate response={}", JSONUtils.toString(response));
         } catch (Exception e) {
             LOGGER.error("recipeUpdate error ", e);
         }
@@ -259,7 +244,7 @@ public class RecipeToHisService {
             return null;
         }
         OrganDrugListDAO drugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
-        IRecipeHisService hisService = ApplicationUtils.getBaseService(IRecipeHisService.class);
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
 
         DrugInfoRequestTO request = new DrugInfoRequestTO();
         request.setOrganId(organId);
@@ -296,9 +281,8 @@ public class RecipeToHisService {
         DrugInfoResponseTO response = null;
         LOGGER.info("scanDrugStock request={}", JSONUtils.toString(request));
         try {
-            HisResTO resTO = hisService.scanDrugStock(request);
-            LOGGER.info("scanDrugStock response={}", JSONUtils.toString(resTO));
-            response = getResponseObj(resTO.getResponse(), DrugInfoResponseTO.class);
+            response = hisService.scanDrugStock(request);
+            LOGGER.info("scanDrugStock response={}", JSONUtils.toString(response));
         } catch (Exception e) {
             LOGGER.error("scanDrugStock error ", e);
         }
@@ -306,13 +290,12 @@ public class RecipeToHisService {
     }
 
     public RecipeQueryResTO recipeQuery(RecipeQueryReqTO request) {
-        IRecipeHisService hisService = ApplicationUtils.getBaseService(IRecipeHisService.class);
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("recipeQuery request={}", JSONUtils.toString(request));
         RecipeQueryResTO response = null;
         try {
-            HisResTO resTO = hisService.recipeQuery(request);
-            LOGGER.info("recipeQuery response={}", JSONUtils.toString(resTO));
-            response = getResponseObj(resTO.getResponse(), RecipeQueryResTO.class);
+            response = hisService.recipeQuery(request);
+            LOGGER.info("recipeQuery response={}", JSONUtils.toString(response));
         } catch (Exception e) {
             LOGGER.error("recipeQuery error ", e);
         }
@@ -320,26 +303,16 @@ public class RecipeToHisService {
     }
 
     public DetailQueryResTO detailQuery(DetailQueryReqTO request) {
-        IRecipeHisService hisService = ApplicationUtils.getBaseService(IRecipeHisService.class);
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("detailQuery request={}", JSONUtils.toString(request));
         DetailQueryResTO response = null;
         try {
-            HisResTO resTO = hisService.detailQuery(request);
-            LOGGER.info("detailQuery response={}", JSONUtils.toString(resTO));
-            response = getResponseObj(resTO.getResponse(), DetailQueryResTO.class);
+            response = hisService.detailQuery(request);
+            LOGGER.info("detailQuery response={}", JSONUtils.toString(response));
         } catch (Exception e) {
             LOGGER.error("detailQuery error ", e);
         }
         return response;
-    }
-
-
-    private <T> T getResponseObj(Object obj, Class<T> clazz) {
-        if (null == obj) {
-            return null;
-        }
-
-        return (T) obj;
     }
 
 }
