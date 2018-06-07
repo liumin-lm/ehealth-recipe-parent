@@ -61,11 +61,11 @@ public class UpdateDrugsEpCallable implements Callable<String> {
                             drugsEnterpriseDAO.updateTokenById(this._drugsEnterpriseId, token);
                         }
                     } else {
-                        logger.error(logPrefix + "更新失败,msg:" + MapValueUtil.getString(backMap, "message"));
+                        logger.warn(logPrefix + "更新失败,msg:" + MapValueUtil.getString(backMap, "message"));
                     }
                 }
             } catch (IOException e) {
-                logger.error(logPrefix + "更新失败. ", e);
+                logger.warn(logPrefix + "更新失败. ", e);
             }
         } else {
             logger.warn("UpdateDrugsEpCallable 更新药企token功能，药企ID:" + this._drugsEnterpriseId + " 药企 AuthenUrl为空");
