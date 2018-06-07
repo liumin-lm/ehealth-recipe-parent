@@ -25,7 +25,7 @@ import java.util.Map;
  * @date 2016/7/13
  * 用于测试处方流程
  */
-@RpcBean("recipeTestService")
+@RpcBean(value = "recipeTestService", mvc_authentication = false)
 public class RecipeTestService {
 
     /** logger */

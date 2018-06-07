@@ -1206,6 +1206,7 @@ public class RecipeServiceSub {
         RecipeTagMsgBean recipeTagMsg = new RecipeTagMsgBean();
         recipeTagMsg.setDiseaseName(diseaseName);
         recipeTagMsg.setDrugNames(drugNames);
+        recipeTagMsg.setTitle(recipe.getPatientName()+"的电子处方单");
         if (null != recipe.getRecipeId()) {
             recipeTagMsg.setRecipeId(recipe.getRecipeId());
         }

@@ -143,6 +143,8 @@ public class HisCallBackService {
         if (1 == recipe.getFromflag()) {
             //发送消息
             RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
+            //保存至电子病历
+            recipeService.saveRecipeDocIndex(recipe);
         }
 
         //配送处方标记 1:只能配送 更改处方取药方式
@@ -357,8 +359,8 @@ public class HisCallBackService {
                             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
                             orderService.cancelOrderByRecipeId(recipeId, OrderStatusConstant.CANCEL_AUTO);
                             //保存至电子病历
-                            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-                            recipeService.saveRecipeDocIndex(recipe);
+//                            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+//                            recipeService.saveRecipeDocIndex(recipe);
                             //日志记录
                             RecipeLogService.saveRecipeLog(recipeId, beforeStatus, RecipeStatusConstant.FINISH, logMemo);
                             //消息推送

@@ -40,7 +40,7 @@ public class PrescriptionService {
 
     @RpcService
     public String getPAAnalysis(Recipe recipe, List<Recipedetail> recipedetails) throws Exception {
-        return null;
+        return analysisImpl(recipe, recipedetails);
     }
 
     /**
