@@ -3,22 +3,16 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <artifactId>ehealth-recipe-parent</artifactId>
-        <groupId>ngari</groupId>
-        <version>1.3.0.release-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
-
     <packaging>jar</packaging>
     <name>处方API</name>
     <description>处方API</description>
     <artifactId>ehealth-recipe-api</artifactId>
+    <version>1.3.0.release-SNAPSHOT</version>
     <dependencies>
         <dependency>
-            <groupId>${project.parent.groupId}</groupId>
+            <groupId>ngari</groupId>
             <artifactId>ehealth-recipe-entity</artifactId>
-            <version>${project.parent.version}</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>
