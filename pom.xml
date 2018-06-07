@@ -33,32 +33,7 @@
             <groupId>ssdev</groupId>
             <artifactId>ssdev-mvc</artifactId>
             <version>${ssdev.version}</version>
-            <!--<scope>provided</scope>-->
-        </dependency>
-        <dependency>
-            <groupId>${project.parent.groupId}</groupId>
-            <artifactId>ehealth-base-api</artifactId>
-            <version>1.2.0</version>
-        </dependency>
-        <dependency>
-            <groupId>ngari</groupId>
-            <artifactId>ehealth-patient-api</artifactId>
-            <version>1.2.0</version>
-        </dependency>
-        <dependency>
-            <groupId>ngari</groupId>
-            <artifactId>ehealth-consult-api</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <!--<dependency>-->
-            <!--<groupId>ngari</groupId>-->
-            <!--<artifactId>ehealth-consult-api</artifactId>-->
-            <!--<version>${project.parent.version}</version>-->
-        <!--</dependency>-->
-        <dependency>
-            <groupId>${project.parent.groupId}</groupId>
-            <artifactId>ehealth-his-api</artifactId>
-            <version>hotfix-20180621-SNAPSHOT</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
     <build>
