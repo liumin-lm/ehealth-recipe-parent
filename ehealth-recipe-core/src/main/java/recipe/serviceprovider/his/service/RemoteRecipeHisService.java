@@ -1,13 +1,13 @@
 package recipe.serviceprovider.his.service;
 
-import com.ngari.base.hisservice.model.HisResTO;
-import com.ngari.his.recipe.mode.*;
+import com.ngari.base.BaseAPI;
+import com.ngari.bus.hosrelation.model.HosrelationBean;
+import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.recipe.common.RecipeCommonReqTO;
 import com.ngari.recipe.his.service.IRecipeHisService;
-import ctd.spring.AppDomainContext;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import recipe.hisservice.RecipeToHisService;
+import recipe.constant.BusTypeEnum;
 
 /**
  * 处方相关对接HIS服务
@@ -38,7 +38,10 @@ public class RemoteRecipeHisService implements IRecipeHisService {
 
     @RpcService
     @Override
-    public void queryVisitStatus(RecipeCommonReqTO request) {
+    public boolean queryVisitStatus(Integer consultId) {
+        IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
+        HosrelationBean hosrelationBean = hosrelationService.getByBusIdAndBusType(consultId, BusTypeEnum.CONSULT.getId());
 
+        return true;
     }
 }

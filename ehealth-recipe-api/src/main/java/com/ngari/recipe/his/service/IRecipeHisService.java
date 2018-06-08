@@ -1,6 +1,7 @@
 package com.ngari.recipe.his.service;
 
 import com.ngari.recipe.common.RecipeCommonReqTO;
+import com.ngari.recipe.common.RecipeCommonResTO;
 import ctd.util.annotation.RpcService;
 
 /**
@@ -16,28 +17,28 @@ public interface IRecipeHisService {
      * @param request
      */
     @RpcService
-    void canVisit(RecipeCommonReqTO request);
+    RecipeCommonResTO canVisit(RecipeCommonReqTO request);
 
     /**
      * 在线复诊挂号接口
      * @param request
      */
     @RpcService
-    void visitRegist(RecipeCommonReqTO request);
+    RecipeCommonResTO visitRegist(RecipeCommonReqTO request);
 
     /**
      * 在线复诊挂号取消接口
      * @param request
      */
     @RpcService
-    void cancelVisit(RecipeCommonReqTO request);
+    RecipeCommonResTO cancelVisit(RecipeCommonReqTO request);
 
     /**
      * 在线复诊挂号记录接诊状态查询接口
      * @param request
      */
     @RpcService
-    void queryVisitStatus(RecipeCommonReqTO request);
+    boolean queryVisitStatus(Integer consultId) ;
 
 
 }

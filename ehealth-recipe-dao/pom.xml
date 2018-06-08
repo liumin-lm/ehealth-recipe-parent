@@ -27,7 +27,7 @@
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-base-api</artifactId>
-            <version>1.2.0</version>
+            <version>${project.parent.version}</version>
         </dependency>
     </dependencies>
 </project>
