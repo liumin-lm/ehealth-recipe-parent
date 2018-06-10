@@ -122,7 +122,11 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
                 cancelRequest.setRegisterId(hosrelationBean.getRegisterId());
                 cancelRequest.setPatId(hosrelationBean.getPatId());
                 cancelRequest.setCancelReason("系统取消");
-                hisService.cancelVisit(cancelRequest);
+                LOGGER.info("queryVisitStatus cancelVisit request={}", JSONUtils.toString(cancelRequest));
+                HisResponseTO cancelResponse = hisService.cancelVisit(cancelRequest);
+                LOGGER.info("queryVisitStatus cancelVisit response={}", JSONUtils.toString(cancelResponse));
+                //取消成功记录
+
             }else{
                 response.setCode(RecipeCommonResTO.FAIL);
                 response.setMsg(response.getMsg());
