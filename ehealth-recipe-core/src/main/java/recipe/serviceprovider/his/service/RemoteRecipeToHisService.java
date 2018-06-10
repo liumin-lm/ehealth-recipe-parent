@@ -109,9 +109,28 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
             LOGGER.info("queryVisitStatus request={}", JSONUtils.toString(hisRequest));
             HisResponseTO<QueryVisitsResponseTO> hisResponse = hisService.queryVisitStatus(hisRequest);
             LOGGER.info("queryVisitStatus response={}", JSONUtils.toString(hisResponse));
+            RecipeCommonResTO response = new RecipeCommonResTO();
+            if("200".equals(hisResponse.getMsgCode())) {
+                response.setCode(RecipeCommonResTO.SUCCESS);
+                QueryVisitsResponseTO resDate = hisResponse.getData();
+                //HIS如果已接诊，则返回 true，否则返回false
 
+
+                //如果his未接诊，则取消挂号
+                CancelVisitRequestTO cancelRequest = new CancelVisitRequestTO();
+                cancelRequest.setOrganId(hosrelationBean.getOrganId());
+                cancelRequest.setRegisterId(hosrelationBean.getRegisterId());
+                cancelRequest.setPatId(hosrelationBean.getPatId());
+                cancelRequest.setCancelReason("系统取消");
+                hisService.cancelVisit(cancelRequest);
+            }else{
+                response.setCode(RecipeCommonResTO.FAIL);
+                response.setMsg(response.getMsg());
+            }
+        }else{
+            LOGGER.warn("queryVisitStatus hosrelationBean is null. consultId={}", consultId);
         }
-        return true;
+        return false;
     }
 
 }
