@@ -10,7 +10,7 @@ import ctd.util.annotation.RpcService;
  *  @description： 处方相关对接HIS服务
  *  @version： 1.0
  */
-public interface IRecipeHisService {
+public interface IRecipeToHisService {
 
     /**
      * 复诊病人判断接口
@@ -25,13 +25,6 @@ public interface IRecipeHisService {
      */
     @RpcService
     RecipeCommonResTO visitRegist(RecipeCommonReqTO request);
-
-    /**
-     * 在线复诊挂号取消接口
-     * @param request
-     */
-    @RpcService
-    RecipeCommonResTO cancelVisit(RecipeCommonReqTO request);
 
     /**
      * 在线复诊挂号记录接诊状态查询接口

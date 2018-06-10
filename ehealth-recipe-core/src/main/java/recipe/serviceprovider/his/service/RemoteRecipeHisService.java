@@ -1,10 +1,13 @@
 package recipe.serviceprovider.his.service;
 
 import com.ngari.base.BaseAPI;
+import com.ngari.base.hisservice.service.IRecipeHisService;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.recipe.common.RecipeCommonReqTO;
-import com.ngari.recipe.his.service.IRecipeHisService;
+import com.ngari.recipe.common.RecipeCommonResTO;
+import com.ngari.recipe.his.service.IRecipeToHisService;
+import ctd.spring.AppDomainContext;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import recipe.constant.BusTypeEnum;
@@ -15,24 +18,20 @@ import recipe.constant.BusTypeEnum;
  * author: 0184/yu_yun
  * date:2017/9/12.
  */
-@RpcBean("remoteRecipeHisService")
-public class RemoteRecipeHisService implements IRecipeHisService {
+@RpcBean("remoteRecipeToHisService")
+public class RemoteRecipeToHisService implements IRecipeToHisService {
 
     @RpcService
     @Override
-    public void canVisit(RecipeCommonReqTO request) {
+    public RecipeCommonResTO canVisit(RecipeCommonReqTO request) {
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+
 
     }
 
     @RpcService
     @Override
-    public void visitRegist(RecipeCommonReqTO request) {
-
-    }
-
-    @RpcService
-    @Override
-    public void cancelVisit(RecipeCommonReqTO request) {
+    public RecipeCommonResTO visitRegist(RecipeCommonReqTO request) {
 
     }
 
