@@ -33,5 +33,4 @@ public interface IRecipeToHisService {
     @RpcService
     boolean queryVisitStatus(Integer consultId) ;
 
-
 }
