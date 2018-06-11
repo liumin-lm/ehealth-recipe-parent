@@ -52,6 +52,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
             response.setCode(RecipeCommonResTO.SUCCESS);
         }else{
             response.setCode(RecipeCommonResTO.FAIL);
+            //抱歉，因您1月内在医院没有就诊记录，不能发起在线复诊。
             response.setMsg(response.getMsg());
         }
         return response;
