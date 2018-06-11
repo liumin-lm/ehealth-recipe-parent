@@ -31,6 +31,6 @@ public interface IRecipeToHisService {
      * @param request
      */
     @RpcService
-    boolean queryVisitStatus(Integer consultId) ;
+    RecipeCommonResTO queryVisitStatus(Integer consultId) ;
 
 }

@@ -99,9 +99,10 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
 
     @RpcService
     @Override
-    public boolean queryVisitStatus(Integer consultId) {
+    public RecipeCommonResTO queryVisitStatus(Integer consultId) {
         IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
         HosrelationBean hosrelationBean = hosrelationService.getByBusIdAndBusType(consultId, BusTypeEnum.CONSULT.getId());
+        RecipeCommonResTO response = new RecipeCommonResTO();
         if(null != hosrelationBean){
             IVisitService hisService = AppDomainContext.getBean("his.iVisitService", IVisitService.class);
             QueryVisitsRequestTO hisRequest = new QueryVisitsRequestTO();
@@ -110,32 +111,52 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
             LOGGER.info("queryVisitStatus request={}", JSONUtils.toString(hisRequest));
             HisResponseTO<QueryVisitsResponseTO> hisResponse = hisService.queryVisitStatus(hisRequest);
             LOGGER.info("queryVisitStatus response={}", JSONUtils.toString(hisResponse));
-            RecipeCommonResTO response = new RecipeCommonResTO();
+
             if("200".equals(hisResponse.getMsgCode())) {
-                response.setCode(RecipeCommonResTO.SUCCESS);
                 QueryVisitsResponseTO resDate = hisResponse.getData();
-                //HIS如果已接诊，则返回 true，否则返回false
-
-
-                //如果his未接诊，则取消挂号
-                CancelVisitRequestTO cancelRequest = new CancelVisitRequestTO();
-                cancelRequest.setOrganId(hosrelationBean.getOrganId());
-                cancelRequest.setRegisterId(hosrelationBean.getRegisterId());
-                cancelRequest.setPatId(hosrelationBean.getPatId());
-                cancelRequest.setCancelReason("系统取消");
-                LOGGER.info("queryVisitStatus cancelVisit request={}", JSONUtils.toString(cancelRequest));
-                HisResponseTO cancelResponse = hisService.cancelVisit(cancelRequest);
-                LOGGER.info("queryVisitStatus cancelVisit response={}", JSONUtils.toString(cancelResponse));
-                //取消成功记录
-
+                if(resDate.getRegisterId().equals(hosrelationBean.getRegisterId())) {
+                    //HIS就诊状态： 1 已接诊 2 已取消 0未接诊
+                    if ("1".equals(resDate.getStatus())) {
+                        LOGGER.info("queryVisitStatus consultId={} 已接诊", consultId);
+                        response.setCode(RecipeCommonResTO.SUCCESS);
+                        return response;
+                    }else{
+                        response.setCode(RecipeCommonResTO.FAIL);
+                        cancelVisit(hosrelationBean);
+                        return response;
+                    }
+                }
             }else{
-                response.setCode(RecipeCommonResTO.FAIL);
-                response.setMsg(response.getMsg());
+                response.setCode(-1);
+                response.setMsg("系统返回失败,"+JSONUtils.toString(hisResponse));
             }
         }else{
             LOGGER.warn("queryVisitStatus hosrelationBean is null. consultId={}", consultId);
+            response.setCode(-1);
+            response.setMsg("查询不到业务记录,consultId="+consultId);
         }
-        return false;
+        return response;
+    }
+
+    @RpcService
+    public void cancelVisit(HosrelationBean hosrelationBean){
+        IVisitService hisService = AppDomainContext.getBean("his.iVisitService", IVisitService.class);
+
+        //如果his未接诊，则取消挂号
+        CancelVisitRequestTO cancelRequest = new CancelVisitRequestTO();
+        cancelRequest.setOrganId(hosrelationBean.getOrganId());
+        cancelRequest.setRegisterId(hosrelationBean.getRegisterId());
+        cancelRequest.setPatId(hosrelationBean.getPatId());
+        cancelRequest.setCancelReason("系统取消");
+        LOGGER.info("cancelVisit request={}", JSONUtils.toString(cancelRequest));
+        HisResponseTO cancelResponse = hisService.cancelVisit(cancelRequest);
+        LOGGER.info("cancelVisit response={}", JSONUtils.toString(cancelResponse));
+        //取消成功记录
+        if("200".equals(cancelResponse.getMsgCode())) {
+            LOGGER.info("cancelVisit consultId={} 取消成功", hosrelationBean.getBusId());
+        }else{
+            LOGGER.warn("cancelVisit consultId={} 取消失败, msg={}", hosrelationBean.getBusId(), cancelResponse.getMsg());
+        }
     }
 
 }
