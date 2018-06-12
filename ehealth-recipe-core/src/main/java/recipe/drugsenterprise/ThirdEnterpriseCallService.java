@@ -75,7 +75,7 @@ public class ThirdEnterpriseCallService {
             backMsg.setCode(REQUEST_OK);
             return backMsg;
         } else if (REQUEST_ERROR == code) {
-            LOGGER.error("recipeId=[{}], readyToSend:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
+            LOGGER.warn("recipeId=[{}], readyToSend:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
             return backMsg;
         }
 
@@ -227,7 +227,7 @@ public class ThirdEnterpriseCallService {
             backMsg.setCode(REQUEST_OK);
             return backMsg;
         } else if (REQUEST_ERROR == code) {
-            LOGGER.error("recipeId=[{}], toSend:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
+            LOGGER.warn("recipeId=[{}], toSend:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
             return backMsg;
         }
 
@@ -256,7 +256,7 @@ public class ThirdEnterpriseCallService {
             if (REQUEST_ERROR_REAPET == code) {
                 thirdResultBean.setCode(REQUEST_OK);
             } else if (REQUEST_ERROR == code) {
-                LOGGER.error("recipeId=[{}], send:{}", thirdResultBean.getBusId(), JSONUtils.toString(thirdResultBean));
+                LOGGER.warn("recipeId=[{}], send:{}", thirdResultBean.getBusId(), JSONUtils.toString(thirdResultBean));
             } else if (REQUEST_OK == code) {
                 sendImpl(thirdResultBean, paramMap);
             }
@@ -315,7 +315,7 @@ public class ThirdEnterpriseCallService {
             try {
                 company = DictionaryController.instance().get("eh.cdr.dictionary.LogisticsCompany").getText(logisticsCompany);
             } catch (ControllerException e) {
-                LOGGER.error("toSend get logisticsCompany error. logisticsCompany=" + logisticsCompany);
+                LOGGER.warn("toSend get logisticsCompany error. logisticsCompany=" + logisticsCompany);
             }
             //记录日志
             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.IN_SEND, "配送中,配送人：" + sender
@@ -347,7 +347,7 @@ public class ThirdEnterpriseCallService {
             backMsg.setCode(REQUEST_OK);
             return backMsg;
         } else if (REQUEST_ERROR == code) {
-            LOGGER.error("recipeId=[{}], finishRecipe:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
+            LOGGER.warn("recipeId=[{}], finishRecipe:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
             return backMsg;
         }
 
@@ -386,8 +386,8 @@ public class ThirdEnterpriseCallService {
             Map<String, Object> orderAttr = getOrderInfoMap(recipe, paramMap);
             orderService.finishOrder(recipe.getOrderCode(), recipe.getPayMode(), orderAttr);
             //保存至电子病历
-            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-            recipeService.saveRecipeDocIndex(recipe);
+//            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+//            recipeService.saveRecipeDocIndex(recipe);
             //记录日志
             RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.IN_SEND, RecipeStatusConstant.FINISH, "配送到家处方单完成,配送人：" + sender);
             //HIS消息发送
@@ -424,7 +424,7 @@ public class ThirdEnterpriseCallService {
         int code = validateRecipe(paramMap, backMsg, null, null);
 
         if (REQUEST_OK != code) {
-            LOGGER.error("updateRecipeInfo error. info={}, recipeId=[{}]",  JSONUtils.toString(backMsg), backMsg.getBusId());
+            LOGGER.warn("updateRecipeInfo error. info={}, recipeId=[{}]",  JSONUtils.toString(backMsg), backMsg.getBusId());
             return backMsg;
         }
 
@@ -594,7 +594,7 @@ public class ThirdEnterpriseCallService {
         int code = validateRecipe(paramMap, backMsg, null, null);
 
         if (REQUEST_OK != code) {
-            LOGGER.error("recipeId=[{}], recordDrugStoreResult:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
+            LOGGER.warn("recipeId=[{}], recordDrugStoreResult:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
             return backMsg;
         }
 
@@ -630,7 +630,7 @@ public class ThirdEnterpriseCallService {
                 //完成订单，不需要检查订单有效性，就算失效的订单也直接变成已完成
                 orderService.finishOrder(recipe.getOrderCode(), recipe.getPayMode(), orderAttr);
                 //保存至电子病历
-                recipeService.saveRecipeDocIndex(recipe);
+//                recipeService.saveRecipeDocIndex(recipe);
                 //记录日志
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.FINISH, "到店取药订单完成");
                 //HIS消息发送
@@ -674,7 +674,7 @@ public class ThirdEnterpriseCallService {
         int code = validateRecipe(paramMap, backMsg, null, null);
 
         if (REQUEST_OK != code) {
-            LOGGER.error("recipeId=[{}], userConfirm:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
+            LOGGER.warn("recipeId=[{}], userConfirm:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
             return backMsg;
         }
 

@@ -1391,7 +1391,13 @@ public class RecipeService {
         if (null == payMode || RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)
                 || RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(payMode)) {
             //只支持线上付款后配送，则需要判断医院是否有付款帐号
-            String wxAccount = getWxAppIdForRecipeFromOps(null, organId);
+            String wxAccount = null;
+            try {
+                wxAccount = getWxAppIdForRecipeFromOps(null, organId);
+            } catch (Exception e) {
+                LOGGER.warn("findSupportDepList getWxAppIdForRecipeFromOps error. organId={}", organId, e);
+                wxAccount = null;
+            }
             //需要判断医院HIS是否开通
             boolean hisStatus = iHisConfigService.isHisEnable(organId);
             LOGGER.info("findSupportDepList payAccount={}, hisStatus={}", wxAccount, hisStatus);
@@ -1666,7 +1672,7 @@ public class RecipeService {
      */
     @RpcService
     public RecipeResultBean getHomePageTaskForPatient(String mpiid) {
-        LOGGER.info("getHomePageTaskForPatient mpiId[{}] start in", mpiid);
+        LOGGER.info("getHomePageTaskForPatient mpiId={}", mpiid);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         //根据mpiid获取当前患者所有家庭成员(包括自己)
         List<String> allMpiIds = getAllMemberPatientsByCurrentPatient(mpiid);
@@ -1688,7 +1694,6 @@ public class RecipeService {
             resultBean.setExtendValue("1");
             resultBean.setMsg(String.valueOf(recipeIds.size()));
         }
-        LOGGER.info("getHomePageTaskForPatient mpiId[{}] end", mpiid);
         return resultBean;
     }
 

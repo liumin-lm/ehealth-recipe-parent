@@ -1,0 +1,11 @@
+stages:
+  - build
+
+build:
+  stage: build
+  only:
+    - release
+  script:
+    - 'mvn clean deploy -Dmaven.test.skip=true'
+  tags:
+    - build-jar

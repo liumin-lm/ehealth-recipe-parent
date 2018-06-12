@@ -158,7 +158,7 @@ public class DrugsEnterpriseTestService {
                         boolean use = isOrganCanUseDrug(drug.getDrugName());
 
                         addSql.append("INSERT INTO base_organdruglist(OrganID,DrugId,OrganDrugCode,salePrice,ProducerCode,Status) " +
-                                "VALUES (" + organId + ", " + drugId + ", '', " + drug.getPrice1() + ", '', " + (use ? 1 : 0) + ");" + lineSign);
+                                "VALUES (" + organId + ", " + drugId + ", '"+drugId+"', " + drug.getPrice1() + ", '', " + (use ? 1 : 0) + ");" + lineSign);
                     } else {
                         notExistDrug.add(drugId);
                     }
