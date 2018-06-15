@@ -48,12 +48,17 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         HisResponseTO hisResponse = hisService.canVisit(hisRequest);
         LOGGER.info("canVisit response={}", JSONUtils.toString(hisResponse));
         RecipeCommonResTO response = new RecipeCommonResTO();
-        if("200".equals(hisResponse.getMsgCode())) {
-            response.setCode(RecipeCommonResTO.SUCCESS);
-        }else{
+        if(null == hisResponse){
             response.setCode(RecipeCommonResTO.FAIL);
-            //抱歉，因您1月内在医院没有就诊记录，不能发起在线复诊。
-            response.setMsg(response.getMsg());
+            response.setMsg("HIS返回数据有误");
+        }else {
+            if ("200".equals(hisResponse.getMsgCode())) {
+                response.setCode(RecipeCommonResTO.SUCCESS);
+            } else {
+                response.setCode(RecipeCommonResTO.FAIL);
+                //抱歉，因您1月内在医院没有就诊记录，不能发起在线复诊。
+                response.setMsg(response.getMsg());
+            }
         }
         return response;
     }
@@ -77,22 +82,27 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         HisResponseTO<VisitRegistResponseTO> hisResponse = hisService.visitRegist(hisRequest);
         LOGGER.info("visitRegist response={}", JSONUtils.toString(hisResponse));
         RecipeCommonResTO response = new RecipeCommonResTO();
-        if("200".equals(hisResponse.getMsgCode())) {
-            response.setCode(RecipeCommonResTO.SUCCESS);
-            VisitRegistResponseTO resDate = hisResponse.getData();
-            IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
-            HosrelationBean hosrelationBean = new HosrelationBean();
-            hosrelationBean.setBusId(Integer.valueOf(map.get("consultId").toString()));
-            hosrelationBean.setOrganId(Integer.valueOf(map.get("organId").toString()));
-            hosrelationBean.setBusType(BusTypeEnum.CONSULT.getId());
-            hosrelationBean.setRequestUrt(Integer.valueOf(map.get("urt").toString()));
-            hosrelationBean.setRegisterId(resDate.getRegisterId());
-            hosrelationBean.setClinicNo(resDate.getClinicNo());
-            hosrelationBean.setPatId(resDate.getPatId());
-            hosrelationService.save(hosrelationBean);
-        }else{
+        if(null == hisResponse){
             response.setCode(RecipeCommonResTO.FAIL);
-            response.setMsg(response.getMsg());
+            response.setMsg("HIS返回数据有误");
+        }else {
+            if ("200".equals(hisResponse.getMsgCode())) {
+                response.setCode(RecipeCommonResTO.SUCCESS);
+                VisitRegistResponseTO resDate = hisResponse.getData();
+                IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
+                HosrelationBean hosrelationBean = new HosrelationBean();
+                hosrelationBean.setBusId(Integer.valueOf(map.get("consultId").toString()));
+                hosrelationBean.setOrganId(Integer.valueOf(map.get("organId").toString()));
+                hosrelationBean.setBusType(BusTypeEnum.CONSULT.getId());
+                hosrelationBean.setRequestUrt(Integer.valueOf(map.get("urt").toString()));
+                hosrelationBean.setRegisterId(resDate.getRegisterId());
+                hosrelationBean.setClinicNo(resDate.getClinicNo());
+                hosrelationBean.setPatId(resDate.getPatId());
+                hosrelationService.save(hosrelationBean);
+            } else {
+                response.setCode(RecipeCommonResTO.FAIL);
+                response.setMsg(response.getMsg());
+            }
         }
         return response;
     }
@@ -111,24 +121,28 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
             LOGGER.info("queryVisitStatus request={}", JSONUtils.toString(hisRequest));
             HisResponseTO<QueryVisitsResponseTO> hisResponse = hisService.queryVisitStatus(hisRequest);
             LOGGER.info("queryVisitStatus response={}", JSONUtils.toString(hisResponse));
-
-            if("200".equals(hisResponse.getMsgCode())) {
-                QueryVisitsResponseTO resDate = hisResponse.getData();
-                if(resDate.getRegisterId().equals(hosrelationBean.getRegisterId())) {
-                    //HIS就诊状态： 1 已接诊 2 已取消 0未接诊
-                    if ("1".equals(resDate.getStatus())) {
-                        LOGGER.info("queryVisitStatus consultId={} 已接诊", consultId);
-                        response.setCode(RecipeCommonResTO.SUCCESS);
-                        return response;
-                    }else{
-                        response.setCode(RecipeCommonResTO.FAIL);
-                        cancelVisit(hosrelationBean);
-                        return response;
+            if(null == hisResponse){
+                response.setCode(RecipeCommonResTO.FAIL);
+                response.setMsg("HIS返回数据有误");
+            }else {
+                if ("200".equals(hisResponse.getMsgCode())) {
+                    QueryVisitsResponseTO resDate = hisResponse.getData();
+                    if (resDate.getRegisterId().equals(hosrelationBean.getRegisterId())) {
+                        //HIS就诊状态： 1 已接诊 2 已取消 0未接诊
+                        if ("1".equals(resDate.getStatus())) {
+                            LOGGER.info("queryVisitStatus consultId={} 已接诊", consultId);
+                            response.setCode(RecipeCommonResTO.SUCCESS);
+                            return response;
+                        } else {
+                            response.setCode(RecipeCommonResTO.FAIL);
+                            cancelVisit(hosrelationBean);
+                            return response;
+                        }
                     }
+                } else {
+                    response.setCode(-1);
+                    response.setMsg("系统返回失败," + JSONUtils.toString(hisResponse));
                 }
-            }else{
-                response.setCode(-1);
-                response.setMsg("系统返回失败,"+JSONUtils.toString(hisResponse));
             }
         }else{
             LOGGER.warn("queryVisitStatus hosrelationBean is null. consultId={}", consultId);
@@ -151,11 +165,15 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         LOGGER.info("cancelVisit request={}", JSONUtils.toString(cancelRequest));
         HisResponseTO cancelResponse = hisService.cancelVisit(cancelRequest);
         LOGGER.info("cancelVisit response={}", JSONUtils.toString(cancelResponse));
-        //取消成功记录
-        if("200".equals(cancelResponse.getMsgCode())) {
-            LOGGER.info("cancelVisit consultId={} 取消成功", hosrelationBean.getBusId());
-        }else{
-            LOGGER.warn("cancelVisit consultId={} 取消失败, msg={}", hosrelationBean.getBusId(), cancelResponse.getMsg());
+        if(null == cancelResponse){
+            LOGGER.warn("HIS返回为NULL, consultId={}", hosrelationBean.getBusId());
+        }else {
+            //取消成功记录
+            if ("200".equals(cancelResponse.getMsgCode())) {
+                LOGGER.info("cancelVisit consultId={} 取消成功", hosrelationBean.getBusId());
+            } else {
+                LOGGER.warn("cancelVisit consultId={} 取消失败, msg={}", hosrelationBean.getBusId(), cancelResponse.getMsg());
+            }
         }
     }
 
