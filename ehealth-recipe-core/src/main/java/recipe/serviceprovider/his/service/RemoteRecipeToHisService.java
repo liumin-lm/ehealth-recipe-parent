@@ -50,7 +50,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         RecipeCommonResTO response = new RecipeCommonResTO();
         if(null == hisResponse){
             response.setCode(RecipeCommonResTO.FAIL);
-            response.setMsg("");
+            response.setMsg("HIS返回数据有误");
         }else {
             if ("200".equals(hisResponse.getMsgCode())) {
                 response.setCode(RecipeCommonResTO.SUCCESS);
