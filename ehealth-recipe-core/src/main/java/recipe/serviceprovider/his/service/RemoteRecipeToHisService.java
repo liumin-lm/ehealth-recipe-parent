@@ -34,7 +34,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
     @RpcService
     @Override
     public RecipeCommonResTO canVisit(RecipeCommonReqTO request) {
-        IVisitService hisService = AppDomainContext.getBean("his.iVisitService", IVisitService.class);
+        IVisitService hisService = AppDomainContext.getBean("his.visitService", IVisitService.class);
         Map<String, Object> map = request.getConditions();
         VistPatientRequestTO hisRequest = new VistPatientRequestTO();
         hisRequest.setOrganId(Integer.valueOf(map.get("organId").toString()));
@@ -61,7 +61,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
     @RpcService
     @Override
     public RecipeCommonResTO visitRegist(RecipeCommonReqTO request) {
-        IVisitService hisService = AppDomainContext.getBean("his.iVisitService", IVisitService.class);
+        IVisitService hisService = AppDomainContext.getBean("his.visitService", IVisitService.class);
         Map<String, Object> map = request.getConditions();
         VisitRegistRequestTO hisRequest = new VisitRegistRequestTO();
         hisRequest.setOrganId(Integer.valueOf(map.get("organId").toString()));
@@ -104,7 +104,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         HosrelationBean hosrelationBean = hosrelationService.getByBusIdAndBusType(consultId, BusTypeEnum.CONSULT.getId());
         RecipeCommonResTO response = new RecipeCommonResTO();
         if(null != hosrelationBean){
-            IVisitService hisService = AppDomainContext.getBean("his.iVisitService", IVisitService.class);
+            IVisitService hisService = AppDomainContext.getBean("his.visitService", IVisitService.class);
             QueryVisitsRequestTO hisRequest = new QueryVisitsRequestTO();
             hisRequest.setRegisterId(hosrelationBean.getRegisterId());
             hisRequest.setOrganId(hosrelationBean.getOrganId());
@@ -140,7 +140,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
 
     @RpcService
     public void cancelVisit(HosrelationBean hosrelationBean){
-        IVisitService hisService = AppDomainContext.getBean("his.iVisitService", IVisitService.class);
+        IVisitService hisService = AppDomainContext.getBean("his.visitService", IVisitService.class);
 
         //如果his未接诊，则取消挂号
         CancelVisitRequestTO cancelRequest = new CancelVisitRequestTO();
