@@ -35,6 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.bean.CheckYsInfoBean;
 import recipe.bean.RecipeResultBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
@@ -351,16 +352,21 @@ public class RecipeService {
      *                 String     failMemo 备注
      *                 List<Map<String, Object>>     checkList
      */
-    public boolean reviewRecipe(Map<String, Object> paramMap) {
+    public CheckYsInfoBean reviewRecipe(Map<String, Object> paramMap) {
         Integer recipeId = MapValueUtil.getInteger(paramMap, "recipeId");
         Integer checkOrgan = MapValueUtil.getInteger(paramMap, "checkOrgan");
         Integer checker = MapValueUtil.getInteger(paramMap, "checker");
         Integer checkFlag = MapValueUtil.getInteger(paramMap, "result");
+        CheckYsInfoBean resultBean = new CheckYsInfoBean();
+        resultBean.setRecipeId(recipeId);
+        resultBean.setCheckResult(checkFlag);
+        resultBean.setCheckDoctorId(checker);
         //校验数据
         if (null == recipeId || null == checkOrgan || null == checker || null == checkFlag) {
             throw new DAOException(DAOException.VALUE_NEEDED, "recipeId or checkOrgan or checker or result is null");
         }
         String memo = MapValueUtil.getString(paramMap, "failMemo");
+        resultBean.setCheckFailMemo(memo);
         Object checkListObj = paramMap.get("checkList");
 
         List<Map<String, Object>> checkList = null;
@@ -443,7 +449,8 @@ public class RecipeService {
         boolean bl = recipeDAO.updateRecipeInfoByRecipeId(recipeId, recipeStatus, attrMap);
         if (!bl) {
             LOGGER.error("reviewRecipe update recipe[" + recipeId + "] error!");
-            return bl;
+            resultBean.setRs(bl);
+            return resultBean;
         }
 
         //记录日志
@@ -478,7 +485,9 @@ public class RecipeService {
             }
         }
 
-        return bl;
+        resultBean.setRs(bl);
+        resultBean.setCheckDetailList(recipeCheckDetails);
+        return resultBean;
     }
 
     /**
