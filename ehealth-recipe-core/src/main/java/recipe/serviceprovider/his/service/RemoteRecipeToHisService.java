@@ -57,7 +57,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
             } else {
                 response.setCode(RecipeCommonResTO.FAIL);
                 //抱歉，因您1月内在医院没有就诊记录，不能发起在线复诊。
-                response.setMsg(response.getMsg());
+                response.setMsg(hisResponse.getMsg());
             }
         }
         return response;
@@ -101,7 +101,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
                 hosrelationService.save(hosrelationBean);
             } else {
                 response.setCode(RecipeCommonResTO.FAIL);
-                response.setMsg(response.getMsg());
+                response.setMsg(hisResponse.getMsg());
             }
         }
         return response;
