@@ -1,17 +1,33 @@
 package recipe.hisservice;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.his.recipe.mode.*;
+import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeCheckDetail;
 import com.ngari.recipe.entity.Recipedetail;
+import ctd.persistence.DAOFactory;
+import ctd.util.JSONUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import recipe.bean.CheckYsInfoBean;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
+import recipe.dao.DrugListDAO;
+import recipe.dao.RecipeDetailDAO;
+import recipe.service.RecipeCheckService;
+import recipe.service.RecipeService;
+import recipe.util.ApplicationUtils;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Map;
 
 /**
  * company: ngarihealth
@@ -19,6 +35,8 @@ import java.util.List;
  * @date:2017/9/14.
  */
 public class HisRequestInit {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(HisRequestInit.class);
 
     public static RecipeSendRequestTO initRecipeSendRequestTO(Recipe recipe, List<Recipedetail> details,
                                                               PatientBean patient, HealthCardBean card) {
@@ -262,5 +280,62 @@ public class HisRequestInit {
         }
 
         return requestTO;
+    }
+
+    public static RecipeAuditReqTO recipeAudit(Recipe recipe, CheckYsInfoBean resutlBean){
+        RecipeAuditReqTO request = new RecipeAuditReqTO();
+        request.setOrganId(recipe.getClinicOrgan());
+        request.setRecipeCode(recipe.getRecipeCode());
+        request.setResult(resutlBean.getCheckResult().toString());
+        request.setCheckMark(resutlBean.getCheckFailMemo());
+        List<RecipeAuditDetailReqTO> detailList = Lists.newArrayList();
+        request.setRecipeAuditDetailReqTO(detailList);
+        List<RecipeCheckDetail> recipeCheckDetailList = resutlBean.getCheckDetailList();
+        if(CollectionUtils.isNotEmpty(recipeCheckDetailList)){
+            RecipeCheckService recipeCheckService = ApplicationUtils.getRecipeService(RecipeCheckService.class);
+            RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+
+            List<Recipedetail> recipeDetailList = detailDAO.findByRecipeId(recipe.getRecipeId());
+            List<Integer> drugIds = detailDAO.findDrugIdByRecipeId(recipe.getRecipeId());
+            List<DrugList> drugList = drugListDAO.findByDrugIds(drugIds);
+            Map<Integer, DrugList> drugInfo = Maps.newHashMap();
+            Map<Integer, String> drugCodeMap = Maps.newHashMap();
+            for(Recipedetail detail : recipeDetailList){
+                for(DrugList drug : drugList){
+                    if(drug.getDrugId().equals(detail.getDrugId())){
+                        drugInfo.put(detail.getRecipeDetailId(), drug);
+                        break;
+                    }
+                }
+                drugCodeMap.put(detail.getRecipeDetailId(), detail.getDrugCode());
+            }
+
+            RecipeAuditDetailReqTO auditDetail;
+            List<Integer> detailIdList;
+            List<Integer> reasonIdList;
+            DrugList drug;
+            try {
+                for(RecipeCheckDetail detail : recipeCheckDetailList){
+                    reasonIdList = JSONUtils.parse(detail.getReasonIds(), List.class);
+                    detailIdList = JSONUtils.parse(detail.getRecipeDetailIds(), List.class);
+                    for(Integer detailId : detailIdList){
+                        auditDetail = new RecipeAuditDetailReqTO();
+                        auditDetail.setReason(recipeCheckService.getReasonDicList(reasonIdList));
+                        drug = drugInfo.get(detailId);
+                        auditDetail.setDrugCode(drugCodeMap.get(detailId));
+                        auditDetail.setDrugName(drug.getSaleName());
+                        auditDetail.setProducer(drug.getProducer());
+                        auditDetail.setSpecification(drug.getDrugSpec());
+                        //TODO 智能审方数据设置
+                        detailList.add(auditDetail);
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.warn("recipeAudit create his data error. recipeId={}", recipe.getRecipeId(), e);
+            }
+        }
+
+        return request;
     }
 }

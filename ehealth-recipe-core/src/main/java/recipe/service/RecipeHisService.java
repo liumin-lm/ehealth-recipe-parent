@@ -23,6 +23,7 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.bean.CheckYsInfoBean;
 import recipe.bean.RecipeCheckPassResult;
 import recipe.bean.RecipeResultBean;
 import recipe.bussutil.RecipeUtil;
@@ -512,6 +513,27 @@ public class RecipeHisService extends RecipeBaseService {
             result.setCode(RecipeResultBean.FAIL);
             result.setError("医院HIS未启用。");
             LOGGER.error("scanDrugStock 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipe.getRecipeId() + "]");
+        }
+
+        return result;
+    }
+
+    /**
+     * 发送药师审核结果
+     * @param recipe
+     * @return
+     */
+    public RecipeResultBean recipeAudit(Recipe recipe, CheckYsInfoBean resutlBean){
+        RecipeResultBean result = RecipeResultBean.getSuccess();
+        if (isHisEnable(recipe.getClinicOrgan())) {
+            RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+            RecipeAuditReqTO request = HisRequestInit.recipeAudit(recipe, resutlBean);
+            service.recipeAudit(request);
+            return result;
+        } else {
+            result.setCode(RecipeResultBean.FAIL);
+            result.setError("医院HIS未启用。");
+            LOGGER.error("recipeAudit 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipe.getRecipeId() + "]");
         }
 
         return result;
