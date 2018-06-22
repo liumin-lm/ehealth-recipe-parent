@@ -30,5 +30,6 @@
     <!--bus-api-->
     <reference interface="com.ngari.bus.busactionlog.service.IBusActionLogService" id="eh.busActionLogService"/>
     <reference interface="com.ngari.bus.coupon.service.ICouponService" id="eh.couponService"/>
+    <reference interface="com.ngari.bus.hosrelation.service.IHosrelationService" id="eh.remoteHosrelationService"/>
 
 </s:beans>

@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.audit.list.request.AuditListReq;
+import recipe.bean.CheckYsInfoBean;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
@@ -384,7 +385,7 @@ public class RecipeCheckService {
      * @param reList
      * @return
      */
-    private List<String> getReasonDicList(List<Integer> reList) {
+    public List<String> getReasonDicList(List<Integer> reList) {
         List<String> reasonList = new ArrayList<>();
         try {
             Dictionary dictionary = DictionaryController.instance().get("eh.cdr.dictionary.Reason");
@@ -446,7 +447,7 @@ public class RecipeCheckService {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
         //审核处方单（药师相关数据处理）
-        boolean rs = recipeService.reviewRecipe(paramMap);
+        CheckYsInfoBean resultBean = recipeService.reviewRecipe(paramMap);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         //审核成功往药厂发消息
         if (1 == result) {
@@ -461,10 +462,19 @@ public class RecipeCheckService {
         }
 
         Map<String, Object> resMap = Maps.newHashMap();
-        resMap.put("result", rs);
+        resMap.put("result", resultBean.isRs());
         resMap.put("recipeId", recipeId);
         //把审核结果再返回前端 0:未审核 1:通过 2:不通过
         resMap.put("check", (1 == result) ? 1 : 2);
+
+        //将审核结果推送HIS
+        try {
+            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+            hisService.recipeAudit(recipe, resultBean);
+        } catch (Exception e) {
+            LOGGER.warn("saveCheckResult send recipeAudit to his error. recipeId={}", recipeId, e);
+        }
+
         return resMap;
     }
 

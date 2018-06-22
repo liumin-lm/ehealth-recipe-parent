@@ -2,10 +2,9 @@ package recipe.prescription;
 
 import com.ngari.base.employment.model.EmploymentBean;
 import com.ngari.base.employment.service.IEmploymentService;
-import com.ngari.base.organ.model.OrganBean;
-import com.ngari.base.organ.service.IOrganService;
-import com.ngari.base.patient.model.PatientBean;
-import com.ngari.base.patient.service.IPatientService;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.OrganService;
+import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.DAOFactory;
@@ -66,19 +65,7 @@ public class PrescribeService {
      * @return
      */
     @RpcService
-    public HosRecipeResult createPrescription(String recipeInfo) {
-        if (StringUtils.isEmpty(recipeInfo)) {
-            return ResponseUtils.getFailResponse(HosRecipeResult.class, "传入参数为空");
-        }
-
-        HospitalRecipeDTO hospitalRecipeDTO = null;
-        try {
-            hospitalRecipeDTO = JSONUtils.parse(recipeInfo, HospitalRecipeDTO.class);
-        } catch (Exception e) {
-            LOG.error("createPrescription parse error. param={}", recipeInfo, e);
-            return ResponseUtils.getFailResponse(HosRecipeResult.class, "解析出错");
-        }
-
+    public HosRecipeResult createPrescription(HospitalRecipeDTO hospitalRecipeDTO) {
         if (null != hospitalRecipeDTO) {
             HosRecipeResult result = PrescribeProcess.validateHospitalRecipe(hospitalRecipeDTO, ADD_FLAG);
             result.setRecipeCode(hospitalRecipeDTO.getRecipeCode());
@@ -86,9 +73,9 @@ public class PrescribeService {
                 return result;
             }
 
-            IOrganService organService = ApplicationUtils.getBaseService(IOrganService.class);
-            OrganBean organ = organService.get(Integer.parseInt(hospitalRecipeDTO.getClinicOrgan()));
-            if (null == organ) {
+            OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+            String organName = organService.getShortNameById(Integer.parseInt(hospitalRecipeDTO.getClinicOrgan()));
+            if (StringUtils.isEmpty(organName)) {
                 result.setCode(CommonConstant.FAIL);
                 result.setMsg("平台未找到相关机构");
                 return result;
@@ -108,7 +95,7 @@ public class PrescribeService {
 
             Recipe recipe = PrescribeProcess.convertNgariRecipe(hospitalRecipeDTO);
             if (null != recipe) {
-                recipe.setOrganName(organ.getShortName());
+                recipe.setOrganName(organName);
                 IEmploymentService employmentService = ApplicationUtils.getBaseService(IEmploymentService.class);
                 //设置医生信息
                 EmploymentBean employment = employmentService.getByJobNumberAndOrganId(
@@ -131,8 +118,9 @@ public class PrescribeService {
                         LOG.warn("createPrescription 审核医生工号(checkerNumber)为空");
                     }
 
-                    IPatientService patientService = ApplicationUtils.getBaseService(IPatientService.class);
-                    PatientBean patient = patientService.getByIdCard(hospitalRecipeDTO.getCertificate());
+                    PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+                    //TODO 获取的患者是什么类型的
+                    PatientDTO patient = patientService.getByIdCard(hospitalRecipeDTO.getCertificate());
                     if (null == patient) {
                         //TODO 创建患者 ...
                         result.setCode(CommonConstant.FAIL);
@@ -177,7 +165,7 @@ public class PrescribeService {
 
             return result;
         } else {
-            LOG.error("createPrescription recipe is empty. param={}", recipeInfo);
+            LOG.error("createPrescription recipe is empty.");
             return ResponseUtils.getFailResponse(HosRecipeResult.class, "未知错误-处方对象为空");
         }
     }
