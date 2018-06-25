@@ -27,6 +27,20 @@ public interface IRecipeToHisService {
     RecipeCommonResTO visitRegist(RecipeCommonReqTO request);
 
     /**
+     * 在线复诊挂号是否成功接口
+     * @param consultId
+     */
+    @RpcService
+    boolean visitRegistSuccess(Integer consultId);
+
+    /**
+     * 取消复诊挂号接口
+     * @param Integer
+     */
+    @RpcService
+    RecipeCommonResTO cancelVisit(Integer consultId);
+
+    /**
      * 在线复诊挂号记录接诊状态查询接口
      * @param request
      */

@@ -118,6 +118,17 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
 
     @RpcService
     @Override
+    public boolean visitRegistSuccess(Integer consultId) {
+        IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
+        HosrelationBean hosrelationBean = hosrelationService.getByBusIdAndBusType(consultId, BusTypeEnum.CONSULT.getId());
+        if(null == hosrelationBean){
+            return false;
+        }
+        return true;
+    }
+
+    @RpcService
+    @Override
     public RecipeCommonResTO queryVisitStatus(Integer consultId) {
         IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
         HosrelationBean hosrelationBean = hosrelationService.getByBusIdAndBusType(consultId, BusTypeEnum.CONSULT.getId());
@@ -144,7 +155,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
                             return response;
                         } else {
                             response.setCode(RecipeCommonResTO.FAIL);
-                            cancelVisit(hosrelationBean);
+                            cancelVisitImpl(hosrelationBean);
                             return response;
                         }
                     }
@@ -162,7 +173,23 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
     }
 
     @RpcService
-    public void cancelVisit(HosrelationBean hosrelationBean){
+    @Override
+    public RecipeCommonResTO cancelVisit(Integer consultId) {
+        IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
+        HosrelationBean hosrelationBean = hosrelationService.getByBusIdAndBusType(consultId, BusTypeEnum.CONSULT.getId());
+        RecipeCommonResTO response = new RecipeCommonResTO();
+        response.setCode(RecipeCommonResTO.FAIL);
+        if(null != hosrelationBean) {
+            boolean flag = cancelVisitImpl(hosrelationBean);
+            if (flag) {
+                response.setCode(RecipeCommonResTO.SUCCESS);
+            }
+        }
+        return response;
+    }
+
+    @RpcService
+    public boolean cancelVisitImpl(HosrelationBean hosrelationBean){
         IVisitService hisService = AppDomainContext.getBean("his.visitService", IVisitService.class);
 
         //如果his未接诊，则取消挂号
@@ -184,10 +211,13 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
             //取消成功记录
             if ("200".equals(cancelResponse.getMsgCode())) {
                 LOGGER.info("cancelVisit consultId={} 取消成功", hosrelationBean.getBusId());
+                return true;
             } else {
                 LOGGER.warn("cancelVisit consultId={} 取消失败, msg={}", hosrelationBean.getBusId(), cancelResponse.getMsg());
             }
         }
+
+        return false;
     }
 
 }
