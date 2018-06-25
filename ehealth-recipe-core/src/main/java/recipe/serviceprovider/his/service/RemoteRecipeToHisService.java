@@ -103,6 +103,10 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
                 hosrelationBean.setRegisterId(resDate.getRegisterId());
                 hosrelationBean.setClinicNo(resDate.getClinicNo());
                 hosrelationBean.setPatId(resDate.getPatId());
+                hosrelationBean.setPatientName(MapValueUtil.getString(map, "patientName"));
+                hosrelationBean.setCardType(MapValueUtil.getString(map, "cardType"));
+                hosrelationBean.setCardId(MapValueUtil.getString(map, "cardID"));
+                hosrelationBean.setExtendsParam(resDate.getExtendsParam());
                 hosrelationService.save(hosrelationBean);
             } else {
                 response.setCode(RecipeCommonResTO.FAIL);
@@ -166,6 +170,10 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         cancelRequest.setOrganId(hosrelationBean.getOrganId());
         cancelRequest.setRegisterId(hosrelationBean.getRegisterId());
         cancelRequest.setPatId(hosrelationBean.getPatId());
+        cancelRequest.setPatientName(hosrelationBean.getPatientName());
+        cancelRequest.setCardType(hosrelationBean.getCardType());
+        cancelRequest.setCardID(hosrelationBean.getCardId());
+        cancelRequest.setExtendsParam(hosrelationBean.getExtendsParam());
         cancelRequest.setCancelReason("系统取消");
         LOGGER.info("cancelVisit request={}", JSONUtils.toString(cancelRequest));
         HisResponseTO cancelResponse = hisService.cancelVisit(cancelRequest);
