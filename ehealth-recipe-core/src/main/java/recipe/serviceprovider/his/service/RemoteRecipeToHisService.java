@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.constant.BusTypeEnum;
 import recipe.util.DateConversion;
+import recipe.util.MapValueUtil;
 
 import java.util.Map;
 
@@ -44,6 +45,8 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         hisRequest.setPatientName(map.get("patientName").toString());
         hisRequest.setMobile(map.get("mobile").toString());
         hisRequest.setJobNumber(map.get("jobNumber").toString());
+        hisRequest.setCardType(MapValueUtil.getString(map, "cardType"));
+        hisRequest.setCardID(MapValueUtil.getString(map, "cardID"));
         LOGGER.info("canVisit request={}", JSONUtils.toString(hisRequest));
         HisResponseTO hisResponse = hisService.canVisit(hisRequest);
         LOGGER.info("canVisit response={}", JSONUtils.toString(hisResponse));
@@ -78,6 +81,8 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         hisRequest.setJobNumber(map.get("jobNumber").toString());
         hisRequest.setWorkDate(DateConversion.parseDate(map.get("workDate").toString(), DateConversion.YYYY_MM_DD));
         hisRequest.setUrt(Integer.valueOf(map.get("urt").toString()));
+        hisRequest.setCardType(MapValueUtil.getString(map, "cardType"));
+        hisRequest.setCardID(MapValueUtil.getString(map, "cardID"));
         LOGGER.info("visitRegist request={}", JSONUtils.toString(hisRequest));
         HisResponseTO<VisitRegistResponseTO> hisResponse = hisService.visitRegist(hisRequest);
         LOGGER.info("visitRegist response={}", JSONUtils.toString(hisResponse));
