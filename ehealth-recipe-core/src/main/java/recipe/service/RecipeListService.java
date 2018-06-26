@@ -8,15 +8,14 @@ import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
-import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.RecipeRollingInfoBean;
-import com.ngari.recipe.recipe.service.IRecipeService;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.entity.mpi.Patient;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -251,6 +250,16 @@ public class RecipeListService {
                     if (RecipeResultBean.SUCCESS.equals(resultBean.getCode())) {
                         if (null != resultBean.getObject() && resultBean.getObject() instanceof RecipeOrder) {
                             RecipeOrder order = (RecipeOrder) resultBean.getObject();
+                            if(null != order.getLogisticsCompany()) {
+                                try {
+                                    String logComStr = DictionaryController.instance().get("eh.cdr.dictionary.KuaiDiNiaoCode")
+                                            .getText(order.getLogisticsCompany());
+                                    record.setLogisticsCompany(logComStr);
+                                    record.setTrackingNumber(order.getTrackingNumber());
+                                } catch (ControllerException e) {
+                                    LOGGER.warn("processListDate KuaiDiNiaoCode get error. code={}", order.getLogisticsCompany());
+                                }
+                            }
                             List<PatientRecipeBean> recipeList = (List<PatientRecipeBean>) order.getList();
                             if (CollectionUtils.isNotEmpty(recipeList)) {
                                 // 前端要求，先去掉数组形式，否则前端不好处理
