@@ -45,6 +45,13 @@ public interface IRecipeToHisService {
      * @param request
      */
     @RpcService
-    RecipeCommonResTO queryVisitStatus(Integer consultId) ;
+    RecipeCommonResTO queryVisitStatus(Integer consultId);
+
+    /**
+     * 取消HIS挂号记录失败的记录再次发起取消
+     * @return
+     */
+    @RpcService
+    void cancelVisitForFail();
 
 }
