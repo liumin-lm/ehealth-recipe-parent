@@ -145,6 +145,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
             if(null == hisResponse){
                 response.setCode(RecipeCommonResTO.FAIL);
                 response.setMsg("HIS返回数据有误");
+                hosrelationService.cancelSuccess(hosrelationBean.getBusId(), hosrelationBean.getBusType(), 0);
             }else {
                 if ("200".equals(hisResponse.getMsgCode())) {
                     QueryVisitsResponseTO resDate = hisResponse.getData();
@@ -163,6 +164,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
                 } else {
                     response.setCode(-1);
                     response.setMsg("系统返回失败," + JSONUtils.toString(hisResponse));
+                    hosrelationService.cancelSuccess(hosrelationBean.getBusId(), hosrelationBean.getBusType(), 0);
                 }
             }
         }else{
