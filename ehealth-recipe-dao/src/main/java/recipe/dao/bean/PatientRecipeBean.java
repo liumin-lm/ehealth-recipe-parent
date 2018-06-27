@@ -22,6 +22,8 @@ public class PatientRecipeBean {
 
     private Integer recordId;
 
+    private Integer organId;
+
     private String recordCode;
 
     private String mpiId;
@@ -87,6 +89,14 @@ public class PatientRecipeBean {
 
     public void setRecordId(Integer recordId) {
         this.recordId = recordId;
+    }
+
+    public Integer getOrganId() {
+        return organId;
+    }
+
+    public void setOrganId(Integer organId) {
+        this.organId = organId;
     }
 
     public String getRecordCode() {

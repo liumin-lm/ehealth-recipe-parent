@@ -141,15 +141,24 @@ public class RecipeListService {
         List<Integer> recipeIds = recipeDAO.findPendingRecipes(allMpiIds, RecipeStatusConstant.CHECK_PASS, 0, 1);
         String title;
         String recipeGetModeTip = "";
+        //默认需要展示 “购药”
+        map.put("checkEnterprise", true);
         if (CollectionUtils.isNotEmpty(recipeIds)) {
             title = "赶快结算您的处方单吧！";
             List<Map> recipesMap = new ArrayList<>(0);
+            Integer organId = null;
             for (Integer recipeId : recipeIds) {
                 Map<String, Object> recipeInfo = recipeService.getPatientRecipeById(recipeId);
                 recipeGetModeTip = MapValueUtil.getString(recipeInfo, "recipeGetModeTip");
+                organId = MapValueUtil.getInteger(recipeInfo, "clinicOrgan");
                 recipesMap.add(recipeInfo);
             }
 
+            //4.01增加 药品配送商可按机构进行设置
+            if(null != organId) {
+                DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
+                map.put("checkEnterprise", drugsEnterpriseService.checkEnterprise(organId));
+            }
             map.put("recipes", recipesMap);
         } else {
             title = "暂无待处理处方单";
@@ -213,6 +222,7 @@ public class RecipeListService {
      */
     private void processListDate(List<PatientRecipeBean> backList, List<String> allMpiIds) {
         IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+        DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
 
         if (CollectionUtils.isNotEmpty(backList)) {
             //处理订单类型数据
@@ -227,6 +237,7 @@ public class RecipeListService {
                 }
             }
 
+            Map<Integer, Boolean> checkEnterprise = Maps.newHashMap();
             PatientBean p;
             for (PatientRecipeBean record : backList) {
                 p = patientMap.get(record.getMpiId());
@@ -235,6 +246,16 @@ public class RecipeListService {
                     record.setPhoto(p.getPhoto());
                     record.setPatientSex(p.getPatientSex());
                 }
+                //能否购药进行设置，默认可购药
+                record.setCheckEnterprise(true);
+                if(null != record.getOrganId()){
+                    if(null == checkEnterprise.get(record.getOrganId())) {
+                        checkEnterprise.put(record.getOrganId(),
+                                drugsEnterpriseService.checkEnterprise(record.getOrganId()));
+                    }
+                    record.setCheckEnterprise(checkEnterprise.get(record.getOrganId()));
+                }
+
                 if (LIST_TYPE_RECIPE.equals(record.getRecordType())) {
                     record.setStatusText(getRecipeStatusText(record.getStatusCode()));
                     //设置失效时间
@@ -252,6 +273,7 @@ public class RecipeListService {
                             RecipeOrder order = (RecipeOrder) resultBean.getObject();
                             if(null != order.getLogisticsCompany()) {
                                 try {
+                                    //4.01需求：物流信息查询
                                     String logComStr = DictionaryController.instance().get("eh.cdr.dictionary.KuaiDiNiaoCode")
                                             .getText(order.getLogisticsCompany());
                                     record.setLogisticsCompany(logComStr);

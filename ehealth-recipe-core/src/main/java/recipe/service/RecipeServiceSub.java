@@ -765,6 +765,7 @@ public class RecipeServiceSub {
         if (recipe == null) {
             return map;
         }
+        map.put("clinicOrgan", recipe.getClinicOrgan());
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         PatientBean patientBean = iPatientService.get(recipe.getMpiid());
         PatientBean patient = null;
