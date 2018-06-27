@@ -19,6 +19,7 @@ import recipe.constant.BusTypeEnum;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -191,6 +192,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
     @RpcService
     public boolean cancelVisitImpl(HosrelationBean hosrelationBean){
         IVisitService hisService = AppDomainContext.getBean("his.visitService", IVisitService.class);
+        IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
 
         //如果his未接诊，则取消挂号
         CancelVisitRequestTO cancelRequest = new CancelVisitRequestTO();
@@ -210,14 +212,25 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         }else {
             //取消成功记录
             if ("200".equals(cancelResponse.getMsgCode())) {
+                hosrelationService.cancelSuccess(hosrelationBean.getBusId(), hosrelationBean.getBusType(), 1);
                 LOGGER.info("cancelVisit consultId={} 取消成功", hosrelationBean.getBusId());
                 return true;
             } else {
                 LOGGER.warn("cancelVisit consultId={} 取消失败, msg={}", hosrelationBean.getBusId(), cancelResponse.getMsg());
             }
         }
-
+        hosrelationService.cancelSuccess(hosrelationBean.getBusId(), hosrelationBean.getBusType(), 0);
         return false;
     }
 
+    @RpcService
+    @Override
+    public void cancelVisitForFail() {
+        IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
+        List<HosrelationBean> list = hosrelationService.findBatchCancelVisit();
+        LOGGER.info("cancelVisitForFail size={}", list.size());
+        for(HosrelationBean hosrelationBean : list){
+            cancelVisitImpl(hosrelationBean);
+        }
+    }
 }
