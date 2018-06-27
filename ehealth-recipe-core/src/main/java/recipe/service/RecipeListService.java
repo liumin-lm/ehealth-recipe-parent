@@ -146,18 +146,13 @@ public class RecipeListService {
         if (CollectionUtils.isNotEmpty(recipeIds)) {
             title = "赶快结算您的处方单吧！";
             List<Map> recipesMap = new ArrayList<>(0);
-            Integer organId = null;
             for (Integer recipeId : recipeIds) {
                 Map<String, Object> recipeInfo = recipeService.getPatientRecipeById(recipeId);
                 recipeGetModeTip = MapValueUtil.getString(recipeInfo, "recipeGetModeTip");
-                organId = MapValueUtil.getInteger(recipeInfo, "clinicOrgan");
+                if(null != recipeInfo.get("checkEnterprise")){
+                    map.put("checkEnterprise", (Boolean)recipeInfo.get("checkEnterprise"));
+                }
                 recipesMap.add(recipeInfo);
-            }
-
-            //4.01增加 药品配送商可按机构进行设置
-            if(null != organId) {
-                DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
-                map.put("checkEnterprise", drugsEnterpriseService.checkEnterprise(organId));
             }
             map.put("recipes", recipesMap);
         } else {
