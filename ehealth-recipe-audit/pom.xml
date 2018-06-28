@@ -13,9 +13,6 @@
     <artifactId>ehealth-recipe-audit</artifactId>
     <name>审核处方</name>
     <description>审核处方</description>
-    <properties>
-        <skip_maven_deploy>false</skip_maven_deploy>
-    </properties>
     <dependencies>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>

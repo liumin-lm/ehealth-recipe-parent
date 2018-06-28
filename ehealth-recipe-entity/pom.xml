@@ -14,7 +14,4 @@
     <name>entity</name>
     <description>entity</description>
     <artifactId>ehealth-recipe-entity</artifactId>
-    <properties>
-        <skip_maven_deploy>false</skip_maven_deploy>
-    </properties>
 </project>

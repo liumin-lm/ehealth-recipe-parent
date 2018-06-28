@@ -1,11 +1,30 @@
 stages:
   - build
 
-build:
+build-api:
   stage: build
   only:
-    - release
+    - branches
+  except:
+    - master
+    - develop
+    - /^hotfix.*$/
+  script:
+    - 'cd *-api'
+    - 'mvn clean deploy -Dmaven.test.skip=true'
+  tags:
+    - build-jar
+
+build-other-jar:
+  stage: build
+  only:
+    - branches
+  except:
+    - master
+    - develop
+    - /^hotfix.*$/
   script:
     - 'mvn clean deploy -Dmaven.test.skip=true'
   tags:
     - build-jar
+  allow_failure: true

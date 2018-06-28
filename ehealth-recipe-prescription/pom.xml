@@ -13,9 +13,6 @@
     <name>开处方</name>
     <description>开处方</description>
     <artifactId>ehealth-recipe-prescription</artifactId>
-    <properties>
-        <skip_maven_deploy>false</skip_maven_deploy>
-    </properties>
     <dependencies>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>

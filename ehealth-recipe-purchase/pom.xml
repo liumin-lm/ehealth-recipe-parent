@@ -13,9 +13,6 @@
     <packaging>jar</packaging>
     <name>购买处方</name>
     <description>购买处方</description>
-    <properties>
-        <skip_maven_deploy>false</skip_maven_deploy>
-    </properties>
     <dependencies>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>

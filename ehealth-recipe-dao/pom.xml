@@ -13,9 +13,6 @@
     <name>dao</name>
     <description>dao</description>
     <artifactId>ehealth-recipe-dao</artifactId>
-    <properties>
-        <skip_maven_deploy>false</skip_maven_deploy>
-    </properties>
     <dependencies>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>

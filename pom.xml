@@ -28,10 +28,6 @@
         <!--<ssdev.weixin.version>1.6.0-SNAPSHOT</ssdev.weixin.version>-->
         <!--<spring.version>4.2.6.RELEASE</spring.version>-->
     <!--</properties>-->
-    <properties>
-        <skip_maven_deploy>true</skip_maven_deploy>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>ssdev</groupId>
