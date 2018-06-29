@@ -20,7 +20,7 @@ import recipe.dao.HisprescriptionDAO;
  * @version： 1.0
  */
 
-@RpcBean("hosRecipeService")
+@RpcBean("remoteHisprescriptionService")
 public class HisprescriptionService extends BaseService<HisprescriptionTO> implements IHisprescriptionService {
 
     /** logger */
