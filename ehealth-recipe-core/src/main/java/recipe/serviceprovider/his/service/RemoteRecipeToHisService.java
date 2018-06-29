@@ -17,7 +17,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.constant.BusTypeEnum;
 import recipe.util.DateConversion;
+import recipe.util.MapValueUtil;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -44,6 +46,8 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         hisRequest.setPatientName(map.get("patientName").toString());
         hisRequest.setMobile(map.get("mobile").toString());
         hisRequest.setJobNumber(map.get("jobNumber").toString());
+        hisRequest.setCardType(MapValueUtil.getString(map, "cardType"));
+        hisRequest.setCardID(MapValueUtil.getString(map, "cardID"));
         LOGGER.info("canVisit request={}", JSONUtils.toString(hisRequest));
         HisResponseTO hisResponse = hisService.canVisit(hisRequest);
         LOGGER.info("canVisit response={}", JSONUtils.toString(hisResponse));
@@ -78,6 +82,8 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         hisRequest.setJobNumber(map.get("jobNumber").toString());
         hisRequest.setWorkDate(DateConversion.parseDate(map.get("workDate").toString(), DateConversion.YYYY_MM_DD));
         hisRequest.setUrt(Integer.valueOf(map.get("urt").toString()));
+        hisRequest.setCardType(MapValueUtil.getString(map, "cardType"));
+        hisRequest.setCardID(MapValueUtil.getString(map, "cardID"));
         LOGGER.info("visitRegist request={}", JSONUtils.toString(hisRequest));
         HisResponseTO<VisitRegistResponseTO> hisResponse = hisService.visitRegist(hisRequest);
         LOGGER.info("visitRegist response={}", JSONUtils.toString(hisResponse));
@@ -98,6 +104,10 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
                 hosrelationBean.setRegisterId(resDate.getRegisterId());
                 hosrelationBean.setClinicNo(resDate.getClinicNo());
                 hosrelationBean.setPatId(resDate.getPatId());
+                hosrelationBean.setPatientName(MapValueUtil.getString(map, "patientName"));
+                hosrelationBean.setCardType(MapValueUtil.getString(map, "cardType"));
+                hosrelationBean.setCardId(MapValueUtil.getString(map, "cardID"));
+                hosrelationBean.setExtendsParam(resDate.getExtendsParam());
                 hosrelationService.save(hosrelationBean);
             } else {
                 response.setCode(RecipeCommonResTO.FAIL);
@@ -105,6 +115,17 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
             }
         }
         return response;
+    }
+
+    @RpcService
+    @Override
+    public boolean visitRegistSuccess(Integer consultId) {
+        IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
+        HosrelationBean hosrelationBean = hosrelationService.getByBusIdAndBusType(consultId, BusTypeEnum.CONSULT.getId());
+        if(null == hosrelationBean){
+            return false;
+        }
+        return true;
     }
 
     @RpcService
@@ -124,6 +145,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
             if(null == hisResponse){
                 response.setCode(RecipeCommonResTO.FAIL);
                 response.setMsg("HIS返回数据有误");
+                hosrelationService.cancelSuccess(hosrelationBean.getBusId(), hosrelationBean.getBusType(), 0);
             }else {
                 if ("200".equals(hisResponse.getMsgCode())) {
                     QueryVisitsResponseTO resDate = hisResponse.getData();
@@ -135,13 +157,14 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
                             return response;
                         } else {
                             response.setCode(RecipeCommonResTO.FAIL);
-                            cancelVisit(hosrelationBean);
+                            cancelVisitImpl(hosrelationBean);
                             return response;
                         }
                     }
                 } else {
                     response.setCode(-1);
                     response.setMsg("系统返回失败," + JSONUtils.toString(hisResponse));
+                    hosrelationService.cancelSuccess(hosrelationBean.getBusId(), hosrelationBean.getBusType(), 0);
                 }
             }
         }else{
@@ -153,14 +176,35 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
     }
 
     @RpcService
-    public void cancelVisit(HosrelationBean hosrelationBean){
+    @Override
+    public RecipeCommonResTO cancelVisit(Integer consultId) {
+        IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
+        HosrelationBean hosrelationBean = hosrelationService.getByBusIdAndBusType(consultId, BusTypeEnum.CONSULT.getId());
+        RecipeCommonResTO response = new RecipeCommonResTO();
+        response.setCode(RecipeCommonResTO.FAIL);
+        if(null != hosrelationBean) {
+            boolean flag = cancelVisitImpl(hosrelationBean);
+            if (flag) {
+                response.setCode(RecipeCommonResTO.SUCCESS);
+            }
+        }
+        return response;
+    }
+
+    @RpcService
+    public boolean cancelVisitImpl(HosrelationBean hosrelationBean){
         IVisitService hisService = AppDomainContext.getBean("his.visitService", IVisitService.class);
+        IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
 
         //如果his未接诊，则取消挂号
         CancelVisitRequestTO cancelRequest = new CancelVisitRequestTO();
         cancelRequest.setOrganId(hosrelationBean.getOrganId());
         cancelRequest.setRegisterId(hosrelationBean.getRegisterId());
         cancelRequest.setPatId(hosrelationBean.getPatId());
+        cancelRequest.setPatientName(hosrelationBean.getPatientName());
+        cancelRequest.setCardType(hosrelationBean.getCardType());
+        cancelRequest.setCardID(hosrelationBean.getCardId());
+        cancelRequest.setExtendsParam(hosrelationBean.getExtendsParam());
         cancelRequest.setCancelReason("系统取消");
         LOGGER.info("cancelVisit request={}", JSONUtils.toString(cancelRequest));
         HisResponseTO cancelResponse = hisService.cancelVisit(cancelRequest);
@@ -170,11 +214,25 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         }else {
             //取消成功记录
             if ("200".equals(cancelResponse.getMsgCode())) {
+                hosrelationService.cancelSuccess(hosrelationBean.getBusId(), hosrelationBean.getBusType(), 1);
                 LOGGER.info("cancelVisit consultId={} 取消成功", hosrelationBean.getBusId());
+                return true;
             } else {
                 LOGGER.warn("cancelVisit consultId={} 取消失败, msg={}", hosrelationBean.getBusId(), cancelResponse.getMsg());
             }
         }
+        hosrelationService.cancelSuccess(hosrelationBean.getBusId(), hosrelationBean.getBusType(), 0);
+        return false;
     }
 
+    @RpcService
+    @Override
+    public void cancelVisitForFail() {
+        IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
+        List<HosrelationBean> list = hosrelationService.findBatchCancelVisit();
+        LOGGER.info("cancelVisitForFail size={}", list.size());
+        for(HosrelationBean hosrelationBean : list){
+            cancelVisitImpl(hosrelationBean);
+        }
+    }
 }
