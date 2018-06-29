@@ -1,5 +1,7 @@
 package recipe.service;
 
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganConfigService;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import recipe.constant.ErrorCode;
 import recipe.dao.DrugsEnterpriseDAO;
@@ -105,5 +107,21 @@ public class DrugsEnterpriseService {
     public List<DrugsEnterprise> findByOrganId(Integer organId) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         return drugsEnterpriseDAO.findByOrganId(organId);
+    }
+
+    /**
+     * 检查开处方是否需要进行药企库存校验
+     * @param organId
+     * @return true:需要校验  false:不需要校验
+     */
+    @RpcService
+    public boolean checkEnterprise(Integer organId){
+        OrganConfigService organConfigService = BasicAPI.getService(OrganConfigService.class);
+        Integer checkEnterprise = organConfigService.getCheckEnterpriseByOrganId(organId);
+        if(Integer.valueOf(0).equals(checkEnterprise)){
+            return false;
+        }
+
+        return true;
     }
 }

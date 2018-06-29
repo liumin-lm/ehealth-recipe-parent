@@ -8,15 +8,14 @@ import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
-import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.RecipeRollingInfoBean;
-import com.ngari.recipe.recipe.service.IRecipeService;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.entity.mpi.Patient;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -142,15 +141,19 @@ public class RecipeListService {
         List<Integer> recipeIds = recipeDAO.findPendingRecipes(allMpiIds, RecipeStatusConstant.CHECK_PASS, 0, 1);
         String title;
         String recipeGetModeTip = "";
+        //默认需要展示 “购药”
+        map.put("checkEnterprise", true);
         if (CollectionUtils.isNotEmpty(recipeIds)) {
             title = "赶快结算您的处方单吧！";
             List<Map> recipesMap = new ArrayList<>(0);
             for (Integer recipeId : recipeIds) {
                 Map<String, Object> recipeInfo = recipeService.getPatientRecipeById(recipeId);
                 recipeGetModeTip = MapValueUtil.getString(recipeInfo, "recipeGetModeTip");
+                if(null != recipeInfo.get("checkEnterprise")){
+                    map.put("checkEnterprise", (Boolean)recipeInfo.get("checkEnterprise"));
+                }
                 recipesMap.add(recipeInfo);
             }
-
             map.put("recipes", recipesMap);
         } else {
             title = "暂无待处理处方单";
@@ -214,6 +217,7 @@ public class RecipeListService {
      */
     private void processListDate(List<PatientRecipeBean> backList, List<String> allMpiIds) {
         IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+        DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
 
         if (CollectionUtils.isNotEmpty(backList)) {
             //处理订单类型数据
@@ -228,6 +232,7 @@ public class RecipeListService {
                 }
             }
 
+            Map<Integer, Boolean> checkEnterprise = Maps.newHashMap();
             PatientBean p;
             for (PatientRecipeBean record : backList) {
                 p = patientMap.get(record.getMpiId());
@@ -236,6 +241,16 @@ public class RecipeListService {
                     record.setPhoto(p.getPhoto());
                     record.setPatientSex(p.getPatientSex());
                 }
+                //能否购药进行设置，默认可购药
+                record.setCheckEnterprise(true);
+                if(null != record.getOrganId()){
+                    if(null == checkEnterprise.get(record.getOrganId())) {
+                        checkEnterprise.put(record.getOrganId(),
+                                drugsEnterpriseService.checkEnterprise(record.getOrganId()));
+                    }
+                    record.setCheckEnterprise(checkEnterprise.get(record.getOrganId()));
+                }
+
                 if (LIST_TYPE_RECIPE.equals(record.getRecordType())) {
                     record.setStatusText(getRecipeStatusText(record.getStatusCode()));
                     //设置失效时间
@@ -251,6 +266,17 @@ public class RecipeListService {
                     if (RecipeResultBean.SUCCESS.equals(resultBean.getCode())) {
                         if (null != resultBean.getObject() && resultBean.getObject() instanceof RecipeOrder) {
                             RecipeOrder order = (RecipeOrder) resultBean.getObject();
+                            if(null != order.getLogisticsCompany()) {
+                                try {
+                                    //4.01需求：物流信息查询
+                                    String logComStr = DictionaryController.instance().get("eh.cdr.dictionary.KuaiDiNiaoCode")
+                                            .getText(order.getLogisticsCompany());
+                                    record.setLogisticsCompany(logComStr);
+                                    record.setTrackingNumber(order.getTrackingNumber());
+                                } catch (ControllerException e) {
+                                    LOGGER.warn("processListDate KuaiDiNiaoCode get error. code={}", order.getLogisticsCompany());
+                                }
+                            }
                             List<PatientRecipeBean> recipeList = (List<PatientRecipeBean>) order.getList();
                             if (CollectionUtils.isNotEmpty(recipeList)) {
                                 // 前端要求，先去掉数组形式，否则前端不好处理

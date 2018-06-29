@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>1.3.2.hotfix-20180625-SNAPSHOT</version>
+        <version>1.4.0.feature5-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -13,6 +13,9 @@
     <name>处方启动</name>
     <description>处方启动</description>
     <packaging>jar</packaging>
+    <properties>
+        <skip_maven_deploy>true</skip_maven_deploy>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
