@@ -6,6 +6,7 @@ import ctd.schema.annotation.Schema;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author： 0184/yu_yun
@@ -101,6 +102,8 @@ public class HisprescriptionTO implements Serializable{
 
     @ItemProperty(alias="配送地址")
     private String deliveryAd;
+
+    private List<HisprescriptionDetailTO> recipeDetail;
 
     public Integer getRecipeId() {
         return recipeId;
@@ -324,5 +327,13 @@ public class HisprescriptionTO implements Serializable{
 
     public void setDeliveryAd(String deliveryAd) {
         this.deliveryAd = deliveryAd;
+    }
+
+    public List<HisprescriptionDetailTO> getRecipeDetail() {
+        return recipeDetail;
+    }
+
+    public void setRecipeDetail(List<HisprescriptionDetailTO> recipeDetail) {
+        this.recipeDetail = recipeDetail;
     }
 }

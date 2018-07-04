@@ -1,8 +1,11 @@
 package recipe.prescription;
 
+import com.google.common.collect.Lists;
 import com.ngari.patient.service.BaseService;
 import com.ngari.recipe.common.RecipeCommonResTO;
 import com.ngari.recipe.entity.Hisprescription;
+import com.ngari.recipe.entity.HisprescriptionDetail;
+import com.ngari.recipe.hisprescription.model.HisprescriptionDetailTO;
 import com.ngari.recipe.hisprescription.model.HisprescriptionTO;
 import com.ngari.recipe.hisprescription.service.IHisprescriptionService;
 import ctd.persistence.DAOFactory;
@@ -10,9 +13,13 @@ import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.dao.HisprescriptionDAO;
+import recipe.dao.HisprescriptionDetailDAO;
+
+import java.util.List;
 
 /**
  * @author： 0184/yu_yun
@@ -45,7 +52,17 @@ public class HisprescriptionService extends BaseService<HisprescriptionTO> imple
         response.setCode(RecipeCommonResTO.FAIL);
         if (null != hisprescription) {
             try {
-                hisprescriptionDAO.save(getBean(hisprescription, Hisprescription.class));
+                Hisprescription dbHisprescription = hisprescriptionDAO.save(getBean(hisprescription, Hisprescription.class));
+                if(CollectionUtils.isNotEmpty(hisprescription.getRecipeDetail())){
+                    HisprescriptionDetailDAO detailDAO = DAOFactory.getDAO(HisprescriptionDetailDAO.class);
+                    HisprescriptionDetail hisprescriptionDetail;
+                    for(HisprescriptionDetailTO detailTO : hisprescription.getRecipeDetail()){
+                        hisprescriptionDetail = getBean(detailTO, HisprescriptionDetail.class);
+                        hisprescriptionDetail.setRecipeId(dbHisprescription.getRecipeId());
+                        detailDAO.save(hisprescriptionDetail);
+                    }
+                }
+
                 response.setCode(RecipeCommonResTO.SUCCESS);
             } catch (DAOException e) {
                 response.setMsg("存储失败");
