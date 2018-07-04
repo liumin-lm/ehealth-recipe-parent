@@ -21,7 +21,7 @@ import recipe.dao.HisprescriptionDAO;
  * @version： 1.0
  */
 
-@RpcBean("remoteHisprescriptionService")
+@RpcBean(value = "remoteHisprescriptionService", mvc_authentication = false)
 public class HisprescriptionService extends BaseService<HisprescriptionTO> implements IHisprescriptionService {
 
     /**
