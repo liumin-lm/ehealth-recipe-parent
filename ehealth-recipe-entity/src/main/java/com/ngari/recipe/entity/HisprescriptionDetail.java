@@ -17,7 +17,7 @@ import static javax.persistence.GenerationType.IDENTITY;
  */
 @Schema
 @Entity
-@Table(name = "cdr_hisprescription")
+@Table(name = "cdr_hisprescription_detail")
 @Access(AccessType.PROPERTY)
 public class HisprescriptionDetail implements Serializable{
 
