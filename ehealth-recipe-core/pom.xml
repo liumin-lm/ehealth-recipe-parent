@@ -294,6 +294,7 @@
                 <executions>
                     <execution>
                         <id>make-assemble</id>
+                        <phase>package</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>
