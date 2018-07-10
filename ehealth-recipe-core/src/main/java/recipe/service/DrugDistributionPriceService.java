@@ -2,6 +2,9 @@ package recipe.service;
 
 import com.alibaba.druid.util.StringUtils;
 import com.ngari.bus.busactionlog.service.IBusActionLogService;
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
+import com.ngari.recipe.drugdistributionprice.service.IDrugDistributionPriceService;
 import com.ngari.recipe.entity.DrugDistributionPrice;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
@@ -9,6 +12,7 @@ import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import recipe.dao.DrugDistributionPriceDAO;
+import recipe.serviceprovider.BaseService;
 import recipe.util.ApplicationUtils;
 
 import java.math.BigDecimal;
@@ -19,7 +23,8 @@ import java.util.List;
  * @create 2017-02-07 14:51
  **/
 @RpcBean("drugDistributionPriceService")
-public class DrugDistributionPriceService {
+public class DrugDistributionPriceService extends BaseService<DrugDistributionPrice> implements IDrugDistributionPriceService {
+
     private IBusActionLogService iBusActionLogService =
             ApplicationUtils.getBaseService(IBusActionLogService.class);
 
@@ -34,8 +39,8 @@ public class DrugDistributionPriceService {
      * @param price
      * @return
      */
-    @RpcService
-    public DrugDistributionPrice saveOrUpdatePrice(DrugDistributionPrice price) {
+    @Override
+    public DrugDistributionPriceBean saveOrUpdatePrice(DrugDistributionPriceBean price) {
         if (price == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "price is requrie");
         }
@@ -57,8 +62,9 @@ public class DrugDistributionPriceService {
             if (oldPrice != null) {
                 throw new DAOException("price is exist");
             }
-            price = drugDistributionPriceDAO.save(price);
-            logMsg.append(" 新增:").append(price.toString());
+            DrugDistributionPrice bean = getBean(price, DrugDistributionPrice.class);
+            bean = drugDistributionPriceDAO.save(bean);
+            logMsg.append(" 新增:").append(bean.toString());
 
         } else {
             //更新
@@ -69,15 +75,15 @@ public class DrugDistributionPriceService {
                 throw new DAOException("price is exist and not this id");
             }
             BeanUtils.map(price, oldPrice);
-            price = drugDistributionPriceDAO.update(oldPrice);
-            logMsg.append(" 更新：原").append(oldPrice.toString()).append("更新为").append(price.toString());
+            oldPrice = drugDistributionPriceDAO.update(oldPrice);
+            logMsg.append(" 更新：原").append(oldPrice.toString()).append("更新为").append(oldPrice.toString());
         }
         iBusActionLogService.saveBusinessLog("药企配送价格管理", price.getId().toString(), "DrugDistributionPrice", logMsg.toString());
 
         return price;
     }
 
-    @RpcService
+    @Override
     public void deleteByEnterpriseId(Integer enterpriseId) {
         if (enterpriseId == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "price is enterpriseId");
@@ -93,7 +99,7 @@ public class DrugDistributionPriceService {
         drugDistributionPriceDAO.deleteByEnterpriseId(enterpriseId);
     }
 
-    @RpcService
+    @Override
     public void deleteById(Integer id) {
         if (id == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "price is enterpriseId");
@@ -101,12 +107,13 @@ public class DrugDistributionPriceService {
         DAOFactory.getDAO(DrugDistributionPriceDAO.class).deleteById(id);
     }
 
-    @RpcService
-    public List<DrugDistributionPrice> findByEnterpriseId(Integer enterpriseId) {
+    @Override
+    public List<DrugDistributionPriceBean> findByEnterpriseId(Integer enterpriseId) {
         if (enterpriseId == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "enterpriseId is enterpriseId");
         }
-        return DAOFactory.getDAO(DrugDistributionPriceDAO.class).findByEnterpriseId(enterpriseId);
+        List<DrugDistributionPrice> res = DAOFactory.getDAO(DrugDistributionPriceDAO.class).findByEnterpriseId(enterpriseId);
+        return ObjectCopyUtils.convert(res,DrugDistributionPriceBean.class);
     }
 
     @RpcService
