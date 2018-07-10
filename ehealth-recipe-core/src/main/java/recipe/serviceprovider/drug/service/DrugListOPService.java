@@ -12,7 +12,7 @@ import recipe.dao.DrugListDAO;
 
 import java.util.List;
 
-@RpcBean("drugList")
+@RpcBean("drugListOPService")
 public class DrugListOPService implements IDrugListService {
 
     @Override
