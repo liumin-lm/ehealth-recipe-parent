@@ -13,12 +13,14 @@ import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.constant.BusTypeEnum;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -108,6 +110,9 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
                 hosrelationBean.setCardType(MapValueUtil.getString(map, "cardType"));
                 hosrelationBean.setCardId(MapValueUtil.getString(map, "cardID"));
                 hosrelationBean.setExtendsParam(resDate.getExtendsParam());
+                Date date = DateTime.now().toDate();
+                hosrelationBean.setCreateTime(date);
+                hosrelationBean.setLastModify(date);
                 hosrelationService.save(hosrelationBean);
             } else {
                 response.setCode(RecipeCommonResTO.FAIL);
