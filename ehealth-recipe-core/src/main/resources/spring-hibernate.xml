@@ -33,6 +33,7 @@
 				<value>ctd.account.thirdparty</value>
 				<value>ctd.mvc.alilife.entity</value>
 				<value>com.ngari.base</value>
+                <value>com.ngari.patient.dto</value>
 			</array>
 		</property>
 		<property name="hibernateProperties">
