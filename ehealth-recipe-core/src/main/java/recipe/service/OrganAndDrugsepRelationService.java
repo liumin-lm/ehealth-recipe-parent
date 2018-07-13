@@ -2,8 +2,12 @@ package recipe.service;
 
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.OrganAndDrugsepRelation;
+import com.ngari.recipe.organdrugsep.model.OrganAndDrugsepRelationBean;
+import com.ngari.recipe.organdrugsep.service.IOrganAndDrugsepRelationService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -24,7 +28,7 @@ import java.util.List;
  * @date 2016/8/3.
  */
 @RpcBean("organAndDrugsepRelationService")
-public class OrganAndDrugsepRelationService {
+public class OrganAndDrugsepRelationService implements IOrganAndDrugsepRelationService {
 
     private static final Log LOGGER = LogFactory.getLog(OrganAndDrugsepRelationService.class);
 
@@ -36,8 +40,8 @@ public class OrganAndDrugsepRelationService {
      * @param entpriseIds
      * @return
      */
-    @RpcService
-    public List<OrganAndDrugsepRelation> addDrugEntRelationByOrganIdAndEntIds(Integer organId, List<Integer> entpriseIds) {
+    @Override
+    public List<OrganAndDrugsepRelationBean> addDrugEntRelationByOrganIdAndEntIds(Integer organId, List<Integer> entpriseIds) {
         LOGGER.info("机构药企维护:[organId:" + organId + ",entpriseIds:" + JSONUtils.toString(entpriseIds));
         if (ObjectUtils.isEmpty(organId)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "organId is empty!");
@@ -59,7 +63,7 @@ public class OrganAndDrugsepRelationService {
             relation = relationDAO.save(relation);
             retList.add(relation);
         }
-        return retList;
+        return ObjectCopyUtils.convert(retList,OrganAndDrugsepRelationBean.class);
     }
 
     /**
@@ -68,7 +72,7 @@ public class OrganAndDrugsepRelationService {
      * @param organId
      * @param entId
      */
-    @RpcService
+    @Override
     public void deleteDrugEntRelationByOrganIdAndEntId(Integer organId, Integer entId) {
         LOGGER.info("机构药企维护删除:[organId:" + organId + ",drugsEnterpriseId:" + entId);
         if (ObjectUtils.isEmpty(organId)) {
@@ -90,8 +94,8 @@ public class OrganAndDrugsepRelationService {
      * @param status  药企状态
      * @return
      */
-    @RpcService
-    public List<DrugsEnterprise> findDrugsEnterpriseByOrganId(final Integer organId, final Integer status) {
+    @Override
+    public List<DrugsEnterpriseBean> findDrugsEnterpriseByOrganId(final Integer organId, final Integer status) {
         if (ObjectUtils.isEmpty(organId)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "organId is empty!");
         }
@@ -99,7 +103,8 @@ public class OrganAndDrugsepRelationService {
             throw new DAOException(DAOException.VALUE_NEEDED, "status is empty!");
         }
         OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-        return organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, status);
+        List<DrugsEnterprise> retList = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, status);
+        return ObjectCopyUtils.convert(retList,DrugsEnterpriseBean.class);
     }
 
 }

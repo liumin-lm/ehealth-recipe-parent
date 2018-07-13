@@ -35,7 +35,7 @@ import java.util.List;
  * @description： 开方服务
  * @version： 1.0
  */
-@RpcBean("prescribeService")
+@RpcBean("remotePrescribeService")
 public class PrescribeService {
 
     /**

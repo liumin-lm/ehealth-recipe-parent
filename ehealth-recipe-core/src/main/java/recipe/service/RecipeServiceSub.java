@@ -765,6 +765,9 @@ public class RecipeServiceSub {
         if (recipe == null) {
             return map;
         }
+
+        DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
+        map.put("checkEnterprise", drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan()));
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         PatientBean patientBean = iPatientService.get(recipe.getMpiid());
         PatientBean patient = null;

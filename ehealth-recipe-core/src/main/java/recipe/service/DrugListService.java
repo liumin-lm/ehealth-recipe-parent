@@ -3,6 +3,8 @@ package recipe.service;
 import com.google.common.collect.Maps;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.DrugList;
 import ctd.dictionary.DictionaryItem;
 import ctd.persistence.DAOFactory;

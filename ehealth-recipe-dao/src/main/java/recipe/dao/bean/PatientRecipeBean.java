@@ -1,9 +1,6 @@
 package recipe.dao.bean;
 
 
-
-
-
 import com.ngari.recipe.entity.Recipedetail;
 
 import java.math.BigDecimal;
@@ -13,6 +10,7 @@ import java.util.List;
 /**
  * 患者端处方单对象
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * date:2016/5/12.
  */
@@ -23,6 +21,8 @@ public class PatientRecipeBean {
     private String recordType;
 
     private Integer recordId;
+
+    private Integer organId;
 
     private String recordCode;
 
@@ -54,6 +54,12 @@ public class PatientRecipeBean {
 
     private Integer payMode;
 
+    private boolean checkEnterprise;
+
+    private String logisticsCompany;
+
+    private String trackingNumber;
+
     private List<Recipedetail> recipeDetail;
 
     private List<PatientRecipeBean> recipeList;
@@ -83,6 +89,14 @@ public class PatientRecipeBean {
 
     public void setRecordId(Integer recordId) {
         this.recordId = recordId;
+    }
+
+    public Integer getOrganId() {
+        return organId;
+    }
+
+    public void setOrganId(Integer organId) {
+        this.organId = organId;
     }
 
     public String getRecordCode() {
@@ -219,5 +233,29 @@ public class PatientRecipeBean {
 
     public void setRecipeType(Integer recipeType) {
         this.recipeType = recipeType;
+    }
+
+    public boolean isCheckEnterprise() {
+        return checkEnterprise;
+    }
+
+    public void setCheckEnterprise(boolean checkEnterprise) {
+        this.checkEnterprise = checkEnterprise;
+    }
+
+    public String getLogisticsCompany() {
+        return logisticsCompany;
+    }
+
+    public void setLogisticsCompany(String logisticsCompany) {
+        this.logisticsCompany = logisticsCompany;
+    }
+
+    public String getTrackingNumber() {
+        return trackingNumber;
+    }
+
+    public void setTrackingNumber(String trackingNumber) {
+        this.trackingNumber = trackingNumber;
     }
 }
