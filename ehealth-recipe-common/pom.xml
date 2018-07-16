@@ -22,7 +22,7 @@
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-patient-api</artifactId>
-            <version>${project.parent.version}</version>
+            <version>1.4.0.master-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>${project.parent.groupId}</groupId>
@@ -33,7 +33,7 @@
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-basic-dto</artifactId>
-            <version>${project.parent.version}</version>
+            <version>1.4.0.master-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
