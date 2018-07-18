@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>1.4.0.feature5-SNAPSHOT</version>
+        <version>1.4.0.release-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -231,6 +231,17 @@
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-patient-api</artifactId>
             <version>${project.parent.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>${project.parent.groupId}</groupId>
+                    <artifactId>ehealth-basic-dto</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>ehealth-basic-dto</artifactId>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
@@ -294,6 +305,7 @@
                 <executions>
                     <execution>
                         <id>make-assemble</id>
+                        <phase>package</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>

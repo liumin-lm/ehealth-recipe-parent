@@ -4,6 +4,8 @@ import com.ngari.recipe.IBaseService;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
 import com.ngari.recipe.drug.model.DrugListBean;
+import com.ngari.recipe.entity.DrugList;
+import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
 
 import java.util.List;
@@ -70,4 +72,33 @@ public interface IDrugService extends IBaseService<DrugListBean> {
      */
     @RpcService
     List<Integer> findPriorityDoctorList(Integer drugId);
+
+    /**
+     * 添加药品
+     * @param d
+     * @return
+     */
+    @RpcService
+    DrugListBean addDrugList(DrugListBean d);
+
+    /**
+     * 更新药品
+     * @param drugList
+     * @return
+     */
+    @RpcService
+    public DrugListBean updateDrugList(DrugListBean drugList);
+
+    /**
+     * 运营平台-查询药品
+     * @param drugClass
+     * @param keyword
+     * @param status
+     * @param start
+     * @param limit
+     * @return
+     */
+    @RpcService
+    QueryResult<DrugListBean> queryDrugListsByDrugNameAndStartAndLimit(String drugClass, String keyword,
+                                                                        Integer status, int start, int limit);
 }

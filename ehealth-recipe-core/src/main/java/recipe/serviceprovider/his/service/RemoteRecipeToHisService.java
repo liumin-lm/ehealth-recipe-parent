@@ -13,12 +13,14 @@ import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.constant.BusTypeEnum;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -49,7 +51,12 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         hisRequest.setCardType(MapValueUtil.getString(map, "cardType"));
         hisRequest.setCardID(MapValueUtil.getString(map, "cardID"));
         LOGGER.info("canVisit request={}", JSONUtils.toString(hisRequest));
-        HisResponseTO hisResponse = hisService.canVisit(hisRequest);
+        HisResponseTO hisResponse = null;
+        try {
+            hisResponse = hisService.canVisit(hisRequest);
+        } catch (Exception e) {
+            LOGGER.warn("canVisit his error. request={}", JSONUtils.toString(hisRequest), e);
+        }
         LOGGER.info("canVisit response={}", JSONUtils.toString(hisResponse));
         RecipeCommonResTO response = new RecipeCommonResTO();
         if(null == hisResponse){
@@ -85,7 +92,12 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         hisRequest.setCardType(MapValueUtil.getString(map, "cardType"));
         hisRequest.setCardID(MapValueUtil.getString(map, "cardID"));
         LOGGER.info("visitRegist request={}", JSONUtils.toString(hisRequest));
-        HisResponseTO<VisitRegistResponseTO> hisResponse = hisService.visitRegist(hisRequest);
+        HisResponseTO<VisitRegistResponseTO> hisResponse = null;
+        try {
+            hisResponse = hisService.visitRegist(hisRequest);
+        } catch (Exception e) {
+            LOGGER.warn("visitRegist his error. request={}", JSONUtils.toString(hisRequest), e);
+        }
         LOGGER.info("visitRegist response={}", JSONUtils.toString(hisResponse));
         RecipeCommonResTO response = new RecipeCommonResTO();
         if(null == hisResponse){
@@ -108,6 +120,9 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
                 hosrelationBean.setCardType(MapValueUtil.getString(map, "cardType"));
                 hosrelationBean.setCardId(MapValueUtil.getString(map, "cardID"));
                 hosrelationBean.setExtendsParam(resDate.getExtendsParam());
+                Date date = DateTime.now().toDate();
+                hosrelationBean.setCreateTime(date);
+                hosrelationBean.setLastModify(date);
                 hosrelationService.save(hosrelationBean);
             } else {
                 response.setCode(RecipeCommonResTO.FAIL);
@@ -140,7 +155,12 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
             hisRequest.setRegisterId(hosrelationBean.getRegisterId());
             hisRequest.setOrganId(hosrelationBean.getOrganId());
             LOGGER.info("queryVisitStatus request={}", JSONUtils.toString(hisRequest));
-            HisResponseTO<QueryVisitsResponseTO> hisResponse = hisService.queryVisitStatus(hisRequest);
+            HisResponseTO<QueryVisitsResponseTO> hisResponse = null;
+            try {
+                hisResponse = hisService.queryVisitStatus(hisRequest);
+            } catch (Exception e) {
+                LOGGER.info("queryVisitStatus his error. request={}", JSONUtils.toString(hisRequest), e);
+            }
             LOGGER.info("queryVisitStatus response={}", JSONUtils.toString(hisResponse));
             if(null == hisResponse){
                 response.setCode(RecipeCommonResTO.FAIL);
@@ -207,7 +227,12 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         cancelRequest.setExtendsParam(hosrelationBean.getExtendsParam());
         cancelRequest.setCancelReason("系统取消");
         LOGGER.info("cancelVisit request={}", JSONUtils.toString(cancelRequest));
-        HisResponseTO cancelResponse = hisService.cancelVisit(cancelRequest);
+        HisResponseTO cancelResponse = null;
+        try {
+            cancelResponse = hisService.cancelVisit(cancelRequest);
+        } catch (Exception e) {
+            LOGGER.warn("cancelVisit his error. request={}", JSONUtils.toString(cancelRequest));
+        }
         LOGGER.info("cancelVisit response={}", JSONUtils.toString(cancelResponse));
         if(null == cancelResponse){
             LOGGER.warn("HIS返回为NULL, consultId={}", hosrelationBean.getBusId());
