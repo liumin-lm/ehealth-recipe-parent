@@ -104,43 +104,51 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
             response.setCode(RecipeCommonResTO.FAIL);
             response.setMsg("HIS返回数据有误");
         }else {
+            IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
+            Date date = DateTime.now().toDate();
+            HosrelationBean hosrelationBean = new HosrelationBean();
+            hosrelationBean.setBusId(Integer.valueOf(map.get("consultId").toString()));
+            hosrelationBean.setOrganId(Integer.valueOf(map.get("organId").toString()));
+            hosrelationBean.setBusType(BusTypeEnum.CONSULT.getId());
+            hosrelationBean.setRequestUrt(Integer.valueOf(map.get("urt").toString()));
+            hosrelationBean.setPatientName(MapValueUtil.getString(map, "patientName"));
+            hosrelationBean.setCardType(MapValueUtil.getString(map, "cardType"));
+            hosrelationBean.setCardId(MapValueUtil.getString(map, "cardID"));
+            hosrelationBean.setCreateTime(date);
+            hosrelationBean.setLastModify(date);
             if ("200".equals(hisResponse.getMsgCode())) {
                 response.setCode(RecipeCommonResTO.SUCCESS);
                 VisitRegistResponseTO resDate = hisResponse.getData();
-                IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
-                HosrelationBean hosrelationBean = new HosrelationBean();
-                hosrelationBean.setBusId(Integer.valueOf(map.get("consultId").toString()));
-                hosrelationBean.setOrganId(Integer.valueOf(map.get("organId").toString()));
-                hosrelationBean.setBusType(BusTypeEnum.CONSULT.getId());
-                hosrelationBean.setRequestUrt(Integer.valueOf(map.get("urt").toString()));
                 hosrelationBean.setRegisterId(resDate.getRegisterId());
                 hosrelationBean.setClinicNo(resDate.getClinicNo());
                 hosrelationBean.setPatId(resDate.getPatId());
-                hosrelationBean.setPatientName(MapValueUtil.getString(map, "patientName"));
-                hosrelationBean.setCardType(MapValueUtil.getString(map, "cardType"));
-                hosrelationBean.setCardId(MapValueUtil.getString(map, "cardID"));
                 hosrelationBean.setExtendsParam(resDate.getExtendsParam());
-                Date date = DateTime.now().toDate();
-                hosrelationBean.setCreateTime(date);
-                hosrelationBean.setLastModify(date);
-                hosrelationService.save(hosrelationBean);
+                hosrelationBean.setStatus(1);
             } else {
                 response.setCode(RecipeCommonResTO.FAIL);
                 response.setMsg(hisResponse.getMsg());
+                hosrelationBean.setStatus(0);
+                hosrelationBean.setMemo(hisResponse.getMsg());
             }
+            hosrelationService.save(hosrelationBean);
         }
         return response;
     }
 
     @RpcService
     @Override
-    public boolean visitRegistSuccess(Integer consultId) {
+    public RecipeCommonResTO visitRegistSuccess(Integer consultId) {
         IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
         HosrelationBean hosrelationBean = hosrelationService.getByBusIdAndBusType(consultId, BusTypeEnum.CONSULT.getId());
-        if(null == hosrelationBean){
-            return false;
+        RecipeCommonResTO response = new RecipeCommonResTO();
+        response.setCode(RecipeCommonResTO.FAIL);
+        if(null != hosrelationBean){
+            if(1 == hosrelationBean.getStatus()) {
+                response.setCode(RecipeCommonResTO.SUCCESS);
+            }
+            response.setMsg(hosrelationBean.getMemo());
         }
-        return true;
+        return response;
     }
 
     @RpcService
