@@ -116,6 +116,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
             response.setCode(RecipeCommonResTO.FAIL);
             response.setMsg("HIS返回数据有误");
             hosrelationBean.setStatus(0);
+            hosrelationBean.setRegisterId("-1");
             hosrelationBean.setMemo("由于系统原因，请稍后再试，咨询已自动取消");
         }else {
             if ("200".equals(hisResponse.getMsgCode())) {
@@ -130,6 +131,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
                 response.setCode(RecipeCommonResTO.FAIL);
                 response.setMsg(hisResponse.getMsg());
                 hosrelationBean.setStatus(0);
+                hosrelationBean.setRegisterId("-1");
                 hosrelationBean.setMemo(hisResponse.getMsg());
             }
 
