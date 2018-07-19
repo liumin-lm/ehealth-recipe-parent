@@ -33,7 +33,7 @@
             <groupId>ssdev</groupId>
             <artifactId>ssdev-mvc</artifactId>
             <version>${ssdev.version}</version>
-            <scope>provided</scope>
+            <!--<scope>provided</scope>-->
         </dependency>
     </dependencies>
     <build>

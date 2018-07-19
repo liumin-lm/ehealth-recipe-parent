@@ -147,6 +147,8 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
                 response.setCode(RecipeCommonResTO.SUCCESS);
             }
             response.setMsg(hosrelationBean.getMemo());
+        }else{
+            response.setMsg("由于系统原因，请稍后再试，咨询已自动取消");
         }
         return response;
     }
