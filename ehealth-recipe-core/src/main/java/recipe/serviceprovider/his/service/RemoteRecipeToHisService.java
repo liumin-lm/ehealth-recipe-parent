@@ -217,7 +217,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         HosrelationBean hosrelationBean = hosrelationService.getByBusIdAndBusType(consultId, BusTypeEnum.CONSULT.getId());
         RecipeCommonResTO response = new RecipeCommonResTO();
         response.setCode(RecipeCommonResTO.FAIL);
-        if(null != hosrelationBean) {
+        if(null != hosrelationBean && 1 == hosrelationBean.getStatus()) {
             boolean flag = cancelVisitImpl(hosrelationBean);
             if (flag) {
                 response.setCode(RecipeCommonResTO.SUCCESS);
