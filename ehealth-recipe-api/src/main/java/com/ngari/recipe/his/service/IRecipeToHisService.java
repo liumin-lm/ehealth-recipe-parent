@@ -31,7 +31,7 @@ public interface IRecipeToHisService {
      * @param consultId
      */
     @RpcService
-    boolean visitRegistSuccess(Integer consultId);
+    RecipeCommonResTO visitRegistSuccess(Integer consultId);
 
     /**
      * 取消复诊挂号接口
