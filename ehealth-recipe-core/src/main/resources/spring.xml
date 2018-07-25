@@ -43,10 +43,16 @@
 		<property name="queueCapacity" value="100" />
 	</bean>
 
+    <!--合理用药设置-->
 	<bean class="recipe.audit.bean.PrescriptionConstants" id="prescriptionConstants">
 		<property name="TargetNamespace" value="http://121.43.189.212:820/PAWebService.asmx"/>
 		<property name="NAMESPACE" value="WinningPAWebservice"/>
 	</bean>
+
+    <bean id="onsConfig" class="recipe.mq.OnsConfig" >
+        <property name="onsSwitch" value="${ons.switch.on}"/>
+        <property name="recipeTopic" value="${ons_topic_recipe}"/>
+    </bean>
 
 	<bean id="tokenUpdateService" class="recipe.service.TokenUpdateService" init-method="updateTokenAfterInit" ></bean>
 </beans>
