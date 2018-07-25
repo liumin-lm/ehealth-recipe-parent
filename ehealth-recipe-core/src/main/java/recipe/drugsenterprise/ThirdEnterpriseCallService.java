@@ -2,6 +2,7 @@ package recipe.drugsenterprise;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -29,6 +30,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.service.*;
+import recipe.serviceprovider.BaseService;
 import recipe.third.IWXServiceInterface;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
@@ -43,7 +45,7 @@ import java.util.*;
  * @date:2017/4/20.
  */
 @RpcBean("takeDrugService")
-public class ThirdEnterpriseCallService {
+public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ThirdEnterpriseCallService.class);
 
@@ -1008,9 +1010,10 @@ public class ThirdEnterpriseCallService {
      * @return
      */
     @RpcService
-    public List<DrugsEnterprise> findDrugsEnterpriseByStatus(final Integer status) {
+    public List<DrugsEnterpriseBean> findDrugsEnterpriseByStatus(final Integer status) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        return drugsEnterpriseDAO.findAllDrugsEnterpriseByStatus(status);
+        List<DrugsEnterprise> depList = drugsEnterpriseDAO.findAllDrugsEnterpriseByStatus(status);
+        return getList(depList, DrugsEnterpriseBean.class);
     }
 
     /**
@@ -1021,7 +1024,7 @@ public class ThirdEnterpriseCallService {
      * @author houxr 2016-09-11
      */
     @RpcService
-    public DrugsEnterprise addDrugsEnterprise(final DrugsEnterprise drugsEnterprise) {
+    public DrugsEnterpriseBean addDrugsEnterprise(final DrugsEnterprise drugsEnterprise) {
         if (null == drugsEnterprise) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "DrugsEnterprise is null");
         }
@@ -1037,7 +1040,7 @@ public class ThirdEnterpriseCallService {
         drugsEnterprise.setCreateDate(now);
         drugsEnterprise.setLastModify(now);
         DrugsEnterprise newDrugsEnterprise = drugsEnterpriseDAO.save(drugsEnterprise);
-        return newDrugsEnterprise;
+        return getBean(newDrugsEnterprise, DrugsEnterpriseBean.class);
     }
 
 
@@ -1049,7 +1052,7 @@ public class ThirdEnterpriseCallService {
      * @author houxr 2016-09-11
      */
     @RpcService
-    public DrugsEnterprise updateDrugsEnterprise(final DrugsEnterprise drugsEnterprise) {
+    public DrugsEnterpriseBean updateDrugsEnterprise(final DrugsEnterprise drugsEnterprise) {
         if (null == drugsEnterprise) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "DrugsEnterprise is null");
         }
@@ -1061,7 +1064,7 @@ public class ThirdEnterpriseCallService {
         }
         BeanUtils.map(drugsEnterprise, target);
         target = drugsEnterpriseDAO.update(target);
-        return target;
+        return getBean(target, DrugsEnterpriseBean.class);
     }
 
     /**
@@ -1074,14 +1077,18 @@ public class ThirdEnterpriseCallService {
      * @author houxr 2016-09-11
      */
     @RpcService
-    public QueryResult<DrugsEnterprise> queryDrugsEnterpriseByStartAndLimit(final String name, final int start, final int limit) {
+    public QueryResult<DrugsEnterpriseBean> queryDrugsEnterpriseByStartAndLimit(final String name, final int start, final int limit) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        return drugsEnterpriseDAO.queryDrugsEnterpriseResultByStartAndLimit(name, start, limit);
+        QueryResult result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByStartAndLimit(name, start, limit);
+        List<DrugsEnterpriseBean> list = getList(result.getItems(), DrugsEnterpriseBean.class);
+        result.setItems(list);
+        return result;
     }
 
     @RpcService
-    public List<DrugsEnterprise> findByOrganId(Integer organId) {
+    public List<DrugsEnterpriseBean> findByOrganId(Integer organId) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        return drugsEnterpriseDAO.findByOrganId(organId);
+        List<DrugsEnterprise> list = drugsEnterpriseDAO.findByOrganId(organId);
+        return getList(list, DrugsEnterpriseBean.class);
     }
 }
