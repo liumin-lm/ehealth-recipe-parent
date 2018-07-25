@@ -2,6 +2,7 @@ package com.ngari.recipe.hisprescription.service;
 
 import com.ngari.recipe.hisprescription.model.HosRecipeResult;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import ctd.util.annotation.RpcService;
 
 /**
  * @author： 0184/yu_yun
@@ -11,5 +12,6 @@ import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
  */
 public interface IHosPrescriptionService {
 
+    @RpcService
     HosRecipeResult createPrescription(HospitalRecipeDTO hospitalRecipeDTO);
 }
