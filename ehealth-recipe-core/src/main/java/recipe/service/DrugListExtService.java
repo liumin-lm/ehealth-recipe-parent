@@ -1,0 +1,336 @@
+package recipe.service;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.ngari.base.searchservice.model.DrugSearchTO;
+import com.ngari.base.searchservice.service.ISearchService;
+import com.ngari.recipe.entity.DrugList;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
+import ctd.dictionary.DictionaryItem;
+import ctd.persistence.DAOFactory;
+import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import recipe.dao.DrugListDAO;
+import recipe.util.ApplicationUtils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static recipe.bussutil.RecipeUtil.getHospitalPrice;
+
+/**
+ * @author： 0184/yu_yun
+ * @date： 2018/7/25
+ * @description： 原DrugListDAO层里的一些rpc方法
+ * @version： 1.0
+ */
+@RpcBean("drugList")
+public class DrugListExtService {
+
+    /**
+     * logger
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(DrugListExtService.class);
+
+    private static Pattern p = Pattern.compile("(?<=<em>).+?(?=</em>)");
+
+    @RpcService
+    public DrugList getById(int drugId) {
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        DrugList drugList = drugListDAO.getById(drugId);
+        return drugList;
+    }
+
+    /**
+     * 药品分类下的全部药品列表服务
+     * （全部药品 drugClass 入参为空字符串）
+     *
+     * @param organId   医疗机构代码
+     * @param drugClass 药品分类
+     * @param start     分页起始位置
+     * @return List<DrugList>
+     * zhongzx 加 drugType
+     * @author luf
+     */
+    @RpcService
+    public List<DrugList> findAllInDrugClassByOrgan(int organId, int drugType,
+                                                    String drugClass, int start) {
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        List<DrugList> dList = drugListDAO.findDrugListsByOrganOrDrugClass(organId, drugType, drugClass, start,
+                10);
+        // 添加医院价格
+        if (!dList.isEmpty()) {
+            getHospitalPrice(organId, dList);
+        }
+        return dList;
+    }
+
+    /**
+     * 常用药品列表服务
+     *
+     * @param doctor 开方医生
+     * @return List<DrugList>
+     * zhongzx 加 organId,drugType
+     * @author luf
+     */
+    @RpcService
+    public List<DrugList> findCommonDrugLists(int doctor, int organId, int drugType) {
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        List<DrugList> dList = drugListDAO.findCommonDrugListsWithPage(doctor, organId, drugType, 0, 20);
+        // 添加医院价格
+        if (!dList.isEmpty()) {
+            getHospitalPrice(organId, dList);
+        }
+        return dList;
+    }
+
+    /**
+     * 获取一个药品类别下面的第一子集和第二子集，重新组装
+     *
+     * @param parentKey 父级
+     * @return
+     * @author zhangx
+     * @date 2015-12-7 下午7:42:26
+     */
+    @RpcService
+    public List<HashMap<String, Object>> findDrugClass(String parentKey) {
+        List<HashMap<String, Object>> returnList = new ArrayList<HashMap<String, Object>>();
+
+        List<DictionaryItem> list = getDrugClass(parentKey, 3);
+        for (DictionaryItem dictionaryItem : list) {
+            HashMap<String, Object> map = Maps.newHashMap();
+            map.put("key", dictionaryItem.getKey());
+            map.put("text", dictionaryItem.getText());
+            map.put("leaf", dictionaryItem.isLeaf());
+            map.put("index", dictionaryItem.getIndex());
+            map.put("mcode", dictionaryItem.getMCode());
+            map.put("child", getDrugClass(dictionaryItem.getKey(), 3));
+            returnList.add(map);
+        }
+        return returnList;
+    }
+
+    /**
+     * 药品目录搜索服务（每页限制10条）
+     *
+     * @param drugName 药品名称
+     * @param start    分页起始位置
+     * @return List<DrugList>
+     * zhongzx 加 organId,drugType
+     * @author luf
+     */
+    @RpcService
+    public List<DrugList> findDrugListsByNameOrCodePageStaitc(
+            final int organId, final int drugType, final String drugName, final int start) {
+        return searchDrugListWithES(organId, drugType, drugName, start, 10);
+    }
+
+    /**
+     * zhongzx
+     * 搜索药品 使用es新方式搜索
+     *
+     * @return
+     */
+    public List<DrugList> searchDrugListWithES(Integer organId, Integer drugType, String drugName,
+                                               Integer start, Integer limit) {
+        ISearchService searchService = ApplicationUtils.getBaseService(ISearchService.class);
+
+        DrugSearchTO searchTO = new DrugSearchTO();
+        searchTO.setDrugName(StringUtils.isEmpty(drugName) ? "" : drugName.toLowerCase());
+        searchTO.setOrgan(null == organId ? "" : String.valueOf(organId));
+        searchTO.setDrugType(null == drugType ? "" : String.valueOf(drugType));
+        searchTO.setStart(start);
+        searchTO.setLimit(limit);
+        LOGGER.info("searchDrugListWithES DrugSearchTO={} ", JSONUtils.toString(searchTO));
+        List<String> drugInfo = searchService.findDrugList(searchTO);
+        List<DrugList> dList = new ArrayList<>(drugInfo.size());
+        // 将String转化成DrugList对象返回给前端
+        if (CollectionUtils.isNotEmpty(drugInfo)) {
+            for (String s : drugInfo) {
+                DrugList drugList = null;
+                try {
+                    drugList = JSONUtils.parse(s, DrugList.class);
+                } catch (Exception e) {
+                    LOGGER.error("searchDrugListWithES parse error.  String=" + s);
+                }
+                //该高亮字段给微信端使用:highlightedField
+                //该高亮字段给ios前端使用:highlightedFieldForIos
+                if (null != drugList && StringUtils.isNotEmpty(drugList.getHighlightedField())) {
+                    drugList.setHighlightedFieldForIos(getListByHighlightedField(drugList.getHighlightedField()));
+                }
+                dList.add(drugList);
+            }
+
+            LOGGER.info("searchDrugListWithES result DList.size = " + dList.size());
+            getHospitalPrice(organId, dList);
+        } else {
+            LOGGER.info("searchDrugListWithES result isEmpty! drugName = " + drugName);
+        }
+
+        return dList;
+    }
+
+    /**
+     * 用正则截取指定标记间的字符串
+     *
+     * @param highlightedField
+     * @return
+     */
+    public List<String> getListByHighlightedField(String highlightedField) {
+        List list = new ArrayList();
+        Matcher m = p.matcher(highlightedField);
+        while (m.find()) {
+            list.add(m.group().trim());
+        }
+//        LOGGER.info("highlightedField is " + list.toString());
+        return list;
+    }
+
+    /**
+     * 获取药品类别
+     *
+     * @param parentKey 父节点值
+     * @param sliceType --0所有子节点 1所有叶子节点 2所有文件夹节点 3所有子级节点 4所有子级叶子节点 5所有子级文件夹节点
+     * @return List<DictionaryItem>
+     * @author luf
+     */
+    @RpcService
+    public List<DictionaryItem> getDrugClass(String parentKey, int sliceType) {
+        List<DictionaryItem> list = new ArrayList<DictionaryItem>();
+        try {
+            list = DictionaryController.instance().get("eh.base.dictionary.DrugClass")
+                    .getSlice(parentKey, sliceType, "");
+        } catch (ControllerException e) {
+            LOGGER.error("getDrugClass() error : " + e);
+        }
+        return list;
+    }
+
+    /**
+     * 根据药品Id获取药品记录
+     * (不包括机构没有配置的药品)
+     *
+     * @param drugId 药品id
+     * @return
+     * @author yaozh
+     */
+    @RpcService
+    public DrugList findByDrugIdAndOrganId(int drugId) {
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        DrugList drugList = drugListDAO.findByDrugIdAndOrganId(drugId);
+        return drugList;
+    }
+
+
+    /**
+     * 获取存在有效药品目录的一级、二级、三级类目(西药)；一级、二级（中成药）
+     * zhongzx
+     *
+     * @param organId
+     * @param drugType
+     * @return
+     */
+    @RpcService
+    public List<HashMap<String, Object>> findAllClassByDrugType(int organId, int drugType) {
+        List<HashMap<String, Object>> returnList = new ArrayList<HashMap<String, Object>>();
+
+        //先获得一级有效类目
+        List<DictionaryItem> firstList = findChildByDrugClass(organId, drugType, "");
+
+        for (DictionaryItem first : firstList) {
+            List<HashMap<String, Object>> childList = Lists.newArrayList();
+            HashMap<String, Object> map = Maps.newHashMap();
+            map.put("key", first.getKey());
+            map.put("text", first.getText());
+            map.put("leaf", first.isLeaf());
+            map.put("index", first.getIndex());
+            map.put("mcode", first.getMCode());
+            map.put("child", childList);
+            List<DictionaryItem> list = findChildByDrugClass(organId, drugType, first.getKey());
+            if (null != list && list.size() != 0) {
+                for (DictionaryItem dictionaryItem : list) {
+                    HashMap<String, Object> map1 = Maps.newHashMap();
+                    map1.put("key", dictionaryItem.getKey());
+                    map1.put("text", dictionaryItem.getText());
+                    map1.put("leaf", dictionaryItem.isLeaf());
+                    map1.put("index", dictionaryItem.getIndex());
+                    map1.put("mcode", dictionaryItem.getMCode());
+                    //如果是中成药 就不用判断是否有第三级类目 它只有二级类目
+                    if (drugType == 1) {
+                        //判断是否有第三级类目 如果有则显示 如果没有 以第二类目的名称命名生成一个第三子类
+                        List<DictionaryItem> grandchild = findChildByDrugClass(organId, drugType, dictionaryItem.getKey());
+                        if (null != grandchild && 0 != grandchild.size()) {
+                            map1.put("grandchild", grandchild);
+                        } else {
+                            List one = new ArrayList();
+                            one.add(dictionaryItem);
+                            map1.put("grandchild", one);
+                        }
+                    }
+                    childList.add(map1);
+                }
+            } else {
+                HashMap<String, Object> map1 = Maps.newHashMap();
+                map1.put("key", first.getKey());
+                map1.put("text", first.getText());
+                map1.put("leaf", first.isLeaf());
+                map1.put("index", first.getIndex());
+                map1.put("mcode", first.getMCode());
+                childList.add(map1);
+            }
+            returnList.add(map);
+        }
+        return returnList;
+    }
+
+    /**
+     * 查找存在有效药品的 类目(第一级类目传空)
+     * zhongzx
+     *
+     * @param parentKey
+     * @return
+     */
+    @RpcService
+    public List<DictionaryItem> findChildByDrugClass(Integer organId, Integer drugType, String parentKey) {
+        return findDrugClassByDrugType(organId, drugType, parentKey);
+    }
+
+    /**
+     * 获得 对应机构 对应药品类型 存在有效药品目录的某级药品类目。
+     * zhongzx
+     *
+     * @param organId
+     * @param drugType
+     * @return
+     */
+    public List<DictionaryItem> findDrugClassByDrugType(Integer organId, Integer drugType, String parentKey) {
+        //从数据库进行筛选
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        List<DrugList> drugList = drugListDAO.findDrugClassByDrugList(organId, drugType, parentKey, null, null);
+        List<DictionaryItem> allItemList = getDrugClass(parentKey, 3);
+        List<DictionaryItem> itemList = new ArrayList<>();
+
+        for (DictionaryItem item : allItemList) {
+            for (DrugList d : drugList) {
+                //根据药品类目 是不是以 某级类目的key值开头的 来判断
+                if (d.getDrugClass().startsWith(item.getKey())) {
+                    itemList.add(item);
+                    break;
+                }
+            }
+        }
+        //现在 按照字典的录入顺序显示
+        return itemList;
+    }
+
+
+}

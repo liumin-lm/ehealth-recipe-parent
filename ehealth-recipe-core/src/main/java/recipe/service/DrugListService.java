@@ -3,8 +3,6 @@ package recipe.service;
 import com.google.common.collect.Maps;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
-import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.DrugList;
 import ctd.dictionary.DictionaryItem;
 import ctd.persistence.DAOFactory;
@@ -45,8 +43,9 @@ public class DrugListService {
     @RpcService
     public List<DictionaryItem> findHotDrugList(int organId, int drugType) {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
         List<DrugList> list = drugListDAO.findDrugClassByDrugList(organId, drugType, "", 0, 6);
-        List<DictionaryItem> all = drugListDAO.getDrugClass(null, 0);
+        List<DictionaryItem> all = drugListExtService.getDrugClass(null, 0);
         List<DictionaryItem> hotItem = new ArrayList<>();
 
         for (DrugList drugList : list) {
@@ -75,8 +74,8 @@ public class DrugListService {
         List<DictionaryItem> hotList = findHotDrugList(organId, drugType);
 
         //一级类目
-        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-        List<DictionaryItem> firstList = drugListDAO.findChildByDrugClass(organId, drugType, parentKey);
+        DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
+        List<DictionaryItem> firstList = drugListExtService.findChildByDrugClass(organId, drugType, parentKey);
         HashMap<String, Object> map = Maps.newHashMap();
         map.put("hot", hotList);
         map.put("first", firstList);
@@ -207,13 +206,13 @@ public class DrugListService {
     @RpcService
     public List<Map<String, Object>> queryDrugCatalog() {
         List<Map<String, Object>> returnList = new ArrayList<>();
-        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
         //先获得一级有效类目
-        List<DictionaryItem> firstList = drugListDAO.findChildByDrugClass(null, null, "");
+        List<DictionaryItem> firstList = drugListExtService.findChildByDrugClass(null, null, "");
 
         //再获取二级有效目录
         for (DictionaryItem first : firstList) {
-            List<DictionaryItem> childList = drugListDAO.findChildByDrugClass(null, null, first.getKey());
+            List<DictionaryItem> childList = drugListExtService.findChildByDrugClass(null, null, first.getKey());
             HashMap<String, Object> map = Maps.newHashMap();
             map.put("key", first.getKey());
             map.put("text", first.getText());
@@ -238,13 +237,13 @@ public class DrugListService {
     @RpcService
     public List<Map<String, Object>> queryDrugCatalogForDoctor(int organId, int drugType) {
         List<Map<String, Object>> returnList = new ArrayList<>();
-        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
         //先获得一级有效类目
-        List<DictionaryItem> firstList = drugListDAO.findChildByDrugClass(organId, drugType, "");
+        List<DictionaryItem> firstList = drugListExtService.findChildByDrugClass(organId, drugType, "");
 
         //再获取二级有效目录
         for (DictionaryItem first : firstList) {
-            List<DictionaryItem> childList = drugListDAO.findChildByDrugClass(organId, drugType, first.getKey());
+            List<DictionaryItem> childList = drugListExtService.findChildByDrugClass(organId, drugType, first.getKey());
             HashMap<String, Object> map = Maps.newHashMap();
             map.put("key", first.getKey());
             map.put("text", first.getText());
