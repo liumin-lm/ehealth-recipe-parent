@@ -18,10 +18,10 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import recipe.ApplicationUtils;
 import recipe.dao.DrugListDAO;
 import recipe.dao.PriortyDrugsBindDoctorDao;
 import recipe.dao.PriortyDrugsDao;
-import recipe.util.ApplicationUtils;
 
 import java.util.ArrayList;
 import java.util.Date;

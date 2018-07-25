@@ -35,6 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bean.RecipeResultBean;
 import recipe.bussutil.RecipeUtil;
@@ -46,7 +47,6 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateRecipeStatusFromHisCallable;
-import recipe.util.ApplicationUtils;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 

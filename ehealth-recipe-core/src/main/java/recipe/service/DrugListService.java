@@ -15,9 +15,9 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import recipe.ApplicationUtils;
 import recipe.bussutil.RecipeUtil;
 import recipe.dao.DrugListDAO;
-import recipe.util.ApplicationUtils;
 
 import java.util.*;
 

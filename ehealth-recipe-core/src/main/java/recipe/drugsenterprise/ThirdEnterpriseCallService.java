@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
 import recipe.bean.RecipeResultBean;
 import recipe.bean.ThirdResultBean;
 import recipe.constant.ErrorCode;
@@ -29,7 +30,6 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.service.*;
 import recipe.third.IWXServiceInterface;
-import recipe.util.ApplicationUtils;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 

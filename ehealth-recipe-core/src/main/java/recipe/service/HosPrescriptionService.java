@@ -12,13 +12,13 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
 import recipe.bean.OrderCreateResult;
 import recipe.bean.RecipeResultBean;
 import recipe.common.CommonConstant;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.prescription.PrescribeService;
-import recipe.util.ApplicationUtils;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -32,7 +32,7 @@ import java.util.Map;
  * @date:2017/4/17.
  */
 @RpcBean("remoteHosPrescriptionService")
-public class HosPrescriptionService implements IHosPrescriptionService{
+public class HosPrescriptionService implements IHosPrescriptionService {
 
     /**
      * logger

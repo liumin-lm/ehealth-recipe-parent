@@ -16,8 +16,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
 import recipe.dao.DrugListDAO;
-import recipe.util.ApplicationUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;

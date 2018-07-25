@@ -1,8 +1,10 @@
 package recipe.prescription;
 
+import com.ngari.base.BaseAPI;
 import com.ngari.base.employment.model.EmploymentBean;
 import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.common.RecipeCommonResTO;
@@ -25,7 +27,6 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeLogDAO;
 import recipe.prescription.dataprocess.PrescribeProcess;
-import recipe.util.ApplicationUtils;
 
 import java.util.List;
 
@@ -73,7 +74,7 @@ public class PrescribeService {
                 return result;
             }
 
-            OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+            OrganService organService = BasicAPI.getService(OrganService.class);
             String organName = organService.getShortNameById(Integer.parseInt(hospitalRecipeDTO.getClinicOrgan()));
             if (StringUtils.isEmpty(organName)) {
                 result.setCode(RecipeCommonResTO.FAIL);
@@ -96,7 +97,7 @@ public class PrescribeService {
             Recipe recipe = PrescribeProcess.convertNgariRecipe(hospitalRecipeDTO);
             if (null != recipe) {
                 recipe.setOrganName(organName);
-                IEmploymentService employmentService = ApplicationUtils.getBaseService(IEmploymentService.class);
+                IEmploymentService employmentService = BaseAPI.getService(IEmploymentService.class);
                 //设置医生信息
                 EmploymentBean employment = employmentService.getByJobNumberAndOrganId(
                         hospitalRecipeDTO.getDoctorNumber(), recipe.getClinicOrgan());
@@ -118,7 +119,7 @@ public class PrescribeService {
                         LOG.warn("createPrescription 审核医生工号(checkerNumber)为空");
                     }
 
-                    PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+                    PatientService patientService = BasicAPI.getService(PatientService.class);
                     //TODO 获取的患者是什么类型的
                     PatientDTO patient = patientService.getByIdCard(hospitalRecipeDTO.getCertificate());
                     if (null == patient) {

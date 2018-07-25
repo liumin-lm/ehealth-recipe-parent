@@ -7,11 +7,11 @@ import com.ngari.recipe.entity.RecipeLog;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipeResultBean;
 import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.util.ApplicationUtils;
 
 import java.util.List;
 

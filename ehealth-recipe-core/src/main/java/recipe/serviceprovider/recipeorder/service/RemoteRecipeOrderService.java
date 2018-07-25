@@ -9,10 +9,10 @@ import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import recipe.ApplicationUtils;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.RecipeOrderService;
 import recipe.serviceprovider.BaseService;
-import recipe.util.ApplicationUtils;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;

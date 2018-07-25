@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.patient.model.PatientBean;
@@ -21,7 +22,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.util.Assert;
+import recipe.ApplicationUtils;
 import recipe.bean.RecipeResultBean;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.ParameterConstant;
@@ -30,7 +33,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.dao.bean.PatientRecipeBean;
-import recipe.util.ApplicationUtils;
+import recipe.dao.bean.RecipeRollingInfo;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
@@ -329,15 +332,20 @@ public class RecipeListService {
         List<Integer> testDocIds = iDoctorService.findTestDoctors(organIds);
         String endDt = DateTime.now().toString(DateConversion.DEFAULT_DATE_TIME);
         String startDt = DateTime.now().minusMonths(3).toString(DateConversion.DEFAULT_DATE_TIME);
-        List<RecipeRollingInfoBean> list = recipeDAO.findLastesRecipeList(startDt, endDt, organIds, testDocIds, start, limit);
+        List<RecipeRollingInfo> list = recipeDAO.findLastesRecipeList(startDt, endDt, organIds, testDocIds, start, limit);
 
         // 个性化微信号医院没有开方医生不展示
         if (CollectionUtils.isEmpty(list)) {
-            return list;
+            return Lists.newArrayList();
         }
         List<String> mpiIdList = new ArrayList<>();
-        for (RecipeRollingInfoBean info : list) {
+        List<RecipeRollingInfoBean> backList = Lists.newArrayList();
+        RecipeRollingInfoBean bean;
+        for (RecipeRollingInfo info : list) {
             mpiIdList.add(info.getMpiId());
+            bean = new RecipeRollingInfoBean();
+            BeanUtils.copyProperties(info, bean);
+            backList.add(bean);
         }
 
         List<PatientBean> patientList = iPatientService.findByMpiIdIn(mpiIdList);
@@ -349,14 +357,14 @@ public class RecipeListService {
         });
 
         PatientBean patient;
-        for (RecipeRollingInfoBean info : list) {
+        for (RecipeRollingInfoBean info : backList) {
             patient = patientMap.get(info.getMpiId());
             if (null != patient) {
                 info.setPatientName(patient.getPatientName());
             }
         }
 
-        return list;
+        return backList;
     }
 
     /**

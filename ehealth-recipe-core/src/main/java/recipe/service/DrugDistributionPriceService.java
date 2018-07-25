@@ -11,9 +11,9 @@ import ctd.persistence.exception.DAOException;
 import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import recipe.ApplicationUtils;
 import recipe.dao.DrugDistributionPriceDAO;
 import recipe.serviceprovider.BaseService;
-import recipe.util.ApplicationUtils;
 
 import java.math.BigDecimal;
 import java.util.List;

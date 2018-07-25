@@ -14,6 +14,7 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
 import recipe.bean.DepDetailBean;
 import recipe.bean.DepListBean;
 import recipe.bean.DrugEnterpriseResult;
@@ -26,7 +27,6 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.util.ApplicationUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

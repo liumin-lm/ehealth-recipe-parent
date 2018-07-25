@@ -4,9 +4,9 @@ import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.PathologicalDrug;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import recipe.ApplicationUtils;
 import recipe.service.DrugListService;
 import recipe.service.PathologicalDrugService;
-import recipe.util.ApplicationUtils;
 
 import java.util.List;
 import java.util.Map;

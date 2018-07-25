@@ -7,10 +7,9 @@ import com.ngari.recipe.entity.DrugList;
 import ctd.dictionary.DictionaryItem;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
-import ctd.util.annotation.RpcService;
+import recipe.ApplicationUtils;
 import recipe.dao.DrugListDAO;
 import recipe.service.DrugListExtService;
-import recipe.util.ApplicationUtils;
 
 import java.util.List;
 

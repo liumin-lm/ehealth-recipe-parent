@@ -2,11 +2,6 @@ package recipe.service;
 
 import com.ngari.recipe.entity.EnterpriseAddress;
 import com.ngari.recipe.entity.Recipe;
-import recipe.constant.ErrorCode;
-import recipe.constant.RecipeBussConstant;
-import recipe.dao.EnterpriseAddressDAO;
-import recipe.dao.RecipeDAO;
-import recipe.util.ApplicationUtils;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
@@ -16,6 +11,11 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import recipe.ApplicationUtils;
+import recipe.constant.ErrorCode;
+import recipe.constant.RecipeBussConstant;
+import recipe.dao.EnterpriseAddressDAO;
+import recipe.dao.RecipeDAO;
 
 import java.util.List;
 

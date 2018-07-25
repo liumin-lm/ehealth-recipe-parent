@@ -11,8 +11,8 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
 import recipe.dao.RecipeDAO;
-import recipe.util.ApplicationUtils;
 
 import java.io.IOException;
 import java.util.Arrays;
