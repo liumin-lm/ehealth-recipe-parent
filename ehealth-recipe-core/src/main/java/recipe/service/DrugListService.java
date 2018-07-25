@@ -300,9 +300,9 @@ public class DrugListService {
     @RpcService
     public List<DrugList> searchDrugByNameOrPyCode(String drugName, String mpiId, int start, int limit) {
         saveSearchContendForDrug(drugName, mpiId);
-        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
         //因为 梅州药品的原因 患者端 写死查询邵逸夫的药品
-        return drugListDAO.searchDrugListWithES(1, null, drugName, start, limit);
+        return drugListExtService.searchDrugListWithES(1, null, drugName, start, limit);
     }
 
     /**
@@ -317,8 +317,8 @@ public class DrugListService {
     @RpcService
     public List<DrugList> searchDrugByNameOrPyCodeForPC(
             final int organId, final int drugType, final String drugName, final int start, final int limit) {
-        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-        return drugListDAO.searchDrugListWithES(organId, drugType, drugName, start, limit);
+        DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
+        return drugListExtService.searchDrugListWithES(organId, drugType, drugName, start, limit);
     }
 
     @RpcService
