@@ -1,8 +1,8 @@
-package recipe.prescription.bean;
+package com.ngari.recipe.hisprescription.model;
 
+import com.ngari.recipe.common.RecipeCommonResTO;
 import com.ngari.recipe.entity.Recipe;
 import ctd.util.JSONUtils;
-import recipe.common.response.CommonResponse;
 
 import java.io.Serializable;
 
@@ -13,7 +13,7 @@ import java.io.Serializable;
  * @author: 0184/yu_yun
  * date:2017/4/18.
  */
-public class HosRecipeResult extends CommonResponse implements Serializable {
+public class HosRecipeResult extends RecipeCommonResTO implements Serializable {
 
     private static final long serialVersionUID = 2809725502013933071L;
 

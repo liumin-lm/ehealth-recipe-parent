@@ -1,4 +1,4 @@
-package recipe.prescription.bean;
+package com.ngari.recipe.hisprescription.model;
 
 import java.io.Serializable;
 
