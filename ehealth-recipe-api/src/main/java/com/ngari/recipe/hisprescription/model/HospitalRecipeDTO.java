@@ -1,5 +1,7 @@
 package com.ngari.recipe.hisprescription.model;
 
+import ctd.schema.annotation.Schema;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -10,6 +12,7 @@ import java.util.List;
  * @author: 0184/yu_yun
  * date:2017/4/17.
  */
+@Schema
 public class HospitalRecipeDTO implements Serializable {
 
     private static final long serialVersionUID = 5376913267069813730L;
