@@ -40,13 +40,7 @@ public class CommonRecipeDTO implements Serializable {
     @ItemProperty(alias = "机构代码")
     private Integer organId;
 
-    @Column(name = "OrganId")
-    public Integer getOrganId() {
-        return organId;
-    }
-
-    public void setOrganId(Integer organId) {
-        this.organId = organId;
+    public CommonRecipeDTO() {
     }
 
     public Integer getDoctorId() {
@@ -95,5 +89,13 @@ public class CommonRecipeDTO implements Serializable {
 
     public void setLastModify(Date lastModify) {
         this.lastModify = lastModify;
+    }
+
+    public Integer getOrganId() {
+        return organId;
+    }
+
+    public void setOrganId(Integer organId) {
+        this.organId = organId;
     }
 }

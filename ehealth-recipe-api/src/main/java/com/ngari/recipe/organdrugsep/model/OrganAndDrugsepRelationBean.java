@@ -13,7 +13,7 @@ import static javax.persistence.GenerationType.IDENTITY;
  * @author: 0184/yu_yun
  * @date:2016/6/6.
  */
-
+@Schema
 public class OrganAndDrugsepRelationBean implements java.io.Serializable {
 
     private static final long serialVersionUID = 2439194296959727414L;
@@ -26,6 +26,9 @@ public class OrganAndDrugsepRelationBean implements java.io.Serializable {
 
     @ItemProperty(alias = "药企序号")
     private Integer drugsEnterpriseId;
+
+    public OrganAndDrugsepRelationBean() {
+    }
 
     public Integer getId() {
         return id;

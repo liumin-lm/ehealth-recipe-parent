@@ -93,6 +93,9 @@ public class DispensatoryDTO implements java.io.Serializable {
     @ItemProperty(alias = "药品Id")
     private Integer drugId;
 
+    public DispensatoryDTO() {
+    }
+
     public Integer getDispensatoryId() {
         return dispensatoryId;
     }

@@ -79,6 +79,9 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
     @ItemProperty(alias = "剂量单位")
     private String useDoseUnit;
 
+    public CommonRecipeDrugDTO() {
+    }
+
     public Integer getId() {
         return id;
     }

@@ -2,11 +2,13 @@ package recipe.service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.entity.CommonRecipe;
 import com.ngari.recipe.entity.CommonRecipeDrug;
 import com.ngari.recipe.entity.OrganDrugList;
+import com.ngari.recipe.organdrugsep.model.OrganAndDrugsepRelationBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -192,12 +194,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         }
         CommonRecipeDTO commonRecipeDTO = getBean(commonRecipe, CommonRecipeDTO.class);
         List<CommonRecipeDrug> drugList = commonRecipeDrugDAO.findByCommonRecipeId(commonRecipeId);
-        List<CommonRecipeDrugDTO> drugDtoList = Lists.newArrayList();
-        if (CollectionUtils.isNotEmpty(drugList)) {
-            for (CommonRecipeDrug commonRecipeDrug : drugList) {
-                drugDtoList.add(getBean(commonRecipeDrug, CommonRecipeDrugDTO.class));
-            }
-        }
+        List<CommonRecipeDrugDTO> drugDtoList = ObjectCopyUtils.convert(drugList,CommonRecipeDrugDTO.class);
 
         List drugIds = new ArrayList();
         for (CommonRecipeDrugDTO commonRecipeDrug : drugDtoList) {

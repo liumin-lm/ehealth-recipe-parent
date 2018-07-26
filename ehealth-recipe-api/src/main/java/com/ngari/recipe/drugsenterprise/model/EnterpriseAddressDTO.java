@@ -28,6 +28,9 @@ public class EnterpriseAddressDTO implements java.io.Serializable {
     @ItemProperty(alias = "配送地址状态")
     private Integer status;
 
+    public EnterpriseAddressDTO() {
+    }
+
     public Integer getId() {
         return id;
     }
