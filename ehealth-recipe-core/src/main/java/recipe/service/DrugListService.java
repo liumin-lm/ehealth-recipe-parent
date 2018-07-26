@@ -3,6 +3,7 @@ package recipe.service;
 import com.google.common.collect.Maps;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
+import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.DrugList;
 import ctd.dictionary.DictionaryItem;
 import ctd.persistence.DAOFactory;
@@ -18,6 +19,7 @@ import org.apache.log4j.Logger;
 import recipe.ApplicationUtils;
 import recipe.bussutil.RecipeUtil;
 import recipe.dao.DrugListDAO;
+import recipe.serviceprovider.BaseService;
 
 import java.util.*;
 
@@ -28,7 +30,7 @@ import java.util.*;
  *         药品服务
  */
 @RpcBean("drugListService")
-public class DrugListService {
+public class DrugListService extends BaseService<DrugListBean> {
 
     private static Logger logger = Logger.getLogger(DrugListService.class);
 
@@ -90,7 +92,7 @@ public class DrugListService {
      * @author zhongzx
      */
     @RpcService
-    public DrugList addDrugList(DrugList d) {
+    public DrugListBean addDrugList(DrugList d) {
         logger.info("新增药品服务[addDrugList]:" + JSONUtils.toString(d));
         if (null == d) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugList is null");
@@ -122,7 +124,7 @@ public class DrugListService {
         d.setLastModify(new Date());
         d.setAllPyCode(PyConverter.getPinYinWithoutTone(d.getSaleName()));
         d.setPyCode(PyConverter.getFirstLetter(d.getSaleName()));
-        return dao.save(d);
+        return getBean(dao.save(d), DrugListBean.class);
     }
 
     /**
@@ -161,7 +163,7 @@ public class DrugListService {
      * @author zhongzx
      */
     @RpcService
-    public DrugList updateDrugList(DrugList drugList) {
+    public DrugListBean updateDrugList(DrugList drugList) {
         logger.info("修改药品服务[updateDrugList]:" + JSONUtils.toString(drugList));
         DrugListDAO dao = DAOFactory.getDAO(DrugListDAO.class);
         if (null == drugList.getDrugId()) {
@@ -175,7 +177,7 @@ public class DrugListService {
             BeanUtils.map(drugList, target);
             target = dao.update(target);
         }
-        return target;
+        return getBean(target, DrugListBean.class);
     }
 
     /**
@@ -190,11 +192,14 @@ public class DrugListService {
      * @author houxr
      */
     @RpcService
-    public QueryResult<DrugList> queryDrugListsByDrugNameAndStartAndLimit(final String drugClass, final String keyword,
-                                                                          final Integer status,
-                                                                          final int start, final int limit) {
+    public QueryResult<DrugListBean> queryDrugListsByDrugNameAndStartAndLimit(final String drugClass, final String keyword,
+                                                                              final Integer status,
+                                                                              final int start, final int limit) {
         DrugListDAO dao = DAOFactory.getDAO(DrugListDAO.class);
-        return dao.queryDrugListsByDrugNameAndStartAndLimit(drugClass, keyword, status, start, limit);
+        QueryResult result = dao.queryDrugListsByDrugNameAndStartAndLimit(drugClass, keyword, status, start, limit);
+        List<DrugListBean> list = getList(result.getItems(), DrugListBean.class);
+        result.setItems(list);
+        return result;
     }
 
     /**
@@ -265,10 +270,10 @@ public class DrugListService {
      * @author zhongzx
      */
     @RpcService
-    public List<DrugList> recommendDrugList(int start, int limit) {
+    public List<DrugListBean> recommendDrugList(int start, int limit) {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         List<DrugList> drugList = drugListDAO.queryDrugList(start, limit);
-        return drugList;
+        return getList(drugList, DrugListBean.class);
     }
 
     /**
@@ -281,11 +286,11 @@ public class DrugListService {
      * @author zhongzx
      */
     @RpcService
-    public List<DrugList> queryDrugsInDrugClass(String drugClass, int start, int limit) {
+    public List<DrugListBean> queryDrugsInDrugClass(String drugClass, int start, int limit) {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         //  2017/3/13 0013  因为梅州药品的原因 患者端 写死查询邵逸夫的药品
         List<DrugList> drugList = drugListDAO.findDrugListsByOrganOrDrugClass(1, null, drugClass, start, limit);
-        return drugList;
+        return getList(drugList, DrugListBean.class);
     }
 
     /**
@@ -298,7 +303,7 @@ public class DrugListService {
      * @author zhongzx
      */
     @RpcService
-    public List<DrugList> searchDrugByNameOrPyCode(String drugName, String mpiId, int start, int limit) {
+    public List<DrugListBean> searchDrugByNameOrPyCode(String drugName, String mpiId, int start, int limit) {
         saveSearchContendForDrug(drugName, mpiId);
         DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
         //因为 梅州药品的原因 患者端 写死查询邵逸夫的药品
@@ -315,7 +320,7 @@ public class DrugListService {
      * @return
      */
     @RpcService
-    public List<DrugList> searchDrugByNameOrPyCodeForPC(
+    public List<DrugListBean> searchDrugByNameOrPyCodeForPC(
             final int organId, final int drugType, final String drugName, final int start, final int limit) {
         DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
         return drugListExtService.searchDrugListWithES(organId, drugType, drugName, start, limit);
@@ -389,8 +394,8 @@ public class DrugListService {
      * @return
      */
     @RpcService
-    public List<DrugList> findAllInDrugClassByOrganForPC(int organId, int drugType,
-                                                         String drugClass, int start, int limit) {
+    public List<DrugListBean> findAllInDrugClassByOrganForPC(int organId, int drugType,
+                                                             String drugClass, int start, int limit) {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         List<DrugList> dList = drugListDAO.findDrugListsByOrganOrDrugClass(organId, drugType, drugClass, start,
                 limit);
@@ -398,6 +403,6 @@ public class DrugListService {
         if (!dList.isEmpty()) {
             RecipeUtil.getHospitalPrice(organId, dList);
         }
-        return dList;
+        return getList(dList, DrugListBean.class);
     }
 }

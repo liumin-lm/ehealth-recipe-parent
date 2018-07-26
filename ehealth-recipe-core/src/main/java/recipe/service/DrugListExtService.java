@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.searchservice.model.DrugSearchTO;
 import com.ngari.base.searchservice.service.ISearchService;
+import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.DrugList;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -18,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.dao.DrugListDAO;
+import recipe.serviceprovider.BaseService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,7 +36,7 @@ import static recipe.bussutil.RecipeUtil.getHospitalPrice;
  * @version： 1.0
  */
 @RpcBean("drugList")
-public class DrugListExtService {
+public class DrugListExtService extends BaseService<DrugListBean>{
 
     /**
      * logger
@@ -44,10 +46,10 @@ public class DrugListExtService {
     private static Pattern p = Pattern.compile("(?<=<em>).+?(?=</em>)");
 
     @RpcService
-    public DrugList getById(int drugId) {
+    public DrugListBean getById(int drugId) {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         DrugList drugList = drugListDAO.getById(drugId);
-        return drugList;
+        return getBean(drugList, DrugListBean.class);
     }
 
     /**
@@ -62,7 +64,7 @@ public class DrugListExtService {
      * @author luf
      */
     @RpcService
-    public List<DrugList> findAllInDrugClassByOrgan(int organId, int drugType,
+    public List<DrugListBean> findAllInDrugClassByOrgan(int organId, int drugType,
                                                     String drugClass, int start) {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         List<DrugList> dList = drugListDAO.findDrugListsByOrganOrDrugClass(organId, drugType, drugClass, start,
@@ -71,7 +73,7 @@ public class DrugListExtService {
         if (!dList.isEmpty()) {
             getHospitalPrice(organId, dList);
         }
-        return dList;
+        return getList(dList, DrugListBean.class);
     }
 
     /**
@@ -83,14 +85,14 @@ public class DrugListExtService {
      * @author luf
      */
     @RpcService
-    public List<DrugList> findCommonDrugLists(int doctor, int organId, int drugType) {
+    public List<DrugListBean> findCommonDrugLists(int doctor, int organId, int drugType) {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         List<DrugList> dList = drugListDAO.findCommonDrugListsWithPage(doctor, organId, drugType, 0, 20);
         // 添加医院价格
         if (!dList.isEmpty()) {
             getHospitalPrice(organId, dList);
         }
-        return dList;
+        return getList(dList, DrugListBean.class);
     }
 
     /**
@@ -129,9 +131,10 @@ public class DrugListExtService {
      * @author luf
      */
     @RpcService
-    public List<DrugList> findDrugListsByNameOrCodePageStaitc(
+    public List<DrugListBean> findDrugListsByNameOrCodePageStaitc(
             final int organId, final int drugType, final String drugName, final int start) {
         return searchDrugListWithES(organId, drugType, drugName, start, 10);
+
     }
 
     /**
@@ -140,7 +143,7 @@ public class DrugListExtService {
      *
      * @return
      */
-    public List<DrugList> searchDrugListWithES(Integer organId, Integer drugType, String drugName,
+    public List<DrugListBean> searchDrugListWithES(Integer organId, Integer drugType, String drugName,
                                                Integer start, Integer limit) {
         ISearchService searchService = ApplicationUtils.getBaseService(ISearchService.class);
 
@@ -176,7 +179,7 @@ public class DrugListExtService {
             LOGGER.info("searchDrugListWithES result isEmpty! drugName = " + drugName);
         }
 
-        return dList;
+        return getList(dList, DrugListBean.class);
     }
 
     /**
@@ -224,10 +227,10 @@ public class DrugListExtService {
      * @author yaozh
      */
     @RpcService
-    public DrugList findByDrugIdAndOrganId(int drugId) {
+    public DrugListBean findByDrugIdAndOrganId(int drugId) {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         DrugList drugList = drugListDAO.findByDrugIdAndOrganId(drugId);
-        return drugList;
+        return getBean(drugList, DrugListBean.class);
     }
 
 
