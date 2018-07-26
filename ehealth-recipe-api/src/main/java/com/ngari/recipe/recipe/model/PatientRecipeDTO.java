@@ -1,8 +1,10 @@
-package recipe.dao.bean;
+package com.ngari.recipe.recipe.model;
 
 
 import com.ngari.recipe.entity.Recipedetail;
+import ctd.schema.annotation.Schema;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
@@ -14,7 +16,10 @@ import java.util.List;
  * @author: 0184/yu_yun
  * date:2016/5/12.
  */
-public class PatientRecipeBean {
+@Schema
+public class PatientRecipeDTO implements Serializable {
+
+    private static final long serialVersionUID = -1040081335924874386L;
 
     private int recipeId;
 
@@ -62,7 +67,7 @@ public class PatientRecipeBean {
 
     private List<Recipedetail> recipeDetail;
 
-    public PatientRecipeBean() {
+    public PatientRecipeDTO() {
     }
 
     public int getRecipeId() {
@@ -185,14 +190,6 @@ public class PatientRecipeBean {
         this.recipeSurplusHours = recipeSurplusHours;
     }
 
-    public List<Recipedetail> getRecipeDetail() {
-        return recipeDetail;
-    }
-
-    public void setRecipeDetail(List<Recipedetail> recipeDetail) {
-        this.recipeDetail = recipeDetail;
-    }
-
     public Integer getCouponId() {
         return couponId;
     }
@@ -209,20 +206,20 @@ public class PatientRecipeBean {
         this.medicalPayFlag = medicalPayFlag;
     }
 
-    public Integer getPayMode() {
-        return payMode;
-    }
-
-    public void setPayMode(Integer payMode) {
-        this.payMode = payMode;
-    }
-
     public Integer getRecipeType() {
         return recipeType;
     }
 
     public void setRecipeType(Integer recipeType) {
         this.recipeType = recipeType;
+    }
+
+    public Integer getPayMode() {
+        return payMode;
+    }
+
+    public void setPayMode(Integer payMode) {
+        this.payMode = payMode;
     }
 
     public boolean isCheckEnterprise() {
@@ -248,4 +245,13 @@ public class PatientRecipeBean {
     public void setTrackingNumber(String trackingNumber) {
         this.trackingNumber = trackingNumber;
     }
+
+    public List<Recipedetail> getRecipeDetail() {
+        return recipeDetail;
+    }
+
+    public void setRecipeDetail(List<Recipedetail> recipeDetail) {
+        this.recipeDetail = recipeDetail;
+    }
+
 }

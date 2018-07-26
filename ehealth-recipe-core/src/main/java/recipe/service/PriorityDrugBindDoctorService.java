@@ -9,6 +9,9 @@ import com.ngari.base.employment.model.EmploymentBean;
 import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.patient.dto.ConsultSetDTO;
 import com.ngari.patient.service.ConsultSetService;
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
+import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.PriortyDrug;
 import com.ngari.recipe.entity.PriortyDrugBindDoctor;
@@ -60,7 +63,7 @@ public class PriorityDrugBindDoctorService
                 // 排除机构不支持开的药
                 DrugList drug = drugListDAO.findByDrugIdAndOrganId(drugId);
                 if (null != drug) {
-                    map.put("drug",drug);
+                    map.put("drug", ObjectCopyUtils.convert(drug, DrugListBean.class));
                     map.put("drugPicId",priortyDrug.getDrugPicId());
                     result.add(map);
                 }

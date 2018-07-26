@@ -9,8 +9,11 @@ import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.recipe.model.PatientRecipeDTO;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeRollingInfoBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -73,7 +76,7 @@ public class RecipeListService {
         recipeId = (null == recipeId || Integer.valueOf(0).equals(recipeId)) ? Integer.valueOf(Integer.MAX_VALUE) : recipeId;
 
         List<Map<String, Object>> list = new ArrayList<>(0);
-        IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -82,7 +85,7 @@ public class RecipeListService {
         LOGGER.info("findRecipesForDoctor recipeList size={}", recipeList.size());
         if (CollectionUtils.isNotEmpty(recipeList)) {
             List<String> patientIds = new ArrayList<>(0);
-            Map<Integer, Recipe> recipeMap = Maps.newHashMap();
+            Map<Integer, RecipeBean> recipeMap = Maps.newHashMap();
             for (Recipe recipe : recipeList) {
                 if (StringUtils.isNotEmpty(recipe.getMpiid())) {
                     patientIds.add(recipe.getMpiid());
@@ -101,11 +104,11 @@ public class RecipeListService {
                 recipeMap.put(recipe.getRecipeId(), convertRecipeForRAP(recipe));
             }
 
-            Map<String, PatientBean> patientMap = Maps.newHashMap();
+            Map<String, PatientDTO> patientMap = Maps.newHashMap();
             if (CollectionUtils.isNotEmpty(patientIds)) {
-                List<PatientBean> patientList = iPatientService.findByMpiIdIn(patientIds);
+                List<PatientDTO> patientList = patientService.findByMpiIdIn(patientIds);
                 if (CollectionUtils.isNotEmpty(patientList)) {
-                    for (PatientBean patient : patientList) {
+                    for (PatientDTO patient : patientList) {
                         //设置患者数据
                         RecipeServiceSub.setPatientMoreInfo(patient, doctorId);
                         patientMap.put(patient.getMpiId(), convertPatientForRAP(patient));
@@ -152,8 +155,8 @@ public class RecipeListService {
             for (Integer recipeId : recipeIds) {
                 Map<String, Object> recipeInfo = recipeService.getPatientRecipeById(recipeId);
                 recipeGetModeTip = MapValueUtil.getString(recipeInfo, "recipeGetModeTip");
-                if(null != recipeInfo.get("checkEnterprise")){
-                    map.put("checkEnterprise", (Boolean)recipeInfo.get("checkEnterprise"));
+                if (null != recipeInfo.get("checkEnterprise")) {
+                    map.put("checkEnterprise", (Boolean) recipeInfo.get("checkEnterprise"));
                 }
                 recipesMap.add(recipeInfo);
             }
@@ -162,7 +165,7 @@ public class RecipeListService {
             title = "暂无待处理处方单";
         }
 
-        List<PatientRecipeBean> otherRecipes = this.findOtherRecipesForPatient(mpiId, 0, 1);
+        List<PatientRecipeDTO> otherRecipes = this.findOtherRecipesForPatient(mpiId, 0, 1);
         if (CollectionUtils.isNotEmpty(otherRecipes)) {
             map.put("haveFinished", true);
         } else {
@@ -177,7 +180,7 @@ public class RecipeListService {
     }
 
     @RpcService
-    public List<PatientRecipeBean> findOtherRecipesForPatient(String mpiId, Integer index, Integer limit) {
+    public List<PatientRecipeDTO> findOtherRecipesForPatient(String mpiId, Integer index, Integer limit) {
         Assert.hasLength(mpiId, "findOtherRecipesForPatient mpiId is null.");
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -186,8 +189,7 @@ public class RecipeListService {
         //获取待处理那边最新的一单
         List<Integer> recipeIds = recipeDAO.findPendingRecipes(allMpiIds, RecipeStatusConstant.CHECK_PASS, 0, 1);
         List<PatientRecipeBean> backList = recipeDAO.findOtherRecipesForPatient(allMpiIds, recipeIds, index, limit);
-        processListDate(backList, allMpiIds);
-        return backList;
+        return processListDate(backList, allMpiIds);
     }
 
     /**
@@ -199,7 +201,7 @@ public class RecipeListService {
      * @return
      */
     @RpcService
-    public List<PatientRecipeBean> findAllRecipesForPatient(String mpiId, Integer index, Integer limit) {
+    public List<PatientRecipeDTO> findAllRecipesForPatient(String mpiId, Integer index, Integer limit) {
         Assert.hasLength(mpiId, "findAllRecipesForPatient mpiId is null.");
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
@@ -208,8 +210,7 @@ public class RecipeListService {
         //获取待处理那边最新的一单
 //        List<Integer> recipeIds = recipeDAO.findPendingRecipes(allMpiIds, RecipeStatusConstant.CHECK_PASS,0,1);
         List<PatientRecipeBean> backList = recipeDAO.findOtherRecipesForPatient(allMpiIds, null, index, limit);
-        processListDate(backList, allMpiIds);
-        return backList;
+        return processListDate(backList, allMpiIds);
     }
 
     /**
@@ -218,17 +219,18 @@ public class RecipeListService {
      * @param backList
      * @param allMpiIds
      */
-    private void processListDate(List<PatientRecipeBean> backList, List<String> allMpiIds) {
-        IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+    private List<PatientRecipeDTO> processListDate(List<PatientRecipeBean> list, List<String> allMpiIds) {
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
-
-        if (CollectionUtils.isNotEmpty(backList)) {
+        List<PatientRecipeDTO> backList = Lists.newArrayList();
+        if (CollectionUtils.isNotEmpty(list)) {
+            backList = ObjectCopyUtils.convert(list, PatientRecipeDTO.class);
             //处理订单类型数据
             RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-            List<PatientBean> patientList = iPatientService.findByMpiIdIn(allMpiIds);
-            Map<String, PatientBean> patientMap = Maps.newHashMap();
+            List<PatientDTO> patientList = patientService.findByMpiIdIn(allMpiIds);
+            Map<String, PatientDTO> patientMap = Maps.newHashMap();
             if (null != patientList && !patientList.isEmpty()) {
-                for (PatientBean p : patientList) {
+                for (PatientDTO p : patientList) {
                     if (StringUtils.isNotEmpty(p.getMpiId())) {
                         patientMap.put(p.getMpiId(), p);
                     }
@@ -236,8 +238,8 @@ public class RecipeListService {
             }
 
             Map<Integer, Boolean> checkEnterprise = Maps.newHashMap();
-            PatientBean p;
-            for (PatientRecipeBean record : backList) {
+            PatientDTO p;
+            for (PatientRecipeDTO record : backList) {
                 p = patientMap.get(record.getMpiId());
                 if (null != p) {
                     record.setPatientName(p.getPatientName());
@@ -246,8 +248,8 @@ public class RecipeListService {
                 }
                 //能否购药进行设置，默认可购药
                 record.setCheckEnterprise(true);
-                if(null != record.getOrganId()){
-                    if(null == checkEnterprise.get(record.getOrganId())) {
+                if (null != record.getOrganId()) {
+                    if (null == checkEnterprise.get(record.getOrganId())) {
                         checkEnterprise.put(record.getOrganId(),
                                 drugsEnterpriseService.checkEnterprise(record.getOrganId()));
                     }
@@ -269,7 +271,7 @@ public class RecipeListService {
                     if (RecipeResultBean.SUCCESS.equals(resultBean.getCode())) {
                         if (null != resultBean.getObject() && resultBean.getObject() instanceof RecipeOrder) {
                             RecipeOrder order = (RecipeOrder) resultBean.getObject();
-                            if(null != order.getLogisticsCompany()) {
+                            if (null != order.getLogisticsCompany()) {
                                 try {
                                     //4.01需求：物流信息查询
                                     String logComStr = DictionaryController.instance().get("eh.cdr.dictionary.KuaiDiNiaoCode")
@@ -316,6 +318,7 @@ public class RecipeListService {
             }
         }
 
+        return backList;
     }
 
     /**
@@ -459,11 +462,11 @@ public class RecipeListService {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        IPatientService patientService = ApplicationUtils.getBaseService(IPatientService.class);
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
 
         List<Map<String, Object>> list = new ArrayList<>();
         List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId, mpiId, start, limit);
-        PatientBean patient = RecipeServiceSub.convertPatientForRAP(patientService.get(mpiId));
+        PatientDTO patient = RecipeServiceSub.convertPatientForRAP(patientService.get(mpiId));
         if (CollectionUtils.isNotEmpty(recipes)) {
             for (Recipe recipe : recipes) {
                 Map<String, Object> map = Maps.newHashMap();
@@ -487,6 +490,7 @@ public class RecipeListService {
 
     /**
      * 获取医生开过处方的历史患者列表
+     *
      * @param doctorId
      * @param start
      * @return
@@ -499,6 +503,6 @@ public class RecipeListService {
             return new ArrayList<>();
         }
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
-        return patientService.getPatients(mpiList,doctorId);
+        return patientService.getPatients(mpiList, doctorId);
     }
 }
