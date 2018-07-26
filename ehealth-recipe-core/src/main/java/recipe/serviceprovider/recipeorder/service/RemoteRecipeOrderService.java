@@ -21,6 +21,7 @@ import java.util.Map;
 
 /**
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * @date:2017/9/5.
  */
@@ -39,9 +40,8 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     @Override
     public RecipeBussResTO<RecipeOrderBean> createBlankOrder(List<Integer> recipeIds, Map<String, String> map) {
         RecipeOrderService service = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        RecipeOrder order = service.createBlankOrder(recipeIds, map);
-        RecipeOrderBean orderBean = getBean(order, RecipeOrderBean.class);
-        return RecipeBussResTO.getSuccessResponse(orderBean);
+        RecipeOrderBean order = service.createBlankOrder(recipeIds, map);
+        return RecipeBussResTO.getSuccessResponse(order);
     }
 
     @RpcService

@@ -2,7 +2,7 @@ package recipe.service;
 
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
-import com.ngari.recipe.entity.DrugList;
+import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.Recipe;
 import ctd.account.session.ClientSession;
 import ctd.persistence.DAOFactory;
@@ -102,7 +102,7 @@ public class RecipeTestService {
     }
 
     @RpcService
-    public List<DrugList> findDrugListsByNameOrCodePageStaitc(
+    public List<DrugListBean> findDrugListsByNameOrCodePageStaitc(
             int organId, int drugType, String drugName, int start) {
         DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
 

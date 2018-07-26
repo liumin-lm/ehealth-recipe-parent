@@ -2,6 +2,7 @@ package recipe.drugsenterprise;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
@@ -22,7 +23,6 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
-import recipe.bean.RecipeResultBean;
 import recipe.bean.ThirdResultBean;
 import recipe.constant.ErrorCode;
 import recipe.constant.OrderStatusConstant;

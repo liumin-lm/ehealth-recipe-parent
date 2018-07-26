@@ -1,7 +1,7 @@
 package com.ngari.recipe.hisprescription.model;
 
 import com.ngari.recipe.common.RecipeCommonResTO;
-import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.util.JSONUtils;
 
 import java.io.Serializable;
@@ -21,7 +21,7 @@ public class HosRecipeResult extends RecipeCommonResTO implements Serializable {
 
     private Integer recipeId;
 
-    private Recipe recipe;
+    private RecipeBean recipe;
 
     private HospitalRecipeDTO hospitalRecipe;
 
@@ -45,11 +45,11 @@ public class HosRecipeResult extends RecipeCommonResTO implements Serializable {
         this.recipeId = recipeId;
     }
 
-    public Recipe getRecipe() {
+    public RecipeBean getRecipe() {
         return recipe;
     }
 
-    public void setRecipe(Recipe recipe) {
+    public void setRecipe(RecipeBean recipe) {
         this.recipe = recipe;
     }
 

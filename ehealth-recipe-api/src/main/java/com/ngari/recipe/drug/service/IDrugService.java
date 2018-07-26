@@ -4,7 +4,6 @@ import com.ngari.recipe.IBaseService;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
 import com.ngari.recipe.drug.model.DrugListBean;
-import com.ngari.recipe.entity.DrugList;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
 

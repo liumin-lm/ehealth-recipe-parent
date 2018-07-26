@@ -170,15 +170,8 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
     public QueryResult<DrugListBean> queryDrugListsByDrugNameAndStartAndLimit(String drugClass, String keyword,
                                                                               Integer status, int start, int limit) {
         DrugListService drugListService = ApplicationUtils.getRecipeService(DrugListService.class);
-        QueryResult<DrugList> result = drugListService.queryDrugListsByDrugNameAndStartAndLimit(drugClass, keyword,
+        QueryResult<DrugListBean> result = drugListService.queryDrugListsByDrugNameAndStartAndLimit(drugClass, keyword,
                 status, start, limit);
-        List<DrugList> list = result.getItems();
-        List<DrugListBean> beanList = getList(list, DrugListBean.class);
-        QueryResult<DrugListBean> backList = new QueryResult<DrugListBean>();
-        backList.setTotal(result.getTotal());
-        backList.setStart(result.getStart());
-        backList.setLimit((int)result.getLimit());
-        backList.setItems(beanList);
-        return backList;
+        return result;
     }
 }

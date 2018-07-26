@@ -10,10 +10,13 @@ import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.PatientRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeRollingInfoBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -28,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
-import recipe.bean.RecipeResultBean;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeStatusConstant;
@@ -263,7 +265,8 @@ public class RecipeListService {
                         record.setRecipeSurplusHours(RecipeServiceSub.getRecipeSurplusHours(record.getSignDate()));
                     }
                     //药品详情
-                    record.setRecipeDetail(detailDAO.findByRecipeId(record.getRecordId()));
+                    List<Recipedetail> recipedetailList = detailDAO.findByRecipeId(record.getRecordId());
+                    record.setRecipeDetail(ObjectCopyUtils.convert(recipedetailList, RecipeDetailBean.class));
                 } else if (LIST_TYPE_ORDER.equals(record.getRecordType())) {
                     RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
                     record.setStatusText(getOrderStatusText(record.getStatusCode()));
@@ -301,7 +304,7 @@ public class RecipeListService {
                                     // 订单支付方式
                                     record.setPayMode(recipe.getPayMode());
                                     //药品详情
-                                    record.setRecipeDetail(recipe.getRecipeDetail());
+                                    record.setRecipeDetail(ObjectCopyUtils.convert(recipe.getRecipeDetail(), RecipeDetailBean.class));
 //                                    _bean.setSignDate(recipe.getSignDate());
                                     if (RecipeStatusConstant.CHECK_PASS == recipe.getStatusCode()
                                             && OrderStatusConstant.READY_PAY.equals(record.getStatusCode())) {

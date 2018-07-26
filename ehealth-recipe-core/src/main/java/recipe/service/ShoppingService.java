@@ -4,12 +4,15 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.address.model.AddressBean;
 import com.ngari.base.address.service.IAddressService;
-import com.ngari.base.patient.model.PatientBean;
-import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.sysparamter.service.ISysParamterService;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.PatientService;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.entity.ShoppingDrug;
 import com.ngari.recipe.entity.ShoppingOrder;
+import com.ngari.recipe.shoppingorder.model.ShoppingDrugDTO;
+import com.ngari.recipe.shoppingorder.model.ShoppingOrderDTO;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
@@ -33,8 +36,8 @@ import java.util.*;
 
 /**
  * 健康商城服务类
- * @author:liuya
- * date:2017/12/6
+ *
+ * @author:liuya date:2017/12/6
  */
 @RpcBean("shoppingService")
 public class ShoppingService {
@@ -69,26 +72,28 @@ public class ShoppingService {
     private static final String PRODUCER = "producer";
     private static final String PRICE = "price";
     private static final String QUANTITY = "quantity";
-    private static final String LOGISTICS_COMPANY= "logisticsCompany";
+    private static final String LOGISTICS_COMPANY = "logisticsCompany";
     private static final String TRACKING_NUMBER = "trackingNumber";
     private static final String CANCEL_TIME = "cancelTime";
     private static final String CANCEL_REASON = "cancelReason";
 
-    private IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+    private PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
 
     private ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
 
-    IAddressService iAddressService = ApplicationUtils.getBaseService(IAddressService.class);
+    private IAddressService iAddressService = ApplicationUtils.getBaseService(IAddressService.class);
+
     /**
      * 获取患者信息
+     *
      * @param mpiId
      * @return
      */
     @RpcService
-    public RecipeBussResTO getUser(String mpiId){
+    public RecipeBussResTO getUser(String mpiId) {
         LOGGER.info("getUser request={}", mpiId);
-        RecipeBussResTO  res = new RecipeBussResTO();
-        PatientBean patient = iPatientService.get(mpiId);
+        RecipeBussResTO res = new RecipeBussResTO();
+        PatientDTO patient = patientService.get(mpiId);
         if (null == patient) {
             res.setCode(0);
             res.setMsg("患者不存在");
@@ -107,14 +112,15 @@ public class ShoppingService {
 
     /**
      * 健康商城完成支付后回调接口
+     *
      * @param request
      * @return
      */
     @RpcService
-    public RecipeBussResTO finishOrder(Map<String, Object> request){
+    public RecipeBussResTO finishOrder(Map<String, Object> request) {
         LOGGER.info("finishOrder request={}", request);
         RecipeBussResTO res = new RecipeBussResTO();
-        if(null == request){
+        if (null == request) {
             res.setCode(0);
             res.setMsg("请填写入参");
             return res;
@@ -127,7 +133,7 @@ public class ShoppingService {
         ShoppingOrder order = new ShoppingOrder();
         //解析入参
         order.setMpiId(MapValueUtil.getString(request, MPI_ID));
-        PatientBean patient = iPatientService.get(order.getMpiId());
+        PatientDTO patient = patientService.get(order.getMpiId());
         order.setPatientName(patient.getPatientName());
         order.setOrderCode(MapValueUtil.getString(request, ORDER_CODE));
         order.setSaleTime(DateConversion.getCurrentDate(MapValueUtil.getString(request, SALE_TIME), DateConversion.DEFAULT_DATE_TIME));
@@ -138,7 +144,7 @@ public class ShoppingService {
         order.setCouponFee(MapValueUtil.getBigDecimal(request, COUPON_FEE));
         order.setPayWay(MapValueUtil.getInteger(request, PAY_WAY));
         order.setStatus(SHOPPING_ORDER_PAY_FINISH);
-        Map<String,Object> logistics = (Map<String, Object>) MapValueUtil.getObject(request, LOGISTICS);
+        Map<String, Object> logistics = (Map<String, Object>) MapValueUtil.getObject(request, LOGISTICS);
         String receiver = MapValueUtil.getString(logistics, RECEIVER);
         String recMobile = MapValueUtil.getString(logistics, REC_MOBILE);
         String address1 = MapValueUtil.getString(logistics, ADDRESS1);
@@ -152,7 +158,7 @@ public class ShoppingService {
         order.setCreateTime(new Date());
         order.setLastModify(new Date());
         ShoppingOrder order1 = orderDAO.getByMpiIdAndOrderCode(order.getMpiId(), order.getOrderCode());
-        if(null != order1){
+        if (null != order1) {
             res.setCode(0);
             res.setMsg("订单已存在");
             LOGGER.info("finishOrder 保存订单已存在 orderCode={}", order.getOrderCode());
@@ -162,7 +168,7 @@ public class ShoppingService {
         List<Map<String, Object>> drugsInfo = MapValueUtil.getList(request, DRUGS_INFO);
         List<ShoppingDrug> drugs = Lists.newArrayList();
         //保存订单药品信息
-        for(Map<String, Object> drugMap : drugsInfo){
+        for (Map<String, Object> drugMap : drugsInfo) {
             ShoppingDrug s = new ShoppingDrug();
             s.setOrderCode(order.getOrderCode());
             s.setDrugName(MapValueUtil.getString(drugMap, DRUG_NAME));
@@ -182,23 +188,24 @@ public class ShoppingService {
 
     /**
      * 用户取消订单接口
+     *
      * @param request
      * @return
      */
     @RpcService
-    public RecipeBussResTO cancelOrder(Map<String, Object> request){
-        LOGGER.info("cancelOrder request={}",request);
+    public RecipeBussResTO cancelOrder(Map<String, Object> request) {
+        LOGGER.info("cancelOrder request={}", request);
         String mpiId = MapValueUtil.getString(request, MPI_ID);
         String orderCode = MapValueUtil.getString(request, ORDER_CODE);
         Date cancelTime = DateConversion.getCurrentDate(MapValueUtil.getString(request, CANCEL_TIME), DateConversion.DEFAULT_DATE_TIME);
         String cancelReason = MapValueUtil.getString(request, CANCEL_REASON);
         RecipeBussResTO res = new RecipeBussResTO();
-        if(StringUtils.isEmpty(mpiId)){
+        if (StringUtils.isEmpty(mpiId)) {
             res.setCode(0);
             res.setMsg("mpiId is null");
             return res;
         }
-        if(StringUtils.isEmpty(orderCode)){
+        if (StringUtils.isEmpty(orderCode)) {
             res.setCode(0);
             res.setMsg("orderCode is null");
             return res;
@@ -211,7 +218,7 @@ public class ShoppingService {
             LOGGER.info("cancelOrder 订单不存在 orderCode={}", orderCode);
             return res;
         }
-        if(!SHOPPING_ORDER_PAY_FINISH.equals(order.getStatus())){
+        if (!SHOPPING_ORDER_PAY_FINISH.equals(order.getStatus())) {
             res.setCode(0);
             res.setMsg("该订单不是已完成支付的订单");
             LOGGER.info("cancelOrder 订单状态不为已完成 order={}", order);
@@ -230,36 +237,37 @@ public class ShoppingService {
 
     /**
      * 开始配送回调接口
+     *
      * @param request
      * @return
      */
     @RpcService
-    public RecipeBussResTO startTransport(Map<String, Object> request){
+    public RecipeBussResTO startTransport(Map<String, Object> request) {
         LOGGER.info("startTransport request={}", request);
         String mpiId = MapValueUtil.getString(request, MPI_ID);
         String orderCode = MapValueUtil.getString(request, ORDER_CODE);
         String logisticsCompany = MapValueUtil.getString(request, LOGISTICS_COMPANY);
         String trackingNumber = MapValueUtil.getString(request, TRACKING_NUMBER);
         RecipeBussResTO res = new RecipeBussResTO();
-        if(StringUtils.isEmpty(mpiId)){
+        if (StringUtils.isEmpty(mpiId)) {
             res.setCode(0);
             res.setMsg("mpiId is null");
             return res;
         }
-        if(StringUtils.isEmpty(orderCode)){
+        if (StringUtils.isEmpty(orderCode)) {
             res.setCode(0);
             res.setMsg("orderCode is null");
             return res;
         }
         ShoppingOrderDAO orderDAO = DAOFactory.getDAO(ShoppingOrderDAO.class);
         ShoppingOrder order = orderDAO.getByMpiIdAndOrderCode(mpiId, orderCode);
-        if(null == order){
+        if (null == order) {
             res.setCode(0);
             res.setMsg("订单不存在");
             LOGGER.info("startTransport 订单不存在 orderCode={}", orderCode);
             return res;
         }
-        if(!SHOPPING_ORDER_PAY_FINISH.equals(order.getStatus())){
+        if (!SHOPPING_ORDER_PAY_FINISH.equals(order.getStatus())) {
             res.setCode(0);
             res.setMsg("该订单不是已支付完成的订单");
             LOGGER.info("startTransport 订单状态不为已完成 order={}", order);
@@ -276,52 +284,52 @@ public class ShoppingService {
         return res;
     }
 
-    public void validateOrder(Map<String, Object> conditions){
+    public void validateOrder(Map<String, Object> conditions) {
         //解析入参
-        if(StringUtils.isEmpty(MapValueUtil.getString(conditions, MPI_ID))){
+        if (StringUtils.isEmpty(MapValueUtil.getString(conditions, MPI_ID))) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "mpiId is null");
         }
-        if(StringUtils.isEmpty(MapValueUtil.getString(conditions, ORDER_CODE))){
+        if (StringUtils.isEmpty(MapValueUtil.getString(conditions, ORDER_CODE))) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "orderCode is null");
         }
-        if(null == conditions.get(SALE_TIME)){
+        if (null == conditions.get(SALE_TIME)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "saleTime is null");
         }
-        if(null == MapValueUtil.getBigDecimal(conditions, TOTAL_FEE)){
+        if (null == MapValueUtil.getBigDecimal(conditions, TOTAL_FEE)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "totalFee is null");
         }
-        if(null == MapValueUtil.getBigDecimal(conditions, ACTUAL_FEE)){
+        if (null == MapValueUtil.getBigDecimal(conditions, ACTUAL_FEE)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "actualFee is null");
         }
-        if(null == MapValueUtil.getBigDecimal(conditions, DRUG_FEE)){
+        if (null == MapValueUtil.getBigDecimal(conditions, DRUG_FEE)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "drugFee is null");
         }
-        if(null == MapValueUtil.getInteger(conditions, PAY_WAY)){
+        if (null == MapValueUtil.getInteger(conditions, PAY_WAY)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "payWay is null");
         }
-        Map<String,Object> logistics = (Map<String, Object>) MapValueUtil.getObject(conditions, LOGISTICS);
-        if(null == logistics){
+        Map<String, Object> logistics = (Map<String, Object>) MapValueUtil.getObject(conditions, LOGISTICS);
+        if (null == logistics) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "logistics is null");
         }
-        if(StringUtils.isEmpty(MapValueUtil.getString(logistics, RECEIVER))){
+        if (StringUtils.isEmpty(MapValueUtil.getString(logistics, RECEIVER))) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "receiver is null");
         }
-        if(StringUtils.isEmpty(MapValueUtil.getString(logistics, REC_MOBILE))){
+        if (StringUtils.isEmpty(MapValueUtil.getString(logistics, REC_MOBILE))) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recMobile is null");
         }
-        if(StringUtils.isEmpty(MapValueUtil.getString(logistics, ADDRESS1))){
+        if (StringUtils.isEmpty(MapValueUtil.getString(logistics, ADDRESS1))) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "address1 is null");
         }
-        if(StringUtils.isEmpty(MapValueUtil.getString(logistics, ADDRESS2))){
+        if (StringUtils.isEmpty(MapValueUtil.getString(logistics, ADDRESS2))) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "address2 is null");
         }
-        if(StringUtils.isEmpty(MapValueUtil.getString(logistics, ADDRESS3))){
+        if (StringUtils.isEmpty(MapValueUtil.getString(logistics, ADDRESS3))) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "address3 is null");
         }
-        if(StringUtils.isEmpty(MapValueUtil.getString(logistics, ADDRESS4))){
+        if (StringUtils.isEmpty(MapValueUtil.getString(logistics, ADDRESS4))) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "address4 is null");
         }
-        if(null == MapValueUtil.getList(conditions, DRUGS_INFO) || MapValueUtil.getList(conditions, DRUGS_INFO).size() == 0){
+        if (null == MapValueUtil.getList(conditions, DRUGS_INFO) || MapValueUtil.getList(conditions, DRUGS_INFO).size() == 0) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "drugsInfo is null");
         }
 
@@ -329,23 +337,24 @@ public class ShoppingService {
 
     /**
      * 获取健康商城链接地址并拼接信息返回
+     *
      * @param mpiId
      * @return
      */
     @RpcService
-    public String getYsqShoppingInfoUrl(String mpiId){
-        PatientBean patient = iPatientService.get(mpiId);
+    public String getYsqShoppingInfoUrl(String mpiId) {
+        PatientDTO patient = patientService.get(mpiId);
         Map<String, String> map = Maps.newHashMap();
         if (null == patient) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "patient is null");
         }
-        if (StringUtils.isNotEmpty(patient.getFullHomeArea())){
+        if (StringUtils.isNotEmpty(patient.getFullHomeArea())) {
             //拆分用户地址 存在只有省，市情况
-            String[] areaArgs =patient.getFullHomeArea().split(" ");
-            if(areaArgs.length >= 2){
+            String[] areaArgs = patient.getFullHomeArea().split(" ");
+            if (areaArgs.length >= 2) {
                 map.put("province", areaArgs[0]);
                 map.put("city", areaArgs[1]);
-                if(3 == areaArgs.length){
+                if (3 == areaArgs.length) {
                     //区
                     map.put("county", areaArgs[2]);
                 }
@@ -359,10 +368,10 @@ public class ShoppingService {
         //获取钥匙圈地址
         String ysqUrl = iSysParamterService.getParam(ParameterConstant.KEY_YSQ_SKIP_SHOPPING_URL, null);
         String backUrl = "";
-        if(StringUtils.isEmpty(ysqUrl)){
+        if (StringUtils.isEmpty(ysqUrl)) {
             return backUrl;
         }
-        try{
+        try {
             backUrl = ysqUrl + URLEncoder.encode(JSONUtils.toString(map), RecipeSystemConstant.DEFAULT_CHARACTER_ENCODING);
             LOGGER.info("getYsqShoppingInfoUrl backUrl {}", backUrl);
             return backUrl;
@@ -375,89 +384,94 @@ public class ShoppingService {
 
     /**
      * 根据条件查询订单列表
+     *
      * @param changeAttr
      * @param start
      * @param limit
      * @return
      */
     @RpcService
-    public List<ShoppingOrder> findShoppingOrdersWithConditions(Map<String, Object> changeAttr, int start, int limit){
+    public List<ShoppingOrderDTO> findShoppingOrdersWithConditions(Map<String, Object> changeAttr, int start, int limit) {
         ShoppingOrderDAO orderDAO = DAOFactory.getDAO(ShoppingOrderDAO.class);
-        return orderDAO.findShoppingOrdersWithConditions(changeAttr, start, limit);
+        List<ShoppingOrder> list = orderDAO.findShoppingOrdersWithConditions(changeAttr, start, limit);
+        return ObjectCopyUtils.convert(list, ShoppingOrderDTO.class);
     }
 
     /**
      * 根据订单编号获取药品详情列表
+     *
      * @param orderCode
      * @return
      */
     @RpcService
-    public List<ShoppingDrug> findDrugsByOrderCode(String orderCode){
+    public List<ShoppingDrugDTO> findDrugsByOrderCode(String orderCode) {
         ShoppingDrugDAO drugDAO = DAOFactory.getDAO(ShoppingDrugDAO.class);
-        return drugDAO.findByOrderCode(orderCode);
+        List<ShoppingDrug> list = drugDAO.findByOrderCode(orderCode);
+        return ObjectCopyUtils.convert(list, ShoppingDrugDTO.class);
     }
 
     @RpcService
-    public QueryResult<Map<String,Object>> findShoppingOrdersWithInfo(String bDate, String eDate, String mpiId, String orderCode,
-                                                          Integer status, Integer start, Integer limit){
+    public QueryResult<Map<String, Object>> findShoppingOrdersWithInfo(String bDate, String eDate, String mpiId, String orderCode,
+                                                                       Integer status, Integer start, Integer limit) {
         //通过条件获取List<ShoppingOrder>
-        if (null == start || "".equals(start)){
+        if (null == start || "".equals(start)) {
             start = 0;
         }
-        if (null == limit || "".equals(limit)){
+        if (null == limit || "".equals(limit)) {
             limit = 10;
         }
         ShoppingOrderDAO orderDAO = DAOFactory.getDAO(ShoppingOrderDAO.class);
         QueryResult<ShoppingOrder> queryResult = orderDAO.findShoppingOrdersWithInfo(bDate, eDate, mpiId, orderCode, status, start, limit);
         List<ShoppingOrder> shoppingOrders = new ArrayList<>();
-        if (queryResult.getItems() != null && queryResult.getItems().size() > 0){
+        if (queryResult.getItems() != null && queryResult.getItems().size() > 0) {
             shoppingOrders = queryResult.getItems();
         }
         Set<String> set = new HashSet<>();
-        if (shoppingOrders != null && shoppingOrders.size() > 0 ){
+        if (shoppingOrders != null && shoppingOrders.size() > 0) {
             for (ShoppingOrder so : shoppingOrders) {
                 set.add(so.getMpiId());
             }
         }
         List<String> mpiIdList = new ArrayList<>();
-        if (set.size() > 0 && set != null){
+        if (set.size() > 0 && set != null) {
             mpiIdList.addAll(set);
         }
         List<Map<String, Object>> list = new ArrayList<>();
         if (mpiIdList != null && mpiIdList.size() > 0) {
-            List<PatientBean> patientBeanList = iPatientService.findByMpiIdIn(mpiIdList);
+            List<PatientDTO> patientBeanList = patientService.findByMpiIdIn(mpiIdList);
             for (ShoppingOrder so : shoppingOrders) {
-                for (PatientBean patient : patientBeanList) {
+                for (PatientDTO patient : patientBeanList) {
                     if (so.getMpiId().equals(patient.getMpiId())) {
                         Map<String, Object> map = Maps.newHashMap();
                         map.put("patient", patient);
-                        map.put("ShoppingOrder", so);
+                        map.put("ShoppingOrder", ObjectCopyUtils.convert(so, ShoppingOrderDTO.class));
                         list.add(map);
                     }
                 }
             }
         }
-        return new QueryResult<>(queryResult.getTotal(),start,limit, list);
+        return new QueryResult<>(queryResult.getTotal(), start, limit, list);
     }
 
     /**
      * 获取患者信息:patient对象以及收货人详细信息
+     *
      * @param mpiId
      * @return
      */
     @RpcService
-    public Map<String,Object> getPatientAndAddressByMpiId(String orderCode ,String mpiId){
+    public Map<String, Object> getPatientAndAddressByMpiId(String orderCode, String mpiId) {
         Map<String, Object> map = Maps.newHashMap();
         //获得订单信息
         ShoppingOrderDAO orderDAO = DAOFactory.getDAO(ShoppingOrderDAO.class);
-        ShoppingOrder byMpiIdAndOrderCode = orderDAO.getByMpiIdAndOrderCode(mpiId ,orderCode);
+        ShoppingOrder byMpiIdAndOrderCode = orderDAO.getByMpiIdAndOrderCode(mpiId, orderCode);
         //获得收获人信息
         List<AddressBean> addressList = iAddressService.findByMpiId(mpiId);
         //获得药品详情
-        List<ShoppingDrug> drugsByOrderCode = this.findDrugsByOrderCode(orderCode);
-        map.put("shoppingOrder",byMpiIdAndOrderCode);
-        map.put("addressBean",addressList);
-        map.put("shoppingDrug",drugsByOrderCode);
+        List<ShoppingDrugDTO> drugsByOrderCode = this.findDrugsByOrderCode(orderCode);
+        map.put("shoppingOrder", ObjectCopyUtils.convert(byMpiIdAndOrderCode, ShoppingOrderDTO.class));
+        map.put("addressBean", addressList);
+        map.put("shoppingDrug", drugsByOrderCode);
         return map;
     }
 

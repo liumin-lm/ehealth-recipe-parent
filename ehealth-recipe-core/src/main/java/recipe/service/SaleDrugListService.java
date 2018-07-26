@@ -1,5 +1,10 @@
 package recipe.service;
 
+import com.google.common.collect.Lists;
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.drug.model.DrugListAndSaleDrugListDTO;
+import com.ngari.recipe.drug.model.DrugListBean;
+import com.ngari.recipe.drug.model.SaleDrugListDTO;
 import com.ngari.recipe.entity.SaleDrugList;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
@@ -16,6 +21,7 @@ import recipe.dao.SaleDrugListDAO;
 import recipe.dao.bean.DrugListAndSaleDrugList;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author houxr
@@ -88,7 +94,7 @@ public class SaleDrugListService {
      * @author houxr
      */
     @RpcService
-    public SaleDrugList updateSaleDrugList(SaleDrugList saleDrugList) {
+    public SaleDrugListDTO updateSaleDrugList(SaleDrugList saleDrugList) {
         logger.info("修改销售机构药品服务[updateSaleDrugList]:" + JSONUtils.toString(saleDrugList));
         if (null == saleDrugList.getDrugId()) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugId is required");
@@ -103,7 +109,7 @@ public class SaleDrugListService {
             target.setLastModify(new Date());
             target = saleDrugListDAO.update(target);
         }
-        return target;
+        return ObjectCopyUtils.convert(target, SaleDrugListDTO.class);
     }
 
     /**
@@ -118,12 +124,26 @@ public class SaleDrugListService {
      * @author houxr
      */
     @RpcService
-    public QueryResult<DrugListAndSaleDrugList> querySaleDrugListByOrganIdAndKeyword(final Integer organId,
-                                                                                     final String drugClass,
-                                                                                     final String keyword, final Integer status,
-                                                                                     final int start, final int limit) {
+    public QueryResult<DrugListAndSaleDrugListDTO> querySaleDrugListByOrganIdAndKeyword(final Integer organId,
+                                                                                        final String drugClass,
+                                                                                        final String keyword, final Integer status,
+                                                                                        final int start, final int limit) {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        return saleDrugListDAO.querySaleDrugListByOrganIdAndKeyword(organId, drugClass, keyword, status, start, limit);
+        QueryResult result = saleDrugListDAO.querySaleDrugListByOrganIdAndKeyword(organId, drugClass, keyword, status, start, limit);
+        result.setItems(covertData(result.getItems()));
+        return result;
     }
 
+    private List<DrugListAndSaleDrugListDTO> covertData(List<DrugListAndSaleDrugList> dbList) {
+        List<DrugListAndSaleDrugListDTO> newList = Lists.newArrayList();
+        DrugListAndSaleDrugListDTO backDTO;
+        for (DrugListAndSaleDrugList daod : dbList) {
+            backDTO = new DrugListAndSaleDrugListDTO();
+            backDTO.setDrugList(ObjectCopyUtils.convert(daod.getDrugList(), DrugListBean.class));
+            backDTO.setSaleDrugList(ObjectCopyUtils.convert(daod.getSaleDrugList(), SaleDrugListDTO.class));
+            newList.add(backDTO);
+        }
+
+        return newList;
+    }
 }

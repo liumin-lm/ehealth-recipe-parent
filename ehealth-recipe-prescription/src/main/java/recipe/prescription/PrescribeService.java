@@ -7,13 +7,16 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeCommonResTO;
+import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.hisprescription.model.HosBussResult;
 import com.ngari.recipe.hisprescription.model.HosRecipeResult;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.hisprescription.model.HospitalSearchQO;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -145,7 +148,7 @@ public class PrescribeService {
                         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
                         LOG.info("createPrescription 写入DB成功. recipeId={}", recipeId);
                         result.setRecipeId(recipeId);
-                        result.setRecipe(recipe);
+                        result.setRecipe(ObjectCopyUtils.convert(recipe, RecipeBean.class));
                         result.setHospitalRecipe(hospitalRecipeDTO);
                         recipeLogDAO.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS,
                                 RecipeStatusConstant.CHECK_PASS, "医院处方接收成功");

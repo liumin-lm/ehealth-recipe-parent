@@ -1,5 +1,6 @@
 package recipe.unloginservice;
 
+import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.PathologicalDrug;
 import ctd.util.annotation.RpcBean;
@@ -27,7 +28,7 @@ public class RecipeUnloginService {
      * @return RecipeListResTO<List<DrugListBean>> 药品列表信息
      */
     @RpcService
-    public List<DrugList> findPathologicalDrugList(PathologicalDrug pathologicalDrug, int start, int limit) {
+    public List<DrugListBean> findPathologicalDrugList(PathologicalDrug pathologicalDrug, int start, int limit) {
         PathologicalDrugService service = ApplicationUtils.getRecipeService(PathologicalDrugService.class);
         return service.findPathologicalDrugList(pathologicalDrug, start, limit);
     }
@@ -41,7 +42,7 @@ public class RecipeUnloginService {
      * @return
      */
     @RpcService
-    public List<DrugList> queryDrugsInDrugClass(String drugClass, int start, int limit) {
+    public List<DrugListBean> queryDrugsInDrugClass(String drugClass, int start, int limit) {
         DrugListService service = ApplicationUtils.getRecipeService(DrugListService.class);
         return service.queryDrugsInDrugClass(drugClass, start, limit);
     }
@@ -55,7 +56,7 @@ public class RecipeUnloginService {
      * @author zhongzx
      */
     @RpcService
-    public List<DrugList> recommendDrugList(int start, int limit) {
+    public List<DrugListBean> recommendDrugList(int start, int limit) {
         DrugListService service = ApplicationUtils.getRecipeService(DrugListService.class);
         return service.recommendDrugList(start, limit);
     }
@@ -82,7 +83,7 @@ public class RecipeUnloginService {
      * @author zhongzx
      */
     @RpcService
-    public List<DrugList> searchDrugByNameOrPyCode(String drugName, String mpiId, int start, int limit) {
+    public List<DrugListBean> searchDrugByNameOrPyCode(String drugName, String mpiId, int start, int limit) {
         DrugListService service = ApplicationUtils.getRecipeService(DrugListService.class);
         return service.searchDrugByNameOrPyCode(drugName, mpiId, start, limit);
     }
