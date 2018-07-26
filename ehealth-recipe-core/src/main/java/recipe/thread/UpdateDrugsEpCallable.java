@@ -65,7 +65,7 @@ public class UpdateDrugsEpCallable implements Callable<String> {
                     }
                 }
             } catch (IOException e) {
-                logger.warn(logPrefix + "更新失败. ", e);
+                logger.warn(logPrefix + "更新失败. error={}", e.getMessage());
             }
         } else {
             logger.warn("UpdateDrugsEpCallable 更新药企token功能，药企ID:" + this._drugsEnterpriseId + " 药企 AuthenUrl为空");
