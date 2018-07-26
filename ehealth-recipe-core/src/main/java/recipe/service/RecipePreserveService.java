@@ -2,14 +2,16 @@ package recipe.service;
 
 import com.ngari.base.doctor.model.DoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeLog;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipelog.model.RecipeLogBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
-import recipe.bean.RecipeResultBean;
 import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 
@@ -17,25 +19,27 @@ import java.util.List;
 
 /**
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * @date:2017/10/31.
  */
-@RpcBean("recipePreserveService")
+@RpcBean(value = "recipePreserveService", mvc_authentication = false)
 public class RecipePreserveService {
 
     @RpcService
-    public Recipe getByRecipeId(int recipeId) {
-        return DAOFactory.getDAO(RecipeDAO.class).get(recipeId);
+    public RecipeBean getByRecipeId(int recipeId) {
+        Recipe recipe = DAOFactory.getDAO(RecipeDAO.class).get(recipeId);
+        return ObjectCopyUtils.convert(recipe, RecipeBean.class);
     }
 
     @RpcService
     public void manualRefundForRecipe(int recipeId, String operName, String reason) {
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-        recipeService.manualRefundForRecipe(recipeId,operName,reason);
+        recipeService.manualRefundForRecipe(recipeId, operName, reason);
     }
 
     @RpcService
-    public DrugEnterpriseResult pushSingleRecipeInfo(Integer recipeId){
+    public DrugEnterpriseResult pushSingleRecipeInfo(Integer recipeId) {
         RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         return service.pushSingleRecipeInfo(recipeId);
     }
@@ -53,7 +57,7 @@ public class RecipePreserveService {
     }
 
     @RpcService
-    public List<RecipeLog> findByRecipeId(Integer recipeId) {
+    public List<RecipeLogBean> findByRecipeId(Integer recipeId) {
         RecipeLogService service = ApplicationUtils.getRecipeService(RecipeLogService.class);
         return service.findByRecipeId(recipeId);
     }

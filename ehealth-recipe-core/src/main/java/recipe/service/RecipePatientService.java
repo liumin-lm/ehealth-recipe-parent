@@ -3,10 +3,15 @@ package recipe.service;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.sysparamter.service.ISysParamterService;
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
+import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.entity.SaleDrugList;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -15,10 +20,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
-import recipe.bean.DepDetailBean;
-import recipe.bean.DepListBean;
 import recipe.bean.DrugEnterpriseResult;
-import recipe.bean.RecipeResultBean;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeBussConstant;
@@ -157,7 +159,7 @@ public class RecipePatientService extends RecipeBaseService {
                                 LOGGER.warn("findSupportDepList 重新计算药企ID为[{}]的结算价格出错. drugIds={}", dep.getId(),
                                         JSONUtils.toString(drugIds), e);
                                 //此处应该要把出错的药企从返回列表中剔除
-                                depDetailList.remove(depDetailList.size()-1);
+                                depDetailList.remove(depDetailList.size() - 1);
                                 continue;
                             }
 
@@ -203,7 +205,7 @@ public class RecipePatientService extends RecipeBaseService {
             for (Recipedetail recipedetail : backDetails) {
                 recipedetail.setUseTotalDose(drugIdCountRel.get(recipedetail.getDrugId()));
             }
-            depListBean.setDetails(backDetails);
+            depListBean.setDetails(ObjectCopyUtils.convert(backDetails, RecipeDetailBean.class));
             //患者处方取药方式提示
             if (recipeIds.size() <= 1) {
                 depListBean.setRecipeGetModeTip(RecipeServiceSub.getRecipeGetModeTip(recipeList.get(0)));

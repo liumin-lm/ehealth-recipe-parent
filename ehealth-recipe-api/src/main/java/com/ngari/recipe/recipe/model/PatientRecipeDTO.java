@@ -1,7 +1,6 @@
 package com.ngari.recipe.recipe.model;
 
 
-import com.ngari.recipe.entity.Recipedetail;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
@@ -65,7 +64,7 @@ public class PatientRecipeDTO implements Serializable {
 
     private String trackingNumber;
 
-    private List<Recipedetail> recipeDetail;
+    private List<RecipeDetailBean> recipeDetail;
 
     public PatientRecipeDTO() {
     }
@@ -246,12 +245,11 @@ public class PatientRecipeDTO implements Serializable {
         this.trackingNumber = trackingNumber;
     }
 
-    public List<Recipedetail> getRecipeDetail() {
+    public List<RecipeDetailBean> getRecipeDetail() {
         return recipeDetail;
     }
 
-    public void setRecipeDetail(List<Recipedetail> recipeDetail) {
+    public void setRecipeDetail(List<RecipeDetailBean> recipeDetail) {
         this.recipeDetail = recipeDetail;
     }
-
 }

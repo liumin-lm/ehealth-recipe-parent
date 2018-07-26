@@ -1,4 +1,4 @@
-package recipe.bean;
+package com.ngari.recipe.drugsenterprise.model;
 
 import java.io.Serializable;
 

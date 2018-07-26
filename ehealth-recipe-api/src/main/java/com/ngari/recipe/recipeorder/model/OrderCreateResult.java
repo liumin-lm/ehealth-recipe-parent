@@ -1,12 +1,15 @@
-package recipe.bean;
+package com.ngari.recipe.recipeorder.model;
+
+import com.ngari.recipe.common.RecipeResultBean;
+
 /**
  * 订单创建返回对象结构
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * date:2017/2/24.
  */
-public class OrderCreateResult extends RecipeResultBean
-{
+public class OrderCreateResult extends RecipeResultBean {
 
     /**
      * 优惠券类型

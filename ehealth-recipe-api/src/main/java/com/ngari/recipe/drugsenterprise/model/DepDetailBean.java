@@ -1,4 +1,4 @@
-package recipe.bean;
+package com.ngari.recipe.drugsenterprise.model;
 
 import java.math.BigDecimal;
 import java.util.List;

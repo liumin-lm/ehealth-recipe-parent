@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.google.common.collect.Maps;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
@@ -14,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipeCheckPassResult;
-import recipe.bean.RecipeResultBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.constant.*;
 import recipe.dao.RecipeDAO;
