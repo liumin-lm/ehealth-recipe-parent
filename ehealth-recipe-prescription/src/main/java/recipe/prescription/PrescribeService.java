@@ -1,15 +1,13 @@
 package recipe.prescription;
 
-import com.ngari.base.BaseAPI;
-import com.ngari.base.employment.model.EmploymentBean;
-import com.ngari.base.employment.service.IEmploymentService;
+import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeCommonResTO;
-import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.hisprescription.model.HosBussResult;
@@ -100,9 +98,9 @@ public class PrescribeService {
             Recipe recipe = PrescribeProcess.convertNgariRecipe(hospitalRecipeDTO);
             if (null != recipe) {
                 recipe.setOrganName(organName);
-                IEmploymentService employmentService = BaseAPI.getService(IEmploymentService.class);
+                EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
                 //设置医生信息
-                EmploymentBean employment = employmentService.getByJobNumberAndOrganId(
+                EmploymentDTO employment = employmentService.getByJobNumberAndOrganId(
                         hospitalRecipeDTO.getDoctorNumber(), recipe.getClinicOrgan());
                 if (null != employment) {
                     recipe.setDoctor(employment.getDoctorId());
@@ -111,7 +109,7 @@ public class PrescribeService {
                     //审核医生信息处理
                     String checkerNumber = hospitalRecipeDTO.getCheckerNumber();
                     if (StringUtils.isNotEmpty(checkerNumber)) {
-                        EmploymentBean checkEmployment = employmentService.getByJobNumberAndOrganId(
+                        EmploymentDTO checkEmployment = employmentService.getByJobNumberAndOrganId(
                                 checkerNumber, recipe.getCheckOrgan());
                         if (null != checkEmployment) {
                             recipe.setChecker(checkEmployment.getDoctorId());
