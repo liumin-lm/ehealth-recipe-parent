@@ -2,6 +2,8 @@ package com.ngari.recipe.recipe.model;
 
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
+import ctd.schema.annotation.Schema;
+
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Date;
@@ -9,6 +11,7 @@ import java.util.Date;
 /**
  * @author yuyun
  */
+@Schema
 public class RecipeDetailBean implements java.io.Serializable {
 
     private static final long serialVersionUID = -5228478904040591198L;

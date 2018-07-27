@@ -2,6 +2,7 @@ package com.ngari.recipe.drugsenterprise.model;
 
 
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import ctd.schema.annotation.Schema;
 
 import java.util.List;
 
@@ -12,6 +13,7 @@ import java.util.List;
  * @author: 0184/yu_yun
  * date:2017/7/3.
  */
+@Schema
 public class DepListBean {
 
     /**

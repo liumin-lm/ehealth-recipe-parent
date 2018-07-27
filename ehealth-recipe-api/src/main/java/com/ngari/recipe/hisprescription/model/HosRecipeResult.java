@@ -2,6 +2,7 @@ package com.ngari.recipe.hisprescription.model;
 
 import com.ngari.recipe.common.RecipeCommonResTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import ctd.schema.annotation.Schema;
 import ctd.util.JSONUtils;
 
 import java.io.Serializable;
@@ -13,6 +14,7 @@ import java.io.Serializable;
  * @author: 0184/yu_yun
  * date:2017/4/18.
  */
+@Schema
 public class HosRecipeResult extends RecipeCommonResTO implements Serializable {
 
     private static final long serialVersionUID = 2809725502013933071L;

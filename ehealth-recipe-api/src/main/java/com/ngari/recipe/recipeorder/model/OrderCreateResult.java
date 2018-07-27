@@ -1,6 +1,7 @@
 package com.ngari.recipe.recipeorder.model;
 
 import com.ngari.recipe.common.RecipeResultBean;
+import ctd.schema.annotation.Schema;
 
 /**
  * 订单创建返回对象结构
@@ -9,6 +10,7 @@ import com.ngari.recipe.common.RecipeResultBean;
  * @author: 0184/yu_yun
  * date:2017/2/24.
  */
+@Schema
 public class OrderCreateResult extends RecipeResultBean {
 
     /**

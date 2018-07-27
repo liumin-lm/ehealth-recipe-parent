@@ -1,5 +1,7 @@
 package com.ngari.recipe.drugsenterprise.model;
 
+import ctd.schema.annotation.Schema;
+
 import java.io.Serializable;
 
 /**
@@ -8,6 +10,7 @@ import java.io.Serializable;
  * @author: 0184/yu_yun
  * date:2017/7/25.
  */
+@Schema
 public class DepStyleBean implements Serializable
 {
 

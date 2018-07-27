@@ -1,6 +1,8 @@
 package com.ngari.recipe.drug.model;
 
 
+import ctd.schema.annotation.Schema;
+
 import java.io.Serializable;
 
 /**
@@ -8,6 +10,7 @@ import java.io.Serializable;
  *
  * @author: 0184/yu_yun
  */
+@Schema
 public class DrugListAndSaleDrugListDTO implements Serializable {
 
     private static final long serialVersionUID = 170058770800651017L;
