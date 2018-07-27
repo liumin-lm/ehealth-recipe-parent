@@ -40,11 +40,16 @@ public class BusMsgConsumer {
             @Override
             public void onMessage(TempMsgType tMsg) {
                 LOGGER.info("patientTopic msg[{}]", JSONUtils.toString(tMsg));
-                if(MsgTypeEnum.DELETE_PATIENT.equals(tMsg.getMsgType())){
-                    RemoteRecipeService remoteRecipeService = ApplicationUtils.getRecipeService(RemoteRecipeService.class);
-                    remoteRecipeService.synPatientStatusToRecipe(tMsg.getMsgContent());
-                }
+                invalidPatient(tMsg);
             }
         });
+    }
+
+    @RpcService
+    public void invalidPatient(TempMsgType tMsg){
+        if(MsgTypeEnum.DELETE_PATIENT.equals(tMsg.getMsgType())){
+            RemoteRecipeService remoteRecipeService = ApplicationUtils.getRecipeService(RemoteRecipeService.class);
+            remoteRecipeService.synPatientStatusToRecipe(tMsg.getMsgContent());
+        }
     }
 }
