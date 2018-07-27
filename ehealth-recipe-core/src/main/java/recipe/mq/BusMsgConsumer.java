@@ -4,6 +4,7 @@ import com.ngari.common.dto.TempMsgType;
 import ctd.net.broadcast.MQHelper;
 import ctd.net.broadcast.Observer;
 import ctd.net.broadcast.Subscriber;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -26,12 +27,14 @@ public class BusMsgConsumer {
      */
     @PostConstruct
     @RpcService
-    public void busConsultMsgConsumer() {
+    public void busRecipeMsgConsumer() {
         //该对象不可删除，此处需要初始化
+        OnsConfig onsConfig = (OnsConfig) AppContextHolder.getBean("onsConfig");
         if (!OnsConfig.onsSwitch) {
             LOGGER.info("the onsSwitch is set off, consumer not subscribe.");
             return;
         }
+        LOGGER.info("busRecipeMsgConsumer start");
         Subscriber subscriber = MQHelper.getMqSubscriber();
         subscriber.attach(OnsConfig.patientTopic, new Observer<TempMsgType>() {
             @Override
