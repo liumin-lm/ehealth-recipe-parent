@@ -6,7 +6,7 @@ package recipe.mq;
 public class OnsConfig {
     public static boolean onsSwitch;
 
-    public static String recipeTopic;
+    public static String patientTopic;
 
     public static boolean isOnsSwitch() {
         return onsSwitch;
@@ -16,11 +16,11 @@ public class OnsConfig {
         OnsConfig.onsSwitch = onsSwitch;
     }
 
-    public static String getRecipeTopic() {
-        return recipeTopic;
+    public static String getPatientTopic() {
+        return patientTopic;
     }
 
-    public static void setRecipeTopic(String recipeTopic) {
-        OnsConfig.recipeTopic = recipeTopic;
+    public static void setPatientTopic(String patientTopic) {
+        OnsConfig.patientTopic = patientTopic;
     }
 }

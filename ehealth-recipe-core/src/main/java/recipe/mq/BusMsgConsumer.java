@@ -10,6 +10,7 @@ import ctd.util.annotation.RpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.constant.MsgTypeEnum;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 
 import javax.annotation.PostConstruct;
@@ -32,11 +33,11 @@ public class BusMsgConsumer {
             return;
         }
         Subscriber subscriber = MQHelper.getMqSubscriber();
-        subscriber.attach(OnsConfig.recipeTopic, new Observer<TempMsgType>() {
+        subscriber.attach(OnsConfig.patientTopic, new Observer<TempMsgType>() {
             @Override
             public void onMessage(TempMsgType tMsg) {
-                LOGGER.info("recipeTopic msg[{}]", JSONUtils.toString(tMsg));
-                if("synPatientStatusToRecipe".equals(tMsg.getMsgType())){
+                LOGGER.info("patientTopic msg[{}]", JSONUtils.toString(tMsg));
+                if(MsgTypeEnum.DELETE_PATIENT.equals(tMsg.getMsgType())){
                     RemoteRecipeService remoteRecipeService = ApplicationUtils.getRecipeService(RemoteRecipeService.class);
                     remoteRecipeService.synPatientStatusToRecipe(tMsg.getMsgContent());
                 }
