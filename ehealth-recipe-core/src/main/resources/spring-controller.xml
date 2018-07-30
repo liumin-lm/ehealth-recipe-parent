@@ -6,7 +6,7 @@
 
     <!-- service register center -->
     <ssdev:applicationDomain name="eh" registryAddress="${zk}" serverId="recipe"/>
-    <ssdev:connector url="${url}" deployHost="${deployHost}">
+    <ssdev:connector url="${url}">
         <ssdev:filter id="json"/>
         <ssdev:filter id="urt"/>
     </ssdev:connector>
