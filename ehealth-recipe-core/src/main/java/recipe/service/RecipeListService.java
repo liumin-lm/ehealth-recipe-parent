@@ -12,12 +12,12 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.PatientRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeRollingInfoBean;
+import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -272,8 +272,8 @@ public class RecipeListService {
                     record.setStatusText(getOrderStatusText(record.getStatusCode()));
                     RecipeResultBean resultBean = orderService.getOrderDetailById(record.getRecordId());
                     if (RecipeResultBean.SUCCESS.equals(resultBean.getCode())) {
-                        if (null != resultBean.getObject() && resultBean.getObject() instanceof RecipeOrder) {
-                            RecipeOrder order = (RecipeOrder) resultBean.getObject();
+                        if (null != resultBean.getObject() && resultBean.getObject() instanceof RecipeOrderBean) {
+                            RecipeOrderBean order = (RecipeOrderBean) resultBean.getObject();
                             if (null != order.getLogisticsCompany()) {
                                 try {
                                     //4.01需求：物流信息查询

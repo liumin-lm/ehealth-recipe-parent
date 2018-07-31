@@ -81,12 +81,12 @@ public class RecipeOrderService extends RecipeBaseService {
      */
     public RecipeOrderBean createBlankOrder(List<Integer> recipeIds, Map<String, String> extInfo) {
         OrderCreateResult result = createOrder(recipeIds, extInfo, 0);
-        RecipeOrder order = null;
+        RecipeOrderBean order = null;
         if (null != result && RecipeResultBean.SUCCESS.equals(result.getCode()) &&
-                null != result.getObject() && result.getObject() instanceof RecipeOrder) {
-            order = (RecipeOrder) result.getObject();
+                null != result.getObject() && result.getObject() instanceof RecipeOrderBean) {
+            order = (RecipeOrderBean) result.getObject();
         }
-        return ObjectCopyUtils.convert(order, RecipeOrderBean.class);
+        return order;
     }
 
     /**
@@ -569,7 +569,7 @@ public class RecipeOrderService extends RecipeBaseService {
             //COUPON_BUSTYPE_RECIPE_HOME_PAYONLINE(5,CouponConstant.COUPON_BUSTYPE_RECIPE,CouponConstant.COUPON_SUBTYPE_RECIPE_HOME_PAYONLINE,"电子处方-配送到家-在线支付"),
             result.setCouponType(5);
         }
-        result.setObject(order);
+        result.setObject(ObjectCopyUtils.convert(order, RecipeOrderBean.class));
         if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == toDbFlag && null != order.getOrderId()) {
             result.setOrderCode(order.getOrderCode());
             result.setBusId(order.getOrderId());
