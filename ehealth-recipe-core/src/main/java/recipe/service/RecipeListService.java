@@ -285,12 +285,12 @@ public class RecipeListService {
                                     LOGGER.warn("processListDate KuaiDiNiaoCode get error. code={}", order.getLogisticsCompany());
                                 }
                             }
-                            List<PatientRecipeBean> recipeList = (List<PatientRecipeBean>) order.getList();
+                            List<PatientRecipeDTO> recipeList = (List<PatientRecipeDTO>) order.getList();
                             if (CollectionUtils.isNotEmpty(recipeList)) {
                                 // 前端要求，先去掉数组形式，否则前端不好处理
 //                                List<PatientRecipeBean> subList = new ArrayList<>(5);
 //                                PatientRecipeBean _bean;
-                                for (PatientRecipeBean recipe : recipeList) {
+                                for (PatientRecipeDTO recipe : recipeList) {
 //                                    _bean = new PatientRecipeBean();
 //                                    _bean.setRecordType(LIST_TYPE_RECIPE);
                                     // 当前订单只有一个处方，处方内的患者信息使用订单的信息就可以
@@ -304,7 +304,7 @@ public class RecipeListService {
                                     // 订单支付方式
                                     record.setPayMode(recipe.getPayMode());
                                     //药品详情
-                                    record.setRecipeDetail(ObjectCopyUtils.convert(recipe.getRecipeDetail(), RecipeDetailBean.class));
+                                    record.setRecipeDetail(recipe.getRecipeDetail());
 //                                    _bean.setSignDate(recipe.getSignDate());
                                     if (RecipeStatusConstant.CHECK_PASS == recipe.getStatusCode()
                                             && OrderStatusConstant.READY_PAY.equals(record.getStatusCode())) {
