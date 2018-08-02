@@ -197,6 +197,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
                             response.setCode(RecipeCommonResTO.FAIL);
                             //在consult项目 cancelVisitRecordTask 方法会进行咨询取消退款操作 CancelConsult，故在此会导致重复取消
 //                            cancelVisitImpl(hosrelationBean);
+                            hosrelationService.cancelSuccess(hosrelationBean.getBusId(), hosrelationBean.getBusType(), 0);
                             return response;
                         }
                     }
