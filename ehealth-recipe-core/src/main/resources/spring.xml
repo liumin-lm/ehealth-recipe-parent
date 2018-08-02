@@ -45,7 +45,7 @@
 
     <!--合理用药设置-->
 	<bean class="recipe.audit.bean.PrescriptionConstants" id="prescriptionConstants">
-		<property name="TargetNamespace" value="http://121.43.189.212:820/PAWebService.asmx"/>
+		<property name="TargetNamespace" value="http://172.16.2.91:820/PAWebService.asmx"/>
 		<property name="NAMESPACE" value="WinningPAWebservice"/>
 	</bean>
 
