@@ -153,7 +153,9 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
             }
             response.setMsg(hosrelationBean.getMemo());
         }else{
-            response.setMsg("由于系统原因，请稍后再试，咨询已自动取消");
+            //-1 会让前端重复查询
+            response.setCode(-1);
+//            response.setMsg("由于系统原因，请稍后再试，咨询已自动取消");
         }
         LOGGER.info("visitRegistSuccess consultId={}, response={}", consultId, JSONUtils.toString(response));
         return response;
