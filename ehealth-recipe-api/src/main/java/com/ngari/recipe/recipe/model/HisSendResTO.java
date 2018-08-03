@@ -1,11 +1,14 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.Schema;
+
 import java.util.List;
 
 /**
  * @author zhongzx
  *
  */
+@Schema
 public class HisSendResTO implements java.io.Serializable {
 
     private static final long serialVersionUID = -4584755552379166981L;

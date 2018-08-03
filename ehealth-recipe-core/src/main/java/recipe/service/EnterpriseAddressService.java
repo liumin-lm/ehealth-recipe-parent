@@ -1,12 +1,8 @@
 package recipe.service;
 
+import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressDTO;
 import com.ngari.recipe.entity.EnterpriseAddress;
 import com.ngari.recipe.entity.Recipe;
-import recipe.constant.ErrorCode;
-import recipe.constant.RecipeBussConstant;
-import recipe.dao.EnterpriseAddressDAO;
-import recipe.dao.RecipeDAO;
-import recipe.util.ApplicationUtils;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
@@ -16,6 +12,12 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import recipe.ApplicationUtils;
+import recipe.constant.ErrorCode;
+import recipe.constant.RecipeBussConstant;
+import recipe.dao.EnterpriseAddressDAO;
+import recipe.dao.RecipeDAO;
+import recipe.serviceprovider.BaseService;
 
 import java.util.List;
 
@@ -24,7 +26,7 @@ import java.util.List;
  * @date 2016/6/8
  */
 @RpcBean("enterpriseAddressService")
-public class EnterpriseAddressService {
+public class EnterpriseAddressService extends BaseService<EnterpriseAddressDTO> {
 
     private static final Log LOGGER = LogFactory.getLog(EnterpriseAddressService.class);
 
@@ -153,9 +155,10 @@ public class EnterpriseAddressService {
      * @return
      */
     @RpcService
-    public EnterpriseAddress addEnterpriseAddress(EnterpriseAddress enterpriseAddress) {
+    public EnterpriseAddressDTO addEnterpriseAddress(EnterpriseAddress enterpriseAddress) {
         EnterpriseAddressDAO addressDAO = DAOFactory.getDAO(EnterpriseAddressDAO.class);
-        return addressDAO.addEnterpriseAddress(enterpriseAddress);
+        EnterpriseAddress address = addressDAO.addEnterpriseAddress(enterpriseAddress);
+        return getBean(address, EnterpriseAddressDTO.class);
     }
 
 
@@ -166,9 +169,10 @@ public class EnterpriseAddressService {
      * @return
      */
     @RpcService
-    public List<EnterpriseAddress> updateListEnterpriseAddress(final List<EnterpriseAddress> addressList) {
+    public List<EnterpriseAddressDTO> updateListEnterpriseAddress(final List<EnterpriseAddress> addressList) {
         EnterpriseAddressDAO addressDAO = DAOFactory.getDAO(EnterpriseAddressDAO.class);
-        return addressDAO.updateListEnterpriseAddress(addressList);
+        List<EnterpriseAddress> list = addressDAO.updateListEnterpriseAddress(addressList);
+        return getList(list, EnterpriseAddressDTO.class);
     }
 
     /**
@@ -181,11 +185,14 @@ public class EnterpriseAddressService {
      * @return
      */
     @RpcService
-    public QueryResult<EnterpriseAddress> queryEnterpriseAddressByLimitAndStart(final Integer enterpriseId,
-                                                                                final Integer status,
-                                                                                final int start, final int limit) {
+    public QueryResult<EnterpriseAddressDTO> queryEnterpriseAddressByLimitAndStart(final Integer enterpriseId,
+                                                                                   final Integer status,
+                                                                                   final int start, final int limit) {
         EnterpriseAddressDAO dao = DAOFactory.getDAO(EnterpriseAddressDAO.class);
-        return dao.queryEnterpriseAddressByLimitAndStart(enterpriseId, status, start, limit);
+        QueryResult result = dao.queryEnterpriseAddressByLimitAndStart(enterpriseId, status, start, limit);
+        List<EnterpriseAddressDTO> list = getList(result.getItems(), EnterpriseAddressDTO.class);
+        result.setItems(list);
+        return result;
     }
 
     /**
@@ -195,9 +202,9 @@ public class EnterpriseAddressService {
      * @return
      */
     @RpcService
-    public List<EnterpriseAddress> findByEnterPriseId(final Integer enterpriseId) {
+    public List<EnterpriseAddressDTO> findByEnterPriseId(final Integer enterpriseId) {
         EnterpriseAddressDAO dao = DAOFactory.getDAO(EnterpriseAddressDAO.class);
-        return dao.findByEnterPriseId(enterpriseId);
+        return getList(dao.findByEnterPriseId(enterpriseId), EnterpriseAddressDTO.class);
     }
 
     /**

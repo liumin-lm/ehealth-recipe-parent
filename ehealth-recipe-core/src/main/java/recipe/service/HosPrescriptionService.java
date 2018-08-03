@@ -1,22 +1,24 @@
 package recipe.service;
 
 import com.google.common.collect.Maps;
-import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.common.RecipeCommonResTO;
+import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.hisprescription.model.HosRecipeResult;
+import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import com.ngari.recipe.hisprescription.service.IHosPrescriptionService;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import recipe.bean.OrderCreateResult;
-import recipe.bean.RecipeResultBean;
+import recipe.ApplicationUtils;
 import recipe.common.CommonConstant;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.prescription.PrescribeService;
-import recipe.prescription.bean.HosRecipeResult;
-import recipe.prescription.bean.HospitalRecipeDTO;
-import recipe.util.ApplicationUtils;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -29,8 +31,8 @@ import java.util.Map;
  * @author: 0184/yu_yun
  * @date:2017/4/17.
  */
-@RpcBean("hosPrescriptionService")
-public class HosPrescriptionService {
+@RpcBean("remoteHosPrescriptionService")
+public class HosPrescriptionService implements IHosPrescriptionService {
 
     /**
      * logger
@@ -43,6 +45,7 @@ public class HosPrescriptionService {
      * @param hospitalRecipeList 医院处方
      * @return 结果
      */
+    @Override
     @RpcService
     public HosRecipeResult createPrescription(HospitalRecipeDTO hospitalRecipeDTO) {
         PrescribeService prescribeService = ApplicationUtils.getRecipeService(PrescribeService.class);
@@ -52,7 +55,7 @@ public class HosPrescriptionService {
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 
-            Recipe recipe = result.getRecipe();
+            RecipeBean recipe = result.getRecipe();
             HospitalRecipeDTO hospitalRecipe = result.getHospitalRecipe();
             Integer recipeId = result.getRecipeId();
             //已支付的处方不需要创建订单
@@ -102,7 +105,7 @@ public class HosPrescriptionService {
                             recipeId, orderCreateResult.getOrderCode(), e);
                     //删除处方
                     recipeService.delRecipeForce(recipeId);
-                    result.setCode(CommonConstant.FAIL);
+                    result.setCode(RecipeCommonResTO.FAIL);
                     result.setMsg("处方[" + result.getRecipeCode() + "]订单更新失败");
                 }
             } else {
@@ -110,7 +113,7 @@ public class HosPrescriptionService {
                         recipeId, JSONUtils.toString(orderCreateResult));
                 //删除处方
                 recipeService.delRecipeForce(recipeId);
-                result.setCode(CommonConstant.FAIL);
+                result.setCode(RecipeCommonResTO.FAIL);
                 result.setMsg("处方[" + result.getRecipeCode() + "]订单创建失败, 原因：" + orderCreateResult.getMsg());
             }
         }

@@ -1,5 +1,10 @@
 package recipe.service;
 
+import com.google.common.collect.Lists;
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.drug.model.DrugListAndOrganDrugListDTO;
+import com.ngari.recipe.drug.model.DrugListBean;
+import com.ngari.recipe.drug.model.OrganDrugListDTO;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugProducer;
 import com.ngari.recipe.entity.OrganDrugList;
@@ -141,7 +146,7 @@ public class OrganDrugListService {
      * @author zhongzx
      */
     @RpcService
-    public OrganDrugList updateOrganDrugList(OrganDrugList organDrugList) {
+    public OrganDrugListDTO updateOrganDrugList(OrganDrugList organDrugList) {
         logger.info("修改机构药品服务[updateOrganDrugList]:" + JSONUtils.toString(organDrugList));
         if (null == organDrugList.getDrugId()) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugId is required");
@@ -156,7 +161,7 @@ public class OrganDrugListService {
             validateOrganDrugList(target);
             target = organDrugListDAO.update(target);
         }
-        return target;
+        return ObjectCopyUtils.convert(target, OrganDrugListDTO.class);
     }
 
     /**
@@ -171,12 +176,14 @@ public class OrganDrugListService {
      * @author houxr
      */
     @RpcService
-    public QueryResult<DrugListAndOrganDrugList> queryOrganDrugListByOrganIdAndKeyword(final Integer organId,
-                                                                                       final String drugClass,
-                                                                                       final String keyword, final Integer status,
-                                                                                       final int start, final int limit) {
+    public QueryResult<DrugListAndOrganDrugListDTO> queryOrganDrugListByOrganIdAndKeyword(final Integer organId,
+                                                                                          final String drugClass,
+                                                                                          final String keyword, final Integer status,
+                                                                                          final int start, final int limit) {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        return organDrugListDAO.queryOrganDrugListByOrganIdAndKeyword(organId, drugClass, keyword, status, start, limit);
+        QueryResult result = organDrugListDAO.queryOrganDrugListByOrganIdAndKeyword(organId, drugClass, keyword, status, start, limit);
+        result.setItems(covertData(result.getItems()));
+        return result;
     }
 
     /**
@@ -191,10 +198,10 @@ public class OrganDrugListService {
      * @return
      */
     @RpcService
-    public QueryResult<DrugListAndOrganDrugList> queryOrganDrugListByOrganIdAndKeywordForOp(final Integer organId,
-                                                                                            final String drugClass,
-                                                                                            final String keyword, final Integer status,
-                                                                                            final int start, final int limit) {
+    public QueryResult<DrugListAndOrganDrugListDTO> queryOrganDrugListByOrganIdAndKeywordForOp(final Integer organId,
+                                                                                               final String drugClass,
+                                                                                               final String keyword, final Integer status,
+                                                                                               final int start, final int limit) {
 //        Set<Integer> o = new HashSet<Integer>();
 //        o.add(organId);
 
@@ -202,7 +209,22 @@ public class OrganDrugListService {
             return null;
         }*/
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        return organDrugListDAO.queryOrganDrugListByOrganIdAndKeyword(organId, drugClass, keyword, status, start, limit);
+        QueryResult result = organDrugListDAO.queryOrganDrugListByOrganIdAndKeyword(organId, drugClass, keyword, status, start, limit);
+        result.setItems(covertData(result.getItems()));
+        return result;
+    }
+
+    private List<DrugListAndOrganDrugListDTO> covertData(List<DrugListAndOrganDrugList> dbList) {
+        List<DrugListAndOrganDrugListDTO> newList = Lists.newArrayList();
+        DrugListAndOrganDrugListDTO backDTO;
+        for (DrugListAndOrganDrugList daod : dbList) {
+            backDTO = new DrugListAndOrganDrugListDTO();
+            backDTO.setDrugList(ObjectCopyUtils.convert(daod.getDrugList(), DrugListBean.class));
+            backDTO.setOrganDrugList(ObjectCopyUtils.convert(daod.getOrganDrugList(), OrganDrugListDTO.class));
+            newList.add(backDTO);
+        }
+
+        return newList;
     }
 
 }

@@ -1,7 +1,7 @@
 package recipe.thread;
 
+import recipe.ApplicationUtils;
 import recipe.service.RecipeHisService;
-import recipe.util.ApplicationUtils;
 
 import java.util.List;
 import java.util.concurrent.Callable;

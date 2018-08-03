@@ -1,5 +1,6 @@
 package recipe.bean;
 
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 
 /**
@@ -8,7 +9,7 @@ import com.ngari.recipe.entity.Recipe;
  * @description： 第三方交互结果对象
  * @version： 1.0
  */
-public class ThirdResultBean extends RecipeResultBean{
+public class ThirdResultBean extends RecipeResultBean {
 
     private Recipe recipe;
 

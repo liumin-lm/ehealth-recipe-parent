@@ -19,8 +19,17 @@ import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.patient.dto.ConsultSetDTO;
+import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.ConsultSetService;
+import com.ngari.patient.service.DoctorService;
+import com.ngari.patient.service.OrganService;
+import com.ngari.patient.service.PatientService;
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -35,8 +44,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
-import recipe.bean.RecipeResultBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.constant.*;
@@ -46,12 +55,14 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateRecipeStatusFromHisCallable;
-import recipe.util.ApplicationUtils;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
+
+import static ctd.persistence.DAOFactory.getDAO;
+import static recipe.bussutil.RecipeValidateUtil.validateDrugsImpl;
 
 /**
  * 处方服务类
@@ -71,11 +82,13 @@ public class RecipeService {
 
     private static final String EXTEND_VALUE_FLAG = "1";
 
-    private IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+    private PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
 
-    private IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
+    private DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
 
-    private IOrganService iOrganService = ApplicationUtils.getBaseService(IOrganService.class);
+    private OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+
+    private static IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
 
     private ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
     /**
@@ -106,8 +119,9 @@ public class RecipeService {
     public static final Integer RECIPE_EXPIRED_SEARCH_DAYS = 13;
 
     @RpcService
-    public Recipe getByRecipeId(int recipeId) {
-        return DAOFactory.getDAO(RecipeDAO.class).get(recipeId);
+    public RecipeBean getByRecipeId(int recipeId) {
+        Recipe recipe = DAOFactory.getDAO(RecipeDAO.class).get(recipeId);
+        return ObjectCopyUtils.convert(recipe, RecipeBean.class);
     }
 
     /**
@@ -130,7 +144,7 @@ public class RecipeService {
             for (EmploymentBean employment : employmentList) {
                 organIdList.add(employment.getOrganId());
             }
-            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+            OrganDrugListDAO organDrugListDAO = getDAO(OrganDrugListDAO.class);
             int listNum = organDrugListDAO.getCountByOrganIdAndStatus(organIdList);
             canCreateRecipe = listNum > 0;
             if (!canCreateRecipe) {
@@ -189,7 +203,7 @@ public class RecipeService {
     @RpcService
     public Boolean delRecipeForce(int recipeId) {
         LOGGER.info("delRecipeForce [recipeId:" + recipeId + "]");
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         recipeDAO.remove(recipeId);
         return true;
     }
@@ -203,7 +217,7 @@ public class RecipeService {
     @RpcService
     public Boolean delRecipe(int recipeId) {
         LOGGER.info("delRecipe [recipeId:" + recipeId + "]");
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (null == recipe) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单不存在或者已删除");
@@ -229,7 +243,7 @@ public class RecipeService {
     @RpcService
     public Boolean undoRecipe(int recipeId) {
         LOGGER.info("undoRecipe [recipeId：" + recipeId + "]");
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (null == recipe) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单不存在或者已删除");
@@ -297,7 +311,7 @@ public class RecipeService {
         docIndex.setCreateOrgan(recipe.getClinicOrgan());
         docIndex.setCreateDepart(recipe.getDepart());
         docIndex.setCreateDoctor(recipe.getDoctor());
-        docIndex.setDoctorName(iDoctorService.getNameById(recipe.getDoctor()));
+        docIndex.setDoctorName(doctorService.getNameById(recipe.getDoctor()));
         docIndex.setDepartName(iDepartmentService.getNameById(recipe.getDepart()));
         iPatientService.saveRecipeDocIndex(docIndex, docType, 3);
     }
@@ -313,7 +327,7 @@ public class RecipeService {
         String address = "";
         if (null != recipeId) {
             CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
-            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
 
             Recipe recipe = recipeDAO.get(recipeId);
             if (null != recipe) {
@@ -327,7 +341,7 @@ public class RecipeService {
                 }
 
                 if (StringUtils.isEmpty(address)) {
-                    RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+                    RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
                     //从订单获取
                     RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipeId);
                     if (null != order && null != order.getAddressID()) {
@@ -388,7 +402,7 @@ public class RecipeService {
             }
         }
         LOGGER.info("reviewRecipe [recipeId：" + recipeId + ",checkFlag: " + checkFlag + "]");
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (null == recipe) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单不存在或者已删除");
@@ -443,7 +457,7 @@ public class RecipeService {
         } else {
             recipeCheckDetails = null;
         }
-        RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
+        RecipeCheckDAO recipeCheckDAO = getDAO(RecipeCheckDAO.class);
         recipeCheckDAO.saveRecipeCheckAndDetail(recipeCheck, recipeCheckDetails);
 
         boolean bl = recipeDAO.updateRecipeInfoByRecipeId(recipeId, recipeStatus, attrMap);
@@ -497,7 +511,7 @@ public class RecipeService {
      * @return
      */
     @RpcService
-    public List<Recipedetail> reCreatedRecipe(Integer recipeId) {
+    public List<RecipeDetailBean> reCreatedRecipe(Integer recipeId) {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         Recipe dbRecipe = RecipeValidateUtil.checkRecipeCommonInfo(recipeId, resultBean);
         if (null == dbRecipe) {
@@ -509,12 +523,13 @@ public class RecipeService {
             LOGGER.error("reCreatedRecipe 该处方不是审核未通过的处方. recipeId=[{}]", recipeId);
             return Lists.newArrayList();
         }
-        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
         boolean effective = orderDAO.isEffectiveOrder(dbRecipe.getOrderCode(), dbRecipe.getPayMode());
         if (effective) {
             afterCheckNotPassYs(dbRecipe);
         }
-        return RecipeValidateUtil.validateDrugsImpl(dbRecipe);
+        List<Recipedetail> detailBeanList = RecipeValidateUtil.validateDrugsImpl(dbRecipe);
+        return ObjectCopyUtils.convert(detailBeanList, RecipeDetailBean.class);
     }
 
     /**
@@ -524,14 +539,15 @@ public class RecipeService {
      * @return
      */
     @RpcService
-    public List<Recipedetail> validateDrugs(Integer recipeId) {
+    public List<RecipeDetailBean> validateDrugs(Integer recipeId) {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         Recipe dbRecipe = RecipeValidateUtil.checkRecipeCommonInfo(recipeId, resultBean);
         if (null == dbRecipe) {
             LOGGER.error("validateDrugs 平台无该处方对象. recipeId=[{}] error={}", recipeId, JSONUtils.toString(resultBean));
             return Lists.newArrayList();
         }
-        return RecipeValidateUtil.validateDrugsImpl(dbRecipe);
+        List<Recipedetail> detailBeanList = RecipeValidateUtil.validateDrugsImpl(dbRecipe);
+        return ObjectCopyUtils.convert(detailBeanList, RecipeDetailBean.class);
     }
 
     /**
@@ -544,8 +560,8 @@ public class RecipeService {
         if (null == recipeId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeId is null");
         }
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
         IESignBaseService esignService = ApplicationUtils.getBaseService(IESignBaseService.class);
 
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
@@ -591,7 +607,7 @@ public class RecipeService {
     @RpcService
     public RecipeResultBean sendNewRecipeToHIS(Integer recipeId) {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
 
         Integer status = recipeDAO.getStatusByRecipeId(recipeId);
@@ -640,18 +656,18 @@ public class RecipeService {
      */
     @RpcService
     public Map<String, Object> doSignRecipe(Recipe recipe, List<Recipedetail> details) {
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
         DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
 
         Map<String, Object> rMap = Maps.newHashMap();
-        PatientBean patient = iPatientService.get(recipe.getMpiid());
+        PatientDTO patient = patientService.get(recipe.getMpiid());
         //解决旧版本因为wx2.6患者身份证为null，而业务申请不成功
         if (patient == null || StringUtils.isEmpty(patient.getCertificate())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该患者还未填写身份证信息，不能开处方");
         }
         // 就诊人改造：为了确保删除就诊人后历史处方不会丢失，加入主账号用户id
-        PatientBean requestPatient = iPatientService.findOwnPatientByMpiId(patient.getLoginId());
+        PatientDTO requestPatient = patientService.getOwnPatientForOtherProject(patient.getLoginId());
         if (null != requestPatient && null != requestPatient.getMpiId()) {
             recipe.setRequestMpiId(requestPatient.getMpiId());
             // urt用于系统消息推送
@@ -689,7 +705,7 @@ public class RecipeService {
         }
 
         boolean checkEnterprise = drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan());
-        if(checkEnterprise) {
+        if (checkEnterprise) {
             //药企库存实时查询
             RecipePatientService recipePatientService = ApplicationUtils.getRecipeService(RecipePatientService.class);
             RecipeResultBean recipeResultBean = recipePatientService.findSupportDepList(0, Arrays.asList(recipeId));
@@ -732,8 +748,8 @@ public class RecipeService {
         if (recipeId == null || recipeId <= 0) {
             throw new DAOException(DAOException.VALUE_NEEDED, "recipeId is required!");
         }
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
 
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
         if (null == dbRecipe.getStatus() || dbRecipe.getStatus() > RecipeStatusConstant.UNSIGN) {
@@ -804,7 +820,7 @@ public class RecipeService {
     @RpcService
     public RecipeResultBean doSecondSignRecipe(Recipe recipe) {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 
         Recipe dbRecipe = RecipeValidateUtil.checkRecipeCommonInfo(recipe.getRecipeId(), resultBean);
@@ -822,7 +838,7 @@ public class RecipeService {
 
         Integer afterStatus = RecipeStatusConstant.CHECK_PASS_YS;
         if (!dbRecipe.canMedicalPay()) {
-            RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+            RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
             boolean effective = orderDAO.isEffectiveOrder(dbRecipe.getOrderCode(), dbRecipe.getPayMode());
             if (!effective) {
                 resultBean.setCode(RecipeResultBean.FAIL);
@@ -858,7 +874,7 @@ public class RecipeService {
         if (null == recipe) {
             return null;
         }
-        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
 
@@ -927,7 +943,7 @@ public class RecipeService {
     public HashMap<String, Object> recipeAutoCheck(Integer recipeId) {
         LOGGER.info("recipeAutoCheck get in recipeId=" + recipeId);
         HashMap<String, Object> map = Maps.newHashMap();
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         Integer recipeStatus = recipe.getStatus();
         if (RecipeStatusConstant.UNCHECK == recipeStatus) {
@@ -964,7 +980,7 @@ public class RecipeService {
      * @return HashMap<String, Object>
      */
     @RpcService
-    public HashMap<String, Object> findRecipeAndDetailById(int recipeId) {
+    public Map<String, Object> findRecipeAndDetailById(int recipeId) {
         return RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, true);
     }
 
@@ -1055,8 +1071,8 @@ public class RecipeService {
      */
     @RpcService
     public void cancelRecipeTask() {
-        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
 
@@ -1113,7 +1129,7 @@ public class RecipeService {
      */
     @RpcService
     public void remindRecipeTask() {
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
 
         //处方失效前一天提醒，但是需要根据签名时间进行推送，故查数据时选择超过一天的数据就可以
         List<Integer> statusList = Arrays.asList(RecipeStatusConstant.PATIENT_NO_OPERATOR, RecipeStatusConstant.PATIENT_NO_PAY,
@@ -1161,7 +1177,7 @@ public class RecipeService {
      */
     @RpcService
     public void afterCheckNotPassYsTask() {
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
 
         String endDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(2), DateConversion.DEFAULT_DATE_TIME);
         String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(RECIPE_EXPIRED_SECTION), DateConversion.DEFAULT_DATE_TIME);
@@ -1179,7 +1195,7 @@ public class RecipeService {
      */
     @RpcService
     public void getRecipeStatusFromHis() {
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
 
         //设置查询时间段
         String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(
@@ -1211,7 +1227,7 @@ public class RecipeService {
      */
     @RpcService
     public void updateDrugsEnterpriseToken() {
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
         List<Integer> list = drugsEnterpriseDAO.findNeedUpdateIds();
         LOGGER.info("updateDrugsEnterpriseToken 此次更新药企数量=[{}]", (null == list) ? 0 : list.size());
         RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
@@ -1232,7 +1248,7 @@ public class RecipeService {
                 DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(
                         RECIPE_EXPIRED_SECTION), DateConversion.DEFAULT_DATE_TIME);
 
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         List<Recipe> recipes = recipeDAO.findNotConfirmReceiptList(startDt, endDt);
 
         LOGGER.info("pushPatientConfirmReceiptTask size={}, detail={}", recipes.size(), JSONUtils.toString(recipes));
@@ -1263,7 +1279,7 @@ public class RecipeService {
      */
     @RpcService
     public int getRecipePayMode(int recipeId, int flag) {
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
         if (null == dbRecipe) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipe not exist!");
@@ -1300,7 +1316,7 @@ public class RecipeService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "clinicOrgan is required!");
         }
         boolean succFlag = false;
-        boolean flag = iOrganService.getTakeMedicineFlagById(clinicOrgan);
+        boolean flag = organService.getTakeMedicineFlagById(clinicOrgan);
         //是否支持医院取药 true：支持
         if (flag) {
             String backInfo = searchRecipeStatusFromHis(recipeId, 1);
@@ -1326,7 +1342,7 @@ public class RecipeService {
      */
     public Integer supportDistributionExt(Integer recipeId, Integer clinicOrgan, Integer selectDepId, Integer payMode) {
         Integer backDepId = null;
-        boolean flag = iOrganService.getTakeMedicineFlagById(clinicOrgan);
+        boolean flag = organService.getTakeMedicineFlagById(clinicOrgan);
         //是否支持医院取药 true：支持
         //该医院不对接HIS的话，则不需要进行该校验
         if (flag) {
@@ -1364,7 +1380,7 @@ public class RecipeService {
      * @return
      */
     public Integer getDrugsEpsIdByOrganId(Integer recipeId, Integer payMode, Integer selectDepId) {
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         Integer depId = -1;
         if (null != recipe) {
@@ -1392,9 +1408,9 @@ public class RecipeService {
      */
     public List<DrugsEnterprise> findSupportDepList(List<Integer> recipeIdList, int organId, Integer payMode, boolean sigle,
                                                     Integer selectDepId) {
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
+        SaleDrugListDAO saleDrugListDAO = getDAO(SaleDrugListDAO.class);
+        RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
         RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         IHisConfigService iHisConfigService = ApplicationUtils.getBaseService(IHisConfigService.class);
 
@@ -1553,7 +1569,7 @@ public class RecipeService {
      */
     @RpcService
     public void wxPayRefundForRecipe(int flag, int recipeId, String log) {
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
 
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
@@ -1584,7 +1600,7 @@ public class RecipeService {
         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), status, errorInfo);
 
         //相应订单处理
-        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
         RecipeOrder order = orderDAO.getByOrderCode(recipe.getOrderCode());
         if (1 == flag) {
             orderService.updateOrderInfo(order.getOrderCode(), ImmutableMap.of("status", OrderStatusConstant.READY_PAY), null);
@@ -1624,7 +1640,7 @@ public class RecipeService {
      */
     public void updateDrugPrice(Integer organId, Map<Integer, BigDecimal> priceMap) {
         if (null != organId && null != priceMap && !priceMap.isEmpty()) {
-            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+            OrganDrugListDAO organDrugListDAO = getDAO(OrganDrugListDAO.class);
 
             for (Map.Entry<Integer, BigDecimal> entry : priceMap.entrySet()) {
                 if (null != entry.getKey() && null != entry.getValue()) {
@@ -1686,7 +1702,7 @@ public class RecipeService {
     @RpcService
     public RecipeResultBean getHomePageTaskForPatient(String mpiid) {
         LOGGER.info("getHomePageTaskForPatient mpiId={}", mpiid);
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         //根据mpiid获取当前患者所有家庭成员(包括自己)
         List<String> allMpiIds = getAllMemberPatientsByCurrentPatient(mpiid);
         //获取患者待处理处方单id
@@ -1727,7 +1743,7 @@ public class RecipeService {
             result.setError("处方单id为null");
         }
 
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
 
         Map<String, Object> attrMap = Maps.newHashMap();
         if (null != info) {
@@ -1870,7 +1886,7 @@ public class RecipeService {
      */
     public void updatePatientInfoForRecipe(String newMpiId, String oldMpiId) {
         if (StringUtils.isNotEmpty(newMpiId) && StringUtils.isNotEmpty(oldMpiId)) {
-            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
             Integer count = recipeDAO.updatePatientInfoForRecipe(newMpiId, oldMpiId);
             LOGGER.info("updatePatientInfoForRecipe newMpiId=[{}], oldMpiId=[{}], count=[{}]", newMpiId, oldMpiId, count);
         }

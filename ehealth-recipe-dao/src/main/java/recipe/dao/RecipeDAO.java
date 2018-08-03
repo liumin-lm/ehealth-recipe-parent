@@ -3,14 +3,14 @@ package recipe.dao;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.ngari.base.doctor.model.DoctorBean;
-import com.ngari.base.doctor.service.IDoctorService;
-import com.ngari.base.patient.model.PatientBean;
-import com.ngari.base.patient.service.IPatientService;
+import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.DoctorService;
+import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.recipe.model.RecipeRollingInfoBean;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
@@ -36,7 +36,7 @@ import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.bean.PatientRecipeBean;
-import recipe.util.ApplicationUtils;
+import recipe.dao.bean.RecipeRollingInfo;
 import recipe.util.DateConversion;
 import recipe.util.SqlOperInfo;
 
@@ -230,14 +230,14 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         return action.getResult();
     }
 
-    public List<RecipeRollingInfoBean> findLastesRecipeList(final String startDt, final String endDt,
-                                                            final List<Integer> organs, final List<Integer> testDocIds,
-                                                            final int start, final int limit) {
-        HibernateStatelessResultAction<List<RecipeRollingInfoBean>> action = new AbstractHibernateStatelessResultAction<List<RecipeRollingInfoBean>>() {
+    public List<RecipeRollingInfo> findLastesRecipeList(final String startDt, final String endDt,
+                                                        final List<Integer> organs, final List<Integer> testDocIds,
+                                                        final int start, final int limit) {
+        HibernateStatelessResultAction<List<RecipeRollingInfo>> action = new AbstractHibernateStatelessResultAction<List<RecipeRollingInfo>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("select new com.ngari.recipe.recipe.model.RecipeRollingInfoBean(r.clinicOrgan,r.depart,r.doctor,r.mpiid) from Recipe r where ");
+                hql.append("select new recipe.dao.bean.RecipeRollingInfo(r.clinicOrgan,r.depart,r.doctor,r.mpiid) from Recipe r where ");
                 if (CollectionUtils.isNotEmpty(organs)) {
                     hql.append(" r.clinicOrgan in (:organs) and ");
                 }
@@ -978,7 +978,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                               final Integer depart, final int start, final int limit, List<Integer> organIds, Integer giveMode, Integer fromflag) {
         this.validateOptionForStatistics(status, doctor, patientName, bDate, eDate, dateType, start, limit);
         final StringBuilder preparedHql = this.generateHQLforStatistics(organId, status, doctor, patientName, bDate, eDate, dateType, depart, start, limit, organIds, giveMode, fromflag);
-        final IPatientService patientService = ApplicationUtils.getBaseService(IPatientService.class);
+        final PatientService patientService = BasicAPI.getService(PatientService.class);
         HibernateStatelessResultAction<QueryResult<Map>> action =
                 new AbstractHibernateStatelessResultAction<QueryResult<Map>>() {
                     public void execute(StatelessSession ss) throws DAOException {
@@ -1002,11 +1002,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                 Map<String, Object> map = Maps.newHashMap();
                                 BeanUtils.map(recipe, map);
                                 map.put("detailCount", recipeDetailDAO.getCountByRecipeId(recipe.getRecipeId()));
-                                PatientBean patientBean = new PatientBean();
+                                PatientDTO patientBean;
                                 try {
                                     patientBean = patientService.get(recipe.getMpiid());
                                 } catch (Exception e) {
-                                    patientBean = new PatientBean();
+                                    patientBean = new PatientDTO();
                                 }
                                 map.put("patient", patientBean);
                                 Integer enterpriseId = recipe.getEnterpriseId();
@@ -1039,37 +1039,36 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                                final Integer depart, List<Integer> organIds, Integer giveMode, Integer fromflag) {
         this.validateOptionForStatistics(status, doctor, patientName, bDate, eDate, dateType, 0, Integer.MAX_VALUE);
         final StringBuilder preparedHql = this.generateHQLforStatistics(organId, status, doctor, patientName, bDate, eDate, dateType, depart, 0, Integer.MAX_VALUE, organIds, giveMode, fromflag);
-        final IPatientService patientService = ApplicationUtils.getBaseService(IPatientService.class);
+        final PatientService patientService = BasicAPI.getService(PatientService.class);
+        final DoctorService doctorService = BasicAPI.getService(DoctorService.class);
         HibernateStatelessResultAction<List<Map>> action =
                 new AbstractHibernateStatelessResultAction<List<Map>>() {
                     public void execute(StatelessSession ss) throws DAOException {
                         StringBuilder sbHql = preparedHql;
-                        IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
-                        IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
                         Query query = ss.createQuery(sbHql.append(" order by recipeId DESC").toString());
                         query.setDate("startTime", bDate);
                         query.setDate("endTime", eDate);
                         List<Recipe> recipeList = query.list();
                         Set<String> mpiIds = Sets.newHashSet();
                         Set<Integer> doctorIds = Sets.newHashSet();
-                        Map<String, PatientBean> patientBeanMap = Maps.newHashMap();
-                        Map<Integer, DoctorBean> doctorBeanMap = Maps.newHashMap();
+                        Map<String, PatientDTO> patientBeanMap = Maps.newHashMap();
+                        Map<Integer, DoctorDTO> doctorBeanMap = Maps.newHashMap();
                         List<Map> maps = new ArrayList<Map>();
                         if (recipeList != null) {
                             for (Recipe recipe : recipeList) {
                                 mpiIds.add(recipe.getMpiid());
                                 doctorIds.add(recipe.getDoctor());
                             }
-                            List<PatientBean> patientBeanList = iPatientService.findByMpiIdIn(new ArrayList<String>(mpiIds));
-                            List<DoctorBean> doctorBeen = Lists.newArrayList();
+                            List<PatientDTO> patientBeanList = patientService.findByMpiIdIn(new ArrayList<String>(mpiIds));
+                            List<DoctorDTO> doctorBeen = Lists.newArrayList();
                             if (doctorIds.size() > 0) {
-                                doctorBeen = iDoctorService.findByDoctorIdIn(new ArrayList<>(doctorIds));
+                                doctorBeen = doctorService.findDoctorList(new ArrayList<>(doctorIds));
                             }
-                            for (PatientBean p : patientBeanList) {
+                            for (PatientDTO p : patientBeanList) {
                                 patientBeanMap.put(p.getMpiId(), p);
                             }
                             if (doctorBeen != null && doctorBeen.size() > 0) {
-                                for (DoctorBean d : doctorBeen) {
+                                for (DoctorDTO d : doctorBeen) {
                                     doctorBeanMap.put(d.getDoctorId(), d);
                                 }
                             }
@@ -1077,8 +1076,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                             for (Recipe recipe : recipeList) {
                                 String mpiId = recipe.getMpiid();
                                 Integer doctorId = recipe.getDoctor();
-                                PatientBean patient = patientBeanMap.get(mpiId);
-                                DoctorBean doctor = doctorBeanMap.get(doctorId);
+                                PatientDTO patient = patientBeanMap.get(mpiId);
+                                DoctorDTO doctor = doctorBeanMap.get(doctorId);
                                 Map<String, Object> map = Maps.newHashMap();
                                 BeanUtils.map(recipe, map);
                                 map.put("detailCount", recipeDetailDAO.getCountByRecipeId(recipe.getRecipeId()));
@@ -1384,8 +1383,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 String hql = "from Recipe where mpiid=:mpiid and doctor=:doctor and status > " +
-                        RecipeStatusConstant.UNSIGN + " and status not in ("+ RecipeStatusConstant.CHECKING_HOS +
-                        ", "+RecipeStatusConstant.DELETE+")"+
+                        RecipeStatusConstant.UNSIGN + " and status not in (" + RecipeStatusConstant.CHECKING_HOS +
+                        ", " + RecipeStatusConstant.DELETE + ")" +
                         " order by createDate desc";
                 Query query = ss.createQuery(hql);
                 query.setParameter("doctor", doctorId);

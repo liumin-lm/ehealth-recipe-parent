@@ -1,7 +1,6 @@
 package com.ngari.recipe.drugdistributionprice.service;
 
 import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
-import com.ngari.recipe.entity.DrugDistributionPrice;
 import ctd.util.annotation.RpcService;
 
 import java.util.List;

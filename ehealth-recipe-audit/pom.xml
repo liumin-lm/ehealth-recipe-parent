@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>1.4.1.hotfix-20180716-SNAPSHOT</version>
+        <version>1.5.0.feature5-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -14,21 +14,7 @@
     <name>审核处方</name>
     <description>审核处方</description>
     <dependencies>
-        <dependency>
-            <groupId>${project.parent.groupId}</groupId>
-            <artifactId>ehealth-recipe-entity</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.parent.groupId}</groupId>
-            <artifactId>ehealth-recipe-dao</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.parent.groupId}</groupId>
-            <artifactId>ehealth-recipe-common</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
+
     </dependencies>
 
 </project>

@@ -1,4 +1,6 @@
-package recipe.prescription.bean;
+package com.ngari.recipe.hisprescription.model;
+
+import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
 
@@ -7,6 +9,7 @@ import java.io.Serializable;
  * @author: 0184/yu_yun
  * date:2017/5/12.
  */
+@Schema
 public class HospitalDrugDTO implements Serializable {
 
     private static final long serialVersionUID = -634493416078418209L;

@@ -1,5 +1,7 @@
 package recipe.service;
 
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.PathologicalDrug;
 import ctd.persistence.DAOFactory;
@@ -14,6 +16,7 @@ import java.util.List;
 
 /**
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * @date:2017/5/26.
  */
@@ -25,12 +28,13 @@ public class PathologicalDrugService {
     private static final Logger LOGGER = LoggerFactory.getLogger(PathologicalDrugService.class);
 
     @RpcService
-    public List<DrugList> findPathologicalDrugList(PathologicalDrug pDrug, int start, int limit) {
+    public List<DrugListBean> findPathologicalDrugList(PathologicalDrug pDrug, int start, int limit) {
         if (null == pDrug || null == pDrug.getPathologicalType()) {
             return Lists.newArrayList();
         }
         PathologicalDrugDAO pathologicalDrugDAO = DAOFactory.getDAO(PathologicalDrugDAO.class);
-        return pathologicalDrugDAO.findPathologicalDrugList(pDrug.getPathologicalType(), start, limit);
+        List<DrugList> list = pathologicalDrugDAO.findPathologicalDrugList(pDrug.getPathologicalType(), start, limit);
+        return ObjectCopyUtils.convert(list, DrugListBean.class);
     }
 
 }

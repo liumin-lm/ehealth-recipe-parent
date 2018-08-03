@@ -11,13 +11,21 @@ import com.ngari.base.hisconfig.model.HisServiceConfigBean;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.base.organconfig.service.IOrganConfigService;
-import com.ngari.base.patient.model.PatientBean;
-import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.payment.model.DabaiPayResult;
 import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.bus.coupon.service.ICouponService;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.PatientService;
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
+import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.PatientRecipeDTO;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipeorder.model.OrderCreateResult;
+import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -28,18 +36,15 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
-import recipe.bean.OrderCreateResult;
 import recipe.bean.RecipePayModeSupportBean;
-import recipe.bean.RecipeResultBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.constant.*;
 import recipe.dao.*;
-import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.drugsenterprise.YsqRemoteService;
-import recipe.util.ApplicationUtils;
 import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
 
@@ -61,7 +66,7 @@ public class RecipeOrderService extends RecipeBaseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeOrderService.class);
 
-    private IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+    private PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
 
     private IHisConfigService iHisConfigService = ApplicationUtils.getBaseService(IHisConfigService.class);
 
@@ -74,12 +79,12 @@ public class RecipeOrderService extends RecipeBaseService {
      * @param extInfo
      * @return
      */
-    public RecipeOrder createBlankOrder(List<Integer> recipeIds, Map<String, String> extInfo) {
+    public RecipeOrderBean createBlankOrder(List<Integer> recipeIds, Map<String, String> extInfo) {
         OrderCreateResult result = createOrder(recipeIds, extInfo, 0);
-        RecipeOrder order = null;
+        RecipeOrderBean order = null;
         if (null != result && RecipeResultBean.SUCCESS.equals(result.getCode()) &&
-                null != result.getObject() && result.getObject() instanceof RecipeOrder) {
-            order = (RecipeOrder) result.getObject();
+                null != result.getObject() && result.getObject() instanceof RecipeOrderBean) {
+            order = (RecipeOrderBean) result.getObject();
         }
         return order;
     }
@@ -564,7 +569,7 @@ public class RecipeOrderService extends RecipeBaseService {
             //COUPON_BUSTYPE_RECIPE_HOME_PAYONLINE(5,CouponConstant.COUPON_BUSTYPE_RECIPE,CouponConstant.COUPON_SUBTYPE_RECIPE_HOME_PAYONLINE,"电子处方-配送到家-在线支付"),
             result.setCouponType(5);
         }
-        result.setObject(order);
+        result.setObject(ObjectCopyUtils.convert(order, RecipeOrderBean.class));
         if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == toDbFlag && null != order.getOrderId()) {
             result.setOrderCode(order.getOrderCode());
             result.setBusId(order.getOrderId());
@@ -595,9 +600,9 @@ public class RecipeOrderService extends RecipeBaseService {
                     ysqUrl = iSysParamterService.getParam(ParameterConstant.KEY_YSQ_SKIP_URL + "_TEST", null);
                 }
                 if (StringUtils.isNotEmpty(ysqUrl)) {
-                    PatientBean patient = null;
+                    PatientDTO patient = null;
                     if (StringUtils.isNotEmpty(firstRecipe.getMpiid())) {
-                        patient = iPatientService.get(firstRecipe.getMpiid());
+                        patient = patientService.get(firstRecipe.getMpiid());
                     }
                     if (null == patient) {
                         result.setCode(RecipeResultBean.FAIL);
@@ -714,7 +719,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 flag = judgeIsSupportMedicalInsurance(recipe.getMpiid(), recipe.getClinicOrgan());
                 if (flag) {
                     RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-                    PatientBean patient = iPatientService.get(recipe.getMpiid());
+                    PatientDTO patient = patientService.get(recipe.getMpiid());
                     String outTradeNo = (StringUtils.isEmpty(order.getOutTradeNo())) ? BusTypeEnum.RECIPE.getApplyNo() : order.getOutTradeNo();
                     HisServiceConfigBean hisServiceConfig = iHisConfigService.getHisConfigByOrganId(recipe.getClinicOrgan());
                     Map<String, Object> httpRequestParam = Maps.newHashMap();
@@ -776,7 +781,7 @@ public class RecipeOrderService extends RecipeBaseService {
      */
     private boolean judgeIsSupportMedicalInsurance(String mpiId, Integer organId) {
         HisServiceConfigBean hisServiceConfig = iHisConfigService.getHisConfigByOrganId(organId);
-        PatientBean patient = iPatientService.get(mpiId);
+        PatientDTO patient = patientService.get(mpiId);
         if (ValidateUtil.blankString(patient.getPatientType()) || String.valueOf(PayConstant.PAY_TYPE_SELF_FINANCED).equals(patient.getPatientType())) {
             LOGGER.info("judgeIsSupportMedicalInsurance patient not support, mpiId[{}]", patient.getMpiId());
             return false;
@@ -912,7 +917,7 @@ public class RecipeOrderService extends RecipeBaseService {
 
         RecipeOrder order = orderDAO.get(orderId);
         if (null != order) {
-            List<PatientRecipeBean> patientRecipeBeanList = new ArrayList<>(10);
+            List<PatientRecipeDTO> patientRecipeBeanList = new ArrayList<>(10);
             List<Recipe> recipeList = null;
             if (1 == order.getEffective()) {
                 recipeList = recipeDAO.findRecipeListByOrderCode(order.getOrderCode());
@@ -943,19 +948,21 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
 
                 RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
-                PatientRecipeBean prb;
+                PatientRecipeDTO prb;
+                List<Recipedetail> recipedetails;
                 for (Recipe recipe : recipeList) {
-                    prb = new PatientRecipeBean();
+                    prb = new PatientRecipeDTO();
                     prb.setRecipeId(recipe.getRecipeId());
                     prb.setOrganDiseaseName(recipe.getOrganDiseaseName());
                     prb.setMpiId(recipe.getMpiid());
                     prb.setSignDate(recipe.getSignDate());
-                    prb.setPatientName(iPatientService.getNameByMpiId(recipe.getMpiid()));
+                    prb.setPatientName(patientService.getNameByMpiId(recipe.getMpiid()));
                     prb.setStatusCode(recipe.getStatus());
                     prb.setPayMode(recipe.getPayMode());
                     prb.setRecipeType(recipe.getRecipeType());
                     //药品详情
-                    prb.setRecipeDetail(detailDAO.findByRecipeId(recipe.getRecipeId()));
+                    recipedetails = detailDAO.findByRecipeId(recipe.getRecipeId());
+                    prb.setRecipeDetail(ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class));
                     if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus()
                             && OrderStatusConstant.READY_PAY.equals(order.getStatus())) {
                         prb.setRecipeSurplusHours(RecipeServiceSub.getRecipeSurplusHours(recipe.getSignDate()));
@@ -976,8 +983,10 @@ public class RecipeOrderService extends RecipeBaseService {
                     }
                 }
             }
-            order.setList(patientRecipeBeanList);
-            result.setObject(order);
+
+            RecipeOrderBean orderBean = ObjectCopyUtils.convert(order, RecipeOrderBean.class);
+            orderBean.setList(patientRecipeBeanList);
+            result.setObject(orderBean);
             // 支付完成后跳转到订单详情页需要加挂号费服务费可配置
             result.setExt(RecipeUtil.getParamFromOgainConfig(order));
         } else {
@@ -995,9 +1004,9 @@ public class RecipeOrderService extends RecipeBaseService {
      * @return
      */
     @RpcService
-    public RecipeResultBean getOrderDetail(String orderCoe) {
+    public RecipeResultBean getOrderDetail(String orderCode) {
         RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
-        RecipeOrder order = orderDAO.getByOrderCode(orderCoe);
+        RecipeOrder order = orderDAO.getByOrderCode(orderCode);
         return this.getOrderDetailById(order.getOrderId());
     }
 
@@ -1013,7 +1022,7 @@ public class RecipeOrderService extends RecipeBaseService {
             return BigDecimal.ZERO;
         }
         DrugDistributionPriceService priceService = ApplicationUtils.getRecipeService(DrugDistributionPriceService.class);
-        DrugDistributionPrice expressFee = priceService.getDistributionPriceByEnterpriseIdAndAddrArea(enterpriseId, address);
+        DrugDistributionPriceBean expressFee = priceService.getDistributionPriceByEnterpriseIdAndAddrArea(enterpriseId, address);
         if (null != expressFee) {
             return expressFee.getDistributionPrice();
         }

@@ -8,7 +8,7 @@ import ctd.util.annotation.RpcService;
 /**
  * @author： 0184/yu_yun
  * @date： 2018/6/28
- * @description： 医院处方相关接口
+ * @description： 医院处方相关接口 (接收处方信息存入表 cdr_hisprescription)
  * @version： 1.0
  */
 public interface IHisprescriptionService extends IBaseService<HisprescriptionTO> {

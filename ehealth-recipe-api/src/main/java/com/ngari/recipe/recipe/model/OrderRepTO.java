@@ -1,5 +1,7 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.Schema;
+
 import java.io.Serializable;
 
 /**
@@ -7,6 +9,7 @@ import java.io.Serializable;
  * 处方发送his 新增成功后 返回的数据组装类
  * @author zhongzx
  */
+@Schema
 public class OrderRepTO implements Serializable {
 
     private static final long serialVersionUID = -6695371157754652919L;

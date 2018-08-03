@@ -1,5 +1,6 @@
 package recipe.bean;
 
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 

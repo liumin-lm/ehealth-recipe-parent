@@ -2,7 +2,7 @@ package recipe.service;
 
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
-import com.ngari.recipe.entity.DrugList;
+import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.Recipe;
 import ctd.account.session.ClientSession;
 import ctd.persistence.DAOFactory;
@@ -11,9 +11,8 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import recipe.dao.DrugListDAO;
+import recipe.ApplicationUtils;
 import recipe.dao.RecipeDAO;
-import recipe.util.ApplicationUtils;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -28,7 +27,9 @@ import java.util.Map;
 @RpcBean(value = "recipeTestService", mvc_authentication = false)
 public class RecipeTestService {
 
-    /** logger */
+    /**
+     * logger
+     */
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeTestService.class);
 
     @RpcService
@@ -101,11 +102,10 @@ public class RecipeTestService {
     }
 
     @RpcService
-    public List<DrugList> findDrugListsByNameOrCodePageStaitc(
-        int organId, int drugType, String drugName, int start)
-    {
-        DrugListDAO dao = DAOFactory.getDAO(DrugListDAO.class);
+    public List<DrugListBean> findDrugListsByNameOrCodePageStaitc(
+            int organId, int drugType, String drugName, int start) {
+        DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
 
-        return dao.findDrugListsByNameOrCodePageStaitc(organId,drugType,drugName,start);
+        return drugListExtService.findDrugListsByNameOrCodePageStaitc(organId, drugType, drugName, start);
     }
 }

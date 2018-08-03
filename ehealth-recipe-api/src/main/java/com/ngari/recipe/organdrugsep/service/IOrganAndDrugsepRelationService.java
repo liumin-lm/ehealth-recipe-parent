@@ -1,8 +1,6 @@
 package com.ngari.recipe.organdrugsep.service;
 
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.OrganAndDrugsepRelation;
 import com.ngari.recipe.organdrugsep.model.OrganAndDrugsepRelationBean;
 import ctd.util.annotation.RpcService;
 

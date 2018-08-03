@@ -3,6 +3,7 @@ package recipe.service;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.base.hisconfig.service.IHisConfigService;
@@ -10,6 +11,7 @@ import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.his.recipe.mode.*;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
@@ -23,18 +25,19 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bean.RecipeCheckPassResult;
-import recipe.bean.RecipeResultBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.dao.bean.DrugInfoHisBean;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisService;
-import recipe.util.ApplicationUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -419,8 +422,15 @@ public class RecipeHisService extends RecipeBaseService {
             if (searchAll) {
                 backList = service.queryDrugInfo(requestList, organId);
             } else {
-                requestList = organDrugListDAO.findDrugInfoByOrganId(organId, start, 100);
-                if (CollectionUtils.isNotEmpty(requestList)) {
+                List<DrugInfoHisBean> drugInfoList = organDrugListDAO.findDrugInfoByOrganId(organId, start, 100);
+                if (CollectionUtils.isNotEmpty(drugInfoList)) {
+                    requestList = Lists.newArrayList();
+                    DrugInfoTO drugInfoTO;
+                    for(DrugInfoHisBean drugInfoHisBean : drugInfoList){
+                        drugInfoTO = new DrugInfoTO();
+                        BeanUtils.copyProperties(drugInfoHisBean, drugInfoTO);
+                        requestList.add(drugInfoTO);
+                    }
                     backList = service.queryDrugInfo(requestList, organId);
                 }
             }

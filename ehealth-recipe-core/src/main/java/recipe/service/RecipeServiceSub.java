@@ -8,10 +8,7 @@ import com.ngari.base.doctor.model.RelationDoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.operationrecords.model.OperationRecordsBean;
 import com.ngari.base.operationrecords.service.IOperationRecordsService;
-import com.ngari.base.organ.model.OrganBean;
-import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
-import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.consult.ConsultBean;
@@ -19,8 +16,16 @@ import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.message.model.RecipeTagMsgBean;
 import com.ngari.consult.message.service.IConsultMessageService;
 import com.ngari.patient.dto.ConsultSetDTO;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.ConsultSetService;
+import com.ngari.patient.service.DoctorService;
+import com.ngari.patient.service.OrganService;
+import com.ngari.patient.service.PatientService;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -31,11 +36,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.constant.*;
 import recipe.dao.*;
-import recipe.util.ApplicationUtils;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.MapValueUtil;
@@ -58,11 +63,15 @@ public class RecipeServiceSub {
 
     private static final String UNCHECK = "uncheck";
 
+    private static PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+
+    private static DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
+
+    private static OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+
     private static IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
 
     private static IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
-
-    private static IOrganService iOrganService = ApplicationUtils.getBaseService(IOrganService.class);
 
     private static ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
 
@@ -115,13 +124,13 @@ public class RecipeServiceSub {
                     "mpiId is required");
         }
 
-        String patientName = iPatientService.getNameByMpiId(mpiId);
+        String patientName = patientService.getNameByMpiId(mpiId);
         if (StringUtils.isEmpty(patientName)) {
             patientName = "未知";
         }
         recipe.setPatientName(patientName);
-        recipe.setDoctorName(iDoctorService.getNameById(recipe.getDoctor()));
-        OrganBean organBean = iOrganService.get(recipe.getClinicOrgan());
+        recipe.setDoctorName(doctorService.getNameById(recipe.getDoctor()));
+        OrganDTO organBean = organService.get(recipe.getClinicOrgan());
         recipe.setOrganName(organBean.getShortName());
 
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
@@ -211,7 +220,7 @@ public class RecipeServiceSub {
 
                 DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
                 boolean checkEnterprise = drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan());
-                if (checkEnterprise){
+                if (checkEnterprise) {
                     //供应商一致性校验，取第一个药品能配送的药企作为标准
                     Map<Integer, List<String>> drugDepRel = saleDrugListDAO.findDrugDepRelation(drugIds);
                     //无法配送药品校验
@@ -318,7 +327,7 @@ public class RecipeServiceSub {
         DrugListDAO dDao = DAOFactory.getDAO(DrugListDAO.class);
         Map<String, Object> paramMap = Maps.newHashMap();
         try {
-            PatientBean p = iPatientService.get(recipe.getMpiid());
+            PatientDTO p = patientService.get(recipe.getMpiid());
             if (null == p) {
                 LOGGER.error("createParamMap 病人不存在. recipeId={}, mpiId={}", recipe.getRecipeId(), recipe.getMpiid());
                 return paramMap;
@@ -401,7 +410,7 @@ public class RecipeServiceSub {
         DrugListDAO dDao = DAOFactory.getDAO(DrugListDAO.class);
         Map<String, Object> paramMap = Maps.newHashMap();
         try {
-            PatientBean p = iPatientService.get(recipe.getMpiid());
+            PatientDTO p = patientService.get(recipe.getMpiid());
             if (null == p) {
                 LOGGER.error("createParamMapForChineseMedicine 病人不存在. recipeId={}, mpiId={}", recipe.getRecipeId(), recipe.getMpiid());
                 return paramMap;
@@ -527,7 +536,7 @@ public class RecipeServiceSub {
         }
 
         List<String> patientIds = new ArrayList<>(0);
-        Map<Integer, Recipe> recipeMap = Maps.newHashMap();
+        Map<Integer, RecipeBean> recipeMap = Maps.newHashMap();
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         for (Recipe recipe : recipes) {
             if (StringUtils.isNotEmpty(recipe.getMpiid())) {
@@ -555,13 +564,13 @@ public class RecipeServiceSub {
             recipeMap.put(recipe.getRecipeId(), convertRecipeForRAP(recipe));
         }
 
-        List<PatientBean> patientList = null;
+        List<PatientDTO> patientList = null;
         if (!patientIds.isEmpty()) {
-            patientList = iPatientService.findByMpiIdIn(patientIds);
+            patientList = patientService.findByMpiIdIn(patientIds);
         }
-        Map<String, PatientBean> patientMap = Maps.newHashMap();
+        Map<String, PatientDTO> patientMap = Maps.newHashMap();
         if (null != patientList && !patientList.isEmpty()) {
-            for (PatientBean patient : patientList) {
+            for (PatientDTO patient : patientList) {
                 //设置患者数据
                 setPatientMoreInfo(patient, doctorId);
                 patientMap.put(patient.getMpiId(), convertPatientForRAP(patient));
@@ -703,7 +712,7 @@ public class RecipeServiceSub {
         return map;
     }
 
-    public static void setPatientMoreInfo(PatientBean patient, int doctorId) {
+    public static void setPatientMoreInfo(PatientDTO patient, int doctorId) {
         RelationDoctorBean relationDoctor = iDoctorService.getByMpiidAndDoctorId(patient.getMpiId(), doctorId);
         //是否关注
         Boolean relationFlag = false;
@@ -724,8 +733,8 @@ public class RecipeServiceSub {
         patient.setLabelNames(labelNames);
     }
 
-    public static PatientBean convertPatientForRAP(PatientBean patient) {
-        PatientBean p = new PatientBean();
+    public static PatientDTO convertPatientForRAP(PatientDTO patient) {
+        PatientDTO p = new PatientDTO();
         p.setPatientName(patient.getPatientName());
         p.setPatientSex(patient.getPatientSex());
         p.setBirthday(patient.getBirthday());
@@ -740,8 +749,8 @@ public class RecipeServiceSub {
         return p;
     }
 
-    public static Recipe convertRecipeForRAP(Recipe recipe) {
-        Recipe r = new Recipe();
+    public static RecipeBean convertRecipeForRAP(Recipe recipe) {
+        RecipeBean r = new RecipeBean();
         r.setRecipeId(recipe.getRecipeId());
         r.setCreateDate(recipe.getCreateDate());
         r.setRecipeType(recipe.getRecipeType());
@@ -760,12 +769,12 @@ public class RecipeServiceSub {
      * @param isDoctor true:医生端  false:健康端
      * @return
      */
-    public static HashMap<String, Object> getRecipeAndDetailByIdImpl(int recipeId, boolean isDoctor) {
+    public static Map<String, Object> getRecipeAndDetailByIdImpl(int recipeId, boolean isDoctor) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
 
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        HashMap<String, Object> map = Maps.newHashMap();
+        Map<String, Object> map = Maps.newHashMap();
         if (recipe == null) {
             return map;
         }
@@ -773,8 +782,8 @@ public class RecipeServiceSub {
         DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
         map.put("checkEnterprise", drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan()));
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        PatientBean patientBean = iPatientService.get(recipe.getMpiid());
-        PatientBean patient = null;
+        PatientDTO patientBean = patientService.get(recipe.getMpiid());
+        PatientDTO patient = null;
         if (patientBean != null) {
             //添加患者标签和关注这些字段
             RecipeServiceSub.setPatientMoreInfo(patientBean, recipe.getDoctor());
@@ -792,7 +801,7 @@ public class RecipeServiceSub {
             }
         }
         map.put("patient", patient);
-        map.put("recipedetails", recipedetails);
+        map.put("recipedetails", ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class));
         if (isDoctor) {
             ConsultSetService consultSetService = ApplicationUtils.getBasicService(ConsultSetService.class);
             IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
@@ -900,7 +909,7 @@ public class RecipeServiceSub {
             recipe.setRecipeSurplusHours(getRecipeSurplusHours(recipe.getSignDate()));
         }
 
-        map.put("recipe", recipe);
+        map.put("recipe", ObjectCopyUtils.convert(recipe, RecipeBean.class));
 
         return map;
     }
@@ -1213,7 +1222,7 @@ public class RecipeServiceSub {
         RecipeTagMsgBean recipeTagMsg = new RecipeTagMsgBean();
         recipeTagMsg.setDiseaseName(diseaseName);
         recipeTagMsg.setDrugNames(drugNames);
-        recipeTagMsg.setTitle(recipe.getPatientName()+"的电子处方单");
+        recipeTagMsg.setTitle(recipe.getPatientName() + "的电子处方单");
         if (null != recipe.getRecipeId()) {
             recipeTagMsg.setRecipeId(recipe.getRecipeId());
         }
