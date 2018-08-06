@@ -11,7 +11,7 @@ build-api:
     - /^hotfix.*$/
   script:
     - 'cd *-api'
-    - 'mvn clean deploy -Dmaven.test.skip=true'
+    - 'mvn clean deploy -B -e -U -Dmaven.test.skip=true'
   tags:
     - build-jar
 
@@ -24,7 +24,7 @@ build-other-jar:
     - develop
     - /^hotfix.*$/
   script:
-    - 'mvn clean deploy -Dmaven.test.skip=true'
+    - 'mvn clean deploy -B -e -U -Dmaven.test.skip=true'
   tags:
     - build-jar
   allow_failure: true
