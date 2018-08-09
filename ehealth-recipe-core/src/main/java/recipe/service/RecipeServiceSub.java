@@ -81,17 +81,21 @@ public class RecipeServiceSub {
      * @param flag(recipe的fromflag) 0：HIS处方  1：平台处方
      * @return
      */
-    public static Integer saveRecipeDataImpl(Recipe recipe, List<Recipedetail> details, Integer flag) {
-        if (null != recipe && recipe.getRecipeId() != null && recipe.getRecipeId() > 0) {
+    public static Integer saveRecipeDataImpl(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, Integer flag) {
+        if (null != recipeBean && recipeBean.getRecipeId() != null && recipeBean.getRecipeId() > 0) {
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-            return recipeService.updateRecipeAndDetail(recipe, details);
+            return recipeService.updateRecipeAndDetail(recipeBean, detailBeanList);
         }
 
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         IOperationRecordsService iOperationRecordsService = ApplicationUtils.getBaseService(IOperationRecordsService.class);
-        if (null == recipe) {
+        if (null == recipeBean) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipe is required!");
         }
+
+        Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
+        List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
+
         RecipeValidateUtil.validateSaveRecipeData(recipe);
         RecipeUtil.setDefaultData(recipe);
 

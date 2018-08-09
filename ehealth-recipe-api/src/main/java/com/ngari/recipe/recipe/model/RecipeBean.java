@@ -32,6 +32,9 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "患者医院病历号")
     private String patientID;
 
+    @ItemProperty(alias = "患者状态 1正常  9注销")
+    private Integer patientStatus;
+
     @ItemProperty(alias = "开方机构")
     @Dictionary(id = "eh.base.dictionary.Organ")
     private Integer clinicOrgan;
@@ -268,11 +271,8 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "药店价格最高价")
     private BigDecimal price2;
 
-    @ItemProperty(alias = "处方发起者id")
-    private String requestMpiId;
-
-    @ItemProperty(alias = "处方发起者urt")
-    private Integer requestUrt;
+    @ItemProperty(alias = "医生姓名")
+    private String doctorName;
 
     @ItemProperty(alias = "患者姓名")
     private String patientName;
@@ -280,130 +280,16 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "外带处方标志 1:外带药处方")
     private Integer takeMedicine;
 
-    @ItemProperty(alias = "患者状态")
-    private Integer patientStatus;
+    @ItemProperty(alias = "处方发起者id")
+    private String requestMpiId;
 
-    @ItemProperty(alias = "医生名字")
-    private String doctorName;
+    @ItemProperty(alias = "处方发起者urt")
+    private Integer requestUrt;
+
+    @ItemProperty(alias="当前clientId")
+    private Integer currentClient;
 
     public RecipeBean() {
-    }
-
-    public String getPatientName() {
-        return patientName;
-    }
-
-    public void setPatientName(String patientName) {
-        this.patientName = patientName;
-    }
-
-    /**
-     * 处方单设置默认值
-     */
-    public void setDefaultData() {
-        if (null == this.getRecipeType()) {
-            this.setRecipeId(0);
-        }
-
-        //默认为西药
-        if (null == this.getRecipeType()) {
-            this.setRecipeType(1);
-        }
-
-        //默认剂数为1
-        if (null == this.getCopyNum() || this.getCopyNum() < 1) {
-            this.setCopyNum(1);
-        }
-
-        //默认无法医保支付
-        if (null == this.getMedicalPayFlag()) {
-            this.setMedicalPayFlag(0);
-        }
-
-        //默认可以医院，药企发药
-        if (null == this.getDistributionFlag()) {
-            this.setDistributionFlag(0);
-        }
-
-        //默认来源为纳里APP处方
-        if (null == this.getFromflag()) {
-            this.setFromflag(1);
-        }
-
-        //默认到院取药
-        if (null == this.getGiveMode()) {
-            this.setGiveMode(2);
-        }
-
-        //默认未签名
-        if (null == this.getStatus()) {
-            this.setStatus(0);
-        }
-
-        if (null == this.getCreateDate()) {
-            Date now = new Date();
-            this.setCreateDate(now);
-            this.setLastModify(now);
-        }
-
-        //默认有效天数
-        if (null == this.getValueDays()) {
-            this.setValueDays(3);
-        }
-
-        //判断诊断备注是否为空，若为空则显示“无”
-        if (StringUtils.isEmpty(this.getMemo())) {
-            this.setMemo("无");
-        }
-
-        if (null == this.getPayFlag()) {
-            this.setPayFlag(0);
-        }
-
-        if (null == this.getChooseFlag()) {
-            this.setChooseFlag(0);
-        }
-
-        if (null == this.getGiveFlag()) {
-            this.setGiveFlag(0);
-        }
-
-        if (null == this.getRemindFlag()) {
-            this.setRemindFlag(0);
-        }
-
-        if (null == this.getPushFlag()) {
-            this.setPushFlag(0);
-        }
-
-        if (null == this.getTakeMedicine()) {
-            this.setTakeMedicine(0);
-        }
-
-    }
-
-    public String getDoctorName() {
-        return doctorName;
-    }
-
-    public void setDoctorName(String doctorName) {
-        this.doctorName = doctorName;
-    }
-
-    public Integer getPatientStatus() {
-        return patientStatus;
-    }
-
-    public void setPatientStatus(Integer patientStatus) {
-        this.patientStatus = patientStatus;
-    }
-
-    public Integer getTakeMedicine() {
-        return takeMedicine;
-    }
-
-    public void setTakeMedicine(Integer takeMedicine) {
-        this.takeMedicine = takeMedicine;
     }
 
     public Integer getRecipeId() {
@@ -444,6 +330,14 @@ public class RecipeBean implements Serializable {
 
     public void setPatientID(String patientID) {
         this.patientID = patientID;
+    }
+
+    public Integer getPatientStatus() {
+        return patientStatus;
+    }
+
+    public void setPatientStatus(Integer patientStatus) {
+        this.patientStatus = patientStatus;
     }
 
     public Integer getClinicOrgan() {
@@ -1038,6 +932,30 @@ public class RecipeBean implements Serializable {
         this.price2 = price2;
     }
 
+    public String getDoctorName() {
+        return doctorName;
+    }
+
+    public void setDoctorName(String doctorName) {
+        this.doctorName = doctorName;
+    }
+
+    public String getPatientName() {
+        return patientName;
+    }
+
+    public void setPatientName(String patientName) {
+        this.patientName = patientName;
+    }
+
+    public Integer getTakeMedicine() {
+        return takeMedicine;
+    }
+
+    public void setTakeMedicine(Integer takeMedicine) {
+        this.takeMedicine = takeMedicine;
+    }
+
     public String getRequestMpiId() {
         return requestMpiId;
     }
@@ -1050,7 +968,22 @@ public class RecipeBean implements Serializable {
         return requestUrt;
     }
 
-    public void setRequestUrt(Integer requestUrtId) {
-        this.requestUrt = requestUrtId;
+    public void setRequestUrt(Integer requestUrt) {
+        this.requestUrt = requestUrt;
     }
+
+    public Integer getCurrentClient() {
+        return currentClient;
+    }
+
+    public void setCurrentClient(Integer currentClient) {
+        this.currentClient = currentClient;
+    }
+
+    public boolean canMedicalPay() {
+        Integer useMedicalFlag = 1;
+        return (useMedicalFlag.equals(medicalPayFlag)) ? true : false;
+    }
+
+
 }
