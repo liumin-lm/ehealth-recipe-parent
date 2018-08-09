@@ -48,12 +48,15 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
      * @param drugList
      */
     @RpcService
-    public void addCommonRecipe(CommonRecipe commonRecipe, List<CommonRecipeDrug> drugList) {
+    public void addCommonRecipe(CommonRecipeDTO commonRecipeDTO, List<CommonRecipeDrugDTO> drugListDTO) {
         CommonRecipeDAO commonRecipeDAO = DAOFactory.getDAO(CommonRecipeDAO.class);
         CommonRecipeDrugDAO commonRecipeDrugDAO = DAOFactory.getDAO(CommonRecipeDrugDAO.class);
 //        LOGGER.info("addCommonRecipe param. commonRecipe={}, drugList={}", JSONUtils.toString(commonRecipe),
 //                JSONUtils.toString(drugList));
-        if (null != commonRecipe && CollectionUtils.isNotEmpty(drugList)) {
+        if (null != commonRecipeDTO && CollectionUtils.isNotEmpty(drugListDTO)) {
+            CommonRecipe commonRecipe = ObjectCopyUtils.convert(commonRecipeDTO,CommonRecipe.class);
+            List<CommonRecipeDrug> drugList = ObjectCopyUtils.convert(drugListDTO, CommonRecipeDrug.class);
+
             Integer commonRecipeId = commonRecipe.getCommonRecipeId();
             LOGGER.info("addCommonRecipe commonRecipeId={} ", commonRecipeId);
             validateParam(commonRecipe, drugList);

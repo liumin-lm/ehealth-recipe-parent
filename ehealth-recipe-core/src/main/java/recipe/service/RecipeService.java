@@ -824,7 +824,7 @@ public class RecipeService {
      * @return
      */
     @RpcService
-    public RecipeResultBean doSecondSignRecipe(Recipe recipe) {
+    public RecipeResultBean doSecondSignRecipe(RecipeBean recipe) {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);

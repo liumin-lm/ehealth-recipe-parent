@@ -3,7 +3,9 @@ package recipe.service;
 import com.google.common.collect.Maps;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.DrugListBean;
+import com.ngari.recipe.entity.CommonRecipe;
 import com.ngari.recipe.entity.DrugList;
 import ctd.dictionary.DictionaryItem;
 import ctd.persistence.DAOFactory;
@@ -92,7 +94,8 @@ public class DrugListService extends BaseService<DrugListBean> {
      * @author zhongzx
      */
     @RpcService
-    public DrugListBean addDrugList(DrugList d) {
+    public DrugListBean addDrugList(DrugListBean drugListBean) {
+        DrugList d = ObjectCopyUtils.convert(drugListBean, DrugList.class);
         logger.info("新增药品服务[addDrugList]:" + JSONUtils.toString(d));
         if (null == d) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugList is null");
@@ -163,7 +166,8 @@ public class DrugListService extends BaseService<DrugListBean> {
      * @author zhongzx
      */
     @RpcService
-    public DrugListBean updateDrugList(DrugList drugList) {
+    public DrugListBean updateDrugList(DrugListBean drugListBean) {
+        DrugList drugList = ObjectCopyUtils.convert(drugListBean, DrugList.class);
         logger.info("修改药品服务[updateDrugList]:" + JSONUtils.toString(drugList));
         DrugListDAO dao = DAOFactory.getDAO(DrugListDAO.class);
         if (null == drugList.getDrugId()) {
