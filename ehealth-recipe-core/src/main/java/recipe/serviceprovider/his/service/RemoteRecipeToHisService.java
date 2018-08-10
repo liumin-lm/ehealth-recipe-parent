@@ -153,7 +153,9 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
             }
             response.setMsg(hosrelationBean.getMemo());
         }else{
-            response.setMsg("由于系统原因，请稍后再试，咨询已自动取消");
+            //-1 会让前端重复查询
+            response.setCode(-1);
+//            response.setMsg("由于系统原因，请稍后再试，咨询已自动取消");
         }
         LOGGER.info("visitRegistSuccess consultId={}, response={}", consultId, JSONUtils.toString(response));
         return response;
@@ -193,7 +195,9 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
                             return response;
                         } else {
                             response.setCode(RecipeCommonResTO.FAIL);
-                            cancelVisitImpl(hosrelationBean);
+                            //在consult项目 cancelVisitRecordTask 方法会进行咨询取消退款操作 CancelConsult，故在此会导致重复取消
+//                            cancelVisitImpl(hosrelationBean);
+                            hosrelationService.cancelSuccess(hosrelationBean.getBusId(), hosrelationBean.getBusType(), 0);
                             return response;
                         }
                     }
