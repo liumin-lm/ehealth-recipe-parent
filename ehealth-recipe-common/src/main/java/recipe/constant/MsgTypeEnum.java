@@ -8,7 +8,8 @@ package recipe.constant;
  */
 public enum MsgTypeEnum {
 
-    DELETE_PATIENT("90", "删除就诊人", "删除就诊人");
+    //ons_topic_basicinfo
+    DELETE_PATIENT("10", "删除就诊人", "删除就诊人");
 
     private String id;
     private String name;

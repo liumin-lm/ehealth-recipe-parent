@@ -36,10 +36,10 @@ public class BusMsgConsumer {
         }
         LOGGER.info("busRecipeMsgConsumer start");
         Subscriber subscriber = MQHelper.getMqSubscriber();
-        subscriber.attach(OnsConfig.patientTopic, new Observer<TempMsgType>() {
+        subscriber.attach(OnsConfig.basicInfoTopic, new Observer<TempMsgType>() {
             @Override
             public void onMessage(TempMsgType tMsg) {
-                LOGGER.info("patientTopic msg[{}]", JSONUtils.toString(tMsg));
+                LOGGER.info("basicInfoTopic msg[{}]", JSONUtils.toString(tMsg));
                 invalidPatient(tMsg);
             }
         });
