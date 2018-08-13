@@ -3,8 +3,11 @@ package recipe.audit.service;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -39,7 +42,7 @@ public class PrescriptionService {
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(PrescriptionService.class);
 
     @RpcService
-    public String getPAAnalysis(Recipe recipe, List<Recipedetail> recipedetails) throws Exception {
+    public String getPAAnalysis(RecipeBean recipe, List<RecipeDetailBean> recipedetails) throws Exception {
         return null;
     }
 
@@ -51,7 +54,7 @@ public class PrescriptionService {
      * @return 返回null表示用药没有异常，反之表示有异常，前端弹框提示，提示信息为返回的字符串信息
      * @throws Exception
      */
-    public String analysisImpl(Recipe recipe, List<Recipedetail> recipedetails) throws Exception {
+    public String analysisImpl(RecipeBean recipe, List<RecipeDetailBean> recipedetails) throws Exception {
         PAWebServiceSoap12Stub binding;
         IntHolder getPAResultsResult = new IntHolder();
         StringHolder uiResults = new StringHolder();
@@ -114,8 +117,8 @@ public class PrescriptionService {
      * @param recipedetails
      * @throws ControllerException
      */
-    public void getParams(BaseData baseData, DetailsData detailsData, Recipe recipe,
-                          List<Recipedetail> recipedetails) throws ControllerException {
+    public void getParams(BaseData baseData, DetailsData detailsData, RecipeBean recipe,
+                          List<RecipeDetailBean> recipedetails) throws ControllerException {
 
         IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
         PatientBean patient = iPatientService.get(recipe.getMpiid());
@@ -167,7 +170,7 @@ public class PrescriptionService {
         // 药品信息
         List<AuditMedicine> medicines = new ArrayList<>();
         AuditMedicine medicine;
-        for (Recipedetail recipedetail : recipedetails) {
+        for (RecipeDetailBean recipedetail : recipedetails) {
 //            DrugList drug = drugListDAO.get(recipedetail.getDrugId());
             medicine = new AuditMedicine();
             medicine.setName(recipedetail.getDrugName());
@@ -211,8 +214,10 @@ public class PrescriptionService {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
 
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        List<Recipedetail> details = detailDAO.findByRecipeId(recipeId);
+        Recipe dbrecipe = recipeDAO.getByRecipeId(recipeId);
+        List<Recipedetail> dbdetails = detailDAO.findByRecipeId(recipeId);
+        RecipeBean recipe = ObjectCopyUtils.convert(dbrecipe, RecipeBean.class);
+        List<RecipeDetailBean> details = ObjectCopyUtils.convert(dbdetails, RecipeDetailBean.class);
         return analysisImpl(recipe, details);
     }
 }
