@@ -32,6 +32,9 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "患者医院病历号")
     private String patientID;
 
+    @ItemProperty(alias = "患者状态 1正常  9注销")
+    private Integer patientStatus;
+
     @ItemProperty(alias = "开方机构")
     @Dictionary(id = "eh.base.dictionary.Organ")
     private Integer clinicOrgan;
@@ -268,11 +271,8 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "药店价格最高价")
     private BigDecimal price2;
 
-    @ItemProperty(alias = "处方发起者id")
-    private String requestMpiId;
-
-    @ItemProperty(alias = "处方发起者urt")
-    private Integer requestUrt;
+    @ItemProperty(alias = "医生姓名")
+    private String doctorName;
 
     @ItemProperty(alias = "患者姓名")
     private String patientName;
@@ -280,21 +280,16 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "外带处方标志 1:外带药处方")
     private Integer takeMedicine;
 
-    @ItemProperty(alias = "患者状态")
-    private Integer patientStatus;
+    @ItemProperty(alias = "处方发起者id")
+    private String requestMpiId;
 
-    @ItemProperty(alias = "医生名字")
-    private String doctorName;
+    @ItemProperty(alias = "处方发起者urt")
+    private Integer requestUrt;
+
+    @ItemProperty(alias="当前clientId")
+    private Integer currentClient;
 
     public RecipeBean() {
-    }
-
-    public String getPatientName() {
-        return patientName;
-    }
-
-    public void setPatientName(String patientName) {
-        this.patientName = patientName;
     }
 
     /**
@@ -382,30 +377,6 @@ public class RecipeBean implements Serializable {
 
     }
 
-    public String getDoctorName() {
-        return doctorName;
-    }
-
-    public void setDoctorName(String doctorName) {
-        this.doctorName = doctorName;
-    }
-
-    public Integer getPatientStatus() {
-        return patientStatus;
-    }
-
-    public void setPatientStatus(Integer patientStatus) {
-        this.patientStatus = patientStatus;
-    }
-
-    public Integer getTakeMedicine() {
-        return takeMedicine;
-    }
-
-    public void setTakeMedicine(Integer takeMedicine) {
-        this.takeMedicine = takeMedicine;
-    }
-
     public Integer getRecipeId() {
         return recipeId;
     }
@@ -444,6 +415,14 @@ public class RecipeBean implements Serializable {
 
     public void setPatientID(String patientID) {
         this.patientID = patientID;
+    }
+
+    public Integer getPatientStatus() {
+        return patientStatus;
+    }
+
+    public void setPatientStatus(Integer patientStatus) {
+        this.patientStatus = patientStatus;
     }
 
     public Integer getClinicOrgan() {
@@ -1038,6 +1017,30 @@ public class RecipeBean implements Serializable {
         this.price2 = price2;
     }
 
+    public String getDoctorName() {
+        return doctorName;
+    }
+
+    public void setDoctorName(String doctorName) {
+        this.doctorName = doctorName;
+    }
+
+    public String getPatientName() {
+        return patientName;
+    }
+
+    public void setPatientName(String patientName) {
+        this.patientName = patientName;
+    }
+
+    public Integer getTakeMedicine() {
+        return takeMedicine;
+    }
+
+    public void setTakeMedicine(Integer takeMedicine) {
+        this.takeMedicine = takeMedicine;
+    }
+
     public String getRequestMpiId() {
         return requestMpiId;
     }
@@ -1050,7 +1053,22 @@ public class RecipeBean implements Serializable {
         return requestUrt;
     }
 
-    public void setRequestUrt(Integer requestUrtId) {
-        this.requestUrt = requestUrtId;
+    public void setRequestUrt(Integer requestUrt) {
+        this.requestUrt = requestUrt;
     }
+
+    public Integer getCurrentClient() {
+        return currentClient;
+    }
+
+    public void setCurrentClient(Integer currentClient) {
+        this.currentClient = currentClient;
+    }
+
+    public boolean canMedicalPay() {
+        Integer useMedicalFlag = 1;
+        return (useMedicalFlag.equals(medicalPayFlag)) ? true : false;
+    }
+
+
 }

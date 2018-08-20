@@ -1,19 +1,19 @@
-package recipe.bean;
+package com.ngari.recipe.drugsenterprise.model;
 
 
-
-
-
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import ctd.schema.annotation.Schema;
 
 import java.util.List;
 
 /**
  * 多供应商选择返回数据
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * date:2017/7/3.
  */
+@Schema
 public class DepListBean {
 
     /**
@@ -25,7 +25,7 @@ public class DepListBean {
 
     private List<DepDetailBean> list;
 
-    private List<Recipedetail> details;
+    private List<RecipeDetailBean> details;
 
 
     public boolean isSigle() {
@@ -52,11 +52,11 @@ public class DepListBean {
         this.list = list;
     }
 
-    public List<Recipedetail> getDetails() {
+    public List<RecipeDetailBean> getDetails() {
         return details;
     }
 
-    public void setDetails(List<Recipedetail> details) {
+    public void setDetails(List<RecipeDetailBean> details) {
         this.details = details;
     }
 }

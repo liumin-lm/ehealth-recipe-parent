@@ -1,8 +1,9 @@
-package recipe.prescription.bean;
+package com.ngari.recipe.hisprescription.model;
 
-import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.common.RecipeCommonResTO;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import ctd.schema.annotation.Schema;
 import ctd.util.JSONUtils;
-import recipe.common.response.CommonResponse;
 
 import java.io.Serializable;
 
@@ -13,7 +14,8 @@ import java.io.Serializable;
  * @author: 0184/yu_yun
  * date:2017/4/18.
  */
-public class HosRecipeResult extends CommonResponse implements Serializable {
+@Schema
+public class HosRecipeResult extends RecipeCommonResTO implements Serializable {
 
     private static final long serialVersionUID = 2809725502013933071L;
 
@@ -21,7 +23,7 @@ public class HosRecipeResult extends CommonResponse implements Serializable {
 
     private Integer recipeId;
 
-    private Recipe recipe;
+    private RecipeBean recipe;
 
     private HospitalRecipeDTO hospitalRecipe;
 
@@ -45,11 +47,11 @@ public class HosRecipeResult extends CommonResponse implements Serializable {
         this.recipeId = recipeId;
     }
 
-    public Recipe getRecipe() {
+    public RecipeBean getRecipe() {
         return recipe;
     }
 
-    public void setRecipe(Recipe recipe) {
+    public void setRecipe(RecipeBean recipe) {
         this.recipe = recipe;
     }
 

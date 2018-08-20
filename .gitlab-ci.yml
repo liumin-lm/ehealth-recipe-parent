@@ -10,7 +10,7 @@ build-api:
     - develop
   script:
     - 'cd *-api'
-    - 'mvn clean deploy -Dmaven.test.skip=true'
+    - 'mvn clean deploy -B -e -U -Dmaven.test.skip=true'
   tags:
     - build-jar
 
@@ -22,7 +22,7 @@ build-other-jar:
     - master
     - develop
   script:
-    - 'mvn clean deploy -Dmaven.test.skip=true'
+    - 'mvn clean deploy -B -e -U -Dmaven.test.skip=true'
   tags:
     - build-jar
   allow_failure: true

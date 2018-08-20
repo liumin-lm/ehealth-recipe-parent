@@ -1,9 +1,10 @@
 package recipe.service;
 
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.RecipeLog;
+import com.ngari.recipe.recipelog.model.RecipeLogBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
-import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
@@ -18,6 +19,7 @@ import java.util.List;
 /**
  * 处方状态记录
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * @date:2016/5/27.
  */
@@ -61,12 +63,13 @@ public class RecipeLogService {
     }
 
     @RpcService
-    public List<RecipeLog> findByRecipeId(Integer recipeId) {
+    public List<RecipeLogBean> findByRecipeId(Integer recipeId) {
         if (recipeId == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "recipeId is require");
         }
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-        return recipeLogDAO.findByRecipeId(recipeId);
+        List<RecipeLog> list = recipeLogDAO.findByRecipeId(recipeId);
+        return ObjectCopyUtils.convert(list, RecipeLogBean.class);
     }
 
 

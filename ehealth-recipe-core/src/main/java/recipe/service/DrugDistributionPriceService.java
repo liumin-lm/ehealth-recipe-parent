@@ -11,9 +11,9 @@ import ctd.persistence.exception.DAOException;
 import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import recipe.ApplicationUtils;
 import recipe.dao.DrugDistributionPriceDAO;
 import recipe.serviceprovider.BaseService;
-import recipe.util.ApplicationUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -117,7 +117,7 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
     }
 
     @RpcService
-    public DrugDistributionPrice getDistributionPriceByEnterpriseIdAndAddrArea(Integer enterpriseId, String addrArea) {
+    public DrugDistributionPriceBean getDistributionPriceByEnterpriseIdAndAddrArea(Integer enterpriseId, String addrArea) {
         if (enterpriseId == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "enterpriseId is enterpriseId");
         }
@@ -140,7 +140,8 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
         if (price == null) {
             price = drugDistributionPriceDAO.getByEnterpriseIdAndAddrArea(enterpriseId, null);
         }
-        return price;
+
+        return getBean(price, DrugDistributionPriceBean.class);
     }
 
 

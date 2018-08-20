@@ -15,6 +15,7 @@ import static javax.persistence.GenerationType.IDENTITY;
  * @author jianghc
  *
  **/
+@Schema
 public class DrugDistributionPriceBean implements java.io.Serializable {
 
     private static final long serialVersionUID = 2672357769913680492L;
@@ -35,6 +36,8 @@ public class DrugDistributionPriceBean implements java.io.Serializable {
     @ItemProperty(alias = "配送价格")
     private BigDecimal distributionPrice;
 
+    public DrugDistributionPriceBean() {
+    }
 
     public Integer getId() {
         return id;

@@ -2,6 +2,7 @@ package recipe.service;
 
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganConfigService;
+import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import recipe.constant.ErrorCode;
 import recipe.dao.DrugsEnterpriseDAO;
@@ -14,6 +15,7 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.serviceprovider.BaseService;
 
 import java.util.List;
 
@@ -24,7 +26,7 @@ import java.util.List;
  * @date:2016/6/2.
  */
 @RpcBean("drugsEnterpriseService")
-public class DrugsEnterpriseService {
+public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
 
     /**
      * LOGGER
@@ -38,9 +40,10 @@ public class DrugsEnterpriseService {
      * @return
      */
     @RpcService
-    public List<DrugsEnterprise> findDrugsEnterpriseByStatus(final Integer status) {
+    public List<DrugsEnterpriseBean> findDrugsEnterpriseByStatus(final Integer status) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        return drugsEnterpriseDAO.findAllDrugsEnterpriseByStatus(status);
+        List<DrugsEnterprise> list = drugsEnterpriseDAO.findAllDrugsEnterpriseByStatus(status);
+        return getList(list, DrugsEnterpriseBean.class);
     }
 
     /**
@@ -51,7 +54,7 @@ public class DrugsEnterpriseService {
      * @author houxr 2016-09-11
      */
     @RpcService
-    public DrugsEnterprise addDrugsEnterprise(final DrugsEnterprise drugsEnterprise) {
+    public DrugsEnterpriseBean addDrugsEnterprise(final DrugsEnterprise drugsEnterprise) {
         if (null == drugsEnterprise) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "DrugsEnterprise is null");
         }
@@ -61,7 +64,7 @@ public class DrugsEnterpriseService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "DrugsEnterprise exist!");
         }
         DrugsEnterprise newDrugsEnterprise = drugsEnterpriseDAO.save(drugsEnterprise);
-        return newDrugsEnterprise;
+        return getBean(newDrugsEnterprise, DrugsEnterpriseBean.class);
     }
 
 
@@ -73,7 +76,7 @@ public class DrugsEnterpriseService {
      * @author houxr 2016-09-11
      */
     @RpcService
-    public DrugsEnterprise updateDrugsEnterprise(final DrugsEnterprise drugsEnterprise) {
+    public DrugsEnterpriseBean updateDrugsEnterprise(final DrugsEnterprise drugsEnterprise) {
         if (null == drugsEnterprise) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "DrugsEnterprise is null");
         }
@@ -85,7 +88,7 @@ public class DrugsEnterpriseService {
         }
         BeanUtils.map(drugsEnterprise, target);
         target = drugsEnterpriseDAO.update(target);
-        return target;
+        return getBean(target, DrugsEnterpriseBean.class);
     }
 
     /**
@@ -98,15 +101,18 @@ public class DrugsEnterpriseService {
      * @author houxr 2016-09-11
      */
     @RpcService
-    public QueryResult<DrugsEnterprise> queryDrugsEnterpriseByStartAndLimit(final String name, final int start, final int limit) {
+    public QueryResult<DrugsEnterpriseBean> queryDrugsEnterpriseByStartAndLimit(final String name, final int start, final int limit) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        return drugsEnterpriseDAO.queryDrugsEnterpriseResultByStartAndLimit(name, start, limit);
+        QueryResult result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByStartAndLimit(name, start, limit);
+        List<DrugsEnterpriseBean> list = getList(result.getItems(), DrugsEnterpriseBean.class);
+        result.setItems(list);
+        return result;
     }
 
     @RpcService
-    public List<DrugsEnterprise> findByOrganId(Integer organId) {
+    public List<DrugsEnterpriseBean> findByOrganId(Integer organId) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        return drugsEnterpriseDAO.findByOrganId(organId);
+        return getList(drugsEnterpriseDAO.findByOrganId(organId), DrugsEnterpriseBean.class);
     }
 
     /**

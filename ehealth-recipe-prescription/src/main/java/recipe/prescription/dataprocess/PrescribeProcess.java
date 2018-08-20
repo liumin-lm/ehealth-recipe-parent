@@ -1,7 +1,11 @@
 package recipe.prescription.dataprocess;
 
 import com.google.common.collect.Maps;
+import com.ngari.recipe.common.RecipeCommonResTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.hisprescription.model.HosRecipeResult;
+import com.ngari.recipe.hisprescription.model.HospitalDrugDTO;
+import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -17,9 +21,6 @@ import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.prescription.PrescribeService;
-import recipe.prescription.bean.HosRecipeResult;
-import recipe.prescription.bean.HospitalDrugDTO;
-import recipe.prescription.bean.HospitalRecipeDTO;
 import recipe.util.DateConversion;
 
 import java.math.BigDecimal;
@@ -358,7 +359,8 @@ public class PrescribeProcess {
      * @return 结果
      */
     public static HosRecipeResult validateHospitalRecipe(HospitalRecipeDTO recipe, int flag) {
-        HosRecipeResult result = ResponseUtils.getFailResponse(HosRecipeResult.class, null);
+        HosRecipeResult result = new HosRecipeResult();
+        result.setCode(RecipeCommonResTO.FAIL);
         if (PrescribeService.ADD_FLAG == flag) {
             //新增
             if (StringUtils.isEmpty(recipe.getRecipeCode())) {
@@ -414,7 +416,7 @@ public class PrescribeProcess {
             }
         }
 
-        result.setCode(CommonConstant.SUCCESS);
+        result.setCode(RecipeCommonResTO.SUCCESS);
         return result;
     }
 }

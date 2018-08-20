@@ -5,9 +5,9 @@ import com.ngari.recipe.recipelog.model.RecipeLogBean;
 import com.ngari.recipe.recipelog.service.IRecipeLogService;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import recipe.ApplicationUtils;
 import recipe.service.RecipeLogService;
 import recipe.serviceprovider.BaseService;
-import recipe.util.ApplicationUtils;
 
 /**
  * company: ngarihealth

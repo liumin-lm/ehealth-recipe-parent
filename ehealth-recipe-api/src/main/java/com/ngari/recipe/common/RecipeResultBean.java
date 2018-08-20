@@ -1,4 +1,6 @@
-package recipe.bean;
+package com.ngari.recipe.common;
+
+import com.ngari.recipe.drugsenterprise.model.DepStyleBean;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -6,6 +8,7 @@ import java.util.Map;
 /**
  * 一般业务返回结果bean
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * date:2017/2/15.
  */

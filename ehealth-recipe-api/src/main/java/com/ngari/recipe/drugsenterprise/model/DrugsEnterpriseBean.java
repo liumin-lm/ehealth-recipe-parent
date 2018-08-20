@@ -64,6 +64,9 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "排序，1最前，越往后越小")
     private Integer sort;
 
+    public DrugsEnterpriseBean() {
+    }
+
     public Integer getId() {
         return id;
     }

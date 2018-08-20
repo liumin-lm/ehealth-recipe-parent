@@ -1,7 +1,6 @@
 package recipe.dao;
 
 import com.alibaba.druid.util.StringUtils;
-import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.OrganDrugList;
 import ctd.persistence.annotation.DAOMethod;
@@ -17,6 +16,7 @@ import ctd.util.annotation.RpcSupportDAO;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import org.springframework.util.ObjectUtils;
+import recipe.dao.bean.DrugInfoHisBean;
 import recipe.dao.bean.DrugListAndOrganDrugList;
 
 import java.math.BigDecimal;
@@ -69,9 +69,9 @@ public abstract class OrganDrugListDAO extends
      * @param limit
      * @return
      */
-    @DAOMethod(sql = "select new com.ngari.his.recipe.mode.DrugInfoTO(od.organDrugCode,d.pack,d.unit,od.producerCode) " +
+    @DAOMethod(sql = "select new recipe.dao.bean.DrugInfoHisBean(od.organDrugCode,d.pack,d.unit,od.producerCode) " +
             "from OrganDrugList od, DrugList d where od.drugId=d.drugId and od.organId=:organId and od.organDrugCode is not null and od.status=1")
-    public abstract List<DrugInfoTO> findDrugInfoByOrganId(@DAOParam("organId") int organId, @DAOParam(pageStart = true)
+    public abstract List<DrugInfoHisBean> findDrugInfoByOrganId(@DAOParam("organId") int organId, @DAOParam(pageStart = true)
             int start, @DAOParam(pageLimit = true) int limit);
 
     /**

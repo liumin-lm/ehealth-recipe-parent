@@ -1,4 +1,4 @@
-package recipe.audit.list.request;
+package com.ngari.recipe.audit.model;
 
 import java.io.Serializable;
 import java.util.List;

@@ -1,6 +1,7 @@
 package recipe.service;
 
-import recipe.util.ApplicationUtils;
+
+import recipe.ApplicationUtils;
 
 /**
  * company: ngarihealth

@@ -3,12 +3,11 @@ package com.ngari.recipe.common;
 import java.io.Serializable;
 
 /**
+ * @param <T>
  * @company: ngarihealth
  * @author: 0184/yu_yun
  * @date:2017/9/6.
- * @param <T>
  */
-@SuppressWarnings("unchecked")
 public class RecipeBussResTO<T> extends RecipeCommonResTO implements Serializable {
 
     private static final long serialVersionUID = -5327145704045983963L;

@@ -2,16 +2,24 @@ package recipe.service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ngari.base.doctor.model.DoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.model.PatientBean;
-import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
+import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.DoctorService;
+import com.ngari.patient.service.PatientService;
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.audit.model.AuditListReq;
+import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
@@ -24,12 +32,11 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import recipe.audit.list.request.AuditListReq;
+import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
-import recipe.util.ApplicationUtils;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
@@ -48,9 +55,9 @@ public class RecipeCheckService {
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeCheckService.class);
 
-    private IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+    private PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
 
-    private IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
+    private DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
 
     /**
      * zhongzx
@@ -74,17 +81,18 @@ public class RecipeCheckService {
 
     /**
      * 查询审核处方列表扩展
+     *
      * @param request
      * @return
      */
     @RpcService
     public List<Map<String, Object>> findRecipeListWithPageExt(AuditListReq request, int start, int limit) {
         LOGGER.info("findRecipeListWithPageExt request={}", JSONUtils.toString(request));
-        if(null == request.getDoctorId() || null == request.getStatus()){
+        if (null == request.getDoctorId() || null == request.getStatus()) {
             return Lists.newArrayList();
         }
 
-        if(CollectionUtils.isEmpty(request.getOrganIdList())) {
+        if (CollectionUtils.isEmpty(request.getOrganIdList())) {
             List<Integer> organIds = findAPOrganIdsByDoctorId(request.getDoctorId());
             request.setOrganIdList(organIds);
         }
@@ -143,9 +151,9 @@ public class RecipeCheckService {
                 recipe.setOrganDiseaseName(r.getOrganDiseaseName());
                 recipe.setChecker(r.getChecker());
                 //组装需要的患者数据
-                PatientBean patient = new PatientBean();
+                PatientDTO patient = new PatientDTO();
                 try {
-                    PatientBean p = iPatientService.get(r.getMpiid());
+                    PatientDTO p = patientService.get(r.getMpiid());
                     patient.setPatientName(p.getPatientName());
                     patient.setPatientSex(p.getPatientSex());
                     Date birthDay = p.getBirthday();
@@ -170,10 +178,10 @@ public class RecipeCheckService {
                     dateString = DateConversion.getDateFormatter(signDate, "yyyy-MM-dd HH:mm");
                 }
                 map.put("dateString", dateString);
-                map.put("recipe", recipe);
+                map.put("recipe", ObjectCopyUtils.convert(recipe, RecipeBean.class));
                 map.put("patient", patient);
                 map.put("check", checkResult);
-                map.put("detail", detail);
+                map.put("detail", ObjectCopyUtils.convert(detail, RecipeDetailBean.class));
                 mapList.add(map);
             }
         }
@@ -202,7 +210,7 @@ public class RecipeCheckService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "无法找到该处方单");
         }
         Integer doctorId = recipe.getDoctor();
-        Recipe r = new Recipe();
+        RecipeBean r = new RecipeBean();
         r.setRecipeId(recipe.getRecipeId());
         r.setRecipeType(recipe.getRecipeType());
         r.setDoctor(doctorId);
@@ -237,14 +245,14 @@ public class RecipeCheckService {
             e.printStackTrace();
         }
         //取医生的手机号
-        DoctorBean doc = new DoctorBean();
-        DoctorBean doctor = iDoctorService.get(doctorId);
+        DoctorDTO doc = new DoctorDTO();
+        DoctorDTO doctor = doctorService.get(doctorId);
         if (null != doctor) {
             doc.setMobile(doctor.getMobile());
         }
 
         //取patient需要的字段
-        PatientBean patient = iPatientService.get(recipe.getMpiid());
+        PatientDTO patient = patientService.get(recipe.getMpiid());
         if (null == patient) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "patient is null!");
         }
@@ -273,27 +281,27 @@ public class RecipeCheckService {
         }
         //处方供应商
         Integer enterpriseId = recipe.getEnterpriseId();
-        DrugsEnterprise e = new DrugsEnterprise();
+        DrugsEnterpriseBean e = new DrugsEnterpriseBean();
         if (enterpriseId != null) {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(enterpriseId);
             e.setName(drugsEnterprise.getName());
             e.setPayModeSupport(drugsEnterprise.getPayModeSupport());
         }
-        RecipeOrder order = new RecipeOrder();
+        RecipeOrderBean order = new RecipeOrderBean();
         String orderCode = recipe.getOrderCode();
-        if (!StringUtils.isEmpty(orderCode)){
+        if (!StringUtils.isEmpty(orderCode)) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
-            order = recipeOrder;
-        }else{
+            order = ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class);
+        } else {
             order = null;
         }
         map.put("dateString", dateString);
         map.put("recipe", r);
         map.put("patient", p);
         map.put("doctor", doc);
-        map.put("details", details);
+        map.put("details", ObjectCopyUtils.convert(details, RecipeDetailBean.class));
         map.put("drugsEnterprise", e);
-        map.put("recipeOrder",order);
+        map.put("recipeOrder", order);
         return map;
     }
 
@@ -480,6 +488,7 @@ public class RecipeCheckService {
 
     /**
      * 脱敏身份证号
+     *
      * @param idCard
      * @return
      */
@@ -515,7 +524,7 @@ public class RecipeCheckService {
      * @param doctorId
      * @param searchString 搜索内容
      * @param searchFlag   0-开方医生 1-审方医生 2-患者姓名 3-病历号
-     * @param organId 限定机构条件
+     * @param organId      限定机构条件
      * @param start
      * @param limit
      * @return
@@ -539,15 +548,15 @@ public class RecipeCheckService {
             iSearchContentService.addSearchContent(content, 1);
         }
 
-        DoctorBean doctor = iDoctorService.get(doctorId);
+        DoctorDTO doctor = doctorService.get(doctorId);
         if (null == doctor) {
             LOGGER.error("doctor is null");
             throw new DAOException(ErrorCode.SERVICE_ERROR, "doctorId = " + doctorId + " 找不到该医生");
         }
         Set<Integer> organs = new HashSet<>();
-        if(null != organId) {
+        if (null != organId) {
             organs.add(organId);
-        }else{
+        } else {
             List<Integer> organIds = findAPOrganIdsByDoctorId(doctorId);
             if (null == organIds || organIds.size() == 0) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "该药师没有配置能审核的机构");
@@ -556,7 +565,7 @@ public class RecipeCheckService {
         }
 
         List<Recipe> recipeList = recipeCheckDAO.searchRecipe(organs,
-            searchFlag,searchString, start, limit);
+                searchFlag, searchString, start, limit);
 
         List<Map<String, Object>> mapList = new ArrayList<>();
 
@@ -564,7 +573,7 @@ public class RecipeCheckService {
             for (Recipe r : recipeList) {
                 Map<String, Object> map = Maps.newHashMap();
                 //组装需要的处方数据
-                Recipe recipe = new Recipe();
+                RecipeBean recipe = new RecipeBean();
                 recipe.setRecipeId(r.getRecipeId());
                 recipe.setSignDate(r.getSignDate());
                 recipe.setDoctor(r.getDoctor());
@@ -572,8 +581,8 @@ public class RecipeCheckService {
                 recipe.setOrganDiseaseName(r.getOrganDiseaseName());
                 recipe.setChecker(r.getChecker());
                 //组装需要的患者数据
-                PatientBean p = iPatientService.get(r.getMpiid());
-                PatientBean patient = new PatientBean();
+                PatientDTO p = patientService.get(r.getMpiid());
+                PatientDTO patient = new PatientDTO();
                 patient.setPatientName(p.getPatientName());
                 patient.setPatientSex(p.getPatientSex());
                 Date birthDay = p.getBirthday();
@@ -598,7 +607,7 @@ public class RecipeCheckService {
                 map.put("recipe", recipe);
                 map.put("patient", patient);
                 map.put("check", checkResult);
-                map.put("detail", detail);
+                map.put("detail", ObjectCopyUtils.convert(detail, RecipeDetailBean.class));
                 mapList.add(map);
             }
         }
@@ -606,20 +615,20 @@ public class RecipeCheckService {
     }
 
     /**
-     *
      * 获取药师能审核的机构
+     *
      * @param doctorId 药师ID
      * @return
      */
     @RpcService
-    public List<OrganBean> findCheckOrganList(Integer doctorId){
+    public List<OrganBean> findCheckOrganList(Integer doctorId) {
         List<OrganBean> organList = Lists.newArrayList();
         List<Integer> organIds = findAPOrganIdsByDoctorId(doctorId);
-        if(CollectionUtils.isNotEmpty(organIds)) {
+        if (CollectionUtils.isNotEmpty(organIds)) {
             IOrganService organService = ApplicationUtils.getBaseService(IOrganService.class);
             List<OrganBean> detailOrgan = organService.findByIdIn(organIds);
             OrganBean organBean;
-            for(OrganBean bean : detailOrgan){
+            for (OrganBean bean : detailOrgan) {
                 organBean = new OrganBean();
                 organBean.setOrganId(bean.getOrganId());
                 organBean.setShortName(bean.getShortName());

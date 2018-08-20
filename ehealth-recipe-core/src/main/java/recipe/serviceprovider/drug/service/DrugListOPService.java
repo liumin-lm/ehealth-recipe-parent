@@ -7,8 +7,9 @@ import com.ngari.recipe.entity.DrugList;
 import ctd.dictionary.DictionaryItem;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
-import ctd.util.annotation.RpcService;
+import recipe.ApplicationUtils;
 import recipe.dao.DrugListDAO;
+import recipe.service.DrugListExtService;
 
 import java.util.List;
 
@@ -24,7 +25,7 @@ public class DrugListOPService implements IDrugListService {
 
     @Override
     public List<DictionaryItem> getDrugClass(String parentKey, int sliceType){
-        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-        return drugListDAO.getDrugClass(parentKey, sliceType);
+        DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
+        return drugListExtService.getDrugClass(parentKey, sliceType);
     }
 }

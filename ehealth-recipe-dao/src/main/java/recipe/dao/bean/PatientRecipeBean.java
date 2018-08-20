@@ -60,10 +60,6 @@ public class PatientRecipeBean {
 
     private String trackingNumber;
 
-    private List<Recipedetail> recipeDetail;
-
-    private List<PatientRecipeBean> recipeList;
-
     public PatientRecipeBean() {
     }
 
@@ -185,22 +181,6 @@ public class PatientRecipeBean {
 
     public void setRecipeSurplusHours(String recipeSurplusHours) {
         this.recipeSurplusHours = recipeSurplusHours;
-    }
-
-    public List<PatientRecipeBean> getRecipeList() {
-        return recipeList;
-    }
-
-    public void setRecipeList(List<PatientRecipeBean> recipeList) {
-        this.recipeList = recipeList;
-    }
-
-    public List<Recipedetail> getRecipeDetail() {
-        return recipeDetail;
-    }
-
-    public void setRecipeDetail(List<Recipedetail> recipeDetail) {
-        this.recipeDetail = recipeDetail;
     }
 
     public Integer getCouponId() {
