@@ -268,8 +268,8 @@ public class RecipeService {
      * @return int
      */
     @RpcService
-    public Integer saveRecipeData(Recipe recipe, List<Recipedetail> details) {
-        return RecipeServiceSub.saveRecipeDataImpl(recipe, details, 1);
+    public Integer saveRecipeData(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
+        return RecipeServiceSub.saveRecipeDataImpl(recipeBean, detailBeanList, 1);
     }
 
     /**
@@ -279,7 +279,7 @@ public class RecipeService {
      * @param details
      * @return
      */
-    public Integer saveRecipeDataForHos(Recipe recipe, List<Recipedetail> details) {
+    public Integer saveRecipeDataForHos(RecipeBean recipe, List<RecipeDetailBean> details) {
         return RecipeServiceSub.saveRecipeDataImpl(recipe, details, 0);
     }
 
@@ -637,14 +637,14 @@ public class RecipeService {
      * @return
      */
     @RpcService
-    public Map<String, Object> sendDistributionRecipe(Recipe recipe, List<Recipedetail> details) {
-        if (null == recipe) {
+    public Map<String, Object> sendDistributionRecipe(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
+        if (null == recipeBean) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "传入参数为空");
         }
 
-        recipe.setDistributionFlag(1);
-        recipe.setGiveMode(RecipeBussConstant.GIVEMODE_SEND_TO_HOME);
-        return doSignRecipeExt(recipe, details);
+        recipeBean.setDistributionFlag(1);
+        recipeBean.setGiveMode(RecipeBussConstant.GIVEMODE_SEND_TO_HOME);
+        return doSignRecipeExt(recipeBean, detailBeanList);
     }
 
     /**
@@ -655,7 +655,7 @@ public class RecipeService {
      * @return Map<String, Object>
      */
     @RpcService
-    public Map<String, Object> doSignRecipe(Recipe recipe, List<Recipedetail> details) {
+    public Map<String, Object> doSignRecipe(RecipeBean recipe, List<RecipeDetailBean> details) {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
         DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
@@ -686,6 +686,7 @@ public class RecipeService {
             updateRecipeAndDetail(recipe, details);
         } else {
             recipeId = saveRecipeData(recipe, details);
+            recipe.setRecipeId(recipeId);
         }
 
         //非只能配送处方需要进行医院库存校验
@@ -740,16 +741,19 @@ public class RecipeService {
      * @param recipedetails 处方详情
      */
     @RpcService
-    public Integer updateRecipeAndDetail(Recipe recipe, List<Recipedetail> recipedetails) {
-        if (recipe == null) {
+    public Integer updateRecipeAndDetail(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
+        if (recipeBean == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "recipe is required!");
         }
-        Integer recipeId = recipe.getRecipeId();
+        Integer recipeId = recipeBean.getRecipeId();
         if (recipeId == null || recipeId <= 0) {
             throw new DAOException(DAOException.VALUE_NEEDED, "recipeId is required!");
         }
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
+
+        Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
+        List<Recipedetail> recipedetails = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
 
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
         if (null == dbRecipe.getStatus() || dbRecipe.getStatus() > RecipeStatusConstant.UNSIGN) {
@@ -796,14 +800,16 @@ public class RecipeService {
      * @paran consultId  咨询单Id
      */
     @RpcService
-    public Map<String, Object> doSignRecipeExt(Recipe recipe, List<Recipedetail> details) {
-        Map<String, Object> rMap = doSignRecipe(recipe, details);
+    public Map<String, Object> doSignRecipeExt(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
+        Map<String, Object> rMap = doSignRecipe(recipeBean, detailBeanList);
         //获取处方签名结果
         Boolean result = Boolean.parseBoolean(rMap.get("signResult").toString());
         if (result) {
             //非可使用省医保的处方立即发送处方卡片，使用省医保的处方需要在药师审核通过后显示
-            if (!recipe.canMedicalPay()) {
+            if (!recipeBean.canMedicalPay()) {
                 //发送卡片
+                Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
+                List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
                 RecipeServiceSub.sendRecipeTagToPatient(recipe, details, rMap, false);
             }
         }
@@ -818,7 +824,7 @@ public class RecipeService {
      * @return
      */
     @RpcService
-    public RecipeResultBean doSecondSignRecipe(Recipe recipe) {
+    public RecipeResultBean doSecondSignRecipe(RecipeBean recipe) {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);

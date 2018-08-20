@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * @author： 0184/yu_yun
  * @date： 2018/6/28
- * @description： 医院处方
+ * @description： 接收医院处方,与cdr_recipe不同表
  * @version： 1.0
  */
 

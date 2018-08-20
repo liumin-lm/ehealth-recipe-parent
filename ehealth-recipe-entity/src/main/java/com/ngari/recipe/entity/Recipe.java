@@ -1127,11 +1127,6 @@ public class Recipe implements Serializable {
         this.distributionFlag = distributionFlag;
     }
 
-    public boolean onlyDistribution() {
-        Integer distribution = 1;
-        return (distribution.equals(distributionFlag)) ? true : false;
-    }
-
     @Column(name = "RecipeMemo")
     public String getRecipeMemo() {
         return recipeMemo;

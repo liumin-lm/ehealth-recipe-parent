@@ -1,12 +1,14 @@
 package recipe.mq;
 
+import static com.ngari.patient.constant.OnsConfig.patientTopic;
+
 /**
  * Created by Administrator on 2016/6/13 0013.
  */
 public class OnsConfig {
     public static boolean onsSwitch;
 
-    public static String patientTopic;
+    public static String basicInfoTopic;
 
     public static boolean isOnsSwitch() {
         return onsSwitch;
@@ -16,11 +18,11 @@ public class OnsConfig {
         OnsConfig.onsSwitch = onsSwitch;
     }
 
-    public static String getPatientTopic() {
-        return patientTopic;
+    public static String getBasicInfoTopic() {
+        return basicInfoTopic;
     }
 
-    public static void setPatientTopic(String patientTopic) {
-        OnsConfig.patientTopic = patientTopic;
+    public static void setBasicInfoTopic(String basicInfoTopic) {
+        OnsConfig.basicInfoTopic = basicInfoTopic;
     }
 }

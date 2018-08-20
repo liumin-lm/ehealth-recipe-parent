@@ -150,7 +150,7 @@ public class RemoteDrugEnterpriseService {
             result = drugEnterpriseService.findSupportDep(recipeIds, drugsEnterprise);
             LOGGER.info("findSupportDep recipeIds={}, DrugEnterpriseResult={}", JSONUtils.toString(recipeIds), JSONUtils.toString(result));
         } else {
-            LOGGER.error("findSupportDep param error. recipeIds={}, drugsEnterprise={}", JSONUtils.toString(recipeIds), JSONUtils.toString(drugsEnterprise));
+            LOGGER.warn("findSupportDep param error. recipeIds={}, drugsEnterprise={}", JSONUtils.toString(recipeIds), JSONUtils.toString(drugsEnterprise));
         }
 
         return result;
@@ -180,7 +180,7 @@ public class RemoteDrugEnterpriseService {
                             drugEnterpriseService.syncEnterpriseDrug(drugsEnterprise, drugIdList);
                         }
                     } else {
-                        LOGGER.error("syncDrugTask 药企[{}]无可同步药品.", drugsEnterprise.getName());
+                        LOGGER.warn("syncDrugTask 药企[{}]无可同步药品.", drugsEnterprise.getName());
                     }
                 }
             }
@@ -257,7 +257,7 @@ public class RemoteDrugEnterpriseService {
                 LOGGER.info("getServiceByDep 获取[{}]协议实现.service=[{}]",drugsEnterprise.getName(),beanName);
                 drugEnterpriseService = getBean(beanName, AccessDrugEnterpriseService.class);
             } catch (Exception e) {
-                LOGGER.error("getServiceByDep 未找到[{}]药企实现，使用通用协议处理. beanName={}",drugsEnterprise.getName(),beanName);
+                LOGGER.warn("getServiceByDep 未找到[{}]药企实现，使用通用协议处理. beanName={}",drugsEnterprise.getName(),beanName);
                 drugEnterpriseService = getBean(COMMON_SERVICE, AccessDrugEnterpriseService.class);
             }
         }
