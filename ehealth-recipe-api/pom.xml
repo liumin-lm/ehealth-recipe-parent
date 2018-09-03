@@ -13,4 +13,12 @@
     <name>处方API</name>
     <description>处方API</description>
     <artifactId>ehealth-recipe-api</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>ssdev</groupId>
+            <artifactId>ssdev-mixins</artifactId>
+            <version>${ssdev.version}</version>
+        </dependency>
+    </dependencies>
 </project>
