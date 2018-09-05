@@ -1,6 +1,6 @@
 package recipe.util;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,8 +12,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationUtils;
-import redis.clients.jedis.ShardedJedis;
-import redis.clients.jedis.ShardedJedisPool;
 
 import javax.annotation.Resource;
 import java.io.UnsupportedEncodingException;
@@ -87,7 +85,7 @@ public class RedisClient {
     }
 
     /**
-     * 配合hget使用
+     * 配合hget使用，慎用，数量太大会挂起其他操作线程，还可能引起OOM
      */
     @SuppressWarnings("unchecked")
     public <T> Map<String, T> hGetAll(final String name) {
@@ -203,8 +201,8 @@ public class RedisClient {
      * @param pattern,类似key:*
      * @return
      */
-    public List<String> scan(final String pattern) {
-        return scan(pattern, 1000);
+    public Set<String> scan(final String pattern) {
+        return scan(pattern, 10000);
     }
 
     /**
@@ -214,16 +212,16 @@ public class RedisClient {
      * @return
      */
     @SuppressWarnings("unchecked")
-    private List<String> scan(final String pattern, final int count) {
-        return (List<String>)redisTemplate.execute(new RedisCallback<List<String>>() {
-            public List<String> doInRedis(RedisConnection connection)
+    private Set<String> scan(final String pattern, final int count) {
+        return (Set<String>)redisTemplate.execute(new RedisCallback<Set<String>>() {
+            public Set<String> doInRedis(RedisConnection connection)
                     throws DataAccessException {
                 ScanOptions.ScanOptionsBuilder builder = ScanOptions.scanOptions().count(count);
                 if (StringUtils.isNotBlank(pattern)) {
                     builder.match(pattern);
                 }
                 Cursor<byte[]> cursor = connection.scan(builder.build());
-                ArrayList<String> result = Lists.newArrayList();
+                Set<String> result = Sets.newHashSetWithExpectedSize(1 << 10);
                 while (cursor.hasNext()) {
                     byte[] bytes = cursor.next();
                     String field_ = keySerializer.deserialize(bytes);
@@ -233,6 +231,7 @@ public class RedisClient {
             }
         });
     }
+
 
     @SuppressWarnings("unchecked")
     public <T> T get(final String key) {
@@ -455,30 +454,5 @@ public class RedisClient {
 
     public void setValueSerializer(RedisSerializer valueSerializer) {
         this.valueSerializer = valueSerializer;
-    }
-
-
-    private void returnBrokenResource(ShardedJedis shardedJedis) {
-        if (shardedJedis == null) {
-            return;
-        }
-        try {
-            shardedJedis.close();
-            //shardedJedisPool.returnBrokenResource(shardedJedis);
-        } catch (Exception e) {
-            log.error("returnBrokenResource error.", e);
-        }
-    }
-
-    private void returnResource(ShardedJedis shardedJedis) {
-        if (shardedJedis == null) {
-            return;
-        }
-        try {
-            shardedJedis.close();
-            //shardedJedisPool.returnResource(shardedJedis);
-        } catch (Exception e) {
-            log.error("returnResource error.", e);
-        }
     }
 }
