@@ -9,7 +9,7 @@
 
 	<!--<context:property-placeholder location="classpath:config.properties" file-encoding="UTF-8" />-->
 	<apollo:config />
-	<!--<apollo:config namespaces="DEV.publicUrl"/>-->
+	<apollo:config namespaces="DEV.publicUrl"/>
 
 	<import resource="classpath:/ctd/util/exp/spring-expr-base.xml"/>
 	<import resource="spring-hibernate.xml" />
