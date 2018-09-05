@@ -13,8 +13,5 @@
     <packaging>jar</packaging>
     <name>购买处方</name>
     <description>购买处方</description>
-    <dependencies>
-
-    </dependencies>
 
 </project>

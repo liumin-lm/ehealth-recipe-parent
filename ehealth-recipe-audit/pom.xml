@@ -13,8 +13,5 @@
     <artifactId>ehealth-recipe-audit</artifactId>
     <name>审核处方</name>
     <description>审核处方</description>
-    <dependencies>
-
-    </dependencies>
 
 </project>

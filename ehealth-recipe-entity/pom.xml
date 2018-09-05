@@ -14,4 +14,11 @@
     <name>entity</name>
     <description>entity</description>
     <artifactId>ehealth-recipe-entity</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>ssdev</groupId>
+            <artifactId>ssdev-mixins</artifactId>
+        </dependency>
+    </dependencies>
 </project>

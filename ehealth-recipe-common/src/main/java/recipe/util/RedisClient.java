@@ -15,7 +15,10 @@ import org.springframework.data.redis.serializer.SerializationUtils;
 
 import javax.annotation.Resource;
 import java.io.UnsupportedEncodingException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * created by shiyuping on 2018/9/3
@@ -35,11 +38,12 @@ public class RedisClient {
 
     private RedisSerializer valueSerializer;
 
-    private RedisClient(){
+    private RedisClient() {
         instance = this;
     }
-    public static RedisClient instance(){
-        if (instance == null){
+
+    public static RedisClient instance() {
+        if (instance == null) {
             instance = new RedisClient();
         }
         return instance;
@@ -53,33 +57,35 @@ public class RedisClient {
      * 用于设置hash结构数据的ttl
      */
     private Set<String> keySet = new HashSet<>();
+
     /**
      * 配合hset使用，用于获取java对象或者String
      */
     @SuppressWarnings("unchecked")
-    public <T> T hget(final String name,final String field) {
+    public <T> T hget(final String name, final String field) {
         return (T) redisTemplate.execute(new RedisCallback<T>() {
             public T doInRedis(RedisConnection connection)
                     throws DataAccessException {
                 byte[] name_ = keySerializer.serialize(name);
                 byte[] field_ = keySerializer.serialize(field);
-                byte[] value_ = connection.hGet(name_,field_);
+                byte[] value_ = connection.hGet(name_, field_);
                 return (T) valueSerializer.deserialize(value_);
             }
         });
     }
+
     /**
      * 配合hget使用，用于存放java 对象或者String
      */
     @SuppressWarnings("unchecked")
-    public <T> boolean hset(final String name,final String field, final T val) {
+    public <T> boolean hset(final String name, final String field, final T val) {
         return (boolean) redisTemplate.execute(new RedisCallback<Boolean>() {
             public Boolean doInRedis(RedisConnection connection)
                     throws DataAccessException {
                 byte[] name_ = keySerializer.serialize(name);
                 byte[] field_ = keySerializer.serialize(field);
                 byte[] value_ = valueSerializer.serialize(val);
-                return connection.hSet(name_,field_,value_);
+                return connection.hSet(name_, field_, value_);
             }
         });
     }
@@ -139,13 +145,13 @@ public class RedisClient {
     /**
      * 配合hincrby方法,用于获取计数值
      */
-    public Long hgetNum(final String name,final String field) throws UnsupportedEncodingException {
-        return (Long)redisTemplate.execute(new RedisCallback<Long>() {
+    public Long hgetNum(final String name, final String field) throws UnsupportedEncodingException {
+        return (Long) redisTemplate.execute(new RedisCallback<Long>() {
             public Long doInRedis(RedisConnection connection)
                     throws DataAccessException {
                 byte[] name_ = keySerializer.serialize(name);
                 byte[] field_ = keySerializer.serialize(field);
-                byte[] value_ = connection.hGet(name_,field_);
+                byte[] value_ = connection.hGet(name_, field_);
                 try {
                     return Long.parseLong(new String(value_, "UTF-8"));
                 } catch (UnsupportedEncodingException e) {
@@ -159,35 +165,36 @@ public class RedisClient {
     /**
      * 配合hgetNum使用，设置计数，支持加减
      */
-    public  Long hincrby(final String name,final String field, final long val) {
+    public Long hincrby(final String name, final String field, final long val) {
         return (Long) redisTemplate.execute(new RedisCallback<Long>() {
             public Long doInRedis(RedisConnection connection)
                     throws DataAccessException {
                 byte[] name_ = keySerializer.serialize(name);
                 byte[] field_ = keySerializer.serialize(field);
-                return connection.hIncrBy(name_,field_,val);
+                return connection.hIncrBy(name_, field_, val);
             }
         });
     }
 
     @SuppressWarnings("unchecked")
-    public <T> boolean hsetEx(final String name,final String field, final T val,final Long ttl) {
+    public <T> boolean hsetEx(final String name, final String field, final T val, final Long ttl) {
         return (boolean) redisTemplate.execute(new RedisCallback<Boolean>() {
             public Boolean doInRedis(RedisConnection connection)
                     throws DataAccessException {
                 byte[] name_ = keySerializer.serialize(name);
                 byte[] field_ = keySerializer.serialize(field);
                 byte[] value_ = valueSerializer.serialize(val);
-                if(!keySet.contains(name)){
-                    boolean flag = connection.expire(name_,ttl==null?7*24*3600L:ttl);
-                    if(flag){
+                if (!keySet.contains(name)) {
+                    boolean flag = connection.expire(name_, ttl == null ? 7 * 24 * 3600L : ttl);
+                    if (flag) {
                         keySet.add(name);
                     }
                 }
-                return connection.hSet(name_,field_,value_);
+                return connection.hSet(name_, field_, value_);
             }
         });
     }
+
     /**
      * Created by shenhj on 2017/4/22.
      * return items(Long)
@@ -198,7 +205,7 @@ public class RedisClient {
                     throws DataAccessException {
                 byte[] name_ = keySerializer.serialize(name);
                 byte[] field_ = keySerializer.serialize(field);
-                return connection.hDel(name_,field_);
+                return connection.hDel(name_, field_);
             }
         });
     }
@@ -219,9 +226,9 @@ public class RedisClient {
                     throws DataAccessException {
                 byte[] name_ = keySerializer.serialize(name);
                 byte[] field_ = keySerializer.serialize(field);
-                if (Boolean.TRUE.equals(connection.hExists(name_,field_))) {
+                if (Boolean.TRUE.equals(connection.hExists(name_, field_))) {
                     return true;
-                }else{
+                } else {
                     return false;
                 }
             }
@@ -237,14 +244,13 @@ public class RedisClient {
     }
 
     /**
-     *
      * @param pattern
-     * @param count 每次扫描记录数
+     * @param count   每次扫描记录数
      * @return
      */
     @SuppressWarnings("unchecked")
     private Set<String> scan(final String pattern, final int count) {
-        return (Set<String>)redisTemplate.execute(new RedisCallback<Set<String>>() {
+        return (Set<String>) redisTemplate.execute(new RedisCallback<Set<String>>() {
             public Set<String> doInRedis(RedisConnection connection)
                     throws DataAccessException {
                 ScanOptions.ScanOptionsBuilder builder = ScanOptions.scanOptions().count(count);
@@ -275,6 +281,7 @@ public class RedisClient {
             }
         });
     }
+
     /**
      * Created by shenhj on 2017/4/22.
      * EX   seconds  -- Set the specified expire time, in seconds.
@@ -287,7 +294,7 @@ public class RedisClient {
                     throws DataAccessException {
                 byte[] key_ = keySerializer.serialize(key);
                 byte[] value_ = valueSerializer.serialize(val);
-                connection.setEx(key_, 7*24*3600L,value_);
+                connection.setEx(key_, 7 * 24 * 3600L, value_);
                 return null;
             }
         });
@@ -300,7 +307,7 @@ public class RedisClient {
                 byte[] key_ = keySerializer.serialize(key);
                 if (Boolean.TRUE.equals(connection.exists(key_))) {
                     return true;
-                }else{
+                } else {
                     return false;
                 }
             }
@@ -333,7 +340,7 @@ public class RedisClient {
                 byte[] value_ = valueSerializer.serialize(val);
                 if (Boolean.TRUE.equals(connection.setNX(key_, value_))) {
                     return true;
-                }else{
+                } else {
                     return false;
                 }
             }
@@ -361,30 +368,33 @@ public class RedisClient {
 
     /**
      * 设置超时时间
+     *
      * @param key
      * @param timeout 超时时间 单位秒
      * @return
      */
-    public boolean setex(final String key,final long timeout) {
+    public boolean setex(final String key, final long timeout) {
         return (boolean) redisTemplate.execute(new RedisCallback<Boolean>() {
             public Boolean doInRedis(RedisConnection connection)
                     throws DataAccessException {
                 byte[] key_ = keySerializer.serialize(key);
-                if (Boolean.TRUE.equals(connection.expire(key_,timeout))) {
+                if (Boolean.TRUE.equals(connection.expire(key_, timeout))) {
                     return true;
-                }else{
+                } else {
                     return false;
                 }
             }
         });
     }
+
     /**
      * 设置次数
+     *
      * @param key key
      * @param num 增加的次数
      * @return 加上之后的次数
      */
-    public Long incr(final String key,final long num) {
+    public Long incr(final String key, final long num) {
         return (Long) redisTemplate.execute(new RedisCallback<Long>() {
             public Long doInRedis(RedisConnection connection)
                     throws DataAccessException {
@@ -401,8 +411,8 @@ public class RedisClient {
     /**
      * 用于存放set结构
      */
-    public <T> Long sAdd(final String key, final T... values){
-        return (Long)redisTemplate.execute(new RedisCallback<Long>() {
+    public <T> Long sAdd(final String key, final T... values) {
+        return (Long) redisTemplate.execute(new RedisCallback<Long>() {
             public Long doInRedis(RedisConnection connection) {
                 byte[] key_ = keySerializer.serialize(key);
                 byte[][] rawValues = serializeValues(values);
@@ -410,40 +420,43 @@ public class RedisClient {
             }
         });
     }
+
     /**
      * set结构中是否存在成员
      */
     @SuppressWarnings("unchecked")
-    public <T> boolean sIsMemeber(final String key,final T val){
-        return (boolean)redisTemplate.execute(new RedisCallback<Boolean>() {
+    public <T> boolean sIsMemeber(final String key, final T val) {
+        return (boolean) redisTemplate.execute(new RedisCallback<Boolean>() {
             public Boolean doInRedis(RedisConnection connection) {
                 byte[] key_ = keySerializer.serialize(key);
                 byte[] value_ = valueSerializer.serialize(val);
                 if (Boolean.TRUE.equals(connection.sIsMember(key_, value_))) {
                     return true;
-                }else{
+                } else {
                     return false;
                 }
             }
         });
     }
+
     /**
      * 获取全部set成员
      */
     public Set sMembers(final String key) {
-        return  (Set)redisTemplate.execute(new RedisCallback<Set>() {
+        return (Set) redisTemplate.execute(new RedisCallback<Set>() {
             public Set doInRedis(RedisConnection connection) {
                 byte[] key_ = keySerializer.serialize(key);
-                Set<byte[]> rawValues =  connection.sMembers(key_);
-                return (Set)deserializeRawValues(rawValues);
+                Set<byte[]> rawValues = connection.sMembers(key_);
+                return (Set) deserializeRawValues(rawValues);
             }
         });
     }
+
     /**
      * set结构,删除成员
      */
-    public <T> Long sRemove(final String key,final T...values) {
-        return (Long)redisTemplate.execute(new RedisCallback<Long>() {
+    public <T> Long sRemove(final String key, final T... values) {
+        return (Long) redisTemplate.execute(new RedisCallback<Long>() {
             public Long doInRedis(RedisConnection connection) {
                 byte[] key_ = keySerializer.serialize(key);
                 byte[][] rawValues = serializeValues(values);
@@ -464,7 +477,7 @@ public class RedisClient {
         Object[] objects = values;
         int length = values.length;
 
-        for(int j = 0; j < length; ++j) {
+        for (int j = 0; j < length; ++j) {
             Object value = objects[j];
             rawValues[i++] = valueSerializer.serialize(value);
         }
