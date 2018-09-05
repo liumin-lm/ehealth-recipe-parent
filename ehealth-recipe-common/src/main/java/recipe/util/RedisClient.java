@@ -85,6 +85,37 @@ public class RedisClient {
     }
 
     /**
+     * 配合hset使用，用于分页获取hash结构
+     * @param name
+     * @param count 每次扫描行数，并非分页数
+     * @param pattern 用于模糊匹配field,类似通配符的使用:field*
+     * @param <T>
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public <T> Map<String, T> hScan(final String name,final int count,final String pattern) {
+        return (Map<String, T>)redisTemplate.execute(new RedisCallback<Map<String, T>>() {
+            public Map<String, T> doInRedis(RedisConnection connection)
+                    throws DataAccessException {
+                byte[] name_ = keySerializer.serialize(name);
+                ScanOptions.ScanOptionsBuilder builder = ScanOptions.scanOptions().count(count);
+                if (StringUtils.isNotBlank(pattern)) {
+                    builder.match(pattern);
+                }
+                Cursor<Map.Entry<byte[], byte[]>> entryCursor = connection.hScan(name_, builder.build());
+                Map<String, T> result = new HashMap<>();
+                while (entryCursor.hasNext()) {
+                    Map.Entry<byte[], byte[]> entry = entryCursor.next();
+                    String field_ = keySerializer.deserialize(entry.getKey());
+                    T value_ = (T) valueSerializer.deserialize(entry.getValue());
+                    result.put(field_,value_);
+                }
+                return result;
+            }
+        });
+    }
+
+    /**
      * 配合hget使用，慎用，数量太大会挂起其他操作线程，还可能引起OOM
      */
     @SuppressWarnings("unchecked")
