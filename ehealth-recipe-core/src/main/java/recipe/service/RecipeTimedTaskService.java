@@ -2,28 +2,40 @@ package recipe.service;
 
 import com.google.common.collect.Maps;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.service.IRecipeService;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.util.DateConversion;
+import recipe.util.RedisClient;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 电子处方定时任务服务
  * @author yuyun
  */
-@RpcBean("recipeTimedTaskService")
+@RpcBean(value = "recipeTimedTaskService")
 public class RecipeTimedTaskService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeTimedTaskService.class);
+
+    private static final String HIS_RECIPE_KEY_PREFIX =  "hisRecipe_";
+
+    @Autowired
+    private IRecipeService iRecipeService;
+
 
     /**
      * 定时任务 钥匙圈处方 配送中状态 持续一周后系统自动完成该笔业务
@@ -52,6 +64,49 @@ public class RecipeTimedTaskService {
             }
         }
         LOGGER.info("autoFinishRecipeTask size={}", null == recipes ? "null" : recipes.size());
+
+    }
+
+    /**
+     * 定时任务 每天12:10点定时将redis里的处方和处方详情保存到数据库
+     */
+    @RpcService
+    @SuppressWarnings("unchecked")
+    public void autoSaveRecipeByRedis(){
+        RedisClient redisClient = RedisClient.instance();
+        RecipeBean recipeBean;
+        List<RecipeDetailBean> recipeDetailBeans;
+        Map<String,Object> objectMap;
+        //遍历redis里带有hisRecipe_前缀的所有keys
+        Set<String> keys = redisClient.scan(HIS_RECIPE_KEY_PREFIX+"*");
+        //取出每一个key对应的map
+        if (null != keys && keys.size() > 0) {
+            for (String key : keys) {
+                Map<String, Object> map = redisClient.hScan(key,10000,"*");
+                //遍历map取出value
+                for (Map.Entry<String,Object> entry : map.entrySet()){
+
+                    objectMap =(Map<String,Object>)entry.getValue();
+                    //取到需要保存处方单和处方详情，save到数据库
+                    recipeBean = (RecipeBean) objectMap.get("recipeBean");
+                    recipeDetailBeans = (List<RecipeDetailBean>) objectMap.get("recipeDetailBeans");
+                    boolean flag = true;
+                    try {
+                        iRecipeService.saveRecipeDataFromPayment(recipeBean, recipeDetailBeans);
+                    }catch (Exception e) {
+                        LOGGER.error("recipeService.saveRecipeDataFromPayment error" + e.toString());
+                        flag = false;
+                    }finally {
+                        //删除redis key
+                        if (flag){
+                            redisClient.del(key);
+                        }
+
+                    }
+                }
+
+            }
+        }
 
     }
 }
