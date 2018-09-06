@@ -87,10 +87,6 @@
                     </exclusion>
                     <exclusion>
                         <groupId>${project.parent.groupId}</groupId>
-                        <artifactId>ehealth-utils</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>${project.parent.groupId}</groupId>
                         <artifactId>ehealth-base-api</artifactId>
                     </exclusion>
                 </exclusions>
@@ -126,6 +122,20 @@
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-base-api</artifactId>
                 <version>${project.parent.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>ssdev</groupId>
+                        <artifactId>ssdev-mvc</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>${project.parent.groupId}</groupId>
+                        <artifactId>ehealth-utils</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>${project.parent.groupId}</groupId>
+                        <artifactId>ehealth-basic-dto</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>com.ctrip.framework.apollo</groupId>
