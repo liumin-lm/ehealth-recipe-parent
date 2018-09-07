@@ -4,7 +4,6 @@ import com.google.common.collect.Maps;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipe.service.IRecipeService;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -15,6 +14,7 @@ import recipe.ApplicationUtils;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
+import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.DateConversion;
 import recipe.util.RedisClient;
 
@@ -34,7 +34,7 @@ public class RecipeTimedTaskService {
     private static final String HIS_RECIPE_KEY_PREFIX =  "hisRecipe_";
 
     @Autowired
-    private IRecipeService iRecipeService;
+    private RemoteRecipeService remoteRecipeService;
 
 
     /**
@@ -77,11 +77,22 @@ public class RecipeTimedTaskService {
         List<RecipeDetailBean> recipeDetailBeans;
         Map<String,Object> objectMap;
         //遍历redis里带有hisRecipe_前缀的所有keys
-        Set<String> keys = redisClient.scan(HIS_RECIPE_KEY_PREFIX+"*");
+        Set<String> keys = null;
+        try {
+            keys = redisClient.scan(HIS_RECIPE_KEY_PREFIX+"*");
+        } catch (Exception e) {
+            LOGGER.error("redis error" + e.toString());
+        }
         //取出每一个key对应的map
+        Map<String, Object> map;
         if (null != keys && keys.size() > 0) {
             for (String key : keys) {
-                Map<String, Object> map = redisClient.hScan(key,10000,"*");
+                try {
+                    map = redisClient.hScan(key,10000,"*");
+                } catch (Exception e) {
+                    LOGGER.error("redis error" + e.toString());
+                    continue;
+                }
                 //遍历map取出value
                 for (Map.Entry<String,Object> entry : map.entrySet()){
 
@@ -91,7 +102,7 @@ public class RecipeTimedTaskService {
                     recipeDetailBeans = (List<RecipeDetailBean>) objectMap.get("recipeDetailBeans");
                     boolean flag = true;
                     try {
-                        iRecipeService.saveRecipeDataFromPayment(recipeBean, recipeDetailBeans);
+                        remoteRecipeService.saveRecipeDataFromPayment(recipeBean, recipeDetailBeans);
                     }catch (Exception e) {
                         LOGGER.error("recipeService.saveRecipeDataFromPayment error" + e.toString());
                         flag = false;
