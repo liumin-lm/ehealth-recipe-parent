@@ -4,6 +4,7 @@ import com.ngari.recipe.drugsenterprise.model.EnterpriseAddressDTO;
 import com.ngari.recipe.drugsenterprise.service.IEnterpriseAddressService;
 import com.ngari.recipe.entity.EnterpriseAddress;
 import ctd.persistence.DAOFactory;
+import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import recipe.dao.EnterpriseAddressDAO;
 import recipe.serviceprovider.BaseService;
@@ -16,6 +17,7 @@ import java.util.List;
  * @description： TODO
  * @version： 1.0
  */
+@RpcBean("remoteEnterpriseAddressService")
 public class RemoteEnterpriseAddressService extends BaseService<EnterpriseAddressDTO> implements IEnterpriseAddressService {
 
     @RpcService
