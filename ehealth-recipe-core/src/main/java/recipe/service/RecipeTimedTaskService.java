@@ -71,7 +71,6 @@ public class RecipeTimedTaskService {
      * 定时任务 每天12:10点定时将redis里的处方和处方详情保存到数据库
      */
     @RpcService
-    @SuppressWarnings("unchecked")
     public void autoSaveRecipeByRedis(){
         RedisClient redisClient = RedisClient.instance();
         RecipeBean recipeBean;

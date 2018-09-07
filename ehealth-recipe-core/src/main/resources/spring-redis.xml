@@ -66,6 +66,7 @@
         <property name="valueSerializer">
             <bean class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer" />
         </property>
+        <property name="redisTemplate" ref="redisTemplate" />
     </bean>
     <!--<ssdev:service ref="invokeLimiter"/>-->
 </beans>

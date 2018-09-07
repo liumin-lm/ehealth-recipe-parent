@@ -13,7 +13,6 @@ import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationUtils;
 
-import javax.annotation.Resource;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,7 +25,6 @@ import java.util.Set;
 public class RedisClient {
     private static final Logger log = LoggerFactory.getLogger(RedisClient.class);
 
-    @Resource(name = "redisTemplate")
     private RedisTemplate redisTemplate;
 
     /**
@@ -44,14 +42,16 @@ public class RedisClient {
 
     public static RedisClient instance() {
         if (instance == null) {
-            instance = new RedisClient();
+            synchronized (RedisClient.class) {
+                if (null == instance) {
+                    instance = new RedisClient();
+                }
+            }
         }
+
         return instance;
     }
 
-    public RedisTemplate getRedisTemplate() {
-        return redisTemplate;
-    }
 
     /**
      * 用于设置hash结构数据的ttl
@@ -92,15 +92,16 @@ public class RedisClient {
 
     /**
      * 配合hset使用，用于分页获取hash结构
+     *
      * @param name
-     * @param count 每次扫描行数，并非分页数
+     * @param count   每次扫描行数，并非分页数
      * @param pattern 用于模糊匹配field,类似通配符的使用:field*
      * @param <T>
      * @return
      */
     @SuppressWarnings("unchecked")
-    public <T> Map<String, T> hScan(final String name,final int count,final String pattern) {
-        return (Map<String, T>)redisTemplate.execute(new RedisCallback<Map<String, T>>() {
+    public <T> Map<String, T> hScan(final String name, final int count, final String pattern) {
+        return (Map<String, T>) redisTemplate.execute(new RedisCallback<Map<String, T>>() {
             public Map<String, T> doInRedis(RedisConnection connection)
                     throws DataAccessException {
                 byte[] name_ = keySerializer.serialize(name);
@@ -114,7 +115,7 @@ public class RedisClient {
                     Map.Entry<byte[], byte[]> entry = entryCursor.next();
                     String field_ = keySerializer.deserialize(entry.getKey());
                     T value_ = (T) valueSerializer.deserialize(entry.getValue());
-                    result.put(field_,value_);
+                    result.put(field_, value_);
                 }
                 return result;
             }
@@ -498,5 +499,9 @@ public class RedisClient {
 
     public void setValueSerializer(RedisSerializer valueSerializer) {
         this.valueSerializer = valueSerializer;
+    }
+
+    public void setRedisTemplate(RedisTemplate redisTemplate) {
+        this.redisTemplate = redisTemplate;
     }
 }
