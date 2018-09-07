@@ -62,10 +62,6 @@
                         <groupId>ssdev</groupId>
                         <artifactId>ssdev-mvc</artifactId>
                     </exclusion>
-                    <exclusion>
-                        <groupId>${project.groupId}</groupId>
-                        <artifactId>ehealth-utils</artifactId>
-                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
