@@ -24,6 +24,7 @@ import java.util.Set;
 
 /**
  * 电子处方定时任务服务
+ *
  * @author yuyun
  */
 @RpcBean(value = "recipeTimedTaskService")
@@ -31,7 +32,7 @@ public class RecipeTimedTaskService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeTimedTaskService.class);
 
-    private static final String HIS_RECIPE_KEY_PREFIX =  "hisRecipe_";
+    private static final String HIS_RECIPE_KEY_PREFIX = "hisRecipe_";
 
     @Autowired
     private RemoteRecipeService remoteRecipeService;
@@ -71,44 +72,39 @@ public class RecipeTimedTaskService {
      * 定时任务 每天12:10点定时将redis里的处方和处方详情保存到数据库
      */
     @RpcService
-    public void autoSaveRecipeByRedis(){
+    public void autoSaveRecipeByRedis() {
         RedisClient redisClient = RedisClient.instance();
         RecipeBean recipeBean;
         List<RecipeDetailBean> recipeDetailBeans;
-        Map<String,Object> objectMap;
+        Map<String, Object> objectMap;
         //遍历redis里带有hisRecipe_前缀的所有keys
         Set<String> keys = null;
         try {
-            keys = redisClient.scan(HIS_RECIPE_KEY_PREFIX+"*");
+            keys = redisClient.scan(HIS_RECIPE_KEY_PREFIX + "*");
         } catch (Exception e) {
             LOGGER.error("redis error" + e.toString());
+            return;
         }
         //取出每一个key对应的map
         Map<String, Object> map;
         if (null != keys && keys.size() > 0) {
             for (String key : keys) {
-                try {
-                    map = redisClient.hScan(key,10000,"*");
-                } catch (Exception e) {
-                    LOGGER.error("redis error" + e.toString());
-                    continue;
-                }
+                map = redisClient.hScan(key, 10000, "*");
                 //遍历map取出value
-                for (Map.Entry<String,Object> entry : map.entrySet()){
-
-                    objectMap =(Map<String,Object>)entry.getValue();
+                for (Map.Entry<String, Object> entry : map.entrySet()) {
+                    objectMap = (Map<String, Object>) entry.getValue();
                     //取到需要保存处方单和处方详情，save到数据库
                     recipeBean = (RecipeBean) objectMap.get("recipeBean");
                     recipeDetailBeans = (List<RecipeDetailBean>) objectMap.get("recipeDetailBeans");
                     boolean flag = true;
                     try {
                         remoteRecipeService.saveRecipeDataFromPayment(recipeBean, recipeDetailBeans);
-                    }catch (Exception e) {
+                    } catch (Exception e) {
                         LOGGER.error("recipeService.saveRecipeDataFromPayment error" + e.toString());
                         flag = false;
-                    }finally {
+                    } finally {
                         //删除redis key
-                        if (flag){
+                        if (flag) {
                             redisClient.del(key);
                         }
 
