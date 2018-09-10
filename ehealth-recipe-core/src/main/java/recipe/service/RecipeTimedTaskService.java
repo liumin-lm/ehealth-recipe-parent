@@ -90,6 +90,8 @@ public class RecipeTimedTaskService {
         if (null != keys && keys.size() > 0) {
             for (String key : keys) {
                 map = redisClient.hScan(key, 10000, "*");
+                LOGGER.info("autoSaveRecipeByRedis key={} map.size={}",key,map.size());
+                int num = 0;//统计保存成功的数量
                 //遍历map取出value
                 for (Map.Entry<String, Object> entry : map.entrySet()) {
                     objectMap = (Map<String, Object>) entry.getValue();
@@ -102,15 +104,15 @@ public class RecipeTimedTaskService {
                     } catch (Exception e) {
                         LOGGER.error("recipeService.saveRecipeDataFromPayment error" + e.toString());
                         flag = false;
-                    } finally {
-                        //删除redis key
-                        if (flag) {
-                            redisClient.del(key);
+                    }finally {
+                        if (flag){
+                            num++;
                         }
-
                     }
                 }
-
+                LOGGER.info("autoSaveRecipeByRedis key={} saveSuccess={}",key,num);
+                //删除redis key
+                redisClient.del(key);
             }
         }
 
