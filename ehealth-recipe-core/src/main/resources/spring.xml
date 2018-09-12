@@ -21,6 +21,7 @@
     <import resource="spring-service-basic.xml" />
     <import resource="spring-service-consult.xml" />
 	<import resource="spring-service-his-center.xml" />
+	<import resource="spring-service-opbase.xml"/>
 
 	<!--药企对接通用实现(国药协议)-->
 	<bean id="commonRemoteService" class="recipe.drugsenterprise.CommonRemoteService"></bean>

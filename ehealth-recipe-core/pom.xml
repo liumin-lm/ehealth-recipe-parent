@@ -50,6 +50,10 @@
             <artifactId>ehealth-his-api</artifactId>
         </dependency>
         <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>ehealth-opbase-api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>ssdev</groupId>
             <artifactId>ssdev-broadcast-support</artifactId>
         </dependency>

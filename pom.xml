@@ -134,6 +134,29 @@
                 </exclusions>
             </dependency>
             <dependency>
+                <groupId>${project.parent.groupId}</groupId>
+                <artifactId>ehealth-opbase-api</artifactId>
+                <version>${project.parent.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>ssdev</groupId>
+                        <artifactId>ssdev-mvc</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>${project.parent.groupId}</groupId>
+                        <artifactId>ehealth-utils</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>${project.parent.groupId}</groupId>
+                        <artifactId>ehealth-basic-dto</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>${project.parent.groupId}</groupId>
+                        <artifactId>ehealth-base-api</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
                 <groupId>com.ctrip.framework.apollo</groupId>
                 <artifactId>apollo-client</artifactId>
                 <version>0.8.0</version>
