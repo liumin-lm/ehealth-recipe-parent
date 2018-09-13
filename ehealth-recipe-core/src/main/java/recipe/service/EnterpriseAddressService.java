@@ -202,7 +202,7 @@ public class EnterpriseAddressService extends BaseService<EnterpriseAddressDTO> 
      * @return
      */
     @RpcService
-    public List<EnterpriseAddressDTO> findByEnterPriseId(final Integer enterpriseId) {
+    public List<EnterpriseAddressDTO> findByEnterPriseId(Integer enterpriseId) {
         EnterpriseAddressDAO dao = DAOFactory.getDAO(EnterpriseAddressDAO.class);
         return getList(dao.findByEnterPriseId(enterpriseId), EnterpriseAddressDTO.class);
     }
@@ -214,10 +214,9 @@ public class EnterpriseAddressService extends BaseService<EnterpriseAddressDTO> 
      * @return
      */
     @RpcService
-    public void deleteEnterpriseAddressById(final List<Integer> ids) {
+    public void deleteEnterpriseAddressById(List<Integer> ids) {
         EnterpriseAddressDAO addressDAO = DAOFactory.getDAO(EnterpriseAddressDAO.class);
         addressDAO.deleteEnterpriseAddressById(ids);
     }
-
 
 }

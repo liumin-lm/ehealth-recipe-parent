@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>1.5.0.release-SNAPSHOT</version>
+        <version>1.6.0.feature5-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -13,8 +13,5 @@
     <artifactId>ehealth-recipe-audit</artifactId>
     <name>审核处方</name>
     <description>审核处方</description>
-    <dependencies>
-
-    </dependencies>
 
 </project>
