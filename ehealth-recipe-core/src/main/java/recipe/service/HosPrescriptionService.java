@@ -31,7 +31,7 @@ import java.util.Map;
  * @author: 0184/yu_yun
  * @date:2017/4/17.
  */
-@RpcBean("remoteHosPrescriptionService")
+@RpcBean("hosPrescriptionService")
 public class HosPrescriptionService implements IHosPrescriptionService {
 
     /**

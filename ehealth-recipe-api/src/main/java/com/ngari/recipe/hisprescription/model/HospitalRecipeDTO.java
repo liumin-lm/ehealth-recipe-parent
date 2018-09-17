@@ -1,5 +1,6 @@
 package com.ngari.recipe.hisprescription.model;
 
+import com.ngari.recipe.common.anno.Verify;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
@@ -17,90 +18,133 @@ public class HospitalRecipeDTO implements Serializable {
 
     private static final long serialVersionUID = 5376913267069813730L;
 
+    @Verify(isNotNull = false, desc = "就诊序号")
     private String clinicId;
 
+    @Verify(isNotNull = false, desc = "患者id")
     private String mpiId;
 
+    @Verify(desc = "患者证件类型")
     private String certificateType;
 
+    @Verify(desc = "患者证件号")
     private String certificate;
 
+    @Verify(desc = "患者姓名")
     private String patientName;
 
+    @Verify(desc = "患者电话")
     private String patientTel;
 
+    @Verify(isNotNull = false, desc = "患者医院病历号")
     private String patientNumber;
 
+    @Verify(desc = "处方号")
     private String recipeCode;
 
+    @Verify(desc = "开方机构序号", isInt = true)
     private String clinicOrgan;
 
+    @Verify(desc = "处方类型", isInt = true)
     private String recipeType;
 
+    @Verify(desc = "开方科室", isInt = true)
     private String departId;
 
+    @Verify(desc = "开方医生工号")
     private String doctorNumber;
 
+    @Verify(desc = "开方医生姓名")
     private String doctorName;
 
+    @Verify(desc = "开方时间", isDate = true)
     private String createDate;
 
+    @Verify(desc = "处方金额", isMoney = true)
     private String recipeFee;
 
+    @Verify(desc = "实际支付金额", isMoney = true)
     private String actualFee;
 
+    @Verify(isNotNull = false, desc = "优惠金额", isMoney = true)
     private String couponFee;
 
+    @Verify(isNotNull = false, desc = "待煎费或者膏方制作费", isMoney = true)
     private String decoctionFee;
 
+    @Verify(isNotNull = false, desc = "医保报销金额", isMoney = true)
     private String medicalFee;
 
+    @Verify(isNotNull = false, desc = "配送费", isMoney = true)
     private String expressFee;
 
+    @Verify(desc = "订单总价，不计算减免的", isMoney = true)
     private String orderTotalFee;
 
+    @Verify(desc = "诊断疾病名称", maxLength = 250)
     private String organDiseaseName;
 
+    @Verify(desc = "诊断疾病编码", maxLength = 100)
     private String organDiseaseId;
 
+    @Verify(isNotNull = false, desc = "诊断备注", maxLength = 160)
     private String memo;
 
+    @Verify(isNotNull = false, desc = "审核机构")
     private String checkOrgan;
 
+    @Verify(isNotNull = false, desc = "审核时间", isDate = true)
     private String checkDate;
 
+    @Verify(isNotNull = false, desc = "审核医生姓名")
     private String checkerName;
 
+    @Verify(isNotNull = false, desc = "审核医生工号")
     private String checkerNumber;
 
+    @Verify(isNotNull = false, desc = "审核医生电话")
     private String checkerTel;
 
+    @Verify(isNotNull = false, desc = "处方审核备注", maxLength = 255)
     private String checkFailMemo;
 
+    @Verify(isNotNull = false, desc = "药师审核不通过，医生补充说明", maxLength = 100)
     private String supplementaryMemo;
 
+    @Verify(isNotNull = false, desc = "支付方式", isInt = true)
     private String payMode;
 
+    @Verify(isNotNull = false, desc = "发药方式", isInt = true)
     private String giveMode;
 
+    @Verify(isNotNull = false, desc = "发药人姓名")
     private String giveUser;
 
+    @Verify(desc = "处方状态", isInt = true)
     private String status;
 
+    @Verify(desc = "是否医保支付", isInt = true)
     private String medicalPayFlag;
 
+    @Verify(desc = "是否只走配送", isInt = true)
     private String distributionFlag;
 
+    @Verify(isNotNull = false, desc = "是否已支付", isInt = true)
     private String payFlag;
 
+    @Verify(isNotNull = false, desc = "处方备注", maxLength = 100)
     private String recipeMemo;
 
+    @Verify(isNotNull = false, desc = "中药处方用法")
     private String tcmUsePathways;
 
+    @Verify(isNotNull = false, desc = "中药处方用量")
     private String tcmUsingRate;
 
+    @Verify(isNotNull = false, desc = "帖数", isInt = true)
     private String tcmNum;
 
+    @Verify(desc = "药品详情")
     private List<HospitalDrugDTO> drugList;
 
     public String getClinicId() {
