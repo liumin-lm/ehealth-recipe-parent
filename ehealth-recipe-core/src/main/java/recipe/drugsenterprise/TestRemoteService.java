@@ -21,6 +21,11 @@ public class TestRemoteService extends AccessDrugEnterpriseService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestRemoteService.class);
 
     @Override
+    public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
+        LOGGER.info("TestRemoteService tokenUpdateImpl not implement.");
+    }
+
+    @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         LOGGER.info("TestRemoteService pushRecipeInfo not implement.");
         return DrugEnterpriseResult.getSuccess();

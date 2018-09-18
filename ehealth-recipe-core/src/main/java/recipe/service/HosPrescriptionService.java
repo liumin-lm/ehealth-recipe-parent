@@ -55,7 +55,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 
-            RecipeBean recipe = result.getRecipe();
+            /*RecipeBean recipe = result.getRecipe();
             HospitalRecipeDTO hospitalRecipe = result.getHospitalRecipe();
             Integer recipeId = result.getRecipeId();
             //已支付的处方不需要创建订单
@@ -115,11 +115,11 @@ public class HosPrescriptionService implements IHosPrescriptionService {
                 recipeService.delRecipeForce(recipeId);
                 result.setCode(RecipeCommonResTO.FAIL);
                 result.setMsg("处方[" + result.getRecipeCode() + "]订单创建失败, 原因：" + orderCreateResult.getMsg());
-            }
+            }*/
         }
 
-        result.setRecipe(null);
-        result.setHospitalRecipe(null);
+//        result.setRecipe(null);
+//        result.setHospitalRecipe(null);
         return result;
     }
 

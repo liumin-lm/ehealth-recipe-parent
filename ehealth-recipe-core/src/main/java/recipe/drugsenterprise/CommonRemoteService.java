@@ -18,10 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
-import recipe.dao.DrugListDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeOrderDAO;
+import recipe.dao.*;
 import recipe.service.RecipeLogService;
 import recipe.thread.CommonSyncDrugCallable;
 import recipe.thread.PushRecipToEpCallable;
@@ -42,6 +39,38 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonRemoteService.class);
 
     private static Integer RESULT_SUCCESS = 1;
+
+    @Override
+    public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        Map<String, Object> map = Maps.newHashMap();
+        map.put("userid", drugsEnterprise.getUserId());
+        map.put("password", drugsEnterprise.getPassword());
+        String depName = drugsEnterprise.getName();
+        Integer depId = drugsEnterprise.getId();
+        try {
+            if(-1 != drugsEnterprise.getAuthenUrl().indexOf("http:")) {
+                String backMsg = HttpHelper.doPost(drugsEnterprise.getAuthenUrl(), JSONUtils.toString(map));
+                LOGGER.info("[{}][{}]token更新返回：{}", depId, depName, backMsg);
+                if (StringUtils.isNotEmpty(backMsg)) {
+                    Map backMap = JSONUtils.parse(backMsg, Map.class);
+                    // code 1成功
+                    String code = "code";
+                    if (1 == MapValueUtil.getInteger(backMap, code)) {
+                        //成功
+                        String token = MapValueUtil.getString(backMap, "access_token");
+                        if (StringUtils.isNotEmpty(token)) {
+                            drugsEnterpriseDAO.updateTokenById(depId, token);
+                        }
+                    } else {
+                        LOGGER.warn("[{}][{}]更新返回失败. msg={}", depId, depName, MapValueUtil.getString(backMap, "message"));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.warn("[{}][{}]更新异常。", depId, depName, e);
+        }
+    }
 
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
