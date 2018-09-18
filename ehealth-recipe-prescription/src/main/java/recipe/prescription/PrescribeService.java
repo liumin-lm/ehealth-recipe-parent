@@ -19,10 +19,13 @@ import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.jce.provider.JDKMessageDigest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.common.CommonConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
@@ -53,12 +56,15 @@ public class PrescribeService {
     /**
      * 撤销标识
      */
-    private static final int CANCEL_FLAG = 2;
+    public static final int CANCEL_FLAG = 2;
 
     /**
      * 更新标识
      */
-    private static final int UPDATE_FLAG = 3;
+    public static final int UPDATE_FLAG = 3;
+
+    @Autowired
+    private RecipeDAO recipeDAO;
 
     /**
      * 创建处方
@@ -68,17 +74,37 @@ public class PrescribeService {
      */
     @RpcService
     public HosRecipeResult createPrescription(HospitalRecipeDTO hospitalRecipeDTO) {
+        HosRecipeResult result = new HosRecipeResult();
         if (null != hospitalRecipeDTO) {
-            HosRecipeResult result = PrescribeProcess.validateHospitalRecipe(hospitalRecipeDTO, ADD_FLAG);
-            result.setRecipeCode(hospitalRecipeDTO.getRecipeCode());
-            if (CommonConstant.FAIL.equals(result.getCode())) {
-                return result;
+            if(StringUtils.isNotEmpty(hospitalRecipeDTO.getClinicOrgan())
+                    && StringUtils.isNotEmpty(hospitalRecipeDTO.getRecipeCode())) {
+                Integer clinicOrgan = Integer.valueOf(hospitalRecipeDTO.getClinicOrgan());
+                String recipeCode = hospitalRecipeDTO.getRecipeCode();
+                Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, clinicOrgan);
+                //TODO 通过某种条件判断处方内容是否相同再执行后续
+                //当前处理为存在处方则返回，不做更新处理
+                if(null != dbRecipe){
+                    result.setCode(HosRecipeResult.SUCCESS);
+                    result.setMsg("处方已存在");
+                    return result;
+                }
+
+                //TODO 修改校验模块通过@Verify注解来处理
+                result = PrescribeProcess.validateHospitalRecipe(hospitalRecipeDTO, ADD_FLAG);
+                if (CommonConstant.FAIL.equals(result.getCode())) {
+                    return result;
+                }
+
+
             }
+
+
+
 
             OrganService organService = BasicAPI.getService(OrganService.class);
             String organName = organService.getShortNameById(Integer.parseInt(hospitalRecipeDTO.getClinicOrgan()));
             if (StringUtils.isEmpty(organName)) {
-                result.setCode(RecipeCommonResTO.FAIL);
+                result.setCode(HosRecipeResult.FAIL);
                 result.setMsg("平台未找到相关机构");
                 return result;
             }
@@ -89,8 +115,8 @@ public class PrescribeService {
             Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(hospitalRecipeDTO.getRecipeCode(),
                     Integer.parseInt(hospitalRecipeDTO.getClinicOrgan()));
             if (null != dbRecipe) {
-                result.setRecipeId(dbRecipe.getRecipeId());
-                result.setCode(RecipeCommonResTO.FAIL);
+//                result.setRecipeId(dbRecipe.getRecipeId());
+                result.setCode(HosRecipeResult.FAIL);
                 result.setMsg("平台已存在该处方");
                 return result;
             }
@@ -125,7 +151,7 @@ public class PrescribeService {
                     PatientDTO patient = patientService.getByIdCard(hospitalRecipeDTO.getCertificate());
                     if (null == patient) {
                         //TODO 创建患者 ...
-                        result.setCode(RecipeCommonResTO.FAIL);
+                        result.setCode(HosRecipeResult.FAIL);
                         result.setMsg("获取平台患者失败");
                         return result;
                     } else {
@@ -136,7 +162,7 @@ public class PrescribeService {
                     //创建详情数据
                     List<Recipedetail> details = PrescribeProcess.convertNgariDetail(hospitalRecipeDTO);
                     if (CollectionUtils.isEmpty(details)) {
-                        result.setCode(RecipeCommonResTO.FAIL);
+                        result.setCode(HosRecipeResult.FAIL);
                         result.setMsg("药品详情转换错误");
                         return result;
                     }
@@ -145,32 +171,31 @@ public class PrescribeService {
                     try {
                         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
                         LOG.info("createPrescription 写入DB成功. recipeId={}", recipeId);
-                        result.setRecipeId(recipeId);
-                        result.setRecipe(ObjectCopyUtils.convert(recipe, RecipeBean.class));
-                        result.setHospitalRecipe(hospitalRecipeDTO);
+//                        result.setRecipeId(recipeId);
+//                        result.setRecipe(ObjectCopyUtils.convert(recipe, RecipeBean.class));
+//                        result.setHospitalRecipe(hospitalRecipeDTO);
                         recipeLogDAO.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS,
                                 RecipeStatusConstant.CHECK_PASS, "医院处方接收成功");
                     } catch (Exception e) {
                         LOG.error("createPrescription 写入DB失败. recipe={}, detail={}", JSONUtils.toString(recipe),
                                 JSONUtils.toString(details), e);
-                        result.setCode(RecipeCommonResTO.FAIL);
+                        result.setCode(HosRecipeResult.FAIL);
                         result.setMsg("写入DB失败");
                     }
                 } else {
-                    result.setCode(RecipeCommonResTO.FAIL);
+                    result.setCode(HosRecipeResult.FAIL);
                     result.setMsg("该医生没有执业点");
                 }
             } else {
-                result.setCode(RecipeCommonResTO.FAIL);
+                result.setCode(HosRecipeResult.FAIL);
                 result.setMsg("处方转换失败");
             }
 
             return result;
         } else {
             LOG.error("createPrescription recipe is empty.");
-            HosRecipeResult result = new HosRecipeResult();
-            result.setCode(RecipeCommonResTO.FAIL);
-            result.setMsg("未知错误-处方对象为空");
+            result.setCode(HosRecipeResult.FAIL);
+            result.setMsg("处方对象为空");
             return result;
         }
     }

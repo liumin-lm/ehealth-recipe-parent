@@ -360,7 +360,7 @@ public class PrescribeProcess {
      */
     public static HosRecipeResult validateHospitalRecipe(HospitalRecipeDTO recipe, int flag) {
         HosRecipeResult result = new HosRecipeResult();
-        result.setCode(RecipeCommonResTO.FAIL);
+        result.setCode(HosRecipeResult.FAIL);
         if (PrescribeService.ADD_FLAG == flag) {
             //新增
             if (StringUtils.isEmpty(recipe.getRecipeCode())) {
@@ -416,7 +416,7 @@ public class PrescribeProcess {
             }
         }
 
-        result.setCode(RecipeCommonResTO.SUCCESS);
+        result.setCode(HosRecipeResult.SUCCESS);
         return result;
     }
 }

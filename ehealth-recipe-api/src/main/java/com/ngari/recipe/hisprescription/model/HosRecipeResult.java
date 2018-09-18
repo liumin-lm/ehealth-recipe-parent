@@ -1,7 +1,5 @@
 package com.ngari.recipe.hisprescription.model;
 
-import com.ngari.recipe.common.RecipeCommonResTO;
-import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.schema.annotation.Schema;
 import ctd.util.JSONUtils;
 
@@ -15,57 +13,36 @@ import java.io.Serializable;
  * date:2017/4/18.
  */
 @Schema
-public class HosRecipeResult extends RecipeCommonResTO implements Serializable {
+public class HosRecipeResult implements Serializable {
 
-    private static final long serialVersionUID = 2809725502013933071L;
+    private static final long serialVersionUID = 4055757161601929525L;
 
-    private String recipeCode;
+    public final static String SUCCESS = "000";
 
-    private Integer recipeId;
+    public final static String FAIL = "001";
 
-    private RecipeBean recipe;
+    private String code;
 
-    private HospitalRecipeDTO hospitalRecipe;
+    private String msg;
 
-    public HosRecipeResult() {
-
+    public String getCode() {
+        return code;
     }
 
-    public String getRecipeCode() {
-        return recipeCode;
+    public void setCode(String code) {
+        this.code = code;
     }
 
-    public void setRecipeCode(String recipeCode) {
-        this.recipeCode = recipeCode;
+    public String getMsg() {
+        return msg;
     }
 
-    public Integer getRecipeId() {
-        return recipeId;
-    }
-
-    public void setRecipeId(Integer recipeId) {
-        this.recipeId = recipeId;
-    }
-
-    public RecipeBean getRecipe() {
-        return recipe;
-    }
-
-    public void setRecipe(RecipeBean recipe) {
-        this.recipe = recipe;
-    }
-
-    public HospitalRecipeDTO getHospitalRecipe() {
-        return hospitalRecipe;
-    }
-
-    public void setHospitalRecipe(HospitalRecipeDTO hospitalRecipe) {
-        this.hospitalRecipe = hospitalRecipe;
+    public void setMsg(String msg) {
+        this.msg = msg;
     }
 
     @Override
     public String toString() {
         return JSONUtils.toString(this);
     }
-
 }
