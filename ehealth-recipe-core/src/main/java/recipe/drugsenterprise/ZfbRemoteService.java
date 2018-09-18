@@ -4,20 +4,22 @@ import com.ngari.recipe.entity.DrugsEnterprise;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.dao.DrugsEnterpriseDAO;
+import recipe.drugsenterprise.bean.ZfbTokenRequest;
+import recipe.drugsenterprise.bean.ZfbTokenResponse;
 import recipe.util.RSAUtil;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.List;
 
@@ -39,26 +41,45 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         String depName = drugsEnterprise.getName();
         Integer depId = drugsEnterprise.getId();
-
+        // 创建默认的httpClient实例.
+        CloseableHttpClient httpclient = HttpClients.createDefault();
         try {
             if (-1 != drugsEnterprise.getAuthenUrl().indexOf("http:")) {
-                // 创建默认的httpClient实例.
-                CloseableHttpClient httpclient = HttpClients.createDefault();
                 HttpPost httpPost = new HttpPost(drugsEnterprise.getAuthenUrl());
+                //组装请求参数
                 String sign = RSAUtil.privateEncrypt(RSAUtil.getAppid() + Calendar.getInstance().getTimeInMillis(), RSAUtil.getPrivateKey());
-                System.out.println("sign:" + sign);
-                // 创建参数队列
-                List<NameValuePair> formparams = new ArrayList<NameValuePair>();
-                formparams.add(new BasicNameValuePair("appid", RSAUtil.getAppid()));
-                formparams.add(new BasicNameValuePair("sign", sign));
-                UrlEncodedFormEntity uefEntity = new UrlEncodedFormEntity(formparams);
+                ZfbTokenRequest request = new ZfbTokenRequest();
+                request.setSign(sign);
+                request.setAppid(RSAUtil.getAppid());
+                StringEntity uefEntity = new StringEntity(JSONUtils.toString(request), ContentType.APPLICATION_JSON);
                 httpPost.setEntity(uefEntity);
+
+                //获取响应消息
                 CloseableHttpResponse response = httpclient.execute(httpPost);
-                HttpEntity entity = response.getEntity();
-                System.out.println(JSONUtils.toString("zfbrespones:" + JSONUtils.toString(entity)));
+                HttpEntity httpEntity = response.getEntity();
+                String responseStr = EntityUtils.toString(httpEntity);
+                LOGGER.info("[{}][{}]token更新返回:{}", depId, depName, responseStr);
+                ZfbTokenResponse zfbResponse = JSONUtils.parse(responseStr, ZfbTokenResponse.class);
+                if("0".equals(zfbResponse.getCode())) {
+                    //成功
+                    drugsEnterpriseDAO.updateTokenById(depId, zfbResponse.getToken());
+                }else{
+                    //失败
+                    LOGGER.info("[{}][{}]token更新失败:{}", depId, depName, zfbResponse.getMsg());
+                }
+                //关闭 HttpEntity 输入流
+                EntityUtils.consume(httpEntity);
+                response.close();
+                httpclient.close();
             }
         } catch (Exception e) {
             LOGGER.warn("[{}][{}]更新异常。", depId, depName, e);
+        } finally {
+            try {
+                httpclient.close();
+            } catch (IOException e) {
+//                e.printStackTrace();
+            }
         }
     }
 
