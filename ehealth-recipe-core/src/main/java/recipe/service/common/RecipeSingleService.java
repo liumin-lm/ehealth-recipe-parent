@@ -8,6 +8,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
@@ -32,6 +33,7 @@ public class RecipeSingleService {
     @Autowired
     private RecipeDetailDAO detailDAO;
 
+    @RpcService
     public RecipeStandardResTO<Map> getRecipeByConditions(RecipeStandardReqTO request) {
         RecipeStandardResTO<Map> response = RecipeStandardResTO.getRequest(Map.class);
         response.setCode(RecipeCommonBaseTO.FAIL);
