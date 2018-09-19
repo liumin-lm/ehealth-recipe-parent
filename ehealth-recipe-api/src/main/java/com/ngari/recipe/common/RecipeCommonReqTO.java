@@ -9,7 +9,7 @@ import java.util.Map;
  */
 public class RecipeCommonReqTO extends RecipeCommonBaseTO{
 
-    private Map<String, Object> conditions;
+    public Map<String, Object> conditions;
 
     public Map<String, Object> getConditions() {
         return conditions;

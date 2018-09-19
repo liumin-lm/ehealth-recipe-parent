@@ -7,6 +7,7 @@ import com.ngari.recipe.common.RecipeStandardResTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +25,7 @@ import java.util.Map;
  * @description： 获取处方单个数据服务
  * @version： 1.0
  */
-@RpcBean("recipeSingleService")
+@RpcBean(value = "recipeSingleService", mvc_authentication = false)
 public class RecipeSingleService {
 
     @Autowired
@@ -54,9 +55,12 @@ public class RecipeSingleService {
                 Map<String, Object> recipeInfo = new HashMap<>();
                 List<Recipedetail> detailList = detailDAO.findByRecipeId(dbRecipe.getRecipeId());
                 recipeInfo.put("recipe", ObjectCopyUtils.convert(dbRecipe, RecipeBean.class));
-                recipeInfo.put("detailList", ObjectCopyUtils.convert(detailList, RecipeBean.class));
+                recipeInfo.put("detailList", ObjectCopyUtils.convert(detailList, RecipeDetailBean.class));
                 response.setCode(RecipeCommonBaseTO.SUCCESS);
                 response.setData(recipeInfo);
+
+                //TODO 根据当前状态返回前端标记，用于前端展示什么页面
+
             } else {
                 response.setMsg("没有处方匹配");
             }
