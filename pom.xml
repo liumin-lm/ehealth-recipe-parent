@@ -6,7 +6,7 @@
     <parent>
         <groupId>ngari</groupId>
         <artifactId>ehealth-parent</artifactId>
-        <version>1.6.0.release-SNAPSHOT</version>
+        <version>1.5.6.hotfix-20180920-SNAPSHOT</version>
     </parent>
     <artifactId>ehealth-recipe-parent</artifactId>
     <name>处方</name>
@@ -56,7 +56,7 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-basic-api</artifactId>
-                <version>${project.parent.version}</version>
+                <version>1.5.0</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ssdev</groupId>

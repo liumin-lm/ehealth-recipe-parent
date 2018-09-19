@@ -48,6 +48,8 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
         map.put("password", drugsEnterprise.getPassword());
         String depName = drugsEnterprise.getName();
         Integer depId = drugsEnterprise.getId();
+
+        LOGGER.info("[{}][{}]token更新开始", depId, depName);
         try {
             if(-1 != drugsEnterprise.getAuthenUrl().indexOf("http:")) {
                 String backMsg = HttpHelper.doPost(drugsEnterprise.getAuthenUrl(), JSONUtils.toString(map));

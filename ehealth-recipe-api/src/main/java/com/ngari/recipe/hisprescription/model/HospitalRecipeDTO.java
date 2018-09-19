@@ -36,8 +36,14 @@ public class HospitalRecipeDTO implements Serializable {
     @Verify(desc = "患者电话")
     private String patientTel;
 
+    @Verify(isNotNull = false, desc = "患者地址", maxLength = 100)
+    private String patientAddress;
+
     @Verify(isNotNull = false, desc = "患者医院病历号")
     private String patientNumber;
+
+    @Verify(desc = "性别", isInt = true)
+    private String patientSex;
 
     @Verify(desc = "处方号")
     private String recipeCode;
@@ -195,12 +201,28 @@ public class HospitalRecipeDTO implements Serializable {
         this.patientTel = patientTel;
     }
 
+    public String getPatientAddress() {
+        return patientAddress;
+    }
+
+    public void setPatientAddress(String patientAddress) {
+        this.patientAddress = patientAddress;
+    }
+
     public String getPatientNumber() {
         return patientNumber;
     }
 
     public void setPatientNumber(String patientNumber) {
         this.patientNumber = patientNumber;
+    }
+
+    public String getPatientSex() {
+        return patientSex;
+    }
+
+    public void setPatientSex(String patientSex) {
+        this.patientSex = patientSex;
     }
 
     public String getRecipeCode() {
