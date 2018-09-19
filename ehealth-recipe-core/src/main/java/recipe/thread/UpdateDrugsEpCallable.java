@@ -66,7 +66,7 @@ public class UpdateDrugsEpCallable implements Callable<String> {
                         }
                     }
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 logger.warn(logPrefix + "更新异常. exception={}", e);
             }
         } else {
