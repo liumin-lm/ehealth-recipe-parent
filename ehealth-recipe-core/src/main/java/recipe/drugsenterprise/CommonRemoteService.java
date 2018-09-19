@@ -308,7 +308,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
                 } else {
                     LOGGER.info("调用[{}][{}]结果返回={}", drugEpName, method, backMsg);
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 backMsg = null;
                 LOGGER.error(drugEpName + " invoke method[{}] error. error={}", method, e.getMessage());
                 result.setMsg(drugEpName + "接口[" + method + "]调用出错");
