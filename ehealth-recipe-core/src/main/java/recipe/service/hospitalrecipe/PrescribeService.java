@@ -237,6 +237,11 @@ public class PrescribeService {
         return result;
     }
 
+    /**
+     * 处方状态更新
+     * @param request
+     * @return
+     */
     public HosRecipeResult updateRecipeStatus(HospitalStatusUpdateDTO request) {
         HosRecipeResult result = new HosRecipeResult();
         if (null != request) {
@@ -266,11 +271,9 @@ public class PrescribeService {
                 }
             }
 
-            String recipeCode = request.getRecipeCode();
-            Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, clinicOrgan);
-            //TODO 数据对比
+            Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrgan(request.getRecipeCode(), clinicOrgan);
+            //数据对比
             if (null == dbRecipe) {
-                result.setCode(HosRecipeResult.FAIL);
                 result.setMsg("不存在该处方");
                 return result;
             }
@@ -281,35 +284,45 @@ public class PrescribeService {
                 return result;
             }
 
-            //如果已付款则需要进行退款
-            RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
-            if (OrderStatusConstant.READY_SEND.equals(order.getStatus())
-                    || OrderStatusConstant.SENDING.equals(order.getStatus())
-                    || OrderStatusConstant.FINISH.equals(order.getStatus())) {
-                result.setMsg("该处方已处于配送状态，无法撤销");
+            //支持状态改变的情况判断
+            if(!(RecipeStatusConstant.DELETE == status)){
+                result.setMsg("不支持的处方状态改变");
                 return result;
             }
 
-            //取消订单数据
-            RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
-            //取消处方单
-            recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), RecipeStatusConstant.DELETE, null);
-
-            if (1 == order.getPayFlag()) {
-                //已支付的情况需要退款
-                try {
-                    INgariRefundService rufundService = BaseAPI.getService(INgariRefundService.class);
-                    rufundService.refund(order.getOrderId() , "recipe");
-                } catch (Exception e) {
-                    LOG.warn("updateRecipeStatus 退款异常，orderId={}", order.getOrderId(), e);
-                    recipeLogDAO.saveRecipeLog(dbRecipe.getRecipeId(), RecipeStatusConstant.UNKNOW,
-                            RecipeStatusConstant.UNKNOW, "医院处方作废成功");
-                } finally {
-
+            //作废处理
+            if(RecipeStatusConstant.DELETE == status) {
+                //如果已付款则需要进行退款
+                RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
+                if (OrderStatusConstant.READY_SEND.equals(order.getStatus())
+                        || OrderStatusConstant.SENDING.equals(order.getStatus())
+                        || OrderStatusConstant.FINISH.equals(order.getStatus())) {
+                    result.setMsg("该处方已处于配送状态，无法撤销");
+                    return result;
                 }
+
+                //取消订单数据
+                RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+                orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+                //取消处方单
+                recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), status, null);
+
+                if (1 == order.getPayFlag()) {
+                    //已支付的情况需要退款
+                    try {
+                        INgariRefundService rufundService = BaseAPI.getService(INgariRefundService.class);
+                        rufundService.refund(order.getOrderId(), "recipe");
+                    } catch (Exception e) {
+                        LOG.warn("updateRecipeStatus 退款异常，orderId={}", order.getOrderId(), e);
+                        recipeLogDAO.saveRecipeLog(dbRecipe.getRecipeId(), RecipeStatusConstant.UNKNOW,
+                                RecipeStatusConstant.UNKNOW, "医院处方作废成功");
+                    } finally {
+
+                    }
+                }
+                recipeLogDAO.saveRecipeLog(dbRecipe.getRecipeId(), dbRecipe.getStatus(), status, "医院处方作废成功");
+                result.setCode(HosRecipeResult.SUCCESS);
             }
-            recipeLogDAO.saveRecipeLog(dbRecipe.getRecipeId(), dbRecipe.getStatus(), RecipeStatusConstant.DELETE, "医院处方作废成功");
         } else {
             result.setCode(HosRecipeResult.FAIL);
             result.setMsg("request对象为空");
