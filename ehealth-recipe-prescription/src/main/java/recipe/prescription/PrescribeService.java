@@ -78,7 +78,7 @@ public class PrescribeService {
      */
     @RpcService
     public HosRecipeResult createPrescription(HospitalRecipeDTO hospitalRecipeDTO) {
-        HosRecipeResult result = new HosRecipeResult();
+        HosRecipeResult<RecipeBean> result = new HosRecipeResult();
         if (null != hospitalRecipeDTO) {
             if (StringUtils.isNotEmpty(hospitalRecipeDTO.getClinicOrgan())
                     && StringUtils.isNotEmpty(hospitalRecipeDTO.getRecipeCode())) {
@@ -179,6 +179,11 @@ public class PrescribeService {
 
                 //设置其他参数
                 PrescribeProcess.convertNgariRecipe(recipe, hospitalRecipeDTO);
+                //TODO 设置为医院HIS获取的处方，不会在医生端列表展示数据
+                //0:表示HIS处方，不会在任何地方展示
+                //1:平台开具处方，平台处理业务都会展示
+                //2:HIS处方，只在药师审核处展示
+                recipe.setFromflag(2);
 
                 //创建详情数据
                 List<RecipeDetailBean> details = PrescribeProcess.convertNgariDetail(hospitalRecipeDTO);
@@ -196,6 +201,8 @@ public class PrescribeService {
                             ObjectCopyUtils.convert(details, Recipedetail.class), false);
                     LOG.info("createPrescription 写入DB成功. recipeId={}", recipeId);
                     recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "医院处方接收成功");
+                    recipe.setRecipeId(recipeId);
+                    result.setData(recipe);
                     result.setCode(HosRecipeResult.SUCCESS);
                 } catch (Exception e) {
                     LOG.error("createPrescription 写入DB失败. recipe={}, detail={}", JSONUtils.toString(recipe),

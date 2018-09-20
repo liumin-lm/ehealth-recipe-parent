@@ -13,7 +13,7 @@ import java.io.Serializable;
  * date:2017/4/18.
  */
 @Schema
-public class HosRecipeResult implements Serializable {
+public class HosRecipeResult<T> implements Serializable {
 
     private static final long serialVersionUID = 4055757161601929525L;
 
@@ -24,6 +24,8 @@ public class HosRecipeResult implements Serializable {
     private String code;
 
     private String msg;
+
+    private T data;
 
     public String getCode() {
         return code;
@@ -39,6 +41,14 @@ public class HosRecipeResult implements Serializable {
 
     public void setMsg(String msg) {
         this.msg = msg;
+    }
+
+    public T getData() {
+        return data;
+    }
+
+    public void setData(T data) {
+        this.data = data;
     }
 
     @Override

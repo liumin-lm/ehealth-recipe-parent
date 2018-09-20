@@ -107,9 +107,6 @@ public class PrescribeProcess {
         recipe.setRemindFlag(0);
         recipe.setGiveFlag(0);
         recipe.setChooseFlag(0);
-        //TODO 设置为医院HIS获取的处方，不会在医生端列表展示数据
-        recipe.setFromflag(0);
-
     }
 
     /**
