@@ -19,6 +19,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeLogService;
+import recipe.service.RecipeOrderService;
 import recipe.service.RecipeService;
 import recipe.util.MapValueUtil;
 
@@ -116,16 +117,25 @@ public class RecipeSignService {
             return response;
         } else {
             // 修改订单一些参数
-//            RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-//            Map<String, String> extInfo = Maps.newHashMap();
-//            extInfo.put("payMode", payMode.toString());
-//            extInfo.put("depId", depId.toString());
-//            //默认微信公众号支付
-//            extInfo.put("payway", "40");
-//            extInfo.put("payMode", payMode.toString());
-//            extInfo.put("payMode", payMode.toString());
-//            extInfo.put("payMode", payMode.toString());
-//            orderService.createOrder(Arrays.asList(recipeId), extInfo, 1);
+            RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+            Map<String, Object> orderAttr = Maps.newHashMap();
+            orderAttr.put("payMode", payMode.toString());
+            orderAttr.put("depId", depId.toString());
+            //未支付不知道支付方式
+            orderAttr.put("payway", "-1");
+            //使订单生效
+            orderAttr.put("effective", 1);
+            orderAttr.put("receiver", dbRecipe.getPatientName());
+            orderAttr.put("address4", patientAddress);
+            orderAttr.put("recMobile", patientTel);
+            orderAttr.put("drugStoreName", pharmacyName);
+            orderAttr.put("drugStoreAddr", patientAddress);
+            RecipeResultBean resultBean = orderService.updateOrderInfo(dbRecipe.getOrderCode(), orderAttr, null);
+            if (RecipeResultBean.SUCCESS.equals(resultBean.getCode())) {
+                LOG.info("sign 订单更新成功 recipeId={}, orderCode={}", recipeId, dbRecipe.getOrderCode());
+            } else {
+                LOG.warn("sign 订单更新失败. recipeId={}, orderCode={}", recipeId, dbRecipe.getOrderCode());
+            }
         }
 
         //生成订单成功后再去更新处方状态及配送信息等，使接口可重复调用
