@@ -135,10 +135,12 @@ public class RecipeSignService {
                 LOG.info("sign 订单更新成功 recipeId={}, orderCode={}", recipeId, dbRecipe.getOrderCode());
             } else {
                 LOG.warn("sign 订单更新失败. recipeId={}, orderCode={}", recipeId, dbRecipe.getOrderCode());
+                response.setMsg("处方订单更新错误");
+                return response;
             }
         }
 
-        //生成订单成功后再去更新处方状态及配送信息等，使接口可重复调用
+        //修改订单成功后再去更新处方状态及配送信息等，使接口可重复调用
         Map<String, Object> attrMap = Maps.newHashMap();
         attrMap.put("giveMode", giveMode);
         attrMap.put("payMode", payMode);

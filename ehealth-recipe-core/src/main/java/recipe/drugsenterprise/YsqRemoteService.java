@@ -286,6 +286,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                             detailBean.setRecipeFee(MapValueUtil.getBigDecimal(dep, "TOTALACCOUNT"));
                             detailBean.setExpressFee(MapValueUtil.getBigDecimal(dep, "PEISONGACCOUNT"));
                             detailBean.setGysCode(MapValueUtil.getString(dep, "GYSCODE"));
+                            detailBean.setPharmacyCode(MapValueUtil.getString(dep, "GYSCODE"));
                             String sendMethod = MapValueUtil.getString(dep, "SENDMETHOD");
                             String giveModeText = "";
                             if (StringUtils.isNotEmpty(sendMethod)) {

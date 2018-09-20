@@ -51,6 +51,38 @@ public class DepDetailBean {
      */
     private String payMethod;
 
+    //以下为标准接口返回字段，之前字段不做处理
+
+    /**
+     * 如有药店则使用药店编码，区分 depId
+     */
+    private String pharmacyCode;
+
+    /**
+     * 自费金额
+     */
+    private BigDecimal actualFee;
+
+    /**
+     * 优惠金额
+     */
+    private BigDecimal couponFee;
+
+    /**
+     * 待煎费用
+     */
+    private BigDecimal decoctionFee;
+
+    /**
+     * 医保报销金额
+     */
+    private BigDecimal medicalFee;
+
+    /**
+     * 药店地址
+     */
+    private String address;
+
     public Integer getDepId() {
         return depId;
     }
@@ -129,5 +161,53 @@ public class DepDetailBean {
 
     public void setPayMethod(String payMethod) {
         this.payMethod = payMethod;
+    }
+
+    public String getPharmacyCode() {
+        return pharmacyCode;
+    }
+
+    public void setPharmacyCode(String pharmacyCode) {
+        this.pharmacyCode = pharmacyCode;
+    }
+
+    public BigDecimal getActualFee() {
+        return actualFee;
+    }
+
+    public void setActualFee(BigDecimal actualFee) {
+        this.actualFee = actualFee;
+    }
+
+    public BigDecimal getCouponFee() {
+        return couponFee;
+    }
+
+    public void setCouponFee(BigDecimal couponFee) {
+        this.couponFee = couponFee;
+    }
+
+    public BigDecimal getDecoctionFee() {
+        return decoctionFee;
+    }
+
+    public void setDecoctionFee(BigDecimal decoctionFee) {
+        this.decoctionFee = decoctionFee;
+    }
+
+    public BigDecimal getMedicalFee() {
+        return medicalFee;
+    }
+
+    public void setMedicalFee(BigDecimal medicalFee) {
+        this.medicalFee = medicalFee;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 }

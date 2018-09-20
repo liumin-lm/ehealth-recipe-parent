@@ -9,55 +9,55 @@ import recipe.constant.DrugEnterpriseConstant;
 import java.util.List;
 
 /**
- * 测试药企，测试某些场景下药企不支持的功能，如 中药库存校验等
- * company: ngarihealth
- * @author: 0184/yu_yun
- * @date:2017/6/22.
+ * @author： 0184/yu_yun
+ * @date： 2018/9/20
+ * @description： TODO
+ * @version： 1.0
  */
-public class TestRemoteService extends AccessDrugEnterpriseService {
+public class PharmacyRemoteService extends AccessDrugEnterpriseService{
 
-    /**
-     * logger
-     */
-    private static final Logger LOGGER = LoggerFactory.getLogger(TestRemoteService.class);
+    /** logger */
+    private static final Logger LOGGER = LoggerFactory.getLogger(PharmacyRemoteService.class);
 
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
-        LOGGER.info("TestRemoteService tokenUpdateImpl not implement.");
+        LOGGER.info("PharmacyRemoteService tokenUpdateImpl not implement.");
     }
 
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
-        LOGGER.info("TestRemoteService pushRecipeInfo not implement.");
-        return DrugEnterpriseResult.getSuccess();
+        LOGGER.info("PharmacyRemoteService pushRecipeInfo not implement.");
+        return null;
     }
 
     @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        LOGGER.info("TestRemoteService pushRecipeInfo not implement.");
-        return DrugEnterpriseResult.getSuccess();
+        LOGGER.info("PharmacyRemoteService scanStock not implement.");
+        return null;
     }
 
     @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
-        LOGGER.info("TestRemoteService pushRecipeInfo not implement.");
-        return DrugEnterpriseResult.getSuccess();
+        LOGGER.info("PharmacyRemoteService syncEnterpriseDrug not implement.");
+        return null;
     }
 
     @Override
     public DrugEnterpriseResult pushCheckResult(Integer recipeId, Integer checkFlag, DrugsEnterprise enterprise) {
-        LOGGER.info("TestRemoteService pushRecipeInfo not implement.");
-        return DrugEnterpriseResult.getSuccess();
+        LOGGER.info("PharmacyRemoteService pushCheckResult not implement.");
+        return null;
     }
 
     @Override
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, DrugsEnterprise enterprise) {
-        LOGGER.info("TestRemoteService findSupportDep not implement.");
+        LOGGER.info("PharmacyRemoteService findSupportDep not implement.");
+
+
         return null;
     }
 
     @Override
     public String getDrugEnterpriseCallSys() {
-        return DrugEnterpriseConstant.COMPANY_TEST;
+        return DrugEnterpriseConstant.COMPANY_PHARMACY;
     }
 }

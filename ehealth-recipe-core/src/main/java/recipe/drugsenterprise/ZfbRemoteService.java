@@ -16,6 +16,7 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.bean.ZfbTokenRequest;
@@ -132,6 +133,6 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public String getDrugEnterpriseCallSys() {
-        return null;
+        return DrugEnterpriseConstant.COMPANY_ZFB;
     }
 }
