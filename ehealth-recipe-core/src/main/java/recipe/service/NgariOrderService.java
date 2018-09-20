@@ -31,7 +31,7 @@ public class NgariOrderService {
      * @return
      */
     @RpcService
-    public String ScanCodePayment(String payway ,Integer orderId , String appId){
+    public String scanCodePayment(String payway ,Integer orderId , String appId){
         //检查业务单状态，如果已经支付成功，直接返回
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder recipeOrder = recipeOrderDAO.getOrderByRecipeId(orderId);
@@ -59,5 +59,18 @@ public class NgariOrderService {
         String url = (String) map.get("qr_code");
         logger.info("处方订单生成二维码成功：[{}]",url);
         return url;
+    }
+
+    /**
+     * 查询业务单支付状态
+     * @param orderId
+     * @return
+     */
+    @RpcService
+    public Integer getPayFlag(Integer orderId){
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrder recipeOrder = recipeOrderDAO.getOrderByRecipeId(orderId);
+        Integer payFlag = recipeOrder.getPayFlag();
+        return payFlag;
     }
 }
