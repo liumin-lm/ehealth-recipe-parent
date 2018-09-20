@@ -1,4 +1,4 @@
-package recipe.prescription.dataprocess;
+package recipe.service.hospitalrecipe.dataprocess;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -22,7 +22,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.prescription.PrescribeService;
+import recipe.service.hospitalrecipe.PrescribeService;
 import recipe.util.DateConversion;
 
 import java.math.BigDecimal;

@@ -1,4 +1,4 @@
-package recipe.prescription;
+package recipe.service.hospitalrecipe;
 
 import com.ngari.base.BaseAPI;
 import com.ngari.base.organ.model.OrganBean;
@@ -11,10 +11,12 @@ import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeCommonResTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.hisprescription.model.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.wxpay.service.INgariRefundService;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -24,12 +26,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.ApplicationUtils;
+import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeLogDAO;
-import recipe.prescription.dataprocess.PrescribeProcess;
+import recipe.dao.RecipeOrderDAO;
+import recipe.service.RecipeOrderService;
+import recipe.service.hospitalrecipe.dataprocess.PrescribeProcess;
 
 import java.util.List;
+
+import static recipe.ApplicationUtils.getRecipeService;
 
 /**
  * @author： 0184/yu_yun
@@ -64,6 +72,9 @@ public class PrescribeService {
     private RecipeDAO recipeDAO;
 
     @Autowired
+    private RecipeOrderDAO orderDAO;
+
+    @Autowired
     private RecipeLogDAO recipeLogDAO;
 
     /**
@@ -89,11 +100,8 @@ public class PrescribeService {
             //转换组织结构编码
             Integer clinicOrgan = null;
             try {
-                String organIdStr = hospitalRecipeDTO.getOrganId();
-                IOrganService organService = BaseAPI.getService(IOrganService.class);
-                List<OrganBean> organList = organService.findByOrganizeCode(organIdStr);
-                if (CollectionUtils.isNotEmpty(organList)) {
-                    OrganBean organ = organList.get(0);
+                OrganBean organ = getOrganByOrganId(hospitalRecipeDTO.getOrganId());
+                if (null != organ) {
                     clinicOrgan = organ.getOrganId();
                     recipe.setClinicOrgan(clinicOrgan);
                     recipe.setOrganName(organ.getShortName());
@@ -237,41 +245,70 @@ public class PrescribeService {
 //            if (HosRecipeResult.FAIL.equals(result.getCode())) {
 //                return result;
 //            }
-            Integer clinicOrgan = Integer.valueOf(request.getClinicOrgan());
+
+            //重置默认为失败
+            result.setCode(HosRecipeResult.FAIL);
+
+            //转换组织结构编码
+            Integer clinicOrgan = null;
+            try {
+                OrganBean organ = getOrganByOrganId(request.getOrganId());
+                if(null != organ){
+                    clinicOrgan = organ.getOrganId();
+                }
+            } catch (Exception e) {
+                LOG.warn("updateRecipeStatus 查询机构异常，organId={}", request.getOrganId(), e);
+            } finally {
+                if (null == clinicOrgan) {
+                    LOG.warn("updateRecipeStatus 平台未匹配到该组织机构编码，organId={}", request.getOrganId());
+                    result.setMsg("平台未匹配到该组织机构编码");
+                    return result;
+                }
+            }
+
             String recipeCode = request.getRecipeCode();
             Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, clinicOrgan);
             //TODO 数据对比
             if (null == dbRecipe) {
-//                LOG.warn("updateRecipeStatus 不存在该处方. request={}", JSONUtils.toString(request));
                 result.setCode(HosRecipeResult.FAIL);
                 result.setMsg("不存在该处方");
                 return result;
             }
             Integer status = Integer.valueOf(request.getStatus());
             if (status.equals(dbRecipe.getStatus())) {
-//                LOG.info("updateRecipeStatus 处方状态相同. request={}", JSONUtils.toString(request));
                 result.setCode(HosRecipeResult.SUCCESS);
                 result.setMsg("处方状态相同");
                 return result;
             }
 
-            //TODO 如果已付款则需要进行退款
-//            try {
-//                //退款
-//                PaymentBean paymentBean = new PaymentBean();
-//                paymentBean.setPaymentType("WX");
-//                paymentBean.setBusType(RecipeService.WX_RECIPE_BUSTYPE);
-//                paymentBean.setOrderId(order.getOrderId());
-//                IPaymentService paymentService = BaseAPI.getService(IPaymentService.class);
-//                paymentService.refund(paymentBean);
-//            } catch (Exception e) {
-//                LOGGER.error("wxPayRefundForRecipe " + errorInfo + "*****微信退款异常！recipeId[" + recipeId + "],err[" + e.getMessage() + "]");
-//            }
-//            //取消订单数据
-//            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
-//            //取消处方单
-//            recipeDAO.updateRecipeInfoByRecipeId
+            //如果已付款则需要进行退款
+            RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
+            if (OrderStatusConstant.READY_SEND.equals(order.getStatus())
+                    || OrderStatusConstant.SENDING.equals(order.getStatus())
+                    || OrderStatusConstant.FINISH.equals(order.getStatus())) {
+                result.setMsg("该处方已处于配送状态，无法撤销");
+                return result;
+            }
 
+            //取消订单数据
+            RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+            //取消处方单
+            recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), RecipeStatusConstant.DELETE, null);
+
+            if (1 == order.getPayFlag()) {
+                //已支付的情况需要退款
+                try {
+                    INgariRefundService rufundService = BaseAPI.getService(INgariRefundService.class);
+                    rufundService.refund(order.getOrderId() , "recipe");
+                } catch (Exception e) {
+                    LOG.warn("updateRecipeStatus 退款异常，orderId={}", order.getOrderId(), e);
+                    recipeLogDAO.saveRecipeLog(dbRecipe.getRecipeId(), RecipeStatusConstant.UNKNOW,
+                            RecipeStatusConstant.UNKNOW, "医院处方作废成功");
+                } finally {
+
+                }
+            }
             recipeLogDAO.saveRecipeLog(dbRecipe.getRecipeId(), dbRecipe.getStatus(), RecipeStatusConstant.DELETE, "医院处方作废成功");
         } else {
             result.setCode(HosRecipeResult.FAIL);
@@ -319,44 +356,21 @@ public class PrescribeService {
     }
 
     /**
-     * 撤销处方
+     * 根据[组织机构编码]获取平台医院机构
      *
-     * @param searchQO 查询条件
+     * @param organId
      * @return
+     * @throws Exception
      */
-    @RpcService
-    public HosBussResult cancelPrescription(HospitalSearchQO searchQO) {
-        HosBussResult response = new HosBussResult();
-        if (null == searchQO || StringUtils.isEmpty(searchQO.getClinicOrgan())
-                || StringUtils.isEmpty(searchQO.getRecipeCode())) {
-            response.setCode(RecipeCommonResTO.FAIL);
-            response.setMsg("查询参数缺失");
-            return response;
-        }
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-
-        Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(searchQO.getRecipeCode(),
-                Integer.parseInt(searchQO.getClinicOrgan()));
-        if (null != dbRecipe) {
-            Boolean result = recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(),
-                    RecipeStatusConstant.REVOKE, null);
-            if (!result) {
-                response.setCode(RecipeCommonResTO.FAIL);
-                response.setMsg("编号为[" + searchQO.getRecipeCode() + "]处方更新失败");
-                return response;
-            }
-
-            //记录日志
-            recipeLogDAO.saveRecipeLog(dbRecipe.getRecipeId(), dbRecipe.getStatus(),
-                    RecipeStatusConstant.REVOKE, "医院处方撤销成功");
-            response.setCode(RecipeCommonResTO.SUCCESS);
-            return response;
+    public OrganBean getOrganByOrganId(String organId) throws Exception {
+        IOrganService organService = BaseAPI.getService(IOrganService.class);
+        OrganBean organ = null;
+        List<OrganBean> organList = organService.findByOrganizeCode(organId);
+        if (CollectionUtils.isNotEmpty(organList)) {
+            organ = organList.get(0);
         }
 
-        response.setCode(RecipeCommonResTO.FAIL);
-        response.setMsg("找不到编号为[" + searchQO.getRecipeCode() + "]处方");
-        return response;
+        return organ;
     }
 
 
