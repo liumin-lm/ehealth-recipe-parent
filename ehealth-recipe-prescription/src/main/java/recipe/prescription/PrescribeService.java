@@ -225,23 +225,22 @@ public class PrescribeService {
             Integer clinicOrgan = Integer.valueOf(request.getClinicOrgan());
             String recipeCode = request.getRecipeCode();
             Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, clinicOrgan);
-            //TODO 通过某种条件判断处方内容是否相同再执行后续
-            //当前处理为存在处方则返回，不做更新处理
+            //TODO 数据对比
             if (null == dbRecipe) {
-                LOG.warn("updateRecipeStatus 不存在该处方. request={}", JSONUtils.toString(request));
+//                LOG.warn("updateRecipeStatus 不存在该处方. request={}", JSONUtils.toString(request));
                 result.setCode(HosRecipeResult.FAIL);
                 result.setMsg("不存在该处方");
                 return result;
             }
             Integer status = Integer.valueOf(request.getStatus());
             if(status.equals(dbRecipe.getStatus())){
-                LOG.info("updateRecipeStatus 处方状态相同. request={}", JSONUtils.toString(request));
+//                LOG.info("updateRecipeStatus 处方状态相同. request={}", JSONUtils.toString(request));
                 result.setCode(HosRecipeResult.SUCCESS);
                 result.setMsg("处方状态相同");
                 return result;
             }
 
-            //如果已付款则需要进行退款
+            //TODO 如果已付款则需要进行退款
 //            try {
 //                //退款
 //                PaymentBean paymentBean = new PaymentBean();
@@ -260,9 +259,8 @@ public class PrescribeService {
 
             recipeLogDAO.saveRecipeLog(dbRecipe.getRecipeId(), dbRecipe.getStatus(), RecipeStatusConstant.DELETE, "医院处方作废成功");
         } else {
-            LOG.warn("updateRecipeStatus request is empty.");
             result.setCode(HosRecipeResult.FAIL);
-            result.setMsg("处方对象为空");
+            result.setMsg("request对象为空");
         }
 
         return result;

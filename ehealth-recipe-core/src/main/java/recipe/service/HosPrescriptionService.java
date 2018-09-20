@@ -1,9 +1,13 @@
 package recipe.service;
 
+import com.google.common.collect.Maps;
+import com.ngari.recipe.common.RecipeCommonResTO;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.hisprescription.model.HosRecipeResult;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.hisprescription.model.HospitalStatusUpdateDTO;
 import com.ngari.recipe.hisprescription.service.IHosPrescriptionService;
+import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.slf4j.Logger;
@@ -11,8 +15,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import recipe.ApplicationUtils;
-import recipe.common.CommonConstant;
 import recipe.prescription.PrescribeService;
+
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * 对接第三方医院服务
@@ -44,21 +51,9 @@ public class HosPrescriptionService implements IHosPrescriptionService {
     public HosRecipeResult createPrescription(HospitalRecipeDTO hospitalRecipeDTO) {
 //        String recipeInfo = "{ \"clinicId\": \"1\", \"certificateType \": \"1\", \"certificate \": \"330624198808141671\",  \"patientTel \": \"17706521132\", \"patientName\": \"张三\",\"patientNumber \": \"P100\", \"clinicOrgan\": \"1\", \"recipeCode\": \"CF001001\", \"recipeType\": \"1\",  \"doctorNumber\": \"0020\", \"doctorName\": \"测试doc\",\"createDate\": \"2018-03-22 10:40:30\", \"recipeFee\": \"100.01\", \"actualFee\": \"105.02\", \"couponFee\": \"0.00\", \"expressFee\": \"5.01\",\"decoctionFee\": \"0.00\",\"medicalFee\": \"0.00\", \"orderTotalFee\": \"105.02\", \"organDiseaseName\": \"A8888\", \"organDiseaseId\": \"感冒\", \"payMode\": \"3\", \"giveMode\": \"2\",\"giveUser\": \"测试发药\",\"status\": \"2\", \"memo\": \"诊断备注\", \"medicalPayFlag\": \"0\", \"distributionFlag\": \"0\", \"recipeMemo\": \"处方备注\", \"tcmUsePathways\": \"\",\"tcmUsingRate\": \"\",  \"tcmNum \": \"\",  \"takeMedicine\": \"\",  \"drugList\": [{ \"drugCode\": \"111001402\",   \"drugName\": \"头孢\", \"total\": \"2\",  \"useDose\": \"0.1\",\"drugFee\": \"50.005\", \"medicalFee\": \"0\", \"drugTotalFee\": \"100.01\", \"uesDays\": \"3\",  \"pharmNo\": \"8\", \"usingRate\": \"qid\",\"usePathways\": \"po\", \"memo\": \"药品使用备注\"}]}";
         HosRecipeResult result = prescribeService.createPrescription(hospitalRecipeDTO);
-
-        if (CommonConstant.SUCCESS.equals(result.getCode())) {
+        if (HosRecipeResult.SUCCESS.equals(result.getCode())) {
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-
-            /*RecipeBean recipe = result.getRecipe();
-            HospitalRecipeDTO hospitalRecipe = result.getHospitalRecipe();
-            Integer recipeId = result.getRecipeId();
-            //已支付的处方不需要创建订单
-            if (1 == recipe.getPayFlag() && RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode())) {
-                result.setRecipe(null);
-                result.setHospitalRecipe(null);
-                return result;
-            }
-
             //创建订单
             Map<String, String> orderMap = Maps.newHashMap();
             orderMap.put("operMpiId", recipe.getMpiid());
