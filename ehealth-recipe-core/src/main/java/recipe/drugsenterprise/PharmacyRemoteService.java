@@ -1,11 +1,14 @@
 package recipe.drugsenterprise;
 
+import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -14,9 +17,11 @@ import java.util.List;
  * @description： TODO
  * @version： 1.0
  */
-public class PharmacyRemoteService extends AccessDrugEnterpriseService{
+public class PharmacyRemoteService extends AccessDrugEnterpriseService {
 
-    /** logger */
+    /**
+     * logger
+     */
     private static final Logger LOGGER = LoggerFactory.getLogger(PharmacyRemoteService.class);
 
     @Override
@@ -27,33 +32,43 @@ public class PharmacyRemoteService extends AccessDrugEnterpriseService{
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         LOGGER.info("PharmacyRemoteService pushRecipeInfo not implement.");
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         LOGGER.info("PharmacyRemoteService scanStock not implement.");
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
         LOGGER.info("PharmacyRemoteService syncEnterpriseDrug not implement.");
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
     public DrugEnterpriseResult pushCheckResult(Integer recipeId, Integer checkFlag, DrugsEnterprise enterprise) {
         LOGGER.info("PharmacyRemoteService pushCheckResult not implement.");
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         LOGGER.info("PharmacyRemoteService findSupportDep not implement.");
-
-
-        return null;
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        List<DepDetailBean> list = new ArrayList<>(5);
+        DepDetailBean detailBean;
+        for (int i = 0; i < 5; i++) {
+            detailBean = new DepDetailBean();
+            detailBean.setDepId(enterprise.getId());
+            detailBean.setDepName("测试大药房" + i);
+            detailBean.setPharmacyCode("cedyf" + i);
+            detailBean.setRecipeFee(new BigDecimal((int) Math.random() * 100));
+            detailBean.setAddress("东大街江南大道滨盛路1189潮人汇9楼 ");
+        }
+        result.setObject(list);
+        return result;
     }
 
     @Override

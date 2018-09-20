@@ -29,8 +29,11 @@
 	<!--钥世圈对接实现-->
 	<bean id="ysqRemoteService" class="recipe.drugsenterprise.YsqRemoteService"></bean>
 
-    <!--钥世圈对接实现-->
+    <!--支付宝对接实现-->
     <bean id="zfbRemoteService" class="recipe.drugsenterprise.ZfbRemoteService"></bean>
+
+    <!--测试药店对接实现-->
+    <bean id="pharmacyRemoteService" class="recipe.drugsenterprise.PharmacyRemoteService"></bean>
 
 	<!--测试药企-->
 	<bean id="testRemoteService" class="recipe.drugsenterprise.TestRemoteService"></bean>
