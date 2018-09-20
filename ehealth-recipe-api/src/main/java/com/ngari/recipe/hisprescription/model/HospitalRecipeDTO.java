@@ -1,9 +1,11 @@
 package com.ngari.recipe.hisprescription.model;
 
+import com.alibaba.fastjson.JSONArray;
 import com.ngari.recipe.common.anno.Verify;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,6 +17,11 @@ import java.util.List;
  */
 @Schema
 public class HospitalRecipeDTO implements Serializable {
+
+
+    public static void main(String[] args) {
+        System.out.println(JSONArray.toJSON(HospitalRecipeDTO.getTestObject()));
+    }
 
     private static final long serialVersionUID = 5376913267069813730L;
 
@@ -48,8 +55,11 @@ public class HospitalRecipeDTO implements Serializable {
     @Verify(desc = "处方号")
     private String recipeCode;
 
-    @Verify(desc = "开方机构序号", isInt = true)
+    @Verify(isNotNull = false, desc = "开方机构序号", isInt = true)
     private String clinicOrgan;
+
+    @Verify(desc = "组织机构编码", maxLength = 30)
+    private String organId;
 
     @Verify(desc = "处方类型", isInt = true)
     private String recipeType;
@@ -239,6 +249,14 @@ public class HospitalRecipeDTO implements Serializable {
 
     public void setClinicOrgan(String clinicOrgan) {
         this.clinicOrgan = clinicOrgan;
+    }
+
+    public String getOrganId() {
+        return organId;
+    }
+
+    public void setOrganId(String organId) {
+        this.organId = organId;
     }
 
     public String getRecipeType() {
@@ -511,6 +529,49 @@ public class HospitalRecipeDTO implements Serializable {
 
     public void setDrugList(List<HospitalDrugDTO> drugList) {
         this.drugList = drugList;
+    }
+
+    public static HospitalRecipeDTO getTestObject(){
+        HospitalRecipeDTO recipe = new HospitalRecipeDTO();
+        recipe.setCertificateType("1");
+        recipe.setCertificate("330624198808141671");
+        recipe.setPatientName("鱼鱼鱼");
+        recipe.setPatientTel("18058735530");
+        recipe.setPatientSex("1");
+        recipe.setRecipeCode("recipeCode111");
+        recipe.setOrganId("111");
+        recipe.setRecipeType("1");
+        recipe.setDepartId("0");
+        recipe.setDoctorNumber("888");
+        recipe.setDoctorName("王大锤");
+        recipe.setCreateDate("2018-09-20 18:00:00");
+        recipe.setRecipeFee("8.88");
+        recipe.setActualFee("8.88");
+        recipe.setOrderTotalFee("8.88");
+        recipe.setOrganDiseaseId("12.2|10.1|sd58|88ok");
+        recipe.setOrganDiseaseName("风湿|骨痛|腿麻|脚疼");
+        recipe.setStatus("0");
+        recipe.setMedicalPayFlag("0");
+        recipe.setDistributionFlag("0");
+
+        List<HospitalDrugDTO> list = new ArrayList<>(1);
+        HospitalDrugDTO drug = new HospitalDrugDTO();
+        drug.setDrugCode("889988");
+        drug.setDrugName("拜新同");
+        drug.setSpecification("1*10支 盒");
+        drug.setProducer("拜耳医药保健有限公司");
+        drug.setTotal("1.1");
+        drug.setUseDose("0.2");
+        drug.setDrugFee("8.11");
+        drug.setDrugTotalFee("8.11");
+        drug.setUesDays("3");
+        drug.setUsingRate("po");
+        drug.setUsePathways("tid");
+
+        list.add(drug);
+        recipe.setDrugList(list);
+
+        return recipe;
     }
 }
 

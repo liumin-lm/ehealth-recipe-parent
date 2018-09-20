@@ -2,7 +2,10 @@ package recipe.prescription.dataprocess;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.DrugList;
+import com.ngari.recipe.entity.OrganDrugList;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.hisprescription.model.HosRecipeResult;
 import com.ngari.recipe.hisprescription.model.HospitalDrugDTO;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
@@ -23,7 +26,10 @@ import recipe.prescription.PrescribeService;
 import recipe.util.DateConversion;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author： 0184/yu_yun
@@ -215,7 +221,7 @@ public class PrescribeProcess {
                         recipeDetails.add(recipedetail);
                     }
                 }
-            } else{
+            } else {
                 LOG.warn("convertNgariDetail drugList数据与医院不匹配. organDrugCode={}, drugList.size={}",
                         JSONUtils.toString(organDrugCodeList), drugList.size());
             }
@@ -288,8 +294,8 @@ public class PrescribeProcess {
                 return result;
             }
 
-            if (StringUtils.isEmpty(recipe.getClinicOrgan())) {
-                result.setMsg("开方机构为空");
+            if (StringUtils.isEmpty(recipe.getOrganId())) {
+                result.setMsg("组织结构编码为空");
                 return result;
             }
 

@@ -32,7 +32,7 @@ import java.util.Map;
  * @author: 0184/yu_yun
  * @date:2017/4/17.
  */
-@RpcBean("hosPrescriptionService")
+@RpcBean(value = "hosPrescriptionService", mvc_authentication = false)
 public class HosPrescriptionService implements IHosPrescriptionService {
 
     /**
@@ -53,7 +53,6 @@ public class HosPrescriptionService implements IHosPrescriptionService {
     @Override
     @RpcService
     public HosRecipeResult createPrescription(HospitalRecipeDTO hospitalRecipeDTO) {
-//        String recipeInfo = "{ \"clinicId\": \"1\", \"certificateType \": \"1\", \"certificate \": \"330624198808141671\",  \"patientTel \": \"17706521132\", \"patientName\": \"张三\",\"patientNumber \": \"P100\", \"clinicOrgan\": \"1\", \"recipeCode\": \"CF001001\", \"recipeType\": \"1\",  \"doctorNumber\": \"0020\", \"doctorName\": \"测试doc\",\"createDate\": \"2018-03-22 10:40:30\", \"recipeFee\": \"100.01\", \"actualFee\": \"105.02\", \"couponFee\": \"0.00\", \"expressFee\": \"5.01\",\"decoctionFee\": \"0.00\",\"medicalFee\": \"0.00\", \"orderTotalFee\": \"105.02\", \"organDiseaseName\": \"A8888\", \"organDiseaseId\": \"感冒\", \"payMode\": \"3\", \"giveMode\": \"2\",\"giveUser\": \"测试发药\",\"status\": \"2\", \"memo\": \"诊断备注\", \"medicalPayFlag\": \"0\", \"distributionFlag\": \"0\", \"recipeMemo\": \"处方备注\", \"tcmUsePathways\": \"\",\"tcmUsingRate\": \"\",  \"tcmNum \": \"\",  \"takeMedicine\": \"\",  \"drugList\": [{ \"drugCode\": \"111001402\",   \"drugName\": \"头孢\", \"total\": \"2\",  \"useDose\": \"0.1\",\"drugFee\": \"50.005\", \"medicalFee\": \"0\", \"drugTotalFee\": \"100.01\", \"uesDays\": \"3\",  \"pharmNo\": \"8\", \"usingRate\": \"qid\",\"usePathways\": \"po\", \"memo\": \"药品使用备注\"}]}";
         HosRecipeResult<RecipeBean> result = prescribeService.createPrescription(hospitalRecipeDTO);
         if (HosRecipeResult.SUCCESS.equals(result.getCode())) {
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);

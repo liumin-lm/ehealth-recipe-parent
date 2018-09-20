@@ -1,6 +1,9 @@
 package recipe.service.common;
 
 import com.google.common.collect.Maps;
+import com.ngari.base.BaseAPI;
+import com.ngari.base.organ.model.OrganBean;
+import com.ngari.base.organ.service.IOrganService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
@@ -14,6 +17,8 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,9 +62,30 @@ public class RecipeSingleService {
             if (null != recipeId) {
                 dbRecipe = recipeDAO.get(recipeId);
             } else {
-                Integer organId = MapValueUtil.getInteger(conditions, "organId");
+                //需要转换组织机构编码
+                String organId = MapValueUtil.getString(conditions, "organId");
                 String recipeCode = MapValueUtil.getString(conditions, "recipeCode");
-                dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(recipeCode, organId);
+                if(StringUtils.isEmpty(organId) || StringUtils.isEmpty(recipeCode)){
+                    response.setMsg("缺少组织机构编码或者处方编号");
+                    return response;
+                }
+                Integer clinicOrgan = null;
+                try {
+                    IOrganService organService = BaseAPI.getService(IOrganService.class);
+                    List<OrganBean> organList = organService.findByOrganizeCode(organId);
+                    if (CollectionUtils.isNotEmpty(organList)) {
+                        clinicOrgan = organList.get(0).getOrganId();
+                    }
+                } catch (Exception e) {
+                    LOG.warn("getRecipeByConditions 平台未匹配到该组织机构编码. organId={}", organId, e);
+                } finally {
+                    if(null == clinicOrgan){
+                        response.setMsg("平台未匹配到该组织机构编码");
+                        return response;
+                    }
+                }
+
+                dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(recipeCode, clinicOrgan);
             }
 
             if (null != dbRecipe) {
