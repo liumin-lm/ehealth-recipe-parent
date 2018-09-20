@@ -3,6 +3,8 @@ package recipe.prescription;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientExtendService;
+import com.ngari.base.payment.model.PaymentBean;
+import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.EmploymentService;
@@ -11,10 +13,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeCommonResTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.hisprescription.model.HosBussResult;
-import com.ngari.recipe.hisprescription.model.HosRecipeResult;
-import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import com.ngari.recipe.hisprescription.model.HospitalSearchQO;
+import com.ngari.recipe.hisprescription.model.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
@@ -26,13 +25,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import recipe.common.CommonConstant;
+import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeLogDAO;
 import recipe.prescription.dataprocess.PrescribeProcess;
 
 import java.util.List;
+
+import static recipe.dao.RecipeDetailDAO.LOGGER;
 
 /**
  * @author： 0184/yu_yun
@@ -95,7 +96,7 @@ public class PrescribeService {
 
                 //TODO 修改校验模块通过@Verify注解来处理
                 result = PrescribeProcess.validateHospitalRecipe(hospitalRecipeDTO, ADD_FLAG);
-                if (CommonConstant.FAIL.equals(result.getCode())) {
+                if (HosRecipeResult.FAIL.equals(result.getCode())) {
                     return result;
                 }
 
@@ -138,7 +139,7 @@ public class PrescribeService {
                     LOG.warn("createPrescription 医生未找到平台执业点。doctorNumber={}, organId={}",
                             hospitalRecipeDTO.getDoctorNumber(), clinicOrgan);
                     result.setCode(HosRecipeResult.FAIL);
-                    result.setMsg("患者创建失败");
+                    result.setMsg("医生未找到平台执业点");
                     return result;
                 }
 
@@ -195,6 +196,7 @@ public class PrescribeService {
                             ObjectCopyUtils.convert(details, Recipedetail.class), false);
                     LOG.info("createPrescription 写入DB成功. recipeId={}", recipeId);
                     recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "医院处方接收成功");
+                    result.setCode(HosRecipeResult.SUCCESS);
                 } catch (Exception e) {
                     LOG.error("createPrescription 写入DB失败. recipe={}, detail={}", JSONUtils.toString(recipe),
                             JSONUtils.toString(details), e);
@@ -203,13 +205,67 @@ public class PrescribeService {
                 }
             }
 
-            return result;
         } else {
-            LOG.error("createPrescription recipe is empty.");
+            LOG.warn("createPrescription recipe is empty.");
             result.setCode(HosRecipeResult.FAIL);
             result.setMsg("处方对象为空");
-            return result;
         }
+
+        return result;
+    }
+
+    public HosRecipeResult updateRecipeStatus(HospitalStatusUpdateDTO request) {
+        HosRecipeResult result = new HosRecipeResult();
+        if (null != request) {
+            //TODO 修改校验模块通过@Verify注解来处理
+//            result = PrescribeProcess.validateHospitalRecipe(hospitalRecipeDTO, ADD_FLAG);
+//            if (HosRecipeResult.FAIL.equals(result.getCode())) {
+//                return result;
+//            }
+            Integer clinicOrgan = Integer.valueOf(request.getClinicOrgan());
+            String recipeCode = request.getRecipeCode();
+            Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, clinicOrgan);
+            //TODO 通过某种条件判断处方内容是否相同再执行后续
+            //当前处理为存在处方则返回，不做更新处理
+            if (null == dbRecipe) {
+                LOG.warn("updateRecipeStatus 不存在该处方. request={}", JSONUtils.toString(request));
+                result.setCode(HosRecipeResult.FAIL);
+                result.setMsg("不存在该处方");
+                return result;
+            }
+            Integer status = Integer.valueOf(request.getStatus());
+            if(status.equals(dbRecipe.getStatus())){
+                LOG.info("updateRecipeStatus 处方状态相同. request={}", JSONUtils.toString(request));
+                result.setCode(HosRecipeResult.SUCCESS);
+                result.setMsg("处方状态相同");
+                return result;
+            }
+
+            //如果已付款则需要进行退款
+//            try {
+//                //退款
+//                PaymentBean paymentBean = new PaymentBean();
+//                paymentBean.setPaymentType("WX");
+//                paymentBean.setBusType(RecipeService.WX_RECIPE_BUSTYPE);
+//                paymentBean.setOrderId(order.getOrderId());
+//                IPaymentService paymentService = BaseAPI.getService(IPaymentService.class);
+//                paymentService.refund(paymentBean);
+//            } catch (Exception e) {
+//                LOGGER.error("wxPayRefundForRecipe " + errorInfo + "*****微信退款异常！recipeId[" + recipeId + "],err[" + e.getMessage() + "]");
+//            }
+//            //取消订单数据
+//            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+//            //取消处方单
+//            recipeDAO.updateRecipeInfoByRecipeId
+
+            recipeLogDAO.saveRecipeLog(dbRecipe.getRecipeId(), dbRecipe.getStatus(), RecipeStatusConstant.DELETE, "医院处方作废成功");
+        } else {
+            LOG.warn("updateRecipeStatus request is empty.");
+            result.setCode(HosRecipeResult.FAIL);
+            result.setMsg("处方对象为空");
+        }
+
+        return result;
     }
 
     /**
