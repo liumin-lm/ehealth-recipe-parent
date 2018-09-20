@@ -117,7 +117,7 @@ public class PrescribeService {
             }
 
             String recipeCode = hospitalRecipeDTO.getRecipeCode();
-            Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, clinicOrgan);
+            Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(recipeCode, clinicOrgan);
             //TODO 通过某种条件判断处方内容是否相同再执行后续
             //当前处理为存在处方则返回，不做更新处理
             if (null != dbRecipe) {
@@ -271,7 +271,7 @@ public class PrescribeService {
                 }
             }
 
-            Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrgan(request.getRecipeCode(), clinicOrgan);
+            Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(request.getRecipeCode(), clinicOrgan);
             //数据对比
             if (null == dbRecipe) {
                 result.setMsg("不存在该处方");
