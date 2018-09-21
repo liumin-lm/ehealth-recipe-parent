@@ -152,7 +152,7 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         if(null != d.getDispensatory()) {
             DispensatoryDAO dispensatoryDAO = DAOFactory.getDAO(DispensatoryDAO.class);
             DispensatoryDTO dispensatoryDTO = d.getDispensatory();
-            dispensatoryDTO.setDrugId(d.getDrugId());
+            dispensatoryDTO.setDrugId(drugList.getDrugId());
             dispensatoryDTO.setName(d.getDrugName()+"("+d.getSaleName()+")");
             dispensatoryDTO.setDrugName(d.getDrugName());
             dispensatoryDTO.setSaleName(d.getSaleName());
