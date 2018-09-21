@@ -904,6 +904,13 @@ public class RecipeService {
             orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("status", status), resultBean);
             //发送患者审核完成消息
             RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS_YS);
+
+            if(RecipeBussConstant.FROMFLAG_HIS_USE == recipe.getFromflag()){
+                //发送审核成功消息
+                //${sendOrgan}：您的处方已审核通过，请于${expireDate}前到${pharmacyName}取药，地址：${addr}。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
+                //TODO
+
+            }
         } else {
             if(RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())){
                 // 平台处方发送药企处方信息
@@ -913,6 +920,10 @@ public class RecipeService {
                 service.pushCheckResult(recipeId, 1);
                 Integer status = OrderStatusConstant.READY_SEND;
                 orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("status", status), resultBean);
+                //发送审核成功消息
+                //${sendOrgan}：您的处方已审核通过，我们将以最快的速度配送到：${addr}。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
+                //TODO
+
             }
 
         }
@@ -943,6 +954,13 @@ public class RecipeService {
         } else if (RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
             //货到付款 | 药店取药
             RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
+        }
+
+        if(RecipeBussConstant.FROMFLAG_HIS_USE == recipe.getFromflag()){
+            //发送审核不成功消息
+            //${sendOrgan}：抱歉，您的处方未通过药师审核。如有收取费用，款项将为您退回，预计1-5个工作日到账。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
+            //TODO
+
         }
         //HIS消息发送
         //审核不通过 往his更新状态（已取消）
@@ -1842,7 +1860,8 @@ public class RecipeService {
         }
 
         if (saveFlag && RecipeResultBean.SUCCESS.equals(result.getCode())) {
-            if (1 == dbRecipe.getFromflag()) {
+            if (RecipeBussConstant.FROMFLAG_PLATFORM == dbRecipe.getFromflag()
+                    || RecipeBussConstant.FROMFLAG_HIS_USE == dbRecipe.getFromflag()) {
                 //HIS消息发送
                 RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
                 hisService.recipeDrugTake(recipeId, payFlag, result);
