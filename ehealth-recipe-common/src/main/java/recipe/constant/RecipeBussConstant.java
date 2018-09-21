@@ -97,4 +97,19 @@ public class RecipeBussConstant {
      * 处方类型-膏方 Herbal Paste
      */
     public static Integer RECIPETYPE_HP = 4;
+
+    /**
+     * HIS同步过来的处方
+     */
+    public static Integer FROMFLAG_HIS = 0;
+
+    /**
+     * HIS同步过来的处方
+     */
+    public static Integer FROMFLAG_PLATFORM = 1;
+
+    /**
+     * HIS同步过来的处方-医生处理及可进行审方
+     */
+    public static Integer FROMFLAG_HIS_USE = 2;
 }

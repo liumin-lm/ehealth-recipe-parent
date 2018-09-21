@@ -28,16 +28,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.constant.OrderStatusConstant;
+import recipe.constant.PayConstant;
+import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeLogDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.service.RecipeHisService;
 import recipe.service.RecipeOrderService;
 import recipe.service.hospitalrecipe.dataprocess.PrescribeProcess;
 
 import java.util.List;
-
-import static recipe.ApplicationUtils.getRecipeService;
 
 /**
  * @author： 0184/yu_yun
@@ -203,7 +204,7 @@ public class PrescribeService {
             //0:表示HIS处方，不会在任何地方展示
             //1:平台开具处方，平台处理业务都会展示
             //2:HIS处方，只在药师审核处展示
-            recipe.setFromflag(2);
+            recipe.setFromflag(RecipeBussConstant.FROMFLAG_HIS_USE);
 
             //创建详情数据
             List<RecipeDetailBean> details = PrescribeProcess.convertNgariDetail(hospitalRecipeDTO);
@@ -307,7 +308,7 @@ public class PrescribeService {
                 //取消处方单
                 recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), status, null);
 
-                if (1 == order.getPayFlag()) {
+                if (PayConstant.PAY_FLAG_PAY_SUCCESS == order.getPayFlag()) {
                     //已支付的情况需要退款
                     try {
                         INgariRefundService rufundService = BaseAPI.getService(INgariRefundService.class);
@@ -315,9 +316,11 @@ public class PrescribeService {
                     } catch (Exception e) {
                         LOG.warn("updateRecipeStatus 退款异常，orderId={}", order.getOrderId(), e);
                         recipeLogDAO.saveRecipeLog(dbRecipe.getRecipeId(), RecipeStatusConstant.UNKNOW,
-                                RecipeStatusConstant.UNKNOW, "医院处方作废成功");
+                                RecipeStatusConstant.UNKNOW, "医院处方-退款异常");
                     } finally {
-
+                        //HIS消息-退款
+                        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+                        hisService.recipeRefund(dbRecipe.getRecipeId());
                     }
                 }
                 recipeLogDAO.saveRecipeLog(dbRecipe.getRecipeId(), dbRecipe.getStatus(), status, "医院处方作废成功");

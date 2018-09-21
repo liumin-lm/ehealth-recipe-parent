@@ -3,6 +3,7 @@ package recipe.service;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.BaseAPI;
 import com.ngari.base.department.service.IDepartmentService;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.employment.model.EmploymentBean;
@@ -30,6 +31,7 @@ import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.wxpay.service.INgariRefundService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -903,8 +905,18 @@ public class RecipeService {
             //发送患者审核完成消息
             RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS_YS);
         } else {
-            service.pushSingleRecipeInfo(recipeId);
+            if(RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())){
+                // 平台处方发送药企处方信息
+                service.pushSingleRecipeInfo(recipeId);
+            }else if(RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipe.getFromflag())){
+                // HIS可用处方则发送审核完成消息
+                service.pushCheckResult(recipeId, 1);
+                Integer status = OrderStatusConstant.READY_SEND;
+                orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("status", status), resultBean);
+            }
+
         }
+
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核通过处理完成");
         return resultBean;
     }
@@ -1619,13 +1631,9 @@ public class RecipeService {
         }
 
         try {
-            //微信退款
-            PaymentBean paymentBean = new PaymentBean();
-            paymentBean.setPaymentType("WX");
-            paymentBean.setBusType(RecipeService.WX_RECIPE_BUSTYPE);
-            paymentBean.setOrderId(order.getOrderId());
-            IPaymentService paymentService = ApplicationUtils.getBaseService(IPaymentService.class);
-            paymentService.refund(paymentBean);
+            //退款
+            INgariRefundService rufundService = BaseAPI.getService(INgariRefundService.class);
+            rufundService.refund(order.getOrderId(), RecipeService.WX_RECIPE_BUSTYPE);
         } catch (Exception e) {
             LOGGER.error("wxPayRefundForRecipe " + errorInfo + "*****微信退款异常！recipeId[" + recipeId + "],err[" + e.getMessage() + "]");
         }
