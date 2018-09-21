@@ -153,12 +153,16 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
             DispensatoryDAO dispensatoryDAO = DAOFactory.getDAO(DispensatoryDAO.class);
             DispensatoryDTO dispensatoryDTO = d.getDispensatory();
             dispensatoryDTO.setDrugId(d.getDrugId());
+            dispensatoryDTO.setName(d.getDrugName()+"("+d.getSaleName()+")");
             dispensatoryDTO.setDrugName(d.getDrugName());
             dispensatoryDTO.setSaleName(d.getSaleName());
             dispensatoryDTO.setSpecs(d.getDrugSpec());
             Date now = DateTime.now().toDate();
             dispensatoryDTO.setCreateTime(now);
             dispensatoryDTO.setLastModifyTime(now);
+            // 来源
+            dispensatoryDTO.setSource(2);
+            dispensatoryDTO.setPageId("0");
 
             dispensatoryDAO.save(ObjectCopyUtils.convert(dispensatoryDTO, Dispensatory.class));
         }
