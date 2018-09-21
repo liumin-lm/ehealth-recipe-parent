@@ -4,14 +4,21 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>ehealth-recipe-parent</artifactId>
+        <artifactId>ehealth-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>1.5.6.hotfix-20180920-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>1.6.0.release-SNAPSHOT</version>
     </parent>
 
     <packaging>jar</packaging>
     <name>处方API</name>
     <description>处方API</description>
     <artifactId>ehealth-recipe-api</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>ssdev</groupId>
+            <artifactId>ssdev-mixins</artifactId>
+            <version>${ssdev.version}</version>
+        </dependency>
+    </dependencies>
 </project>

@@ -106,6 +106,8 @@ public class DrugListBean implements Serializable {
     @ItemProperty(alias = "医院价格")
     private BigDecimal hospitalPrice;
 
+    private DispensatoryDTO dispensatory;
+
     public DrugListBean() {
     }
 
@@ -323,6 +325,14 @@ public class DrugListBean implements Serializable {
 
     public void setHospitalPrice(BigDecimal hospitalPrice) {
         this.hospitalPrice = hospitalPrice;
+    }
+
+    public DispensatoryDTO getDispensatory() {
+        return dispensatory;
+    }
+
+    public void setDispensatory(DispensatoryDTO dispensatory) {
+        this.dispensatory = dispensatory;
     }
 
     @Override

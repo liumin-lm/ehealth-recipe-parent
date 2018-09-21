@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>1.5.6.hotfix-20180920-SNAPSHOT</version>
+        <version>1.6.0.release-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -18,6 +18,12 @@
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-recipe-entity</artifactId>
             <version>${project.parent.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>ssdev</groupId>
+                    <artifactId>ssdev-mixins</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
@@ -27,18 +33,6 @@
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-basic-api</artifactId>
-            <version>${project.parent.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>${project.parent.groupId}</groupId>
-                    <artifactId>ehealth-basic-dto</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>${project.parent.groupId}</groupId>
-            <artifactId>ehealth-basic-dto</artifactId>
-            <version>${project.parent.version}</version>
         </dependency>
     </dependencies>
 </project>
