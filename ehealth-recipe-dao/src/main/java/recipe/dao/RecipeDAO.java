@@ -172,7 +172,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      * @param limit
      * @return
      */
-    @DAOMethod(sql = "from Recipe where doctor=:doctorId and recipeId<:recipeId and status!=10 order by createDate desc ")
+    @DAOMethod(sql = "from Recipe where doctor=:doctorId and fromflag=1 and recipeId<:recipeId and status!=10 order by createDate desc ")
     public abstract List<Recipe> findRecipesForDoctor(@DAOParam("doctorId") Integer doctorId, @DAOParam("recipeId") Integer recipeId,
                                                       @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
 

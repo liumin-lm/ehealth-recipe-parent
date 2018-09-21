@@ -18,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
@@ -94,7 +95,7 @@ public class PrescribeProcess {
                 RecipeBussConstant.GIVEMODE_SEND_TO_HOME : Integer.parseInt(hospitalRecipeDTO.getGiveMode()));
         recipe.setGiveUser(hospitalRecipeDTO.getGiveUser());
         recipe.setPayFlag(StringUtils.isEmpty(hospitalRecipeDTO.getPayFlag()) ?
-                0 : Integer.valueOf(hospitalRecipeDTO.getPayFlag()));
+                PayConstant.PAY_FLAG_NOT_PAY : Integer.valueOf(hospitalRecipeDTO.getPayFlag()));
 
         recipe.setStatus(Integer.valueOf(hospitalRecipeDTO.getStatus()));
         recipe.setMedicalPayFlag(Integer.parseInt(hospitalRecipeDTO.getMedicalPayFlag()));
