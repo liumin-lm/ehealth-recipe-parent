@@ -19,7 +19,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import recipe.ApplicationUtils;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
-import recipe.prescription.PrescribeService;
+import recipe.service.hospitalrecipe.PrescribeService;
 
 import java.math.BigDecimal;
 import java.util.Collections;
