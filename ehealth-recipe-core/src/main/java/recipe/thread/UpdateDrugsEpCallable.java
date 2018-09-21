@@ -1,18 +1,12 @@
 package recipe.thread;
 
-import com.google.common.collect.Maps;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import ctd.persistence.DAOFactory;
-import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
 import recipe.dao.DrugsEnterpriseDAO;
-import recipe.util.HttpHelper;
-import recipe.util.MapValueUtil;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 
-import java.io.IOException;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
