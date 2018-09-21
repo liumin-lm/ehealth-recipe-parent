@@ -8,9 +8,9 @@ import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.base.constant.ErrorCode;
-import eh.entity.bus.pay.BusTypeEnum;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.constant.BusTypeEnum;
 import recipe.dao.RecipeOrderDAO;
 
 import java.util.Map;
