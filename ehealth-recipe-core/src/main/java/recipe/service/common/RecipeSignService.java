@@ -13,10 +13,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
@@ -156,6 +158,15 @@ public class RecipeSignService {
             LOG.warn("sign recipeId=[{}]更改取药方式失败，error={}", recipeId, hisResult.getError());
             response.setMsg("HIS更改取药方式失败");
             return response;
+        }
+
+        //发送处方给相应药企，所选药企查询的是订单内数据
+        RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        DrugEnterpriseResult drugEnterpriseResult = service.pushSingleRecipeInfoWithDepId(recipeId, depId);
+        if(DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())){
+            LOG.info("sign 推送药企成功, recipeId={}", recipeId);
+        }else{
+            LOG.info("sign 推送药企失败, recipeId={}, msg={}", recipeId, drugEnterpriseResult.getMsg());
         }
 
         //日志记录
