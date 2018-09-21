@@ -10,7 +10,13 @@ import ctd.util.AppContextHolder;
 public class RecipeAPI {
 
     public static <T> T getService(Class<T> clazz) {
-        String serviceName = "remote" + clazz.getSimpleName().substring(1);
+        String className = clazz.getSimpleName();
+        String serviceName = null;
+        if("IHosPrescriptionService".equals(className)){
+            serviceName = "hosPrescriptionService";
+        }else {
+            serviceName = "remote" + className.substring(1);
+        }
         return AppContextHolder.getBean("eh." + serviceName, clazz);
     }
 }

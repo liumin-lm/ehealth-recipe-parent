@@ -26,6 +26,7 @@
     <reference interface="com.ngari.base.sysparamter.service.ISysParamterService" id="eh.remoteSysParamterService"/>
     <reference interface="com.ngari.base.hisservice.service.IRecipeHisService" id="eh.remoteRecipeHisService"/>
     <reference interface="com.ngari.base.searchservice.service.ISearchService" id="eh.remoteSearchService"/>
+    <reference interface="com.ngari.base.patient.service.IPatientExtendService" id="eh.remotePatientExtendService"/>
 
     <!--bus-api-->
     <reference interface="com.ngari.bus.busactionlog.service.IBusActionLogService" id="eh.busActionLogService"/>

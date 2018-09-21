@@ -123,7 +123,8 @@ public class RecipePatientService extends RecipeBaseService {
             List<DepDetailBean> depDetailList = new ArrayList<>();
             for (DrugsEnterprise dep : depList) {
                 //钥世圈需要从接口获取支持药店列表
-                if (DrugEnterpriseConstant.COMPANY_YSQ.equals(dep.getCallSys())) {
+                if (DrugEnterpriseConstant.COMPANY_YSQ.equals(dep.getCallSys()) ||
+                        DrugEnterpriseConstant.COMPANY_PHARMACY.equals(dep.getCallSys())) {
                     //需要从接口获取药店列表
                     DrugEnterpriseResult drugEnterpriseResult = remoteDrugService.findSupportDep(recipeIds, dep);
                     if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
