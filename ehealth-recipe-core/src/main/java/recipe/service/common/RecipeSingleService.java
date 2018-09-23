@@ -37,7 +37,7 @@ import java.util.Map;
  * @description： 获取处方单个数据服务
  * @version： 1.0
  */
-@RpcBean(value = "recipeSingleService", mvc_authentication = false, region = "hotfix20180920")
+@RpcBean(value = "recipeSingleService", mvc_authentication = false)
 public class RecipeSingleService {
 
     /**
