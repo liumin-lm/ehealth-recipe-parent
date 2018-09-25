@@ -1843,6 +1843,9 @@ public class RecipeService {
                 RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, status, memo);
             } else {
                 attrMap.put("chooseFlag", 0);
+                if(RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getRecipeType())){
+                    status = dbRecipe.getStatus();
+                }
             }
 
             try {
