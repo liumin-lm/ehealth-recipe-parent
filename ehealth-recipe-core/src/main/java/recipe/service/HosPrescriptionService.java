@@ -56,72 +56,74 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         HosRecipeResult<RecipeBean> result = null;
         try {
             result = prescribeService.createPrescription(hospitalRecipeDTO);
+
+            if (HosRecipeResult.SUCCESS.equals(result.getCode())) {
+                RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+                RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+                RecipeBean recipe = result.getData();
+                //创建订单
+                //待煎费或者膏方制作费，存在该值说明需要待煎
+                String decoctionFeeStr = hospitalRecipeDTO.getDecoctionFee();
+                boolean decoctionFlag = StringUtils.isNotEmpty(decoctionFeeStr)
+                        && RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType()) ? true : false;
+                boolean gfFeeFlag = StringUtils.isNotEmpty(decoctionFeeStr)
+                        && RecipeBussConstant.RECIPETYPE_HP.equals(recipe.getRecipeType()) ? true : false;
+                Map<String, String> orderMap = Maps.newHashMap();
+                orderMap.put("operMpiId", recipe.getMpiid());
+                //PayWayEnum.UNKNOW
+                orderMap.put("payway", "-1");
+                orderMap.put("payMode", recipe.getPayMode().toString());
+                orderMap.put("decoctionFlag", decoctionFlag ? "1" : "0");
+                orderMap.put("gfFeeFlag", gfFeeFlag ? "1" : "0");
+                orderMap.put("calculateFee", "0");
+                OrderCreateResult orderCreateResult = orderService.createOrder(
+                        Collections.singletonList(recipe.getRecipeId()), orderMap, 1);
+                if (null != orderCreateResult && OrderCreateResult.SUCCESS.equals(orderCreateResult.getCode())) {
+                    try {
+                        //更新订单数据
+                        Map<String, Object> orderAttr = Maps.newHashMap();
+                        orderAttr.put("status", OrderStatusConstant.READY_PAY);
+                        orderAttr.put("effective", 0);
+                        orderAttr.put("payFlag", recipe.getPayFlag());
+                        //服务费为0
+                        orderAttr.put("registerFee", BigDecimal.ZERO);
+                        orderAttr.put("recipeFee", recipe.getTotalMoney());
+                        orderAttr.put("expressFee", StringUtils.isEmpty(hospitalRecipeDTO.getExpressFee()) ?
+                                BigDecimal.ZERO : new BigDecimal(hospitalRecipeDTO.getExpressFee()));
+                        orderAttr.put("decoctionFee", StringUtils.isEmpty(decoctionFeeStr) ?
+                                BigDecimal.ZERO : new BigDecimal(decoctionFeeStr));
+                        orderAttr.put("couponFee", StringUtils.isEmpty(hospitalRecipeDTO.getCouponFee()) ?
+                                BigDecimal.ZERO : new BigDecimal(hospitalRecipeDTO.getCouponFee()));
+                        orderAttr.put("totalFee", new BigDecimal(hospitalRecipeDTO.getOrderTotalFee()));
+                        orderAttr.put("actualPrice", new BigDecimal(hospitalRecipeDTO.getActualFee()).doubleValue());
+
+                        RecipeResultBean resultBean = orderService.updateOrderInfo(
+                                orderCreateResult.getOrderCode(), orderAttr, null);
+                        if (RecipeResultBean.SUCCESS.equals(resultBean.getCode())) {
+                            LOG.info("createPrescription 订单更新成功 orderCode={}", orderCreateResult.getOrderCode());
+                        } else {
+                            LOG.warn("createPrescription 订单更新失败. recipeCode={}, orderCode={}",
+                                    hospitalRecipeDTO.getRecipeCode(), orderCreateResult.getOrderCode());
+                            updateOrderError(recipe.getRecipeId(), hospitalRecipeDTO.getRecipeCode(), result);
+                        }
+                    } catch (Exception e) {
+                        LOG.warn("createPrescription 订单更新异常. recipeCode={}, orderCode={}",
+                                hospitalRecipeDTO.getRecipeCode(), orderCreateResult.getOrderCode(), e);
+                        updateOrderError(recipe.getRecipeId(), hospitalRecipeDTO.getRecipeCode(), result);
+                    }
+                } else {
+                    LOG.warn("createPrescription 创建订单失败. recipeCode={}, result={}",
+                            hospitalRecipeDTO.getRecipeCode(), JSONUtils.toString(orderCreateResult));
+                    //删除处方
+                    recipeService.delRecipeForce(recipe.getRecipeId());
+                    result.setCode(HosRecipeResult.FAIL);
+                    result.setMsg("处方[" + hospitalRecipeDTO.getRecipeCode() + "]订单创建失败, 原因：" + orderCreateResult.getMsg());
+                }
+            }
         } catch (Exception e) {
             LOG.error("createPrescription:", e);
         }
-        if (HosRecipeResult.SUCCESS.equals(result.getCode())) {
-            RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-            RecipeBean recipe = result.getData();
-            //创建订单
-            //待煎费或者膏方制作费，存在该值说明需要待煎
-            String decoctionFeeStr = hospitalRecipeDTO.getDecoctionFee();
-            boolean decoctionFlag = StringUtils.isNotEmpty(decoctionFeeStr)
-                    && RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType()) ? true : false;
-            boolean gfFeeFlag = StringUtils.isNotEmpty(decoctionFeeStr)
-                    && RecipeBussConstant.RECIPETYPE_HP.equals(recipe.getRecipeType()) ? true : false;
-            Map<String, String> orderMap = Maps.newHashMap();
-            orderMap.put("operMpiId", recipe.getMpiid());
-            //PayWayEnum.UNKNOW
-            orderMap.put("payway", "-1");
-            orderMap.put("payMode", recipe.getPayMode().toString());
-            orderMap.put("decoctionFlag", decoctionFlag ? "1" : "0");
-            orderMap.put("gfFeeFlag", gfFeeFlag ? "1" : "0");
-            orderMap.put("calculateFee", "0");
-            OrderCreateResult orderCreateResult = orderService.createOrder(
-                    Collections.singletonList(recipe.getRecipeId()), orderMap, 1);
-            if (null != orderCreateResult && OrderCreateResult.SUCCESS.equals(orderCreateResult.getCode())) {
-                try {
-                    //更新订单数据
-                    Map<String, Object> orderAttr = Maps.newHashMap();
-                    orderAttr.put("status", OrderStatusConstant.READY_PAY);
-                    orderAttr.put("effective", 0);
-                    orderAttr.put("payFlag", recipe.getPayFlag());
-                    //服务费为0
-                    orderAttr.put("registerFee", BigDecimal.ZERO);
-                    orderAttr.put("recipeFee", recipe.getTotalMoney());
-                    orderAttr.put("expressFee", StringUtils.isEmpty(hospitalRecipeDTO.getExpressFee()) ?
-                            BigDecimal.ZERO : new BigDecimal(hospitalRecipeDTO.getExpressFee()));
-                    orderAttr.put("decoctionFee", StringUtils.isEmpty(decoctionFeeStr) ?
-                            BigDecimal.ZERO : new BigDecimal(decoctionFeeStr));
-                    orderAttr.put("couponFee", StringUtils.isEmpty(hospitalRecipeDTO.getCouponFee()) ?
-                            BigDecimal.ZERO : new BigDecimal(hospitalRecipeDTO.getCouponFee()));
-                    orderAttr.put("totalFee", new BigDecimal(hospitalRecipeDTO.getOrderTotalFee()));
-                    orderAttr.put("actualPrice", new BigDecimal(hospitalRecipeDTO.getActualFee()).doubleValue());
 
-                    RecipeResultBean resultBean = orderService.updateOrderInfo(
-                            orderCreateResult.getOrderCode(), orderAttr, null);
-                    if (RecipeResultBean.SUCCESS.equals(resultBean.getCode())) {
-                        LOG.info("createPrescription 订单更新成功 orderCode={}", orderCreateResult.getOrderCode());
-                    } else {
-                        LOG.warn("createPrescription 订单更新失败. recipeCode={}, orderCode={}",
-                                hospitalRecipeDTO.getRecipeCode(), orderCreateResult.getOrderCode());
-                        updateOrderError(recipe.getRecipeId(), hospitalRecipeDTO.getRecipeCode(), result);
-                    }
-                } catch (Exception e) {
-                    LOG.warn("createPrescription 订单更新异常. recipeCode={}, orderCode={}",
-                            hospitalRecipeDTO.getRecipeCode(), orderCreateResult.getOrderCode(), e);
-                    updateOrderError(recipe.getRecipeId(), hospitalRecipeDTO.getRecipeCode(), result);
-                }
-            } else {
-                LOG.warn("createPrescription 创建订单失败. recipeCode={}, result={}",
-                        hospitalRecipeDTO.getRecipeCode(), JSONUtils.toString(orderCreateResult));
-                //删除处方
-                recipeService.delRecipeForce(recipe.getRecipeId());
-                result.setCode(HosRecipeResult.FAIL);
-                result.setMsg("处方[" + hospitalRecipeDTO.getRecipeCode() + "]订单创建失败, 原因：" + orderCreateResult.getMsg());
-            }
-        }
 
         return result;
     }
