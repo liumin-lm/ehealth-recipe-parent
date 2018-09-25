@@ -108,6 +108,7 @@ public class RecipeSingleService {
                         other.put("patientAddress", patient.getAddress());
                         other.put("patientTel", patient.getMobile());
                         recipeInfo.put("other", other);
+                        recipeInfo.put("patient", patient);
                     }
                 }
                 // 根据当前状态返回前端标记，用于前端展示什么页面
