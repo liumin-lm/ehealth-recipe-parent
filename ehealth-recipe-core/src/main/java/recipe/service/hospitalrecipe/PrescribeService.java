@@ -104,6 +104,8 @@ public class PrescribeService {
                 OrganBean organ = getOrganByOrganId(hospitalRecipeDTO.getOrganId());
                 if (null != organ) {
                     clinicOrgan = organ.getOrganId();
+                    //后面处理会用到
+                    hospitalRecipeDTO.setClinicOrgan(clinicOrgan.toString());
                     recipe.setClinicOrgan(clinicOrgan);
                     recipe.setOrganName(organ.getShortName());
                 }
