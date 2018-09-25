@@ -1844,13 +1844,12 @@ public class RecipeService {
                 RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, status, memo);
             } else {
                 attrMap.put("chooseFlag", 0);
-                if(RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getRecipeType())){
+                if(RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())){
                     status = dbRecipe.getStatus();
                 }
             }
 
             try {
-                LOGGER.info("*******************:status:"+status);
                 boolean flag = recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, attrMap);
                 if (flag) {
                     result.setMsg(RecipeSystemConstant.SUCCESS);
