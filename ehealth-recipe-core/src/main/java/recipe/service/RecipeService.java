@@ -1844,7 +1844,7 @@ public class RecipeService {
             } else {
                 attrMap.put("chooseFlag", 0);
                 if(RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getRecipeType())){
-                    status = dbRecipe.getStatus();
+                    status = RecipeStatusConstant.UNSIGN;
                 }
             }
 
