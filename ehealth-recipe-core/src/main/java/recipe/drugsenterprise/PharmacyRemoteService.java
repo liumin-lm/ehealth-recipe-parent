@@ -66,6 +66,7 @@ public class PharmacyRemoteService extends AccessDrugEnterpriseService {
             detailBean.setPharmacyCode("cedyf" + i);
             detailBean.setRecipeFee(new BigDecimal((int) Math.random() * 100));
             detailBean.setAddress("东大街江南大道滨盛路1189潮人汇9楼 ");
+            list.add(detailBean);
         }
         result.setObject(list);
         return result;
