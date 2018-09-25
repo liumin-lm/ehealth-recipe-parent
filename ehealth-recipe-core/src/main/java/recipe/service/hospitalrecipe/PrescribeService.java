@@ -202,7 +202,12 @@ public class PrescribeService {
             }
 
             //设置其他参数
-            PrescribeProcess.convertNgariRecipe(recipe, hospitalRecipeDTO);
+            try {
+                PrescribeProcess.convertNgariRecipe(recipe, hospitalRecipeDTO);
+            } catch (Exception e) {
+                LOG.warn("convertNgariRecipe:", e);
+            } finally {
+            }
             //设置为医院HIS获取的处方，不会在医生端列表展示数据
             //0:表示HIS处方，不会在任何地方展示
             //1:平台开具处方，平台处理业务都会展示
@@ -210,7 +215,13 @@ public class PrescribeService {
             recipe.setFromflag(RecipeBussConstant.FROMFLAG_HIS_USE);
 
             //创建详情数据
-            List<RecipeDetailBean> details = PrescribeProcess.convertNgariDetail(hospitalRecipeDTO);
+            List<RecipeDetailBean> details = null;
+            try {
+                details = PrescribeProcess.convertNgariDetail(hospitalRecipeDTO);
+            } catch (Exception e) {
+                LOG.warn("convertNgariDetail:", e);
+            } finally {
+            }
             if (CollectionUtils.isEmpty(details)) {
                 LOG.warn("createPrescription 药品详情转换错误, hospitalRecipeDTO={}", JSONUtils.toString(hospitalRecipeDTO));
                 result.setMsg("药品详情转换错误");
