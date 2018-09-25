@@ -6,9 +6,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
+import recipe.constant.RecipeBussConstant;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -64,12 +66,18 @@ public class PharmacyRemoteService extends AccessDrugEnterpriseService {
             detailBean.setDepId(enterprise.getId());
             detailBean.setDepName("测试大药房" + i);
             detailBean.setPharmacyCode("cedyf" + i);
-            detailBean.setRecipeFee(new BigDecimal((int) Math.random() * 100));
+            detailBean.setRecipeFee(new BigDecimal((int) (Math.random() * 100)));
             detailBean.setAddress("东大街江南大道滨盛路1189潮人汇9楼 ");
+            detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_TFDS));
+
             list.add(detailBean);
         }
         result.setObject(list);
         return result;
+    }
+
+    public static void main(String[] args) {
+        System.out.println((int) (Math.random() * 100));
     }
 
     @Override
