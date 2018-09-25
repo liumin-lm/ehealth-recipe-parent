@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
+import recipe.constant.RecipeSystemConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeOrderDAO;
@@ -69,8 +70,8 @@ public class PrescribeProcess {
         recipe.setActualPrice(StringUtils.isEmpty(hospitalRecipeDTO.getActualFee()) ?
                 BigDecimal.ZERO : new BigDecimal(hospitalRecipeDTO.getActualFee()));
         // 多个诊断按“|”分隔
-        recipe.setOrganDiseaseId(hospitalRecipeDTO.getOrganDiseaseId().replaceAll("\\|", "；"));
-        recipe.setOrganDiseaseName(hospitalRecipeDTO.getOrganDiseaseName().replaceAll("\\|", "；"));
+        recipe.setOrganDiseaseId(hospitalRecipeDTO.getOrganDiseaseId().replaceAll("\\|", RecipeSystemConstant.ORGAN_DISEASE_SPLIT));
+        recipe.setOrganDiseaseName(hospitalRecipeDTO.getOrganDiseaseName().replaceAll("\\|", RecipeSystemConstant.ORGAN_DISEASE_SPLIT));
         recipe.setRecipeMemo(hospitalRecipeDTO.getRecipeMemo());
         recipe.setMemo(hospitalRecipeDTO.getMemo());
         //处方审核信息

@@ -72,4 +72,6 @@ public class RecipeSystemConstant {
      */
     public static final String DEFAULT_CHARACTER_ENCODING = "UTF-8";
 
+    public static final String ORGAN_DISEASE_SPLIT = ";";
+
 }
