@@ -171,7 +171,6 @@ public class PrescribeService {
             try {
                 IPatientExtendService patientExtendService = BaseAPI.getService(IPatientExtendService.class);
                 List<PatientBean> patList = patientExtendService.findCurrentUserPatientList(hospitalRecipeDTO.getCertificate());
-                LOG.info("patList:"+JSONUtils.toString(patList));
                 if (CollectionUtils.isEmpty(patList)) {
                     patient = new PatientBean();
                     patient.setPatientName(hospitalRecipeDTO.getPatientName());
@@ -180,10 +179,8 @@ public class PrescribeService {
                     patient.setCertificate(hospitalRecipeDTO.getCertificate());
                     patient.setAddress(hospitalRecipeDTO.getPatientAddress());
                     patient.setMobile(hospitalRecipeDTO.getPatientTel());
-                    LOG.info("patient:"+JSONUtils.toString(patient));
                     //创建就诊人
                     patient = patientExtendService.addPatient4DoctorApp(patient, 0);
-                    LOG.info("patient after do:"+JSONUtils.toString(patient));
                 } else {
                     patient = patList.get(0);
                 }
@@ -204,12 +201,7 @@ public class PrescribeService {
             }
 
             //设置其他参数
-            try {
-                PrescribeProcess.convertNgariRecipe(recipe, hospitalRecipeDTO);
-            } catch (Exception e) {
-                LOG.warn("convertNgariRecipe:", e);
-            } finally {
-            }
+            PrescribeProcess.convertNgariRecipe(recipe, hospitalRecipeDTO);
             //设置为医院HIS获取的处方，不会在医生端列表展示数据
             //0:表示HIS处方，不会在任何地方展示
             //1:平台开具处方，平台处理业务都会展示
@@ -218,12 +210,7 @@ public class PrescribeService {
 
             //创建详情数据
             List<RecipeDetailBean> details = null;
-            try {
-                details = PrescribeProcess.convertNgariDetail(hospitalRecipeDTO);
-            } catch (Exception e) {
-                LOG.warn("convertNgariDetail:", e);
-            } finally {
-            }
+            details = PrescribeProcess.convertNgariDetail(hospitalRecipeDTO);
             if (CollectionUtils.isEmpty(details)) {
                 LOG.warn("createPrescription 药品详情转换错误, hospitalRecipeDTO={}", JSONUtils.toString(hospitalRecipeDTO));
                 result.setMsg("药品详情转换错误");
