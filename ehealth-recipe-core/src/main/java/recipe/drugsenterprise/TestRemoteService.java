@@ -53,7 +53,7 @@ public class TestRemoteService extends AccessDrugEnterpriseService {
     @Override
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         LOGGER.info("TestRemoteService findSupportDep not implement.");
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
