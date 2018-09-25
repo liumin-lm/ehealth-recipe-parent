@@ -121,7 +121,6 @@ public class RecipeSignService {
             // 修改订单一些参数
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
             Map<String, Object> orderAttr = Maps.newHashMap();
-            orderAttr.put("payMode", payMode.toString());
             orderAttr.put("depId", depId.toString());
             //未支付不知道支付方式
             orderAttr.put("payway", "-1");
