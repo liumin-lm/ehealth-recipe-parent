@@ -1,5 +1,7 @@
 package recipe.service;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.sysparamter.service.ISysParamterService;
@@ -30,11 +32,15 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 
+import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import static org.bouncycastle.asn1.x500.style.RFC4519Style.o;
 
 /**
  * 患者端服务
@@ -50,6 +56,37 @@ public class RecipePatientService extends RecipeBaseService {
      * LOGGER
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipePatientService.class);
+
+    /**
+     * 根据取药方式过滤药企
+     * @param recipeIds
+     * @param payModes
+     * @return
+     */
+    @RpcService
+    public RecipeResultBean filterSupportDepList(List<Integer> recipeIds, final List<Integer> payModes){
+        RecipeResultBean result = this.findSupportDepList(1, recipeIds);
+        RecipeResultBean backResult = RecipeResultBean.getSuccess();
+        backResult.setCode(result.getCode());
+        backResult.setMsg(result.getMsg());
+        Object depListObj = result.getObject();
+        DepListBean newBean = new DepListBean();
+        if(null != depListObj && depListObj instanceof DepListBean){
+            DepListBean depListBean = (DepListBean)depListObj;
+            newBean.setList(Lists.newArrayList(Collections2.filter(depListBean.getList(), new Predicate<DepDetailBean>() {
+                @Override
+                public boolean apply(@Nullable DepDetailBean input) {
+                    if(input.getPayModeList().containsAll(payModes)){
+                        return true;
+                    }
+                    return false;
+                }
+            })));
+        }
+        backResult.setObject(newBean);
+
+        return backResult;
+    }
 
     /**
      * 获取供应商列表
