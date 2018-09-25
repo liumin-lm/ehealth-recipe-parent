@@ -118,6 +118,10 @@ public class HosPrescriptionService implements IHosPrescriptionService {
             }
         }
 
+        if (HosRecipeResult.DUPLICATION.equals(result.getCode())){
+            result.setCode(HosRecipeResult.SUCCESS);
+        }
+
         return result;
     }
 
