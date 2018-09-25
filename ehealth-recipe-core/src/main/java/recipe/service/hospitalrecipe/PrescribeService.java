@@ -169,6 +169,7 @@ public class PrescribeService {
             try {
                 IPatientExtendService patientExtendService = BaseAPI.getService(IPatientExtendService.class);
                 List<PatientBean> patList = patientExtendService.findCurrentUserPatientList(hospitalRecipeDTO.getCertificate());
+                LOG.info("patList:"+JSONUtils.toString(patList));
                 if (CollectionUtils.isEmpty(patList)) {
                     patient = new PatientBean();
                     patient.setPatientName(hospitalRecipeDTO.getPatientName());
@@ -177,8 +178,10 @@ public class PrescribeService {
                     patient.setCertificate(hospitalRecipeDTO.getCertificate());
                     patient.setAddress(hospitalRecipeDTO.getPatientAddress());
                     patient.setMobile(hospitalRecipeDTO.getPatientTel());
+                    LOG.info("patient:"+JSONUtils.toString(patient));
                     //创建就诊人
                     patient = patientExtendService.addPatient4DoctorApp(patient, 0);
+                    LOG.info("patient after do:"+JSONUtils.toString(patient));
                 } else {
                     patient = patList.get(0);
                 }
