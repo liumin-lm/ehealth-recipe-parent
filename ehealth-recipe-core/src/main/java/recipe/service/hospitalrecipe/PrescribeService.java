@@ -124,7 +124,7 @@ public class PrescribeService {
             //TODO 通过某种条件判断处方内容是否相同再执行后续
             //当前处理为存在处方则返回，不做更新处理
             if (null != dbRecipe) {
-                result.setCode(HosRecipeResult.SUCCESS);
+                result.setCode(HosRecipeResult.DUPLICATION);
                 result.setMsg("处方已存在");
                 return result;
             }

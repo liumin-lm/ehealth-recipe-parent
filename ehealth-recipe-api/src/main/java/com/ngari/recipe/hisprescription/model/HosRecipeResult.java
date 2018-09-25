@@ -21,6 +21,8 @@ public class HosRecipeResult<T> implements Serializable {
 
     public final static String FAIL = "001";
 
+    public final static String DUPLICATION = "002";
+
     private String code;
 
     private String msg;

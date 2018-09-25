@@ -56,7 +56,6 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         HosRecipeResult<RecipeBean> result = null;
         try {
             result = prescribeService.createPrescription(hospitalRecipeDTO);
-
             if (HosRecipeResult.SUCCESS.equals(result.getCode())) {
                 RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
                 RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
