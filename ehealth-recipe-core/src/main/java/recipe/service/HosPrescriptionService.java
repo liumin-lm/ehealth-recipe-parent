@@ -53,7 +53,12 @@ public class HosPrescriptionService implements IHosPrescriptionService {
     @Override
     @RpcService
     public HosRecipeResult createPrescription(HospitalRecipeDTO hospitalRecipeDTO) {
-        HosRecipeResult<RecipeBean> result = prescribeService.createPrescription(hospitalRecipeDTO);
+        HosRecipeResult<RecipeBean> result = null;
+        try {
+            result = prescribeService.createPrescription(hospitalRecipeDTO);
+        } catch (Exception e) {
+            LOG.error("createPrescription:", e);
+        }
         if (HosRecipeResult.SUCCESS.equals(result.getCode())) {
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);

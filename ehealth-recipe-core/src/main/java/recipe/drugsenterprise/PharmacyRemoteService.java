@@ -57,7 +57,6 @@ public class PharmacyRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, DrugsEnterprise enterprise) {
-        LOGGER.info("PharmacyRemoteService findSupportDep not implement.");
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         List<DepDetailBean> list = new ArrayList<>(5);
         DepDetailBean detailBean;
