@@ -1773,6 +1773,7 @@ public class RecipeService {
         if (null == recipeId) {
             result.setCode(RecipeResultBean.FAIL);
             result.setError("处方单id为null");
+            return result;
         }
 
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
@@ -1844,11 +1845,12 @@ public class RecipeService {
             } else {
                 attrMap.put("chooseFlag", 0);
                 if(RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getRecipeType())){
-                    status = RecipeStatusConstant.UNSIGN;
+                    status = dbRecipe.getStatus();
                 }
             }
 
             try {
+                LOGGER.info("*******************:status:"+status);
                 boolean flag = recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, attrMap);
                 if (flag) {
                     result.setMsg(RecipeSystemConstant.SUCCESS);

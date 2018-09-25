@@ -206,7 +206,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         }
                     } else if (payModeSupport.isSupportCOD() || payModeSupport.isSupportTFDS() || payModeSupport.isSupportComplex()) {
                         //货到付款 | 药店取药 处理
-                        if (1 == firstRecipe.getFromflag()) {
+                        if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(firstRecipe.getFromflag())) {
                             //平台处方先发送处方数据
                             sendRecipeAfterCreateOrder(recipeList, result, extInfo);
                         }
