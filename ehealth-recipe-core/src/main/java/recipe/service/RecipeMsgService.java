@@ -13,12 +13,14 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.util.RecipeMsgUtils;
 
 import java.util.Collections;
 import java.util.List;
 
 /**
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * @date:2016/5/27.
  */
@@ -124,7 +126,7 @@ public class RecipeMsgService {
      * @param afterStatus
      */
     public static void batchSendMsgForNew(List<Recipe> recipesList, int afterStatus) {
-        if (CollectionUtils.isEmpty(recipesList)){
+        if (CollectionUtils.isEmpty(recipesList)) {
             return;
         }
 
@@ -187,6 +189,9 @@ public class RecipeMsgService {
                 sendMsgInfo(recipeId, RECIPE_LOW_STOCKS, organId, Integer.toString(afterStatus));
             } else if (RecipeStatusConstant.RECIPR_NOT_CONFIRM_RECEIPT == afterStatus) {
                 sendMsgInfo(recipeId, RECIPR_NOT_CONFIRM_RECEIPT, organId, Integer.toString(afterStatus));
+            } else {
+                //新处理方式
+                sendMsgInfo(recipeId, RecipeMsgUtils.getMsgTypeByStatus(afterStatus), organId);
             }
 
         }

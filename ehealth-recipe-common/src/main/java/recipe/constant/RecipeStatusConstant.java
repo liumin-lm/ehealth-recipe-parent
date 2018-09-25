@@ -159,23 +159,4 @@ public class RecipeStatusConstant {
      */
     public static final int RECIPR_NOT_CONFIRM_RECEIPT = 111;
 
-    /**
-     * 不存在的状态, fromflag=2的处方药师审核不通过
-     */
-    public static final int PATIENT_HIS_YS_CHECK_NOT_PASS = 112;
-
-    /**
-     * 不存在的状态, fromflag=2的处方药师审核通过-配送到家
-     */
-    public static final int PATIENT_HIS_YS_CHECK_PASS_SEND = 113;
-
-    /**
-     * 不存在的状态, fromflag=2的处方药师审核通过-药店取药
-     */
-    public static final int PATIENT_HIS_YS_CHECK_PASS_TFDS = 114;
-
-    /**
-     * 不存在的状态, fromflag=2的处方取药完成
-     */
-    public static final int PATIENT_HIS_GET_FINISH = 115;
 }
