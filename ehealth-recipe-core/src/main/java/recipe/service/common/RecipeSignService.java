@@ -166,11 +166,12 @@ public class RecipeSignService {
         //HIS同步处理
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
         RecipeResultBean hisResult = hisService.recipeDrugTake(recipeId, PayConstant.PAY_FLAG_NOT_PAY, null);
-        if (RecipeResultBean.FAIL.equals(hisResult)) {
-            LOG.warn("sign recipeId=[{}]更改取药方式失败，error={}", recipeId, hisResult.getError());
-            response.setMsg("HIS更改取药方式失败");
-            return response;
-        }
+        //TODO HIS处理失败暂时略过
+//        if (RecipeResultBean.FAIL.equals(hisResult.getCode())) {
+//            LOG.warn("sign recipeId=[{}]更改取药方式失败，error={}", recipeId, hisResult.getError());
+//            response.setMsg("HIS更改取药方式失败");
+//            return response;
+//        }
 
         //发送处方给相应药企，所选药企查询的是订单内数据
         RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);

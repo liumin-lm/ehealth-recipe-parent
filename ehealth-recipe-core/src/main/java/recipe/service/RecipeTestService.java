@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.RecipeMsgEnum;
 import recipe.dao.RecipeDAO;
+import recipe.util.RecipeMsgUtils;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -87,7 +88,7 @@ public class RecipeTestService {
     public void testSendMsg4new(Integer bussId, String bussType) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(bussId);
-        RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.valueOf(bussType), recipe);
+        RecipeMsgService.sendRecipeMsg(RecipeMsgUtils.valueOf(bussType), recipe);
     }
 
     @RpcService

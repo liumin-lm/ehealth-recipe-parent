@@ -118,6 +118,12 @@ public class RecipeSingleService {
                 //设置订单ID
                 RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
                 if(null != order) {
+                    if(1 == order.getEffective()){
+                        //说明已签名，信息从order取
+                        other.put("patientAddress", order.getAddress4());
+                        other.put("patientTel", order.getRecMobile());
+                        other.put("depName", order.getDrugStoreName());
+                    }
                     other.put("orderId", order.getOrderId());
                 }
                 recipeInfo.put("other", other);

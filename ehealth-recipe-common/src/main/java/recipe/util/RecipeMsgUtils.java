@@ -36,4 +36,14 @@ public class RecipeMsgUtils {
 
         return RecipeMsgEnum.DEFAULT;
     }
+
+    public static RecipeMsgEnum valueOf(String msgType){
+        for(RecipeMsgEnum en : RecipeMsgEnum.values()){
+            if(en.getMsgType().equals(msgType)){
+                return en;
+            }
+        }
+
+        return RecipeMsgEnum.DEFAULT;
+    }
 }

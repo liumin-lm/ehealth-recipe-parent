@@ -69,7 +69,7 @@ public class RecipeCodeOrderService {
     @RpcService
     public Integer getPayFlag(Integer orderId){
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        RecipeOrder recipeOrder = recipeOrderDAO.getOrderByRecipeId(orderId);
+        RecipeOrder recipeOrder = recipeOrderDAO.get(orderId);
         Integer payFlag = recipeOrder.getPayFlag();
         return payFlag;
     }
