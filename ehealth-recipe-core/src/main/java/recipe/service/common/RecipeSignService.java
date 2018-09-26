@@ -76,6 +76,7 @@ public class RecipeSignService {
         Integer giveMode = MapValueUtil.getInteger(conditions, "giveMode");
         String pharmacyName = MapValueUtil.getString(conditions, "pharmacyName");
         String pharmacyCode = MapValueUtil.getString(conditions, "pharmacyCode");
+        String pharmacyAddress = MapValueUtil.getString(conditions, "pharmacyAddress");
         String patientAddress = MapValueUtil.getString(conditions, "patientAddress");
         String patientTel = MapValueUtil.getString(conditions, "patientTel");
         Integer payMode;
@@ -130,7 +131,7 @@ public class RecipeSignService {
             orderAttr.put("address4", patientAddress);
             orderAttr.put("recMobile", patientTel);
             orderAttr.put("drugStoreName", pharmacyName);
-            orderAttr.put("drugStoreAddr", patientAddress);
+            orderAttr.put("drugStoreAddr", pharmacyAddress);
             RecipeResultBean resultBean = orderService.updateOrderInfo(dbRecipe.getOrderCode(), orderAttr, null);
             if (RecipeResultBean.SUCCESS.equals(resultBean.getCode())) {
                 LOG.info("sign 订单更新成功 recipeId={}, orderCode={}", recipeId, dbRecipe.getOrderCode());
