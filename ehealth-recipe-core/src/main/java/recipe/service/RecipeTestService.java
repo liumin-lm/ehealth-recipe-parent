@@ -12,6 +12,7 @@ import ctd.util.annotation.RpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.constant.RecipeMsgEnum;
 import recipe.dao.RecipeDAO;
 
 import java.io.IOException;
@@ -80,6 +81,13 @@ public class RecipeTestService {
         info.setExtendWithoutPersist(JSONUtils.toString(Arrays.asList("2c9081814d720593014d758dd0880020")));
         ISmsPushService smsPushService = ApplicationUtils.getBaseService(ISmsPushService.class);
         smsPushService.pushMsg(info);
+    }
+
+    @RpcService
+    public void testSendMsg4new(Integer bussId, String bussType) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(bussId);
+        RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.valueOf(bussType), recipe);
     }
 
     @RpcService

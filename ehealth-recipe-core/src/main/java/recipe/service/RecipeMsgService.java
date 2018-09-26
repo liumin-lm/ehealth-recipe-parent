@@ -1,22 +1,28 @@
 package recipe.service;
 
+import com.google.common.collect.Maps;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.DAOFactory;
+import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.RecipeBussConstant;
+import recipe.constant.RecipeMsgEnum;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.util.DateConversion;
 import recipe.util.RecipeMsgUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * company: ngarihealth
@@ -191,11 +197,55 @@ public class RecipeMsgService {
                 sendMsgInfo(recipeId, RECIPR_NOT_CONFIRM_RECEIPT, organId, Integer.toString(afterStatus));
             } else {
                 //新处理方式
-                sendMsgInfo(recipeId, RecipeMsgUtils.getMsgTypeByStatus(afterStatus), organId);
+                Map<String, String> extendValue = Maps.newHashMap();
+                RecipeMsgEnum msgEnum = RecipeMsgUtils.getEnumByStatus(afterStatus);
+                switch (msgEnum) {
+                    case RECIPE_YS_CHECKPASS_4STH:
+                        getHosRecipeInfo(recipeId, extendValue);
+                        break;
+                    case RECIPE_YS_CHECKPASS_4TFDS:
+                        getHosRecipeInfo(recipeId, extendValue);
+                        //设置 expireDate 过期时间
+                        extendValue.put("expireDate", DateConversion.formatDate(
+                                DateConversion.getDateAftXDays(recipe.getCreateDate(), 3)));
+                        break;
+                    default:
+
+                }
+
+                sendMsgInfo(recipeId, msgEnum.getMsgType(), organId, JSONUtils.toString(extendValue));
             }
 
         }
 
+    }
+
+    /**
+     * 通过枚举类型发送消息
+     *
+     * @param em
+     * @param recipeList
+     */
+    public static void sendRecipeMsg(RecipeMsgEnum em, Recipe... recipeList) {
+        for (Recipe recipe : recipeList) {
+            Integer recipeId = recipe.getRecipeId();
+            Map<String, String> extendValue = Maps.newHashMap();
+            switch (em) {
+                case RECIPE_YS_CHECKPASS_4STH:
+                    getHosRecipeInfo(recipeId, extendValue);
+                    break;
+                case RECIPE_YS_CHECKPASS_4TFDS:
+                    getHosRecipeInfo(recipeId, extendValue);
+                    //设置 expireDate 过期时间
+                    extendValue.put("expireDate", DateConversion.formatDate(
+                            DateConversion.getDateAftXDays(recipe.getCreateDate(), 3)));
+                    break;
+                default:
+
+            }
+
+            sendMsgInfo(recipeId, em.getMsgType(), recipe.getClinicOrgan(), JSONUtils.toString(extendValue));
+        }
     }
 
     private static void sendMsgInfo(Integer recipeId, String bussType, Integer organId) {
@@ -203,6 +253,10 @@ public class RecipeMsgService {
     }
 
     private static void sendMsgInfo(Integer recipeId, String bussType, Integer organId, String extendValue) {
+        if (StringUtils.isEmpty(bussType)) {
+            return;
+        }
+
         SmsInfoBean info = new SmsInfoBean();
         // 业务表主键
         info.setBusId(recipeId);
@@ -232,6 +286,23 @@ public class RecipeMsgService {
         }
 
         return drugStoreName;
+    }
+
+    /**
+     * HOS处方消息扩展信息
+     *
+     * @param recipeId
+     * @param extendValue
+     */
+    private static void getHosRecipeInfo(Integer recipeId, Map<String, String> extendValue) {
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipeId);
+        if (null != order) {
+            extendValue.put("patientAddress", order.getAddress4());
+            extendValue.put("patientTel", order.getRecMobile());
+            extendValue.put("pharmacyName", order.getDrugStoreName());
+            extendValue.put("pharmacyAddress", order.getDrugStoreAddr());
+        }
     }
 
     /**

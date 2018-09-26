@@ -46,7 +46,12 @@ public enum RecipeMsgEnum {
     /**
      * fromflag=2的处方取药完成
      */
-    RECIPE_FINISH_4HIS(115, "RecipeFinish4His");
+    RECIPE_FINISH_4HIS(115, "RecipeFinish4His"),
+
+    /**
+     * 默认消息
+     */
+    DEFAULT(999, "");
 
     private String msgType;
 
