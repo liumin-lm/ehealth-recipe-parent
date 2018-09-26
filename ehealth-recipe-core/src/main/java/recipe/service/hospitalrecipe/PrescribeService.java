@@ -170,7 +170,8 @@ public class PrescribeService {
             PatientBean patient = null;
             try {
                 IPatientExtendService patientExtendService = BaseAPI.getService(IPatientExtendService.class);
-                List<PatientBean> patList = patientExtendService.findCurrentUserPatientList(hospitalRecipeDTO.getCertificate());
+                List<PatientBean> patList = patientExtendService.findPatient4Doctor(recipe.getDoctor(),
+                        hospitalRecipeDTO.getCertificate());
                 if (CollectionUtils.isEmpty(patList)) {
                     patient = new PatientBean();
                     patient.setPatientName(hospitalRecipeDTO.getPatientName());
