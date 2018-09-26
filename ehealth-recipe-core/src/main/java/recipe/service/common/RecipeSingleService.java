@@ -121,7 +121,7 @@ public class RecipeSingleService {
                     case RecipeStatusConstant.CHECK_PASS:
                         if(RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())){
                             notation = 2;
-                        } else if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe)){
+                        } else if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())){
                             if(Integer.valueOf(0).equals(dbRecipe.getPayFlag())){
                                 notation = 3;
                             }else if(Integer.valueOf(1).equals(dbRecipe.getPayFlag())){
