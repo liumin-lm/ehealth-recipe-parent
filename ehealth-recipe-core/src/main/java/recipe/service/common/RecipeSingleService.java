@@ -141,11 +141,13 @@ public class RecipeSingleService {
                         if(RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())){
                             notation = 2;
                         } else if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())){
-                            if(Integer.valueOf(0).equals(dbRecipe.getPayFlag())){
-                                notation = 3;
-                            }else if(Integer.valueOf(1).equals(dbRecipe.getPayFlag())){
-                                notation = 4;
-                            }
+                            notation = 3;
+                        }
+                        break;
+                    case RecipeStatusConstant.READY_CHECK_YS:
+                        if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
+                                && Integer.valueOf(1).equals(dbRecipe.getPayFlag())){
+                            notation = 4;
                         }
                         break;
                     case RecipeStatusConstant.CHECK_NOT_PASS_YS:
