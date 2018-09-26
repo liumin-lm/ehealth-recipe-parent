@@ -231,6 +231,14 @@ public class RecipeMsgService {
             Integer recipeId = recipe.getRecipeId();
             Map<String, String> extendValue = Maps.newHashMap();
             switch (em) {
+                case RECIPE_YS_CHECKNOTPASS_4HIS:
+                    //需要获取手机号
+                    getHosRecipeInfo(recipeId, extendValue);
+                    break;
+                case RECIPE_FINISH_4HIS:
+                    //需要获取手机号
+                    getHosRecipeInfo(recipeId, extendValue);
+                    break;
                 case RECIPE_YS_CHECKPASS_4STH:
                     getHosRecipeInfo(recipeId, extendValue);
                     break;
