@@ -121,9 +121,9 @@ public class RecipeSignService {
             // 修改订单一些参数
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
             Map<String, Object> orderAttr = Maps.newHashMap();
-            orderAttr.put("depId", depId.toString());
+            orderAttr.put("enterpriseId", depId);
             //未支付不知道支付方式
-            orderAttr.put("payway", "-1");
+            orderAttr.put("wxPayWay", "-1");
             //使订单生效
             orderAttr.put("effective", 1);
             orderAttr.put("receiver", dbRecipe.getPatientName());
@@ -145,6 +145,7 @@ public class RecipeSignService {
         Map<String, Object> attrMap = Maps.newHashMap();
         attrMap.put("giveMode", giveMode);
         attrMap.put("payMode", payMode);
+        attrMap.put("enterpriseId", depId);
         attrMap.put("chooseFlag", 1);
         //不做失效前提醒
         attrMap.put("remindFlag", 1);
