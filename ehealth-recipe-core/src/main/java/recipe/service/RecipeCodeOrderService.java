@@ -34,7 +34,7 @@ public class RecipeCodeOrderService {
     public String scanCodePayment(String payway ,Integer orderId , String appId){
         //检查业务单状态，如果已经支付成功，直接返回
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        RecipeOrder recipeOrder = recipeOrderDAO.getOrderByRecipeId(orderId);
+        RecipeOrder recipeOrder = recipeOrderDAO.get(orderId);
         Integer payFlag = recipeOrder.getPayFlag();
         String outTradeNo = recipeOrder.getOutTradeNo();
         if(payFlag .equals(1)){
