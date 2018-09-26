@@ -23,11 +23,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.ApplicationUtils;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.service.RecipeCheckService;
 import recipe.util.MapValueUtil;
 
 import java.util.List;
@@ -148,6 +150,10 @@ public class RecipeSingleService {
                         break;
                     case RecipeStatusConstant.CHECK_NOT_PASS_YS:
                         notation = 5;
+                        RecipeCheckService service = ApplicationUtils.getRecipeService(RecipeCheckService.class);
+                        //获取审核不通过详情
+                        List<Map<String, Object>> mapList = service.getCheckNotPassDetail(recipeId);
+                        recipeInfo.put("reasonAndDetails", mapList);
                         break;
                     case RecipeStatusConstant.DELETE:
                         notation = 6;
