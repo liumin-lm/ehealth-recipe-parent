@@ -122,6 +122,7 @@ public class RecipeSingleService {
                         //说明已签名，信息从order取
                         other.put("patientAddress", order.getAddress4());
                         other.put("patientTel", order.getRecMobile());
+                        other.put("depName", order.getDrugStoreName());
                     }
                     other.put("orderId", order.getOrderId());
                 }
