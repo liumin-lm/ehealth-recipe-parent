@@ -28,6 +28,7 @@
     <reference interface="com.ngari.base.searchservice.service.ISearchService" id="eh.remoteSearchService"/>
     <reference interface="com.ngari.base.patient.service.IPatientExtendService" id="eh.remotePatientExtendService"/>
     <reference interface="com.ngari.wxpay.service.IUnifiedPayService" id="eh.unifiedPayService"/>
+    <reference interface="com.ngari.wxpay.service.INgariPayService" id="eh.ngariPayService"/>
 
     <!--bus-api-->
     <reference interface="com.ngari.bus.busactionlog.service.IBusActionLogService" id="eh.busActionLogService"/>
