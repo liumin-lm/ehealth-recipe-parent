@@ -1,11 +1,14 @@
 package recipe.service.common;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.recipe.common.RecipeCommonBaseTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.RecipeStandardReqTO;
 import com.ngari.recipe.common.RecipeStandardResTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
+import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
@@ -18,6 +21,7 @@ import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeLogService;
@@ -63,6 +67,13 @@ public class RecipeSignService {
 
         if (RecipeStatusConstant.UNSIGN != dbRecipe.getStatus()) {
             response.setMsg("处方单已签名");
+            return response;
+        }
+
+        //查询订单
+        RecipeOrder order = DAOFactory.getDAO(RecipeOrderDAO.class).getByOrderCode(dbRecipe.getOrderCode());
+        if(null == order) {
+            response.setMsg("订单不存在");
             return response;
         }
 
@@ -169,6 +180,9 @@ public class RecipeSignService {
         }else{
             LOG.info("sign 推送药企失败, recipeId={}, msg={}", recipeId, drugEnterpriseResult.getMsg());
         }
+
+        //设置其他参数
+        response.setData(ImmutableMap.of("orderId", order.getOrderId()));
 
         //日志记录
         RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), RecipeStatusConstant.CHECK_PASS, "sign 完成");

@@ -12,6 +12,7 @@ import com.ngari.recipe.common.RecipeCommonBaseTO;
 import com.ngari.recipe.common.RecipeStandardReqTO;
 import com.ngari.recipe.common.RecipeStandardResTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -26,6 +27,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.dao.RecipeOrderDAO;
 import recipe.util.MapValueUtil;
 
 import java.util.List;
@@ -44,6 +46,9 @@ public class RecipeSingleService {
      * logger
      */
     private static final Logger LOG = LoggerFactory.getLogger(RecipeSingleService.class);
+
+    @Autowired
+    private RecipeOrderDAO orderDAO;
 
     @Autowired
     private RecipeDAO recipeDAO;
@@ -89,6 +94,7 @@ public class RecipeSingleService {
             }
 
             if (null != dbRecipe) {
+                Map<String, Object> other = Maps.newHashMap();
                 //组装处方数据
                 Map<String, Object> recipeInfo = Maps.newHashMap();
                 List<Recipedetail> detailList = detailDAO.findByRecipeId(dbRecipe.getRecipeId());
@@ -104,13 +110,18 @@ public class RecipeSingleService {
                     LOG.warn("getRecipeByConditions can't find patient. mpiId={}", dbRecipe.getMpiid(), e);
                 } finally {
                     if (null != patient) {
-                        Map<String, Object> other = Maps.newHashMap();
                         other.put("patientAddress", patient.getAddress());
                         other.put("patientTel", patient.getMobile());
-                        recipeInfo.put("other", other);
                         recipeInfo.put("patient", patient);
                     }
                 }
+                //设置订单ID
+                RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
+                if(null != order) {
+                    other.put("orderId", order.getOrderId());
+                }
+                recipeInfo.put("other", other);
+
                 // 根据当前状态返回前端标记，用于前端展示什么页面
                 // 分为 -1:查不到处方 0：未签名 1: 其他状态展示详情页  2：药店取药已签名  3: 配送到家已签名-未支付  4:配送到家已签名-已支付 5:审核不通过  6:作废
                 int notation = 0;
