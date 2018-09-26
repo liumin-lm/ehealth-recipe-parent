@@ -41,7 +41,7 @@ public class RecipeCodeOrderService {
             throw new DAOException(ErrorCode.SERVICE_ERROR,"订单已支付，请勿重复下单");
         }
         //判断业务单的商户订单号 ，是否已经下过的呢。如果已经下过单，需要先取消上一个订单
-        if(outTradeNo == null || outTradeNo.trim().equals("")){
+        if(!(outTradeNo == null || outTradeNo.trim().equals(""))){
             IUnifiedPayService unifiedPayService = ApplicationUtils.getBaseService(IUnifiedPayService.class);
             Map<String, Object> cancelmap = unifiedPayService.orderCancel(orderId, BusTypeEnum.RECIPE.getCode());
             String result = (String) cancelmap.get("code");
