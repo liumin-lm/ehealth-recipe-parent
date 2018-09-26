@@ -20,9 +20,9 @@ import java.util.Map;
  * Created by yuanb on 2018/9/19.
  * @author yuanb
  */
-@RpcBean("ngariOrderService")
-public class NgariOrderService {
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(NgariOrderService.class);
+@RpcBean("recipeCodeOrderService")
+public class RecipeCodeOrderService {
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(RecipeCodeOrderService.class);
 
     /**
      *
