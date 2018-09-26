@@ -201,10 +201,10 @@ public class RecipeMsgService {
                 RecipeMsgEnum msgEnum = RecipeMsgUtils.getEnumByStatus(afterStatus);
                 switch (msgEnum) {
                     case RECIPE_YS_CHECKPASS_4STH:
-                        getHosRecipeInfo(recipeId, extendValue);
+                        getHosRecipeInfo(recipe, extendValue);
                         break;
                     case RECIPE_YS_CHECKPASS_4TFDS:
-                        getHosRecipeInfo(recipeId, extendValue);
+                        getHosRecipeInfo(recipe, extendValue);
                         //设置 expireDate 过期时间
                         extendValue.put("expireDate", DateConversion.formatDate(
                                 DateConversion.getDateAftXDays(recipe.getCreateDate(), 3)));
@@ -233,17 +233,17 @@ public class RecipeMsgService {
             switch (em) {
                 case RECIPE_YS_CHECKNOTPASS_4HIS:
                     //需要获取手机号
-                    getHosRecipeInfo(recipeId, extendValue);
+                    getHosRecipeInfo(recipe, extendValue);
                     break;
                 case RECIPE_FINISH_4HIS:
                     //需要获取手机号
-                    getHosRecipeInfo(recipeId, extendValue);
+                    getHosRecipeInfo(recipe, extendValue);
                     break;
                 case RECIPE_YS_CHECKPASS_4STH:
-                    getHosRecipeInfo(recipeId, extendValue);
+                    getHosRecipeInfo(recipe, extendValue);
                     break;
                 case RECIPE_YS_CHECKPASS_4TFDS:
-                    getHosRecipeInfo(recipeId, extendValue);
+                    getHosRecipeInfo(recipe, extendValue);
                     //设置 expireDate 过期时间
                     extendValue.put("expireDate", DateConversion.formatDate(
                             DateConversion.getDateAftXDays(recipe.getCreateDate(), 3)));
@@ -302,14 +302,16 @@ public class RecipeMsgService {
      * @param recipeId
      * @param extendValue
      */
-    private static void getHosRecipeInfo(Integer recipeId, Map<String, String> extendValue) {
+    private static void getHosRecipeInfo(Recipe recipe, Map<String, String> extendValue) {
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipeId);
-        if (null != order) {
-            extendValue.put("patientAddress", order.getAddress4());
-            extendValue.put("patientTel", order.getRecMobile());
-            extendValue.put("pharmacyName", order.getDrugStoreName());
-            extendValue.put("pharmacyAddress", order.getDrugStoreAddr());
+        if(StringUtils.isNotEmpty(recipe.getOrderCode())) {
+            RecipeOrder order = recipeOrderDAO.get(recipe.getOrderCode());
+            if (null != order) {
+                extendValue.put("patientAddress", order.getAddress4());
+                extendValue.put("patientTel", order.getRecMobile());
+                extendValue.put("pharmacyName", order.getDrugStoreName());
+                extendValue.put("pharmacyAddress", order.getDrugStoreAddr());
+            }
         }
     }
 
