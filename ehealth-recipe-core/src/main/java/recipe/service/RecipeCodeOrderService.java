@@ -51,7 +51,7 @@ public class RecipeCodeOrderService {
 
         // 获取支付的二维码
         INgariPayService payService = ApplicationUtils.getBaseService(INgariPayService.class);
-        Map<String, Object> map = payService.appOrder(appId, payway, BusTypeEnum.MEETCLINIC.getCode(), String.valueOf(orderId), "");
+        Map<String, Object> map = payService.appOrder(appId, payway, BusTypeEnum.RECIPE.getCode(), String.valueOf(orderId), "");
         if (map == null || map.get("qr_code") == null) {
             logger.info("payService qr_code is required,or map is null...orderId=" + orderId + ",payway=" + payway + ",appId=" + appId);
             throw new DAOException(ErrorCode.SERVICE_ERROR, "生成二维码失败，请重试");
