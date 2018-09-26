@@ -305,7 +305,7 @@ public class RecipeMsgService {
     private static void getHosRecipeInfo(Recipe recipe, Map<String, String> extendValue) {
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         if(StringUtils.isNotEmpty(recipe.getOrderCode())) {
-            RecipeOrder order = recipeOrderDAO.get(recipe.getOrderCode());
+            RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             if (null != order) {
                 extendValue.put("patientAddress", order.getAddress4());
                 extendValue.put("patientTel", order.getRecMobile());
