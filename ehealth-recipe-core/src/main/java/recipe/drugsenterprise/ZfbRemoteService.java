@@ -259,14 +259,16 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
             //组装请求参数
             httpPost.setHeader("token", enterprise.getToken());
             Map<String, ZfbRecipeDTO> request = ImmutableMap.of("recipeDetail", zfbRecipe);
-            StringEntity requestEntity = new StringEntity(JSONUtils.toString(request), ContentType.APPLICATION_JSON);
+            String reqeustStr = JSONUtils.toString(request);
+            LOGGER.info("[{}][{}] pushRecipeInfo send :{}", depId, depName, JSONUtils.toString(request));
+            StringEntity requestEntity = new StringEntity(reqeustStr, ContentType.APPLICATION_JSON);
             httpPost.setEntity(requestEntity);
 
             //获取响应消息
             CloseableHttpResponse response = httpclient.execute(httpPost);
             HttpEntity httpEntity = response.getEntity();
             String responseStr = EntityUtils.toString(httpEntity);
-            LOGGER.info("[{}][{}]token更新返回:{}", depId, depName, responseStr);
+            LOGGER.info("[{}][{}] pushRecipeInfo 返回:{}", depId, depName, responseStr);
             ZfbTokenResponse zfbResponse = JSONUtils.parse(responseStr, ZfbTokenResponse.class);
             if ("0".equals(zfbResponse.getCode())) {
                 //成功
@@ -275,7 +277,7 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
             } else {
                 //失败
                 result.setMsg(zfbResponse.getMsg());
-                LOGGER.info("[{}][{}] pushRecipeInfo {} fail. msg={}", depId, depName,
+                LOGGER.warn("[{}][{}] pushRecipeInfo {} fail. msg={}", depId, depName,
                         JSONUtils.toString(recipeIds), zfbResponse.getMsg());
             }
             //关闭 HttpEntity 输入流
