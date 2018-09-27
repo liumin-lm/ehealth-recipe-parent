@@ -69,7 +69,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
             orderMap.put("operMpiId", recipe.getMpiid());
             //PayWayEnum.UNKNOW
             orderMap.put("payway", "-1");
-            orderMap.put("payMode", recipe.getPayMode().toString());
+            orderMap.put("payMode", null != recipe.getPayMode() ? recipe.getPayMode().toString() : "0");
             orderMap.put("decoctionFlag", decoctionFlag ? "1" : "0");
             orderMap.put("gfFeeFlag", gfFeeFlag ? "1" : "0");
             orderMap.put("calculateFee", "0");
