@@ -72,25 +72,26 @@ public class RecipeSignService {
 
         //查询订单
         RecipeOrder order = DAOFactory.getDAO(RecipeOrderDAO.class).getByOrderCode(dbRecipe.getOrderCode());
-        if(null == order) {
+        if (null == order) {
             response.setMsg("订单不存在");
             return response;
         }
 
         //配送数据校验
         Map<String, Object> conditions = request.getConditions();
+        Integer giveMode = MapValueUtil.getInteger(conditions, "giveMode");
         Integer depId = MapValueUtil.getInteger(conditions, "depId");
-        if (null == depId) {
+        if (null == depId && !RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)) {
             response.setMsg("缺少药企编码");
             return response;
         }
-        Integer giveMode = MapValueUtil.getInteger(conditions, "giveMode");
+
         String depName = MapValueUtil.getString(conditions, "depName");
         String pharmacyCode = MapValueUtil.getString(conditions, "pharmacyCode");
         String pharmacyAddress = MapValueUtil.getString(conditions, "pharmacyAddress");
         String patientAddress = MapValueUtil.getString(conditions, "patientAddress");
         String patientTel = MapValueUtil.getString(conditions, "patientTel");
-        Integer payMode;
+        Integer payMode = null;
         if (null != giveMode) {
             if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode)) {
                 //药店取药
@@ -106,6 +107,9 @@ public class RecipeSignService {
                     return response;
                 }
                 payMode = RecipeBussConstant.PAYMODE_ONLINE;
+            } else if (RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)) {
+                //患者自由选择
+                depId = 0;
             } else {
                 response.setMsg("缺少取药方式");
                 return response;
@@ -161,32 +165,42 @@ public class RecipeSignService {
         attrMap.put("chooseFlag", 1);
         //不做失效前提醒
         attrMap.put("remindFlag", 1);
-        recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECK_PASS, attrMap);
+
+        /**
+         * 药店取药和自由选择都流转到药师审核，审核完成推送给药企
+         */
+        Integer status = RecipeStatusConstant.CHECK_PASS;
+        if(RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) || RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)){
+            status = RecipeStatusConstant.READY_CHECK_YS;
+        }
+        recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, attrMap);
 
         //HIS同步处理
-        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-        RecipeResultBean hisResult = hisService.recipeDrugTake(recipeId, PayConstant.PAY_FLAG_NOT_PAY, null);
-        //TODO HIS处理失败暂时略过
+        if(!RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)) {
+            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+            RecipeResultBean hisResult = hisService.recipeDrugTake(recipeId, PayConstant.PAY_FLAG_NOT_PAY, null);
+            //TODO HIS处理失败暂时略过
 //        if (RecipeResultBean.FAIL.equals(hisResult.getCode())) {
 //            LOG.warn("sign recipeId=[{}]更改取药方式失败，error={}", recipeId, hisResult.getError());
 //            response.setMsg("HIS更改取药方式失败");
 //            return response;
 //        }
-
-        //发送处方给相应药企，所选药企查询的是订单内数据
-        RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-        DrugEnterpriseResult drugEnterpriseResult = service.pushSingleRecipeInfoWithDepId(recipeId, depId);
-        if(DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())){
-            LOG.info("sign 推送药企成功, recipeId={}", recipeId);
-        }else{
-            LOG.info("sign 推送药企失败, recipeId={}, msg={}", recipeId, drugEnterpriseResult.getMsg());
         }
+
+        //发送处方给相应药企，所选药企查询的是订单内数据，药企推送在药师审核完成后推送
+        /*RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        DrugEnterpriseResult drugEnterpriseResult = service.pushSingleRecipeInfoWithDepId(recipeId, depId);
+        if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
+            LOG.info("sign 推送药企成功, recipeId={}", recipeId);
+        } else {
+            LOG.info("sign 推送药企失败, recipeId={}, msg={}", recipeId, drugEnterpriseResult.getMsg());
+        }*/
 
         //设置其他参数
         response.setData(ImmutableMap.of("orderId", order.getOrderId()));
 
         //日志记录
-        RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), RecipeStatusConstant.CHECK_PASS, "sign 完成");
+        RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), status, "sign 完成");
         response.setCode(RecipeCommonBaseTO.SUCCESS);
         return response;
     }

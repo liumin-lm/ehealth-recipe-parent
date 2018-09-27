@@ -72,7 +72,7 @@ public class RecipeSingleService {
                 //需要转换组织机构编码
                 String organId = MapValueUtil.getString(conditions, "organId");
                 String recipeCode = MapValueUtil.getString(conditions, "recipeCode");
-                if(StringUtils.isEmpty(organId) || StringUtils.isEmpty(recipeCode)){
+                if (StringUtils.isEmpty(organId) || StringUtils.isEmpty(recipeCode)) {
                     response.setMsg("缺少组织机构编码或者处方编号");
                     return response;
                 }
@@ -86,7 +86,7 @@ public class RecipeSingleService {
                 } catch (Exception e) {
                     LOG.warn("getRecipeByConditions 平台未匹配到该组织机构编码. organId={}", organId, e);
                 } finally {
-                    if(null == clinicOrgan){
+                    if (null == clinicOrgan) {
                         response.setMsg("平台未匹配到该组织机构编码");
                         return response;
                     }
@@ -119,8 +119,8 @@ public class RecipeSingleService {
                 }
                 //设置订单ID
                 RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
-                if(null != order) {
-                    if(1 == order.getEffective()){
+                if (null != order) {
+                    if (1 == order.getEffective()) {
                         //说明已签名，信息从order取
                         other.put("patientAddress", order.getAddress4());
                         other.put("patientTel", order.getRecMobile());
@@ -129,7 +129,7 @@ public class RecipeSingleService {
                     other.put("orderId", order.getOrderId());
                 }
                 //设置其他数据
-                if(RecipeStatusConstant.DELETE == dbRecipe.getStatus()){
+                if (RecipeStatusConstant.DELETE == dbRecipe.getStatus()) {
                     other.put("cancelReason", "HIS作废");
                 }
                 recipeInfo.put("other", other);
@@ -142,15 +142,13 @@ public class RecipeSingleService {
                         notation = 0;
                         break;
                     case RecipeStatusConstant.CHECK_PASS:
-                        if(RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())){
-                            notation = 2;
-                        } else if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())){
-                            notation = 3;
-                        }
+                        notation = 3;
                         break;
                     case RecipeStatusConstant.READY_CHECK_YS:
-                        if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
-                                && Integer.valueOf(1).equals(dbRecipe.getPayFlag())){
+                        if (RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())) {
+                            notation = 2;
+                        } else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
+                                && Integer.valueOf(1).equals(dbRecipe.getPayFlag())) {
                             notation = 4;
                         }
                         break;

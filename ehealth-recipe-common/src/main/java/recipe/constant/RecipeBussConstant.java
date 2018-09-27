@@ -24,6 +24,11 @@ public class RecipeBussConstant {
     public static Integer GIVEMODE_TFDS = 3;
 
     /**
+     * 患者自由选择
+     */
+    public static Integer GIVEMODE_FREEDOM = 4;
+
+    /**
      * 支持多种购药方式
      */
     public static Integer PAYMODE_COMPLEX = 0;
