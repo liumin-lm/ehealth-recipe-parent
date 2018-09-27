@@ -300,8 +300,6 @@ public class PrescribeService {
 
             //作废处理
             if(RecipeStatusConstant.DELETE == status) {
-                //如果已付款则需要进行退款
-                RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
                 if (RecipeStatusConstant.WAIT_SEND == dbRecipe.getStatus()
                         || RecipeStatusConstant.IN_SEND == dbRecipe.getStatus()
                         || RecipeStatusConstant.FINISH == dbRecipe.getStatus()) {
@@ -311,6 +309,8 @@ public class PrescribeService {
 
                 //取消订单数据
                 RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+                //如果已付款则需要进行退款
+                RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
                 orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
                 //取消处方单
                 recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), status, null);
