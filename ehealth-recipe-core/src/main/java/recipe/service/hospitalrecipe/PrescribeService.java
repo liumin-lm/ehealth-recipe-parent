@@ -181,7 +181,7 @@ public class PrescribeService {
                     patient.setAddress(hospitalRecipeDTO.getPatientAddress());
                     patient.setMobile(hospitalRecipeDTO.getPatientTel());
                     //创建就诊人
-                    patient = patientExtendService.addPatient4DoctorApp(patient, 0);
+                    patient = patientExtendService.addPatient4DoctorApp(patient, 0, recipe.getDoctor());
                 } else {
                     patient = patList.get(0);
                 }
