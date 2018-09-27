@@ -9,6 +9,11 @@ package recipe.constant;
 public class DrugEnterpriseConstant {
 
     /**
+     * 通用
+     */
+    public static final String COMMON = "common";
+
+    /**
      * 钥世圈简称
      */
     public static final String COMPANY_YSQ = "ysq";

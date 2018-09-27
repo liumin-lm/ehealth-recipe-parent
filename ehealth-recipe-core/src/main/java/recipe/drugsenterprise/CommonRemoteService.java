@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
 import recipe.service.RecipeLogService;
 import recipe.thread.CommonSyncDrugCallable;
@@ -26,12 +27,12 @@ import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.HttpHelper;
 import recipe.util.MapValueUtil;
 
-import java.io.IOException;
 import java.util.*;
 
 /**
  * 通用药企对接服务实现(国药协议)
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * @date:2017/3/7.
  */
@@ -51,7 +52,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
 
         LOGGER.info("[{}][{}]token更新开始", depId, depName);
         try {
-            if(-1 != drugsEnterprise.getAuthenUrl().indexOf("http:")) {
+            if (-1 != drugsEnterprise.getAuthenUrl().indexOf("http:")) {
                 String backMsg = HttpHelper.doPost(drugsEnterprise.getAuthenUrl(), JSONUtils.toString(map));
                 LOGGER.info("[{}][{}]token更新返回：{}", depId, depName, backMsg);
                 if (StringUtils.isNotEmpty(backMsg)) {
@@ -304,7 +305,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
             Map<String, Object> sendMap = Maps.newHashMap();
             Map<String, Object> recipeInfo = Maps.newHashMap();
             List<Map<String, Object>> detailInfoList = new ArrayList<>(10);
-            Map<Integer,String> drugInfo = Maps.newHashMap();
+            Map<Integer, String> drugInfo = Maps.newHashMap();
 
             recipeInfo.put("recipeid", recipeId);
             if (null != recipe.getClinicOrgan()) {
@@ -373,8 +374,8 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
 //                            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
 //                            saleDrugListDAO.updateInvalidByOrganIdAndDrugIds(drugsEnterprise.getId(), errorIds);
                             logInfo.append("goodsInfo:[");
-                            for(Integer e : errorIds){
-                                logInfo.append(e+"-"+drugInfo.get(e)+",");
+                            for (Integer e : errorIds) {
+                                logInfo.append(e + "-" + drugInfo.get(e) + ",");
                             }
                             logInfo.append("]");
                         }
@@ -433,11 +434,11 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
     @Override
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         LOGGER.info("CommonRemoteService findSupportDep not implement.");
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
     public String getDrugEnterpriseCallSys() {
-        return "common";
+        return DrugEnterpriseConstant.COMMON;
     }
 }
