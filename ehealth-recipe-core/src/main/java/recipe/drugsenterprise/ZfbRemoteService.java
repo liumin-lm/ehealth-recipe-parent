@@ -8,10 +8,7 @@ import com.google.common.collect.Maps;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.DoctorService;
-import com.ngari.patient.service.EmploymentService;
-import com.ngari.patient.service.PatientService;
+import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
@@ -127,8 +124,17 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
             PatientService patientService = BasicAPI.getService(PatientService.class);
             DoctorService doctorService = BasicAPI.getService(DoctorService.class);
             EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
+            OrganService organService = BasicAPI.getService(OrganService.class);
 
             Recipe dbRecipe = recipeList.get(0);
+
+            String organCode = organService.getOrganizeCodeByOrganId(dbRecipe.getClinicOrgan());
+            if (StringUtils.isNotEmpty(organCode)) {
+                zfbRecipe.setOrganId(organCode);
+            } else {
+                result.setMsg("机构不存在");
+                return result;
+            }
 
             PatientDTO patient = patientService.get(dbRecipe.getMpiid());
             if (null != patient) {
