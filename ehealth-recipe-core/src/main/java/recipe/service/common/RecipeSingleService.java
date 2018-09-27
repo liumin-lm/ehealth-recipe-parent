@@ -128,6 +128,10 @@ public class RecipeSingleService {
                     }
                     other.put("orderId", order.getOrderId());
                 }
+                //设置其他数据
+                if(RecipeStatusConstant.DELETE == dbRecipe.getStatus()){
+                    other.put("cancelReason", "HIS作废");
+                }
                 recipeInfo.put("other", other);
 
                 // 根据当前状态返回前端标记，用于前端展示什么页面
