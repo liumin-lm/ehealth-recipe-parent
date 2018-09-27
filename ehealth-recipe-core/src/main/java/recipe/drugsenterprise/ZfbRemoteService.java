@@ -209,7 +209,7 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
                 SaleDrugListDAO saleDrugDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
                 DrugListDAO drugDAO = DAOFactory.getDAO(DrugListDAO.class);
 
-                List<SaleDrugList> saleDrugList = saleDrugDAO.findByOrganIdAndDrugIds(dbRecipe.getClinicOrgan(), drugIdList);
+                List<SaleDrugList> saleDrugList = saleDrugDAO.findByOrganIdAndDrugIds(depId, drugIdList);
                 List<DrugList> drugList = drugDAO.findByDrugIds(drugIdList);
                 if (detailList.size() != saleDrugList.size() || saleDrugList.size() != drugList.size()) {
                     result.setMsg("药品数据存在问题");
