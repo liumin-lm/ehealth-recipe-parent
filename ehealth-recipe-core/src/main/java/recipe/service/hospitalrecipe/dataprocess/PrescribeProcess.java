@@ -91,9 +91,9 @@ public class PrescribeProcess {
         }
 
         recipe.setPayMode(StringUtils.isEmpty(hospitalRecipeDTO.getPayMode()) ?
-                RecipeBussConstant.PAYMODE_ONLINE : Integer.parseInt(hospitalRecipeDTO.getPayMode()));
+                null : Integer.parseInt(hospitalRecipeDTO.getPayMode()));
         recipe.setGiveMode(StringUtils.isEmpty(hospitalRecipeDTO.getGiveMode()) ?
-                RecipeBussConstant.GIVEMODE_SEND_TO_HOME : Integer.parseInt(hospitalRecipeDTO.getGiveMode()));
+                null : Integer.parseInt(hospitalRecipeDTO.getGiveMode()));
         recipe.setGiveUser(hospitalRecipeDTO.getGiveUser());
         recipe.setPayFlag(StringUtils.isEmpty(hospitalRecipeDTO.getPayFlag()) ?
                 PayConstant.PAY_FLAG_NOT_PAY : Integer.valueOf(hospitalRecipeDTO.getPayFlag()));
