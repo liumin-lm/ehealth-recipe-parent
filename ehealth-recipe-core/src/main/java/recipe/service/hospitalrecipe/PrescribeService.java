@@ -252,10 +252,12 @@ public class PrescribeService {
         HosRecipeResult result = new HosRecipeResult();
         if (null != request) {
             //TODO 修改校验模块通过@Verify注解来处理
-//            result = PrescribeProcess.validateHospitalRecipe(hospitalRecipeDTO, ADD_FLAG);
-//            if (HosRecipeResult.FAIL.equals(result.getCode())) {
-//                return result;
-//            }
+            if(StringUtils.isEmpty(request.getOrganId()) || StringUtils.isEmpty(request.getRecipeCode())
+                    || StringUtils.isEmpty(request.getStatus())){
+                result.setCode(HosRecipeResult.FAIL);
+                result.setMsg("request对象必填参数为空");
+                return result;
+            }
 
             //重置默认为失败
             result.setCode(HosRecipeResult.FAIL);
@@ -300,9 +302,9 @@ public class PrescribeService {
             if(RecipeStatusConstant.DELETE == status) {
                 //如果已付款则需要进行退款
                 RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
-                if (OrderStatusConstant.READY_SEND.equals(order.getStatus())
-                        || OrderStatusConstant.SENDING.equals(order.getStatus())
-                        || OrderStatusConstant.FINISH.equals(order.getStatus())) {
+                if (RecipeStatusConstant.WAIT_SEND == dbRecipe.getStatus()
+                        || RecipeStatusConstant.IN_SEND == dbRecipe.getStatus()
+                        || RecipeStatusConstant.FINISH == dbRecipe.getStatus()) {
                     result.setMsg("该处方已处于配送状态，无法撤销");
                     return result;
                 }
