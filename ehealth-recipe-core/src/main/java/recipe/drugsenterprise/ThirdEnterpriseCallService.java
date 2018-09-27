@@ -24,10 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.ThirdResultBean;
-import recipe.constant.ErrorCode;
-import recipe.constant.OrderStatusConstant;
-import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
+import recipe.constant.*;
 import recipe.dao.*;
 import recipe.service.*;
 import recipe.serviceprovider.BaseService;
@@ -398,6 +395,11 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 //配送到家
                 RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.PATIENT_REACHPAY_FINISH);
             }
+
+            //HOS处方发送完成短信
+            if(RecipeBussConstant.FROMFLAG_HIS_USE == recipe.getFromflag()){
+                RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_FINISH_4HIS, recipe);
+            }
         } else {
             code = ErrorCode.SERVICE_ERROR;
             errorMsg = "电子处方更新失败";
@@ -639,6 +641,11 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 hisService.recipeFinish(recipeId);
                 //发送取药完成消息
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.PATIENT_GETGRUG_FINISH);
+
+                //HOS处方发送完成短信
+                if(RecipeBussConstant.FROMFLAG_HIS_USE == recipe.getFromflag()){
+                    RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_FINISH_4HIS, recipe);
+                }
             } else {
                 code = ErrorCode.SERVICE_ERROR;
                 errorMsg = "电子处方更新失败";

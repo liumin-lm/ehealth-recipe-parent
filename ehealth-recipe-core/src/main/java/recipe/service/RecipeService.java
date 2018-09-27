@@ -908,8 +908,7 @@ public class RecipeService {
             if(RecipeBussConstant.FROMFLAG_HIS_USE == recipe.getFromflag()){
                 //发送审核成功消息
                 //${sendOrgan}：您的处方已审核通过，请于${expireDate}前到${pharmacyName}取药，地址：${addr}。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
-                //TODO
-
+                RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_CHECKPASS_4TFDS, recipe);
             }
         } else {
             if(RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())){
@@ -922,8 +921,7 @@ public class RecipeService {
                 orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("status", status), resultBean);
                 //发送审核成功消息
                 //${sendOrgan}：您的处方已审核通过，我们将以最快的速度配送到：${addr}。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
-                //TODO
-
+                RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_CHECKPASS_4STH, recipe);
             }
 
         }
@@ -959,8 +957,7 @@ public class RecipeService {
         if(RecipeBussConstant.FROMFLAG_HIS_USE == recipe.getFromflag()){
             //发送审核不成功消息
             //${sendOrgan}：抱歉，您的处方未通过药师审核。如有收取费用，款项将为您退回，预计1-5个工作日到账。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
-            //TODO
-
+            RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_CHECKNOTPASS_4HIS, recipe);
         }
         //HIS消息发送
         //审核不通过 往his更新状态（已取消）
