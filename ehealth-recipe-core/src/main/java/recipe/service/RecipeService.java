@@ -5,17 +5,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.department.service.IDepartmentService;
-import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.employment.model.EmploymentBean;
 import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.base.esign.service.IESignBaseService;
 import com.ngari.base.hisconfig.service.IHisConfigService;
-import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.model.DocIndexBean;
-import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
-import com.ngari.base.payment.model.PaymentBean;
 import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.his.recipe.mode.DrugInfoTO;
@@ -27,7 +23,6 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -64,7 +59,6 @@ import java.math.BigDecimal;
 import java.util.*;
 
 import static ctd.persistence.DAOFactory.getDAO;
-import static recipe.bussutil.RecipeValidateUtil.validateDrugsImpl;
 
 /**
  * 处方服务类
@@ -888,42 +882,61 @@ public class RecipeService {
 
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         Integer recipeId = recipe.getRecipeId();
-        if (recipe.canMedicalPay()) {
-            //如果是可医保支付的单子，审核通过之后是变为待处理状态，需要用户支付完成才发往药企
-            RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipeId), null, true);
-            //向患者推送处方消息
-            RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS);
-        } else if (RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
-            //货到付款|药店取药 审核完成，往药企发送审核完成消息
-            service.pushCheckResult(recipeId, 1);
+
+        //正常平台处方
+        if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
+            if (recipe.canMedicalPay()) {
+                //如果是可医保支付的单子，审核通过之后是变为待处理状态，需要用户支付完成才发往药企
+                RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipeId), null, true);
+                //向患者推送处方消息
+                RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS);
+            } else if (RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
+                //货到付款|药店取药 审核完成，往药企发送审核完成消息
+                service.pushCheckResult(recipeId, 1);
+                Integer status = OrderStatusConstant.READY_SEND;
+                //到店取药审核完成是带取药状态
+                if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
+                    status = OrderStatusConstant.READY_GET_DRUG;
+                }
+                orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("status", status), resultBean);
+                //发送患者审核完成消息
+                RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS_YS);
+            } else {
+                // 平台处方发送药企处方信息
+                service.pushSingleRecipeInfo(recipeId);
+            }
+        } else if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipe.getFromflag())) {
             Integer status = OrderStatusConstant.READY_SEND;
-            //到店取药审核完成是带取药状态
             if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
                 status = OrderStatusConstant.READY_GET_DRUG;
-            }
-            orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("status", status), resultBean);
-            //发送患者审核完成消息
-            RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS_YS);
-
-            if(RecipeBussConstant.FROMFLAG_HIS_USE == recipe.getFromflag()){
+                // HOS处方发送药企处方信息
+                service.pushSingleRecipeInfo(recipeId);
                 //发送审核成功消息
                 //${sendOrgan}：您的处方已审核通过，请于${expireDate}前到${pharmacyName}取药，地址：${addr}。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
                 RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_CHECKPASS_4TFDS, recipe);
-            }
-        } else {
-            if(RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())){
-                // 平台处方发送药企处方信息
+            } else if (RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode())) {
+                // HOS处方发送药企处方信息
                 service.pushSingleRecipeInfo(recipeId);
-            }else if(RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipe.getFromflag())){
-                // HIS可用处方则发送审核完成消息
-                service.pushCheckResult(recipeId, 1);
-                Integer status = OrderStatusConstant.READY_SEND;
-                orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("status", status), resultBean);
                 //发送审核成功消息
                 //${sendOrgan}：您的处方已审核通过，我们将以最快的速度配送到：${addr}。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
                 RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_CHECKPASS_4STH, recipe);
+            } else {
+                status = OrderStatusConstant.READY_GET_DRUG;
+                // HOS处方发送药企处方信息，由于是自由选择，所以匹配到的药企都发送一遍
+                RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+                List<DrugsEnterprise> depList = recipeService.findSupportDepList(Lists.newArrayList(recipeId),
+                        recipe.getClinicOrgan(), null, false, null);
+                LOGGER.info("afterCheckPassYs recipeId={}, 匹配到药企数量[{}]", recipeId, depList.size());
+                for (DrugsEnterprise dep : depList) {
+                    service.pushSingleRecipeInfoWithDepId(recipeId, dep.getId());
+                }
+
+                //自由选择消息发送
+                //${sendOrgan}：您的处方已通过药师审核，请联系开方医生选择取药方式并支付处方费用。如有疑问，请拨打${customerTel}联系小纳。
+                RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_CHECKPASS_4FREEDOM, recipe);
             }
 
+            orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("status", status), resultBean);
         }
 
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核通过处理完成");
@@ -954,7 +967,7 @@ public class RecipeService {
             RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
         }
 
-        if(RecipeBussConstant.FROMFLAG_HIS_USE == recipe.getFromflag()){
+        if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipe.getFromflag())) {
             //发送审核不成功消息
             //${sendOrgan}：抱歉，您的处方未通过药师审核。如有收取费用，款项将为您退回，预计1-5个工作日到账。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
             RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_CHECKNOTPASS_4HIS, recipe);
@@ -1841,7 +1854,7 @@ public class RecipeService {
                 RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, status, memo);
             } else {
                 attrMap.put("chooseFlag", 0);
-                if(RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())){
+                if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())) {
                     status = dbRecipe.getStatus();
                 }
             }
@@ -1861,8 +1874,8 @@ public class RecipeService {
         }
 
         if (saveFlag && RecipeResultBean.SUCCESS.equals(result.getCode())) {
-            if (RecipeBussConstant.FROMFLAG_PLATFORM == dbRecipe.getFromflag()
-                    || RecipeBussConstant.FROMFLAG_HIS_USE == dbRecipe.getFromflag()) {
+            if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(dbRecipe.getFromflag())
+                    || RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())) {
                 //HIS消息发送
                 RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
                 hisService.recipeDrugTake(recipeId, payFlag, result);

@@ -47,6 +47,10 @@ public enum RecipeMsgEnum {
      * fromflag=2的处方取药完成
      */
     RECIPE_FINISH_4HIS(115, "RecipeFinish4His"),
+    /**
+     * fromflag=2的处方药师审核通过-患者自选
+     */
+    RECIPE_YS_CHECKPASS_4FREEDOM(116, "RecipeYsCheckPass4Freedom"),
 
     /**
      * 默认消息
