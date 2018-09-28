@@ -12,6 +12,8 @@ import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.dao.DrugDistributionPriceDAO;
 import recipe.serviceprovider.BaseService;
@@ -25,7 +27,7 @@ import java.util.List;
  **/
 @RpcBean("drugDistributionPriceService")
 public class DrugDistributionPriceService extends BaseService<DrugDistributionPrice> implements IDrugDistributionPriceService {
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(DrugDistributionPriceService.class);
     private IBusActionLogService iBusActionLogService =
             ApplicationUtils.getBaseService(IBusActionLogService.class);
 
@@ -42,6 +44,7 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
      */
     @Override
     public DrugDistributionPriceBean saveOrUpdatePrice(DrugDistributionPriceBean price) {
+        LOGGER.info("DrugDistributionPriceBean 实体信息： [{}]", price);
         if (price == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "price is requrie");
         }
@@ -65,8 +68,9 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
             }
             DrugDistributionPrice bean = getBean(price, DrugDistributionPrice.class);
             bean = drugDistributionPriceDAO.save(bean);
+            BeanUtils.map(bean, price);
             logMsg.append(" 新增:").append(bean.toString());
-
+            LOGGER.info("新增药企配送价格：[{}]", logMsg);
         } else {
             //更新
             if (oldPrice == null) {
@@ -80,8 +84,12 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
             logMsg.append(" 更新：原").append(oldPrice.toString()).append("更新为").append(oldPrice.toString());
         }
 
-        com.ngari.opbase.base.service.IBusActionLogService iBusActionLogService1 = AppContextHolder.getBean("opbase.busActionLogService", com.ngari.opbase.base.service.IBusActionLogService.class);
-        iBusActionLogService1.recordBusinessLogRpcNew("药企配送价格管理", price.getId().toString(), "DrugDistributionPrice", logMsg.toString(), com.ngari.opbase.base.service.IBusActionLogService.defaultSubjectName);
+        try{
+            com.ngari.opbase.base.service.IBusActionLogService iBusActionLogService1 = AppContextHolder.getBean("opbase.busActionLogService", com.ngari.opbase.base.service.IBusActionLogService.class);
+            iBusActionLogService1.recordBusinessLogRpcNew("药企配送价格管理", price.getId().toString(), "DrugDistributionPrice", logMsg.toString(), com.ngari.opbase.base.service.IBusActionLogService.defaultSubjectName);
+        } catch (Exception e) {
+            LOGGER.error("业务日志记录失败： errorMessage[{}]", e.getMessage(), e);
+        }
         return price;
     }
 
