@@ -54,10 +54,12 @@ public class HosPrescriptionService implements IHosPrescriptionService {
     @RpcService
     public HosRecipeResult createPrescription(HospitalRecipeDTO hospitalRecipeDTO) {
         HosRecipeResult<RecipeBean> result = prescribeService.createPrescription(hospitalRecipeDTO);
+        Integer recipeId = null;
         if (HosRecipeResult.SUCCESS.equals(result.getCode())) {
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
             RecipeBean recipe = result.getData();
+            recipeId = recipe.getRecipeId();
             //创建订单
             //待煎费或者膏方制作费，存在该值说明需要待煎
             String decoctionFeeStr = hospitalRecipeDTO.getDecoctionFee();
@@ -121,7 +123,9 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         if (HosRecipeResult.DUPLICATION.equals(result.getCode())){
             result.setCode(HosRecipeResult.SUCCESS);
         }
-        result.setData(null);
+        RecipeBean backNew = new RecipeBean();
+        backNew.setRecipeId(recipeId);
+        result.setData(backNew);
         return result;
     }
 
