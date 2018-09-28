@@ -46,6 +46,7 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
      */
     @Override
     public DrugDistributionPriceBean saveOrUpdatePrice(DrugDistributionPriceBean price) {
+        LOGGER.info("DrugDistributionPriceBean 实体信息： [{}]", price);
         if (price == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "price is requrie");
         }
