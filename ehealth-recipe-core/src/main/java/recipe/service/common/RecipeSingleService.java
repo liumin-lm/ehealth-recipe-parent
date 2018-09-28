@@ -150,6 +150,8 @@ public class RecipeSingleService {
                         } else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
                                 && Integer.valueOf(1).equals(dbRecipe.getPayFlag())) {
                             notation = 4;
+                        } else{
+                            notation = 1;
                         }
                         break;
                     case RecipeStatusConstant.CHECK_NOT_PASS_YS:
