@@ -323,19 +323,39 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, DrugsEnterprise enterprise) {
 
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-        List<DepDetailBean> list = new ArrayList<>(5);
-        DepDetailBean detailBean;
-        for (int i = 0; i < 5; i++) {
-            detailBean = new DepDetailBean();
-            detailBean.setDepId(enterprise.getId());
-            detailBean.setDepName("测试大药房" + i);
-            detailBean.setPharmacyCode("cedyf" + i);
-            detailBean.setRecipeFee(new BigDecimal((int) (Math.random() * 100)));
-            detailBean.setAddress("东大街江南大道滨盛路1189潮人汇9楼 ");
-            detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_TFDS));
+        List<DepDetailBean> list = new ArrayList<>();
+        DepDetailBean detailBean = new DepDetailBean();
+        detailBean.setDepName("好药师大药房连锁有限公司民主路店");
+        detailBean.setPharmacyCode("hysdyfmzld");
+        detailBean.setRecipeFee(BigDecimal.ZERO);
+        detailBean.setAddress("武汉市武昌区粮道街民主路408号1层");
+        detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_TFDS));
+        list.add(detailBean);
 
-            list.add(detailBean);
-        }
+        detailBean = new DepDetailBean();
+        detailBean.setDepName("好药师大药房连锁有限公司团结新村店");
+        detailBean.setPharmacyCode("hysdyfxcd");
+        detailBean.setRecipeFee(BigDecimal.ZERO);
+        detailBean.setAddress("武汉市武昌区四干道团结新村22-23号");
+        detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_TFDS));
+        list.add(detailBean);
+
+        detailBean = new DepDetailBean();
+        detailBean.setDepName("好药师大药房连锁有限公司团结新村店");
+        detailBean.setPharmacyCode("hysdyfxcd");
+        detailBean.setRecipeFee(BigDecimal.ZERO);
+        detailBean.setAddress("武昌区中南路街涂家岭1号");
+        detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_TFDS));
+        list.add(detailBean);
+
+        detailBean = new DepDetailBean();
+        detailBean.setDepName("好药师大药房连锁有限公司友谊国际店");
+        detailBean.setPharmacyCode("hysdyfyygjd");
+        detailBean.setRecipeFee(BigDecimal.ZERO);
+        detailBean.setAddress("武昌区沙湖新村友谊国际二期第2幢7、8号商铺");
+        detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_TFDS));
+        list.add(detailBean);
+
         result.setObject(list);
         return result;
     }
