@@ -142,6 +142,8 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
                 zfbRecipe.setCertificate(patient.getCertificate());
                 zfbRecipe.setPatientName(patient.getPatientName());
                 zfbRecipe.setPatientSex(patient.getPatientSex());
+                zfbRecipe.setPatientTel(patient.getMobile());
+                zfbRecipe.setPatientAddress(patient.getAddress());
             } else {
                 result.setMsg("患者不存在");
                 return result;
@@ -178,6 +180,9 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
             RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
             if (null != order) {
+                zfbRecipe.setPatientTel(order.getRecTel());
+                zfbRecipe.setPatientAddress(order.getAddress4());
+
                 zfbRecipe.setRecipeFee(order.getRecipeFee().toPlainString());
                 zfbRecipe.setActualFee(order.getActualPrice().toString());
                 zfbRecipe.setCouponFee(order.getCouponFee().toPlainString());
