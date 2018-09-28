@@ -70,6 +70,7 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
             }
             DrugDistributionPrice bean = getBean(price, DrugDistributionPrice.class);
             bean = drugDistributionPriceDAO.save(bean);
+            BeanUtils.map(bean, price);
             logMsg.append(" 新增:").append(bean.toString());
             LOGGER.info("新增药企配送价格：[{}]", logMsg);
         } else {
