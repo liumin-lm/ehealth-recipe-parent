@@ -12,16 +12,13 @@ import java.io.Serializable;
  * @author: 0184/yu_yun
  * date:2017/4/18.
  */
-@Schema
-public class StandardResult<T> implements Serializable {
+public class StandardResultDTO<T> implements Serializable {
 
     private static final long serialVersionUID = -1977068545638974594L;
 
     public final static String SUCCESS = "000";
 
     public final static String FAIL = "001";
-
-    public final static String DUPLICATION = "002";
 
     private String code;
 

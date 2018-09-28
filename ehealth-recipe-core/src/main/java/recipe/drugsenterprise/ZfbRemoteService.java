@@ -164,7 +164,7 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
             zfbRecipe.setClinicOrgan(dbRecipe.getClinicOrgan().toString());
             zfbRecipe.setDepartId(dbRecipe.getDepart().toString());
             zfbRecipe.setRecipeType(dbRecipe.getRecipeType().toString());
-            zfbRecipe.setCreateDate(DateConversion.formatDateTime(dbRecipe.getCreateDate()));
+            zfbRecipe.setCreateDate(DateConversion.formatDateTimeWithSec(dbRecipe.getCreateDate()));
             zfbRecipe.setOrganDiseaseName(dbRecipe.getOrganDiseaseName());
             zfbRecipe.setOrganDiseaseId(dbRecipe.getOrganDiseaseId());
             zfbRecipe.setMemo(dbRecipe.getMemo());
