@@ -223,7 +223,7 @@ public class StandardEnterpriseCallService {
                 }
                 success = true;
             } catch (Exception e) {
-                LOGGER.warn("updatePrescription 处方更新异常, recipeId={}", dbRecipe.getRecipeId());
+                LOGGER.warn("updatePrescription 处方更新异常, recipeId={}", dbRecipe.getRecipeId(), e);
             } finally {
                if(!success){
                    result.setMsg("药品信息更新异常");
