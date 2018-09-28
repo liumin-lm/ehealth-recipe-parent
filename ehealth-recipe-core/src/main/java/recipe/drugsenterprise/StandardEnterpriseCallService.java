@@ -206,7 +206,7 @@ public class StandardEnterpriseCallService {
                 BigDecimal recipeFee = new BigDecimal(recipeFeeStr);
                 attrMap.put("totalMoney", recipeFee);
                 orderAttrMap.put("recipeFee", recipeFee);
-                orderAttrMap.put("actualPrice", recipeFee);
+                orderAttrMap.put("actualPrice", recipeFee.doubleValue());
             }
 
             boolean success = false;
@@ -225,10 +225,10 @@ public class StandardEnterpriseCallService {
             } catch (Exception e) {
                 LOGGER.warn("updatePrescription 处方更新异常, recipeId={}", dbRecipe.getRecipeId(), e);
             } finally {
-               if(!success){
-                   result.setMsg("药品信息更新异常");
-                   return result;
-               }
+                if (!success) {
+                    result.setMsg("药品信息更新异常");
+                    return result;
+                }
             }
         }
 
@@ -263,7 +263,7 @@ public class StandardEnterpriseCallService {
 
             //获取药企ID
             DrugsEnterprise dep = depDAO.getByAccount(updatePrescriptionDTO.getAccount());
-            if(null == dep){
+            if (null == dep) {
                 throw new Exception("药企不存在");
             }
 
