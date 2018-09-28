@@ -96,10 +96,11 @@ public class RecipeSingleService {
             }
 
             if (null != dbRecipe) {
+                recipeId = dbRecipe.getRecipeId();
                 Map<String, Object> other = Maps.newHashMap();
                 //组装处方数据
                 Map<String, Object> recipeInfo = Maps.newHashMap();
-                List<Recipedetail> detailList = detailDAO.findByRecipeId(dbRecipe.getRecipeId());
+                List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
                 recipeInfo.put("recipe", ObjectCopyUtils.convert(dbRecipe, RecipeBean.class));
                 recipeInfo.put("detailList", ObjectCopyUtils.convert(detailList, RecipeDetailBean.class));
 
