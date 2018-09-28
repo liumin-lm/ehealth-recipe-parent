@@ -35,7 +35,6 @@ import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeOrderService;
 import recipe.util.DateConversion;
-import recipe.util.MapValueUtil;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
@@ -201,21 +200,35 @@ public class StandardEnterpriseCallService {
             //更新处方信息
             String recipeFeeStr = updatePrescriptionDTO.getRecipeFee();
             Map<String, Object> attrMap = Maps.newHashMap();
+            Map<String, Object> orderAttrMap = Maps.newHashMap();
             if (StringUtils.isNotEmpty(recipeFeeStr)) {
-                attrMap.put("totalMoney", new BigDecimal(recipeFeeStr));
+                BigDecimal recipeFee = new BigDecimal(recipeFeeStr);
+                attrMap.put("totalMoney", recipeFee);
+                orderAttrMap.put("recipeFee", recipeFee);
+                orderAttrMap.put("actualPrice", recipeFee);
             }
-            if (!attrMap.isEmpty()) {
-                Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, dbRecipe.getStatus(), attrMap);
-                if (rs) {
-                    RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
 
-                    //修改处方单详情
-                    updateRecipeDetainInfo(dbRecipe, updatePrescriptionDTO);
-                    //修改订单详情
-
+            boolean success = false;
+            try {
+                if (!attrMap.isEmpty()) {
+                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, dbRecipe.getStatus(), attrMap);
                 }
+                RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+                //修改处方单详情
+                updateRecipeDetainInfo(dbRecipe, updatePrescriptionDTO);
+                if (!orderAttrMap.isEmpty()) {
+                    //修改订单详情
+                    orderDAO.updateByOrdeCode(dbRecipe.getOrderCode(), orderAttrMap);
+                }
+                success = true;
+            } catch (Exception e) {
+                LOGGER.warn("updatePrescription 处方更新异常, recipeId={}", dbRecipe.getRecipeId());
+            } finally {
+               if(!success){
+                   result.setMsg("药品信息更新异常");
+                   return result;
+               }
             }
-
         }
 
         result.setCode(StandardResultDTO.SUCCESS);
@@ -240,7 +253,7 @@ public class StandardEnterpriseCallService {
      * @param recipe
      * @param paramMap
      */
-    private void updateRecipeDetainInfo(Recipe recipe, UpdatePrescriptionDTO updatePrescriptionDTO) {
+    private void updateRecipeDetainInfo(Recipe recipe, UpdatePrescriptionDTO updatePrescriptionDTO) throws Exception {
         List<StandardRecipeDetailDTO> list = updatePrescriptionDTO.getDetails();
         if (CollectionUtils.isNotEmpty(list)) {
             List<String> drugCodeList = Lists.newArrayList(Collections2.transform(list, new Function<StandardRecipeDetailDTO, String>() {
@@ -267,7 +280,7 @@ public class StandardEnterpriseCallService {
             if (mapInfo.isEmpty()) {
                 LOGGER.warn("updateRecipeDetainInfo mapInfo is empty. clinicOrgan={}, drugCodeList={}",
                         recipe.getClinicOrgan(), JSONUtils.toString(drugCodeList));
-                return;
+                throw new Exception("药品数据更新异常");
             }
 
             List<Recipedetail> detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
@@ -303,7 +316,7 @@ public class StandardEnterpriseCallService {
                     changeAttr.put("validDate", DateConversion.parseDate(validDate, DateConversion.DEFAULT_DATE_TIME));
                 }
 
-                if(!changeAttr.isEmpty()){
+                if (!changeAttr.isEmpty()) {
                     detailDAO.updateRecipeDetailByRecipeDetailId(detailInfo.getRecipeDetailId(), changeAttr);
                 }
             }
