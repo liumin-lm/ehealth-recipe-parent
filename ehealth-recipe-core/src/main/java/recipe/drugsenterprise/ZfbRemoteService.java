@@ -180,7 +180,7 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
             RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
             if (null != order) {
-                zfbRecipe.setPatientTel(order.getRecTel());
+                zfbRecipe.setPatientTel(order.getRecMobile());
                 zfbRecipe.setPatientAddress(order.getAddress4());
 
                 zfbRecipe.setRecipeFee(order.getRecipeFee().toPlainString());
