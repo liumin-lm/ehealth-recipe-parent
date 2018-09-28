@@ -61,6 +61,9 @@ public class ZfbRecipeDTO implements Serializable {
     @Verify(desc = "开方科室", isInt = true)
     private String departId;
 
+    @Verify(desc = "开方科室名称")
+    private String departName;
+
     @Verify(desc = "开方医生工号")
     private String doctorNumber;
 
@@ -279,6 +282,14 @@ public class ZfbRecipeDTO implements Serializable {
 
     public void setDepartId(String departId) {
         this.departId = departId;
+    }
+
+    public String getDepartName() {
+        return departName;
+    }
+
+    public void setDepartName(String departName) {
+        this.departName = departName;
     }
 
     public String getDoctorNumber() {

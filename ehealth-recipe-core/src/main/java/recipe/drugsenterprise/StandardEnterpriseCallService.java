@@ -7,6 +7,7 @@ import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.entity.SaleDrugList;
@@ -256,6 +257,16 @@ public class StandardEnterpriseCallService {
     private void updateRecipeDetainInfo(Recipe recipe, UpdatePrescriptionDTO updatePrescriptionDTO) throws Exception {
         List<StandardRecipeDetailDTO> list = updatePrescriptionDTO.getDetails();
         if (CollectionUtils.isNotEmpty(list)) {
+            RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            SaleDrugListDAO saleDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+            DrugsEnterpriseDAO depDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+
+            //获取药企ID
+            DrugsEnterprise dep = depDAO.getByAccount(updatePrescriptionDTO.getAccount());
+            if(null == dep){
+                throw new Exception("药企不存在");
+            }
+
             List<String> drugCodeList = Lists.newArrayList(Collections2.transform(list, new Function<StandardRecipeDetailDTO, String>() {
                 @Nullable
                 @Override
@@ -264,9 +275,7 @@ public class StandardEnterpriseCallService {
                 }
             }));
 
-            RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-            SaleDrugListDAO saleDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-            List<SaleDrugList> saleList = saleDAO.findByOrganIdAndDrugCodes(recipe.getClinicOrgan(), drugCodeList);
+            List<SaleDrugList> saleList = saleDAO.findByOrganIdAndDrugCodes(dep.getId(), drugCodeList);
             Map<Integer, StandardRecipeDetailDTO> mapInfo = Maps.newHashMap();
             for (SaleDrugList sale : saleList) {
                 for (StandardRecipeDetailDTO dto : list) {
@@ -280,7 +289,7 @@ public class StandardEnterpriseCallService {
             if (mapInfo.isEmpty()) {
                 LOGGER.warn("updateRecipeDetainInfo mapInfo is empty. clinicOrgan={}, drugCodeList={}",
                         recipe.getClinicOrgan(), JSONUtils.toString(drugCodeList));
-                throw new Exception("药品数据更新异常");
+                throw new Exception("药企维护数据异常");
             }
 
             List<Recipedetail> detailList = detailDAO.findByRecipeId(recipe.getRecipeId());

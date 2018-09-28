@@ -5,6 +5,7 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -40,6 +41,8 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
+
+import static eh.coupon.constant.CouponBusTypeEnum.getById;
 
 /**
  * @author： 0184/yu_yun
@@ -125,6 +128,7 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
             DoctorService doctorService = BasicAPI.getService(DoctorService.class);
             EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
             OrganService organService = BasicAPI.getService(OrganService.class);
+            DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
 
             Recipe dbRecipe = recipeList.get(0);
 
@@ -152,9 +156,18 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
             DoctorDTO doctor = doctorService.get(dbRecipe.getDoctor());
             if (null != doctor) {
                 EmploymentDTO employment = employmentService.getPrimaryEmpByDoctorId(dbRecipe.getDoctor());
-                zfbRecipe.setDoctorName(doctor.getName());
-                zfbRecipe.setDoctorNumber(employment.getJobNumber());
-                zfbRecipe.setDepartId(employment.getDepartment().toString());
+                if(null != employment) {
+                    zfbRecipe.setDoctorName(doctor.getName());
+                    zfbRecipe.setDoctorNumber(employment.getJobNumber());
+                    zfbRecipe.setDepartId(employment.getDepartment().toString());
+                    DepartmentDTO departmentDTO = departmentService.getById(employment.getDepartment());
+                    if(null != departmentDTO) {
+                        zfbRecipe.setDepartName(departmentDTO.getName());
+                    }
+                }else{
+                    result.setMsg("医生主执业点不存在");
+                    return result;
+                }
             } else {
                 result.setMsg("医生不存在");
                 return result;

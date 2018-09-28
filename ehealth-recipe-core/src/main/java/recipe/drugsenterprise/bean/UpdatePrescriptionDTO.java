@@ -21,6 +21,9 @@ public class UpdatePrescriptionDTO implements Serializable {
     @Verify(desc = "电子处方单号")
     private String recipeCode;
 
+    @Verify(desc = "药企标识")
+    private String account;
+
     @Verify(desc = "时间", isDate = true)
     private String date;
 
@@ -44,6 +47,14 @@ public class UpdatePrescriptionDTO implements Serializable {
 
     public void setRecipeCode(String recipeCode) {
         this.recipeCode = recipeCode;
+    }
+
+    public String getAccount() {
+        return account;
+    }
+
+    public void setAccount(String account) {
+        this.account = account;
     }
 
     public String getDate() {
