@@ -344,6 +344,8 @@ public class RecipeHisService extends RecipeBaseService {
                 memo = "配送到家完成";
             } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
                 memo = "到店取药完成";
+            } else{
+                memo = "患者取药完成";
             }
             boolean sendToHisFlag = service.recipeUpdate(request);
             if (sendToHisFlag) {
