@@ -11,6 +11,7 @@
     <reference id="basic.patientService" interface="com.ngari.patient.service.PatientService"/>
     <reference id="basic.organService" interface="com.ngari.patient.service.OrganService"/>
     <reference id="basic.employmentService" interface="com.ngari.patient.service.EmploymentService"/>
+    <reference id="basic.departmentService" interface="com.ngari.patient.service.DepartmentService"/>
     <reference id="basic.consultSetService" interface="com.ngari.patient.service.ConsultSetService"/>
     <reference id="basic.doctorAccountService" interface="com.ngari.patient.service.DoctorAccountService"/>
     <reference id="basic.doctorTabService" interface="com.ngari.patient.service.DoctorTabService"/>
