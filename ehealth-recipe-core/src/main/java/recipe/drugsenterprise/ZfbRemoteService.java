@@ -329,7 +329,7 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
         detailBean.setPharmacyCode("hysdyfmzld");
         detailBean.setRecipeFee(BigDecimal.ZERO);
         detailBean.setAddress("武汉市武昌区粮道街民主路408号1层");
-        detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_TFDS));
+        detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_ONLINE, RecipeBussConstant.PAYMODE_TFDS));
         list.add(detailBean);
 
         detailBean = new DepDetailBean();
@@ -337,7 +337,7 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
         detailBean.setPharmacyCode("hysdyfxcd");
         detailBean.setRecipeFee(BigDecimal.ZERO);
         detailBean.setAddress("武汉市武昌区四干道团结新村22-23号");
-        detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_TFDS));
+        detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_ONLINE, RecipeBussConstant.PAYMODE_TFDS));
         list.add(detailBean);
 
         detailBean = new DepDetailBean();
@@ -345,7 +345,7 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
         detailBean.setPharmacyCode("hysdyfxcd");
         detailBean.setRecipeFee(BigDecimal.ZERO);
         detailBean.setAddress("武昌区中南路街涂家岭1号");
-        detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_TFDS));
+        detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_ONLINE, RecipeBussConstant.PAYMODE_TFDS));
         list.add(detailBean);
 
         detailBean = new DepDetailBean();
@@ -353,7 +353,7 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
         detailBean.setPharmacyCode("hysdyfyygjd");
         detailBean.setRecipeFee(BigDecimal.ZERO);
         detailBean.setAddress("武昌区沙湖新村友谊国际二期第2幢7、8号商铺");
-        detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_TFDS));
+        detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_ONLINE, RecipeBussConstant.PAYMODE_TFDS));
         list.add(detailBean);
 
         result.setObject(list);

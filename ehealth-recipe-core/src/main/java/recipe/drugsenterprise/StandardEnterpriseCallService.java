@@ -1,8 +1,12 @@
 package recipe.drugsenterprise;
 
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import recipe.bean.ThirdResultBean;
+import org.apache.commons.collections.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import recipe.drugsenterprise.bean.StandardResult;
 
 import java.util.List;
 import java.util.Map;
@@ -16,14 +20,25 @@ import java.util.Map;
 @RpcBean("distributionService")
 public class StandardEnterpriseCallService {
 
+    /** logger */
+    private static final Logger LOGGER = LoggerFactory.getLogger(StandardEnterpriseCallService.class);
+
     @RpcService
-    public List<ThirdResultBean> send(List<Map<String, Object>> list){
+    public StandardResult send(List<Map<String, Object>> list){
+        LOGGER.info("send param : " + JSONUtils.toString(list));
+        StandardResult result = new StandardResult();
+        if(CollectionUtils.isEmpty(list)){
+            result.setMsg("参数错误");
+            return result;
+        }
+
+
 
         return null;
     }
 
     @RpcService
-    public List<ThirdResultBean> finish(List<Map<String, Object>> list){
+    public StandardResult finish(List<Map<String, Object>> list){
 
         return null;
     }
