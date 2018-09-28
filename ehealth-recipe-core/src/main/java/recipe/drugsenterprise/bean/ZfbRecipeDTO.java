@@ -55,6 +55,9 @@ public class ZfbRecipeDTO implements Serializable {
     @Verify(desc = "组织机构编码", maxLength = 30)
     private String organId;
 
+    @Verify(desc = "组织机构名称", maxLength = 30)
+    private String organName;
+
     @Verify(desc = "处方类型", isInt = true)
     private String recipeType;
 
@@ -266,6 +269,14 @@ public class ZfbRecipeDTO implements Serializable {
 
     public void setOrganId(String organId) {
         this.organId = organId;
+    }
+
+    public String getOrganName() {
+        return organName;
+    }
+
+    public void setOrganName(String organName) {
+        this.organName = organName;
     }
 
     public String getRecipeType() {

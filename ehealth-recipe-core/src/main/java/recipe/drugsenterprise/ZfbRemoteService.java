@@ -135,6 +135,7 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
             String organCode = organService.getOrganizeCodeByOrganId(dbRecipe.getClinicOrgan());
             if (StringUtils.isNotEmpty(organCode)) {
                 zfbRecipe.setOrganId(organCode);
+                zfbRecipe.setOrganName(dbRecipe.getOrganName());
             } else {
                 result.setMsg("机构不存在");
                 return result;
