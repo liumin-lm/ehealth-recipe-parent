@@ -201,7 +201,7 @@ public class RecipeSignService {
         response.setData(ImmutableMap.of("orderId", order.getOrderId()));
 
         //日志记录
-        RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), status, "sign 完成");
+        RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), status, "sign 完成 giveMode="+giveMode);
         response.setCode(RecipeCommonBaseTO.SUCCESS);
         return response;
     }
