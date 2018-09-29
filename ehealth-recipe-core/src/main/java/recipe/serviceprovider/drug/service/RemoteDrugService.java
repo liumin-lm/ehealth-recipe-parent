@@ -1,10 +1,13 @@
 package recipe.serviceprovider.drug.service;
 
 import com.google.common.collect.Lists;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
+import com.ngari.recipe.drug.model.DispensatoryDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.service.IDrugService;
+import com.ngari.recipe.entity.Dispensatory;
 import com.ngari.recipe.entity.DrugList;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
@@ -15,9 +18,11 @@ import ctd.util.PyConverter;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.dao.DispensatoryDAO;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.PriortyDrugsBindDoctorDao;
@@ -143,6 +148,21 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         DrugListDAO dao = DAOFactory.getDAO(DrugListDAO.class);
         DrugList drugList = getBean(d, DrugList.class);
         drugList = dao.save(drugList);
+
+        if(null != d.getDispensatory()) {
+            DispensatoryDAO dispensatoryDAO = DAOFactory.getDAO(DispensatoryDAO.class);
+            DispensatoryDTO dispensatoryDTO = d.getDispensatory();
+            dispensatoryDTO.setDrugId(d.getDrugId());
+            dispensatoryDTO.setDrugName(d.getDrugName());
+            dispensatoryDTO.setSaleName(d.getSaleName());
+            dispensatoryDTO.setSpecs(d.getDrugSpec());
+            Date now = DateTime.now().toDate();
+            dispensatoryDTO.setCreateTime(now);
+            dispensatoryDTO.setLastModifyTime(now);
+
+            dispensatoryDAO.save(ObjectCopyUtils.convert(dispensatoryDTO, Dispensatory.class));
+        }
+
         return getBean(drugList, DrugListBean.class);
     }
 
@@ -161,6 +181,14 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
             d.setLastModify(new Date());
             BeanUtils.map(d, target);
             target = dao.update(target);
+
+            if(null != d.getDispensatory()) {
+                DispensatoryDAO dispensatoryDAO = DAOFactory.getDAO(DispensatoryDAO.class);
+                Dispensatory dispensatory = dispensatoryDAO.getByDrugId(target.getDrugId());
+                dispensatory.setLastModifyTime(new Date());
+                BeanUtils.map(d.getDispensatory(), dispensatory);
+                dispensatoryDAO.update(dispensatory);
+            }
         }
         return getBean(target, DrugListBean.class);
     }

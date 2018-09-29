@@ -1,11 +1,13 @@
 package com.ngari.recipe.hisprescription.model;
 
+import com.ngari.recipe.common.anno.Verify;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
 
 /**
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * date:2017/5/12.
  */
@@ -14,32 +16,52 @@ public class HospitalDrugDTO implements Serializable {
 
     private static final long serialVersionUID = -634493416078418209L;
 
+    @Verify(desc = "药品编码")
     private String drugCode;
 
+    @Verify(desc = "药品商品名称")
     private String drugName;
 
+    @Verify(desc = "药品规格")
+    private String specification;
+
+    @Verify(isNotNull = false, desc = "批准文号")
     private String licenseNumber;
 
+    @Verify(isNotNull = false, desc = "药品本位码")
     private String standardCode;
 
+    @Verify(desc = "药品生产厂家")
+    private String producer;
+
+    @Verify(desc = "开药总数")
     private String total;
 
+    @Verify(desc = "每次使用剂量")
     private String useDose;
 
+    @Verify(desc = "药品单价", isMoney = true)
     private String drugFee;
 
+    @Verify(isNotNull = false, desc = "医保报销金额", isMoney = true)
     private String medicalFee;
 
+    @Verify(desc = "药品总价", isMoney = true)
     private String drugTotalFee;
 
+    @Verify(desc = "用药天数", isInt = true)
     private String uesDays;
 
+    @Verify(isNotNull = false, desc = "取药窗口")
     private String pharmNo;
 
+    @Verify(desc = "用药频率")
     private String usingRate;
 
+    @Verify(desc = "用药途径")
     private String usePathways;
 
+    @Verify(isNotNull = false, desc = "药品使用备注", maxLength = 50)
     private String memo;
 
     public String getDrugCode() {
@@ -58,6 +80,14 @@ public class HospitalDrugDTO implements Serializable {
         this.drugName = drugName;
     }
 
+    public String getSpecification() {
+        return specification;
+    }
+
+    public void setSpecification(String specification) {
+        this.specification = specification;
+    }
+
     public String getLicenseNumber() {
         return licenseNumber;
     }
@@ -72,6 +102,14 @@ public class HospitalDrugDTO implements Serializable {
 
     public void setStandardCode(String standardCode) {
         this.standardCode = standardCode;
+    }
+
+    public String getProducer() {
+        return producer;
+    }
+
+    public void setProducer(String producer) {
+        this.producer = producer;
     }
 
     public String getTotal() {

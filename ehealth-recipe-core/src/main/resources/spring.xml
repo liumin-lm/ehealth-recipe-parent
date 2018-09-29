@@ -9,24 +9,31 @@
 
 	<!--<context:property-placeholder location="classpath:config.properties" file-encoding="UTF-8" />-->
 	<apollo:config />
-	<!--<apollo:config namespaces="DEV.publicUrl"/>-->
+	<apollo:config namespaces="DEV.publicUrl"/>
 
 	<import resource="classpath:/ctd/util/exp/spring-expr-base.xml"/>
 	<import resource="spring-hibernate.xml" />
 	<import resource="spring-controller.xml"/>
 	<import resource="spring-mq.xml"/>
 	<import resource="spring-service.xml" />
-	<!--<import resource="spring-redis.xml"/>-->
+	<import resource="spring-redis.xml"/>
 	<import resource="spring-service-base.xml" />
     <import resource="spring-service-basic.xml" />
     <import resource="spring-service-consult.xml" />
 	<import resource="spring-service-his-center.xml" />
+	<import resource="spring-service-opbase.xml"/>
 
 	<!--药企对接通用实现(国药协议)-->
 	<bean id="commonRemoteService" class="recipe.drugsenterprise.CommonRemoteService"></bean>
 
 	<!--钥世圈对接实现-->
 	<bean id="ysqRemoteService" class="recipe.drugsenterprise.YsqRemoteService"></bean>
+
+    <!--支付宝对接实现-->
+    <bean id="zfbRemoteService" class="recipe.drugsenterprise.ZfbRemoteService"></bean>
+
+    <!--测试药店对接实现-->
+    <bean id="pharmacyRemoteService" class="recipe.drugsenterprise.PharmacyRemoteService"></bean>
 
 	<!--测试药企-->
 	<bean id="testRemoteService" class="recipe.drugsenterprise.TestRemoteService"></bean>

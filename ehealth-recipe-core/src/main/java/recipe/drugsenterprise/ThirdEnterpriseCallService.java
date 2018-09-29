@@ -41,11 +41,12 @@ import java.util.*;
 /**
  * 第三方药企调用接口,历史原因存在一些平台的接口
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * @date:2017/4/20.
  */
 @RpcBean("takeDrugService")
-public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>{
+public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ThirdEnterpriseCallService.class);
 
@@ -242,6 +243,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     /**
      * 处方准备并配送接口 结合readyToSend 和toSend
      * 钥世圈使用
+     *
      * @param list
      * @return
      */
@@ -250,7 +252,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         LOGGER.info("send param : " + JSONUtils.toString(list));
 
         List<ThirdResultBean> result = new ArrayList<>();
-        for(Map<String, Object> paramMap : list){
+        for (Map<String, Object> paramMap : list) {
             ThirdResultBean thirdResultBean = ThirdResultBean.getFail();
             thirdResultBean.setRecipeCode(MapValueUtil.getString(paramMap, "recipeCode"));
             int code = validateRecipe(paramMap, thirdResultBean, RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.IN_SEND);
@@ -270,10 +272,11 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
     /**
      * 配送功能实现
+     *
      * @param thirdResultBean
      * @param paramMap
      */
-    private void sendImpl(ThirdResultBean thirdResultBean, Map<String, Object> paramMap){
+    private void sendImpl(ThirdResultBean thirdResultBean, Map<String, Object> paramMap) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
 
@@ -307,7 +310,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             //此处为物流公司字典
             String logisticsCompany = MapValueUtil.getString(paramMap, "logisticsCompany");
             String trackingNumber = MapValueUtil.getString(paramMap, "trackingNumber");
-            orderAttr.put("logisticsCompany", StringUtils.isEmpty(logisticsCompany)?null:Integer.valueOf(logisticsCompany));
+            orderAttr.put("logisticsCompany", StringUtils.isEmpty(logisticsCompany) ? null : Integer.valueOf(logisticsCompany));
             orderAttr.put("trackingNumber", trackingNumber);
             orderService.finishOrder(recipe.getOrderCode(), recipe.getPayMode(), orderAttr);
             RecipeResultBean resultBean = orderService.updateOrderInfo(recipe.getOrderCode(), orderAttr, null);
@@ -426,7 +429,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         int code = validateRecipe(paramMap, backMsg, null, null);
 
         if (REQUEST_OK != code) {
-            LOGGER.warn("updateRecipeInfo error. info={}, recipeId=[{}]",  JSONUtils.toString(backMsg), backMsg.getBusId());
+            LOGGER.warn("updateRecipeInfo error. info={}, recipeId=[{}]", JSONUtils.toString(backMsg), backMsg.getBusId());
             return backMsg;
         }
 
@@ -496,7 +499,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         String trackingNumber = MapValueUtil.getString(paramMap, "trackingNumber");
         Map<String, Object> orderAttr = getOrderInfoMap(recipe, paramMap);
         //此处为物流公司字典
-        orderAttr.put("logisticsCompany", StringUtils.isEmpty(logisticsCompany)?null:Integer.valueOf(logisticsCompany));
+        orderAttr.put("logisticsCompany", StringUtils.isEmpty(logisticsCompany) ? null : Integer.valueOf(logisticsCompany));
         orderAttr.put("trackingNumber", trackingNumber);
         RecipeResultBean resultBean = orderService.updateOrderInfo(recipe.getOrderCode(), orderAttr, null);
 
@@ -510,7 +513,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 //        }
 
         String recipeCodeStr = MapValueUtil.getString(paramMap, "recipeCode");
-        if(StringUtils.isNotEmpty(recipeCodeStr)) {
+        if (StringUtils.isNotEmpty(recipeCodeStr)) {
             //钥世圈采用该字段协议
             if (recipe.getStatus().equals(RecipeStatusConstant.CHECK_PASS_YS)
                     || recipe.getStatus().equals(RecipeStatusConstant.WAIT_SEND)) {
@@ -848,7 +851,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
         return backMsg;
     }
-
 
 
     /**

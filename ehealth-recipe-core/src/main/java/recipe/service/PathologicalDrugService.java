@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.google.common.collect.Lists;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.DrugList;
@@ -7,7 +8,6 @@ import com.ngari.recipe.entity.PathologicalDrug;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import jersey.repackaged.com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.dao.PathologicalDrugDAO;

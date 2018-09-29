@@ -210,7 +210,7 @@ public class RecipeHisService extends RecipeBaseService {
 
             RecipeRefundResTO response = service.recipeRefund(request);
             if (null == response || null == response.getMsgCode()) {
-                backInfo = "dao is null";
+                backInfo = "response is null";
             } else {
                 if (0 != response.getMsgCode()) {
                     backInfo = response.getMsg();
@@ -344,6 +344,8 @@ public class RecipeHisService extends RecipeBaseService {
                 memo = "配送到家完成";
             } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
                 memo = "到店取药完成";
+            } else{
+                memo = "患者取药完成";
             }
             boolean sendToHisFlag = service.recipeUpdate(request);
             if (sendToHisFlag) {
