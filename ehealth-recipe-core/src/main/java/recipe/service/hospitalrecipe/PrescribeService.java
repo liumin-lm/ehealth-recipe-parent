@@ -1,5 +1,6 @@
 package recipe.service.hospitalrecipe;
 
+import com.google.common.collect.Multimap;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
@@ -10,6 +11,7 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeCommonResTO;
+import com.ngari.recipe.common.utils.VerifyUtils;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
@@ -87,14 +89,25 @@ public class PrescribeService {
     @RpcService
     public HosRecipeResult createPrescription(HospitalRecipeDTO hospitalRecipeDTO) {
         HosRecipeResult<RecipeBean> result = new HosRecipeResult();
+        //重置为默认失败
+        result.setCode(HosRecipeResult.FAIL);
         if (null != hospitalRecipeDTO) {
             //TODO 修改校验模块通过@Verify注解来处理
-            result = PrescribeProcess.validateHospitalRecipe(hospitalRecipeDTO, ADD_FLAG);
-            if (HosRecipeResult.FAIL.equals(result.getCode())) {
+//            result = PrescribeProcess.validateHospitalRecipe(hospitalRecipeDTO, ADD_FLAG);
+//            if (HosRecipeResult.FAIL.equals(result.getCode())) {
+//                return result;
+//            }
+            try {
+                Multimap<String, String> verifyMap = VerifyUtils.verify(hospitalRecipeDTO);
+                if (!verifyMap.keySet().isEmpty()) {
+                    result.setMsg(verifyMap.toString());
+                    return result;
+                }
+            } catch (Exception e) {
+                LOG.warn("createPrescription 参数对象异常数据，hospitalRecipeDTO={}", JSONUtils.toString(hospitalRecipeDTO), e);
+                result.setMsg("参数对象异常数据");
                 return result;
             }
-            //重置为默认失败
-            result.setCode(HosRecipeResult.FAIL);
 
             RecipeBean recipe = new RecipeBean();
 
@@ -245,28 +258,40 @@ public class PrescribeService {
 
     /**
      * 处方状态更新
+     *
      * @param request
      * @return
      */
     public HosRecipeResult updateRecipeStatus(HospitalStatusUpdateDTO request) {
         HosRecipeResult result = new HosRecipeResult();
+        //重置默认为失败
+        result.setCode(HosRecipeResult.FAIL);
         if (null != request) {
             //TODO 修改校验模块通过@Verify注解来处理
-            if(StringUtils.isEmpty(request.getOrganId()) || StringUtils.isEmpty(request.getRecipeCode())
-                    || StringUtils.isEmpty(request.getStatus())){
-                result.setCode(HosRecipeResult.FAIL);
-                result.setMsg("request对象必填参数为空");
+//            if(StringUtils.isEmpty(request.getOrganId()) || StringUtils.isEmpty(request.getRecipeCode())
+//                    || StringUtils.isEmpty(request.getStatus())){
+//                result.setCode(HosRecipeResult.FAIL);
+//                result.setMsg("request对象必填参数为空");
+//                return result;
+//            }
+            try {
+                Multimap<String, String> verifyMap = VerifyUtils.verify(request);
+                if (!verifyMap.keySet().isEmpty()) {
+                    result.setMsg(verifyMap.toString());
+                    return result;
+                }
+            } catch (Exception e) {
+                LOG.warn("updateRecipeStatus 参数对象异常数据，HospitalStatusUpdateDTO={}", JSONUtils.toString(request), e);
+                result.setMsg("参数对象异常数据");
                 return result;
             }
 
-            //重置默认为失败
-            result.setCode(HosRecipeResult.FAIL);
 
             //转换组织结构编码
             Integer clinicOrgan = null;
             try {
                 OrganBean organ = getOrganByOrganId(request.getOrganId());
-                if(null != organ){
+                if (null != organ) {
                     clinicOrgan = organ.getOrganId();
                 }
             } catch (Exception e) {
@@ -293,13 +318,13 @@ public class PrescribeService {
             }
 
             //支持状态改变的情况判断
-            if(!(RecipeStatusConstant.DELETE == status)){
+            if (!(RecipeStatusConstant.DELETE == status)) {
                 result.setMsg("不支持的处方状态改变");
                 return result;
             }
 
             //作废处理
-            if(RecipeStatusConstant.DELETE == status) {
+            if (RecipeStatusConstant.DELETE == status) {
                 if (RecipeStatusConstant.WAIT_SEND == dbRecipe.getStatus()
                         || RecipeStatusConstant.IN_SEND == dbRecipe.getStatus()
                         || RecipeStatusConstant.FINISH == dbRecipe.getStatus()) {
@@ -334,7 +359,6 @@ public class PrescribeService {
                 result.setCode(HosRecipeResult.SUCCESS);
             }
         } else {
-            result.setCode(HosRecipeResult.FAIL);
             result.setMsg("request对象为空");
         }
 

@@ -4,9 +4,11 @@ import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
+import com.ngari.recipe.common.utils.VerifyUtils;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
@@ -87,6 +89,18 @@ public class StandardEnterpriseCallService {
         }
 
         for (StandardFinishDTO finishDTO : list) {
+            try {
+                Multimap<String, String> verifyMap = VerifyUtils.verify(finishDTO);
+                if (!verifyMap.keySet().isEmpty()) {
+                    result.setMsg(verifyMap.toString());
+                    return result;
+                }
+            } catch (Exception e) {
+                LOGGER.warn("finish 参数对象异常数据，StandardFinishDTO={}", JSONUtils.toString(finishDTO), e);
+                result.setMsg("参数对象异常数据");
+                return result;
+            }
+
             boolean isSuccess = finishDTO.getCode().equals(StandardFinishDTO.SUCCESS) ? true : false;
             //转换组织结构编码
             Integer clinicOrgan = null;
@@ -174,6 +188,18 @@ public class StandardEnterpriseCallService {
         }
 
         for (UpdatePrescriptionDTO updatePrescriptionDTO : list) {
+            try {
+                Multimap<String, String> verifyMap = VerifyUtils.verify(updatePrescriptionDTO);
+                if (!verifyMap.keySet().isEmpty()) {
+                    result.setMsg(verifyMap.toString());
+                    return result;
+                }
+            } catch (Exception e) {
+                LOGGER.warn("updatePrescription 参数对象异常数据，updatePrescriptionDTO={}", JSONUtils.toString(updatePrescriptionDTO), e);
+                result.setMsg("参数对象异常数据");
+                return result;
+            }
+
             //转换组织结构编码
             Integer clinicOrgan = null;
             try {

@@ -20,7 +20,7 @@ import java.util.Date;
  */
 public class VerifyUtils {
 
-    public static void verify(Object target) throws Exception {
+    public static Multimap<String, String> verify(Object target) throws Exception {
         Multimap<String, String> result = ArrayListMultimap.create();
         //默认日期转换格式
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -89,7 +89,7 @@ public class VerifyUtils {
             }
         }
 
-        System.out.println(result.toString());
+        return result;
     }
 
 
