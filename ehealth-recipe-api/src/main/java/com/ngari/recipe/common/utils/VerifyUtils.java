@@ -94,13 +94,11 @@ public class VerifyUtils {
 
 
     public static void main(String[] args) {
-        HospitalRecipeDTO hospitalRecipeDTO = new HospitalRecipeDTO();
-        hospitalRecipeDTO.setClinicOrgan("1");
-        hospitalRecipeDTO.setCertificate("4544ddd5");
-        hospitalRecipeDTO.setCreateDate("2018-09-15 15:00:00");
-        hospitalRecipeDTO.setRecipeFee("as");
+        HospitalRecipeDTO hospitalRecipeDTO = HospitalRecipeDTO.getTestObject();
         try {
-            VerifyUtils.verify(hospitalRecipeDTO);
+            Multimap<String, String> verifyMap = VerifyUtils.verify(hospitalRecipeDTO);
+            System.out.println(verifyMap.keySet().size());
+            System.out.println(verifyMap.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }

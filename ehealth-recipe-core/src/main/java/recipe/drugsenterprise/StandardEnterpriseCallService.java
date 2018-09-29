@@ -66,6 +66,7 @@ public class StandardEnterpriseCallService {
 
     @RpcService
     public StandardResultDTO send(List<Map<String, Object>> list) {
+        //TODO
         LOGGER.info("send param : " + JSONUtils.toString(list));
         StandardResultDTO result = new StandardResultDTO();
         if (CollectionUtils.isEmpty(list)) {

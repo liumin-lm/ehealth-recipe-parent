@@ -56,21 +56,6 @@ public class PrescribeService {
      */
     private static final Logger LOG = LoggerFactory.getLogger(PrescribeService.class);
 
-    /**
-     * 新增标识
-     */
-    public static final int ADD_FLAG = 1;
-
-    /**
-     * 撤销标识
-     */
-    public static final int CANCEL_FLAG = 2;
-
-    /**
-     * 更新标识
-     */
-    public static final int UPDATE_FLAG = 3;
-
     @Autowired
     private RecipeDAO recipeDAO;
 
@@ -92,11 +77,7 @@ public class PrescribeService {
         //重置为默认失败
         result.setCode(HosRecipeResult.FAIL);
         if (null != hospitalRecipeDTO) {
-            //TODO 修改校验模块通过@Verify注解来处理
-//            result = PrescribeProcess.validateHospitalRecipe(hospitalRecipeDTO, ADD_FLAG);
-//            if (HosRecipeResult.FAIL.equals(result.getCode())) {
-//                return result;
-//            }
+            //校验模块通过@Verify注解来处理
             try {
                 Multimap<String, String> verifyMap = VerifyUtils.verify(hospitalRecipeDTO);
                 if (!verifyMap.keySet().isEmpty()) {
@@ -134,7 +115,7 @@ public class PrescribeService {
 
             String recipeCode = hospitalRecipeDTO.getRecipeCode();
             Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(recipeCode, clinicOrgan);
-            //TODO 通过某种条件判断处方内容是否相同再执行后续
+            //TODO 暂时不能更新处方
             //当前处理为存在处方则返回，不做更新处理
             if (null != dbRecipe) {
                 result.setCode(HosRecipeResult.DUPLICATION);
@@ -267,13 +248,7 @@ public class PrescribeService {
         //重置默认为失败
         result.setCode(HosRecipeResult.FAIL);
         if (null != request) {
-            //TODO 修改校验模块通过@Verify注解来处理
-//            if(StringUtils.isEmpty(request.getOrganId()) || StringUtils.isEmpty(request.getRecipeCode())
-//                    || StringUtils.isEmpty(request.getStatus())){
-//                result.setCode(HosRecipeResult.FAIL);
-//                result.setMsg("request对象必填参数为空");
-//                return result;
-//            }
+            //校验模块通过@Verify注解来处理
             try {
                 Multimap<String, String> verifyMap = VerifyUtils.verify(request);
                 if (!verifyMap.keySet().isEmpty()) {
@@ -372,6 +347,7 @@ public class PrescribeService {
      * @return
      */
     public HosBussResult getPrescription(HospitalSearchQO searchQO) {
+        //TODO
         HosBussResult response = new HosBussResult();
         if (null == searchQO || StringUtils.isEmpty(searchQO.getClinicOrgan())
                 || StringUtils.isEmpty(searchQO.getRecipeCode())) {
