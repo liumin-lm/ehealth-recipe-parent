@@ -38,7 +38,7 @@ public class VerifyUtils {
                 fieldName = field.getName();
                 //字段不能为空校验
                 value = field.get(target);
-                if (verify.isNotNull() && null == value) {
+                if (verify.isNotNull() && (null == value || "".equals(value.toString()))) {
                     result.put(fieldName, "不能为空");
                 } else {
                     if (null != value) {
