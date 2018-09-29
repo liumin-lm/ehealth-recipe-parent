@@ -139,7 +139,8 @@ public class RecipeCheckService {
         List<Map<String, Object>> mapList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(list)) {
             RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-
+            PatientDTO patient;
+            PatientDTO dbPatient;
             for (Recipe r : list) {
                 Map<String, Object> map = Maps.newHashMap();
                 //组装需要的处方数据
@@ -151,17 +152,14 @@ public class RecipeCheckService {
                 recipe.setOrganDiseaseName(r.getOrganDiseaseName());
                 recipe.setChecker(r.getChecker());
                 //组装需要的患者数据
-                PatientDTO patient = new PatientDTO();
+                patient = new PatientDTO();
                 try {
-                    PatientDTO p = patientService.get(r.getMpiid());
-                    patient.setPatientName(p.getPatientName());
-                    patient.setPatientSex(p.getPatientSex());
-                    Date birthDay = p.getBirthday();
-                    if (null != birthDay) {
-                        patient.setAge(DateConversion.getAge(birthDay));
-                    }
+                    dbPatient = patientService.get(r.getMpiid());
+                    patient.setPatientName(dbPatient.getPatientName());
+                    patient.setPatientSex(dbPatient.getPatientSex());
+                    patient.setAge(null == dbPatient.getBirthday() ? 0 : DateConversion.getAge(dbPatient.getBirthday()));
                 } catch (Exception e) {
-                    LOGGER.error("covertRecipeListPageInfo patient is error. mpiId={}, ", r.getMpiid(), e);
+                    LOGGER.warn("covertRecipeListPageInfo patient is error. mpiId={}, ", r.getMpiid(), e);
                 }
                 //显示一条详情数据
                 List<Recipedetail> details = detailDAO.findByRecipeId(r.getRecipeId());
