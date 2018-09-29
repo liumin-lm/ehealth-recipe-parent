@@ -1,5 +1,6 @@
 package com.ngari.recipe.entity;
 
+import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
@@ -29,6 +30,7 @@ public class EnterpriseAddress implements java.io.Serializable{
     private Integer enterpriseId;
 
     @ItemProperty(alias = "药企配送地址")
+    @Dictionary(id = "eh.base.dictionary.AddrArea")
     private String address;
 
     @ItemProperty(alias = "配送地址状态")
