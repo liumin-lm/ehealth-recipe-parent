@@ -59,8 +59,7 @@ public class VerifyUtils {
                                 if (StringUtils.isNotEmpty(verify.dateFormat())) {
                                     _df = new SimpleDateFormat(verify.dateFormat());
                                 }
-                                Date date = _df.parse(value.toString());
-                                System.out.println(date.toString());
+                                _df.parse(value.toString());
                             } catch (Exception e) {
                                 result.put(fieldName, "日期格式错误[" + _df.toPattern() + "]");
                             }
