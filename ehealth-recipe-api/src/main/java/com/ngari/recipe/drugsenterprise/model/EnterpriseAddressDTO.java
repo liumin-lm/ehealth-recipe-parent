@@ -24,7 +24,7 @@ public class EnterpriseAddressDTO implements java.io.Serializable {
     private Integer enterpriseId;
 
     @ItemProperty(alias = "药企配送地址")
-    @Dictionary(id = "eh.base.dictionary.AddrArea.dic")
+    @Dictionary(id = "eh.base.dictionary.AddrArea")
     private String address;
 
     @ItemProperty(alias = "配送地址状态")
