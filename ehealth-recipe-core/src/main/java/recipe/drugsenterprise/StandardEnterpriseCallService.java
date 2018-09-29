@@ -62,9 +62,6 @@ public class StandardEnterpriseCallService {
     @Autowired
     private RecipeOrderDAO orderDAO;
 
-    @Autowired
-    private RecipeLogDAO recipeLogDAO;
-
     @RpcService
     public StandardResultDTO send(List<Map<String, Object>> list) {
         LOGGER.info("send param : " + JSONUtils.toString(list));
@@ -214,7 +211,6 @@ public class StandardEnterpriseCallService {
                 if (!attrMap.isEmpty()) {
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, dbRecipe.getStatus(), attrMap);
                 }
-                RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
                 //修改处方单详情
                 updateRecipeDetainInfo(dbRecipe, updatePrescriptionDTO);
                 if (!orderAttrMap.isEmpty()) {
