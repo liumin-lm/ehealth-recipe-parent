@@ -17,10 +17,10 @@ public class StandardRecipeDetailDTO implements Serializable {
     @Verify(desc = "药企对照药品编码")
     private String drugCode;
 
-    @Verify(desc = "药品单价", isMoney = true)
+    @Verify(isNotNull = false, desc = "药品单价", isMoney = true)
     private String salePrice;
 
-    @Verify(desc = "药品总价", isMoney = true)
+    @Verify(isNotNull = false, desc = "药品总价", isMoney = true)
     private String drugCost;
 
     @Verify(isNotNull = false, desc = "药品批号")
