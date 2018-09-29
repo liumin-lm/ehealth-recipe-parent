@@ -1,5 +1,7 @@
 package recipe.service.hospitalrecipe.dataprocess;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.recipe.entity.DrugList;
@@ -27,6 +29,7 @@ import recipe.dao.RecipeOrderDAO;
 import recipe.service.hospitalrecipe.PrescribeService;
 import recipe.util.DateConversion;
 
+import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
@@ -127,21 +130,15 @@ public class PrescribeProcess {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
 
+        //数据校验已在开始处理
         List<HospitalDrugDTO> hosDetailList = hospitalRecipeDTO.getDrugList();
-        List<String> organDrugCodeList = new ArrayList<>(hosDetailList.size());
-        //校验数据问题
-        for (HospitalDrugDTO hosDetail : hosDetailList) {
-            if (StringUtils.isEmpty(hosDetail.getDrugCode())) {
-                LOG.warn("convertNgariDetail 存在药品编码为空的数据. hosDetail={}", JSONUtils.toString(hosDetail));
-                organDrugCodeList.clear();
-                break;
+        List<String> organDrugCodeList = Lists.newArrayList(Collections2.transform(hosDetailList, new Function<HospitalDrugDTO, String>() {
+            @Nullable
+            @Override
+            public String apply(@Nullable HospitalDrugDTO input) {
+                return input.getDrugCode();
             }
-            organDrugCodeList.add(hosDetail.getDrugCode());
-        }
-
-        if (CollectionUtils.isEmpty(organDrugCodeList)) {
-            return Lists.newArrayList();
-        }
+        }));
 
         List<RecipeDetailBean> recipeDetails = new ArrayList<>(hosDetailList.size());
         Integer recipeType = Integer.parseInt(hospitalRecipeDTO.getRecipeType());

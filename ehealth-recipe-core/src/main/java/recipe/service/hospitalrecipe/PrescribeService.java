@@ -90,6 +90,27 @@ public class PrescribeService {
                 return result;
             }
 
+            //详情校验
+            List<HospitalDrugDTO> hosDetailList = hospitalRecipeDTO.getDrugList();
+            if (CollectionUtils.isEmpty(hosDetailList)) {
+                result.setMsg("drugList详情为空");
+                return result;
+            }
+            Multimap<String, String> detailVerifyMap;
+            for (HospitalDrugDTO hospitalDrugDTO : hosDetailList) {
+                try {
+                    detailVerifyMap = VerifyUtils.verify(hospitalDrugDTO);
+                    if (!detailVerifyMap.keySet().isEmpty()) {
+                        result.setMsg(detailVerifyMap.toString());
+                        return result;
+                    }
+                } catch (Exception e) {
+                    LOG.warn("createPrescription 详情参数对象异常数据，HospitalDrugDTO={}", JSONUtils.toString(hospitalDrugDTO), e);
+                    result.setMsg("详情参数对象异常数据");
+                    return result;
+                }
+            }
+
             RecipeBean recipe = new RecipeBean();
 
             //转换组织结构编码
