@@ -41,7 +41,7 @@ import java.util.Map;
  * @description： 获取处方单个数据服务
  * @version： 1.0
  */
-@RpcBean(value = "recipeSingleService", mvc_authentication = false)
+@RpcBean("recipeSingleService")
 public class RecipeSingleService {
 
     /**
@@ -151,7 +151,7 @@ public class RecipeSingleService {
                         } else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
                                 && Integer.valueOf(1).equals(dbRecipe.getPayFlag())) {
                             notation = 4;
-                        } else{
+                        } else {
                             notation = 1;
                         }
                         break;

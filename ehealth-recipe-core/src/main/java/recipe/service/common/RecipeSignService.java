@@ -16,13 +16,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
-import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
@@ -37,7 +35,7 @@ import java.util.Map;
  * @description： 处方签名服务
  * @version： 1.0
  */
-@RpcBean(value = "recipeSignService", mvc_authentication = false)
+@RpcBean("recipeSignService")
 public class RecipeSignService {
 
     /**
@@ -171,13 +169,13 @@ public class RecipeSignService {
          * 药店取药和自由选择都流转到药师审核，审核完成推送给药企
          */
         Integer status = RecipeStatusConstant.CHECK_PASS;
-        if(RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) || RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)){
+        if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) || RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)) {
             status = RecipeStatusConstant.READY_CHECK_YS;
         }
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, attrMap);
 
         //HIS同步处理
-        if(!RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)) {
+        if (!RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)) {
             RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
             RecipeResultBean hisResult = hisService.recipeDrugTake(recipeId, PayConstant.PAY_FLAG_NOT_PAY, null);
             //TODO HIS处理失败暂时略过
@@ -201,7 +199,7 @@ public class RecipeSignService {
         response.setData(ImmutableMap.of("orderId", order.getOrderId()));
 
         //日志记录
-        RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), status, "sign 完成 giveMode="+giveMode);
+        RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), status, "sign 完成 giveMode=" + giveMode);
         response.setCode(RecipeCommonBaseTO.SUCCESS);
         return response;
     }

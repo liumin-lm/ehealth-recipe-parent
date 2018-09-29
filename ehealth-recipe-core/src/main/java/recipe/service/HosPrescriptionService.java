@@ -32,7 +32,7 @@ import java.util.Map;
  * @author: 0184/yu_yun
  * @date:2017/4/17.
  */
-@RpcBean(value = "hosPrescriptionService", mvc_authentication = false)
+@RpcBean("hosPrescriptionService")
 public class HosPrescriptionService implements IHosPrescriptionService {
 
     /**
@@ -120,7 +120,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
             }
         }
 
-        if (HosRecipeResult.DUPLICATION.equals(result.getCode())){
+        if (HosRecipeResult.DUPLICATION.equals(result.getCode())) {
             result.setCode(HosRecipeResult.SUCCESS);
         }
         RecipeBean backNew = new RecipeBean();
