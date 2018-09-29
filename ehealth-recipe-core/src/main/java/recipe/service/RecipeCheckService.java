@@ -251,21 +251,21 @@ public class RecipeCheckService {
 
         //取patient需要的字段
         PatientDTO patient = patientService.get(recipe.getMpiid());
-        if (null == patient) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "patient is null!");
-        }
         PatientBean p = new PatientBean();
-        p.setPatientName(patient.getPatientName());
-        p.setPatientSex(patient.getPatientSex());
-        p.setAge(null == patient.getBirthday() ? 0 : DateConversion.getAge(patient.getBirthday()));
-        p.setPatientType(patient.getPatientType());
-        //加上手机号 和 身份证信息（脱敏）
-        p.setMobile(patient.getMobile());
-        p.setIdcard(hideIdCard(patient.getCertificate()));
-        p.setMpiId(patient.getMpiId());
-        //返回map对象
-        Map<String, Object> map = Maps.newHashMap();
+        if (null != patient) {
+            p.setPatientName(patient.getPatientName());
+            p.setPatientSex(patient.getPatientSex());
+            p.setAge(null == patient.getBirthday() ? 0 : DateConversion.getAge(patient.getBirthday()));
+            p.setPatientType(patient.getPatientType());
+            //加上手机号 和 身份证信息（脱敏）
+            p.setMobile(patient.getMobile());
+            p.setIdcard(hideIdCard(patient.getCertificate()));
+            p.setMpiId(patient.getMpiId());
+        }else{
+            LOGGER.warn("findRecipeAndDetailsAndCheckById patient is null. mpiId={}", recipe.getMpiid());
+        }
 
+        Map<String, Object> map = Maps.newHashMap();
         List<Recipedetail> details = detailDAO.findByRecipeId(recipeId);
         //获取审核不通过详情
         List<Map<String, Object>> mapList = getCheckNotPassDetail(recipeId);
@@ -285,14 +285,13 @@ public class RecipeCheckService {
             e.setName(drugsEnterprise.getName());
             e.setPayModeSupport(drugsEnterprise.getPayModeSupport());
         }
-        RecipeOrderBean order = new RecipeOrderBean();
+        RecipeOrderBean order = null;
         String orderCode = recipe.getOrderCode();
         if (!StringUtils.isEmpty(orderCode)) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
             order = ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class);
-        } else {
-            order = null;
         }
+
         map.put("dateString", dateString);
         map.put("recipe", r);
         map.put("patient", p);
