@@ -210,7 +210,7 @@ public class RecipeHisService extends RecipeBaseService {
 
             RecipeRefundResTO response = service.recipeRefund(request);
             if (null == response || null == response.getMsgCode()) {
-                backInfo = "dao is null";
+                backInfo = "response is null";
             } else {
                 if (0 != response.getMsgCode()) {
                     backInfo = response.getMsg();
