@@ -244,25 +244,33 @@ public class RecipeCheckService {
         }
         //取医生的手机号
         DoctorDTO doc = new DoctorDTO();
-        DoctorDTO doctor = doctorService.get(doctorId);
-        if (null != doctor) {
-            doc.setMobile(doctor.getMobile());
+        try {
+            DoctorDTO doctor = doctorService.get(doctorId);
+            if (null != doctor) {
+                doc.setMobile(doctor.getMobile());
+            }
+        } catch (Exception e) {
+            LOGGER.warn("findRecipeAndDetailsAndCheckById get doctor error. doctorId={}", recipe.getDoctor(), e);
         }
 
         //取patient需要的字段
-        PatientDTO patient = patientService.get(recipe.getMpiid());
         PatientBean p = new PatientBean();
-        if (null != patient) {
-            p.setPatientName(patient.getPatientName());
-            p.setPatientSex(patient.getPatientSex());
-            p.setAge(null == patient.getBirthday() ? 0 : DateConversion.getAge(patient.getBirthday()));
-            p.setPatientType(patient.getPatientType());
-            //加上手机号 和 身份证信息（脱敏）
-            p.setMobile(patient.getMobile());
-            p.setIdcard(hideIdCard(patient.getCertificate()));
-            p.setMpiId(patient.getMpiId());
-        }else{
-            LOGGER.warn("findRecipeAndDetailsAndCheckById patient is null. mpiId={}", recipe.getMpiid());
+        try {
+            PatientDTO patient = patientService.get(recipe.getMpiid());
+            if (null != patient) {
+                p.setPatientName(patient.getPatientName());
+                p.setPatientSex(patient.getPatientSex());
+                p.setAge(null == patient.getBirthday() ? 0 : DateConversion.getAge(patient.getBirthday()));
+                p.setPatientType(patient.getPatientType());
+                //加上手机号 和 身份证信息（脱敏）
+                p.setMobile(patient.getMobile());
+                p.setIdcard(hideIdCard(patient.getCertificate()));
+                p.setMpiId(patient.getMpiId());
+            }else{
+                LOGGER.warn("findRecipeAndDetailsAndCheckById patient is null. mpiId={}", recipe.getMpiid());
+            }
+        } catch (Exception e) {
+            LOGGER.warn("findRecipeAndDetailsAndCheckById get patient error. mpiId={}", recipe.getMpiid(), e);
         }
 
         Map<String, Object> map = Maps.newHashMap();
@@ -282,8 +290,10 @@ public class RecipeCheckService {
         DrugsEnterpriseBean e = new DrugsEnterpriseBean();
         if (enterpriseId != null) {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(enterpriseId);
-            e.setName(drugsEnterprise.getName());
-            e.setPayModeSupport(drugsEnterprise.getPayModeSupport());
+            if(null != drugsEnterprise) {
+                e.setName(drugsEnterprise.getName());
+                e.setPayModeSupport(drugsEnterprise.getPayModeSupport());
+            }
         }
         RecipeOrderBean order = null;
         String orderCode = recipe.getOrderCode();
