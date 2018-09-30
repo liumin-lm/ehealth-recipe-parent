@@ -96,6 +96,9 @@ public class RecipeCheckService {
             List<Integer> organIds = findAPOrganIdsByDoctorId(request.getDoctorId());
             request.setOrganIdList(organIds);
         }
+        if(CollectionUtils.isEmpty(request.getOrganIdList())){
+            return Lists.newArrayList();
+        }
         RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
         List<Recipe> list = rDao.findRecipeByFlag(request.getOrganIdList(), request.getStatus(),
                 start, limit);
