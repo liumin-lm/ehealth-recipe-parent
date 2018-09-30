@@ -961,10 +961,14 @@ public class RecipeService {
             //线上支付
             //微信退款
             wxPayRefundForRecipe(2, recipe.getRecipeId(), null);
-            RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.CHECK_NOT_PASSYS_PAYONLINE);
+            if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
+                RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.CHECK_NOT_PASSYS_PAYONLINE);
+            }
         } else if (RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
             //货到付款 | 药店取药
-            RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
+            if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
+                RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
+            }
         }
 
         if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipe.getFromflag())) {
