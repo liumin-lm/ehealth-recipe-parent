@@ -26,6 +26,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.RecipeBussConstant;
@@ -34,6 +35,7 @@ import recipe.drugsenterprise.bean.ZfbDrugDTO;
 import recipe.drugsenterprise.bean.ZfbRecipeDTO;
 import recipe.drugsenterprise.bean.ZfbTokenRequest;
 import recipe.drugsenterprise.bean.ZfbTokenResponse;
+import recipe.service.RecipeOrderService;
 import recipe.util.DateConversion;
 import recipe.util.RSAUtil;
 
@@ -118,11 +120,13 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
             return result;
         }
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
 
         ZfbRecipeDTO zfbRecipe = new ZfbRecipeDTO();
         String depName = enterprise.getName();
         Integer depId = enterprise.getId();
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
+        String orderCode = "";
         if (CollectionUtils.isNotEmpty(recipeList)) {
             PatientService patientService = BasicAPI.getService(PatientService.class);
             DoctorService doctorService = BasicAPI.getService(DoctorService.class);
@@ -194,6 +198,7 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
             RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
             if (null != order) {
+                orderCode = order.getOrderCode();
                 zfbRecipe.setPatientTel(StringUtils.isEmpty(order.getRecMobile()) ?
                         zfbRecipe.getPatientTel() : order.getRecMobile());
                 zfbRecipe.setPatientAddress(StringUtils.isEmpty(order.getAddress4()) ?
@@ -300,10 +305,12 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
             if ("0".equals(zfbResponse.getCode())) {
                 //成功
                 result.setCode(DrugEnterpriseResult.SUCCESS);
+                orderService.updateOrderInfo(orderCode, ImmutableMap.of("pushFlag", 1), null);
                 LOGGER.info("[{}][{}] pushRecipeInfo {} success.", depId, depName, JSONUtils.toString(recipeIds));
             } else {
                 //失败
                 result.setMsg(zfbResponse.getMsg());
+                orderService.updateOrderInfo(orderCode, ImmutableMap.of("pushFlag", -1), null);
                 LOGGER.warn("[{}][{}] pushRecipeInfo {} fail. msg={}", depId, depName,
                         JSONUtils.toString(recipeIds), zfbResponse.getMsg());
             }
@@ -313,6 +320,7 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
             httpclient.close();
         } catch (Exception e) {
             result.setMsg("推送异常");
+            orderService.updateOrderInfo(orderCode, ImmutableMap.of("pushFlag", -1), null);
             LOGGER.warn("[{}][{}] pushRecipeInfo 异常。", depId, depName, e);
         } finally {
             try {
