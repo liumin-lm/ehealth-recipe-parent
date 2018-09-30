@@ -19,6 +19,7 @@ import recipe.ApplicationUtils;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
+import recipe.constant.RegexEnum;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.RecipeHisService;
@@ -26,6 +27,7 @@ import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
 import recipe.service.RecipeService;
 import recipe.util.MapValueUtil;
+import recipe.util.RegexUtils;
 
 import java.util.Map;
 
@@ -102,6 +104,15 @@ public class RecipeSignService {
                 //配送到家
                 if (StringUtils.isEmpty(patientAddress) || StringUtils.isEmpty(patientTel)) {
                     response.setMsg("配送信息不全");
+                    return response;
+                }
+                //校验参数准确性
+                if(!RegexUtils.regular(patientTel, RegexEnum.MOBILE)){
+                    response.setMsg("请输入有效手机号码");
+                    return response;
+                }
+                if(StringUtils.length(patientAddress) > 100){
+                    response.setMsg("地址不能超过100个字");
                     return response;
                 }
                 payMode = RecipeBussConstant.PAYMODE_ONLINE;
