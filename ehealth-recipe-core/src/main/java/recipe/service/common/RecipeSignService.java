@@ -2,6 +2,9 @@ package recipe.service.common;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.common.RecipeCommonBaseTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.RecipeStandardReqTO;
@@ -144,6 +147,18 @@ public class RecipeSignService {
             response.setMsg("处方订单不存在");
             return response;
         } else {
+            //为确保通知能送达用户手机需要重置下手机信息
+            if(StringUtils.isEmpty(patientTel)){
+                PatientService patientService = BasicAPI.getService(PatientService.class);
+                PatientDTO patient = patientService.get(dbRecipe.getMpiid());
+                if (null != patient) {
+                    patientTel = patient.getMobile();
+                    patientAddress = patient.getAddress();
+                }else{
+                    LOG.warn("sign 患者不存在，可能导致短信无法通知. recipeId={}, mpiId={}", recipeId, dbRecipe.getMpiid());
+                }
+            }
+
             // 修改订单一些参数
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
             Map<String, Object> orderAttr = Maps.newHashMap();
