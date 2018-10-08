@@ -41,7 +41,7 @@ public class VerifyUtils {
                 if (verify.isNotNull() && (null == value || "".equals(value.toString()))) {
                     result.put(fieldName, "不能为空");
                 } else {
-                    if (null != value) {
+                    if (null != value && !"".equals(value.toString())) {
                         //长度校验
                         if (StringUtils.length(value.toString()) > verify.maxLength()) {
                             result.put(fieldName, "长度超过限制[" + verify.maxLength() + "]");
