@@ -27,6 +27,7 @@ import static ctd.util.AppContextHolder.getBean;
 /**
  * 业务使用药企对接类，具体实现在CommonRemoteService
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * @date:2017/3/7.
  */
@@ -201,6 +202,11 @@ public class RemoteDrugEnterpriseService {
         return drugEnterpriseService.updateAccessToken(drugsEnterpriseIds);
     }
 
+    public void updateAccessTokenByDep(DrugsEnterprise drugsEnterprise) {
+        AccessDrugEnterpriseService service = getServiceByDep(drugsEnterprise);
+        service.tokenUpdateImpl(drugsEnterprise);
+    }
+
     /**
      * 根据单个处方ID获取具体药企实现
      *
@@ -246,18 +252,18 @@ public class RemoteDrugEnterpriseService {
      */
     public AccessDrugEnterpriseService getServiceByDep(DrugsEnterprise drugsEnterprise) {
         AccessDrugEnterpriseService drugEnterpriseService = null;
-        if(null != drugsEnterprise){
+        if (null != drugsEnterprise) {
             //先获取指定实现标识，没有指定则根据帐号名称来获取
-            String callSys = StringUtils.isEmpty(drugsEnterprise.getCallSys())?drugsEnterprise.getAccount():drugsEnterprise.getCallSys();
+            String callSys = StringUtils.isEmpty(drugsEnterprise.getCallSys()) ? drugsEnterprise.getAccount() : drugsEnterprise.getCallSys();
             String beanName = COMMON_SERVICE;
-            if(StringUtils.isNotEmpty(callSys)){
-                beanName = callSys+"RemoteService";
+            if (StringUtils.isNotEmpty(callSys)) {
+                beanName = callSys + "RemoteService";
             }
             try {
-                LOGGER.info("getServiceByDep 获取[{}]协议实现.service=[{}]",drugsEnterprise.getName(),beanName);
+                LOGGER.info("getServiceByDep 获取[{}]协议实现.service=[{}]", drugsEnterprise.getName(), beanName);
                 drugEnterpriseService = getBean(beanName, AccessDrugEnterpriseService.class);
             } catch (Exception e) {
-                LOGGER.warn("getServiceByDep 未找到[{}]药企实现，使用通用协议处理. beanName={}",drugsEnterprise.getName(),beanName);
+                LOGGER.warn("getServiceByDep 未找到[{}]药企实现，使用通用协议处理. beanName={}", drugsEnterprise.getName(), beanName);
                 drugEnterpriseService = getBean(COMMON_SERVICE, AccessDrugEnterpriseService.class);
             }
         }

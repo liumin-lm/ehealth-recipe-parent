@@ -12,8 +12,6 @@ import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.dao.DrugDistributionPriceDAO;
 import recipe.serviceprovider.BaseService;

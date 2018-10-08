@@ -1,6 +1,5 @@
 package recipe.prescription;
 
-import com.google.common.collect.Lists;
 import com.ngari.patient.service.BaseService;
 import com.ngari.recipe.common.RecipeCommonResTO;
 import com.ngari.recipe.entity.Hisprescription;
@@ -19,16 +18,14 @@ import org.slf4j.LoggerFactory;
 import recipe.dao.HisprescriptionDAO;
 import recipe.dao.HisprescriptionDetailDAO;
 
-import java.util.List;
-
 /**
  * @author： 0184/yu_yun
  * @date： 2018/6/28
- * @description： 接收医院处方,与cdr_recipe不同表
+ * @description： 接收医院处方, 与cdr_recipe不同表
  * @version： 1.0
  */
 
-@RpcBean(value = "remoteHisprescriptionService", mvc_authentication = false)
+@RpcBean("remoteHisprescriptionService")
 public class HisprescriptionService extends BaseService<HisprescriptionTO> implements IHisprescriptionService {
 
     /**
@@ -53,10 +50,10 @@ public class HisprescriptionService extends BaseService<HisprescriptionTO> imple
         if (null != hisprescription) {
             try {
                 Hisprescription dbHisprescription = hisprescriptionDAO.save(getBean(hisprescription, Hisprescription.class));
-                if(CollectionUtils.isNotEmpty(hisprescription.getRecipeDetail())){
+                if (CollectionUtils.isNotEmpty(hisprescription.getRecipeDetail())) {
                     HisprescriptionDetailDAO detailDAO = DAOFactory.getDAO(HisprescriptionDetailDAO.class);
                     HisprescriptionDetail hisprescriptionDetail;
-                    for(HisprescriptionDetailTO detailTO : hisprescription.getRecipeDetail()){
+                    for (HisprescriptionDetailTO detailTO : hisprescription.getRecipeDetail()) {
                         hisprescriptionDetail = getBean(detailTO, HisprescriptionDetail.class);
                         hisprescriptionDetail.setRecipeId(dbHisprescription.getRecipeId());
                         detailDAO.save(hisprescriptionDetail);

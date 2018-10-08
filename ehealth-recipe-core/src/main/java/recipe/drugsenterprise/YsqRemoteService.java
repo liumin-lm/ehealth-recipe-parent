@@ -66,6 +66,11 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
     public static final String YSQ_SPLIT = "-";
 
     @Override
+    public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
+        LOGGER.info("YsqRemoteService tokenUpdateImpl not implement.");
+    }
+
+    @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise drugsEnterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         if (CollectionUtils.isEmpty(recipeIds)) {
@@ -281,6 +286,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                             detailBean.setRecipeFee(MapValueUtil.getBigDecimal(dep, "TOTALACCOUNT"));
                             detailBean.setExpressFee(MapValueUtil.getBigDecimal(dep, "PEISONGACCOUNT"));
                             detailBean.setGysCode(MapValueUtil.getString(dep, "GYSCODE"));
+                            detailBean.setPharmacyCode(MapValueUtil.getString(dep, "GYSCODE"));
                             String sendMethod = MapValueUtil.getString(dep, "SENDMETHOD");
                             String giveModeText = "";
                             if (StringUtils.isNotEmpty(sendMethod)) {

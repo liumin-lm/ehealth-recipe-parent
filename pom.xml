@@ -6,7 +6,7 @@
     <parent>
         <groupId>ngari</groupId>
         <artifactId>ehealth-parent</artifactId>
-        <version>1.6.0.feature5-SNAPSHOT</version>
+        <version>1.5.6.hotfix-20180920-SNAPSHOT</version>
     </parent>
     <artifactId>ehealth-recipe-parent</artifactId>
     <name>处方</name>
@@ -15,12 +15,12 @@
     <modules>
         <module>ehealth-recipe-entity</module>
         <module>ehealth-recipe-api</module>
-        <module>ehealth-recipe-core</module>
+        <module>ehealth-recipe-common</module>
+        <module>ehealth-recipe-dao</module>
         <module>ehealth-recipe-prescription</module>
         <module>ehealth-recipe-audit</module>
         <module>ehealth-recipe-purchase</module>
-        <module>ehealth-recipe-common</module>
-        <module>ehealth-recipe-dao</module>
+        <module>ehealth-recipe-core</module>
     </modules>
     <properties>
 
@@ -56,7 +56,7 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-basic-api</artifactId>
-                <version>${project.parent.version}</version>
+                <version>1.5.4</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ssdev</groupId>
@@ -67,7 +67,7 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-consult-api</artifactId>
-                <version>${project.parent.version}</version>
+                <version>1.5.0</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ssdev</groupId>
@@ -136,7 +136,7 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-opbase-api</artifactId>
-                <version>${project.parent.version}</version>
+                <version>1.6.0.release-SNAPSHOT</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ssdev</groupId>
@@ -185,6 +185,11 @@
                 <groupId>com.alibaba</groupId>
                 <artifactId>fastjson</artifactId>
                 <version>1.2.29</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>4.5.6</version>
             </dependency>
             <dependency>
                 <groupId>junit</groupId>

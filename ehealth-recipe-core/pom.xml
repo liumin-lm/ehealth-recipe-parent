@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>1.6.0.feature5-SNAPSHOT</version>
+        <version>1.5.6.hotfix-20180920-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -20,6 +20,11 @@
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-recipe-prescription</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>ehealth-recipe-common</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <!--<dependency>-->
@@ -100,6 +105,10 @@
         <dependency>
             <groupId>com.ctrip.framework.apollo</groupId>
             <artifactId>apollo-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
         </dependency>
     </dependencies>
     <profiles>

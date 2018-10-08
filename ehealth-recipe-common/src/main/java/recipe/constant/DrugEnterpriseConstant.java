@@ -9,7 +9,27 @@ package recipe.constant;
 public class DrugEnterpriseConstant {
 
     /**
+     * 通用
+     */
+    public static final String COMMON = "common";
+
+    /**
      * 钥世圈简称
      */
     public static final String COMPANY_YSQ = "ysq";
+
+    /**
+     * 支付宝
+     */
+    public static final String COMPANY_ZFB = "zfb";
+
+    /**
+     * 测试药店
+     */
+    public static final String COMPANY_PHARMACY = "pharmacy";
+
+    /**
+     * 测试药企
+     */
+    public static final String COMPANY_TEST = "test";
 }
