@@ -276,6 +276,7 @@ public class RecipeMsgService {
         //0代表通用机构
         info.setOrganId(organId);
         info.setExtendValue(extendValue);
+        LOGGER.info("send msg : {}", JSONUtils.toString(info));
         iSmsPushService.pushMsg(info);
     }
 
