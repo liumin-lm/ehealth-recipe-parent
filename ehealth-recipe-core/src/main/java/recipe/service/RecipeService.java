@@ -1890,6 +1890,10 @@ public class RecipeService {
             if (RecipeStatusConstant.READY_CHECK_YS == status) {
                 //如果处方 在待药师审核状态 给对应机构的药师进行消息推送
                 RecipeMsgService.batchSendMsg(recipeId, status);
+                if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())) {
+                    //进行身边医生消息推送
+                    RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_READYCHECK_4HIS, dbRecipe);
+                }
             }
             if (RecipeStatusConstant.CHECK_PASS_YS == status) {
                 //说明是可进行医保支付的单子或者是中药或膏方处方

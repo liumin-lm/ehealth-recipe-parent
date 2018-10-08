@@ -19,16 +19,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
-import recipe.constant.PayConstant;
-import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
-import recipe.constant.RegexEnum;
+import recipe.constant.*;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.service.RecipeHisService;
-import recipe.service.RecipeLogService;
-import recipe.service.RecipeOrderService;
-import recipe.service.RecipeService;
+import recipe.service.*;
 import recipe.util.MapValueUtil;
 import recipe.util.RegexUtils;
 
@@ -110,11 +104,11 @@ public class RecipeSignService {
                     return response;
                 }
                 //校验参数准确性
-                if(!RegexUtils.regular(patientTel, RegexEnum.MOBILE)){
+                if (!RegexUtils.regular(patientTel, RegexEnum.MOBILE)) {
                     response.setMsg("请输入有效手机号码");
                     return response;
                 }
-                if(StringUtils.length(patientAddress) > 100){
+                if (StringUtils.length(patientAddress) > 100) {
                     response.setMsg("地址不能超过100个字");
                     return response;
                 }
@@ -148,13 +142,13 @@ public class RecipeSignService {
             return response;
         } else {
             //为确保通知能送达用户手机需要重置下手机信息
-            if(StringUtils.isEmpty(patientTel)){
+            if (StringUtils.isEmpty(patientTel)) {
                 PatientService patientService = BasicAPI.getService(PatientService.class);
                 PatientDTO patient = patientService.get(dbRecipe.getMpiid());
                 if (null != patient) {
                     patientTel = patient.getMobile();
                     patientAddress = patient.getAddress();
-                }else{
+                } else {
                     LOG.warn("sign 患者不存在，可能导致短信无法通知. recipeId={}, mpiId={}", recipeId, dbRecipe.getMpiid());
                 }
             }
@@ -194,9 +188,11 @@ public class RecipeSignService {
         /**
          * 药店取药和自由选择都流转到药师审核，审核完成推送给药企
          */
+        boolean sendYsCheck = false;
         Integer status = RecipeStatusConstant.CHECK_PASS;
         if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) || RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)) {
             status = RecipeStatusConstant.READY_CHECK_YS;
+            sendYsCheck = true;
         }
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, attrMap);
 
@@ -227,6 +223,11 @@ public class RecipeSignService {
         //日志记录
         RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), status, "sign 完成 giveMode=" + giveMode);
         response.setCode(RecipeCommonBaseTO.SUCCESS);
+
+        //推送身边医生消息
+        if (sendYsCheck) {
+            RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_READYCHECK_4HIS, dbRecipe);
+        }
         return response;
     }
 
