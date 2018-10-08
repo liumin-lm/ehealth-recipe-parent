@@ -81,7 +81,7 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
         }
 
         com.ngari.opbase.base.service.IBusActionLogService iBusActionLogService1 = AppContextHolder.getBean("opbase.busActionLogService", com.ngari.opbase.base.service.IBusActionLogService.class);
-        iBusActionLogService1.recordBusinessLogRpcNew("药企配送价格管理", price.getId().toString(), "DrugDistributionPrice", logMsg.toString(), com.ngari.opbase.base.service.IBusActionLogService.defaultSubjectName);
+//        iBusActionLogService1.recordBusinessLogRpcNew("药企配送价格管理", price.getId().toString(), "DrugDistributionPrice", logMsg.toString(), com.ngari.opbase.base.service.IBusActionLogService.defaultSubjectName);
         return price;
     }
 
@@ -98,7 +98,7 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
         }
 
         com.ngari.opbase.base.service.IBusActionLogService iBusActionLogService1 = AppContextHolder.getBean("opbase.busActionLogService", com.ngari.opbase.base.service.IBusActionLogService.class);
-        iBusActionLogService1.recordBusinessLogRpcNew("药企配送价格管理", price.getId().toString(), "DrugDistributionPrice", "删除：" + price.toString(), com.ngari.opbase.base.service.IBusActionLogService.defaultSubjectName);
+//        iBusActionLogService1.recordBusinessLogRpcNew("药企配送价格管理", price.getId().toString(), "DrugDistributionPrice", "删除：" + price.toString(), com.ngari.opbase.base.service.IBusActionLogService.defaultSubjectName);
         drugDistributionPriceDAO.deleteByEnterpriseId(enterpriseId);
     }
 
