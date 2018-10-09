@@ -829,7 +829,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                     if (StringUtils.isNotEmpty(appid)) {
                         if("NgariHealth".equals(appid)){
                             //APP跳转
-                            backMsg.setMsg(appid+"://module=orderList");
+                            backMsg.setMsg(appid+"://?module=orderList");
                         }else {
                             //微信跳转
                             IWXServiceInterface wxService = ApplicationUtils.getService(IWXServiceInterface.class, "wxService");
