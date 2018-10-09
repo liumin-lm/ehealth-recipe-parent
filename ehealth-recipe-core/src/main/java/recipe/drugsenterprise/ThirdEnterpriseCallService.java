@@ -827,15 +827,21 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 if (StringUtils.isEmpty(needWxUrl)) {
                     String appid = MapValueUtil.getString(paramMap, "appid");
                     if (StringUtils.isNotEmpty(appid)) {
-                        IWXServiceInterface wxService = ApplicationUtils.getService(IWXServiceInterface.class, "wxService");
-                        Map<String, String> paramsMap = Maps.newHashMap();
-                        paramsMap.put("module", "orderList");
-//                        paramsMap.put("cid", order.getOrderId().toString());
-                        String wxUrl = wxService.getSinglePageUrl(appid, paramsMap);
+                        if("NgariHealth".equals(appid)){
+                            //APP跳转
+                            backMsg.setMsg(appid+"://module=orderList");
+                        }else {
+                            //微信跳转
+                            IWXServiceInterface wxService = ApplicationUtils.getService(IWXServiceInterface.class, "wxService");
+                            Map<String, String> paramsMap = Maps.newHashMap();
+                            paramsMap.put("module", "orderList");
+//                            paramsMap.put("cid", order.getOrderId().toString());
+                            String wxUrl = wxService.getSinglePageUrl(appid, paramsMap);
 
-                        if (StringUtils.isNotEmpty(wxUrl)) {
-                            wxUrl = wxUrl.replace("&connect_redirect=1", "");
-                            backMsg.setMsg(wxUrl);
+                            if (StringUtils.isNotEmpty(wxUrl)) {
+                                wxUrl = wxUrl.replace("&connect_redirect=1", "");
+                                backMsg.setMsg(wxUrl);
+                            }
                         }
                     }
                 }
