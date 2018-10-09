@@ -172,7 +172,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      * @param limit
      * @return
      */
-    @DAOMethod(sql = "from Recipe where doctor=:doctorId and recipeId<:recipeId and status!=10 order by createDate desc ")
+    @DAOMethod(sql = "from Recipe where doctor=:doctorId and fromflag=1 and recipeId<:recipeId and status!=10 order by createDate desc ")
     public abstract List<Recipe> findRecipesForDoctor(@DAOParam("doctorId") Integer doctorId, @DAOParam("recipeId") Integer recipeId,
                                                       @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
 
@@ -651,7 +651,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("from Recipe where signDate between '" + startDt + "' and '" + endDt + "' ");
+                StringBuilder hql = new StringBuilder("from Recipe where fromflag=1 and signDate between '" + startDt + "' and '" + endDt + "' ");
                 if (cancelStatus == RecipeStatusConstant.NO_PAY) {
                     //超过3天未支付
                     hql.append(" and status=" + RecipeStatusConstant.CHECK_PASS
@@ -680,7 +680,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("select new Recipe(recipeId,signDate) from Recipe where signDate between " +
+                StringBuilder hql = new StringBuilder("select new Recipe(recipeId,signDate) from Recipe where fromflag=1 and signDate between " +
                         "'" + startDt + "' and '" + endDt + "' ");
                 if (cancelStatus == RecipeStatusConstant.PATIENT_NO_OPERATOR) {
                     //未操作

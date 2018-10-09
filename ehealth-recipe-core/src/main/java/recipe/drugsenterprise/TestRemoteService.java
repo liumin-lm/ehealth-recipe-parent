@@ -4,6 +4,7 @@ import com.ngari.recipe.entity.DrugsEnterprise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.constant.DrugEnterpriseConstant;
 
 import java.util.List;
 
@@ -19,6 +20,11 @@ public class TestRemoteService extends AccessDrugEnterpriseService {
      * logger
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(TestRemoteService.class);
+
+    @Override
+    public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
+        LOGGER.info("TestRemoteService tokenUpdateImpl not implement.");
+    }
 
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
@@ -47,11 +53,11 @@ public class TestRemoteService extends AccessDrugEnterpriseService {
     @Override
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         LOGGER.info("TestRemoteService findSupportDep not implement.");
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
     public String getDrugEnterpriseCallSys() {
-        return "test";
+        return DrugEnterpriseConstant.COMPANY_TEST;
     }
 }

@@ -96,6 +96,9 @@ public class RecipeCheckService {
             List<Integer> organIds = findAPOrganIdsByDoctorId(request.getDoctorId());
             request.setOrganIdList(organIds);
         }
+        if(CollectionUtils.isEmpty(request.getOrganIdList())){
+            return Lists.newArrayList();
+        }
         RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
         List<Recipe> list = rDao.findRecipeByFlag(request.getOrganIdList(), request.getStatus(),
                 start, limit);
@@ -139,7 +142,8 @@ public class RecipeCheckService {
         List<Map<String, Object>> mapList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(list)) {
             RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-
+            PatientDTO patient;
+            PatientDTO dbPatient;
             for (Recipe r : list) {
                 Map<String, Object> map = Maps.newHashMap();
                 //组装需要的处方数据
@@ -151,17 +155,14 @@ public class RecipeCheckService {
                 recipe.setOrganDiseaseName(r.getOrganDiseaseName());
                 recipe.setChecker(r.getChecker());
                 //组装需要的患者数据
-                PatientDTO patient = new PatientDTO();
+                patient = new PatientDTO();
                 try {
-                    PatientDTO p = patientService.get(r.getMpiid());
-                    patient.setPatientName(p.getPatientName());
-                    patient.setPatientSex(p.getPatientSex());
-                    Date birthDay = p.getBirthday();
-                    if (null != birthDay) {
-                        patient.setAge(DateConversion.getAge(birthDay));
-                    }
+                    dbPatient = patientService.get(r.getMpiid());
+                    patient.setPatientName(dbPatient.getPatientName());
+                    patient.setPatientSex(dbPatient.getPatientSex());
+                    patient.setAge(null == dbPatient.getBirthday() ? 0 : DateConversion.getAge(dbPatient.getBirthday()));
                 } catch (Exception e) {
-                    LOGGER.error("covertRecipeListPageInfo patient is error. mpiId={}, ", r.getMpiid(), e);
+                    LOGGER.warn("covertRecipeListPageInfo patient is error. mpiId={}, ", r.getMpiid(), e);
                 }
                 //显示一条详情数据
                 List<Recipedetail> details = detailDAO.findByRecipeId(r.getRecipeId());
@@ -246,28 +247,36 @@ public class RecipeCheckService {
         }
         //取医生的手机号
         DoctorDTO doc = new DoctorDTO();
-        DoctorDTO doctor = doctorService.get(doctorId);
-        if (null != doctor) {
-            doc.setMobile(doctor.getMobile());
+        try {
+            DoctorDTO doctor = doctorService.get(doctorId);
+            if (null != doctor) {
+                doc.setMobile(doctor.getMobile());
+            }
+        } catch (Exception e) {
+            LOGGER.warn("findRecipeAndDetailsAndCheckById get doctor error. doctorId={}", recipe.getDoctor(), e);
         }
 
         //取patient需要的字段
-        PatientDTO patient = patientService.get(recipe.getMpiid());
-        if (null == patient) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "patient is null!");
-        }
         PatientBean p = new PatientBean();
-        p.setPatientName(patient.getPatientName());
-        p.setPatientSex(patient.getPatientSex());
-        p.setAge(null == patient.getBirthday() ? 0 : DateConversion.getAge(patient.getBirthday()));
-        p.setPatientType(patient.getPatientType());
-        //加上手机号 和 身份证信息（脱敏）
-        p.setMobile(patient.getMobile());
-        p.setIdcard(hideIdCard(patient.getCertificate()));
-        p.setMpiId(patient.getMpiId());
-        //返回map对象
-        Map<String, Object> map = Maps.newHashMap();
+        try {
+            PatientDTO patient = patientService.get(recipe.getMpiid());
+            if (null != patient) {
+                p.setPatientName(patient.getPatientName());
+                p.setPatientSex(patient.getPatientSex());
+                p.setAge(null == patient.getBirthday() ? 0 : DateConversion.getAge(patient.getBirthday()));
+                p.setPatientType(patient.getPatientType());
+                //加上手机号 和 身份证信息（脱敏）
+                p.setMobile(patient.getMobile());
+                p.setIdcard(hideIdCard(patient.getCertificate()));
+                p.setMpiId(patient.getMpiId());
+            }else{
+                LOGGER.warn("findRecipeAndDetailsAndCheckById patient is null. mpiId={}", recipe.getMpiid());
+            }
+        } catch (Exception e) {
+            LOGGER.warn("findRecipeAndDetailsAndCheckById get patient error. mpiId={}", recipe.getMpiid(), e);
+        }
 
+        Map<String, Object> map = Maps.newHashMap();
         List<Recipedetail> details = detailDAO.findByRecipeId(recipeId);
         //获取审核不通过详情
         List<Map<String, Object>> mapList = getCheckNotPassDetail(recipeId);
@@ -284,17 +293,18 @@ public class RecipeCheckService {
         DrugsEnterpriseBean e = new DrugsEnterpriseBean();
         if (enterpriseId != null) {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(enterpriseId);
-            e.setName(drugsEnterprise.getName());
-            e.setPayModeSupport(drugsEnterprise.getPayModeSupport());
+            if(null != drugsEnterprise) {
+                e.setName(drugsEnterprise.getName());
+                e.setPayModeSupport(drugsEnterprise.getPayModeSupport());
+            }
         }
-        RecipeOrderBean order = new RecipeOrderBean();
+        RecipeOrderBean order = null;
         String orderCode = recipe.getOrderCode();
         if (!StringUtils.isEmpty(orderCode)) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
             order = ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class);
-        } else {
-            order = null;
         }
+
         map.put("dateString", dateString);
         map.put("recipe", r);
         map.put("patient", p);

@@ -19,6 +19,7 @@ import java.util.List;
 /**
  * 通用药企对接服务(国药协议)
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * @date:2016/10/19.
  */
@@ -111,9 +112,16 @@ public abstract class AccessDrugEnterpriseService {
     }
 
     /**
+     * 更新token
+     *
+     * @param drugsEnterprise
+     */
+    public abstract void tokenUpdateImpl(DrugsEnterprise drugsEnterprise);
+
+    /**
      * 推送处方
      *
-     * @param recipeIds 处方ID集合
+     * @param recipeIds  处方ID集合
      * @param enterprise
      * @return
      */
@@ -130,6 +138,7 @@ public abstract class AccessDrugEnterpriseService {
 
     /**
      * 定时同步药企库存
+     *
      * @param drugsEnterprise
      * @param drugIdList
      * @return
@@ -139,8 +148,8 @@ public abstract class AccessDrugEnterpriseService {
     /**
      * 药师审核通过通知消息
      *
-     * @param recipeId  处方ID
-     * @param checkFlag 审核结果 1:审核通过 0:审核失败
+     * @param recipeId   处方ID
+     * @param checkFlag  审核结果 1:审核通过 0:审核失败
      * @param enterprise
      * @return
      */
@@ -148,6 +157,7 @@ public abstract class AccessDrugEnterpriseService {
 
     /**
      * 查找供应商
+     *
      * @param recipeIds
      * @param enterprise
      * @return

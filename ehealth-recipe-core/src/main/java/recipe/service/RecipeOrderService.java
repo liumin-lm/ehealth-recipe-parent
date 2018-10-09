@@ -206,7 +206,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         }
                     } else if (payModeSupport.isSupportCOD() || payModeSupport.isSupportTFDS() || payModeSupport.isSupportComplex()) {
                         //货到付款 | 药店取药 处理
-                        if (1 == firstRecipe.getFromflag()) {
+                        if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(firstRecipe.getFromflag())) {
                             //平台处方先发送处方数据
                             sendRecipeAfterCreateOrder(recipeList, result, extInfo);
                         }
@@ -272,20 +272,20 @@ public class RecipeOrderService extends RecipeBaseService {
         List<Recipe> needDelList = new ArrayList<>(10);
         // 多处方处理仍需要重构
         for (Recipe recipe : recipeList) {
-            //判断处方状态是否还能进行支付
-            if (!Integer.valueOf(RecipeStatusConstant.CHECK_PASS).equals(recipe.getStatus())) {
-                LOGGER.error("处方id=" + recipe.getRecipeId() + "不是待处理状态。");
-                if (RecipeStatusConstant.REVOKE == recipe.getStatus()) {
-                    result.setError("由于医生已撤销，该处方单已失效，请联系医生");
-                } else {
-                    result.setError("处方单已处理");
-                }
-                needDelList.add(recipe);
-                continue;
-            }
-
             //平台处方才需要校验配送药企
             if (1 == recipe.getFromflag()) {
+                //判断处方状态是否还能进行支付
+                if (!Integer.valueOf(RecipeStatusConstant.CHECK_PASS).equals(recipe.getStatus())) {
+                    LOGGER.error("处方id=" + recipe.getRecipeId() + "不是待处理状态。");
+                    if (RecipeStatusConstant.REVOKE == recipe.getStatus()) {
+                        result.setError("由于医生已撤销，该处方单已失效，请联系医生");
+                    } else {
+                        result.setError("处方单已处理");
+                    }
+                    needDelList.add(recipe);
+                    continue;
+                }
+
                 Integer depId = recipeService.supportDistributionExt(recipe.getRecipeId(), recipe.getClinicOrgan(),
                         order.getEnterpriseId(), payMode);
                 if (null == depId) {
