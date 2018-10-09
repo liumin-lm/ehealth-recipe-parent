@@ -30,7 +30,7 @@ import java.util.Map;
  *
  * @author: 0184/yu_yun
  */
-@RpcSupportDAO(serviceId = "drugList")
+@RpcSupportDAO
 public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
         implements DBDictionaryItemLoader<DrugList> {
 
