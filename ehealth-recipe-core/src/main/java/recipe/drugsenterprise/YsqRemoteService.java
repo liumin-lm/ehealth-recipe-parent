@@ -556,9 +556,9 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
     protected Call getCall(DrugsEnterprise drugsEnterprise, String method) throws Exception {
         String wsdlUrl = drugsEnterprise.getBusinessUrl();
         String nameSpaceUri = NAME_SPACE + method;
-        Service s = new Service();
         Call call = null;
         try {
+            Service s = new Service();
             call = (Call) s.createCall();
         } catch (ServiceException e) {
             LOGGER.error("create call error. error={}", e.getMessage());
