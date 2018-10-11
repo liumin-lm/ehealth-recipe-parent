@@ -197,6 +197,11 @@
                 <version>1.2</version>
             </dependency>
             <dependency>
+                <groupId>commons-discovery</groupId>
+                <artifactId>commons-discovery</artifactId>
+                <version>0.2</version>
+            </dependency>
+            <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>4.12</version>

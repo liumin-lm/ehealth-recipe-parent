@@ -560,15 +560,20 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         try {
             Service s = new Service();
             call = (Call) s.createCall();
-        } catch (ServiceException e) {
-            LOGGER.error("create call error. error={}", e.getMessage());
-        }
-        if (null != call) {
-            //单位毫秒
-            call.setTimeout(20000);
-            call.setTargetEndpointAddress(new URL(wsdlUrl));
-            call.setOperationName(new QName(NAME_SPACE, method));
-            call.setSOAPActionURI(nameSpaceUri);
+            if (null != call) {
+                //单位毫秒
+                call.setTimeout(20000);
+                call.setTargetEndpointAddress(new URL(wsdlUrl));
+                call.setOperationName(new QName(NAME_SPACE, method));
+                call.setSOAPActionURI(nameSpaceUri);
+            }
+        } catch (Exception e) {
+            call = null;
+            LOGGER.error("create call error. wsdlUrl={}, nameSpaceUri={}", wsdlUrl, nameSpaceUri, e);
+        } finally {
+            if(null == call){
+                LOGGER.error("create call error finally. wsdlUrl={}, nameSpaceUri={}", wsdlUrl, nameSpaceUri);
+            }
         }
 
         return call;
