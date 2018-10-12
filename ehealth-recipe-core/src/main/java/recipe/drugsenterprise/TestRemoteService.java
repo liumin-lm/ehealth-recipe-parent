@@ -34,19 +34,19 @@ public class TestRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        LOGGER.info("TestRemoteService pushRecipeInfo not implement.");
+        LOGGER.info("TestRemoteService scanStock not implement.");
         return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
-        LOGGER.info("TestRemoteService pushRecipeInfo not implement.");
+        LOGGER.info("TestRemoteService syncEnterpriseDrug not implement.");
         return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
     public DrugEnterpriseResult pushCheckResult(Integer recipeId, Integer checkFlag, DrugsEnterprise enterprise) {
-        LOGGER.info("TestRemoteService pushRecipeInfo not implement.");
+        LOGGER.info("TestRemoteService pushCheckResult not implement.");
         return DrugEnterpriseResult.getSuccess();
     }
 
