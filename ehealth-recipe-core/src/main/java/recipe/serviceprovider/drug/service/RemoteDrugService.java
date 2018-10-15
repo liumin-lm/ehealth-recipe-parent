@@ -149,19 +149,7 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         DrugList drugList = getBean(d, DrugList.class);
         drugList = dao.save(drugList);
 
-        if(null != d.getDispensatory()) {
-            DispensatoryDAO dispensatoryDAO = DAOFactory.getDAO(DispensatoryDAO.class);
-            DispensatoryDTO dispensatoryDTO = d.getDispensatory();
-            dispensatoryDTO.setDrugId(d.getDrugId());
-            dispensatoryDTO.setDrugName(d.getDrugName());
-            dispensatoryDTO.setSaleName(d.getSaleName());
-            dispensatoryDTO.setSpecs(d.getDrugSpec());
-            Date now = DateTime.now().toDate();
-            dispensatoryDTO.setCreateTime(now);
-            dispensatoryDTO.setLastModifyTime(now);
-
-            dispensatoryDAO.save(ObjectCopyUtils.convert(dispensatoryDTO, Dispensatory.class));
-        }
+        saveDispensatory(d, drugList.getDrugId());
 
         return getBean(drugList, DrugListBean.class);
     }
@@ -185,12 +173,36 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
             if(null != d.getDispensatory()) {
                 DispensatoryDAO dispensatoryDAO = DAOFactory.getDAO(DispensatoryDAO.class);
                 Dispensatory dispensatory = dispensatoryDAO.getByDrugId(target.getDrugId());
-                dispensatory.setLastModifyTime(new Date());
-                BeanUtils.map(d.getDispensatory(), dispensatory);
-                dispensatoryDAO.update(dispensatory);
+                if(null == dispensatory){
+                    saveDispensatory(d, target.getDrugId());
+                }else{
+                    dispensatory.setLastModifyTime(new Date());
+                    BeanUtils.map(d.getDispensatory(), dispensatory);
+                    dispensatoryDAO.update(dispensatory);
+                }
             }
         }
         return getBean(target, DrugListBean.class);
+    }
+
+    private void saveDispensatory(DrugListBean d, Integer drugId){
+        if(null != d.getDispensatory()) {
+            DispensatoryDAO dispensatoryDAO = DAOFactory.getDAO(DispensatoryDAO.class);
+            DispensatoryDTO dispensatoryDTO = d.getDispensatory();
+            dispensatoryDTO.setDrugId(drugId);
+            dispensatoryDTO.setName(d.getDrugName()+"("+d.getSaleName()+")");
+            dispensatoryDTO.setDrugName(d.getDrugName());
+            dispensatoryDTO.setSaleName(d.getSaleName());
+            dispensatoryDTO.setSpecs(d.getDrugSpec());
+            Date now = DateTime.now().toDate();
+            dispensatoryDTO.setCreateTime(now);
+            dispensatoryDTO.setLastModifyTime(now);
+            // 来源
+            dispensatoryDTO.setSource(2);
+            dispensatoryDTO.setPageId("0");
+
+            dispensatoryDAO.save(ObjectCopyUtils.convert(dispensatoryDTO, Dispensatory.class));
+        }
     }
 
     @RpcService
