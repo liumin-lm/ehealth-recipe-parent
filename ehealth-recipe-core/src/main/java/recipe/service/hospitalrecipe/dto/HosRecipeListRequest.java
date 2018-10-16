@@ -31,6 +31,15 @@ public class HosRecipeListRequest implements Serializable{
     @Verify(desc = "性别", isInt = true)
     private String patientSex;
 
+    @Verify(desc = "组织结构编码")
+    private String organId;
+
+    @Verify(desc = "分页开始下标")
+    private Integer start;
+
+    @Verify(desc = "分页单页数量")
+    private Integer limit;
+
     public Integer getDoctorId() {
         return doctorId;
     }
@@ -77,5 +86,29 @@ public class HosRecipeListRequest implements Serializable{
 
     public void setPatientSex(String patientSex) {
         this.patientSex = patientSex;
+    }
+
+    public String getOrganId() {
+        return organId;
+    }
+
+    public void setOrganId(String organId) {
+        this.organId = organId;
+    }
+
+    public Integer getStart() {
+        return start;
+    }
+
+    public void setStart(Integer start) {
+        this.start = start;
+    }
+
+    public Integer getLimit() {
+        return limit;
+    }
+
+    public void setLimit(Integer limit) {
+        this.limit = limit;
     }
 }
