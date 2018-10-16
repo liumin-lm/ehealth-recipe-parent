@@ -1,5 +1,6 @@
 package recipe.service.hospitalrecipe;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.ngari.base.BaseAPI;
@@ -97,11 +98,11 @@ public class HosRecipeListService {
                     patient = patList.get(0);
                 }
             } catch (Exception e) {
-                LOG.warn("createPrescription 处理就诊人异常，doctorId={}, clinicOrgan={}",
+                LOG.warn("findHistroyRecipeList 处理就诊人异常，doctorId={}, clinicOrgan={}",
                         request.getDoctorId(), clinicOrgan, e);
             } finally {
                 if (null == patient || StringUtils.isEmpty(patient.getMpiId())) {
-                    LOG.warn("createPrescription 患者创建失败，doctorId={}, clinicOrgan={}",
+                    LOG.warn("findHistroyRecipeList 患者创建失败，doctorId={}, clinicOrgan={}",
                             request.getDoctorId(), clinicOrgan);
                     response.setMsg("患者创建失败");
                     return response;
@@ -113,9 +114,11 @@ public class HosRecipeListService {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             List<Recipe> recipeList = recipeDAO.findRecipeListByDoctorAndPatient(request.getDoctorId(),
                     patient.getMpiId(), request.getStart(), request.getLimit());
+            List<RecipeBean> backList = Lists.newArrayList();
             if (CollectionUtils.isNotEmpty(recipeList)) {
-                recipeInfo.put("list", ObjectCopyUtils.convert(recipeList, RecipeBean.class));
+                backList = ObjectCopyUtils.convert(recipeList, RecipeBean.class);
             }
+            recipeInfo.put("list", backList);
             response.setCode(RecipeCommonBaseTO.SUCCESS);
         } else {
             response.setMsg("请求对象为空");
