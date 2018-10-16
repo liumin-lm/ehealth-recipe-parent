@@ -112,8 +112,8 @@ public class HosRecipeListService {
             }
 
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            List<Recipe> recipeList = recipeDAO.findRecipeListByDoctorAndPatient(request.getDoctorId(),
-                    patient.getMpiId(), request.getStart(), request.getLimit());
+            List<Recipe> recipeList = recipeDAO.findHosRecipe(request.getDoctorId(), patient.getMpiId(), clinicOrgan,
+                    request.getStart(), request.getLimit());
             List<RecipeBean> backList = Lists.newArrayList();
             if (CollectionUtils.isNotEmpty(recipeList)) {
                 backList = ObjectCopyUtils.convert(recipeList, RecipeBean.class);
