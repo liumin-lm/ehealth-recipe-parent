@@ -8,14 +8,17 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeCommonBaseTO;
 import com.ngari.recipe.common.RecipeStandardReqTO;
 import com.ngari.recipe.common.RecipeStandardResTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.hisprescription.model.HosRecipeResult;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
@@ -30,6 +33,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.RecipeCheckService;
+import recipe.service.hospitalrecipe.PrescribeService;
 import recipe.util.MapValueUtil;
 
 import java.util.List;
@@ -180,5 +184,33 @@ public class RecipeSingleService {
         }
 
         return response;
+    }
+
+    /**
+     * 撤销处方
+     *
+     * @param recipeId
+     */
+    @RpcService
+    public HosRecipeResult revokeRecipe(int recipeId) {
+        HosRecipeResult result = new HosRecipeResult();
+        //重置默认为失败
+        result.setCode(HosRecipeResult.FAIL);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
+        //数据对比
+        if (null == dbRecipe) {
+            result.setMsg("不存在该处方");
+            return result;
+        }
+        if (RecipeStatusConstant.DELETE == dbRecipe.getStatus()) {
+            result.setCode(HosRecipeResult.SUCCESS);
+            result.setMsg("处方状态相同");
+            return result;
+        }
+
+        PrescribeService prescribeService = RecipeAPI.getService(PrescribeService.class);
+        result = prescribeService.revokeRecipe(dbRecipe);
+        return result;
     }
 }
