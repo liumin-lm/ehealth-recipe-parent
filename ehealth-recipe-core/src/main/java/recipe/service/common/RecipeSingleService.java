@@ -192,25 +192,30 @@ public class RecipeSingleService {
      * @param recipeId
      */
     @RpcService
-    public HosRecipeResult revokeRecipe(int recipeId) {
-        HosRecipeResult result = new HosRecipeResult();
+    public RecipeStandardResTO revokeRecipe(int recipeId) {
+        RecipeStandardResTO response = new RecipeStandardResTO();
         //重置默认为失败
-        result.setCode(HosRecipeResult.FAIL);
+        response.setCode(RecipeCommonBaseTO.FAIL);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
         //数据对比
         if (null == dbRecipe) {
-            result.setMsg("不存在该处方");
-            return result;
+            response.setMsg("不存在该处方");
+            return response;
         }
         if (RecipeStatusConstant.DELETE == dbRecipe.getStatus()) {
-            result.setCode(HosRecipeResult.SUCCESS);
-            result.setMsg("处方状态相同");
-            return result;
+            response.setCode(RecipeCommonBaseTO.SUCCESS);
+            response.setMsg("处方状态相同");
+            return response;
         }
 
         PrescribeService prescribeService = RecipeAPI.getService(PrescribeService.class);
-        result = prescribeService.revokeRecipe(dbRecipe);
-        return result;
+        HosRecipeResult result = prescribeService.revokeRecipe(dbRecipe);
+        if(HosRecipeResult.SUCCESS.equals(result.getCode())){
+            response.setCode(RecipeCommonBaseTO.SUCCESS);
+        }else{
+            response.setMsg(result.getMsg());
+        }
+        return response;
     }
 }
