@@ -84,7 +84,7 @@ public class RecipeValidateUtil {
 
         if (StringUtils.isEmpty(recipe.getMpiid())) {
             throw new DAOException(DAOException.VALUE_NEEDED,
-                    "mpiId is required!");
+                    "mpiid is required!");
         }
 
         if (StringUtils.isEmpty(recipe.getOrganDiseaseName())) {

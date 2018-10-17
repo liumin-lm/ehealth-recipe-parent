@@ -124,11 +124,6 @@ public class RecipeServiceSub {
             recipe.setActualPrice(totalMoney);
         }
         String mpiId = recipe.getMpiid();
-        if (StringUtils.isEmpty(mpiId)) {
-            throw new DAOException(DAOException.VALUE_NEEDED,
-                    "mpiid is required");
-        }
-
         String patientName = patientService.getNameByMpiId(mpiId);
         if (StringUtils.isEmpty(patientName)) {
             patientName = "未知";
@@ -143,7 +138,6 @@ public class RecipeServiceSub {
 
         //加入历史患者
         OperationRecordsBean record = new OperationRecordsBean();
-
 
         record.setMpiId(mpiId);
         record.setRequestMpiId(mpiId);
