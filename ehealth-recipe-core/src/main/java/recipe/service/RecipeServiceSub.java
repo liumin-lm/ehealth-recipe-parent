@@ -106,12 +106,13 @@ public class RecipeServiceSub {
             RecipeValidateUtil.validateRecipeDetailData(recipeDetail, recipe);
         }
 
-        if (1 == flag) {
+        if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(flag)
+                || RecipeBussConstant.FROMFLAG_HIS_USE.equals(flag)) {
             boolean isSucc = setDetailsInfo(recipe, details);
             if (!isSucc) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "药品详情数据有误");
             }
-        } else if (0 == flag) {
+        } else if (RecipeBussConstant.FROMFLAG_HIS.equals(flag)) {
             //处方总价未计算
             BigDecimal totalMoney = new BigDecimal(0d);
             for (Recipedetail detail : details) {
@@ -125,7 +126,7 @@ public class RecipeServiceSub {
         String mpiId = recipe.getMpiid();
         if (StringUtils.isEmpty(mpiId)) {
             throw new DAOException(DAOException.VALUE_NEEDED,
-                    "mpiId is required");
+                    "mpiid is required");
         }
 
         String patientName = patientService.getNameByMpiId(mpiId);
