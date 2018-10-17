@@ -90,7 +90,7 @@ public class HosRecipeListService {
             }
 
             //先查询就诊人是否存在
-            boolean ispatientexist = false;
+            boolean patientExist = false;
             PatientBean patient = null;
             try {
                 IPatientExtendService patientExtendService = BaseAPI.getService(IPatientExtendService.class);
@@ -106,7 +106,7 @@ public class HosRecipeListService {
                     //创建就诊人
                     patient = patientExtendService.addPatient4DoctorApp(patient, 0, request.getDoctorId());
                 } else {
-                    ispatientexist = true;
+                    patientExist = true;
                     patient = patList.get(0);
                 }
             } catch (Exception e) {
@@ -117,7 +117,7 @@ public class HosRecipeListService {
                     LOG.warn("findHistroyRecipeList 患者创建失败，doctorId={}, clinicOrgan={}",
                             request.getDoctorId(), clinicOrgan);
                     response.setMsg("患者创建失败");
-                    ispatientexist = false;
+                    patientExist = false;
                     return response;
                 } else {
                     recipeInfo.put("mpiId", patient.getMpiId());
@@ -125,7 +125,9 @@ public class HosRecipeListService {
             }
             List<RecipeBean> backList = Lists.newArrayList();
             //患者存在再去进行查询
-            if (ispatientexist) {
+            LOG.info("findHistroyRecipeList patientExist={}, mpiId={}, doctorId={}",
+                    patientExist, patient.getMpiId(), request.getDoctorId());
+            if (patientExist) {
                 RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
                 List<Recipe> recipeList = recipeDAO.findHosRecipe(request.getDoctorId(), patient.getMpiId(), clinicOrgan,
                         request.getStart(), request.getLimit());
