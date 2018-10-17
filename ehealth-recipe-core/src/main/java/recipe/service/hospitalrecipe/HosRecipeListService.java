@@ -125,8 +125,8 @@ public class HosRecipeListService {
             }
             List<RecipeBean> backList = Lists.newArrayList();
             //患者存在再去进行查询
-            LOG.info("findHistroyRecipeList patientExist={}, mpiId={}, doctorId={}",
-                    patientExist, patient.getMpiId(), request.getDoctorId());
+            LOG.info("findHistroyRecipeList patientExist={}, mpiId={}, doctorId={}, clinicOrgan={}",
+                    patientExist, patient.getMpiId(), request.getDoctorId(), clinicOrgan);
             if (patientExist) {
                 RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
                 List<Recipe> recipeList = recipeDAO.findHosRecipe(request.getDoctorId(), patient.getMpiId(), clinicOrgan,
