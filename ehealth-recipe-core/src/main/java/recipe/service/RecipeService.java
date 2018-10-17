@@ -276,6 +276,7 @@ public class RecipeService {
             hospitalRecipeDTO.setRecipeCode(recipeBean.getRecipeCode());
             hospitalRecipeDTO.setOrderTotalFee(recipeBean.getTotalMoney().toPlainString());
             hospitalRecipeDTO.setActualFee(hospitalRecipeDTO.getOrderTotalFee());
+            hospitalRecipeDTO.setPayFlag(String.valueOf(PayConstant.PAY_FLAG_NOT_PAY));
             service.createBlankOrderForHos(recipeBean, hospitalRecipeDTO);
         }
         return recipeId;
