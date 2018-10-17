@@ -1,5 +1,6 @@
 package recipe.service.hospitalrecipe;
 
+import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -15,6 +16,7 @@ import com.ngari.recipe.common.utils.VerifyUtils;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -23,8 +25,10 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.dao.RecipeDAO;
+import recipe.service.common.RecipeSingleService;
 import recipe.service.hospitalrecipe.dto.HosRecipeListRequest;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +42,12 @@ public class HosRecipeListService {
 
     private static final Logger LOG = LoggerFactory.getLogger(HosRecipeListService.class);
 
+    /**
+     * 查询HOS所有处方
+     *
+     * @param request
+     * @return
+     */
     @RpcService
     public RecipeStandardResTO<Map> findHistroyRecipeList(HosRecipeListRequest request) {
         RecipeStandardResTO<Map> response = RecipeStandardResTO.getRequest(Map.class);
@@ -114,9 +124,22 @@ public class HosRecipeListService {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             List<Recipe> recipeList = recipeDAO.findHosRecipe(request.getDoctorId(), patient.getMpiId(), clinicOrgan,
                     request.getStart(), request.getLimit());
+            Map<Integer, Recipe> dbMap = Maps.uniqueIndex(recipeList.iterator(), new Function<Recipe, Integer>() {
+                @Nullable
+                @Override
+                public Integer apply(@Nullable Recipe input) {
+                    return input.getRecipeId();
+                }
+            });
             List<RecipeBean> backList = Lists.newArrayList();
             if (CollectionUtils.isNotEmpty(recipeList)) {
                 backList = ObjectCopyUtils.convert(recipeList, RecipeBean.class);
+                //处理数据
+                // 分为 -1:查不到处方 0：未签名 1: 其他状态展示详情页  2：药店取药已签名  3: 配送到家已签名-未支付  4:配送到家已签名-已支付 5:审核不通过  6:作废
+                RecipeSingleService singleService = AppContextHolder.getBean("recipeSingleService", RecipeSingleService.class);
+                for (RecipeBean recipeBean : backList) {
+                    recipeBean.setNotation(singleService.getNotation(dbMap.get(recipeBean.getRecipeId())));
+                }
             }
             recipeInfo.put("list", backList);
             response.setCode(RecipeCommonBaseTO.SUCCESS);

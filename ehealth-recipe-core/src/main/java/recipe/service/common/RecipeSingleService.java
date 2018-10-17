@@ -138,41 +138,14 @@ public class RecipeSingleService {
                     other.put("cancelReason", "HIS作废");
                 }
                 recipeInfo.put("other", other);
-
-                // 根据当前状态返回前端标记，用于前端展示什么页面
-                // 分为 -1:查不到处方 0：未签名 1: 其他状态展示详情页  2：药店取药已签名  3: 配送到家已签名-未支付  4:配送到家已签名-已支付 5:审核不通过  6:作废
-                int notation = 0;
-                switch (dbRecipe.getStatus()) {
-                    case RecipeStatusConstant.UNSIGN:
-                        notation = 0;
-                        break;
-                    case RecipeStatusConstant.CHECK_PASS:
-                        notation = 3;
-                        break;
-                    case RecipeStatusConstant.READY_CHECK_YS:
-                        if (RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())) {
-                            notation = 2;
-                        } else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
-                                && Integer.valueOf(1).equals(dbRecipe.getPayFlag())) {
-                            notation = 4;
-                        } else {
-                            notation = 1;
-                        }
-                        break;
-                    case RecipeStatusConstant.CHECK_NOT_PASS_YS:
-                        notation = 5;
-                        RecipeCheckService service = ApplicationUtils.getRecipeService(RecipeCheckService.class);
-                        //获取审核不通过详情
-                        List<Map<String, Object>> mapList = service.getCheckNotPassDetail(recipeId);
-                        recipeInfo.put("reasonAndDetails", mapList);
-                        break;
-                    case RecipeStatusConstant.DELETE:
-                        notation = 6;
-                        break;
-                    default:
-                        notation = 1;
+                //审核不通过设置数据
+                if (RecipeStatusConstant.CHECK_NOT_PASS_YS == dbRecipe.getStatus()) {
+                    RecipeCheckService service = ApplicationUtils.getRecipeService(RecipeCheckService.class);
+                    //获取审核不通过详情
+                    List<Map<String, Object>> mapList = service.getCheckNotPassDetail(recipeId);
+                    recipeInfo.put("reasonAndDetails", mapList);
                 }
-                recipeInfo.put("notation", notation);
+                recipeInfo.put("notation", getNotation(dbRecipe));
                 response.setData(recipeInfo);
                 response.setCode(RecipeCommonBaseTO.SUCCESS);
             } else {
@@ -211,11 +184,52 @@ public class RecipeSingleService {
 
         PrescribeService prescribeService = RecipeAPI.getService(PrescribeService.class);
         HosRecipeResult result = prescribeService.revokeRecipe(dbRecipe);
-        if(HosRecipeResult.SUCCESS.equals(result.getCode())){
+        if (HosRecipeResult.SUCCESS.equals(result.getCode())) {
             response.setCode(RecipeCommonBaseTO.SUCCESS);
-        }else{
+        } else {
             response.setMsg(result.getMsg());
         }
         return response;
+    }
+
+    /**
+     * 前端页面跳转标记
+     *
+     * @param dbRecipe
+     * @return
+     */
+    public int getNotation(Recipe dbRecipe) {
+        // 根据当前状态返回前端标记，用于前端展示什么页面
+        // 分为 -1:查不到处方 0：未签名 1: 其他状态展示详情页  2：药店取药已签名  3: 配送到家已签名-未支付  4:配送到家已签名-已支付 5:审核不通过  6:作废
+        int notation = 0;
+        switch (dbRecipe.getStatus()) {
+            case RecipeStatusConstant.UNSIGN:
+                notation = 0;
+                break;
+            case RecipeStatusConstant.CHECK_PASS:
+                notation = 3;
+                break;
+            case RecipeStatusConstant.READY_CHECK_YS:
+                if (RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())) {
+                    notation = 2;
+                } else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
+                        && Integer.valueOf(1).equals(dbRecipe.getPayFlag())) {
+                    notation = 4;
+                } else {
+                    notation = 1;
+                }
+                break;
+            case RecipeStatusConstant.CHECK_NOT_PASS_YS:
+                notation = 5;
+
+                break;
+            case RecipeStatusConstant.DELETE:
+                notation = 6;
+                break;
+            default:
+                notation = 1;
+        }
+
+        return notation;
     }
 }
