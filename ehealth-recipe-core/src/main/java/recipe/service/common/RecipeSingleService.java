@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import recipe.ApplicationUtils;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
@@ -61,6 +62,10 @@ public class RecipeSingleService {
 
     @Autowired
     private RecipeDetailDAO detailDAO;
+
+    @Autowired
+    @Qualifier("remotePrescribeService")
+    private PrescribeService prescribeService;
 
     @RpcService
     public RecipeStandardResTO<Map> getRecipeByConditions(RecipeStandardReqTO request) {
@@ -182,7 +187,6 @@ public class RecipeSingleService {
             return response;
         }
 
-        PrescribeService prescribeService = AppContextHolder.getBean("remotePrescribeService", PrescribeService.class);
         HosRecipeResult result = prescribeService.revokeRecipe(dbRecipe);
         if (HosRecipeResult.SUCCESS.equals(result.getCode())) {
             response.setCode(RecipeCommonBaseTO.SUCCESS);
