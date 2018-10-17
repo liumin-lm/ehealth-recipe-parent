@@ -37,7 +37,7 @@ import java.util.Map;
  * author: 0184/yu_yun
  * date:2018/10/16
  */
-@RpcBean(value = "hosRecipeListService", mvc_authentication = false)
+@RpcBean(value = "hosRecipeListService")
 public class HosRecipeListService {
 
     private static final Logger LOG = LoggerFactory.getLogger(HosRecipeListService.class);
