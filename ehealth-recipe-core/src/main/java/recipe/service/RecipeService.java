@@ -24,6 +24,7 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.wxpay.service.INgariRefundService;
@@ -265,7 +266,19 @@ public class RecipeService {
      */
     @RpcService
     public Integer saveRecipeData(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
-        return RecipeServiceSub.saveRecipeDataImpl(recipeBean, detailBeanList, 1);
+        Integer recipeId = RecipeServiceSub.saveRecipeDataImpl(recipeBean, detailBeanList, 1);
+        if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipeBean.getFromflag())) {
+            //生成订单数据，与 HosPrescriptionService 中 createPrescription 方法一致
+            HosPrescriptionService service = AppContextHolder.getBean("hosPrescriptionService", HosPrescriptionService.class);
+            recipeBean.setRecipeId(recipeId);
+            //设置订单基本参数
+            HospitalRecipeDTO hospitalRecipeDTO = new HospitalRecipeDTO();
+            hospitalRecipeDTO.setRecipeCode(recipeBean.getRecipeCode());
+            hospitalRecipeDTO.setOrderTotalFee(recipeBean.getTotalMoney().toPlainString());
+            hospitalRecipeDTO.setActualFee(hospitalRecipeDTO.getOrderTotalFee());
+            service.createBlankOrderForHos(recipeBean, hospitalRecipeDTO);
+        }
+        return recipeId;
     }
 
     /**

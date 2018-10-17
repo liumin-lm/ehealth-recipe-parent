@@ -16,7 +16,6 @@ import com.ngari.recipe.common.utils.VerifyUtils;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
-import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -24,6 +23,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import recipe.dao.RecipeDAO;
 import recipe.service.common.RecipeSingleService;
 import recipe.service.hospitalrecipe.dto.HosRecipeListRequest;
@@ -41,6 +42,10 @@ import java.util.Map;
 public class HosRecipeListService {
 
     private static final Logger LOG = LoggerFactory.getLogger(HosRecipeListService.class);
+
+    @Autowired
+    @Qualifier("recipeSingleService")
+    private RecipeSingleService singleService;
 
     /**
      * 查询HOS所有处方
@@ -142,7 +147,6 @@ public class HosRecipeListService {
                     backList = ObjectCopyUtils.convert(recipeList, RecipeBean.class);
                     //处理数据
                     // 分为 -1:查不到处方 0：未签名 1: 其他状态展示详情页  2：药店取药已签名  3: 配送到家已签名-未支付  4:配送到家已签名-已支付 5:审核不通过  6:作废
-                    RecipeSingleService singleService = AppContextHolder.getBean("recipeSingleService", RecipeSingleService.class);
                     for (RecipeBean recipeBean : backList) {
                         recipeBean.setNotation(singleService.getNotation(dbMap.get(recipeBean.getRecipeId())));
                     }

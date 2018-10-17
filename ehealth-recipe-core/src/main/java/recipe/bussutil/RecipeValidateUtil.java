@@ -3,8 +3,8 @@ package recipe.bussutil;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Maps;
-import com.ngari.base.patient.model.PatientBean;
-import com.ngari.base.patient.service.IPatientService;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
@@ -30,8 +30,6 @@ import java.util.Map;
  * @author yu_yun
  */
 public class RecipeValidateUtil {
-
-    private static IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
 
     /**
      * 保存处方前进行校验前段输入数据
@@ -125,7 +123,8 @@ public class RecipeValidateUtil {
             }
         }
 
-        PatientBean patient = iPatientService.get(recipe.getMpiid());
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        PatientDTO patient = patientService.get(recipe.getMpiid());
         //解决旧版本因为wx2.6患者身份证为null，而业务申请不成功
         if (patient == null || StringUtils.isEmpty(patient.getCertificate())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该患者还未填写身份证信息，不能开处方");
