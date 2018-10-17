@@ -8,7 +8,6 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeCommonBaseTO;
 import com.ngari.recipe.common.RecipeStandardReqTO;
 import com.ngari.recipe.common.RecipeStandardResTO;
@@ -19,6 +18,7 @@ import com.ngari.recipe.hisprescription.model.HosRecipeResult;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
@@ -182,7 +182,7 @@ public class RecipeSingleService {
             return response;
         }
 
-        PrescribeService prescribeService = RecipeAPI.getService(PrescribeService.class);
+        PrescribeService prescribeService = AppContextHolder.getBean("remotePrescribeService", PrescribeService.class);
         HosRecipeResult result = prescribeService.revokeRecipe(dbRecipe);
         if (HosRecipeResult.SUCCESS.equals(result.getCode())) {
             response.setCode(RecipeCommonBaseTO.SUCCESS);
