@@ -151,6 +151,16 @@ public class HosRecipeListService {
                         recipeBean.setNotation(singleService.getNotation(dbMap.get(recipeBean.getRecipeId())));
                     }
                 }
+
+                //是否存在下一页
+                List<Recipe> nextList = recipeDAO.findHosRecipe(request.getDoctorId(), patient.getMpiId(), clinicOrgan,
+                        request.getStart() + request.getLimit(), 1);
+                if (CollectionUtils.isEmpty(nextList)) {
+                    recipeInfo.put("hasNext", false);
+                } else {
+                    recipeInfo.put("hasNext", true);
+                }
+
             }
             recipeInfo.put("list", backList);
             response.setCode(RecipeCommonBaseTO.SUCCESS);
