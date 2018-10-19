@@ -59,7 +59,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
                     Map backMap = JSONUtils.parse(backMsg, Map.class);
                     // code 1成功
                     String code = "code";
-                    if (1 == MapValueUtil.getInteger(backMap, code)) {
+                    if (Integer.valueOf(1).equals(MapValueUtil.getInteger(backMap, code))) {
                         //成功
                         String token = MapValueUtil.getString(backMap, "access_token");
                         if (StringUtils.isNotEmpty(token)) {

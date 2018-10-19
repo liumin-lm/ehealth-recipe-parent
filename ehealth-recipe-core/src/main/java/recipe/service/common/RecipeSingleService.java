@@ -14,8 +14,11 @@ import com.ngari.recipe.common.RecipeStandardResTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.hisprescription.model.HosRecipeResult;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
@@ -23,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import recipe.ApplicationUtils;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
@@ -30,6 +34,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.RecipeCheckService;
+import recipe.service.hospitalrecipe.PrescribeService;
 import recipe.util.MapValueUtil;
 
 import java.util.List;
@@ -57,6 +62,10 @@ public class RecipeSingleService {
 
     @Autowired
     private RecipeDetailDAO detailDAO;
+
+    @Autowired
+    @Qualifier("remotePrescribeService")
+    private PrescribeService prescribeService;
 
     @RpcService
     public RecipeStandardResTO<Map> getRecipeByConditions(RecipeStandardReqTO request) {
@@ -134,41 +143,14 @@ public class RecipeSingleService {
                     other.put("cancelReason", "HIS作废");
                 }
                 recipeInfo.put("other", other);
-
-                // 根据当前状态返回前端标记，用于前端展示什么页面
-                // 分为 -1:查不到处方 0：未签名 1: 其他状态展示详情页  2：药店取药已签名  3: 配送到家已签名-未支付  4:配送到家已签名-已支付 5:审核不通过  6:作废
-                int notation = 0;
-                switch (dbRecipe.getStatus()) {
-                    case RecipeStatusConstant.UNSIGN:
-                        notation = 0;
-                        break;
-                    case RecipeStatusConstant.CHECK_PASS:
-                        notation = 3;
-                        break;
-                    case RecipeStatusConstant.READY_CHECK_YS:
-                        if (RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())) {
-                            notation = 2;
-                        } else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
-                                && Integer.valueOf(1).equals(dbRecipe.getPayFlag())) {
-                            notation = 4;
-                        } else {
-                            notation = 1;
-                        }
-                        break;
-                    case RecipeStatusConstant.CHECK_NOT_PASS_YS:
-                        notation = 5;
-                        RecipeCheckService service = ApplicationUtils.getRecipeService(RecipeCheckService.class);
-                        //获取审核不通过详情
-                        List<Map<String, Object>> mapList = service.getCheckNotPassDetail(recipeId);
-                        recipeInfo.put("reasonAndDetails", mapList);
-                        break;
-                    case RecipeStatusConstant.DELETE:
-                        notation = 6;
-                        break;
-                    default:
-                        notation = 1;
+                //审核不通过设置数据
+                if (RecipeStatusConstant.CHECK_NOT_PASS_YS == dbRecipe.getStatus()) {
+                    RecipeCheckService service = ApplicationUtils.getRecipeService(RecipeCheckService.class);
+                    //获取审核不通过详情
+                    List<Map<String, Object>> mapList = service.getCheckNotPassDetail(recipeId);
+                    recipeInfo.put("reasonAndDetails", mapList);
                 }
-                recipeInfo.put("notation", notation);
+                recipeInfo.put("notation", getNotation(dbRecipe));
                 response.setData(recipeInfo);
                 response.setCode(RecipeCommonBaseTO.SUCCESS);
             } else {
@@ -180,5 +162,78 @@ public class RecipeSingleService {
         }
 
         return response;
+    }
+
+    /**
+     * 撤销处方
+     *
+     * @param recipeId
+     */
+    @RpcService
+    public RecipeStandardResTO revokeRecipe(int recipeId) {
+        RecipeStandardResTO response = new RecipeStandardResTO();
+        //重置默认为失败
+        response.setCode(RecipeCommonBaseTO.FAIL);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
+        //数据对比
+        if (null == dbRecipe) {
+            response.setMsg("不存在该处方");
+            return response;
+        }
+        if (RecipeStatusConstant.DELETE == dbRecipe.getStatus()) {
+            response.setCode(RecipeCommonBaseTO.SUCCESS);
+            response.setMsg("处方状态相同");
+            return response;
+        }
+
+        HosRecipeResult result = prescribeService.revokeRecipe(dbRecipe);
+        if (HosRecipeResult.SUCCESS.equals(result.getCode())) {
+            response.setCode(RecipeCommonBaseTO.SUCCESS);
+        } else {
+            response.setMsg(result.getMsg());
+        }
+        return response;
+    }
+
+    /**
+     * 前端页面跳转标记
+     *
+     * @param dbRecipe
+     * @return
+     */
+    public int getNotation(Recipe dbRecipe) {
+        // 根据当前状态返回前端标记，用于前端展示什么页面
+        // 分为 -1:查不到处方 0：未签名 1: 其他状态展示详情页  2：药店取药已签名  3: 配送到家已签名-未支付  4:配送到家已签名-已支付 5:审核不通过  6:作废
+        int notation = 0;
+        switch (dbRecipe.getStatus()) {
+            case RecipeStatusConstant.UNSIGN:
+                notation = 0;
+                break;
+            case RecipeStatusConstant.CHECK_PASS:
+                notation = 3;
+                break;
+            case RecipeStatusConstant.READY_CHECK_YS:
+                if (RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())) {
+                    notation = 2;
+                } else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
+                        && Integer.valueOf(1).equals(dbRecipe.getPayFlag())) {
+                    notation = 4;
+                } else {
+                    notation = 1;
+                }
+                break;
+            case RecipeStatusConstant.CHECK_NOT_PASS_YS:
+                notation = 5;
+
+                break;
+            case RecipeStatusConstant.DELETE:
+                notation = 6;
+                break;
+            default:
+                notation = 1;
+        }
+
+        return notation;
     }
 }
