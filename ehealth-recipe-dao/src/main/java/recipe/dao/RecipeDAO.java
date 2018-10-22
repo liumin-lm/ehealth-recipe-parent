@@ -1012,7 +1012,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                 Integer enterpriseId = recipe.getEnterpriseId();
                                 if (enterpriseId != null) {
                                     DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(enterpriseId);
-                                    map.put("drugsEnterprise", drugsEnterprise.getName());
+                                    if(null != drugsEnterprise) {
+                                        map.put("drugsEnterprise", drugsEnterprise.getName());
+                                    }
                                 }
                                 maps.add(map);
                             }
