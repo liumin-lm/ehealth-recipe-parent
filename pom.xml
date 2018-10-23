@@ -56,7 +56,7 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-basic-api</artifactId>
-                <version>${project.parent.version}</version>
+                <version>${ngari.basic.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ssdev</groupId>
@@ -67,7 +67,7 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-consult-api</artifactId>
-                <version>${project.parent.version}</version>
+                <version>${ngari.consult.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ssdev</groupId>
@@ -117,7 +117,7 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-base-api</artifactId>
-                <version>${project.parent.version}</version>
+                <version>${ngari.baseapi.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ssdev</groupId>
@@ -136,7 +136,7 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-opbase-api</artifactId>
-                <version>${project.parent.version}</version>
+                <version>${ngari.opbase.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ssdev</groupId>
