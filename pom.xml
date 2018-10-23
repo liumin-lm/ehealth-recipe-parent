@@ -6,7 +6,7 @@
     <parent>
         <groupId>ngari</groupId>
         <artifactId>ehealth-parent</artifactId>
-        <version>1.5.6.hotfix-20180920-SNAPSHOT</version>
+        <version>1.6.2.hotfix-20181015-SNAPSHOT</version>
     </parent>
     <artifactId>ehealth-recipe-parent</artifactId>
     <name>处方</name>
@@ -56,7 +56,7 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-basic-api</artifactId>
-                <version>1.5.4</version>
+                <version>${ngari.currentonline.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ssdev</groupId>
@@ -67,7 +67,7 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-consult-api</artifactId>
-                <version>1.5.0</version>
+                <version>${ngari.currentonline.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ssdev</groupId>
@@ -117,7 +117,7 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-base-api</artifactId>
-                <version>${project.parent.version}</version>
+                <version>${ngari.currentonline.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ssdev</groupId>
@@ -136,7 +136,7 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-opbase-api</artifactId>
-                <version>1.6.0.release-SNAPSHOT</version>
+                <version>${ngari.currentonline.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ssdev</groupId>
@@ -190,6 +190,31 @@
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
                 <version>4.5.6</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging</artifactId>
+                <version>1.2</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-discovery</groupId>
+                <artifactId>commons-discovery</artifactId>
+                <version>0.2</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.mail</groupId>
+                <artifactId>mail</artifactId>
+                <version>1.4.7</version>
+            </dependency>
+            <dependency>
+                <groupId>org.eclipse.birt.runtime.3_7_1</groupId>
+                <artifactId>javax.wsdl</artifactId>
+                <version>1.5.1</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.activation</groupId>
+                <artifactId>activation</artifactId>
+                <version>1.1</version>
             </dependency>
             <dependency>
                 <groupId>junit</groupId>

@@ -115,7 +115,7 @@ public class RecipeSignService {
                 payMode = RecipeBussConstant.PAYMODE_ONLINE;
             } else if (RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)) {
                 //患者自由选择
-                depId = 0;
+                depId = null;
                 payMode = RecipeBussConstant.PAYMODE_COMPLEX;
             } else {
                 response.setMsg("缺少取药方式");

@@ -8,6 +8,7 @@ build-api:
   except:
     - master
     - develop
+    - /^hotfix.*$/
   script:
     - 'cd *-api'
     - 'mvn clean deploy -B -e -U -Dmaven.test.skip=true'
@@ -21,6 +22,7 @@ build-other-jar:
   except:
     - master
     - develop
+    - /^hotfix.*$/
   script:
     - 'mvn clean deploy -B -e -U -Dmaven.test.skip=true'
   tags:

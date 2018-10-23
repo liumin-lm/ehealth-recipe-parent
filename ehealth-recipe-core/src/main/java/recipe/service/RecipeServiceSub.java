@@ -42,6 +42,7 @@ import recipe.bussutil.RecipeValidateUtil;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.util.DateConversion;
+import recipe.util.DigestUtil;
 import recipe.util.LocalStringUtil;
 import recipe.util.MapValueUtil;
 
@@ -106,12 +107,15 @@ public class RecipeServiceSub {
             RecipeValidateUtil.validateRecipeDetailData(recipeDetail, recipe);
         }
 
-        if (1 == flag) {
+        if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(flag)
+                || RecipeBussConstant.FROMFLAG_HIS_USE.equals(flag)) {
             boolean isSucc = setDetailsInfo(recipe, details);
             if (!isSucc) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "药品详情数据有误");
             }
-        } else if (0 == flag) {
+            recipeBean.setTotalMoney(recipe.getTotalMoney());
+            recipeBean.setActualPrice(recipe.getActualPrice());
+        } else if (RecipeBussConstant.FROMFLAG_HIS.equals(flag)) {
             //处方总价未计算
             BigDecimal totalMoney = new BigDecimal(0d);
             for (Recipedetail detail : details) {
@@ -122,20 +126,31 @@ public class RecipeServiceSub {
             recipe.setTotalMoney(totalMoney);
             recipe.setActualPrice(totalMoney);
         }
-        String mpiId = recipe.getMpiid();
-        if (StringUtils.isEmpty(mpiId)) {
-            throw new DAOException(DAOException.VALUE_NEEDED,
-                    "mpiId is required");
-        }
 
-        String patientName = patientService.getNameByMpiId(mpiId);
-        if (StringUtils.isEmpty(patientName)) {
-            patientName = "未知";
-        }
-        recipe.setPatientName(patientName);
+        //患者数据前面已校验
+        String mpiId = recipe.getMpiid();
+        PatientDTO patient = patientService.get(recipe.getMpiid());
+        recipe.setPatientName(patient.getPatientName());
+
         recipe.setDoctorName(doctorService.getNameById(recipe.getDoctor()));
+
         OrganDTO organBean = organService.get(recipe.getClinicOrgan());
         recipe.setOrganName(organBean.getShortName());
+
+        if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipeBean.getFromflag())) {
+            //在 doSignRecipe 生成的一些数据在此生成
+            PatientDTO requestPatient = patientService.getOwnPatientForOtherProject(patient.getLoginId());
+            if (null != requestPatient && null != requestPatient.getMpiId()) {
+                recipe.setRequestMpiId(requestPatient.getMpiId());
+                // urt用于系统消息推送
+                recipe.setRequestUrt(requestPatient.getUrt());
+            }
+            //生成处方编号，不需要通过HIS去产生
+            String recipeCodeStr = "ngari" + DigestUtil.md5For16(recipeBean.getClinicOrgan() +
+                    recipeBean.getMpiid() + Calendar.getInstance().getTimeInMillis());
+            recipe.setRecipeCode(recipeCodeStr);
+            recipeBean.setRecipeCode(recipeCodeStr);
+        }
 
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
         recipe.setRecipeId(recipeId);
@@ -143,10 +158,9 @@ public class RecipeServiceSub {
         //加入历史患者
         OperationRecordsBean record = new OperationRecordsBean();
 
-
         record.setMpiId(mpiId);
         record.setRequestMpiId(mpiId);
-        record.setPatientName(patientName);
+        record.setPatientName(patient.getPatientName());
         record.setBussType(BussTypeConstant.RECIPE);
         record.setBussId(recipe.getRecipeId());
         record.setRequestDoctor(recipe.getDoctor());

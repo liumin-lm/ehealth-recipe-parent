@@ -310,8 +310,8 @@ public class StandardEnterpriseCallService {
             }
 
             if (mapInfo.isEmpty()) {
-                LOGGER.warn("updateRecipeDetainInfo mapInfo is empty. clinicOrgan={}, drugCodeList={}",
-                        recipe.getClinicOrgan(), JSONUtils.toString(drugCodeList));
+                LOGGER.warn("updateRecipeDetainInfo mapInfo is empty. depId={}, drugCodeList={}",
+                        dep.getId(), JSONUtils.toString(drugCodeList));
                 throw new Exception("药企维护数据异常");
             }
 

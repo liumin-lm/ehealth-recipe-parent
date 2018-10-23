@@ -24,6 +24,7 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.wxpay.service.INgariRefundService;
@@ -265,7 +266,20 @@ public class RecipeService {
      */
     @RpcService
     public Integer saveRecipeData(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
-        return RecipeServiceSub.saveRecipeDataImpl(recipeBean, detailBeanList, 1);
+        Integer recipeId = RecipeServiceSub.saveRecipeDataImpl(recipeBean, detailBeanList, 1);
+        if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipeBean.getFromflag())) {
+            //生成订单数据，与 HosPrescriptionService 中 createPrescription 方法一致
+            HosPrescriptionService service = AppContextHolder.getBean("hosPrescriptionService", HosPrescriptionService.class);
+            recipeBean.setRecipeId(recipeId);
+            //设置订单基本参数
+            HospitalRecipeDTO hospitalRecipeDTO = new HospitalRecipeDTO();
+            hospitalRecipeDTO.setRecipeCode(recipeBean.getRecipeCode());
+            hospitalRecipeDTO.setOrderTotalFee(recipeBean.getTotalMoney().toPlainString());
+            hospitalRecipeDTO.setActualFee(hospitalRecipeDTO.getOrderTotalFee());
+            recipeBean.setPayFlag(PayConstant.PAY_FLAG_NOT_PAY);
+            service.createBlankOrderForHos(recipeBean, hospitalRecipeDTO);
+        }
+        return recipeId;
     }
 
     /**
@@ -1470,17 +1484,18 @@ public class RecipeService {
         if (null == payMode || RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)
                 || RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(payMode)) {
             //只支持线上付款后配送，则需要判断医院是否有付款帐号
-            String wxAccount = null;
+            //不需要再判断支付帐号的问题
+            /*String wxAccount = null;
             try {
                 wxAccount = getWxAppIdForRecipeFromOps(null, organId);
             } catch (Exception e) {
                 LOGGER.warn("findSupportDepList getWxAppIdForRecipeFromOps error. organId={}", organId, e);
                 wxAccount = null;
-            }
+            }*/
             //需要判断医院HIS是否开通
             boolean hisStatus = iHisConfigService.isHisEnable(organId);
-            LOGGER.info("findSupportDepList payAccount={}, hisStatus={}", wxAccount, hisStatus);
-            if (!isCanSupportPayOnline(wxAccount, hisStatus)) {
+            LOGGER.info("findSupportDepList payAccount={}, hisStatus={}", null, hisStatus);
+            if (!isCanSupportPayOnline(null, hisStatus)) {
                 LOGGER.error("findSupportDepList 机构[" + organId + "]不支持线上支付！");
                 //这里判断payMode=null的情况，是为了筛选供应商提供依据
                 if (null == payMode) {
@@ -1912,8 +1927,8 @@ public class RecipeService {
      * @param hisStatus true:his启用
      * @return
      */
-    private boolean isCanSupportPayOnline(String wxAccount, boolean hisStatus) {
-        if (StringUtils.isNotEmpty(wxAccount) && hisStatus) {
+    private boolean isCanSupportPayOnline(String acount, boolean hisStatus) {
+        if (hisStatus) {
             return true;
         }
         return false;
