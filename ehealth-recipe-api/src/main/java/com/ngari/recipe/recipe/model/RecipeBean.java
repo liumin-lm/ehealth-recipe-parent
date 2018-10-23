@@ -289,6 +289,9 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias="当前clientId")
     private Integer currentClient;
 
+    @ItemProperty(alias="前端页面跳转标记")
+    private int notation;
+
     public RecipeBean() {
     }
 
@@ -1063,6 +1066,14 @@ public class RecipeBean implements Serializable {
 
     public void setCurrentClient(Integer currentClient) {
         this.currentClient = currentClient;
+    }
+
+    public int getNotation() {
+        return notation;
+    }
+
+    public void setNotation(int notation) {
+        this.notation = notation;
     }
 
     public boolean canMedicalPay() {

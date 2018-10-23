@@ -1012,7 +1012,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                 Integer enterpriseId = recipe.getEnterpriseId();
                                 if (enterpriseId != null) {
                                     DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(enterpriseId);
-                                    map.put("drugsEnterprise", drugsEnterprise.getName());
+                                    if(null != drugsEnterprise) {
+                                        map.put("drugsEnterprise", drugsEnterprise.getName());
+                                    }
                                 }
                                 maps.add(map);
                             }
@@ -1378,7 +1380,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      * @return
      */
     public List<Recipe> findRecipeListByDoctorAndPatient(final Integer doctorId, final String mpiId,
-                                                         final Integer start, final Integer limit) {
+                                                          final Integer start, final Integer limit) {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -1389,6 +1391,38 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 Query query = ss.createQuery(hql);
                 query.setParameter("doctor", doctorId);
                 query.setParameter("mpiid", mpiId);
+                if (null != start && null != limit) {
+                    query.setFirstResult(start);
+                    query.setMaxResults(limit);
+                }
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+
+        List<Recipe> recipes = action.getResult();
+        return recipes;
+    }
+
+    /**
+     * 获取HOS历史处方
+     * @param doctorId
+     * @param mpiId
+     * @param clinicOrgan
+     * @param start
+     * @param limit
+     * @return
+     */
+    public List<Recipe> findHosRecipe(final Integer doctorId, final String mpiId, final Integer clinicOrgan,
+                                                         final Integer start, final Integer limit) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String hql = "from Recipe where mpiid=:mpiid and doctor=:doctor and clinicOrgan=:clinicOrgan order by createDate desc";
+                Query query = ss.createQuery(hql);
+                query.setParameter("doctor", doctorId);
+                query.setParameter("mpiid", mpiId);
+                query.setParameter("clinicOrgan", clinicOrgan);
                 if (null != start && null != limit) {
                     query.setFirstResult(start);
                     query.setMaxResults(limit);
