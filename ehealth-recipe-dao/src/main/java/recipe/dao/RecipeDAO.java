@@ -975,9 +975,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      * @return QueryResult<Map>
      */
     public QueryResult<Map> findRecipesByInfo(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType,
-                                              final Integer depart, final int start, final int limit, List<Integer> organIds, Integer giveMode, Integer fromflag) {
+                                              final Integer depart, final int start, final int limit, List<Integer> organIds, Integer giveMode, Integer fromflag,Integer recipeId) {
         this.validateOptionForStatistics(status, doctor, patientName, bDate, eDate, dateType, start, limit);
-        final StringBuilder preparedHql = this.generateHQLforStatistics(organId, status, doctor, patientName, bDate, eDate, dateType, depart, start, limit, organIds, giveMode, fromflag);
+        final StringBuilder preparedHql = this.generateHQLforStatistics(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, fromflag,recipeId);
         final PatientService patientService = BasicAPI.getService(PatientService.class);
         HibernateStatelessResultAction<QueryResult<Map>> action =
                 new AbstractHibernateStatelessResultAction<QueryResult<Map>>() {
@@ -1038,9 +1038,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      * @return QueryResult<Map>
      */
     public List<Map> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType,
-                                               final Integer depart, List<Integer> organIds, Integer giveMode, Integer fromflag) {
+                                               final Integer depart, List<Integer> organIds, Integer giveMode, Integer fromflag,Integer recipeId) {
         this.validateOptionForStatistics(status, doctor, patientName, bDate, eDate, dateType, 0, Integer.MAX_VALUE);
-        final StringBuilder preparedHql = this.generateHQLforStatistics(organId, status, doctor, patientName, bDate, eDate, dateType, depart, 0, Integer.MAX_VALUE, organIds, giveMode, fromflag);
+        final StringBuilder preparedHql = this.generateHQLforStatistics(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, fromflag,recipeId);
         final PatientService patientService = BasicAPI.getService(PatientService.class);
         final DoctorService doctorService = BasicAPI.getService(DoctorService.class);
         HibernateStatelessResultAction<List<Map>> action =
@@ -1114,9 +1114,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      * @return HashMap<String, Integer>
      */
     public HashMap<String, Integer> getStatisticsByStatus(final Integer organId, final Integer status, final Integer doctor, final String mpiid, final Date bDate, final Date eDate, final Integer dateType,
-                                                          final Integer depart, final int start, final int limit, List<Integer> organIds, Integer giveMode, Integer fromflag) {
+                                                          final Integer depart, final int start, final int limit, List<Integer> organIds, Integer giveMode, Integer fromflag,Integer recipeId) {
         this.validateOptionForStatistics(status, doctor, mpiid, bDate, eDate, dateType, start, limit);
-        final StringBuilder preparedHql = this.generateHQLforStatistics(organId, status, doctor, mpiid, bDate, eDate, dateType, depart, start, limit, organIds, giveMode, fromflag);
+        final StringBuilder preparedHql = this.generateHQLforStatistics(organId, status, doctor, mpiid,dateType, depart, organIds, giveMode, fromflag,recipeId);
         HibernateStatelessResultAction<HashMap<String, Integer>> action = new AbstractHibernateStatelessResultAction<HashMap<String, Integer>>() {
             @SuppressWarnings("unchecked")
             @Override
@@ -1147,8 +1147,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     }
 
     private StringBuilder generateHQLforStatistics(Integer organId,
-                                                   Integer status, Integer doctor, String patientName, Date bDate, Date eDate, Integer dateType,
-                                                   Integer depart, final int start, final int limit, final List<Integer> requestOrgans, Integer giveMode, Integer fromflag) {
+                                                   Integer status, Integer doctor, String patientName, Integer dateType,
+                                                   Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer fromflag,Integer recipeId) {
         StringBuilder hql = new StringBuilder(" from Recipe where 1=1 ");
 
         //默认查询所有
@@ -1204,6 +1204,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         }
         if (fromflag != null) {
             hql.append(" and fromflag=").append(fromflag);
+        }
+        if (recipeId != null){
+            hql.append(" and recipeId=").append(recipeId);
         }
         return hql;
     }

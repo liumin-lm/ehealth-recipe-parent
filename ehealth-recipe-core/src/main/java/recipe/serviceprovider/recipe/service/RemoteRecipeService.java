@@ -154,9 +154,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public QueryResult<Map> findRecipesByInfo(Integer organId, Integer status,
                                               Integer doctor, String patientName, Date bDate, Date eDate, Integer dateType,
-                                              Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode,Integer fromflag) {
+                                              Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode,Integer fromflag,Integer recipeId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        return recipeDAO.findRecipesByInfo(organId, status, doctor, patientName, bDate, eDate, dateType, depart, start, limit, organIds, giveMode,fromflag);
+        return recipeDAO.findRecipesByInfo(organId, status, doctor, patientName, bDate, eDate, dateType, depart, start, limit, organIds, giveMode,fromflag,recipeId);
     }
 
     @RpcService
@@ -164,9 +164,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public Map<String, Integer> getStatisticsByStatus(Integer organId,
                                                       Integer status, Integer doctor, String mpiid,
                                                       Date bDate, Date eDate, Integer dateType,
-                                                      Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode,Integer fromflag) {
+                                                      Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode,Integer fromflag,Integer recipeId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        return recipeDAO.getStatisticsByStatus(organId, status, doctor, mpiid, bDate, eDate, dateType, depart, start, limit, organIds, giveMode,fromflag);
+        return recipeDAO.getStatisticsByStatus(organId, status, doctor, mpiid, bDate, eDate, dateType, depart, start, limit, organIds, giveMode,fromflag,recipeId);
     }
 
     @RpcService
@@ -277,9 +277,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public List<Map> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate,
                                         final Date eDate, final Integer dateType, final Integer depart, List<Integer> organIds, Integer giveMode,
-                                        Integer fromflag){
+                                        Integer fromflag,Integer recipeId){
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        return recipeDAO.findRecipesByInfoForExcel(organId,status,doctor,patientName,bDate,eDate,dateType,depart,organIds,giveMode,fromflag);
+        return recipeDAO.findRecipesByInfoForExcel(organId,status,doctor,patientName,bDate,eDate,dateType,depart,organIds,giveMode,fromflag,recipeId);
     }
 
     @RpcService

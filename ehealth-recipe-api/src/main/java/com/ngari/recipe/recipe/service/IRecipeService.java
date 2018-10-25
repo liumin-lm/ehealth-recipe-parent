@@ -151,7 +151,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     QueryResult<Map> findRecipesByInfo(Integer organId, Integer status,
                                        Integer doctor, String mpiid, Date bDate, Date eDate, Integer dateType,
-                                       Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode,Integer fromflag);
+                                       Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode,Integer fromflag,Integer recipeId);
 
     /**
      * 运营平台使用
@@ -173,7 +173,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     Map<String, Integer> getStatisticsByStatus(Integer organId,
                                                Integer status, Integer doctor, String mpiid,
                                                Date bDate, Date eDate, Integer dateType,
-                                               Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode,Integer fromflag);
+                                               Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode,Integer fromflag,Integer recipeId);
 
     /**
      * 运营平台使用 根据电话号查询处方单
@@ -269,7 +269,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     List<Map> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType,
-                                               final Integer depart, List<Integer> organIds, Integer giveMode,Integer fromflag);
+                                               final Integer depart, List<Integer> organIds, Integer giveMode,Integer fromflag,Integer recipeId);
 
     @RpcService
     HashMap<Integer, Long> getCountGroupByOrgan();
