@@ -117,31 +117,4 @@ public class RecipeTimedTaskService {
         }
 
     }
-
-    @RpcService
-    public void deleteOldRedisDataForRecipe(){
-        RecipeDAO dao = DAOFactory.getDAO(RecipeDAO.class);
-        RedisClient redisClient = RedisClient.instance();
-        List<String> mpiIds = dao.findAllMpiIdsFromHis();
-        Set<String> keys;
-        int num = 0;
-        for (String mpiId : mpiIds){
-            try {
-                keys = redisClient.scan("*_"+mpiId+"_1");
-            } catch (Exception e) {
-                LOGGER.error("redis error" + e.toString());
-                return;
-            }
-            if (keys != null && keys.size() > 0){
-                for (String key : keys){
-                    Long del = redisClient.del(key);
-                    if (del == 1){
-                        num++;
-                    }
-                }
-            }
-
-        }
-        LOGGER.info("deleteOldRedisDataForRecipe Success num="+num);
-    }
 }

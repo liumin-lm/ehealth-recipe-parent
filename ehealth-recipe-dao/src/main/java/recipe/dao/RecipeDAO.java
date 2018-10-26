@@ -1538,7 +1538,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateStatelessResultAction<List<String>> action = new AbstractHibernateStatelessResultAction<List<String>>() {
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder(
-                        "select mpiid from Recipe where fromflag=0  group by mpiid");
+                        "select mpiid from Recipe where fromflag=0 group by mpiid");
                 Query query = ss.createQuery(hql.toString());
 
                 setResult(query.list());
