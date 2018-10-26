@@ -23,6 +23,7 @@ import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcService;
 import ctd.util.annotation.RpcSupportDAO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -1527,6 +1528,20 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                     organCount.put((Integer) co[0], (Long) co[1]);
                 }
                 setResult(organCount);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    public List<String> findAllMpiIdsFromHis(){
+        HibernateStatelessResultAction<List<String>> action = new AbstractHibernateStatelessResultAction<List<String>>() {
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder(
+                        "select mpiid from Recipe where fromflag=0  group by mpiid");
+                Query query = ss.createQuery(hql.toString());
+
+                setResult(query.list());
             }
         };
         HibernateSessionTemplate.instance().execute(action);
