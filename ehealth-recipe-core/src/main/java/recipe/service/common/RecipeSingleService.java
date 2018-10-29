@@ -151,6 +151,7 @@ public class RecipeSingleService {
                     recipeInfo.put("reasonAndDetails", mapList);
                 }
                 recipeInfo.put("notation", getNotation(dbRecipe));
+                recipeInfo.put("statusTxt",getStatusText(dbRecipe));
                 response.setData(recipeInfo);
                 response.setCode(RecipeCommonBaseTO.SUCCESS);
             } else {
@@ -235,5 +236,67 @@ public class RecipeSingleService {
         }
 
         return notation;
+    }
+
+    /**
+     * 前端页面状态文案显示
+     *
+     * @param dbRecipe
+     * @return
+     */
+    public String getStatusText(Recipe dbRecipe) {
+        // 根据当前状态返回前端显示状态文案
+        String statusTxt = "";
+        switch (dbRecipe.getStatus()) {
+
+            //支付超时
+            case RecipeStatusConstant.NO_PAY:
+                statusTxt = "患者未在规定时间内支付，该处方单已失效";
+                break;
+            //审核通过
+            case RecipeStatusConstant.CHECK_PASS:
+                //患者自由选择未支付
+                if (RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode())
+                        && Integer.valueOf(0).equals(dbRecipe.getPayFlag())){
+                    statusTxt = "审核通过,请患者在支付宝继续操作";
+                    //患者自由选择已支付
+                }else if (RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode())
+                        && Integer.valueOf(1).equals(dbRecipe.getPayFlag())){
+                    statusTxt = "处方单已支付";
+                    //配送到家支付成功并审核通过或者药店取药
+                }else if ((RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
+                        && Integer.valueOf(1).equals(dbRecipe.getPayFlag()))
+                || RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())){
+                    statusTxt = "审核通过，处方已经发生至第三方";
+                    //配送到家签完名之后状态是审核通过未支付状态
+                }else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
+                        && Integer.valueOf(0).equals(dbRecipe.getPayFlag())){
+                    statusTxt = "待支付(请在开方后3日内支付，逾期作废)";
+                }
+                break;
+            //待审核
+            case RecipeStatusConstant.READY_CHECK_YS:
+                //购药模式为药店取药或患者自由选择
+                if (RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())
+                || RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode())) {
+                    statusTxt = "已签名，等待药师审核";
+                }else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
+                        && Integer.valueOf(1).equals(dbRecipe.getPayFlag())){
+                    statusTxt = "支付成功，等待药师审核";
+                }
+                break;
+            //已完成
+            case RecipeStatusConstant.FINISH:
+                if (RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())){
+                    statusTxt = "患者取药完成";
+                }else if (RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode())) {
+                    statusTxt = "处方单已完成";
+                }else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())){
+                    statusTxt = "配送完成";
+                }
+                break;
+        }
+
+        return statusTxt;
     }
 }
