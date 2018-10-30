@@ -17,7 +17,7 @@
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-recipe-api</artifactId>
-            <version>${project.parent.version}</version>
+            <version>1.6.3.hotfix-20181025-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>ssdev</groupId>
