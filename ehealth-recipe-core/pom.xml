@@ -126,6 +126,10 @@
             <groupId>org.eclipse.birt.runtime.3_7_1</groupId>
             <artifactId>javax.wsdl</artifactId>
         </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+        </dependency>
     </dependencies>
     <profiles>
         <profile>
