@@ -103,7 +103,6 @@ public class RecipeSingleService {
 
                 dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(recipeCode, clinicOrgan);
             }
-
             if (null != dbRecipe) {
                 recipeId = dbRecipe.getRecipeId();
                 Map<String, Object> other = Maps.newHashMap();
@@ -151,7 +150,7 @@ public class RecipeSingleService {
                     recipeInfo.put("reasonAndDetails", mapList);
                 }
                 recipeInfo.put("notation", getNotation(dbRecipe));
-                recipeInfo.put("statusTxt",getStatusText(dbRecipe));
+                recipeInfo.put("statusTxt",getStatusText(dbRecipe,order));
                 response.setData(recipeInfo);
                 response.setCode(RecipeCommonBaseTO.SUCCESS);
             } else {
@@ -244,7 +243,7 @@ public class RecipeSingleService {
      * @param dbRecipe
      * @return
      */
-    public String getStatusText(Recipe dbRecipe) {
+    public String getStatusText(Recipe dbRecipe,RecipeOrder order) {
         // 根据当前状态返回前端显示状态文案
         String statusTxt = "";
         switch (dbRecipe.getStatus()) {
@@ -255,23 +254,33 @@ public class RecipeSingleService {
                 break;
             //审核通过
             case RecipeStatusConstant.CHECK_PASS:
-                //患者自由选择未支付
-                if (RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode())
-                        && Integer.valueOf(0).equals(dbRecipe.getPayFlag())){
-                    statusTxt = "审核通过,请患者在支付宝继续操作";
-                    //患者自由选择已支付
-                }else if (RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode())
-                        && Integer.valueOf(1).equals(dbRecipe.getPayFlag())){
-                    statusTxt = "处方单已支付";
-                    //配送到家支付成功并审核通过或者药店取药
-                }else if ((RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
-                        && Integer.valueOf(1).equals(dbRecipe.getPayFlag()))
-                || RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())){
-                    statusTxt = "审核通过，处方已经发生至第三方";
-                    //配送到家签完名之后状态是审核通过未支付状态
+                //配送到家已支付或患者自选未支付或药店取药未支付
+                if ((RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
+                            && Integer.valueOf(1).equals(dbRecipe.getPayFlag()))
+                        || (RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode())
+                            && Integer.valueOf(0).equals(dbRecipe.getPayFlag()))
+                        || (RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())
+                            && Integer.valueOf(0).equals(dbRecipe.getPayFlag()))){
+                    statusTxt = "审核通过，已向第三方发送";
+
                 }else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
                         && Integer.valueOf(0).equals(dbRecipe.getPayFlag())){
                     statusTxt = "待支付(请在开方后3日内支付，逾期作废)";
+                }
+
+                if (Integer.valueOf(1).equals(order.getPushFlag())){
+                    statusTxt = "第三方已接收";
+
+                }else if (Integer.valueOf(-1).equals(order.getPushFlag())) {
+                    statusTxt = "第三方接收失败";
+
+                }
+
+                if (Integer.valueOf(1).equals(dbRecipe.getPayFlag())
+                        && (RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode())
+                            || RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode()))){
+                    statusTxt = "已支付";
+                    //配送到家签完名之后状态是审核通过未支付状态
                 }
                 break;
             //待审核
