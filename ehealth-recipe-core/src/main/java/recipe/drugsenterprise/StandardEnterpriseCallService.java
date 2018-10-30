@@ -131,6 +131,7 @@ public class StandardEnterpriseCallService {
             }
 
             recipeId = dbRecipe.getRecipeId();
+            orderCode = dbRecipe.getOrderCode();
             Map<String, Object> recipeAttrMap = Maps.newHashMap();
             Map<String, Object> orderAttrMap = Maps.newHashMap();
             switch (status) {
@@ -149,9 +150,9 @@ public class StandardEnterpriseCallService {
                         RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS_YS,
                                 RecipeStatusConstant.WAIT_SEND, "HOS处方状态变更");
 
-                        orderCode = dbRecipe.getOrderCode();
                         orderAttrMap.put("payFlag", PayConstant.PAY_FLAG_PAY_SUCCESS);
-                        orderAttrMap.put("payTime", Calendar.getInstance().getTime());
+                        orderAttrMap.put("payTime", DateConversion.parseDate(stateDTO.getDate(),
+                                DateConversion.DEFAULT_DATE_TIME));
                         orderAttrMap.put("status", OrderStatusConstant.READY_SEND);
                         boolean flag = orderDAO.updateByOrdeCode(orderCode, orderAttrMap);
                         if (flag) {

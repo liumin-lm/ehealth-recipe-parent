@@ -207,7 +207,7 @@ public class RecipeMsgService {
                         getHosRecipeInfo(recipe, extendValue);
                         //设置 expireDate 过期时间
                         extendValue.put("expireDate", DateConversion.formatDate(
-                                DateConversion.getDateAftXDays(recipe.getCreateDate(), 3)));
+                                DateConversion.getDateAftXDays(recipe.getSignDate(), 3)));
                         break;
                     default:
 
@@ -246,7 +246,7 @@ public class RecipeMsgService {
                     getHosRecipeInfo(recipe, extendValue);
                     //设置 expireDate 过期时间
                     extendValue.put("expireDate", DateConversion.formatDate(
-                            DateConversion.getDateAftXDays(recipe.getCreateDate(), 3)));
+                            DateConversion.getDateAftXDays(recipe.getSignDate(), 3)));
                     break;
                 default:
 
