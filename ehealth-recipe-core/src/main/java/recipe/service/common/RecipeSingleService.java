@@ -275,13 +275,6 @@ public class RecipeSingleService {
                     statusTxt = "第三方接收失败";
 
                 }
-
-                if (Integer.valueOf(1).equals(dbRecipe.getPayFlag())
-                        && (RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode())
-                            || RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode()))){
-                    statusTxt = "已支付";
-                    //配送到家签完名之后状态是审核通过未支付状态
-                }
                 break;
             //待审核
             case RecipeStatusConstant.READY_CHECK_YS:
@@ -292,6 +285,14 @@ public class RecipeSingleService {
                 }else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
                         && Integer.valueOf(1).equals(dbRecipe.getPayFlag())){
                     statusTxt = "支付成功，等待药师审核";
+                }
+                break;
+            //待配送--表示药店取药和患者自选支付成功后的药企回调状态
+            case RecipeStatusConstant.WAIT_SEND:
+                if (Integer.valueOf(1).equals(dbRecipe.getPayFlag())
+                        && (RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode())
+                        || RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode()))){
+                    statusTxt = "已支付";
                 }
                 break;
             //已完成
