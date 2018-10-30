@@ -202,8 +202,9 @@ public class StandardEnterpriseCallService {
                     return result;
             }
 
-
+            LOGGER.info("处方单[{}] changeState 处理完成.", stateDTO.getRecipeCode());
         }
+
 
         return result;
     }
