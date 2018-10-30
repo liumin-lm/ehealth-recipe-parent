@@ -179,7 +179,7 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "取消原因")
     private String cancelReason;
 
-    @Column(name = "CancelReason")
+    @Column(name = "cancelReason")
     public String getCancelReason() {
         return cancelReason;
     }
