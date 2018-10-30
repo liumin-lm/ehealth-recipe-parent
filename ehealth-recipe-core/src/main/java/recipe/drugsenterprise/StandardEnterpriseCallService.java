@@ -24,15 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
-import recipe.constant.OrderStatusConstant;
-import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeMsgEnum;
-import recipe.constant.RecipeStatusConstant;
+import recipe.constant.*;
 import recipe.dao.*;
-import recipe.drugsenterprise.bean.StandardFinishDTO;
-import recipe.drugsenterprise.bean.StandardRecipeDetailDTO;
-import recipe.drugsenterprise.bean.StandardResultDTO;
-import recipe.drugsenterprise.bean.UpdatePrescriptionDTO;
+import recipe.drugsenterprise.bean.*;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
@@ -41,8 +35,11 @@ import recipe.util.DateConversion;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * @author： 0184/yu_yun
@@ -76,6 +73,131 @@ public class StandardEnterpriseCallService {
 
 
         return null;
+    }
+
+    @RpcService
+    public StandardResultDTO changeState(List<StandardStateDTO> list) {
+        LOGGER.info("changeState param : " + JSONUtils.toString(list));
+        StandardResultDTO result = new StandardResultDTO();
+        //默认为失败
+        result.setCode(StandardResultDTO.FAIL);
+        if (CollectionUtils.isEmpty(list)) {
+            result.setMsg("参数错误");
+            return result;
+        }
+
+        Integer recipeId = null;
+        String orderCode = null;
+        Integer status = null;
+        Integer clinicOrgan = null;
+        Recipe dbRecipe = null;
+        for (StandardStateDTO stateDTO : list) {
+            try {
+                Multimap<String, String> verifyMap = VerifyUtils.verify(stateDTO);
+                if (!verifyMap.keySet().isEmpty()) {
+                    result.setMsg(verifyMap.toString());
+                    return result;
+                }
+            } catch (Exception e) {
+                LOGGER.warn("changeState 参数对象异常数据，StandardStateDTO={}", JSONUtils.toString(stateDTO), e);
+                result.setMsg("参数对象异常数据");
+                return result;
+            }
+
+            //转换组织结构编码
+            try {
+                clinicOrgan = getClinicOrganByOrganId(stateDTO.getOrganId());
+            } catch (Exception e) {
+                LOGGER.warn("changeState 查询机构异常，organId={}", stateDTO.getOrganId(), e);
+            } finally {
+                if (null == clinicOrgan) {
+                    LOGGER.warn("changeState 平台未匹配到该组织机构编码，organId={}", stateDTO.getOrganId());
+                    result.setMsg("平台未匹配到该组织机构编码");
+                    return result;
+                }
+            }
+
+            dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(stateDTO.getRecipeCode(), clinicOrgan);
+            if (null == dbRecipe) {
+                result.setMsg("[" + stateDTO.getRecipeCode() + "]处方单不存在");
+                return result;
+            }
+
+            //重复处理
+            status = Integer.valueOf(stateDTO.getStatus());
+            if (status.equals(dbRecipe.getStatus())) {
+                continue;
+            }
+
+            RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
+            recipeId = dbRecipe.getRecipeId();
+            Map<String, Object> recipeAttrMap = Maps.newHashMap();
+            Map<String, Object> orderAttrMap = Maps.newHashMap();
+            switch (status) {
+                /**
+                 * 药企端用户已支付会推送该状态给平台
+                 */
+                case RecipeStatusConstant.WAIT_SEND:
+                    //以免进行处方失效前提醒
+                    recipeAttrMap.put("remindFlag", 1);
+                    recipeAttrMap.put("payFlag", PayConstant.PAY_FLAG_PAY_SUCCESS);
+                    //更新处方信息
+                    Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId,
+                            RecipeStatusConstant.WAIT_SEND, recipeAttrMap);
+                    if (rs) {
+                        //记录日志
+                        RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS_YS,
+                                RecipeStatusConstant.WAIT_SEND, "HOS处方状态变更");
+
+                        orderCode = dbRecipe.getOrderCode();
+                        orderAttrMap.put("payFlag", PayConstant.PAY_FLAG_PAY_SUCCESS);
+                        orderAttrMap.put("payTime", Calendar.getInstance().getTime());
+                        orderAttrMap.put("status", OrderStatusConstant.READY_SEND);
+                        boolean flag = orderDAO.updateByOrdeCode(orderCode, orderAttrMap);
+                        if (flag) {
+                            LOGGER.info("changeState HOS订单状态变更成功，orderCode={}, status={}", orderCode,
+                                    OrderStatusConstant.READY_SEND);
+                            result.setCode(StandardResultDTO.SUCCESS);
+                        } else {
+                            result.setMsg("[" + stateDTO.getRecipeCode() + "]处方单更新失败");
+                            LOGGER.warn("changeState HOS订单状态变更失败，orderCode={}, status={}", orderCode,
+                                    OrderStatusConstant.READY_SEND);
+                        }
+                    } else {
+                        result.setMsg("[" + stateDTO.getRecipeCode() + "]处方单更新失败");
+                        LOGGER.warn("changeState HOS处方单状态变更失败，recipeId={}, status={}", recipeId, status);
+                    }
+                    break;
+
+                /**
+                 * 药企端取消处方单会推送该状态给平台
+                 */
+                case RecipeStatusConstant.NO_DRUG:
+                    //患者未取药
+                    Boolean recipeRs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_DRUG,
+                            recipeAttrMap);
+                    if (recipeRs) {
+                        RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS_YS,
+                                RecipeStatusConstant.NO_DRUG, "取药失败，原因:" + stateDTO.getReason());
+
+                        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+                        orderService.cancelOrderByCode(orderCode, OrderStatusConstant.CANCEL_AUTO);
+                        //发送取药失败消息
+                        RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.NO_DRUG);
+                    } else {
+                        result.setMsg("[" + stateDTO.getRecipeCode() + "]处方单更新失败");
+                        LOGGER.warn("changeState HOS处方单状态变更失败，recipeId={}, status={}", recipeId, status);
+                    }
+                    break;
+                default:
+                    result.setMsg("[" + stateDTO.getRecipeCode() + "]不支持变更的状态");
+                    return result;
+            }
+
+
+        }
+
+        return result;
     }
 
     @RpcService

@@ -6,23 +6,19 @@ import java.io.Serializable;
 
 /**
  * @author： 0184/yu_yun
- * @date： 2018/9/28
- * @description： 药企完成标准数据
+ * @date： 2018/10/29
+ * @description： 处方状态改变DTO
  * @version： 1.0
  */
-public class StandardFinishDTO implements Serializable {
+public class StandardStateDTO implements Serializable{
 
-    private static final long serialVersionUID = -5878477949359289507L;
+    private static final long serialVersionUID = -8948834094204713613L;
 
-    public static final String SUCCESS = "0";
+    @Verify(desc = "处方状态", isInt = true)
+    private String status;
 
-    public static final String FAIL = "1";
-
-    @Verify(desc = "0:成功，1:失败")
-    private String code;
-
-    @Verify(isNotNull = false, desc = "其他信息")
-    private String msg;
+    @Verify(isNotNull = false, desc = "其他信息", maxLength = 100)
+    private String reason;
 
     @Verify(desc = "组织机构编码")
     private String organId;
@@ -36,23 +32,20 @@ public class StandardFinishDTO implements Serializable {
     @Verify(desc = "时间", isDate = true)
     private String date;
 
-    @Verify(isNotNull = false, desc = "完成配送姓名或取药人姓名", maxLength = 30)
-    private String sender;
-
-    public String getCode() {
-        return code;
+    public String getStatus() {
+        return status;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setStatus(String status) {
+        this.status = status;
     }
 
-    public String getMsg() {
-        return msg;
+    public String getReason() {
+        return reason;
     }
 
-    public void setMsg(String msg) {
-        this.msg = msg;
+    public void setReason(String reason) {
+        this.reason = reason;
     }
 
     public String getOrganId() {
@@ -85,13 +78,5 @@ public class StandardFinishDTO implements Serializable {
 
     public void setDate(String date) {
         this.date = date;
-    }
-
-    public String getSender() {
-        return sender;
-    }
-
-    public void setSender(String sender) {
-        this.sender = sender;
     }
 }

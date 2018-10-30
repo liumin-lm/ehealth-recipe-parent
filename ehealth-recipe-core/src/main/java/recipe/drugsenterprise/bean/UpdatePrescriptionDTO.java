@@ -18,6 +18,9 @@ public class UpdatePrescriptionDTO implements Serializable {
     @Verify(desc = "组织机构编码")
     private String organId;
 
+    @Verify(isNotNull = false, desc = "平台机构内码", isInt = true)
+    private String clinicOrgan;
+
     @Verify(desc = "电子处方单号")
     private String recipeCode;
 
@@ -39,6 +42,14 @@ public class UpdatePrescriptionDTO implements Serializable {
 
     public void setOrganId(String organId) {
         this.organId = organId;
+    }
+
+    public String getClinicOrgan() {
+        return clinicOrgan;
+    }
+
+    public void setClinicOrgan(String clinicOrgan) {
+        this.clinicOrgan = clinicOrgan;
     }
 
     public String getRecipeCode() {
