@@ -260,8 +260,8 @@ public class RecipeService {
     /**
      * 保存处方
      *
-     * @param recipe  处方对象
-     * @param details 处方详情
+     * @param recipeBean  处方对象
+     * @param detailBeanList 处方详情
      * @return int
      */
     @RpcService
@@ -643,7 +643,7 @@ public class RecipeService {
     /**
      * 发送只能配送处方，当医院库存不足时医生略过库存提醒后调用
      *
-     * @param recipe
+     * @param recipeBean
      * @return
      */
     @RpcService
@@ -747,8 +747,8 @@ public class RecipeService {
     /**
      * 修改处方
      *
-     * @param recipe        处方对象
-     * @param recipedetails 处方详情
+     * @param recipeBean       处方对象
+     * @param detailBeanList   处方详情
      */
     @RpcService
     public Integer updateRecipeAndDetail(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
@@ -804,8 +804,8 @@ public class RecipeService {
     /**
      * 新版签名服务
      *
-     * @param recipe  处方
-     * @param details 详情
+     * @param recipeBean  处方
+     * @param detailBeanList 详情
      * @return Map<String, Object>
      * @paran consultId  咨询单Id
      */
@@ -1159,6 +1159,9 @@ public class RecipeService {
                     //相应订单处理
                     order = orderDAO.getOrderByRecipeId(recipeId);
                     orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+                    if (recipe.getFromflag() == 2){
+                        orderDAO.updateByOrdeCode(order.getOrderCode(),ImmutableMap.of("cancelReason", "患者未在规定时间内支付，该处方单已失效"));
+                    }
 
                     //变更处方状态
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, ImmutableMap.of("chooseFlag", 1));

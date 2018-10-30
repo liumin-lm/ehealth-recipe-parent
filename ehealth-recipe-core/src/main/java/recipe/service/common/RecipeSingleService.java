@@ -248,10 +248,6 @@ public class RecipeSingleService {
         String statusTxt = "";
         switch (dbRecipe.getStatus()) {
 
-            //支付超时
-            case RecipeStatusConstant.NO_PAY:
-                statusTxt = "患者未在规定时间内支付，该处方单已失效";
-                break;
             //审核通过
             case RecipeStatusConstant.CHECK_PASS:
                 //配送到家已支付或患者自选未支付或药店取药未支付
