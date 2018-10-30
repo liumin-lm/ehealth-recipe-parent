@@ -130,7 +130,6 @@ public class StandardEnterpriseCallService {
                 continue;
             }
 
-            RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
             recipeId = dbRecipe.getRecipeId();
             Map<String, Object> recipeAttrMap = Maps.newHashMap();
             Map<String, Object> orderAttrMap = Maps.newHashMap();
