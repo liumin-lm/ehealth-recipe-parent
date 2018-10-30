@@ -182,8 +182,6 @@ public class StandardEnterpriseCallService {
 
                         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
                         orderService.cancelOrderByCode(orderCode, OrderStatusConstant.CANCEL_AUTO);
-                        //发送取药失败消息
-                        RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.NO_DRUG);
                     } else {
                         result.setMsg("[" + stateDTO.getRecipeCode() + "]处方单更新失败");
                         LOGGER.warn("changeState HOS处方单状态变更失败，recipeId={}, status={}", recipeId, status);
