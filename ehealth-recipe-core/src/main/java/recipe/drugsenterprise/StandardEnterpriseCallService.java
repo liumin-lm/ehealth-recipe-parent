@@ -8,6 +8,7 @@ import com.google.common.collect.Multimap;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.utils.VerifyUtils;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
@@ -159,7 +160,7 @@ public class StandardEnterpriseCallService {
                                     OrderStatusConstant.READY_SEND);
                             result.setCode(StandardResultDTO.SUCCESS);
                         } else {
-                            result.setMsg("[" + stateDTO.getRecipeCode() + "]处方单更新失败");
+                            result.setMsg("[" + stateDTO.getRecipeCode() + "]订单更新失败");
                             LOGGER.warn("changeState HOS订单状态变更失败，orderCode={}, status={}", orderCode,
                                     OrderStatusConstant.READY_SEND);
                         }
@@ -181,7 +182,17 @@ public class StandardEnterpriseCallService {
                                 RecipeStatusConstant.NO_DRUG, "取药失败，原因:" + stateDTO.getReason());
 
                         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-                        orderService.cancelOrderByCode(orderCode, OrderStatusConstant.CANCEL_AUTO);
+                        RecipeResultBean orderRs = orderService.cancelOrderByCode(orderCode, OrderStatusConstant.CANCEL_AUTO);
+                        if (RecipeResultBean.SUCCESS.equals(orderRs.getCode())) {
+                            LOGGER.info("changeState HOS订单状态变更成功，orderCode={}, status={}", orderCode,
+                                    OrderStatusConstant.CANCEL_AUTO);
+                            result.setCode(StandardResultDTO.SUCCESS);
+                        } else {
+                            result.setMsg("[" + stateDTO.getRecipeCode() + "]订单更新失败");
+                            LOGGER.warn("changeState HOS订单状态变更失败，orderCode={}, status={}", orderCode,
+                                    OrderStatusConstant.CANCEL_AUTO);
+                        }
+
                     } else {
                         result.setMsg("[" + stateDTO.getRecipeCode() + "]处方单更新失败");
                         LOGGER.warn("changeState HOS处方单状态变更失败，recipeId={}, status={}", recipeId, status);
