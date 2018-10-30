@@ -3,6 +3,7 @@ package recipe.service;
 import com.google.common.collect.Maps;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
+import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.DAOFactory;
@@ -12,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeMsgEnum;
 import recipe.constant.RecipeStatusConstant;
@@ -35,6 +37,8 @@ public class RecipeMsgService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeMsgService.class);
 
     private static ISmsPushService iSmsPushService = ApplicationUtils.getBaseService(ISmsPushService.class);
+
+    private static ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
 
 
     private static final int RECIPE_BUSSID = 10;
@@ -136,6 +140,9 @@ public class RecipeMsgService {
             return;
         }
 
+        Integer expiredDays = Integer.parseInt(iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS,
+                RecipeService.RECIPE_EXPIRED_DAYS.toString()));
+
         for (Recipe recipe : recipesList) {
             if (null == recipe) {
                 continue;
@@ -207,7 +214,7 @@ public class RecipeMsgService {
                         getHosRecipeInfo(recipe, extendValue);
                         //设置 expireDate 过期时间
                         extendValue.put("expireDate", DateConversion.formatDate(
-                                DateConversion.getDateAftXDays(recipe.getSignDate(), 3)));
+                                DateConversion.getDateAftXDays(recipe.getSignDate(), expiredDays)));
                         break;
                     default:
 
@@ -227,6 +234,8 @@ public class RecipeMsgService {
      * @param recipeList
      */
     public static void sendRecipeMsg(RecipeMsgEnum em, Recipe... recipeList) {
+        Integer expiredDays = Integer.parseInt(iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS,
+                RecipeService.RECIPE_EXPIRED_DAYS.toString()));
         for (Recipe recipe : recipeList) {
             Integer recipeId = recipe.getRecipeId();
             Map<String, String> extendValue = Maps.newHashMap();
@@ -246,7 +255,7 @@ public class RecipeMsgService {
                     getHosRecipeInfo(recipe, extendValue);
                     //设置 expireDate 过期时间
                     extendValue.put("expireDate", DateConversion.formatDate(
-                            DateConversion.getDateAftXDays(recipe.getSignDate(), 3)));
+                            DateConversion.getDateAftXDays(recipe.getSignDate(), expiredDays)));
                     break;
                 default:
 
@@ -305,7 +314,7 @@ public class RecipeMsgService {
      */
     private static void getHosRecipeInfo(Recipe recipe, Map<String, String> extendValue) {
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        if(StringUtils.isNotEmpty(recipe.getOrderCode())) {
+        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
             RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             if (null != order) {
                 extendValue.put("patientAddress", order.getAddress4());

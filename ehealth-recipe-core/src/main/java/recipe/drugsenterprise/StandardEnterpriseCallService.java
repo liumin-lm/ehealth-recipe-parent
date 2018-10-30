@@ -104,7 +104,7 @@ public class StandardEnterpriseCallService {
 
             //转换组织结构编码
             try {
-                clinicOrgan = getClinicOrganByOrganId(stateDTO.getOrganId());
+                clinicOrgan = getClinicOrganByOrganId(stateDTO.getOrganId(), stateDTO.getClinicOrgan());
             } catch (Exception e) {
                 LOGGER.warn("changeState 查询机构异常，organId={}", stateDTO.getOrganId(), e);
             } finally {
@@ -237,7 +237,7 @@ public class StandardEnterpriseCallService {
             //转换组织结构编码
             Integer clinicOrgan = null;
             try {
-                clinicOrgan = getClinicOrganByOrganId(finishDTO.getOrganId());
+                clinicOrgan = getClinicOrganByOrganId(finishDTO.getOrganId(), finishDTO.getClinicOrgan());
             } catch (Exception e) {
                 LOGGER.warn("finish 查询机构异常，organId={}", finishDTO.getOrganId(), e);
             } finally {
@@ -335,7 +335,7 @@ public class StandardEnterpriseCallService {
             //转换组织结构编码
             Integer clinicOrgan = null;
             try {
-                clinicOrgan = getClinicOrganByOrganId(updatePrescriptionDTO.getOrganId());
+                clinicOrgan = getClinicOrganByOrganId(updatePrescriptionDTO.getOrganId(), updatePrescriptionDTO.getClinicOrgan());
             } catch (Exception e) {
                 LOGGER.warn("updatePrescription 查询机构异常，organId={}", updatePrescriptionDTO.getOrganId(), e);
             } finally {
@@ -391,15 +391,19 @@ public class StandardEnterpriseCallService {
         return result;
     }
 
-    private Integer getClinicOrganByOrganId(String organId) throws Exception {
-        IOrganService organService = BaseAPI.getService(IOrganService.class);
-        Integer clinicOrgan = null;
-        List<OrganBean> organList = organService.findByOrganizeCode(organId);
-        if (CollectionUtils.isNotEmpty(organList)) {
-            clinicOrgan = organList.get(0).getOrganId();
-        }
+    private Integer getClinicOrganByOrganId(String organId, String clinicOrgan) throws Exception {
+        Integer co = null;
+        if (StringUtils.isEmpty(clinicOrgan)) {
+            IOrganService organService = BaseAPI.getService(IOrganService.class);
 
-        return clinicOrgan;
+            List<OrganBean> organList = organService.findByOrganizeCode(organId);
+            if (CollectionUtils.isNotEmpty(organList)) {
+                co = organList.get(0).getOrganId();
+            }
+        } else {
+            co = Integer.parseInt(clinicOrgan);
+        }
+        return co;
     }
 
     /**
