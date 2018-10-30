@@ -36,11 +36,8 @@ import recipe.util.DateConversion;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * @author： 0184/yu_yun
@@ -158,15 +155,16 @@ public class StandardEnterpriseCallService {
                         if (flag) {
                             LOGGER.info("changeState HOS订单状态变更成功，orderCode={}, status={}", orderCode,
                                     OrderStatusConstant.READY_SEND);
-                            result.setCode(StandardResultDTO.SUCCESS);
                         } else {
                             result.setMsg("[" + stateDTO.getRecipeCode() + "]订单更新失败");
                             LOGGER.warn("changeState HOS订单状态变更失败，orderCode={}, status={}", orderCode,
                                     OrderStatusConstant.READY_SEND);
+                            return result;
                         }
                     } else {
                         result.setMsg("[" + stateDTO.getRecipeCode() + "]处方单更新失败");
                         LOGGER.warn("changeState HOS处方单状态变更失败，recipeId={}, status={}", recipeId, status);
+                        return result;
                     }
                     break;
 
@@ -186,16 +184,17 @@ public class StandardEnterpriseCallService {
                         if (RecipeResultBean.SUCCESS.equals(orderRs.getCode())) {
                             LOGGER.info("changeState HOS订单状态变更成功，orderCode={}, status={}", orderCode,
                                     OrderStatusConstant.CANCEL_AUTO);
-                            result.setCode(StandardResultDTO.SUCCESS);
                         } else {
                             result.setMsg("[" + stateDTO.getRecipeCode() + "]订单更新失败");
                             LOGGER.warn("changeState HOS订单状态变更失败，orderCode={}, status={}", orderCode,
                                     OrderStatusConstant.CANCEL_AUTO);
+                            return result;
                         }
 
                     } else {
                         result.setMsg("[" + stateDTO.getRecipeCode() + "]处方单更新失败");
                         LOGGER.warn("changeState HOS处方单状态变更失败，recipeId={}, status={}", recipeId, status);
+                        return result;
                     }
                     break;
                 default:
@@ -203,10 +202,10 @@ public class StandardEnterpriseCallService {
                     return result;
             }
 
-            LOGGER.info("处方单[{}] changeState 处理完成.", stateDTO.getRecipeCode());
         }
 
-
+        result.setCode(StandardResultDTO.SUCCESS);
+        LOGGER.info("changeState 处理完成.");
         return result;
     }
 
@@ -305,7 +304,7 @@ public class StandardEnterpriseCallService {
         }
 
         result.setCode(StandardResultDTO.SUCCESS);
-        LOGGER.info("处方单[{}] finish 处理完成.", list.get(0).getRecipeCode());
+        LOGGER.info("finish 处理完成.");
         return result;
     }
 
