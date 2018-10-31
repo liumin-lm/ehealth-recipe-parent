@@ -75,12 +75,14 @@ public class StandardEnterpriseCallService {
 
     /**
      * 处方状态变更
+     *
      * @param list
      * @return
      */
     @RpcService
     public StandardResultDTO changeState(List<StandardStateDTO> list) {
-        LOGGER.info("changeState param : " + JSONUtils.toString(list));
+        String listStr = JSONUtils.toString(list);
+        LOGGER.info("changeState param = {}", listStr);
         StandardResultDTO result = new StandardResultDTO();
         //默认为失败
         result.setCode(StandardResultDTO.FAIL);
@@ -228,13 +230,14 @@ public class StandardEnterpriseCallService {
         }
 
         result.setCode(StandardResultDTO.SUCCESS);
-        LOGGER.info("changeState 处理完成.");
+        LOGGER.info("changeState 处理完成. param = {}", listStr);
         return result;
     }
 
     @RpcService
     public StandardResultDTO finish(List<StandardFinishDTO> list) {
-        LOGGER.info("finish param : " + JSONUtils.toString(list));
+        String listStr = JSONUtils.toString(list);
+        LOGGER.info("finish param = {}", listStr);
         StandardResultDTO result = new StandardResultDTO();
         //默认为失败
         result.setCode(StandardResultDTO.FAIL);
@@ -327,13 +330,14 @@ public class StandardEnterpriseCallService {
         }
 
         result.setCode(StandardResultDTO.SUCCESS);
-        LOGGER.info("finish 处理完成.");
+        LOGGER.info("finish 处理完成. param = {}", listStr);
         return result;
     }
 
     @RpcService
     public StandardResultDTO updatePrescription(List<UpdatePrescriptionDTO> list) {
-        LOGGER.info("updatePrescription param : " + JSONUtils.toString(list));
+        String listStr = JSONUtils.toString(list);
+        LOGGER.info("updatePrescription param = {}", listStr);
         StandardResultDTO result = new StandardResultDTO();
         //默认为失败
         result.setCode(StandardResultDTO.FAIL);
@@ -410,7 +414,7 @@ public class StandardEnterpriseCallService {
         }
 
         result.setCode(StandardResultDTO.SUCCESS);
-        LOGGER.info("处方单[{}] updatePrescription 处理完成.", list.get(0).getRecipeCode());
+        LOGGER.info("updatePrescription 处理完成. param = {}", listStr);
         return result;
     }
 
