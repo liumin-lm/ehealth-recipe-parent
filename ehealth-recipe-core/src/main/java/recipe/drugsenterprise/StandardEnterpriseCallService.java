@@ -208,6 +208,8 @@ public class StandardEnterpriseCallService {
                         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
                         RecipeResultBean orderRs = orderService.cancelOrderByCode(orderCode, OrderStatusConstant.CANCEL_AUTO);
                         if (RecipeResultBean.SUCCESS.equals(orderRs.getCode())) {
+                            orderAttrMap.put("cancelReason", stateDTO.getReason());
+                            orderDAO.updateByOrdeCode(orderCode, orderAttrMap);
                             LOGGER.info("changeState HOS订单状态变更成功，recipeCode={}, status={}", recipeCode,
                                     OrderStatusConstant.CANCEL_AUTO);
                         } else {
