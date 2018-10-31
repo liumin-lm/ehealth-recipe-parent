@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import recipe.ApplicationUtils;
+import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
@@ -246,29 +247,27 @@ public class RecipeSingleService {
     public String getStatusText(Recipe dbRecipe,RecipeOrder order) {
         // 根据当前状态返回前端显示状态文案
         String statusTxt = "";
-        switch (dbRecipe.getStatus()) {
+        if (order.getStatus() == OrderStatusConstant.CANCEL_AUTO){
+            statusTxt = "已取消";
+            return statusTxt;
+        }
 
+        switch (dbRecipe.getStatus()) {
+            //审核未通过
+            case RecipeStatusConstant.CHECK_NOT_PASS_YS:
+                statusTxt = "已取消";
+                break;
             //审核通过
             case RecipeStatusConstant.CHECK_PASS:
                 //配送到家已支付或患者自选未支付或药店取药未支付
-                if ((RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
-                            && Integer.valueOf(1).equals(dbRecipe.getPayFlag()))
-                        || (RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode())
-                            && Integer.valueOf(0).equals(dbRecipe.getPayFlag()))
-                        || (RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())
-                            && Integer.valueOf(0).equals(dbRecipe.getPayFlag()))){
-                    statusTxt = "审核通过，已向第三方发送";
-
-                }else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
+                if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
                         && Integer.valueOf(0).equals(dbRecipe.getPayFlag())){
                     statusTxt = "待支付(请在开方后3日内支付，逾期作废)";
-                }
-
-                if (Integer.valueOf(1).equals(order.getPushFlag())){
-                    statusTxt = "第三方已接收";
+                }else if (Integer.valueOf(1).equals(order.getPushFlag())){
+                    statusTxt = "审核通过，第三方已接收";
 
                 }else if (Integer.valueOf(-1).equals(order.getPushFlag())) {
-                    statusTxt = "第三方接收失败";
+                    statusTxt = "审核通过，第三方接收失败";
 
                 }
                 break;
