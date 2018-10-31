@@ -655,7 +655,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 StringBuilder hql = new StringBuilder("from Recipe where signDate between '" + startDt + "' and '" + endDt + "' ");
                 if (cancelStatus == RecipeStatusConstant.NO_PAY) {
                     //超过3天未支付
-                    hql.append(" and (fromflag = 1 or fromflag = 2) and status=" + RecipeStatusConstant.CHECK_PASS
+                    hql.append(" and fromflag in (1,2) and status=" + RecipeStatusConstant.CHECK_PASS
                             + " and payFlag=0 and payMode=" + RecipeBussConstant.PAYMODE_ONLINE + " and orderCode is not null ");
                 } else if (cancelStatus == RecipeStatusConstant.NO_OPERATOR) {
                     //超过3天未操作

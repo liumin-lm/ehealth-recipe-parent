@@ -260,7 +260,7 @@ public class RecipeMsgService {
                 case RECIPE_CANCEL_4HIS:
                     getHosRecipeInfo(recipe,extendValue);
                     //设置 overtime 超时时间
-                    extendValue.put("overtime",RecipeService.RECIPE_EXPIRED_DAYS.toString());
+                    extendValue.put("overtime",expiredDays.toString());
                     break;
                 default:
 
