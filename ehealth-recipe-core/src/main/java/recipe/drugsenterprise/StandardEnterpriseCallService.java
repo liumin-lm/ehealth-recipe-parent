@@ -93,6 +93,7 @@ public class StandardEnterpriseCallService {
         DrugsEnterpriseDAO depDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
 
         Integer recipeId = null;
+        String recipeCode = null;
         String orderCode = null;
         Integer status = null;
         Integer clinicOrgan = null;
@@ -123,10 +124,10 @@ public class StandardEnterpriseCallService {
                     return result;
                 }
             }
-
-            dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(stateDTO.getRecipeCode(), clinicOrgan);
+            recipeCode = stateDTO.getRecipeCode();
+            dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(recipeCode, clinicOrgan);
             if (null == dbRecipe) {
-                result.setMsg("[" + stateDTO.getRecipeCode() + "]处方单不存在");
+                result.setMsg("[" + recipeCode + "]处方单不存在");
                 return result;
             }
 
@@ -178,17 +179,17 @@ public class StandardEnterpriseCallService {
                         orderAttrMap.put("status", OrderStatusConstant.READY_SEND);
                         boolean flag = orderDAO.updateByOrdeCode(orderCode, orderAttrMap);
                         if (flag) {
-                            LOGGER.info("changeState HOS订单状态变更成功，orderCode={}, status={}", orderCode,
+                            LOGGER.info("changeState HOS订单状态变更成功，recipeCode={}, status={}", recipeCode,
                                     OrderStatusConstant.READY_SEND);
                         } else {
-                            result.setMsg("[" + stateDTO.getRecipeCode() + "]订单更新失败");
-                            LOGGER.warn("changeState HOS订单状态变更失败，orderCode={}, status={}", orderCode,
+                            result.setMsg("[" + recipeCode + "]订单更新失败");
+                            LOGGER.warn("changeState HOS订单状态变更失败，recipeCode={}, status={}", recipeCode,
                                     OrderStatusConstant.READY_SEND);
                             return result;
                         }
                     } else {
-                        result.setMsg("[" + stateDTO.getRecipeCode() + "]处方单更新失败");
-                        LOGGER.warn("changeState HOS处方单状态变更失败，recipeId={}, status={}", recipeId, status);
+                        result.setMsg("[" + recipeCode + "]处方单更新失败");
+                        LOGGER.warn("changeState HOS处方单状态变更失败，recipeCode={}, status={}", recipeCode, status);
                         return result;
                     }
                     break;
@@ -207,18 +208,18 @@ public class StandardEnterpriseCallService {
                         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
                         RecipeResultBean orderRs = orderService.cancelOrderByCode(orderCode, OrderStatusConstant.CANCEL_AUTO);
                         if (RecipeResultBean.SUCCESS.equals(orderRs.getCode())) {
-                            LOGGER.info("changeState HOS订单状态变更成功，orderCode={}, status={}", orderCode,
+                            LOGGER.info("changeState HOS订单状态变更成功，recipeCode={}, status={}", recipeCode,
                                     OrderStatusConstant.CANCEL_AUTO);
                         } else {
                             result.setMsg("[" + stateDTO.getRecipeCode() + "]订单更新失败");
-                            LOGGER.warn("changeState HOS订单状态变更失败，orderCode={}, status={}", orderCode,
+                            LOGGER.warn("changeState HOS订单状态变更失败，recipeCode={}, status={}", recipeCode,
                                     OrderStatusConstant.CANCEL_AUTO);
                             return result;
                         }
 
                     } else {
                         result.setMsg("[" + stateDTO.getRecipeCode() + "]处方单更新失败");
-                        LOGGER.warn("changeState HOS处方单状态变更失败，recipeId={}, status={}", recipeId, status);
+                        LOGGER.warn("changeState HOS处方单状态变更失败，recipeCode={}, status={}", recipeCode, status);
                         return result;
                     }
                     break;
@@ -346,6 +347,8 @@ public class StandardEnterpriseCallService {
             return result;
         }
 
+        Integer clinicOrgan = null;
+        String recipeCode = null;
         for (UpdatePrescriptionDTO updatePrescriptionDTO : list) {
             try {
                 Multimap<String, String> verifyMap = VerifyUtils.verify(updatePrescriptionDTO);
@@ -360,7 +363,6 @@ public class StandardEnterpriseCallService {
             }
 
             //转换组织结构编码
-            Integer clinicOrgan = null;
             try {
                 clinicOrgan = getClinicOrganByOrganId(updatePrescriptionDTO.getOrganId(), updatePrescriptionDTO.getClinicOrgan());
             } catch (Exception e) {
@@ -373,9 +375,10 @@ public class StandardEnterpriseCallService {
                 }
             }
 
-            Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(updatePrescriptionDTO.getRecipeCode(), clinicOrgan);
+            recipeCode = updatePrescriptionDTO.getRecipeCode();
+            Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(recipeCode, clinicOrgan);
             if (null == dbRecipe) {
-                result.setMsg("[" + updatePrescriptionDTO.getRecipeCode() + "]处方单不存在");
+                result.setMsg("[" + recipeCode + "]处方单不存在");
                 return result;
             }
 
@@ -404,10 +407,10 @@ public class StandardEnterpriseCallService {
                 }
                 success = true;
             } catch (Exception e) {
-                LOGGER.warn("updatePrescription 处方更新异常, recipeId={}", dbRecipe.getRecipeId(), e);
+                LOGGER.warn("updatePrescription 处方更新异常, recipeCode={}", recipeCode, e);
             } finally {
                 if (!success) {
-                    result.setMsg("药品信息更新异常");
+                    result.setMsg("[" + recipeCode + "]药品信息更新异常");
                     return result;
                 }
             }
