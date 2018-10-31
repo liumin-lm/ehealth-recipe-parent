@@ -1161,6 +1161,9 @@ public class RecipeService {
                     orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
                     if (recipe.getFromflag() == 2){
                         orderDAO.updateByOrdeCode(order.getOrderCode(),ImmutableMap.of("cancelReason", "患者未在规定时间内支付，该处方单已失效"));
+                        //发送超时取消消息
+                        //${sendOrgan}：抱歉，您的处方单由于超过${overtime}未处理，处方单已失效。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
+                        RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_CANCEL_4HIS, recipe);
                     }
 
                     //变更处方状态
@@ -1926,7 +1929,7 @@ public class RecipeService {
     /**
      * 判断是否可以线上支付
      *
-     * @param wxAccount 微信帐号
+     * @param acount 微信帐号
      * @param hisStatus true:his启用
      * @return
      */

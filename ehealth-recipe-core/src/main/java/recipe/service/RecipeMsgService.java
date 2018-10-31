@@ -257,6 +257,11 @@ public class RecipeMsgService {
                     extendValue.put("expireDate", DateConversion.formatDate(
                             DateConversion.getDateAftXDays(recipe.getSignDate(), expiredDays)));
                     break;
+                case RECIPE_CANCEL_4HIS:
+                    getHosRecipeInfo(recipe,extendValue);
+                    //设置 overtime 超时时间
+                    extendValue.put("overtime",RecipeService.RECIPE_EXPIRED_DAYS.toString());
+                    break;
                 default:
 
             }
@@ -309,7 +314,7 @@ public class RecipeMsgService {
     /**
      * HOS处方消息扩展信息
      *
-     * @param recipeId
+     * @param recipe
      * @param extendValue
      */
     private static void getHosRecipeInfo(Recipe recipe, Map<String, String> extendValue) {
