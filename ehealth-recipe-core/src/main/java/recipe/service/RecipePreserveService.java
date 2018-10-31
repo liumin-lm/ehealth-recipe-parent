@@ -10,12 +10,16 @@ import com.ngari.recipe.recipelog.model.RecipeLogBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.util.RedisClient;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * company: ngarihealth
@@ -25,6 +29,7 @@ import java.util.List;
  */
 @RpcBean(value = "recipePreserveService", mvc_authentication = false)
 public class RecipePreserveService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecipePreserveService.class);
 
     @RpcService
     public RecipeBean getByRecipeId(int recipeId) {
@@ -66,5 +71,31 @@ public class RecipePreserveService {
     public DoctorBean getDoctorTest(Integer doctorId) {
         IDoctorService doctorService = ApplicationUtils.getBaseService(IDoctorService.class);
         return doctorService.getBeanByDoctorId(doctorId);
+    }
+
+    @RpcService
+    public void deleteOldRedisDataForRecipe(){
+        RecipeDAO dao = DAOFactory.getDAO(RecipeDAO.class);
+        RedisClient redisClient = RedisClient.instance();
+        List<String> mpiIds = dao.findAllMpiIdsFromHis();
+        Set<String> keys;
+        int num = 0;
+        for (String mpiId : mpiIds){
+            try {
+                keys = redisClient.scan("*_"+mpiId+"_1");
+            } catch (Exception e) {
+                LOGGER.error("redis error" + e.toString());
+                return;
+            }
+            if (keys != null && keys.size() > 0){
+                for (String key : keys){
+                    Long del = redisClient.del(key);
+                    if (del == 1){
+                        num++;
+                    }
+                }
+            }
+        }
+        LOGGER.info("deleteOldRedisDataForRecipe Success num="+num);
     }
 }
