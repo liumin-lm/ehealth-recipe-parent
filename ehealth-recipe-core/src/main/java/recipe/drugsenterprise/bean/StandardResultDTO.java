@@ -20,6 +20,11 @@ public class StandardResultDTO<T> implements Serializable {
 
     public final static String FAIL = "001";
 
+    /**
+     * 重复调用
+     */
+    public final static String REPEAT = "002";
+
     private String code;
 
     private String msg;

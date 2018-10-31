@@ -73,6 +73,11 @@ public class StandardEnterpriseCallService {
         return null;
     }
 
+    /**
+     * 处方状态变更
+     * @param list
+     * @return
+     */
     @RpcService
     public StandardResultDTO changeState(List<StandardStateDTO> list) {
         LOGGER.info("changeState param : " + JSONUtils.toString(list));
@@ -83,12 +88,14 @@ public class StandardEnterpriseCallService {
             result.setMsg("参数错误");
             return result;
         }
+        DrugsEnterpriseDAO depDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
 
         Integer recipeId = null;
         String orderCode = null;
         Integer status = null;
         Integer clinicOrgan = null;
         Recipe dbRecipe = null;
+        DrugsEnterprise dep = null;
         for (StandardStateDTO stateDTO : list) {
             try {
                 Multimap<String, String> verifyMap = VerifyUtils.verify(stateDTO);
@@ -124,13 +131,29 @@ public class StandardEnterpriseCallService {
             //重复处理
             status = Integer.valueOf(stateDTO.getStatus());
             if (status.equals(dbRecipe.getStatus())) {
+//                result.setCode(StandardResultDTO.REPEAT);
+//                result.setMsg("处方单状态重复修改");
+//                return result;
+                //暂时通过校验
                 continue;
+            }
+
+            //获取药企ID
+            dep = depDAO.getByAccount(stateDTO.getAccount());
+            if (null == dep) {
+                result.setMsg("未被授权调用药企");
+                return result;
             }
 
             recipeId = dbRecipe.getRecipeId();
             orderCode = dbRecipe.getOrderCode();
             Map<String, Object> recipeAttrMap = Maps.newHashMap();
             Map<String, Object> orderAttrMap = Maps.newHashMap();
+            //自由模式修改调用药企ID，知道是哪家药企接单
+            if (RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode()) && null == dbRecipe.getEnterpriseId()) {
+                recipeAttrMap.put("enterpriseId", dep.getId());
+                orderAttrMap.put("enterpriseId", dep.getId());
+            }
             switch (status) {
                 /**
                  * 药企端用户已支付会推送该状态给平台

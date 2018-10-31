@@ -24,7 +24,7 @@ public class UpdatePrescriptionDTO implements Serializable {
     @Verify(desc = "电子处方单号")
     private String recipeCode;
 
-    @Verify(desc = "药企标识")
+    @Verify(desc = "药企标识", maxLength = 20)
     private String account;
 
     @Verify(desc = "时间", isDate = true)

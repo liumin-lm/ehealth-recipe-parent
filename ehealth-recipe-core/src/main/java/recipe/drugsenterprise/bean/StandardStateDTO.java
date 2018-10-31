@@ -14,6 +14,9 @@ public class StandardStateDTO implements Serializable{
 
     private static final long serialVersionUID = -8948834094204713613L;
 
+    @Verify(desc = "药企标识", maxLength = 20)
+    private String account;
+
     @Verify(desc = "处方状态", isInt = true)
     private String status;
 
@@ -31,6 +34,14 @@ public class StandardStateDTO implements Serializable{
 
     @Verify(desc = "时间", isDate = true)
     private String date;
+
+    public String getAccount() {
+        return account;
+    }
+
+    public void setAccount(String account) {
+        this.account = account;
+    }
 
     public String getStatus() {
         return status;
