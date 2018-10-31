@@ -55,4 +55,9 @@ public class ParameterConstant {
      * 钥匙圈健康商城地址
      */
     public static final String KEY_YSQ_SKIP_SHOPPING_URL = "YSQ_SKIP_SHOPPING_URL";
+
+    /**
+     * redis中存储, 测试药店测试数据
+     */
+    public static final String KEY_PHARYACY_TEST_DATA = "PHARYACY_TEST_DATA";
 }

@@ -26,10 +26,11 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
-import recipe.constant.RecipeBussConstant;
+import recipe.constant.ParameterConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.ZfbDrugDTO;
 import recipe.drugsenterprise.bean.ZfbRecipeDTO;
@@ -38,13 +39,14 @@ import recipe.drugsenterprise.bean.ZfbTokenResponse;
 import recipe.service.RecipeOrderService;
 import recipe.util.DateConversion;
 import recipe.util.RSAUtil;
+import recipe.util.RedisClient;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.*;
-
-import static eh.coupon.constant.CouponBusTypeEnum.getById;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author： 0184/yu_yun
@@ -58,6 +60,9 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
      * logger
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(ZfbRemoteService.class);
+
+    @Autowired
+    private RedisClient redisClient;
 
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
@@ -161,15 +166,15 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
             DoctorDTO doctor = doctorService.get(dbRecipe.getDoctor());
             if (null != doctor) {
                 EmploymentDTO employment = employmentService.getPrimaryEmpByDoctorId(dbRecipe.getDoctor());
-                if(null != employment) {
+                if (null != employment) {
                     zfbRecipe.setDoctorName(doctor.getName());
                     zfbRecipe.setDoctorNumber(employment.getJobNumber());
                     zfbRecipe.setDepartId(employment.getDepartment().toString());
                     DepartmentDTO departmentDTO = departmentService.getById(employment.getDepartment());
-                    if(null != departmentDTO) {
+                    if (null != departmentDTO) {
                         zfbRecipe.setDepartName(departmentDTO.getName());
                     }
-                }else{
+                } else {
                     result.setMsg("医生主执业点不存在");
                     return result;
                 }
@@ -350,42 +355,12 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, DrugsEnterprise enterprise) {
-
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-        List<DepDetailBean> list = new ArrayList<>();
-        DepDetailBean detailBean = new DepDetailBean();
-        detailBean.setDepName("好药师大药房连锁有限公司民主路店");
-        detailBean.setPharmacyCode("hysdyfmzld");
-        detailBean.setRecipeFee(BigDecimal.ZERO);
-        detailBean.setAddress("武汉市武昌区粮道街民主路408号1层");
-        detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_ONLINE, RecipeBussConstant.PAYMODE_TFDS));
-        list.add(detailBean);
-
-        detailBean = new DepDetailBean();
-        detailBean.setDepName("好药师大药房连锁有限公司团结新村店");
-        detailBean.setPharmacyCode("hysdyfxcd");
-        detailBean.setRecipeFee(BigDecimal.ZERO);
-        detailBean.setAddress("武汉市武昌区四干道团结新村22-23号");
-        detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_ONLINE, RecipeBussConstant.PAYMODE_TFDS));
-        list.add(detailBean);
-
-        detailBean = new DepDetailBean();
-        detailBean.setDepName("好药师大药房连锁有限公司团结新村店");
-        detailBean.setPharmacyCode("hysdyfxcd");
-        detailBean.setRecipeFee(BigDecimal.ZERO);
-        detailBean.setAddress("武昌区中南路街涂家岭1号");
-        detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_ONLINE, RecipeBussConstant.PAYMODE_TFDS));
-        list.add(detailBean);
-
-        detailBean = new DepDetailBean();
-        detailBean.setDepName("好药师大药房连锁有限公司友谊国际店");
-        detailBean.setPharmacyCode("hysdyfyygjd");
-        detailBean.setRecipeFee(BigDecimal.ZERO);
-        detailBean.setAddress("武昌区沙湖新村友谊国际二期第2幢7、8号商铺");
-        detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_ONLINE, RecipeBussConstant.PAYMODE_TFDS));
-        list.add(detailBean);
-
-        result.setObject(list);
+        String testData = redisClient.get(ParameterConstant.KEY_PHARYACY_TEST_DATA);
+        if (StringUtils.isNotEmpty(testData)) {
+            List<DepDetailBean> list = JSONUtils.parse(testData, List.class);
+            result.setObject(list);
+        }
         return result;
     }
 

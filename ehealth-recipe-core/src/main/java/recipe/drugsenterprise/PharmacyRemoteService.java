@@ -2,15 +2,15 @@ package recipe.drugsenterprise;
 
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
+import ctd.util.JSONUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
-import recipe.constant.RecipeBussConstant;
+import recipe.constant.ParameterConstant;
+import recipe.util.RedisClient;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -25,6 +25,9 @@ public class PharmacyRemoteService extends AccessDrugEnterpriseService {
      * logger
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(PharmacyRemoteService.class);
+
+    @Autowired
+    private RedisClient redisClient;
 
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
@@ -58,20 +61,11 @@ public class PharmacyRemoteService extends AccessDrugEnterpriseService {
     @Override
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-        List<DepDetailBean> list = new ArrayList<>(5);
-        DepDetailBean detailBean;
-        for (int i = 0; i < 5; i++) {
-            detailBean = new DepDetailBean();
-            detailBean.setDepId(enterprise.getId());
-            detailBean.setDepName("测试大药房" + i);
-            detailBean.setPharmacyCode("cedyf" + i);
-            detailBean.setRecipeFee(new BigDecimal((int) (Math.random() * 100)));
-            detailBean.setAddress("东大街江南大道滨盛路1189潮人汇9楼 ");
-            detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_TFDS));
-
-            list.add(detailBean);
+        byte[] testData = redisClient.get(ParameterConstant.KEY_PHARYACY_TEST_DATA);
+        if (null != testData) {
+            List<DepDetailBean> list = JSONUtils.parse(testData, List.class);
+            result.setObject(list);
         }
-        result.setObject(list);
         return result;
     }
 
