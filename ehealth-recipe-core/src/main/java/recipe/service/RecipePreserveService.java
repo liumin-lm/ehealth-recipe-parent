@@ -10,10 +10,12 @@ import com.ngari.recipe.recipelog.model.RecipeLogBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.util.RedisClient;
 
 import java.util.List;
 
@@ -25,6 +27,9 @@ import java.util.List;
  */
 @RpcBean(value = "recipePreserveService", mvc_authentication = false)
 public class RecipePreserveService {
+
+    @Autowired
+    private RedisClient redisClient;
 
     @RpcService
     public RecipeBean getByRecipeId(int recipeId) {
@@ -66,5 +71,29 @@ public class RecipePreserveService {
     public DoctorBean getDoctorTest(Integer doctorId) {
         IDoctorService doctorService = ApplicationUtils.getBaseService(IDoctorService.class);
         return doctorService.getBeanByDoctorId(doctorId);
+    }
+
+    @RpcService
+    public void redisForAdd(String key, String val, Long timeout){
+        if(null == timeout || Long.valueOf(-1L).equals(timeout)){
+            redisClient.setForever(key, val);
+        }else {
+            redisClient.setEX(key, timeout, val);
+        }
+    }
+
+    @RpcService
+    public boolean redisForAddNx(String key, String val){
+        return redisClient.setNX(key, val);
+    }
+
+    @RpcService
+    public long redisForDel(String key){
+        return redisClient.del(key);
+    }
+
+    @RpcService
+    public Object redisGet(String key){
+        return redisClient.get(key);
     }
 }
