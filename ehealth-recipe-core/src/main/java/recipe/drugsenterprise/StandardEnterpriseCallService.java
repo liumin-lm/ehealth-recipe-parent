@@ -212,6 +212,9 @@ public class StandardEnterpriseCallService {
                             orderDAO.updateByOrdeCode(orderCode, orderAttrMap);
                             LOGGER.info("changeState HOS订单状态变更成功，recipeCode={}, status={}", recipeCode,
                                     OrderStatusConstant.CANCEL_AUTO);
+
+                            //发送消息
+                            RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_CANCEL_4HIS, dbRecipe);
                         } else {
                             result.setMsg("[" + stateDTO.getRecipeCode() + "]订单更新失败");
                             LOGGER.warn("changeState HOS订单状态变更失败，recipeCode={}, status={}", recipeCode,
