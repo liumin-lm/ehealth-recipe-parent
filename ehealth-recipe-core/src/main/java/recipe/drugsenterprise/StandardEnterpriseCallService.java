@@ -331,6 +331,9 @@ public class StandardEnterpriseCallService {
                 //记录日志
                 RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), RecipeStatusConstant.NO_DRUG,
                         "处方单配送失败:" + finishDTO.getMsg());
+
+                //发送消息
+                RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_CANCEL_4HIS, dbRecipe);
             }
 
         }
