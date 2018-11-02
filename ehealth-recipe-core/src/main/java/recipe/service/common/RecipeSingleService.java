@@ -261,13 +261,17 @@ public class RecipeSingleService {
             case RecipeStatusConstant.CHECK_NOT_PASS_YS:
                 statusTxt = "已取消";
                 break;
+            case RecipeStatusConstant.CHECK_PASS:
+                //配送到家已支付
+                if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
+                        && Integer.valueOf(0).equals(dbRecipe.getPayFlag())) {
+                    statusTxt = "待支付(请在开方后3日内支付，逾期作废)";
+                }
+                break;
             //审核通过
             case RecipeStatusConstant.CHECK_PASS_YS:
-                //配送到家已支付或患者自选未支付或药店取药未支付
-                if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
-                        && Integer.valueOf(0).equals(dbRecipe.getPayFlag())){
-                    statusTxt = "待支付(请在开方后3日内支付，逾期作废)";
-                }else if (Integer.valueOf(1).equals(order.getPushFlag())){
+                //患者自选未支付或药店取药未支付
+                if (Integer.valueOf(1).equals(order.getPushFlag())){
                     statusTxt = "审核通过，第三方已接收";
 
                 }else if (Integer.valueOf(-1).equals(order.getPushFlag())) {
