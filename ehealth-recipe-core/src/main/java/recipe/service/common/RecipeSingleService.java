@@ -262,7 +262,7 @@ public class RecipeSingleService {
                 statusTxt = "已取消";
                 break;
             //审核通过
-            case RecipeStatusConstant.CHECK_PASS:
+            case RecipeStatusConstant.CHECK_PASS_YS:
                 //配送到家已支付或患者自选未支付或药店取药未支付
                 if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
                         && Integer.valueOf(0).equals(dbRecipe.getPayFlag())){
