@@ -137,6 +137,10 @@ public class RecipeSingleService {
                         other.put("depName", order.getDrugStoreName());
                     }
                     other.put("orderId", order.getOrderId());
+                    String cancelReason = order.getCancelReason();
+                    if (StringUtils.isNotEmpty(cancelReason)){
+                        other.put("cancelReason", cancelReason);
+                    }
                 }
                 //设置其他数据
                 if (RecipeStatusConstant.DELETE == dbRecipe.getStatus()) {
