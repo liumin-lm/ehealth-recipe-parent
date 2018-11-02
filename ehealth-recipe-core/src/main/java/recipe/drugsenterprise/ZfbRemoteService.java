@@ -14,6 +14,7 @@ import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
@@ -358,8 +359,19 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         String testData = redisClient.get(ParameterConstant.KEY_PHARYACY_TEST_DATA);
         if (StringUtils.isNotEmpty(testData)) {
-            List<DepDetailBean> list = JSONUtils.parse(testData, List.class);
-            result.setObject(list);
+            List<DepDetailBean> backList = Lists.newArrayList();
+            List<Map> list = JSONUtils.parse(testData, List.class);
+            DepDetailBean bean;
+            for(Map map : list){
+                bean = new DepDetailBean();
+                try {
+                    BeanUtils.populate(bean, map);
+                } catch (Exception e) {
+
+                }
+                backList.add(bean);
+            }
+            result.setObject(backList);
         }
         return result;
     }
