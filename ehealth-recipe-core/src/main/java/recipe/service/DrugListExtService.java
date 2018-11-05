@@ -3,21 +3,21 @@ package recipe.service;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.searchservice.model.DrugSearchTO;
-import com.ngari.base.searchservice.service.ISearchService;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.DrugList;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.dictionary.DictionaryItem;
 import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import es.api.DrugSearchService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import recipe.ApplicationUtils;
 import recipe.dao.DrugListDAO;
 import recipe.serviceprovider.BaseService;
 
@@ -36,7 +36,7 @@ import static recipe.bussutil.RecipeUtil.getHospitalPrice;
  * @version： 1.0
  */
 @RpcBean("drugList")
-public class DrugListExtService extends BaseService<DrugListBean>{
+public class DrugListExtService extends BaseService<DrugListBean> {
 
     /**
      * logger
@@ -65,7 +65,7 @@ public class DrugListExtService extends BaseService<DrugListBean>{
      */
     @RpcService
     public List<DrugListBean> findAllInDrugClassByOrgan(int organId, int drugType,
-                                                    String drugClass, int start) {
+                                                        String drugClass, int start) {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         List<DrugList> dList = drugListDAO.findDrugListsByOrganOrDrugClass(organId, drugType, drugClass, start,
                 10);
@@ -144,8 +144,9 @@ public class DrugListExtService extends BaseService<DrugListBean>{
      * @return
      */
     public List<DrugListBean> searchDrugListWithES(Integer organId, Integer drugType, String drugName,
-                                               Integer start, Integer limit) {
-        ISearchService searchService = ApplicationUtils.getBaseService(ISearchService.class);
+                                                   Integer start, Integer limit) {
+//        ISearchService searchService = ApplicationUtils.getBaseService(ISearchService.class);
+        DrugSearchService searchService = AppContextHolder.getBean("es.drugSearchService", DrugSearchService.class);
 
         DrugSearchTO searchTO = new DrugSearchTO();
         searchTO.setDrugName(StringUtils.isEmpty(drugName) ? "" : drugName.toLowerCase());
@@ -154,7 +155,9 @@ public class DrugListExtService extends BaseService<DrugListBean>{
         searchTO.setStart(start);
         searchTO.setLimit(limit);
         LOGGER.info("searchDrugListWithES DrugSearchTO={} ", JSONUtils.toString(searchTO));
-        List<String> drugInfo = searchService.findDrugList(searchTO);
+//        List<String> drugInfo = searchService.findDrugList(searchTO);
+        List<String> drugInfo = searchService.searchHighlightedPages(searchTO.getDrugName(), searchTO.getOrgan(),
+                searchTO.getDrugType(), searchTO.getStart(), searchTO.getLimit());
         List<DrugList> dList = new ArrayList<>(drugInfo.size());
         // 将String转化成DrugList对象返回给前端
         if (CollectionUtils.isNotEmpty(drugInfo)) {
