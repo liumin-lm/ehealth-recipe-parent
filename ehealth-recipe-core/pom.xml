@@ -99,8 +99,8 @@
             <artifactId>jedis</artifactId>
         </dependency>
         <dependency>
-            <groupId>ssdev</groupId>
-            <artifactId>ssdev-es</artifactId>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>ehealth-es-api</artifactId>
         </dependency>
         <dependency>
             <groupId>com.ctrip.framework.apollo</groupId>

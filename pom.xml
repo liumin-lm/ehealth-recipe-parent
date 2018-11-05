@@ -44,17 +44,13 @@
                 <version>${ssdev.version}</version>
             </dependency>
             <dependency>
-                <groupId>ssdev</groupId>
-                <artifactId>ssdev-es</artifactId>
-                <version>1.1.1-SNAPSHOT</version>
+                <groupId>${project.parent.groupId}</groupId>
+                <artifactId>ehealth-es-api</artifactId>
+                <version>2.3.2-SNAPSHOT</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ssdev</groupId>
                         <artifactId>ssdev-mvc</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-simple</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
