@@ -202,6 +202,9 @@ public class StandardEnterpriseCallService {
                     Boolean recipeRs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_DRUG,
                             recipeAttrMap);
                     if (recipeRs) {
+                        if (StringUtils.isEmpty(stateDTO.getReason())){
+                            stateDTO.setReason("药企端未设置取消原因");
+                        }
                         RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS_YS,
                                 RecipeStatusConstant.NO_DRUG, "取药失败，原因:" + stateDTO.getReason());
 
@@ -448,7 +451,7 @@ public class StandardEnterpriseCallService {
      * 更新处方详细信息
      *
      * @param recipe
-     * @param paramMap
+     * @param updatePrescriptionDTO
      */
     private void updateRecipeDetainInfo(Recipe recipe, UpdatePrescriptionDTO updatePrescriptionDTO) throws Exception {
         List<StandardRecipeDetailDTO> list = updatePrescriptionDTO.getDetails();
