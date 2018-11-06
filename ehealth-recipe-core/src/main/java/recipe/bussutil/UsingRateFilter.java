@@ -1,5 +1,6 @@
 package recipe.bussutil;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.constant.CacheConstant;
 import recipe.util.RedisClient;
@@ -16,6 +17,8 @@ public class UsingRateFilter {
     private static RedisClient redisClient;
 
     public static String filter(int organId, String filed) {
-        return redisClient.hget(CacheConstant.KEY_ORGAN_USINGRATE + organId, filed);
+        String val = redisClient.hget(CacheConstant.KEY_ORGAN_USINGRATE + organId, filed);
+        //默认 必要时
+        return StringUtils.isEmpty(val) ? "prn" : val;
     }
 }
