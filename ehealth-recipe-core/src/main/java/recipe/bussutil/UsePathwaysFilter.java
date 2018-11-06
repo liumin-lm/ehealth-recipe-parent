@@ -13,11 +13,8 @@ import recipe.util.RedisClient;
  */
 public class UsePathwaysFilter {
 
-    @Autowired
-    private static RedisClient redisClient;
-
     public static String filter(int organId, String filed) {
-        String val = redisClient.hget(CacheConstant.KEY_ORGAN_USEPATHWAYS + organId, filed);
+        String val =  RedisClient.instance().hget(CacheConstant.KEY_ORGAN_USEPATHWAYS + organId, filed);
         //默认 遵医嘱
         return StringUtils.isEmpty(val) ? "m.di" : val;
     }
