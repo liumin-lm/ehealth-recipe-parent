@@ -81,6 +81,7 @@ public class RecipePreserveService {
      * @param pattern
      * @return
      */
+    @RpcService
     public Map<String, Object> redisScanForHash(String key, String pattern){
         return redisClient.hScan(key, 10000, pattern);
     }
