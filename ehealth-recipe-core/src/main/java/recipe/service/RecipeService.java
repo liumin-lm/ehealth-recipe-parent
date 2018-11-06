@@ -42,6 +42,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.RecipeUtil;
@@ -55,11 +56,13 @@ import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateRecipeStatusFromHisCallable;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
+import recipe.util.RedisClient;
 
 import java.math.BigDecimal;
 import java.util.*;
 
 import static ctd.persistence.DAOFactory.getDAO;
+import static org.apache.poi.ss.formula.functions.NumericFunction.LOG;
 
 /**
  * 处方服务类
@@ -88,6 +91,10 @@ public class RecipeService {
     private static IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
 
     private ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
+
+    @Autowired
+    private RedisClient redisClient;
+
     /**
      * 药师审核不通过
      */
@@ -1909,11 +1916,28 @@ public class RecipeService {
 
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
             if (RecipeStatusConstant.READY_CHECK_YS == status) {
-                //如果处方 在待药师审核状态 给对应机构的药师进行消息推送
-                RecipeMsgService.batchSendMsg(recipeId, status);
-                if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())) {
-                    //进行身边医生消息推送
-                    RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_READYCHECK_4HIS, dbRecipe);
+                Set organIdList = redisClient.sMembers(CacheConstant.KEY_SKIP_YSCHECK_LIST);
+                if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(dbRecipe.getClinicOrgan().toString())) {
+                    RecipeCheckService checkService = ApplicationUtils.getRecipeService(RecipeCheckService.class);
+                    //跳过人工审核
+                    CheckYsInfoBean checkResult = new CheckYsInfoBean();
+                    checkResult.setRecipeId(recipeId);
+                    checkResult.setCheckDoctorId(dbRecipe.getDoctor());
+                    checkResult.setCheckOrganId(dbRecipe.getClinicOrgan());
+                    try {
+                        checkService.autoPassForCheckYs(checkResult);
+                    } catch (Exception e) {
+                        LOGGER.error("updateRecipePayResultImplForOrder 药师自动审核失败. recipeId={}", recipeId);
+                        RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), status,
+                                "updateRecipePayResultImplForOrder 药师自动审核失败:" + e.getMessage());
+                    }
+                }else {
+                    //如果处方 在待药师审核状态 给对应机构的药师进行消息推送
+                    RecipeMsgService.batchSendMsg(recipeId, status);
+                    if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())) {
+                        //进行身边医生消息推送
+                        RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_READYCHECK_4HIS, dbRecipe);
+                    }
                 }
             }
             if (RecipeStatusConstant.CHECK_PASS_YS == status) {
