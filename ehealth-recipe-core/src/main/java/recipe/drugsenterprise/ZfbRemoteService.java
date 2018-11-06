@@ -30,8 +30,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.constant.CacheConstant;
 import recipe.constant.DrugEnterpriseConstant;
-import recipe.constant.ParameterConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.ZfbDrugDTO;
 import recipe.drugsenterprise.bean.ZfbRecipeDTO;
@@ -357,12 +357,12 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
     @Override
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-        String testData = redisClient.get(ParameterConstant.KEY_PHARYACY_TEST_DATA);
+        String testData = redisClient.get(CacheConstant.KEY_PHARYACY_TEST_DATA);
         if (StringUtils.isNotEmpty(testData)) {
             List<DepDetailBean> backList = Lists.newArrayList();
             List<Map> list = JSONUtils.parse(testData, List.class);
             DepDetailBean bean;
-            for(Map map : list){
+            for (Map map : list) {
                 bean = new DepDetailBean();
                 try {
                     BeanUtils.populate(bean, map);

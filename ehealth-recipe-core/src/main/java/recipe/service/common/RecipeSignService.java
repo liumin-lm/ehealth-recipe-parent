@@ -14,19 +14,23 @@ import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.bean.CheckYsInfoBean;
 import recipe.constant.*;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.*;
 import recipe.util.MapValueUtil;
+import recipe.util.RedisClient;
 import recipe.util.RegexUtils;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author： 0184/yu_yun
@@ -45,6 +49,8 @@ public class RecipeSignService {
     @Autowired
     private RecipeDAO recipeDAO;
 
+    @Autowired
+    private RedisClient redisClient;
 
     @RpcService
     public RecipeStandardResTO<Map> sign(Integer recipeId, RecipeStandardReqTO request) {
@@ -208,14 +214,27 @@ public class RecipeSignService {
 //        }
         }
 
-        //发送处方给相应药企，所选药企查询的是订单内数据，药企推送在药师审核完成后推送
-        /*RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-        DrugEnterpriseResult drugEnterpriseResult = service.pushSingleRecipeInfoWithDepId(recipeId, depId);
-        if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
-            LOG.info("sign 推送药企成功, recipeId={}", recipeId);
-        } else {
-            LOG.info("sign 推送药企失败, recipeId={}, msg={}", recipeId, drugEnterpriseResult.getMsg());
-        }*/
+        //根据配置判断是否需要人工审核, 配送到家处理在支付完成后回调 RecipeOrderService finishOrderPay
+        if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) || RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)) {
+            Set organIdList = redisClient.sMembers(CacheConstant.KEY_SKIP_YSCHECK_LIST);
+            if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(dbRecipe.getClinicOrgan().toString())) {
+                RecipeCheckService checkService = ApplicationUtils.getRecipeService(RecipeCheckService.class);
+                //不用发药师消息
+                sendYsCheck = false;
+                //跳过人工审核
+                CheckYsInfoBean checkResult = new CheckYsInfoBean();
+                checkResult.setRecipeId(recipeId);
+                checkResult.setCheckDoctorId(dbRecipe.getDoctor());
+                checkResult.setCheckOrganId(dbRecipe.getClinicOrgan());
+                try {
+                    checkService.autoPassForCheckYs(checkResult);
+                } catch (Exception e) {
+                    LOG.error("sign 药师自动审核失败. recipeId={}", recipeId);
+                    RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), status,
+                            "sign 药师自动审核失败:" + e.getMessage());
+                }
+            }
+        }
 
         //设置其他参数
         response.setData(ImmutableMap.of("orderId", order.getOrderId()));
