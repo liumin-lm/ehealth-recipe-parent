@@ -89,6 +89,11 @@ public class RecipePreserveService {
     }
 
     @RpcService
+    public Object redisGetForHash(String key, String filed) {
+        return redisClient.hget(key, filed);
+    }
+
+    @RpcService
     public boolean redisAddForHash(String key, String filed, String value) {
         return redisClient.hset(key, filed, value);
     }
