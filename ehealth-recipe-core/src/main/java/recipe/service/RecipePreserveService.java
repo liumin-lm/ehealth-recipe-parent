@@ -18,6 +18,7 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.util.RedisClient;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -74,6 +75,15 @@ public class RecipePreserveService {
         return doctorService.getBeanByDoctorId(doctorId);
     }
 
+    /**
+     * hash操作
+     * @param key
+     * @param pattern
+     * @return
+     */
+    public Map<String, Object> redisScanForHash(String key, String pattern){
+        return redisClient.hScan(key, 10000, pattern);
+    }
 
     /**
      * Set操作
