@@ -18,6 +18,7 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.util.RedisClient;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * company: ngarihealth
@@ -73,6 +74,34 @@ public class RecipePreserveService {
         return doctorService.getBeanByDoctorId(doctorId);
     }
 
+
+    /**
+     * Set操作
+     * @param key
+     * @param organId
+     */
+    @RpcService
+    public void redisAddForSet(String key, String organId){
+         redisClient.sAdd(key, organId);
+    }
+
+    @RpcService
+    public Set redisGetForSet(String key){
+        return redisClient.sMembers(key);
+    }
+
+    @RpcService
+    public Long redisRemoveForSet(String key, String organId){
+        return redisClient.sRemove(key, organId);
+    }
+
+
+    /**
+     * 以下为key的操作
+     * @param key
+     * @param val
+     * @param timeout
+     */
     @RpcService
     public void redisForAdd(String key, String val, Long timeout){
         if(null == timeout || Long.valueOf(-1L).equals(timeout)){
