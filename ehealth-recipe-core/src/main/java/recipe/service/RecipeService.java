@@ -1916,7 +1916,7 @@ public class RecipeService {
 
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
             if (RecipeStatusConstant.READY_CHECK_YS == status) {
-                Set organIdList = redisClient.sMembers(CacheConstant.KEY_SKIP_YSCHECK_LIST);
+                Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_SKIP_YSCHECK_LIST);
                 if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(dbRecipe.getClinicOrgan().toString())) {
                     RecipeCheckService checkService = ApplicationUtils.getRecipeService(RecipeCheckService.class);
                     //跳过人工审核

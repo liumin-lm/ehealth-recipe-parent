@@ -216,7 +216,7 @@ public class RecipeSignService {
 
         //根据配置判断是否需要人工审核, 配送到家处理在支付完成后回调 RecipeOrderService finishOrderPay
         if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) || RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)) {
-            Set organIdList = redisClient.sMembers(CacheConstant.KEY_SKIP_YSCHECK_LIST);
+            Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_SKIP_YSCHECK_LIST);
             if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(dbRecipe.getClinicOrgan().toString())) {
                 RecipeCheckService checkService = ApplicationUtils.getRecipeService(RecipeCheckService.class);
                 //不用发药师消息
