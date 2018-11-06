@@ -1910,7 +1910,8 @@ public class RecipeService {
                     || RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())) {
                 //HIS消息发送
                 RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-                hisService.recipeDrugTake(recipeId, payFlag, result);
+                //HIS调用失败不应该导致业务失败
+                hisService.recipeDrugTake(recipeId, payFlag, null);
             }
         }
 
