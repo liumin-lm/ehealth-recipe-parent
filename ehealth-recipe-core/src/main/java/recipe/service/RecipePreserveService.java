@@ -13,6 +13,7 @@ import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.constant.CacheConstant;
 import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.util.RedisClient;
@@ -77,63 +78,99 @@ public class RecipePreserveService {
 
     /**
      * hash操作
+     *
      * @param key
      * @param pattern
      * @return
      */
     @RpcService
-    public Map<String, Object> redisScanForHash(String key, String pattern){
+    public Map<String, Object> redisScanForHash(String key, String pattern) {
         return redisClient.hScan(key, 10000, pattern);
+    }
+
+    @RpcService
+    public boolean redisAddForHash(String key, String filed, String value) {
+        return redisClient.hset(key, filed, value);
     }
 
     /**
      * Set操作
+     *
      * @param key
      * @param organId
      */
     @RpcService
-    public void redisAddForSet(String key, String organId){
-         redisClient.sAdd(key, organId);
+    public void redisAddForSet(String key, String organId) {
+        redisClient.sAdd(key, organId);
     }
 
     @RpcService
-    public Set redisGetForSet(String key){
+    public Set redisGetForSet(String key) {
         return redisClient.sMembers(key);
     }
 
     @RpcService
-    public Long redisRemoveForSet(String key, String organId){
+    public Long redisRemoveForSet(String key, String organId) {
         return redisClient.sRemove(key, organId);
     }
 
 
     /**
      * 以下为key的操作
+     *
      * @param key
      * @param val
      * @param timeout
      */
     @RpcService
-    public void redisForAdd(String key, String val, Long timeout){
-        if(null == timeout || Long.valueOf(-1L).equals(timeout)){
+    public void redisForAdd(String key, String val, Long timeout) {
+        if (null == timeout || Long.valueOf(-1L).equals(timeout)) {
             redisClient.setForever(key, val);
-        }else {
+        } else {
             redisClient.setEX(key, timeout, val);
         }
     }
 
     @RpcService
-    public boolean redisForAddNx(String key, String val){
+    public boolean redisForAddNx(String key, String val) {
         return redisClient.setNX(key, val);
     }
 
     @RpcService
-    public long redisForDel(String key){
+    public long redisForDel(String key) {
         return redisClient.del(key);
     }
 
     @RpcService
-    public Object redisGet(String key){
+    public Object redisGet(String key) {
         return redisClient.get(key);
+    }
+
+    /************************************以下为一些数据初始化操作******************************/
+
+    /**
+     * 机构用药频次初始化， 缓存内数据结构应该为 key为xxx_organId， map的key为his内编码，value为平台内编码
+     * @param organId
+     * @param map
+     */
+    @RpcService
+    public void initUsingRate(int organId, Map<String, String> map) {
+        Set<Map.Entry<String, String>> set = map.entrySet();
+        for (Map.Entry<String, String> entry : set) {
+            redisAddForHash(CacheConstant.KEY_ORGAN_USINGRATE + organId, entry.getKey(), entry.getValue());
+        }
+    }
+
+    /**
+     * 机构用药方式初始化，缓存内数据结构应该为 key为xxx_organId， map的key为his内编码，value为平台内编码
+     * @param organId
+     * @param map
+     */
+    @RpcService
+    public void initUsePathways(int organId, Map<String, String> map) {
+        Set<Map.Entry<String, String>> set = map.entrySet();
+        for (Map.Entry<String, String> entry : set) {
+            redisAddForHash(CacheConstant.KEY_ORGAN_USEPATHWAYS + organId, entry.getKey(), entry.getValue());
+        }
     }
 }

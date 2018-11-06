@@ -20,6 +20,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.bussutil.UsePathwaysFilter;
+import recipe.bussutil.UsingRateFilter;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeSystemConstant;
@@ -145,9 +147,9 @@ public class PrescribeProcess {
         boolean isTcmType = (RecipeBussConstant.RECIPETYPE_TCM.equals(recipeType)
                 || RecipeBussConstant.RECIPETYPE_HP.equals(recipeType)) ? true : false;
 
+        Integer clinicOrgan = Integer.parseInt(hospitalRecipeDTO.getClinicOrgan());
         //从base_organdruglist获取平台药品ID数据
-        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(
-                Integer.parseInt(hospitalRecipeDTO.getClinicOrgan()), organDrugCodeList);
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(clinicOrgan, organDrugCodeList);
         if (CollectionUtils.isNotEmpty(organDrugList) && organDrugCodeList.size() == organDrugList.size()) {
             //某机构内，药品编码与药品ID关系
             Map<Integer, String> codeIdRel = Maps.newHashMap();
@@ -166,6 +168,8 @@ public class PrescribeProcess {
 
                 RecipeDetailBean recipedetail;
                 DrugList drug;
+                String usingRate;
+                String usePathways;
                 Date now = DateTime.now().toDate();
                 for (HospitalDrugDTO hosDetail : hosDetailList) {
                     drug = drugRel.get(hosDetail.getDrugCode());
@@ -195,20 +199,20 @@ public class PrescribeProcess {
                         recipedetail.setStatus(1);
                         //中药或者膏方
                         if (isTcmType) {
+                            usingRate = UsingRateFilter.filter(clinicOrgan, hospitalRecipeDTO.getTcmUsingRate());
+                            usePathways = UsePathwaysFilter.filter(clinicOrgan, hospitalRecipeDTO.getTcmUsePathways());
                             //用法
-                            recipedetail.setUsePathways(StringUtils.defaultString(hospitalRecipeDTO.getTcmUsePathways(),
-                                    drug.getUsePathways()));
+                            recipedetail.setUsePathways(StringUtils.defaultString(usePathways, drug.getUsePathways()));
                             //频次
-                            recipedetail.setUsingRate(StringUtils.defaultString(hospitalRecipeDTO.getTcmUsingRate(),
-                                    drug.getUsingRate()));
+                            recipedetail.setUsingRate(StringUtils.defaultString(usingRate, drug.getUsingRate()));
                         } else {
-                            //TODO 西药等如果医院不做处理需要进行字典转换
+                            //西药等如果医院不做处理需要进行字典转换
+                            usingRate = UsingRateFilter.filter(clinicOrgan, hosDetail.getUsingRate());
+                            usePathways = UsePathwaysFilter.filter(clinicOrgan, hosDetail.getUsePathways());
                             //用法
-                            recipedetail.setUsePathways(StringUtils.defaultString(hosDetail.getUsePathways(),
-                                    drug.getUsePathways()));
+                            recipedetail.setUsePathways(StringUtils.defaultString(usePathways, drug.getUsePathways()));
                             //频次
-                            recipedetail.setUsingRate(StringUtils.defaultString(hosDetail.getUsingRate(),
-                                    drug.getUsingRate()));
+                            recipedetail.setUsingRate(StringUtils.defaultString(usingRate, drug.getUsingRate()));
                         }
 
                         //设置价格

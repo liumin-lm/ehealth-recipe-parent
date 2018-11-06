@@ -18,4 +18,15 @@ public class CacheConstant {
      */
     public static final String KEY_SKIP_YSCHECK_LIST = "RCP_SKIP_YSCHECK_LIST";
 
+    /**
+     * 机构用药频次前缀，缓存中key实际为 RCP_ORGAN_USINGRATE_100100
+     */
+    public static final String KEY_ORGAN_USINGRATE = "RCP_ORGAN_USINGRATE_";
+
+    /**
+     * 机构用药方式前缀，缓存中key实际为 RCP_ORGAN_USEPATHWAYS_100100
+     */
+    public static final String KEY_ORGAN_USEPATHWAYS = "RCP_ORGAN_USEPATHWAYS_";
+
+
 }
