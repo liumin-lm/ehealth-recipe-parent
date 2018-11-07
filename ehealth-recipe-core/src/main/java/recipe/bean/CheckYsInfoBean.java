@@ -21,6 +21,8 @@ public class CheckYsInfoBean {
 
     private Integer checkDoctorId;
 
+    private Integer checkOrganId;
+
     private List<RecipeCheckDetail> checkDetailList;
 
     public boolean isRs() {
@@ -69,5 +71,13 @@ public class CheckYsInfoBean {
 
     public void setCheckDoctorId(Integer checkDoctorId) {
         this.checkDoctorId = checkDoctorId;
+    }
+
+    public Integer getCheckOrganId() {
+        return checkOrganId;
+    }
+
+    public void setCheckOrganId(Integer checkOrganId) {
+        this.checkOrganId = checkOrganId;
     }
 }

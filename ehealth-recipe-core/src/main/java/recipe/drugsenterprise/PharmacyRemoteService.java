@@ -1,17 +1,21 @@
 package recipe.drugsenterprise;
 
+import com.google.common.collect.Lists;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
+import ctd.util.JSONUtils;
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.constant.CacheConstant;
 import recipe.constant.DrugEnterpriseConstant;
-import recipe.constant.RecipeBussConstant;
+import recipe.util.RedisClient;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author： 0184/yu_yun
@@ -25,6 +29,9 @@ public class PharmacyRemoteService extends AccessDrugEnterpriseService {
      * logger
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(PharmacyRemoteService.class);
+
+    @Autowired
+    private RedisClient redisClient;
 
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
@@ -58,20 +65,22 @@ public class PharmacyRemoteService extends AccessDrugEnterpriseService {
     @Override
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-        List<DepDetailBean> list = new ArrayList<>(5);
-        DepDetailBean detailBean;
-        for (int i = 0; i < 5; i++) {
-            detailBean = new DepDetailBean();
-            detailBean.setDepId(enterprise.getId());
-            detailBean.setDepName("测试大药房" + i);
-            detailBean.setPharmacyCode("cedyf" + i);
-            detailBean.setRecipeFee(new BigDecimal((int) (Math.random() * 100)));
-            detailBean.setAddress("东大街江南大道滨盛路1189潮人汇9楼 ");
-            detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_TFDS));
+        String testData = redisClient.get(CacheConstant.KEY_PHARYACY_TEST_DATA);
+        if (StringUtils.isNotEmpty(testData)) {
+            List<DepDetailBean> backList = Lists.newArrayList();
+            List<Map> list = JSONUtils.parse(testData, List.class);
+            DepDetailBean bean;
+            for (Map map : list) {
+                bean = new DepDetailBean();
+                try {
+                    BeanUtils.populate(bean, map);
+                } catch (Exception e) {
 
-            list.add(detailBean);
+                }
+                backList.add(bean);
+            }
+            result.setObject(backList);
         }
-        result.setObject(list);
         return result;
     }
 

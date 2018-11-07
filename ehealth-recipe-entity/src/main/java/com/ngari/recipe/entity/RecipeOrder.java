@@ -176,6 +176,17 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "完整地址")
     private String completeAddress;
 
+    @ItemProperty(alias = "取消原因")
+    private String cancelReason;
+
+    @Column(name = "cancelReason")
+    public String getCancelReason() {
+        return cancelReason;
+    }
+
+    public void setCancelReason(String cancelReason) {
+        this.cancelReason = cancelReason;
+    }
 
     public RecipeOrder() {
         initData();

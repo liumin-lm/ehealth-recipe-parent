@@ -6,12 +6,13 @@
     <parent>
         <groupId>ngari</groupId>
         <artifactId>ehealth-parent</artifactId>
-        <version>1.6.2.master-SNAPSHOT</version>
+        <version>1.6.3.hotfix-20181025-SNAPSHOT</version>
     </parent>
     <artifactId>ehealth-recipe-parent</artifactId>
     <name>处方</name>
     <description>处方项目</description>
     <packaging>pom</packaging>
+    <version>1.6.4.hotfix-20181029-SNAPSHOT</version>
     <modules>
         <module>ehealth-recipe-entity</module>
         <module>ehealth-recipe-api</module>
@@ -43,15 +44,20 @@
                 <version>${ssdev.version}</version>
             </dependency>
             <dependency>
-                <groupId>ssdev</groupId>
-                <artifactId>ssdev-es</artifactId>
-                <version>1.1.1-SNAPSHOT</version>
+                <groupId>${project.parent.groupId}</groupId>
+                <artifactId>ehealth-es-api</artifactId>
+                <version>2.3.2-SNAPSHOT</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ssdev</groupId>
                         <artifactId>ssdev-mvc</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>jsr305</artifactId>
+                <version>3.0.2</version>
             </dependency>
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
@@ -162,6 +168,11 @@
                 <version>0.8.0</version>
             </dependency>
             <dependency>
+                <groupId>commons-lang</groupId>
+                <artifactId>commons-lang</artifactId>
+                <version>2.6</version>
+            </dependency>
+            <dependency>
                 <groupId>javax.xml.rpc</groupId>
                 <artifactId>javax.xml.rpc-api</artifactId>
                 <version>1.1.1</version>
@@ -215,6 +226,12 @@
                 <groupId>javax.activation</groupId>
                 <artifactId>activation</artifactId>
                 <version>1.1</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.servlet</groupId>
+                <artifactId>javax.servlet-api</artifactId>
+                <version>3.1.0</version>
+                <scope>provider</scope>
             </dependency>
             <dependency>
                 <groupId>junit</groupId>

@@ -301,6 +301,18 @@ public class RedisClient {
         });
     }
 
+    public <T> void setForever(final String key, final T val) {
+        redisTemplate.execute(new RedisCallback<Void>() {
+            public Void doInRedis(RedisConnection connection)
+                    throws DataAccessException {
+                byte[] key_ = keySerializer.serialize(key);
+                byte[] value_ = valueSerializer.serialize(val);
+                connection.set(key_, value_);
+                return null;
+            }
+        });
+    }
+
     public boolean exists(final String key) {
         return (boolean) redisTemplate.execute(new RedisCallback<Boolean>() {
             public Boolean doInRedis(RedisConnection connection)
