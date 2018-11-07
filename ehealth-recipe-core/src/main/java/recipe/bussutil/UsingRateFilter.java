@@ -14,9 +14,13 @@ import recipe.util.RedisClient;
  */
 public class UsingRateFilter {
 
-    public static String filter(int organId, String filed) {
-        String val = RedisClient.instance().hget(CacheConstant.KEY_ORGAN_USINGRATE + organId, filed);
-        //默认 必要时
-        return StringUtils.isEmpty(val) ? "prn" : val;
+    public static String filter(int organId, String field) {
+        String val = RedisClient.instance().hget(CacheConstant.KEY_ORGAN_USINGRATE + organId, field);
+        /**
+         * 查不到的原因
+         * 1 因为field有可能在平台没有新增，则返回实际值
+         * 2 没有进行字典对照，则返回实际值
+         */
+        return StringUtils.isEmpty(val) ? field : val;
     }
 }

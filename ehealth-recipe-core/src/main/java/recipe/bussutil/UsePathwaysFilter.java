@@ -13,10 +13,14 @@ import recipe.util.RedisClient;
  */
 public class UsePathwaysFilter {
 
-    public static String filter(int organId, String filed) {
-        String val =  RedisClient.instance().hget(CacheConstant.KEY_ORGAN_USEPATHWAYS + organId, filed);
-        //默认 遵医嘱
-        return StringUtils.isEmpty(val) ? "m.di" : val;
+    public static String filter(int organId, String field) {
+        String val =  RedisClient.instance().hget(CacheConstant.KEY_ORGAN_USEPATHWAYS + organId, field);
+        /**
+         * 查不到的原因
+         * 1 因为field有可能在平台没有新增，则返回实际值
+         * 2 没有进行字典对照，则返回实际值
+         */
+        return StringUtils.isEmpty(val) ? field : val;
     }
 
 
