@@ -251,6 +251,9 @@ public class RecipeMsgService {
                 case RECIPE_YS_CHECKPASS_4STH:
                     getHosRecipeInfo(recipe, extendValue);
                     break;
+                case RECIPE_YS_CHECKPASS_4FREEDOM:
+                    getHosRecipeInfo(recipe,extendValue);
+                    break;
                 case RECIPE_YS_CHECKPASS_4TFDS:
                     getHosRecipeInfo(recipe, extendValue);
                     //设置 expireDate 过期时间
