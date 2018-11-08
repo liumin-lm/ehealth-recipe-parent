@@ -144,7 +144,7 @@ public class RecipeSingleService {
                 }
                 //设置其他数据
                 if (RecipeStatusConstant.DELETE == dbRecipe.getStatus()) {
-                    other.put("cancelReason", "HIS作废");
+                    other.put("cancelReason", "由于您已撤销,该处方单已失效");
                 }
                 recipeInfo.put("other", other);
                 //审核不通过设置数据
