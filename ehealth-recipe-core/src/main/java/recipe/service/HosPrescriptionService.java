@@ -111,6 +111,8 @@ public class HosPrescriptionService implements IHosPrescriptionService {
                 orderAttr.put("status", OrderStatusConstant.READY_PAY);
                 orderAttr.put("effective", 0);
                 orderAttr.put("payFlag", recipe.getPayFlag());
+                //接收患者手机信息
+                orderAttr.put("recMobile", hospitalRecipeDTO.getPatientTel());
                 //服务费为0
                 orderAttr.put("registerFee", BigDecimal.ZERO);
                 orderAttr.put("recipeFee", recipe.getTotalMoney());
