@@ -32,6 +32,8 @@ import recipe.util.RegexUtils;
 import java.util.Map;
 import java.util.Set;
 
+import static ctd.persistence.DAOFactory.getDAO;
+
 /**
  * @author： 0184/yu_yun
  * @date： 2018/9/18
@@ -74,7 +76,7 @@ public class RecipeSignService {
         }
 
         //查询订单
-        RecipeOrder order = DAOFactory.getDAO(RecipeOrderDAO.class).getByOrderCode(dbRecipe.getOrderCode());
+        RecipeOrder order = getDAO(RecipeOrderDAO.class).getByOrderCode(dbRecipe.getOrderCode());
         if (null == order) {
             response.setMsg("订单不存在");
             return response;
@@ -147,20 +149,27 @@ public class RecipeSignService {
             response.setMsg("处方订单不存在");
             return response;
         } else {
+            RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+
             //为确保通知能送达用户手机需要重置下手机信息
             if (StringUtils.isEmpty(patientTel)) {
-                PatientService patientService = BasicAPI.getService(PatientService.class);
-                PatientDTO patient = patientService.get(dbRecipe.getMpiid());
-                if (null != patient) {
-                    patientTel = patient.getMobile();
-                    patientAddress = patient.getAddress();
-                } else {
-                    LOG.warn("sign 患者不存在，可能导致短信无法通知. recipeId={}, mpiId={}", recipeId, dbRecipe.getMpiid());
+                RecipeOrder dbOrder = DAOFactory.getDAO(RecipeOrderDAO.class).getByOrderCode(dbRecipe.getOrderCode());
+                //优先从order表中获取，his上传处方时会记录his上传的患者手机号
+                if(null != dbOrder && StringUtils.isNotEmpty(dbOrder.getRecMobile())){
+                    patientTel = dbOrder.getRecMobile();
+                }else {
+                    PatientService patientService = BasicAPI.getService(PatientService.class);
+                    PatientDTO patient = patientService.get(dbRecipe.getMpiid());
+                    if (null != patient) {
+                        patientTel = patient.getMobile();
+                        patientAddress = patient.getAddress();
+                    } else {
+                        LOG.warn("sign 患者不存在，可能导致短信无法通知. recipeId={}, mpiId={}", recipeId, dbRecipe.getMpiid());
+                    }
                 }
             }
 
             // 修改订单一些参数
-            RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
             Map<String, Object> orderAttr = Maps.newHashMap();
             orderAttr.put("enterpriseId", depId);
             //未支付不知道支付方式
