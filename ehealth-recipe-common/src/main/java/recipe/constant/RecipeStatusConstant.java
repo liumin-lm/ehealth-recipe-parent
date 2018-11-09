@@ -35,7 +35,7 @@ public class RecipeStatusConstant {
     public static final int CHECK_PASS = 2;
 
     /**
-     * 已支付
+     * 已支付 (HIS回传状态)
      */
     public static final int HAVE_PAY = 3;
 

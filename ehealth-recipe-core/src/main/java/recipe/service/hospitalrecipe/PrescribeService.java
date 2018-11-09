@@ -226,8 +226,7 @@ public class PrescribeService {
             recipe.setFromflag(RecipeBussConstant.FROMFLAG_HIS_USE);
 
             //创建详情数据
-            List<RecipeDetailBean> details = null;
-            details = PrescribeProcess.convertNgariDetail(hospitalRecipeDTO);
+            List<RecipeDetailBean> details = PrescribeProcess.convertNgariDetail(hospitalRecipeDTO);
             if (CollectionUtils.isEmpty(details)) {
                 LOG.warn("createPrescription 药品详情转换错误, hospitalRecipeDTO={}", JSONUtils.toString(hospitalRecipeDTO));
                 result.setMsg("药品详情转换错误");

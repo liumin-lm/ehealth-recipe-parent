@@ -14,19 +14,25 @@ import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.bean.CheckYsInfoBean;
 import recipe.constant.*;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.*;
 import recipe.util.MapValueUtil;
+import recipe.util.RedisClient;
 import recipe.util.RegexUtils;
 
 import java.util.Map;
+import java.util.Set;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * @author： 0184/yu_yun
@@ -45,6 +51,8 @@ public class RecipeSignService {
     @Autowired
     private RecipeDAO recipeDAO;
 
+    @Autowired
+    private RedisClient redisClient;
 
     @RpcService
     public RecipeStandardResTO<Map> sign(Integer recipeId, RecipeStandardReqTO request) {
@@ -68,7 +76,7 @@ public class RecipeSignService {
         }
 
         //查询订单
-        RecipeOrder order = DAOFactory.getDAO(RecipeOrderDAO.class).getByOrderCode(dbRecipe.getOrderCode());
+        RecipeOrder order = getDAO(RecipeOrderDAO.class).getByOrderCode(dbRecipe.getOrderCode());
         if (null == order) {
             response.setMsg("订单不存在");
             return response;
@@ -141,20 +149,27 @@ public class RecipeSignService {
             response.setMsg("处方订单不存在");
             return response;
         } else {
+            RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+
             //为确保通知能送达用户手机需要重置下手机信息
             if (StringUtils.isEmpty(patientTel)) {
-                PatientService patientService = BasicAPI.getService(PatientService.class);
-                PatientDTO patient = patientService.get(dbRecipe.getMpiid());
-                if (null != patient) {
-                    patientTel = patient.getMobile();
-                    patientAddress = patient.getAddress();
-                } else {
-                    LOG.warn("sign 患者不存在，可能导致短信无法通知. recipeId={}, mpiId={}", recipeId, dbRecipe.getMpiid());
+                RecipeOrder dbOrder = DAOFactory.getDAO(RecipeOrderDAO.class).getByOrderCode(dbRecipe.getOrderCode());
+                //优先从order表中获取，his上传处方时会记录his上传的患者手机号
+                if(null != dbOrder && StringUtils.isNotEmpty(dbOrder.getRecMobile())){
+                    patientTel = dbOrder.getRecMobile();
+                }else {
+                    PatientService patientService = BasicAPI.getService(PatientService.class);
+                    PatientDTO patient = patientService.get(dbRecipe.getMpiid());
+                    if (null != patient) {
+                        patientTel = patient.getMobile();
+                        patientAddress = patient.getAddress();
+                    } else {
+                        LOG.warn("sign 患者不存在，可能导致短信无法通知. recipeId={}, mpiId={}", recipeId, dbRecipe.getMpiid());
+                    }
                 }
             }
 
             // 修改订单一些参数
-            RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
             Map<String, Object> orderAttr = Maps.newHashMap();
             orderAttr.put("enterpriseId", depId);
             //未支付不知道支付方式
@@ -208,14 +223,27 @@ public class RecipeSignService {
 //        }
         }
 
-        //发送处方给相应药企，所选药企查询的是订单内数据，药企推送在药师审核完成后推送
-        /*RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-        DrugEnterpriseResult drugEnterpriseResult = service.pushSingleRecipeInfoWithDepId(recipeId, depId);
-        if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
-            LOG.info("sign 推送药企成功, recipeId={}", recipeId);
-        } else {
-            LOG.info("sign 推送药企失败, recipeId={}, msg={}", recipeId, drugEnterpriseResult.getMsg());
-        }*/
+        //根据配置判断是否需要人工审核, 配送到家处理在支付完成后回调 RecipeOrderService finishOrderPay
+        if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) || RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)) {
+            Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_SKIP_YSCHECK_LIST);
+            if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(dbRecipe.getClinicOrgan().toString())) {
+                RecipeCheckService checkService = ApplicationUtils.getRecipeService(RecipeCheckService.class);
+                //不用发药师消息
+                sendYsCheck = false;
+                //跳过人工审核
+                CheckYsInfoBean checkResult = new CheckYsInfoBean();
+                checkResult.setRecipeId(recipeId);
+                checkResult.setCheckDoctorId(dbRecipe.getDoctor());
+                checkResult.setCheckOrganId(dbRecipe.getClinicOrgan());
+                try {
+                    checkService.autoPassForCheckYs(checkResult);
+                } catch (Exception e) {
+                    LOG.error("sign 药师自动审核失败. recipeId={}", recipeId);
+                    RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), status,
+                            "sign 药师自动审核失败:" + e.getMessage());
+                }
+            }
+        }
 
         //设置其他参数
         response.setData(ImmutableMap.of("orderId", order.getOrderId()));

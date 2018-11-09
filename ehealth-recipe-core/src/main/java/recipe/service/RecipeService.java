@@ -42,6 +42,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.RecipeUtil;
@@ -55,11 +56,13 @@ import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateRecipeStatusFromHisCallable;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
+import recipe.util.RedisClient;
 
 import java.math.BigDecimal;
 import java.util.*;
 
 import static ctd.persistence.DAOFactory.getDAO;
+import static org.apache.poi.ss.formula.functions.NumericFunction.LOG;
 
 /**
  * 处方服务类
@@ -88,6 +91,10 @@ public class RecipeService {
     private static IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
 
     private ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
+
+    @Autowired
+    private RedisClient redisClient;
+
     /**
      * 药师审核不通过
      */
@@ -260,8 +267,8 @@ public class RecipeService {
     /**
      * 保存处方
      *
-     * @param recipe  处方对象
-     * @param details 处方详情
+     * @param recipeBean  处方对象
+     * @param detailBeanList 处方详情
      * @return int
      */
     @RpcService
@@ -643,7 +650,7 @@ public class RecipeService {
     /**
      * 发送只能配送处方，当医院库存不足时医生略过库存提醒后调用
      *
-     * @param recipe
+     * @param recipeBean
      * @return
      */
     @RpcService
@@ -747,8 +754,8 @@ public class RecipeService {
     /**
      * 修改处方
      *
-     * @param recipe        处方对象
-     * @param recipedetails 处方详情
+     * @param recipeBean       处方对象
+     * @param detailBeanList   处方详情
      */
     @RpcService
     public Integer updateRecipeAndDetail(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
@@ -804,8 +811,8 @@ public class RecipeService {
     /**
      * 新版签名服务
      *
-     * @param recipe  处方
-     * @param details 详情
+     * @param recipeBean  处方
+     * @param detailBeanList 详情
      * @return Map<String, Object>
      * @paran consultId  咨询单Id
      */
@@ -1159,6 +1166,12 @@ public class RecipeService {
                     //相应订单处理
                     order = orderDAO.getOrderByRecipeId(recipeId);
                     orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+                    if (recipe.getFromflag() == RecipeBussConstant.FROMFLAG_HIS_USE){
+                        orderDAO.updateByOrdeCode(order.getOrderCode(),ImmutableMap.of("cancelReason", "患者未在规定时间内支付，该处方单已失效"));
+                        //发送超时取消消息
+                        //${sendOrgan}：抱歉，您的处方单由于超过${overtime}未处理，处方单已失效。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
+                        RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_CANCEL_4HIS, recipe);
+                    }
 
                     //变更处方状态
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, ImmutableMap.of("chooseFlag", 1));
@@ -1897,17 +1910,35 @@ public class RecipeService {
                     || RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())) {
                 //HIS消息发送
                 RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-                hisService.recipeDrugTake(recipeId, payFlag, result);
+                //HIS调用失败不应该导致业务失败
+                hisService.recipeDrugTake(recipeId, payFlag, null);
             }
         }
 
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
             if (RecipeStatusConstant.READY_CHECK_YS == status) {
-                //如果处方 在待药师审核状态 给对应机构的药师进行消息推送
-                RecipeMsgService.batchSendMsg(recipeId, status);
-                if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())) {
-                    //进行身边医生消息推送
-                    RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_READYCHECK_4HIS, dbRecipe);
+                Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_SKIP_YSCHECK_LIST);
+                if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(dbRecipe.getClinicOrgan().toString())) {
+                    RecipeCheckService checkService = ApplicationUtils.getRecipeService(RecipeCheckService.class);
+                    //跳过人工审核
+                    CheckYsInfoBean checkResult = new CheckYsInfoBean();
+                    checkResult.setRecipeId(recipeId);
+                    checkResult.setCheckDoctorId(dbRecipe.getDoctor());
+                    checkResult.setCheckOrganId(dbRecipe.getClinicOrgan());
+                    try {
+                        checkService.autoPassForCheckYs(checkResult);
+                    } catch (Exception e) {
+                        LOGGER.error("updateRecipePayResultImplForOrder 药师自动审核失败. recipeId={}", recipeId);
+                        RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), status,
+                                "updateRecipePayResultImplForOrder 药师自动审核失败:" + e.getMessage());
+                    }
+                }else {
+                    //如果处方 在待药师审核状态 给对应机构的药师进行消息推送
+                    RecipeMsgService.batchSendMsg(recipeId, status);
+                    if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())) {
+                        //进行身边医生消息推送
+                        RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_READYCHECK_4HIS, dbRecipe);
+                    }
                 }
             }
             if (RecipeStatusConstant.CHECK_PASS_YS == status) {
@@ -1923,7 +1954,7 @@ public class RecipeService {
     /**
      * 判断是否可以线上支付
      *
-     * @param wxAccount 微信帐号
+     * @param acount 微信帐号
      * @param hisStatus true:his启用
      * @return
      */

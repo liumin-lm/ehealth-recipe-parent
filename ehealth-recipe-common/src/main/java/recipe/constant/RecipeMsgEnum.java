@@ -56,6 +56,10 @@ public enum RecipeMsgEnum {
      * fromflag=2的处方药师待审核(当前推送给身边医生)
      */
     RECIPE_YS_READYCHECK_4HIS(117, "RecipeReadyCheckYs4His"),
+    /**
+     * fromflag=2的处方超时未支付
+     */
+    RECIPE_CANCEL_4HIS(118,"RecipeCancel4His"),
 
     /**
      * 默认消息

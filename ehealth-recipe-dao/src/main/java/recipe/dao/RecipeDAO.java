@@ -652,14 +652,14 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("from Recipe where fromflag=1 and signDate between '" + startDt + "' and '" + endDt + "' ");
+                StringBuilder hql = new StringBuilder("from Recipe where signDate between '" + startDt + "' and '" + endDt + "' ");
                 if (cancelStatus == RecipeStatusConstant.NO_PAY) {
                     //超过3天未支付
-                    hql.append(" and status=" + RecipeStatusConstant.CHECK_PASS
+                    hql.append(" and fromflag in (1,2) and status=" + RecipeStatusConstant.CHECK_PASS
                             + " and payFlag=0 and payMode=" + RecipeBussConstant.PAYMODE_ONLINE + " and orderCode is not null ");
                 } else if (cancelStatus == RecipeStatusConstant.NO_OPERATOR) {
                     //超过3天未操作
-                    hql.append(" and status=" + RecipeStatusConstant.CHECK_PASS
+                    hql.append(" and fromflag = 1 and status=" + RecipeStatusConstant.CHECK_PASS
                             + " and chooseFlag=0 ");
                 }
                 Query q = ss.createQuery(hql.toString());

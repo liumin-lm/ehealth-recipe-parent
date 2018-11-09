@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import recipe.ApplicationUtils;
+import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
@@ -103,7 +104,6 @@ public class RecipeSingleService {
 
                 dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(recipeCode, clinicOrgan);
             }
-
             if (null != dbRecipe) {
                 recipeId = dbRecipe.getRecipeId();
                 Map<String, Object> other = Maps.newHashMap();
@@ -137,10 +137,14 @@ public class RecipeSingleService {
                         other.put("depName", order.getDrugStoreName());
                     }
                     other.put("orderId", order.getOrderId());
+                    String cancelReason = order.getCancelReason();
+                    if (StringUtils.isNotEmpty(cancelReason)){
+                        other.put("cancelReason", cancelReason);
+                    }
                 }
                 //设置其他数据
                 if (RecipeStatusConstant.DELETE == dbRecipe.getStatus()) {
-                    other.put("cancelReason", "HIS作废");
+                    other.put("cancelReason", "由于您已撤销,该处方单已失效");
                 }
                 recipeInfo.put("other", other);
                 //审核不通过设置数据
@@ -151,6 +155,7 @@ public class RecipeSingleService {
                     recipeInfo.put("reasonAndDetails", mapList);
                 }
                 recipeInfo.put("notation", getNotation(dbRecipe));
+                recipeInfo.put("statusTxt",getStatusText(dbRecipe,order));
                 response.setData(recipeInfo);
                 response.setCode(RecipeCommonBaseTO.SUCCESS);
             } else {
@@ -235,5 +240,76 @@ public class RecipeSingleService {
         }
 
         return notation;
+    }
+
+    /**
+     * 前端页面状态文案显示
+     *
+     * @param dbRecipe
+     * @return
+     */
+    public String getStatusText(Recipe dbRecipe,RecipeOrder order) {
+        // 根据当前状态返回前端显示状态文案
+        String statusTxt = "";
+        if (order.getStatus() == OrderStatusConstant.CANCEL_AUTO){
+            statusTxt = "已取消";
+            return statusTxt;
+        }
+
+        switch (dbRecipe.getStatus()) {
+            //审核未通过
+            case RecipeStatusConstant.CHECK_NOT_PASS_YS:
+                statusTxt = "已取消";
+                break;
+            case RecipeStatusConstant.CHECK_PASS:
+                //配送到家已支付
+                if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
+                        && Integer.valueOf(0).equals(dbRecipe.getPayFlag())) {
+                    statusTxt = "待支付(请在开方后3日内支付，逾期作废)";
+                }
+                break;
+            //审核通过
+            case RecipeStatusConstant.CHECK_PASS_YS:
+                //患者自选未支付或药店取药未支付
+                if (Integer.valueOf(1).equals(order.getPushFlag())){
+                    statusTxt = "审核通过，第三方已接收";
+
+                }else if (Integer.valueOf(-1).equals(order.getPushFlag())) {
+                    statusTxt = "审核通过，第三方接收失败";
+
+                }
+                break;
+            //待审核
+            case RecipeStatusConstant.READY_CHECK_YS:
+                //购药模式为药店取药或患者自由选择
+                if (RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())
+                || RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode())) {
+                    statusTxt = "已签名，等待药师审核";
+                }else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
+                        && Integer.valueOf(1).equals(dbRecipe.getPayFlag())){
+                    statusTxt = "支付成功，等待药师审核";
+                }
+                break;
+            //待配送--表示药店取药和患者自选支付成功后的药企回调状态
+            case RecipeStatusConstant.WAIT_SEND:
+                if (Integer.valueOf(1).equals(dbRecipe.getPayFlag())
+                        && (RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode())
+                        || RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode()))){
+                    statusTxt = "已支付";
+                }
+                break;
+            //已完成
+            case RecipeStatusConstant.FINISH:
+                if (RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())){
+                    statusTxt = "患者取药完成";
+                }else if (RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode())) {
+                    statusTxt = "处方单已完成";
+                }else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())){
+                    statusTxt = "配送完成";
+                }
+                break;
+        }
+
+        return statusTxt;
     }
 }

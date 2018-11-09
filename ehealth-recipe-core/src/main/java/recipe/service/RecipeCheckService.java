@@ -96,7 +96,7 @@ public class RecipeCheckService {
             List<Integer> organIds = findAPOrganIdsByDoctorId(request.getDoctorId());
             request.setOrganIdList(organIds);
         }
-        if(CollectionUtils.isEmpty(request.getOrganIdList())){
+        if (CollectionUtils.isEmpty(request.getOrganIdList())) {
             return Lists.newArrayList();
         }
         RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
@@ -269,7 +269,7 @@ public class RecipeCheckService {
                 p.setMobile(patient.getMobile());
                 p.setIdcard(hideIdCard(patient.getCertificate()));
                 p.setMpiId(patient.getMpiId());
-            }else{
+            } else {
                 LOGGER.warn("findRecipeAndDetailsAndCheckById patient is null. mpiId={}", recipe.getMpiid());
             }
         } catch (Exception e) {
@@ -293,7 +293,7 @@ public class RecipeCheckService {
         DrugsEnterpriseBean e = new DrugsEnterpriseBean();
         if (enterpriseId != null) {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(enterpriseId);
-            if(null != drugsEnterprise) {
+            if (null != drugsEnterprise) {
                 e.setName(drugsEnterprise.getName());
                 e.setPayModeSupport(drugsEnterprise.getPayModeSupport());
             }
@@ -647,6 +647,22 @@ public class RecipeCheckService {
             }
         }
         return organList;
+    }
+
+    /**
+     * 自动审核通过情况
+     *
+     * @param result
+     * @throws Exception
+     */
+    public void autoPassForCheckYs(CheckYsInfoBean result) throws Exception {
+        Map<String, Object> checkParam = Maps.newHashMap();
+        checkParam.put("recipeId", result.getRecipeId());
+        checkParam.put("checkOrgan", result.getCheckOrganId());
+        checkParam.put("checker", result.getCheckDoctorId());
+        checkParam.put("result", 1);
+        checkParam.put("failMemo", "");
+        saveCheckResult(checkParam);
     }
 
     /**
