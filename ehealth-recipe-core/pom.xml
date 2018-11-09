@@ -99,8 +99,8 @@
             <artifactId>jedis</artifactId>
         </dependency>
         <dependency>
-            <groupId>ssdev</groupId>
-            <artifactId>ssdev-es</artifactId>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>ehealth-es-api</artifactId>
         </dependency>
         <dependency>
             <groupId>com.ctrip.framework.apollo</groupId>
@@ -125,6 +125,18 @@
         <dependency>
             <groupId>org.eclipse.birt.runtime.3_7_1</groupId>
             <artifactId>javax.wsdl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
         </dependency>
     </dependencies>
     <profiles>
