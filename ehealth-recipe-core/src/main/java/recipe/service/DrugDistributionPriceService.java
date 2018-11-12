@@ -27,7 +27,9 @@ import java.util.List;
  **/
 @RpcBean("drugDistributionPriceService")
 public class DrugDistributionPriceService extends BaseService<DrugDistributionPrice> implements IDrugDistributionPriceService {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(DrugDistributionPriceService.class);
+
     private IBusActionLogService iBusActionLogService =
             ApplicationUtils.getBaseService(IBusActionLogService.class);
 

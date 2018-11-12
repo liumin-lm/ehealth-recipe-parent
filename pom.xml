@@ -6,7 +6,7 @@
     <parent>
         <groupId>ngari</groupId>
         <artifactId>ehealth-parent</artifactId>
-        <version>1.6.4.master-SNAPSHOT</version>
+        <version>1.7.0.release-SNAPSHOT</version>
     </parent>
     <artifactId>ehealth-recipe-parent</artifactId>
     <name>处方</name>
@@ -61,7 +61,7 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-basic-api</artifactId>
-                <version>${ngari.currentonline.version}</version>
+                <version>${ngari.basic.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ssdev</groupId>
@@ -72,7 +72,7 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-consult-api</artifactId>
-                <version>${ngari.currentonline.version}</version>
+                <version>${ngari.consult.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ssdev</groupId>
@@ -122,7 +122,7 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-base-api</artifactId>
-                <version>${ngari.currentonline.version}</version>
+                <version>${ngari.baseapi.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ssdev</groupId>
@@ -141,7 +141,7 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-opbase-api</artifactId>
-                <version>${ngari.currentonline.version}</version>
+                <version>${ngari.opbase.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ssdev</groupId>
