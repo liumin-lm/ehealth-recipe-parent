@@ -47,8 +47,8 @@ public class RecipeLogService {
             log.setAfterStatus(RecipeStatusConstant.UNKNOW);
         }
         log.setMemo(StringUtils.defaultString(log.getMemo(), ""));
-        if (StringUtils.isNotEmpty(log.getMemo()) && log.getMemo().length() >255){
-            log.setMemo(log.getMemo().substring(0,255));
+        if (StringUtils.isNotEmpty(log.getMemo()) && log.getMemo().length() >250){
+            log.setMemo(log.getMemo().substring(0,250));
         }
         log.setExpand(StringUtils.defaultString(log.getExpand(), ""));
 //        LOGGER.info("saveRecipeLog : " + JSONUtils.toString(log));
