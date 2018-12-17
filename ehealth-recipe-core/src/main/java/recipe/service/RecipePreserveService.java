@@ -10,12 +10,9 @@ import com.ngari.recipe.recipelog.model.RecipeLogBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-<<<<<<< Temporary merge branch 1
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-=======
 import org.springframework.beans.factory.annotation.Autowired;
->>>>>>> Temporary merge branch 2
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.CacheConstant;
@@ -24,11 +21,9 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.util.RedisClient;
 
 import java.util.List;
-<<<<<<< Temporary merge branch 1
-=======
 import java.util.Map;
->>>>>>> Temporary merge branch 2
 import java.util.Set;
+
 
 /**
  * company: ngarihealth

@@ -10,7 +10,6 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>ehealth-recipe-core</artifactId>
-    <name>处方启动</name>
     <description>处方启动</description>
     <packaging>jar</packaging>
     <properties>

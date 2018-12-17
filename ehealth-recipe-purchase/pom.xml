@@ -11,7 +11,6 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>ehealth-recipe-purchase</artifactId>
     <packaging>jar</packaging>
-    <name>购买处方</name>
     <description>购买处方</description>
 
 </project>
