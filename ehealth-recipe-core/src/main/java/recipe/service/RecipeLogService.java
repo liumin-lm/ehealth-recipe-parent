@@ -47,6 +47,9 @@ public class RecipeLogService {
             log.setAfterStatus(RecipeStatusConstant.UNKNOW);
         }
         log.setMemo(StringUtils.defaultString(log.getMemo(), ""));
+        if (StringUtils.isNotEmpty(log.getMemo()) && log.getMemo().length() >255){
+            log.setMemo(log.getMemo().substring(0,255));
+        }
         log.setExpand(StringUtils.defaultString(log.getExpand(), ""));
 //        LOGGER.info("saveRecipeLog : " + JSONUtils.toString(log));
         dao.saveRecipeLog(log);
