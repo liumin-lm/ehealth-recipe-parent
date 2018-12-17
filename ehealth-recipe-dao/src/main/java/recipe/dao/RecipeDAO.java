@@ -60,6 +60,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         this.setKeyField("recipeId");
     }
 
+    @DAOMethod(sql = "from Recipe where fromflag in (1,2) order by createDate desc")
+    public abstract List<Recipe> findRecipeByStartAndLimit(@DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
+
     /**
      * 根据id获取
      *

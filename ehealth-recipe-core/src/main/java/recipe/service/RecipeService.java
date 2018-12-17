@@ -128,6 +128,12 @@ public class RecipeService {
         return ObjectCopyUtils.convert(recipe, RecipeBean.class);
     }
 
+    @RpcService
+    public List<RecipeBean> findRecipe(int start,int limit) {
+        List<Recipe> recipes = DAOFactory.getDAO(RecipeDAO.class).findRecipeByStartAndLimit(start,limit);
+        return ObjectCopyUtils.convert(recipes, RecipeBean.class);
+    }
+
     /**
      * 判断医生是否可以处方
      *

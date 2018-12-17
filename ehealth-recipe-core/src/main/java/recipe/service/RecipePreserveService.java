@@ -10,9 +10,12 @@ import com.ngari.recipe.recipelog.model.RecipeLogBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+<<<<<<< Temporary merge branch 1
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+=======
 import org.springframework.beans.factory.annotation.Autowired;
+>>>>>>> Temporary merge branch 2
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.CacheConstant;
@@ -21,7 +24,10 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.util.RedisClient;
 
 import java.util.List;
+<<<<<<< Temporary merge branch 1
+=======
 import java.util.Map;
+>>>>>>> Temporary merge branch 2
 import java.util.Set;
 
 /**
@@ -80,29 +86,29 @@ public class RecipePreserveService {
     }
 
     @RpcService
-    public void deleteOldRedisDataForRecipe(){
+    public void deleteOldRedisDataForRecipe() {
         RecipeDAO dao = DAOFactory.getDAO(RecipeDAO.class);
         RedisClient redisClient = RedisClient.instance();
         List<String> mpiIds = dao.findAllMpiIdsFromHis();
         Set<String> keys;
         int num = 0;
-        for (String mpiId : mpiIds){
+        for (String mpiId : mpiIds) {
             try {
-                keys = redisClient.scan("*_"+mpiId+"_1");
+                keys = redisClient.scan("*_" + mpiId + "_1");
             } catch (Exception e) {
                 LOGGER.error("redis error" + e.toString());
                 return;
             }
-            if (keys != null && keys.size() > 0){
-                for (String key : keys){
+            if (keys != null && keys.size() > 0) {
+                for (String key : keys) {
                     Long del = redisClient.del(key);
-                    if (del == 1){
+                    if (del == 1) {
                         num++;
                     }
                 }
             }
         }
-        LOGGER.info("deleteOldRedisDataForRecipe Success num="+num);
+        LOGGER.info("deleteOldRedisDataForRecipe Success num=" + num);
     }
 
     /**
@@ -184,6 +190,7 @@ public class RecipePreserveService {
 
     /**
      * 机构用药频次初始化， 缓存内数据结构应该为 key为xxx_organId， map的key为his内编码，value为平台内编码
+     *
      * @param organId
      * @param map
      */
@@ -197,6 +204,7 @@ public class RecipePreserveService {
 
     /**
      * 机构用药方式初始化，缓存内数据结构应该为 key为xxx_organId， map的key为his内编码，value为平台内编码
+     *
      * @param organId
      * @param map
      */
