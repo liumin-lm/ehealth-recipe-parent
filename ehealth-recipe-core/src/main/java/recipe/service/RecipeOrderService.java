@@ -402,39 +402,7 @@ public class RecipeOrderService extends RecipeBaseService {
         //药企是需要自己结算费用的，需要重新设置
         //在线支付才需要重新计算
         if (payModeSupport.isSupportOnlinePay() && null != order.getEnterpriseId() && 0 != order.getEnterpriseId()) {
-            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-
-            DrugsEnterprise enterprise = drugsEnterpriseDAO.get(order.getEnterpriseId());
-            if (null != enterprise && Integer.valueOf(0).equals(enterprise.getSettlementMode())) {
-                List<Recipedetail> details = recipeDetailDAO.findByRecipeIds(recipeIds);
-                Map<Integer, Double> drugIdCountRel = Maps.newHashMap();
-                for (Recipedetail recipedetail : details) {
-                    Integer drugId = recipedetail.getDrugId();
-                    if (drugIdCountRel.containsKey(drugId)) {
-                        drugIdCountRel.put(drugId, drugIdCountRel.get(recipedetail.getDrugId()) + recipedetail.getUseTotalDose());
-                    } else {
-                        drugIdCountRel.put(drugId, recipedetail.getUseTotalDose());
-                    }
-                }
-                List<Integer> drugIds = Lists.newArrayList(drugIdCountRel.keySet());
-                List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(order.getEnterpriseId(), drugIds);
-                if (CollectionUtils.isNotEmpty(saleDrugLists)) {
-                    BigDecimal total = BigDecimal.ZERO;
-                    try {
-                        for (SaleDrugList saleDrug : saleDrugLists) {
-                            //保留3位小数
-                            total = total.add(saleDrug.getPrice().multiply(new BigDecimal(drugIdCountRel.get(saleDrug.getDrugId())))
-                                    .divide(BigDecimal.ONE, 3, RoundingMode.UP));
-                        }
-                        //重置药企处方价格
-                        recipeFee = total;
-                    } catch (Exception e) {
-                        LOGGER.warn("setOrderFee 重新计算药企ID为[{}]的结算价格出错. drugIds={}", order.getEnterpriseId(),
-                                JSONUtils.toString(drugIds), e);
-                    }
-                }
-            }
+            recipeFee = reCalculateRecipeFee(order.getEnterpriseId(), recipeIds);
         }
         order.setRecipeFee(recipeFee);
 
@@ -552,6 +520,55 @@ public class RecipeOrderService extends RecipeBaseService {
         }
         order.setTotalFee(countOrderTotalFee(order));
         order.setActualPrice(order.getTotalFee().doubleValue());
+    }
+
+    public BigDecimal reCalculateRecipeFee(Integer enterpriseId, List<Integer> recipeIds) {
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
+
+        DrugsEnterprise enterprise = drugsEnterpriseDAO.get(enterpriseId);
+        BigDecimal recipeFee = BigDecimal.ZERO;
+        if (null != enterprise && Integer.valueOf(0).equals(enterprise.getSettlementMode())) {
+            List<Recipedetail> details = recipeDetailDAO.findByRecipeIds(recipeIds);
+            Map<Integer, Double> drugIdCountRel = Maps.newHashMap();
+            for (Recipedetail recipedetail : details) {
+                Integer drugId = recipedetail.getDrugId();
+                if (drugIdCountRel.containsKey(drugId)) {
+                    drugIdCountRel.put(drugId, drugIdCountRel.get(recipedetail.getDrugId()) + recipedetail.getUseTotalDose());
+                } else {
+                    drugIdCountRel.put(drugId, recipedetail.getUseTotalDose());
+                }
+            }
+            List<Integer> drugIds = Lists.newArrayList(drugIdCountRel.keySet());
+            List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(enterpriseId, drugIds);
+            if (CollectionUtils.isNotEmpty(saleDrugLists)) {
+                BigDecimal total = BigDecimal.ZERO;
+                try {
+                    for (SaleDrugList saleDrug : saleDrugLists) {
+                        //保留3位小数
+                        total = total.add(saleDrug.getPrice().multiply(new BigDecimal(drugIdCountRel.get(saleDrug.getDrugId())))
+                                .divide(BigDecimal.ONE, 3, RoundingMode.UP));
+                    }
+                    //重置药企处方价格
+                    recipeFee = total;
+                } catch (Exception e) {
+                    LOGGER.warn("setOrderFee 重新计算药企ID为[{}]的结算价格出错. drugIds={}", enterpriseId,
+                            JSONUtils.toString(drugIds), e);
+                }
+            }
+        }else if (null != enterprise && Integer.valueOf(1).equals(enterprise.getSettlementMode())){
+            List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
+            for (Recipe recipe : recipeList) {
+                if (null != recipe) {
+                    if (null != recipe.getTotalMoney()) {
+                        recipeFee = recipeFee.add(recipe.getTotalMoney());
+                    }
+                }
+            }
+        }
+        return recipeFee;
     }
 
     private void setCreateOrderResult(OrderCreateResult result, RecipeOrder order, RecipePayModeSupportBean payModeSupport,

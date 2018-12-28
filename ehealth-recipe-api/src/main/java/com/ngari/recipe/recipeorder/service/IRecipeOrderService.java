@@ -87,4 +87,13 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
      */
     @RpcService
     RecipeListResTO<RecipeOrderBean> findByPayFlag(RecipeListReqTO request);
+
+    /**
+     * 药企是需要自己结算费用的，需要重新设置
+     * @param enterpriseId
+     * @param recipeIds
+     * @return
+     */
+    @RpcService
+    BigDecimal reCalculateRecipeFee(Integer enterpriseId, List<Integer> recipeIds);
 }

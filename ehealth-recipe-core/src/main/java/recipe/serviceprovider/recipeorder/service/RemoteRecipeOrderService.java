@@ -96,5 +96,12 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         return RecipeListResTO.getSuccessResponse(backList);
     }
 
+    @RpcService
+    @Override
+    public BigDecimal reCalculateRecipeFee(Integer enterpriseId, List<Integer> recipeIds) {
+        RecipeOrderService service = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+        return service.reCalculateRecipeFee(enterpriseId,recipeIds);
+    }
+
 
 }
