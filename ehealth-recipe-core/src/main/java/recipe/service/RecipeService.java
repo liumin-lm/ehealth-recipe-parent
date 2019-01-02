@@ -500,6 +500,12 @@ public class RecipeService {
                 Map<String, Object> dataMap = Maps.newHashMap();
                 dataMap.put("fileName", "recipecheck_" + recipeId + ".pdf");
                 dataMap.put("recipeSignFileId", recipe.getSignFile());
+                if (RecipeUtil.isTcmType(recipe.getRecipeType())){
+                    dataMap.put("templateType","tcm");
+                }else {
+                    dataMap.put("templateType","wm");
+                }
+
                 Map<String, Object> backMap = esignService.signForRecipe(false, checker, dataMap);
                 //0表示成功
                 Integer code = MapValueUtil.getInteger(backMap, "code");
