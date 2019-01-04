@@ -279,4 +279,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     List<RecipeBean> findAllReadyAuditRecipe();
+
+    @RpcService
+    List<RecipeDetailBean> findRecipeDetailsByRecipeId(Integer recipeId);
 }

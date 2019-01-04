@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.service.RecipeCheckService;
 import recipe.service.RecipeListService;
@@ -303,5 +304,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         List<Recipe> recipes = recipeDAO.findAllReadyAuditRecipe();
         return ObjectCopyUtils.convert(recipes, RecipeBean.class);
+    }
+
+    @Override
+    public List<RecipeDetailBean> findRecipeDetailsByRecipeId(Integer recipeId) {
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
+        return ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class);
     }
 }
