@@ -1,6 +1,7 @@
 package recipe.serviceprovider.recipe.service;
 
 
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
@@ -295,5 +296,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public HashMap<Integer, Long> getRecipeRequestCountGroupByDoctor(){
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         return recipeDAO.getRecipeRequestCountGroupByDoctor();
+    }
+
+    @Override
+    public List<RecipeBean> findAllReadyAuditRecipe() {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        List<Recipe> recipes = recipeDAO.findAllReadyAuditRecipe();
+        return ObjectCopyUtils.convert(recipes, RecipeBean.class);
     }
 }

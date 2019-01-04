@@ -1550,4 +1550,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    /**
+     *查询所有待审核处方单
+     */
+    @DAOMethod(sql = "from Recipe where status = 8 and fromflag = 1")
+    public abstract List<Recipe> findAllReadyAuditRecipe();
 }
