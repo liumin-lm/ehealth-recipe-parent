@@ -9,6 +9,9 @@ import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
+import com.ngari.home.asyn.model.BussCreateEvent;
+import com.ngari.home.asyn.model.BussFinishEvent;
+import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.DoctorService;
@@ -25,6 +28,7 @@ import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -34,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
+import recipe.constant.BussTypeConstant;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
@@ -492,6 +497,8 @@ public class RecipeCheckService {
         } catch (Exception e) {
             LOGGER.warn("saveCheckResult send recipeAudit to his error. recipeId={}", recipeId, e);
         }
+        //增加药师首页待处理任务---完成任务
+        ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussFinishEvent(recipeId, BussTypeConstant.RECIPE));
 
         return resMap;
     }

@@ -15,6 +15,8 @@ import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.his.recipe.mode.DrugInfoTO;
+import com.ngari.home.asyn.model.BussCreateEvent;
+import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.dto.ConsultSetDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.ConsultSetService;
@@ -62,7 +64,6 @@ import java.math.BigDecimal;
 import java.util.*;
 
 import static ctd.persistence.DAOFactory.getDAO;
-import static org.apache.poi.ss.formula.functions.NumericFunction.LOG;
 
 /**
  * 处方服务类
@@ -1951,6 +1952,10 @@ public class RecipeService {
                         //进行身边医生消息推送
                         RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_READYCHECK_4HIS, dbRecipe);
                     }
+                    //增加药师首页待处理任务---创建任务
+                    Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+                    RecipeBean recipeBean = ObjectCopyUtils.convert(recipe,RecipeBean.class);
+                    ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
                 }
             }
             if (RecipeStatusConstant.CHECK_PASS_YS == status) {
