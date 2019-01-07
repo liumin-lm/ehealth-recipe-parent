@@ -3,7 +3,6 @@ package recipe.service;
 import com.google.common.collect.Maps;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
-import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.DAOFactory;
@@ -19,6 +18,7 @@ import recipe.constant.RecipeMsgEnum;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.service.common.RecipeCacheService;
 import recipe.util.DateConversion;
 import recipe.util.RecipeMsgUtils;
 
@@ -38,7 +38,7 @@ public class RecipeMsgService {
 
     private static ISmsPushService iSmsPushService = ApplicationUtils.getBaseService(ISmsPushService.class);
 
-    private static ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
+    private static RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
 
     private static final int RECIPE_BUSSID = 10;
@@ -140,7 +140,7 @@ public class RecipeMsgService {
             return;
         }
 
-        Integer expiredDays = Integer.parseInt(iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS,
+        Integer expiredDays = Integer.parseInt(cacheService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS,
                 RecipeService.RECIPE_EXPIRED_DAYS.toString()));
 
         for (Recipe recipe : recipesList) {
@@ -234,7 +234,7 @@ public class RecipeMsgService {
      * @param recipeList
      */
     public static void sendRecipeMsg(RecipeMsgEnum em, Recipe... recipeList) {
-        Integer expiredDays = Integer.parseInt(iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS,
+        Integer expiredDays = Integer.parseInt(cacheService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS,
                 RecipeService.RECIPE_EXPIRED_DAYS.toString()));
         for (Recipe recipe : recipeList) {
             Integer recipeId = recipe.getRecipeId();

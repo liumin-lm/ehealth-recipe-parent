@@ -13,13 +13,11 @@ import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.payment.model.DabaiPayResult;
 import com.ngari.base.payment.service.IPaymentService;
-import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.bus.coupon.service.ICouponService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.PatientRecipeDTO;
@@ -45,6 +43,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.drugsenterprise.YsqRemoteService;
+import recipe.service.common.RecipeCacheService;
 import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
 
@@ -70,7 +69,7 @@ public class RecipeOrderService extends RecipeBaseService {
 
     private IHisConfigService iHisConfigService = ApplicationUtils.getBaseService(IHisConfigService.class);
 
-    private ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
+    private RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
     /**
      * 处方结算时创建临时订单
@@ -199,7 +198,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         //往大白发送处方信息
                         String backInfo = applyMedicalInsurancePay(order, recipeList);
                         if (StringUtils.isEmpty(backInfo)) {
-                            result.setMsg(iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_MEDICALPAY_TIP, null));
+                            result.setMsg(cacheService.getParam(ParameterConstant.KEY_RECIPE_MEDICALPAY_TIP));
                         } else {
                             result.setCode(RecipeResultBean.FAIL);
                             result.setMsg("医保支付返回," + backInfo);
@@ -291,7 +290,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 if (null == depId) {
                     LOGGER.error("处方id=" + recipe.getRecipeId() + "无法配送。");
                     result.setError("很抱歉，当前库存不足无法结算，请联系客服：" +
-                            iSysParamterService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
+                            cacheService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
                     //不能配送需要从处方列表剔除
                     needDelList.add(recipe);
                     continue;
@@ -309,7 +308,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     RecipeOrder dbOrder = orderDAO.getByOrderCode(recipe.getOrderCode());
                     String backInfo = applyMedicalInsurancePay(dbOrder, recipeList);
                     if (StringUtils.isEmpty(backInfo)) {
-                        result.setError(iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_MEDICALPAY_TIP, null));
+                        result.setError(cacheService.getParam(ParameterConstant.KEY_RECIPE_MEDICALPAY_TIP));
                     } else {
                         result.setError("医保支付返回:" + backInfo);
                     }
@@ -334,7 +333,7 @@ public class RecipeOrderService extends RecipeBaseService {
                             recipeDAO.updateOrderCodeByRecipeIds(Collections.singletonList(recipe.getRecipeId()), dbOrder.getOrderCode());
                             String backInfo = applyMedicalInsurancePay(dbOrder, recipeList);
                             if (StringUtils.isEmpty(backInfo)) {
-                                result.setError(iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_MEDICALPAY_TIP, null));
+                                result.setError(cacheService.getParam(ParameterConstant.KEY_RECIPE_MEDICALPAY_TIP));
                             } else {
                                 result.setError("医保支付返回:" + backInfo);
                             }
@@ -386,7 +385,7 @@ public class RecipeOrderService extends RecipeBaseService {
             if (null != registerFee) {
                 order.setRegisterFee(registerFee);
             } else {
-                order.setRegisterFee(new BigDecimal(iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_REGISTER_FEE, "0")));
+                order.setRegisterFee(new BigDecimal(cacheService.getParam(ParameterConstant.KEY_RECIPE_REGISTER_FEE, "0")));
             }
         }
 
@@ -610,11 +609,11 @@ public class RecipeOrderService extends RecipeBaseService {
         if (RecipeResultBean.SUCCESS.equals(result1.getCode())) {
             //钥世圈要求需要跳转页面，组装url
             if (DrugEnterpriseConstant.COMPANY_YSQ.equals(result1.getDrugsEnterprise().getCallSys())) {
-                String ysqUrl = iSysParamterService.getParam(ParameterConstant.KEY_YSQ_SKIP_URL, null);
+                String ysqUrl = cacheService.getParam(ParameterConstant.KEY_YSQ_SKIP_URL);
                 // 测试地址处理
                 String test = "test";
                 if (result1.getDrugsEnterprise().getAccount().contains(test)) {
-                    ysqUrl = iSysParamterService.getParam(ParameterConstant.KEY_YSQ_SKIP_URL + "_TEST", null);
+                    ysqUrl = cacheService.getParam(ParameterConstant.KEY_YSQ_SKIP_URL + "_TEST");
                 }
                 if (StringUtils.isNotEmpty(ysqUrl)) {
                     PatientDTO patient = null;

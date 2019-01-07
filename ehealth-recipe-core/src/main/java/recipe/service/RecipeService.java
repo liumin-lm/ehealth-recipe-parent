@@ -13,7 +13,6 @@ import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.model.DocIndexBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.payment.service.IPaymentService;
-import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
@@ -54,6 +53,7 @@ import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.service.common.RecipeCacheService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateRecipeStatusFromHisCallable;
 import recipe.util.DateConversion;
@@ -91,7 +91,7 @@ public class RecipeService {
 
     private static IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
 
-    private ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
+    private RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
     @Autowired
     private RedisClient redisClient;
@@ -749,7 +749,7 @@ public class RecipeService {
                 //错误信息弹出框，只有 确定  按钮
                 rMap.put("errorFlag", true);
                 rMap.put("msg", "很抱歉，当前库存不足无法开处方，请联系客服：" +
-                        iSysParamterService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
+                        cacheService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
                 return rMap;
             }
         }
@@ -1165,10 +1165,10 @@ public class RecipeService {
         RecipeOrder order;
         //设置查询时间段
         String endDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(
-                Integer.parseInt(iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS, RECIPE_EXPIRED_DAYS.toString()))
+                Integer.parseInt(cacheService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS, RECIPE_EXPIRED_DAYS.toString()))
         ), DateConversion.DEFAULT_DATE_TIME);
         String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(
-                Integer.parseInt(iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_CANCEL_DAYS, RECIPE_EXPIRED_SEARCH_DAYS.toString()))), DateConversion.DEFAULT_DATE_TIME);
+                Integer.parseInt(cacheService.getParam(ParameterConstant.KEY_RECIPE_CANCEL_DAYS, RECIPE_EXPIRED_SEARCH_DAYS.toString()))), DateConversion.DEFAULT_DATE_TIME);
         for (Integer status : statusList) {
             List<Recipe> recipeList = recipeDAO.getRecipeListForCancelRecipe(status, startDt, endDt);
             LOGGER.info("cancelRecipeTask 状态=[{}], 取消数量=[{}], 详情={}", status, recipeList.size(), JSONUtils.toString(recipeList));
@@ -1228,7 +1228,7 @@ public class RecipeService {
         //设置查询时间段
         String endDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(1), DateConversion.DEFAULT_DATE_TIME);
         String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(
-                Integer.parseInt(iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS, RECIPE_EXPIRED_DAYS.toString()))
+                Integer.parseInt(cacheService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS, RECIPE_EXPIRED_DAYS.toString()))
         ), DateConversion.DEFAULT_DATE_TIME);
         for (Integer status : statusList) {
             List<Recipe> recipeList = recipeDAO.getRecipeListForRemind(status, startDt, endDt);
@@ -1289,7 +1289,7 @@ public class RecipeService {
 
         //设置查询时间段
         String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(
-                Integer.parseInt(iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS, RECIPE_EXPIRED_DAYS.toString()))
+                Integer.parseInt(cacheService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS, RECIPE_EXPIRED_DAYS.toString()))
         ), DateConversion.DEFAULT_DATE_TIME);
         String endDt = DateConversion.getDateFormatter(DateTime.now().toDate(), DateConversion.DEFAULT_DATE_TIME);
         //key为organId,value为recipdeCode集合
