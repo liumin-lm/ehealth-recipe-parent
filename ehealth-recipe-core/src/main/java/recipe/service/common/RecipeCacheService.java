@@ -2,6 +2,7 @@ package recipe.service.common;
 
 import com.ngari.base.sysparamter.service.ISysParamterService;
 import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,7 @@ public class RecipeCacheService {
 
     private final String RECIPE_CACHE_KEY = "RECIPE_CACHE_KEY";
 
+    @RpcService
     public String getParam(String field) {
         return getParam(field, null);
     }
@@ -36,6 +38,7 @@ public class RecipeCacheService {
      * @param defaultStr
      * @return
      */
+    @RpcService
     public String getParam(String field, String defaultStr) {
         LOGGER.info("recipeCacheService field={}, defaultStr={}", field, defaultStr);
         if (StringUtils.isEmpty(field)) {
@@ -47,7 +50,7 @@ public class RecipeCacheService {
         if (StringUtils.isEmpty(val)) {
             //从RPC接口获取
             ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
-            val = iSysParamterService.getParam(field, defaultStr);
+            val = iSysParamterService.getParam(field, null);
             if (StringUtils.isNotEmpty(val)) {
                 redisClient.hsetEx(RECIPE_CACHE_KEY, field, val, 7 * 24 * 3600L);
             } else {
@@ -57,6 +60,16 @@ public class RecipeCacheService {
         }
         LOGGER.info("recipeCacheService value={}", val);
         return val;
+    }
+
+    /**
+     * 清除缓存
+     *
+     * @return
+     */
+    @RpcService
+    public Long deleteCacheKey() {
+        return redisClient.del(RECIPE_CACHE_KEY);
     }
 
 }
