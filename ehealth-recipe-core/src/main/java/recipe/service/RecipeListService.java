@@ -6,7 +6,6 @@ import com.google.common.collect.Maps;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
-import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -39,6 +38,7 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.dao.bean.RecipeRollingInfo;
+import recipe.service.common.RecipeCacheService;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
@@ -143,7 +143,7 @@ public class RecipeListService {
         HashMap<String, Object> map = Maps.newHashMap();
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
+        RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
         List<String> allMpiIds = recipeService.getAllMemberPatientsByCurrentPatient(mpiId);
         List<Integer> recipeIds = recipeDAO.findPendingRecipes(allMpiIds, RecipeStatusConstant.CHECK_PASS, 0, 1);
@@ -175,7 +175,7 @@ public class RecipeListService {
         }
 
         map.put("title", title);
-        map.put("unSendTitle", iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_UNSEND_TIP, null));
+        map.put("unSendTitle", cacheService.getParam(ParameterConstant.KEY_RECIPE_UNSEND_TIP));
         map.put("recipeGetModeTip", recipeGetModeTip);
 
         return map;

@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.address.model.AddressBean;
 import com.ngari.base.address.service.IAddressService;
-import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -28,6 +27,7 @@ import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.ShoppingDrugDAO;
 import recipe.dao.ShoppingOrderDAO;
+import recipe.service.common.RecipeCacheService;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
@@ -79,7 +79,7 @@ public class ShoppingService {
 
     private PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
 
-    private ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
+    private RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
     private IAddressService iAddressService = ApplicationUtils.getBaseService(IAddressService.class);
 
@@ -366,7 +366,7 @@ public class ShoppingService {
         // 头像参数"headimgurl" 不传
         map.put("custNo", patient.getMpiId());
         //获取钥匙圈地址
-        String ysqUrl = iSysParamterService.getParam(ParameterConstant.KEY_YSQ_SKIP_SHOPPING_URL, null);
+        String ysqUrl = cacheService.getParam(ParameterConstant.KEY_YSQ_SKIP_SHOPPING_URL);
         String backUrl = "";
         if (StringUtils.isEmpty(ysqUrl)) {
             return backUrl;

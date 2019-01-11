@@ -10,7 +10,6 @@ import com.ngari.base.operationrecords.model.OperationRecordsBean;
 import com.ngari.base.operationrecords.service.IOperationRecordsService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.service.IPatientService;
-import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.message.model.RecipeTagMsgBean;
@@ -41,6 +40,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.service.common.RecipeCacheService;
 import recipe.util.DateConversion;
 import recipe.util.DigestUtil;
 import recipe.util.LocalStringUtil;
@@ -74,7 +74,7 @@ public class RecipeServiceSub {
 
     private static IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
 
-    private static ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
+    private static RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
     /**
      * @param recipe
@@ -1041,11 +1041,11 @@ public class RecipeServiceSub {
             case RecipeStatusConstant.READY_CHECK_YS:
                 if (!RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())
                         && !RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
-                    unSendTitle = iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_UNSEND_TIP, null);
+                    unSendTitle = cacheService.getParam(ParameterConstant.KEY_RECIPE_UNSEND_TIP);
                 }
                 //患者选择药店取药但是未点击下一步而返回处方单详情，此时payMode会变成4，增加判断条件
                 if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode()) && 0 == recipe.getChooseFlag()) {
-                    unSendTitle = iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_UNSEND_TIP, null);
+                    unSendTitle = cacheService.getParam(ParameterConstant.KEY_RECIPE_UNSEND_TIP);
                 }
                 break;
             default:
@@ -1066,7 +1066,7 @@ public class RecipeServiceSub {
             if (1 == recipe.getClinicOrgan()) {
                 organName = "浙大附属邵逸夫医院庆春院区";
             }
-            recipeGetModeTip = iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_GETMODE_TIP, null);
+            recipeGetModeTip = cacheService.getParam(ParameterConstant.KEY_RECIPE_GETMODE_TIP);
             recipeGetModeTip = LocalStringUtil.processTemplate(recipeGetModeTip, ImmutableMap.of("orgName", organName));
         }
         return recipeGetModeTip;

@@ -1,10 +1,14 @@
 package recipe.service;
 
 import com.google.common.collect.Maps;
+import com.ngari.home.asyn.model.BussCreateEvent;
+import com.ngari.home.asyn.service.IAsynDoBussService;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -143,6 +147,12 @@ public class HisCallBackService {
         if (1 == recipe.getFromflag()) {
             //发送消息
             RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
+            //增加药师首页待处理任务---创建任务
+            if (status == RecipeStatusConstant.READY_CHECK_YS){
+                Recipe dbRecipe = recipeDAO.getByRecipeId(recipe.getRecipeId());
+                RecipeBean recipeBean = ObjectCopyUtils.convert(dbRecipe,RecipeBean.class);
+                ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
+            }
             //保存至电子病历
             recipeService.saveRecipeDocIndex(recipe);
         }
