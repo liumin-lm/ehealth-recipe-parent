@@ -6,9 +6,10 @@
     <parent>
         <groupId>ngari</groupId>
         <artifactId>ehealth-parent</artifactId>
-        <version>1.8.0.master-SNAPSHOT</version>
+        <version>1.9.0.master-SNAPSHOT</version>
     </parent>
     <artifactId>ehealth-recipe-parent</artifactId>
+    <name>处方</name>
     <description>处方项目</description>
     <packaging>pom</packaging>
     <modules>

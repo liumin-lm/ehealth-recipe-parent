@@ -5,11 +5,13 @@
     <parent>
         <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>1.8.0.master-SNAPSHOT</version>
+        <version>1.9.0.master-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
+    <name>开处方</name>
+    <description>开处方</description>
     <artifactId>ehealth-recipe-prescription</artifactId>
     <dependencies>
         <dependency>

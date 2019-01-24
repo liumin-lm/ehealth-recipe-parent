@@ -6,10 +6,11 @@
     <parent>
         <artifactId>ehealth-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>1.8.0.master-SNAPSHOT</version>
+        <version>1.9.0.master-SNAPSHOT</version>
     </parent>
 
     <packaging>jar</packaging>
+    <name>处方API</name>
     <description>处方API</description>
     <artifactId>ehealth-recipe-api</artifactId>
 

@@ -8,7 +8,6 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
-import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepStyleBean;
 import com.ngari.recipe.entity.*;
@@ -35,12 +34,12 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
+import recipe.service.common.RecipeCacheService;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
 import javax.xml.namespace.QName;
 import javax.xml.rpc.ParameterMode;
-import javax.xml.rpc.ServiceException;
 import java.net.URL;
 import java.util.*;
 
@@ -351,7 +350,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
+        RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
         IDepartmentService iDepartmentService = ApplicationUtils.getBaseService(IDepartmentService.class);
         IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
         IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
@@ -469,7 +468,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             recipeMap.put("DOCTOR", iDoctorService.getNameById(recipe.getDoctor()));
 
             //处理过期时间
-            String validateDays = iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS, "14");
+            String validateDays = cacheService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS, "14");
             Date validate = DateConversion.getDateAftXDays(recipe.getSignDate(), Integer.parseInt(validateDays));
             recipeMap.put("VALIDDATE", DateConversion.getDateFormatter(validate, DateConversion.DEFAULT_DATE_TIME));
             recipeMap.put("DIAGNOSIS", recipe.getOrganDiseaseName());

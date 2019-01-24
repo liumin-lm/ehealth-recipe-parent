@@ -1,6 +1,7 @@
 package recipe.serviceprovider.recipe.service;
 
 
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
@@ -21,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.service.RecipeCheckService;
 import recipe.service.RecipeListService;
@@ -295,5 +297,25 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public HashMap<Integer, Long> getRecipeRequestCountGroupByDoctor(){
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         return recipeDAO.getRecipeRequestCountGroupByDoctor();
+    }
+
+    @Override
+    public List<RecipeBean> findAllReadyAuditRecipe() {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        List<Recipe> recipes = recipeDAO.findAllReadyAuditRecipe();
+        return ObjectCopyUtils.convert(recipes, RecipeBean.class);
+    }
+
+    @Override
+    public List<RecipeDetailBean> findRecipeDetailsByRecipeId(Integer recipeId) {
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
+        return ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class);
+    }
+
+    @Override
+    public List<Integer> findReadyAuditRecipeIdsByOrganIds(List<Integer> organIds) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        return recipeDAO.findReadyAuditRecipeIdsByOrganIds(organIds);
     }
 }

@@ -18,6 +18,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.dao.SaleDrugListDAO;
+import recipe.service.common.RecipeCacheService;
 
 import java.util.Collections;
 import java.util.List;
@@ -292,9 +293,9 @@ public class RemoteDrugEnterpriseService {
      * @return
      */
     public String getYsqOrderInfoUrl(Recipe recipe) {
-        ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
+        RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
         String backUrl = "";
-        String ysqUrl = iSysParamterService.getParam(ParameterConstant.KEY_YSQ_SKIP_URL, null);
+        String ysqUrl = cacheService.getParam(ParameterConstant.KEY_YSQ_SKIP_URL);
         if (RecipeStatusConstant.FINISH != recipe.getStatus()) {
             backUrl = ysqUrl + "Order/Index?id=0&inbillno=" + recipe.getClinicOrgan() + YsqRemoteService.YSQ_SPLIT + recipe.getRecipeCode();
         }

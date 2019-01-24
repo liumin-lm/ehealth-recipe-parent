@@ -31,16 +31,14 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.service.common.RecipeCacheService;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-
-import static org.bouncycastle.asn1.x500.style.RFC4519Style.o;
 
 /**
  * 患者端服务
@@ -100,7 +98,7 @@ public class RecipePatientService extends RecipeBaseService {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-        ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
+        RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
@@ -225,7 +223,7 @@ public class RecipePatientService extends RecipeBaseService {
             if (CollectionUtils.isEmpty(depDetailList)) {
                 resultBean.setCode(RecipeResultBean.FAIL);
                 resultBean.setMsg("很抱歉，当前库存不足无法购买，请联系客服：" +
-                        iSysParamterService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
+                        cacheService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
                 return resultBean;
             }
 
@@ -253,14 +251,14 @@ public class RecipePatientService extends RecipeBaseService {
         } else {
             resultBean.setCode(RecipeResultBean.FAIL);
             resultBean.setMsg("很抱歉，当前库存不足无法购买，请联系客服：" +
-                    iSysParamterService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
+                    cacheService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
         }
 
         return resultBean;
     }
 
     private void parseDrugsEnterprise(DrugsEnterprise dep, BigDecimal totalMoney, List<DepDetailBean> depDetailList) {
-        ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
+        RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
         DepDetailBean depDetailBean = new DepDetailBean();
         depDetailBean.setDepId(dep.getId());
@@ -274,7 +272,7 @@ public class RecipePatientService extends RecipeBaseService {
             payModeList.add(RecipeBussConstant.PAYMODE_ONLINE);
             giveModeText = "配送到家";
             //无法配送时间文案提示
-            depDetailBean.setUnSendTitle(iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_UNSEND_TIP, null));
+            depDetailBean.setUnSendTitle(cacheService.getParam(ParameterConstant.KEY_RECIPE_UNSEND_TIP));
         } else if (RecipeBussConstant.DEP_SUPPORT_COD.equals(supportMode)) {
             payModeList.add(RecipeBussConstant.PAYMODE_COD);
             giveModeText = "配送到家";
@@ -288,7 +286,7 @@ public class RecipePatientService extends RecipeBaseService {
             payModeList.add(RecipeBussConstant.PAYMODE_COD);
             payModeList.add(RecipeBussConstant.PAYMODE_TFDS);
             //无法配送时间文案提示
-            depDetailBean.setUnSendTitle(iSysParamterService.getParam(ParameterConstant.KEY_RECIPE_UNSEND_TIP, null));
+            depDetailBean.setUnSendTitle(cacheService.getParam(ParameterConstant.KEY_RECIPE_UNSEND_TIP));
         }
         depDetailBean.setPayModeList(payModeList);
         depDetailBean.setGiveModeText(giveModeText);

@@ -276,4 +276,13 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     HashMap<Integer, Long> getRecipeRequestCountGroupByDoctor();
+
+    @RpcService
+    List<RecipeBean> findAllReadyAuditRecipe();
+
+    @RpcService
+    List<RecipeDetailBean> findRecipeDetailsByRecipeId(Integer recipeId);
+
+    @RpcService
+    List<Integer> findReadyAuditRecipeIdsByOrganIds(List<Integer> organIds);
 }

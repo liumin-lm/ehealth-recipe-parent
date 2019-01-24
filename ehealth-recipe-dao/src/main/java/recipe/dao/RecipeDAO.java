@@ -23,7 +23,6 @@ import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
-import ctd.util.annotation.RpcService;
 import ctd.util.annotation.RpcSupportDAO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -1550,4 +1549,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    /**
+     *查询所有待审核处方单
+     */
+    @DAOMethod(sql = "from Recipe where status = 8 and fromflag = 1",limit = 0)
+    public abstract List<Recipe> findAllReadyAuditRecipe();
+
+    @DAOMethod(sql = "select recipeId from Recipe where clinicOrgan in:organIds and status =8 and fromflag = 1")
+    public abstract List<Integer> findReadyAuditRecipeIdsByOrganIds(@DAOParam("organIds")List<Integer> organIds);
 }

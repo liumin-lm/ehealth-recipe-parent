@@ -18,6 +18,11 @@ public class CacheConstant {
      */
     public static final String KEY_SKIP_YSCHECK_LIST = "RCP_SKIP_YSCHECK_LIST";
 
+
+
+
+    /**************************局部缓存**************************/
+
     /**
      * 机构用药频次前缀，缓存中key实际为 RCP_ORGAN_USINGRATE_100100
      */
