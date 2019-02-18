@@ -15,12 +15,10 @@ import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.message.model.RecipeTagMsgBean;
 import com.ngari.consult.message.service.IConsultMessageService;
 import com.ngari.patient.dto.ConsultSetDTO;
+import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.ConsultSetService;
-import com.ngari.patient.service.DoctorService;
-import com.ngari.patient.service.OrganService;
-import com.ngari.patient.service.PatientService;
+import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -35,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
@@ -75,6 +74,8 @@ public class RecipeServiceSub {
     private static IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
 
     private static RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
+
+    private static DepartmentService departmentService = ApplicationUtils.getBaseService(DepartmentService.class);
 
     /**
      * @param recipe
@@ -927,6 +928,16 @@ public class RecipeServiceSub {
             recipe.setRecipeSurplusHours(getRecipeSurplusHours(recipe.getSignDate()));
         }
 
+        //获取该医生所在科室，判断是否为儿科科室
+        Integer departId = recipe.getDepart();
+        DepartmentDTO departmentDTO = departmentService.get(departId);
+        Boolean childRecipeFlag = false;
+        if (!ObjectUtils.isEmpty(departmentDTO)) {
+            if (departmentDTO.getName().contains("儿科") || departmentDTO.getName().contains("新生儿科")) {
+                childRecipeFlag = true;
+            }
+        }
+        map.put("childRecipeFlag", childRecipeFlag);
         map.put("recipe", ObjectCopyUtils.convert(recipe, RecipeBean.class));
 
         return map;
