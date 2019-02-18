@@ -75,7 +75,7 @@ public class RecipeServiceSub {
 
     private static RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
-    private static DepartmentService departmentService = ApplicationUtils.getBaseService(DepartmentService.class);
+    private static DepartmentService departmentService = ApplicationUtils.getBasicService(DepartmentService.class);
 
     /**
      * @param recipe
