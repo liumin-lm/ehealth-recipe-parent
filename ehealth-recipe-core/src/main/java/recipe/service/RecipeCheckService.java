@@ -266,6 +266,8 @@ public class RecipeCheckService {
             LOGGER.warn("findRecipeAndDetailsAndCheckById get doctor error. doctorId={}", recipe.getDoctor(), e);
         }
 
+        //监护人信息
+        Guardian guardian = new Guardian();
         //取patient需要的字段
         PatientBean p = new PatientBean();
         try {
@@ -279,6 +281,17 @@ public class RecipeCheckService {
                 p.setMobile(patient.getMobile());
                 p.setIdcard(hideIdCard(patient.getCertificate()));
                 p.setMpiId(patient.getMpiId());
+
+                //判断该就诊人是否为儿童就诊人
+                if ((patient.getPatientUserType() == 1 || patient.getPatientUserType() == 2) && patient.getGuardianFlag()) {
+                    PatientDTO guardianInfo = patientService.getByIdCard(patient.getGuardianCertificate());
+                    if (!ObjectUtils.isEmpty(guardianInfo)) {
+                        guardian.setName(guardianInfo.getPatientName());
+                        guardian.setAge(guardianInfo.getAge());
+                        guardian.setSex(guardianInfo.getPatientSex());
+                    }
+                }
+
             } else {
                 LOGGER.warn("findRecipeAndDetailsAndCheckById patient is null. mpiId={}", recipe.getMpiid());
             }
@@ -325,6 +338,7 @@ public class RecipeCheckService {
             }
         }
         map.put("childRecipeFlag", childRecipeFlag);
+        map.put("guardian", guardian);
 
         map.put("dateString", dateString);
         map.put("recipe", r);

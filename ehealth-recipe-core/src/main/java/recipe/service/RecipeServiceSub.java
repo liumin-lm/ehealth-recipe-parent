@@ -807,6 +807,17 @@ public class RecipeServiceSub {
             //添加患者标签和关注这些字段
             RecipeServiceSub.setPatientMoreInfo(patientBean, recipe.getDoctor());
             patient = RecipeServiceSub.convertPatientForRAP(patientBean);
+            //判断该就诊人是否为儿童就诊人
+            if ((patientBean.getPatientUserType() == 1 || patientBean.getPatientUserType() == 2) && patientBean.getGuardianFlag()) {
+                PatientDTO guardianInfo = patientService.getByIdCard(patientBean.getGuardianCertificate());
+                Guardian guardian = new Guardian();
+                if (!ObjectUtils.isEmpty(guardianInfo)) {
+                    guardian.setName(guardianInfo.getPatientName());
+                    guardian.setAge(guardianInfo.getAge());
+                    guardian.setSex(guardianInfo.getPatientSex());
+                }
+                map.put("guardian", guardian);
+            }
         }
         List<Recipedetail> recipedetails = detailDAO.findByRecipeId(recipeId);
 
