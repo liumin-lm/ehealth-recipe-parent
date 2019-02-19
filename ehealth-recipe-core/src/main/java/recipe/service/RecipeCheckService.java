@@ -12,8 +12,10 @@ import com.ngari.base.searchcontent.service.ISearchContentService;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
+import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -36,6 +38,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
 import recipe.constant.BussTypeConstant;
@@ -63,6 +66,8 @@ public class RecipeCheckService {
     private PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
 
     private DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
+
+    private DepartmentService departmentService = ApplicationUtils.getBasicService(DepartmentService.class);
 
     /**
      * zhongzx
@@ -309,6 +314,17 @@ public class RecipeCheckService {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
             order = ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class);
         }
+
+        //获取该医生所在科室，判断是否为儿科科室
+        Integer departId = recipe.getDepart();
+        DepartmentDTO departmentDTO = departmentService.get(departId);
+        Boolean childRecipeFlag = false;
+        if (!ObjectUtils.isEmpty(departmentDTO)) {
+            if (departmentDTO.getName().contains("儿科") || departmentDTO.getName().contains("新生儿科")) {
+                childRecipeFlag = true;
+            }
+        }
+        map.put("childRecipeFlag", childRecipeFlag);
 
         map.put("dateString", dateString);
         map.put("recipe", r);
