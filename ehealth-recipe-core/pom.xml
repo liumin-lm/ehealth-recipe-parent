@@ -59,6 +59,10 @@
             <artifactId>ehealth-opbase-api</artifactId>
         </dependency>
         <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>openapi-sdk-java</artifactId>
+        </dependency>
+        <dependency>
             <groupId>ssdev</groupId>
             <artifactId>ssdev-broadcast-support</artifactId>
         </dependency>

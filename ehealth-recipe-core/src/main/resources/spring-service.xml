@@ -7,7 +7,7 @@
 						http://www.ngarihealth.com/schema/ssdev/ssdev.xsd">
 
     <component-scan base-package="recipe.dao, recipe.service.**, recipe.unloginservice, recipe.drugsenterprise,
-        recipe.hisservice, recipe.serviceprovider.*,recipe.audit.*,recipe.prescription,recipe.mq,recipe.drugTool"/>
+        recipe.hisservice.**, recipe.serviceprovider.*,recipe.audit.*,recipe.prescription,recipe.mq,recipe.drugTool"/>
 
     <reference interface="recipe.third.IWXServiceInterface" id="eh.wxService"/>
 

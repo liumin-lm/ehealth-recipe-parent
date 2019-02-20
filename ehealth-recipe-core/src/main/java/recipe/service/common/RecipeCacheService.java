@@ -1,6 +1,7 @@
 package recipe.service.common;
 
 import com.ngari.base.sysparamter.service.ISysParamterService;
+import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
@@ -8,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.dao.RecipeParameterDao;
 import recipe.util.RedisClient;
 
 /**
@@ -59,6 +61,35 @@ public class RecipeCacheService {
             }
         }
         LOGGER.info("recipeCacheService value={}", val);
+        return val;
+    }
+
+    /**
+     * 获取 recipe_parameter 表的数据，缓存保持一周
+     * @param field
+     * @param defaultStr
+     * @return
+     */
+    @RpcService
+    public String getRecipeParam(String field, String defaultStr) {
+        LOGGER.info("recipeCacheService getRecipeParam field={}, defaultStr={}", field, defaultStr);
+        if (StringUtils.isEmpty(field)) {
+            return "";
+        }
+
+        //先从缓存获取
+        String val = redisClient.hget(RECIPE_CACHE_KEY, field);
+        if (StringUtils.isEmpty(val)) {
+            RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+            val = parameterDao.getByName(field);
+            if (StringUtils.isNotEmpty(val)) {
+                redisClient.hsetEx(RECIPE_CACHE_KEY, field, val, 7 * 24 * 3600L);
+            } else {
+                //返回默认值
+                val = defaultStr;
+            }
+        }
+        LOGGER.info("recipeCacheService getRecipeParam value={}", val);
         return val;
     }
 
