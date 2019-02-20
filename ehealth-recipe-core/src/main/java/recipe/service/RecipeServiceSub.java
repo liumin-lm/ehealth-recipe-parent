@@ -822,6 +822,10 @@ public class RecipeServiceSub {
                 }
                 map.put("guardian", guardian);
             }
+            if (!ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
+                //对监护人信息进行脱敏处理
+                patient.setGuardianCertificate(ChinaIDNumberUtil.hideIdCard(patient.getGuardianCertificate()));
+            }
         }
         List<Recipedetail> recipedetails = detailDAO.findByRecipeId(recipeId);
 
