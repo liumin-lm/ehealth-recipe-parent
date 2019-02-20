@@ -21,6 +21,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.GuardianBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.dictionary.Dictionary;
@@ -813,7 +814,7 @@ public class RecipeServiceSub {
             //判断该就诊人是否为儿童就诊人
             if (patient.getAge() <= 5 && !patient.getGuardianFlag() && !ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
                 PatientDTO guardianInfo = patientService.getByIdCard(patient.getGuardianCertificate());
-                Guardian guardian = new Guardian();
+                GuardianBean guardian = new GuardianBean();
                 if (!ObjectUtils.isEmpty(guardianInfo)) {
                     guardian.setName(guardianInfo.getPatientName());
                     guardian.setAge(guardianInfo.getAge());

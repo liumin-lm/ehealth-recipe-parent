@@ -22,6 +22,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.audit.model.AuditListReq;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.GuardianBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
@@ -267,7 +268,7 @@ public class RecipeCheckService {
         }
 
         //监护人信息
-        Guardian guardian = new Guardian();
+        GuardianBean guardian = new GuardianBean();
         //取patient需要的字段
         PatientBean p = new PatientBean();
         try {
