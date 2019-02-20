@@ -283,7 +283,7 @@ public class RecipeCheckService {
                 p.setMpiId(patient.getMpiId());
 
                 //判断该就诊人是否为儿童就诊人
-                if ((patient.getPatientUserType() == 1 || patient.getPatientUserType() == 2) && patient.getGuardianFlag()) {
+                if (p.getAge() <= 5 && patient.getGuardianFlag() && !ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
                     PatientDTO guardianInfo = patientService.getByIdCard(patient.getGuardianCertificate());
                     if (!ObjectUtils.isEmpty(guardianInfo)) {
                         guardian.setName(guardianInfo.getPatientName());
@@ -333,7 +333,8 @@ public class RecipeCheckService {
         DepartmentDTO departmentDTO = departmentService.get(departId);
         Boolean childRecipeFlag = false;
         if (!ObjectUtils.isEmpty(departmentDTO)) {
-            if (departmentDTO.getName().contains("儿科") || departmentDTO.getName().contains("新生儿科")) {
+            if (departmentDTO.getName().contains("儿科") || departmentDTO.getName().contains("新生儿科")
+                    || departmentDTO.getName().contains("儿内科") || departmentDTO.getName().contains("儿外科")) {
                 childRecipeFlag = true;
             }
         }

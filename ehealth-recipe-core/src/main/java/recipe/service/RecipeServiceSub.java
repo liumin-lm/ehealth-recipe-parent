@@ -765,6 +765,9 @@ public class RecipeServiceSub {
         p.setSignFlag(patient.getSignFlag());
         p.setRelationFlag(patient.getRelationFlag());
         p.setLabelNames(patient.getLabelNames());
+        p.setGuardianFlag(patient.getGuardianFlag());
+        p.setGuardianCertificate(patient.getGuardianCertificate());
+        p.setAge(null == patient.getBirthday() ? 0 : DateConversion.getAge(patient.getBirthday()));
         return p;
     }
 
@@ -808,8 +811,8 @@ public class RecipeServiceSub {
             RecipeServiceSub.setPatientMoreInfo(patientBean, recipe.getDoctor());
             patient = RecipeServiceSub.convertPatientForRAP(patientBean);
             //判断该就诊人是否为儿童就诊人
-            if ((patientBean.getPatientUserType() == 1 || patientBean.getPatientUserType() == 2) && patientBean.getGuardianFlag()) {
-                PatientDTO guardianInfo = patientService.getByIdCard(patientBean.getGuardianCertificate());
+            if (patient.getAge() <= 5 && patient.getGuardianFlag() && !ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
+                PatientDTO guardianInfo = patientService.getByIdCard(patient.getGuardianCertificate());
                 Guardian guardian = new Guardian();
                 if (!ObjectUtils.isEmpty(guardianInfo)) {
                     guardian.setName(guardianInfo.getPatientName());
@@ -944,7 +947,8 @@ public class RecipeServiceSub {
         DepartmentDTO departmentDTO = departmentService.get(departId);
         Boolean childRecipeFlag = false;
         if (!ObjectUtils.isEmpty(departmentDTO)) {
-            if (departmentDTO.getName().contains("儿科") || departmentDTO.getName().contains("新生儿科")) {
+            if (departmentDTO.getName().contains("儿科") || departmentDTO.getName().contains("新生儿科")
+                    || departmentDTO.getName().contains("儿内科") || departmentDTO.getName().contains("儿外科")) {
                 childRecipeFlag = true;
             }
         }
