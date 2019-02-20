@@ -28,6 +28,7 @@ import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.schema.exception.ValidateException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -41,10 +42,7 @@ import recipe.bussutil.RecipeValidateUtil;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.service.common.RecipeCacheService;
-import recipe.util.DateConversion;
-import recipe.util.DigestUtil;
-import recipe.util.LocalStringUtil;
-import recipe.util.MapValueUtil;
+import recipe.util.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -768,6 +766,7 @@ public class RecipeServiceSub {
         p.setLabelNames(patient.getLabelNames());
         p.setGuardianFlag(patient.getGuardianFlag());
         p.setGuardianCertificate(patient.getGuardianCertificate());
+        p.setGuardianName(patient.getGuardianName());
         p.setAge(null == patient.getBirthday() ? 0 : DateConversion.getAge(patient.getBirthday()));
         return p;
     }
@@ -813,12 +812,13 @@ public class RecipeServiceSub {
             patient = RecipeServiceSub.convertPatientForRAP(patientBean);
             //判断该就诊人是否为儿童就诊人
             if (patient.getAge() <= 5 && !patient.getGuardianFlag() && !ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
-                PatientDTO guardianInfo = patientService.getByIdCard(patient.getGuardianCertificate());
                 GuardianBean guardian = new GuardianBean();
-                if (!ObjectUtils.isEmpty(guardianInfo)) {
-                    guardian.setName(guardianInfo.getPatientName());
-                    guardian.setAge(guardianInfo.getAge());
-                    guardian.setSex(guardianInfo.getPatientSex());
+                guardian.setName(patient.getGuardianName());
+                try{
+                    guardian.setAge(ChinaIDNumberUtil.getAgeFromIDNumber(patient.getGuardianCertificate()));
+                    guardian.setSex(ChinaIDNumberUtil.getSexFromIDNumber(patient.getGuardianCertificate()));
+                } catch (ValidateException exception) {
+                    LOGGER.warn("监护人使用身份证号获取年龄或者性别出错.{}.", exception.getMessage());
                 }
                 map.put("guardian", guardian);
             }

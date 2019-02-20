@@ -31,6 +31,7 @@ import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.schema.exception.ValidateException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -46,6 +47,7 @@ import recipe.constant.BussTypeConstant;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
+import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
@@ -285,11 +287,12 @@ public class RecipeCheckService {
 
                 //判断该就诊人是否为儿童就诊人
                 if (p.getAge() <= 5 && !patient.getGuardianFlag() && !ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
-                    PatientDTO guardianInfo = patientService.getByIdCard(patient.getGuardianCertificate());
-                    if (!ObjectUtils.isEmpty(guardianInfo)) {
-                        guardian.setName(guardianInfo.getPatientName());
-                        guardian.setAge(guardianInfo.getAge());
-                        guardian.setSex(guardianInfo.getPatientSex());
+                    guardian.setName(patient.getGuardianName());
+                    try{
+                        guardian.setAge(ChinaIDNumberUtil.getAgeFromIDNumber(patient.getGuardianCertificate()));
+                        guardian.setSex(ChinaIDNumberUtil.getSexFromIDNumber(patient.getGuardianCertificate()));
+                    } catch (ValidateException exception) {
+                        LOGGER.warn("监护人使用身份证号获取年龄或者性别出错.{}.", exception.getMessage());
                     }
                 }
 
