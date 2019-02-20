@@ -78,6 +78,10 @@ public class DrugToolService implements IDrugToolService {
         }
     });
 
+    @RpcService
+    public void resetMatchCache(){
+        drugListCache.cleanUp();
+    }
 
     @RpcService
     public DrugToolUser loginOrRegist(String name,String mobile,String pwd){
@@ -310,6 +314,7 @@ public class DrugToolService implements IDrugToolService {
             organDrugListDAO.remove(organDrugList.getOrganDrugId());
         }
         drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("status",0));
+
     }
 
     /**
