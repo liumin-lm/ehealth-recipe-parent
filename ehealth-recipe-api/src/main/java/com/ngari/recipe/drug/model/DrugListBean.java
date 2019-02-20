@@ -108,6 +108,17 @@ public class DrugListBean implements Serializable {
 
     private DispensatoryDTO dispensatory;
 
+    @ItemProperty(alias = "是否是匹配的药品(药品工具返回前端用)")
+    private boolean isMatched = false;
+
+    public boolean getIsMatched() {
+        return isMatched;
+    }
+
+    public void setIsMatched(boolean matched) {
+        isMatched = matched;
+    }
+
     public DrugListBean() {
     }
 
