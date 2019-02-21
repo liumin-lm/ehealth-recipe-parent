@@ -295,6 +295,9 @@ public class DrugToolService implements IDrugToolService {
      */
     @RpcService
     public void updateNoMatchData(int drugId,String operator){
+        if (StringUtils.isEmpty(operator)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "operator is required");
+        }
         DrugListMatch drugListMatch = drugListMatchDAO.get(drugId);
         //如果是已匹配的取消匹配
         if (drugListMatch.getStatus().equals(1)){
@@ -308,6 +311,9 @@ public class DrugToolService implements IDrugToolService {
      */
     @RpcService
     public void cancelMatchStatus(int drugId,String operator){
+        if (StringUtils.isEmpty(operator)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "operator is required");
+        }
         DrugListMatch drugListMatch = drugListMatchDAO.get(drugId);
         if (drugListMatch.getStatus().equals(2)){
             //删除organDrugList记录
@@ -322,6 +328,9 @@ public class DrugToolService implements IDrugToolService {
      */
     @RpcService
     public void updateMatchStatus(int drugId,int matchDrugId,String operator){
+        if (StringUtils.isEmpty(operator)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "operator is required");
+        }
         DrugListMatch drugListMatch = drugListMatchDAO.get(drugId);
         //如果是已提交状态再次修改，先删除原来的
         if (drugListMatch.getStatus().equals(2)){
