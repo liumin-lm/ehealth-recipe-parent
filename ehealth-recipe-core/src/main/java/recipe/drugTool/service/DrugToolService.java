@@ -83,8 +83,9 @@ public class DrugToolService implements IDrugToolService {
         drugListCache.cleanUp();
     }
 
+
     @RpcService
-    public DrugToolUser loginOrRegist(String name,String mobile,String pwd){
+    public DrugToolUser loginOrRegist(String name, String mobile, String pwd){
         if (StringUtils.isEmpty(name)){
             throw new DAOException(DAOException.VALUE_NEEDED, "name is required");
         }
@@ -161,6 +162,7 @@ public class DrugToolService implements IDrugToolService {
             throw new DAOException(DAOException.VALUE_NEEDED, "data is required");
         }
 
+        double progress;
         for (int rowIndex = 1; rowIndex <= total; rowIndex++) {
             Row row = sheet.getRow(rowIndex);//循环获得每个行
             DrugListMatch drug = new DrugListMatch();
@@ -225,8 +227,7 @@ public class DrugToolService implements IDrugToolService {
                 /*AutoMatch(drug);*/
                 drugListMatchDAO.save(drug);
             }
-            Integer progressNum = rowIndex;
-            double progress = new BigDecimal((float)progressNum / total).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+            progress = new BigDecimal((float)rowIndex / total).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
             progressMap.put(organId+operator,progress*100);
         }
     }
@@ -285,7 +286,7 @@ public class DrugToolService implements IDrugToolService {
      * 获取或刷新临时药品数据
      */
     @RpcService
-    public List<DrugListMatch> findData(int organId,int start,int limit){
+    public List<DrugListMatch> findData(int organId, int start, int limit){
         return drugListMatchDAO.findMatchDataByOrgan(organId, start, limit);
     }
 
@@ -293,42 +294,41 @@ public class DrugToolService implements IDrugToolService {
      * 更新无匹配数据
      */
     @RpcService
-    public void updateNoMatchData(int drugId){
+    public void updateNoMatchData(int drugId,String operator){
         DrugListMatch drugListMatch = drugListMatchDAO.get(drugId);
         //如果是已匹配的取消匹配
         if (drugListMatch.getStatus().equals(1)){
-            drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("status",0));
+            drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("status",0,"operator",operator));
         }
-        drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("isNew",1,"status",3));
+        drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("isNew",1,"status",3,"operator",operator));
     }
 
     /**
      * 取消已匹配状态和已提交状态
      */
     @RpcService
-    public void cancelMatchStatus(int drugId){
+    public void cancelMatchStatus(int drugId,String operator){
         DrugListMatch drugListMatch = drugListMatchDAO.get(drugId);
         if (drugListMatch.getStatus().equals(2)){
             //删除organDrugList记录
             OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCode(drugListMatch.getSourceOrgan(),drugListMatch.getOrganDrugCode());
             organDrugListDAO.remove(organDrugList.getOrganDrugId());
         }
-        drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("status",0));
-
+        drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("status",0,"operator",operator));
     }
 
     /**
      * 更新已匹配状态(未匹配0，已匹配1，已提交2,已标记3)
      */
     @RpcService
-    public void updateMatchStatus(int drugId,int matchDrugId){
+    public void updateMatchStatus(int drugId,int matchDrugId,String operator){
         DrugListMatch drugListMatch = drugListMatchDAO.get(drugId);
         //如果是已提交状态再次修改，先删除原来的
         if (drugListMatch.getStatus().equals(2)){
             OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCode(drugListMatch.getSourceOrgan(),drugListMatch.getOrganDrugCode());
             organDrugListDAO.remove(organDrugList.getOrganDrugId());
         }
-        drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("status",1,"matchDrugId",matchDrugId));
+        drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("status",1,"matchDrugId",matchDrugId,"operator",operator));
     }
 
     /**
@@ -406,7 +406,7 @@ public class DrugToolService implements IDrugToolService {
      * 药品搜索(可根据药品名称，厂家等进行搜索)
      */
     @RpcService
-    public QueryResult<DrugListMatch> drugSearch(int organId,String keyWord, int status , int start, int limit){
+    public QueryResult<DrugListMatch> drugSearch(int organId, String keyWord, int status , int start, int limit){
         return drugListMatchDAO.queryDrugListsByDrugNameAndStartAndLimit(organId,keyWord, status, start, limit);
     }
 }
