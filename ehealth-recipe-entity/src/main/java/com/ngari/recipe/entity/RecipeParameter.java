@@ -20,6 +20,7 @@ public class RecipeParameter implements Serializable {
 
     private String paramAlias;
 
+    @Id
     @Column(name = "paramName")
     public String getParamName() {
         return paramName;
