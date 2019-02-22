@@ -29,6 +29,7 @@ import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
+import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.service.*;
 import recipe.serviceprovider.BaseService;
 import recipe.third.IWXServiceInterface;
@@ -205,6 +206,10 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             errorMsg = "";
         }
 
+        //监管平台核销上传
+        SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
+        syncExecutorService.uploadVerificationRecipeIndicators(recipeId);
+        
         backMsg.setCode(code);
         backMsg.setMsg(errorMsg);
         backMsg.setRecipe(null);
@@ -642,6 +647,11 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 hisService.recipeFinish(recipeId);
                 //发送取药完成消息
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.PATIENT_GETGRUG_FINISH);
+
+                //监管平台核销上传
+                SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
+                syncExecutorService.uploadVerificationRecipeIndicators(recipeId);
+                
             } else {
                 code = ErrorCode.SERVICE_ERROR;
                 errorMsg = "电子处方更新失败";
