@@ -167,6 +167,7 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
             String serviceId = "his.provinceDataUploadService";
             //X-Service-Method对应的值
             String method = "uploadRecipeVerificationIndicators";
+            LOGGER.warn("uploadVerificationRecipeIndicators request={}", JSONUtils.toString(request));
             Request hisRequest = new Request(serviceId, method, request);
             Response response = client.execute(hisRequest);
             if (response.isSuccess()) {
@@ -284,10 +285,10 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
             }
             req.setDeptName(departmentDTO.getName());
             //设置专科编码等
-            subCodeDTO = subCodeService.getByNgariProfessionCode(departmentDTO.getOrganProfession().toString());
+            subCodeDTO = subCodeService.getByNgariProfessionCode(departmentDTO.getProfessionCode());
             if (null == subCodeDTO) {
-                LOGGER.warn("uploadRecipeIndicators subCode is null. recipe.organProfession={}",
-                        departmentDTO.getOrganProfession());
+                LOGGER.warn("uploadRecipeIndicators subCode is null. recipe.professionCode={}",
+                        departmentDTO.getProfessionCode());
                 continue;
             }
             req.setSubjectCode(subCodeDTO.getSubCode());
@@ -317,6 +318,9 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
                 LOGGER.warn("uploadRecipeIndicators checker is null. recipe.checker={}", recipe.getChecker());
                 continue;
             }
+            req.setAuditDoctorCertID(doctorDTO.getIdNumber());
+            req.setAuditDoctor(doctorDTO.getName());
+            req.setAuditDoctorId(recipe.getChecker().toString());
 
             //患者处理
             patientDTO = patientService.get(recipe.getMpiid());
@@ -355,7 +359,7 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
 
             //详情处理
             detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
-            if (CollectionUtils.isNotEmpty(detailList)) {
+            if (CollectionUtils.isEmpty(detailList)) {
                 LOGGER.warn("uploadRecipeIndicators detail is null. recipe.id={}", recipe.getRecipeId());
                 continue;
             }
@@ -370,6 +374,7 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
             String serviceId = "his.provinceDataUploadService";
             //X-Service-Method对应的值
             String method = "uploadRecipeIndicators";
+            LOGGER.info("uploadRecipeIndicators request={}", JSONUtils.toString(request));
             Request hisRequest = new Request(serviceId, method, request);
             Response response = client.execute(hisRequest);
             if (response.isSuccess()) {
