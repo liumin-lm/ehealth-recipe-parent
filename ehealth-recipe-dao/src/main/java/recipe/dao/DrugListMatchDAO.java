@@ -178,16 +178,22 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
     @DAOMethod(sql = "from DrugListMatch where sourceOrgan =:organId")
     public abstract List<DrugListMatch> findMatchDataByOrgan(@DAOParam("organId") int organId);
 
-    public List<DrugListMatch> findMatchDataByOrgan(final int organId, final int start, final int limit){
-        HibernateStatelessResultAction<List<DrugListMatch>> action = new AbstractHibernateStatelessResultAction<List<DrugListMatch>>() {
+    public QueryResult<DrugListMatch> findMatchDataByOrgan(final int organId, final int start, final int limit){
+        HibernateStatelessResultAction<QueryResult<DrugListMatch>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugListMatch>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("from DrugListMatch where sourceOrgan =:organId");
-                Query q = ss.createQuery(hql.toString());
-                q.setParameter("organId", organId);
-                q.setFirstResult(start);
-                q.setMaxResults(limit);
-                setResult(q.list());
+                Query query = ss.createQuery(hql.toString());
+                query.setParameter("organId", organId);
+                query.setFirstResult(start);
+                query.setMaxResults(limit);
+
+                Query countQuery = ss.createQuery("select count(*) " + hql.toString());
+                countQuery.setParameter("organId", organId);
+                Long total = (Long) countQuery.uniqueResult();
+
+                List<DrugListMatch> lists = query.list();
+                setResult(new QueryResult<DrugListMatch>(total, query.getFirstResult(), query.getMaxResults(), lists));
             }
         };
         HibernateSessionTemplate.instance().execute(action);

@@ -286,7 +286,7 @@ public class DrugToolService implements IDrugToolService {
      * 获取或刷新临时药品数据
      */
     @RpcService
-    public List<DrugListMatch> findData(int organId, int start, int limit){
+    public QueryResult<DrugListMatch> findData(int organId, int start, int limit){
         return drugListMatchDAO.findMatchDataByOrgan(organId, start, limit);
     }
 
