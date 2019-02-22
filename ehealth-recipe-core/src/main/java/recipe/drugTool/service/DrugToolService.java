@@ -138,9 +138,12 @@ public class DrugToolService implements IDrugToolService {
         return progress;
     }
 
-    public void readDrugExcel(byte[] buf, String originalFilename, int organId, String operator) {
+    public Map<String,Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator) {
+        Map<String,Object> result = Maps.newHashMap();
         if (StringUtils.isEmpty(operator)){
-            throw new DAOException(DAOException.VALUE_NEEDED, "operator is required");
+            result.put("code",609);
+            result.put("msg","operator is required");
+            return result;
         }
         InputStream is = new ByteArrayInputStream(buf);
         //获得用户上传工作簿
@@ -151,15 +154,21 @@ public class DrugToolService implements IDrugToolService {
             } else if (originalFilename.endsWith(SUFFIX_2007)) {
                 workbook = new XSSFWorkbook(is);
             }else {
-                throw new DAOException("上传文件格式有问题");
+                result.put("code",609);
+                result.put("msg","上传文件格式有问题");
+                return result;
             }
         } catch (Exception e) {
-            throw new DAOException("上传文件格式有问题");
+            result.put("code",609);
+            result.put("msg","上传文件格式有问题");
+            return result;
         }
         Sheet sheet = workbook.getSheetAt(0);
         Integer total = sheet.getLastRowNum();
         if (total == null || total <= 0) {
-            throw new DAOException(DAOException.VALUE_NEEDED, "data is required");
+            result.put("code",609);
+            result.put("msg","data is required");
+            return result;
         }
 
         double progress;
@@ -167,11 +176,15 @@ public class DrugToolService implements IDrugToolService {
             Row row = sheet.getRow(rowIndex);//循环获得每个行
             DrugListMatch drug = new DrugListMatch();
             if (StringUtils.isEmpty(getStrFromCell(row.getCell(0)))){
-                throw new DAOException(DAOException.VALUE_NEEDED, "存在药品编号为空，请重新导入");
+                result.put("code",609);
+                result.put("msg","存在药品编号为空，请重新导入");
+                return result;
             }
             drug.setOrganDrugCode(getStrFromCell(row.getCell(0)));
             if (StringUtils.isEmpty(getStrFromCell(row.getCell(1)))){
-                throw new DAOException(DAOException.VALUE_NEEDED, "存在药品名为空，请重新导入");
+                result.put("code",609);
+                result.put("msg","存在药品名为空，请重新导入");
+                return result;
             }
             drug.setDrugName(getStrFromCell(row.getCell(1)));
             drug.setSaleName(getStrFromCell(row.getCell(2)));
@@ -230,6 +243,8 @@ public class DrugToolService implements IDrugToolService {
             progress = new BigDecimal((float)rowIndex / total).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
             progressMap.put(organId+operator,progress*100);
         }
+        result.put("code",200);
+        return result;
     }
 
     /*private void AutoMatch(DrugListMatch drug) {
