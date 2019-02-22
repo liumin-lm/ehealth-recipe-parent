@@ -333,7 +333,9 @@ public class DrugToolService implements IDrugToolService {
         if (drugListMatch.getStatus().equals(2)){
             //删除organDrugList记录
             OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCode(drugListMatch.getSourceOrgan(),drugListMatch.getOrganDrugCode());
-            organDrugListDAO.remove(organDrugList.getOrganDrugId());
+            if (organDrugList!=null){
+                organDrugListDAO.remove(organDrugList.getOrganDrugId());
+            }
         }
         drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("status",0,"operator",operator));
     }
@@ -350,7 +352,9 @@ public class DrugToolService implements IDrugToolService {
         //如果是已提交状态再次修改，先删除原来的
         if (drugListMatch.getStatus().equals(2)){
             OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCode(drugListMatch.getSourceOrgan(),drugListMatch.getOrganDrugCode());
-            organDrugListDAO.remove(organDrugList.getOrganDrugId());
+            if (organDrugList!=null){
+                organDrugListDAO.remove(organDrugList.getOrganDrugId());
+            }
         }
         drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("status",1,"matchDrugId",matchDrugId,"operator",operator));
     }
