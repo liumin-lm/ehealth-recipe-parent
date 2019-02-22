@@ -430,7 +430,7 @@ public class DrugToolService implements IDrugToolService {
      * 药品搜索(可根据药品名称，厂家等进行搜索)
      */
     @RpcService
-    public QueryResult<DrugListMatch> drugSearch(int organId, String keyWord, int status , int start, int limit){
+    public QueryResult<DrugListMatch> drugSearch(int organId, String keyWord, Integer status , int start, int limit){
         return drugListMatchDAO.queryDrugListsByDrugNameAndStartAndLimit(organId,keyWord, status, start, limit);
     }
 }
