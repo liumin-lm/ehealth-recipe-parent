@@ -128,12 +128,13 @@ public class DrugToolService implements IDrugToolService {
     @RpcService
     public double getProgress(int organId,String operator) {
         double progress = 0;
-        /*if (progressNum != null&&total != null){
-            progress = new BigDecimal((float)progressNum / total).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
-        }*/
-        Double data = progressMap.get(organId + operator);
+        String key = organId +operator;
+        Double data = progressMap.get(key);
         if (data != null){
             progress = data;
+            if (progress >= 100){
+                progressMap.remove(key);
+            }
         }
         return progress;
     }
@@ -420,7 +421,10 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setTakeMedicine(0);
                         organDrugList.setStatus(1);
                         organDrugList.setProducerCode("");
-                        organDrugListDAO.save(organDrugList);
+                        Boolean isSuccess = organDrugListDAO.updateOrganDrugListByOrganIdAndDrugId(organDrugList.getOrganId(), organDrugList.getDrugId(), ImmutableMap.of("salePrice", organDrugList.getSalePrice()));
+                        if (!isSuccess){
+                            organDrugListDAO.save(organDrugList);
+                        }
                         drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("status",2));
                     }
                 }

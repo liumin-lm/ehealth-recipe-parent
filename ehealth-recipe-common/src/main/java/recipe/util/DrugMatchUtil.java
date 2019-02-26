@@ -13,21 +13,24 @@ import java.util.List;
  */
 public class DrugMatchUtil {
 
-    public static String match(String drugname){
+    private static JiebaSegmenter segmenter;
+
+    static {
         String pathStr = DrugMatchUtil.class.getClassLoader().getResource("").getPath()+"new-cst.dict";
         File file = new File(pathStr);
-        System.out.println(file.exists()+"-"+file.getAbsolutePath());
+        /*System.out.println(file.exists()+"-"+file.getAbsolutePath());*/
         Path path = Paths.get(file.getAbsolutePath());
         WordDictionary.getInstance().loadUserDict(path);
+        segmenter = new JiebaSegmenter();
+    }
 
-        JiebaSegmenter segmenter = new JiebaSegmenter();
-
+    public static String match(String drugname){
         boolean needReplace = -1 != drugname.indexOf("(") && -1 != drugname.indexOf(")");
         if(needReplace){
             StringBuilder sb = new StringBuilder();
             sb.append(drugname.substring(0,drugname.indexOf("("))).append(drugname.substring(drugname.indexOf(")")+1, drugname.length()));
             drugname = sb.toString();
-            System.out.println("replace:"+drugname);
+            /*System.out.println("replace:"+drugname);*/
         }
         List<String> list =  segmenter.sentenceProcess(drugname);
         String key = null;
