@@ -69,20 +69,20 @@ public class SyncExecutorService {
      * 上传核销信息
      * @param recipeId
      */
-    public void uploadVerificationRecipeIndicators(int recipeId){
+    public void uploadRecipeVerificationIndicators(int recipeId){
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.get(recipeId);
         if(null == recipe){
-            LOGGER.warn("uploadVerificationRecipeIndicators recipe is null. recipeId={}", recipeId);
+            LOGGER.warn("uploadRecipeVerificationIndicators recipe is null. recipeId={}", recipeId);
             return;
         }
 
         CommonSyncSupervisionService service = ApplicationUtils.getRecipeService(CommonSyncSupervisionService.class);
         CommonResponse response = null;
         try {
-            response = service.uploadVerificationRecipeIndicators(Arrays.asList(recipe));
+            response = service.uploadRecipeVerificationIndicators(Arrays.asList(recipe));
         } catch (Exception e) {
-            LOGGER.warn("uploadVerificationRecipeIndicators exception recipe={}", JSONUtils.toString(recipe), e);
+            LOGGER.warn("uploadRecipeVerificationIndicators exception recipe={}", JSONUtils.toString(recipe), e);
         }
         if (CommonConstant.SUCCESS.equals(response.getCode())) {
             //记录日志

@@ -208,7 +208,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
         //监管平台核销上传
         SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
-        syncExecutorService.uploadVerificationRecipeIndicators(recipeId);
+        syncExecutorService.uploadRecipeVerificationIndicators(recipeId);
         
         backMsg.setCode(code);
         backMsg.setMsg(errorMsg);
@@ -650,7 +650,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
                 //监管平台核销上传
                 SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
-                syncExecutorService.uploadVerificationRecipeIndicators(recipeId);
+                syncExecutorService.uploadRecipeVerificationIndicators(recipeId);
                 
             } else {
                 code = ErrorCode.SERVICE_ERROR;

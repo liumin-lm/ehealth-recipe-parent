@@ -65,8 +65,8 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
      * @param recipeList
      * @return
      */
-    public CommonResponse uploadVerificationRecipeIndicators(List<Recipe> recipeList) {
-        LOGGER.info("uploadVerificationRecipeIndicators recipeList length={}", recipeList.size());
+    public CommonResponse uploadRecipeVerificationIndicators(List<Recipe> recipeList) {
+        LOGGER.info("uploadRecipeVerificationIndicators recipeList length={}", recipeList.size());
         CommonResponse commonResponse = ResponseUtils.getFailResponse(CommonResponse.class, "");
         if (CollectionUtils.isEmpty(recipeList)) {
             commonResponse.setMsg("处方列表为空");
@@ -77,7 +77,7 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
                 AppDomainContext.getBean("basic.provUploadOrganService", ProvUploadOrganService.class);
         List<ProvUploadOrganDTO> provUploadOrganList = provUploadOrganService.findByStatus(1);
         if (CollectionUtils.isEmpty(provUploadOrganList)) {
-            LOGGER.warn("uploadVerificationRecipeIndicators provUploadOrgan list is null.");
+            LOGGER.warn("uploadRecipeVerificationIndicators provUploadOrgan list is null.");
             commonResponse.setMsg("需要同步机构列表为空");
             return commonResponse;
         }
@@ -105,7 +105,7 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
             }
 
             if (null == order) {
-                LOGGER.warn("uploadVerificationRecipeIndicators order is null. recipe.orderCode={}",
+                LOGGER.warn("uploadRecipeVerificationIndicators order is null. recipe.orderCode={}",
                         recipe.getOrderCode());
                 continue;
             }
@@ -117,7 +117,7 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
                 organMap.put(recipe.getClinicOrgan(), organDTO);
             }
             if (null == organDTO) {
-                LOGGER.warn("uploadVerificationRecipeIndicators organ is null. recipe.clinicOrgan={}", recipe.getClinicOrgan());
+                LOGGER.warn("uploadRecipeVerificationIndicators organ is null. recipe.clinicOrgan={}", recipe.getClinicOrgan());
                 continue;
             }
             for (ProvUploadOrganDTO uploadOrgan : provUploadOrganList) {
@@ -129,7 +129,7 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
                 }
             }
             if (StringUtils.isEmpty(req.getUnitID())) {
-                LOGGER.warn("uploadVerificationRecipeIndicators minkeUnitID is not in minkeOrganList. organ.organId={}",
+                LOGGER.warn("uploadRecipeVerificationIndicators minkeUnitID is not in minkeOrganList. organ.organId={}",
                         organDTO.getOrganId());
                 continue;
             }
@@ -167,22 +167,22 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
             String serviceId = "his.provinceDataUploadService";
             //X-Service-Method对应的值
             String method = "uploadRecipeVerificationIndicators";
-            LOGGER.warn("uploadVerificationRecipeIndicators request={}", JSONUtils.toString(request));
+            LOGGER.warn("uploadRecipeVerificationIndicators request={}", JSONUtils.toString(request));
             Request hisRequest = new Request(serviceId, method, new ArrayList<Object>(request));
             Response response = client.execute(hisRequest);
             if (response.isSuccess()) {
                 //成功
                 commonResponse.setCode(CommonConstant.SUCCESS);
-                LOGGER.info("uploadVerificationRecipeIndicators execute success.");
+                LOGGER.info("uploadRecipeVerificationIndicators execute success.");
             } else {
                 commonResponse.setMsg(response.getErrorMessage());
             }
         } catch (Exception e) {
-            LOGGER.warn("uploadVerificationRecipeIndicators HIS接口调用失败. request={}", JSONUtils.toString(request), e);
+            LOGGER.warn("uploadRecipeVerificationIndicators HIS接口调用失败. request={}", JSONUtils.toString(request), e);
             commonResponse.setMsg("HIS接口调用异常");
         }
 
-        LOGGER.info("uploadVerificationRecipeIndicators commonResponse={}", JSONUtils.toString(commonResponse));
+        LOGGER.info("uploadRecipeVerificationIndicators commonResponse={}", JSONUtils.toString(commonResponse));
         return commonResponse;
     }
 
