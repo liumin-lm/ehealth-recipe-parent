@@ -76,7 +76,6 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
                 if (!ObjectUtils.isEmpty(status)) {
                     hql.append(" and status =:status");
                 }
-                hql.append(" order by createDt desc");
                 Query countQuery = ss.createQuery("select count(*) " + hql.toString());
                 if (!ObjectUtils.isEmpty(status)) {
                     countQuery.setParameter("status", status);

@@ -9,6 +9,6 @@ import java.util.Map;
  */
 public interface IDrugToolService {
 
-    @RpcService
+    @RpcService(timeout = 600)
     Map<String, Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator);
 }
