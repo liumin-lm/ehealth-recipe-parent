@@ -420,7 +420,10 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setTakeMedicine(0);
                         organDrugList.setStatus(1);
                         organDrugList.setProducerCode("");
-                        organDrugListDAO.save(organDrugList);
+                        Boolean isSuccess = organDrugListDAO.updateOrganDrugListByOrganIdAndDrugId(organDrugList.getOrganId(), organDrugList.getDrugId(), ImmutableMap.of("salePrice", organDrugList.getSalePrice()));
+                        if (!isSuccess){
+                            organDrugListDAO.save(organDrugList);
+                        }
                         drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("status",2));
                     }
                 }
