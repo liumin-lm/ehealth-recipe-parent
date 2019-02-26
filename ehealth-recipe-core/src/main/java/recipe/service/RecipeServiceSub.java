@@ -811,7 +811,7 @@ public class RecipeServiceSub {
             RecipeServiceSub.setPatientMoreInfo(patientBean, recipe.getDoctor());
             patient = RecipeServiceSub.convertPatientForRAP(patientBean);
             //判断该就诊人是否为儿童就诊人
-            if (patient.getAge() <= 5 && !patient.getGuardianFlag() && !ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
+            if (patient.getAge() <= 5 && !ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
                 GuardianBean guardian = new GuardianBean();
                 guardian.setName(patient.getGuardianName());
                 try{

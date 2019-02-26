@@ -286,7 +286,7 @@ public class RecipeCheckService {
                 p.setMpiId(patient.getMpiId());
 
                 //判断该就诊人是否为儿童就诊人
-                if (p.getAge() <= 5 && !patient.getGuardianFlag() && !ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
+                if (p.getAge() <= 5 && !ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
                     guardian.setName(patient.getGuardianName());
                     try{
                         guardian.setAge(ChinaIDNumberUtil.getAgeFromIDNumber(patient.getGuardianCertificate()));
