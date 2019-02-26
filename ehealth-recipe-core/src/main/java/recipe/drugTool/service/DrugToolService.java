@@ -417,7 +417,11 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setDrugId(drugListMatch.getMatchDrugId());
                         organDrugList.setOrganDrugCode(drugListMatch.getOrganDrugCode());
                         organDrugList.setOrganId(drugListMatch.getSourceOrgan());
-                        organDrugList.setSalePrice(drugListMatch.getPrice());
+                        if (drugListMatch.getPrice()==null){
+                            organDrugList.setSalePrice(new BigDecimal(0));
+                        }else {
+                            organDrugList.setSalePrice(drugListMatch.getPrice());
+                        }
                         organDrugList.setTakeMedicine(0);
                         organDrugList.setStatus(1);
                         organDrugList.setProducerCode("");
