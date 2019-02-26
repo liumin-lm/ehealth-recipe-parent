@@ -87,7 +87,7 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
         OrganService organService = BasicAPI.getService(OrganService.class);
 
         Map<Integer, OrganDTO> organMap = new HashMap<>(20);
-        List request = new ArrayList<>(recipeList.size());
+        List<RecipeVerificationIndicatorsReq> request = new ArrayList<>(recipeList.size());
         Date now = DateTime.now().toDate();
         RecipeVerificationIndicatorsReq req;
         RecipeOrder order = null;
@@ -168,7 +168,7 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
             //X-Service-Method对应的值
             String method = "uploadRecipeVerificationIndicators";
             LOGGER.warn("uploadVerificationRecipeIndicators request={}", JSONUtils.toString(request));
-            Request hisRequest = new Request(serviceId, method, request);
+            Request hisRequest = new Request(serviceId, method, new ArrayList<Object>(request));
             Response response = client.execute(hisRequest);
             if (response.isSuccess()) {
                 //成功
@@ -220,7 +220,7 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
 
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
 
-        List request = new ArrayList<>(recipeList.size());
+        List<RecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
         Map<Integer, OrganDTO> organMap = new HashMap<>(20);
         Map<Integer, DepartmentDTO> departMap = new HashMap<>(20);
         Map<Integer, DoctorDTO> doctorMap = new HashMap<>(20);
@@ -375,7 +375,7 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
             //X-Service-Method对应的值
             String method = "uploadRecipeIndicators";
             LOGGER.info("uploadRecipeIndicators request={}", JSONUtils.toString(request));
-            Request hisRequest = new Request(serviceId, method, request);
+            Request hisRequest = new Request(serviceId, method, new ArrayList<Object>(request));
             Response response = client.execute(hisRequest);
             if (response.isSuccess()) {
                 //成功
