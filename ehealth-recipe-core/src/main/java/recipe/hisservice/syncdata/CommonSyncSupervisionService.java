@@ -168,7 +168,9 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
             //X-Service-Method对应的值
             String method = "uploadRecipeVerificationIndicators";
             LOGGER.warn("uploadRecipeVerificationIndicators request={}", JSONUtils.toString(request));
-            Request hisRequest = new Request(serviceId, method, new ArrayList<Object>(request));
+            List tempList = new ArrayList(1);
+            tempList.add(request);
+            Request hisRequest = new Request(serviceId, method, tempList);
             Response response = client.execute(hisRequest);
             if (response.isSuccess()) {
                 //成功
@@ -375,7 +377,9 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
             //X-Service-Method对应的值
             String method = "uploadRecipeIndicators";
             LOGGER.info("uploadRecipeIndicators request={}", JSONUtils.toString(request));
-            Request hisRequest = new Request(serviceId, method, new ArrayList<Object>(request));
+            List tempList = new ArrayList(1);
+            tempList.add(request);
+            Request hisRequest = new Request(serviceId, method, tempList);
             Response response = client.execute(hisRequest);
             if (response.isSuccess()) {
                 //成功
