@@ -53,6 +53,7 @@ import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.service.common.RecipeCacheService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateRecipeStatusFromHisCallable;
@@ -973,6 +974,10 @@ public class RecipeService {
             orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("status", status), resultBean);
         }
 
+        //同步到监管平台
+        SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
+        syncExecutorService.uploadRecipeIndicators(recipe);
+
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核通过处理完成");
         return resultBean;
     }
@@ -1013,6 +1018,11 @@ public class RecipeService {
         //HIS消息发送
         //审核不通过 往his更新状态（已取消）
         hisService.recipeStatusUpdate(recipe.getRecipeId());
+
+        //同步到监管平台
+        SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
+        syncExecutorService.uploadRecipeIndicators(recipe);
+        
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核不通过处理完成");
     }
 

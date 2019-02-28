@@ -22,6 +22,7 @@ import recipe.dao.bean.DrugListAndOrganDrugList;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 医疗机构用药目录dao
@@ -301,6 +302,33 @@ public abstract class OrganDrugListDAO extends
                     q.setParameter("drugId", drugId);
                 }
                 setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    public Boolean updateOrganDrugListByOrganIdAndDrugId(final int organId,final int drugId, final Map<String, ?> changeAttr) {
+        HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("update OrganDrugList set lastModify=current_timestamp() ");
+                if (null != changeAttr && !changeAttr.isEmpty()) {
+                    for (String key : changeAttr.keySet()) {
+                        hql.append("," + key + "=:" + key);
+                    }
+                }
+                hql.append(" where organId=:organId and drugId=:drugId");
+                Query q = ss.createQuery(hql.toString());
+                q.setParameter("organId", organId);
+                q.setParameter("drugId", drugId);
+                if (null != changeAttr && !changeAttr.isEmpty()) {
+                    for (String key : changeAttr.keySet()) {
+                        q.setParameter(key, changeAttr.get(key));
+                    }
+                }
+                int flag = q.executeUpdate();
+                setResult(flag == 1);
             }
         };
         HibernateSessionTemplate.instance().execute(action);

@@ -639,4 +639,25 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
             }
         }
     }
+    /**
+     * 商品名匹配药品
+     * @param name
+     * @return
+     */
+    public List<DrugList> findBySaleNameLike(final String name) {
+        HibernateStatelessResultAction<List<DrugList>> action = new AbstractHibernateStatelessResultAction<List<DrugList>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("from DrugList where saleName like :name");
+                Query q = ss.createQuery(hql.toString());
+                q.setParameter("name", "%" + name + "%");
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    @DAOMethod
+    public abstract List<DrugList> findByDrugName(String drugName);
 }
