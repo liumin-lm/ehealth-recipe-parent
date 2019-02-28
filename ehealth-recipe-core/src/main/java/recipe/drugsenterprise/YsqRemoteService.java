@@ -36,6 +36,7 @@ import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.DateConversion;
+import recipe.util.LocalStringUtil;
 import recipe.util.MapValueUtil;
 
 import javax.xml.namespace.QName;
@@ -167,7 +168,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             recipeMap.put("INBILLNO", recipe.getClinicOrgan() + YSQ_SPLIT + recipe.getRecipeCode());
             //处方pdf文件Id   有药师签名则推送药师签名的pdf  无则推送医生签名的pdf
             recipeMap.put("PDFID", null != recipe.getChemistSignFile() ?
-                    recipe.getChemistSignFile().toString() : recipe.getSignFile().toString());
+                    LocalStringUtil.toString(recipe.getChemistSignFile()) : LocalStringUtil.toString(recipe.getSignFile()));
             recipeMap.put("FLAG", (1 == checkFlag) ? "true" : "false");
         } else {
             result.setMsg("处方不存在");

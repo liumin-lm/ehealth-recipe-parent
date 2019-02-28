@@ -20,6 +20,7 @@
     <reference id="basic.serverPriceService" interface="com.ngari.patient.service.ServerPriceService"/>
     <reference id="basic.doctorGroupService" interface="com.ngari.patient.service.DoctorGroupService"/>
     <reference id="basic.organConfigExtService" interface="com.ngari.patient.service.OrganConfigExtService"/>
-
+    <reference id="basic.subCodeService" interface="com.ngari.patient.service.zjs.SubCodeService"/>
+    <reference id="basic.provUploadOrganService" interface="com.ngari.patient.service.ProvUploadOrganService"/>
 
 </s:beans>
