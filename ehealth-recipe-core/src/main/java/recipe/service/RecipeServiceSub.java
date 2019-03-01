@@ -15,36 +15,34 @@ import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.message.model.RecipeTagMsgBean;
 import com.ngari.consult.message.service.IConsultMessageService;
 import com.ngari.patient.dto.ConsultSetDTO;
+import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.ConsultSetService;
-import com.ngari.patient.service.DoctorService;
-import com.ngari.patient.service.OrganService;
-import com.ngari.patient.service.PatientService;
+import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.GuardianBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.schema.exception.ValidateException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.service.common.RecipeCacheService;
-import recipe.util.DateConversion;
-import recipe.util.DigestUtil;
-import recipe.util.LocalStringUtil;
-import recipe.util.MapValueUtil;
+import recipe.util.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -75,6 +73,8 @@ public class RecipeServiceSub {
     private static IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
 
     private static RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
+
+    private static DepartmentService departmentService = ApplicationUtils.getBasicService(DepartmentService.class);
 
     /**
      * @param recipe
@@ -764,6 +764,10 @@ public class RecipeServiceSub {
         p.setSignFlag(patient.getSignFlag());
         p.setRelationFlag(patient.getRelationFlag());
         p.setLabelNames(patient.getLabelNames());
+        p.setGuardianFlag(patient.getGuardianFlag());
+        p.setGuardianCertificate(patient.getGuardianCertificate());
+        p.setGuardianName(patient.getGuardianName());
+        p.setAge(null == patient.getBirthday() ? 0 : DateConversion.getAge(patient.getBirthday()));
         return p;
     }
 
@@ -806,6 +810,22 @@ public class RecipeServiceSub {
             //添加患者标签和关注这些字段
             RecipeServiceSub.setPatientMoreInfo(patientBean, recipe.getDoctor());
             patient = RecipeServiceSub.convertPatientForRAP(patientBean);
+            //判断该就诊人是否为儿童就诊人
+            if (patient.getAge() <= 5 && !ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
+                GuardianBean guardian = new GuardianBean();
+                guardian.setName(patient.getGuardianName());
+                try{
+                    guardian.setAge(ChinaIDNumberUtil.getAgeFromIDNumber(patient.getGuardianCertificate()));
+                    guardian.setSex(ChinaIDNumberUtil.getSexFromIDNumber(patient.getGuardianCertificate()));
+                } catch (ValidateException exception) {
+                    LOGGER.warn("监护人使用身份证号获取年龄或者性别出错.{}.", exception.getMessage());
+                }
+                map.put("guardian", guardian);
+            }
+            if (!ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
+                //对监护人信息进行脱敏处理
+                patient.setGuardianCertificate(ChinaIDNumberUtil.hideIdCard(patient.getGuardianCertificate()));
+            }
         }
         List<Recipedetail> recipedetails = detailDAO.findByRecipeId(recipeId);
 
@@ -927,6 +947,17 @@ public class RecipeServiceSub {
             recipe.setRecipeSurplusHours(getRecipeSurplusHours(recipe.getSignDate()));
         }
 
+        //获取该医生所在科室，判断是否为儿科科室
+        Integer departId = recipe.getDepart();
+        DepartmentDTO departmentDTO = departmentService.get(departId);
+        Boolean childRecipeFlag = false;
+        if (!ObjectUtils.isEmpty(departmentDTO)) {
+            if (departmentDTO.getName().contains("儿科") || departmentDTO.getName().contains("新生儿科")
+                    || departmentDTO.getName().contains("儿内科") || departmentDTO.getName().contains("儿外科")) {
+                childRecipeFlag = true;
+            }
+        }
+        map.put("childRecipeFlag", childRecipeFlag);
         map.put("recipe", ObjectCopyUtils.convert(recipe, RecipeBean.class));
 
         return map;
