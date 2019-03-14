@@ -27,7 +27,7 @@ public class RemoteRecipeLogService extends BaseService<RecipeLogBean> implement
 
     @RpcService
     @Override
-    public void saveRecipeLog(int recipeId, int beforeStatus, int afterStatus, String memo) {
+    public void saveRecipeLogEx(int recipeId, int beforeStatus, int afterStatus, String memo) {
         RecipeLogService service = ApplicationUtils.getRecipeService(RecipeLogService.class);
         service.saveRecipeLog(recipeId, beforeStatus, afterStatus, memo);
     }

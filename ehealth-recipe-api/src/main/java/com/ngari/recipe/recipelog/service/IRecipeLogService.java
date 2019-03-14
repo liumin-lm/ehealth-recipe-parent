@@ -26,5 +26,5 @@ public interface IRecipeLogService extends IBaseService<RecipeLogBean> {
      * @param memo
      */
     @RpcService
-    void saveRecipeLog(int recipeId, int beforeStatus, int afterStatus, String memo);
+    void saveRecipeLogEx(int recipeId, int beforeStatus, int afterStatus, String memo);
 }
