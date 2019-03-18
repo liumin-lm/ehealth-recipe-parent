@@ -326,12 +326,12 @@ public class RecipeToHisService {
      * @param request
      * @return
      */
-    public HisResponseTO docIndexToHis(RecipeAuditReqTO request){
+    public HisResponseTO docIndexToHis(DocIndexToHisReqTO request){
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("docIndexToHis request={}", JSONUtils.toString(request));
         HisResponseTO response = null;
         try {
-            response = hisService.recipeAudit(request);
+            response = hisService.docIndexToHis(request);
             LOGGER.info("docIndexToHis response={}", JSONUtils.toString(response));
         } catch (Exception e) {
             LOGGER.error("docIndexToHis error ", e);
