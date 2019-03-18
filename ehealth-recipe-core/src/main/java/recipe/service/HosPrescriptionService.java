@@ -68,6 +68,13 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         if (HosRecipeResult.DUPLICATION.equals(result.getCode())) {
             result.setCode(HosRecipeResult.SUCCESS);
         }
+
+        //是否走外配模式 根据giveMode判断，2为医院取药，null则走原来外配模式
+        if ("2".equals(hospitalRecipeDTO.getGiveMode())){
+            if ("0".equals(hospitalRecipeDTO.getIsDrugStock())){
+                //没有库存就推送九州通 设置fromflag为0
+            }
+        }
         RecipeBean backNew = new RecipeBean();
         backNew.setRecipeId(recipeId);
         result.setData(backNew);
