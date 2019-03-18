@@ -110,6 +110,12 @@ public class DrugList implements java.io.Serializable {
     @ItemProperty(alias = "医院价格")
     private BigDecimal hospitalPrice;
 
+    @ItemProperty(alias = "药品本位码")
+    private String standardCode;
+
+    @ItemProperty(alias = "剂型")
+    private String drugForm;
+
     public DrugList() {
     }
 
@@ -424,4 +430,21 @@ public class DrugList implements java.io.Serializable {
         this.highlightedFieldForIos = highlightedFieldForIos;
     }
 
+    @Column(name = "standardCode", length = 30)
+    public String getStandardCode() {
+        return standardCode;
+    }
+
+    public void setStandardCode(String standardCode) {
+        this.standardCode = standardCode;
+    }
+
+    @Column(name = "drugForm", length = 20)
+    public String getDrugForm() {
+        return drugForm;
+    }
+    
+    public void setDrugForm(String drugForm) {
+        this.drugForm = drugForm;
+    }
 }
