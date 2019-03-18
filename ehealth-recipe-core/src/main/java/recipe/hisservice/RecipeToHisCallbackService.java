@@ -48,8 +48,19 @@ public class RecipeToHisCallbackService {
 
             Recipedetail detail;
             List<Recipedetail> list = Lists.newArrayList();
+            boolean isDrugStock = true;
+            boolean isWuChang = false;
             for (OrderRepTO rep : repList) {
                 detail = new Recipedetail();
+                //是否武昌模式
+                if (StringUtils.isNotEmpty(rep.getIsDrugStock())){
+                    isWuChang = true;
+                }
+                //是否有库存
+                if (StringUtils.isNotEmpty(rep.getIsDrugStock())
+                        &&"0".equals(rep.getIsDrugStock())){
+                    isDrugStock = false;
+                }
                 if (StringUtils.isNotEmpty(rep.getPrice())) {
                     detail.setDrugCost(new BigDecimal(rep.getPrice()));
                 }
@@ -71,6 +82,12 @@ public class RecipeToHisCallbackService {
             result.setDetailList(list);
             LOGGER.info("recipeSend recive success. recipeId={}, checkPassSuccess result={}", response.getRecipeId(), JSONUtils.toString(result));
             HisCallBackService.checkPassSuccess(result, true);
+            //没库存操作----推送九州通
+            if (!isDrugStock){
+
+            }else if (isWuChang){
+                //有库存操作----发送患者消息
+            }
         } else {
             LOGGER.error("recipeSend recive success. recipeId={}, data is empty. ");
         }

@@ -320,4 +320,22 @@ public class RecipeToHisService {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.recipeAudit(request);
     }
+
+    /**
+     * 武昌模块 推送his电子病历
+     * @param request
+     * @return
+     */
+    public HisResponseTO docIndexToHis(RecipeAuditReqTO request){
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        LOGGER.info("docIndexToHis request={}", JSONUtils.toString(request));
+        HisResponseTO response = null;
+        try {
+            response = hisService.recipeAudit(request);
+            LOGGER.info("docIndexToHis response={}", JSONUtils.toString(response));
+        } catch (Exception e) {
+            LOGGER.error("docIndexToHis error ", e);
+        }
+        return response;
+    }
 }
