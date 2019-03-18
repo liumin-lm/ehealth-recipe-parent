@@ -64,6 +64,9 @@ public class HospitalRecipeDTO implements Serializable {
     @Verify(desc = "处方类型", isInt = true)
     private String recipeType;
 
+    @Verify(desc = "是否有库存", isInt = true)
+    private String isDrugStock;
+
     @Verify(desc = "开方科室")
     private String departId;
 
@@ -162,6 +165,14 @@ public class HospitalRecipeDTO implements Serializable {
 
     @Verify(desc = "药品详情")
     private List<HospitalDrugDTO> drugList;
+
+    public String getIsDrugStock() {
+        return isDrugStock;
+    }
+
+    public void setIsDrugStock(String isDrugStock) {
+        this.isDrugStock = isDrugStock;
+    }
 
     public String getClinicId() {
         return clinicId;
