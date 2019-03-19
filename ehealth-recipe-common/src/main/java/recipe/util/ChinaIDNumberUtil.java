@@ -148,4 +148,22 @@ public class ChinaIDNumberUtil
 			throw new ValidateException("lenth!=18");
 		}
 	}
+
+	/**
+	 * 脱敏身份证号
+	 *
+	 * @param idCard
+	 * @return
+	 */
+	public static String hideIdCard(String idCard) {
+		if (StringUtils.isEmpty(idCard)) {
+			return "";
+		}
+		//显示前1-3位
+		String str1 = idCard.substring(0, 3);
+		//显示后15-18位
+		String str2 = idCard.substring(14, 18);
+		idCard = str1 + "***********" + str2;
+		return idCard;
+	}
 }

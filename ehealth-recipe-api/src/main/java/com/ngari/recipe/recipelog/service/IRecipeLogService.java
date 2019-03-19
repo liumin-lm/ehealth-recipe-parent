@@ -16,7 +16,7 @@ public interface IRecipeLogService extends IBaseService<RecipeLogBean> {
      * @param log
      */
     @RpcService
-    void saveRecipeLog(RecipeLogBean log);
+    void saveRecipeLogEx(RecipeLogBean log);
 
     /**
      * 保存日志
