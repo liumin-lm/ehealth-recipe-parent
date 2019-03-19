@@ -758,6 +758,7 @@ public class RecipeServiceSub {
         p.setBirthday(patient.getBirthday());
         p.setPatientType(patient.getPatientType());
         p.setIdcard(patient.getCertificate());
+        p.setStatus(patient.getStatus());
 //        p.setMobile(patient.getMobile());
         p.setMpiId(patient.getMpiId());
         p.setPhoto(patient.getPhoto());
