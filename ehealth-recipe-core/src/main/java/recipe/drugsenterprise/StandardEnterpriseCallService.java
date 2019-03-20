@@ -10,10 +10,7 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.utils.VerifyUtils;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.entity.SaleDrugList;
+import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -529,5 +526,38 @@ public class StandardEnterpriseCallService {
                 }
             }
         }
+    }
+
+    /**
+     * 接收库存状态的通知
+     * @param recipeCode     处方单编号
+     * @param clinicOrgan    机构编码
+     * @param status         该处方药品库存状态 0 无 1 有
+     * @return               接收信息
+     */
+    @RpcService
+    public StandardResultDTO receiveDrugStockStatus (String recipeCode, String clinicOrgan, Integer status) {
+        StandardResultDTO result = new StandardResultDTO();
+        if (StringUtils.isEmpty(recipeCode) || StringUtils.isEmpty(clinicOrgan) || status == null) {
+            result.setCode(StandardResultDTO.FAIL);
+            result.setMsg("入参不能为空");
+            return result;
+        }
+        Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(recipeCode, Integer.parseInt(clinicOrgan));
+        if (null == dbRecipe) {
+            result.setMsg("[" + recipeCode + "]处方单不存在");
+            return result;
+        }
+        if (status == 0) {
+            //发送没有库存消息
+            RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_CANCEL_4HIS, dbRecipe);
+            result.setCode(StandardResultDTO.SUCCESS);
+        }
+        if (status == 1) {
+            //发送有库存消息
+            RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_CANCEL_4HIS, dbRecipe);
+            result.setCode(StandardResultDTO.SUCCESS);
+        }
+        return result;
     }
 }
