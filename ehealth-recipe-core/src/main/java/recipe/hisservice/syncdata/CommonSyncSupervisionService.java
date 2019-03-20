@@ -248,7 +248,8 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
         List<Recipedetail> detailList;
         for (Recipe recipe : recipeList) {
             req = new RecipeIndicatorsReq();
-            req.setBussID(LocalStringUtil.toString(recipe.getClinicId()));
+            //TODO 此处与互联网分支不一致，应填复诊ID LocalStringUtil.toString(recipe.getClinicId())
+            req.setBussID(recipe.getRecipeId().toString());
 
             //机构处理
             organDTO = organMap.get(recipe.getClinicOrgan());
