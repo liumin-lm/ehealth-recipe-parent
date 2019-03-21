@@ -13,8 +13,11 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipeCheckPassResult;
 import recipe.dao.RecipeDAO;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.HisCallBackService;
 import recipe.service.RecipeLogService;
 import recipe.util.LocalStringUtil;
@@ -34,6 +37,9 @@ public class RecipeToHisCallbackService {
      * LOGGER
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeToHisCallbackService.class);
+
+    @Autowired
+    private RemoteDrugEnterpriseService remoteDrugEnterpriseService;
 
     /**
      * @param response
@@ -91,12 +97,17 @@ public class RecipeToHisCallbackService {
             Recipe recipe = recipeDAO.getByRecipeId(Integer.valueOf(response.getRecipeId()));
             String memo = "";
             if (!isDrugStock){
+                //没库存操作----推送九州通
+                remoteDrugEnterpriseService.pushSingleRecipeInfo(recipe.getRecipeId());
+                //发送患者没库存消息
+
 
                 memo = "药品没库存,推送九州通";
                 //日志记录
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
             }else if (isWuChang){
                 //有库存操作----发送患者消息
+
 
                 memo = "药品有库存,发生患者取药消息";
                 //日志记录

@@ -2,8 +2,10 @@ package recipe.hisservice;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
+import com.ngari.base.patient.service.IPatientService;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
@@ -32,10 +34,7 @@ import recipe.service.RecipeServiceSub;
 import recipe.util.DateConversion;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * company: ngarihealth
@@ -68,7 +67,7 @@ public class HisRequestInit {
             //组织机构编码
             requestTO.setOrganizeCode(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
             //性别
-            requestTO.setPatientSex(DictionaryController.instance().get("eh.base.dictionary.Gender").getText(patient.getPatientSex()));
+            requestTO.setPatientSex(patient.getPatientSex());
             //出生日期
             requestTO.setBirthDay(DateConversion.formatDate(patient.getBirthday()));
             //科室代码
@@ -85,17 +84,6 @@ public class HisRequestInit {
             requestTO.setDoctorIdCard(doctorDTO.getIdNumber());
             //操作员名称
             requestTO.setDoctorName(recipe.getDoctorName());
-            //费别代码
-            switch (patient.getPatientType()){
-                case "1"://自费
-                    requestTO.setPatientTypeCode("0");
-                    break;
-                case "2"://医保
-                    requestTO.setPatientTypeCode("2");
-                    break;
-            }
-            //费别名称
-            requestTO.setPatientTypeName(DictionaryController.instance().get("eh.mpi.dictionary.PatientType").getText(patient.getPatientType()));
             //挂号金额
             requestTO.setRegistrationFee(new BigDecimal(0));
             //自费金额
@@ -104,6 +92,21 @@ public class HisRequestInit {
             requestTO.setHealthCompensation(new BigDecimal(0));
             //舍入金额
             requestTO.setRoundingFee(new BigDecimal(0));
+            //费别代码
+            switch (patient.getPatientType()){
+                case "1"://自费
+                    requestTO.setPatientTypeCode("0");
+                    //自费金额
+                    requestTO.setSelfPayingFee(new BigDecimal(0));
+                    break;
+                case "2"://医保
+                    requestTO.setPatientTypeCode("2");
+                    //医保补偿
+                    requestTO.setHealthCompensation(new BigDecimal(0));
+                    break;
+            }
+            //费别名称
+            requestTO.setPatientTypeName(DictionaryController.instance().get("eh.mpi.dictionary.PatientType").getText(patient.getPatientType()));
             //单据类别
             if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
                 requestTO.setRecipeType("2");//中药处方
@@ -208,7 +211,11 @@ public class HisRequestInit {
                     //每天次数
                     orderItem.setDailyTimes(UsingRateFilter.transDailyTimes(detail.getUsingRate()));
                     //付数
-                    orderItem.setDrugFs(1);
+                    if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
+                        orderItem.setDrugFs(detail.getUseTotalDose().intValue());//中药处方
+                    } else {
+                        orderItem.setDrugFs(1);//西药处方
+                    }
                     //分组序号
                     orderItem.setGroupNo(1);
                     //排序序号
@@ -585,5 +592,64 @@ public class HisRequestInit {
         }
 
         return request;
+    }
+
+    public static DocIndexToHisReqTO initDocIndexToHisReqTO(Recipe recipe) {
+        //有些数据无法获取，暂时定死
+        DocIndexToHisReqTO requestTO = new DocIndexToHisReqTO();
+        try{
+            requestTO.setOrganId(recipe.getClinicOrgan());
+            OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+            //组织机构编码
+            requestTO.setOrganizeCode(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
+
+            IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+            PatientBean patientBean = iPatientService.get(recipe.getMpiid());
+            HealthCardBean cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
+            if (null != cardBean) {
+                requestTO.setCardType(cardBean.getCardType());//2-医保卡
+                requestTO.setCardCode(cardBean.getCardId());
+            }else {
+                requestTO.setCardType("4");//武昌-4-身份证
+                requestTO.setCardCode(patientBean.getIdcard());
+            }
+            requestTO.setPatientIdCard(patientBean.getIdcard());
+            requestTO.setPatientName(patientBean.getPatientName());
+            requestTO.setPatientSex(patientBean.getPatientSex());
+            //出生日期
+            requestTO.setBirthDay(DateConversion.formatDate(patientBean.getBirthday()));
+            //复诊标记（0：初诊 1：复诊）
+            requestTO.setClinicFlag("1");
+            //就诊日期
+            requestTO.setTreatmentDate(DateConversion.formatDateTime(new Date()));
+            //医生工号
+            //设置医生工号
+            IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
+            requestTO.setDoctorCode(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
+            //主诉
+            requestTO.setMainDiseaseDescribe("无");
+            //现病史
+            requestTO.setHistoryOfPresentIllness("无");
+            //既往史
+            requestTO.setPastHistory("无");
+            //过敏史
+            requestTO.setAllergyHistory("无");
+            List<DocIndexInfoTO> data = Lists.newArrayList();
+            DocIndexInfoTO docIndexInfoTO = new DocIndexInfoTO();
+            //诊断类型
+            docIndexInfoTO.setDiagnoseType("西医");
+            //发病日期
+            docIndexInfoTO.setIllnessTime(DateConversion.formatDate(new Date()));
+            //诊断码
+            docIndexInfoTO.setIcdCode("G47.901");
+            //诊断名
+            docIndexInfoTO.setIcdname("睡眠障碍");
+            data.add(docIndexInfoTO);
+            requestTO.setData(data);
+        }catch (Exception e){
+            LOGGER.error("initDocIndexToHisReqTO 组装参数错误. recipeId={}, error ", recipe.getRecipeId(), e);
+        }
+
+        return requestTO;
     }
 }
