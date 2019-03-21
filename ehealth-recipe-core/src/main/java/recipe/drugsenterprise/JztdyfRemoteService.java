@@ -401,36 +401,16 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
         return true;
     }
 
+    /**
+     * toString
+     * @param o 源
+     * @return  目标
+     */
     private static String converToString(Object o) {
         if (o != null) {
             return o.toString();
         }
         return "";
-    }
-
-    public static void main(String[] args) {
-        String responseStr = "{\"code\": 200,\"success\": true,\"msg\": \"成功\",\"data\": {\"app_key\": \"kq-3348c13657757590\",\"access_token\": \"6WGdmf73TuzKpJXy9BetnN98OM4wbs8h\",\"expires_time\": \"2019-01-25 10:24:06\"}}";
-        JztTokenResponse jztResponse = JSONUtils.parse(responseStr, JztTokenResponse.class);
-        System.out.println(jztResponse);
-
-        System.out.println(getSignature("", getNonce(), getTimestamp(), ""));
-        JztRecipeDTO jztRecipe = new JztRecipeDTO();
-        jztRecipe.setDoctorName("张三");
-        jztRecipe.setDoctorNumber("123212312MS");
-        jztRecipe.setTcmUsingRate("7贴");
-        jztRecipe.setTcmNum("3");
-        jztRecipe.setTcmUsePathways("一天一次");
-        jztRecipe.setDistributionFlag("1");
-        jztRecipe.setGiveUser("李四");
-        jztRecipe.setGiveMode("1");
-        jztRecipe.setPayFlag("1");
-        jztRecipe.setStatus("2");
-        jztRecipe.setExpressFee("120.01");
-        jztRecipe.setOrderTotalFee("230.12");
-        jztRecipe.setRecipeFee("11.01");
-        String reqeustStr = JSONUtils.toString(jztRecipe);
-        System.out.println("requestStr: " + reqeustStr);
-        StringEntity requestEntity = new StringEntity(reqeustStr, ContentType.APPLICATION_JSON);
     }
 
     /**
