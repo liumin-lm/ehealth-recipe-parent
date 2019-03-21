@@ -1,9 +1,11 @@
 package recipe.hisservice;
 
 import com.google.common.collect.Lists;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.HisSendResTO;
 import com.ngari.recipe.recipe.model.OrderRepTO;
+import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -12,7 +14,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.bean.RecipeCheckPassResult;
+import recipe.dao.RecipeDAO;
 import recipe.service.HisCallBackService;
+import recipe.service.RecipeLogService;
 import recipe.util.LocalStringUtil;
 
 import java.math.BigDecimal;
@@ -83,10 +87,20 @@ public class RecipeToHisCallbackService {
             LOGGER.info("recipeSend recive success. recipeId={}, checkPassSuccess result={}", response.getRecipeId(), JSONUtils.toString(result));
             HisCallBackService.checkPassSuccess(result, true);
             //没库存操作----推送九州通
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe recipe = recipeDAO.getByRecipeId(Integer.valueOf(response.getRecipeId()));
+            String memo = "";
             if (!isDrugStock){
 
+                memo = "药品没库存,推送九州通";
+                //日志记录
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
             }else if (isWuChang){
                 //有库存操作----发送患者消息
+
+                memo = "药品有库存,发生患者取药消息";
+                //日志记录
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
             }
         } else {
             LOGGER.error("recipeSend recive success. recipeId={}, data is empty. ");
