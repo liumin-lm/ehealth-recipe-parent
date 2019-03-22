@@ -54,17 +54,18 @@ public class RecipeToHisCallbackService {
             String recipeNo = repList.get(0).getRecipeNo();
             String patientId = repList.get(0).getPatientID();
             String amount = repList.get(0).getAmount();
+            boolean isWuChang = false;
+            //是否武昌模式
+            if (StringUtils.isNotEmpty(repList.get(0).getIsDrugStock())){
+                isWuChang = true;
+            }
 
             Recipedetail detail;
             List<Recipedetail> list = Lists.newArrayList();
             boolean isDrugStock = true;
-            boolean isWuChang = false;
+
             for (OrderRepTO rep : repList) {
                 detail = new Recipedetail();
-                //是否武昌模式
-                if (StringUtils.isNotEmpty(rep.getIsDrugStock())){
-                    isWuChang = true;
-                }
                 //是否有库存
                 if (StringUtils.isNotEmpty(rep.getIsDrugStock())
                         &&"0".equals(rep.getIsDrugStock())){

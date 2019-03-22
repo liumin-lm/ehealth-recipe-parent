@@ -44,6 +44,9 @@ public class HosPrescriptionService implements IHosPrescriptionService {
     @Qualifier("remotePrescribeService")
     private PrescribeService prescribeService;
 
+    @Autowired
+    private DrugsEnterpriseService drugsEnterpriseService;
+
     /**
      * 接收第三方处方
      *
@@ -63,18 +66,22 @@ public class HosPrescriptionService implements IHosPrescriptionService {
                 result.setCode(HosRecipeResult.FAIL);
                 result.setMsg(orderResult.getMsg());
             }
+            //是否走外配模式 根据giveMode判断，2为医院取药，null则走原来外配模式
+            if ("2".equals(hospitalRecipeDTO.getGiveMode())){
+                if ("0".equals(hospitalRecipeDTO.getIsDrugStock())){
+                    //没有库存就推送九州通
+                    drugsEnterpriseService.pushHosInteriorSupport(recipe.getRecipeId(),recipe.getClinicOrgan());
+                    String memo = "医院保存没库存处方并推送九州通成功";
+                    //日志记录
+                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
+                }
+            }
         }
 
         if (HosRecipeResult.DUPLICATION.equals(result.getCode())) {
             result.setCode(HosRecipeResult.SUCCESS);
         }
 
-        //是否走外配模式 根据giveMode判断，2为医院取药，null则走原来外配模式
-        if ("2".equals(hospitalRecipeDTO.getGiveMode())){
-            if ("0".equals(hospitalRecipeDTO.getIsDrugStock())){
-                //没有库存就推送九州通 设置fromflag为0
-            }
-        }
         RecipeBean backNew = new RecipeBean();
         backNew.setRecipeId(recipeId);
         result.setData(backNew);

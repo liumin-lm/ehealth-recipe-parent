@@ -36,7 +36,9 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeLogDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.service.DrugsEnterpriseService;
 import recipe.service.RecipeHisService;
+import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
 import recipe.service.hospitalrecipe.dataprocess.PrescribeProcess;
 
@@ -224,6 +226,12 @@ public class PrescribeService {
             //1:平台开具处方，平台处理业务都会展示
             //2:HIS处方，只在药师审核处展示
             recipe.setFromflag(RecipeBussConstant.FROMFLAG_HIS_USE);
+            if ("2".equals(hospitalRecipeDTO.getGiveMode())){
+                if ("0".equals(hospitalRecipeDTO.getIsDrugStock())){
+                    //没有库存   设置fromflag为0
+                    recipe.setFromflag(RecipeBussConstant.FROMFLAG_HIS);
+                }
+            }
 
             //创建详情数据
             List<RecipeDetailBean> details = PrescribeProcess.convertNgariDetail(hospitalRecipeDTO);
