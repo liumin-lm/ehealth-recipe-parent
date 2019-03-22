@@ -14,10 +14,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipeCheckPassResult;
 import recipe.dao.RecipeDAO;
-import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.service.DrugsEnterpriseService;
 import recipe.service.HisCallBackService;
 import recipe.service.RecipeLogService;
 import recipe.util.LocalStringUtil;
@@ -39,7 +38,7 @@ public class RecipeToHisCallbackService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeToHisCallbackService.class);
 
     @Autowired
-    private RemoteDrugEnterpriseService remoteDrugEnterpriseService;
+    private DrugsEnterpriseService drugsEnterpriseService;
 
     /**
      * @param response
@@ -98,7 +97,7 @@ public class RecipeToHisCallbackService {
             String memo = "";
             if (!isDrugStock){
                 //没库存操作----推送九州通
-                remoteDrugEnterpriseService.pushSingleRecipeInfo(recipe.getRecipeId());
+                drugsEnterpriseService.pushHosInteriorSupport(recipe.getRecipeId(),recipe.getClinicOrgan());
                 //发送患者没库存消息
 
 

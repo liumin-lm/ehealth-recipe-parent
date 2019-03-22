@@ -119,7 +119,7 @@ public class HisRequestInit {
             requestTO.setRecipeTypeName("普通");
             //药品付数、西药。中成药默认1
             requestTO.setDrugNum(1);
-            //基药标志
+            //基药标志 默认0
             requestTO.setBasicmedicineFlag(0);
             //处方来源
             requestTO.setRecipeSource("04");//00：HIS 01：体检 02：签约 03：计免 04：延伸处方

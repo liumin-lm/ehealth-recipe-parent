@@ -69,6 +69,10 @@ public class OrderRepTO implements Serializable {
      */
     private String remark;
 
+    private String drugCode;
+
+    private String drugName;
+
     public String getIsDrugStock() {
         return isDrugStock;
     }
@@ -155,5 +159,21 @@ public class OrderRepTO implements Serializable {
 
     public void setAmount(String amount) {
         this.amount = amount;
+    }
+
+    public String getDrugCode() {
+        return drugCode;
+    }
+
+    public void setDrugCode(String drugCode) {
+        this.drugCode = drugCode;
+    }
+
+    public String getDrugName() {
+        return drugName;
+    }
+
+    public void setDrugName(String drugName) {
+        this.drugName = drugName;
     }
 }
