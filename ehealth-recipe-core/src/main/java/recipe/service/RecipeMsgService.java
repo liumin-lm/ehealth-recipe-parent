@@ -88,6 +88,12 @@ public class RecipeMsgService {
 
     private static final String RECIPR_NOT_CONFIRM_RECEIPT = "RecipeNotConfirmReceipt";
 
+    //武昌新增，无库存情况
+    private static final String RECIPE_HOSSUPPORT_NOINVENTORY = "RecipeHosSupportNoInventory";
+
+    //武昌新增，有库存情况
+    private static final String RECIPE_HOSSUPPORT_INVENTORY = "RecipeHosSupportInventory";
+
     /**
      * 单个处方信息推送（根据处方ID）
      *
