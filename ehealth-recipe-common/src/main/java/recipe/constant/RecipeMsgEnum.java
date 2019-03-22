@@ -62,6 +62,16 @@ public enum RecipeMsgEnum {
     RECIPE_CANCEL_4HIS(118,"RecipeCancel4His"),
 
     /**
+     * 武昌新增，无库存情况
+     */
+    RECIPE_HOSSUPPORT_NOINVENTORY(119,"RecipeHosSupportNoInventory"),
+
+    /**
+     * 武昌新增，有库存情况
+     */
+    RECIPE_HOSSUPPORT_INVENTORY(120,"RecipeHosSupportInventory"),
+
+    /**
      * 默认消息
      */
     DEFAULT(999, "");

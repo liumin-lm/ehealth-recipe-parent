@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.google.common.collect.Maps;
+import com.ngari.base.department.service.IDepartmentService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.recipe.entity.Recipe;
@@ -270,6 +271,11 @@ public class RecipeMsgService {
                     getHosRecipeInfo(recipe,extendValue);
                     //设置 overtime 超时时间
                     extendValue.put("overtime",expiredDays.toString());
+                    break;
+                case RECIPE_HOSSUPPORT_NOINVENTORY:
+                case RECIPE_HOSSUPPORT_INVENTORY:
+                    IDepartmentService iDepartmentService = ApplicationUtils.getBaseService(IDepartmentService.class);
+                    extendValue.put("departName",iDepartmentService.getNameById(recipe.getDepart()));
                     break;
                 default:
 
