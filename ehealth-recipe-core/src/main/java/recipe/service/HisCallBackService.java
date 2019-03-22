@@ -170,16 +170,6 @@ public class HisCallBackService {
             }
         }
 
-        //武昌需求处理，推送无库存的处方至医院补充库存药企
-        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        List<DrugsEnterprise> enterpriseList = enterpriseDAO.findByOrganIdAndHosInteriorSupport(recipe.getClinicOrgan());
-        if(CollectionUtils.isNotEmpty(enterpriseList)){
-            RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-            for (DrugsEnterprise dep : enterpriseList) {
-                service.pushSingleRecipeInfoWithDepId(recipe.getRecipeId(), dep.getId());
-            }
-        }
-
     }
 
     /**
