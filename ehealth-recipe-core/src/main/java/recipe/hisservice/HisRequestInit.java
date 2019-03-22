@@ -97,7 +97,7 @@ public class HisRequestInit {
                 case "1"://自费
                     requestTO.setPatientTypeCode("0");
                     //自费金额
-                    requestTO.setSelfPayingFee(new BigDecimal(0));
+                    requestTO.setSelfPayingFee(recipe.getActualPrice());
                     break;
                 case "2"://医保
                     requestTO.setPatientTypeCode("2");
@@ -117,7 +117,7 @@ public class HisRequestInit {
             requestTO.setRecipeTypeCode(0);
             //处方类型名称
             requestTO.setRecipeTypeName("普通");
-            //药品付数
+            //药品付数、西药。中成药默认1
             requestTO.setDrugNum(1);
             //基药标志
             requestTO.setBasicmedicineFlag(0);
@@ -144,14 +144,15 @@ public class HisRequestInit {
                 // 简要病史
                 requestTO.setDiseasesHistory(recipe.getOrganDiseaseName());
             }
-            if (null != card) {
+            /*if (null != card) {
                 requestTO.setCardType(card.getCardType());//2-医保卡
                 requestTO.setCardNo(card.getCardId());
             }else {
                 requestTO.setCardType("4");//武昌-4-身份证
                 requestTO.setCardNo(patient.getIdcard());
-            }
-
+            }*/
+            requestTO.setCardType("4");//武昌-4-身份证
+            requestTO.setCardNo(patient.getIdcard());
             //根据处方单设置配送方式
             if (Integer.valueOf(1).equals(recipe.getDistributionFlag())) {
                 requestTO.setDeliveryType("1");
@@ -605,14 +606,16 @@ public class HisRequestInit {
 
             IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
             PatientBean patientBean = iPatientService.get(recipe.getMpiid());
-            HealthCardBean cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
+            /*HealthCardBean cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
             if (null != cardBean) {
                 requestTO.setCardType(cardBean.getCardType());//2-医保卡
                 requestTO.setCardCode(cardBean.getCardId());
             }else {
                 requestTO.setCardType("4");//武昌-4-身份证
                 requestTO.setCardCode(patientBean.getIdcard());
-            }
+            }*/
+            requestTO.setCardType("4");//武昌-4-身份证
+            requestTO.setCardCode(patientBean.getIdcard());
             requestTO.setPatientIdCard(patientBean.getIdcard());
             requestTO.setPatientName(patientBean.getPatientName());
             requestTO.setPatientSex(patientBean.getPatientSex());
