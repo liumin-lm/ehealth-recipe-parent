@@ -206,7 +206,7 @@ public class HisRequestInit {
                     //金额
                     orderItem.setItemTotalPrice(detail.getDrugCost());
                     //转换系数
-                    orderItem.setConversionFactor(1);
+                    orderItem.setConversionFactor(detail.getPack());
                     //服用天数
                     orderItem.setUseDays(detail.getUseDays());
                     //每天次数
@@ -224,7 +224,7 @@ public class HisRequestInit {
                     //剂量系数
                     orderItem.setDoseFactor(1);
                     //药品转换系数
-                    orderItem.setDrugConversionFactor(1);
+                    orderItem.setDrugConversionFactor(detail.getPack());
                     //处方标识
                     orderItem.setRecipeFlag(1);
 
