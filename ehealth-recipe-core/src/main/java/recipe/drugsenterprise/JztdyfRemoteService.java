@@ -358,28 +358,6 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
         return true;
     }
 
-    /**
-     * 设置九州通订单信息
-     * @param order      订单信息
-     * @param jztRecipe  九州通处方信息
-     * @param dbRecipe   平台处方单
-     * @return           是否设置成功
-     */
-    private boolean setJztRecipeOrderInfo(RecipeOrder order, JztRecipeDTO jztRecipe, Recipe dbRecipe) {
-        if (ObjectUtils.isEmpty(order)) {
-            LOGGER.warn("处方单不存在,recipeId:{}.", dbRecipe.getRecipeId());
-            return false;
-        } else {
-            jztRecipe.setRecipeFee(order.getRecipeFee().toPlainString());
-            jztRecipe.setActualFee(converToString(order.getActualPrice()));
-            jztRecipe.setCouponFee(order.getCouponFee().toPlainString());
-            jztRecipe.setDecoctionFee(order.getDecoctionFee().toPlainString());
-            jztRecipe.setOrderTotalFee(order.getTotalFee().toPlainString());
-            jztRecipe.setExpressFee(order.getExpressFee().toPlainString());
-        }
-        return true;
-    }
-
     private static String converToString(Object o) {
         if (o != null) {
             return o.toString();
