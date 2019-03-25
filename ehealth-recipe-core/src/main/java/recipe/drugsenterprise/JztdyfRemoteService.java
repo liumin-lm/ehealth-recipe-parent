@@ -2,6 +2,7 @@ package recipe.drugsenterprise;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.patient.dto.DoctorDTO;
@@ -31,6 +32,7 @@ import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
 import recipe.service.common.RecipeCacheService;
+import recipe.util.DateConversion;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -159,6 +161,8 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
                 if (jztResponse.getCode() == 200 && jztResponse.isSuccess()) {
                     //成功
                     result.setCode(DrugEnterpriseResult.SUCCESS);
+                    //说明成功,更新处方标志
+                    recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("pushFlag", 1));
                     LOGGER.info("[{}][{}] pushRecipeInfo {} success.", depId, depName, JSONUtils.toString(recipeIds));
                 } else {
                     //失败
@@ -279,7 +283,7 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
         //加入处方信息
         jztRecipe.setRecipeCode(dbRecipe.getRecipeCode());
         jztRecipe.setRecipeType(converToString(dbRecipe.getRecipeType()));
-        jztRecipe.setCreateDate(dbRecipe.getSignDate().toString());
+        jztRecipe.setCreateDate(DateConversion.getDateFormatter(dbRecipe.getSignDate(),DateConversion.DEFAULT_DATETIME_WITHSECOND));
         jztRecipe.setOrganDiseaseName(dbRecipe.getOrganDiseaseName());
         jztRecipe.setOrganDiseaseId(dbRecipe.getOrganDiseaseId());
         jztRecipe.setStatus(converToString(dbRecipe.getStatus()));
