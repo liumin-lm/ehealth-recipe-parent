@@ -101,10 +101,12 @@ public class RecipeHisService extends RecipeBaseService {
                 //发送电子病历
                 DocIndexToHisReqTO docIndexToHisReqTO = HisRequestInit.initDocIndexToHisReqTO(recipe);
                 HisResponseTO hisResponseTO = service.docIndexToHis(docIndexToHisReqTO);
-                if ("200".equals(hisResponseTO.getMsgCode())){
-                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "推送电子病历成功");
-                }else {
-                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "推送电子病历失败。原因："+hisResponseTO.getMsg());
+                if (hisResponseTO != null){
+                    if ("200".equals(hisResponseTO.getMsgCode())){
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "推送电子病历成功");
+                    }else {
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "推送电子病历失败。原因："+hisResponseTO.getMsg());
+                    }
                 }
             }
             //设置医生工号

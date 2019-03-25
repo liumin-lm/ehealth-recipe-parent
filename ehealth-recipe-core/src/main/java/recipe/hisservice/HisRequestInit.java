@@ -624,7 +624,7 @@ public class HisRequestInit {
             //复诊标记（0：初诊 1：复诊）
             requestTO.setClinicFlag("1");
             //就诊日期
-            requestTO.setTreatmentDate(DateConversion.formatDateTime(new Date()));
+            requestTO.setTreatmentDate(DateConversion.formatDateTimeWithSec(new Date()));
             //医生工号
             //设置医生工号
             IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
