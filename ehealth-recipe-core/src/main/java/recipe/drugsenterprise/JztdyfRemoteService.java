@@ -2,7 +2,6 @@ package recipe.drugsenterprise;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.patient.dto.DoctorDTO;
@@ -31,7 +30,6 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
-import recipe.service.RecipeOrderService;
 import recipe.service.common.RecipeCacheService;
 
 import javax.annotation.Nullable;
@@ -123,18 +121,13 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
             return getDrugEnterpriseResult(result,"处方ID参数为空");
         }
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         //准备处方数据
         JztRecipeDTO jztRecipe = new JztRecipeDTO();
         Integer depId = enterprise.getId();
         String depName = enterprise.getName();
-        String orderCode ;
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
         if (CollectionUtils.isNotEmpty(recipeList)) {
             Recipe dbRecipe = recipeList.get(0);
-            //加入订单信息
-            RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-            RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
             if (dbRecipe.getClinicOrgan() == null) {
                 LOGGER.warn("机构编码不存在,处方ID:{}.", dbRecipe.getRecipeId());
                 return getDrugEnterpriseResult(result, "机构编码不存在");
@@ -143,10 +136,8 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
             setJztRecipeInfo(jztRecipe, dbRecipe);
             if (!setJztRecipePatientInfo(jztRecipe, dbRecipe.getMpiid())) return getDrugEnterpriseResult(result, "患者不存在");
             if (!setJztRecipeDoctorInfo(jztRecipe, dbRecipe)) return getDrugEnterpriseResult(result, "医生或主执业点不存在");
-            if (!setJztRecipeOrderInfo(order, jztRecipe, dbRecipe)) return getDrugEnterpriseResult(result, "订单不存在");
             if (!setJztRecipeDetailInfo(jztRecipe, dbRecipe.getRecipeId(), depId)) return getDrugEnterpriseResult(result, "处方详情不存在");
 
-            orderCode = order.getOrderCode();
             //推送给九州通
             CloseableHttpClient httpClient = HttpClients.createDefault();
             try{
@@ -168,12 +159,10 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
                 if (jztResponse.getCode() == 200 && jztResponse.isSuccess()) {
                     //成功
                     result.setCode(DrugEnterpriseResult.SUCCESS);
-                    orderService.updateOrderInfo(orderCode, ImmutableMap.of("pushFlag", 1), null);
                     LOGGER.info("[{}][{}] pushRecipeInfo {} success.", depId, depName, JSONUtils.toString(recipeIds));
                 } else {
                     //失败
                     result.setMsg(jztResponse.getMsg());
-                    orderService.updateOrderInfo(orderCode, ImmutableMap.of("pushFlag", -1), null);
                     LOGGER.warn("[{}][{}] pushRecipeInfo {} fail. msg={}", depId, depName,
                             JSONUtils.toString(recipeIds), jztResponse.getMsg());
                 }
@@ -182,7 +171,6 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
                 response.close();
             }catch (Exception e) {
                 result.setMsg("推送异常");
-                orderService.updateOrderInfo(orderCode, ImmutableMap.of("pushFlag", -1), null);
                 LOGGER.warn("[{}][{}] pushRecipeInfo 异常。", depId, depName, e);
             } finally {
                 try {
@@ -327,22 +315,9 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
             }));
 
             DrugListDAO drugDAO = DAOFactory.getDAO(DrugListDAO.class);
-            OrganDrugListDAO organDrugDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-
-            List<OrganDrugList> organDrugList = organDrugDAO.findByOrganIdAndDrugIds(depId, drugIdList);
 
             List<DrugList> drugList = drugDAO.findByDrugIds(drugIdList);
-            if (detailList.size() != organDrugList.size() || organDrugList.size() != drugList.size()) {
-                LOGGER.warn("药品数据存在问题,recipeId:{}.", recipeId);
-                return false;
-            }
 
-            Map<Integer, OrganDrugList> organDrugMap = Maps.uniqueIndex(organDrugList, new Function<OrganDrugList, Integer>() {
-                @Override
-                public Integer apply(OrganDrugList input) {
-                    return input.getDrugId();
-                }
-            });
             Map<Integer, DrugList> drugMap = Maps.uniqueIndex(drugList, new Function<DrugList, Integer>() {
                 @Override
                 public Integer apply(DrugList input) {
@@ -354,7 +329,7 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
             for (Recipedetail detail : detailList) {
                 jztDetail = new JztDrugDTO();
                 drugId = detail.getDrugId();
-                jztDetail.setDrugCode(organDrugMap.get(drugId).getOrganDrugCode());
+                jztDetail.setDrugCode(detail.getOrganDrugCode());
                 jztDetail.setDrugName(detail.getDrugName());
                 jztDetail.setSpecification(detail.getDrugSpec());
                 jztDetail.setLicenseNumber(drugMap.get(drugId).getApprovalNumber());
@@ -401,11 +376,6 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
         return true;
     }
 
-    /**
-     * toString
-     * @param o 源
-     * @return  目标
-     */
     private static String converToString(Object o) {
         if (o != null) {
             return o.toString();
