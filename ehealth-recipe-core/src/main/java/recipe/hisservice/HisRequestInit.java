@@ -206,7 +206,7 @@ public class HisRequestInit {
                     //金额
                     orderItem.setItemTotalPrice(detail.getDrugCost());
                     //转换系数
-                    orderItem.setConversionFactor(1);
+                    orderItem.setConversionFactor(detail.getPack());
                     //服用天数
                     orderItem.setUseDays(detail.getUseDays());
                     //每天次数
@@ -224,7 +224,7 @@ public class HisRequestInit {
                     //剂量系数
                     orderItem.setDoseFactor(1);
                     //药品转换系数
-                    orderItem.setDrugConversionFactor(1);
+                    orderItem.setDrugConversionFactor(detail.getPack());
                     //处方标识
                     orderItem.setRecipeFlag(1);
 
@@ -624,7 +624,7 @@ public class HisRequestInit {
             //复诊标记（0：初诊 1：复诊）
             requestTO.setClinicFlag("1");
             //就诊日期
-            requestTO.setTreatmentDate(DateConversion.formatDateTime(new Date()));
+            requestTO.setTreatmentDate(DateConversion.formatDateTimeWithSec(new Date()));
             //医生工号
             //设置医生工号
             IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);

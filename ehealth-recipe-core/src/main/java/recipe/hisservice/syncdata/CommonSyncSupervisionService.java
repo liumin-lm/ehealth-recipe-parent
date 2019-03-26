@@ -172,12 +172,19 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
             tempList.add(request);
             Request hisRequest = new Request(serviceId, method, tempList);
             Response response = client.execute(hisRequest);
-            if (response.isSuccess()) {
-                //成功
-                commonResponse.setCode(CommonConstant.SUCCESS);
-                LOGGER.info("uploadRecipeVerificationIndicators execute success.");
+            LOGGER.info("uploadRecipeVerificationIndicators response={}", JSONUtils.toString(response));
+            if (null != response && response.isSuccess()) {
+                Map map = (Map)response.getJsonResponseBean().getBody();
+                String msgCode = map.get("msgCode").toString();
+                if(HIS_SUCCESS.equals(msgCode)) {
+                    //成功
+                    commonResponse.setCode(CommonConstant.SUCCESS);
+                    LOGGER.info("uploadRecipeVerificationIndicators execute success.");
+                }else{
+                    commonResponse.setMsg(LocalStringUtil.toString(map.get("msg")));
+                }
             } else {
-                commonResponse.setMsg(response.getErrorMessage());
+                commonResponse.setMsg("上传处方核销监管平台返回异常");
             }
         } catch (Exception e) {
             LOGGER.warn("uploadRecipeVerificationIndicators HIS接口调用失败. request={}", JSONUtils.toString(request), e);
@@ -248,7 +255,8 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
         List<Recipedetail> detailList;
         for (Recipe recipe : recipeList) {
             req = new RecipeIndicatorsReq();
-            req.setBussID(LocalStringUtil.toString(recipe.getClinicId()));
+            //TODO 此处与互联网分支不一致，应填复诊ID LocalStringUtil.toString(recipe.getClinicId())
+            req.setBussID(recipe.getRecipeId().toString());
 
             //机构处理
             organDTO = organMap.get(recipe.getClinicOrgan());
@@ -381,12 +389,19 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
             tempList.add(request);
             Request hisRequest = new Request(serviceId, method, tempList);
             Response response = client.execute(hisRequest);
-            if (response.isSuccess()) {
-                //成功
-                commonResponse.setCode(CommonConstant.SUCCESS);
-                LOGGER.info("uploadRecipeIndicators execute success.");
+            LOGGER.info("uploadRecipeIndicators response={}", JSONUtils.toString(response));
+            if (null != response && response.isSuccess()) {
+                Map map = (Map)response.getJsonResponseBean().getBody();
+                String msgCode = map.get("msgCode").toString();
+                if(HIS_SUCCESS.equals(msgCode)) {
+                    //成功
+                    commonResponse.setCode(CommonConstant.SUCCESS);
+                    LOGGER.info("uploadRecipeIndicators execute success.");
+                }else{
+                    commonResponse.setMsg(LocalStringUtil.toString(map.get("msg")));
+                }
             } else {
-                commonResponse.setMsg(response.getErrorMessage());
+                commonResponse.setMsg("上传处方监管平台返回异常");
             }
         } catch (Exception e) {
             LOGGER.warn("uploadRecipeIndicators HIS接口调用失败. request={}", JSONUtils.toString(request), e);
