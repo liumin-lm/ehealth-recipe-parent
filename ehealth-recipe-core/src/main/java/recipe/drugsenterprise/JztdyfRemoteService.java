@@ -47,6 +47,8 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JztdyfRemoteService.class);
 
+    private RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
+
     private String APP_ID;
 
     private String APP_KEY;
@@ -54,7 +56,6 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
     private String APP_SECRET;
 
     public JztdyfRemoteService() {
-        RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
         APP_ID = cacheService.getParam("jzt_appid");
         APP_KEY = cacheService.getParam("jzt_appkey");
         APP_SECRET = cacheService.getParam("jzt_appsecret");
