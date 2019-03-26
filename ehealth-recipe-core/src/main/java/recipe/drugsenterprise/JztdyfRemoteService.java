@@ -47,13 +47,19 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JztdyfRemoteService.class);
 
+    private String APP_ID;
+    private String APP_KEY;
+    private String APP_SECRET;
+
+    public JztdyfRemoteService() {
+        RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
+        APP_ID = cacheService.getRecipeParam("jzt_appid", "");
+        APP_KEY = cacheService.getRecipeParam("jzt_appkey", "");
+        APP_SECRET = cacheService.getRecipeParam("jzt_appsecret", "");
+    }
+
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
-        RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
-        String APP_ID = cacheService.getParam("jzt_appid");
-        String APP_KEY = cacheService.getParam("jzt_appkey");
-        String APP_SECRET = cacheService.getParam("jzt_appsecret");
-        LOGGER.info("APP_ID:{}, APP_KEY:{}, APP_SECRET:{}.", APP_ID, APP_KEY, APP_SECRET);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         String depName = drugsEnterprise.getName();
         Integer depId = drugsEnterprise.getId();
@@ -109,8 +115,6 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-        RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
-        String APP_KEY = cacheService.getParam("jzt_appkey");
         if (StringUtils.isEmpty(enterprise.getBusinessUrl())) {
            return getDrugEnterpriseResult(result,"药企处理业务URL为空");
         }
