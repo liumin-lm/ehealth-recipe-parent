@@ -58,6 +58,7 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
         APP_ID = cacheService.getParam("jzt_appid");
         APP_KEY = cacheService.getParam("jzt_appkey");
         APP_SECRET = cacheService.getParam("jzt_appsecret");
+        LOGGER.info("APP_ID:{}, APP_KEY:{}, APP_SECRET:{}.", APP_ID, APP_KEY, APP_SECRET);
     }
 
     @Override
@@ -93,6 +94,7 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
                 JztTokenResponse jztResponse = JSONUtils.parse(responseStr, JztTokenResponse.class);
                 if (jztResponse.getCode() == 200 && jztResponse.isSuccess()) {
                     //成功
+                    LOGGER.info("jztResponse:{}",jztResponse);
                     drugsEnterpriseDAO.updateTokenById(depId, jztResponse.getData().getAccess_token());
                 } else {
                     //失败
