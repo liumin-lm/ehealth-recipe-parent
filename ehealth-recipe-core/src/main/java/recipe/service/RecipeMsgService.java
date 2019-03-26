@@ -204,7 +204,11 @@ public class RecipeMsgService {
             } else if (RecipeStatusConstant.IN_SEND == afterStatus) {
                 sendMsgInfo(recipeId, RECIPE_IN_SEND, organId, Integer.toString(afterStatus));
             } else if (RecipeStatusConstant.REVOKE == afterStatus) {
-                sendMsgInfo(recipeId, RECIPE_REVOKE, organId, Integer.toString(afterStatus));
+                //新处理方式
+                Map<String, String> extendValue = Maps.newHashMap();
+                IDepartmentService iDepartmentService = ApplicationUtils.getBaseService(IDepartmentService.class);
+                extendValue.put("departName",iDepartmentService.getNameById(recipe.getDepart()));
+                sendMsgInfo(recipeId, RECIPE_REVOKE, organId, JSONUtils.toString(extendValue));
             } else if (RecipeStatusConstant.RECIPE_LOW_STOCKS == afterStatus) {
                 sendMsgInfo(recipeId, RECIPE_LOW_STOCKS, organId, Integer.toString(afterStatus));
             } else if (RecipeStatusConstant.RECIPR_NOT_CONFIRM_RECEIPT == afterStatus) {
