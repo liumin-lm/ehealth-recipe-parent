@@ -548,14 +548,15 @@ public class StandardEnterpriseCallService {
             result.setMsg("[" + recipeCode + "]处方单不存在");
             return result;
         }
+        LOGGER.info("接收到武昌推送药品库存状态,recipeCode:{},clinicOrgan:{},status:{}.", recipeCode, clinicOrgan, status);
         if (status == 0) {
             //发送没有库存消息
-            RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_CANCEL_4HIS, dbRecipe);
+            RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_HOSSUPPORT_NOINVENTORY, dbRecipe);
             result.setCode(StandardResultDTO.SUCCESS);
         }
         if (status == 1) {
             //发送有库存消息
-            RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_CANCEL_4HIS, dbRecipe);
+            RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_HOSSUPPORT_INVENTORY, dbRecipe);
             result.setCode(StandardResultDTO.SUCCESS);
         }
         return result;

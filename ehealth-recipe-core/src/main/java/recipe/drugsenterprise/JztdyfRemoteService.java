@@ -357,6 +357,11 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
         return true;
     }
 
+    /**
+     * 字符串输出
+     * @param o 源对象
+     * @return  目标输出
+     */
     private static String converToString(Object o) {
         if (o != null) {
             return o.toString();
