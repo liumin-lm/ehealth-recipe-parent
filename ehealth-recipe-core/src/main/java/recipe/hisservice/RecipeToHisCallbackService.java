@@ -77,7 +77,9 @@ public class RecipeToHisCallbackService {
                 if (StringUtils.isNotEmpty(rep.getPrice())) {
                     detail.setDrugCost(new BigDecimal(rep.getPrice()));
                 }
-                detail.setRecipeDetailId(Integer.valueOf(rep.getOrderID()));
+                if (StringUtils.isNotEmpty(rep.getOrderID())){
+                    detail.setRecipeDetailId(Integer.valueOf(rep.getOrderID()));
+                }
                 detail.setOrderNo(LocalStringUtil.toString(rep.getOrderNo()));
                 detail.setDrugGroup(LocalStringUtil.toString(rep.getSetNo()));
                 //取药窗口是否都是返回同一窗口
