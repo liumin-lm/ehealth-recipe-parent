@@ -127,11 +127,20 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
         Integer depId = enterprise.getId();
         String depName = enterprise.getName();
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
+        OrganService organService = BasicAPI.getService(OrganService.class);
         if (CollectionUtils.isNotEmpty(recipeList)) {
             Recipe dbRecipe = recipeList.get(0);
             if (dbRecipe.getClinicOrgan() == null) {
                 LOGGER.warn("机构编码不存在,处方ID:{}.", dbRecipe.getRecipeId());
                 return getDrugEnterpriseResult(result, "机构编码不存在");
+            }
+            String organCode = organService.getOrganizeCodeByOrganId(dbRecipe.getClinicOrgan());
+            if (StringUtils.isNotEmpty(organCode)) {
+                jztRecipe.setOrganId(organCode);
+                jztRecipe.setOrganName(dbRecipe.getOrganName());
+            } else {
+                LOGGER.warn("机构不存在,处方ID:{}.", dbRecipe.getRecipeId());
+                return getDrugEnterpriseResult(result, "机构不存在");
             }
             jztRecipe.setClinicOrgan(converToString(dbRecipe.getClinicOrgan()));
             setJztRecipeInfo(jztRecipe, dbRecipe);
@@ -241,6 +250,8 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
             jztRecipe.setPatientTel(patient.getMobile());
             jztRecipe.setCertificateType(converToString(patient.getCertificateType()));
             jztRecipe.setCertificate(patient.getCertificate());
+            jztRecipe.setPatientNumber("");
+            jztRecipe.setPatientAddress(converToString(patient.getAddress()));
         }
         return true;
     }
@@ -262,6 +273,7 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
                 jztRecipe.setDoctorName(doctor.getName());
                 jztRecipe.setDoctorNumber(employment.getJobNumber());
                 jztRecipe.setDepartId(converToString(employment.getDepartment()));
+                jztRecipe.setDepartName(converToString(employment.getDeptName()));
             } else {
                 LOGGER.warn("医生执业点不存在,recipeId:{}.", dbRecipe.getRecipeId());
                 return false;
@@ -283,18 +295,31 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
         jztRecipe.setRecipeCode(dbRecipe.getRecipeCode());
         jztRecipe.setRecipeType(converToString(dbRecipe.getRecipeType()));
         jztRecipe.setCreateDate(DateConversion.getDateFormatter(dbRecipe.getSignDate(),DateConversion.DEFAULT_DATETIME_WITHSECOND));
-        jztRecipe.setOrganDiseaseName(dbRecipe.getOrganDiseaseName());
-        jztRecipe.setOrganDiseaseId(dbRecipe.getOrganDiseaseId());
+        jztRecipe.setOrganDiseaseName(converToString(dbRecipe.getOrganDiseaseName()));
+        jztRecipe.setOrganDiseaseId(converToString(dbRecipe.getOrganDiseaseId()));
+        jztRecipe.setRecipeFee(converToString(dbRecipe.getTotalMoney()));
+        jztRecipe.setActualFee(converToString(dbRecipe.getActualPrice()));
+        jztRecipe.setCouponFee(converToString(dbRecipe.getDiscountAmount()));
+        jztRecipe.setDecoctionFee(""); //待煎费
+        jztRecipe.setMedicalFee("");   //医保报销
+        jztRecipe.setExpressFee("");   //配送费
+        jztRecipe.setOrderTotalFee(converToString(dbRecipe.getOrderAmount()));
         jztRecipe.setStatus(converToString(dbRecipe.getStatus()));
         jztRecipe.setPayMode(converToString(dbRecipe.getPayMode()));
         jztRecipe.setPayFlag(converToString(dbRecipe.getPayFlag()));
         jztRecipe.setGiveMode(converToString(dbRecipe.getGiveMode()));
-        jztRecipe.setGiveUser(dbRecipe.getGiveUser());
+        jztRecipe.setGiveUser(converToString(dbRecipe.getGiveUser()));
         jztRecipe.setMedicalPayFlag(converToString(dbRecipe.getMedicalPayFlag()));
         jztRecipe.setDistributionFlag(converToString(dbRecipe.getDistributionFlag()));
-        jztRecipe.setRecipeMemo(dbRecipe.getRecipeMemo());
-        jztRecipe.setTcmUsePathways(dbRecipe.getTcmUsePathways());
-        jztRecipe.setTcmUsingRate(dbRecipe.getTcmUsingRate());
+        jztRecipe.setRecipeMemo(converToString(dbRecipe.getRecipeMemo()));
+        jztRecipe.setTcmUsePathways(converToString(dbRecipe.getTcmUsePathways()));
+        jztRecipe.setTcmUsingRate(converToString(dbRecipe.getTcmUsingRate()));
+        jztRecipe.setMemo(converToString(dbRecipe.getRecipeMemo()));
+        jztRecipe.setTcmNum("");
+        jztRecipe.setDistributorCode("");
+        jztRecipe.setDistributorName("");
+        jztRecipe.setPharmacyCode("");
+        jztRecipe.setPharmacyName("");
     }
 
     /**
@@ -332,9 +357,9 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
             for (Recipedetail detail : detailList) {
                 jztDetail = new JztDrugDTO();
                 drugId = detail.getDrugId();
-                jztDetail.setDrugCode(detail.getOrganDrugCode());
-                jztDetail.setDrugName(detail.getDrugName());
-                jztDetail.setSpecification(detail.getDrugSpec());
+                jztDetail.setDrugCode(converToString(detail.getOrganDrugCode()));
+                jztDetail.setDrugName(converToString(detail.getDrugName()));
+                jztDetail.setSpecification(converToString(detail.getDrugSpec()));
                 jztDetail.setLicenseNumber(drugMap.get(drugId).getApprovalNumber());
                 jztDetail.setProducer(drugMap.get(drugId).getProducer());
                 jztDetail.setTotal(converToString(detail.getUseTotalDose()));
@@ -344,9 +369,11 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
                 jztDetail.setUesDays(converToString(detail.getUseDays()));
                 jztDetail.setUsingRate(detail.getUsingRate());
                 jztDetail.setUsePathways(detail.getUsePathways());
-                jztDetail.setMemo(detail.getMemo());
+                jztDetail.setMemo(converToString(detail.getMemo()));
                 jztDetail.setStandardCode(drugMap.get(drugId).getStandardCode());
                 jztDetail.setDrugForm(drugMap.get(drugId).getDrugForm());
+                jztDetail.setPharmNo("");
+                jztDetail.setMedicalFee("");
                 jztDetailList.add(jztDetail);
             }
             jztRecipe.setDrugList(jztDetailList);

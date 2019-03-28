@@ -181,4 +181,6 @@ public class JztDrugDTO implements Serializable{
     public void setDrugForm(String drugForm) {
         this.drugForm = drugForm;
     }
+
+
 }

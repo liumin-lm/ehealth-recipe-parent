@@ -23,13 +23,21 @@ public class JztRecipeDTO implements Serializable{
 
     private String patientNumber;
 
+    private String patientAddress;
+
     private String recipeCode;
 
     private String clinicOrgan;
 
     private String recipeType;
 
+    private String organId;
+
+    private String organName;
+
     private String departId;
+
+    private String departName;
 
     private String doctorNumber;
 
@@ -70,6 +78,14 @@ public class JztRecipeDTO implements Serializable{
     private String medicalPayFlag;
 
     private String distributionFlag;
+
+    private String distributorCode;
+
+    private String distributorName;
+
+    private String pharmacyCode;
+
+    private String pharmacyName;
 
     private String recipeMemo;
 
@@ -121,6 +137,14 @@ public class JztRecipeDTO implements Serializable{
         this.patientNumber = patientNumber;
     }
 
+    public String getPatientAddress() {
+        return patientAddress;
+    }
+
+    public void setPatientAddress(String patientAddress) {
+        this.patientAddress = patientAddress;
+    }
+
     public String getRecipeCode() {
         return recipeCode;
     }
@@ -145,12 +169,36 @@ public class JztRecipeDTO implements Serializable{
         this.recipeType = recipeType;
     }
 
+    public String getOrganId() {
+        return organId;
+    }
+
+    public void setOrganId(String organId) {
+        this.organId = organId;
+    }
+
+    public String getOrganName() {
+        return organName;
+    }
+
+    public void setOrganName(String organName) {
+        this.organName = organName;
+    }
+
     public String getDepartId() {
         return departId;
     }
 
     public void setDepartId(String departId) {
         this.departId = departId;
+    }
+
+    public String getDepartName() {
+        return departName;
+    }
+
+    public void setDepartName(String departName) {
+        this.departName = departName;
     }
 
     public String getDoctorNumber() {
@@ -343,6 +391,38 @@ public class JztRecipeDTO implements Serializable{
 
     public void setTcmNum(String tcmNum) {
         this.tcmNum = tcmNum;
+    }
+
+    public String getDistributorCode() {
+        return distributorCode;
+    }
+
+    public void setDistributorCode(String distributorCode) {
+        this.distributorCode = distributorCode;
+    }
+
+    public String getDistributorName() {
+        return distributorName;
+    }
+
+    public void setDistributorName(String distributorName) {
+        this.distributorName = distributorName;
+    }
+
+    public String getPharmacyCode() {
+        return pharmacyCode;
+    }
+
+    public void setPharmacyCode(String pharmacyCode) {
+        this.pharmacyCode = pharmacyCode;
+    }
+
+    public String getPharmacyName() {
+        return pharmacyName;
+    }
+
+    public void setPharmacyName(String pharmacyName) {
+        this.pharmacyName = pharmacyName;
     }
 
     public List<JztDrugDTO> getDrugList() {
