@@ -462,19 +462,10 @@ public class HisRequestInit {
             requestTO.setCardType(card.getCardType());
             requestTO.setCardNo(card.getCardId());
         }
-
-        // 医院系统医嘱号（一张处方多条记录用|分隔）
-        StringBuilder str = new StringBuilder("");
-        if (null != list && list.size() != 0) {
-            for (int i = 0; i < list.size(); i++) {
-                if (i < list.size() - 1) {
-                    str.append(list.get(i).getOrderNo() + "|");
-                } else {
-                    str.append(list.get(i).getOrderNo());
-                }
-            }
-        }
-        requestTO.setOrderNo(str.toString());
+        //操作员工号
+        DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
+        DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
+        requestTO.setDoctorID(doctorDTO.getIdNumber());
 
         //如果平台状态是 13-未支付 14-未操作 15-药师审核未通过 则武昌医院状态置为 9-作废
         if (RecipeStatusConstant.REVOKE == recipe.getStatus() || RecipeStatusConstant.DELETE == recipe.getStatus() || RecipeStatusConstant.HIS_FAIL == recipe.getStatus()
