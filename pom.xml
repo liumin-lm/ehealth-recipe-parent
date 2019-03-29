@@ -6,7 +6,7 @@
     <parent>
         <groupId>ngari</groupId>
         <artifactId>ehealth-parent</artifactId>
-        <version>1.10.2.hotfix-20190318-SNAPSHOT</version>
+        <version>1.10.4.hotfix-20190318-SNAPSHOT</version>
     </parent>
     <artifactId>ehealth-recipe-parent</artifactId>
     <name>处方</name>
