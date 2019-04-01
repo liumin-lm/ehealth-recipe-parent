@@ -1,23 +1,19 @@
-package com.ngari.recipe.entity;
+package com.ngari.recipe.recipe.model;
 
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 
 /**
- * cdr_recipe扩展表
+ * 处方扩展信息
  */
-@Entity
 @Schema
-@Table(name = "cdr_recipe_ext")
-@Access(AccessType.PROPERTY)
-public class RecipeExtend implements Serializable {
+public class RecipeExtendBean implements Serializable {
 
-    private static final long serialVersionUID = -7396436464542532302L;
-    
+    private static final long serialVersionUID = 2528413275115207345L;
+
     @ItemProperty(alias = "处方ID")
     private Integer recipeId;
 
@@ -36,11 +32,9 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "发病日期")
     private Date onsetDate;
 
-    public RecipeExtend() {
+    public RecipeExtendBean() {
     }
 
-    @Id
-    @Column(name = "recipeId", unique = true, nullable = false)
     public Integer getRecipeId() {
         return recipeId;
     }
@@ -49,7 +43,6 @@ public class RecipeExtend implements Serializable {
         this.recipeId = recipeId;
     }
 
-    @Column(name = "mainDieaseDescribe")
     public String getMainDieaseDescribe() {
         return mainDieaseDescribe;
     }
@@ -58,7 +51,6 @@ public class RecipeExtend implements Serializable {
         this.mainDieaseDescribe = mainDieaseDescribe;
     }
 
-    @Column(name = "currentMedical")
     public String getCurrentMedical() {
         return currentMedical;
     }
@@ -67,7 +59,6 @@ public class RecipeExtend implements Serializable {
         this.currentMedical = currentMedical;
     }
 
-    @Column(name = "histroyMedical")
     public String getHistroyMedical() {
         return histroyMedical;
     }
@@ -76,7 +67,6 @@ public class RecipeExtend implements Serializable {
         this.histroyMedical = histroyMedical;
     }
 
-    @Column(name = "allergyMedical")
     public String getAllergyMedical() {
         return allergyMedical;
     }
@@ -85,7 +75,6 @@ public class RecipeExtend implements Serializable {
         this.allergyMedical = allergyMedical;
     }
 
-    @Column(name = "onsetDate")
     public Date getOnsetDate() {
         return onsetDate;
     }
