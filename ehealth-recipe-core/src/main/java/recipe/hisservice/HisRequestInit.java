@@ -1,5 +1,6 @@
 package recipe.hisservice;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.employment.service.IEmploymentService;
@@ -29,6 +30,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.service.RecipeCheckService;
 import recipe.service.RecipeServiceSub;
 import recipe.util.DateConversion;
@@ -87,7 +89,7 @@ public class HisRequestInit {
             //挂号金额
             requestTO.setRegistrationFee(new BigDecimal(0));
             //自费金额
-            requestTO.setSelfPayingFee(new BigDecimal(0));
+            requestTO.setSelfPayingFee(recipe.getActualPrice());
             //医保补偿
             requestTO.setHealthCompensation(new BigDecimal(0));
             //舍入金额
@@ -96,13 +98,9 @@ public class HisRequestInit {
             switch (patient.getPatientType()){
                 case "1"://自费
                     requestTO.setPatientTypeCode("0");
-                    //自费金额
-                    requestTO.setSelfPayingFee(recipe.getActualPrice());
                     break;
                 case "2"://医保
                     requestTO.setPatientTypeCode("2");
-                    //医保补偿
-                    requestTO.setHealthCompensation(new BigDecimal(0));
                     break;
             }
             //费别名称
@@ -587,7 +585,6 @@ public class HisRequestInit {
     }
 
     public static DocIndexToHisReqTO initDocIndexToHisReqTO(Recipe recipe) {
-        //有些数据无法获取，暂时定死
         DocIndexToHisReqTO requestTO = new DocIndexToHisReqTO();
         try{
             requestTO.setOrganId(recipe.getClinicOrgan());
@@ -620,25 +617,43 @@ public class HisRequestInit {
             //设置医生工号
             IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
             requestTO.setDoctorCode(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
-            //主诉
-            requestTO.setMainDiseaseDescribe("无");
-            //现病史
-            requestTO.setHistoryOfPresentIllness("无");
-            //既往史
-            requestTO.setPastHistory("无");
-            //过敏史
-            requestTO.setAllergyHistory("无");
+
+            //获取扩展表数据
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (recipeExtend != null){
+                //主诉
+                requestTO.setMainDiseaseDescribe(StringUtils.isNotEmpty(recipeExtend.getMainDieaseDescribe())?recipeExtend.getMainDieaseDescribe():"无");
+                //现病史
+                requestTO.setHistoryOfPresentIllness(StringUtils.isNotEmpty(recipeExtend.getCurrentMedical())?recipeExtend.getCurrentMedical():"无");
+                //既往史
+                requestTO.setPastHistory(StringUtils.isNotEmpty(recipeExtend.getHistroyMedical())?recipeExtend.getHistroyMedical():"无");
+                //过敏史
+                requestTO.setAllergyHistory(StringUtils.isNotEmpty(recipeExtend.getAllergyMedical())?recipeExtend.getAllergyMedical():"无");
+            }else {
+                LOGGER.warn("recipeExtend is null . recipeId={}",recipe.getRecipeId());
+            }
+
+            //获取诊断数据
+            List<String> icdLists = Splitter.on("；").splitToList(recipe.getOrganDiseaseId());
+            List<String> nameLists = Splitter.on("；").splitToList(recipe.getOrganDiseaseName());
             List<DocIndexInfoTO> data = Lists.newArrayList();
-            DocIndexInfoTO docIndexInfoTO = new DocIndexInfoTO();
-            //诊断类型
-            docIndexInfoTO.setDiagnoseType("西医");
-            //发病日期
-            docIndexInfoTO.setIllnessTime(DateConversion.formatDate(new Date()));
-            //诊断码
-            docIndexInfoTO.setIcdCode("G47.901");
-            //诊断名
-            docIndexInfoTO.setIcdname("睡眠障碍");
-            data.add(docIndexInfoTO);
+            if (icdLists.size() == nameLists.size()){
+                for (int i = 0; i < icdLists.size();i++){
+                    DocIndexInfoTO docIndexInfoTO = new DocIndexInfoTO();
+                    //诊断类型
+                    docIndexInfoTO.setDiagnoseType("西医");
+                    //发病日期
+                    if (recipeExtend!= null && recipeExtend.getOnsetDate()!=null){
+                        docIndexInfoTO.setIllnessTime(DateConversion.formatDate(recipeExtend.getOnsetDate()));
+                    }
+                    //诊断码
+                    docIndexInfoTO.setIcdCode(icdLists.get(i));
+                    //诊断名
+                    docIndexInfoTO.setIcdname(nameLists.get(i));
+                    data.add(docIndexInfoTO);
+                }
+            }
             requestTO.setData(data);
         }catch (Exception e){
             LOGGER.error("initDocIndexToHisReqTO 组装参数错误. recipeId={}, error ", recipe.getRecipeId(), e);
