@@ -24,6 +24,7 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.GuardianBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -48,6 +49,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.*;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 供recipeService调用
@@ -158,6 +161,15 @@ public class RecipeServiceSub {
 
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
         recipe.setRecipeId(recipeId);
+
+        //武昌需求，加入处方扩展信息
+        RecipeExtendBean recipeExt = recipeBean.getRecipeExtend();
+        if(null != recipeExt && null != recipeId) {
+            RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeExt, RecipeExtend.class);
+            recipeExtend.setRecipeId(recipeId);
+            RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
+            recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
+        }
 
         //加入历史患者
         OperationRecordsBean record = new OperationRecordsBean();

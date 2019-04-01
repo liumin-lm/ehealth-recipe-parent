@@ -1,9 +1,13 @@
 package recipe.dao;
 
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.RecipeExtend;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
 import ctd.util.annotation.RpcSupportDAO;
+import org.springframework.util.ObjectUtils;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 处方扩展表
@@ -26,5 +30,18 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
      */
     @DAOMethod
     public abstract RecipeExtend getByRecipeId(int recipeId);
+
+    /**
+     * 保存OR更新
+     * @param recipeExtend
+     */
+    public void saveOrUpdateRecipeExtend(RecipeExtend recipeExtend) {
+        if (ObjectUtils.isEmpty(this.getByRecipeId(recipeExtend.getRecipeId()))) {
+            this.save(recipeExtend);
+        } else {
+            this.update(recipeExtend);
+        }
+    }
+
 
 }
