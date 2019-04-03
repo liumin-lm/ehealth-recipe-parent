@@ -905,6 +905,13 @@ public class RecipeServiceSub {
             if (b) {
                 map.put("secondSignFlag", iOrganConfigService.getEnableSecondsignByOrganId(recipe.getClinicOrgan()));
             }
+
+            //医生端获取处方扩展信息
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            if (recipeExtend !=null){
+                map.put("recipeExtend",recipeExtend);
+            }
         } else {
             RecipeOrder order = orderDAO.getOrderByRecipeId(recipeId);
             map.put("tips", getTipsByStatusForPatient(recipe, order));
