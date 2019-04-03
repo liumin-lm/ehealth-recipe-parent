@@ -820,6 +820,7 @@ public class RecipeService {
 
         //武昌需求，加入处方扩展信息
         RecipeExtendBean recipeExt = recipeBean.getRecipeExtend();
+        LOGGER.info("updateRecipeAndDetail recipeBean={}", JSONUtils.toString(recipeBean));
         if(null != recipeExt && null != dbRecipeId) {
             RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeExt, RecipeExtend.class);
             LOGGER.info("updateRecipeAndDetail RecipeExtendBean={}", JSONUtils.toString(recipeExtend));
