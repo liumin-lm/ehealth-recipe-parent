@@ -822,6 +822,7 @@ public class RecipeService {
         RecipeExtendBean recipeExt = recipeBean.getRecipeExtend();
         if(null != recipeExt && null != dbRecipeId) {
             RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeExt, RecipeExtend.class);
+            LOGGER.info("updateRecipeAndDetail RecipeExtendBean={}", JSONUtils.toString(recipeExtend));
             recipeExtend.setRecipeId(dbRecipeId);
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
