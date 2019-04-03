@@ -36,6 +36,9 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
      * @param recipeExtend
      */
     public void saveOrUpdateRecipeExtend(RecipeExtend recipeExtend) {
+        if(null == recipeExtend.getRecipeId()){
+            return;
+        }
         if (ObjectUtils.isEmpty(this.getByRecipeId(recipeExtend.getRecipeId()))) {
             this.save(recipeExtend);
         } else {
