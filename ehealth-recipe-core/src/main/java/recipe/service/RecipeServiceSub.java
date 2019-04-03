@@ -982,7 +982,13 @@ public class RecipeServiceSub {
             }
         }
         map.put("childRecipeFlag", childRecipeFlag);
-        map.put("recipe", ObjectCopyUtils.convert(recipe, RecipeBean.class));
+        RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if (recipeExtend != null){
+            recipeBean.setRecipeExtend(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
+        }
+        map.put("recipe", recipeBean);
 
         return map;
     }
