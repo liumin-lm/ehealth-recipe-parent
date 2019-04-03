@@ -823,7 +823,7 @@ public class RecipeService {
         if(null != recipeExt && null != dbRecipeId) {
             RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeExt, RecipeExtend.class);
             recipeExtend.setRecipeId(dbRecipeId);
-            RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
         }
 
