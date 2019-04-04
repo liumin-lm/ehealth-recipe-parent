@@ -10,6 +10,7 @@ import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.OrganDrugList;
@@ -26,10 +27,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bean.RecipeCheckPassResult;
 import recipe.bussutil.RecipeUtil;
+import recipe.constant.CacheConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.OrganDrugListDAO;
@@ -38,11 +41,9 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.dao.bean.DrugInfoHisBean;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisService;
+import recipe.util.RedisClient;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author yu_yun
@@ -54,6 +55,9 @@ public class RecipeHisService extends RecipeBaseService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeHisService.class);
 
     private IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+
+    @Autowired
+    private RedisClient redisClient;
 
     /**
      * 发送处方
@@ -90,6 +94,21 @@ public class RecipeHisService extends RecipeBaseService {
             HealthCardBean cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
             //创建请求体
             RecipeSendRequestTO request = HisRequestInit.initRecipeSendRequestTO(recipe, details, patientBean, cardBean);
+            //是否是武昌机构，替换请求体
+            Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_WUCHANG_ORGAN_LIST);
+            if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(sendOrganId.toString())) {
+                request = HisRequestInit.initRecipeSendRequestTOForWuChang(recipe, details, patientBean, cardBean);
+                //发送电子病历
+                DocIndexToHisReqTO docIndexToHisReqTO = HisRequestInit.initDocIndexToHisReqTO(recipe);
+                HisResponseTO hisResponseTO = service.docIndexToHis(docIndexToHisReqTO);
+                if (hisResponseTO != null){
+                    if ("200".equals(hisResponseTO.getMsgCode())){
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "推送电子病历成功");
+                    }else {
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "推送电子病历失败。原因："+hisResponseTO.getMsg());
+                    }
+                }
+            }
             //设置医生工号
             request.setDoctorID(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), sendOrganId, recipe.getDepart()));
             //查询生产厂家
@@ -168,6 +187,11 @@ public class RecipeHisService extends RecipeBaseService {
             PatientBean patientBean = iPatientService.get(recipe.getMpiid());
             HealthCardBean cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
             RecipeStatusUpdateReqTO request = HisRequestInit.initRecipeStatusUpdateReqTO(recipe, details, patientBean, cardBean);
+            //是否是武昌机构，替换请求体
+            Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_WUCHANG_ORGAN_LIST);
+            if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(sendOrganId.toString())) {
+                request = HisRequestInit.initRecipeStatusUpdateReqForWuChang(recipe, details, patientBean, cardBean);
+            }
             request.setOrganID(sendOrganId.toString());
             if (StringUtils.isNotEmpty(hisRecipeStatus)) {
                 request.setRecipeStatus(hisRecipeStatus);
@@ -546,6 +570,34 @@ public class RecipeHisService extends RecipeBaseService {
             result.setCode(RecipeResultBean.FAIL);
             result.setError("医院HIS未启用。");
             LOGGER.error("recipeAudit 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipe.getRecipeId() + "]");
+        }
+
+        return result;
+    }
+
+    /**
+     * 发送处方电子病历
+     * @param recipeId
+     * @return
+     */
+    public RecipeResultBean docIndexToHis(Integer recipeId){
+        RecipeResultBean result = RecipeResultBean.getSuccess();
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (null == recipe) {
+            result.setCode(RecipeResultBean.FAIL);
+            result.setError("找不到处方");
+            return result;
+        }
+        if (isHisEnable(recipe.getClinicOrgan())) {
+            RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+            DocIndexToHisReqTO request = HisRequestInit.initDocIndexToHisReqTO(recipe);
+            service.docIndexToHis(request);
+            return result;
+        } else {
+            result.setCode(RecipeResultBean.FAIL);
+            result.setError("医院HIS未启用。");
+            LOGGER.error("docIndexToHis 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipe.getRecipeId() + "]");
         }
 
         return result;

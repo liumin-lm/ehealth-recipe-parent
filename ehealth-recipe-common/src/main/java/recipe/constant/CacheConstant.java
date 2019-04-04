@@ -18,6 +18,11 @@ public class CacheConstant {
      */
     public static final String KEY_SKIP_YSCHECK_LIST = "RCP_SKIP_YSCHECK_LIST";
 
+    /**
+     * 武昌organId列表
+     */
+    public static final String KEY_WUCHANG_ORGAN_LIST = "RCP_WUCHANG_ORGAN_LIST";
+
 
 
 

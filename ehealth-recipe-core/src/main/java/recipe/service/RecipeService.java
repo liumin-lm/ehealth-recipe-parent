@@ -28,6 +28,7 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.wxpay.service.INgariRefundService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -816,6 +817,16 @@ public class RecipeService {
         //将原先处方单详情的记录都置为无效 status=0
         recipeDetailDAO.updateDetailInvalidByRecipeId(recipeId);
         Integer dbRecipeId = recipeDAO.updateOrSaveRecipeAndDetail(dbRecipe, recipedetails, true);
+
+        //武昌需求，加入处方扩展信息
+        RecipeExtendBean recipeExt = recipeBean.getRecipeExtend();
+        if(null != recipeExt && null != dbRecipeId) {
+            RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeExt, RecipeExtend.class);
+            recipeExtend.setRecipeId(dbRecipeId);
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
+        }
+
         //记录日志
         RecipeLogService.saveRecipeLog(dbRecipeId, beforeStatus, beforeStatus, "修改处方单");
 

@@ -204,7 +204,7 @@ public class DrugToolService implements IDrugToolService {
             }
             drug.setUseDoseUnit(getStrFromCell(row.getCell(7)));
             try {
-                if (StringUtils.isEmpty(getStrFromCell(row.getCell(5)))){
+                if (StringUtils.isEmpty(getStrFromCell(row.getCell(8)))){
                     drug.setPack(null);
                 }else{
                     drug.setPack(Integer.parseInt(getStrFromCell(row.getCell(8))));
