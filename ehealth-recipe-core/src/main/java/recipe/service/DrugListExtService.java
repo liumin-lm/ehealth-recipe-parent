@@ -173,6 +173,12 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 if (null != drugList && StringUtils.isNotEmpty(drugList.getHighlightedField())) {
                     drugList.setHighlightedFieldForIos(getListByHighlightedField(drugList.getHighlightedField()));
                 }
+                if(StringUtils.isEmpty(drugList.getUsingRate())){
+                    drugList.setUsingRate("");
+                }
+                if (StringUtils.isEmpty(drugList.getUsePathways())){
+                    drugList.setUsePathways("");
+                }
                 dList.add(drugList);
             }
 
