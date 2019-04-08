@@ -64,7 +64,7 @@ public class HospitalRecipeDTO implements Serializable {
     @Verify(desc = "处方类型", isInt = true)
     private String recipeType;
 
-    @Verify(desc = "是否有库存", isInt = true)
+    @Verify(isNotNull = false, desc = "是否有库存")
     private String isDrugStock;
 
     @Verify(desc = "开方科室")
