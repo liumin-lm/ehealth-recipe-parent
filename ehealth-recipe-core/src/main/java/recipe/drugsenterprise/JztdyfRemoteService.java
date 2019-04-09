@@ -367,11 +367,11 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
                 jztDetail.setDrugFee(detail.getSalePrice().toPlainString());
                 jztDetail.setDrugTotalFee(detail.getDrugCost().toPlainString());
                 jztDetail.setUesDays(converToString(detail.getUseDays()));
-                jztDetail.setUsingRate(detail.getUsingRate());
-                jztDetail.setUsePathways(detail.getUsePathways());
+                jztDetail.setUsingRate(converToString(detail.getUsingRate()));
+                jztDetail.setUsePathways(converToString(detail.getUsePathways()));
                 jztDetail.setMemo(converToString(detail.getMemo()));
-                jztDetail.setStandardCode(drugMap.get(drugId).getStandardCode());
-                jztDetail.setDrugForm(drugMap.get(drugId).getDrugForm());
+                jztDetail.setStandardCode(converToString(drugMap.get(drugId).getStandardCode()));
+                jztDetail.setDrugForm(converToString(drugMap.get(drugId).getDrugForm()));
                 jztDetail.setPharmNo("");
                 jztDetail.setMedicalFee("");
                 jztDetailList.add(jztDetail);
