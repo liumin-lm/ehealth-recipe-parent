@@ -177,7 +177,9 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             }
 
             LOGGER.info("searchDrugListWithES result DList.size = " + dList.size());
-            getHospitalPrice(organId, dList);
+            if(null != organId) {
+                getHospitalPrice(organId, dList);
+            }
         } else {
             LOGGER.info("searchDrugListWithES result isEmpty! drugName = " + drugName);
         }
