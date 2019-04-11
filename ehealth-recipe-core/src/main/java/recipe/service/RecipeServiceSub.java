@@ -24,6 +24,7 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.GuardianBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -48,6 +49,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.*;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 供recipeService调用
@@ -77,8 +80,8 @@ public class RecipeServiceSub {
     private static DepartmentService departmentService = ApplicationUtils.getBasicService(DepartmentService.class);
 
     /**
-     * @param recipe
-     * @param details
+     * @param recipeBean
+     * @param detailBeanList
      * @param flag(recipe的fromflag) 0：HIS处方  1：平台处方
      * @return
      */
@@ -137,7 +140,11 @@ public class RecipeServiceSub {
         OrganDTO organBean = organService.get(recipe.getClinicOrgan());
         recipe.setOrganName(organBean.getShortName());
 
-        if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipeBean.getFromflag())) {
+        RedisClient redisClient = RedisClient.instance();
+        Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_WUCHANG_ORGAN_LIST);
+        //武昌机构recipeCode平台生成
+        if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipeBean.getFromflag())
+            || (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(recipe.getClinicOrgan().toString()))) {
             //在 doSignRecipe 生成的一些数据在此生成
             PatientDTO requestPatient = patientService.getOwnPatientForOtherProject(patient.getLoginId());
             if (null != requestPatient && null != requestPatient.getMpiId()) {
@@ -154,6 +161,15 @@ public class RecipeServiceSub {
 
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
         recipe.setRecipeId(recipeId);
+
+        //武昌需求，加入处方扩展信息
+        RecipeExtendBean recipeExt = recipeBean.getRecipeExtend();
+        if(null != recipeExt && null != recipeId) {
+            RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeExt, RecipeExtend.class);
+            recipeExtend.setRecipeId(recipeId);
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
+        }
 
         //加入历史患者
         OperationRecordsBean record = new OperationRecordsBean();
@@ -888,6 +904,13 @@ public class RecipeServiceSub {
             boolean b = RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && (recipe.canMedicalPay() || effective);
             if (b) {
                 map.put("secondSignFlag", iOrganConfigService.getEnableSecondsignByOrganId(recipe.getClinicOrgan()));
+            }
+
+            //医生端获取处方扩展信息
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            if (recipeExtend !=null){
+                map.put("recipeExtend",recipeExtend);
             }
         } else {
             RecipeOrder order = orderDAO.getOrderByRecipeId(recipeId);

@@ -65,6 +65,9 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "配送模式支持 0:不支持 1:线上付款 2:货到付款 3:药店取药 8:货到付款和药店取药 9:都支持")
     private Integer payModeSupport;
 
+    @ItemProperty(alias = "院内补充库存 0:非补充，1：补充库存")
+    private Integer hosInteriorSupport;
+
     @ItemProperty(alias = "状态标识")
     private Integer status;
 
@@ -197,6 +200,15 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setPayModeSupport(Integer payModeSupport) {
         this.payModeSupport = payModeSupport;
+    }
+
+    @Column(name = "hosInteriorSupport")
+    public Integer getHosInteriorSupport() {
+        return hosInteriorSupport;
+    }
+
+    public void setHosInteriorSupport(Integer hosInteriorSupport) {
+        this.hosInteriorSupport = hosInteriorSupport;
     }
 
     @Column(name = "Status")

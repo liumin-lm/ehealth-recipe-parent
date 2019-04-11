@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.google.common.collect.Maps;
+import com.ngari.base.department.service.IDepartmentService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.recipe.entity.Recipe;
@@ -87,6 +88,12 @@ public class RecipeMsgService {
     private static final String RECIPE_LOW_STOCKS = "RecipeLowStocks";
 
     private static final String RECIPR_NOT_CONFIRM_RECEIPT = "RecipeNotConfirmReceipt";
+
+    //武昌新增，无库存情况
+    private static final String RECIPE_HOSSUPPORT_NOINVENTORY = "RecipeHosSupportNoInventory";
+
+    //武昌新增，有库存情况
+    private static final String RECIPE_HOSSUPPORT_INVENTORY = "RecipeHosSupportInventory";
 
     /**
      * 单个处方信息推送（根据处方ID）
@@ -197,7 +204,11 @@ public class RecipeMsgService {
             } else if (RecipeStatusConstant.IN_SEND == afterStatus) {
                 sendMsgInfo(recipeId, RECIPE_IN_SEND, organId, Integer.toString(afterStatus));
             } else if (RecipeStatusConstant.REVOKE == afterStatus) {
-                sendMsgInfo(recipeId, RECIPE_REVOKE, organId, Integer.toString(afterStatus));
+                //新处理方式
+                Map<String, String> extendValue = Maps.newHashMap();
+                IDepartmentService iDepartmentService = ApplicationUtils.getBaseService(IDepartmentService.class);
+                extendValue.put("departName",iDepartmentService.getNameById(recipe.getDepart()));
+                sendMsgInfo(recipeId, RECIPE_REVOKE, organId, JSONUtils.toString(extendValue));
             } else if (RecipeStatusConstant.RECIPE_LOW_STOCKS == afterStatus) {
                 sendMsgInfo(recipeId, RECIPE_LOW_STOCKS, organId, Integer.toString(afterStatus));
             } else if (RecipeStatusConstant.RECIPR_NOT_CONFIRM_RECEIPT == afterStatus) {
@@ -264,6 +275,11 @@ public class RecipeMsgService {
                     getHosRecipeInfo(recipe,extendValue);
                     //设置 overtime 超时时间
                     extendValue.put("overtime",expiredDays.toString());
+                    break;
+                case RECIPE_HOSSUPPORT_NOINVENTORY:
+                case RECIPE_HOSSUPPORT_INVENTORY:
+                    IDepartmentService iDepartmentService = ApplicationUtils.getBaseService(IDepartmentService.class);
+                    extendValue.put("departName",iDepartmentService.getNameById(recipe.getDepart()));
                     break;
                 default:
 

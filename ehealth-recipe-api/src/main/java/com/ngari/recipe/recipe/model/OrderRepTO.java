@@ -45,6 +45,11 @@ public class OrderRepTO implements Serializable {
     private String recipeType;
 
     /**
+     * 药品是否有库存
+     */
+    private String isDrugStock;
+
+    /**
      * 组方号
      */
     private String setNo;
@@ -63,6 +68,18 @@ public class OrderRepTO implements Serializable {
      * 备注
      */
     private String remark;
+
+    private String drugCode;
+
+    private String drugName;
+
+    public String getIsDrugStock() {
+        return isDrugStock;
+    }
+
+    public void setIsDrugStock(String isDrugStock) {
+        this.isDrugStock = isDrugStock;
+    }
 
     public String getPatientID() {
         return patientID;
@@ -142,5 +159,21 @@ public class OrderRepTO implements Serializable {
 
     public void setAmount(String amount) {
         this.amount = amount;
+    }
+
+    public String getDrugCode() {
+        return drugCode;
+    }
+
+    public void setDrugCode(String drugCode) {
+        this.drugCode = drugCode;
+    }
+
+    public String getDrugName() {
+        return drugName;
+    }
+
+    public void setDrugName(String drugName) {
+        this.drugName = drugName;
     }
 }

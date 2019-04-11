@@ -292,6 +292,9 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias="前端页面跳转标记")
     private int notation;
 
+    @ItemProperty(alias="处方详情信息")
+    private RecipeExtendBean recipeExtend;
+
     public RecipeBean() {
     }
 
@@ -1074,6 +1077,14 @@ public class RecipeBean implements Serializable {
 
     public void setNotation(int notation) {
         this.notation = notation;
+    }
+
+    public RecipeExtendBean getRecipeExtend() {
+        return recipeExtend;
+    }
+
+    public void setRecipeExtend(RecipeExtendBean recipeExtend) {
+        this.recipeExtend = recipeExtend;
     }
 
     public boolean canMedicalPay() {

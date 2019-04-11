@@ -4,8 +4,7 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganConfigService;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
-import recipe.constant.ErrorCode;
-import recipe.dao.DrugsEnterpriseDAO;
+import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
@@ -13,8 +12,13 @@ import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
+import recipe.constant.ErrorCode;
+import recipe.dao.DrugsEnterpriseDAO;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.serviceprovider.BaseService;
 
 import java.util.List;
@@ -129,5 +133,23 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         }
 
         return true;
+    }
+
+    /**
+     * 推送医院补充库存药企
+     * @param recipeId
+     * @param organId
+     */
+    @RpcService
+    public void pushHosInteriorSupport(Integer recipeId, Integer organId){
+        //武昌需求处理，推送无库存的处方至医院补充库存药企
+        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        List<DrugsEnterprise> enterpriseList = enterpriseDAO.findByOrganIdAndHosInteriorSupport(organId);
+        if(CollectionUtils.isNotEmpty(enterpriseList)){
+            RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+            for (DrugsEnterprise dep : enterpriseList) {
+                service.pushSingleRecipeInfoWithDepId(recipeId, dep.getId());
+            }
+        }
     }
 }
