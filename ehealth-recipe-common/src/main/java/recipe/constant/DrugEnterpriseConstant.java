@@ -32,4 +32,9 @@ public class DrugEnterpriseConstant {
      * 测试药企
      */
     public static final String COMPANY_TEST = "test";
+
+    /**
+     * 九州通药企
+     */
+    public static final String COMPANY_JZTDYF = "jztdyf";
 }
