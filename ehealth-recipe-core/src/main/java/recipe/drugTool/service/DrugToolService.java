@@ -173,9 +173,11 @@ public class DrugToolService implements IDrugToolService {
         }
 
         double progress;
+        DrugListMatch drug;
         for (int rowIndex = 1; rowIndex <= total; rowIndex++) {
-            Row row = sheet.getRow(rowIndex);//循环获得每个行
-            DrugListMatch drug = new DrugListMatch();
+            //循环获得每个行
+            Row row = sheet.getRow(rowIndex);
+            drug = new DrugListMatch();
             if (StringUtils.isEmpty(getStrFromCell(row.getCell(0)))){
                 result.put("code",609);
                 result.put("msg","存在药品编号为空，请重新导入");
