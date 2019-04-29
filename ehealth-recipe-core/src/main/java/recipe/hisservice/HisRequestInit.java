@@ -28,11 +28,9 @@ import recipe.bussutil.UsingRateFilter;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.DrugListDAO;
-import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.service.RecipeCheckService;
-import recipe.service.RecipeServiceSub;
 import recipe.util.DateConversion;
 
 import java.math.BigDecimal;
@@ -79,7 +77,7 @@ public class HisRequestInit {
             //科室名称
             requestTO.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
             //操作时间
-            requestTO.setOperationTime(DateConversion.formatDate(recipe.getSignDate()));
+            requestTO.setOperationTime(DateConversion.formatDateTimeWithSec(recipe.getSignDate()));
             //操作员代码(医生身份证)
             DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
             DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());

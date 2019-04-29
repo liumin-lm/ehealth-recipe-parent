@@ -315,6 +315,11 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
                 LOGGER.warn("uploadRecipeIndicators doctor is null. recipe.doctor={}", recipe.getDoctor());
                 continue;
             }
+            if(1 == doctorDTO.getTestPersonnel()){
+                LOGGER.warn("uploadRecipeIndicators doctor is testPersonnel. recipe.doctor={}", recipe.getDoctor());
+                continue;
+            }
+
             req.setDoctorCertID(doctorDTO.getIdNumber());
             req.setDoctorName(doctorDTO.getName());
 
