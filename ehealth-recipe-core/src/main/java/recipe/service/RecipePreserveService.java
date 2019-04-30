@@ -86,6 +86,7 @@ public class RecipePreserveService {
         return doctorService.getBeanByDoctorId(doctorId);
     }
 
+    @RpcService
     public void getHosRecipeList(int consultId, String patientName){
         LOGGER.info("getHosRecipeList consultId={}, patientName={}", consultId, patientName);
         IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
