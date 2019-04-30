@@ -1558,4 +1558,23 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
 
     @DAOMethod(sql = "select recipeId from Recipe where clinicOrgan in:organIds and status =8 and fromflag = 1")
     public abstract List<Integer> findReadyAuditRecipeIdsByOrganIds(@DAOParam("organIds")List<Integer> organIds);
+
+    public List<Recipe> findRecipeListByMpiID(final String mpiId,final Integer organId, final int start,final int limit){
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String hql = "from Recipe where mpiid=:mpiid and clinicOrgan =:clinicOrgan and status in (2,6,9,12,14)order by createDate desc";
+                Query query = ss.createQuery(hql);
+                query.setParameter("mpiid", mpiId);
+                query.setParameter("clinicOrgan", organId);
+                query.setFirstResult(start);
+                query.setMaxResults(limit);
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+
+        List<Recipe> recipes = action.getResult();
+        return recipes;
+    }
 }
