@@ -115,7 +115,12 @@ public class RecipePreserveService {
         request.setStartDate(startDate);
         request.setEndDate(endDate);
         LOGGER.info("getHosRecipeList request={}", JSONUtils.toString(request));
-        QueryRecipeResponseTO response = hisService.queryRecipeListInfo(request);
+        QueryRecipeResponseTO response = null;
+        try {
+            response = hisService.queryRecipeListInfo(request);
+        } catch (Exception e) {
+            LOGGER.warn("getHosRecipeList his error. ", e);
+        }
         if(null == response){
             return Lists.newArrayList();
         }
