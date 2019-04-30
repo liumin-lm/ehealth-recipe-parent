@@ -2,6 +2,9 @@ package recipe.service;
 
 import com.ngari.base.doctor.model.DoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
+import com.ngari.consult.ConsultAPI;
+import com.ngari.consult.common.model.ConsultExDTO;
+import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
@@ -10,6 +13,7 @@ import com.ngari.recipe.recipelog.model.RecipeLogBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +22,10 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.CacheConstant;
 import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.util.DateConversion;
 import recipe.util.RedisClient;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -78,6 +84,16 @@ public class RecipePreserveService {
     public DoctorBean getDoctorTest(Integer doctorId) {
         IDoctorService doctorService = ApplicationUtils.getBaseService(IDoctorService.class);
         return doctorService.getBeanByDoctorId(doctorId);
+    }
+
+    public void getHosRecipeList(int consultId, String patientName){
+        LOGGER.info("getHosRecipeList consultId={}, patientName={}", consultId, patientName);
+        IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
+        ConsultExDTO consultExDTO = exService.getByConsultId(consultId);
+        Date endDate = DateTime.now().toDate();
+        Date startDate = DateConversion.getDateTimeDaysAgo(180);
+        
+        
     }
 
     @RpcService
