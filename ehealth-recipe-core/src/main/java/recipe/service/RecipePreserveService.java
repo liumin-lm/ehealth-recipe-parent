@@ -1,18 +1,26 @@
 package recipe.service;
 
+import com.google.common.collect.Lists;
 import com.ngari.base.doctor.model.DoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
+import com.ngari.his.base.PatientBaseInfo;
+import com.ngari.his.recipe.mode.QueryRecipeRequestTO;
+import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
+import com.ngari.his.recipe.mode.RecipeInfoTO;
+import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipelog.model.RecipeLogBean;
 import ctd.persistence.DAOFactory;
+import ctd.spring.AppDomainContext;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,14 +95,30 @@ public class RecipePreserveService {
     }
 
     @RpcService
-    public void getHosRecipeList(int consultId, String patientName){
+    public List<RecipeInfoTO> getHosRecipeList(int consultId, String patientName){
         LOGGER.info("getHosRecipeList consultId={}, patientName={}", consultId, patientName);
         IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
         ConsultExDTO consultExDTO = exService.getByConsultId(consultId);
+        if(null == consultExDTO || StringUtils.isEmpty(consultExDTO.getCardId())){
+            return Lists.newArrayList();
+        }
         Date endDate = DateTime.now().toDate();
         Date startDate = DateConversion.getDateTimeDaysAgo(180);
-        
-        
+
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        QueryRecipeRequestTO request = new QueryRecipeRequestTO();
+        PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
+        patientBaseInfo.setPatientName(patientName);
+        patientBaseInfo.setPatientID(consultExDTO.getCardId());
+        request.setPatientInfo(patientBaseInfo);
+        request.setStartDate(startDate);
+        request.setEndDate(endDate);
+        QueryRecipeResponseTO response = hisService.queryRecipeListInfo(request);
+        if(null == response){
+            return Lists.newArrayList();
+        }
+        LOGGER.info("getHosRecipeList msgCode={}, msg={} ", response.getMsgCode(), response.getMsg());
+        return response.getData();
     }
 
     @RpcService
