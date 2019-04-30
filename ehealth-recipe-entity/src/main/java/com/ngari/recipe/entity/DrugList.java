@@ -71,7 +71,7 @@ public class DrugList implements java.io.Serializable {
     private Integer instructions;
 
     @ItemProperty(alias = "药品图片")
-    private Integer drugPic;
+    private String drugPic;
 
     @ItemProperty(alias = "参考价格1")
     private Double price1;
@@ -127,7 +127,7 @@ public class DrugList implements java.io.Serializable {
                     String drugSpec, String unit, Integer drugType, String drugClass,
                     Double useDose, String useDoseUnit, String usingRate,
                     String usePathways, String producer, Integer instructions,
-                    Integer drugPic, Double price1, Double price2, Integer status) {
+                    String drugPic, Double price1, Double price2, Integer status) {
         this.drugId = drugId;
         this.drugName = drugName;
         this.saleName = saleName;
@@ -154,7 +154,7 @@ public class DrugList implements java.io.Serializable {
                     Double useDose, String useDoseUnit,
                     String usingRate, String usePathways,
                     String producer, Integer instructions,
-                    Integer drugPic, Double price1,
+                    String drugPic, Double price1,
                     Double price2, Integer status,
                     String indications, String pyCode, Date createDt,
                     Date lastModify, String allPyCode,
@@ -305,11 +305,11 @@ public class DrugList implements java.io.Serializable {
     }
 
     @Column(name = "DrugPic")
-    public Integer getDrugPic() {
+    public String getDrugPic() {
         return this.drugPic;
     }
 
-    public void setDrugPic(Integer drugPic) {
+    public void setDrugPic(String drugPic) {
         this.drugPic = drugPic;
     }
 

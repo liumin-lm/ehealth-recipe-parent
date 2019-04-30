@@ -67,7 +67,7 @@ public class DrugListBean implements Serializable {
     private Integer instructions;
 
     @ItemProperty(alias = "药品图片")
-    private Integer drugPic;
+    private String drugPic;
 
     @ItemProperty(alias = "参考价格1")
     private Double price1;
@@ -234,11 +234,11 @@ public class DrugListBean implements Serializable {
         this.instructions = instructions;
     }
 
-    public Integer getDrugPic() {
+    public String getDrugPic() {
         return drugPic;
     }
 
-    public void setDrugPic(Integer drugPic) {
+    public void setDrugPic(String drugPic) {
         this.drugPic = drugPic;
     }
 

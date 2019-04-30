@@ -129,10 +129,10 @@ public class RecipeBean implements Serializable {
     private String giveUser;
 
     @ItemProperty(alias = "签名的处方PDF")
-    private Integer signFile;
+    private String signFile;
 
     @ItemProperty(alias = "药师签名的处方PDF")
-    private Integer chemistSignFile;
+    private String chemistSignFile;
 
     @ItemProperty(alias = "收货人")
     private String receiver;
@@ -655,19 +655,19 @@ public class RecipeBean implements Serializable {
         this.giveUser = giveUser;
     }
 
-    public Integer getSignFile() {
+    public String getSignFile() {
         return signFile;
     }
 
-    public void setSignFile(Integer signFile) {
+    public void setSignFile(String signFile) {
         this.signFile = signFile;
     }
 
-    public Integer getChemistSignFile() {
+    public String getChemistSignFile() {
         return chemistSignFile;
     }
 
-    public void setChemistSignFile(Integer chemistSignFile) {
+    public void setChemistSignFile(String chemistSignFile) {
         this.chemistSignFile = chemistSignFile;
     }
 

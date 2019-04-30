@@ -245,7 +245,8 @@ public class RecipeListService {
                 p = patientMap.get(record.getMpiId());
                 if (null != p) {
                     record.setPatientName(p.getPatientName());
-                    record.setPhoto(p.getPhoto());
+                    //TODO 等到basic修改后再调整
+                    record.setPhoto(p.getPhoto().toString());
                     record.setPatientSex(p.getPatientSex());
                 }
                 //能否购药进行设置，默认可购药
