@@ -18,6 +18,7 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipelog.model.RecipeLogBean;
 import ctd.persistence.DAOFactory;
 import ctd.spring.AppDomainContext;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
@@ -113,6 +114,7 @@ public class RecipePreserveService {
         request.setPatientInfo(patientBaseInfo);
         request.setStartDate(startDate);
         request.setEndDate(endDate);
+        LOGGER.info("getHosRecipeList request={}", JSONUtils.toString(request));
         QueryRecipeResponseTO response = hisService.queryRecipeListInfo(request);
         if(null == response){
             return Lists.newArrayList();
