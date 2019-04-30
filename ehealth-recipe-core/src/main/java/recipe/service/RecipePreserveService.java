@@ -4,8 +4,10 @@ import com.google.common.collect.Lists;
 import com.ngari.base.doctor.model.DoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.consult.ConsultAPI;
+import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
+import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.QueryRecipeRequestTO;
 import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
@@ -98,6 +100,12 @@ public class RecipePreserveService {
     @RpcService
     public List<RecipeInfoTO> getHosRecipeList(int consultId, String patientName){
         LOGGER.info("getHosRecipeList consultId={}, patientName={}", consultId, patientName);
+        IConsultService service = ConsultAPI.getService(IConsultService.class);
+        ConsultBean consultBean = service.getById(consultId);
+        if(null == consultBean){
+            return Lists.newArrayList();
+        }
+
         IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
         ConsultExDTO consultExDTO = exService.getByConsultId(consultId);
         if(null == consultExDTO || StringUtils.isEmpty(consultExDTO.getCardId())){
@@ -114,6 +122,7 @@ public class RecipePreserveService {
         request.setPatientInfo(patientBaseInfo);
         request.setStartDate(startDate);
         request.setEndDate(endDate);
+        request.setOrgan(consultBean.getConsultOrgan());
         LOGGER.info("getHosRecipeList request={}", JSONUtils.toString(request));
         QueryRecipeResponseTO response = null;
         try {
