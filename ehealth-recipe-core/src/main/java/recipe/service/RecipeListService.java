@@ -22,6 +22,7 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
@@ -519,14 +520,19 @@ public class RecipeListService {
      * @return
      */
     @RpcService
-    public List<Map<String,Object>> findAllRecipesForPatient(String mpiId, Integer organId, int start, int limit) {
-        List<Map<String,Object>> result = Lists.newArrayList();
+    public Map<String,Object> findAllRecipesForPatient(String mpiId, Integer organId, int start, int limit) {
+        Map<String,Object> result = Maps.newHashMap();
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        List<Recipe> list = recipeDAO.findRecipeListByMpiID(mpiId,organId, start, limit);
+        QueryResult<Recipe> resultList = recipeDAO.findRecipeListByMpiID(mpiId,organId, start, limit);
+        List<Recipe> list = resultList.getItems();
         if (CollectionUtils.isEmpty(list)){
             return result;
         }
+        result.put("total",resultList.getTotal());
+        result.put("start",resultList.getStart());
+        result.put("limit",resultList.getLimit());
+        List<Map<String,Object>> mapList = Lists.newArrayList();
         Map<String,Object> map;
         List<Recipedetail> recipedetails;
         try{
@@ -579,8 +585,9 @@ public class RecipeListService {
                         map.put("statusText",DictionaryController.instance().get("eh.cdr.dictionary.RecipeStatus").getText(recipe.getStatus()));
                         break;
                 }
-                result.add(map);
+                mapList.add(map);
             }
+            result.put("list",mapList);
         }catch (Exception e){
             LOGGER.error("findAllRecipesForPatient error"+e.getMessage());
         }
