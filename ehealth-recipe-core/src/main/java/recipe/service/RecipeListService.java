@@ -542,7 +542,7 @@ public class RecipeListService {
             String organText = DictionaryController.instance().get("eh.base.dictionary.Organ").getText(organId);
             for (Recipe recipe : list){
                 map = Maps.newHashMap();
-                map.put("recipe",recipe.getRecipeId());
+                map.put("recipeId",recipe.getRecipeId());
                 map.put("patientName",recipe.getPatientName());
                 map.put("doctorDepart",organText+departDic.getText(recipe.getDepart()));
                 map.put("diseaseName",recipe.getOrganDiseaseName());
