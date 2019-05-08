@@ -53,6 +53,10 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "外带药标志 1:外带药")
     private Integer takeMedicine;
 
+    @ItemProperty(alias = "医院药房名字")
+    private String pharmacyName;
+
+
     public OrganDrugList() {
     }
 
@@ -159,5 +163,14 @@ public class OrganDrugList implements java.io.Serializable {
 
     public void setTakeMedicine(Integer takeMedicine) {
         this.takeMedicine = takeMedicine;
+    }
+
+    @Column(name = "pharmacyName")
+    public String getPharmacyName() {
+        return pharmacyName;
+    }
+
+    public void setPharmacyName(String pharmacyName) {
+        this.pharmacyName = pharmacyName;
     }
 }
