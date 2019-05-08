@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.RecipeUtil;
+import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
@@ -318,8 +319,8 @@ public class HisRequestInit {
                 orderItem.setPackUnit(detail.getDrugUnit());
                 orderItem.setDrugId(detail.getDrugId());
 
-                orderItem.setAdmission(detail.getUsePathways());
-                orderItem.setFrequency(detail.getUsingRate().toUpperCase());
+                orderItem.setAdmission(UsePathwaysFilter.filterNgari(recipe.getClinicOrgan(),detail.getUsePathways()));
+                orderItem.setFrequency(UsingRateFilter.filterNgari(recipe.getClinicOrgan(),detail.getUsingRate()));
                 orderItem.setDosage((null != detail.getUseDose()) ? Double
                         .toString(detail.getUseDose()) : null);
                 orderItem.setDrunit(detail.getUseDoseUnit());
