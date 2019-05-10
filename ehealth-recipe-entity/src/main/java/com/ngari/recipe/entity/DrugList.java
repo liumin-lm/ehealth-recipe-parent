@@ -116,6 +116,18 @@ public class DrugList implements java.io.Serializable {
     @ItemProperty(alias = "剂型")
     private String drugForm;
 
+    @ItemProperty(alias = "来源机构")
+    private Integer sourceOrgan;
+
+    @Column(name = "SourceOrgan", length = 11)
+    public Integer getSourceOrgan() {
+        return sourceOrgan;
+    }
+
+    public void setSourceOrgan(Integer sourceOrgan) {
+        this.sourceOrgan = sourceOrgan;
+    }
+
     public DrugList() {
     }
 

@@ -7,6 +7,10 @@ import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
+import com.ngari.consult.ConsultAPI;
+import com.ngari.consult.common.model.ConsultExDTO;
+import com.ngari.consult.common.service.IConsultExService;
+import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
@@ -27,6 +31,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.UsingRateFilter;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
+import recipe.constant.RecipeSystemConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -288,6 +293,26 @@ public class HisRequestInit {
         c.setTime(recipe.getSignDate());
         c.add(Calendar.DATE, 3);
         requestTO.setEndDate(c.getTime());
+
+        //福建省立医院特殊处理
+        if("1001393".equals(recipe.getClinicOrgan())){
+            IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
+            List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
+                    recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
+            Integer consultId = null;
+            if (CollectionUtils.isNotEmpty(consultIds)) {
+                consultId = consultIds.get(0);
+            }
+            if(null != consultId){
+                IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
+                ConsultExDTO consultExDTO = exService.getByConsultId(consultId);
+                if(null != consultExDTO && StringUtils.isNotEmpty(consultExDTO.getCardId())){
+                    requestTO.setCardNo(consultExDTO.getCardId());
+                    requestTO.setCardType(consultExDTO.getCardType());
+                }
+
+            }
+        }
 
         if (null != details && !details.isEmpty()) {
             List<OrderItemTO> orderList = new ArrayList<>();
