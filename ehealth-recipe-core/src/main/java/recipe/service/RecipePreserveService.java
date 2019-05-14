@@ -210,4 +210,32 @@ public class RecipePreserveService {
             redisAddForHash(CacheConstant.KEY_ORGAN_USEPATHWAYS + organId, entry.getKey(), entry.getValue());
         }
     }
+
+    /**
+     * 机构用药方式初始化，缓存内数据结构应该为 key为xxx_organId， map的key为平台内编码，value为his内编码
+     *  平台转his
+     * @param organId
+     * @param map
+     */
+    @RpcService
+    public void initUsingRateForNagri(int organId, Map<String, String> map) {
+        Set<Map.Entry<String, String>> set = map.entrySet();
+        for (Map.Entry<String, String> entry : set) {
+            redisAddForHash(CacheConstant.KEY_NGARI_USINGRATE + organId, entry.getKey(), entry.getValue());
+        }
+    }
+
+    /**
+     * 机构用药方式初始化，缓存内数据结构应该为 key为xxx_organId，map的key为平台内编码，value为his内编码
+     *
+     * @param organId
+     * @param map
+     */
+    @RpcService
+    public void initUsePathwaysForNgari(int organId, Map<String, String> map) {
+        Set<Map.Entry<String, String>> set = map.entrySet();
+        for (Map.Entry<String, String> entry : set) {
+            redisAddForHash(CacheConstant.KEY_NGARI_USEPATHWAYS + organId, entry.getKey(), entry.getValue());
+        }
+    }
 }
