@@ -639,6 +639,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
             }
         }
     }
+
     /**
      * 商品名匹配药品
      * @param name
