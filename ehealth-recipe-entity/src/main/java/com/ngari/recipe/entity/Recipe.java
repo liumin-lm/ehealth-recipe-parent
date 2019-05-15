@@ -295,6 +295,13 @@ public class Recipe implements Serializable {
     @ItemProperty(alias="当前clientId")
     private Integer currentClient;
 
+    @ItemProperty(alias="监管平台同步标记: 0未同步，1已同步")
+    private Integer syncFlag;
+
+    @ItemProperty(alias = "签名的处方img")
+    private String signImg;
+
+
     public Recipe() {
     }
 
@@ -1215,5 +1222,23 @@ public class Recipe implements Serializable {
 
     public void setCurrentClient(Integer currentClient) {
         this.currentClient = currentClient;
+    }
+
+    @Column(name = "syncFlag")
+    public Integer getSyncFlag() {
+        return syncFlag;
+    }
+
+    public void setSyncFlag(Integer syncFlag) {
+        this.syncFlag = syncFlag;
+    }
+
+    @Column(name = "signImg")
+    public String getSignImg() {
+        return signImg;
+    }
+
+    public void setSignImg(String signImg) {
+        this.signImg = signImg;
     }
 }
