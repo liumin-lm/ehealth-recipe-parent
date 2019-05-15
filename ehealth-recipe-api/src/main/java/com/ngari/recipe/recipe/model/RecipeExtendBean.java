@@ -32,7 +32,27 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "发病日期")
     private Date onsetDate;
 
+    /**以下为互联网医院字段*/
+    @ItemProperty(alias = "现病史")
+    private String historyOfPresentIllness;
+
+    @ItemProperty(alias = "处理方法")
+    private String handleMethod;
+
+    @ItemProperty(alias = "体格检查")
+    private String physicalCheck;
+    /**为互联网医院字段*/
+
     public RecipeExtendBean() {
+    }
+
+    public RecipeExtendBean(Integer recipeId, String historyOfPresentIllness, String mainDieaseDescribe,
+                            String handleMethod, String physicalCheck) {
+        this.recipeId = recipeId;
+        this.historyOfPresentIllness = historyOfPresentIllness;
+        this.mainDieaseDescribe = mainDieaseDescribe;
+        this.handleMethod = handleMethod;
+        this.physicalCheck = physicalCheck;
     }
 
     public Integer getRecipeId() {
@@ -81,5 +101,29 @@ public class RecipeExtendBean implements Serializable {
 
     public void setOnsetDate(Date onsetDate) {
         this.onsetDate = onsetDate;
+    }
+
+    public String getHistoryOfPresentIllness() {
+        return historyOfPresentIllness;
+    }
+
+    public void setHistoryOfPresentIllness(String historyOfPresentIllness) {
+        this.historyOfPresentIllness = historyOfPresentIllness;
+    }
+
+    public String getHandleMethod() {
+        return handleMethod;
+    }
+
+    public void setHandleMethod(String handleMethod) {
+        this.handleMethod = handleMethod;
+    }
+
+    public String getPhysicalCheck() {
+        return physicalCheck;
+    }
+
+    public void setPhysicalCheck(String physicalCheck) {
+        this.physicalCheck = physicalCheck;
     }
 }
