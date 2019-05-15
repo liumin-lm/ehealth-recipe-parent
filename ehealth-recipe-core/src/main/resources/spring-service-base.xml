@@ -15,6 +15,7 @@
     <reference interface="com.ngari.base.patient.service.IPatientService" id="eh.patientService"/>
     <reference interface="com.ngari.base.payment.service.IPaymentService" id="eh.paymentService"/>
     <reference interface="com.ngari.base.esign.service.IESignBaseService" id="eh.eSignService"/>
+    <reference interface="com.ngari.base.cdr.service.IDiseaseService" id="eh.diseasService"/>
     <!-- 首页待办事件处理-->
     <reference id="eh.remoteAsynDoBussService" interface="com.ngari.home.asyn.service.IAsynDoBussService" />
 

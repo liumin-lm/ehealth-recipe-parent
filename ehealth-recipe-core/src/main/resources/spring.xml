@@ -62,6 +62,7 @@
     <bean id="onsConfig" class="recipe.mq.OnsConfig" >
         <property name="onsSwitch" value="${ons.switch.on}"/>
         <property name="basicInfoTopic" value="${ons_topic_basicinfo}"/>
+        <property name="hisCdrinfo" value="${ons_topic_his_cdrinfo}"/>
     </bean>
 
 	<bean id="tokenUpdateService" class="recipe.service.TokenUpdateService" init-method="updateTokenAfterInit" ></bean>
