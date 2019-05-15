@@ -109,7 +109,7 @@ public class RecipeBussConstant {
     public static Integer FROMFLAG_HIS = 0;
 
     /**
-     * HIS同步过来的处方
+     * 平台开具的处方
      */
     public static Integer FROMFLAG_PLATFORM = 1;
 
