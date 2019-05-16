@@ -1,11 +1,13 @@
 package recipe.service;
 
 import com.google.common.collect.Maps;
+import com.ngari.consult.ConsultAPI;
+import com.ngari.consult.common.service.IConsultService;
+import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
@@ -22,11 +24,9 @@ import recipe.ApplicationUtils;
 import recipe.bean.RecipeCheckPassResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.constant.*;
-import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -168,6 +168,24 @@ public class HisCallBackService {
                 LOGGER.error("checkPassSuccess recipeId=[{}]更改取药方式失败，error=[{}]", recipe.getRecipeId(), result1.getError());
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "更改取药方式失败，错误:" + result1.getError());
             }
+        }
+        // TODO: 2019/5/16 互联网模式--- 医生开完处方之后聊天界面系统消息提示
+        //根据申请人mpiid，requestMode 获取当前咨询单consultId
+        IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
+        List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
+                recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
+        Integer consultId = null;
+        if (CollectionUtils.isNotEmpty(consultIds)) {
+            consultId = consultIds.get(0);
+        }
+        if(null != consultId){
+            try {
+                IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
+                recipeOnLineConsultService.sendRecipeMsg(consultId,3);
+            } catch (Exception e) {
+                LOGGER.error("checkPassSuccess sendRecipeMsg error, type:3, consultId:{}, error:{}", consultId,e);
+            }
+
         }
 
     }
