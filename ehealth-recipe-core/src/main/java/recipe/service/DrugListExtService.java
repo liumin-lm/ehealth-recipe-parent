@@ -132,7 +132,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
      */
     @RpcService
     public List<DrugListBean> findDrugListsByNameOrCodePageStaitc(
-            final int organId, final int drugType, final String drugName, final int start) {
+            final Integer organId, final Integer drugType, final String drugName, final int start) {
         return searchDrugListWithES(organId, drugType, drugName, start, 10);
 
     }
