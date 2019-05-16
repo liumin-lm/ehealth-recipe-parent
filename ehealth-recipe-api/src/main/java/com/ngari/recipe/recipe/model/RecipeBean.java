@@ -56,6 +56,9 @@ public class RecipeBean implements Serializable {
     @Dictionary(id = "eh.cdr.dictionary.RecipeType")
     private Integer recipeType;
 
+    @ItemProperty(alias = "处方流转模式")
+    private String recipeMode;
+
     @ItemProperty(alias = "开方科室")
     @Dictionary(id = "eh.base.dictionary.Depart")
     private Integer depart;
@@ -1085,6 +1088,14 @@ public class RecipeBean implements Serializable {
 
     public void setRecipeExtend(RecipeExtendBean recipeExtend) {
         this.recipeExtend = recipeExtend;
+    }
+
+    public String getRecipeMode() {
+        return recipeMode;
+    }
+
+    public void setRecipeMode(String recipeMode) {
+        this.recipeMode = recipeMode;
     }
 
     public boolean canMedicalPay() {

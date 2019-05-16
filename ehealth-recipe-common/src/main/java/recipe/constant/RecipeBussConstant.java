@@ -117,4 +117,17 @@ public class RecipeBussConstant {
      * HIS同步过来的处方-医生处理及可进行审方
      */
     public static Integer FROMFLAG_HIS_USE = 2;
+
+
+    /**
+     * 流转模式-平台模式
+     */
+    public static String RECIPEMODE_PLATFORM = "normal";
+
+    /**
+     * 流转模式-浙江省互联网医院平台
+     */
+    public static String RECIPEMODE_ZJS = "zjs";
+
+    
 }

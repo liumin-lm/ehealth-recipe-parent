@@ -162,6 +162,11 @@ public class RecipeUtil {
             recipe.setRecipeType(RecipeBussConstant.RECIPETYPE_WM);
         }
 
+        //默认流转模式为平台模式
+        if (null == recipe.getRecipeMode()) {
+            recipe.setRecipeMode(RecipeBussConstant.RECIPEMODE_PLATFORM);
+        }
+        
         //默认剂数为1
         if (null == recipe.getCopyNum() || recipe.getCopyNum() < 1) {
             recipe.setCopyNum(1);

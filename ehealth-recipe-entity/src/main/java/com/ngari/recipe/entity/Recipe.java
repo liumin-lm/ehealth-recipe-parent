@@ -62,6 +62,9 @@ public class Recipe implements Serializable {
     @Dictionary(id = "eh.cdr.dictionary.RecipeType")
     private Integer recipeType;
 
+    @ItemProperty(alias = "处方流转模式")
+    private String recipeMode;
+
     @ItemProperty(alias = "开方科室")
     @Dictionary(id = "eh.base.dictionary.Depart")
     private Integer depart;
@@ -571,6 +574,15 @@ public class Recipe implements Serializable {
         this.recipeType = recipeType;
     }
 
+    @Column(name = "recipeMode")
+    public String getRecipeMode() {
+        return recipeMode;
+    }
+
+    public void setRecipeMode(String recipeMode) {
+        this.recipeMode = recipeMode;
+    }
+    
     @Column(name = "Depart")
     public Integer getDepart() {
         return this.depart;
