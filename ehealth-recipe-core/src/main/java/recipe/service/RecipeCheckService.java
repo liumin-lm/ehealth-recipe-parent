@@ -9,7 +9,6 @@ import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
-import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.dto.DepartmentDTO;
@@ -32,7 +31,6 @@ import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
-import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -705,6 +703,21 @@ public class RecipeCheckService {
         checkParam.put("result", 1);
         checkParam.put("failMemo", "");
         saveCheckResult(checkParam);
+    }
+
+    /**
+     * 互联网医院 app首页 获取是否有待审核处方
+     * @param doctorId
+     * @return
+     */
+    @RpcService
+    public Boolean getUncheckRecipeFlag(Integer doctorId){
+        Boolean flag = false;
+        long l = getUncheckedRecipeNum(doctorId);
+        if(l > 0){
+            flag = true;
+        }
+        return flag;
     }
 
     /**
