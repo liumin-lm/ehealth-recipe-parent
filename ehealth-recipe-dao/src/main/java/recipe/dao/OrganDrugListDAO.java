@@ -308,7 +308,7 @@ public abstract class OrganDrugListDAO extends
         return action.getResult();
     }
 
-    public Boolean updateOrganDrugListByOrganIdAndDrugId(final int organId,final int drugId, final Map<String, ?> changeAttr) {
+    public Boolean updateOrganDrugListByOrganIdAndOrganDrugCode(final int organId,final String organDrugCode, final Map<String, ?> changeAttr) {
         HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -318,10 +318,10 @@ public abstract class OrganDrugListDAO extends
                         hql.append("," + key + "=:" + key);
                     }
                 }
-                hql.append(" where organId=:organId and drugId=:drugId");
+                hql.append(" where organId=:organId and organDrugCode=:organDrugCode");
                 Query q = ss.createQuery(hql.toString());
                 q.setParameter("organId", organId);
-                q.setParameter("drugId", drugId);
+                q.setParameter("organDrugCode", organDrugCode);
                 if (null != changeAttr && !changeAttr.isEmpty()) {
                     for (String key : changeAttr.keySet()) {
                         q.setParameter(key, changeAttr.get(key));
