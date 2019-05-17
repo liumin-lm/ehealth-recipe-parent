@@ -578,4 +578,8 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
 
         return call;
     }
+
+    public void sendAuditDrugList(String organizeCode, String organDrugCode, Integer status) {
+
+    }
 }
