@@ -10,7 +10,7 @@ import java.io.Serializable;
 public class AuditAllergy implements Serializable {
 
     private static final long serialVersionUID = 7480354783361297141L;
-
+    
     /**
      * 过敏类型
      */

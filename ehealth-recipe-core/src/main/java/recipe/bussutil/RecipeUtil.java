@@ -164,7 +164,7 @@ public class RecipeUtil {
 
         //默认流转模式为平台模式
         if (null == recipe.getRecipeMode()) {
-            recipe.setRecipeMode(RecipeBussConstant.RECIPEMODE_PLATFORM);
+            recipe.setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);
         }
         
         //默认剂数为1
@@ -184,6 +184,8 @@ public class RecipeUtil {
 
         //默认非外带处方
         recipe.setTakeMedicine(0);
+        //监管同步标记
+        recipe.setSyncFlag(0);
 
         //默认来源为纳里APP处方
         if (null == recipe.getFromflag()) {

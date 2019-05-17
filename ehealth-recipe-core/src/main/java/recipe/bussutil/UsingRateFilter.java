@@ -15,6 +15,7 @@ public class UsingRateFilter {
     public static String filter(int organId, String field) {
         String val = RedisClient.instance().hget(CacheConstant.KEY_ORGAN_USINGRATE + organId, field);
         /**
+         * 根据医院的编码，匹配平台的值，一般用于医院处方写入平台使用
          * 查不到的原因
          * 1 因为field有可能在平台没有新增，则返回实际值
          * 2 没有进行字典对照，则返回实际值

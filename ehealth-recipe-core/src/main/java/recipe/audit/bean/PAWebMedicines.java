@@ -10,7 +10,7 @@ import java.util.List;
 public class PAWebMedicines implements Serializable {
 
     private static final long serialVersionUID = 1876664529053649329L;
-
+    
     private String Name;
 
     private String Code;

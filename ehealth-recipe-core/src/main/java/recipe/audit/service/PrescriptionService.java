@@ -51,7 +51,7 @@ public class PrescriptionService {
 
     @Autowired
     private RedisClient redisClient;
-
+    
     /**
      * 早期使用接口，不能删除
      * @param recipe
@@ -152,7 +152,7 @@ public class PrescriptionService {
             return result;
         }
         LOGGER.info("analysisImpl funId={}, response={}", funId, uiResults.value);
-
+        
         List<PAWebMedicines> medicines = null;
         String brief = null;
         try {
@@ -312,7 +312,7 @@ public class PrescriptionService {
         } else {
             detailsData.setMedHisCode(targetDrugId.toString());
         }
-
+        
         String baseDateToString = JSONUtils.toString(baseData);
         String detailsDataToString = JSONUtils.toString(detailsData);
         int funId = 1004;
@@ -353,5 +353,5 @@ public class PrescriptionService {
         return url;
     }
 
-
+    
 }
