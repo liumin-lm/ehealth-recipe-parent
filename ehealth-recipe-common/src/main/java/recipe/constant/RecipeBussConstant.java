@@ -122,12 +122,12 @@ public class RecipeBussConstant {
     /**
      * 流转模式-平台模式
      */
-    public static String RECIPEMODE_PLATFORM = "normal";
+    public static String RECIPEMODE_NGARIHEALTH = "ngarihealth";
 
     /**
      * 流转模式-浙江省互联网医院平台
      */
-    public static String RECIPEMODE_ZJS = "zjs";
+    public static String RECIPEMODE_ZJJGPT = "zjjgpt";
 
     
 }
