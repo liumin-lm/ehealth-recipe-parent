@@ -275,7 +275,7 @@ public class PrescribeService {
      * @param request
      * @return
      */
-    public HosRecipeResult updateRecipeStatus(HospitalStatusUpdateDTO request,Map<String, String>otherInfo) {
+    public HosRecipeResult updateRecipeStatus(HospitalStatusUpdateDTO request, Map<String, String> otherInfo) {
         HosRecipeResult result = new HosRecipeResult();
         //重置默认为失败
         result.setCode(HosRecipeResult.FAIL);

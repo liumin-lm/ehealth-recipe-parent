@@ -2,12 +2,13 @@ package recipe.mq;
 
 import com.ngari.common.dto.TempMsgType;
 import ctd.net.broadcast.MQHelper;
+import ctd.net.broadcast.MQSubscriber;
 import ctd.net.broadcast.Observer;
-import ctd.net.broadcast.Subscriber;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.msg.constant.MqConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -19,7 +20,9 @@ import javax.annotation.PostConstruct;
 @RpcBean
 public class BusMsgConsumer {
 
-    /** logger */
+    /**
+     * logger
+     */
     private static final Logger LOGGER = LoggerFactory.getLogger(BusMsgConsumer.class);
 
     /**
@@ -35,7 +38,11 @@ public class BusMsgConsumer {
             return;
         }
         LOGGER.info("busRecipeMsgConsumer start");
-        Subscriber subscriber = MQHelper.getMqSubscriber();
+
+        MQSubscriber subscriber = MQHelper.getMqSubscriber();
+        /**
+         * basic相关消息
+         */
         subscriber.attach(OnsConfig.basicInfoTopic, new Observer<TempMsgType>() {
             @Override
             public void onMessage(TempMsgType tMsg) {
@@ -43,11 +50,17 @@ public class BusMsgConsumer {
                 invalidPatient(tMsg);
             }
         });
+
+        /**
+         * 接收HIS消息处理
+         */
+        subscriber.attach(OnsConfig.hisCdrinfo, MqConstant.HIS_CDRINFO_TAG_TO_PLATFORM,
+                new RecipeStatusFromHisObserver());
     }
 
     @RpcService
-    public void invalidPatient(TempMsgType tMsg){
-        if(MsgTypeEnum.DELETE_PATIENT.equals(tMsg.getMsgType())){
+    public void invalidPatient(TempMsgType tMsg) {
+        if (MsgTypeEnum.DELETE_PATIENT.equals(tMsg.getMsgType())) {
             RemoteRecipeService remoteRecipeService = ApplicationUtils.getRecipeService(RemoteRecipeService.class);
             remoteRecipeService.synPatientStatusToRecipe(tMsg.getMsgContent());
         }

@@ -117,4 +117,38 @@ public class RecipeTimedTaskService {
         }
 
     }
+
+    /**
+     * 定时任务 his回调失败(医院确认中)5分钟后确保流程继续(更新为待审核状态)
+     * 每5分钟执行一次
+     */
+    @RpcService
+    public void updateRecipeStatus(){
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        //获取五分钟前的时间
+        Calendar now = Calendar.getInstance();
+        now.setTime(new Date());
+        now.add(Calendar.MINUTE, -5);
+        Date time = now.getTime();
+        //设置查询时间段
+        String endDt = DateConversion.getDateFormatter(time, DateConversion.DEFAULT_DATE_TIME);
+        String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(1), DateConversion.DEFAULT_DATE_TIME);
+
+        List<Recipe> recipeList = recipeDAO.findRecipeListForStatus(RecipeStatusConstant.CHECKING_HOS, startDt, endDt);
+        if (CollectionUtils.isNotEmpty(recipeList)) {
+            PrescribeService prescribeService = ApplicationUtils.getRecipeService(
+                    PrescribeService.class, "remotePrescribeService");
+            OrganService organService = BasicAPI.getService(OrganService.class);
+            Map<String, String> otherInfo = Maps.newHashMap();
+            for (Recipe recipe : recipeList) {
+                HospitalStatusUpdateDTO hospitalStatusUpdateDTO = new HospitalStatusUpdateDTO();
+                hospitalStatusUpdateDTO.setOrganId(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
+                hospitalStatusUpdateDTO.setRecipeCode(recipe.getRecipeCode());
+                hospitalStatusUpdateDTO.setStatus(LocalStringUtil.toString(RecipeStatusConstant.CHECK_PASS));
+                HosRecipeResult result = prescribeService.updateRecipeStatus(hospitalStatusUpdateDTO, otherInfo);
+                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(),ImmutableMap.of("distributionFlag", 1));
+                LOGGER.info("updateRecipeStatus,recipeId={} result={}",recipe.getRecipeId(),JSONUtils.toString(result));
+            }
+        }
+    }
 }

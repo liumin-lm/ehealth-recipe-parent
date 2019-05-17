@@ -340,7 +340,7 @@ public class DrugListService extends BaseService<DrugListBean> {
         saveSearchContendForDrug(drugName, mpiId);
         DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
         //因为 梅州药品的原因 患者端 写死查询邵逸夫的药品
-        return drugListExtService.searchDrugListWithES(1, null, drugName, start, limit);
+        return drugListExtService.searchDrugListWithES(null, null, drugName, start, limit);
     }
 
     /**

@@ -54,7 +54,7 @@ import java.util.List;
  * @date 2019\2\28 0028 14:09
  */
 @RpcBean("aldyfRemoteService")
-public class AldyfRemoteService extends AccessDrugEnterpriseService {
+public class AldyfRemoteService extends AccessDrugEnterpriseService{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AldyfRemoteService.class);
 
