@@ -1,99 +1,102 @@
 package recipe.audit.bean;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * Created by jiangtingfeng on 2017/11/15.
  * @author jiangtingfeng
  */
-public class PAWebPatient {
+public class PAWebPatient implements Serializable {
 
-    private String admNo;
+    private static final long serialVersionUID = -4174817449333241084L;
 
-    private String name;
+    private String AdmNo;
 
-    private String age;
+    private String Name;
 
-    private String gender;
+    private String Age;
 
-    private String medicareType;
+    private String Gender;
+
+    private String MedicareType;
 
     /**
      * 过敏信息
      */
-    private List<AuditAllergy> allergies;
+    private List<AuditAllergy> Allergies;
 
     /**
      * 诊断信息
      */
-    private List<AuditDiagnose> diagnoses;
+    private List<AuditDiagnose> Diagnoses;
 
     /**
      * 检查单信息
      */
-    private String prescription;
+    private String Prescription;
 
     public String getAdmNo() {
-        return admNo;
+        return AdmNo;
     }
 
     public void setAdmNo(String admNo) {
-        this.admNo = admNo;
+        AdmNo = admNo;
     }
 
     public String getName() {
-        return name;
+        return Name;
     }
 
     public void setName(String name) {
-        this.name = name;
+        Name = name;
     }
 
     public String getAge() {
-        return age;
+        return Age;
     }
 
     public void setAge(String age) {
-        this.age = age;
+        Age = age;
     }
 
     public String getGender() {
-        return gender;
+        return Gender;
     }
 
     public void setGender(String gender) {
-        this.gender = gender;
+        Gender = gender;
     }
 
     public String getMedicareType() {
-        return medicareType;
+        return MedicareType;
     }
 
     public void setMedicareType(String medicareType) {
-        this.medicareType = medicareType;
+        MedicareType = medicareType;
     }
 
     public List<AuditAllergy> getAllergies() {
-        return allergies;
+        return Allergies;
     }
 
     public void setAllergies(List<AuditAllergy> allergies) {
-        this.allergies = allergies;
+        Allergies = allergies;
     }
 
     public List<AuditDiagnose> getDiagnoses() {
-        return diagnoses;
+        return Diagnoses;
     }
 
     public void setDiagnoses(List<AuditDiagnose> diagnoses) {
-        this.diagnoses = diagnoses;
+        Diagnoses = diagnoses;
     }
 
     public String getPrescription() {
-        return prescription;
+        return Prescription;
     }
 
     public void setPrescription(String prescription) {
-        this.prescription = prescription;
+        Prescription = prescription;
     }
 }

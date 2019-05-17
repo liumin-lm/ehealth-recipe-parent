@@ -1,47 +1,52 @@
 package recipe.audit.bean;
 
+import java.io.Serializable;
+
 /**
  * 过敏源信息
  * Created by jiangtingfeng on 2017/11/2.
  * @author jiangtingfeng
  */
-public class AuditAllergy {
+public class AuditAllergy implements Serializable {
+
+    private static final long serialVersionUID = 7480354783361297141L;
+
     /**
      * 过敏类型
      */
-    private String type;
+    private String Type;
 
     /**
      * 过敏源名称
      */
-    private String name;
+    private String Name;
 
     /**
      * 过敏源代码
      */
-    private String code;
+    private String Code;
 
     public String getType() {
-        return type;
+        return Type;
     }
 
     public void setType(String type) {
-        this.type = type;
+        Type = type;
     }
 
     public String getName() {
-        return name;
+        return Name;
     }
 
     public void setName(String name) {
-        this.name = name;
+        Name = name;
     }
 
     public String getCode() {
-        return code;
+        return Code;
     }
 
     public void setCode(String code) {
-        this.code = code;
+        Code = code;
     }
 }

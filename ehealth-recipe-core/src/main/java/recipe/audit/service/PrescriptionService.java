@@ -3,31 +3,38 @@ package recipe.audit.service;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
-import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.common.RecipeCommonBaseTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.audit.bean.*;
 import recipe.audit.pawebservice.PAWebServiceLocator;
 import recipe.audit.pawebservice.PAWebServiceSoap12Stub;
+import recipe.constant.CacheConstant;
 import recipe.constant.RecipeSystemConstant;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
+import recipe.dao.CompareDrugDAO;
 import recipe.util.DateConversion;
+import recipe.util.DigestUtil;
+import recipe.util.LocalStringUtil;
+import recipe.util.RedisClient;
 
 import javax.xml.rpc.holders.IntHolder;
 import javax.xml.rpc.holders.StringHolder;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -39,11 +46,59 @@ import java.util.List;
 @RpcBean("prescriptionService")
 public class PrescriptionService {
 
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(PrescriptionService.class);
+    /** logger */
+    private static final Logger LOGGER = LoggerFactory.getLogger(PrescriptionService.class);
 
+    @Autowired
+    private RedisClient redisClient;
+
+    /**
+     * 早期使用接口，不能删除
+     * @param recipe
+     * @param recipedetails
+     * @return
+     */
     @RpcService
-    public String getPAAnalysis(RecipeBean recipe, List<RecipeDetailBean> recipedetails) throws Exception {
+    @Deprecated
+    public String getPAAnalysis(RecipeBean recipe, List<RecipeDetailBean> recipedetails){
         return null;
+    }
+
+    /**
+     * 互联网医院使用返回格式
+     * @param recipe
+     * @param recipedetails
+     * @return
+     */
+    @RpcService
+    public AutoAuditResult analysis(RecipeBean recipe, List<RecipeDetailBean> recipedetails){
+        AutoAuditResult result = null;
+        if(null == recipe || CollectionUtils.isEmpty(recipedetails)){
+            result = new AutoAuditResult();
+            result.setCode(RecipeCommonBaseTO.FAIL);
+            result.setMsg("参数错误");
+            return result;
+        }
+        //检查缓存配置情况
+        String isAutoReview = redisClient.hget(CacheConstant.KEY_CONFIG_RCP_AUTO_REVIEW, recipe.getClinicOrgan().toString());
+
+        if(StringUtils.isEmpty(isAutoReview) || "true".equalsIgnoreCase(isAutoReview)){
+            try {
+                result = analysisImpl(recipe, recipedetails);
+            } catch (Exception e) {
+                LOGGER.warn("analysis error. recipe={}, detail={}",
+                        JSONUtils.toString(recipe), JSONUtils.toString(recipedetails));
+                result = new AutoAuditResult();
+                result.setCode(RecipeCommonBaseTO.FAIL);
+                result.setMsg("抱歉，系统异常，无预审结果");
+            }
+        }else{
+            result = new AutoAuditResult();
+            result.setCode(RecipeCommonBaseTO.SUCCESS);
+            result.setMsg("智能预审未开通，无预审结果");
+        }
+
+        return result;
     }
 
     /**
@@ -54,7 +109,11 @@ public class PrescriptionService {
      * @return 返回null表示用药没有异常，反之表示有异常，前端弹框提示，提示信息为返回的字符串信息
      * @throws Exception
      */
-    public String analysisImpl(RecipeBean recipe, List<RecipeDetailBean> recipedetails) throws Exception {
+    public AutoAuditResult analysisImpl(RecipeBean recipe, List<RecipeDetailBean> recipedetails) throws Exception {
+        String errorMsg = "抱歉，系统异常，无预审结果";
+        AutoAuditResult result = new AutoAuditResult();
+        result.setCode(RecipeCommonBaseTO.FAIL);
+
         PAWebServiceSoap12Stub binding;
         IntHolder getPAResultsResult = new IntHolder();
         StringHolder uiResults = new StringHolder();
@@ -63,48 +122,58 @@ public class PrescriptionService {
         DetailsData detailsData = new DetailsData();
 
         // 拼接第三方（卫宁）请求参数
-        getParams(baseData, detailsData, recipe, recipedetails);
+        try {
+            getParams(baseData, detailsData, recipe, recipedetails);
+        } catch (Exception e) {
+            LOGGER.warn("analysisImpl getParams error. ", e);
+            result.setMsg(errorMsg);
+            return result;
+        }
         String baseDateToString = JSONUtils.toString(baseData);
         String detailsDataToString = JSONUtils.toString(detailsData);
-
-        LOGGER.info("getPAAnalysis request baseDate={}, detailsDate={}", baseDateToString, detailsDataToString);
+        int funId = 1006;
+        LOGGER.info("analysisImpl funId={}, baseDate={}, detailsDate={}", funId, baseDateToString, detailsDataToString);
         try {
             binding = (PAWebServiceSoap12Stub) new PAWebServiceLocator().getPAWebServiceSoap12();
             if (binding != null) {
                 // Time out after a minute
                 binding.setTimeout(20000);
-                binding.getPAResults(1006, baseDateToString, detailsDataToString, getPAResultsResult, uiResults, hisResults);
+                binding.getPAResults(funId, baseDateToString, detailsDataToString, getPAResultsResult, uiResults, hisResults);
             }
         } catch (Exception e) {
-            LOGGER.error("getPAAnalysis getPAResults error. ", e);
-            return null;
+            LOGGER.warn("analysisImpl funId={} error. ", funId, e);
+            result.setMsg(errorMsg);
+            return result;
         }
 
-        LOGGER.info("getPAAnalysis response={}", uiResults.value);
-        // 将字符串转化成java对象
-        JSONObject json = JSONObject.parseObject(uiResults.value);
-        if (null == json) {
-            return null;
+        if(null == uiResults && StringUtils.isEmpty(uiResults.value)){
+            LOGGER.warn("analysisImpl funId={} response is null. ", funId);
+            result.setMsg(errorMsg);
+            return result;
         }
-        PAWebResponse res = json.toJavaObject(PAWebResponse.class);
-        List<PAWebMedicines> medicines = res.getMedicines();
+        LOGGER.info("analysisImpl funId={}, response={}", funId, uiResults.value);
+
+        List<PAWebMedicines> medicines = null;
+        String brief = null;
+        try {
+            // 将字符串转化成java对象
+            PAWebResponse response = JSONObject.parseObject(uiResults.value, PAWebResponse.class);
+            medicines = response.getMedicines();
+            brief = response.getBrief();
+        } catch (Exception e) {
+            LOGGER.warn("analysisImpl funId={} covert to PAWebResponse error.", funId);
+            result.setMsg(errorMsg);
+            return result;
+        }
         if (CollectionUtils.isNotEmpty(medicines)) {
-            StringBuilder backStr = new StringBuilder();
-            List<Issue> issues;
-            for (PAWebMedicines medicine : medicines) {
-                String medicineName = medicine.getName();
-                issues = medicine.getIssues();
-                if (CollectionUtils.isNotEmpty(issues)) {
-                    for (Issue issue : issues) {
-                        backStr.append("*[" + issue.getLvl() + "]" + medicineName + " " +
-                                issue.getDetail().replaceAll("\\r\\n", "") + " ");
-                    }
-                }
-            }
-            return backStr.toString();
+            result.setMedicines(medicines);
+            result.setMsg(brief);
+        }else{
+            result.setCode(RecipeCommonBaseTO.SUCCESS);
+            result.setMsg("系统预审未发现处方问题");
         }
 
-        return null;
+        return result;
     }
 
 
@@ -118,19 +187,18 @@ public class PrescriptionService {
      * @throws ControllerException
      */
     public void getParams(BaseData baseData, DetailsData detailsData, RecipeBean recipe,
-                          List<RecipeDetailBean> recipedetails) throws ControllerException {
+                          List<RecipeDetailBean> recipedetails) throws Exception {
 
         IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
         PatientBean patient = iPatientService.get(recipe.getMpiid());
+        if(null == patient){
+             throw new DAOException("患者不存在");
+        }
 
-//        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-        baseData.setDeptCode(String.valueOf(recipe.getDepart()));
-        baseData.setDoctCode(String.valueOf(recipe.getDoctor()));
+        baseData.setDeptCode(LocalStringUtil.toString(recipe.getDepart()));
+        baseData.setDoctCode(LocalStringUtil.toString(recipe.getDoctor()));
         baseData.setDoctName(recipe.getDoctorName());
-        baseData.setHospCode(RecipeSystemConstant.WEINING_HOSPCODE);
-
-        // 过敏源
-        List<AuditAllergy> auditAllergys = new ArrayList<>();
+        baseData.setHospCode(PrescriptionConstants.getWeiningPaHosCode());
 
         // 诊断信息
         List<AuditDiagnose> diagnoses = new ArrayList<>();
@@ -158,6 +226,9 @@ public class PrescriptionService {
         // 检查单信息
         List<AuditLisForm> lisForms = new ArrayList<>();
 
+        // 过敏源
+        List<AuditAllergy> auditAllergys = new ArrayList<>();
+
         // 患者信息
         AuditPatient auditPatient = new AuditPatient();
         auditPatient.setAllergies(auditAllergys);
@@ -167,29 +238,45 @@ public class PrescriptionService {
         auditPatient.setBirthDate(DateConversion.formatDate(patient.getBirthday()));
         auditPatient.setGender(DictionaryController.instance().get("eh.base.dictionary.Gender").getText(patient.getPatientSex()));
 
+        // 处方信息
+        List<AuditPrescription> prescriptions = new ArrayList<>();
+
+        String recipeTempId = DigestUtil.md5For16(recipe.getClinicOrgan() +
+                recipe.getMpiid() + Calendar.getInstance().getTimeInMillis());
+
+        AuditPrescription prescription = new AuditPrescription();
+        //处方当前都没ID生成
+        prescription.setId(recipeTempId);
+        prescription.setPresTime(DateConversion.formatDateTime(new Date()));
+        prescription.setIsCur(RecipeSystemConstant.IS_CURRENT_PRESCRIPTION);
+        prescription.setIsNew(RecipeSystemConstant.IS_NEW_PRESCRIPTION);
+        prescription.setDoctCode(LocalStringUtil.toString(recipe.getDoctor()));
+        prescription.setDoctName(recipe.getDoctorName());
+        prescription.setDeptCode(LocalStringUtil.toString(recipe.getDepart()));
+
+        CompareDrugDAO compareDrugDAO = DAOFactory.getDAO(CompareDrugDAO.class);
         // 药品信息
         List<AuditMedicine> medicines = new ArrayList<>();
         AuditMedicine medicine;
         for (RecipeDetailBean recipedetail : recipedetails) {
-//            DrugList drug = drugListDAO.get(recipedetail.getDrugId());
             medicine = new AuditMedicine();
             medicine.setName(recipedetail.getDrugName());
-            medicine.setHisCode(String.valueOf(recipedetail.getDrugId()));
+            Integer targetDrugId = compareDrugDAO.findTargetDrugIdByOriginalDrugId(recipedetail.getDrugId());
+            if (ObjectUtils.isEmpty(targetDrugId)) {
+                medicine.setHisCode(LocalStringUtil.toString(recipedetail.getDrugId()));
+            } else {
+                medicine.setHisCode(LocalStringUtil.toString(targetDrugId));
+            }
+            medicine.setSpec(recipedetail.getDrugSpec());
             medicine.setGroup(recipedetail.getDrugGroup());
             medicine.setUnit(recipedetail.getUseDoseUnit());
-            medicine.setDose(String.valueOf(recipedetail.getUseDose()));
+            medicine.setDose(LocalStringUtil.toString(recipedetail.getUseDose()));
             medicine.setFreq(recipedetail.getUsingRate());
             medicine.setPath(recipedetail.getUsePathways());
+            medicine.setDays(LocalStringUtil.toString(recipedetail.getUseDays()));
             medicine.setNeedAlert(RecipeSystemConstant.IS_NEED_ALERT);
             medicines.add(medicine);
         }
-
-        // 处方信息
-        List<AuditPrescription> prescriptions = new ArrayList<>();
-        AuditPrescription prescription = new AuditPrescription();
-        prescription.setPresTime(DateConversion.formatDateTime(new Date()));
-        prescription.setIsCur(RecipeSystemConstant.IS_CURRENT_PRESCRIPTION);
-        prescription.setIsNew(RecipeSystemConstant.IS_NEW_PRESCRIPTION);
         prescription.setMedicines(medicines);
         prescriptions.add(prescription);
 
@@ -197,27 +284,74 @@ public class PrescriptionService {
         detailsData.setTime(DateConversion.formatDateTimeWithSec(new Date()));
         detailsData.setHospFlag(RecipeSystemConstant.HOSPFLAG_FOR_OP);
         detailsData.setAdmType(RecipeSystemConstant.COMMON_ADM_TYPE);
-        detailsData.setAdmNo(DateConversion.formatDateTime(new Date()));
+        detailsData.setAdmNo(recipe.getClinicOrgan()+"-"+ recipeTempId);
         detailsData.setPatient(auditPatient);
         detailsData.setPrescriptions(prescriptions);
     }
 
     /**
-     * 内部测试方法
-     *
-     * @param recipeId
+     * 获取药品说明页面URL
+     * @param drugId
      * @return
-     * @throws Exception
      */
     @RpcService
-    public String testGetPAAnalysis(int recipeId) throws Exception {
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+    public String getDrugSpecification(Integer drugId){
+        CompareDrugDAO compareDrugDAO = DAOFactory.getDAO(CompareDrugDAO.class);
+        PAWebServiceSoap12Stub binding;
+        IntHolder getPAResultsResult = new IntHolder();
+        StringHolder uiResults = new StringHolder();
+        StringHolder hisResults = new StringHolder();
+        BaseData baseData = new BaseData();
+        baseData.setHospCode(PrescriptionConstants.getWeiningPaHosCode());
 
-        Recipe dbrecipe = recipeDAO.getByRecipeId(recipeId);
-        List<Recipedetail> dbdetails = detailDAO.findByRecipeId(recipeId);
-        RecipeBean recipe = ObjectCopyUtils.convert(dbrecipe, RecipeBean.class);
-        List<RecipeDetailBean> details = ObjectCopyUtils.convert(dbdetails, RecipeDetailBean.class);
-        return analysisImpl(recipe, details);
+        DetailsData detailsData = new DetailsData();
+        detailsData.setHospFlag(RecipeSystemConstant.HOSPFLAG_FOR_OP);
+        Integer targetDrugId = compareDrugDAO.findTargetDrugIdByOriginalDrugId(drugId);
+        if (ObjectUtils.isEmpty(targetDrugId)) {
+            detailsData.setMedHisCode(drugId.toString());
+        } else {
+            detailsData.setMedHisCode(targetDrugId.toString());
+        }
+
+        String baseDateToString = JSONUtils.toString(baseData);
+        String detailsDataToString = JSONUtils.toString(detailsData);
+        int funId = 1004;
+        LOGGER.info("getDrugSpecification funId={}, baseDate={}, detailsDate={}", funId, baseDateToString, detailsDataToString);
+        try {
+            binding = (PAWebServiceSoap12Stub) new PAWebServiceLocator().getPAWebServiceSoap12();
+            if (binding != null) {
+                // Time out after a minute
+                binding.setTimeout(20000);
+                binding.getPAResults(funId, baseDateToString, detailsDataToString, getPAResultsResult, uiResults, hisResults);
+            }
+        } catch (Exception e) {
+            LOGGER.warn("getDrugSpecification funId={} error. ", funId, e);
+            return null;
+        }
+
+        if(null == uiResults && StringUtils.isEmpty(uiResults.value)){
+            LOGGER.warn("getDrugSpecification funId={} response is null. ", funId);
+            return null;
+        }
+        LOGGER.info("getDrugSpecification funId={}, response={}", funId, uiResults.value);
+
+        String url = null;
+        try {
+            // 将字符串转化成java对象
+            JSONObject json = JSONObject.parseObject(uiResults.value);
+            Object nameObj = json.get("FileName");
+            if(null == nameObj || StringUtils.isEmpty(nameObj.toString())){
+                return null;
+            }
+            url = json.get("Link").toString();
+            url = PrescriptionConstants.getWeiningPaDetailAddress()+url;
+        } catch (Exception e) {
+            LOGGER.warn("getDrugSpecification funId={} covert to Object error.", funId);
+            return null;
+        }
+
+        return url;
     }
+
+
 }
