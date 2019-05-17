@@ -27,6 +27,7 @@ import recipe.constant.*;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.service.common.RecipeConfigService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -76,7 +77,12 @@ public class HisCallBackService {
             attrMap.put("actualPrice", result.getTotalMoney());
         }
 
+        String recipeMode = recipe.getRecipeMode();
         Integer status = RecipeStatusConstant.CHECK_PASS;
+        if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)){
+            status = RecipeStatusConstant.READY_CHECK_YS;
+        }
+
         String memo = "HIS审核返回：写入his成功，审核通过";
         if (isCheckPass) {
             // 医保用户
@@ -137,7 +143,9 @@ public class HisCallBackService {
             recipeService.generateRecipePdfAndSign(recipe.getRecipeId());
 
             //发送卡片
-            RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipe.getRecipeId()), null, true);
+            if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)){
+                RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipe.getRecipeId()), null, true);
+            }
         } catch (Exception e) {
             LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. ", e);
         }
@@ -150,23 +158,27 @@ public class HisCallBackService {
         if (1 == recipe.getFromflag()) {
             //发送消息
             RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
-            //增加药师首页待处理任务---创建任务
-            if (status == RecipeStatusConstant.READY_CHECK_YS){
-                Recipe dbRecipe = recipeDAO.getByRecipeId(recipe.getRecipeId());
-                RecipeBean recipeBean = ObjectCopyUtils.convert(dbRecipe,RecipeBean.class);
-                ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
+            if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
+                //增加药师首页待处理任务---创建任务
+                if (status == RecipeStatusConstant.READY_CHECK_YS) {
+//                Recipe dbRecipe = recipeDAO.getByRecipeId(recipe.getRecipeId());
+                    RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+                    ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
+                }
             }
             //保存至电子病历
             recipeService.saveRecipeDocIndex(recipe);
         }
 
-        //配送处方标记 1:只能配送 更改处方取药方式
-        if (Integer.valueOf(1).equals(recipe.getDistributionFlag())) {
-            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-            RecipeResultBean result1 = hisService.recipeDrugTake(recipe.getRecipeId(), PayConstant.PAY_FLAG_NOT_PAY, null);
-            if (RecipeResultBean.FAIL.equals(result1.getCode())) {
-                LOGGER.error("checkPassSuccess recipeId=[{}]更改取药方式失败，error=[{}]", recipe.getRecipeId(), result1.getError());
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "更改取药方式失败，错误:" + result1.getError());
+        if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
+            //配送处方标记 1:只能配送 更改处方取药方式
+            if (Integer.valueOf(1).equals(recipe.getDistributionFlag())) {
+                RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+                RecipeResultBean result1 = hisService.recipeDrugTake(recipe.getRecipeId(), PayConstant.PAY_FLAG_NOT_PAY, null);
+                if (RecipeResultBean.FAIL.equals(result1.getCode())) {
+                    LOGGER.warn("checkPassSuccess recipeId=[{}]更改取药方式失败，error=[{}]", recipe.getRecipeId(), result1.getError());
+                    throw new DAOException(ErrorCode.SERVICE_ERROR, "更改取药方式失败，错误:" + result1.getError());
+                }
             }
         }
         // TODO: 2019/5/16 互联网模式--- 医生开完处方之后聊天界面系统消息提示

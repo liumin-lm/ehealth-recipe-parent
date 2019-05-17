@@ -16,7 +16,9 @@ import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipelog.model.RecipeLogBean;
 import ctd.persistence.DAOFactory;
 import ctd.spring.AppDomainContext;
@@ -29,9 +31,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.audit.bean.AutoAuditResult;
+import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.CacheConstant;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.util.DateConversion;
 import recipe.util.RedisClient;
@@ -164,6 +169,26 @@ public class RecipePreserveService {
     }
 
     /**
+     * 内部测试方法
+     *
+     * @param recipeId
+     * @return
+     * @throws Exception
+     */
+    @RpcService
+    public AutoAuditResult testGetPAAnalysis(int recipeId) throws Exception {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+
+        Recipe dbrecipe = recipeDAO.getByRecipeId(recipeId);
+        List<Recipedetail> dbdetails = detailDAO.findByRecipeId(recipeId);
+        RecipeBean recipe = ObjectCopyUtils.convert(dbrecipe, RecipeBean.class);
+        List<RecipeDetailBean> details = ObjectCopyUtils.convert(dbdetails, RecipeDetailBean.class);
+        PrescriptionService service = ApplicationUtils.getRecipeService(PrescriptionService.class);
+        return service.analysis(recipe, details);
+    }
+
+    /**
      * hash操作
      *
      * @param key
@@ -254,6 +279,14 @@ public class RecipePreserveService {
         }
     }
 
+    @RpcService
+    public void initNgariUsingRate(int organId, Map<String, String> map) {
+        Set<Map.Entry<String, String>> set = map.entrySet();
+        for (Map.Entry<String, String> entry : set) {
+            redisAddForHash(CacheConstant.KEY_NGARI_USINGRATE + organId, entry.getKey(), entry.getValue());
+        }
+    }
+
     /**
      * 机构用药方式初始化，缓存内数据结构应该为 key为xxx_organId， map的key为his内编码，value为平台内编码
      *
@@ -265,6 +298,14 @@ public class RecipePreserveService {
         Set<Map.Entry<String, String>> set = map.entrySet();
         for (Map.Entry<String, String> entry : set) {
             redisAddForHash(CacheConstant.KEY_ORGAN_USEPATHWAYS + organId, entry.getKey(), entry.getValue());
+        }
+    }
+
+    @RpcService
+    public void initNgariUsePathways(int organId, Map<String, String> map) {
+        Set<Map.Entry<String, String>> set = map.entrySet();
+        for (Map.Entry<String, String> entry : set) {
+            redisAddForHash(CacheConstant.KEY_NGARI_USEPATHWAYS + organId, entry.getKey(), entry.getValue());
         }
     }
 }

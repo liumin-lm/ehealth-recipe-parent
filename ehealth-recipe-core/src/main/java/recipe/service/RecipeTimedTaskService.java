@@ -1,37 +1,26 @@
 package recipe.service;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.hisprescription.model.HosRecipeResult;
-import com.ngari.recipe.hisprescription.model.HospitalStatusUpdateDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
-import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
-import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
-import recipe.service.hospitalrecipe.PrescribeService;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.DateConversion;
-import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
 
-import java.util.*;
-
-import static ctd.persistence.DAOFactory.getDAO;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 电子处方定时任务服务

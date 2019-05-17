@@ -86,7 +86,6 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         if (HosRecipeResult.DUPLICATION.equals(result.getCode())) {
             result.setCode(HosRecipeResult.SUCCESS);
         }
-
         RecipeBean backNew = new RecipeBean();
         backNew.setRecipeId(recipeId);
         result.setData(backNew);
@@ -95,7 +94,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
 
     @RpcService
     public HosRecipeResult updateRecipeStatus(HospitalStatusUpdateDTO request) {
-        HosRecipeResult result = prescribeService.updateRecipeStatus(request);
+        HosRecipeResult result = prescribeService.updateRecipeStatus(request, null);
         return result;
     }
 
