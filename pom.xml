@@ -162,6 +162,17 @@
                 </exclusions>
             </dependency>
             <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>ehealth-utils</artifactId>
+                <version>${ngari.utils.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>ssdev-utils</artifactId>
+                        <groupId>ssdev</groupId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
                 <groupId>ngari</groupId>
                 <artifactId>openapi-sdk-java</artifactId>
                 <version>1.0-SNAPSHOT</version>
@@ -232,6 +243,16 @@
                 <version>1.1</version>
             </dependency>
             <dependency>
+                <artifactId>bqhospital-top</artifactId>
+                <groupId>com.alijk.bqhospital</groupId>
+                <version>1.1</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alihealth</groupId>
+                <artifactId>top-api-sdk-dev</artifactId>
+                <version>20190301</version>
+            </dependency>
+            <dependency>
                 <groupId>javax.servlet</groupId>
                 <artifactId>javax.servlet-api</artifactId>
                 <version>3.1.0</version>
@@ -248,6 +269,16 @@
                 <artifactId>spring-test</artifactId>
                 <version>${spring.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <artifactId>bqhospital-top</artifactId>
+                <groupId>com.alijk.bqhospital</groupId>
+                <version>1.2</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alihealth</groupId>
+                <artifactId>top-api-sdk-dev</artifactId>
+                <version>20190301</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

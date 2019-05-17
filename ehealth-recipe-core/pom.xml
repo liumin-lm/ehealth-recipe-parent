@@ -59,6 +59,10 @@
             <artifactId>ehealth-opbase-api</artifactId>
         </dependency>
         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>ehealth-utils</artifactId>
+        </dependency>
+        <dependency>
             <groupId>ngari</groupId>
             <artifactId>openapi-sdk-java</artifactId>
         </dependency>
@@ -141,6 +145,14 @@
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
+        </dependency>
+        <dependency>
+            <artifactId>bqhospital-top</artifactId>
+            <groupId>com.alijk.bqhospital</groupId>
+        </dependency>
+        <dependency>
+            <groupId>com.alihealth</groupId>
+            <artifactId>top-api-sdk-dev</artifactId>
         </dependency>
     </dependencies>
     <profiles>
