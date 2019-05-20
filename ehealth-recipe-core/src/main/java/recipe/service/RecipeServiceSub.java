@@ -41,11 +41,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
+import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.AldyfRemoteService;
+import recipe.hisservice.HisMqRequestInit;
+import recipe.hisservice.RecipeToHisMqService;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.*;
 
@@ -971,6 +974,20 @@ public class RecipeServiceSub {
             if (!b1) {
                 recipe.setTotalMoney(null);
             }
+
+            if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
+                //设置购药方式哪些可用
+                //配送到家默认可用
+                map.put("givemode_send", 1);
+                //到店取药默认不可用
+                map.put("givemode_tfds", 0);
+                //医院取药需要看数据
+                int hosFlag = 1;
+                if(1 == recipe.getDistributionFlag()){
+                    hosFlag = 0;
+                }
+                map.put("givemode_hos", hosFlag);
+            }
         }
 
         if (StringUtils.isEmpty(recipe.getMemo())) {
@@ -1359,6 +1376,7 @@ public class RecipeServiceSub {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+        RecipeToHisMqService hisMqService = ApplicationUtils.getRecipeService(RecipeToHisMqService.class);
 
         //获取处方单
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
@@ -1372,6 +1390,8 @@ public class RecipeServiceSub {
             rMap.put("msg", msg);
             return rMap;
         }
+
+        String recipeMode = recipe.getRecipeMode();
         //获取撤销前处方单状态
         Integer beforeStatus = recipe.getStatus();
         //不能撤销的情况:1 患者已支付 2 药师已审核(不管是否通过)
@@ -1422,11 +1442,27 @@ public class RecipeServiceSub {
                 }
                 memo.append(msg);
                 //HIS消息发送
-                boolean succFlag = hisService.recipeStatusUpdate(recipeId);
-                if (succFlag) {
+                if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
+
+                    boolean succFlag = hisService.recipeStatusUpdate(recipeId);
+                    if (succFlag) {
+                        memo.append(",HIS推送成功");
+                    } else {
+                        memo.append(",HIS推送失败");
+                    }
+                } else if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)){
+                    hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipe,
+                            HisBussConstant.TOHIS_RECIPE_STATUS_REVOKE));
                     memo.append(",HIS推送成功");
-                } else {
-                    memo.append(",HIS推送失败");
+                    //向阿里大药房推送处方撤销通知
+                    DrugEnterpriseResult drugEnterpriseResult = null;
+                    try {
+                        AldyfRemoteService aldyfRemoteService = ApplicationUtils.getRecipeService(AldyfRemoteService.class);
+                        drugEnterpriseResult = aldyfRemoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.RETREAT);
+                    } catch (Exception e) {
+                        LOGGER.warn("cancelRecipeImpl  向阿里大药房推送处方撤销通知,{}",JSONUtils.toString(drugEnterpriseResult), e);
+                    }
+                    LOGGER.info("向阿里大药房推送处方撤销通知,{}",JSONUtils.toString(drugEnterpriseResult));
                 }
                 //处方撤销后将状态设为已撤销，供记录日志使用
                 recipe.setStatus(RecipeStatusConstant.REVOKE);

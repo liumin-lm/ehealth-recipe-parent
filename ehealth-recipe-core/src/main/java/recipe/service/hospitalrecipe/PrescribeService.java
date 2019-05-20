@@ -42,10 +42,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.service.HisCallBackService;
-import recipe.service.RecipeHisService;
-import recipe.service.RecipeLogService;
-import recipe.service.RecipeOrderService;
+import recipe.service.*;
 import recipe.service.hospitalrecipe.dataprocess.PrescribeProcess;
 
 import java.util.List;
