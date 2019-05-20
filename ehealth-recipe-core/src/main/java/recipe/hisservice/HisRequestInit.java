@@ -306,7 +306,7 @@ public class HisRequestInit {
         requestTO.setEndDate(c.getTime());
 
         //福建省立医院特殊处理
-        if("1001393".equals(recipe.getClinicOrgan())){
+        if("1001393".equals(recipe.getClinicOrgan().toString())){
             IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
             List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
                     recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
