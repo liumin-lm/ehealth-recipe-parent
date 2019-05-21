@@ -1,10 +1,7 @@
 package com.ngari.recipe.drug.model;
 
-
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
-import ctd.schema.annotation.Schema;
-import ctd.util.JSONUtils;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -12,16 +9,20 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * 药品目录
- * @author yuyun
+ * @author： 0184/yu_yun
+ * @date： 2019/4/22
+ * @description： 医生药品查询返回对象
+ * @version： 1.0
  */
-@Schema
-public class DrugListBean implements Serializable {
+public class SearchDrugDetailDTO implements Serializable {
 
-    public static final long serialVersionUID = -3983203173007645688L;
+    private static final long serialVersionUID = 2118094900340586830L;
 
     @ItemProperty(alias = "药品序号")
     private Integer drugId;
+
+    @ItemProperty(alias = "机构药品编码")
+    private String organDrugCode;
 
     @ItemProperty(alias = "药品名称")
     private String drugName;
@@ -67,7 +68,7 @@ public class DrugListBean implements Serializable {
     private Integer instructions;
 
     @ItemProperty(alias = "药品图片")
-    private String drugPic;
+    private Integer drugPic;
 
     @ItemProperty(alias = "参考价格1")
     private Double price1;
@@ -103,27 +104,20 @@ public class DrugListBean implements Serializable {
     @ItemProperty(alias = "高亮字段")
     private String highlightedField;
 
+    @ItemProperty(alias = "高亮字段2，平台商品名高亮")
+    private String highlightedField2;
+
     @ItemProperty(alias = "高亮字段给ios用")
     private List highlightedFieldForIos;
+
+    @ItemProperty(alias = "高亮字段给ios用")
+    private List highlightedFieldForIos2;
 
     @ItemProperty(alias = "医院价格")
     private BigDecimal hospitalPrice;
 
-    private DispensatoryDTO dispensatory;
-
-    @ItemProperty(alias = "是否是匹配的药品(药品工具返回前端用)")
-    private boolean isMatched = false;
-
-    public boolean getIsMatched() {
-        return isMatched;
-    }
-
-    public void setIsMatched(boolean matched) {
-        isMatched = matched;
-    }
-
-    public DrugListBean() {
-    }
+    @ItemProperty(alias = "平台商品名")
+    private String platformSaleName;
 
     public Integer getDrugId() {
         return drugId;
@@ -131,6 +125,14 @@ public class DrugListBean implements Serializable {
 
     public void setDrugId(Integer drugId) {
         this.drugId = drugId;
+    }
+
+    public String getOrganDrugCode() {
+        return organDrugCode;
+    }
+
+    public void setOrganDrugCode(String organDrugCode) {
+        this.organDrugCode = organDrugCode;
     }
 
     public String getDrugName() {
@@ -237,28 +239,20 @@ public class DrugListBean implements Serializable {
         this.instructions = instructions;
     }
 
-    public String getDrugPic() {
+    public Integer getDrugPic() {
         return drugPic;
     }
 
-    public void setDrugPic(String drugPic) {
+    public void setDrugPic(Integer drugPic) {
         this.drugPic = drugPic;
     }
 
-    public Double getPrice1() {
-        return price1;
+    public BigDecimal getSalePrice() {
+        return salePrice;
     }
 
-    public void setPrice1(Double price1) {
-        this.price1 = price1;
-    }
-
-    public Double getPrice2() {
-        return price2;
-    }
-
-    public void setPrice2(Double price2) {
-        this.price2 = price2;
+    public void setSalePrice(BigDecimal salePrice) {
+        this.salePrice = salePrice;
     }
 
     public Integer getStatus() {
@@ -325,12 +319,28 @@ public class DrugListBean implements Serializable {
         this.highlightedField = highlightedField;
     }
 
+    public String getHighlightedField2() {
+        return highlightedField2;
+    }
+
+    public void setHighlightedField2(String highlightedField2) {
+        this.highlightedField2 = highlightedField2;
+    }
+
     public List getHighlightedFieldForIos() {
         return highlightedFieldForIos;
     }
 
     public void setHighlightedFieldForIos(List highlightedFieldForIos) {
         this.highlightedFieldForIos = highlightedFieldForIos;
+    }
+
+    public List getHighlightedFieldForIos2() {
+        return highlightedFieldForIos2;
+    }
+
+    public void setHighlightedFieldForIos2(List highlightedFieldForIos2) {
+        this.highlightedFieldForIos2 = highlightedFieldForIos2;
     }
 
     public BigDecimal getHospitalPrice() {
@@ -341,24 +351,27 @@ public class DrugListBean implements Serializable {
         this.hospitalPrice = hospitalPrice;
     }
 
-    public DispensatoryDTO getDispensatory() {
-        return dispensatory;
+    public String getPlatformSaleName() {
+        return platformSaleName;
     }
 
-    public void setDispensatory(DispensatoryDTO dispensatory) {
-        this.dispensatory = dispensatory;
+    public void setPlatformSaleName(String platformSaleName) {
+        this.platformSaleName = platformSaleName;
     }
 
-    public BigDecimal getSalePrice() {
-        return salePrice;
+    public Double getPrice1() {
+        return price1;
     }
 
-    public void setSalePrice(BigDecimal salePrice) {
-        this.salePrice = salePrice;
+    public void setPrice1(Double price1) {
+        this.price1 = price1;
     }
 
-    @Override
-    public String toString() {
-        return JSONUtils.toString(this);
+    public Double getPrice2() {
+        return price2;
+    }
+
+    public void setPrice2(Double price2) {
+        this.price2 = price2;
     }
 }

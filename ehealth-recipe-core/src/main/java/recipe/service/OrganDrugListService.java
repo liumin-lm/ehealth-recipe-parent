@@ -151,6 +151,7 @@ public class OrganDrugListService {
         if (null == organDrugList.getDrugId()) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugId is required");
         }
+        updateValidate(organDrugList);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         OrganDrugList target = organDrugListDAO.get(organDrugList.getOrganDrugId());
         if (null == target) {
@@ -162,6 +163,33 @@ public class OrganDrugListService {
             target = organDrugListDAO.update(target);
         }
         return ObjectCopyUtils.convert(target, OrganDrugListDTO.class);
+    }
+
+    private void updateValidate(OrganDrugList organDrugList) {
+        if (null == organDrugList) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "药品信息不能为空");
+        }
+        if (StringUtils.isEmpty(organDrugList.getOrganDrugCode())) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "organDrugCode is needed");
+        }
+        if (StringUtils.isEmpty(organDrugList.getDrugName())) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "drugName is needed");
+        }
+        if (StringUtils.isEmpty(organDrugList.getSaleName())) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "saleName is needed");
+        }
+        if (StringUtils.isEmpty(organDrugList.getOrganDrugCode())) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "organDrugCode is needed");
+        }
+        if (organDrugList.getPack() == null || organDrugList.getPack() <= 0) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "pack is needed or not is 0");
+        }
+        if (null == organDrugList.getOrganId()) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "organId is needed");
+        }
+        if (null == organDrugList.getSalePrice()) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "salePrice is needed");
+        }
     }
 
     /**

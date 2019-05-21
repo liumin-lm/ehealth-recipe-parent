@@ -363,6 +363,22 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
     @DAOMethod(sql = "from DrugList where 1=1 ", limit = 0)
     public abstract List<DrugList> findAll();
 
+    /**
+     * 分页查询所有基础药品库数据
+     * @param start
+     * @param limit
+     * @return
+     */
+    @DAOMethod(sql = "from DrugList where status=1 and sourceOrgan is null order by drugId")
+    public abstract List<DrugList> findAllForPage(@DAOParam(pageStart = true) int start,
+                                                   @DAOParam(pageLimit = true) int limit);
+
+    /**
+     * 统计基础药品库总数
+     * @return
+     */
+    @DAOMethod(sql = "select count(*) from DrugList where status=1 and sourceOrgan is null")
+    public abstract long getTotalWithBase();
 
     /**
      * 根据organid获取

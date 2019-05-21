@@ -13,6 +13,7 @@ import com.ngari.base.patient.service.IPatientService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DepartmentService;
+import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
@@ -33,7 +34,7 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
-import recipe.dao.DrugListDAO;
+import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -201,7 +202,7 @@ public class QueryRecipeService implements IQueryRecipeService {
             }
         }
 
-        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         //拼接处方明细
         if (null != details && !details.isEmpty()) {
             List<OrderItemDTO> orderList = new ArrayList<>();
@@ -222,7 +223,9 @@ public class QueryRecipeService implements IQueryRecipeService {
                         .toString(detail.getUseDose()) : null);
                 orderItem.setDrunit(detail.getUseDoseUnit());
                 //设置药品产地名称
-                orderItem.setDrugManf(drugListDAO.getById(detail.getDrugId()).getProducer());
+                OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCode(recipe.getClinicOrgan(), detail.getOrganDrugCode());
+                orderItem.setDrugManf(null != organDrugList ? organDrugList.getProducer() : null);
+
                 /*
                  * //每日剂量 转换成两位小数 DecimalFormat df = new DecimalFormat("0.00");
                  * String dosageDay =

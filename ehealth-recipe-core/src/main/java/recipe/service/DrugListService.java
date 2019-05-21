@@ -6,6 +6,7 @@ import com.ngari.base.searchcontent.service.ISearchContentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
+import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.Dispensatory;
 import com.ngari.recipe.entity.DrugList;
 import ctd.dictionary.DictionaryItem;
@@ -336,7 +337,7 @@ public class DrugListService extends BaseService<DrugListBean> {
      * @author zhongzx
      */
     @RpcService
-    public List<DrugListBean> searchDrugByNameOrPyCode(String drugName, String mpiId, int start, int limit) {
+    public List<SearchDrugDetailDTO> searchDrugByNameOrPyCode(String drugName, String mpiId, int start, int limit) {
         saveSearchContendForDrug(drugName, mpiId);
         DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
         //因为 梅州药品的原因 患者端 写死查询邵逸夫的药品
@@ -353,7 +354,7 @@ public class DrugListService extends BaseService<DrugListBean> {
      * @return
      */
     @RpcService
-    public List<DrugListBean> searchDrugByNameOrPyCodeForPC(
+    public List<SearchDrugDetailDTO> searchDrugByNameOrPyCodeForPC(
             final int organId, final int drugType, final String drugName, final int start, final int limit) {
         DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
         return drugListExtService.searchDrugListWithES(organId, drugType, drugName, start, limit);

@@ -10,6 +10,8 @@ public class OnsConfig {
 
     public static String hisCdrinfo;
 
+    public static String dbModifyTopic;
+
     public void setBasicInfoTopic(String basicInfoTopic) {
         OnsConfig.basicInfoTopic = basicInfoTopic;
     }
@@ -21,5 +23,9 @@ public class OnsConfig {
 
     public void setHisCdrinfo(String hisCdrinfo) {
         OnsConfig.hisCdrinfo = hisCdrinfo;
+    }
+
+    public void setDbModifyTopic(String dbModifyTopic) {
+        OnsConfig.dbModifyTopic = dbModifyTopic;
     }
 }

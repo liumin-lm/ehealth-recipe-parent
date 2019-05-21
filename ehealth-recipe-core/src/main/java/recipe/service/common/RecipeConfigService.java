@@ -20,7 +20,7 @@ public class RecipeConfigService {
     @RpcService
     public String getRecipeMode(String appId){
         //配置key:recipeCirculationMode
-        
-        return "";
+        //TODO
+        return "ngarihealth";
     }
 }

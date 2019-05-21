@@ -5,7 +5,7 @@ import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
-import com.ngari.recipe.drug.model.DrugListBean;
+import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.Recipe;
 import ctd.account.session.ClientSession;
 import ctd.net.broadcast.MQHelper;
@@ -130,7 +130,7 @@ public class RecipeTestService {
     }
 
     @RpcService
-    public List<DrugListBean> findDrugListsByNameOrCodePageStaitc(
+    public List<SearchDrugDetailDTO> findDrugListsByNameOrCodePageStaitc(
             Integer organId, int drugType, String drugName, int start) {
         DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
 

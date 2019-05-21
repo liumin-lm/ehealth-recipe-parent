@@ -334,4 +334,29 @@ public abstract class OrganDrugListDAO extends
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    /**
+     * 分页查询所有医院药品数据
+     * @param start
+     * @param limit
+     * @return
+     */
+    @DAOMethod(sql = "select a from OrganDrugList a, DrugList b where a.drugId=b.drugId and a.status=1 " +
+            "and b.status=1")
+    public abstract List<OrganDrugList> findAllForPage(@DAOParam(pageStart = true) int start,
+                                                  @DAOParam(pageLimit = true) int limit);
+
+    /**
+     * 统计医院药品可用数量
+     * @return
+     */
+    @DAOMethod(sql = "select count(*) from OrganDrugList a, DrugList b where a.drugId=b.drugId and a.status=1 " +
+            "and b.status=1")
+    public abstract long getUsefulTotal();
+
+    @DAOMethod(sql = "from OrganDrugList where organDrugId in (:organDrugId) ", limit = 0)
+    public abstract List<OrganDrugList> findByOrganDrugIds(@DAOParam("organDrugId") List<Integer> organDrugId);
+
+    @DAOMethod(sql = "select organDrugId from OrganDrugList where drugId in (:drugId) ", limit = 0)
+    public abstract List<Integer> findOrganDrugIdByDrugIds(@DAOParam("drugId") List<Integer> drugId);
 }

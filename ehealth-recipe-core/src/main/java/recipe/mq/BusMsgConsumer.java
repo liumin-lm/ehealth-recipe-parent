@@ -56,6 +56,13 @@ public class BusMsgConsumer {
          */
         subscriber.attach(OnsConfig.hisCdrinfo, MqConstant.HIS_CDRINFO_TAG_TO_PLATFORM,
                 new RecipeStatusFromHisObserver());
+
+        /**
+         * 接收药品修改消息
+         */
+        subscriber.attach(OnsConfig.dbModifyTopic, "base_druglist||base_organdruglist",
+                new DrugSyncObserver());
+
     }
 
     @RpcService

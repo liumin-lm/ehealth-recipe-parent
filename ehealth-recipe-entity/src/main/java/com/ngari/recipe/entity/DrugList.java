@@ -83,6 +83,9 @@ public class DrugList implements java.io.Serializable {
     @Dictionary(id = "eh.base.dictionary.DrugListStatus")
     private Integer status;
 
+    @ItemProperty(alias = "药品来源机构，null表示基础库数据")
+    private Integer sourceOrgan;
+
     @ItemProperty(alias = "适用症状")
     private String indications;
 
@@ -116,17 +119,8 @@ public class DrugList implements java.io.Serializable {
     @ItemProperty(alias = "剂型")
     private String drugForm;
 
-    @ItemProperty(alias = "来源机构")
-    private Integer sourceOrgan;
-
-    @Column(name = "SourceOrgan", length = 11)
-    public Integer getSourceOrgan() {
-        return sourceOrgan;
-    }
-
-    public void setSourceOrgan(Integer sourceOrgan) {
-        this.sourceOrgan = sourceOrgan;
-    }
+    @ItemProperty(alias = "机构药品编码")
+    private String organDrugCode;
 
     public DrugList() {
     }
@@ -442,7 +436,25 @@ public class DrugList implements java.io.Serializable {
         this.highlightedFieldForIos = highlightedFieldForIos;
     }
 
-    @Column(name = "standardCode", length = 30)
+    @Column(name = "SourceOrgan")
+    public Integer getSourceOrgan() {
+        return sourceOrgan;
+    }
+
+    public void setSourceOrgan(Integer sourceOrgan) {
+        this.sourceOrgan = sourceOrgan;
+    }
+
+    @Transient
+    public String getOrganDrugCode() {
+        return organDrugCode;
+    }
+
+    public void setOrganDrugCode(String organDrugCode) {
+        this.organDrugCode = organDrugCode;
+    }
+
+    @Column(name = "standardCode")
     public String getStandardCode() {
         return standardCode;
     }
@@ -451,11 +463,11 @@ public class DrugList implements java.io.Serializable {
         this.standardCode = standardCode;
     }
 
-    @Column(name = "drugForm", length = 20)
+    @Column(name = "drugForm")
     public String getDrugForm() {
         return drugForm;
     }
-    
+
     public void setDrugForm(String drugForm) {
         this.drugForm = drugForm;
     }

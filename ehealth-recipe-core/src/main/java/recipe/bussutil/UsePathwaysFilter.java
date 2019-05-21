@@ -38,6 +38,4 @@ public class UsePathwaysFilter {
          */
         return StringUtils.isEmpty(val) ? field : val;
     }
-
-
 }

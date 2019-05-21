@@ -45,7 +45,7 @@
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-es-api</artifactId>
-                <version>2.3.2-SNAPSHOT</version>
+                <version>${ngari.es.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ssdev</groupId>
@@ -53,6 +53,12 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <dependency>
+                <groupId>ngari</groupId>
+                <artifactId>ehealth-shadow-api</artifactId>
+                <version>1.0.1-SNAPSHOT</version>
+            </dependency>
+
             <dependency>
                 <groupId>com.google.code.findbugs</groupId>
                 <artifactId>jsr305</artifactId>
@@ -240,11 +246,6 @@
             <dependency>
                 <groupId>javax.activation</groupId>
                 <artifactId>activation</artifactId>
-                <version>1.1</version>
-            </dependency>
-            <dependency>
-                <artifactId>bqhospital-top</artifactId>
-                <groupId>com.alijk.bqhospital</groupId>
                 <version>1.1</version>
             </dependency>
             <dependency>

@@ -1,7 +1,7 @@
 package recipe.unloginservice;
 
 import com.ngari.recipe.drug.model.DrugListBean;
-import com.ngari.recipe.entity.DrugList;
+import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.PathologicalDrug;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -83,7 +83,7 @@ public class RecipeUnloginService {
      * @author zhongzx
      */
     @RpcService
-    public List<DrugListBean> searchDrugByNameOrPyCode(String drugName, String mpiId, int start, int limit) {
+    public List<SearchDrugDetailDTO> searchDrugByNameOrPyCode(String drugName, String mpiId, int start, int limit) {
         DrugListService service = ApplicationUtils.getRecipeService(DrugListService.class);
         return service.searchDrugByNameOrPyCode(drugName, mpiId, start, limit);
     }

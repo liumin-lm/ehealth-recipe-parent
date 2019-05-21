@@ -96,6 +96,7 @@ public class RecipeUtil {
             for (OrganDrugList odlist : organDrugList) {
                 if (null != drugList && null != odlist && drugList.getDrugId().equals(odlist.getDrugId())) {
                     drugList.setHospitalPrice(odlist.getSalePrice());
+                    drugList.setOrganDrugCode(odlist.getOrganDrugCode());
                     break;
                 }
             }
