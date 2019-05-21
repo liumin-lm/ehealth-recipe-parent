@@ -27,7 +27,7 @@ public abstract class AuditDrugListDAO extends HibernateSupportDelegateDAO<Audit
     public AuditDrugListDAO() {
         super();
         this.setEntityName(AuditDrugList.class.getName());
-        this.setKeyField("drugId");
+        this.setKeyField("AuditDrugId");
     }
 
     @Override
@@ -46,9 +46,9 @@ public abstract class AuditDrugListDAO extends HibernateSupportDelegateDAO<Audit
      * [平台使用]查询所有审核药品,药品未进行匹配
      * @param start  起始页
      * @param limit  限制页
-     * @return  药品列表
+     * @return       药品列表
      */
-    @DAOMethod(sql = "from auditDrugList where type = 0 order by status asc,createDa desc")
+    @DAOMethod(sql = "from AuditDrugList where Type = 0 and Status = 0 order by Status asc,CreateDt desc")
     public abstract List<AuditDrugList> findAllDrugList(@DAOParam(pageStart = true) int start,
                                                         @DAOParam(pageLimit = true) int limit);
 
@@ -57,21 +57,21 @@ public abstract class AuditDrugListDAO extends HibernateSupportDelegateDAO<Audit
      * @param organId  机构ID
      * @param start    起始页
      * @param limit    限制页
-     * @return   药品列表
+     * @return         药品列表
      */
-    @DAOMethod(sql = "from auditDrugList where organId=:organId order by status asc, createDa desc")
+    @DAOMethod(sql = "from AuditDrugList where OrganId=:organId and Type = 1 and Status = 0 order by Status asc, CreateDt desc")
     public abstract List<AuditDrugList> findAllDrugListByOrganId(@DAOParam("organId") Integer organId,
                                                                  @DAOParam(pageStart = true) int start,
                                                                  @DAOParam(pageLimit = true) int limit);
 
     /**
      * 更新审核信息
-     * @param auditDrugListId  主键
+     * @param auditDrugId      主键
      * @param status           状态
      * @param rejectReason     拒绝原因
      */
-    @DAOMethod(sql = "update auditDrugList set status=:status , rejectReason=:rejectReason where auditDrugListId=:auditDrugListId")
-    public abstract void updateAuditDrugListStatus(@DAOParam("auditDrugListId") Integer auditDrugListId,
+    @DAOMethod(sql = "update AuditDrugList set Status=:status ,RejectReason=:rejectReason where AuditDrugId=:auditDrugId")
+    public abstract void updateAuditDrugListStatus(@DAOParam("auditDrugId") Integer auditDrugId,
                                                    @DAOParam("status") Integer status,
                                                    @DAOParam("rejectReason") String rejectReason);
 }

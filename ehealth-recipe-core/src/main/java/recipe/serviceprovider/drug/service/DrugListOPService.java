@@ -40,4 +40,11 @@ public class DrugListOPService implements IDrugListService {
         DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
         return drugListExtService.getDrugClass(parentKey, sliceType);
     }
+
+    @Override
+    public void saveDrugList(DrugListBean drugListBean) {
+        DrugList drugList = ObjectCopyUtils.convert(drugListBean, DrugList.class);
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        drugListDAO.save(drugList);
+    }
 }

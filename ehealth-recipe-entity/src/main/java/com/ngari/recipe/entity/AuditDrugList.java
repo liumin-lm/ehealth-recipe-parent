@@ -32,6 +32,12 @@ public class AuditDrugList implements java.io.Serializable {
     @ItemProperty(alias = "医疗结构药品编码")
     private String organDrugCode;
 
+    @ItemProperty(alias = "配送药品序号")
+    private Integer saleDrugListId;
+
+    @ItemProperty(alias = "机构药品序号")
+    private Integer organDrugListId;
+
     @ItemProperty(alias = "药品名称")
     private String drugName;
 
@@ -98,6 +104,9 @@ public class AuditDrugList implements java.io.Serializable {
     @ItemProperty(alias = "是否已匹配 0未匹配 1已匹配")
     private Integer type;
 
+    @ItemProperty(alias = "来源药企")
+    private String sourceEnterprise;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "AuditDrugId", unique = true, nullable = false)
@@ -134,6 +143,24 @@ public class AuditDrugList implements java.io.Serializable {
 
     public void setOrganDrugCode(String organDrugCode) {
         this.organDrugCode = organDrugCode;
+    }
+
+    @Column(name = "SaleDrugListId", length = 11)
+    public Integer getSaleDrugListId() {
+        return saleDrugListId;
+    }
+
+    public void setSaleDrugListId(Integer saleDrugListId) {
+        this.saleDrugListId = saleDrugListId;
+    }
+
+    @Column(name = "OrganDrugListId", length = 11)
+    public Integer getOrganDrugListId() {
+        return organDrugListId;
+    }
+
+    public void setOrganDrugListId(Integer organDrugListId) {
+        this.organDrugListId = organDrugListId;
     }
 
     @Column(name = "DrugName", length = 50)
@@ -323,5 +350,14 @@ public class AuditDrugList implements java.io.Serializable {
 
     public void setType(Integer type) {
         this.type = type;
+    }
+
+    @Column(name = "SourceEnterprise", length = 50)
+    public String getSourceEnterprise() {
+        return sourceEnterprise;
+    }
+
+    public void setSourceEnterprise(String sourceEnterprise) {
+        this.sourceEnterprise = sourceEnterprise;
     }
 }
