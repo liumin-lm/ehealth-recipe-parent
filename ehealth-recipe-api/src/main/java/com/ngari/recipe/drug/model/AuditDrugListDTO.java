@@ -29,6 +29,12 @@ public class AuditDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "医疗结构药品编码")
     private String organDrugCode;
 
+    @ItemProperty(alias = "配送药品序号")
+    private Integer saleDrugListId;
+
+    @ItemProperty(alias = "机构药品序号")
+    private Integer organDrugListId;
+
     @ItemProperty(alias = "药品名称")
     private String drugName;
 
@@ -95,6 +101,9 @@ public class AuditDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "是否已匹配 0未匹配 1已匹配")
     private Integer type;
 
+    @ItemProperty(alias = "来源药企")
+    private String sourceEnterprise;
+
     public Integer getAuditDrugId() {
         return auditDrugId;
     }
@@ -125,6 +134,22 @@ public class AuditDrugListDTO implements java.io.Serializable {
 
     public void setOrganDrugCode(String organDrugCode) {
         this.organDrugCode = organDrugCode;
+    }
+
+    public Integer getSaleDrugListId() {
+        return saleDrugListId;
+    }
+
+    public void setSaleDrugListId(Integer saleDrugListId) {
+        this.saleDrugListId = saleDrugListId;
+    }
+
+    public Integer getOrganDrugListId() {
+        return organDrugListId;
+    }
+
+    public void setOrganDrugListId(Integer organDrugListId) {
+        this.organDrugListId = organDrugListId;
     }
 
     public String getDrugName() {
@@ -293,5 +318,13 @@ public class AuditDrugListDTO implements java.io.Serializable {
 
     public void setType(Integer type) {
         this.type = type;
+    }
+
+    public String getSourceEnterprise() {
+        return sourceEnterprise;
+    }
+
+    public void setSourceEnterprise(String sourceEnterprise) {
+        this.sourceEnterprise = sourceEnterprise;
     }
 }

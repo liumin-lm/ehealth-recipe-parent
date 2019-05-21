@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.ThirdResultBean;
 import recipe.constant.ErrorCode;
@@ -64,6 +65,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      * 请求参数不正确
      */
     private static final int REQUEST_ERROR = 412;
+
+    @Autowired
+    private YsqRemoteService ysqRemoteService;
 
     /**
      * 待配送状态
@@ -1125,8 +1129,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         AuditDrugListDAO auditDrugListDAO = DAOFactory.getDAO(AuditDrugListDAO.class);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
 
         OrganService organService = BasicAPI.getService(OrganService.class);
         //校验入参
@@ -1150,14 +1154,15 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(organ.getOrganId(), drugCodes);
             if (organDrugLists != null && organDrugLists.size() > 0) {
                 //说明该药品存在于机构药品目录,审核直接通过,直接推送给钥世圈
-                //TODO
+                List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("钥世圈");
+                ysqRemoteService.sendAuditDrugList(drugsEnterprises.get(0), auditDrugListBean.getOrganizeCode(), auditDrugListBean.getOrganDrugCode(), 1);
                 //更新临时表标志
                 resultAudit.setStatus(1);
                 resultAudit.setType(1);
                 auditDrugListDAO.update(resultAudit);
             }
         } else {
-            //说明配送药品目录中不存在
+            //说明配送药品目录中不存在,需要进行平台匹配维护医院审核
             LOGGER.info("钥世圈推送药品在配送目录中不存在,organizeCode:{},organDrugCode:{}", auditDrugListBean.getOrganizeCode(), auditDrugListBean.getOrganDrugCode());
         }
         return null;
@@ -1169,6 +1174,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         OrganDTO organ = organService.getOrganByOrganizeCode(auditDrugListBean.getOrganizeCode());
         AuditDrugList auditDrugList = new AuditDrugList();
         auditDrugList.setOrganDrugCode(auditDrugListBean.getOrganDrugCode());
+        auditDrugList.setOrganizeCode(auditDrugListBean.getOrganizeCode());
         auditDrugList.setOrganId(organ.getOrganId());
         auditDrugList.setDrugName(auditDrugListBean.getDrugName());
         auditDrugList.setSaleName(auditDrugListBean.getSaleName());
@@ -1187,6 +1193,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         auditDrugList.setUsingRate(auditDrugListBean.getUsingRate());
         auditDrugList.setSourceOrgan(auditDrugListBean.getSourceOrgan());
         auditDrugList.setType(0);
+        auditDrugList.setSourceEnterprise(auditDrugListBean.getSourceEnterprise());
         return auditDrugList;
     }
 

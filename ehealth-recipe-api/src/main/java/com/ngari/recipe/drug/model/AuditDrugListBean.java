@@ -77,6 +77,9 @@ public class AuditDrugListBean implements java.io.Serializable {
     @ItemProperty(alias = "剂型")
     private String drugForm;
 
+    @ItemProperty(alias = "来源药企")
+    private String sourceEnterprise;
+
     public Integer getAuditDrugId() {
         return auditDrugId;
     }
@@ -243,5 +246,13 @@ public class AuditDrugListBean implements java.io.Serializable {
 
     public void setDrugForm(String drugForm) {
         this.drugForm = drugForm;
+    }
+
+    public String getSourceEnterprise() {
+        return sourceEnterprise;
+    }
+
+    public void setSourceEnterprise(String sourceEnterprise) {
+        this.sourceEnterprise = sourceEnterprise;
     }
 }
