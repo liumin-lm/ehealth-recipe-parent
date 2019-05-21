@@ -53,7 +53,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
     /**
      * 接收第三方处方
      *
-     * @param hospitalRecipeList 医院处方
+     * @param hospitalRecipeDTO 医院处方
      * @return 结果
      */
     @Override
@@ -70,7 +70,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
                 result.setMsg(orderResult.getMsg());
             }
             //是否走外配模式 根据giveMode判断，2为医院取药，null则走原来外配模式
-            if ("2".equals(hospitalRecipeDTO.getGiveMode())){
+            if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(hospitalRecipeDTO.getGiveMode())){
                 if ("0".equals(hospitalRecipeDTO.getIsDrugStock())){
                     //没有库存就推送九州通
                     drugsEnterpriseService.pushHosInteriorSupport(recipe.getRecipeId(),recipe.getClinicOrgan());
