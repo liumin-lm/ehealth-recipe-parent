@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.CacheConstant;
+import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.util.RedisClient;
@@ -237,5 +238,19 @@ public class RecipePreserveService {
         for (Map.Entry<String, String> entry : set) {
             redisAddForHash(CacheConstant.KEY_NGARI_USEPATHWAYS + organId, entry.getKey(), entry.getValue());
         }
+    }
+
+    /**
+     * 更新his药品药房名称
+     * @param organId
+     * @param pharmacy
+     * @return
+     */
+    @RpcService
+    public Boolean updatePharmacyName(int organId, String pharmacy) {
+        OrganDrugListDAO dao = DAOFactory.getDAO(OrganDrugListDAO.class);
+        Boolean result = dao.updatePharmacy(organId, pharmacy);
+        return result;
+
     }
 }
