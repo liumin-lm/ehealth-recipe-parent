@@ -579,7 +579,27 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         return call;
     }
 
-    public void sendAuditDrugList(String organizeCode, String organDrugCode, Integer status) {
+    //发送药品审核信息
+    public DrugEnterpriseResult sendAuditDrugList(DrugsEnterprise drugsEnterprise, String organizeCode, String organDrugCode, Integer status) {
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
 
+        String drugEpName = drugsEnterprise.getName();
+        //最终发给药企的json数据
+        Map<String, Object> sendInfo = new HashMap<>(1);
+        Map<String, Object> auditInfo = new HashMap<>();
+        auditInfo.put("organizeCode", organizeCode);
+        auditInfo.put("organDrugCode", organDrugCode);
+        auditInfo.put("status", status);
+        //同时生成订单 0不生成 1生成
+        sendInfo.put("EXEC_ORD", "0");
+
+        sendInfo.put("TITLES", auditInfo);
+        String sendInfoStr = JSONUtils.toString(sendInfo);
+        String methodName = "sendAuditDrugList";
+        LOGGER.info("发送[{}][{}]内容：{}", drugEpName, methodName, sendInfoStr);
+
+        //发送药企信息
+        sendAndDealResult(drugsEnterprise, methodName, sendInfoStr, result);
+        return result;
     }
 }
