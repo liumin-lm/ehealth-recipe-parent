@@ -27,7 +27,6 @@ import recipe.constant.*;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.service.common.RecipeConfigService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -181,23 +180,25 @@ public class HisCallBackService {
                 }
             }
         }
-        // TODO: 2019/5/16 互联网模式--- 医生开完处方之后聊天界面系统消息提示
-        //根据申请人mpiid，requestMode 获取当前咨询单consultId
-        IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-        List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
-                recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
-        Integer consultId = null;
-        if (CollectionUtils.isNotEmpty(consultIds)) {
-            consultId = consultIds.get(0);
-        }
-        if(null != consultId){
-            try {
-                IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
-                recipeOnLineConsultService.sendRecipeMsg(consultId,3);
-            } catch (Exception e) {
-                LOGGER.error("checkPassSuccess sendRecipeMsg error, type:3, consultId:{}, error:{}", consultId,e);
+        //2019/5/16 互联网模式--- 医生开完处方之后聊天界面系统消息提示
+        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)){
+            //根据申请人mpiid，requestMode 获取当前咨询单consultId
+            IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
+            List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
+                    recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
+            Integer consultId = null;
+            if (CollectionUtils.isNotEmpty(consultIds)) {
+                consultId = consultIds.get(0);
             }
+            if(null != consultId){
+                try {
+                    IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
+                    recipeOnLineConsultService.sendRecipeMsg(consultId,3);
+                } catch (Exception e) {
+                    LOGGER.error("checkPassSuccess sendRecipeMsg error, type:3, consultId:{}, error:{}", consultId,e);
+                }
 
+            }
         }
 
     }
