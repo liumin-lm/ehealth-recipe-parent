@@ -16,6 +16,8 @@ import com.ngari.recipe.common.utils.VerifyUtils;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
+import ctd.schema.exception.ValidateException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -25,11 +27,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import recipe.constant.ErrorCode;
 import recipe.dao.RecipeDAO;
 import recipe.service.common.RecipeSingleService;
 import recipe.service.hospitalrecipe.dto.HosRecipeListRequest;
+import recipe.util.ChinaIDNumberUtil;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -98,22 +103,9 @@ public class HosRecipeListService {
             boolean patientExist = false;
             PatientBean patient = null;
             try {
-                IPatientExtendService patientExtendService = BaseAPI.getService(IPatientExtendService.class);
-                List<PatientBean> patList = patientExtendService.findPatient4Doctor(request.getDoctorId(), request.getCertificate());
-                if (CollectionUtils.isEmpty(patList)) {
-                    //不存在该患者则需要添加
-                    patient = new PatientBean();
-                    patient.setPatientName(request.getPatientName());
-                    patient.setPatientSex(request.getPatientSex());
-                    patient.setCertificateType(Integer.valueOf(request.getCertificateType()));
-                    patient.setCertificate(request.getCertificate());
-                    patient.setMobile(request.getPatientTel());
-                    //创建就诊人
-                    patient = patientExtendService.addPatient4DoctorApp(patient, 0, request.getDoctorId());
-                } else {
-                    patientExist = true;
-                    patient = patList.get(0);
-                }
+                Map<String, Object> map = setPatientInfo(request);
+                patient = (PatientBean)map.get("patient");
+                patientExist = (Boolean) map.get("patientExist");
             } catch (Exception e) {
                 LOG.warn("findHistroyRecipeList 处理就诊人异常，doctorId={}, clinicOrgan={}",
                         request.getDoctorId(), clinicOrgan, e);
@@ -170,5 +162,83 @@ public class HosRecipeListService {
         }
 
         return response;
+    }
+
+    /**
+     * 为医生添加患者信息
+     * @param request 医院传来的医生患者信息
+     * @return 结果
+     */
+    @RpcService
+    public RecipeStandardResTO<Map> addPatientForDoctor(HosRecipeListRequest request) {
+        validate(request);
+        RecipeStandardResTO<Map> response = RecipeStandardResTO.getRequest(Map.class);
+        PatientBean patient = null;
+        try {
+            //获取患者性别
+            String sex = ChinaIDNumberUtil.getSexFromIDNumber(request.getCertificate());
+            request.setPatientSex(sex);
+        } catch (ValidateException e) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "患者身份证件不正确");
+        }
+
+        try {
+            Map<String, Object> map = setPatientInfo(request);
+            patient = (PatientBean)map.get("patient");
+        } catch (Exception e) {
+            LOG.warn("findHistroyRecipeList 处理就诊人异常，doctorId={}",
+                    request.getDoctorId(), e);
+        } finally {
+            if (null == patient || StringUtils.isEmpty(patient.getMpiId())) {
+                LOG.warn("findHistroyRecipeList 患者创建失败，doctorId={}",
+                        request.getDoctorId());
+                response.setMsg("患者创建失败");
+            }
+        }
+        return response;
+    }
+
+    private void validate(HosRecipeListRequest request){
+        LOG.info("HosRecipeListRequest,岳阳绑定患者信息:{}.", JSONUtils.toString(request));
+        if (request.getDoctorId() == null) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "医生id不能为空");
+        }
+        if (StringUtils.isEmpty(request.getCertificate())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "患者身份证不能为空");
+        }
+        if (StringUtils.isEmpty(request.getPatientName())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "患者姓名不能为空");
+        }
+        if (StringUtils.isEmpty(request.getPatientTel())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "患者手机号不能为空");
+        }
+        if (request.getCertificateType() == null) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "患者证件类型不能为空");
+        }
+    }
+
+    private Map<String, Object> setPatientInfo (HosRecipeListRequest request) {
+        boolean patientExist = false;
+        PatientBean patient;
+        IPatientExtendService patientExtendService = BaseAPI.getService(IPatientExtendService.class);
+        List<PatientBean> patList = patientExtendService.findPatient4Doctor(request.getDoctorId(), request.getCertificate());
+        if (CollectionUtils.isEmpty(patList)) {
+            //不存在该患者则需要添加
+            patient = new PatientBean();
+            patient.setPatientName(request.getPatientName());
+            patient.setPatientSex(request.getPatientSex());
+            patient.setCertificateType(Integer.valueOf(request.getCertificateType()));
+            patient.setCertificate(request.getCertificate());
+            patient.setMobile(request.getPatientTel());
+            //创建就诊人
+            patient = patientExtendService.addPatient4DoctorApp(patient, 0, request.getDoctorId());
+        } else {
+            patientExist = true;
+            patient = patList.get(0);
+        }
+        Map<String, Object> map = new HashMap<>();
+        map.put("patient", patient);
+        map.put("patientExist", patientExist);
+        return map;
     }
 }

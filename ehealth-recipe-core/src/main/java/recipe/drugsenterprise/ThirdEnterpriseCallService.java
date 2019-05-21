@@ -2,12 +2,13 @@ package recipe.drugsenterprise;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.drug.model.AuditDrugListBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -22,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.ThirdResultBean;
 import recipe.constant.ErrorCode;
@@ -29,6 +31,7 @@ import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
+import recipe.drugsenterprise.bean.StandardResultDTO;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.service.*;
 import recipe.serviceprovider.BaseService;
@@ -62,6 +65,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      * 请求参数不正确
      */
     private static final int REQUEST_ERROR = 412;
+
+    @Autowired
+    private YsqRemoteService ysqRemoteService;
 
     /**
      * 待配送状态
@@ -1108,5 +1114,132 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         List<DrugsEnterprise> list = drugsEnterpriseDAO.findByOrganId(organId);
         return getList(list, DrugsEnterpriseBean.class);
+    }
+
+    /**
+     * 用于钥世圈上传药品信息
+     * @param auditDrugListBean  药品信息
+     * @return  结果信息
+     */
+    @RpcService
+    public StandardResultDTO receiveDrugInfo(AuditDrugListBean auditDrugListBean) {
+        LOGGER.info("钥世圈推送过来的药品信息：{}.", JSONUtils.toString(auditDrugListBean));
+        StandardResultDTO result = new StandardResultDTO();
+        result.setCode(StandardResultDTO.FAIL);
+
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        AuditDrugListDAO auditDrugListDAO = DAOFactory.getDAO(AuditDrugListDAO.class);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+
+        OrganService organService = BasicAPI.getService(OrganService.class);
+        //校验入参
+        validate(result , auditDrugListBean);
+        //包装药品数据
+        AuditDrugList auditDrugList = packageAuditDrugList(auditDrugListBean);
+        //首先保存到auditDrugList
+        AuditDrugList resultAudit = auditDrugListDAO.save(auditDrugList);
+        //首先查找salaDrugList是否存在该药品
+        OrganDTO organ = organService.getOrganByOrganizeCode(auditDrugListBean.getOrganizeCode());
+        if (organ == null) {
+            LOGGER.warn("机构不存在,机构编号：{}.", auditDrugListBean.getOrganizeCode());
+            result.setMsg("该机构在平台不存在");
+            return result;
+        }
+        List<String> drugCodes = new ArrayList<>();
+        drugCodes.add(auditDrugListBean.getOrganDrugCode());
+        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugCodes(organ.getOrganId(), drugCodes);
+        if (saleDrugLists != null && saleDrugLists.size() > 0) {
+            //说明该药品存在于配送药品目录,校验是否存在于机构药品目录
+            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(organ.getOrganId(), drugCodes);
+            if (organDrugLists != null && organDrugLists.size() > 0) {
+                //说明该药品存在于机构药品目录,审核直接通过,直接推送给钥世圈
+                List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("钥世圈");
+                ysqRemoteService.sendAuditDrugList(drugsEnterprises.get(0), auditDrugListBean.getOrganizeCode(), auditDrugListBean.getOrganDrugCode(), 1);
+                //更新临时表标志
+                resultAudit.setStatus(1);
+                resultAudit.setType(1);
+                auditDrugListDAO.update(resultAudit);
+            }
+        } else {
+            //说明配送药品目录中不存在,需要进行平台匹配维护医院审核
+            LOGGER.info("钥世圈推送药品在配送目录中不存在,organizeCode:{},organDrugCode:{}", auditDrugListBean.getOrganizeCode(), auditDrugListBean.getOrganDrugCode());
+        }
+        return null;
+    }
+
+    //包装药品对象
+    private static AuditDrugList packageAuditDrugList(AuditDrugListBean auditDrugListBean) {
+        OrganService organService = BasicAPI.getService(OrganService.class);
+        OrganDTO organ = organService.getOrganByOrganizeCode(auditDrugListBean.getOrganizeCode());
+        AuditDrugList auditDrugList = new AuditDrugList();
+        auditDrugList.setOrganDrugCode(auditDrugListBean.getOrganDrugCode());
+        auditDrugList.setOrganizeCode(auditDrugListBean.getOrganizeCode());
+        auditDrugList.setOrganId(organ.getOrganId());
+        auditDrugList.setDrugName(auditDrugListBean.getDrugName());
+        auditDrugList.setSaleName(auditDrugListBean.getSaleName());
+        auditDrugList.setCreateDt(auditDrugListBean.getCreateDt());
+        auditDrugList.setApprovalNumber(StringUtils.isEmpty(auditDrugListBean.getApprovalNumber())?"": auditDrugListBean.getApprovalNumber());
+        auditDrugList.setPack(auditDrugListBean.getPack());
+        auditDrugList.setDrugForm(auditDrugListBean.getDrugForm());
+        auditDrugList.setDrugType(auditDrugListBean.getDrugType());
+        auditDrugList.setProducer(auditDrugListBean.getProducer());
+        auditDrugList.setPrice(auditDrugListBean.getPrice());
+        auditDrugList.setStatus(0);
+        auditDrugList.setUnit(auditDrugListBean.getUnit());
+        auditDrugList.setUseDose(auditDrugListBean.getUseDose());
+        auditDrugList.setUseDoseUnit(auditDrugListBean.getUseDoseUnit());
+        auditDrugList.setUsePathways(auditDrugListBean.getUsePathways());
+        auditDrugList.setUsingRate(auditDrugListBean.getUsingRate());
+        auditDrugList.setSourceOrgan(auditDrugListBean.getSourceOrgan());
+        auditDrugList.setType(0);
+        auditDrugList.setSourceEnterprise(auditDrugListBean.getSourceEnterprise());
+        return auditDrugList;
+    }
+
+    private static StandardResultDTO validate(StandardResultDTO result, AuditDrugListBean auditDrugListBean) {
+        //校验数据参数
+        if (auditDrugListBean == null) {
+            result.setMsg("入参不能为空");
+            return result;
+        }
+        if (StringUtils.isEmpty(auditDrugListBean.getOrganizeCode())) {
+            result.setMsg("医院编码不能为空");
+            return result;
+        }
+        if (StringUtils.isEmpty(auditDrugListBean.getOrganDrugCode())) {
+            result.setMsg("医院药品编码不能为空");
+            return result;
+        }
+        if (StringUtils.isEmpty(auditDrugListBean.getDrugName())) {
+            result.setMsg("药品名称不能为空");
+            return result;
+        }
+        if (StringUtils.isEmpty(auditDrugListBean.getSaleName())) {
+            result.setMsg("商品名称不能为空");
+            return result;
+        }
+        if (StringUtils.isEmpty(auditDrugListBean.getProducer())) {
+            result.setMsg("生产厂家不能为空");
+            return result;
+        }
+        if (StringUtils.isEmpty(auditDrugListBean.getUnit())) {
+            result.setMsg("药品单位不能为空");
+            return result;
+        }
+        if (auditDrugListBean.getCreateDt() == null) {
+            result.setMsg("上传时间不能为空");
+            return result;
+        }
+        if (StringUtils.isEmpty(auditDrugListBean.getDrugSpec())) {
+            result.setMsg("药品规格不能为空");
+            return result;
+        }
+        if (auditDrugListBean.getDrugType() == null) {
+            result.setMsg("药品类型不能为空");
+            return result;
+        }
+        result.setCode(StandardResultDTO.SUCCESS);
+        return result;
     }
 }
