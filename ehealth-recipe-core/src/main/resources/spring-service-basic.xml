@@ -23,5 +23,6 @@
     <reference id="basic.subCodeService" interface="com.ngari.patient.service.zjs.SubCodeService"/>
     <reference id="basic.provUploadOrganService" interface="com.ngari.patient.service.ProvUploadOrganService"/>
     <reference id="basic.appointDepartService" interface="com.ngari.patient.service.AppointDepartService"/>
+    <reference id="basic.clientConfigService" interface="com.ngari.patient.service.ClientConfigService"/>
 
 </s:beans>

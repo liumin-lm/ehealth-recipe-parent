@@ -38,6 +38,11 @@ public class CacheConstant {
     public static final String KEY_DEPT_ALI_SESSION = "RCP_ALISN_";
 
     /**
+     * 处方流转模式key前缀
+     */
+    public static final String KEY_RECIPEMODE = "RCP_RECIPEMODE_";
+
+    /**
      * 机构用药频次前缀，缓存中key实际为 RCP_ORGAN_USINGRATE_100100
      */
     public static final String KEY_ORGAN_USINGRATE = "RCP_ORGAN_USINGRATE_";
@@ -77,5 +82,7 @@ public class CacheConstant {
      */
 
     public static final String KEY_CONFIG_RCP_AUTO_REVIEW = "RCP_CONFIG_AUTO_REVIEW";
+
+    
 
 }

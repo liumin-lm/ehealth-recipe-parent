@@ -41,4 +41,6 @@
     <reference interface="com.ngari.bus.hosrelation.service.IHosrelationService" id="eh.remoteHosrelationService"/>
 
     <reference id="eh.remoteFileDownloadService" interface="com.ngari.recipe.filedownload.service.IFileDownloadService"/>
+    <reference id="eh.configurationCenterUtils" interface="com.ngari.base.property.service.IConfigurationCenterUtilsService" />
+    
 </s:beans>
