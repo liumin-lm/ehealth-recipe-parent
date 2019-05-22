@@ -3,12 +3,19 @@ package recipe.dao;
 import com.ngari.recipe.entity.AuditDrugList;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
+import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
+import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResultAction;
+import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
+import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
+import org.hibernate.Query;
+import org.hibernate.StatelessSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -48,9 +55,30 @@ public abstract class AuditDrugListDAO extends HibernateSupportDelegateDAO<Audit
      * @param limit  限制页
      * @return       药品列表
      */
-    @DAOMethod(sql = "from AuditDrugList where Type = 0 and Status = 0 order by Status asc,CreateDt desc")
-    public abstract List<AuditDrugList> findAllDrugList(@DAOParam(pageStart = true) int start,
-                                                        @DAOParam(pageLimit = true) int limit);
+    public QueryResult<AuditDrugList> findAllDrugList(final int start, final int limit) {
+        HibernateStatelessResultAction<QueryResult<AuditDrugList>> action =
+                new AbstractHibernateStatelessResultAction<QueryResult<AuditDrugList>>() {
+                    @SuppressWarnings("unchecked")
+                    @Override
+                    public void execute(StatelessSession ss) throws DAOException {
+                        StringBuilder hql = new StringBuilder(" from AuditDrugList where Type = 0 and Status = 0 order by Status asc,CreateDt desc ");
+
+                        Query countQuery = ss.createQuery("select count(*) " + hql.toString());
+
+                        Long total = (Long) countQuery.uniqueResult();
+
+                        Query query = ss.createQuery("select d " + hql.toString());
+
+                        query.setFirstResult(start);
+                        query.setMaxResults(limit);
+                        List<AuditDrugList> result = new ArrayList<AuditDrugList>();
+
+                        setResult(new QueryResult<AuditDrugList>(total, query.getFirstResult(), query.getMaxResults(), result));
+                    }
+                };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 
     /**
      * [医院使用]根据机构查询审核药品,药品已经匹配成功
@@ -59,10 +87,30 @@ public abstract class AuditDrugListDAO extends HibernateSupportDelegateDAO<Audit
      * @param limit    限制页
      * @return         药品列表
      */
-    @DAOMethod(sql = "from AuditDrugList where OrganId=:organId and Type = 1 and Status = 0 order by Status asc, CreateDt desc")
-    public abstract List<AuditDrugList> findAllDrugListByOrganId(@DAOParam("organId") Integer organId,
-                                                                 @DAOParam(pageStart = true) int start,
-                                                                 @DAOParam(pageLimit = true) int limit);
+    public QueryResult<AuditDrugList> findAllDrugListByOrganId(final Integer organId, final int start, final int limit) {
+        HibernateStatelessResultAction<QueryResult<AuditDrugList>> action =
+                new AbstractHibernateStatelessResultAction<QueryResult<AuditDrugList>>() {
+                    @SuppressWarnings("unchecked")
+                    @Override
+                    public void execute(StatelessSession ss) throws DAOException {
+                        StringBuilder hql = new StringBuilder(" from AuditDrugList where OrganId=:organId and Type = 1 and Status = 0 order by Status asc, CreateDt desc ");
+
+                        Query countQuery = ss.createQuery("select count(*) " + hql.toString());
+                        countQuery.setParameter("organId", organId);
+                        Long total = (Long) countQuery.uniqueResult();
+
+                        Query query = ss.createQuery("select d " + hql.toString());
+                        query.setParameter("organId", organId);
+                        query.setFirstResult(start);
+                        query.setMaxResults(limit);
+                        List<AuditDrugList> result = new ArrayList<AuditDrugList>();
+
+                        setResult(new QueryResult<AuditDrugList>(total, query.getFirstResult(), query.getMaxResults(), result));
+                    }
+                };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 
     /**
      * 更新审核信息

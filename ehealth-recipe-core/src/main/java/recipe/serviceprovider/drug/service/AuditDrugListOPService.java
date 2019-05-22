@@ -3,6 +3,7 @@ package recipe.serviceprovider.drug.service;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Lists;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
@@ -11,6 +12,7 @@ import com.ngari.recipe.drug.model.AuditDrugListDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.service.IAuditDrugListService;
 import com.ngari.recipe.entity.*;
+import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import org.slf4j.Logger;
@@ -102,9 +104,22 @@ public class AuditDrugListOPService implements IAuditDrugListService{
      * @return       药品列表
      */
     @Override
-    public List<AuditDrugListDTO> findAllDrugList(Integer start, Integer limit) {
-        List<AuditDrugList> auditDrugLists = auditDrugListDAO.findAllDrugList(start, limit);
-        return ObjectCopyUtils.convert(auditDrugLists, AuditDrugListDTO.class);
+    public QueryResult<AuditDrugListDTO> findAllDrugList(Integer start, Integer limit) {
+        QueryResult result = auditDrugListDAO.findAllDrugList(start, limit);
+        result.setItems(covertData(result.getItems()));
+        return result;
+    }
+
+    private List<AuditDrugListDTO> covertData(List<AuditDrugList> dbList) {
+        List<AuditDrugListDTO> newList = Lists.newArrayList();
+        AuditDrugListDTO backDTO;
+        for (AuditDrugList daod : dbList) {
+            backDTO = new AuditDrugListDTO();
+            ObjectCopyUtils.convert(daod, AuditDrugListDTO.class);
+            newList.add(backDTO);
+        }
+
+        return newList;
     }
 
     /**
@@ -115,9 +130,10 @@ public class AuditDrugListOPService implements IAuditDrugListService{
      * @return         药品列表
      */
     @Override
-    public List<AuditDrugListDTO> findAllDrugListByOrganId(Integer organId, Integer start, Integer limit) {
-        List<AuditDrugList> auditDrugLists = auditDrugListDAO.findAllDrugListByOrganId(organId, start, limit);
-        return ObjectCopyUtils.convert(auditDrugLists, AuditDrugListDTO.class);
+    public QueryResult<AuditDrugListDTO> findAllDrugListByOrganId(Integer organId, Integer start, Integer limit) {
+        QueryResult result = auditDrugListDAO.findAllDrugListByOrganId(organId, start, limit);
+        result.setItems(covertData(result.getItems()));
+        return result;
     }
 
     /**

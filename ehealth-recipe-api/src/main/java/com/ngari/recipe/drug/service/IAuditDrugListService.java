@@ -2,6 +2,7 @@ package com.ngari.recipe.drug.service;
 
 import com.ngari.recipe.drug.model.AuditDrugListDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
+import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
 
 import java.util.List;
@@ -16,10 +17,10 @@ public interface IAuditDrugListService {
     AuditDrugListDTO getById(Integer auditDrugListId);
 
     @RpcService
-    List<AuditDrugListDTO> findAllDrugList(Integer start, Integer limit);
+    QueryResult<AuditDrugListDTO> findAllDrugList(Integer start, Integer limit);
 
     @RpcService
-    List<AuditDrugListDTO> findAllDrugListByOrganId(Integer organId, Integer start, Integer limit);
+    QueryResult<AuditDrugListDTO> findAllDrugListByOrganId(Integer organId, Integer start, Integer limit);
 
     @RpcService
     List<DrugListBean> matchAllDrugListByName(String drugName);
