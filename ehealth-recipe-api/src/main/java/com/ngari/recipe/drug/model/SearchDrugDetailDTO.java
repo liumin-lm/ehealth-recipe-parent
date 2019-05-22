@@ -2,6 +2,7 @@ package com.ngari.recipe.drug.model;
 
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
+import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -14,6 +15,7 @@ import java.util.List;
  * @description： 医生药品查询返回对象
  * @version： 1.0
  */
+@Schema
 public class SearchDrugDetailDTO implements Serializable {
 
     private static final long serialVersionUID = 2118094900340586830L;
