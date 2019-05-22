@@ -1154,7 +1154,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(organ.getOrganId(), drugCodes);
             if (organDrugLists != null && organDrugLists.size() > 0) {
                 //说明该药品存在于机构药品目录,审核直接通过,直接推送给钥世圈
-                List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("钥世圈");
+                List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
                 ysqRemoteService.sendAuditDrugList(drugsEnterprises.get(0), auditDrugListBean.getOrganizeCode(), auditDrugListBean.getOrganDrugCode(), 1);
                 //更新临时表标志
                 resultAudit.setStatus(1);

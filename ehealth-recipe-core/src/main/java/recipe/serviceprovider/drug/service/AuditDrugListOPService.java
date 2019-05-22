@@ -75,7 +75,7 @@ public class AuditDrugListOPService implements IAuditDrugListService{
     private void updateAuditDrugListStatus(Integer auditDrugId, Integer status, String rejectReason) {
         auditDrugListDAO.updateAuditDrugListStatus(auditDrugId, status, rejectReason);
         AuditDrugList auditDrugList = auditDrugListDAO.get(auditDrugId);
-        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("钥世圈");
+        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
         ysqRemoteService.sendAuditDrugList(drugsEnterprises.get(0), auditDrugList.getOrganizeCode(), auditDrugList.getOrganDrugCode(), status);
     }
 
