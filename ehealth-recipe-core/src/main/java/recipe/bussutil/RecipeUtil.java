@@ -104,6 +104,8 @@ public class RecipeUtil {
                     if (StringUtils.isNotEmpty(odlist.getUsingRate())){
                         drugList.setUsingRate(odlist.getUsingRate());
                     }
+                    //历史用药入口--默认填充机构的，平台的不填充
+                    drugList.setUseDose(odlist.getUseDose());
                     break;
                 }
             }
