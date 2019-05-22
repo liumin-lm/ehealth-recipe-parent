@@ -16,6 +16,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.util.StringUtils;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.util.LocalStringUtil;
@@ -180,6 +181,13 @@ public class DrugSyncObserver implements Observer<ShadowMessage> {
                 if (null == drug) {
                     detailVo.setStatus(0);
                 } else {
+                    //药品用法用量默认使用机构的，无机构数据则使用平台的，两者都无数据则为空
+                    if (StringUtils.isEmpty(organDrug.getUsePathways())){
+                        detailVo.setUsePathways(drug.getUsePathways());
+                    }
+                    if (StringUtils.isEmpty(organDrug.getUsingRate())){
+                        detailVo.setUsingRate(drug.getUsingRate());
+                    }
                     //重置searchKey
                     searchKey = drug.getSaleName() + ";" + organDrug.getSaleName() + ";" +
                             LocalStringUtil.toString(organDrug.getRetrievalCode());

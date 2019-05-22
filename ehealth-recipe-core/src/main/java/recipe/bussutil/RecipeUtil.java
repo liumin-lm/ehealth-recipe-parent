@@ -97,6 +97,13 @@ public class RecipeUtil {
                 if (null != drugList && null != odlist && drugList.getDrugId().equals(odlist.getDrugId())) {
                     drugList.setHospitalPrice(odlist.getSalePrice());
                     drugList.setOrganDrugCode(odlist.getOrganDrugCode());
+                    //药品用法用量默认使用机构的，无机构数据则使用平台的，两者都无数据则为空
+                    if (StringUtils.isNotEmpty(odlist.getUsePathways())){
+                        drugList.setUsePathways(odlist.getUsePathways());
+                    }
+                    if (StringUtils.isNotEmpty(odlist.getUsingRate())){
+                        drugList.setUsingRate(odlist.getUsingRate());
+                    }
                     break;
                 }
             }
