@@ -62,16 +62,16 @@ public abstract class AuditDrugListDAO extends HibernateSupportDelegateDAO<Audit
                     @SuppressWarnings("unchecked")
                     @Override
                     public void execute(StatelessSession ss) throws DAOException {
-                        StringBuilder hql = new StringBuilder(" from AuditDrugList a where a.Type = 0 and a.Status = 0  ");
+                        StringBuilder hql = new StringBuilder(" from AuditDrugList where Type = 0 and Status = 0  ");
                         if (!StringUtils.isEmpty(drugClass)) {
-                            hql.append(" and a.drugClass like :drugClass ");
+                            hql.append(" and drugClass like :drugClass ");
                         }
                         if (!StringUtils.isEmpty(keyword)) {
                             hql.append(" and (");
-                            hql.append(" a.drugName like :keyword or a.producer like :keyword or a.saleName like :keyword or a.approvalNumber like :keyword ");
+                            hql.append(" drugName like :keyword or producer like :keyword or saleName like :keyword or approvalNumber like :keyword ");
                             hql.append(")");
                         }
-                        hql.append(" order by a.Status asc, a.CreateDt desc ");
+                        hql.append(" order by Status asc, CreateDt desc ");
 
                         Query countQuery = ss.createQuery("select count(*) " + hql.toString());
 
@@ -102,13 +102,13 @@ public abstract class AuditDrugListDAO extends HibernateSupportDelegateDAO<Audit
                     @SuppressWarnings("unchecked")
                     @Override
                     public void execute(StatelessSession ss) throws DAOException {
-                        StringBuilder hql = new StringBuilder(" from AuditDrugList a where a.OrganId=:organId and a.Type = 1 and a.Status = 0 ");
+                        StringBuilder hql = new StringBuilder(" from AuditDrugList where OrganId=:organId and Type = 1 and Status = 0 ");
                         if (!StringUtils.isEmpty(drugClass)) {
-                            hql.append(" and a.drugClass like :drugClass");
+                            hql.append(" and drugClass like :drugClass");
                         }
                         if (!StringUtils.isEmpty(keyword)) {
                             hql.append(" and (");
-                            hql.append(" a.drugName like :keyword or a.producer like :keyword or a.saleName like :keyword or a.approvalNumber like :keyword ");
+                            hql.append(" drugName like :keyword or producer like :keyword or saleName like :keyword or approvalNumber like :keyword ");
                             hql.append(")");
                         }
                         hql.append(" order by Status asc, CreateDt desc ");
