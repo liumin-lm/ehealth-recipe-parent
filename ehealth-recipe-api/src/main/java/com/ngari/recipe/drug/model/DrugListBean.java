@@ -109,6 +109,9 @@ public class DrugListBean implements Serializable {
     @ItemProperty(alias = "医院价格")
     private BigDecimal hospitalPrice;
 
+    @ItemProperty(alias = "机构药品编码")
+    private String organDrugCode;
+
     private DispensatoryDTO dispensatory;
 
     @ItemProperty(alias = "是否是匹配的药品(药品工具返回前端用)")
@@ -360,5 +363,13 @@ public class DrugListBean implements Serializable {
     @Override
     public String toString() {
         return JSONUtils.toString(this);
+    }
+
+    public String getOrganDrugCode() {
+        return organDrugCode;
+    }
+
+    public void setOrganDrugCode(String organDrugCode) {
+        this.organDrugCode = organDrugCode;
     }
 }
