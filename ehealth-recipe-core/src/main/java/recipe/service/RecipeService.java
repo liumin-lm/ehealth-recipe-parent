@@ -523,7 +523,7 @@ public class RecipeService {
                 //0表示成功
                 Integer code = MapValueUtil.getInteger(backMap, "code");
                 if (Integer.valueOf(0).equals(code)) {
-                    Integer recipeFileId = MapValueUtil.getInteger(backMap, "fileId");
+                    String recipeFileId = MapValueUtil.getString(backMap, "fileId");
                     bl = recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.<String, Object>of("chemistSignFile", recipeFileId));
                 } else {
                     LOGGER.error("reviewRecipe signFile error. recipeId={}, result={}", recipeId, JSONUtils.toString(backMap));
@@ -624,7 +624,7 @@ public class RecipeService {
         //上传阿里云
         String memo = "";
         Map<String, Object> backMap = esignService.signForRecipe(true, recipe.getDoctor(), paramMap);
-        Integer imgFileId = MapValueUtil.getInteger(backMap, "imgFileId");
+        String imgFileId = MapValueUtil.getString(backMap, "imgFileId");
         Map<String, Object> attrMapimg = Maps.newHashMap();
         attrMapimg.put("signImg",imgFileId);
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMapimg);
@@ -632,7 +632,7 @@ public class RecipeService {
         //0表示成功
         Integer code = MapValueUtil.getInteger(backMap, "code");
         if (Integer.valueOf(0).equals(code)) {
-            Integer recipeFileId = MapValueUtil.getInteger(backMap, "fileId");
+            String recipeFileId = MapValueUtil.getString(backMap, "fileId");
             Map<String, Object> attrMap = Maps.newHashMap();
             attrMap.put("signFile", recipeFileId);
             attrMap.put("signDate", recipe.getSignDate());
