@@ -106,7 +106,7 @@ public abstract class AuditDrugListDAO extends HibernateSupportDelegateDAO<Audit
                     @SuppressWarnings("unchecked")
                     @Override
                     public void execute(StatelessSession ss) throws DAOException {
-                        StringBuilder hql = new StringBuilder(" from AuditDrugList where OrganId=:organId and Type = 1 and Status = 0 ");
+                        StringBuilder hql = new StringBuilder(" from AuditDrugList where OrganId=:organId and Type = 1 ");
                         if (!StringUtils.isEmpty(drugClass)) {
                             hql.append(" and drugClass like :drugClass");
                         }
