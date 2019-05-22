@@ -1193,7 +1193,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         auditDrugList.setUsingRate(auditDrugListBean.getUsingRate());
         auditDrugList.setSourceOrgan(auditDrugListBean.getSourceOrgan());
         auditDrugList.setType(0);
-        auditDrugList.setSourceEnterprise(auditDrugListBean.getSourceEnterprise());
+        auditDrugList.setSourceEnterprise(StringUtils.isEmpty(auditDrugListBean.getSourceEnterprise())?"钥世圈":auditDrugListBean.getSourceEnterprise());
         return auditDrugList;
     }
 
