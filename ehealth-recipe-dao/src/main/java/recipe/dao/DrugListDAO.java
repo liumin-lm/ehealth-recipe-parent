@@ -418,15 +418,15 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
      * @param drug
      */
     public void setDrugDefaultInfo(DrugList drug) {
-        //设置默认值
-        if (StringUtils.isEmpty(drug.getUsingRate())) {
+        //设置默认值---取消默认值，bug#27581----运营平台药品数据与医生开方药品填充不一致
+        /*if (StringUtils.isEmpty(drug.getUsingRate())) {
             //每日三次
             drug.setUsingRate("tid");
         }
         if (StringUtils.isEmpty(drug.getUsePathways())) {
             //口服
             drug.setUsePathways("po");
-        }
+        }*/
         if (null == drug.getUseDose()) {
             //根据规格来设置
             double useDose = 0d;
