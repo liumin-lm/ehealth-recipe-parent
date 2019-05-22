@@ -323,6 +323,7 @@ public class RecipeSignService {
         }
         recipeBean.setStatus(RecipeStatusConstant.UNSIGN);
         recipeBean.setSignDate(DateTime.now().toDate());
+        recipeBean.setRecipeMode(RecipeBussConstant.RECIPEMODE_ZJJGPT);
         Integer recipeId = recipeBean.getRecipeId();
 
         //生成处方编号，不需要通过HIS去产生

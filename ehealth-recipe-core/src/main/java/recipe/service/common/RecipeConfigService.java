@@ -58,11 +58,11 @@ public class RecipeConfigService {
                     redisClient.setEX(CacheConstant.KEY_RECIPEMODE + appKey, 24 * 3600L, val);
                 }
             } catch (Exception e) {
-                LOG.warn("getRecipeMode exception! appke={}", appKey, e);
+                LOG.warn("getRecipeMode exception! appKey={}", appKey, e);
             }
         }
 
-        LOG.info("getRecipeMode appkey={}, recipeMode={}", appKey, val);
+        LOG.info("getRecipeMode appKey={}, recipeMode={}", appKey, val);
         return val;
     }
 }
