@@ -29,6 +29,9 @@ public class AuditDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "医疗结构药品编码")
     private String organDrugCode;
 
+    @ItemProperty(alias = "药品类型编码")
+    private String drugClass;
+
     @ItemProperty(alias = "配送药品序号")
     private Integer saleDrugListId;
 
@@ -166,6 +169,14 @@ public class AuditDrugListDTO implements java.io.Serializable {
 
     public void setSaleName(String saleName) {
         this.saleName = saleName;
+    }
+
+    public String getDrugClass() {
+        return drugClass;
+    }
+
+    public void setDrugClass(String drugClass) {
+        this.drugClass = drugClass;
     }
 
     public String getDrugSpec() {

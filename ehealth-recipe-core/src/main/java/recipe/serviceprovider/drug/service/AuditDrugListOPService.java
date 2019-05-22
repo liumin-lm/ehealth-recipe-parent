@@ -104,8 +104,8 @@ public class AuditDrugListOPService implements IAuditDrugListService{
      * @return       药品列表
      */
     @Override
-    public QueryResult<AuditDrugListDTO> findAllDrugList(Integer start, Integer limit) {
-        QueryResult result = auditDrugListDAO.findAllDrugList(start, limit);
+    public QueryResult<AuditDrugListDTO> findAllDrugList(String drugClass, String keyword ,Integer start, Integer limit) {
+        QueryResult result = auditDrugListDAO.findAllDrugList(drugClass, keyword, start, limit);
         result.setItems(covertData(result.getItems()));
         return result;
     }
@@ -114,8 +114,7 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         List<AuditDrugListDTO> newList = Lists.newArrayList();
         AuditDrugListDTO backDTO;
         for (AuditDrugList daod : dbList) {
-            backDTO = new AuditDrugListDTO();
-            ObjectCopyUtils.convert(daod, AuditDrugListDTO.class);
+            backDTO = ObjectCopyUtils.convert(daod, AuditDrugListDTO.class);
             newList.add(backDTO);
         }
 
@@ -130,8 +129,8 @@ public class AuditDrugListOPService implements IAuditDrugListService{
      * @return         药品列表
      */
     @Override
-    public QueryResult<AuditDrugListDTO> findAllDrugListByOrganId(Integer organId, Integer start, Integer limit) {
-        QueryResult result = auditDrugListDAO.findAllDrugListByOrganId(organId, start, limit);
+    public QueryResult<AuditDrugListDTO> findAllDrugListByOrganId(Integer organId, String drugClass, String keyword ,Integer start, Integer limit) {
+        QueryResult result = auditDrugListDAO.findAllDrugListByOrganId(organId, drugClass, keyword, start, limit);
         result.setItems(covertData(result.getItems()));
         return result;
     }
@@ -179,6 +178,7 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         SaleDrugList saleDrugList = packageSaleDrugList(auditDrugList, drugList, resultOrganDrugList);
         SaleDrugList resultSaleDrugList = saleDrugListDAO.save(saleDrugList);
 
+        auditDrugList.setDrugClass(drugList.getDrugClass());
         auditDrugList.setOrganDrugListId(resultOrganDrugList.getOrganDrugId());
         auditDrugList.setSaleDrugListId(resultSaleDrugList.getDrugId());
 

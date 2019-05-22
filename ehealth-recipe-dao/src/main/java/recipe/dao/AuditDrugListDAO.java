@@ -1,5 +1,6 @@
 package recipe.dao;
 
+import com.alibaba.druid.util.StringUtils;
 import com.ngari.recipe.entity.AuditDrugList;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -55,25 +56,33 @@ public abstract class AuditDrugListDAO extends HibernateSupportDelegateDAO<Audit
      * @param limit  限制页
      * @return       药品列表
      */
-    public QueryResult<AuditDrugList> findAllDrugList(final int start, final int limit) {
+    public QueryResult<AuditDrugList> findAllDrugList(final String drugClass, final String keyword, final int start, final int limit) {
         HibernateStatelessResultAction<QueryResult<AuditDrugList>> action =
                 new AbstractHibernateStatelessResultAction<QueryResult<AuditDrugList>>() {
                     @SuppressWarnings("unchecked")
                     @Override
                     public void execute(StatelessSession ss) throws DAOException {
-                        StringBuilder hql = new StringBuilder(" from AuditDrugList where Type = 0 and Status = 0 order by Status asc,CreateDt desc ");
+                        StringBuilder hql = new StringBuilder(" from AuditDrugList a where a.Type = 0 and a.Status = 0  ");
+                        if (!StringUtils.isEmpty(drugClass)) {
+                            hql.append(" and a.drugClass like :drugClass ");
+                        }
+                        if (!StringUtils.isEmpty(keyword)) {
+                            hql.append(" and (");
+                            hql.append(" a.drugName like :keyword or a.producer like :keyword or a.saleName like :keyword or a.approvalNumber like :keyword ");
+                            hql.append(")");
+                        }
+                        hql.append(" order by a.Status asc, a.CreateDt desc ");
 
                         Query countQuery = ss.createQuery("select count(*) " + hql.toString());
 
                         Long total = (Long) countQuery.uniqueResult();
 
-                        Query query = ss.createQuery("select d " + hql.toString());
+                        Query query = ss.createQuery(hql.toString());
 
                         query.setFirstResult(start);
                         query.setMaxResults(limit);
-                        List<AuditDrugList> result = new ArrayList<AuditDrugList>();
-
-                        setResult(new QueryResult<AuditDrugList>(total, query.getFirstResult(), query.getMaxResults(), result));
+                        List<AuditDrugList> list = query.list();
+                        setResult(new QueryResult<AuditDrugList>(total, query.getFirstResult(), query.getMaxResults(), list));
                     }
                 };
         HibernateSessionTemplate.instance().execute(action);
@@ -87,25 +96,33 @@ public abstract class AuditDrugListDAO extends HibernateSupportDelegateDAO<Audit
      * @param limit    限制页
      * @return         药品列表
      */
-    public QueryResult<AuditDrugList> findAllDrugListByOrganId(final Integer organId, final int start, final int limit) {
+    public QueryResult<AuditDrugList> findAllDrugListByOrganId(final Integer organId, final String drugClass, final String keyword, final int start, final int limit) {
         HibernateStatelessResultAction<QueryResult<AuditDrugList>> action =
                 new AbstractHibernateStatelessResultAction<QueryResult<AuditDrugList>>() {
                     @SuppressWarnings("unchecked")
                     @Override
                     public void execute(StatelessSession ss) throws DAOException {
-                        StringBuilder hql = new StringBuilder(" from AuditDrugList where OrganId=:organId and Type = 1 and Status = 0 order by Status asc, CreateDt desc ");
-
+                        StringBuilder hql = new StringBuilder(" from AuditDrugList a where a.OrganId=:organId and a.Type = 1 and a.Status = 0 ");
+                        if (!StringUtils.isEmpty(drugClass)) {
+                            hql.append(" and a.drugClass like :drugClass");
+                        }
+                        if (!StringUtils.isEmpty(keyword)) {
+                            hql.append(" and (");
+                            hql.append(" a.drugName like :keyword or a.producer like :keyword or a.saleName like :keyword or a.approvalNumber like :keyword ");
+                            hql.append(")");
+                        }
+                        hql.append(" order by Status asc, CreateDt desc ");
                         Query countQuery = ss.createQuery("select count(*) " + hql.toString());
                         countQuery.setParameter("organId", organId);
                         Long total = (Long) countQuery.uniqueResult();
 
-                        Query query = ss.createQuery("select d " + hql.toString());
+                        Query query = ss.createQuery(hql.toString());
                         query.setParameter("organId", organId);
                         query.setFirstResult(start);
                         query.setMaxResults(limit);
-                        List<AuditDrugList> result = new ArrayList<AuditDrugList>();
+                        List<AuditDrugList> list = query.list();
 
-                        setResult(new QueryResult<AuditDrugList>(total, query.getFirstResult(), query.getMaxResults(), result));
+                        setResult(new QueryResult<AuditDrugList>(total, query.getFirstResult(), query.getMaxResults(), list));
                     }
                 };
         HibernateSessionTemplate.instance().execute(action);

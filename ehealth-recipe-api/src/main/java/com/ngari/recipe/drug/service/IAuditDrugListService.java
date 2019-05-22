@@ -17,10 +17,10 @@ public interface IAuditDrugListService {
     AuditDrugListDTO getById(Integer auditDrugListId);
 
     @RpcService
-    QueryResult<AuditDrugListDTO> findAllDrugList(Integer start, Integer limit);
+    QueryResult<AuditDrugListDTO> findAllDrugList(String drugClass, String keyword ,Integer start, Integer limit);
 
     @RpcService
-    QueryResult<AuditDrugListDTO> findAllDrugListByOrganId(Integer organId, Integer start, Integer limit);
+    QueryResult<AuditDrugListDTO> findAllDrugListByOrganId(Integer organId, String drugClass, String keyword ,Integer start, Integer limit);
 
     @RpcService
     List<DrugListBean> matchAllDrugListByName(String drugName);
