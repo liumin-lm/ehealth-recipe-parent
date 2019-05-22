@@ -1235,10 +1235,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             result.setMsg("药品规格不能为空");
             return result;
         }
-        if (auditDrugListBean.getDrugType() == null) {
-            result.setMsg("药品类型不能为空");
-            return result;
-        }
         result.setCode(StandardResultDTO.SUCCESS);
         return result;
     }
