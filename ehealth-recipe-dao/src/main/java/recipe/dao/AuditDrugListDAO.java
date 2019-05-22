@@ -74,11 +74,15 @@ public abstract class AuditDrugListDAO extends HibernateSupportDelegateDAO<Audit
                         hql.append(" order by Status asc, CreateDt desc ");
 
                         Query countQuery = ss.createQuery("select count(*) " + hql.toString());
-
+                        if (!StringUtils.isEmpty(keyword)) {
+                            countQuery.setParameter("keyword", keyword);
+                        }
                         Long total = (Long) countQuery.uniqueResult();
 
                         Query query = ss.createQuery(hql.toString());
-
+                        if (!StringUtils.isEmpty(keyword)) {
+                            query.setParameter("keyword", keyword);
+                        }
                         query.setFirstResult(start);
                         query.setMaxResults(limit);
                         List<AuditDrugList> list = query.list();
@@ -114,10 +118,16 @@ public abstract class AuditDrugListDAO extends HibernateSupportDelegateDAO<Audit
                         hql.append(" order by Status asc, CreateDt desc ");
                         Query countQuery = ss.createQuery("select count(*) " + hql.toString());
                         countQuery.setParameter("organId", organId);
+                        if (!StringUtils.isEmpty(keyword)) {
+                            countQuery.setParameter("keyword", keyword);
+                        }
                         Long total = (Long) countQuery.uniqueResult();
 
                         Query query = ss.createQuery(hql.toString());
                         query.setParameter("organId", organId);
+                        if (!StringUtils.isEmpty(keyword)) {
+                            query.setParameter("keyword", keyword);
+                        }
                         query.setFirstResult(start);
                         query.setMaxResults(limit);
                         List<AuditDrugList> list = query.list();
