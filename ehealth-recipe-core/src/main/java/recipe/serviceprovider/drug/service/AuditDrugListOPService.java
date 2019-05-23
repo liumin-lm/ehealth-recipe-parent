@@ -11,6 +11,7 @@ import com.ngari.recipe.drug.service.IAuditDrugListService;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +75,7 @@ public class AuditDrugListOPService implements IAuditDrugListService{
             try{
                 //表示审核通过
                 OrganDrugList organDrugList = organDrugListDAO.get(auditDrugList.getOrganDrugListId());
-                LOGGER.info("organDrugList:{}.", organDrugList);
+                LOGGER.info("organDrugList:{}.", JSONUtils.toString(organDrugList));
                 organDrugList.setSalePrice(BigDecimal.valueOf(salePrice));
                 organDrugList.setTakeMedicine(takeMedicine);
                 organDrugListDAO.update(organDrugList);
