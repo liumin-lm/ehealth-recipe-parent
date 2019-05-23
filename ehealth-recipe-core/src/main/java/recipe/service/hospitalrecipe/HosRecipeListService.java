@@ -170,9 +170,8 @@ public class HosRecipeListService {
      * @return 结果
      */
     @RpcService
-    public RecipeStandardResTO<Map> addPatientForDoctor(HosRecipeListRequest request) {
+    public PatientBean addPatientForDoctor(HosRecipeListRequest request) {
         validate(request);
-        RecipeStandardResTO<Map> response = RecipeStandardResTO.getRequest(Map.class);
         PatientBean patient = null;
         try {
             //获取患者性别
@@ -186,16 +185,16 @@ public class HosRecipeListService {
             Map<String, Object> map = setPatientInfo(request);
             patient = (PatientBean)map.get("patient");
         } catch (Exception e) {
-            LOG.warn("findHistroyRecipeList 处理就诊人异常，doctorId={}",
+            LOG.warn("addPatientForDoctor 处理就诊人异常，doctorId={}",
                     request.getDoctorId(), e);
         } finally {
             if (null == patient || StringUtils.isEmpty(patient.getMpiId())) {
-                LOG.warn("findHistroyRecipeList 患者创建失败，doctorId={}",
+                LOG.warn("addPatientForDoctor 患者创建失败，doctorId={}",
                         request.getDoctorId());
-                response.setMsg("患者创建失败");
+
             }
         }
-        return response;
+        return patient;
     }
 
     private void validate(HosRecipeListRequest request){

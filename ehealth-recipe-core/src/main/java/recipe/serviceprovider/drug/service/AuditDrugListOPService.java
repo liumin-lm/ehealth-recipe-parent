@@ -1,8 +1,5 @@
 package recipe.serviceprovider.drug.service;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
@@ -26,7 +23,6 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 /**
  * @author yinsheng
@@ -51,13 +47,6 @@ public class AuditDrugListOPService implements IAuditDrugListService{
 
     @Resource
     private SaleDrugListDAO saleDrugListDAO;
-
-    private LoadingCache<String, List<DrugList>> drugListCache = CacheBuilder.newBuilder().build(new CacheLoader<String, List<DrugList>>() {
-        @Override
-        public List<DrugList> load(String str) throws Exception {
-            return drugListDAO.findBySaleNameLike(str);
-        }
-    });
 
     @Resource
     private YsqRemoteService ysqRemoteService;
@@ -146,8 +135,8 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         //根据药品名取标准药品库查询相关药品
         List<DrugList> drugLists = null;
         try {
-            drugLists = drugListCache.get(str);
-        } catch (ExecutionException e) {
+            drugLists = drugListDAO.findBySaleNameLike(str);
+        } catch (Exception e) {
             LOGGER.error("drugMatch:" + e.getMessage());
         }
         return ObjectCopyUtils.convert(drugLists, DrugListBean.class);
@@ -181,6 +170,7 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         auditDrugList.setDrugClass(drugList.getDrugClass());
         auditDrugList.setOrganDrugListId(resultOrganDrugList.getOrganDrugId());
         auditDrugList.setSaleDrugListId(resultSaleDrugList.getDrugId());
+        auditDrugList.setType(1);
 
         auditDrugListDAO.update(auditDrugList);
 

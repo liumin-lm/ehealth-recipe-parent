@@ -19,6 +19,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -1139,6 +1140,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         AuditDrugList auditDrugList = packageAuditDrugList(auditDrugListBean);
         //首先保存到auditDrugList
         AuditDrugList resultAudit = auditDrugListDAO.save(auditDrugList);
+        //TODO 先和钥世圈联调直接推送
+        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
+        ysqRemoteService.sendAuditDrugList(drugsEnterprises.get(0), auditDrugListBean.getOrganizeCode(), auditDrugListBean.getOrganDrugCode(), 1);
         //首先查找salaDrugList是否存在该药品
         OrganDTO organ = organService.getOrganByOrganizeCode(auditDrugListBean.getOrganizeCode());
         if (organ == null) {
@@ -1154,7 +1158,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(organ.getOrganId(), drugCodes);
             if (organDrugLists != null && organDrugLists.size() > 0) {
                 //说明该药品存在于机构药品目录,审核直接通过,直接推送给钥世圈
-                List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
+                drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
                 ysqRemoteService.sendAuditDrugList(drugsEnterprises.get(0), auditDrugListBean.getOrganizeCode(), auditDrugListBean.getOrganDrugCode(), 1);
                 //更新临时表标志
                 resultAudit.setStatus(1);
@@ -1180,7 +1184,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         auditDrugList.setSaleName(auditDrugListBean.getSaleName());
         auditDrugList.setCreateDt(auditDrugListBean.getCreateDt());
         auditDrugList.setApprovalNumber(StringUtils.isEmpty(auditDrugListBean.getApprovalNumber())?"": auditDrugListBean.getApprovalNumber());
-        auditDrugList.setPack(auditDrugListBean.getPack());
+        auditDrugList.setPack(auditDrugListBean.getPack()==null?0:auditDrugListBean.getPack());
         auditDrugList.setDrugForm(auditDrugListBean.getDrugForm());
         auditDrugList.setDrugType(auditDrugListBean.getDrugType());
         auditDrugList.setProducer(auditDrugListBean.getProducer());
