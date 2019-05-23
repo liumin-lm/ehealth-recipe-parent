@@ -71,22 +71,27 @@ public class AuditDrugListOPService implements IAuditDrugListService{
     public void hospitalAuditDrugList(Integer auditDrugListId, Double salePrice, Integer takeMedicine, Integer status, String rejectReason) {
         AuditDrugList auditDrugList = auditDrugListDAO.get(auditDrugListId);
         if (status == 1) {
-            //表示审核通过
-            OrganDrugList organDrugList = organDrugListDAO.get(auditDrugList.getOrganDrugListId());
-            organDrugList.setSalePrice(BigDecimal.valueOf(salePrice));
-            organDrugList.setTakeMedicine(takeMedicine);
-            organDrugListDAO.update(organDrugList);
-            auditDrugList.setPrice(salePrice);
-            auditDrugList.setStatus(status);
-            auditDrugListDAO.update(auditDrugList);
+            try{
+                //表示审核通过
+                OrganDrugList organDrugList = organDrugListDAO.get(auditDrugList.getOrganDrugListId());
+                organDrugList.setSalePrice(BigDecimal.valueOf(salePrice));
+                organDrugList.setTakeMedicine(takeMedicine);
+                organDrugListDAO.update(organDrugList);
+                auditDrugList.setPrice(salePrice);
+                auditDrugList.setStatus(status);
+                auditDrugListDAO.update(auditDrugList);
 
-            SaleDrugList saleDrugList = saleDrugListDAO.get(auditDrugList.getSaleDrugListId());
-            if (saleDrugList != null) {
-                saleDrugList.setPrice(BigDecimal.valueOf(salePrice));
-                saleDrugListDAO.update(saleDrugList);
+                SaleDrugList saleDrugList = saleDrugListDAO.get(auditDrugList.getSaleDrugListId());
+                if (saleDrugList != null) {
+                    saleDrugList.setPrice(BigDecimal.valueOf(salePrice));
+                    saleDrugListDAO.update(saleDrugList);
+                }
+                List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
+                ysqRemoteService.sendAuditDrugList(drugsEnterprises.get(0), auditDrugList.getOrganizeCode(), auditDrugList.getOrganDrugCode(), status);
+            }catch (Exception e) {
+                LOGGER.info("hospitalAuditDrugList:{}.", auditDrugListId, e);
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "审核不成功!");
             }
-            List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
-            ysqRemoteService.sendAuditDrugList(drugsEnterprises.get(0), auditDrugList.getOrganizeCode(), auditDrugList.getOrganDrugCode(), status);
         } else if (status == 2) {
             //表示审核不通过
             updateAuditDrugListStatus(auditDrugListId, status, rejectReason);
