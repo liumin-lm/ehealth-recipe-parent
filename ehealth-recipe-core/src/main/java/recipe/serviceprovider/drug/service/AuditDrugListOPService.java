@@ -75,7 +75,6 @@ public class AuditDrugListOPService implements IAuditDrugListService{
             try{
                 //表示审核通过
                 OrganDrugList organDrugList = organDrugListDAO.get(auditDrugList.getOrganDrugListId());
-                LOGGER.info("organDrugList:{}.", JSONUtils.toString(organDrugList));
                 organDrugList.setSalePrice(BigDecimal.valueOf(salePrice));
                 organDrugList.setTakeMedicine(takeMedicine);
                 organDrugListDAO.update(organDrugList);
