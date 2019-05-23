@@ -1135,6 +1135,12 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         OrganService organService = BasicAPI.getService(OrganService.class);
         //校验入参
         validate(result , auditDrugListBean);
+        AuditDrugList auditDrug = auditDrugListDAO.getByOrganizeCodeAndOrganDrugCode(auditDrugListBean.getOrganizeCode(), auditDrugListBean.getOrganDrugCode());
+        if (auditDrug != null) {
+            LOGGER.info("该药品已经上传");
+            result.setMsg("该药品已经上传");
+            return result;
+        }
         //包装药品数据
         AuditDrugList auditDrugList = packageAuditDrugList(auditDrugListBean);
         //首先保存到auditDrugList
