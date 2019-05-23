@@ -295,6 +295,9 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias="处方详情信息")
     private RecipeExtendBean recipeExtend;
 
+    @ItemProperty(alias="就诊卡号")
+    private String patientCard;
+
     public RecipeBean() {
     }
 
@@ -1092,5 +1095,11 @@ public class RecipeBean implements Serializable {
         return (useMedicalFlag.equals(medicalPayFlag)) ? true : false;
     }
 
+    public String getPatientCard() {
+        return patientCard;
+    }
 
+    public void setPatientCard(String patientCard) {
+        this.patientCard = patientCard;
+    }
 }
