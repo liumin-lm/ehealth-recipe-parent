@@ -585,7 +585,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         OrganService organService = BasicAPI.getService(OrganService.class);
         OrganDTO organ = organService.getOrganByOrganizeCode(organizeCode);
         AuditDrugListDAO auditDrugListDAO = DAOFactory.getDAO(AuditDrugListDAO.class);
-        AuditDrugList auditDrugList = auditDrugListDAO.findByOrganizeCodeAndOrganDrugCode(organizeCode, organDrugCode);
+        AuditDrugList auditDrugList = auditDrugListDAO.getByOrganizeCodeAndOrganDrugCode(organizeCode, organDrugCode);
 
         String drugEpName = drugsEnterprise.getName();
         //最终发给药企的json数据

@@ -135,7 +135,7 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         //根据药品名取标准药品库查询相关药品
         List<DrugList> drugLists = null;
         try {
-            drugLists = drugListDAO.findBySaleNameLike(str);
+            drugLists = drugListDAO.findBySaleNameOrDrugNameLike(str);
         } catch (Exception e) {
             LOGGER.error("drugMatch:" + e.getMessage());
         }

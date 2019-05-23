@@ -162,7 +162,7 @@ public abstract class AuditDrugListDAO extends HibernateSupportDelegateDAO<Audit
                                                    @DAOParam("status") Integer status,
                                                    @DAOParam("rejectReason") String rejectReason);
 
-    @DAOMethod(sql = " from AuditDrugList where organizeCode=:organizeCode and organDrugCode=:organDrugCode ")
-    public abstract AuditDrugList findByOrganizeCodeAndOrganDrugCode(@DAOParam("organizeCode") String organizeCode,
+    @DAOMethod(sql = "from AuditDrugList where OrganizeCode=:organizeCode and OrganDrugCode=:organDrugCode ")
+    public abstract AuditDrugList getByOrganizeCodeAndOrganDrugCode(@DAOParam("organizeCode") String organizeCode,
                                                                      @DAOParam("organDrugCode") String organDrugCode);
 }
