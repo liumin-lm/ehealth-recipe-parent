@@ -1131,7 +1131,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         AuditDrugListDAO auditDrugListDAO = DAOFactory.getDAO(AuditDrugListDAO.class);
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
 
         OrganService organService = BasicAPI.getService(OrganService.class);
         //校验入参
@@ -1140,9 +1139,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         AuditDrugList auditDrugList = packageAuditDrugList(auditDrugListBean);
         //首先保存到auditDrugList
         AuditDrugList resultAudit = auditDrugListDAO.save(auditDrugList);
-        //TODO 先和钥世圈联调直接推送
-        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
-        ysqRemoteService.sendAuditDrugList(drugsEnterprises.get(0), auditDrugListBean.getOrganizeCode(), auditDrugListBean.getOrganDrugCode(), 1);
         //首先查找salaDrugList是否存在该药品
         OrganDTO organ = organService.getOrganByOrganizeCode(auditDrugListBean.getOrganizeCode());
         if (organ == null) {
@@ -1157,9 +1153,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             //说明该药品存在于配送药品目录,校验是否存在于机构药品目录
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(organ.getOrganId(), drugCodes);
             if (organDrugLists != null && organDrugLists.size() > 0) {
-                //说明该药品存在于机构药品目录,审核直接通过,直接推送给钥世圈
-                drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
-                ysqRemoteService.sendAuditDrugList(drugsEnterprises.get(0), auditDrugListBean.getOrganizeCode(), auditDrugListBean.getOrganDrugCode(), 1);
                 //更新临时表标志
                 resultAudit.setStatus(1);
                 resultAudit.setType(1);
