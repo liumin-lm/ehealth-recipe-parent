@@ -76,7 +76,15 @@ public class AuditDrugListOPService implements IAuditDrugListService{
             organDrugList.setSalePrice(BigDecimal.valueOf(salePrice));
             organDrugList.setTakeMedicine(takeMedicine);
             organDrugListDAO.update(organDrugList);
-            updateAuditDrugListStatus(auditDrugListId, status, rejectReason);
+            auditDrugList.setPrice(salePrice);
+            auditDrugList.setStatus(status);
+            auditDrugListDAO.update(auditDrugList);
+
+            SaleDrugList saleDrugList = saleDrugListDAO.get(auditDrugList.getSaleDrugListId());
+            if (saleDrugList != null) {
+                saleDrugList.setPrice(BigDecimal.valueOf(salePrice));
+                saleDrugListDAO.update(saleDrugList);
+            }
             List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
             ysqRemoteService.sendAuditDrugList(drugsEnterprises.get(0), auditDrugList.getOrganizeCode(), auditDrugList.getOrganDrugCode(), status);
         } else if (status == 2) {
@@ -157,21 +165,24 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         if (auditDrugList == null || drugList == null) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "药品不存在");
         }
+        try{
+            //将该药品保存到机构药品目录
+            OrganDrugList organDrugList = packageOrganDrugList(auditDrugList, drugList);
+            OrganDrugList resultOrganDrugList = organDrugListDAO.save(organDrugList);
 
-        //将该药品保存到机构药品目录
-        OrganDrugList organDrugList = packageOrganDrugList(auditDrugList, drugList);
-        OrganDrugList resultOrganDrugList = organDrugListDAO.save(organDrugList);
+            //将该药品保存到配送药品目录和机构药品目录
+            SaleDrugList saleDrugList = packageSaleDrugList(auditDrugList, drugList, resultOrganDrugList);
+            SaleDrugList resultSaleDrugList = saleDrugListDAO.save(saleDrugList);
 
-        //将该药品保存到配送药品目录和机构药品目录
-        SaleDrugList saleDrugList = packageSaleDrugList(auditDrugList, drugList, resultOrganDrugList);
-        SaleDrugList resultSaleDrugList = saleDrugListDAO.save(saleDrugList);
+            auditDrugList.setDrugClass(drugList.getDrugClass());
+            auditDrugList.setOrganDrugListId(resultOrganDrugList.getOrganDrugId());
+            auditDrugList.setSaleDrugListId(resultSaleDrugList.getDrugId());
+            auditDrugList.setType(1);
 
-        auditDrugList.setDrugClass(drugList.getDrugClass());
-        auditDrugList.setOrganDrugListId(resultOrganDrugList.getOrganDrugId());
-        auditDrugList.setSaleDrugListId(resultSaleDrugList.getDrugId());
-        auditDrugList.setType(1);
-
-        auditDrugListDAO.update(auditDrugList);
+            auditDrugListDAO.update(auditDrugList);
+        }catch (Exception e){
+            LOGGER.info("saveAuditDrugListInfo:{},{}.", auditDrugListId, drugListId, e);
+        }
 
     }
 
@@ -185,6 +196,8 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         saleDrugList.setCreateDt(new Date());
         saleDrugList.setOrganId(organ.getOrganId());
         saleDrugList.setStatus(1);
+        saleDrugList.setPrice(BigDecimal.valueOf(drugList.getPrice1()));
+        saleDrugList.setLastModify(new Date());
         return saleDrugList;
     }
 
@@ -199,6 +212,8 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         organDrugList.setProducerCode("");
         organDrugList.setCreateDt(new Date());
         organDrugList.setStatus(1);
+        organDrugList.setSalePrice(BigDecimal.valueOf(drugList.getPrice1()));
+        organDrugList.setLastModify(new Date());
         return organDrugList;
     }
 
