@@ -11,6 +11,7 @@ import com.ngari.recipe.drug.service.IAuditDrugListService;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -168,17 +169,23 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         try{
             //将该药品保存到机构药品目录
             OrganDrugList organDrugList = packageOrganDrugList(auditDrugList, drugList);
+            LOGGER.info("organDrugList:{}.", JSONUtils.toString(organDrugList));
             OrganDrugList resultOrganDrugList = organDrugListDAO.save(organDrugList);
 
             //将该药品保存到配送药品目录和机构药品目录
             SaleDrugList saleDrugList = packageSaleDrugList(auditDrugList, drugList, resultOrganDrugList);
+            LOGGER.info("saleDrugList:{}.", JSONUtils.toString(saleDrugList));
             SaleDrugList resultSaleDrugList = saleDrugListDAO.save(saleDrugList);
 
             auditDrugList.setDrugClass(drugList.getDrugClass());
             auditDrugList.setOrganDrugListId(resultOrganDrugList.getOrganDrugId());
-            auditDrugList.setSaleDrugListId(resultSaleDrugList.getDrugId());
+            auditDrugList.setSaleDrugListId(resultSaleDrugList.getOrganDrugId());
             auditDrugList.setType(1);
-
+            auditDrugList.setPack(drugList.getPack());
+            auditDrugList.setUnit(drugList.getUnit());
+            auditDrugList.setDrugType(drugList.getDrugType());
+            auditDrugList.setUsingRate(drugList.getUsingRate());
+            auditDrugList.setUsePathways(drugList.getUsePathways());
             auditDrugListDAO.update(auditDrugList);
         }catch (Exception e){
             LOGGER.info("saveAuditDrugListInfo:{},{}.", auditDrugListId, drugListId, e);
