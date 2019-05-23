@@ -77,11 +77,17 @@ public abstract class AuditDrugListDAO extends HibernateSupportDelegateDAO<Audit
                         if (!StringUtils.isEmpty(keyword)) {
                             countQuery.setParameter("keyword", "%" + keyword + "%");
                         }
+                        if (!StringUtils.isEmpty(drugClass)) {
+                            countQuery.setParameter("drugClass", "%" + drugClass + "%");
+                        }
                         Long total = (Long) countQuery.uniqueResult();
 
                         Query query = ss.createQuery(hql.toString());
                         if (!StringUtils.isEmpty(keyword)) {
                             query.setParameter("keyword", "%" + keyword + "%");
+                        }
+                        if (!StringUtils.isEmpty(drugClass)) {
+                            query.setParameter("drugClass", "%" + drugClass + "%");
                         }
                         query.setFirstResult(start);
                         query.setMaxResults(limit);
@@ -121,12 +127,18 @@ public abstract class AuditDrugListDAO extends HibernateSupportDelegateDAO<Audit
                         if (!StringUtils.isEmpty(keyword)) {
                             countQuery.setParameter("keyword", "%" + keyword + "%");
                         }
+                        if (!StringUtils.isEmpty(drugClass)) {
+                            countQuery.setParameter("drugClass", "%" + drugClass + "%");
+                        }
                         Long total = (Long) countQuery.uniqueResult();
 
                         Query query = ss.createQuery(hql.toString());
                         query.setParameter("organId", organId);
                         if (!StringUtils.isEmpty(keyword)) {
                             query.setParameter("keyword", "%" + keyword + "%");
+                        }
+                        if (!StringUtils.isEmpty(drugClass)) {
+                            query.setParameter("drugClass", "%" + drugClass + "%");
                         }
                         query.setFirstResult(start);
                         query.setMaxResults(limit);
