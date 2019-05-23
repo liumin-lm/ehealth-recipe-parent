@@ -208,7 +208,8 @@ public class RecipeServiceSub {
         int organId = recipe.getClinicOrgan();
         //药品总金额
         BigDecimal totalMoney = new BigDecimal(0d);
-        List<Integer> drugIds = new ArrayList<>(0);
+        List<Integer> drugIds = new ArrayList<>(recipedetails.size());
+        List<String> organDrugCodes = new ArrayList<>(recipedetails.size());
         Date nowDate = DateTime.now().toDate();
         String recipeMode = recipe.getRecipeMode();
         
@@ -221,41 +222,38 @@ public class RecipeServiceSub {
             if (null != detail.getDrugId()) {
                 drugIds.add(detail.getDrugId());
             }
+            if (StringUtils.isNotEmpty(detail.getOrganDrugCode())) {
+                organDrugCodes.add(detail.getOrganDrugCode());
+            }
         }
 
-        if (CollectionUtils.isNotEmpty(drugIds)) {
+        if (CollectionUtils.isNotEmpty(drugIds) && CollectionUtils.isNotEmpty(organDrugCodes)) {
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
             SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
 
-            List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(organId, drugIds);
-            List<DrugList> drugList = drugListDAO.findByDrugIds(drugIds);
-            if (CollectionUtils.isNotEmpty(organDrugList) && CollectionUtils.isNotEmpty(drugList)) {
-                Map<Integer, OrganDrugList> organDrugListMap = Maps.newHashMap();
+            List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodes);
+            if (CollectionUtils.isNotEmpty(organDrugList)) {
+                Map<String, OrganDrugList> organDrugListMap = Maps.newHashMap();
 
                 //平台增加药品相关校验
                 if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
-                    Map<Integer, DrugList> drugListMap = Maps.newHashMap();
-                    for (DrugList obj : drugList) {
-                        drugListMap.put(obj.getDrugId(), obj);
-                    }
-
                     int takeMedicineSize = 0;
                     List<String> takeOutDrugName = Lists.newArrayList();
                     for (OrganDrugList obj : organDrugList) {
                         //检验是否都为外带药
                         if (Integer.valueOf(1).equals(obj.getTakeMedicine())) {
                             takeMedicineSize++;
-                            takeOutDrugName.add(drugListMap.get(obj.getDrugId()).getDrugName());
+                            takeOutDrugName.add(obj.getSaleName());
                         }
-                        organDrugListMap.put(obj.getDrugId(), obj);
+                        organDrugListMap.put(obj.getOrganDrugCode(), obj);
                     }
 
                     if (takeMedicineSize > 0) {
                         if (takeMedicineSize != organDrugList.size()) {
                             String errorDrugName = Joiner.on(",").join(takeOutDrugName);
                             //外带药和处方药混合开具是不允许的
-                            LOGGER.error("setDetailsInfo 存在外带药且混合开具. recipeId=[{}], drugIds={}, 外带药={}", recipe.getRecipeId(),
+                            LOGGER.warn("setDetailsInfo 存在外带药且混合开具. recipeId=[{}], drugIds={}, 外带药={}", recipe.getRecipeId(),
                                     JSONUtils.toString(drugIds), errorDrugName);
                             throw new DAOException(ErrorCode.SERVICE_ERROR, errorDrugName + "不能开具在一张处方上");
                         } else {
@@ -268,6 +266,12 @@ public class RecipeServiceSub {
                     DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
                     boolean checkEnterprise = drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan());
                     if (checkEnterprise) {
+                        List<DrugList> drugList = drugListDAO.findByDrugIds(drugIds);
+                        Map<Integer, DrugList> drugListMap = Maps.newHashMap();
+                        for (DrugList obj : drugList) {
+                            drugListMap.put(obj.getDrugId(), obj);
+                        }
+                        
                         //供应商一致性校验，取第一个药品能配送的药企作为标准
                         Map<Integer, List<String>> drugDepRel = saleDrugListDAO.findDrugDepRelation(drugIds);
                         //无法配送药品校验
@@ -278,7 +282,7 @@ public class RecipeServiceSub {
                             }
                         }
                         if (CollectionUtils.isNotEmpty(noFilterDrugName)) {
-                            LOGGER.error("setDetailsInfo 存在无法配送的药品. recipeId=[{}], drugIds={}, noFilterDrugName={}",
+                            LOGGER.warn("setDetailsInfo 存在无法配送的药品. recipeId=[{}], drugIds={}, noFilterDrugName={}",
                                     recipe.getRecipeId(), JSONUtils.toString(drugIds), JSONUtils.toString(noFilterDrugName));
                             throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(noFilterDrugName) + "无法配送！");
                         }
@@ -310,55 +314,51 @@ public class RecipeServiceSub {
                 } else if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
                     //浙江省互联网医院模式不需要这么多校验
                     for (OrganDrugList obj : organDrugList) {
-                        organDrugListMap.put(obj.getDrugId(), obj);
+                        organDrugListMap.put(obj.getOrganDrugCode(), obj);
                     }
                 }
 
                 OrganDrugList organDrug;
-                if(!organDrugListMap.isEmpty()) {
-                    for (Recipedetail detail : recipedetails) {
-                        //设置药品基础数据
-                        organDrug = organDrugListMap.get(detail.getDrugId());
-                        if (null != organDrug) {
-                            detail.setDrugName(organDrug.getDrugName());
-                            detail.setDrugSpec(organDrug.getDrugSpec());
-                            detail.setDrugUnit(organDrug.getUnit());
-                            detail.setDefaultUseDose(organDrug.getUseDose());
-                            detail.setUseDoseUnit(organDrug.getUseDoseUnit());
-                            detail.setDosageUnit(organDrug.getUseDoseUnit());
-                            //设置药品包装数量
-                            detail.setPack(organDrug.getPack());
-                            //中药基础数据处理
-                            if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
-                                detail.setUsePathways(recipe.getTcmUsePathways());
-                                detail.setUsingRate(recipe.getTcmUsingRate());
-                                detail.setUseDays(recipe.getCopyNum());
-                                detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
-                            } else if (RecipeBussConstant.RECIPETYPE_HP.equals(recipe.getRecipeType())) {
-                                detail.setUseDays(recipe.getCopyNum());
-                                detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
-                            }
-
-                            //设置药品价格
-                            BigDecimal price = organDrug.getSalePrice();
-                            if (null == price) {
-                                LOGGER.warn("setDetailsInfo 药品ID：" + organDrug.getDrugId() + " 在医院(ID为" + organId + ")的价格为NULL！");
-                                throw new DAOException(ErrorCode.SERVICE_ERROR, "药品数据异常！");
-                            }
-                            detail.setSalePrice(price);
-                            //保留3位小数
-                            BigDecimal drugCost = price.multiply(new BigDecimal(detail.getUseTotalDose()))
-                                    .divide(BigDecimal.ONE, 3, RoundingMode.UP);
-                            detail.setDrugCost(drugCost);
-                            totalMoney = totalMoney.add(drugCost);
+                for (Recipedetail detail : recipedetails) {
+                    //设置药品基础数据
+                    organDrug = organDrugListMap.get(detail.getOrganDrugCode());
+                    if (null != organDrug) {
+                        detail.setDrugName(organDrug.getDrugName());
+                        detail.setDrugSpec(organDrug.getDrugSpec());
+                        detail.setDrugUnit(organDrug.getUnit());
+                        detail.setDefaultUseDose(organDrug.getUseDose());
+                        detail.setUseDoseUnit(organDrug.getUseDoseUnit());
+                        detail.setDosageUnit(organDrug.getUseDoseUnit());
+                        //设置药品包装数量
+                        detail.setPack(organDrug.getPack());
+                        //中药基础数据处理
+                        if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
+                            detail.setUsePathways(recipe.getTcmUsePathways());
+                            detail.setUsingRate(recipe.getTcmUsingRate());
+                            detail.setUseDays(recipe.getCopyNum());
+                            detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
+                        } else if (RecipeBussConstant.RECIPETYPE_HP.equals(recipe.getRecipeType())) {
+                            detail.setUseDays(recipe.getCopyNum());
+                            detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
                         }
+
+                        //设置药品价格
+                        BigDecimal price = organDrug.getSalePrice();
+                        if (null == price) {
+                            LOGGER.warn("setDetailsInfo 药品ID：" + organDrug.getDrugId() + " 在医院(ID为" + organId + ")的价格为NULL！");
+                            throw new DAOException(ErrorCode.SERVICE_ERROR, "药品数据异常！");
+                        }
+                        detail.setSalePrice(price);
+                        //保留3位小数
+                        BigDecimal drugCost = price.multiply(new BigDecimal(detail.getUseTotalDose()))
+                                .divide(BigDecimal.ONE, 3, RoundingMode.UP);
+                        detail.setDrugCost(drugCost);
+                        totalMoney = totalMoney.add(drugCost);
                     }
-                    success = true;
-                }else{
-                    LOGGER.warn("setDetailsInfo organDrugListMap is empty. recipeId=[{}]", recipe.getRecipeId());
                 }
+                success = true;
             } else {
-                LOGGER.warn("setDetailsInfo organDrugList或者drugList为空. recipeId=[{}], drugIds={}", recipe.getRecipeId(), JSONUtils.toString(drugIds));
+                LOGGER.warn("setDetailsInfo organDrugList. recipeId=[{}], drugIds={}", recipe.getRecipeId(), JSONUtils.toString(drugIds));
             }
         } else {
             LOGGER.warn("setDetailsInfo 详情里没有药品ID. recipeId=[{}]", recipe.getRecipeId());
