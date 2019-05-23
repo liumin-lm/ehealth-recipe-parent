@@ -157,7 +157,7 @@ public abstract class AuditDrugListDAO extends HibernateSupportDelegateDAO<Audit
      * @param status           状态
      * @param rejectReason     拒绝原因
      */
-    @DAOMethod(sql = "update AuditDrugList set Status=:status ,RejectReason=:rejectReason where AuditDrugId=:auditDrugId")
+    @DAOMethod(sql = "update AuditDrugList set Status=:status ,RejectReason=:rejectReason, Type=1 where AuditDrugId=:auditDrugId")
     public abstract void updateAuditDrugListStatus(@DAOParam("auditDrugId") Integer auditDrugId,
                                                    @DAOParam("status") Integer status,
                                                    @DAOParam("rejectReason") String rejectReason);
