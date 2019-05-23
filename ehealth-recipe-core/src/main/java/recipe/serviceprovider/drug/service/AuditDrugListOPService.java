@@ -65,9 +65,6 @@ public class AuditDrugListOPService implements IAuditDrugListService{
      */
     private void updateAuditDrugListStatus(Integer auditDrugId, Integer status, String rejectReason) {
         auditDrugListDAO.updateAuditDrugListStatus(auditDrugId, status, rejectReason);
-        AuditDrugList auditDrugList = auditDrugListDAO.get(auditDrugId);
-        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
-        ysqRemoteService.sendAuditDrugList(drugsEnterprises.get(0), auditDrugList.getOrganizeCode(), auditDrugList.getOrganDrugCode(), status);
     }
 
     @Override
@@ -80,6 +77,8 @@ public class AuditDrugListOPService implements IAuditDrugListService{
             organDrugList.setTakeMedicine(takeMedicine);
             organDrugListDAO.update(organDrugList);
             updateAuditDrugListStatus(auditDrugListId, status, rejectReason);
+            List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
+            ysqRemoteService.sendAuditDrugList(drugsEnterprises.get(0), auditDrugList.getOrganizeCode(), auditDrugList.getOrganDrugCode(), status);
         } else if (status == 2) {
             //表示审核不通过
             updateAuditDrugListStatus(auditDrugListId, status, rejectReason);

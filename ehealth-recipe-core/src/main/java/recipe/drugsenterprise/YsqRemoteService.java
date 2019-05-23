@@ -601,9 +601,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         auditInfo.put("FORMNAME", "");
         auditInfo.put("MSUNITNO", auditDrugList.getUnit());
         auditInfo.put("MINMSUNITNO", auditDrugList.getUnit());
-        if (status == 0) {
-            auditInfo.put("INVENTORYNUM", 0);
-        } else {
+        if (status == 1) {
             auditInfo.put("INVENTORYNUM", 9999);
         }
         List<Map<String, Object>> list = new ArrayList<>();
