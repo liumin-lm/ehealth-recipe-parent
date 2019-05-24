@@ -7,9 +7,9 @@ package com.ngari.recipe.common;
  */
 public class RecipeCommonResTO extends RecipeCommonBaseTO{
 
-    private Integer code;
+    protected Integer code;
 
-    private String msg;
+    protected String msg;
 
     public Integer getCode() {
         return code;

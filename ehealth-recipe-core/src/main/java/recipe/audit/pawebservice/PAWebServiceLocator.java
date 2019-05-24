@@ -31,7 +31,7 @@ public class PAWebServiceLocator extends org.apache.axis.client.Service implemen
     /**
      * Use to get a proxy class for PAWebServiceSoap12
      */
-    private String PAWebServiceSoap12_address = PrescriptionConstants.TargetNamespace;
+    private String PAWebServiceSoap12_address = PrescriptionConstants.getWeiningPaAddress();
 
     public String getPAWebServiceSoap12Address() {
         return PAWebServiceSoap12_address;
@@ -80,7 +80,7 @@ public class PAWebServiceLocator extends org.apache.axis.client.Service implemen
     /**
      * Use to get a proxy class for PAWebServiceSoap
      */
-    private String PAWebServiceSoap_address =  PrescriptionConstants.TargetNamespace;
+    private String PAWebServiceSoap_address =  PrescriptionConstants.getWeiningPaAddress();
 
     public String getPAWebServiceSoapAddress() {
         return PAWebServiceSoap_address;

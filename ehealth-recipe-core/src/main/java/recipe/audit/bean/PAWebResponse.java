@@ -1,29 +1,33 @@
 package recipe.audit.bean;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * Created by jiangtingfeng on 2017/11/15.
  * @author jiangtingfeng
  */
-public class PAWebResponse {
+public class PAWebResponse implements Serializable {
+
+    private static final long serialVersionUID = -8642222766759217853L;
+    
     private String UINotify;
 
-    private List<PAWebMedicines> medicines;
+    private List<PAWebMedicines> Medicines;
 
-    private String hospCode;
+    private String HospCode;
 
-    private String hospFlag;
+    private String HospFlag;
 
-    private PAWebPatient patient;
+    private PAWebPatient Patient;
 
-    private String id;
+    private String Id;
 
-    private String result;
+    private String Result;
 
-    private String msg;
+    private String Msg;
 
-    private String brief;
+    private String Brief;
 
     public String getUINotify() {
         return UINotify;
@@ -34,66 +38,66 @@ public class PAWebResponse {
     }
 
     public List<PAWebMedicines> getMedicines() {
-        return medicines;
+        return Medicines;
     }
 
     public void setMedicines(List<PAWebMedicines> medicines) {
-        this.medicines = medicines;
+        Medicines = medicines;
     }
 
     public String getHospCode() {
-        return hospCode;
+        return HospCode;
     }
 
     public void setHospCode(String hospCode) {
-        this.hospCode = hospCode;
+        HospCode = hospCode;
     }
 
     public String getHospFlag() {
-        return hospFlag;
+        return HospFlag;
     }
 
     public void setHospFlag(String hospFlag) {
-        this.hospFlag = hospFlag;
+        HospFlag = hospFlag;
     }
 
     public PAWebPatient getPatient() {
-        return patient;
+        return Patient;
     }
 
     public void setPatient(PAWebPatient patient) {
-        this.patient = patient;
+        Patient = patient;
     }
 
     public String getId() {
-        return id;
+        return Id;
     }
 
     public void setId(String id) {
-        this.id = id;
+        Id = id;
     }
 
     public String getResult() {
-        return result;
+        return Result;
     }
 
     public void setResult(String result) {
-        this.result = result;
+        Result = result;
     }
 
     public String getMsg() {
-        return msg;
+        return Msg;
     }
 
     public void setMsg(String msg) {
-        this.msg = msg;
+        Msg = msg;
     }
 
     public String getBrief() {
-        return brief;
+        return Brief;
     }
 
     public void setBrief(String brief) {
-        this.brief = brief;
+        Brief = brief;
     }
 }

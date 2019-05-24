@@ -34,7 +34,7 @@ public class PatientRecipeDTO implements Serializable {
 
     private String patientName;
 
-    private Integer photo;
+    private String photo;
 
     private String organDiseaseName;
 
@@ -125,11 +125,11 @@ public class PatientRecipeDTO implements Serializable {
         this.patientName = patientName;
     }
 
-    public Integer getPhoto() {
+    public String getPhoto() {
         return photo;
     }
 
-    public void setPhoto(Integer photo) {
+    public void setPhoto(String photo) {
         this.photo = photo;
     }
 

@@ -24,6 +24,11 @@ public class DrugEnterpriseResult extends RecipeResultBean {
      */
     private String depSn;
 
+    /**
+     * 查询药企处方时返回的处方对象
+     */
+    private Object deptRecipeInfo;
+
     public DrugEnterpriseResult(Integer code) {
         setCode(code);
     }

@@ -26,7 +26,7 @@ public class PriortyDrug
     private Integer sort;
 
     @ItemProperty(alias="药品图片id，前端可依据图片id查询文件服务器")
-    private Integer drugPicId;
+    private String drugPicId;
 
     @ItemProperty(alias="创建时间")
     private Date createTime;
@@ -35,11 +35,11 @@ public class PriortyDrug
     private Date lastModify;
 
     @Column(name = "drugPicId")
-    public Integer getDrugPicId() {
+    public String getDrugPicId() {
         return drugPicId;
     }
 
-    public void setDrugPicId(Integer drugPicId) {
+    public void setDrugPicId(String drugPicId) {
         this.drugPicId = drugPicId;
     }
 

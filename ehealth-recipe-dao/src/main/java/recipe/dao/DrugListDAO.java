@@ -363,6 +363,22 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
     @DAOMethod(sql = "from DrugList where 1=1 ", limit = 0)
     public abstract List<DrugList> findAll();
 
+    /**
+     * 分页查询所有基础药品库数据
+     * @param start
+     * @param limit
+     * @return
+     */
+    @DAOMethod(sql = "from DrugList where status=1 and sourceOrgan is null order by drugId")
+    public abstract List<DrugList> findAllForPage(@DAOParam(pageStart = true) int start,
+                                                   @DAOParam(pageLimit = true) int limit);
+
+    /**
+     * 统计基础药品库总数
+     * @return
+     */
+    @DAOMethod(sql = "select count(*) from DrugList where status=1 and sourceOrgan is null")
+    public abstract long getTotalWithBase();
 
     /**
      * 根据organid获取
@@ -402,15 +418,15 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
      * @param drug
      */
     public void setDrugDefaultInfo(DrugList drug) {
-        //设置默认值
-        if (StringUtils.isEmpty(drug.getUsingRate())) {
+        //设置默认值---取消默认值，bug#27581----运营平台药品数据与医生开方药品填充不一致
+        /*if (StringUtils.isEmpty(drug.getUsingRate())) {
             //每日三次
             drug.setUsingRate("tid");
         }
         if (StringUtils.isEmpty(drug.getUsePathways())) {
             //口服
             drug.setUsePathways("po");
-        }
+        }*/
         if (null == drug.getUseDose()) {
             //根据规格来设置
             double useDose = 0d;
@@ -639,6 +655,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
             }
         }
     }
+
     /**
      * 商品名匹配药品
      * @param name
@@ -648,7 +665,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
         HibernateStatelessResultAction<List<DrugList>> action = new AbstractHibernateStatelessResultAction<List<DrugList>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("from DrugList where sourceOrgan is null and saleName like :name");
+                StringBuilder hql = new StringBuilder("from DrugList where status = 1 and sourceOrgan is null and saleName like :name");
                 Query q = ss.createQuery(hql.toString());
                 q.setParameter("name", "%" + name + "%");
                 setResult(q.list());

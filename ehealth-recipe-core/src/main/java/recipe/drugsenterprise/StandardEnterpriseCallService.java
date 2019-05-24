@@ -1,5 +1,6 @@
 package recipe.drugsenterprise;
 
+import com.alijk.bqhospital.alijk.conf.TaobaoConf;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
@@ -10,7 +11,10 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.utils.VerifyUtils;
-import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.SaleDrugList;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -44,6 +48,9 @@ import java.util.Map;
  */
 @RpcBean("distributionService")
 public class StandardEnterpriseCallService {
+
+    @Autowired
+    private TaobaoConf taobaoConf;
 
     /**
      * logger

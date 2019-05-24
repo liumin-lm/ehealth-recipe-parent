@@ -56,6 +56,9 @@ public class RecipeBean implements Serializable {
     @Dictionary(id = "eh.cdr.dictionary.RecipeType")
     private Integer recipeType;
 
+    @ItemProperty(alias = "处方流转模式")
+    private String recipeMode;
+
     @ItemProperty(alias = "开方科室")
     @Dictionary(id = "eh.base.dictionary.Depart")
     private Integer depart;
@@ -129,10 +132,10 @@ public class RecipeBean implements Serializable {
     private String giveUser;
 
     @ItemProperty(alias = "签名的处方PDF")
-    private Integer signFile;
+    private String signFile;
 
     @ItemProperty(alias = "药师签名的处方PDF")
-    private Integer chemistSignFile;
+    private String chemistSignFile;
 
     @ItemProperty(alias = "收货人")
     private String receiver;
@@ -655,19 +658,19 @@ public class RecipeBean implements Serializable {
         this.giveUser = giveUser;
     }
 
-    public Integer getSignFile() {
+    public String getSignFile() {
         return signFile;
     }
 
-    public void setSignFile(Integer signFile) {
+    public void setSignFile(String signFile) {
         this.signFile = signFile;
     }
 
-    public Integer getChemistSignFile() {
+    public String getChemistSignFile() {
         return chemistSignFile;
     }
 
-    public void setChemistSignFile(Integer chemistSignFile) {
+    public void setChemistSignFile(String chemistSignFile) {
         this.chemistSignFile = chemistSignFile;
     }
 
@@ -1085,6 +1088,14 @@ public class RecipeBean implements Serializable {
 
     public void setRecipeExtend(RecipeExtendBean recipeExtend) {
         this.recipeExtend = recipeExtend;
+    }
+
+    public String getRecipeMode() {
+        return recipeMode;
+    }
+
+    public void setRecipeMode(String recipeMode) {
+        this.recipeMode = recipeMode;
     }
 
     public boolean canMedicalPay() {

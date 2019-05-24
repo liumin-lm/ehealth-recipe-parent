@@ -8,5 +8,6 @@
 
     <reference interface="com.ngari.his.recipe.service.IRecipeHisService" id="his.iRecipeHisService"/>
     <reference interface="com.ngari.his.visit.service.IVisitService" id="his.visitService"/>
+    <reference interface="com.ngari.platform.sync.service.IProvinceIndicatorsDateUpdateService" id="his.provinceDataUploadService"/>
 
 </s:beans>

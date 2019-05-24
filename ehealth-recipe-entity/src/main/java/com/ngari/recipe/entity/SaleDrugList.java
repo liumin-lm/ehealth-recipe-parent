@@ -34,6 +34,15 @@ public class SaleDrugList implements java.io.Serializable {
     @ItemProperty(alias = "机构药品编码")
     private String organDrugCode;
 
+    @ItemProperty(alias = "机构药品名称")
+    private String drugName;
+
+    @ItemProperty(alias = "商品名称")
+    private String saleName;
+
+    @ItemProperty(alias = "机构药品规格")
+    private String drugSpec;
+
     @ItemProperty(alias = "库存")
     private BigDecimal inventory;
 
@@ -113,6 +122,33 @@ public class SaleDrugList implements java.io.Serializable {
 
     public void setOrganDrugCode(String organDrugCode) {
         this.organDrugCode = organDrugCode;
+    }
+
+    @Column(name = "drugName", length = 64)
+    public String getDrugName() {
+        return drugName;
+    }
+
+    @Column(name = "saleName", length = 64)
+    public String getSaleName() {
+        return saleName;
+    }
+
+    public void setSaleName(String saleName) {
+        this.saleName = saleName;
+    }
+
+    public void setDrugName(String drugName) {
+        this.drugName = drugName;
+    }
+
+    @Column(name = "drugSpec", length = 64)
+    public String getDrugSpec() {
+        return drugSpec;
+    }
+
+    public void setDrugSpec(String drugSpec) {
+        this.drugSpec = drugSpec;
     }
 
     @Column(name = "Inventory")

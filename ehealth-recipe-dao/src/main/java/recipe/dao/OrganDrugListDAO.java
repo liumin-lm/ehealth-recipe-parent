@@ -308,7 +308,7 @@ public abstract class OrganDrugListDAO extends
         return action.getResult();
     }
 
-    public Boolean updateOrganDrugListByOrganIdAndDrugId(final int organId,final int drugId, final Map<String, ?> changeAttr) {
+    public Boolean updateOrganDrugListByOrganIdAndOrganDrugCode(final int organId,final String organDrugCode, final Map<String, ?> changeAttr) {
         HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -318,10 +318,10 @@ public abstract class OrganDrugListDAO extends
                         hql.append("," + key + "=:" + key);
                     }
                 }
-                hql.append(" where organId=:organId and drugId=:drugId");
+                hql.append(" where organId=:organId and organDrugCode=:organDrugCode");
                 Query q = ss.createQuery(hql.toString());
                 q.setParameter("organId", organId);
-                q.setParameter("drugId", drugId);
+                q.setParameter("organDrugCode", organDrugCode);
                 if (null != changeAttr && !changeAttr.isEmpty()) {
                     for (String key : changeAttr.keySet()) {
                         q.setParameter(key, changeAttr.get(key));
@@ -334,4 +334,29 @@ public abstract class OrganDrugListDAO extends
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    /**
+     * 分页查询所有医院药品数据
+     * @param start
+     * @param limit
+     * @return
+     */
+    @DAOMethod(sql = "select a from OrganDrugList a, DrugList b where a.drugId=b.drugId and a.status=1 " +
+            "and b.status=1")
+    public abstract List<OrganDrugList> findAllForPage(@DAOParam(pageStart = true) int start,
+                                                  @DAOParam(pageLimit = true) int limit);
+
+    /**
+     * 统计医院药品可用数量
+     * @return
+     */
+    @DAOMethod(sql = "select count(*) from OrganDrugList a, DrugList b where a.drugId=b.drugId and a.status=1 " +
+            "and b.status=1")
+    public abstract long getUsefulTotal();
+
+    @DAOMethod(sql = "from OrganDrugList where organDrugId in (:organDrugId) ", limit = 0)
+    public abstract List<OrganDrugList> findByOrganDrugIds(@DAOParam("organDrugId") List<Integer> organDrugId);
+
+    @DAOMethod(sql = "select organDrugId from OrganDrugList where drugId in (:drugId) ", limit = 0)
+    public abstract List<Integer> findOrganDrugIdByDrugIds(@DAOParam("drugId") List<Integer> drugId);
 }

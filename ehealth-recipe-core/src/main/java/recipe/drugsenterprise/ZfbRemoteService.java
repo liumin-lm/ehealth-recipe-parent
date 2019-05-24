@@ -95,7 +95,7 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
                     drugsEnterpriseDAO.updateTokenById(depId, zfbResponse.getToken());
                 } else {
                     //失败
-                    LOGGER.info("[{}][{}]token更新失败:{}", depId, depName, zfbResponse.getMsg());
+                    LOGGER.warn("[{}][{}]token更新失败:{}", depId, depName, zfbResponse.getMsg());
                 }
                 //关闭 HttpEntity 输入流
                 EntityUtils.consume(httpEntity);

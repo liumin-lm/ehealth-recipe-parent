@@ -209,7 +209,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         //监管平台核销上传
         SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
         syncExecutorService.uploadRecipeVerificationIndicators(recipeId);
-        
+
         backMsg.setCode(code);
         backMsg.setMsg(errorMsg);
         backMsg.setRecipe(null);

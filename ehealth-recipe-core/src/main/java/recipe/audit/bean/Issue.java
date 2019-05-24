@@ -1,157 +1,172 @@
 package recipe.audit.bean;
 
+import java.io.Serializable;
+
 /**
  * Created by jiangtingfeng on 2017/11/15.
  * @author jiangtingfeng
  */
-public class Issue {
-    private String title;
+public class Issue implements Serializable {
 
-    private String type;
+    private static final long serialVersionUID = 5583218644686002974L;
+    
+    private String Title;
 
-    private String tCode;
+    private String Type;
 
-    private String lvl;
+    private String TCode;
 
-    private String lvlCode;
+    private String Lvl;
 
-    private String prescCodeA;
+    private String LvlCode;
 
-    private String hisCodeA;
+    private String PrescCodeA;
 
-    private String codeA;
+    private String HisCodeA;
 
-    private String nameA;
+    private String CodeA;
 
-    private String hisCodeB;
+    private String NameA;
 
-    private String codeB;
+    private String PrescCodeB;
 
-    private String nameB;
+    private String HisCodeB;
 
-    private String issue;
+    private String CodeB;
 
-    private String detail;
+    private String NameB;
 
-    private String reference;
+    private String Issue;
 
-    public String getNameB() {
-        return nameB;
-    }
+    private String Detail;
 
-    public void setNameB(String nameB) {
-        this.nameB = nameB;
-    }
+    private String Reference;
 
     public String getTitle() {
-        return title;
+        return Title;
     }
 
     public void setTitle(String title) {
-        this.title = title;
+        Title = title;
     }
 
     public String getType() {
-        return type;
+        return Type;
     }
 
     public void setType(String type) {
-        this.type = type;
+        Type = type;
     }
 
-    public String gettCode() {
-        return tCode;
+    public String getTCode() {
+        return TCode;
     }
 
-    public void settCode(String tCode) {
-        this.tCode = tCode;
+    public void setTCode(String TCode) {
+        this.TCode = TCode;
     }
 
     public String getLvl() {
-        return lvl;
+        return Lvl;
     }
 
     public void setLvl(String lvl) {
-        this.lvl = lvl;
+        Lvl = lvl;
     }
 
     public String getLvlCode() {
-        return lvlCode;
+        return LvlCode;
     }
 
     public void setLvlCode(String lvlCode) {
-        this.lvlCode = lvlCode;
+        LvlCode = lvlCode;
     }
 
     public String getPrescCodeA() {
-        return prescCodeA;
+        return PrescCodeA;
     }
 
     public void setPrescCodeA(String prescCodeA) {
-        this.prescCodeA = prescCodeA;
+        PrescCodeA = prescCodeA;
     }
 
     public String getHisCodeA() {
-        return hisCodeA;
+        return HisCodeA;
     }
 
     public void setHisCodeA(String hisCodeA) {
-        this.hisCodeA = hisCodeA;
+        HisCodeA = hisCodeA;
     }
 
     public String getCodeA() {
-        return codeA;
+        return CodeA;
     }
 
     public void setCodeA(String codeA) {
-        this.codeA = codeA;
+        CodeA = codeA;
     }
 
     public String getNameA() {
-        return nameA;
+        return NameA;
     }
 
     public void setNameA(String nameA) {
-        this.nameA = nameA;
+        NameA = nameA;
+    }
+
+    public String getPrescCodeB() {
+        return PrescCodeB;
+    }
+
+    public void setPrescCodeB(String prescCodeB) {
+        PrescCodeB = prescCodeB;
     }
 
     public String getHisCodeB() {
-        return hisCodeB;
+        return HisCodeB;
     }
 
     public void setHisCodeB(String hisCodeB) {
-        this.hisCodeB = hisCodeB;
+        HisCodeB = hisCodeB;
     }
 
     public String getCodeB() {
-        return codeB;
+        return CodeB;
     }
 
     public void setCodeB(String codeB) {
-        this.codeB = codeB;
+        CodeB = codeB;
+    }
+
+    public String getNameB() {
+        return NameB;
+    }
+
+    public void setNameB(String nameB) {
+        NameB = nameB;
     }
 
     public String getIssue() {
-        return issue;
+        return Issue;
     }
 
     public void setIssue(String issue) {
-        this.issue = issue;
+        Issue = issue;
     }
 
     public String getDetail() {
-        return detail;
+        return Detail;
     }
 
     public void setDetail(String detail) {
-        this.detail = detail;
+        Detail = detail;
     }
 
     public String getReference() {
-        return reference;
+        return Reference;
     }
 
     public void setReference(String reference) {
-        this.reference = reference;
+        Reference = reference;
     }
 }

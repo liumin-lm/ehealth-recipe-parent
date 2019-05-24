@@ -34,6 +34,44 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "机构药品编码")
     private String organDrugCode;
 
+    @ItemProperty(alias = "通用名")
+    private String drugName;
+
+    @ItemProperty(alias = "商品名")
+    private String saleName;
+
+    @ItemProperty(alias = "药品规格")
+    private String drugSpec;
+
+    @ItemProperty(alias = "转换系数")
+    private Integer pack;
+
+    @ItemProperty(alias = "药品包装单位")
+    private String unit;
+
+    @ItemProperty(alias = "实际单次剂量")
+    private Double useDose;
+
+    @ItemProperty(alias = "推荐单次剂量")
+    private Double recommendedUseDose;
+
+    @ItemProperty(alias = "单次剂量单位")
+    private String useDoseUnit;
+
+    @ItemProperty(alias = "使用频率")
+    @Dictionary(id = "eh.cdr.dictionary.UsingRate")
+    private String usingRate;
+
+    @ItemProperty(alias = "用药途径")
+    @Dictionary(id = "eh.cdr.dictionary.UsePathways")
+    private String usePathways;
+
+    @ItemProperty(alias = "生产厂家")
+    private String producer;
+
+    @ItemProperty(alias = "搜索关键字，一般包含通用名，商品名及医院自定义值")
+    private String searchKey;
+
     @ItemProperty(alias = "销售价格")
     private BigDecimal salePrice;
 
@@ -52,6 +90,9 @@ public class OrganDrugList implements java.io.Serializable {
 
     @ItemProperty(alias = "外带药标志 1:外带药")
     private Integer takeMedicine;
+
+    @ItemProperty(alias = "院内检索关键字")
+    private String retrievalCode;
 
     public OrganDrugList() {
     }
@@ -159,5 +200,122 @@ public class OrganDrugList implements java.io.Serializable {
 
     public void setTakeMedicine(Integer takeMedicine) {
         this.takeMedicine = takeMedicine;
+    }
+
+    @Column(name = "drugName")
+    public String getDrugName() {
+        return drugName;
+    }
+
+    public void setDrugName(String drugName) {
+        this.drugName = drugName;
+    }
+
+    @Column(name = "saleName")
+    public String getSaleName() {
+        return saleName;
+    }
+
+    public void setSaleName(String saleName) {
+        this.saleName = saleName;
+    }
+
+    @Column(name = "drugSpec")
+    public String getDrugSpec() {
+        return drugSpec;
+    }
+
+    public void setDrugSpec(String drugSpec) {
+        this.drugSpec = drugSpec;
+    }
+
+    @Column(name = "pack")
+    public Integer getPack() {
+        return pack;
+    }
+
+    public void setPack(Integer pack) {
+        this.pack = pack;
+    }
+
+    @Column(name = "unit")
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
+
+    @Column(name = "useDose")
+    public Double getUseDose() {
+        return useDose;
+    }
+
+    public void setUseDose(Double useDose) {
+        this.useDose = useDose;
+    }
+
+    @Column(name = "recommendedUseDose")
+    public Double getRecommendedUseDose() {
+        return recommendedUseDose;
+    }
+
+    public void setRecommendedUseDose(Double recommendedUseDose) {
+        this.recommendedUseDose = recommendedUseDose;
+    }
+
+    @Column(name = "useDoseUnit")
+    public String getUseDoseUnit() {
+        return useDoseUnit;
+    }
+
+    public void setUseDoseUnit(String useDoseUnit) {
+        this.useDoseUnit = useDoseUnit;
+    }
+
+    @Column(name = "usingRate")
+    public String getUsingRate() {
+        return usingRate;
+    }
+
+    public void setUsingRate(String usingRate) {
+        this.usingRate = usingRate;
+    }
+
+    @Column(name = "usePathways")
+    public String getUsePathways() {
+        return usePathways;
+    }
+
+    public void setUsePathways(String usePathways) {
+        this.usePathways = usePathways;
+    }
+
+    @Column(name = "producer")
+    public String getProducer() {
+        return producer;
+    }
+
+    public void setProducer(String producer) {
+        this.producer = producer;
+    }
+
+    @Column(name = "searchKey")
+    public String getSearchKey() {
+        return searchKey;
+    }
+
+    public void setSearchKey(String searchKey) {
+        this.searchKey = searchKey;
+    }
+
+    @Column(name = "retrievalCode")
+    public String getRetrievalCode() {
+        return retrievalCode;
+    }
+
+    public void setRetrievalCode(String retrievalCode) {
+        this.retrievalCode = retrievalCode;
     }
 }

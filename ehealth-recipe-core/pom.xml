@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>1.11.0.release-SNAPSHOT</version>
+        <version>1.12.0.feature1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -57,6 +57,14 @@
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-opbase-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-shadow-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>ehealth-utils</artifactId>
         </dependency>
         <dependency>
             <groupId>ngari</groupId>
@@ -141,6 +149,14 @@
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
+        </dependency>
+        <dependency>
+            <artifactId>bqhospital-top</artifactId>
+            <groupId>com.alijk.bqhospital</groupId>
+        </dependency>
+        <dependency>
+            <groupId>com.alihealth</groupId>
+            <artifactId>top-api-sdk-dev</artifactId>
         </dependency>
     </dependencies>
     <profiles>

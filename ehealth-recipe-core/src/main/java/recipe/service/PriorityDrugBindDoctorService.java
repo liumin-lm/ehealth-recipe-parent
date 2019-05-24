@@ -115,7 +115,7 @@ public class PriorityDrugBindDoctorService
      * @param sort 排序字段，后台根据该字段做排序(比如药品的销量，具体由运营控制)
      */
     @RpcService
-    public void addPriortyDrug(Integer drugId,Integer sort,Integer drugPicId) {
+    public void addPriortyDrug(Integer drugId,Integer sort,String drugPicId) {
         PriortyDrug priortyDrug = new PriortyDrug();
         PriortyDrugsDao priortyDrugsDao = DAOFactory.getDAO(PriortyDrugsDao.class);
         priortyDrug.setDrugId(drugId);

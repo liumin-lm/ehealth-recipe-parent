@@ -67,13 +67,16 @@ public class DrugListBean implements Serializable {
     private Integer instructions;
 
     @ItemProperty(alias = "药品图片")
-    private Integer drugPic;
+    private String drugPic;
 
     @ItemProperty(alias = "参考价格1")
     private Double price1;
 
     @ItemProperty(alias = "参考价格2")
     private Double price2;
+
+    @ItemProperty(alias = "院内销售价格")
+    private BigDecimal salePrice;
 
     @ItemProperty(alias = "使用状态")
     @Dictionary(id = "eh.base.dictionary.DrugListStatus")
@@ -105,6 +108,9 @@ public class DrugListBean implements Serializable {
 
     @ItemProperty(alias = "医院价格")
     private BigDecimal hospitalPrice;
+
+    @ItemProperty(alias = "机构药品编码")
+    private String organDrugCode;
 
     private DispensatoryDTO dispensatory;
 
@@ -234,11 +240,11 @@ public class DrugListBean implements Serializable {
         this.instructions = instructions;
     }
 
-    public Integer getDrugPic() {
+    public String getDrugPic() {
         return drugPic;
     }
 
-    public void setDrugPic(Integer drugPic) {
+    public void setDrugPic(String drugPic) {
         this.drugPic = drugPic;
     }
 
@@ -346,8 +352,24 @@ public class DrugListBean implements Serializable {
         this.dispensatory = dispensatory;
     }
 
+    public BigDecimal getSalePrice() {
+        return salePrice;
+    }
+
+    public void setSalePrice(BigDecimal salePrice) {
+        this.salePrice = salePrice;
+    }
+
     @Override
     public String toString() {
         return JSONUtils.toString(this);
+    }
+
+    public String getOrganDrugCode() {
+        return organDrugCode;
+    }
+
+    public void setOrganDrugCode(String organDrugCode) {
+        this.organDrugCode = organDrugCode;
     }
 }
