@@ -227,15 +227,23 @@ public class RecipeServiceSub {
             }
         }
 
-        if (CollectionUtils.isNotEmpty(drugIds) && CollectionUtils.isNotEmpty(organDrugCodes)) {
+        if (CollectionUtils.isNotEmpty(drugIds)) {
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
             SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
 
-            List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodes);
-            if (CollectionUtils.isNotEmpty(organDrugList)) {
-                Map<String, OrganDrugList> organDrugListMap = Maps.newHashMap();
+            //是否为老的药品兼容方式，老的药品传入方式没有organDrugCode
+            boolean oldFlag = organDrugCodes.isEmpty() ? true : false;
+            Map<String, OrganDrugList> organDrugListMap = Maps.newHashMap();
+            Map<Integer, OrganDrugList> organDrugListIdMap = Maps.newHashMap();
+            List<OrganDrugList> organDrugList = Lists.newArrayList();
+            if(oldFlag){
+                organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(organId, drugIds);
+            } else{
+                organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodes);
+            }
 
+            if (CollectionUtils.isNotEmpty(organDrugList)) {
                 //平台增加药品相关校验
                 if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
                     int takeMedicineSize = 0;
@@ -247,6 +255,7 @@ public class RecipeServiceSub {
                             takeOutDrugName.add(obj.getSaleName());
                         }
                         organDrugListMap.put(obj.getOrganDrugCode(), obj);
+                        organDrugListIdMap.put(obj.getDrugId(), obj);
                     }
 
                     if (takeMedicineSize > 0) {
@@ -315,14 +324,20 @@ public class RecipeServiceSub {
                     //浙江省互联网医院模式不需要这么多校验
                     for (OrganDrugList obj : organDrugList) {
                         organDrugListMap.put(obj.getOrganDrugCode(), obj);
+                        organDrugListIdMap.put(obj.getDrugId(), obj);
                     }
                 }
 
                 OrganDrugList organDrug;
                 for (Recipedetail detail : recipedetails) {
                     //设置药品基础数据
-                    organDrug = organDrugListMap.get(detail.getOrganDrugCode());
+                    if(oldFlag){
+                        organDrug = organDrugListIdMap.get(detail.getDrugId());
+                    } else{
+                        organDrug = organDrugListMap.get(detail.getOrganDrugCode());
+                    }
                     if (null != organDrug) {
+                        detail.setOrganDrugCode(organDrug.getOrganDrugCode());
                         detail.setDrugName(organDrug.getDrugName());
                         detail.setDrugSpec(organDrug.getDrugSpec());
                         detail.setDrugUnit(organDrug.getUnit());
