@@ -198,6 +198,7 @@ public class AuditDrugListOPService implements IAuditDrugListService{
     }
 
     private SaleDrugList packageSaleDrugList(AuditDrugList auditDrugList, DrugList drugList, OrganDrugList organDrugList) {
+        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
         OrganService organService = BasicAPI.getService(OrganService.class);
         OrganDTO organ = organService.getOrganByOrganizeCode(auditDrugList.getOrganizeCode());
         SaleDrugList saleDrugList = new SaleDrugList();
@@ -205,7 +206,7 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         saleDrugList.setOrganDrugCode(auditDrugList.getOrganDrugCode());
         saleDrugList.setOrganDrugId(organDrugList.getOrganDrugId());
         saleDrugList.setCreateDt(new Date());
-        saleDrugList.setOrganId(organ.getOrganId());
+        saleDrugList.setOrganId(drugsEnterprises.get(0).getId());
         saleDrugList.setStatus(1);
         saleDrugList.setPrice(BigDecimal.valueOf(drugList.getPrice1()));
         saleDrugList.setLastModify(new Date());
