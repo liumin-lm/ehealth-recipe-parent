@@ -442,7 +442,11 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 LOGGER.error("getYsqRecipeInfo sex为空");
                 recipeMap.put("SEX", "男");
             }
-
+            //获取患者就诊卡号
+            String patientCard = recipe.getPatientCard();
+            if (StringUtils.isNotEmpty(patientCard)) {
+                recipeMap.put("ONECARDSOLUTION", patientCard);
+            }
             //周岁处理
             Date birthday = patient.getBirthday();
             if (null != birthday) {
