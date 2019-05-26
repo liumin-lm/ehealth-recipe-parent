@@ -199,8 +199,6 @@ public class AuditDrugListOPService implements IAuditDrugListService{
 
     private SaleDrugList packageSaleDrugList(AuditDrugList auditDrugList, DrugList drugList, OrganDrugList organDrugList) {
         List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
-        OrganService organService = BasicAPI.getService(OrganService.class);
-        OrganDTO organ = organService.getOrganByOrganizeCode(auditDrugList.getOrganizeCode());
         SaleDrugList saleDrugList = new SaleDrugList();
         saleDrugList.setDrugId(drugList.getDrugId());
         saleDrugList.setOrganDrugCode(auditDrugList.getOrganDrugCode());
