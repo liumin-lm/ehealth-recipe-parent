@@ -295,6 +295,9 @@ public class Recipe implements Serializable {
     @ItemProperty(alias="当前clientId")
     private Integer currentClient;
 
+    @ItemProperty(alias="就诊卡号")
+    private String patientCard;
+
     public Recipe() {
     }
 
@@ -1215,5 +1218,14 @@ public class Recipe implements Serializable {
 
     public void setCurrentClient(Integer currentClient) {
         this.currentClient = currentClient;
+    }
+
+    @Column(name = "patientCard")
+    public String getPatientCard() {
+        return patientCard;
+    }
+
+    public void setPatientCard(String patientCard) {
+        this.patientCard = patientCard;
     }
 }

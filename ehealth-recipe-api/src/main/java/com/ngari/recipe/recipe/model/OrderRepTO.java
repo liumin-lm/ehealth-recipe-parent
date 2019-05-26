@@ -73,6 +73,8 @@ public class OrderRepTO implements Serializable {
 
     private String drugName;
 
+    private String sendFlag;
+
     public String getIsDrugStock() {
         return isDrugStock;
     }
@@ -175,5 +177,13 @@ public class OrderRepTO implements Serializable {
 
     public void setDrugName(String drugName) {
         this.drugName = drugName;
+    }
+
+    public String getSendFlag() {
+        return sendFlag;
+    }
+
+    public void setSendFlag(String sendFlag) {
+        this.sendFlag = sendFlag;
     }
 }
