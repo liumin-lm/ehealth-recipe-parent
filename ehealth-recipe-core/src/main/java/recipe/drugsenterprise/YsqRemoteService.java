@@ -87,7 +87,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         sendInfo.put("EXEC_ORD", "0");
         Integer hosInteriorSupport = drugsEnterprise.getHosInteriorSupport();
         Boolean hosInteriorSupportFlag = true;
-        if (hosInteriorSupport == 1) {
+        if (hosInteriorSupport != null && hosInteriorSupport == 1) {
             //为补充库存
             hosInteriorSupportFlag = false;
         }
