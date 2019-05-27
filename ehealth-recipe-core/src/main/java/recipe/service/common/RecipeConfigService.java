@@ -47,12 +47,16 @@ public class RecipeConfigService {
         RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
         val = cacheService.getTemporaryParam(CacheConstant.KEY_RECIPEMODE+appKey);
         if(StringUtils.isEmpty(val)){
+            val = RecipeBussConstant.RECIPEMODE_NGARIHEALTH;
             try {
                 ClientConfigService ccService = BasicAPI.getService(ClientConfigService.class);
                 ClientConfigDTO clientConfigDTO = ccService.getClientConfigByAppKey(appKey);
+                if(null == clientConfigDTO){
+                    LOG.warn("getRecipeMode clientConfigDTO is null.", appKey);
+                    return val;
+                }
                 IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
                 Object obj = configService.getPropertyOfKey(clientConfigDTO.getId(), "recipeCirculationMode", 2);
-                val = RecipeBussConstant.RECIPEMODE_NGARIHEALTH;
                 if (null != obj) {
                     val = LocalStringUtil.toString(obj);
                     redisClient.setEX(CacheConstant.KEY_RECIPEMODE + appKey, 24 * 3600L, val);
