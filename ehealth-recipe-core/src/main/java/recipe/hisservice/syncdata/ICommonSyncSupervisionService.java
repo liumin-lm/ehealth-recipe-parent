@@ -14,8 +14,16 @@ import java.util.List;
 public interface ICommonSyncSupervisionService {
 
     /**
-     * 上传处方业务数据
+     * 处方上传
+     * @param recipeList
+     * @return
      */
     CommonResponse uploadRecipeIndicators(List<Recipe> recipeList);
 
+    /**
+     * 处方核销
+     * @param recipeList
+     * @return
+     */
+    CommonResponse uploadRecipeVerificationIndicators(List<Recipe> recipeList);
 }
