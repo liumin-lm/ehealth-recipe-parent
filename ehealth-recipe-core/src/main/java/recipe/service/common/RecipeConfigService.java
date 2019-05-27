@@ -52,7 +52,7 @@ public class RecipeConfigService {
                 ClientConfigService ccService = BasicAPI.getService(ClientConfigService.class);
                 ClientConfigDTO clientConfigDTO = ccService.getClientConfigByAppKey(appKey);
                 if(null == clientConfigDTO){
-                    LOG.warn("getRecipeMode clientConfigDTO is null.", appKey);
+                    LOG.warn("getRecipeMode clientConfigDTO is null. appKey={}", appKey);
                     return val;
                 }
                 IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
