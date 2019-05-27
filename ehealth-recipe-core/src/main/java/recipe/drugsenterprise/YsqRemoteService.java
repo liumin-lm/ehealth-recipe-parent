@@ -85,7 +85,13 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         Map<String, Object> sendInfo = new HashMap<>(1);
         //同时生成订单 0不生成 1生成
         sendInfo.put("EXEC_ORD", "0");
-        List<Map<String, Object>> recipeInfoList = getYsqRecipeInfo(recipeIds, true);
+        Integer hosInteriorSupport = drugsEnterprise.getHosInteriorSupport();
+        Boolean hosInteriorSupportFlag = true;
+        if (hosInteriorSupport == 1) {
+            //为补充库存
+            hosInteriorSupportFlag = false;
+        }
+        List<Map<String, Object>> recipeInfoList = getYsqRecipeInfo(recipeIds, hosInteriorSupportFlag);
         if (recipeInfoList.isEmpty()) {
             result.setMsg("钥世圈推送处方数量为0");
             result.setCode(DrugEnterpriseResult.FAIL);
