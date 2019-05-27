@@ -1,11 +1,8 @@
 package recipe.dao.bean;
 
 
-import com.ngari.recipe.entity.Recipedetail;
-
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.List;
 
 /**
  * 患者端处方单对象
@@ -59,6 +56,8 @@ public class PatientRecipeBean {
     private String logisticsCompany;
 
     private String trackingNumber;
+
+    private String recipeMode;
 
     public PatientRecipeBean() {
     }
@@ -237,5 +236,13 @@ public class PatientRecipeBean {
 
     public void setTrackingNumber(String trackingNumber) {
         this.trackingNumber = trackingNumber;
+    }
+
+    public String getRecipeMode() {
+        return recipeMode;
+    }
+
+    public void setRecipeMode(String recipeMode) {
+        this.recipeMode = recipeMode;
     }
 }

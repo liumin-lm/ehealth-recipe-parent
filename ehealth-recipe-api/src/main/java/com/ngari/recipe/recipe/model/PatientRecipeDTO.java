@@ -64,6 +64,8 @@ public class PatientRecipeDTO implements Serializable {
 
     private String trackingNumber;
 
+    private String recipeMode;
+
     private List<RecipeDetailBean> recipeDetail;
 
     public PatientRecipeDTO() {
@@ -243,6 +245,14 @@ public class PatientRecipeDTO implements Serializable {
 
     public void setTrackingNumber(String trackingNumber) {
         this.trackingNumber = trackingNumber;
+    }
+
+    public String getRecipeMode() {
+        return recipeMode;
+    }
+
+    public void setRecipeMode(String recipeMode) {
+        this.recipeMode = recipeMode;
     }
 
     public List<RecipeDetailBean> getRecipeDetail() {

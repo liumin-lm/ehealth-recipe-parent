@@ -315,7 +315,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                         "s.recordDate,s.couponId,s.medicalPayFlag,s.recipeType,s.organId from (");
                 hql.append("SELECT 1 as type,null as couponId, t.MedicalPayFlag as medicalPayFlag, t.RecipeID as recordCode,t.RecipeID as recordId," +
                         "t.MPIID as mpiId,t.OrganDiseaseName as diseaseName,t.Status,t.TotalMoney as fee," +
-                        "t.SignDate as recordDate,t.RecipeType as recipeType,t.ClinicOrgan as organId FROM cdr_recipe t " +
+                        "t.SignDate as recordDate,t.RecipeType as recipeType,t.ClinicOrgan as organId,t.recipeMode recipeMode FROM cdr_recipe t " +
                         "left join cdr_recipeorder k on t.OrderCode=k.OrderCode ");
                 hql.append("WHERE t.MPIID IN (:mpiIdList) and (k.Effective is null or k.Effective = 0) ")
                         .append("and (t.ChooseFlag=1 or (t.ChooseFlag=0 and t.Status=" + RecipeStatusConstant.CHECK_PASS + ")) ");
@@ -325,7 +325,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 hql.append("UNION ALL ");
                 hql.append("SELECT 2 as type,o.CouponId as couponId, 0 as medicalPayFlag, " +
                         "o.OrderCode as recordCode,o.OrderId as recordId,o.MpiId as mpiId,'' as diseaseName," +
-                        "o.Status,o.ActualPrice as fee,o.CreateTime as recordDate,0 as recipeType, o.OrganId FROM cdr_recipeorder o " +
+                        "o.Status,o.ActualPrice as fee,o.CreateTime as recordDate,0 as recipeType, o.OrganId, 'ngarihealth' as recipeMode FROM cdr_recipeorder o " +
                         "WHERE o.MpiId IN (:mpiIdList) and o.Effective = 1 ");
                 hql.append(") s ORDER BY s.recordDate desc");
                 Query q = ss.createSQLQuery(hql.toString());
@@ -357,7 +357,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                         }
                         patientRecipeBean.setRecipeType(Integer.parseInt(objs[10].toString()));
                         patientRecipeBean.setOrganId(Integer.parseInt(objs[11].toString()));
-
+                        patientRecipeBean.setRecipeMode(objs[12].toString());
                         backList.add(patientRecipeBean);
                     }
                 }
