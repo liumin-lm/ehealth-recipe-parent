@@ -144,7 +144,14 @@ public class AuditDrugListOPService implements IAuditDrugListService{
      */
     @Override
     public List<DrugListBean> matchAllDrugListByName(String drugName) {
-        String str = DrugMatchUtil.match(drugName);
+        String str;
+        try{
+            str = DrugMatchUtil.match(drugName);
+        } catch (Exception e) {
+            LOGGER.warn("药品目录匹配分词出现问题,{},{}.", drugName, e.getMessage());
+            str = drugName;
+        }
+
         //根据药品名取标准药品库查询相关药品
         List<DrugList> drugLists = null;
         try {
