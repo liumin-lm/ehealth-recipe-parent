@@ -2107,7 +2107,7 @@ public class RecipeService {
     }
 
     @RpcService
-    public List<RecipeInfoTO> getHosRecipeList(Integer consultId, Integer organId,String mpiId) {
+    public List<RecipeInfoTO> getHosRecipeList(Integer consultId,Integer organId,String mpiId) {
         RecipePreserveService preserveService = ApplicationUtils.getRecipeService(RecipePreserveService.class);
         return preserveService.getHosRecipeList(consultId,organId,mpiId);
     }
