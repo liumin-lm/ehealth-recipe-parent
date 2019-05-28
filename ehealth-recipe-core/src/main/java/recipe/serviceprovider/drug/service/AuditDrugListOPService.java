@@ -185,21 +185,20 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         if (auditDrugList == null || drugList == null) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "药品不存在");
         }
-        try{
-            auditDrugList.setDrugClass(drugList.getDrugClass());
-            auditDrugList.setDrugId(drugListId);
-            auditDrugList.setType(1);
-            auditDrugList.setPack(drugList.getPack());
-            auditDrugList.setUnit(drugList.getUnit());
-            auditDrugList.setDrugType(drugList.getDrugType());
-            auditDrugList.setUsingRate(drugList.getUsingRate());
-            auditDrugList.setUsePathways(drugList.getUsePathways());
-            auditDrugListDAO.update(auditDrugList);
-        }catch (Exception e){
-            LOGGER.info("saveAuditDrugListInfo:{},{}.", auditDrugListId, drugListId, e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "该机构可能已经匹配过改药品,请更换药品匹配!");
+        OrganDrugList organDrugList = organDrugListDAO.getByDrugIdAndOrganId(drugListId, auditDrugList.getOrganId());
+        if (organDrugList == null) {
+            LOGGER.info("saveAuditDrugListInfo:{},{}.", auditDrugListId, drugListId);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "该机构已经存在该药品,请更换药品匹配!");
         }
-
+        auditDrugList.setDrugClass(drugList.getDrugClass());
+        auditDrugList.setDrugId(drugListId);
+        auditDrugList.setType(1);
+        auditDrugList.setPack(drugList.getPack());
+        auditDrugList.setUnit(drugList.getUnit());
+        auditDrugList.setDrugType(drugList.getDrugType());
+        auditDrugList.setUsingRate(drugList.getUsingRate());
+        auditDrugList.setUsePathways(drugList.getUsePathways());
+        auditDrugListDAO.update(auditDrugList);
     }
 
     private SaleDrugList packageSaleDrugList(AuditDrugList auditDrugList, DrugList drugList, OrganDrugList organDrugList) {
