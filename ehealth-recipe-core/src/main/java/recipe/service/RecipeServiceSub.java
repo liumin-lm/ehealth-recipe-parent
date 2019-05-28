@@ -813,7 +813,7 @@ public class RecipeServiceSub {
         p.setPatientType(patient.getPatientType());
         p.setIdcard(patient.getCertificate());
         p.setStatus(patient.getStatus());
-//        p.setMobile(patient.getMobile());
+        p.setMobile(patient.getMobile());
         p.setMpiId(patient.getMpiId());
         p.setPhoto(patient.getPhoto());
         p.setSignFlag(patient.getSignFlag());
