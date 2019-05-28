@@ -108,6 +108,11 @@ public class RecipePreserveService {
     @RpcService
     public List<RecipeInfoTO> getHosRecipeList(Integer consultId, Integer organId,String mpiId){
         LOGGER.info("getHosRecipeList consultId={}, organId={},mpiId={}", consultId, organId,mpiId);
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        PatientDTO patientDTO = patientService.get(mpiId);
+        if (patientDTO == null){
+            throw new DAOException(609, "找不到该患者");
+        }
         String cardId = null;
         if (consultId != null){
             IConsultService service = ConsultAPI.getService(IConsultService.class);
@@ -122,11 +127,6 @@ public class RecipePreserveService {
                 return Lists.newArrayList();
             }
             cardId = consultExDTO.getCardId();
-        }
-        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
-        PatientDTO patientDTO = patientService.get(mpiId);
-        if (patientDTO == null){
-            throw new DAOException(609, "找不到该患者");
         }
 
         Date endDate = DateTime.now().toDate();
