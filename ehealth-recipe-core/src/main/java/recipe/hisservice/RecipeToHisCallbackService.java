@@ -102,7 +102,7 @@ public class RecipeToHisCallbackService {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(Integer.valueOf(response.getRecipeId()));
             String memo;
-            if ("1".equals(sendFlag)) {
+            if (StringUtils.isNotEmpty(sendFlag) && "1".equals(sendFlag)) {
                 LOGGER.info("岳阳模式，不对接HIS直接推送到药企");
                 //岳阳模式，不对接HIS直接推送到药企
                 drugsEnterpriseService.pushHosInteriorSupport(recipe.getRecipeId(),recipe.getClinicOrgan());
