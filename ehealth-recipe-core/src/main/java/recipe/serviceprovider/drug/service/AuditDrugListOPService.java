@@ -74,19 +74,26 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         if (status == 1) {
             try{
                 //表示审核通过
-                OrganDrugList organDrugList = organDrugListDAO.get(auditDrugList.getOrganDrugListId());
+                DrugList drugList = drugListDAO.getById(auditDrugList.getDrugId());
+                //将该药品保存到机构药品目录
+                OrganDrugList organDrugList = packageOrganDrugList(auditDrugList, drugList);
                 organDrugList.setSalePrice(BigDecimal.valueOf(salePrice));
                 organDrugList.setTakeMedicine(takeMedicine);
-                organDrugListDAO.update(organDrugList);
-                auditDrugList.setPrice(salePrice);
-                auditDrugList.setStatus(status);
-                auditDrugListDAO.update(auditDrugList);
-
-                SaleDrugList saleDrugList = saleDrugListDAO.get(auditDrugList.getSaleDrugListId());
+                OrganDrugList resultOrganDrugList = organDrugListDAO.save(organDrugList);
+                //将该药品保存到配送药品目录和机构药品目录
+                SaleDrugList saleDrugList = packageSaleDrugList(auditDrugList, drugList, resultOrganDrugList);
                 if (saleDrugList != null) {
                     saleDrugList.setPrice(BigDecimal.valueOf(salePrice));
                     saleDrugListDAO.update(saleDrugList);
                 }
+                SaleDrugList resultSaleDrugList = saleDrugListDAO.save(saleDrugList);
+
+                auditDrugList.setOrganDrugListId(resultOrganDrugList.getOrganDrugId());
+                auditDrugList.setSaleDrugListId(resultSaleDrugList.getOrganDrugId());
+                auditDrugList.setPrice(salePrice);
+                auditDrugList.setStatus(status);
+                auditDrugListDAO.update(auditDrugList);
+
                 List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
                 ysqRemoteService.sendAuditDrugList(drugsEnterprises.get(0), auditDrugList.getOrganizeCode(), auditDrugList.getOrganDrugCode(), status);
             }catch (Exception e) {
@@ -179,17 +186,8 @@ public class AuditDrugListOPService implements IAuditDrugListService{
             throw new DAOException(ErrorCode.SERVICE_ERROR, "药品不存在");
         }
         try{
-            //将该药品保存到机构药品目录
-            OrganDrugList organDrugList = packageOrganDrugList(auditDrugList, drugList);
-            OrganDrugList resultOrganDrugList = organDrugListDAO.save(organDrugList);
-
-            //将该药品保存到配送药品目录和机构药品目录
-            SaleDrugList saleDrugList = packageSaleDrugList(auditDrugList, drugList, resultOrganDrugList);
-            SaleDrugList resultSaleDrugList = saleDrugListDAO.save(saleDrugList);
-
             auditDrugList.setDrugClass(drugList.getDrugClass());
-            auditDrugList.setOrganDrugListId(resultOrganDrugList.getOrganDrugId());
-            auditDrugList.setSaleDrugListId(resultSaleDrugList.getOrganDrugId());
+            auditDrugList.setDrugId(drugListId);
             auditDrugList.setType(1);
             auditDrugList.setPack(drugList.getPack());
             auditDrugList.setUnit(drugList.getUnit());
