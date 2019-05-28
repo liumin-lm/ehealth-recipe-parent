@@ -13,6 +13,8 @@ import com.ngari.his.recipe.mode.QueryRecipeRequestTO;
 import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
@@ -21,6 +23,7 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipelog.model.RecipeLogBean;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -103,31 +106,43 @@ public class RecipePreserveService {
     }
 
     @RpcService
-    public List<RecipeInfoTO> getHosRecipeList(int consultId, String patientName){
-        LOGGER.info("getHosRecipeList consultId={}, patientName={}", consultId, patientName);
-        IConsultService service = ConsultAPI.getService(IConsultService.class);
-        ConsultBean consultBean = service.getById(consultId);
-        if(null == consultBean){
-            return Lists.newArrayList();
+    public List<RecipeInfoTO> getHosRecipeList(Integer consultId, Integer organId,String mpiId){
+        LOGGER.info("getHosRecipeList consultId={}, organId={},mpiId={}", consultId, organId,mpiId);
+        String cardId = null;
+        if (consultId != null){
+            IConsultService service = ConsultAPI.getService(IConsultService.class);
+            ConsultBean consultBean = service.getById(consultId);
+            if(null == consultBean){
+                return Lists.newArrayList();
+            }
+
+            IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
+            ConsultExDTO consultExDTO = exService.getByConsultId(consultId);
+            if(null == consultExDTO || StringUtils.isEmpty(consultExDTO.getCardId())){
+                return Lists.newArrayList();
+            }
+            cardId = consultExDTO.getCardId();
+        }
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        PatientDTO patientDTO = patientService.get(mpiId);
+        if (patientDTO == null){
+            throw new DAOException(609, "找不到该患者");
         }
 
-        IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
-        ConsultExDTO consultExDTO = exService.getByConsultId(consultId);
-        if(null == consultExDTO || StringUtils.isEmpty(consultExDTO.getCardId())){
-            return Lists.newArrayList();
-        }
         Date endDate = DateTime.now().toDate();
         Date startDate = DateConversion.getDateTimeDaysAgo(180);
 
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         QueryRecipeRequestTO request = new QueryRecipeRequestTO();
         PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
-        patientBaseInfo.setPatientName(patientName);
-        patientBaseInfo.setPatientID(consultExDTO.getCardId());
+        patientBaseInfo.setPatientName(patientDTO.getPatientName());
+        patientBaseInfo.setPatientID(cardId);
+        patientBaseInfo.setCertificate(patientDTO.getCertificate());
+        patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
         request.setPatientInfo(patientBaseInfo);
         request.setStartDate(startDate);
         request.setEndDate(endDate);
-        request.setOrgan(consultBean.getConsultOrgan());
+        request.setOrgan(organId);
         LOGGER.info("getHosRecipeList request={}", JSONUtils.toString(request));
         QueryRecipeResponseTO response = null;
         try {
