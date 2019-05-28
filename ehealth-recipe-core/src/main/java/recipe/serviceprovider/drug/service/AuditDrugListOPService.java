@@ -84,7 +84,6 @@ public class AuditDrugListOPService implements IAuditDrugListService{
                 SaleDrugList saleDrugList = packageSaleDrugList(auditDrugList, drugList, resultOrganDrugList);
                 if (saleDrugList != null) {
                     saleDrugList.setPrice(BigDecimal.valueOf(salePrice));
-                    saleDrugListDAO.update(saleDrugList);
                 }
                 SaleDrugList resultSaleDrugList = saleDrugListDAO.save(saleDrugList);
 
