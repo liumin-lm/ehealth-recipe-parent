@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.doctor.model.DoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
@@ -11,6 +12,7 @@ import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.QueryRecipeRequestTO;
 import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
+import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.PatientDTO;
@@ -19,6 +21,8 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.recipe.model.HisRecipeBean;
+import com.ngari.recipe.recipe.model.HisRecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipelog.model.RecipeLogBean;
@@ -163,7 +167,27 @@ public class RecipePreserveService {
         if (CollectionUtils.isEmpty(data)){
             return result;
         }
-        result.put("hisRecipe",data);
+        List<HisRecipeBean> recipes = Lists.newArrayList();
+        for (RecipeInfoTO recipeInfoTO: data){
+            HisRecipeBean recipeBean = ObjectCopyUtils.convert(recipeInfoTO, HisRecipeBean.class);
+            recipeBean.setSignDate(recipeInfoTO.getSignTime());
+            recipeBean.setOrganDiseaseName(recipeInfoTO.getDiseaseName());
+            recipeBean.setDepartText(recipeInfoTO.getDepartName());
+            List<RecipeDetailTO> detailData = recipeInfoTO.getDetailData();
+            List<HisRecipeDetailBean> hisRecipeDetailBeans = Lists.newArrayList();
+            for (RecipeDetailTO recipeDetailTO: detailData){
+                HisRecipeDetailBean detailBean = ObjectCopyUtils.convert(recipeDetailTO, HisRecipeDetailBean.class);
+                detailBean.setDrugUnit(recipeDetailTO.getUnit());
+                detailBean.setUsingRateText(recipeDetailTO.getUsingRate());
+                detailBean.setUsePathwaysText(recipeDetailTO.getUsePathWays());
+                detailBean.setUseDays(recipeDetailTO.getDays());
+                detailBean.setUseTotalDose(recipeDetailTO.getAmount());
+                hisRecipeDetailBeans.add(detailBean);
+            }
+            recipeBean.setDetailData(hisRecipeDetailBeans);
+            recipes.add(recipeBean);
+        }
+        result.put("hisRecipe",recipes);
         result.put("patient",convertPatientForRAP(patientDTO));
         return result;
     }
