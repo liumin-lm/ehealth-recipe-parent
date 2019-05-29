@@ -14,7 +14,6 @@ import com.ngari.base.patient.model.DocIndexBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.his.recipe.mode.DrugInfoTO;
-import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.dto.ConsultSetDTO;
@@ -2107,7 +2106,7 @@ public class RecipeService {
     }
 
     @RpcService
-    public List<RecipeInfoTO> getHosRecipeList(Integer consultId,Integer organId,String mpiId) {
+    public Map<String,Object> getHosRecipeList(Integer consultId,Integer organId,String mpiId) {
         RecipePreserveService preserveService = ApplicationUtils.getRecipeService(RecipePreserveService.class);
         return preserveService.getHosRecipeList(consultId,organId,mpiId);
     }

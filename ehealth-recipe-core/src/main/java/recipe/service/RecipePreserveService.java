@@ -1,6 +1,6 @@
 package recipe.service;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.ngari.base.doctor.model.DoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.consult.ConsultAPI;
@@ -28,6 +28,7 @@ import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -48,6 +49,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static recipe.service.RecipeServiceSub.convertPatientForRAP;
 
 
 /**
@@ -106,9 +109,10 @@ public class RecipePreserveService {
     }
 
     @RpcService
-    public List<RecipeInfoTO> getHosRecipeList(Integer consultId, Integer organId,String mpiId){
+    public Map<String,Object> getHosRecipeList(Integer consultId, Integer organId,String mpiId){
         LOGGER.info("getHosRecipeList consultId={}, organId={},mpiId={}", consultId, organId,mpiId);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        Map<String,Object> result = Maps.newHashMap();
         PatientDTO patientDTO = patientService.get(mpiId);
         if (patientDTO == null){
             throw new DAOException(609, "找不到该患者");
@@ -118,13 +122,13 @@ public class RecipePreserveService {
             IConsultService service = ConsultAPI.getService(IConsultService.class);
             ConsultBean consultBean = service.getById(consultId);
             if(null == consultBean){
-                return Lists.newArrayList();
+                return result;
             }
 
             IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
             ConsultExDTO consultExDTO = exService.getByConsultId(consultId);
             if(null == consultExDTO || StringUtils.isEmpty(consultExDTO.getCardId())){
-                return Lists.newArrayList();
+                return result;
             }
             cardId = consultExDTO.getCardId();
         }
@@ -151,10 +155,17 @@ public class RecipePreserveService {
             LOGGER.warn("getHosRecipeList his error. ", e);
         }
         if(null == response){
-            return Lists.newArrayList();
+            return result;
         }
         LOGGER.info("getHosRecipeList msgCode={}, msg={} ", response.getMsgCode(), response.getMsg());
-        return response.getData();
+        List<RecipeInfoTO> data = response.getData();
+        //转换平台字段
+        if (CollectionUtils.isEmpty(data)){
+            return result;
+        }
+        result.put("hisRecipe",data);
+        result.put("patient",convertPatientForRAP(patientDTO));
+        return result;
     }
 
     @RpcService
