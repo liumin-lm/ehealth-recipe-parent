@@ -107,6 +107,12 @@ public class AuditDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "来源药企")
     private String sourceEnterprise;
 
+    @ItemProperty(alias = "参考价格1")
+    private Double price1;
+
+    @ItemProperty(alias = "参考价格2")
+    private Double price2;
+
     public Integer getAuditDrugId() {
         return auditDrugId;
     }
@@ -337,5 +343,21 @@ public class AuditDrugListDTO implements java.io.Serializable {
 
     public void setSourceEnterprise(String sourceEnterprise) {
         this.sourceEnterprise = sourceEnterprise;
+    }
+
+    public Double getPrice1() {
+        return price1;
+    }
+
+    public void setPrice1(Double price1) {
+        this.price1 = price1;
+    }
+
+    public Double getPrice2() {
+        return price2;
+    }
+
+    public void setPrice2(Double price2) {
+        this.price2 = price2;
     }
 }
