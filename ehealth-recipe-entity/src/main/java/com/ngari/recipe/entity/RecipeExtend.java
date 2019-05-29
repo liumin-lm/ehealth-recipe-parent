@@ -36,6 +36,12 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "发病日期")
     private Date onsetDate;
 
+    @ItemProperty(alias = "HIS处方关联的卡类型")
+    private String  cardTypeName;
+
+    @ItemProperty(alias = "HIS处方关联的卡号")
+    private String  cardNo;
+
     public RecipeExtend() {
     }
 
@@ -92,5 +98,23 @@ public class RecipeExtend implements Serializable {
 
     public void setOnsetDate(Date onsetDate) {
         this.onsetDate = onsetDate;
+    }
+
+    @Column(name = "cardTypeName")
+    public String getCardTypeName() {
+        return cardTypeName;
+    }
+
+    public void setCardTypeName(String cardTypeName) {
+        this.cardTypeName = cardTypeName;
+    }
+
+    @Column(name = "cardNo")
+    public String getCardNo() {
+        return cardNo;
+    }
+
+    public void setCardNo(String cardNo) {
+        this.cardNo = cardNo;
     }
 }

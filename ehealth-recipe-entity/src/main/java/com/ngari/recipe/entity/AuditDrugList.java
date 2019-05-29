@@ -113,6 +113,12 @@ public class AuditDrugList implements java.io.Serializable {
     @ItemProperty(alias = "药品ID")
     private Integer drugId;
 
+    @ItemProperty(alias = "参考价格1")
+    private Double price1;
+
+    @ItemProperty(alias = "参考价格2")
+    private Double price2;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "AuditDrugId", unique = true, nullable = false)
@@ -383,5 +389,23 @@ public class AuditDrugList implements java.io.Serializable {
 
     public void setDrugId(Integer drugId) {
         this.drugId = drugId;
+    }
+
+    @Column(name = "Price1", precision = 10)
+    public Double getPrice1() {
+        return this.price1;
+    }
+
+    public void setPrice1(Double price1) {
+        this.price1 = price1;
+    }
+
+    @Column(name = "Price2", precision = 10)
+    public Double getPrice2() {
+        return this.price2;
+    }
+
+    public void setPrice2(Double price2) {
+        this.price2 = price2;
     }
 }

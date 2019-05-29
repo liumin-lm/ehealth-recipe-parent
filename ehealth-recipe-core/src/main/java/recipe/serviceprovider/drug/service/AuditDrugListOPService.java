@@ -197,6 +197,8 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         auditDrugList.setDrugType(drugList.getDrugType());
         auditDrugList.setUsingRate(drugList.getUsingRate());
         auditDrugList.setUsePathways(drugList.getUsePathways());
+        auditDrugList.setPrice1(drugList.getPrice1());
+        auditDrugList.setPrice2(drugList.getPrice2());
         auditDrugListDAO.update(auditDrugList);
     }
 

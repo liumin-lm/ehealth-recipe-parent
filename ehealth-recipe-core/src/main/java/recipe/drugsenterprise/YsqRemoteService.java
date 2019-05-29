@@ -362,6 +362,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
         IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
         IOrganService iOrganService = ApplicationUtils.getBaseService(IOrganService.class);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
 
         Recipe recipe;
         RecipeOrder order = null;
@@ -449,9 +450,10 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 recipeMap.put("SEX", "男");
             }
             //获取患者就诊卡号
-            String patientCard = recipe.getPatientCard();
-            if (StringUtils.isNotEmpty(patientCard)) {
-                recipeMap.put("ONECARDSOLUTION", patientCard);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            if (recipeExtend != null) {
+                String cardNo = recipeExtend.getCardNo();
+                recipeMap.put("ONECARDSOLUTION", cardNo);
             }
             //周岁处理
             Date birthday = patient.getBirthday();
