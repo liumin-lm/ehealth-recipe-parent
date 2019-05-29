@@ -15,6 +15,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ObjectUtils;
 import recipe.constant.ErrorCode;
 import recipe.dao.*;
 import recipe.drugsenterprise.YsqRemoteService;
@@ -77,16 +78,17 @@ public class AuditDrugListOPService implements IAuditDrugListService{
                 DrugList drugList =drugListDAO.get(auditDrugList.getDrugId());
                 //将该药品保存到机构药品目录
                 OrganDrugList organDrugList = packageOrganDrugList(auditDrugList, drugList);
-                organDrugList.setSalePrice(BigDecimal.valueOf(salePrice));
+                if (!ObjectUtils.isEmpty(salePrice)) {
+                    organDrugList.setSalePrice(BigDecimal.valueOf(salePrice));
+                }
                 organDrugList.setTakeMedicine(takeMedicine);
                 OrganDrugList resultOrganDrugList = organDrugListDAO.save(organDrugList);
                 //将该药品保存到配送药品目录和机构药品目录
                 SaleDrugList saleDrugList = packageSaleDrugList(auditDrugList, drugList, resultOrganDrugList);
-                if (saleDrugList != null) {
+                if (!ObjectUtils.isEmpty(salePrice)) {
                     saleDrugList.setPrice(BigDecimal.valueOf(salePrice));
                 }
                 SaleDrugList resultSaleDrugList = saleDrugListDAO.save(saleDrugList);
-
                 auditDrugList.setOrganDrugListId(resultOrganDrugList.getOrganDrugId());
                 auditDrugList.setSaleDrugListId(resultSaleDrugList.getOrganDrugId());
                 auditDrugList.setPrice(salePrice);
@@ -211,7 +213,6 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         saleDrugList.setCreateDt(new Date());
         saleDrugList.setOrganId(drugsEnterprises.get(0).getId());
         saleDrugList.setStatus(1);
-        saleDrugList.setPrice(BigDecimal.valueOf(auditDrugList.getPrice()));
         saleDrugList.setLastModify(new Date());
         return saleDrugList;
     }
@@ -227,7 +228,6 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         organDrugList.setProducerCode("");
         organDrugList.setCreateDt(new Date());
         organDrugList.setStatus(1);
-        organDrugList.setSalePrice(BigDecimal.valueOf(auditDrugList.getPrice()));
         organDrugList.setLastModify(new Date());
         return organDrugList;
     }
