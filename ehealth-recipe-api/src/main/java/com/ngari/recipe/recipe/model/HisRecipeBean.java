@@ -1,5 +1,7 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.Dictionary;
+import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
@@ -11,6 +13,11 @@ import java.util.List;
 @Schema
 public class HisRecipeBean implements Serializable {
     private static final long serialVersionUID = 8133021203816048936L;
+    @ItemProperty(alias = "开方机构")
+    @Dictionary(id = "eh.base.dictionary.Organ")
+    private Integer clinicOrgan;
+    @ItemProperty(alias = "开方机构名称")
+    private String organName;
     private String registeredId;
     private String recipeCode;
     private String organDiseaseName;
@@ -109,5 +116,21 @@ public class HisRecipeBean implements Serializable {
 
     public void setDetailData(List<HisRecipeDetailBean> detailData) {
         this.detailData = detailData;
+    }
+
+    public Integer getClinicOrgan() {
+        return clinicOrgan;
+    }
+
+    public void setClinicOrgan(Integer clinicOrgan) {
+        this.clinicOrgan = clinicOrgan;
+    }
+
+    public String getOrganName() {
+        return organName;
+    }
+
+    public void setOrganName(String organName) {
+        this.organName = organName;
     }
 }

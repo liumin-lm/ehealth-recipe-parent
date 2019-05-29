@@ -15,7 +15,9 @@ import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
 import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
@@ -121,6 +123,11 @@ public class RecipePreserveService {
         if (patientDTO == null){
             throw new DAOException(609, "找不到该患者");
         }
+        OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+        OrganDTO organDTO = organService.getByOrganId(organId);
+        if (organDTO == null){
+            throw new DAOException(609, "找不到该机构");
+        }
         String cardId = null;
         if (consultId != null){
             IConsultService service = ConsultAPI.getService(IConsultService.class);
@@ -185,6 +192,8 @@ public class RecipePreserveService {
                 hisRecipeDetailBeans.add(detailBean);
             }
             recipeBean.setDetailData(hisRecipeDetailBeans);
+            recipeBean.setClinicOrgan(organId);
+            recipeBean.setOrganName(organDTO.getName());
             recipes.add(recipeBean);
         }
         result.put("hisRecipe",recipes);
