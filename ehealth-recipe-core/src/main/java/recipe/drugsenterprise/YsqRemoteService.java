@@ -142,6 +142,13 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             return result;
         }
 
+        Integer hosInteriorSupport = drugsEnterprise.getHosInteriorSupport();
+        Boolean hosInteriorSupportFlag = true;
+        if (hosInteriorSupport != null && hosInteriorSupport == 1) {
+            //为补充库存
+            hosInteriorSupportFlag = false;
+        }
+
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         IOrganService iOrganService = ApplicationUtils.getBaseService(IOrganService.class);
 
@@ -167,8 +174,12 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 result.setCode(DrugEnterpriseResult.FAIL);
                 return result;
             }
+            if (!hosInteriorSupportFlag) {
+                recipeMap.put("HOSCODE", organ.getOrganizeCode());
+            } else {
+                recipeMap.put("HOSCODE", organ.getOrganId().toString());
+            }
 
-            recipeMap.put("HOSCODE", organ.getOrganizeCode());
             recipeMap.put("HOSNAME", organ.getName());
             //医院处方号  医院机构?处方编号
             recipeMap.put("INBILLNO", recipe.getClinicOrgan() + YSQ_SPLIT + recipe.getRecipeCode());
@@ -429,7 +440,12 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 recipeMap.put("METHOD", "");
             }
 
-            recipeMap.put("HOSCODE", organ.getOrganizeCode());
+            if (!sendRecipe) {
+                recipeMap.put("HOSCODE", organ.getOrganizeCode());
+            } else {
+                recipeMap.put("HOSCODE", organ.getOrganId().toString());
+            }
+
             recipeMap.put("HOSNAME", organ.getName());
             recipeMap.put("PRESCRIPTDATE", DateConversion.getDateFormatter(recipe.getSignDate(), DateConversion.DEFAULT_DATE_TIME));
             //医院处方号  医院机构?处方编号
@@ -505,7 +521,12 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                         drugListMap.put(drugId, drug);
                     }
 
-                    detailMap.put("GOODS", drugId.toString());
+                    if (!sendRecipe) {
+                        detailMap.put("GOODS", detail.getOrganDrugCode());
+                    } else {
+                        detailMap.put("GOODS", drugId.toString());
+                    }
+
                     detailMap.put("NAME", drug.getSaleName());
                     detailMap.put("GNAME", drug.getDrugName());
                     detailMap.put("SPEC", drug.getDrugSpec());
