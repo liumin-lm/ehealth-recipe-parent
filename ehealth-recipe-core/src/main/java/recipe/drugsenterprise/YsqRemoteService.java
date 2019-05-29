@@ -168,7 +168,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 return result;
             }
 
-            recipeMap.put("HOSCODE", organ.getOrganId().toString());
+            recipeMap.put("HOSCODE", organ.getOrganizeCode());
             recipeMap.put("HOSNAME", organ.getName());
             //医院处方号  医院机构?处方编号
             recipeMap.put("INBILLNO", recipe.getClinicOrgan() + YSQ_SPLIT + recipe.getRecipeCode());
