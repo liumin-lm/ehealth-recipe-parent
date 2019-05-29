@@ -193,7 +193,7 @@ public class RecipePreserveService {
             }
             recipeBean.setDetailData(hisRecipeDetailBeans);
             recipeBean.setClinicOrgan(organId);
-            recipeBean.setOrganName(organDTO.getName());
+            recipeBean.setOrganName(organDTO.getShortName());
             recipes.add(recipeBean);
         }
         result.put("hisRecipe",recipes);
