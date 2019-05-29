@@ -74,7 +74,7 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         if (status == 1) {
             try{
                 //表示审核通过
-                DrugList drugList = drugListDAO.getById(auditDrugList.getDrugId());
+                DrugList drugList =drugListDAO.get(auditDrugList.getDrugId());
                 //将该药品保存到机构药品目录
                 OrganDrugList organDrugList = packageOrganDrugList(auditDrugList, drugList);
                 organDrugList.setSalePrice(BigDecimal.valueOf(salePrice));
@@ -211,7 +211,7 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         saleDrugList.setCreateDt(new Date());
         saleDrugList.setOrganId(drugsEnterprises.get(0).getId());
         saleDrugList.setStatus(1);
-        saleDrugList.setPrice(BigDecimal.valueOf(drugList.getPrice1()));
+        saleDrugList.setPrice(BigDecimal.valueOf(auditDrugList.getPrice()));
         saleDrugList.setLastModify(new Date());
         return saleDrugList;
     }
@@ -227,7 +227,7 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         organDrugList.setProducerCode("");
         organDrugList.setCreateDt(new Date());
         organDrugList.setStatus(1);
-        organDrugList.setSalePrice(BigDecimal.valueOf(drugList.getPrice1()));
+        organDrugList.setSalePrice(BigDecimal.valueOf(auditDrugList.getPrice()));
         organDrugList.setLastModify(new Date());
         return organDrugList;
     }
