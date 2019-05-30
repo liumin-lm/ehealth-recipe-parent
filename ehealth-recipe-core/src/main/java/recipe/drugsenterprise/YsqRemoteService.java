@@ -8,6 +8,9 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepStyleBean;
 import com.ngari.recipe.entity.*;
@@ -28,10 +31,7 @@ import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.dao.DrugListDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeOrderDAO;
+import recipe.dao.*;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
 import recipe.service.common.RecipeCacheService;
@@ -85,7 +85,13 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         Map<String, Object> sendInfo = new HashMap<>(1);
         //同时生成订单 0不生成 1生成
         sendInfo.put("EXEC_ORD", "0");
-        List<Map<String, Object>> recipeInfoList = getYsqRecipeInfo(recipeIds, true);
+        Integer hosInteriorSupport = drugsEnterprise.getHosInteriorSupport();
+        Boolean hosInteriorSupportFlag = true;
+        if (hosInteriorSupport != null && hosInteriorSupport == 1) {
+            //为补充库存
+            hosInteriorSupportFlag = false;
+        }
+        List<Map<String, Object>> recipeInfoList = getYsqRecipeInfo(recipeIds, hosInteriorSupportFlag);
         if (recipeInfoList.isEmpty()) {
             result.setMsg("钥世圈推送处方数量为0");
             result.setCode(DrugEnterpriseResult.FAIL);
@@ -136,6 +142,13 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             return result;
         }
 
+        Integer hosInteriorSupport = drugsEnterprise.getHosInteriorSupport();
+        Boolean hosInteriorSupportFlag = true;
+        if (hosInteriorSupport != null && hosInteriorSupport == 1) {
+            //为补充库存
+            hosInteriorSupportFlag = false;
+        }
+
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         IOrganService iOrganService = ApplicationUtils.getBaseService(IOrganService.class);
 
@@ -161,8 +174,12 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 result.setCode(DrugEnterpriseResult.FAIL);
                 return result;
             }
+            if (!hosInteriorSupportFlag) {
+                recipeMap.put("HOSCODE", organ.getOrganizeCode());
+            } else {
+                recipeMap.put("HOSCODE", organ.getOrganId().toString());
+            }
 
-            recipeMap.put("HOSCODE", organ.getOrganId().toString());
             recipeMap.put("HOSNAME", organ.getName());
             //医院处方号  医院机构?处方编号
             recipeMap.put("INBILLNO", recipe.getClinicOrgan() + YSQ_SPLIT + recipe.getRecipeCode());
@@ -356,6 +373,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
         IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
         IOrganService iOrganService = ApplicationUtils.getBaseService(IOrganService.class);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
 
         Recipe recipe;
         RecipeOrder order = null;
@@ -422,7 +440,12 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 recipeMap.put("METHOD", "");
             }
 
-            recipeMap.put("HOSCODE", organ.getOrganId().toString());
+            if (!sendRecipe) {
+                recipeMap.put("HOSCODE", organ.getOrganizeCode());
+            } else {
+                recipeMap.put("HOSCODE", organ.getOrganId().toString());
+            }
+
             recipeMap.put("HOSNAME", organ.getName());
             recipeMap.put("PRESCRIPTDATE", DateConversion.getDateFormatter(recipe.getSignDate(), DateConversion.DEFAULT_DATE_TIME));
             //医院处方号  医院机构?处方编号
@@ -442,7 +465,12 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 LOGGER.error("getYsqRecipeInfo sex为空");
                 recipeMap.put("SEX", "男");
             }
-
+            //获取患者就诊卡号
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            if (recipeExtend != null) {
+                String cardNo = recipeExtend.getCardNo();
+                recipeMap.put("ONECARDSOLUTION", cardNo);
+            }
             //周岁处理
             Date birthday = patient.getBirthday();
             if (null != birthday) {
@@ -493,7 +521,12 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                         drugListMap.put(drugId, drug);
                     }
 
-                    detailMap.put("GOODS", drugId.toString());
+                    if (!sendRecipe) {
+                        detailMap.put("GOODS", detail.getOrganDrugCode());
+                    } else {
+                        detailMap.put("GOODS", drugId.toString());
+                    }
+
                     detailMap.put("NAME", drug.getSaleName());
                     detailMap.put("GNAME", drug.getDrugName());
                     detailMap.put("SPEC", drug.getDrugSpec());
@@ -577,5 +610,42 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         }
 
         return call;
+    }
+
+    //发送药品审核信息
+    public DrugEnterpriseResult sendAuditDrugList(DrugsEnterprise drugsEnterprise, String organizeCode, String organDrugCode, Integer status) {
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        OrganService organService = BasicAPI.getService(OrganService.class);
+        OrganDTO organ = organService.getOrganByOrganizeCode(organizeCode);
+        AuditDrugListDAO auditDrugListDAO = DAOFactory.getDAO(AuditDrugListDAO.class);
+        AuditDrugList auditDrugList = auditDrugListDAO.getByOrganizeCodeAndOrganDrugCode(organizeCode, organDrugCode);
+
+        String drugEpName = drugsEnterprise.getName();
+        //最终发给药企的json数据
+        Map<String, Object> sendInfo = new HashMap<>(1);
+        Map<String, Object> auditInfo = new HashMap<>();
+        auditInfo.put("HOSCODE", auditDrugList.getOrganizeCode());
+        auditInfo.put("HOSNAME", organ.getName());
+        auditInfo.put("CODE", auditDrugList.getOrganDrugCode());
+        auditInfo.put("NAME", auditDrugList.getDrugName());
+        auditInfo.put("GNAME", auditDrugList.getSaleName());
+        auditInfo.put("SPEC", auditDrugList.getDrugSpec());
+        auditInfo.put("PRODUCER", auditDrugList.getProducer());
+        auditInfo.put("FORMNAME", "");
+        auditInfo.put("MSUNITNO", auditDrugList.getUnit());
+        auditInfo.put("MINMSUNITNO", auditDrugList.getUnit());
+        if (status == 1) {
+            auditInfo.put("INVENTORYNUM", 9999);
+        }
+        List<Map<String, Object>> list = new ArrayList<>();
+        list.add(auditInfo);
+        sendInfo.put("DRUGS", list);
+        String sendInfoStr = JSONUtils.toString(sendInfo);
+        String methodName = "DrugInvAmount";
+        LOGGER.info("发送[{}][{}]内容：{}", drugEpName, methodName, sendInfoStr);
+
+        //发送药企信息
+        sendAndDealResult(drugsEnterprise, methodName, sendInfoStr, result);
+        return result;
     }
 }
