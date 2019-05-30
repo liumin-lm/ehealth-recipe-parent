@@ -7,10 +7,6 @@ import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
-import com.ngari.consult.ConsultAPI;
-import com.ngari.consult.common.model.ConsultExDTO;
-import com.ngari.consult.common.service.IConsultExService;
-import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
@@ -28,11 +24,9 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.RecipeUtil;
-import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.constant.RecipeSystemConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDetailDAO;
@@ -85,7 +79,7 @@ public class HisRequestInit {
             //科室名称
             requestTO.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
             //操作时间
-            requestTO.setOperationTime(DateConversion.formatDate(recipe.getSignDate()));
+            requestTO.setOperationTime(DateConversion.formatDateTimeWithSec(recipe.getSignDate()));
             //操作员代码(医生身份证)
             DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
             DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
@@ -306,7 +300,7 @@ public class HisRequestInit {
         requestTO.setEndDate(c.getTime());
 
         //福建省立医院特殊处理
-        if("1001393".equals(recipe.getClinicOrgan().toString())){
+        if("1001393".equals(recipe.getClinicOrgan())){
             IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
             List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
                     recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);

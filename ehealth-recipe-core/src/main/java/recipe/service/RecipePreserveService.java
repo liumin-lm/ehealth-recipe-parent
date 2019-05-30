@@ -1,15 +1,30 @@
 package recipe.service;
 
+import com.google.common.collect.Lists;
 import com.ngari.base.doctor.model.DoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
+import com.ngari.consult.ConsultAPI;
+import com.ngari.consult.ConsultBean;
+import com.ngari.consult.common.model.ConsultExDTO;
+import com.ngari.consult.common.service.IConsultExService;
+import com.ngari.consult.common.service.IConsultService;
+import com.ngari.his.base.PatientBaseInfo;
+import com.ngari.his.recipe.mode.QueryRecipeRequestTO;
+import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
+import com.ngari.his.recipe.mode.RecipeInfoTO;
+import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipelog.model.RecipeLogBean;
 import ctd.persistence.DAOFactory;
+import ctd.spring.AppDomainContext;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +34,10 @@ import recipe.constant.CacheConstant;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.util.DateConversion;
 import recipe.util.RedisClient;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -79,6 +96,46 @@ public class RecipePreserveService {
     public DoctorBean getDoctorTest(Integer doctorId) {
         IDoctorService doctorService = ApplicationUtils.getBaseService(IDoctorService.class);
         return doctorService.getBeanByDoctorId(doctorId);
+    }
+
+    @RpcService
+    public List<RecipeInfoTO> getHosRecipeList(int consultId, String patientName){
+        LOGGER.info("getHosRecipeList consultId={}, patientName={}", consultId, patientName);
+        IConsultService service = ConsultAPI.getService(IConsultService.class);
+        ConsultBean consultBean = service.getById(consultId);
+        if(null == consultBean){
+            return Lists.newArrayList();
+        }
+
+        IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
+        ConsultExDTO consultExDTO = exService.getByConsultId(consultId);
+        if(null == consultExDTO || StringUtils.isEmpty(consultExDTO.getCardId())){
+            return Lists.newArrayList();
+        }
+        Date endDate = DateTime.now().toDate();
+        Date startDate = DateConversion.getDateTimeDaysAgo(180);
+
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        QueryRecipeRequestTO request = new QueryRecipeRequestTO();
+        PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
+        patientBaseInfo.setPatientName(patientName);
+        patientBaseInfo.setPatientID(consultExDTO.getCardId());
+        request.setPatientInfo(patientBaseInfo);
+        request.setStartDate(startDate);
+        request.setEndDate(endDate);
+        request.setOrgan(consultBean.getConsultOrgan());
+        LOGGER.info("getHosRecipeList request={}", JSONUtils.toString(request));
+        QueryRecipeResponseTO response = null;
+        try {
+            response = hisService.queryRecipeListInfo(request);
+        } catch (Exception e) {
+            LOGGER.warn("getHosRecipeList his error. ", e);
+        }
+        if(null == response){
+            return Lists.newArrayList();
+        }
+        LOGGER.info("getHosRecipeList msgCode={}, msg={} ", response.getMsgCode(), response.getMsg());
+        return response.getData();
     }
 
     @RpcService

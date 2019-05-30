@@ -8,7 +8,11 @@ import java.util.List;
 
 public interface IDrugListService {
     @RpcService
-    public DrugListBean get(final int drugId);
+    DrugListBean get(final int drugId);
+
     @RpcService
-    public List<DictionaryItem> getDrugClass(String parentKey, int sliceType);
+    List<DictionaryItem> getDrugClass(String parentKey, int sliceType);
+
+    @RpcService
+    void saveDrugList(DrugListBean drugListBean);
 }

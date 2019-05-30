@@ -57,6 +57,7 @@ public class RecipeToHisCallbackService {
             String recipeNo = repList.get(0).getRecipeNo();
             String patientId = repList.get(0).getPatientID();
             String amount = repList.get(0).getAmount();
+            String sendFlag = repList.get(0).getSendFlag();
             boolean isWuChang = false;
             //是否武昌模式
             if (StringUtils.isNotEmpty(repList.get(0).getIsDrugStock())){
@@ -100,7 +101,16 @@ public class RecipeToHisCallbackService {
             //没库存操作----推送九州通
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(Integer.valueOf(response.getRecipeId()));
-            String memo = "";
+            String memo;
+            if (StringUtils.isNotEmpty(sendFlag) && "1".equals(sendFlag)) {
+                LOGGER.info("岳阳模式，不对接HIS直接推送到药企");
+                //岳阳模式，不对接HIS直接推送到药企
+                drugsEnterpriseService.pushHosInteriorSupport(recipe.getRecipeId(),recipe.getClinicOrgan());
+                memo = "岳阳处方,直接推送钥世圈";
+                //日志记录
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
+                return;
+            }
             if (!isDrugStock){
                 //没库存操作----推送九州通
                 drugsEnterpriseService.pushHosInteriorSupport(recipe.getRecipeId(),recipe.getClinicOrgan());
