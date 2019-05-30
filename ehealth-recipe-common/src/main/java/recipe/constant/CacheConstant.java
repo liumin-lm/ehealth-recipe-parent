@@ -22,6 +22,11 @@ public class CacheConstant {
      * 武昌organId列表
      */
     public static final String KEY_WUCHANG_ORGAN_LIST = "RCP_WUCHANG_ORGAN_LIST";
+
+    /**
+     * 医生端显示查询医院历史处方按钮organId列表
+     */
+    public static final String KEY_SHOWHISRECIPE_ORGAN_LIST = "RCP_SHOWHISRECIPE_ORGAN_LIST";
     
     /**
      * 支持HIS处方检查功能的机构列表
