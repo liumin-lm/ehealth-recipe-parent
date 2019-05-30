@@ -1102,6 +1102,4 @@ public class RecipeBean implements Serializable {
         Integer useMedicalFlag = 1;
         return (useMedicalFlag.equals(medicalPayFlag)) ? true : false;
     }
-
-
 }

@@ -74,7 +74,7 @@ public class RecipeExtend implements Serializable {
     public void setRecipeId(Integer recipeId) {
         this.recipeId = recipeId;
     }
-    
+
     @Column(name = "mainDieaseDescribe")
     public String getMainDieaseDescribe() {
         return mainDieaseDescribe;
@@ -128,7 +128,7 @@ public class RecipeExtend implements Serializable {
     public void setHistoryOfPresentIllness(String historyOfPresentIllness) {
         this.historyOfPresentIllness = historyOfPresentIllness;
     }
-    
+
     @Column(name = "handleMethod")
     public String getHandleMethod() {
         return handleMethod;

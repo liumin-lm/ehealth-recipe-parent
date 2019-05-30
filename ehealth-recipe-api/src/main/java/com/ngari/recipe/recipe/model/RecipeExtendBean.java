@@ -43,6 +43,12 @@ public class RecipeExtendBean implements Serializable {
     private String physicalCheck;
     /**为互联网医院字段*/
 
+    @ItemProperty(alias = "HIS处方关联的卡类型")
+    private String  cardTypeName;
+
+    @ItemProperty(alias = "HIS处方关联的卡号")
+    private String  cardNo;
+
     public RecipeExtendBean() {
     }
 
@@ -125,5 +131,21 @@ public class RecipeExtendBean implements Serializable {
 
     public void setPhysicalCheck(String physicalCheck) {
         this.physicalCheck = physicalCheck;
+    }
+
+    public String getCardTypeName() {
+        return cardTypeName;
+    }
+
+    public void setCardTypeName(String cardTypeName) {
+        this.cardTypeName = cardTypeName;
+    }
+
+    public String getCardNo() {
+        return cardNo;
+    }
+
+    public void setCardNo(String cardNo) {
+        this.cardNo = cardNo;
     }
 }

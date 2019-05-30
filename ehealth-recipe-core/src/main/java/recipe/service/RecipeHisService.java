@@ -103,6 +103,9 @@ public class RecipeHisService extends RecipeBaseService {
                 HisResponseTO hisResponseTO = service.docIndexToHis(docIndexToHisReqTO);
                 if (hisResponseTO != null){
                     if ("200".equals(hisResponseTO.getMsgCode())){
+                        //电子病历接口返回挂号序号
+                        String data = (String)hisResponseTO.getData();
+                        request.setRegisteredId(data);
                         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "推送电子病历成功");
                     }else {
                         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "推送电子病历失败。原因："+hisResponseTO.getMsg());

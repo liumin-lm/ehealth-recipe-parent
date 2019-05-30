@@ -72,4 +72,11 @@ public class DrugListOPService implements IDrugListService {
         OrganDrugList organDrugList = drugListDAO.get(organDrugId);
         return ObjectCopyUtils.convert(organDrugList, OrganDrugListBean.class);
     }
+
+    @Override
+    public void saveDrugList(DrugListBean drugListBean) {
+        DrugList drugList = ObjectCopyUtils.convert(drugListBean, DrugList.class);
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        drugListDAO.save(drugList);
+    }
 }
