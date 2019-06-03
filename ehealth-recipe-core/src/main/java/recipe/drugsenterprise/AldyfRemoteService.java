@@ -180,8 +180,6 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                         LOGGER.info("获取图片失败,{}.", dbRecipe.getRecipeId());
                         return getDrugEnterpriseResult(result, "获取图片失败");
                     }
-
-
                 } catch (Exception e) {
                     LOGGER.info("处方图片上传失败.{}", dbRecipe.getRecipeId(), e);
                     return getDrugEnterpriseResult(result, "处方图片上传失败");
@@ -194,7 +192,7 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                 prescriptionParam.setOssKey(ossKey);
                 prescriptionParam.setOutHospitalId(organizeCode);
                 prescriptionParam.setCreateTime(dbRecipe.getSignDate());
-
+                LOGGER.info("prescriptionParam 处方信息:{}.", getJsonLog(prescriptionParam));
                 prescriptionAddRequest.setPrescriptionParam(prescriptionParam);
 
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(dbRecipe.getRecipeId());
@@ -203,7 +201,7 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                 diagnosticParam.setComplaints(dbRecipe.getMemo());               //诊断
                 diagnosticParam.setDiagnosis(recipeExtend.getHistoryOfPresentIllness());   //患者主诉
                 diagnosticParam.setDisease(dbRecipe.getOrganDiseaseName());      //疾病
-
+                LOGGER.info("DiagnosticParam 患者主诉:{}.", getJsonLog(diagnosticParam));
                 prescriptionAddRequest.setDiagnosticParam(diagnosticParam);
 
                 //DrugParam药品详情
@@ -212,27 +210,19 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                 List<Recipedetail> detailList = detailDAO.findByRecipeId(dbRecipe.getRecipeId());
                 List<AlibabaAlihealthRxPrescriptionAddRequest.DrugParam> drugParams = new ArrayList<>();
                 if (!ObjectUtils.isEmpty(detailList)) {
-                    List<Integer> drugIdList = Lists.newArrayList(Collections2.transform(detailList, new Function<Recipedetail, Integer>() {
-                        @Nullable
-                        @Override
-                        public Integer apply(@Nullable Recipedetail input) {
-                            return input.getDrugId();
-                        }
-                    }));
-
                     SaleDrugListDAO saleDrugDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-
-                    List<SaleDrugList> saleDrugList = saleDrugDAO.findByOrganIdAndDrugIds(depId, drugIdList);
-                    if (detailList.size() != saleDrugList.size()) {
-                        return getDrugEnterpriseResult(result, "药品数据存在问题");
-                    }
                     for (int i = 0; i < detailList.size(); i++) {
+                        //一张处方单可能包含相同的药品
+                        SaleDrugList saleDrugList = saleDrugDAO.getByDrugIdAndOrganId(detailList.get(i).getDrugId(), depId);
+                        if (ObjectUtils.isEmpty(saleDrugList)) {
+                            return getDrugEnterpriseResult(result, "未找到对应的saleDrugList");
+                        }
                         drugParam = new AlibabaAlihealthRxPrescriptionAddRequest.DrugParam();
-                        drugParam.setDrugId(saleDrugList.get(i).getOrganDrugCode());
-                        drugParam.setCommonName(saleDrugList.get(i).getDrugName());  //药品通用名
-                        drugParam.setSpec(saleDrugList.get(i).getDrugSpec());        //药品规格
+                        drugParam.setDrugId(saleDrugList.getOrganDrugCode());
+                        drugParam.setCommonName(saleDrugList.getDrugName());  //药品通用名
+                        drugParam.setSpec(saleDrugList.getDrugSpec());        //药品规格
                         drugParam.setDoseUnit(detailList.get(i).getDrugUnit());      //开具单位(盒)
-                        drugParam.setDrugName(saleDrugList.get(i).getSaleName());    //商品名称
+                        drugParam.setDrugName(saleDrugList.getSaleName());    //商品名称
                         try {
                             drugParam.setDoseUsageAdvice(DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detailList.get(i).getUsingRate()));
                             drugParam.setDoseUsage(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detailList.get(i).getUsePathways()));
@@ -387,16 +377,16 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
     private DrugEnterpriseResult getDrugEnterpriseResult(DrugEnterpriseResult result, String msg) {
         result.setMsg(msg);
         result.setCode(DrugEnterpriseResult.FAIL);
+        LOGGER.info("AldyfRemoteService-getDrugEnterpriseResult提示信息：{}.", msg);
         return result;
     }
 
     //base64字符串转化成图片
-    public static byte[] GenerateImage(String imgStr){
+    private static byte[] GenerateImage(String imgStr){
         //对字节数组字符串进行Base64解码并生成图片
-        if (imgStr == null) //图像数据为空
+        if (StringUtils.isEmpty(imgStr)) //图像数据为空
             return null;
         BASE64Decoder decoder = new BASE64Decoder();
-        OutputStream out = null;
         try{
             //Base64解码
             byte[] b = decoder.decodeBuffer(imgStr);
@@ -409,18 +399,10 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
             return b;
         }catch (Exception e){
             return null;
-        } finally {
-            try{
-                if(out != null) {
-                    out.close();
-                }
-            }catch (Exception e){
-                return null;
-            }
         }
     }
 
-    public static String getJsonLog(Object object) {
+    private static String getJsonLog(Object object) {
         return JSONUtils.toString(object);
     }
 }
