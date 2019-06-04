@@ -1,10 +1,7 @@
 package recipe.hisservice.syncdata;
 
 import com.ngari.base.employment.service.IEmploymentService;
-import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
-import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.regulation.entity.RegulationRecipeDetailIndicatorsReq;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.his.regulation.service.IRegulationService;
@@ -59,15 +56,14 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             commonResponse.setMsg("处方列表为空");
             return commonResponse;
         }
-
-        IHisServiceConfigService configService = AppDomainContext.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
+        /*IHisServiceConfigService configService = AppDomainContext.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
         //获取所有监管平台机构列表
         List<ServiceConfigResponseTO> list = configService.findAllRegulationOrgan();
         if (CollectionUtils.isEmpty(list)) {
             LOGGER.warn("uploadRecipeIndicators provUploadOrgan list is null.");
             commonResponse.setMsg("需要同步机构列表为空");
             return commonResponse;
-        }
+        }*/
 
        /* ProvUploadOrganService provUploadOrganService =
                 AppDomainContext.getBean("basic.provUploadOrganService", ProvUploadOrganService.class);
@@ -86,7 +82,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         PatientService patientService = BasicAPI.getService(PatientService.class);
         /*SubCodeService subCodeService = BasicAPI.getService(SubCodeService.class);*/
         OrganService organService = BasicAPI.getService(OrganService.class);
-        IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
+       /* IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);*/
 
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
 
@@ -130,16 +126,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 LOGGER.warn("uploadRecipeIndicators organ is null. recipe.clinicOrgan={}", recipe.getClinicOrgan());
                 continue;
             }
-            for (ServiceConfigResponseTO uploadOrgan : list) {
-                if (uploadOrgan.getOrganid().equals(organDTO.getOrganId())) {
-                    /*req.setUnitID(uploadOrgan.getUnitId());*/
-                    req.setOrganID(LocalStringUtil.toString(uploadOrgan.getOrganid()));
-                    //组织机构编码
-                    req.setOrganizeCode(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
-                    req.setOrganName(organDTO.getName());
-                    break;
-                }
-            }
+            req.setOrganID(LocalStringUtil.toString(organDTO.getOrganId()));
+            //组织机构编码
+            req.setOrganizeCode(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
+            req.setOrganName(organDTO.getName());
+
             /*if (StringUtils.isEmpty(req.getUnitID())) {
                 LOGGER.warn("uploadRecipeIndicators minkeUnitID is not in minkeOrganList. organ.organId={}",
                         organDTO.getOrganId());
@@ -321,9 +312,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //药物剂型代码
             reqDetail.setDosageForm("");
             //药物使用总剂量
-            reqDetail.setUseDosage("");
+            reqDetail.setUseDosage("0");
             //药物日药量/DDD值
-            reqDetail.setDosageDay("");
+            reqDetail.setDosageDay(detail.getUseDose().toString());
             //中药处方详细描述
             if (RecipeUtil.isTcmType(recipe.getRecipeType())){
                 reqDetail.setTcmDescribe(detail.getUsingRate()+detail.getUsePathways());
