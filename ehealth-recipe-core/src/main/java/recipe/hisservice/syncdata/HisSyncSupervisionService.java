@@ -8,8 +8,10 @@ import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.regulation.entity.RegulationRecipeDetailIndicatorsReq;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.his.regulation.service.IRegulationService;
-import com.ngari.patient.dto.*;
-import com.ngari.patient.dto.zjs.SubCodeDTO;
+import com.ngari.patient.dto.AppointDepartDTO;
+import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
@@ -24,11 +26,13 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.common.response.CommonResponse;
+import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDetailDAO;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
@@ -88,7 +92,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
         List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
         Map<Integer, OrganDTO> organMap = new HashMap<>(20);
-        Map<Integer, DepartmentDTO> departMap = new HashMap<>(20);
+        /*Map<Integer, DepartmentDTO> departMap = new HashMap<>(20);*/
         Map<Integer, DoctorDTO> doctorMap = new HashMap<>(20);
 
         Dictionary usingRateDic = null;
@@ -105,17 +109,16 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         RegulationRecipeIndicatorsReq req;
         OrganDTO organDTO;
         String organDiseaseName;
-        DepartmentDTO departmentDTO;
+       /* DepartmentDTO departmentDTO;*/
         DoctorDTO doctorDTO;
         PatientDTO patientDTO;
-        SubCodeDTO subCodeDTO;
+       /* SubCodeDTO subCodeDTO;*/
         List<Recipedetail> detailList;
+        String str;
         for (Recipe recipe : recipeList) {
             req = new RegulationRecipeIndicatorsReq();
-            //TODO 此处与互联网分支不一致，应填复诊ID LocalStringUtil.toString(recipe.getClinicId())
+
             /* req.setBussID(recipe.getRecipeId().toString());*/
-            //门诊号处理
-            req.setPatientNumber("");
 
             //机构处理
             organDTO = organMap.get(recipe.getClinicOrgan());
@@ -131,6 +134,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 if (uploadOrgan.getOrganid().equals(organDTO.getOrganId())) {
                     /*req.setUnitID(uploadOrgan.getUnitId());*/
                     req.setOrganID(LocalStringUtil.toString(uploadOrgan.getOrganid()));
+                    //组织机构编码
+                    req.setOrganizeCode(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
                     req.setOrganName(organDTO.getName());
                     break;
                 }
@@ -228,7 +233,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setIcdCode(recipe.getOrganDiseaseId().replaceAll("；", "|"));
             req.setIcdName(organDiseaseName);
             req.setRecipeType(recipe.getRecipeType().toString());
-            req.setPacketsNum(recipe.getCopyNum());
+            /*req.setPacketsNum(recipe.getCopyNum());*/
             req.setDatein(recipe.getSignDate());
             req.setEffectivePeriod(recipe.getValueDays());
             req.setStartDate(recipe.getSignDate());
@@ -239,14 +244,20 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
             //过敏史标记 有无过敏史 0:无 1:有
             req.setAllergyFlag("0");
+            //门诊号处理 年月日+机构Id（6位）+患者身份证后5位 例：20190604100042307915
+            //TODO 门诊号生成规则
+            str = patientDTO.getCertificate().substring(patientDTO.getCertificate().length()-5);
+            req.setPatientNumber(DateConversion.getDateFormatter(now,"yyyyMMdd")+recipe.getClinicOrgan()+str);
 
+            //撤销标记
+            req.setCancelFlag(getVerificationStatus(recipe));
             //详情处理
             detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
             if (CollectionUtils.isEmpty(detailList)) {
                 LOGGER.warn("uploadRecipeIndicators detail is null. recipe.id={}", recipe.getRecipeId());
                 continue;
             }
-            setDetail(req, detailList, usingRateDic, usePathwaysDic);
+            setDetail(req, detailList, usingRateDic, usePathwaysDic,recipe);
 
             request.add(req);
         }
@@ -280,7 +291,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
      * @param detailList
      */
     private void setDetail(RegulationRecipeIndicatorsReq req, List<Recipedetail> detailList,
-                           Dictionary usingRateDic, Dictionary usePathwaysDic) {
+                           Dictionary usingRateDic, Dictionary usePathwaysDic,Recipe recipe) {
         RegulationRecipeDetailIndicatorsReq reqDetail;
         List<RegulationRecipeDetailIndicatorsReq> list = new ArrayList<>(detailList.size());
         for (Recipedetail detail : detailList) {
@@ -294,13 +305,13 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             reqDetail.setFrequency(UsingRateFilter.filterNgari(Integer.valueOf(req.getOrganID()),detail.getUsingRate()));
             //药品频次名称
             if (null != usingRateDic) {
-                reqDetail.setFrequency(usingRateDic.getText(detail.getUsingRate()));
+                reqDetail.setFrequencyName(usingRateDic.getText(detail.getUsingRate()));
             }
             //用法
             reqDetail.setAdmission(UsePathwaysFilter.filterNgari(Integer.valueOf(req.getOrganID()),detail.getUsePathways()));
             //药品用法名称
             if (null != usePathwaysDic) {
-                reqDetail.setAdmission(usePathwaysDic.getText(detail.getUsePathways()));
+                reqDetail.setAdmissionName(usePathwaysDic.getText(detail.getUsePathways()));
             }
             reqDetail.setDosage(detail.getUseDose().toString());
             reqDetail.setDrunit(detail.getUseDoseUnit());
@@ -309,10 +320,16 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             reqDetail.setRemark(detail.getMemo());
             //药物剂型代码
             reqDetail.setDosageForm("");
+            //药物使用总剂量
+            reqDetail.setUseDosage("");
+            //药物日药量/DDD值
+            reqDetail.setDosageDay("");
+            //中药处方详细描述
+            if (RecipeUtil.isTcmType(recipe.getRecipeType())){
+                reqDetail.setTcmDescribe(detail.getUsingRate()+detail.getUsePathways());
+            }
             //处方明细Id
             reqDetail.setRecipeDetailId(detail.getRecipeDetailId());
-            //药品单位
-            reqDetail.setDrugUnit(detail.getDrugUnit());
             //单价
             reqDetail.setPrice(detail.getPrice());
             //总价
@@ -322,5 +339,22 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         }
 
         req.setOrderList(list);
+    }
+
+    /**
+     * 处方核销状态判断，处方完成及开始配送都当做已核销处理
+     *
+     * @param
+     * @return 1正常 2撤销
+     */
+    private String getVerificationStatus(Recipe recipe) {
+        if (RecipeStatusConstant.REVOKE == recipe.getStatus()
+                || RecipeStatusConstant.HIS_FAIL == recipe.getStatus() || RecipeStatusConstant.NO_DRUG == recipe.getStatus()
+                || RecipeStatusConstant.NO_PAY == recipe.getStatus() || RecipeStatusConstant.NO_OPERATOR == recipe.getStatus()
+                || RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
+            return "2";
+        }
+
+        return "1";
     }
 }
