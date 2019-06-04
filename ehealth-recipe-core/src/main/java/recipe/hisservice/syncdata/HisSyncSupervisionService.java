@@ -285,6 +285,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                            Dictionary usingRateDic, Dictionary usePathwaysDic,Recipe recipe) {
         RegulationRecipeDetailIndicatorsReq reqDetail;
         List<RegulationRecipeDetailIndicatorsReq> list = new ArrayList<>(detailList.size());
+        double dosageDay;
         for (Recipedetail detail : detailList) {
             reqDetail = new RegulationRecipeDetailIndicatorsReq();
             reqDetail.setDrcode(detail.getOrganDrugCode());
@@ -314,7 +315,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //药物使用总剂量
             reqDetail.setUseDosage("0");
             //药物日药量/DDD值
-            reqDetail.setDosageDay(detail.getUseDose().toString());
+            dosageDay = (detail.getUseDose())*(UsingRateFilter.transDailyTimes(detail.getUsingRate()));
+            reqDetail.setDosageDay(LocalStringUtil.toString(dosageDay));
             //中药处方详细描述
             if (RecipeUtil.isTcmType(recipe.getRecipeType())){
                 reqDetail.setTcmDescribe(detail.getUsingRate()+detail.getUsePathways());
