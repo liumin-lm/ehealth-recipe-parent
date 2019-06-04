@@ -23,6 +23,7 @@ import recipe.dao.DrugProducerDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.bean.DrugListAndOrganDrugList;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -139,30 +140,85 @@ public class OrganDrugListService {
     }
 
     /**
+     * 删除药品在医院中的信息
+     *
+     * @param organDrugListId 入参药品参数
+     * @param status 入参药品参数
+     */
+    @RpcService
+    public void updateOrganDrugListStatusById(Integer organDrugListId, Integer status) {
+        if (organDrugListId == null) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "organDrugId is required");
+        }
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        OrganDrugList organDrugList = organDrugListDAO.get(organDrugListId);
+        organDrugList.setStatus(status);
+        organDrugList.setLastModify(new Date());
+        organDrugListDAO.update(organDrugList);
+    }
+
+    /**
      * 更新药品在医院中的信息
      *
-     * @param organDrugList
-     * @return
+     * @param organDrugList 入参药品参数
+     * @return 机构药品信息
      * @author zhongzx
      */
     @RpcService
     public OrganDrugListDTO updateOrganDrugList(OrganDrugList organDrugList) {
-        logger.info("修改机构药品服务[updateOrganDrugList]:" + JSONUtils.toString(organDrugList));
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         if (null == organDrugList.getDrugId()) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugId is required");
         }
         updateValidate(organDrugList);
-        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        OrganDrugList target = organDrugListDAO.get(organDrugList.getOrganDrugId());
-        if (null == target) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "此药在该医院药品列表中不存在");
+        //对药品名、药品代码、院内检索码作唯一性校验
+        List<String> drugCodes = new ArrayList<>(1);
+        drugCodes.add(organDrugList.getOrganDrugCode());
+        if (organDrugList.getOrganDrugId() == null || organDrugList.getOrganDrugId() == 0) {
+            logger.info("新增机构药品服务[updateOrganDrugList]:" + JSONUtils.toString(organDrugList));
+            //说明为该机构新增机构药品
+            if (!drugListDAO.exist(organDrugList.getDrugId())) {
+                throw new DAOException(DAOException.VALUE_NEEDED, "DrugList not exist");
+            }
+            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(organDrugList.getOrganId(), drugCodes);
+            if (organDrugLists != null && organDrugLists.size() > 0) {
+                //说明不唯一了
+                throw new DAOException(DAOException.VALUE_NEEDED, "该机构药品代码已经存在");
+            }
+            //验证药品必要信息
+            validate(organDrugList);
+            DrugList drugList = drugListDAO.getById(organDrugList.getDrugId());
+            organDrugList.setOrganDrugId(null);
+            organDrugList.setProducer(drugList.getProducer());
+            organDrugList.setProducerCode("");
+            OrganDrugList saveOrganDrugList = organDrugListDAO.save(organDrugList);
+            return ObjectCopyUtils.convert(saveOrganDrugList, OrganDrugListDTO.class);
         } else {
-            BeanUtils.map(organDrugList, target);
-            target.setLastModify(new Date());
-            validateOrganDrugList(target);
-            target = organDrugListDAO.update(target);
+            logger.info("修改机构药品服务[updateOrganDrugList]:" + JSONUtils.toString(organDrugList));
+            OrganDrugList target = organDrugListDAO.get(organDrugList.getOrganDrugId());
+            if (null == target) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "此药在该医院药品列表中不存在");
+            } else {
+                //说明为更新机构药品目录,需要校验是否变更编号
+                if (!organDrugList.getOrganDrugCode().equals(target.getOrganDrugCode())) {
+                    //对药品名、药品代码、院内检索码作唯一性校验
+                    List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(organDrugList.getOrganId(), drugCodes);
+                    if (organDrugLists != null && organDrugLists.size() > 0) {
+                        //说明不唯一了
+                        throw new DAOException(DAOException.VALUE_NEEDED, "该机构药品代码已经存在");
+                    }
+                }
+                BeanUtils.map(organDrugList, target);
+                if (organDrugList.getUseDose() == null) {
+                    target.setUseDose(null);
+                }
+                target.setLastModify(new Date());
+                validateOrganDrugList(target);
+                target = organDrugListDAO.update(target);
+            }
+            return ObjectCopyUtils.convert(target, OrganDrugListDTO.class);
         }
-        return ObjectCopyUtils.convert(target, OrganDrugListDTO.class);
     }
 
     private void updateValidate(OrganDrugList organDrugList) {
@@ -177,9 +233,6 @@ public class OrganDrugListService {
         }
         if (StringUtils.isEmpty(organDrugList.getSaleName())) {
             throw new DAOException(DAOException.VALUE_NEEDED, "saleName is needed");
-        }
-        if (StringUtils.isEmpty(organDrugList.getOrganDrugCode())) {
-            throw new DAOException(DAOException.VALUE_NEEDED, "organDrugCode is needed");
         }
         if (organDrugList.getPack() == null || organDrugList.getPack() <= 0) {
             throw new DAOException(DAOException.VALUE_NEEDED, "pack is needed or not is 0");
