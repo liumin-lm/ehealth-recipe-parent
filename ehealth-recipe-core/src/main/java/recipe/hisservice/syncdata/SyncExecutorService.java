@@ -117,7 +117,7 @@ public class SyncExecutorService {
         Date time = now.getTime();
         //设置查询时间段
         String endDt = DateConversion.getDateFormatter(time, DateConversion.DEFAULT_DATE_TIME);
-        String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(1), DateConversion.DEFAULT_DATE_TIME);
+        String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(5), DateConversion.DEFAULT_DATE_TIME);
 
         IHisServiceConfigService configService = AppDomainContext.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
         //获取所有监管平台机构列表

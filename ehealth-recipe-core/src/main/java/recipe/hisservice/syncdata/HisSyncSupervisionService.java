@@ -238,7 +238,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //门诊号处理 年月日+机构Id（6位）+患者身份证后5位 例：20190604100042307915
             //TODO 门诊号生成规则
             str = patientDTO.getCertificate().substring(patientDTO.getCertificate().length()-5);
-            req.setPatientNumber(DateConversion.getDateFormatter(now,"yyyyMMdd")+recipe.getClinicOrgan()+str);
+            req.setPatientNumber(DateConversion.getDateFormatter(recipe.getSignDate(),"yyyyMMdd")+recipe.getClinicOrgan()+str);
 
             //撤销标记
             req.setCancelFlag(getVerificationStatus(recipe));
