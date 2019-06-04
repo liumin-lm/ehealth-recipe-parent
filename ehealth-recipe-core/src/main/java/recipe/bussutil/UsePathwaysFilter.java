@@ -23,5 +23,21 @@ public class UsePathwaysFilter {
         return StringUtils.isEmpty(val) ? field : val;
     }
 
+    /**
+     * 根据平台的字典编码，匹配医院的值，一般用于平台处方写入HIS使用
+     * @param organId
+     * @param field
+     * @return
+     */
+    public static String filterNgari(int organId, String field){
+        String val = RedisClient.instance().hget(CacheConstant.KEY_NGARI_USEPATHWAYS + organId, field);
+        /**
+         * 查不到的原因
+         * 1 因为field有可能在平台没有新增，则返回实际值
+         * 2 没有进行字典对照，则返回实际值
+         */
+        return StringUtils.isEmpty(val) ? field : val;
+    }
+
 
 }
