@@ -131,24 +131,22 @@ public class SyncExecutorService {
             HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
             CommonResponse response = null;
             try {
-                response = service.uploadRecipeIndicators(recipeList);
+                for (Recipe recipe : recipeList){
+                    response = service.uploadRecipeIndicators(Arrays.asList(recipe));
+                    if (CommonConstant.SUCCESS.equals(response.getCode())) {
+                        //更新字段
+                        recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("syncFlag", 1));
+                        //记录日志
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
+                                recipe.getStatus(), "监管平台上传成功");
+                    }else{
+                        //记录日志
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
+                                recipe.getStatus(), "监管平台上传失败,"+response.getMsg());
+                    }
+                }
             } catch (Exception e) {
                 LOGGER.warn("uploadRecipeIndicators exception ", e);
-            }
-            if (response != null && CommonConstant.SUCCESS.equals(response.getCode())) {
-                for (Recipe recipe : recipeList){
-                    //更新字段
-                    recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("syncFlag", 1));
-                    //记录日志
-                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
-                            recipe.getStatus(), "监管平台上传成功");
-                }
-            }else {
-                for (Recipe recipe : recipeList){
-                    //记录日志
-                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
-                            recipe.getStatus(), "监管平台上传失败,"+response.getMsg());
-                }
             }
         }
 

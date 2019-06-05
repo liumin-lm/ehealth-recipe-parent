@@ -1,15 +1,16 @@
 package recipe.hisservice.syncdata;
 
 import com.ngari.base.employment.service.IEmploymentService;
+import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
+import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.regulation.entity.RegulationRecipeDetailIndicatorsReq;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.his.regulation.service.IRegulationService;
-import com.ngari.patient.dto.AppointDepartDTO;
-import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.dto.OrganDTO;
-import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.dto.*;
+import com.ngari.patient.dto.zjs.SubCodeDTO;
 import com.ngari.patient.service.*;
+import com.ngari.patient.service.zjs.SubCodeService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.controller.exception.ControllerException;
@@ -56,14 +57,14 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             commonResponse.setMsg("处方列表为空");
             return commonResponse;
         }
-        /*IHisServiceConfigService configService = AppDomainContext.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
+        IHisServiceConfigService configService = AppDomainContext.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
         //获取所有监管平台机构列表
         List<ServiceConfigResponseTO> list = configService.findAllRegulationOrgan();
         if (CollectionUtils.isEmpty(list)) {
             LOGGER.warn("uploadRecipeIndicators provUploadOrgan list is null.");
             commonResponse.setMsg("需要同步机构列表为空");
             return commonResponse;
-        }*/
+        }
 
        /* ProvUploadOrganService provUploadOrganService =
                 AppDomainContext.getBean("basic.provUploadOrganService", ProvUploadOrganService.class);
@@ -75,12 +76,12 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         }*/
 
 
-        /*DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);*/
+        DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
         IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
         AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
         DoctorService doctorService = BasicAPI.getService(DoctorService.class);
         PatientService patientService = BasicAPI.getService(PatientService.class);
-        /*SubCodeService subCodeService = BasicAPI.getService(SubCodeService.class);*/
+        SubCodeService subCodeService = BasicAPI.getService(SubCodeService.class);
         OrganService organService = BasicAPI.getService(OrganService.class);
        /* IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);*/
 
@@ -88,7 +89,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
         List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
         Map<Integer, OrganDTO> organMap = new HashMap<>(20);
-        /*Map<Integer, DepartmentDTO> departMap = new HashMap<>(20);*/
+        Map<Integer, DepartmentDTO> departMap = new HashMap<>(20);
+        Map<Integer, AppointDepartDTO> appointDepartMap = new HashMap<>(20);
         Map<Integer, DoctorDTO> doctorMap = new HashMap<>(20);
 
         Dictionary usingRateDic = null;
@@ -105,11 +107,12 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         RegulationRecipeIndicatorsReq req;
         OrganDTO organDTO;
         String organDiseaseName;
-       /* DepartmentDTO departmentDTO;*/
+        DepartmentDTO departmentDTO;
         DoctorDTO doctorDTO;
         PatientDTO patientDTO;
-       /* SubCodeDTO subCodeDTO;*/
+        SubCodeDTO subCodeDTO;
         List<Recipedetail> detailList;
+        AppointDepartDTO appointDepart;
         String str;
         for (Recipe recipe : recipeList) {
             req = new RegulationRecipeIndicatorsReq();
@@ -126,10 +129,16 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 LOGGER.warn("uploadRecipeIndicators organ is null. recipe.clinicOrgan={}", recipe.getClinicOrgan());
                 continue;
             }
-            req.setOrganID(LocalStringUtil.toString(organDTO.getOrganId()));
-            //组织机构编码
-            req.setOrganizeCode(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
-            req.setOrganName(organDTO.getName());
+            for (ServiceConfigResponseTO uploadOrgan : list) {
+                if (uploadOrgan.getOrganid().equals(organDTO.getOrganId())) {
+                    req.setOrganID(LocalStringUtil.toString(organDTO.getOrganId()));
+                    //组织机构编码
+                    req.setOrganizeCode(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
+                    req.setOrganName(organDTO.getName());
+                    req.setOrganName(organDTO.getName());
+                    break;
+                }
+            }
 
             /*if (StringUtils.isEmpty(req.getUnitID())) {
                 LOGGER.warn("uploadRecipeIndicators minkeUnitID is not in minkeOrganList. organ.organId={}",
@@ -138,11 +147,15 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             }*/
 
             //科室处理
-            AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
+            appointDepart = appointDepartMap.get(recipe.getDepart());
+            if (null==appointDepart){
+                appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
+                appointDepartMap.put(recipe.getDepart(),appointDepart);
+            }
             req.setDeptID((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
             req.setDeptName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
             /*req.setDeptID(recipe.getDepart().toString());*/
-            /*departmentDTO = departMap.get(recipe.getDepart());
+            departmentDTO = departMap.get(recipe.getDepart());
             if (null == departmentDTO) {
                 departmentDTO = departmentService.getById(recipe.getDepart());
                 departMap.put(recipe.getDepart(), departmentDTO);
@@ -150,8 +163,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             if (null == departmentDTO) {
                 LOGGER.warn("uploadRecipeIndicators depart is null. recipe.depart={}", recipe.getDepart());
                 continue;
-            }*/
-           /* req.setDeptName(departmentDTO.getName());
+            }
+            /*req.setDeptName(departmentDTO.getName());*/
             //设置专科编码等
             subCodeDTO = subCodeService.getByNgariProfessionCode(departmentDTO.getProfessionCode());
             if (null == subCodeDTO) {
@@ -160,7 +173,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 continue;
             }
             req.setSubjectCode(subCodeDTO.getSubCode());
-            req.setSubjectName(subCodeDTO.getSubName());*/
+            req.setSubjectName(subCodeDTO.getSubName());
 
             //医生处理
             req.setDoctorId(recipe.getDoctor().toString());
