@@ -254,6 +254,14 @@ public class RecipePreserveService {
         }
     }
 
+    @RpcService
+    public void initNgariUsingRate(int organId, Map<String, String> map) {
+        Set<Map.Entry<String, String>> set = map.entrySet();
+        for (Map.Entry<String, String> entry : set) {
+            redisAddForHash(CacheConstant.KEY_NGARI_USINGRATE + organId, entry.getKey(), entry.getValue());
+        }
+    }
+
     /**
      * 机构用药方式初始化，缓存内数据结构应该为 key为xxx_organId， map的key为his内编码，value为平台内编码
      *
@@ -265,6 +273,14 @@ public class RecipePreserveService {
         Set<Map.Entry<String, String>> set = map.entrySet();
         for (Map.Entry<String, String> entry : set) {
             redisAddForHash(CacheConstant.KEY_ORGAN_USEPATHWAYS + organId, entry.getKey(), entry.getValue());
+        }
+    }
+
+    @RpcService
+    public void initNgariUsePathways(int organId, Map<String, String> map) {
+        Set<Map.Entry<String, String>> set = map.entrySet();
+        for (Map.Entry<String, String> entry : set) {
+            redisAddForHash(CacheConstant.KEY_NGARI_USEPATHWAYS + organId, entry.getKey(), entry.getValue());
         }
     }
 }
