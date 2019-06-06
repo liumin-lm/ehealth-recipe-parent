@@ -34,7 +34,7 @@ public class PatientRecipeDTO implements Serializable {
 
     private String patientName;
 
-    private Integer photo;
+    private String photo;
 
     private String organDiseaseName;
 
@@ -63,6 +63,8 @@ public class PatientRecipeDTO implements Serializable {
     private String logisticsCompany;
 
     private String trackingNumber;
+
+    private String recipeMode;
 
     private List<RecipeDetailBean> recipeDetail;
 
@@ -125,11 +127,11 @@ public class PatientRecipeDTO implements Serializable {
         this.patientName = patientName;
     }
 
-    public Integer getPhoto() {
+    public String getPhoto() {
         return photo;
     }
 
-    public void setPhoto(Integer photo) {
+    public void setPhoto(String photo) {
         this.photo = photo;
     }
 
@@ -243,6 +245,14 @@ public class PatientRecipeDTO implements Serializable {
 
     public void setTrackingNumber(String trackingNumber) {
         this.trackingNumber = trackingNumber;
+    }
+
+    public String getRecipeMode() {
+        return recipeMode;
+    }
+
+    public void setRecipeMode(String recipeMode) {
+        this.recipeMode = recipeMode;
     }
 
     public List<RecipeDetailBean> getRecipeDetail() {

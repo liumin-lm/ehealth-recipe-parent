@@ -338,4 +338,23 @@ public class RecipeToHisService {
         }
         return response;
     }
+
+    /**互联网his接口**/
+    /**
+     * his处方校验接口
+     * （HIS系统对互联网医院待新增处方进行医保校验）
+     */
+    public HisResponseTO hisCheckRecipe(HisCheckRecipeReqTO request){
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        return hisService.hisCheckRecipe(request);
+
+    }
+
+    /**
+     * 更新患者取药方式
+     */
+    public HisResponseTO updateTakeDrugWay(UpdateTakeDrugWayReqTO request){
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        return hisService.updateTakeDrugWay(request);
+    }
 }

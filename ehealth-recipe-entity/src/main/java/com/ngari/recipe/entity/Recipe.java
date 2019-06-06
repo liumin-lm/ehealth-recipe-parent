@@ -62,6 +62,9 @@ public class Recipe implements Serializable {
     @Dictionary(id = "eh.cdr.dictionary.RecipeType")
     private Integer recipeType;
 
+    @ItemProperty(alias = "处方流转模式")
+    private String recipeMode;
+
     @ItemProperty(alias = "开方科室")
     @Dictionary(id = "eh.base.dictionary.Depart")
     private Integer depart;
@@ -135,10 +138,10 @@ public class Recipe implements Serializable {
     private String giveUser;
 
     @ItemProperty(alias = "签名的处方PDF")
-    private Integer signFile;
+    private String signFile;
 
     @ItemProperty(alias = "药师签名的处方PDF")
-    private Integer chemistSignFile;
+    private String chemistSignFile;
 
     @ItemProperty(alias = "收货人")
     private String receiver;
@@ -295,6 +298,13 @@ public class Recipe implements Serializable {
     @ItemProperty(alias="当前clientId")
     private Integer currentClient;
 
+    @ItemProperty(alias="监管平台同步标记: 0未同步，1已同步")
+    private Integer syncFlag;
+
+    @ItemProperty(alias = "签名的处方img")
+    private String signImg;
+
+
     public Recipe() {
     }
 
@@ -329,7 +339,7 @@ public class Recipe implements Serializable {
                   Integer giveFlag, Date giveDate, Integer valueDays,
                   Integer checkOrgan, Date checkDate, Integer checker,
                   Integer payMode, Integer giveMode, String giveUser,
-                  Integer signFile, String receiver, String recMobile, String recTel,
+                  String signFile, String receiver, String recMobile, String recTel,
                   String address1, String address2, String address3, String address4,
                   String zipCode, Integer addressId, Integer status, Integer fromflag, Date lastModify,
                   Date startSendDate, Date sendDate, Date signDate) {
@@ -386,7 +396,7 @@ public class Recipe implements Serializable {
                   Integer giveFlag, Date giveDate, Integer valueDays,
                   Integer checkOrgan, Date checkDate, Integer checker,
                   Integer payMode, Integer giveMode, String giveUser,
-                  Integer signFile, String receiver, String recMobile, String recTel,
+                  String signFile, String receiver, String recMobile, String recTel,
                   String address1, String address2, String address3, String address4,
                   String zipCode, Integer addressId, Integer status, Integer fromflag, Date lastModify,
                   Date startSendDate, Date sendDate, Date signDate, String memo) {
@@ -564,6 +574,15 @@ public class Recipe implements Serializable {
         this.recipeType = recipeType;
     }
 
+    @Column(name = "recipeMode")
+    public String getRecipeMode() {
+        return recipeMode;
+    }
+
+    public void setRecipeMode(String recipeMode) {
+        this.recipeMode = recipeMode;
+    }
+    
     @Column(name = "Depart")
     public Integer getDepart() {
         return this.depart;
@@ -745,20 +764,20 @@ public class Recipe implements Serializable {
     }
 
     @Column(name = "SignFile")
-    public Integer getSignFile() {
+    public String getSignFile() {
         return signFile;
     }
 
-    public void setSignFile(Integer signFile) {
+    public void setSignFile(String signFile) {
         this.signFile = signFile;
     }
 
     @Column(name = "ChemistSignFile")
-    public Integer getChemistSignFile() {
+    public String getChemistSignFile() {
         return chemistSignFile;
     }
 
-    public void setChemistSignFile(Integer chemistSignFile) {
+    public void setChemistSignFile(String chemistSignFile) {
         this.chemistSignFile = chemistSignFile;
     }
 
@@ -1215,5 +1234,23 @@ public class Recipe implements Serializable {
 
     public void setCurrentClient(Integer currentClient) {
         this.currentClient = currentClient;
+    }
+
+    @Column(name = "syncFlag")
+    public Integer getSyncFlag() {
+        return syncFlag;
+    }
+
+    public void setSyncFlag(Integer syncFlag) {
+        this.syncFlag = syncFlag;
+    }
+
+    @Column(name = "signImg")
+    public String getSignImg() {
+        return signImg;
+    }
+
+    public void setSignImg(String signImg) {
+        this.signImg = signImg;
     }
 }

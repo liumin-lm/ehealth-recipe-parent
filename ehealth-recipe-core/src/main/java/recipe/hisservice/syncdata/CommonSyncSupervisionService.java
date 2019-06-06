@@ -46,7 +46,7 @@ import java.util.*;
 /**
  * @author： 0184/yu_yun
  * @date： 2019/2/14
- * @description： 同步监管数据
+ * @description： 同步监管数据 (openAPI调用)
  * @version： 1.0
  */
 @RpcBean("commonSyncSupervisionService")
@@ -65,6 +65,8 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
      * @param recipeList
      * @return
      */
+    @Override
+    @RpcService
     public CommonResponse uploadRecipeVerificationIndicators(List<Recipe> recipeList) {
         LOGGER.info("uploadRecipeVerificationIndicators recipeList length={}", recipeList.size());
         CommonResponse commonResponse = ResponseUtils.getFailResponse(CommonResponse.class, "");

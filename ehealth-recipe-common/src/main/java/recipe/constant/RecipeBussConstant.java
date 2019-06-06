@@ -109,7 +109,7 @@ public class RecipeBussConstant {
     public static Integer FROMFLAG_HIS = 0;
 
     /**
-     * HIS同步过来的处方
+     * 平台开具的处方
      */
     public static Integer FROMFLAG_PLATFORM = 1;
 
@@ -117,4 +117,17 @@ public class RecipeBussConstant {
      * HIS同步过来的处方-医生处理及可进行审方
      */
     public static Integer FROMFLAG_HIS_USE = 2;
+
+
+    /**
+     * 流转模式-平台模式
+     */
+    public static String RECIPEMODE_NGARIHEALTH = "ngarihealth";
+
+    /**
+     * 流转模式-浙江省互联网医院平台
+     */
+    public static String RECIPEMODE_ZJJGPT = "zjjgpt";
+
+    
 }

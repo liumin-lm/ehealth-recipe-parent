@@ -42,6 +42,8 @@ public class DetailsData {
      */
     private String areaCode;
 
+    private String medHisCode;
+
     /**
      * 病人信息
      */
@@ -106,6 +108,14 @@ public class DetailsData {
 
     public void setAreaCode(String areaCode) {
         this.areaCode = areaCode;
+    }
+
+    public String getMedHisCode() {
+        return medHisCode;
+    }
+
+    public void setMedHisCode(String medHisCode) {
+        this.medHisCode = medHisCode;
     }
 
     public AuditPatient getPatient() {

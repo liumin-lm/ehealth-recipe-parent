@@ -9,7 +9,6 @@ import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
-import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.dto.DepartmentDTO;
@@ -32,7 +31,6 @@ import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
-import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -45,6 +43,7 @@ import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
 import recipe.constant.BussTypeConstant;
 import recipe.constant.ErrorCode;
+import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.util.ChinaIDNumberUtil;
@@ -525,6 +524,7 @@ public class RecipeCheckService {
         //把审核结果再返回前端 0:未审核 1:通过 2:不通过
         resMap.put("check", (1 == result) ? 1 : 2);
 
+
         //将审核结果推送HIS
         try {
             RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
@@ -532,8 +532,11 @@ public class RecipeCheckService {
         } catch (Exception e) {
             LOGGER.warn("saveCheckResult send recipeAudit to his error. recipeId={}", recipeId, e);
         }
-        //增加药师首页待处理任务---完成任务
-        ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussFinishEvent(recipeId, BussTypeConstant.RECIPE));
+
+        if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+            //增加药师首页待处理任务---完成任务
+            ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussFinishEvent(recipeId, BussTypeConstant.RECIPE));
+        }
 
         return resMap;
     }
@@ -705,6 +708,21 @@ public class RecipeCheckService {
         checkParam.put("result", 1);
         checkParam.put("failMemo", "");
         saveCheckResult(checkParam);
+    }
+
+    /**
+     * 互联网医院 app首页 获取是否有待审核处方
+     * @param doctorId
+     * @return
+     */
+    @RpcService
+    public Boolean getUncheckRecipeFlag(Integer doctorId){
+        Boolean flag = false;
+        long l = getUncheckedRecipeNum(doctorId);
+        if(l > 0){
+            flag = true;
+        }
+        return flag;
     }
 
     /**

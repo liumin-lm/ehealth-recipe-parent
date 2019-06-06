@@ -2,18 +2,23 @@ package recipe.service;
 
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
-import com.ngari.recipe.drug.model.DrugListBean;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganService;
+import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
+import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.Recipe;
 import ctd.account.session.ClientSession;
+import ctd.net.broadcast.MQHelper;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.msg.constant.MqConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
-import recipe.constant.RecipeMsgEnum;
 import recipe.dao.RecipeDAO;
+import recipe.mq.OnsConfig;
 import recipe.util.RecipeMsgUtils;
 
 import java.io.IOException;
@@ -91,12 +96,26 @@ public class RecipeTestService {
         RecipeMsgService.sendRecipeMsg(RecipeMsgUtils.valueOf(bussType), recipe);
     }
 
+
     @RpcService
     public void testSendMsgForRecipe(Integer recipeId, int afterStatus) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         RecipeMsgService.batchSendMsg(recipe, afterStatus);
     }
+
+    @RpcService
+    public void testSendMqMsg(Integer recipeId, String status) {
+        OrganService organService = BasicAPI.getService(OrganService.class);
+        NoticeNgariRecipeInfoReq notice = new NoticeNgariRecipeInfoReq();
+        Recipe recipe = DAOFactory.getDAO(RecipeDAO.class).get(recipeId);
+        notice.setOrganId(recipe.getClinicOrgan());
+        notice.setRecipeID(recipe.getRecipeCode());
+        notice.setOrganizeCode(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
+        notice.setRecipeStatus(status);
+        MQHelper.getMqPublisher().publish(OnsConfig.hisCdrinfo, notice, MqConstant.HIS_CDRINFO_TAG_TO_PLATFORM);
+    }
+
 
     @RpcService(timeout = 1000)
     public Map<String, Object> analysisDrugList(List<Integer> drugIdList, int organId, boolean useFile) {
@@ -111,8 +130,8 @@ public class RecipeTestService {
     }
 
     @RpcService
-    public List<DrugListBean> findDrugListsByNameOrCodePageStaitc(
-            int organId, int drugType, String drugName, int start) {
+    public List<SearchDrugDetailDTO> findDrugListsByNameOrCodePageStaitc(
+            Integer organId, int drugType, String drugName, int start) {
         DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
 
         return drugListExtService.findDrugListsByNameOrCodePageStaitc(organId, drugType, drugName, start);

@@ -5,6 +5,7 @@ import com.ngari.base.department.service.IDepartmentService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -18,6 +19,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeMsgEnum;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.DateConversion;
@@ -158,6 +160,7 @@ public class RecipeMsgService {
             if (null == recipeId) {
                 continue;
             }
+            String recipeMode = recipe.getRecipeMode();
             Integer organId = recipe.getClinicOrgan();
             if (RecipeStatusConstant.NO_PAY == afterStatus) {
                 sendMsgInfo(recipeId, RECIPE_NO_PAY, organId);
@@ -174,7 +177,12 @@ public class RecipeMsgService {
             } else if (RecipeStatusConstant.READY_CHECK_YS == afterStatus) {
                 sendMsgInfo(recipeId, RECIPE_READY_CHECK_YS, organId);
             } else if (RecipeStatusConstant.CHECK_PASS == afterStatus) {
-                sendMsgInfo(recipeId, RECIPE_CHECK_PASS, organId);
+                if(StringUtils.isEmpty(recipeMode) || RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
+                    sendMsgInfo(recipeId, RECIPE_CHECK_PASS, organId);
+                } else if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)){
+                    Map<String, String> extendInfo = getRecipeCardInfo(recipe);
+                    sendMsgInfo(recipeId, RECIPE_CHECK_PASS, organId,JSONUtils.toString(extendInfo));
+                }
             } else if (RecipeStatusConstant.CHECK_PASS_YS == afterStatus) {
                 String drugStoreName = "";
                 if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
@@ -204,11 +212,15 @@ public class RecipeMsgService {
             } else if (RecipeStatusConstant.IN_SEND == afterStatus) {
                 sendMsgInfo(recipeId, RECIPE_IN_SEND, organId, Integer.toString(afterStatus));
             } else if (RecipeStatusConstant.REVOKE == afterStatus) {
-                //新处理方式
-                Map<String, String> extendValue = Maps.newHashMap();
-                IDepartmentService iDepartmentService = ApplicationUtils.getBaseService(IDepartmentService.class);
-                extendValue.put("departName",iDepartmentService.getNameById(recipe.getDepart()));
-                sendMsgInfo(recipeId, RECIPE_REVOKE, organId, JSONUtils.toString(extendValue));
+                if(StringUtils.isEmpty(recipeMode) || RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
+                    //新处理方式
+                    Map<String, String> extendValue = Maps.newHashMap();
+                    IDepartmentService iDepartmentService = ApplicationUtils.getBaseService(IDepartmentService.class);
+                    extendValue.put("departName",iDepartmentService.getNameById(recipe.getDepart()));
+                    sendMsgInfo(recipeId, RECIPE_REVOKE, organId, JSONUtils.toString(extendValue));
+                } else if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)){
+                    sendMsgInfo(recipeId, RECIPE_REVOKE, organId, Integer.toString(afterStatus));
+                }
             } else if (RecipeStatusConstant.RECIPE_LOW_STOCKS == afterStatus) {
                 sendMsgInfo(recipeId, RECIPE_LOW_STOCKS, organId, Integer.toString(afterStatus));
             } else if (RecipeStatusConstant.RECIPR_NOT_CONFIRM_RECEIPT == afterStatus) {
@@ -328,6 +340,28 @@ public class RecipeMsgService {
         }
 
         return drugStoreName;
+    }
+
+    /**
+     *互联网医院获取就诊卡扩展信息
+     * @param recipe
+     */
+    private static Map<String, String> getRecipeCardInfo(Recipe recipe) {
+        Map<String, String> extendValue = Maps.newHashMap();
+        Integer recipeId = recipe.getRecipeId();
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if (recipeExtend!=null
+                &&StringUtils.isNotEmpty(recipeExtend.getCardNo())
+                &&StringUtils.isNotEmpty(recipeExtend.getCardTypeName())){
+
+            String cardNo = recipeExtend.getCardNo();
+            String cardTypeName = recipeExtend.getCardTypeName();
+            extendValue.put("cardTypeName",cardTypeName);
+            extendValue.put("cardNo",cardNo);
+        }
+
+        return extendValue;
     }
 
     /**

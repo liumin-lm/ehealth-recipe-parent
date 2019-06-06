@@ -7,5 +7,6 @@
 						http://www.ngarihealth.com/schema/ssdev/ssdev.xsd">
 
     <reference interface="com.ngari.opbase.base.service.IBusActionLogService" id="opbase.busActionLogService"/>
+    <reference interface="com.ngari.opbase.zjs.service.IMinkeOrganService" id="opbase.minkeOrganService"/>
 
 </s:beans>

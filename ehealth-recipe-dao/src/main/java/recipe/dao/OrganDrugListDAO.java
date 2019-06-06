@@ -13,6 +13,7 @@ import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.persistence.support.impl.dictionary.DBDictionaryItemLoader;
 import ctd.util.annotation.RpcSupportDAO;
+import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import org.springframework.util.ObjectUtils;
@@ -33,6 +34,8 @@ import java.util.Map;
 public abstract class OrganDrugListDAO extends
         HibernateSupportDelegateDAO<OrganDrugList> implements
         DBDictionaryItemLoader<OrganDrugList> {
+
+    private static Logger logger = Logger.getLogger(OrganDrugListDAO.class);
 
     private static final Integer ALL_DRUG_FLAG = 9;
 
@@ -148,6 +151,36 @@ public abstract class OrganDrugListDAO extends
     @DAOMethod(sql = "from OrganDrugList where drugId=:drugId and organId=:organId ")
     public abstract OrganDrugList getByDrugIdAndOrganId(@DAOParam("drugId") int drugId, @DAOParam("organId") int organId);
 
+
+    /**
+     * 通过药品id及机构id获取
+     *
+     * @param drugId
+     * @param organId
+     * @return
+     */
+    public List<OrganDrugList> findOrganDrugs(final int drugId, final int organId,final Integer status) {
+        HibernateStatelessResultAction<List<OrganDrugList>> action = new AbstractHibernateStatelessResultAction<List<OrganDrugList>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("from OrganDrugList where drugId=:drugId and organId=:organId ");
+                if (status == 0) {
+                    hql.append(" and status = 0 ");
+                }
+                if (status == 1) {
+                    hql.append(" and status = 1 ");
+                }
+
+                Query query = ss.createQuery(String.valueOf(hql));
+
+                query.setParameter("drugId", drugId);
+                query.setParameter("organId", organId);
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        return action.getResult();
+    }
     /**
      * 通过机构id及药品id更新药品价格
      *
@@ -245,8 +278,18 @@ public abstract class OrganDrugListDAO extends
                         List<DrugList> list = query.list();
                         List<DrugListAndOrganDrugList> result = new ArrayList<DrugListAndOrganDrugList>();
                         for (DrugList drug : list) {
-                            OrganDrugList organDrugList = getByDrugIdAndOrganId(drug.getDrugId(), organId);
-                            result.add(new DrugListAndOrganDrugList(drug, organDrugList));
+                            List<OrganDrugList> organDrugLists = findOrganDrugs(drug.getDrugId(), organId, status);
+                            if (organDrugLists != null && organDrugLists.size() > 0) {
+                                for (OrganDrugList organDrugList : organDrugLists) {
+                                    result.add(new DrugListAndOrganDrugList(drug, organDrugList));
+                                    if (ObjectUtils.nullSafeEquals(status, 2)) {
+                                        break;
+                                    }
+                                }
+                            } else {
+                                result.add(new DrugListAndOrganDrugList(drug, null));
+                            }
+
                         }
                         setResult(new QueryResult<DrugListAndOrganDrugList>(total, query.getFirstResult(), query.getMaxResults(), result));
                     }
@@ -308,7 +351,7 @@ public abstract class OrganDrugListDAO extends
         return action.getResult();
     }
 
-    public Boolean updateOrganDrugListByOrganIdAndDrugId(final int organId,final int drugId, final Map<String, ?> changeAttr) {
+    public Boolean updateOrganDrugListByOrganIdAndOrganDrugCode(final int organId,final String organDrugCode, final Map<String, ?> changeAttr) {
         HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -318,10 +361,10 @@ public abstract class OrganDrugListDAO extends
                         hql.append("," + key + "=:" + key);
                     }
                 }
-                hql.append(" where organId=:organId and drugId=:drugId");
+                hql.append(" where organId=:organId and organDrugCode=:organDrugCode");
                 Query q = ss.createQuery(hql.toString());
                 q.setParameter("organId", organId);
-                q.setParameter("drugId", drugId);
+                q.setParameter("organDrugCode", organDrugCode);
                 if (null != changeAttr && !changeAttr.isEmpty()) {
                     for (String key : changeAttr.keySet()) {
                         q.setParameter(key, changeAttr.get(key));
@@ -334,4 +377,30 @@ public abstract class OrganDrugListDAO extends
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    /**
+     * 分页查询所有医院药品数据
+     * @param start
+     * @param limit
+     * @return
+     */
+    @DAOMethod(sql = "select a from OrganDrugList a, DrugList b where a.drugId=b.drugId and a.status=1 " +
+            "and b.status=1")
+    public abstract List<OrganDrugList> findAllForPage(@DAOParam(pageStart = true) int start,
+                                                  @DAOParam(pageLimit = true) int limit);
+
+    /**
+     * 统计医院药品可用数量
+     * @return
+     */
+    @DAOMethod(sql = "select count(*) from OrganDrugList a, DrugList b where a.drugId=b.drugId and a.status=1 " +
+            "and b.status=1")
+    public abstract long getUsefulTotal();
+
+    @DAOMethod(sql = "from OrganDrugList where organDrugId in (:organDrugId) ", limit = 0)
+    public abstract List<OrganDrugList> findByOrganDrugIds(@DAOParam("organDrugId") List<Integer> organDrugId);
+
+    @DAOMethod(sql = "select organDrugId from OrganDrugList where drugId in (:drugId) ", limit = 0)
+    public abstract List<Integer> findOrganDrugIdByDrugIds(@DAOParam("drugId") List<Integer> drugId);
+
 }

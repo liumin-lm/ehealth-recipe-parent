@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.ngari.base.doctor.model.DoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.consult.ConsultAPI;
@@ -11,27 +12,41 @@ import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.QueryRecipeRequestTO;
 import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
+import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.OrganService;
+import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.recipe.model.HisRecipeBean;
+import com.ngari.recipe.recipe.model.HisRecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipelog.model.RecipeLogBean;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.audit.bean.AutoAuditResult;
+import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.CacheConstant;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.util.DateConversion;
 import recipe.util.RedisClient;
@@ -40,6 +55,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static recipe.service.RecipeServiceSub.convertPatientForRAP;
 
 
 /**
@@ -98,31 +115,49 @@ public class RecipePreserveService {
     }
 
     @RpcService
-    public List<RecipeInfoTO> getHosRecipeList(int consultId, String patientName){
-        LOGGER.info("getHosRecipeList consultId={}, patientName={}", consultId, patientName);
-        IConsultService service = ConsultAPI.getService(IConsultService.class);
-        ConsultBean consultBean = service.getById(consultId);
-        if(null == consultBean){
-            return Lists.newArrayList();
+    public Map<String,Object> getHosRecipeList(Integer consultId, Integer organId,String mpiId){
+        LOGGER.info("getHosRecipeList consultId={}, organId={},mpiId={}", consultId, organId,mpiId);
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        Map<String,Object> result = Maps.newHashMap();
+        PatientDTO patientDTO = patientService.get(mpiId);
+        if (patientDTO == null){
+            throw new DAOException(609, "找不到该患者");
+        }
+        OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+        OrganDTO organDTO = organService.getByOrganId(organId);
+        if (organDTO == null){
+            throw new DAOException(609, "找不到该机构");
+        }
+        String cardId = null;
+        if (consultId != null){
+            IConsultService service = ConsultAPI.getService(IConsultService.class);
+            ConsultBean consultBean = service.getById(consultId);
+            if(null == consultBean){
+                return result;
+            }
+
+            IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
+            ConsultExDTO consultExDTO = exService.getByConsultId(consultId);
+            if(null == consultExDTO || StringUtils.isEmpty(consultExDTO.getCardId())){
+                return result;
+            }
+            cardId = consultExDTO.getCardId();
         }
 
-        IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
-        ConsultExDTO consultExDTO = exService.getByConsultId(consultId);
-        if(null == consultExDTO || StringUtils.isEmpty(consultExDTO.getCardId())){
-            return Lists.newArrayList();
-        }
         Date endDate = DateTime.now().toDate();
         Date startDate = DateConversion.getDateTimeDaysAgo(180);
 
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         QueryRecipeRequestTO request = new QueryRecipeRequestTO();
         PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
-        patientBaseInfo.setPatientName(patientName);
-        patientBaseInfo.setPatientID(consultExDTO.getCardId());
+        patientBaseInfo.setPatientName(patientDTO.getPatientName());
+        patientBaseInfo.setPatientID(cardId);
+        patientBaseInfo.setCertificate(patientDTO.getCertificate());
+        patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
         request.setPatientInfo(patientBaseInfo);
         request.setStartDate(startDate);
         request.setEndDate(endDate);
-        request.setOrgan(consultBean.getConsultOrgan());
+        request.setOrgan(organId);
         LOGGER.info("getHosRecipeList request={}", JSONUtils.toString(request));
         QueryRecipeResponseTO response = null;
         try {
@@ -131,10 +166,39 @@ public class RecipePreserveService {
             LOGGER.warn("getHosRecipeList his error. ", e);
         }
         if(null == response){
-            return Lists.newArrayList();
+            return result;
         }
         LOGGER.info("getHosRecipeList msgCode={}, msg={} ", response.getMsgCode(), response.getMsg());
-        return response.getData();
+        List<RecipeInfoTO> data = response.getData();
+        //转换平台字段
+        if (CollectionUtils.isEmpty(data)){
+            return result;
+        }
+        List<HisRecipeBean> recipes = Lists.newArrayList();
+        for (RecipeInfoTO recipeInfoTO: data){
+            HisRecipeBean recipeBean = ObjectCopyUtils.convert(recipeInfoTO, HisRecipeBean.class);
+            recipeBean.setSignDate(recipeInfoTO.getSignTime());
+            recipeBean.setOrganDiseaseName(recipeInfoTO.getDiseaseName());
+            recipeBean.setDepartText(recipeInfoTO.getDepartName());
+            List<RecipeDetailTO> detailData = recipeInfoTO.getDetailData();
+            List<HisRecipeDetailBean> hisRecipeDetailBeans = Lists.newArrayList();
+            for (RecipeDetailTO recipeDetailTO: detailData){
+                HisRecipeDetailBean detailBean = ObjectCopyUtils.convert(recipeDetailTO, HisRecipeDetailBean.class);
+                detailBean.setDrugUnit(recipeDetailTO.getUnit());
+                detailBean.setUsingRateText(recipeDetailTO.getUsingRate());
+                detailBean.setUsePathwaysText(recipeDetailTO.getUsePathWays());
+                detailBean.setUseDays(recipeDetailTO.getDays());
+                detailBean.setUseTotalDose(recipeDetailTO.getAmount());
+                hisRecipeDetailBeans.add(detailBean);
+            }
+            recipeBean.setDetailData(hisRecipeDetailBeans);
+            recipeBean.setClinicOrgan(organId);
+            recipeBean.setOrganName(organDTO.getShortName());
+            recipes.add(recipeBean);
+        }
+        result.put("hisRecipe",recipes);
+        result.put("patient",convertPatientForRAP(patientDTO));
+        return result;
     }
 
     @RpcService
@@ -161,6 +225,26 @@ public class RecipePreserveService {
             }
         }
         LOGGER.info("deleteOldRedisDataForRecipe Success num=" + num);
+    }
+
+    /**
+     * 内部测试方法
+     *
+     * @param recipeId
+     * @return
+     * @throws Exception
+     */
+    @RpcService
+    public AutoAuditResult testGetPAAnalysis(int recipeId) throws Exception {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+
+        Recipe dbrecipe = recipeDAO.getByRecipeId(recipeId);
+        List<Recipedetail> dbdetails = detailDAO.findByRecipeId(recipeId);
+        RecipeBean recipe = ObjectCopyUtils.convert(dbrecipe, RecipeBean.class);
+        List<RecipeDetailBean> details = ObjectCopyUtils.convert(dbdetails, RecipeDetailBean.class);
+        PrescriptionService service = ApplicationUtils.getRecipeService(PrescriptionService.class);
+        return service.analysis(recipe, details);
     }
 
     /**
@@ -254,6 +338,14 @@ public class RecipePreserveService {
         }
     }
 
+    @RpcService
+    public void initNgariUsingRate(int organId, Map<String, String> map) {
+        Set<Map.Entry<String, String>> set = map.entrySet();
+        for (Map.Entry<String, String> entry : set) {
+            redisAddForHash(CacheConstant.KEY_NGARI_USINGRATE + organId, entry.getKey(), entry.getValue());
+        }
+    }
+
     /**
      * 机构用药方式初始化，缓存内数据结构应该为 key为xxx_organId， map的key为his内编码，value为平台内编码
      *
@@ -265,6 +357,14 @@ public class RecipePreserveService {
         Set<Map.Entry<String, String>> set = map.entrySet();
         for (Map.Entry<String, String> entry : set) {
             redisAddForHash(CacheConstant.KEY_ORGAN_USEPATHWAYS + organId, entry.getKey(), entry.getValue());
+        }
+    }
+
+    @RpcService
+    public void initNgariUsePathways(int organId, Map<String, String> map) {
+        Set<Map.Entry<String, String>> set = map.entrySet();
+        for (Map.Entry<String, String> entry : set) {
+            redisAddForHash(CacheConstant.KEY_NGARI_USEPATHWAYS + organId, entry.getKey(), entry.getValue());
         }
     }
 }

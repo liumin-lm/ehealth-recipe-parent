@@ -96,6 +96,16 @@ public class RecipeUtil {
             for (OrganDrugList odlist : organDrugList) {
                 if (null != drugList && null != odlist && drugList.getDrugId().equals(odlist.getDrugId())) {
                     drugList.setHospitalPrice(odlist.getSalePrice());
+                    drugList.setOrganDrugCode(odlist.getOrganDrugCode());
+                    //药品用法用量默认使用机构的，无机构数据则使用平台的，两者都无数据则为空
+                    if (StringUtils.isNotEmpty(odlist.getUsePathways())){
+                        drugList.setUsePathways(odlist.getUsePathways());
+                    }
+                    if (StringUtils.isNotEmpty(odlist.getUsingRate())){
+                        drugList.setUsingRate(odlist.getUsingRate());
+                    }
+                    //历史用药入口--默认填充机构的，平台的不填充
+                    drugList.setUseDose(odlist.getUseDose());
                     break;
                 }
             }
@@ -162,6 +172,11 @@ public class RecipeUtil {
             recipe.setRecipeType(RecipeBussConstant.RECIPETYPE_WM);
         }
 
+        //默认流转模式为平台模式
+        if (null == recipe.getRecipeMode()) {
+            recipe.setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);
+        }
+        
         //默认剂数为1
         if (null == recipe.getCopyNum() || recipe.getCopyNum() < 1) {
             recipe.setCopyNum(1);
@@ -179,6 +194,8 @@ public class RecipeUtil {
 
         //默认非外带处方
         recipe.setTakeMedicine(0);
+        //监管同步标记
+        recipe.setSyncFlag(0);
 
         //默认来源为纳里APP处方
         if (null == recipe.getFromflag()) {

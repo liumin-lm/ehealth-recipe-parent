@@ -19,4 +19,10 @@ public interface IWXServiceInterface {
     @RpcService
     public String getSinglePageUrl(String appId, Map<String, String> paramsMap);
 
+    /**
+     * 获取微信地址
+     * @return
+     */
+    @RpcService
+    public String urlJoin();
 }

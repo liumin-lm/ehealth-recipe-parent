@@ -94,6 +94,16 @@ public class RecipeCacheService {
     }
 
     /**
+     * 获取临时缓存数据，默认一天失效
+     * @param key
+     * @return
+     */
+    public String getTemporaryParam(String key){
+        LOGGER.info("recipeCacheService getTemporaryParam key={}", key);
+        return redisClient.get(key);
+    }
+
+    /**
      * 清除缓存
      *
      * @return

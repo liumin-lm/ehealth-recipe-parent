@@ -129,6 +129,54 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "对照人")
     private String operator;
 
+    @ItemProperty(alias = "用药频率")
+    private String usingRate;
+
+    @ItemProperty(alias = "用药途径")
+    private String usePathways;
+
+    @ItemProperty(alias = "默认一次剂量")
+    private Double defaultUseDose;
+
+    @ItemProperty(alias = "院内搜索关键字")
+    private String retrievalCode;
+
+    @Column(name = "retrievalCode ")
+    public String getRetrievalCode() {
+        return retrievalCode;
+    }
+
+    public void setRetrievalCode(String retrievalCode) {
+        this.retrievalCode = retrievalCode;
+    }
+
+    @Column(name = "usingRate", length = 10)
+    public String getUsingRate() {
+        return usingRate;
+    }
+
+    public void setUsingRate(String usingRate) {
+        this.usingRate = usingRate;
+    }
+
+    @Column(name = "usePathways", length = 10)
+    public String getUsePathways() {
+        return usePathways;
+    }
+
+    public void setUsePathways(String usePathways) {
+        this.usePathways = usePathways;
+    }
+
+    @Column(name = "defaultUseDose", precision = 10, scale = 3)
+    public Double getDefaultUseDose() {
+        return defaultUseDose;
+    }
+
+    public void setDefaultUseDose(Double defaultUseDose) {
+        this.defaultUseDose = defaultUseDose;
+    }
+
     @Column(name = "operator", length = 20)
     public String getOperator() {
         return operator;

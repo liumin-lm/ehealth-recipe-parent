@@ -1,5 +1,6 @@
 package recipe.drugsenterprise;
 
+import com.alijk.bqhospital.alijk.conf.TaobaoConf;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
@@ -10,7 +11,11 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.utils.VerifyUtils;
-import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.SaleDrugList;
+import com.ngari.recipe.logistics.model.RecipeLogisticsBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -44,6 +49,9 @@ import java.util.Map;
  */
 @RpcBean("distributionService")
 public class StandardEnterpriseCallService {
+
+    @Autowired
+    private TaobaoConf taobaoConf;
 
     /**
      * logger
@@ -558,6 +566,32 @@ public class StandardEnterpriseCallService {
             //发送有库存消息
             RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_HOSSUPPORT_INVENTORY, dbRecipe);
             result.setCode(StandardResultDTO.SUCCESS);
+        }
+        return result;
+    }
+
+    /**
+     * 3.1.平台处方物流信息更新接口
+     * @param recipeLogisticsBean  物流相关信息
+     * @return 更新结果
+     */
+    @RpcService
+    public StandardResultDTO updateLogisticsInfo(RecipeLogisticsBean recipeLogisticsBean) {
+        LOGGER.info("distributionService-updateLogisticsInfo, recipeLogisticsBean:{}.", JSONUtils.toString(recipeLogisticsBean));
+        StandardResultDTO result = new StandardResultDTO();
+        result.setCode(StandardResultDTO.SUCCESS);
+        if (recipeLogisticsBean == null) {
+            result.setCode(StandardResultDTO.FAIL);
+            result.setMsg("入参不能为空");
+        }
+        if (StringUtils.isEmpty(recipeLogisticsBean.getRecipeId())) {
+            result.setCode(StandardResultDTO.FAIL);
+            result.setMsg("处方单ID不能为空");
+        }
+
+        if (recipeLogisticsBean.getLogistics() == null) {
+            result.setCode(StandardResultDTO.FAIL);
+            result.setMsg("物流信息不能为空");
         }
         return result;
     }

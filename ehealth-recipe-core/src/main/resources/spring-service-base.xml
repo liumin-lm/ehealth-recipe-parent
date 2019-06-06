@@ -15,6 +15,8 @@
     <reference interface="com.ngari.base.patient.service.IPatientService" id="eh.patientService"/>
     <reference interface="com.ngari.base.payment.service.IPaymentService" id="eh.paymentService"/>
     <reference interface="com.ngari.base.esign.service.IESignBaseService" id="eh.eSignService"/>
+    <reference interface="com.ngari.base.cdr.service.IDiseaseService" id="eh.diseasService"/>
+    <reference interface="com.ngari.upload.service.IFileUploadService" id="eh.remoteFileUploadService"/>
     <!-- 首页待办事件处理-->
     <reference id="eh.remoteAsynDoBussService" interface="com.ngari.home.asyn.service.IAsynDoBussService" />
 
@@ -38,4 +40,7 @@
     <reference interface="com.ngari.bus.coupon.service.ICouponService" id="eh.couponService"/>
     <reference interface="com.ngari.bus.hosrelation.service.IHosrelationService" id="eh.remoteHosrelationService"/>
 
+    <reference id="eh.remoteFileDownloadService" interface="com.ngari.recipe.filedownload.service.IFileDownloadService"/>
+    <reference id="eh.configurationCenterUtils" interface="com.ngari.base.property.service.IConfigurationCenterUtilsService" />
+    
 </s:beans>
