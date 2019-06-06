@@ -11,6 +11,7 @@ import com.ngari.patient.dto.*;
 import com.ngari.patient.dto.zjs.SubCodeDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.service.zjs.SubCodeService;
+import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.controller.exception.ControllerException;
@@ -33,6 +34,7 @@ import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.common.response.CommonResponse;
 import recipe.constant.RecipeStatusConstant;
+import recipe.dao.DrugListDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
@@ -301,8 +303,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     private void setDetail(RegulationRecipeIndicatorsReq req, List<Recipedetail> detailList,
                            Dictionary usingRateDic, Dictionary usePathwaysDic,Recipe recipe) {
         RegulationRecipeDetailIndicatorsReq reqDetail;
+        DrugListDAO drugListDao = DAOFactory.getDAO(DrugListDAO.class);
         List<RegulationRecipeDetailIndicatorsReq> list = new ArrayList<>(detailList.size());
         double dosageDay;
+        DrugList drugList;
         for (Recipedetail detail : detailList) {
             reqDetail = new RegulationRecipeDetailIndicatorsReq();
             reqDetail.setDrcode(detail.getOrganDrugCode());
@@ -327,8 +331,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             reqDetail.setDosageTotal(detail.getUseTotalDose().toString());
             reqDetail.setUseDays(detail.getUseDays());
             reqDetail.setRemark(detail.getMemo());
-            //药物剂型代码
-            reqDetail.setDosageForm("");
+            drugList = drugListDao.getById(detail.getDrugId());
+            if (drugList != null){
+                //药物剂型代码
+                reqDetail.setDosageForm(drugList.getDrugForm());
+            }
             //药物使用总剂量
             reqDetail.setUseDosage("0");
             //药物日药量/DDD值
