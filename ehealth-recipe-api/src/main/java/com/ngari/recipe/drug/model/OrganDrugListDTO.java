@@ -27,6 +27,12 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "药品序号")
     private Integer drugId;
 
+    @ItemProperty(alias = "通用名")
+    private String drugName;
+
+    @ItemProperty(alias = "商品名")
+    private String saleName;
+
     @ItemProperty(alias = "机构药品编码")
     private String organDrugCode;
 
@@ -74,6 +80,22 @@ public class OrganDrugListDTO implements java.io.Serializable {
 
     public void setDrugId(Integer drugId) {
         this.drugId = drugId;
+    }
+
+    public String getDrugName() {
+        return drugName;
+    }
+
+    public void setDrugName(String drugName) {
+        this.drugName = drugName;
+    }
+
+    public String getSaleName() {
+        return saleName;
+    }
+
+    public void setSaleName(String saleName) {
+        this.saleName = saleName;
     }
 
     public String getOrganDrugCode() {
