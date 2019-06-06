@@ -111,6 +111,7 @@ public class SyncExecutorService {
      */
     @RpcService
     public void uploadRecipeIndicatorsTimeTask() {
+        LOGGER.info("uploadRecipeIndicatorsTimeTask start");
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         //获取当前时间
         Calendar now = Calendar.getInstance();
