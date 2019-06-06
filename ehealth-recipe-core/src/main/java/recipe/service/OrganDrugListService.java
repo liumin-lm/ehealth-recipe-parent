@@ -175,6 +175,13 @@ public class OrganDrugListService {
         //对药品名、药品代码、院内检索码作唯一性校验
         List<String> drugCodes = new ArrayList<>(1);
         drugCodes.add(organDrugList.getOrganDrugCode());
+        if (StringUtils.isEmpty(organDrugList.getSaleName())) {
+            organDrugList.setSaleName(organDrugList.getDrugName());
+        } else {
+            if (StringUtils.isNotEmpty(organDrugList.getDrugName()) && !organDrugList.getSaleName().equals(organDrugList.getDrugName())) {
+                organDrugList.setSaleName(organDrugList.getSaleName() + " " + organDrugList.getDrugName());
+            }
+        }
         if (organDrugList.getOrganDrugId() == null || organDrugList.getOrganDrugId() == 0) {
             logger.info("新增机构药品服务[updateOrganDrugList]:" + JSONUtils.toString(organDrugList));
             //说明为该机构新增机构药品
