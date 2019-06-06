@@ -1564,7 +1564,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("from Recipe where lastModify between '" + startDt + "' and '" + endDt + "' ");
-                hql.append(" and fromflag = 1 and clinicOrgan in:organList ");
+                hql.append(" and fromflag = 1 and clinicOrgan in:organList and status > 0 and status < 16");
                 Query q = ss.createQuery(hql.toString());
                 q.setParameterList("organList",organList);
                 setResult(q.list());

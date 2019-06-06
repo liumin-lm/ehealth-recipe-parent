@@ -19,6 +19,8 @@ import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -41,6 +43,7 @@ import java.util.*;
  * created by shiyuping on 2019/6/3
  * 广东省监管平台同步
  */
+@RpcBean("hisSyncSupervisionService")
 public class HisSyncSupervisionService implements ICommonSyncSupervisionService {
     /**
      * logger
@@ -49,6 +52,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
     private static String HIS_SUCCESS = "200";
 
+    @RpcService
     @Override
     public CommonResponse uploadRecipeIndicators(List<Recipe> recipeList) {
         LOGGER.info("uploadRecipeIndicators recipeList length={}", recipeList.size());
