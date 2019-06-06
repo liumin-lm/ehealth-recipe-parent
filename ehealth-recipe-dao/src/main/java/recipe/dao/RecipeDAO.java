@@ -1566,7 +1566,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 StringBuilder hql = new StringBuilder("from Recipe where lastModify between '" + startDt + "' and '" + endDt + "' ");
                 hql.append(" and fromflag = 1 and clinicOrgan in:organList ");
                 Query q = ss.createQuery(hql.toString());
-                q.setParameter("organList",organList);
+                q.setParameterList("organList",organList);
                 setResult(q.list());
             }
         };
