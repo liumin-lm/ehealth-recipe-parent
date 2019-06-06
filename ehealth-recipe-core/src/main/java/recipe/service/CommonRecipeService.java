@@ -199,22 +199,25 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         List<CommonRecipeDrug> drugList = commonRecipeDrugDAO.findByCommonRecipeId(commonRecipeId);
         List<CommonRecipeDrugDTO> drugDtoList = ObjectCopyUtils.convert(drugList,CommonRecipeDrugDTO.class);
 
-        List drugIds = new ArrayList();
+        List<String> organDrugCodeList = new ArrayList<>(drugDtoList.size());
         for (CommonRecipeDrugDTO commonRecipeDrug : drugDtoList) {
             if (null != commonRecipeDrug && null != commonRecipeDrug.getDrugId()) {
-                drugIds.add(commonRecipeDrug.getDrugId());
+                organDrugCodeList.add(commonRecipeDrug.getOrganDrugCode());
             }
         }
 
         // 查询机构药品表，同步药品状态
-        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIdWithoutStatus(commonRecipeDTO.getOrganId(), drugIds);
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(commonRecipeDTO.getOrganId(), organDrugCodeList);
         for (CommonRecipeDrugDTO commonRecipeDrug : drugDtoList) {
             Integer durgId = commonRecipeDrug.getDrugId();
+            String drugCode = commonRecipeDrug.getOrganDrugCode();
             for (OrganDrugList organDrug : organDrugList) {
-                if (durgId.equals(organDrug.getDrugId())) {
+                if (durgId.equals(organDrug.getDrugId()) && drugCode.equals(organDrug.getOrganDrugCode())) {
                     commonRecipeDrug.setDrugStatus(organDrug.getStatus());
                     commonRecipeDrug.setSalePrice(organDrug.getSalePrice());
                     commonRecipeDrug.setPrice1(organDrug.getSalePrice().doubleValue());
+                    //添加平台药品ID
+//                    commonRecipeDrug.setPlatformSaleName("");
                     if (null != commonRecipeDrug.getUseTotalDose()) {
                         commonRecipeDrug.setDrugCost(organDrug.getSalePrice().multiply(
                                 new BigDecimal(commonRecipeDrug.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP));
