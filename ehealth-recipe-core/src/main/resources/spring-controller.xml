@@ -15,7 +15,7 @@
     <ssdev:publisher id="publisher"/>
 
     <!-- log -->
-    <ssdev:logger type="broadcast">
+    <ssdev:logger type="kafka">
         <ssdev:serverNodeExDataBuilder id="datasourceExData"/>
         <ssdev:serverNodePerfLogExDataBuilder id="datasourcePerfLogExData"/>
     </ssdev:logger>
