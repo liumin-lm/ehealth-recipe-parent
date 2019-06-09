@@ -23,6 +23,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.constant.ErrorCode;
 import recipe.dao.CommonRecipeDAO;
 import recipe.dao.CommonRecipeDrugDAO;
+import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.serviceprovider.BaseService;
 
@@ -189,6 +190,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         CommonRecipeDrugDAO commonRecipeDrugDAO = DAOFactory.getDAO(CommonRecipeDrugDAO.class);
         CommonRecipeDAO commonRecipeDAO = DAOFactory.getDAO(CommonRecipeDAO.class);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         Map map = Maps.newHashMap();
         CommonRecipe commonRecipe = commonRecipeDAO.get(commonRecipeId);
         if (null == commonRecipe) {
@@ -217,7 +219,8 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                     commonRecipeDrug.setSalePrice(organDrug.getSalePrice());
                     commonRecipeDrug.setPrice1(organDrug.getSalePrice().doubleValue());
                     //添加平台药品ID
-//                    commonRecipeDrug.setPlatformSaleName("");
+                    //平台药品商品名
+                    commonRecipeDrug.setPlatformSaleName(drugListDAO.getById(durgId).getSaleName());
                     if (null != commonRecipeDrug.getUseTotalDose()) {
                         commonRecipeDrug.setDrugCost(organDrug.getSalePrice().multiply(
                                 new BigDecimal(commonRecipeDrug.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP));
