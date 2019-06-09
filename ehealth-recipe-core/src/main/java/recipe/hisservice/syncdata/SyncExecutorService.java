@@ -40,6 +40,8 @@ public class SyncExecutorService {
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(SyncExecutorService.class);
 
+    private static final String REGULATION_GD = "gdsjgpt";
+
     /**
      * 上传批量处方，暂时用不到
      */
@@ -126,13 +128,19 @@ public class SyncExecutorService {
         if (CollectionUtils.isNotEmpty(list)){
             List<Integer> organs = Lists.newArrayList();
             for (ServiceConfigResponseTO serviceConfigResponseTO : list){
-                organs.add(serviceConfigResponseTO.getOrganid());
+                if (REGULATION_GD.equals(serviceConfigResponseTO.getRegulationAppDomainId())){
+                    organs.add(serviceConfigResponseTO.getOrganid());
+                }
             }
             List<Recipe> recipeList = recipeDAO.findRecipeListForDate(organs, startDt, endDt);
             HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
             CommonResponse response = null;
             try {
                 for (Recipe recipe : recipeList){
+                    if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus()
+                        && recipe.getSyncFlag() == 1){
+                        continue;
+                    }
                     response = service.uploadRecipeIndicators(Arrays.asList(recipe));
                     if (CommonConstant.SUCCESS.equals(response.getCode())) {
                         //更新字段
