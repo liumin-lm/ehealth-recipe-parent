@@ -255,9 +255,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //过敏史标记 有无过敏史 0:无 1:有
             req.setAllergyFlag("0");
             //门诊号处理 年月日+患者身份证后5位 例：2019060407915
-            //TODO 门诊号生成规则
-            str = patientDTO.getCertificate().substring(patientDTO.getCertificate().length()-5);
-            req.setPatientNumber(DateConversion.getDateFormatter(recipe.getSignDate(),"yyyyMMdd")+str);
+            /*str = patientDTO.getCertificate().substring(patientDTO.getCertificate().length()-5);*/
+            req.setPatientNumber(recipe.getPatientID());
 
             //撤销标记
             req.setCancelFlag(getVerificationStatus(recipe));
