@@ -226,17 +226,12 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
             organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(commonRecipeDTO.getOrganId(), drugIdList);
             for (CommonRecipeDrugDTO commonRecipeDrug : drugDtoList) {
                 Integer durgId = commonRecipeDrug.getDrugId();
-                DrugList drug = drugListDAO.getById(durgId);
                 for (OrganDrugList organDrug : organDrugList) {
                     if ((durgId.equals(organDrug.getDrugId()))){
                         commonRecipeDrug.setDrugStatus(organDrug.getStatus());
                         commonRecipeDrug.setSalePrice(organDrug.getSalePrice());
                         commonRecipeDrug.setPrice1(organDrug.getSalePrice().doubleValue());
                         //添加平台药品ID
-                        //平台药品商品名
-                        if (drug!=null){
-                            commonRecipeDrug.setPlatformSaleName(drug.getSaleName());
-                        }
                         if (null != commonRecipeDrug.getUseTotalDose()) {
                             commonRecipeDrug.setDrugCost(organDrug.getSalePrice().multiply(
                                     new BigDecimal(commonRecipeDrug.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP));
