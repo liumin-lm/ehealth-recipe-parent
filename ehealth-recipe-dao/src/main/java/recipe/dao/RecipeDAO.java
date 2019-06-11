@@ -1574,6 +1574,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         return action.getResult();
     }
 
-    @DAOMethod(sql = "select signFile from Recipe where patientID =:patientId and fromflag = 1")
+    @DAOMethod(sql = "select signFile from Recipe where patientID =:patientId and signFile is not null and fromflag = 1")
     public abstract List<String> findSignFileIdByPatientId(@DAOParam("patientId") String patientId);
 }
