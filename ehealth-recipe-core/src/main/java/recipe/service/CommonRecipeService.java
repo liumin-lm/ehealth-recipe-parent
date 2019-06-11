@@ -53,6 +53,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
     public void addCommonRecipe(CommonRecipeDTO commonRecipeDTO, List<CommonRecipeDrugDTO> drugListDTO) {
         CommonRecipeDAO commonRecipeDAO = DAOFactory.getDAO(CommonRecipeDAO.class);
         CommonRecipeDrugDAO commonRecipeDrugDAO = DAOFactory.getDAO(CommonRecipeDrugDAO.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
 //        LOGGER.info("addCommonRecipe param. commonRecipe={}, drugList={}", JSONUtils.toString(commonRecipe),
 //                JSONUtils.toString(drugList));
         if (null != commonRecipeDTO && CollectionUtils.isNotEmpty(drugListDTO)) {
@@ -68,7 +69,10 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                 for (CommonRecipeDrug commonRecipeDrug : drugList) {
                     commonRecipeDrug.setCommonRecipeId(commonRecipe.getCommonRecipeId());
                     if (StringUtils.isEmpty(commonRecipeDrug.getOrganDrugCode())){
-                        commonRecipeDrug.setOrganDrugCode("");
+                        List<OrganDrugList> organDrugs = organDrugListDAO.findOrganDrugs(commonRecipeDrug.getDrugId(), commonRecipe.getOrganId(), 1);
+                        if (CollectionUtils.isNotEmpty(organDrugs)){
+                            commonRecipeDrug.setOrganDrugCode(organDrugs.get(0).getOrganDrugCode());
+                        }
                     }
                     commonRecipeDrugDAO.save(commonRecipeDrug);
                 }
