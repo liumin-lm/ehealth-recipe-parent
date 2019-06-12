@@ -29,8 +29,14 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
     @ItemProperty(alias = "药品ID")
     private Integer drugId;
 
+    @ItemProperty(alias = "机构药品编码")
+    private String organDrugCode;
+
     @ItemProperty(alias = "药物名称")
     private String drugName;
+
+    @ItemProperty(alias = "商品名")
+    private String saleName;
 
     @ItemProperty(alias = "药物单位")
     private String drugUnit;
@@ -78,6 +84,9 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
 
     @ItemProperty(alias = "剂量单位")
     private String useDoseUnit;
+
+    @ItemProperty(alias = "平台商品名")
+    private String platformSaleName;
 
     public CommonRecipeDrugDTO() {
     }
@@ -240,5 +249,29 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
 
     public void setUseDoseUnit(String useDoseUnit) {
         this.useDoseUnit = useDoseUnit;
+    }
+
+    public String getSaleName() {
+        return saleName;
+    }
+
+    public void setSaleName(String saleName) {
+        this.saleName = saleName;
+    }
+
+    public String getPlatformSaleName() {
+        return platformSaleName;
+    }
+
+    public void setPlatformSaleName(String platformSaleName) {
+        this.platformSaleName = platformSaleName;
+    }
+
+    public String getOrganDrugCode() {
+        return organDrugCode;
+    }
+
+    public void setOrganDrugCode(String organDrugCode) {
+        this.organDrugCode = organDrugCode;
     }
 }

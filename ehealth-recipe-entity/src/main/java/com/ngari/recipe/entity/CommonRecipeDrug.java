@@ -32,8 +32,14 @@ public class CommonRecipeDrug implements java.io.Serializable{
     @ItemProperty(alias="药品ID")
     private Integer drugId;
 
+    @ItemProperty(alias = "机构药品编码")
+    private String organDrugCode;
+
     @ItemProperty(alias="药物名称")
     private String drugName;
+
+    @ItemProperty(alias = "商品名")
+    private String saleName;
 
     @ItemProperty(alias="药物单位")
     private String drugUnit;
@@ -255,6 +261,7 @@ public class CommonRecipeDrug implements java.io.Serializable{
     public void setCommonRecipeId(Integer commonRecipeId) {
         this.commonRecipeId = commonRecipeId;
     }
+
     @Column(name = "DrugId")
     public Integer getDrugId() {
         return drugId;
@@ -262,6 +269,24 @@ public class CommonRecipeDrug implements java.io.Serializable{
 
     public void setDrugId(Integer drugId) {
         this.drugId = drugId;
+    }
+
+    @Column(name = "organDrugCode")
+    public String getOrganDrugCode() {
+        return organDrugCode;
+    }
+
+    public void setOrganDrugCode(String organDrugCode) {
+        this.organDrugCode = organDrugCode;
+    }
+
+    @Column(name = "saleName")
+    public String getSaleName() {
+        return saleName;
+    }
+
+    public void setSaleName(String saleName) {
+        this.saleName = saleName;
     }
 
     @Override

@@ -7,6 +7,7 @@ import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.entity.CommonRecipe;
 import com.ngari.recipe.entity.CommonRecipeDrug;
+import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.organdrugsep.model.OrganAndDrugsepRelationBean;
 import ctd.persistence.DAOFactory;
@@ -23,6 +24,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.constant.ErrorCode;
 import recipe.dao.CommonRecipeDAO;
 import recipe.dao.CommonRecipeDrugDAO;
+import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.serviceprovider.BaseService;
 
@@ -51,6 +53,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
     public void addCommonRecipe(CommonRecipeDTO commonRecipeDTO, List<CommonRecipeDrugDTO> drugListDTO) {
         CommonRecipeDAO commonRecipeDAO = DAOFactory.getDAO(CommonRecipeDAO.class);
         CommonRecipeDrugDAO commonRecipeDrugDAO = DAOFactory.getDAO(CommonRecipeDrugDAO.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
 //        LOGGER.info("addCommonRecipe param. commonRecipe={}, drugList={}", JSONUtils.toString(commonRecipe),
 //                JSONUtils.toString(drugList));
         if (null != commonRecipeDTO && CollectionUtils.isNotEmpty(drugListDTO)) {
@@ -65,6 +68,12 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                 commonRecipeDAO.save(commonRecipe);
                 for (CommonRecipeDrug commonRecipeDrug : drugList) {
                     commonRecipeDrug.setCommonRecipeId(commonRecipe.getCommonRecipeId());
+                    if (StringUtils.isEmpty(commonRecipeDrug.getOrganDrugCode())){
+                        List<OrganDrugList> organDrugs = organDrugListDAO.findOrganDrugs(commonRecipeDrug.getDrugId(), commonRecipe.getOrganId(), 1);
+                        if (CollectionUtils.isNotEmpty(organDrugs)){
+                            commonRecipeDrug.setOrganDrugCode(organDrugs.get(0).getOrganDrugCode());
+                        }
+                    }
                     commonRecipeDrugDAO.save(commonRecipeDrug);
                 }
                 if (null != commonRecipeId) {
@@ -189,6 +198,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         CommonRecipeDrugDAO commonRecipeDrugDAO = DAOFactory.getDAO(CommonRecipeDrugDAO.class);
         CommonRecipeDAO commonRecipeDAO = DAOFactory.getDAO(CommonRecipeDAO.class);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         Map map = Maps.newHashMap();
         CommonRecipe commonRecipe = commonRecipeDAO.get(commonRecipeId);
         if (null == commonRecipe) {
@@ -199,27 +209,59 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         List<CommonRecipeDrug> drugList = commonRecipeDrugDAO.findByCommonRecipeId(commonRecipeId);
         List<CommonRecipeDrugDTO> drugDtoList = ObjectCopyUtils.convert(drugList,CommonRecipeDrugDTO.class);
 
-        List drugIds = new ArrayList();
+        List<String> organDrugCodeList = new ArrayList<>(drugDtoList.size());
+        List<Integer> drugIdList = new ArrayList<>(drugDtoList.size());
         for (CommonRecipeDrugDTO commonRecipeDrug : drugDtoList) {
             if (null != commonRecipeDrug && null != commonRecipeDrug.getDrugId()) {
-                drugIds.add(commonRecipeDrug.getDrugId());
+                organDrugCodeList.add(commonRecipeDrug.getOrganDrugCode());
+                drugIdList.add(commonRecipeDrug.getDrugId());
             }
         }
 
         // 查询机构药品表，同步药品状态
-        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIdWithoutStatus(commonRecipeDTO.getOrganId(), drugIds);
-        for (CommonRecipeDrugDTO commonRecipeDrug : drugDtoList) {
-            Integer durgId = commonRecipeDrug.getDrugId();
-            for (OrganDrugList organDrug : organDrugList) {
-                if (durgId.equals(organDrug.getDrugId())) {
-                    commonRecipeDrug.setDrugStatus(organDrug.getStatus());
-                    commonRecipeDrug.setSalePrice(organDrug.getSalePrice());
-                    commonRecipeDrug.setPrice1(organDrug.getSalePrice().doubleValue());
-                    if (null != commonRecipeDrug.getUseTotalDose()) {
-                        commonRecipeDrug.setDrugCost(organDrug.getSalePrice().multiply(
-                                new BigDecimal(commonRecipeDrug.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP));
+        //是否为老的药品兼容方式，老的药品传入方式没有organDrugCode
+        boolean oldFlag = organDrugCodeList.isEmpty() ? true : false;
+        List<OrganDrugList> organDrugList = Lists.newArrayList();
+        if (oldFlag){
+            organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(commonRecipeDTO.getOrganId(), drugIdList);
+            for (CommonRecipeDrugDTO commonRecipeDrug : drugDtoList) {
+                Integer durgId = commonRecipeDrug.getDrugId();
+                for (OrganDrugList organDrug : organDrugList) {
+                    if ((durgId.equals(organDrug.getDrugId()))){
+                        commonRecipeDrug.setDrugStatus(organDrug.getStatus());
+                        commonRecipeDrug.setSalePrice(organDrug.getSalePrice());
+                        commonRecipeDrug.setPrice1(organDrug.getSalePrice().doubleValue());
+                        //添加平台药品ID
+                        if (null != commonRecipeDrug.getUseTotalDose()) {
+                            commonRecipeDrug.setDrugCost(organDrug.getSalePrice().multiply(
+                                    new BigDecimal(commonRecipeDrug.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP));
+                        }
+                        break;
                     }
-                    break;
+                }
+            }
+        }else {
+            organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(commonRecipeDTO.getOrganId(), organDrugCodeList);
+            for (CommonRecipeDrugDTO commonRecipeDrug : drugDtoList) {
+                Integer durgId = commonRecipeDrug.getDrugId();
+                String drugCode = commonRecipeDrug.getOrganDrugCode();
+                DrugList drug = drugListDAO.getById(durgId);
+                for (OrganDrugList organDrug : organDrugList) {
+                    if ((durgId.equals(organDrug.getDrugId()) && drugCode.equals(organDrug.getOrganDrugCode()))) {
+                        commonRecipeDrug.setDrugStatus(organDrug.getStatus());
+                        commonRecipeDrug.setSalePrice(organDrug.getSalePrice());
+                        commonRecipeDrug.setPrice1(organDrug.getSalePrice().doubleValue());
+                        //添加平台药品ID
+                        //平台药品商品名
+                        if (drug!=null){
+                            commonRecipeDrug.setPlatformSaleName(drug.getSaleName());
+                        }
+                        if (null != commonRecipeDrug.getUseTotalDose()) {
+                            commonRecipeDrug.setDrugCost(organDrug.getSalePrice().multiply(
+                                    new BigDecimal(commonRecipeDrug.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP));
+                        }
+                        break;
+                    }
                 }
             }
         }
