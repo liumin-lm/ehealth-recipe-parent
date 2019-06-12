@@ -203,18 +203,21 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setDoctorNo(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
 
             //药师处理
-            doctorDTO = doctorMap.get(recipe.getChecker());
-            if (null == doctorDTO) {
-                doctorDTO = doctorService.get(recipe.getChecker());
-                doctorMap.put(recipe.getChecker(), doctorDTO);
+            if (recipe.getChecker() != null){
+                doctorDTO = doctorMap.get(recipe.getChecker());
+                if (null == doctorDTO) {
+                    doctorDTO = doctorService.get(recipe.getChecker());
+                    doctorMap.put(recipe.getChecker(), doctorDTO);
+                }
+                if (null == doctorDTO) {
+                    LOGGER.warn("uploadRecipeIndicators checker is null. recipe.checker={}", recipe.getChecker());
+                    continue;
+                }
+                req.setAuditDoctorCertID(doctorDTO.getIdNumber());
+                req.setAuditDoctor(doctorDTO.getName());
+                req.setAuditDoctorId(recipe.getChecker().toString());
             }
-            if (null == doctorDTO) {
-                LOGGER.warn("uploadRecipeIndicators checker is null. recipe.checker={}", recipe.getChecker());
-                continue;
-            }
-            req.setAuditDoctorCertID(doctorDTO.getIdNumber());
-            req.setAuditDoctor(doctorDTO.getName());
-            req.setAuditDoctorId(recipe.getChecker().toString());
+
 
             //患者处理
             patientDTO = patientService.get(recipe.getMpiid());
