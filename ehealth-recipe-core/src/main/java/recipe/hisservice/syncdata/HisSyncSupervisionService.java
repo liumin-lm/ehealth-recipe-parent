@@ -350,9 +350,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //处方明细Id
             reqDetail.setRecipeDetailId(detail.getRecipeDetailId());
             //单价
-            reqDetail.setPrice(detail.getPrice());
+            reqDetail.setPrice(detail.getSalePrice());
             //总价
-            reqDetail.setTotalPrice(detail.getTotalPrice());
+            reqDetail.setTotalPrice(detail.getDrugCost());
 
             list.add(reqDetail);
         }
