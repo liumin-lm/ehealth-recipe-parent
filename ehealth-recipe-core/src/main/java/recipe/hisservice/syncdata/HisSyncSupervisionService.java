@@ -252,7 +252,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setStartDate(recipe.getSignDate());
             req.setEndDate(DateConversion.getDateAftXDays(recipe.getSignDate(), recipe.getValueDays()));
             req.setUpdateTime(now);
-            /*req.setTotalFee(recipe.getTotalMoney().doubleValue());*/
+            req.setTotalFee(recipe.getTotalMoney().doubleValue());
             req.setIsPay(recipe.getPayFlag().toString());
 
             //过敏史标记 有无过敏史 0:无 1:有
