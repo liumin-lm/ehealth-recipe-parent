@@ -19,6 +19,11 @@
 		<property name="testWhileIdle" value="true" />
 		<property name="testOnBorrow" value="false" />
 		<property name="testOnReturn" value="false" />
+        <property name="proxyFilters">
+            <list>
+                <bean class="ctd.persistence.rw.druid.filter.DaoExecuteMonitorFilter"/>
+            </list>
+        </property>
 		<!--<property name="poolPreparedStatements" value="true" />-->
 		<!--<property name="maxPoolPreparedStatementPerConnectionSize" value="20" />-->
 	</bean>
@@ -27,10 +32,8 @@
 		<property name="packagesToScan">
 			<array>
                 <value>ctd.mvc.upload</value>
-                <value>ctd.mvc.weixin.entity</value>
                 <value>ctd.net.rpc.logger</value>
                 <value>ctd.account.thirdparty</value>
-                <value>ctd.mvc.alilife.entity</value>
                 <value>com.ngari.base.*.model</value>
                 <value>com.ngari.recipe.entity</value>
                 <value>com.ngari.recipe</value>

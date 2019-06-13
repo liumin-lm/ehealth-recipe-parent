@@ -45,9 +45,18 @@ public class SyncExecutorService {
      */
     public void uploadRecipeIndicators(Recipe recipe) {
         CommonSyncSupervisionService service = ApplicationUtils.getRecipeService(CommonSyncSupervisionService.class);
+        CommonSyncSupervisionForIHosService iHosService =
+                ApplicationUtils.getRecipeService(CommonSyncSupervisionForIHosService.class);
         CommonResponse response = null;
         try {
-            response = service.uploadRecipeIndicators(Arrays.asList(recipe));
+            //RPC调用上传
+            response = iHosService.uploadRecipeIndicators(Arrays.asList(recipe));
+            if (CommonConstant.SUCCESS.equals(response.getCode())){
+                //上传openApi的
+                response = service.uploadRecipeIndicators(Arrays.asList(recipe));
+            } else{
+                LOGGER.warn("uploadRecipeIndicators rpc execute error. recipe={}", JSONUtils.toString(recipe));
+            }
         } catch (Exception e) {
             LOGGER.warn("uploadRecipeIndicators exception recipe={}", JSONUtils.toString(recipe), e);
         }
@@ -63,6 +72,7 @@ public class SyncExecutorService {
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
                     recipe.getStatus(), "监管平台上传失败,"+response.getMsg());
         }
+        
     }
 
     /**
@@ -78,9 +88,18 @@ public class SyncExecutorService {
         }
 
         CommonSyncSupervisionService service = ApplicationUtils.getRecipeService(CommonSyncSupervisionService.class);
+        CommonSyncSupervisionForIHosService iHosService =
+                ApplicationUtils.getRecipeService(CommonSyncSupervisionForIHosService.class);
         CommonResponse response = null;
         try {
-            response = service.uploadRecipeVerificationIndicators(Arrays.asList(recipe));
+            //RPC调用上传
+            response = iHosService.uploadRecipeVerificationIndicators(Arrays.asList(recipe));
+            if (CommonConstant.SUCCESS.equals(response.getCode())){
+                //上传openApi的
+                response = service.uploadRecipeVerificationIndicators(Arrays.asList(recipe));
+            } else{
+                LOGGER.warn("uploadRecipeVerificationIndicators rpc execute error. recipe={}", JSONUtils.toString(recipe));
+            }
         } catch (Exception e) {
             LOGGER.warn("uploadRecipeVerificationIndicators exception recipe={}", JSONUtils.toString(recipe), e);
         }

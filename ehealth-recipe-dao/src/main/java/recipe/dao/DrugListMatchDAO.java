@@ -59,29 +59,18 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
             @Override
             public void execute(StatelessSession ss) throws DAOException {
                 StringBuilder hql = new StringBuilder("From DrugListMatch where sourceOrgan=:sourceOrgan");
-                Integer organDrugCode = null;
                 if (!StringUtils.isEmpty(keyword)) {
-                    try {
-                        organDrugCode = Integer.valueOf(keyword);
-                    } catch (Throwable throwable) {
-                        organDrugCode = null;
-                    }
                     hql.append(" and (");
-                    hql.append(" drugName like :keyword or producer like :keyword or saleName like :keyword ");
-                    if (organDrugCode != null) {
-                        hql.append(" or organDrugCode =:organDrugCode");
-                    }
+                    hql.append(" drugName like :keyword or producer like :keyword or saleName like :keyword or organDrugCode like :keyword ");
                     hql.append(")");
                 }
                 if (!ObjectUtils.isEmpty(status)) {
                     hql.append(" and status =:status");
                 }
+                /*hql.append(" order by createDt desc");*/
                 Query countQuery = ss.createQuery("select count(*) " + hql.toString());
                 if (!ObjectUtils.isEmpty(status)) {
                     countQuery.setParameter("status", status);
-                }
-                if (organDrugCode != null) {
-                    countQuery.setParameter("organDrugCode", organDrugCode);
                 }
                 if (!StringUtils.isEmpty(keyword)) {
                     countQuery.setParameter("keyword", "%" + keyword + "%");
@@ -96,9 +85,6 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
                 if (!ObjectUtils.isEmpty(status)) {
                     query.setParameter("status", status);
                 }
-                if (organDrugCode != null) {
-                    query.setParameter("organDrugCode", organDrugCode);
-                }
                 if (!StringUtils.isEmpty(keyword)) {
                     query.setParameter("keyword", "%" + keyword + "%");
                 }
@@ -110,30 +96,6 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
                 query.setMaxResults(limit);
                 List<DrugListMatch> lists = query.list();
                 setResult(new QueryResult<DrugListMatch>(total, query.getFirstResult(), query.getMaxResults(), lists));
-            }
-        };
-        HibernateSessionTemplate.instance().execute(action);
-        return action.getResult();
-    }
-
-    /**
-     * 商品名模糊查询 药品
-     *
-     * @param name
-     * @return
-     * @author zhongzx
-     */
-    public DrugListMatch queryBySaleNameLike(final String name) {
-        HibernateStatelessResultAction<DrugListMatch> action = new AbstractHibernateStatelessResultAction<DrugListMatch>() {
-            @Override
-            public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("from DrugListMatch where saleName like :name");
-                Query q = ss.createQuery(hql.toString());
-                q.setParameter("name", "%" + name + "%");
-                List<DrugListMatch> list = q.list();
-                if (null != list && list.size() > 0) {
-                    setResult(list.get(0));
-                }
             }
         };
         HibernateSessionTemplate.instance().execute(action);
@@ -232,4 +194,7 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    @DAOMethod(sql = "from DrugListMatch where sourceOrgan =:organId and status =2")
+    public abstract List<DrugListMatch> findReadyComimitDataByOrgan(@DAOParam("organId")int organId);
 }

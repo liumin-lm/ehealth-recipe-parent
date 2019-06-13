@@ -1,26 +1,35 @@
 package recipe.service;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.hisprescription.model.HosRecipeResult;
+import com.ngari.recipe.hisprescription.model.HospitalStatusUpdateDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.constant.RecipeBussConstant;
+import recipe.constant.RecipeStatusConstant;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
+import recipe.service.hospitalrecipe.PrescribeService;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.DateConversion;
+import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 电子处方定时任务服务
@@ -116,5 +125,42 @@ public class RecipeTimedTaskService {
             }
         }
 
+    }
+
+    /**
+     * 定时任务 his回调失败(医院确认中)5分钟后确保流程继续(更新为待审核状态)
+     * 每5分钟执行一次
+     */
+    @RpcService
+    public void updateRecipeStatus(){
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        //获取五分钟前的时间
+        Calendar now = Calendar.getInstance();
+        now.setTime(new Date());
+        now.add(Calendar.MINUTE, -5);
+        Date time = now.getTime();
+        //设置查询时间段
+        String endDt = DateConversion.getDateFormatter(time, DateConversion.DEFAULT_DATE_TIME);
+        String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(1), DateConversion.DEFAULT_DATE_TIME);
+
+        List<Recipe> recipeList = recipeDAO.findRecipeListForStatus(RecipeStatusConstant.CHECKING_HOS, startDt, endDt);
+        if (CollectionUtils.isNotEmpty(recipeList)) {
+            PrescribeService prescribeService = ApplicationUtils.getRecipeService(
+                    PrescribeService.class, "remotePrescribeService");
+            OrganService organService = BasicAPI.getService(OrganService.class);
+            Map<String, String> otherInfo = Maps.newHashMap();
+            for (Recipe recipe : recipeList) {
+                //处方流转模式是否是互联网模式
+                if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
+                    HospitalStatusUpdateDTO hospitalStatusUpdateDTO = new HospitalStatusUpdateDTO();
+                    hospitalStatusUpdateDTO.setOrganId(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
+                    hospitalStatusUpdateDTO.setRecipeCode(recipe.getRecipeCode());
+                    hospitalStatusUpdateDTO.setStatus(LocalStringUtil.toString(RecipeStatusConstant.CHECK_PASS));
+                    HosRecipeResult result = prescribeService.updateRecipeStatus(hospitalStatusUpdateDTO, otherInfo);
+                    recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("distributionFlag", 1));
+                    LOGGER.info("updateRecipeStatus,recipeId={} result={}",recipe.getRecipeId(), JSONUtils.toString(result));
+                }
+            }
+        }
     }
 }

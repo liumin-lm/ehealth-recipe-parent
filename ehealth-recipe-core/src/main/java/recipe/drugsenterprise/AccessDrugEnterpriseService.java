@@ -54,7 +54,7 @@ public abstract class AccessDrugEnterpriseService {
 
             if (!callables.isEmpty()) {
                 try {
-                    new RecipeBusiThreadPool(callables).execute();
+                    RecipeBusiThreadPool.submitList(callables);
                 } catch (InterruptedException e) {
                     LOGGER.error("updateAccessToken 线程池异常");
                 }
@@ -163,6 +163,25 @@ public abstract class AccessDrugEnterpriseService {
      * @return
      */
     public abstract DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, DrugsEnterprise enterprise);
+    
+    /**
+     * @param rxId  处⽅Id
+     * @param queryOrder  是否查询订单
+     * @return 处方单
+     */
+    public DrugEnterpriseResult queryPrescription(String rxId, Boolean queryOrder) {
+        return DrugEnterpriseResult.getSuccess();
+    }
+
+
+    /**
+     * 推送药企处方状态，由于只是个别药企需要实现，故有默认实现
+     * @param rxId
+     * @return
+     */
+    public DrugEnterpriseResult updatePrescriptionStatus(String rxId, int status) {
+        return DrugEnterpriseResult.getSuccess();
+    }
 
     /**
      * 获取药企实现简称字段

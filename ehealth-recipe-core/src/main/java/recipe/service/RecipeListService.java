@@ -304,6 +304,7 @@ public class RecipeListService {
                                     record.setRecipeId(recipe.getRecipeId());
                                     record.setRecipeType(recipe.getRecipeType());
                                     record.setOrganDiseaseName(recipe.getOrganDiseaseName());
+                                    record.setRecipeMode(recipe.getRecipeMode());
                                     // 订单支付方式
                                     record.setPayMode(recipe.getPayMode());
                                     //药品详情

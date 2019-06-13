@@ -1,5 +1,7 @@
 package recipe.service.hospitalrecipe;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.organ.model.OrganBean;
@@ -9,9 +11,11 @@ import com.ngari.base.patient.service.IPatientExtendService;
 import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.EmploymentService;
+import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeCommonResTO;
 import com.ngari.recipe.common.utils.VerifyUtils;
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
@@ -25,24 +29,24 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.bean.DrugEnterpriseResult;
+import recipe.bean.RecipeCheckPassResult;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeLogDAO;
-import recipe.dao.RecipeOrderDAO;
-import recipe.service.DrugsEnterpriseService;
-import recipe.service.RecipeHisService;
-import recipe.service.RecipeLogService;
-import recipe.service.RecipeOrderService;
+import recipe.dao.*;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.service.*;
 import recipe.service.hospitalrecipe.dataprocess.PrescribeProcess;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author： 0184/yu_yun
@@ -66,6 +70,9 @@ public class PrescribeService {
 
     @Autowired
     private RecipeLogDAO recipeLogDAO;
+
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
 
     /**
      * 创建处方
@@ -265,7 +272,7 @@ public class PrescribeService {
      * @param request
      * @return
      */
-    public HosRecipeResult updateRecipeStatus(HospitalStatusUpdateDTO request) {
+    public HosRecipeResult updateRecipeStatus(HospitalStatusUpdateDTO request, Map<String, String> otherInfo) {
         HosRecipeResult result = new HosRecipeResult();
         //重置默认为失败
         result.setCode(HosRecipeResult.FAIL);
@@ -310,18 +317,125 @@ public class PrescribeService {
             if (status.equals(dbRecipe.getStatus())) {
                 result.setCode(HosRecipeResult.SUCCESS);
                 result.setMsg("处方状态相同");
+
+                //有些状态可能会重复调用，需要处理一些额外数据
+                switch (status) {
+                    case RecipeStatusConstant.CHECK_PASS:
+                        if (StringUtils.isNotEmpty(otherInfo.get("distributionFlag"))
+                                && "1".equals(otherInfo.get("distributionFlag"))){
+                            recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("distributionFlag", 1));
+                        }else {
+                            String cardTypeName = otherInfo.get("cardTypeName");
+                            String cardNo = otherInfo.get("cardNo");
+                            recipeExtendDAO.updateCardInfoById(dbRecipe.getRecipeId(),cardTypeName,cardNo);
+                            recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("distributionFlag",0));
+                        }
+
+                    default:
+
+                }
                 return result;
             }
 
             //支持状态改变的情况判断
-            if (!(RecipeStatusConstant.DELETE == status)) {
-                result.setMsg("不支持的处方状态改变");
-                return result;
-            }
+//            if (!(RecipeStatusConstant.DELETE == status || RecipeStatusConstant.HAVE_PAY == status
+//                    || RecipeStatusConstant.FINISH == status)) {
+//                result.setMsg("不支持的处方状态改变");
+//                return result;
+//            }
 
-            //作废处理
-            if (RecipeStatusConstant.DELETE == status) {
-                result = revokeRecipe(dbRecipe);
+            Integer recipeId = dbRecipe.getRecipeId();
+            Map<String, Object> attrMap = Maps.newHashMap();
+            switch (status) {
+                case RecipeStatusConstant.DELETE:
+                    result = revokeRecipe(dbRecipe);
+                    break;
+                case RecipeStatusConstant.CHECK_PASS:
+                    if (StringUtils.isNotEmpty(otherInfo.get("distributionFlag"))
+                            && "1".equals(otherInfo.get("distributionFlag"))){
+                        recipeDAO.updateRecipeInfoByRecipeId(recipeId,ImmutableMap.of("distributionFlag", 1));
+
+                    }else {
+                        String cardTypeName = otherInfo.get("cardTypeName");
+                        String cardNo = otherInfo.get("cardNo");
+                        recipeExtendDAO.updateCardInfoById(recipeId,cardTypeName,cardNo);
+                        recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("distributionFlag",0));
+                    }
+                    RecipeCheckPassResult recipeCheckPassResult = new RecipeCheckPassResult();
+                    recipeCheckPassResult.setRecipeId(recipeId);
+                    HisCallBackService.checkPassSuccess(recipeCheckPassResult, true);
+                    result.setCode(HosRecipeResult.SUCCESS);
+
+                    //判断用户是否已鉴权
+                    if(StringUtils.isNotEmpty(dbRecipe.getRequestMpiId())) {
+                        DrugDistributionService drugDistributionService =
+                                ApplicationUtils.getRecipeService(DrugDistributionService.class);
+                        PatientService patientService = BasicAPI.getService(PatientService.class);
+                        String loginId = patientService.getLoginIdByMpiId(dbRecipe.getRequestMpiId());
+                        if (drugDistributionService.authorization(loginId)) {
+                            //推送阿里处方推片和信息
+                            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAccount("aldyf");
+                            if (null == drugsEnterprise) {
+                                LOG.warn("updateRecipeStatus aldyf 药企不存在");
+                            }
+                            RemoteDrugEnterpriseService remoteDrugEnterpriseService =
+                                    ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+                            DrugEnterpriseResult deptResult =
+                                    remoteDrugEnterpriseService.pushSingleRecipeInfoWithDepId(recipeId, drugsEnterprise.getId());
+                            LOG.info("updateRecipeStatus 推送药企处方，result={}", JSONUtils.toString(deptResult));
+                        }
+                    }
+
+                    break;
+                case RecipeStatusConstant.HAVE_PAY:
+                    attrMap.put("originRecipeCode", otherInfo.get("originRecipeCode"));
+                    attrMap.put("chooseFlag", 1);
+                    attrMap.put("payFlag", 1);
+                    //以免进行处方失效前提醒
+                    attrMap.put("remindFlag", 1);
+                    attrMap.put("payDate", DateTime.now().toDate());
+                    attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_TO_HOS);
+                    attrMap.put("payMode", RecipeBussConstant.PAYMODE_TO_HOS);
+                    attrMap.put("enterpriseId", null);
+                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.HAVE_PAY, attrMap);
+
+                    Map<String, Object> detailAttrMap = Maps.newHashMap();
+                    detailAttrMap.put("patientInvoiceNo", otherInfo.get("patientInvoiceNo"));
+                    detailAttrMap.put("patientInvoiceDate", new DateTime().toDate());
+                    RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+                    recipeDetailDAO.updateRecipeDetailByRecipeId(recipeId, detailAttrMap);
+
+                    //日志记录
+                    RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), RecipeStatusConstant.HAVE_PAY,
+                            "HIS推送状态：医院取药已支付");
+                    result.setCode(HosRecipeResult.SUCCESS);
+                    break;
+                case RecipeStatusConstant.FINISH:
+                    attrMap.put("chooseFlag", 1);
+                    attrMap.put("payFlag", 1);
+                    attrMap.put("giveFlag", 1);
+                    attrMap.put("giveDate", DateTime.now().toDate());
+                    //以免进行处方失效前提醒
+                    attrMap.put("remindFlag", 1);
+                    attrMap.put("payDate", DateTime.now().toDate());
+                    attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_TO_HOS);
+                    attrMap.put("payMode", RecipeBussConstant.PAYMODE_TO_HOS);
+                    attrMap.put("enterpriseId", null);
+                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.FINISH, attrMap);
+
+                    //日志记录
+                    RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), RecipeStatusConstant.FINISH,
+                            "HIS推送状态：医院取药已完成");
+                    result.setCode(HosRecipeResult.SUCCESS);
+                    break;
+                case RecipeStatusConstant.REVOKE:
+                    attrMap.put("chooseFlag", 1);
+                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.REVOKE, attrMap);
+                    result.setCode(HosRecipeResult.SUCCESS);
+                    break;
+                default:
+                    result.setMsg("不支持的处方状态改变");
             }
         } else {
             result.setMsg("request对象为空");

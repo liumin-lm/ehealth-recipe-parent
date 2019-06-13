@@ -37,4 +37,9 @@ public class DrugEnterpriseConstant {
      * 九州通药企
      */
     public static final String COMPANY_JZTDYF = "jztdyf";
+
+    /**
+     * 阿里大药房简称
+     */
+    public static final String COMPANY_ALDYF = "aldyf";
 }

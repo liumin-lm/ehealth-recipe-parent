@@ -274,7 +274,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
 
             if (CollectionUtils.isNotEmpty(callables)) {
                 try {
-                    new RecipeBusiThreadPool(callables).execute();
+                    RecipeBusiThreadPool.submitList(callables);
                 } catch (InterruptedException e) {
                     LOGGER.error("pushRecipInfo 线程池异常");
                 }
@@ -416,7 +416,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
 
         if (CollectionUtils.isNotEmpty(callAbles)) {
             try {
-                new RecipeBusiThreadPool(callAbles).execute();
+                RecipeBusiThreadPool.submitList(callAbles);
             } catch (InterruptedException e) {
                 LOGGER.error("syncDrug 线程池异常");
             }

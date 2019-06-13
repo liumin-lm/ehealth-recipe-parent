@@ -36,13 +36,33 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "发病日期")
     private Date onsetDate;
 
+    /**互联网医院字段*/
+    @ItemProperty(alias = "现病史")
+    private String historyOfPresentIllness;
+
+    @ItemProperty(alias = "处理方法")
+    private String handleMethod;
+
+    @ItemProperty(alias = "体格检查")
+    private String physicalCheck;
+
     @ItemProperty(alias = "HIS处方关联的卡类型")
     private String  cardTypeName;
 
     @ItemProperty(alias = "HIS处方关联的卡号")
     private String  cardNo;
+    /**互联网医院字段*/
 
     public RecipeExtend() {
+    }
+
+    public RecipeExtend(Integer recipeId, String historyOfPresentIllness,
+                        String mainDieaseDescribe, String handleMethod, String physicalCheck) {
+        this.recipeId = recipeId;
+        this.historyOfPresentIllness = historyOfPresentIllness;
+        this.mainDieaseDescribe = mainDieaseDescribe;
+        this.handleMethod = handleMethod;
+        this.physicalCheck = physicalCheck;
     }
 
     @Id
@@ -98,6 +118,33 @@ public class RecipeExtend implements Serializable {
 
     public void setOnsetDate(Date onsetDate) {
         this.onsetDate = onsetDate;
+    }
+
+    @Column(name = "historyOfPresentIllness")
+    public String getHistoryOfPresentIllness() {
+        return historyOfPresentIllness;
+    }
+
+    public void setHistoryOfPresentIllness(String historyOfPresentIllness) {
+        this.historyOfPresentIllness = historyOfPresentIllness;
+    }
+
+    @Column(name = "handleMethod")
+    public String getHandleMethod() {
+        return handleMethod;
+    }
+
+    public void setHandleMethod(String handleMethod) {
+        this.handleMethod = handleMethod;
+    }
+
+    @Column(name = "physicalCheck")
+    public String getPhysicalCheck() {
+        return physicalCheck;
+    }
+
+    public void setPhysicalCheck(String physicalCheck) {
+        this.physicalCheck = physicalCheck;
     }
 
     @Column(name = "cardTypeName")

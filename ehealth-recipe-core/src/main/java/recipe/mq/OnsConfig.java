@@ -1,7 +1,5 @@
 package recipe.mq;
 
-import static com.ngari.patient.constant.OnsConfig.patientTopic;
-
 /**
  * Created by Administrator on 2016/6/13 0013.
  */
@@ -10,19 +8,24 @@ public class OnsConfig {
 
     public static String basicInfoTopic;
 
-    public static boolean isOnsSwitch() {
-        return onsSwitch;
-    }
+    public static String hisCdrinfo;
 
-    public static void setOnsSwitch(boolean onsSwitch) {
-        OnsConfig.onsSwitch = onsSwitch;
-    }
+    public static String dbModifyTopic;
 
-    public static String getBasicInfoTopic() {
-        return basicInfoTopic;
-    }
-
-    public static void setBasicInfoTopic(String basicInfoTopic) {
+    public void setBasicInfoTopic(String basicInfoTopic) {
         OnsConfig.basicInfoTopic = basicInfoTopic;
+    }
+
+
+    public void setOnsSwitch(String onsSwitch) {
+        OnsConfig.onsSwitch = Boolean.parseBoolean(onsSwitch);
+    }
+
+    public void setHisCdrinfo(String hisCdrinfo) {
+        OnsConfig.hisCdrinfo = hisCdrinfo;
+    }
+
+    public void setDbModifyTopic(String dbModifyTopic) {
+        OnsConfig.dbModifyTopic = dbModifyTopic;
     }
 }

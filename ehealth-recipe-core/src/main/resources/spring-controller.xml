@@ -5,7 +5,7 @@
        			http://www.ngarihealth.com/schema/ssdev http://www.ngarihealth.com/schema/ssdev/ssdev.xsd">
 
     <!-- service register center -->
-    <ssdev:applicationDomain name="eh" registryAddress="${zk}" serverId="recipe"/>
+    <ssdev:applicationDomain name="eh" registryAddress="${zk}" serverId="recipe" />
     <ssdev:connector url="${url}">
         <ssdev:filter id="json"/>
         <ssdev:filter id="urt"/>
@@ -15,7 +15,7 @@
     <ssdev:publisher id="publisher"/>
 
     <!-- log -->
-    <ssdev:logger type="broadcast">
+    <ssdev:logger type="kafka">
         <ssdev:serverNodeExDataBuilder id="datasourceExData"/>
         <ssdev:serverNodePerfLogExDataBuilder id="datasourcePerfLogExData"/>
     </ssdev:logger>

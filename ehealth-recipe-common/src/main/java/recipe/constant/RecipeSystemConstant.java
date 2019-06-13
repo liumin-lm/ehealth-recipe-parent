@@ -40,8 +40,11 @@ public class RecipeSystemConstant {
     public static final int CONSULT_STATUS_FOR_FOLLOW = 8;
     public static final int CONSULT_STATUS_CANCEL = 9;
 
-    /** 卫宁系统里针对每个医院的标识*/
+    /** 卫宁系统里针对每个医院的标识 纳里医院ID*/
     public static final String WEINING_HOSPCODE = "1696";
+
+    /** 云医院ID */
+    public static final String WEINING_CLOUD_HOSPCODE = "2019";
 
     /** 诊断类型--IDC10*/
     public static final String IDC10_DIAGNOSE_TYPE = "2";

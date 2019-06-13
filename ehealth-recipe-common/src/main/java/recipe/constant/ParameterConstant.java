@@ -56,5 +56,14 @@ public class ParameterConstant {
      */
     public static final String KEY_YSQ_SKIP_SHOPPING_URL = "YSQ_SKIP_SHOPPING_URL";
 
+    /**
+     * 阿里下单跳转地址
+     */
+    public static final String KEY_ALI_ORDER_ADDR = "ALI_ORDER_ADDR";
+
+    /**
+     * 淘宝授权跳转地址
+     */
+    public static final String KEY_TAOBAO_AUTHORIZATION_ADDR = "TAOBAO_AUTHORIZATION_ADDR";
 
 }
