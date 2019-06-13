@@ -59,6 +59,7 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.service.common.RecipeCacheService;
+import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateRecipeStatusFromHisCallable;
 import recipe.util.DateConversion;
@@ -443,16 +444,11 @@ public class RecipeService {
         }
 
         int beforeStatus = recipe.getStatus();
-        String recipeMode = recipe.getRecipeMode();
         String logMemo = "审核不通过(药师平台，药师：" + checker + "):" + memo;
         int recipeStatus = RecipeStatusConstant.CHECK_NOT_PASS_YS;
         if (1 == checkFlag) {
             //成功
-            if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
-                recipeStatus = RecipeStatusConstant.CHECK_PASS_YS;
-            } else if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
-                recipeStatus = RecipeStatusConstant.CHECK_PASS;
-            }
+            recipeStatus = RecipeStatusConstant.CHECK_PASS_YS;
             if (recipe.canMedicalPay()) {
                 //如果是可医保支付的单子，审核是在用户看到之前，所以审核通过之后变为待处理状态
                 recipeStatus = RecipeStatusConstant.CHECK_PASS;
@@ -523,7 +519,7 @@ public class RecipeService {
                 //0表示成功
                 Integer code = MapValueUtil.getInteger(backMap, "code");
                 if (Integer.valueOf(0).equals(code)) {
-                    String recipeFileId = MapValueUtil.getString(backMap, "fileId");
+                    Integer recipeFileId = MapValueUtil.getInteger(backMap, "fileId");
                     bl = recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.<String, Object>of("chemistSignFile", recipeFileId));
                 } else {
                     LOGGER.error("reviewRecipe signFile error. recipeId={}, result={}", recipeId, JSONUtils.toString(backMap));
@@ -859,6 +855,7 @@ public class RecipeService {
 
         //记录日志
         RecipeLogService.saveRecipeLog(dbRecipeId, beforeStatus, beforeStatus, "修改处方单");
+
         return dbRecipeId;
     }
 
@@ -1032,6 +1029,12 @@ public class RecipeService {
         //同步到监管平台
         SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
         syncExecutorService.uploadRecipeIndicators(recipe);
+        //推送处方到监管平台(江苏)
+        try {
+            new RecipeBusiThreadPool(Arrays.asList(new PushRecipeToRegulationCallable(recipe.getRecipeId()))).execute();
+        } catch (InterruptedException e) {
+            LOGGER.error("pushRecipeToRegulation 线程池异常");
+        }
 
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核通过处理完成");
         return resultBean;
@@ -1149,7 +1152,7 @@ public class RecipeService {
     public List<AuditMedicinesDTO> getAuditMedicineIssuesByRecipeId(int recipeId){
         return RecipeServiceSub.getAuditMedicineIssuesByRecipeId(recipeId);
     }
-    
+
     /**
      * 处方撤销方法(供医生端使用)
      *
@@ -1271,8 +1274,8 @@ public class RecipeService {
                     //相应订单处理
                     order = orderDAO.getOrderByRecipeId(recipeId);
                     orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
-                    if (recipe.getFromflag() == RecipeBussConstant.FROMFLAG_HIS_USE) {
-                        orderDAO.updateByOrdeCode(order.getOrderCode(), ImmutableMap.of("cancelReason", "患者未在规定时间内支付，该处方单已失效"));
+                    if (recipe.getFromflag().equals(RecipeBussConstant.FROMFLAG_HIS_USE)){
+                        orderDAO.updateByOrdeCode(order.getOrderCode(),ImmutableMap.of("cancelReason", "患者未在规定时间内支付，该处方单已失效"));
                         //发送超时取消消息
                         //${sendOrgan}：抱歉，您的处方单由于超过${overtime}未处理，处方单已失效。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
                         RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_CANCEL_4HIS, recipe);
@@ -1288,6 +1291,12 @@ public class RecipeService {
                     } else {
                         memo.append("未知状态:" + status);
                     }
+                    //推送处方到监管平台(江苏)
+                    try {
+                        new RecipeBusiThreadPool(Arrays.asList(new PushRecipeToRegulationCallable(recipe.getRecipeId()))).execute();
+                    } catch (InterruptedException e) {
+                        LOGGER.error("pushRecipeToRegulation 线程池异常");
+                    }
                     //HIS消息发送
                     boolean succFlag = hisService.recipeStatusUpdate(recipeId);
                     if (succFlag) {
@@ -1297,6 +1306,7 @@ public class RecipeService {
                     }
                     //保存处方状态变更日志
                     RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, status, memo.toString());
+
                 }
             }
         }

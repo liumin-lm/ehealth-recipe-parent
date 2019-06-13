@@ -50,6 +50,8 @@ import recipe.drugsenterprise.AldyfRemoteService;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.service.common.RecipeCacheService;
+import recipe.thread.PushRecipeToRegulationCallable;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.*;
 
 import java.math.BigDecimal;
@@ -1493,6 +1495,12 @@ public class RecipeServiceSub {
                 }
                 //处方撤销后将状态设为已撤销，供记录日志使用
                 recipe.setStatus(RecipeStatusConstant.REVOKE);
+                //推送处方到监管平台(江苏)
+                try {
+                    new RecipeBusiThreadPool(Arrays.asList(new PushRecipeToRegulationCallable(recipe.getRecipeId()))).execute();
+                } catch (InterruptedException e) {
+                    LOGGER.error("pushRecipeToRegulation 线程池异常");
+                }
             } else {
                 msg = "未知原因，处方撤销失败";
                 memo.append("," + msg);

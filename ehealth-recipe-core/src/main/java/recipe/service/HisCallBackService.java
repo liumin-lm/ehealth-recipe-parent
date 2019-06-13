@@ -27,9 +27,13 @@ import recipe.constant.*;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.thread.PushRecipeToRegulationCallable;
+import recipe.thread.RecipeBusiThreadPool;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -199,6 +203,12 @@ public class HisCallBackService {
                 }
 
             }
+        }
+        //推送处方到监管平台（江苏）
+        try {
+            new RecipeBusiThreadPool(Arrays.asList(new PushRecipeToRegulationCallable(recipe.getRecipeId()))).execute();
+        } catch (InterruptedException e) {
+            LOGGER.error("pushRecipeToRegulation 线程池异常");
         }
 
     }
