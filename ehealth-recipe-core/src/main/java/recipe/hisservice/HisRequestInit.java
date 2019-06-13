@@ -28,11 +28,13 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.RecipeUtil;
+import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.DrugListDAO;
+import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.service.RecipeCheckService;
@@ -260,6 +262,14 @@ public class HisRequestInit {
         requestTO.setDeptID("");
         requestTO.setRecipeType((null != recipe.getRecipeType()) ? recipe
                 .getRecipeType().toString() : null);
+        //科室代码
+        AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
+        AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
+        requestTO.setDepartCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
+        //科室名称
+        requestTO.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
+        //医生名字
+        requestTO.setDoctorName(recipe.getDoctorName());
         if (null != patient) {
             // 患者信息
             String idCard = patient.getCertificate();
@@ -295,7 +305,7 @@ public class HisRequestInit {
         requestTO.setEndDate(c.getTime());
 
         //福建省立医院特殊处理
-        if("1001393".equals(recipe.getClinicOrgan())){
+        if("1001393".equals(recipe.getClinicOrgan().toString())){
             IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
             List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
                     recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
@@ -316,18 +326,21 @@ public class HisRequestInit {
 
         if (null != details && !details.isEmpty()) {
             List<OrderItemTO> orderList = new ArrayList<>();
+            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             for (Recipedetail detail : details) {
                 OrderItemTO orderItem = new OrderItemTO();
                 orderItem.setOrderID(Integer.toString(detail
                         .getRecipeDetailId()));
                 orderItem.setDrcode(detail.getOrganDrugCode());
                 orderItem.setDrname(detail.getDrugName());
+
+                //药品规格
                 orderItem.setDrmodel(detail.getDrugSpec());
                 orderItem.setPackUnit(detail.getDrugUnit());
                 orderItem.setDrugId(detail.getDrugId());
 
-                orderItem.setAdmission(detail.getUsePathways());
-                orderItem.setFrequency(detail.getUsingRate().toUpperCase());
+                orderItem.setAdmission(UsePathwaysFilter.filterNgari(recipe.getClinicOrgan(),detail.getUsePathways()));
+                orderItem.setFrequency(UsingRateFilter.filterNgari(recipe.getClinicOrgan(),detail.getUsingRate()));
                 orderItem.setDosage((null != detail.getUseDose()) ? Double
                         .toString(detail.getUseDose()) : null);
                 orderItem.setDrunit(detail.getUseDoseUnit());
@@ -343,6 +356,10 @@ public class HisRequestInit {
 
                 orderItem.setRemark(detail.getMemo());
                 orderItem.setPack(detail.getPack());
+                //用药天数
+                orderItem.setUseDays(detail.getUseDays());
+                //药品数量
+                orderItem.setItemCount(new BigDecimal(detail.getUseTotalDose()));
 
                 orderList.add(orderItem);
             }
