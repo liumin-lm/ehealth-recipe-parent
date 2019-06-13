@@ -133,7 +133,7 @@ public class SyncExecutorService {
                 }
             }
             List<Recipe> recipeList = recipeDAO.findRecipeListForDate(organs, startDt, endDt);
-            LOGGER.info("uploadRecipeIndicatorsTimeTask size=",recipeList.size());
+            LOGGER.info("uploadRecipeIndicatorsTimeTask size="+recipeList.size());
             HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
             CommonResponse response = null;
             try {
