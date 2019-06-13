@@ -296,6 +296,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         return commonResponse;
     }
 
+    @Override
+    public CommonResponse uploadRecipeVerificationIndicators(List<Recipe> recipeList) {
+        return null;
+    }
+
     /**
      * 设置处方详情数据
      *

@@ -1496,11 +1496,7 @@ public class RecipeServiceSub {
                 //处方撤销后将状态设为已撤销，供记录日志使用
                 recipe.setStatus(RecipeStatusConstant.REVOKE);
                 //推送处方到监管平台(江苏)
-                try {
-                    new RecipeBusiThreadPool(Arrays.asList(new PushRecipeToRegulationCallable(recipe.getRecipeId()))).execute();
-                } catch (InterruptedException e) {
-                    LOGGER.error("pushRecipeToRegulation 线程池异常");
-                }
+                RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId()));
             } else {
                 msg = "未知原因，处方撤销失败";
                 memo.append("," + msg);

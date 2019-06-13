@@ -1030,12 +1030,7 @@ public class RecipeService {
         SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
         syncExecutorService.uploadRecipeIndicators(recipe);
         //推送处方到监管平台(江苏)
-        try {
-            new RecipeBusiThreadPool(Arrays.asList(new PushRecipeToRegulationCallable(recipe.getRecipeId()))).execute();
-        } catch (InterruptedException e) {
-            LOGGER.error("pushRecipeToRegulation 线程池异常");
-        }
-
+        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId()));
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核通过处理完成");
         return resultBean;
     }
@@ -1292,11 +1287,7 @@ public class RecipeService {
                         memo.append("未知状态:" + status);
                     }
                     //推送处方到监管平台(江苏)
-                    try {
-                        new RecipeBusiThreadPool(Arrays.asList(new PushRecipeToRegulationCallable(recipe.getRecipeId()))).execute();
-                    } catch (InterruptedException e) {
-                        LOGGER.error("pushRecipeToRegulation 线程池异常");
-                    }
+                    RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId()));
                     //HIS消息发送
                     boolean succFlag = hisService.recipeStatusUpdate(recipeId);
                     if (succFlag) {
