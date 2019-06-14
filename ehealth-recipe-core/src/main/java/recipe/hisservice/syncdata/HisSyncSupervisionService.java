@@ -317,13 +317,13 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             reqDetail.setPack(detail.getPack());
             reqDetail.setPackUnit(detail.getDrugUnit());
             //频次
-            reqDetail.setFrequency(UsingRateFilter.transReguation(detail.getUsingRate()));
+            reqDetail.setFrequency(detail.getUsingRate());
             //药品频次名称
             if (null != usingRateDic) {
                 reqDetail.setFrequencyName(usingRateDic.getText(detail.getUsingRate()));
             }
             //用法
-            reqDetail.setAdmission(UsePathwaysFilter.transReguation(detail.getUsePathways()));
+            reqDetail.setAdmission(detail.getUsePathways());
             //药品用法名称
             if (null != usePathwaysDic) {
                 reqDetail.setAdmissionName(usePathwaysDic.getText(detail.getUsePathways()));
