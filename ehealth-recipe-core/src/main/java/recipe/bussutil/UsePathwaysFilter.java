@@ -1,7 +1,6 @@
 package recipe.bussutil;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import recipe.constant.CacheConstant;
 import recipe.util.RedisClient;
 
