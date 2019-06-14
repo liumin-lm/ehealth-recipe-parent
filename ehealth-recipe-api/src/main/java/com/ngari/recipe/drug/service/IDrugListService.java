@@ -12,12 +12,13 @@ public interface IDrugListService {
     DrugListBean get(final int drugId);
 
     @RpcService
-    public List<DictionaryItem> getDrugClass(String parentKey, int sliceType);
+    List<DictionaryItem> getDrugClass(String parentKey, int sliceType);
+
     @RpcService
     DrugListBean getDrugListBeanByDrugId(Integer drugId);
+
     @RpcService
     OrganDrugListBean getOrganDrugListByOrganDrugId(Integer organDrugId);
-    List<DictionaryItem> getDrugClass(String parentKey, int sliceType);
 
     @RpcService
     void saveDrugList(DrugListBean drugListBean);

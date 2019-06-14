@@ -882,6 +882,13 @@ public class RecipeService {
                 Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
                 List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
                 RecipeServiceSub.sendRecipeTagToPatient(recipe, details, rMap, false);
+                Integer consultId = MapValueUtil.getInteger(rMap, "consultId");
+                if(null != consultId) {
+                    RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+                    Map<String, Object> attrMap = Maps.newHashMap();
+                    attrMap.put("clinicId", consultId);
+                    recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap);
+                }
             }
         }
         LOGGER.info("doSignRecipeExt execute ok! rMap:" + JSONUtils.toString(rMap));
@@ -2098,4 +2105,9 @@ public class RecipeService {
         }
     }
 
+    @RpcService
+    public Map<String,Object> getHosRecipeList(Integer consultId,Integer organId,String mpiId) {
+        RecipePreserveService preserveService = ApplicationUtils.getRecipeService(RecipePreserveService.class);
+        return preserveService.getHosRecipeList(consultId,organId,mpiId);
+    }
 }

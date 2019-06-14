@@ -59,18 +59,9 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
             @Override
             public void execute(StatelessSession ss) throws DAOException {
                 StringBuilder hql = new StringBuilder("From DrugListMatch where sourceOrgan=:sourceOrgan");
-                Integer organDrugCode = null;
                 if (!StringUtils.isEmpty(keyword)) {
-                    try {
-                        organDrugCode = Integer.valueOf(keyword);
-                    } catch (Throwable throwable) {
-                        organDrugCode = null;
-                    }
                     hql.append(" and (");
-                    hql.append(" drugName like :keyword or producer like :keyword or saleName like :keyword ");
-                    if (organDrugCode != null) {
-                        hql.append(" or organDrugCode =:organDrugCode");
-                    }
+                    hql.append(" drugName like :keyword or producer like :keyword or saleName like :keyword or organDrugCode like :keyword ");
                     hql.append(")");
                 }
                 if (!ObjectUtils.isEmpty(status)) {
@@ -80,9 +71,6 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
                 Query countQuery = ss.createQuery("select count(*) " + hql.toString());
                 if (!ObjectUtils.isEmpty(status)) {
                     countQuery.setParameter("status", status);
-                }
-                if (organDrugCode != null) {
-                    countQuery.setParameter("organDrugCode", organDrugCode);
                 }
                 if (!StringUtils.isEmpty(keyword)) {
                     countQuery.setParameter("keyword", "%" + keyword + "%");
@@ -96,9 +84,6 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
                 Query query = ss.createQuery(hql.toString());
                 if (!ObjectUtils.isEmpty(status)) {
                     query.setParameter("status", status);
-                }
-                if (organDrugCode != null) {
-                    query.setParameter("organDrugCode", organDrugCode);
                 }
                 if (!StringUtils.isEmpty(keyword)) {
                     query.setParameter("keyword", "%" + keyword + "%");

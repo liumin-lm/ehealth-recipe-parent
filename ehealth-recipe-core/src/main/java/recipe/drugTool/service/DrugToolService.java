@@ -262,7 +262,7 @@ public class DrugToolService implements IDrugToolService {
                 drug.setStatus(0);
                 drug.setOperator(operator);
             }catch (Exception e){
-                LOGGER.error("药品小工具【第"+rowIndex+"行】导入字段有异常"+e.getMessage());
+                LOGGER.error("药品小工具【第"+rowIndex+1+"行】导入字段有异常"+e.getMessage());
                 flag = false;
             }
             if (flag){
@@ -460,7 +460,12 @@ public class DrugToolService implements IDrugToolService {
                         if (StringUtils.isEmpty(drugListMatch.getSaleName())){
                             organDrugList.setSaleName(drugListMatch.getDrugName());
                         }else {
-                            organDrugList.setSaleName(drugListMatch.getSaleName());
+                            if (drugListMatch.getSaleName().equals(drugListMatch.getDrugName())){
+                                organDrugList.setSaleName(drugListMatch.getSaleName());
+                            }else {
+                                organDrugList.setSaleName(drugListMatch.getSaleName()+" "+drugListMatch.getDrugName());
+                            }
+
                         }
 
                         organDrugList.setUsingRate(drugListMatch.getUsingRate());
