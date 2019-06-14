@@ -54,6 +54,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
     private static String HIS_SUCCESS = "200";
 
+    @Override
+    public CommonResponse uploadRecipeVerificationIndicators(List<Recipe> recipeList) {
+        return null;
+    }
+
     @RpcService
     @Override
     public CommonResponse uploadRecipeIndicators(List<Recipe> recipeList) {
