@@ -307,7 +307,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         RegulationRecipeDetailIndicatorsReq reqDetail;
         DrugListDAO drugListDao = DAOFactory.getDAO(DrugListDAO.class);
         List<RegulationRecipeDetailIndicatorsReq> list = new ArrayList<>(detailList.size());
-        double dosageDay;
+        /*double dosageDay;*/
         DrugList drugList;
         for (Recipedetail detail : detailList) {
             reqDetail = new RegulationRecipeDetailIndicatorsReq();
@@ -341,8 +341,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //药物使用总剂量
             reqDetail.setUseDosage("0");
             //药物日药量/DDD值
-            dosageDay = (detail.getUseDose())*(UsingRateFilter.transDailyTimes(detail.getUsingRate()));
-            reqDetail.setDosageDay(LocalStringUtil.toString(dosageDay));
+            /*dosageDay = (detail.getUseDose())*(UsingRateFilter.transDailyTimes(detail.getUsingRate()));*/
+            reqDetail.setDosageDay("0");
             //中药处方详细描述
             if (RecipeUtil.isTcmType(recipe.getRecipeType())){
                 reqDetail.setTcmDescribe(detail.getUsingRate()+detail.getUsePathways());
