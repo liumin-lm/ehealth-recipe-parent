@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.service.IConsultService;
@@ -9,6 +10,7 @@ import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -26,6 +28,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.constant.*;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
@@ -58,6 +61,7 @@ public class HisCallBackService {
             return;
         }
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 
@@ -113,6 +117,18 @@ public class HisCallBackService {
         }
 
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap);
+        if (StringUtils.isNotEmpty(result.getRegisterID())){
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (recipeExtend == null){
+                recipeExtend = new RecipeExtend();
+                recipeExtend.setRecipeId(recipe.getRecipeId());
+                recipeExtend.setRegisterID(result.getRegisterID());
+                recipeExtendDAO.saveRecipeExtend(recipeExtend);
+            }else {
+                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("registerID", result.getRegisterID()));
+            }
+        }
+
         List<Recipedetail> recipedetails = result.getDetailList();
         if (CollectionUtils.isNotEmpty(recipedetails)) {
             Map<Integer, BigDecimal> priceMap = Maps.newHashMap();

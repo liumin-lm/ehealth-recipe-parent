@@ -252,7 +252,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setStartDate(recipe.getSignDate());
             req.setEndDate(DateConversion.getDateAftXDays(recipe.getSignDate(), recipe.getValueDays()));
             req.setUpdateTime(now);
-            /*req.setTotalFee(recipe.getTotalMoney().doubleValue());*/
+            req.setTotalFee(recipe.getTotalMoney().doubleValue());
             req.setIsPay(recipe.getPayFlag().toString());
 
             //过敏史标记 有无过敏史 0:无 1:有
@@ -312,7 +312,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         RegulationRecipeDetailIndicatorsReq reqDetail;
         DrugListDAO drugListDao = DAOFactory.getDAO(DrugListDAO.class);
         List<RegulationRecipeDetailIndicatorsReq> list = new ArrayList<>(detailList.size());
-        double dosageDay;
+        /*double dosageDay;*/
         DrugList drugList;
         for (Recipedetail detail : detailList) {
             reqDetail = new RegulationRecipeDetailIndicatorsReq();
@@ -322,13 +322,13 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             reqDetail.setPack(detail.getPack());
             reqDetail.setPackUnit(detail.getDrugUnit());
             //频次
-            reqDetail.setFrequency(UsingRateFilter.transReguation(detail.getUsingRate()));
+            reqDetail.setFrequency(detail.getUsingRate());
             //药品频次名称
             if (null != usingRateDic) {
                 reqDetail.setFrequencyName(usingRateDic.getText(detail.getUsingRate()));
             }
             //用法
-            reqDetail.setAdmission(UsePathwaysFilter.transReguation(detail.getUsePathways()));
+            reqDetail.setAdmission(detail.getUsePathways());
             //药品用法名称
             if (null != usePathwaysDic) {
                 reqDetail.setAdmissionName(usePathwaysDic.getText(detail.getUsePathways()));
@@ -346,8 +346,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //药物使用总剂量
             reqDetail.setUseDosage("0");
             //药物日药量/DDD值
-            dosageDay = (detail.getUseDose())*(UsingRateFilter.transDailyTimes(detail.getUsingRate()));
-            reqDetail.setDosageDay(LocalStringUtil.toString(dosageDay));
+            /*dosageDay = (detail.getUseDose())*(UsingRateFilter.transDailyTimes(detail.getUsingRate()));*/
+            reqDetail.setDosageDay("0");
             //中药处方详细描述
             if (RecipeUtil.isTcmType(recipe.getRecipeType())){
                 reqDetail.setTcmDescribe(detail.getUsingRate()+detail.getUsePathways());
