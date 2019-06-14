@@ -1602,4 +1602,22 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     @DAOMethod
     public abstract Recipe getByRecipeCode(String recipeCode);
 
+
+    public List<Recipe> findRecipeListForDate(final List<Integer> organList,final String startDt,final String endDt) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("from Recipe where lastModify between '" + startDt + "' and '" + endDt + "' ");
+                hql.append(" and fromflag = 1 and clinicOrgan in:organList and status > 0 and status < 16");
+                Query q = ss.createQuery(hql.toString());
+                q.setParameterList("organList",organList);
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    @DAOMethod(sql = "select signFile from Recipe where patientID =:patientId and signFile is not null and fromflag = 1")
+    public abstract List<String> findSignFileIdByPatientId(@DAOParam("patientId") String patientId);
 }

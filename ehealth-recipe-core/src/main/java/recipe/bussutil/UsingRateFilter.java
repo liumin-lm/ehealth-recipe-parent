@@ -40,6 +40,22 @@ public class UsingRateFilter {
     }
 
     /**
+     * 根据平台的字典编码，匹配医院的值，一般用于平台处方写入HIS使用
+     * @param organId
+     * @param field
+     * @return
+     */
+    public static String filterNgari(int organId, String field){
+        String val = RedisClient.instance().hget(CacheConstant.KEY_NGARI_USINGRATE + organId, field);
+        /**
+         * 查不到的原因
+         * 1 因为field有可能在平台没有新增，则返回实际值
+         * 2 没有进行字典对照，则返回实际值
+         */
+        return StringUtils.isEmpty(val) ? field : val;
+    }
+
+    /**
      * 对接武昌his--根据用药频次转每日次数
      * @return
      */
@@ -85,5 +101,61 @@ public class UsingRateFilter {
                 dailyTimes = 1;
         }
         return dailyTimes;
+    }
+
+    /**
+     * 广东省监管平台转换
+     * @param usingRate
+     * @return
+     */
+    public static String transReguation(String usingRate){
+        String str;
+        switch (usingRate) {
+            case "bid":
+                str="01";
+                break;
+            case "biw":
+                str="02";
+                break;
+            case "hs":
+                str="03";
+                break;
+            case "q12h":
+                str="04";
+                break;
+            case "q1h":
+                str="05";
+                break;
+            case "q3h":
+                str="06";
+                break;
+            case "q6h":
+                str="07";
+                break;
+            case "q8h":
+                str="08";
+                break;
+            case "qd":
+                str="09";
+                break;
+            case "qid":
+                str="10";
+                break;
+            case "qod":
+                str="11";
+                break;
+            case "qw":
+                str="12";
+                break;
+            case "st":
+                str="13";
+                break;
+            case "tid":
+                str="14";
+                break;
+            default:
+                str = "99";
+        }
+        return str;
     }
 }
