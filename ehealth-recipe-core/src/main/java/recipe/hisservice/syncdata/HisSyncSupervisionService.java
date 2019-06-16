@@ -139,7 +139,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     //组织机构编码
                     req.setOrganizeCode(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
                     req.setOrganName(organDTO.getName());
-                    req.setOrganName(organDTO.getName());
                     break;
                 }
             }
