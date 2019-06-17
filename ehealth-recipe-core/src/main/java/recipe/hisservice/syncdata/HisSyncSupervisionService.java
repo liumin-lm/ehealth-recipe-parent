@@ -96,7 +96,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
         Map<Integer, OrganDTO> organMap = new HashMap<>(20);
         Map<Integer, DepartmentDTO> departMap = new HashMap<>(20);
-        Map<Integer, AppointDepartDTO> appointDepartMap = new HashMap<>(20);
+        /*Map<Integer, AppointDepartDTO> appointDepartMap = new HashMap<>(20);*/
         Map<Integer, DoctorDTO> doctorMap = new HashMap<>(20);
 
         Dictionary usingRateDic = null;
@@ -118,8 +118,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         PatientDTO patientDTO;
         SubCodeDTO subCodeDTO;
         List<Recipedetail> detailList;
-        AppointDepartDTO appointDepart;
-        String str;
         for (Recipe recipe : recipeList) {
             req = new RegulationRecipeIndicatorsReq();
             /* req.setBussID(recipe.getRecipeId().toString());*/
