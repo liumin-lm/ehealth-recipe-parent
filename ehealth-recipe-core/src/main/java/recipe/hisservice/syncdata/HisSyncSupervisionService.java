@@ -17,6 +17,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.service.zjs.SubCodeService;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
@@ -41,6 +42,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 
@@ -97,6 +99,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
 
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
 
         List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
         Map<Integer, OrganDTO> organMap = new HashMap<>(20);
@@ -126,6 +129,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         /*AppointDepartDTO appointDepart;*/
         Integer consultId = null;
         List<Integer> consultIds;
+        RecipeExtend recipeExtend;
         for (Recipe recipe : recipeList) {
             req = new RegulationRecipeIndicatorsReq();
 
@@ -266,9 +270,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             if (consultBean != null){
                 req.setMainDieaseDescribe(consultBean.getLeaveMess());
             }
-            //门诊号处理 年月日+患者身份证后5位 例：2019060407915
-            /*str = patientDTO.getCertificate().substring(patientDTO.getCertificate().length()-5);*/
-            req.setPatientNumber(recipe.getPatientID());
+            //门诊号处理
+            recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (recipeExtend != null){
+                req.setPatientNumber(recipeExtend.getRegisterID());
+            }
 
             //撤销标记
             req.setCancelFlag(getVerificationStatus(recipe));

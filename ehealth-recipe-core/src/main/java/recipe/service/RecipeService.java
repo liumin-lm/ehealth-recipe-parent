@@ -18,18 +18,13 @@ import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.dto.ConsultSetDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.ConsultSetService;
-import com.ngari.patient.service.DoctorService;
-import com.ngari.patient.service.OrganService;
-import com.ngari.patient.service.PatientService;
+import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipe.model.RecipeExtendBean;
+import com.ngari.recipe.recipe.model.*;
 import com.ngari.wxpay.service.INgariRefundService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -57,12 +52,14 @@ import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugsenterprise.AldyfRemoteService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.service.common.RecipeCacheService;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateRecipeStatusFromHisCallable;
 import recipe.util.DateConversion;
+import recipe.util.DigestUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 
@@ -886,6 +883,33 @@ public class RecipeService {
                     attrMap.put("clinicId", consultId);
                     recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap);
                 }
+            }
+            //高州市人民医院特殊处理
+            if (1000423==recipeBean.getClinicOrgan()){
+                //TODO 特殊处理
+                PatientService patientService = BasicAPI.getService(PatientService.class);
+                PatientDTO patientDTO = patientService.getPatientByMpiId(recipeBean.getMpiid());
+                Date now = DateTime.now().toDate();
+                String str = "";
+                if(patientDTO != null && StringUtils.isNotEmpty(patientDTO.getCertificate())){
+                    str = patientDTO.getCertificate().substring(patientDTO.getCertificate().length()-5);
+                }
+
+                RecipeToHisCallbackService service = ApplicationUtils.getRecipeService(RecipeToHisCallbackService.class);
+                HisSendResTO response = new HisSendResTO();
+                response.setRecipeId(((Integer)rMap.get("recipeId")).toString());
+                List<OrderRepTO> repList = Lists.newArrayList();
+                OrderRepTO orderRepTO = new OrderRepTO();
+                //门诊号处理 年月日+患者身份证后5位 例：2019060407915
+                orderRepTO.setPatientID(DateConversion.getDateFormatter(now,"yyMMdd")+str);
+                orderRepTO.setRegisterID(orderRepTO.getPatientID());
+                //生成处方编号，不需要通过HIS去产生
+                String recipeCodeStr = DigestUtil.md5For16(recipeBean.getClinicOrgan() +
+                        recipeBean.getMpiid() + Calendar.getInstance().getTimeInMillis());
+                orderRepTO.setRecipeNo(recipeCodeStr);
+                repList.add(orderRepTO);
+                response.setData(repList);
+                service.sendSuccess(response);
             }
         }
         LOGGER.info("doSignRecipeExt execute ok! rMap:" + JSONUtils.toString(rMap));
