@@ -155,7 +155,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setDeptName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");*/
             /*req.setDeptID(recipe.getDepart().toString());*/
             //科室处理----行政科室
-            req.setDeptID(recipe.getDepart().toString());
             departmentDTO = departMap.get(recipe.getDepart());
             if (null == departmentDTO) {
                 departmentDTO = departmentService.getById(recipe.getDepart());
@@ -165,6 +164,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 LOGGER.warn("uploadRecipeIndicators depart is null. recipe.depart={}", recipe.getDepart());
                 continue;
             }
+            req.setDeptID(departmentDTO.getCode());
             req.setDeptName(departmentDTO.getName());
             //设置专科编码等
             subCodeDTO = subCodeService.getByNgariProfessionCode(departmentDTO.getProfessionCode());
