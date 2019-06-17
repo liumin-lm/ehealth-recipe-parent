@@ -44,7 +44,6 @@ public class SyncExecutorService {
      * @param recipe
      */
     public void uploadRecipeIndicators(Recipe recipe) {
-        CommonSyncSupervisionService service = ApplicationUtils.getRecipeService(CommonSyncSupervisionService.class);
         CommonSyncSupervisionForIHosService iHosService =
                 ApplicationUtils.getRecipeService(CommonSyncSupervisionForIHosService.class);
         CommonResponse response = null;
@@ -52,27 +51,38 @@ public class SyncExecutorService {
             //RPC调用上传
             response = iHosService.uploadRecipeIndicators(Arrays.asList(recipe));
             if (CommonConstant.SUCCESS.equals(response.getCode())){
-                //上传openApi的
-                response = service.uploadRecipeIndicators(Arrays.asList(recipe));
+                LOGGER.info("uploadRecipeIndicators rpc execute success. recipeId={}", recipe.getRecipeId());
             } else{
                 LOGGER.warn("uploadRecipeIndicators rpc execute error. recipe={}", JSONUtils.toString(recipe));
             }
         } catch (Exception e) {
-            LOGGER.warn("uploadRecipeIndicators exception recipe={}", JSONUtils.toString(recipe), e);
+            LOGGER.warn("uploadRecipeIndicators rpc exception recipe={}", JSONUtils.toString(recipe), e);
         }
-        if (CommonConstant.SUCCESS.equals(response.getCode())) {
-            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            //更新字段
-            recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("syncFlag", 1));
-            //记录日志
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
-                    recipe.getStatus(), "监管平台上传成功");
-        }else{
-            //记录日志
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
-                    recipe.getStatus(), "监管平台上传失败,"+response.getMsg());
+
+        //上传openApi的
+        CommonSyncSupervisionService service = ApplicationUtils.getRecipeService(CommonSyncSupervisionService.class);
+        try {
+            response = null;
+            response = service.uploadRecipeIndicators(Arrays.asList(recipe));
+            if (CommonConstant.SUCCESS.equals(response.getCode())) {
+                RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+                //更新字段
+                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("syncFlag", 1));
+                //记录日志
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
+                        recipe.getStatus(), "监管平台上传成功");
+                LOGGER.info("uploadRecipeIndicators openapi execute success. recipeId={}", recipe.getRecipeId());
+            }else {
+                //记录日志
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
+                        recipe.getStatus(), "监管平台上传失败,"+response.getMsg());
+                LOGGER.warn("uploadRecipeIndicators openapi execute error. recipe={}", JSONUtils.toString(recipe));
+            }
+        } catch (Exception e) {
+            LOGGER.warn("uploadRecipeIndicators openapi exception recipe={}", JSONUtils.toString(recipe), e);
         }
-        
+
+
     }
 
     /**
@@ -87,7 +97,6 @@ public class SyncExecutorService {
             return;
         }
 
-        CommonSyncSupervisionService service = ApplicationUtils.getRecipeService(CommonSyncSupervisionService.class);
         CommonSyncSupervisionForIHosService iHosService =
                 ApplicationUtils.getRecipeService(CommonSyncSupervisionForIHosService.class);
         CommonResponse response = null;
@@ -95,23 +104,33 @@ public class SyncExecutorService {
             //RPC调用上传
             response = iHosService.uploadRecipeVerificationIndicators(Arrays.asList(recipe));
             if (CommonConstant.SUCCESS.equals(response.getCode())){
-                //上传openApi的
-                response = service.uploadRecipeVerificationIndicators(Arrays.asList(recipe));
+                LOGGER.info("uploadRecipeVerificationIndicators rpc execute success. recipeId={}", recipe.getRecipeId());
             } else{
                 LOGGER.warn("uploadRecipeVerificationIndicators rpc execute error. recipe={}", JSONUtils.toString(recipe));
             }
         } catch (Exception e) {
-            LOGGER.warn("uploadRecipeVerificationIndicators exception recipe={}", JSONUtils.toString(recipe), e);
+            LOGGER.warn("uploadRecipeVerificationIndicators rpc exception recipe={}", JSONUtils.toString(recipe), e);
         }
-        if (CommonConstant.SUCCESS.equals(response.getCode())) {
-            //记录日志
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
-                    recipe.getStatus(), "监管平台上传核销信息成功");
-        }else{
-            //记录日志
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
-                    recipe.getStatus(), "监管平台上传核销信息失败,"+response.getMsg());
+
+        //上传openApi的
+        CommonSyncSupervisionService service = ApplicationUtils.getRecipeService(CommonSyncSupervisionService.class);
+        try {
+            response = null;
+            response = service.uploadRecipeVerificationIndicators(Arrays.asList(recipe));
+            if (CommonConstant.SUCCESS.equals(response.getCode())){
+                //记录日志
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
+                        recipe.getStatus(), "监管平台上传核销信息成功");
+                LOGGER.info("uploadRecipeVerificationIndicators openapi execute success. recipeId={}", recipe.getRecipeId());
+            } else{
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
+                        recipe.getStatus(), "监管平台上传核销信息失败,"+response.getMsg());
+                LOGGER.warn("uploadRecipeVerificationIndicators openapi execute error. recipe={}", JSONUtils.toString(recipe));
+            }
+        } catch (Exception e) {
+            LOGGER.warn("uploadRecipeVerificationIndicators openapi exception recipe={}", JSONUtils.toString(recipe), e);
         }
+
     }
 
 }
