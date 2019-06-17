@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.common.CommonConstant;
 import recipe.common.response.CommonResponse;
+import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.RecipeLogService;
@@ -39,7 +40,16 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
         HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
         CommonResponse response = null;
         try {
-            response = service.uploadRecipeIndicators(Arrays.asList(recipe));
+            if (RecipeStatusConstant.CHECK_PASS_YS == recipe.getStatus()){
+                response = service.uploadRecipeAuditIndicators(Arrays.asList(recipe));
+                if (CommonConstant.SUCCESS.equals(response.getCode())){
+                    response = service.uploadRecipeCirculationIndicators(Arrays.asList(recipe));
+                } else{
+                    logger.warn("uploadRecipeAuditIndicators rpc execute error. recipe={}", JSONUtils.toString(recipe));
+                }
+            }else {
+                response = service.uploadRecipeIndicators(Arrays.asList(recipe));
+            }
         } catch (Exception e) {
             logger.warn("uploadRecipeIndicators exception recipe={}", JSONUtils.toString(recipe), e);
         }
