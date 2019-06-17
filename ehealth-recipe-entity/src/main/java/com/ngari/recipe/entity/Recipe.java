@@ -582,7 +582,7 @@ public class Recipe implements Serializable {
     public void setRecipeMode(String recipeMode) {
         this.recipeMode = recipeMode;
     }
-    
+
     @Column(name = "Depart")
     public Integer getDepart() {
         return this.depart;
