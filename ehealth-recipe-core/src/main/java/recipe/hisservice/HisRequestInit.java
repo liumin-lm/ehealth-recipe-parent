@@ -333,7 +333,11 @@ public class HisRequestInit {
                         .getRecipeDetailId()));
                 orderItem.setDrcode(detail.getOrganDrugCode());
                 orderItem.setDrname(detail.getDrugName());
-
+                //药房名称
+                OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(recipe.getClinicOrgan(), detail.getOrganDrugCode());
+                if (organDrug!=null){
+                    orderItem.setPharmacy(organDrug.getPharmacyName());
+                }
                 //药品规格
                 orderItem.setDrmodel(detail.getDrugSpec());
                 orderItem.setPackUnit(detail.getDrugUnit());
@@ -435,6 +439,12 @@ public class HisRequestInit {
             requestTO.setCardType(card.getCardType());
             requestTO.setCardNo(card.getCardId());
         }
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        requestTO.setPatientID(recipe.getPatientID());
+        if (null != recipeExtend){
+            requestTO.setRegisterID(recipeExtend.getRegisterID());
+        }
 
         if (null != patient) {
             requestTO.setPatientName(patient.getPatientName());
@@ -528,6 +538,13 @@ public class HisRequestInit {
         requestTO.setRecipeNo(recipe.getRecipeCode());
         requestTO.setRecipeType((null != recipe.getRecipeType()) ? Integer
                 .toString(recipe.getRecipeType()) : null);
+        //his患者id和挂号序号
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        requestTO.setPatientID(recipe.getPatientID());
+        if (null != recipeExtend){
+            requestTO.setRegisterID(recipeExtend.getRegisterID());
+        }
 
         if (null != patient) {
             // 患者信息

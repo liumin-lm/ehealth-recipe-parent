@@ -10,6 +10,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.PatientRecipeDTO;
@@ -18,8 +19,10 @@ import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeRollingInfoBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.controller.exception.ControllerException;
+import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
@@ -509,4 +512,88 @@ public class RecipeListService {
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         return patientService.getPatients(mpiList, doctorId);
     }
+
+    /**
+     * 获取患者的所有处方单-web福建省立
+     *
+     * @param mpiId
+     * @param start
+     * @return
+     */
+    @RpcService
+    public Map<String,Object> findAllRecipesForPatient(String mpiId, Integer organId, int start, int limit) {
+        Map<String,Object> result = Maps.newHashMap();
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        QueryResult<Recipe> resultList = recipeDAO.findRecipeListByMpiID(mpiId,organId, start, limit);
+        List<Recipe> list = resultList.getItems();
+        if (CollectionUtils.isEmpty(list)){
+            return result;
+        }
+        result.put("total",resultList.getTotal());
+        result.put("start",resultList.getStart());
+        result.put("limit",resultList.getLimit());
+        List<Map<String,Object>> mapList = Lists.newArrayList();
+        Map<String,Object> map;
+        List<Recipedetail> recipedetails;
+        try{
+            Dictionary usingRateDic = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate");
+            Dictionary usePathwaysDic = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways");
+            Dictionary departDic = DictionaryController.instance().get("eh.base.dictionary.Depart");
+            String organText = DictionaryController.instance().get("eh.base.dictionary.Organ").getText(organId);
+            for (Recipe recipe : list){
+                map = Maps.newHashMap();
+                map.put("recipeId",recipe.getRecipeId());
+                map.put("patientName",recipe.getPatientName());
+                map.put("doctorDepart",organText+departDic.getText(recipe.getDepart()));
+                map.put("diseaseName",recipe.getOrganDiseaseName());
+                map.put("signTime",DateConversion.getDateFormatter(recipe.getSignDate(), "MM月dd日 HH:mm"));
+                map.put("doctorName",recipe.getDoctorName());
+                recipedetails = detailDAO.findByRecipeId(recipe.getRecipeId());
+
+                Map<String,String> drugInfo;
+                List<Map<String,String>> drugInfoList = Lists.newArrayList();
+                for (Recipedetail detail : recipedetails){
+                    drugInfo = Maps.newHashMap();
+                    drugInfo.put("drugName",detail.getDrugName());
+                    //开药总量+药品单位
+                    String dSpec = "*"+detail.getUseTotalDose().intValue() + detail.getDrugUnit();
+                    drugInfo.put("drugTotal",dSpec);
+                    String useWay = "用法：每次" + detail.getUseDose() + detail.getUseDoseUnit()
+                   +"/"+usingRateDic.getText(detail.getUsingRate())
+                    +"/"+usePathwaysDic.getText(detail.getUsePathways())
+                    +detail.getUseDays() + "天";
+                    drugInfo.put("useWay",useWay);
+                    drugInfoList.add(drugInfo);
+                }
+                map.put("rp", drugInfoList);
+                map.put("memo",recipe.getMemo());
+                switch (recipe.getStatus()){
+                    case RecipeStatusConstant.CHECK_PASS:
+                        map.put("statusText","请尽快去医院药房窗口取药");
+                        break;
+                    case RecipeStatusConstant.NO_DRUG:
+                    case RecipeStatusConstant.NO_OPERATOR:
+                        map.put("statusText","已取消(超过三天未取药)");
+                        break;
+                    case RecipeStatusConstant.REVOKE:
+                        map.put("statusText","由于医生已撤销，该处方单已失效，请联系医生.");
+                        break;
+                    case RecipeStatusConstant.FINISH:
+                        map.put("statusText","已完成");
+                        break;
+                    default:
+                        map.put("statusText",DictionaryController.instance().get("eh.cdr.dictionary.RecipeStatus").getText(recipe.getStatus()));
+                        break;
+                }
+                mapList.add(map);
+            }
+            result.put("list",mapList);
+        }catch (Exception e){
+            LOGGER.error("findAllRecipesForPatient error"+e.getMessage());
+        }
+
+        return result;
+    }
+
 }

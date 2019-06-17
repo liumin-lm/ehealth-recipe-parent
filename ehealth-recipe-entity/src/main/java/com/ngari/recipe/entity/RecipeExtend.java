@@ -33,6 +33,9 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "过敏史")
     private String allergyMedical;
 
+    @ItemProperty(alias = "挂号序号")
+    private String registerID;
+
     @ItemProperty(alias = "发病日期")
     private Date onsetDate;
 
@@ -163,5 +166,14 @@ public class RecipeExtend implements Serializable {
 
     public void setCardNo(String cardNo) {
         this.cardNo = cardNo;
+    }
+
+    @Column(name = "registerID")
+    public String getRegisterID() {
+        return registerID;
+    }
+
+    public void setRegisterID(String registerID) {
+        this.registerID = registerID;
     }
 }
