@@ -25,4 +25,9 @@ public class PayModeOnline implements IPurchaseService{
     public Integer getPayMode() {
         return RecipeBussConstant.PAYMODE_ONLINE;
     }
+
+    @Override
+    public String getServiceName() {
+        return "payModeOnlineService";
+    }
 }

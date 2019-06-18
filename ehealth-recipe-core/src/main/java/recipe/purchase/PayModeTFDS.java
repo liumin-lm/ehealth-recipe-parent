@@ -25,4 +25,9 @@ public class PayModeTFDS implements IPurchaseService{
     public Integer getPayMode() {
         return RecipeBussConstant.PAYMODE_TFDS;
     }
+
+    @Override
+    public String getServiceName() {
+        return "payModeTFDSService";
+    }
 }
