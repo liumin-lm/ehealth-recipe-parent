@@ -6,13 +6,13 @@ import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
-import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.RecipeService;
 import recipe.service.common.RecipeCacheService;
 
@@ -40,7 +40,6 @@ public class PurchaseService {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-        RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
@@ -51,10 +50,17 @@ public class PurchaseService {
             return resultBean;
         }
 
+        List<Integer> drugIds = detailDAO.findDrugIdByRecipeId(recipeId);
+        if (CollectionUtils.isEmpty(drugIds)) {
+            resultBean.setCode(RecipeResultBean.FAIL);
+            resultBean.setMsg("处方不存在药品");
+            return resultBean;
+        }
 
         for (Integer i : payModes){
             IPurchaseService purchaseService = getService(i);
-            resultBean = purchaseService.findSupportDepList(recipeId);
+            //如果涉及到多种购药方式合并成一个列表，此处需要进行合并
+            resultBean = purchaseService.findSupportDepList(dbRecipe);
 
         }
 

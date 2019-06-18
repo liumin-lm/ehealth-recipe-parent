@@ -1,6 +1,7 @@
 package recipe.purchase;
 
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.entity.Recipe;
 
 /**
  * @author： 0184/yu_yun
@@ -13,10 +14,10 @@ public interface IPurchaseService {
 
     /**
      * 获取供应商列表
-     * @param recipeId
+     * @param dbRecipe
      * @return
      */
-    RecipeResultBean findSupportDepList(Integer recipeId);
+    RecipeResultBean findSupportDepList(Recipe dbRecipe);
 
     /**
      * 下单提交方法
