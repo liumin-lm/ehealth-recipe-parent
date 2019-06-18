@@ -27,4 +27,6 @@ public interface IPurchaseService {
 
     
     Integer getPayMode();
+
+    String getServiceName();
 }
