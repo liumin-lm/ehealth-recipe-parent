@@ -3,6 +3,8 @@ package recipe.purchase;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 
+import java.util.Map;
+
 /**
  * @author： 0184/yu_yun
  * @date： 2019/6/18
@@ -16,9 +18,10 @@ public interface IPurchaseService {
      * 获取供应商列表
      *
      * @param dbRecipe
+     * @param ext
      * @return
      */
-    RecipeResultBean findSupportDepList(Recipe dbRecipe);
+    RecipeResultBean findSupportDepList(Recipe dbRecipe, Map ext);
 
     /**
      * 下单提交方法

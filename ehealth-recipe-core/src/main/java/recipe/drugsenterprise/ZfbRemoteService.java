@@ -11,6 +11,7 @@ import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
+import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -355,7 +356,7 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, DrugsEnterprise enterprise) {
+    public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Position position, DrugsEnterprise enterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         String testData = redisClient.get(CacheConstant.KEY_PHARYACY_TEST_DATA);
         if (StringUtils.isNotEmpty(testData)) {

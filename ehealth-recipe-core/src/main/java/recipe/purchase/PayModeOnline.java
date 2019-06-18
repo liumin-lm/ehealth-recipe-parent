@@ -20,6 +20,7 @@ import recipe.service.RecipeServiceSub;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author： 0184/yu_yun
@@ -34,7 +35,7 @@ public class PayModeOnline implements IPurchaseService {
     private static final Logger LOG = LoggerFactory.getLogger(PayModeOnline.class);
 
     @Override
-    public RecipeResultBean findSupportDepList(Recipe dbRecipe) {
+    public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map ext) {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         DepListBean depListBean = new DepListBean();
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
