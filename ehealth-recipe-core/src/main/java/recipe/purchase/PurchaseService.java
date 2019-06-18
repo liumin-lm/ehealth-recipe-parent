@@ -45,7 +45,7 @@ public class PurchaseService {
 
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         Recipe dbRecipe = recipeDAO.get(recipeId);
-        if (null != dbRecipe) {
+        if (null == dbRecipe) {
             resultBean.setCode(RecipeResultBean.FAIL);
             resultBean.setMsg("处方不存在");
             return resultBean;
