@@ -522,6 +522,7 @@ public class RecipeListService {
      */
     @RpcService
     public Map<String,Object> findAllRecipesForPatient(String mpiId, Integer organId, int start, int limit) {
+        LOGGER.info("findAllRecipesForPatient mpiId ="+mpiId);
         Map<String,Object> result = Maps.newHashMap();
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
