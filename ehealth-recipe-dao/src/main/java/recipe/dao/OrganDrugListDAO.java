@@ -403,4 +403,20 @@ public abstract class OrganDrugListDAO extends
     @DAOMethod(sql = "select organDrugId from OrganDrugList where drugId in (:drugId) ", limit = 0)
     public abstract List<Integer> findOrganDrugIdByDrugIds(@DAOParam("drugId") List<Integer> drugId);
 
+    public Boolean updatePharmacy(final int organId,final String pharmacy) {
+        HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("update OrganDrugList set pharmacyName=:pharmacy");
+                hql.append(" where organId=:organId");
+                Query q = ss.createQuery(hql.toString());
+                q.setParameter("organId", organId);
+                q.setParameter("pharmacy", pharmacy);
+                int flag = q.executeUpdate();
+                setResult(flag == 1);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }

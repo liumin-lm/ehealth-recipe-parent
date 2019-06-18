@@ -35,6 +35,13 @@ import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.base.constant.BussTypeConstant;
+import eh.base.constant.ErrorCode;
+import eh.base.constant.PageConstant;
+import eh.cdr.constant.OrderStatusConstant;
+import eh.cdr.constant.RecipeStatusConstant;
+import eh.utils.params.ParameterConstant;
+import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -55,6 +62,7 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.service.common.RecipeCacheService;
+import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateRecipeStatusFromHisCallable;
 import recipe.util.DateConversion;
@@ -905,6 +913,7 @@ public class RecipeService {
                 OrderRepTO orderRepTO = new OrderRepTO();
                 //门诊号处理 年月日+患者身份证后5位 例：2019060407915
                 orderRepTO.setPatientID(DateConversion.getDateFormatter(now,"yyMMdd")+str);
+                orderRepTO.setRegisterID(orderRepTO.getPatientID());
                 //生成处方编号，不需要通过HIS去产生
                 String recipeCodeStr = DigestUtil.md5For16(recipeBean.getClinicOrgan() +
                         recipeBean.getMpiid() + Calendar.getInstance().getTimeInMillis());
@@ -1055,7 +1064,8 @@ public class RecipeService {
         //同步到监管平台
         SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
         syncExecutorService.uploadRecipeIndicators(recipe);
-
+        //推送处方到监管平台(江苏)
+        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId()));
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核通过处理完成");
         return resultBean;
     }
@@ -1294,8 +1304,8 @@ public class RecipeService {
                     //相应订单处理
                     order = orderDAO.getOrderByRecipeId(recipeId);
                     orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
-                    if (recipe.getFromflag() == RecipeBussConstant.FROMFLAG_HIS_USE) {
-                        orderDAO.updateByOrdeCode(order.getOrderCode(), ImmutableMap.of("cancelReason", "患者未在规定时间内支付，该处方单已失效"));
+                    if (recipe.getFromflag().equals(RecipeBussConstant.FROMFLAG_HIS_USE)){
+                        orderDAO.updateByOrdeCode(order.getOrderCode(),ImmutableMap.of("cancelReason", "患者未在规定时间内支付，该处方单已失效"));
                         //发送超时取消消息
                         //${sendOrgan}：抱歉，您的处方单由于超过${overtime}未处理，处方单已失效。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
                         RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_CANCEL_4HIS, recipe);
@@ -1311,6 +1321,8 @@ public class RecipeService {
                     } else {
                         memo.append("未知状态:" + status);
                     }
+                    //推送处方到监管平台(江苏)
+                    RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId()));
                     //HIS消息发送
                     boolean succFlag = hisService.recipeStatusUpdate(recipeId);
                     if (succFlag) {

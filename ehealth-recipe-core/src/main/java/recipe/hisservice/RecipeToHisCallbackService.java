@@ -56,6 +56,7 @@ public class RecipeToHisCallbackService {
             String recipeNo = repList.get(0).getRecipeNo();
             String patientId = repList.get(0).getPatientID();
             String amount = repList.get(0).getAmount();
+            String registerId = repList.get(0).getRegisterID();
             String sendFlag = repList.get(0).getSendFlag();
             boolean isWuChang = false;
             //是否武昌模式
@@ -94,6 +95,7 @@ public class RecipeToHisCallbackService {
             result.setRecipeId(Integer.valueOf(response.getRecipeId()));
             result.setRecipeCode(recipeNo);
             result.setPatientID(patientId);
+            result.setRegisterID(registerId);
             result.setDetailList(list);
             LOGGER.info("recipeSend recive success. recipeId={}, checkPassSuccess result={}", response.getRecipeId(), JSONUtils.toString(result));
             HisCallBackService.checkPassSuccess(result, true);
