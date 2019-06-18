@@ -229,12 +229,14 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         }
         List<Map<String, Object>> titlesInfoList = new ArrayList<>();
         for (Map<String, Object> map : recipeInfoList) {
-            map.put("RANGE", ext.get("range"));
-            Map<String, Object> position = new HashMap<>();
-            position.put("LONGITUDE", ext.get("longitude"));
-            position.put("LATITUDE", ext.get("latitude"));
-            map.put("POSITION", position);
-            titlesInfoList.add(map);
+            if (ext != null) {
+                map.put("RANGE", ext.get("range"));
+                Map<String, Object> position = new HashMap<>();
+                position.put("LONGITUDE", ext.get("longitude"));
+                position.put("LATITUDE", ext.get("latitude"));
+                map.put("POSITION", position);
+                titlesInfoList.add(map);
+            }
         }
         sendInfo.put("TITLES", titlesInfoList);
         String sendInfoStr = JSONUtils.toString(sendInfo);
