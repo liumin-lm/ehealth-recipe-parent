@@ -1,6 +1,8 @@
 package recipe.purchase;
 
 import com.ngari.recipe.common.RecipeResultBean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.constant.RecipeBussConstant;
 
 /**
@@ -10,9 +12,12 @@ import recipe.constant.RecipeBussConstant;
  * @version： 1.0
  */
 public class PayModeOnline implements IPurchaseService{
+    /** logger */
+    private static final Logger LOG = LoggerFactory.getLogger(PayModeOnline.class);
 
     @Override
     public RecipeResultBean findSupportDepList(Integer recipeId) {
+        LOG.info("PayModeOnline findSupportDepList ..............");
         return null;
     }
 
