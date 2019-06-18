@@ -32,5 +32,5 @@ public enum PurchaseEnum {
         return serviceName;
     }
 
-    
+
 }

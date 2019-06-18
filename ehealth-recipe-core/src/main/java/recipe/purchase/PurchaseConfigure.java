@@ -14,12 +14,12 @@ import org.springframework.context.annotation.Configuration;
 public class PurchaseConfigure {
 
     @Bean
-    public IPurchaseService payModeOnlineService(){
+    public IPurchaseService payModeOnlineService() {
         return new PayModeOnline();
     }
 
     @Bean
-    public IPurchaseService payModeTFDSService(){
+    public IPurchaseService payModeTFDSService() {
         return new PayModeTFDS();
     }
 }
