@@ -1,6 +1,7 @@
 package recipe.purchase;
 
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.entity.Recipe;
 import recipe.constant.RecipeBussConstant;
 
 /**
@@ -12,7 +13,7 @@ import recipe.constant.RecipeBussConstant;
 public class PayModeTFDS implements IPurchaseService{
 
     @Override
-    public RecipeResultBean findSupportDepList(Integer recipeId) {
+    public RecipeResultBean findSupportDepList(Recipe dbRecipe) {
         return null;
     }
 
