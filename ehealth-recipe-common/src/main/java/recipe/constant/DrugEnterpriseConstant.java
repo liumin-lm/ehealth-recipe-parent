@@ -42,4 +42,9 @@ public class DrugEnterpriseConstant {
      * 阿里大药房简称
      */
     public static final String COMPANY_ALDYF = "aldyf";
+
+    /**
+     * 华东药企
+     */
+    public static final String COMPANY_HDDYF = "hddyf";
 }

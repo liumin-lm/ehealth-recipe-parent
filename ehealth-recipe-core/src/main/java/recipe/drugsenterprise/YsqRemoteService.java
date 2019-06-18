@@ -13,11 +13,13 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepStyleBean;
+import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
+import javafx.geometry.Pos;
 import org.apache.axis.Constants;
 import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
@@ -205,7 +207,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, DrugsEnterprise drugsEnterprise) {
+    public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext,DrugsEnterprise drugsEnterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         if (CollectionUtils.isEmpty(recipeIds)) {
             result.setMsg("处方ID集合为空");
@@ -225,7 +227,16 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             LOGGER.error("findSupportDep 生成处方数量为0. recipeIds={}, depId=[{}]", JSONUtils.toString(recipeIds), drugsEnterprise.getId());
             return result;
         }
-        sendInfo.put("TITLES", recipeInfoList);
+        List<Map<String, Object>> titlesInfoList = new ArrayList<>();
+        for (Map<String, Object> map : recipeInfoList) {
+            map.put("RANGE", ext.get("range"));
+            Map<String, Object> position = new HashMap<>();
+            position.put("LONGITUDE", ext.get("longitude"));
+            position.put("LATITUDE", ext.get("latitude"));
+            map.put("POSITION", position);
+            titlesInfoList.add(map);
+        }
+        sendInfo.put("TITLES", titlesInfoList);
         String sendInfoStr = JSONUtils.toString(sendInfo);
         String methodName = "PrescriptionGYSLists";
         LOGGER.info("发送[{}][{}]内容：{}", drugEpName, methodName, sendInfoStr);
@@ -305,6 +316,11 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                             detailBean.setGysCode(MapValueUtil.getString(dep, "GYSCODE"));
                             detailBean.setPharmacyCode(MapValueUtil.getString(dep, "GYSCODE"));
                             String sendMethod = MapValueUtil.getString(dep, "SENDMETHOD");
+                            Position position = new Position();
+                            Map<String, String> positionMap = (Map<String, String>)MapValueUtil.getObject(dep, "GYSPOSITION");
+                            position.setLatitude(positionMap.get("latitude"));
+                            position.setLongitude(positionMap.get("longitude"));
+                            detailBean.setPosition(position);
                             String giveModeText = "";
                             if (StringUtils.isNotEmpty(sendMethod)) {
                                 if ("0".equals(sendMethod)) {

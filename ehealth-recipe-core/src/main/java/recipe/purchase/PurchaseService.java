@@ -15,6 +15,7 @@ import recipe.service.RecipeService;
 import recipe.service.common.RecipeCacheService;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author： 0184/yu_yun
@@ -37,7 +38,7 @@ public class PurchaseService {
      * @param payModes
      */
     @RpcService
-    public RecipeResultBean filterSupportDepList(Integer recipeId, List<Integer> payModes) {
+    public RecipeResultBean filterSupportDepList(Integer recipeId, List<Integer> payModes, Map ext) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
@@ -53,7 +54,7 @@ public class PurchaseService {
         for (Integer i : payModes) {
             IPurchaseService purchaseService = getService(i);
             //如果涉及到多种购药方式合并成一个列表，此处需要进行合并
-            resultBean = purchaseService.findSupportDepList(dbRecipe);
+            resultBean = purchaseService.findSupportDepList(dbRecipe, ext);
 
         }
 

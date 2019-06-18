@@ -83,6 +83,12 @@ public class DepDetailBean {
      */
     private String address;
 
+    //药店坐标
+    private Position position;
+
+    //药店所属药企名称
+    private String belongDepName;
+
     public Integer getDepId() {
         return depId;
     }
@@ -209,5 +215,21 @@ public class DepDetailBean {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public Position getPosition() {
+        return position;
+    }
+
+    public void setPosition(Position position) {
+        this.position = position;
+    }
+
+    public String getBelongDepName() {
+        return belongDepName;
+    }
+
+    public void setBelongDepName(String belongDepName) {
+        this.belongDepName = belongDepName;
     }
 }
