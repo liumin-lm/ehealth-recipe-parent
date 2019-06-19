@@ -1608,7 +1608,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateStatelessResultAction<QueryResult<Recipe>> action = new AbstractHibernateStatelessResultAction<QueryResult<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                String hql = "from Recipe where mpiid=:mpiid and clinicOrgan =:clinicOrgan and status in (2,6,9,12,14) order by createDate desc";
+                String hql = "from Recipe where requestMpiId=:mpiid and clinicOrgan =:clinicOrgan and status in (2,6,9,12,14) order by createDate desc";
                 Query query = ss.createQuery(hql);
                 query.setParameter("mpiid", mpiId);
                 query.setParameter("clinicOrgan", organId);
