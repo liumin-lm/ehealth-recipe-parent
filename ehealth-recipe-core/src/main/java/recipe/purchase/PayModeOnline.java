@@ -153,6 +153,11 @@ public class PayModeOnline implements IPurchaseService {
             depDetailList.add(depDetailBean);
         }
 
+        depListBean.setSigle(false);
+        if(CollectionUtils.isNotEmpty(depDetailList) && depDetailList.size() == 1){
+            depListBean.setSigle(true);
+        }
+
         depListBean.setList(depDetailList);
         resultBean.setObject(depListBean);
         return resultBean;
