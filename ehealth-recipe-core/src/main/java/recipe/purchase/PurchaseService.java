@@ -3,6 +3,7 @@ package recipe.purchase;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
@@ -15,6 +16,7 @@ import recipe.bean.PltPurchaseResponse;
 import recipe.dao.RecipeDAO;
 import recipe.service.RecipeService;
 import recipe.service.common.RecipeCacheService;
+import recipe.util.MapValueUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -93,6 +95,32 @@ public class PurchaseService {
         }
 
         return resultBean;
+    }
+
+    @RpcService
+    public OrderCreateResult order(Integer recipeId, Map<String, String> extInfo){
+        OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+
+        Recipe dbRecipe = recipeDAO.get(recipeId);
+        if (null == dbRecipe) {
+            result.setCode(RecipeResultBean.FAIL);
+            result.setMsg("处方不存在");
+            return result;
+        }
+
+        Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
+        if (null == payMode) {
+            result.setCode(RecipeResultBean.FAIL);
+            result.setMsg("缺少支付方式");
+            return result;
+        }
+
+        IPurchaseService purchaseService = getService(payMode);
+        RecipeResultBean resultBean = purchaseService.order(dbRecipe);
+        
+
+        return result;
     }
 
     public IPurchaseService getService(Integer payMode) {

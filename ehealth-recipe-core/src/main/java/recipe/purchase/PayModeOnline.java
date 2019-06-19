@@ -164,7 +164,7 @@ public class PayModeOnline implements IPurchaseService {
     }
 
     @Override
-    public RecipeResultBean order(Integer recipeId) {
+    public RecipeResultBean order(Recipe dbRecipe) {
         return null;
     }
 

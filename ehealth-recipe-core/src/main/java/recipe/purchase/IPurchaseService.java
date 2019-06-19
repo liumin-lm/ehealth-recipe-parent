@@ -26,10 +26,10 @@ public interface IPurchaseService {
     /**
      * 下单提交方法
      *
-     * @param recipeId
+     * @param dbRecipe
      * @return
      */
-    RecipeResultBean order(Integer recipeId);
+    RecipeResultBean order(Recipe dbRecipe);
 
     /**
      * RecipeBussConstant 中常量值，前端约定值
