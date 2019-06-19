@@ -43,6 +43,7 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
         if (recipeId==null){
             return null;
         }
+        logger.info("uploadRecipeIndicators start");
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
@@ -71,7 +72,7 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
         } catch (Exception e) {
             logger.warn("uploadRecipeIndicators exception recipe={}", JSONUtils.toString(recipe), e);
         }
-        logger.info("uploadRecipeIndicators res={}");
+        logger.info("uploadRecipeIndicators res={}",response);
         if (CommonConstant.SUCCESS.equals(response.getCode())) {
             //更新字段
             recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("syncFlag", 1));
