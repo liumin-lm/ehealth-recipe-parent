@@ -4,22 +4,23 @@ import com.google.common.collect.Maps;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.entity.SaleDrugList;
+import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.service.RecipeOrderService;
+import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
+import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -164,6 +165,36 @@ public class PayModeOnline implements IPurchaseService {
 
     @Override
     public RecipeResultBean order(Recipe dbRecipe, Map<String, String> extInfo) {
+        RecipeOrder order = new RecipeOrder();
+        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+
+        Integer recipeId = dbRecipe.getRecipeId();
+        Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
+        RecipePayModeSupportBean payModeSupport = orderService.setPayModeSupport(order, payMode);
+        Integer depId = MapValueUtil.getInteger(extInfo, "depId");
+        Integer fitDepId = recipeService.supportDistributionExt(recipeId, dbRecipe.getClinicOrgan(), depId, payMode);
+        /*if(null == fitDepId){
+            LOG.warn("order 该处方无法配送. recipeId={}, depId={}", recipeId);
+            resultBean.setCode(RecipeResultBean.FAIL);
+            resultBean.setMsg("没有药企可以配送");
+            return resultBean;
+        }
+        //设置订单各种费用和配送地址
+        Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
+        if (null == calculateFee || Integer.valueOf(1).equals(calculateFee)) {
+            setOrderFee(result, order, recipeIds, recipeList, payModeSupport, extInfo, toDbFlag);
+        } else {
+            order.setRecipeFee(BigDecimal.ZERO);
+            order.setCouponFee(BigDecimal.ZERO);
+            order.setRegisterFee(BigDecimal.ZERO);
+            order.setExpressFee(BigDecimal.ZERO);
+            order.setTotalFee(BigDecimal.ZERO);
+            order.setActualPrice(BigDecimal.ZERO.doubleValue());
+        }*/
+        
+
+
         return null;
     }
 
