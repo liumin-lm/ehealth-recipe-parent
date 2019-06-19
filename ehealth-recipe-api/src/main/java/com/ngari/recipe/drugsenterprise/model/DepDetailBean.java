@@ -25,6 +25,11 @@ public class DepDetailBean {
     private String giveModeText;
 
     /**
+     *  购药方式文案显示
+     */
+    private String payModeText;
+
+    /**
      * 处方费
      */
     private BigDecimal recipeFee;
@@ -231,5 +236,13 @@ public class DepDetailBean {
 
     public void setBelongDepName(String belongDepName) {
         this.belongDepName = belongDepName;
+    }
+
+    public String getPayModeText() {
+        return payModeText;
+    }
+
+    public void setPayModeText(String payModeText) {
+        this.payModeText = payModeText;
     }
 }

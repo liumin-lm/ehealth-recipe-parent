@@ -1,10 +1,13 @@
 package recipe.purchase;
 
+import com.google.common.collect.Maps;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.SaleDrugList;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -18,6 +21,8 @@ import recipe.dao.SaleDrugListDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.RecipeServiceSub;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -67,8 +72,16 @@ public class PayModeOnline implements IPurchaseService {
         }
 
         RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+
+        //处理详情
+        List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
+        List<Integer> drugIds = new ArrayList<>(detailList.size());
+        Map<Integer, Double> drugIdCountMap = Maps.newHashMap();
+        for(Recipedetail detail : detailList){
+            drugIds.add(detail.getDrugId());
+            drugIdCountMap.put(detail.getDrugId(), detail.getUseTotalDose());
+        }
         
-        List<Integer> drugIds = detailDAO.findDrugIdByRecipeId(recipeId);
         List<DrugsEnterprise> subDepList = new ArrayList<>(drugsEnterpriseList.size());
         for (DrugsEnterprise dep : drugsEnterpriseList) {
             //根据药企是否能满足所有配送的药品优先
@@ -105,63 +118,40 @@ public class PayModeOnline implements IPurchaseService {
             return resultBean;
         }
 
-        /*for (DrugsEnterprise dep : subDepList) {
-            //钥世圈需要从接口获取支持药店列表
-            if (DrugEnterpriseConstant.COMPANY_YSQ.equals(dep.getCallSys()) ||
-                    DrugEnterpriseConstant.COMPANY_PHARMACY.equals(dep.getCallSys())
-                    || DrugEnterpriseConstant.COMPANY_ZFB.equals(dep.getCallSys())) {
-                //需要从接口获取药店列表
-                DrugEnterpriseResult drugEnterpriseResult = remoteDrugService.findSupportDep(recipeIds, dep);
-                if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
-                    Object listObj = drugEnterpriseResult.getObject();
-                    if (null != listObj && listObj instanceof List) {
-                        List<DepDetailBean> ysqList = (List) listObj;
-                        for (DepDetailBean d : ysqList) {
-                            d.setDepId(dep.getId());
-                        }
-                        depDetailList.addAll(ysqList);
-                    }
-                    //设置样式
-                    resultBean.setStyle(drugEnterpriseResult.getStyle());
-                }
-            } else {
-                parseDrugsEnterprise(dep, totalMoney, depDetailList);
-                //如果是价格自定义的药企，则需要设置单独价格
-                SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-                List<Integer> drugIds = Lists.newArrayList(drugIdCountRel.keySet());
-                if (Integer.valueOf(0).equals(dep.getSettlementMode()) &&
-                        (RecipeBussConstant.DEP_SUPPORT_ONLINE.equals(dep.getPayModeSupport())
-                                || RecipeBussConstant.DEP_SUPPORT_ALL.equals(dep.getPayModeSupport()))) {
-                    List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(dep.getId(), drugIds);
-                    if (CollectionUtils.isNotEmpty(saleDrugLists)) {
-                        BigDecimal total = BigDecimal.ZERO;
-                        try {
-                            for (SaleDrugList saleDrug : saleDrugLists) {
-                                //保留3位小数
-                                total = total.add(saleDrug.getPrice().multiply(new BigDecimal(drugIdCountRel.get(saleDrug.getDrugId())))
-                                        .divide(BigDecimal.ONE, 3, RoundingMode.UP));
-                            }
-                        } catch (Exception e) {
-                            LOGGER.warn("findSupportDepList 重新计算药企ID为[{}]的结算价格出错. drugIds={}", dep.getId(),
-                                    JSONUtils.toString(drugIds), e);
-                            //此处应该要把出错的药企从返回列表中剔除
-                            depDetailList.remove(depDetailList.size() - 1);
-                            continue;
-                        }
+        DepDetailBean depDetailBean;
+        for (DrugsEnterprise dep : subDepList) {
+            depDetailBean = new DepDetailBean();
+            depDetailBean.setDepId(dep.getId());
+            depDetailBean.setDepName(dep.getName());
+            depDetailBean.setRecipeFee(dbRecipe.getTotalMoney());
+            depDetailBean.setBelongDepName(dep.getName());
+            depDetailBean.setPayModeText("在线支付");
 
-                        //重置药企处方价格
-                        for (DepDetailBean depDetailBean : depDetailList) {
-                            if (depDetailBean.getDepId().equals(dep.getId())) {
-                                depDetailBean.setRecipeFee(total);
-                                break;
-                            }
+            //如果是价格自定义的药企，则需要设置单独价格
+            if (Integer.valueOf(0).equals(dep.getSettlementMode())) {
+                List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(dep.getId(), drugIds);
+                if (CollectionUtils.isNotEmpty(saleDrugLists)) {
+                    BigDecimal total = BigDecimal.ZERO;
+                    try {
+                        for (SaleDrugList saleDrug : saleDrugLists) {
+                            //保留3位小数
+                            total = total.add(saleDrug.getPrice().multiply(new BigDecimal(drugIdCountMap.get(saleDrug.getDrugId())))
+                                    .divide(BigDecimal.ONE, 3, RoundingMode.UP));
                         }
+                    } catch (Exception e) {
+                        LOG.warn("findSupportDepList 重新计算药企ID为[{}]的结算价格出错. drugIds={}", dep.getId(),
+                                JSONUtils.toString(drugIds), e);
+                        //此处应该要把出错的药企从返回列表中剔除
+                        continue;
                     }
-                }
 
+                    //重置药企处方价格
+                    depDetailBean.setRecipeFee(total);
+                }
             }
 
-        }*/
+            depDetailList.add(depDetailBean);
+        }
 
         depListBean.setList(depDetailList);
         resultBean.setObject(depListBean);
