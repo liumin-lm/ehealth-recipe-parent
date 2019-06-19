@@ -1064,8 +1064,6 @@ public class RecipeService {
         //同步到监管平台
         SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
         syncExecutorService.uploadRecipeIndicators(recipe);
-        //推送处方到监管平台(江苏)
-        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId()));
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核通过处理完成");
         return resultBean;
     }
@@ -1322,7 +1320,7 @@ public class RecipeService {
                         memo.append("未知状态:" + status);
                     }
                     //推送处方到监管平台(江苏)
-                    RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId()));
+                    RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(),1));
                     //HIS消息发送
                     boolean succFlag = hisService.recipeStatusUpdate(recipeId);
                     if (succFlag) {

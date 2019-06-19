@@ -31,8 +31,11 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
 
     private Integer recipeId;
 
-    public PushRecipeToRegulationCallable(Integer recipeId) {
+    private Integer status;
+
+    public PushRecipeToRegulationCallable(Integer recipeId,Integer status) {
         this.recipeId = recipeId;
+        this.status = status;
     }
 
     @Override
@@ -51,7 +54,7 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
             for (ServiceConfigResponseTO serviceConfigResponseTO : list){
                 if (REGULATION_JS.equals(serviceConfigResponseTO.getRegulationAppDomainId())
                         && (serviceConfigResponseTO.getOrganid().equals(recipe.getClinicOrgan()))){
-                    if (RecipeStatusConstant.CHECK_PASS_YS == recipe.getStatus()){
+                    if (status == 2){
                         response = service.uploadRecipeAuditIndicators(Arrays.asList(recipe));
                         if (CommonConstant.SUCCESS.equals(response.getCode())){
                             response = service.uploadRecipeCirculationIndicators(Arrays.asList(recipe));
