@@ -94,6 +94,9 @@ public class DepDetailBean {
     //药店所属药企名称
     private String belongDepName;
 
+    //距离
+    private Double distance;
+
     public Integer getDepId() {
         return depId;
     }
@@ -244,5 +247,13 @@ public class DepDetailBean {
 
     public void setPayModeText(String payModeText) {
         this.payModeText = payModeText;
+    }
+
+    public Double getDistance() {
+        return distance;
+    }
+
+    public void setDistance(Double distance) {
+        this.distance = distance;
     }
 }

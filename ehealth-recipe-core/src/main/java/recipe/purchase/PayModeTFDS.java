@@ -3,11 +3,11 @@ package recipe.purchase;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
-import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.DAOFactory;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -17,9 +17,8 @@ import recipe.dao.DrugsEnterpriseDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.RecipeServiceSub;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.math.BigDecimal;
+import java.util.*;
 
 /**
  * @author： 0184/yu_yun
@@ -68,7 +67,7 @@ public class PayModeTFDS implements IPurchaseService{
                         recipeId, dep.getId(), dep.getName());
             }
             if (CollectionUtils.isEmpty(subDepList)) {
-                LOGGER.warn("findSupportDepList 该处方无法配送. recipeId=[{}]", recipeId);
+                LOGGER.warn("findSupportDepList 该处方没有提供取药的药店. recipeId=[{}]", recipeId);
                 resultBean.setCode(RecipeResultBean.FAIL);
                 resultBean.setMsg("没有药企可以配送");
                 return resultBean;
@@ -82,8 +81,12 @@ public class PayModeTFDS implements IPurchaseService{
                     for (DepDetailBean depDetailBean : ysqList) {
                         depDetailBean.setDepId(dep.getId());
                         depDetailBean.setBelongDepName(dep.getName());
+                        depDetailBean.setPayModeText("药店支付");
                     }
                     depDetailList.addAll(ysqList);
+                    //对药店列表进行排序
+                    String sort = (String)ext.get("sort");
+                    Collections.sort(depDetailList, new DepDetailBeanComparator(sort));
                 }
                 //设置样式
                 resultBean.setStyle(drugEnterpriseResult.getStyle());
@@ -109,5 +112,31 @@ public class PayModeTFDS implements IPurchaseService{
     @Override
     public String getServiceName() {
         return "payModeTFDSService";
+    }
+
+    class DepDetailBeanComparator implements Comparator<DepDetailBean> {
+        String sort;
+        DepDetailBeanComparator(String sort){
+            this.sort = sort;
+        }
+        @Override
+        public int compare(DepDetailBean depDetailBeanOne, DepDetailBean depDetailBeanTwo) {
+            int cp = 0;
+            if (StringUtils.isNotEmpty(sort) && sort.equals("1")) {
+                //价格排序
+                BigDecimal price = depDetailBeanOne.getRecipeFee().subtract(depDetailBeanTwo.getRecipeFee());
+                int compare = price.compareTo(BigDecimal.ZERO);
+                if (compare != 0) {
+                    cp = (compare > 0) ? 2 : -1;
+                }
+            } else {
+                //距离排序
+                Double distance = depDetailBeanOne.getDistance() - depDetailBeanTwo.getDistance();
+                if (distance != 0.0) {
+                    cp = (distance > 0.0) ? 2 : -1;
+                }
+            }
+            return cp;
+        }
     }
 }
