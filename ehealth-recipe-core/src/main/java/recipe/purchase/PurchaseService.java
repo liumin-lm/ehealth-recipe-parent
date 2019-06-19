@@ -117,7 +117,7 @@ public class PurchaseService {
         }
 
         IPurchaseService purchaseService = getService(payMode);
-        RecipeResultBean resultBean = purchaseService.order(dbRecipe);
+        RecipeResultBean resultBean = purchaseService.order(dbRecipe, extInfo);
         
 
         return result;
