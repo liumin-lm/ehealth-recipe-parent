@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.PltPurchaseResponse;
 import recipe.constant.CacheConstant;
+import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.RecipeService;
@@ -122,6 +123,14 @@ public class PurchaseService {
         if (null == payMode) {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("缺少支付方式");
+            return result;
+        }
+
+        //处方单状态不是待处理 or 处方单已被处理
+        if(RecipeStatusConstant.CHECK_PASS == dbRecipe.getStatus()
+            || 1 == dbRecipe.getChooseFlag()){
+            result.setCode(RecipeResultBean.FAIL);
+            result.setMsg("您有正在进行中的订单");
             return result;
         }
 
