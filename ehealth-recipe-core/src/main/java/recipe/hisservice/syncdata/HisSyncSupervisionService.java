@@ -266,9 +266,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             if (CollectionUtils.isNotEmpty(consultIds)) {
                 consultId = consultIds.get(0);
             }
-            ConsultBean consultBean = iConsultService.getById(consultId);
-            if (consultBean != null){
-                req.setMainDieaseDescribe(consultBean.getLeaveMess());
+            if (consultId != null){
+                ConsultBean consultBean = iConsultService.getById(consultId);
+                if (consultBean != null){
+                    req.setMainDieaseDescribe(consultBean.getLeaveMess());
+                }
             }
             //门诊号处理
             recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
