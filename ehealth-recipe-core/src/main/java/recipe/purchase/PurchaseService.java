@@ -3,6 +3,7 @@ package recipe.purchase;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
@@ -11,12 +12,16 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.PltPurchaseResponse;
+import recipe.constant.CacheConstant;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeOrderDAO;
 import recipe.service.RecipeService;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.MapValueUtil;
+import recipe.util.RedisClient;
 
 import java.util.List;
 import java.util.Map;
@@ -34,6 +39,10 @@ public class PurchaseService {
      * logger
      */
     private static final Logger LOG = LoggerFactory.getLogger(PurchaseService.class);
+
+    @Autowired
+    private RedisClient redisClient;
+    
 
     /**
      * 获取可用购药方式
@@ -116,9 +125,34 @@ public class PurchaseService {
             return result;
         }
 
+        //判断是否存在分布式锁
+        boolean unlock = lock(recipeId);
+        if(!unlock){
+            //存在锁则需要返回
+            result.setCode(RecipeResultBean.FAIL);
+            result.setMsg("您有正在进行中的订单 lock");
+            return result;
+        }else{
+            //设置默认超时时间 30s
+            redisClient.setex(CacheConstant.KEY_RCP_BUSS_PURCHASE_LOCK+recipeId, 30L);
+        }
+
+        //判断是否存在订单
+        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        if(StringUtils.isNotEmpty(dbRecipe.getOrderCode())){
+            RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
+            if(1 == order.getEffective()) {
+                result.setCode(RecipeResultBean.FAIL);
+                result.setMsg("您有正在进行中的订单");
+                unLock(recipeId);
+                return result;
+            }
+        }
+
         IPurchaseService purchaseService = getService(payMode);
         RecipeResultBean resultBean = purchaseService.order(dbRecipe, extInfo);
-        
+        //订单添加成功后锁去除
+        unLock(recipeId);
 
         return result;
     }
@@ -139,5 +173,13 @@ public class PurchaseService {
         }
 
         return purchaseService;
+    }
+
+    private boolean lock(Integer recipeId){
+        return redisClient.setNX(CacheConstant.KEY_RCP_BUSS_PURCHASE_LOCK+recipeId, "true");
+    }
+
+    private boolean unLock(Integer recipeId){
+        return redisClient.setex(CacheConstant.KEY_RCP_BUSS_PURCHASE_LOCK+recipeId, 1L);
     }
 }
