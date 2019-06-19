@@ -221,7 +221,7 @@ public class HisCallBackService {
             }
         }
         //推送处方到监管平台（江苏）
-        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId()));
+        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(),1));
     }
 
     /**

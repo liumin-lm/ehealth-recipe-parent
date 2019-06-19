@@ -357,6 +357,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 req.setAuditDoctorIdCard(doctorDTO.getIdNumber());
                 req.setAuditDoctorName(doctorDTO.getName());
             }
+            req.setAuditStatus(RecipeStatusConstant.CHECK_PASS_YS==recipe.getStatus()?"1":"2");
             request.add(req);
         }
         try {

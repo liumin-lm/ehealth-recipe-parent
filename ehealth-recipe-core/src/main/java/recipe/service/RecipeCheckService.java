@@ -46,6 +46,8 @@ import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
+import recipe.thread.PushRecipeToRegulationCallable;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
@@ -537,6 +539,8 @@ public class RecipeCheckService {
             //增加药师首页待处理任务---完成任务
             ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussFinishEvent(recipeId, BussTypeConstant.RECIPE));
         }
+        //推送处方到监管平台(江苏)
+        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(),2));
 
         return resMap;
     }
