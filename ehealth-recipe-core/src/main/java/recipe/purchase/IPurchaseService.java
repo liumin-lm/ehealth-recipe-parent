@@ -27,9 +27,10 @@ public interface IPurchaseService {
      * 下单提交方法
      *
      * @param dbRecipe
+     * @param extInfo
      * @return
      */
-    RecipeResultBean order(Recipe dbRecipe);
+    RecipeResultBean order(Recipe dbRecipe, Map<String, String> extInfo);
 
     /**
      * RecipeBussConstant 中常量值，前端约定值
