@@ -1,5 +1,6 @@
 package recipe.purchase;
 
+import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.DAOFactory;
@@ -10,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.bean.PltPurchaseResponse;
 import recipe.dao.RecipeDAO;
 import recipe.service.RecipeService;
 import recipe.service.common.RecipeCacheService;
@@ -30,6 +32,38 @@ public class PurchaseService {
      * logger
      */
     private static final Logger LOG = LoggerFactory.getLogger(PurchaseService.class);
+
+    /**
+     * 获取可用购药方式
+     *
+     * @return
+     */
+    @RpcService
+    public PltPurchaseResponse showPurchaseMode(Integer recipeId) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        PltPurchaseResponse result = new PltPurchaseResponse();
+        Recipe dbRecipe = recipeDAO.get(recipeId);
+        if (null == dbRecipe) {
+            return result;
+        }
+        //TODO 配送到家和药店取药默认可用
+        result.setSendToHome(true);
+        result.setTfds(true);
+        //到院取药判断
+        boolean hisStatus = false;
+        try {
+            IHisConfigService iHisConfigService = ApplicationUtils.getBaseService(IHisConfigService.class);
+            hisStatus = iHisConfigService.isHisEnable(dbRecipe.getClinicOrgan());
+        } catch (Exception e) {
+            LOG.warn("showPurchaseMode his exception. recipeId={}, hisStatus={}", recipeId, hisStatus, e);
+        }
+        if (Integer.valueOf(0).equals(dbRecipe.getDistributionFlag())
+                && hisStatus) {
+            result.setToHos(true);
+        }
+
+        return result;
+    }
 
     /**
      * 根据对应的购药方式展示对应药企
