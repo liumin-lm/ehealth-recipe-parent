@@ -99,7 +99,7 @@ public class PayModeTFDS implements IPurchaseService{
     }
 
     @Override
-    public RecipeResultBean order(Integer recipeId) {
+    public RecipeResultBean order(Recipe dbRecipe) {
 
         return null;
     }
