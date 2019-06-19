@@ -225,7 +225,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @param payMode
      * @return
      */
-    private RecipePayModeSupportBean setPayModeSupport(RecipeOrder order, Integer payMode) {
+    public RecipePayModeSupportBean setPayModeSupport(RecipeOrder order, Integer payMode) {
         RecipePayModeSupportBean payModeSupport = new RecipePayModeSupportBean();
         if (RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(payMode)) {
             payModeSupport.setSupportMedicalInsureance(true);
