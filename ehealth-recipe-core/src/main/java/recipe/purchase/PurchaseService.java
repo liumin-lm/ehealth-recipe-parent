@@ -19,7 +19,6 @@ import recipe.constant.CacheConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.service.RecipeService;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
@@ -121,7 +120,7 @@ public class PurchaseService {
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
         if (null == payMode) {
             result.setCode(RecipeResultBean.FAIL);
-            result.setMsg("缺少支付方式");
+            result.setMsg("缺少购药方式");
             return result;
         }
 

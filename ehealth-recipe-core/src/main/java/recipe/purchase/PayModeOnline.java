@@ -11,6 +11,7 @@ import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -88,7 +89,7 @@ public class PayModeOnline implements IPurchaseService {
         for (DrugsEnterprise dep : drugsEnterpriseList) {
             //药品匹配成功标识
             boolean stockFlag = scanStock(dbRecipe, dep, drugIds);
-            if(stockFlag){
+            if (stockFlag) {
                 subDepList.add(dep);
             }
         }
@@ -158,6 +159,14 @@ public class PayModeOnline implements IPurchaseService {
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
         RecipePayModeSupportBean payModeSupport = orderService.setPayModeSupport(order, payMode);
         Integer depId = MapValueUtil.getInteger(extInfo, "depId");
+        String payway = MapValueUtil.getString(extInfo, "payway");
+        if (StringUtils.isEmpty(payway)) {
+            result.setCode(RecipeResultBean.FAIL);
+            result.setMsg("支付信息不全");
+            return result;
+        } else {
+            order.setWxPayWay(payway);
+        }
 
         //处理详情
         List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
@@ -170,12 +179,15 @@ public class PayModeOnline implements IPurchaseService {
 
         DrugsEnterprise dep = drugsEnterpriseDAO.get(depId);
         boolean stockFlag = scanStock(dbRecipe, dep, drugIds);
-        if(!stockFlag){
-            //TODO 无法配送
+        if (!stockFlag) {
+            //无法配送
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("药企无法配送");
             return result;
+        } else {
+            order.setEnterpriseId(depId);
         }
+        order.setRecipeIdList(JSONUtils.toString(Arrays.asList(recipeId)));
 
         // 暂时还是设置成处方单的患者，不然用户历史处方列表不好查找
         order.setMpiId(dbRecipe.getMpiid());
@@ -198,7 +210,7 @@ public class PayModeOnline implements IPurchaseService {
         }
 
         boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
-        if(!saveFlag){
+        if (!saveFlag) {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("订单保存出错");
             return result;
@@ -233,7 +245,7 @@ public class PayModeOnline implements IPurchaseService {
         RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
 
         boolean succFlag = false;
-        if(null == dep || CollectionUtils.isEmpty(drugIds)){
+        if (null == dep || CollectionUtils.isEmpty(drugIds)) {
             return succFlag;
         }
 
