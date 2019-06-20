@@ -2,6 +2,7 @@ package recipe.purchase;
 
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 
 import java.util.Map;
 
@@ -30,7 +31,7 @@ public interface IPurchaseService {
      * @param extInfo
      * @return
      */
-    RecipeResultBean order(Recipe dbRecipe, Map<String, String> extInfo);
+    OrderCreateResult order(Recipe dbRecipe, Map<String, String> extInfo);
 
     /**
      * RecipeBussConstant 中常量值，前端约定值

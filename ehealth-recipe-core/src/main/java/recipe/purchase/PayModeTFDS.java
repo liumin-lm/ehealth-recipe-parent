@@ -5,6 +5,7 @@ import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -99,7 +100,7 @@ public class PayModeTFDS implements IPurchaseService{
     }
 
     @Override
-    public RecipeResultBean order(Recipe dbRecipe, Map<String, String> extInfo) {
+    public OrderCreateResult order(Recipe dbRecipe, Map<String, String> extInfo) {
 
         return null;
     }
