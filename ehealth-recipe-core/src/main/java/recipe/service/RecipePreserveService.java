@@ -169,7 +169,7 @@ public class RecipePreserveService {
         if(null == response){
             return result;
         }
-        LOGGER.info("getHosRecipeList msgCode={}, msg={} ", response.getMsgCode(), response.getMsg());
+        LOGGER.info("getHosRecipeList msgCode={}, msg={},data={}", response.getMsgCode(), response.getMsg(),response.getData());
         List<RecipeInfoTO> data = response.getData();
         //转换平台字段
         if (CollectionUtils.isEmpty(data)){
