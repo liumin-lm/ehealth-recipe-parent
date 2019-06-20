@@ -1,10 +1,12 @@
 package recipe.purchase;
 
 import com.ngari.base.hisconfig.service.IHisConfigService;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
+import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
@@ -153,6 +155,7 @@ public class PurchaseService {
             if(1 == order.getEffective()) {
                 result.setOrderCode(order.getOrderCode());
                 result.setBusId(order.getOrderId());
+                result.setObject(ObjectCopyUtils.convert(order, RecipeOrderBean.class));
                 result.setCode(RecipeResultBean.FAIL);
                 result.setMsg("您有正在进行中的订单");
                 unLock(recipeId);
