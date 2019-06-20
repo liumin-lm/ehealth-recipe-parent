@@ -1,22 +1,31 @@
 package recipe.purchase;
 
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
+import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.bean.RecipePayModeSupportBean;
+import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
-import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.service.RecipeOrderService;
 import recipe.service.RecipeServiceSub;
+import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -36,6 +45,7 @@ public class PayModeTFDS implements IPurchaseService{
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         DepListBean depListBean = new DepListBean();
         Integer recipeId = recipe.getRecipeId();
+        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         //获取购药方式查询列表
         List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(getPayMode());
         if (CollectionUtils.isEmpty(payModeSupport)) {
@@ -53,24 +63,25 @@ public class PayModeTFDS implements IPurchaseService{
             return resultBean;
         }
         LOGGER.info("findSupportDepList recipeId={}, 匹配到支持药店取药药企数量[{}]", recipeId, drugsEnterprises.size());
-        List<Integer> recipeIds = new ArrayList<>();
-        recipeIds.add(recipeId);
-        boolean succFlag;
+        List<Integer> recipeIds = Arrays.asList(recipeId);
+        //处理详情
+        List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
+        List<Integer> drugIds = new ArrayList<>(detailList.size());
+        for (Recipedetail detail : detailList) {
+            drugIds.add(detail.getDrugId());
+        }
         List<DepDetailBean> depDetailList = new ArrayList<>();
         List<DrugsEnterprise> subDepList = new ArrayList<>(drugsEnterprises.size());
         for (DrugsEnterprise dep : drugsEnterprises) {
             //通过查询该药企对应药店库存
-            succFlag = remoteDrugService.scanStock(recipeId, dep);
+            boolean succFlag = scanStock(recipe, dep, drugIds);
             if (succFlag) {
                 subDepList.add(dep);
-            } else {
-                LOGGER.warn("findSupportDepList 药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}], 药企名称=[{}]",
-                        recipeId, dep.getId(), dep.getName());
             }
             if (CollectionUtils.isEmpty(subDepList)) {
                 LOGGER.warn("findSupportDepList 该处方没有提供取药的药店. recipeId=[{}]", recipeId);
                 resultBean.setCode(RecipeResultBean.FAIL);
-                resultBean.setMsg("没有药企可以配送");
+                resultBean.setMsg("没有药企对应药店支持取药");
                 return resultBean;
             }
             //需要从接口获取药店列表
@@ -85,6 +96,7 @@ public class PayModeTFDS implements IPurchaseService{
                         depDetailBean.setPayModeText("药店支付");
                     }
                     depDetailList.addAll(ysqList);
+                    LOGGER.info("获取到的药店列表:{}.", JSONUtils.toString(depDetailList));
                     //对药店列表进行排序
                     String sort = (String)ext.get("sort");
                     Collections.sort(depDetailList, new DepDetailBeanComparator(sort));
@@ -101,8 +113,99 @@ public class PayModeTFDS implements IPurchaseService{
 
     @Override
     public OrderCreateResult order(Recipe dbRecipe, Map<String, String> extInfo) {
+        OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
+        //定义处方订单
+        RecipeOrder order = new RecipeOrder();
+        //获取当前支持药店的药企
+        Integer depId = MapValueUtil.getInteger(extInfo, "depId");
+        Integer recipeId = dbRecipe.getRecipeId();
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+        DrugsEnterprise dep = drugsEnterpriseDAO.getById(depId);
+        //处理详情
+        List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
+        List<Integer> drugIds = FluentIterable.from(detailList).transform(new Function<Recipedetail, Integer>() {
+            @Override
+            public Integer apply(Recipedetail input) {
+                return input.getDrugId();
+            }
+        }).toList();
+        //患者提交订单前,先进行库存校验
 
-        return null;
+        boolean succFlag = scanStock(dbRecipe, dep, drugIds);
+        if(!succFlag){
+            result.setCode(RecipeResultBean.FAIL);
+            result.setMsg("药店暂无药品库存");
+            return result;
+        }
+        Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
+        RecipePayModeSupportBean payModeSupport = orderService.setPayModeSupport(order, payMode);
+
+        order.setMpiId(dbRecipe.getMpiid());
+        order.setOrganId(dbRecipe.getClinicOrgan());
+        order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
+        order.setStatus(OrderStatusConstant.READY_GET_DRUG);
+
+        List<Recipe> recipeList = Arrays.asList(dbRecipe);
+        Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
+        if (null == calculateFee || Integer.valueOf(1).equals(calculateFee)) {
+            orderService.setOrderFee(result, order, Arrays.asList(recipeId), recipeList, payModeSupport, extInfo, 1);
+        } else {
+            //设置默认值
+            order.setRecipeFee(BigDecimal.ZERO);
+            order.setCouponFee(BigDecimal.ZERO);
+            order.setRegisterFee(BigDecimal.ZERO);
+            order.setExpressFee(BigDecimal.ZERO);
+            order.setTotalFee(BigDecimal.ZERO);
+            order.setActualPrice(BigDecimal.ZERO.doubleValue());
+        }
+        boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
+        if(!saveFlag){
+            result.setCode(RecipeResultBean.FAIL);
+            result.setMsg("订单保存出错");
+            return result;
+        }
+        return result;
+    }
+
+    /**
+     * 判断药企药店库存，包含平台内权限及药企药店实时库存
+     * @param dbRecipe  处方单
+     * @param dep       药企
+     * @param drugIds   药品列表
+     * @return          是否存在库存
+     */
+    private boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds) {
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        Integer recipeId = dbRecipe.getRecipeId();
+        boolean succFlag = false;
+        if(null == dep || CollectionUtils.isEmpty(drugIds)){
+            return succFlag;
+        }
+        //判断药企平台内药品权限，此处简单判断数量是否一致
+        Long count = saleDrugListDAO.getCountByOrganIdAndDrugIds(dep.getId(), drugIds);
+        if (null != count && count > 0) {
+            if (count == drugIds.size()) {
+                succFlag = true;
+            }
+        }
+        succFlag = remoteDrugService.scanStock(recipeId, dep);
+        if (!succFlag) {
+            LOGGER.warn("findSupportDepList 药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}], 药企名称=[{}]",
+                    recipeId, dep.getId(), dep.getName());
+        } else {
+            //通过查询该药企库存，最终确定能否配送
+            succFlag = remoteDrugService.scanStock(dbRecipe.getRecipeId(), dep);
+            if (!succFlag) {
+                LOGGER.warn("scanStock 药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}], 药企名称=[{}]",
+                        dbRecipe.getRecipeId(), dep.getId(), dep.getName());
+            }
+        }
+        return succFlag;
     }
 
     @Override
