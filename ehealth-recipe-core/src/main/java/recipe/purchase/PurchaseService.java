@@ -105,6 +105,20 @@ public class PurchaseService {
         return resultBean;
     }
 
+    /**
+     *
+     * @param recipeId
+     * @param extInfo 参照RecipeOrderService createOrder定义
+     *                  {"operMpiId":"当前操作者编码","addressId":"当前选中地址","payway":"支付方式（payway）","payMode":"处方支付方式",
+     *                  "decoctionFlag":"1(1：代煎，0：不代煎)", "gfFeeFlag":"1(1：表示需要制作费，0：不需要)", “depId”:"指定药企ID",
+     *                  "expressFee":"快递费","gysCode":"药店编码","sendMethod":"送货方式","payMethod":"支付方式","appId":"公众号ID",
+     *                  "calculateFee":"1(1:需要，0:不需要)"}
+     *                  <p>
+     *                  ps: decoctionFlag是中药处方时设置为1，gfFeeFlag是膏方时设置为1
+     *                  gysCode, sendMethod, payMethod 字段为钥世圈字段，会在findSupportDepList接口中给出
+     *                  payMode 如果钥世圈有供应商是多种方式支持，就传0
+     * @return
+     */
     @RpcService
     public OrderCreateResult order(Integer recipeId, Map<String, String> extInfo){
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
@@ -125,7 +139,7 @@ public class PurchaseService {
         }
 
         //处方单状态不是待处理 or 处方单已被处理
-        if(RecipeStatusConstant.CHECK_PASS == dbRecipe.getStatus()
+        if(RecipeStatusConstant.CHECK_PASS != dbRecipe.getStatus()
             || 1 == dbRecipe.getChooseFlag()){
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("处方单已被处理");
