@@ -8,6 +8,7 @@ import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.PltPurchaseResponse;
 import recipe.constant.CacheConstant;
+import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
@@ -175,10 +177,15 @@ public class PurchaseService {
             redisClient.setex(CacheConstant.KEY_RCP_BUSS_PURCHASE_LOCK+recipeId, 30L);
         }
 
-        IPurchaseService purchaseService = getService(payMode);
-        result = purchaseService.order(dbRecipe, extInfo);
-        //订单添加成功后锁去除
-        unLock(recipeId);
+        try {
+            IPurchaseService purchaseService = getService(payMode);
+            result = purchaseService.order(dbRecipe, extInfo);
+        } catch (Exception e) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        } finally {
+            //订单创建完解锁
+            unLock(recipeId);
+        }
 
         return result;
     }
