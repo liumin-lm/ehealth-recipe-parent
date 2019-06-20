@@ -146,28 +146,30 @@ public class PurchaseService {
             return result;
         }
 
-        //判断是否存在分布式锁
-        boolean unlock = lock(recipeId);
-        if(!unlock){
-            //存在锁则需要返回
-            result.setCode(RecipeResultBean.FAIL);
-            result.setMsg("您有正在进行中的订单 lock");
-            return result;
-        }else{
-            //设置默认超时时间 30s
-            redisClient.setex(CacheConstant.KEY_RCP_BUSS_PURCHASE_LOCK+recipeId, 30L);
-        }
-
         //判断是否存在订单
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         if(StringUtils.isNotEmpty(dbRecipe.getOrderCode())){
             RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
             if(1 == order.getEffective()) {
+                result.setOrderCode(order.getOrderCode());
+                result.setBusId(order.getOrderId());
                 result.setCode(RecipeResultBean.FAIL);
                 result.setMsg("您有正在进行中的订单");
                 unLock(recipeId);
                 return result;
             }
+        }
+
+        //判断是否存在分布式锁
+        boolean unlock = lock(recipeId);
+        if(!unlock){
+            //存在锁则需要返回
+            result.setCode(RecipeResultBean.FAIL);
+            result.setMsg("您有正在进行中的订单");
+            return result;
+        }else{
+            //设置默认超时时间 30s
+            redisClient.setex(CacheConstant.KEY_RCP_BUSS_PURCHASE_LOCK+recipeId, 30L);
         }
 
         IPurchaseService purchaseService = getService(payMode);

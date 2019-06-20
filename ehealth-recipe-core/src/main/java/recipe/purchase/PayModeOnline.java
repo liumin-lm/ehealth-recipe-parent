@@ -196,18 +196,7 @@ public class PayModeOnline implements IPurchaseService {
         order.setStatus(OrderStatusConstant.READY_PAY);
         //设置订单各种费用和配送地址
         List<Recipe> recipeList = Arrays.asList(dbRecipe);
-        Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
-        if (null == calculateFee || Integer.valueOf(1).equals(calculateFee)) {
-            orderService.setOrderFee(result, order, Arrays.asList(recipeId), recipeList, payModeSupport, extInfo, 1);
-        } else {
-            //设置默认值
-            order.setRecipeFee(BigDecimal.ZERO);
-            order.setCouponFee(BigDecimal.ZERO);
-            order.setRegisterFee(BigDecimal.ZERO);
-            order.setExpressFee(BigDecimal.ZERO);
-            order.setTotalFee(BigDecimal.ZERO);
-            order.setActualPrice(BigDecimal.ZERO.doubleValue());
-        }
+        orderService.setOrderFee(result, order, Arrays.asList(recipeId), recipeList, payModeSupport, extInfo, 1);
 
         //设置为有效订单
         order.setEffective(1);
@@ -219,7 +208,6 @@ public class PayModeOnline implements IPurchaseService {
         }
 
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
-
 
         return result;
     }
