@@ -27,7 +27,9 @@ import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.redis.RedisClient;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -130,6 +132,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         Integer consultId = null;
         List<Integer> consultIds;
         RecipeExtend recipeExtend;
+        RedisClient redisClient = RedisClient.instance();
+        String sealData = null;
         for (Recipe recipe : recipeList) {
             req = new RegulationRecipeIndicatorsReq();
 
@@ -204,7 +208,14 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //设置医生工号
             req.setDoctorNo(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
             //设置医生电子签名
-            req.setDoctorSign("");
+            if (doctorDTO.getESignId() != null){
+                try {
+                    sealData = redisClient.get(doctorDTO.getESignId());
+                }catch (Exception e){
+                    LOGGER.error("get doctorSign error. doctorId={}",doctorDTO.getDoctorId(), e);
+                }
+                req.setDoctorSign(StringUtils.isNotEmpty(sealData)?sealData:"");
+            }
             //药师处理
             if (recipe.getChecker() != null){
                 doctorDTO = doctorMap.get(recipe.getChecker());

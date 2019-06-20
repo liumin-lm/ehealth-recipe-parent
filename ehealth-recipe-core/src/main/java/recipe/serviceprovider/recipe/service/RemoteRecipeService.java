@@ -18,9 +18,11 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.constant.RecipeBussConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.hisservice.RecipeToHisCallbackService;
@@ -230,6 +232,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             for (RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
                 recipedetails.add(getBean(recipeDetailBean,Recipedetail.class));
             }
+        }
+        if (StringUtils.isEmpty(recipeBean.getRecipeMode())){
+            recipeBean.setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);
         }
         recipeDAO.updateOrSaveRecipeAndDetail(getBean(recipeBean,Recipe.class),recipedetails,false);
     }
