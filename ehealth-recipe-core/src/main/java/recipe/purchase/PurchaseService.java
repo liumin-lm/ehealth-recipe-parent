@@ -86,7 +86,6 @@ public class PurchaseService {
     @RpcService
     public RecipeResultBean filterSupportDepList(Integer recipeId, List<Integer> payModes, Map ext) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
@@ -130,7 +129,7 @@ public class PurchaseService {
         if(RecipeStatusConstant.CHECK_PASS == dbRecipe.getStatus()
             || 1 == dbRecipe.getChooseFlag()){
             result.setCode(RecipeResultBean.FAIL);
-            result.setMsg("您有正在进行中的订单");
+            result.setMsg("处方单已被处理");
             return result;
         }
 
@@ -159,7 +158,7 @@ public class PurchaseService {
         }
 
         IPurchaseService purchaseService = getService(payMode);
-        RecipeResultBean resultBean = purchaseService.order(dbRecipe, extInfo);
+        result = purchaseService.order(dbRecipe, extInfo);
         //订单添加成功后锁去除
         unLock(recipeId);
 

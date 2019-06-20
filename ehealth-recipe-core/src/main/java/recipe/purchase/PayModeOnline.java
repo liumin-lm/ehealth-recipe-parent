@@ -1,10 +1,13 @@
 package recipe.purchase;
 
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Maps;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -12,19 +15,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
+import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
-import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.SaleDrugListDAO;
+import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.RecipeOrderService;
-import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -72,43 +74,22 @@ public class PayModeOnline implements IPurchaseService {
             return resultBean;
         }
 
-        RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
 
         //处理详情
         List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
         List<Integer> drugIds = new ArrayList<>(detailList.size());
         Map<Integer, Double> drugIdCountMap = Maps.newHashMap();
-        for(Recipedetail detail : detailList){
+        for (Recipedetail detail : detailList) {
             drugIds.add(detail.getDrugId());
             drugIdCountMap.put(detail.getDrugId(), detail.getUseTotalDose());
         }
-        
+
         List<DrugsEnterprise> subDepList = new ArrayList<>(drugsEnterpriseList.size());
         for (DrugsEnterprise dep : drugsEnterpriseList) {
-            //根据药企是否能满足所有配送的药品优先
-            Integer depId = dep.getId();
             //药品匹配成功标识
-            boolean succFlag = false;
-            Long count = saleDrugListDAO.getCountByOrganIdAndDrugIds(depId, drugIds);
-            if (null != count && count > 0) {
-                if (count == drugIds.size()) {
-                    succFlag = true;
-                }
-            }
-
-            if (!succFlag) {
-                LOG.warn("findSupportDepList 存在不支持配送药品. 处方ID=[{}], 药企ID=[{}], 药企名称=[{}], drugIds={}",
-                        recipeId, depId, dep.getName(), JSONUtils.toString(drugIds));
-                continue;
-            } else {
-                //通过查询该药企库存，最终确定能否配送
-                succFlag = remoteDrugService.scanStock(recipeId, dep);
-                if (succFlag) {
-                    subDepList.add(dep);
-                } else {
-                    LOG.warn("findSupportDepList 药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}], 药企名称=[{}]",
-                            recipeId, depId, dep.getName());
-                }
+            boolean stockFlag = scanStock(dbRecipe, dep, drugIds);
+            if(stockFlag){
+                subDepList.add(dep);
             }
         }
 
@@ -154,7 +135,7 @@ public class PayModeOnline implements IPurchaseService {
         }
 
         depListBean.setSigle(false);
-        if(CollectionUtils.isNotEmpty(depDetailList) && depDetailList.size() == 1){
+        if (CollectionUtils.isNotEmpty(depDetailList) && depDetailList.size() == 1) {
             depListBean.setSigle(true);
         }
 
@@ -164,38 +145,69 @@ public class PayModeOnline implements IPurchaseService {
     }
 
     @Override
-    public RecipeResultBean order(Recipe dbRecipe, Map<String, String> extInfo) {
+    public OrderCreateResult order(Recipe dbRecipe, Map<String, String> extInfo) {
+        OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
         RecipeOrder order = new RecipeOrder();
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
 
         Integer recipeId = dbRecipe.getRecipeId();
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
         RecipePayModeSupportBean payModeSupport = orderService.setPayModeSupport(order, payMode);
         Integer depId = MapValueUtil.getInteger(extInfo, "depId");
-        Integer fitDepId = recipeService.supportDistributionExt(recipeId, dbRecipe.getClinicOrgan(), depId, payMode);
-        /*if(null == fitDepId){
-            LOG.warn("order 该处方无法配送. recipeId={}, depId={}", recipeId);
-            resultBean.setCode(RecipeResultBean.FAIL);
-            resultBean.setMsg("没有药企可以配送");
-            return resultBean;
+
+        //处理详情
+        List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
+        List<Integer> drugIds = FluentIterable.from(detailList).transform(new Function<Recipedetail, Integer>() {
+            @Override
+            public Integer apply(Recipedetail input) {
+                return input.getDrugId();
+            }
+        }).toList();
+
+        DrugsEnterprise dep = drugsEnterpriseDAO.get(depId);
+        boolean stockFlag = scanStock(dbRecipe, dep, drugIds);
+        if(!stockFlag){
+            //TODO 无法配送
+            result.setCode(RecipeResultBean.FAIL);
+            result.setMsg("药企无法配送");
+            return result;
         }
+
+        // 暂时还是设置成处方单的患者，不然用户历史处方列表不好查找
+        order.setMpiId(dbRecipe.getMpiid());
+        order.setOrganId(dbRecipe.getClinicOrgan());
+        order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
+        order.setStatus(OrderStatusConstant.READY_PAY);
         //设置订单各种费用和配送地址
+        List<Recipe> recipeList = Arrays.asList(dbRecipe);
         Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
         if (null == calculateFee || Integer.valueOf(1).equals(calculateFee)) {
-            setOrderFee(result, order, recipeIds, recipeList, payModeSupport, extInfo, toDbFlag);
+            orderService.setOrderFee(result, order, Arrays.asList(recipeId), recipeList, payModeSupport, extInfo, 1);
         } else {
+            //设置默认值
             order.setRecipeFee(BigDecimal.ZERO);
             order.setCouponFee(BigDecimal.ZERO);
             order.setRegisterFee(BigDecimal.ZERO);
             order.setExpressFee(BigDecimal.ZERO);
             order.setTotalFee(BigDecimal.ZERO);
             order.setActualPrice(BigDecimal.ZERO.doubleValue());
-        }*/
-        
+        }
+
+        boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
+        if(!saveFlag){
+            result.setCode(RecipeResultBean.FAIL);
+            result.setMsg("订单保存出错");
+            return result;
+        }
+
+        orderService.setCreateOrderResult(result, order, payModeSupport, 1);
 
 
-        return null;
+        return result;
     }
 
     @Override
@@ -207,4 +219,45 @@ public class PayModeOnline implements IPurchaseService {
     public String getServiceName() {
         return "payModeOnlineService";
     }
+
+    /**
+     * 判断药企库存，包含平台内权限及药企实时库存
+     *
+     * @param dbRecipe
+     * @param dep
+     * @param drugIds
+     * @return
+     */
+    private boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds) {
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+
+        boolean succFlag = false;
+        if(null == dep || CollectionUtils.isEmpty(drugIds)){
+            return succFlag;
+        }
+
+        //判断药企平台内药品权限，此处简单判断数量是否一致
+        Long count = saleDrugListDAO.getCountByOrganIdAndDrugIds(dep.getId(), drugIds);
+        if (null != count && count > 0) {
+            if (count == drugIds.size()) {
+                succFlag = true;
+            }
+        }
+
+        if (!succFlag) {
+            LOG.warn("scanStock 存在不支持配送药品. 处方ID=[{}], 药企ID=[{}], 药企名称=[{}], drugIds={}",
+                    dbRecipe.getRecipeId(), dep.getId(), dep.getName(), JSONUtils.toString(drugIds));
+        } else {
+            //通过查询该药企库存，最终确定能否配送
+            succFlag = remoteDrugService.scanStock(dbRecipe.getRecipeId(), dep);
+            if (!succFlag) {
+                LOG.warn("scanStock 药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}], 药企名称=[{}]",
+                        dbRecipe.getRecipeId(), dep.getId(), dep.getName());
+            }
+        }
+
+        return succFlag;
+    }
+
 }
