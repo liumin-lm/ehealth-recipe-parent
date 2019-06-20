@@ -209,6 +209,8 @@ public class PayModeOnline implements IPurchaseService {
             order.setActualPrice(BigDecimal.ZERO.doubleValue());
         }
 
+        //设置为有效订单
+        order.setEffective(1);
         boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
         if (!saveFlag) {
             result.setCode(RecipeResultBean.FAIL);
