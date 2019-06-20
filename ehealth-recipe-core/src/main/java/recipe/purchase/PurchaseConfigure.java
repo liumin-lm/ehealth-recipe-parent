@@ -22,4 +22,9 @@ public class PurchaseConfigure {
     public IPurchaseService payModeTFDSService() {
         return new PayModeTFDS();
     }
+
+    @Bean
+    public IPurchaseService payModeToHosService(){
+        return new PayModeToHos();
+    }
 }
