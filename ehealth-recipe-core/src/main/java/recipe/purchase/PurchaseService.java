@@ -155,7 +155,7 @@ public class PurchaseService {
             //判断是否已到院取药，查看 HisCallBackService *RecipesFromHis 方法处理
             if(Integer.valueOf(1).equals(dbRecipe.getPayFlag()) &&
                     RecipeBussConstant.PAYMODE_TO_HOS.equals(dbRecipe.getPayMode())){
-                result.setMsg("您已到院自取药品，无法进行配送");
+                result.setMsg("您已到院自取药品，无法选择其他购药方式");
             }
             return result;
         }
