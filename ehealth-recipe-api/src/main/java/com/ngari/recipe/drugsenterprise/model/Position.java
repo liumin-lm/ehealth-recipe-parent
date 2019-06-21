@@ -13,10 +13,10 @@ public class Position implements Serializable{
     private Integer range;
 
     //经度
-    private String longitude;
+    private Double longitude;
 
     //纬度
-    private String latitude;
+    private Double latitude;
 
     public Integer getRange() {
         return range;
@@ -26,19 +26,19 @@ public class Position implements Serializable{
         this.range = range;
     }
 
-    public String getLongitude() {
+    public Double getLongitude() {
         return longitude;
     }
 
-    public void setLongitude(String longitude) {
+    public void setLongitude(Double longitude) {
         this.longitude = longitude;
     }
 
-    public String getLatitude() {
+    public Double getLatitude() {
         return latitude;
     }
 
-    public void setLatitude(String latitude) {
+    public void setLatitude(Double latitude) {
         this.latitude = latitude;
     }
 }

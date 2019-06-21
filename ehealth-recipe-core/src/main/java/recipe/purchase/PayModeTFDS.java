@@ -40,7 +40,7 @@ public class PayModeTFDS implements IPurchaseService{
     private static final Logger LOGGER = LoggerFactory.getLogger(PayModeTFDS.class);
 
     @Override
-    public RecipeResultBean findSupportDepList(Recipe recipe, Map ext) {
+    public RecipeResultBean findSupportDepList(Recipe recipe, Map<String, String> extInfo) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         DepListBean depListBean = new DepListBean();
@@ -85,7 +85,7 @@ public class PayModeTFDS implements IPurchaseService{
                 return resultBean;
             }
             //需要从接口获取药店列表
-            DrugEnterpriseResult drugEnterpriseResult = remoteDrugService.findSupportDep(recipeIds, ext, dep);
+            DrugEnterpriseResult drugEnterpriseResult = remoteDrugService.findSupportDep(recipeIds, extInfo, dep);
             if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
                 Object result = drugEnterpriseResult.getObject();
                 if (result != null && result instanceof List) {
@@ -98,11 +98,9 @@ public class PayModeTFDS implements IPurchaseService{
                     depDetailList.addAll(ysqList);
                     LOGGER.info("获取到的药店列表:{}.", JSONUtils.toString(depDetailList));
                     //对药店列表进行排序
-                    String sort = (String)ext.get("sort");
+                    String sort = MapValueUtil.getString(extInfo, "sort");
                     Collections.sort(depDetailList, new DepDetailBeanComparator(sort));
                 }
-                //设置样式
-                resultBean.setStyle(drugEnterpriseResult.getStyle());
             }
         }
         LOGGER.info("findSupportDepList recipeId={}, 获取到药店数量[{}]", recipeId, depDetailList.size());
@@ -148,6 +146,8 @@ public class PayModeTFDS implements IPurchaseService{
         order.setOrganId(dbRecipe.getClinicOrgan());
         order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
         order.setStatus(OrderStatusConstant.READY_GET_DRUG);
+        order.setGysCode(MapValueUtil.getString(extInfo, "gysCode"));
+        order.setGysName(MapValueUtil.getString(extInfo, "gysName"));
 
         List<Recipe> recipeList = Arrays.asList(dbRecipe);
         Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");

@@ -22,7 +22,7 @@ public interface IPurchaseService {
      * @param ext
      * @return
      */
-    RecipeResultBean findSupportDepList(Recipe dbRecipe, Map ext);
+    RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo);
 
     /**
      * 下单提交方法
