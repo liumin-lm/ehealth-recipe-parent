@@ -179,6 +179,12 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "取消原因")
     private String cancelReason;
 
+    @ItemProperty(alias = "药店编码")
+    private String gysCode;
+
+    @ItemProperty(alias = "药店名称")
+    private String gysName;
+
     @Column(name = "cancelReason")
     public String getCancelReason() {
         return cancelReason;
@@ -650,5 +656,23 @@ public class RecipeOrder implements Serializable {
 
     public void setCompleteAddress(String completeAddress) {
         this.completeAddress = completeAddress;
+    }
+
+    @Column(name = "gysCode")
+    public String getGysCode() {
+        return gysCode;
+    }
+
+    public void setGysCode(String gysCode) {
+        this.gysCode = gysCode;
+    }
+
+    @Column(name = "gysName")
+    public String getGysName() {
+        return gysName;
+    }
+
+    public void setGysName(String gysName) {
+        this.gysName = gysName;
     }
 }

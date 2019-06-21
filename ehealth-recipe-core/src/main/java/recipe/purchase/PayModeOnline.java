@@ -44,7 +44,7 @@ public class PayModeOnline implements IPurchaseService {
     private static final Logger LOG = LoggerFactory.getLogger(PayModeOnline.class);
 
     @Override
-    public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map ext) {
+    public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         DepListBean depListBean = new DepListBean();
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
