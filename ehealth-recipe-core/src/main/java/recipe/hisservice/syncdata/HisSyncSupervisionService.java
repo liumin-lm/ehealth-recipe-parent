@@ -11,7 +11,10 @@ import com.ngari.his.regulation.entity.RegulationRecipeCirculationIndicatorsReq;
 import com.ngari.his.regulation.entity.RegulationRecipeDetailIndicatorsReq;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.his.regulation.service.IRegulationService;
-import com.ngari.patient.dto.*;
+import com.ngari.patient.dto.DepartmentDTO;
+import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.dto.zjs.SubCodeDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.service.zjs.SubCodeService;
@@ -27,7 +30,6 @@ import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.redis.RedisClient;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -35,8 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bussutil.RecipeUtil;
-import recipe.bussutil.UsePathwaysFilter;
-import recipe.bussutil.UsingRateFilter;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.common.response.CommonResponse;
@@ -47,6 +47,7 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
+import recipe.util.RedisClient;
 
 import java.util.*;
 
@@ -166,7 +167,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             }*/
 
             //科室处理
-            req.setDeptID(recipe.getDepart().toString());
             departmentDTO = departMap.get(recipe.getDepart());
             if (null == departmentDTO) {
                 departmentDTO = departmentService.getById(recipe.getDepart());
@@ -176,6 +176,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 LOGGER.warn("uploadRecipeIndicators depart is null. recipe.depart={}", recipe.getDepart());
                 continue;
             }
+            req.setDeptID(departmentDTO.getCode());
             req.setDeptName(departmentDTO.getName());
             //设置专科编码等
             subCodeDTO = subCodeService.getByNgariProfessionCode(departmentDTO.getProfessionCode());
