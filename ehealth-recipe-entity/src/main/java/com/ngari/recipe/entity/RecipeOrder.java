@@ -180,10 +180,7 @@ public class RecipeOrder implements Serializable {
     private String cancelReason;
 
     @ItemProperty(alias = "药店编码")
-    private String gysCode;
-
-    @ItemProperty(alias = "药店名称")
-    private String gysName;
+    private String drugStoreCode;
 
     @Column(name = "cancelReason")
     public String getCancelReason() {
@@ -658,21 +655,12 @@ public class RecipeOrder implements Serializable {
         this.completeAddress = completeAddress;
     }
 
-    @Column(name = "gysCode")
-    public String getGysCode() {
-        return gysCode;
+    @Column(name = "drugStoreCode")
+    public String getDrugStoreCode() {
+        return drugStoreCode;
     }
 
-    public void setGysCode(String gysCode) {
-        this.gysCode = gysCode;
-    }
-
-    @Column(name = "gysName")
-    public String getGysName() {
-        return gysName;
-    }
-
-    public void setGysName(String gysName) {
-        this.gysName = gysName;
+    public void setDrugStoreCode(String drugStoreCode) {
+        this.drugStoreCode = drugStoreCode;
     }
 }

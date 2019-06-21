@@ -146,8 +146,8 @@ public class PayModeTFDS implements IPurchaseService{
         order.setOrganId(dbRecipe.getClinicOrgan());
         order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
         order.setStatus(OrderStatusConstant.READY_GET_DRUG);
-        order.setGysCode(MapValueUtil.getString(extInfo, "gysCode"));
-        order.setGysName(MapValueUtil.getString(extInfo, "gysName"));
+        order.setDrugStoreCode(MapValueUtil.getString(extInfo, "gysCode"));
+        order.setDrugStoreName(MapValueUtil.getString(extInfo, "gysName"));
 
         List<Recipe> recipeList = Arrays.asList(dbRecipe);
         Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");

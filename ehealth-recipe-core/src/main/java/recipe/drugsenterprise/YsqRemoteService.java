@@ -550,6 +550,12 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             recipeMap.put("DOCTORCODE", recipe.getDoctor().toString());
             recipeMap.put("DOCTOR", iDoctorService.getNameById(recipe.getDoctor()));
 
+            //放置药店编码和名称
+            if (order != null) {
+                recipeMap.put("GYSCODE", order.getDrugStoreCode());
+                recipeMap.put("GYSNAME", order.getDrugStoreName());
+            }
+
             //处理过期时间
             String validateDays = cacheService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS, "14");
             Date validate = DateConversion.getDateAftXDays(recipe.getSignDate(), Integer.parseInt(validateDays));
