@@ -19,7 +19,7 @@ public interface IPurchaseService {
      * 获取供应商列表
      *
      * @param dbRecipe
-     * @param ext
+     * @param extInfo
      * @return
      */
     RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo);
