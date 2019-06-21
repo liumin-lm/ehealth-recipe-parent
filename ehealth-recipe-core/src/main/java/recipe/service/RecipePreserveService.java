@@ -45,6 +45,7 @@ import recipe.audit.bean.AutoAuditResult;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.CacheConstant;
+import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
@@ -168,7 +169,7 @@ public class RecipePreserveService {
         if(null == response){
             return result;
         }
-        LOGGER.info("getHosRecipeList msgCode={}, msg={} ", response.getMsgCode(), response.getMsg());
+        LOGGER.info("getHosRecipeList msgCode={}, msg={},data={}", response.getMsgCode(), response.getMsg(),response.getData());
         List<RecipeInfoTO> data = response.getData();
         //转换平台字段
         if (CollectionUtils.isEmpty(data)){
@@ -366,5 +367,47 @@ public class RecipePreserveService {
         for (Map.Entry<String, String> entry : set) {
             redisAddForHash(CacheConstant.KEY_NGARI_USEPATHWAYS + organId, entry.getKey(), entry.getValue());
         }
+    }
+
+    /**
+     * 机构用药方式初始化，缓存内数据结构应该为 key为xxx_organId， map的key为平台内编码，value为his内编码
+     *  平台转his
+     * @param organId
+     * @param map
+     */
+    @RpcService
+    public void initUsingRateForNagri(int organId, Map<String, String> map) {
+        Set<Map.Entry<String, String>> set = map.entrySet();
+        for (Map.Entry<String, String> entry : set) {
+            redisAddForHash(CacheConstant.KEY_NGARI_USINGRATE + organId, entry.getKey(), entry.getValue());
+        }
+    }
+
+    /**
+     * 机构用药方式初始化，缓存内数据结构应该为 key为xxx_organId，map的key为平台内编码，value为his内编码
+     *
+     * @param organId
+     * @param map
+     */
+    @RpcService
+    public void initUsePathwaysForNgari(int organId, Map<String, String> map) {
+        Set<Map.Entry<String, String>> set = map.entrySet();
+        for (Map.Entry<String, String> entry : set) {
+            redisAddForHash(CacheConstant.KEY_NGARI_USEPATHWAYS + organId, entry.getKey(), entry.getValue());
+        }
+    }
+
+    /**
+     * 更新his药品药房名称
+     * @param organId
+     * @param pharmacy
+     * @return
+     */
+    @RpcService
+    public Boolean updatePharmacyName(int organId, String pharmacy) {
+        OrganDrugListDAO dao = DAOFactory.getDAO(OrganDrugListDAO.class);
+        Boolean result = dao.updatePharmacy(organId, pharmacy);
+        return result;
+
     }
 }

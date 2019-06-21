@@ -14,6 +14,8 @@ import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import org.springframework.util.ObjectUtils;
 
+import java.util.Map;
+
 /**
  * 处方扩展表
  * Created by yuzq on 2019/3/1.
@@ -75,6 +77,42 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
         } else {
             this.update(recipeExtend);
         }
+    }
+
+    /**
+     * 更新处方自定义字段
+     *
+     * @param recipeId
+     * @param changeAttr
+     * @return
+     */
+    public Boolean updateRecipeExInfoByRecipeId(final int recipeId, final Map<String, ?> changeAttr) {
+        if (null == changeAttr || changeAttr.isEmpty()) {
+            return true;
+        }
+
+        HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("update RecipeExtend set ");
+                StringBuilder keyHql = new StringBuilder();
+                for (String key : changeAttr.keySet()) {
+                    keyHql.append("," + key + "=:" + key);
+                }
+                hql.append(keyHql.toString().substring(1)).append(" where recipeId=:recipeId");
+                Query q = ss.createQuery(hql.toString());
+
+                q.setParameter("recipeId", recipeId);
+                for (String key : changeAttr.keySet()) {
+                    q.setParameter(key, changeAttr.get(key));
+                }
+
+                int flag = q.executeUpdate();
+                setResult(flag == 1);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
     }
 
 

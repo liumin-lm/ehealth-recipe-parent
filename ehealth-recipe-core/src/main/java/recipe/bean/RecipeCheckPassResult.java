@@ -32,6 +32,11 @@ public class RecipeCheckPassResult {
     private String patientID;
 
     /**
+     * 病人挂号序号
+     */
+    private String registerID;
+
+    /**
      * 处方总金额
      */
     private BigDecimal totalMoney;
@@ -79,5 +84,13 @@ public class RecipeCheckPassResult {
 
     public void setDetailList(List<Recipedetail> detailList) {
         this.detailList = detailList;
+    }
+
+    public String getRegisterID() {
+        return registerID;
+    }
+
+    public void setRegisterID(String registerID) {
+        this.registerID = registerID;
     }
 }

@@ -17,6 +17,9 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "处方ID")
     private Integer recipeId;
 
+    @ItemProperty(alias = "挂号序号")
+    private String registerID;
+
     @ItemProperty(alias = "主诉")
     private String mainDieaseDescribe;
 
@@ -147,5 +150,13 @@ public class RecipeExtendBean implements Serializable {
 
     public void setCardNo(String cardNo) {
         this.cardNo = cardNo;
+    }
+
+    public String getRegisterID() {
+        return registerID;
+    }
+
+    public void setRegisterID(String registerID) {
+        this.registerID = registerID;
     }
 }

@@ -18,6 +18,10 @@ public class OrderRepTO implements Serializable {
      * HIS系统病人唯一识别号
      */
     private String patientID;
+    /**
+     * 挂号序号
+     */
+    private String registerID;
 
     /**
      * 平台药品医嘱ID
@@ -185,5 +189,13 @@ public class OrderRepTO implements Serializable {
 
     public void setSendFlag(String sendFlag) {
         this.sendFlag = sendFlag;
+    }
+
+    public String getRegisterID() {
+        return registerID;
+    }
+
+    public void setRegisterID(String registerID) {
+        this.registerID = registerID;
     }
 }
