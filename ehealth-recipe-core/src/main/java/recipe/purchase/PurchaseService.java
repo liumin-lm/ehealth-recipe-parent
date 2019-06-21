@@ -13,6 +13,7 @@ import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,6 +106,18 @@ public class PurchaseService {
             return resultBean;
         }
 
+        if(CollectionUtils.isEmpty(payModes)){
+            resultBean.setCode(RecipeResultBean.FAIL);
+            resultBean.setMsg("参数错误");
+            return resultBean;
+        }
+
+        //处方单状态不是待处理 or 处方单已被处理
+        boolean dealFlag = checkRecipeIsDeal(dbRecipe, resultBean);
+        if(dealFlag){
+            return resultBean;
+        }
+
         for (Integer i : payModes) {
             IPurchaseService purchaseService = getService(i);
             //如果涉及到多种购药方式合并成一个列表，此处需要进行合并
@@ -148,15 +161,8 @@ public class PurchaseService {
         }
 
         //处方单状态不是待处理 or 处方单已被处理
-        if (RecipeStatusConstant.CHECK_PASS != dbRecipe.getStatus()
-                || 1 == dbRecipe.getChooseFlag()) {
-            result.setCode(RecipeResultBean.FAIL);
-            result.setMsg("处方单已被处理");
-            //判断是否已到院取药，查看 HisCallBackService *RecipesFromHis 方法处理
-            if(Integer.valueOf(1).equals(dbRecipe.getPayFlag()) &&
-                    RecipeBussConstant.PAYMODE_TO_HOS.equals(dbRecipe.getPayMode())){
-                result.setMsg("您已到院自取药品，无法选择其他购药方式");
-            }
+        boolean dealFlag = checkRecipeIsDeal(dbRecipe, result);
+        if(dealFlag){
             return result;
         }
 
@@ -237,6 +243,28 @@ public class PurchaseService {
         }
 
         return purchaseService;
+    }
+
+    /**
+     * 检查处方是否已被处理
+     * @param dbRecipe
+     * @param result
+     * @return true 已被处理
+     */
+    private boolean checkRecipeIsDeal(Recipe dbRecipe, RecipeResultBean result){
+        if (RecipeStatusConstant.CHECK_PASS != dbRecipe.getStatus()
+                || 1 == dbRecipe.getChooseFlag()) {
+            result.setCode(RecipeResultBean.FAIL);
+            result.setMsg("处方单已被处理");
+            //判断是否已到院取药，查看 HisCallBackService *RecipesFromHis 方法处理
+            if(Integer.valueOf(1).equals(dbRecipe.getPayFlag()) &&
+                    RecipeBussConstant.PAYMODE_TO_HOS.equals(dbRecipe.getPayMode())){
+                result.setMsg("您已到院自取药品，无法选择其他购药方式");
+            }
+            return true;
+        }
+
+        return false;
     }
 
     private boolean lock(Integer recipeId) {
