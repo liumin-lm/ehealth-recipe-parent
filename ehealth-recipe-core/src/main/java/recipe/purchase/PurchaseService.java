@@ -94,7 +94,7 @@ public class PurchaseService {
      * @param payModes
      */
     @RpcService
-    public RecipeResultBean filterSupportDepList(Integer recipeId, List<Integer> payModes, Map ext) {
+    public RecipeResultBean filterSupportDepList(Integer recipeId, List<Integer> payModes, Map<String, String> extInfo) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
@@ -121,7 +121,7 @@ public class PurchaseService {
         for (Integer i : payModes) {
             IPurchaseService purchaseService = getService(i);
             //如果涉及到多种购药方式合并成一个列表，此处需要进行合并
-            resultBean = purchaseService.findSupportDepList(dbRecipe, ext);
+            resultBean = purchaseService.findSupportDepList(dbRecipe, extInfo);
 
         }
 
