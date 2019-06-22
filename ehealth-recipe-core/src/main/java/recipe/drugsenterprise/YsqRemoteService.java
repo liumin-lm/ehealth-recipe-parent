@@ -551,7 +551,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             recipeMap.put("DOCTOR", iDoctorService.getNameById(recipe.getDoctor()));
 
             //放置药店编码和名称
-            if (order != null) {
+            if (order != null && StringUtils.isNotEmpty(order.getDrugStoreCode())) {
                 recipeMap.put("GYSCODE", order.getDrugStoreCode());
                 recipeMap.put("GYSNAME", order.getDrugStoreName());
             }
