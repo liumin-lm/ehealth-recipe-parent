@@ -155,19 +155,22 @@ public class PayModeTFDS implements IPurchaseService{
             orderService.setOrderFee(result, order, Arrays.asList(recipeId), recipeList, payModeSupport, extInfo, 1);
         } else {
             //设置默认值
+            order.setExpressFee(BigDecimal.ZERO);
+            order.setTotalFee(BigDecimal.ZERO);
             order.setRecipeFee(BigDecimal.ZERO);
             order.setCouponFee(BigDecimal.ZERO);
             order.setRegisterFee(BigDecimal.ZERO);
-            order.setExpressFee(BigDecimal.ZERO);
-            order.setTotalFee(BigDecimal.ZERO);
             order.setActualPrice(BigDecimal.ZERO.doubleValue());
         }
+        //设置为有效订单
+        order.setEffective(1);
         boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
         if(!saveFlag){
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("订单保存出错");
             return result;
         }
+        orderService.setCreateOrderResult(result, order, payModeSupport, 1);
         return result;
     }
 
