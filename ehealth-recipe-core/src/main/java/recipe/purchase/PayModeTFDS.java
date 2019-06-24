@@ -174,7 +174,7 @@ public class PayModeTFDS implements IPurchaseService{
         }
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
         //更新处方信息
-        orderService.finishOrderPayWithoutPay(dbRecipe.getOrderCode(), payMode);
+        orderService.finishOrderPayWithoutPay(order.getOrderCode(), payMode);
         return result;
     }
 
