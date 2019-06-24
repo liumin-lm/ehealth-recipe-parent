@@ -269,13 +269,15 @@ public class PurchaseService {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("处方单已被处理");
             //判断是否已到院取药，查看 HisCallBackService *RecipesFromHis 方法处理
-            if(Integer.valueOf(1).equals(dbRecipe.getPayFlag()) &&
-                    RecipeBussConstant.PAYMODE_TO_HOS.equals(dbRecipe.getPayMode())){
-                result.setMsg("您已到院自取药品，无法选择其他购药方式");
+            if (Integer.valueOf(1).equals(dbRecipe.getPayFlag())) {
+                if (RecipeBussConstant.PAYMODE_TFDS.equals(dbRecipe.getPayMode())) {
+                    result.setMsg("您已到院自取药品，无法提交药店取药");
+                } else if (RecipeBussConstant.PAYMODE_ONLINE.equals(dbRecipe.getPayMode())) {
+                    result.setMsg("您已到院自取药品，无法进行配送");
+                }
             }
             return true;
         }
-
         return false;
     }
 
