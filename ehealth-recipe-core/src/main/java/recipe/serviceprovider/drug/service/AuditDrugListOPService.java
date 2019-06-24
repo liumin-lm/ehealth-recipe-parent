@@ -16,6 +16,7 @@ import ctd.util.annotation.RpcBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import recipe.constant.ErrorCode;
 import recipe.dao.*;
 import recipe.drugsenterprise.YsqRemoteService;
@@ -214,6 +215,10 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         saleDrugList.setOrganId(drugsEnterprises.get(0).getId());
         saleDrugList.setStatus(1);
         saleDrugList.setLastModify(new Date());
+        //新增字段
+        saleDrugList.setDrugName(auditDrugList.getDrugName());
+        saleDrugList.setSaleName(auditDrugList.getSaleName());
+        saleDrugList.setDrugSpec(auditDrugList.getDrugSpec());
         return saleDrugList;
     }
 
@@ -229,6 +234,19 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         organDrugList.setCreateDt(new Date());
         organDrugList.setStatus(1);
         organDrugList.setLastModify(new Date());
+        //新增字段
+        organDrugList.setDrugName(auditDrugList.getDrugName());
+        organDrugList.setSaleName(auditDrugList.getSaleName());
+        organDrugList.setDrugSpec(auditDrugList.getDrugSpec());
+        organDrugList.setUnit(auditDrugList.getUnit());
+        organDrugList.setUseDose(drugList.getUseDose());
+        organDrugList.setUseDoseUnit(StringUtils.isEmpty(drugList.getUseDoseUnit())?"":drugList.getUseDoseUnit());
+        organDrugList.setUsingRate(StringUtils.isEmpty(drugList.getUsingRate())?"":drugList.getUsingRate());
+        organDrugList.setUsePathways(drugList.getUsePathways());
+        organDrugList.setProducer(auditDrugList.getProducer());
+        organDrugList.setSearchKey(auditDrugList.getDrugName() + ";" + auditDrugList.getSaleName());
+        organDrugList.setPack(drugList.getPack());
+        organDrugList.setRecommendedUseDose(drugList.getUseDose());
         return organDrugList;
     }
 
