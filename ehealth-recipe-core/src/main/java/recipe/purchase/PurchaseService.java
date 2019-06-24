@@ -6,6 +6,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.persistence.DAOFactory;
@@ -26,6 +27,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.service.RecipeListService;
 import recipe.service.RecipeService;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.MapValueUtil;
@@ -54,13 +56,23 @@ public class PurchaseService {
 
     /**
      * 获取可用购药方式
-     *
+     * @param recipeId 处方单ID
+     * @param mpiId    患者mpiId
      * @return
      */
     @RpcService
-    public PltPurchaseResponse showPurchaseMode(Integer recipeId) {
+    public PltPurchaseResponse showPurchaseMode(Integer recipeId, String mpiId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeListService recipeListService = ApplicationUtils.getRecipeService(RecipeListService.class);
         PltPurchaseResponse result = new PltPurchaseResponse();
+        if (StringUtils.isNotEmpty(mpiId)) {
+            Map<String, Object> map = recipeListService.getLastestPendingRecipe(mpiId);
+            List<Map> recipes = (List<Map>) map.get("recipes");
+            if (CollectionUtils.isNotEmpty(recipes)) {
+                RecipeBean recipeBean = (RecipeBean) recipes.get(0).get("recipe");
+                recipeId = recipeBean.getRecipeId();
+            }
+        }
         Recipe dbRecipe = recipeDAO.get(recipeId);
         if (null == dbRecipe) {
             return result;
