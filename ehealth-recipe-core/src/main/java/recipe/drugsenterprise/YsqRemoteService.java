@@ -11,6 +11,7 @@ import com.ngari.base.patient.service.IPatientService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepStyleBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
@@ -19,6 +20,8 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import org.apache.axis.Constants;
 import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
@@ -33,6 +36,8 @@ import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
+import recipe.purchase.IPurchaseService;
+import recipe.purchase.PurchaseService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
 import recipe.service.common.RecipeCacheService;
@@ -52,6 +57,7 @@ import java.util.*;
  * @author: 0184/yu_yun
  * @date:2017/3/7.
  */
+@RpcBean("ysqRemoteService")
 public class YsqRemoteService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(YsqRemoteService.class);
@@ -69,6 +75,34 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
         LOGGER.info("YsqRemoteService tokenUpdateImpl not implement.");
+    }
+
+    @RpcService
+    public RecipeResultBean test(Integer recipeId, Integer depId, String longitude, String latitude) {
+        /*List<Integer> recipeIds = Arrays.asList(recipeId);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+        Map<String, String> map = new HashMap<>();
+        map.put("range", "10");
+        map.put("longitude", longitude);
+        map.put("latitude", latitude);
+        findSupportDep(recipeIds, map, drugsEnterprise);*/
+        return testShow(recipeId, longitude, latitude);
+    }
+
+    @RpcService
+    public RecipeResultBean testShow(Integer recipeId, String longitude, String latitude){
+        PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+        IPurchaseService ipurchaseService = purchaseService.getService(4);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        Map ext = new HashMap();
+        ext.put("sort", "1");
+        ext.put("range", "10");
+        ext.put("longitude", longitude);
+        ext.put("latitude", latitude);
+        RecipeResultBean resultBean = ipurchaseService.findSupportDepList(recipe, ext);
+        return resultBean;
     }
 
     @Override
@@ -426,6 +460,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             try {
                 patient = iPatientService.get(recipe.getMpiid());
             } catch (Exception e) {
+                e.printStackTrace();
                 patient = null;
             }
             if (null == patient) {
@@ -593,11 +628,41 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                         LOGGER.error("getYsqRecipeInfo usePathways为null");
                         detailMap.put("DISEASENAME1", "口服");
                     }
-
+                    //ceshi
+                    detailMap.put("BILLQTY", "1");
+                    detailMap.put("DISEASE1", "po");
+                    detailMap.put("YIBAO", "1");
+                    detailMap.put("NAME", "拜新同 硝苯地平控释片");
+                    detailMap.put("PRODUCER", "北京拜耳");
+                    detailMap.put("DOSAGE", "");
+                    detailMap.put("GOODS", "27");
+                    detailMap.put("GNAME", "硝苯地平控释片");
+                    detailMap.put("DOSAGENAME", "30mg");
+                    detailMap.put("PRC", "27.00000");
+                    detailMap.put("DISEASENAME", "每日一次");
+                    detailMap.put("DISEASENAME1", "口服");
+                    detailMap.put("MSUNITNO", "盒");
+                    detailMap.put("DISEASE", "qd");
                     recipeDetailList.add(detailMap);
                 }
             }
-
+            recipeMap.put("REMARK", "无");
+            recipeMap.put("HOSCODE", "689062083");
+            recipeMap.put("YIBAOBILL", "1");
+            recipeMap.put("RECEIVETEL", "13777407051");
+            recipeMap.put("DEPT", "全科行政");
+            recipeMap.put("PATIENTSENDADDR", "");
+            recipeMap.put("TELPHONE", "13777407051");
+            recipeMap.put("DOCTORCODE", "15645");
+            recipeMap.put("ACCAMOUNT", "0.10");
+            recipeMap.put("SEX", "男");
+            recipeMap.put("IDENTIFICATION", "");
+            recipeMap.put("PRESCRIPTDATE", "2019-06-05 09:33:26");
+            recipeMap.put("DIAGNOSIS", "测试1000");
+            recipeMap.put("METHOD", "");
+            recipeMap.put("PATNAME", "李笑飞");
+            recipeMap.put("INBILLNO", "1000388-39716000001");
+            recipeMap.put("VALIDDATE", "2019-06-08 09:33:26");
             recipeInfoList.add(recipeMap);
         }
 

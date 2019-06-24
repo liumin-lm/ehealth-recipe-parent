@@ -150,6 +150,7 @@ public class PayModeTFDS implements IPurchaseService{
         order.setDrugStoreName(MapValueUtil.getString(extInfo, "gysName"));
         order.setRecipeIdList("["+dbRecipe.getRecipeId()+"]");
 
+
         List<Recipe> recipeList = Arrays.asList(dbRecipe);
         Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
         if (null == calculateFee || Integer.valueOf(1).equals(calculateFee)) {
@@ -172,6 +173,8 @@ public class PayModeTFDS implements IPurchaseService{
             return result;
         }
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
+        //更新处方信息
+        orderService.finishOrderPayWithoutPay(dbRecipe.getOrderCode(), payMode);
         return result;
     }
 
