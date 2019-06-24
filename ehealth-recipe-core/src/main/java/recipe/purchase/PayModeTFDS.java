@@ -136,7 +136,7 @@ public class PayModeTFDS implements IPurchaseService{
         boolean succFlag = scanStock(dbRecipe, dep, drugIds);
         if(!succFlag){
             result.setCode(RecipeResultBean.FAIL);
-            result.setMsg("药店暂无药品库存");
+            result.setMsg("抱歉，配送商库存不足无法配送。请稍后尝试提交，或更换配送商。");
             return result;
         }
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
@@ -167,7 +167,7 @@ public class PayModeTFDS implements IPurchaseService{
         boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
         if(!saveFlag){
             result.setCode(RecipeResultBean.FAIL);
-            result.setMsg("订单保存出错");
+            result.setMsg("提交失败，请重新提交。");
             return result;
         }
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
