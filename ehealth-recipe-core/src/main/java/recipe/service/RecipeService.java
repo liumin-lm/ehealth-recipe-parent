@@ -1013,7 +1013,8 @@ public class RecipeService {
                     RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS);
                 } else if (RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
                     //货到付款|药店取药 审核完成，往药企发送审核完成消息
-                    service.pushCheckResult(recipeId, 1);
+                    //6.24 货到付款或者药店取药也走药师审核通过推送处方信息
+                    service.pushSingleRecipeInfo(recipeId);
                     Integer status = OrderStatusConstant.READY_SEND;
                     //到店取药审核完成是带取药状态
                     if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
