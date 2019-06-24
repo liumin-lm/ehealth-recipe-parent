@@ -42,7 +42,7 @@ import java.util.Map;
  * @description： 购药入口类
  * @version： 1.0
  */
-@RpcBean(value = "purchaseService", mvc_authentication = false)
+@RpcBean(value = "purchaseService")
 public class PurchaseService {
 
     /**
