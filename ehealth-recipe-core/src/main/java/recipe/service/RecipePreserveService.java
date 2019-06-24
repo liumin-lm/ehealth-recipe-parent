@@ -49,13 +49,12 @@ import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.thread.PushRecipeToRegulationCallable;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
 import recipe.util.RedisClient;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static recipe.service.RecipeServiceSub.convertPatientForRAP;
 
@@ -409,5 +408,15 @@ public class RecipePreserveService {
         Boolean result = dao.updatePharmacy(organId, pharmacy);
         return result;
 
+    }
+
+    /**
+     * 手动推送处方审核数据到监管平台（江苏）
+     * @param recipeId
+     */
+    @RpcService
+    public void uploadRegulationAuditData(Integer recipeId){
+        //手动推送处方到监管平台（江苏）
+        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipeId,2));
     }
 }
