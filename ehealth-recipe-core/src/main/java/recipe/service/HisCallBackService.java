@@ -138,6 +138,7 @@ public class HisCallBackService {
                     detailAttrMap = Maps.newHashMap();
                     detailAttrMap.put("drugGroup", detail.getDrugGroup());
                     detailAttrMap.put("orderNo", detail.getOrderNo());
+                    detailAttrMap.put("pharmNo", detail.getPharmNo());
                     //根据医院传入的价格更新药品总价
                     BigDecimal drugCost = detail.getDrugCost();
                     //外带药处方不做处理
