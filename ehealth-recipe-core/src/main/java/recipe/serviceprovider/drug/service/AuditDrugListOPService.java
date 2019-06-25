@@ -192,6 +192,11 @@ public class AuditDrugListOPService implements IAuditDrugListService{
             LOGGER.info("saveAuditDrugListInfo:{},{}.", auditDrugListId, drugListId);
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该机构已经存在该药品,请更换药品匹配!");
         }
+        SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugListId,auditDrugList.getOrganId());
+        if (saleDrugList != null) {
+            LOGGER.info("saveAuditDrugListInfo:{},{}.", auditDrugListId, drugListId);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "该配送药品目录已经存在该药品,请更换药品匹配!");
+        }
         auditDrugList.setDrugClass(drugList.getDrugClass());
         auditDrugList.setDrugId(drugListId);
         auditDrugList.setType(1);
@@ -236,6 +241,11 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         organDrugList.setLastModify(new Date());
         //新增字段
         organDrugList.setDrugName(auditDrugList.getDrugName());
+        if (!StringUtils.isEmpty(auditDrugList.getSaleName()) && !auditDrugList.getSaleName().equals(auditDrugList.getDrugName())) {
+            organDrugList.setSaleName(auditDrugList.getDrugName() + " " + auditDrugList.getSaleName());
+        } else {
+            organDrugList.setSaleName(auditDrugList.getDrugName());
+        }
         organDrugList.setSaleName(auditDrugList.getSaleName());
         organDrugList.setDrugSpec(auditDrugList.getDrugSpec());
         organDrugList.setUnit(auditDrugList.getUnit());
