@@ -187,7 +187,8 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         if (auditDrugList == null || drugList == null) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "药品不存在");
         }
-        SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugListId,auditDrugList.getOrganId());
+        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
+        SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugListId,drugsEnterprises.get(0).getId());
         if (saleDrugList != null) {
             LOGGER.info("saveAuditDrugListInfo:{},{}.", auditDrugListId, drugListId);
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该配送药品目录已经存在该药品,请更换药品匹配!");
