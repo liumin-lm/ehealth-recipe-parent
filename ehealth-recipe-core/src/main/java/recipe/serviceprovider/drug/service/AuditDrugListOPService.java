@@ -242,7 +242,6 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         } else {
             organDrugList.setSaleName(auditDrugList.getDrugName());
         }
-        organDrugList.setSaleName(auditDrugList.getSaleName());
         organDrugList.setDrugSpec(auditDrugList.getDrugSpec());
         organDrugList.setUnit(auditDrugList.getUnit());
         organDrugList.setUseDose(drugList.getUseDose());
