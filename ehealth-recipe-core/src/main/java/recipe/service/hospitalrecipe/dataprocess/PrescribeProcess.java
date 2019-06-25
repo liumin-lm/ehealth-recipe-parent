@@ -120,6 +120,7 @@ public class PrescribeProcess {
         recipe.setRemindFlag(0);
         recipe.setGiveFlag(0);
         recipe.setChooseFlag(0);
+        recipe.setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);
     }
 
     /**
