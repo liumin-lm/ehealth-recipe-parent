@@ -302,7 +302,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 call.setReturnType(Constants.XSD_STRING);
                 Object resultObj;
                 if ("PrescriptionGYSLists".equals(method)) {
-                    Object[] param = {drugsEnterprise.getUserId(), drugsEnterprise.getPassword(), sendInfoStr, 0};
+                    Object[] param = {drugsEnterprise.getUserId(), drugsEnterprise.getPassword(), sendInfoStr, "0"};
                     resultObj = call.invoke(param);
                 } else {
                     Object[] param = {drugsEnterprise.getUserId(), drugsEnterprise.getPassword(), sendInfoStr};
