@@ -78,19 +78,6 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
     }
 
     @RpcService
-    public RecipeResultBean test(Integer recipeId, Integer depId, String longitude, String latitude) {
-        /*List<Integer> recipeIds = Arrays.asList(recipeId);
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
-        Map<String, String> map = new HashMap<>();
-        map.put("range", "10");
-        map.put("longitude", longitude);
-        map.put("latitude", latitude);
-        findSupportDep(recipeIds, map, drugsEnterprise);*/
-        return testShow(recipeId, longitude, latitude);
-    }
-
-    @RpcService
     public RecipeResultBean testShow(Integer recipeId, String longitude, String latitude){
         PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
         IPurchaseService ipurchaseService = purchaseService.getService(4);
@@ -309,10 +296,20 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 call.addParameter(new QName(NAME_SPACE, "AppKey"), Constants.XSD_STRING, ParameterMode.IN);
                 call.addParameter(new QName(NAME_SPACE, "AppSecret"), Constants.XSD_STRING, ParameterMode.IN);
                 call.addParameter(new QName(NAME_SPACE, "PrescriptionInfo"), Constants.XSD_STRING, ParameterMode.IN);
+                if ("PrescriptionGYSLists".equals(method)) {
+                    call.addParameter(new QName(NAME_SPACE, "IsGYS"), Constants.XSD_STRING, ParameterMode.IN);
+                }
                 call.setReturnType(Constants.XSD_STRING);
+                Object resultObj;
+                if ("PrescriptionGYSLists".equals(method)) {
+                    Object[] param = {drugsEnterprise.getUserId(), drugsEnterprise.getPassword(), sendInfoStr, 0};
+                    resultObj = call.invoke(param);
+                } else {
+                    Object[] param = {drugsEnterprise.getUserId(), drugsEnterprise.getPassword(), sendInfoStr};
+                    resultObj = call.invoke(param);
+                }
 
-                Object[] param = {drugsEnterprise.getUserId(), drugsEnterprise.getPassword(), sendInfoStr};
-                Object resultObj = call.invoke(param);
+
                 if (null != resultObj && resultObj instanceof String) {
                     resultJson = resultObj.toString();
                     LOGGER.info("调用[{}][{}]结果返回={}", drugEpName, method, resultJson);
