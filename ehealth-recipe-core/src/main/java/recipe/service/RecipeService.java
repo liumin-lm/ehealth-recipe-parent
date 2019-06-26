@@ -1303,8 +1303,6 @@ public class RecipeService {
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_OPERATOR, ImmutableMap.of("chooseFlag", 1));
                 RecipeMsgService.batchSendMsg(recipe, 17);
                 memo.append("已取消,超过3天未操作");
-                //推送处方到监管平台(江苏)
-                RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId()));
                 //HIS消息发送
                 boolean succFlag = hisService.recipeStatusUpdate(recipeId);
                 if (succFlag) {
