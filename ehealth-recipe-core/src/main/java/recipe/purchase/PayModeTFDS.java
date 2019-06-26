@@ -16,7 +16,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
@@ -157,8 +156,9 @@ public class PayModeTFDS implements IPurchaseService{
         Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
         if (null == calculateFee || Integer.valueOf(1).equals(calculateFee)) {
             orderService.setOrderFee(result, order, Arrays.asList(recipeId), recipeList, payModeSupport, extInfo, 1);
-            if (!ObjectUtils.isEmpty(MapValueUtil.getBigDecimal(extInfo, "recipeFee"))) {
+            if (StringUtils.isNotEmpty(extInfo.get("recipeFee"))) {
                 order.setRecipeFee(MapValueUtil.getBigDecimal(extInfo, "recipeFee"));
+                order.setActualPrice(Double.parseDouble(extInfo.get("recipeFee")));
             }
         } else {
             //设置默认值
