@@ -16,6 +16,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
@@ -150,7 +151,6 @@ public class PayModeTFDS implements IPurchaseService{
         order.setDrugStoreName(MapValueUtil.getString(extInfo, "gysName"));
         order.setRecipeIdList("["+dbRecipe.getRecipeId()+"]");
         order.setDrugStoreAddr(MapValueUtil.getString(extInfo, "gysAddr"));
-        order.setRecipeFee(MapValueUtil.getBigDecimal(extInfo, "recipeFee"));
 
         List<Recipe> recipeList = Arrays.asList(dbRecipe);
         Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
@@ -164,6 +164,10 @@ public class PayModeTFDS implements IPurchaseService{
             order.setCouponFee(BigDecimal.ZERO);
             order.setRegisterFee(BigDecimal.ZERO);
             order.setActualPrice(BigDecimal.ZERO.doubleValue());
+        }
+        if (!ObjectUtils.isEmpty(MapValueUtil.getBigDecimal(extInfo, "recipeFee"))) {
+            order.setRecipeFee(MapValueUtil.getBigDecimal(extInfo, "recipeFee"));
+            order.setActualPrice(MapValueUtil.getDouble(extInfo, "recipeFee"));
         }
         //设置为有效订单
         order.setEffective(1);
