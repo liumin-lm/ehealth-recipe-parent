@@ -115,6 +115,7 @@ public class PayModeTFDS implements IPurchaseService{
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
         //定义处方订单
         RecipeOrder order = new RecipeOrder();
+
         //获取当前支持药店的药企
         Integer depId = MapValueUtil.getInteger(extInfo, "depId");
         Integer recipeId = dbRecipe.getRecipeId();
@@ -156,6 +157,9 @@ public class PayModeTFDS implements IPurchaseService{
         Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
         if (null == calculateFee || Integer.valueOf(1).equals(calculateFee)) {
             orderService.setOrderFee(result, order, Arrays.asList(recipeId), recipeList, payModeSupport, extInfo, 1);
+            if (!ObjectUtils.isEmpty(MapValueUtil.getBigDecimal(extInfo, "recipeFee"))) {
+                order.setRecipeFee(MapValueUtil.getBigDecimal(extInfo, "recipeFee"));
+            }
         } else {
             //设置默认值
             order.setExpressFee(BigDecimal.ZERO);
@@ -165,10 +169,7 @@ public class PayModeTFDS implements IPurchaseService{
             order.setRegisterFee(BigDecimal.ZERO);
             order.setActualPrice(BigDecimal.ZERO.doubleValue());
         }
-        if (!ObjectUtils.isEmpty(MapValueUtil.getBigDecimal(extInfo, "recipeFee"))) {
-            order.setRecipeFee(MapValueUtil.getBigDecimal(extInfo, "recipeFee"));
-            order.setActualPrice(MapValueUtil.getDouble(extInfo, "recipeFee"));
-        }
+
         //设置为有效订单
         order.setEffective(1);
         boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
