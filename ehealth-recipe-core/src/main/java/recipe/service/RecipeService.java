@@ -39,6 +39,7 @@ import eh.base.constant.BussTypeConstant;
 import eh.base.constant.ErrorCode;
 import eh.base.constant.PageConstant;
 import eh.cdr.constant.OrderStatusConstant;
+import eh.cdr.constant.RecipeConstant;
 import eh.cdr.constant.RecipeStatusConstant;
 import eh.utils.params.ParameterConstant;
 import eh.wxpay.constant.PayConstant;
@@ -1274,6 +1275,7 @@ public class RecipeService {
         RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+        RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
 
         List<Integer> statusList = Arrays.asList(RecipeStatusConstant.NO_PAY, RecipeStatusConstant.NO_OPERATOR);
@@ -1285,6 +1287,35 @@ public class RecipeService {
         ), DateConversion.DEFAULT_DATE_TIME);
         String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(
                 Integer.parseInt(cacheService.getParam(ParameterConstant.KEY_RECIPE_CANCEL_DAYS, RECIPE_EXPIRED_SEARCH_DAYS.toString()))), DateConversion.DEFAULT_DATE_TIME);
+
+        //增加订单未取药推送
+        List<String> orderCodes = recipeOrderDAO.getRecipeIdForCancelRecipeOrder(startDt, endDt);
+        if (CollectionUtils.isNotEmpty(orderCodes)) {
+            List<Recipe> recipes = recipeDAO.getRecipeListByOrderCodes(orderCodes);
+            LOGGER.info("cancelRecipeOrderTask , 取消数量=[{}], 详情={}", recipes.size(), JSONUtils.toString(recipes));
+            for (Recipe recipe : recipes) {
+                memo.delete(0, memo.length());
+                int recipeId = recipe.getRecipeId();
+                //相应订单处理
+                order = orderDAO.getOrderByRecipeId(recipeId);
+                orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+                //变更处方状态
+                recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_OPERATOR, ImmutableMap.of("chooseFlag", 1));
+                RecipeMsgService.batchSendMsg(recipe, 17);
+                memo.append("已取消,超过3天未操作");
+                //推送处方到监管平台(江苏)
+                RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId()));
+                //HIS消息发送
+                boolean succFlag = hisService.recipeStatusUpdate(recipeId);
+                if (succFlag) {
+                    memo.append(",HIS推送成功");
+                } else {
+                    memo.append(",HIS推送失败");
+                }
+                //保存处方状态变更日志
+                RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.NO_OPERATOR, memo.toString());
+            }
+        }
         for (Integer status : statusList) {
             List<Recipe> recipeList = recipeDAO.getRecipeListForCancelRecipe(status, startDt, endDt);
             LOGGER.info("cancelRecipeTask 状态=[{}], 取消数量=[{}], 详情={}", status, recipeList.size(), JSONUtils.toString(recipeList));
