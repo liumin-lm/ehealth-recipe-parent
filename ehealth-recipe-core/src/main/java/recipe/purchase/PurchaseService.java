@@ -271,8 +271,10 @@ public class PurchaseService {
             //判断是否已到院取药，查看 HisCallBackService *RecipesFromHis 方法处理
             if (Integer.valueOf(1).equals(dbRecipe.getPayFlag())) {
                 if (RecipeBussConstant.PAYMODE_TFDS.equals(dbRecipe.getPayMode())) {
+                    result.setCode(2);
                     result.setMsg("您已到院自取药品，无法提交药店取药");
                 } else if (RecipeBussConstant.PAYMODE_ONLINE.equals(dbRecipe.getPayMode())) {
+                    result.setCode(3);
                     result.setMsg("您已到院自取药品，无法进行配送");
                 }
             }
