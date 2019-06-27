@@ -1655,7 +1655,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("from Recipe where  status in (2, 8) and giveMode = 3 and payMode = 4 ");
+                StringBuilder hql = new StringBuilder("from Recipe where  status in (7,8) and giveMode = 3 and payMode = 4 ");
                 if (CollectionUtils.isNotEmpty(orderCodes)) {
                     hql.append(" and orderCode in (");
                     for (String orderCode : orderCodes) {
