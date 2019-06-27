@@ -264,17 +264,17 @@ public class PurchaseService {
      * @return true 已被处理
      */
     private boolean checkRecipeIsDeal(Recipe dbRecipe, RecipeResultBean result, Map<String, String> extInfo){
-        String payMode = extInfo.get("payMode");
+        Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
         if (RecipeStatusConstant.CHECK_PASS != dbRecipe.getStatus()
                 || 1 == dbRecipe.getChooseFlag()) {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("处方单已被处理");
             //判断是否已到院取药，查看 HisCallBackService *RecipesFromHis 方法处理
             if (Integer.valueOf(1).equals(dbRecipe.getPayFlag())) {
-                if (RecipeBussConstant.PAYMODE_TO_HOS.equals(dbRecipe.getPayMode()) && RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
+                if (RecipeBussConstant.PAYMODE_TO_HOS.equals(dbRecipe.getPayMode()) && RecipeBussConstant.PAYMODE_TFDS == payMode) {
                     result.setCode(2);
                     result.setMsg("您已到院自取药品，无法提交药店取药");
-                } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(dbRecipe.getPayMode()) && RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
+                } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(dbRecipe.getPayMode()) && RecipeBussConstant.PAYMODE_ONLINE == payMode) {
                     result.setCode(3);
                     result.setMsg("您已到院自取药品，无法进行配送");
                 } else if (RecipeBussConstant.PAYMODE_ONLINE.equals(dbRecipe.getPayMode())) {
@@ -316,4 +316,5 @@ public class PurchaseService {
     private boolean unLock(Integer recipeId) {
         return redisClient.setex(CacheConstant.KEY_RCP_BUSS_PURCHASE_LOCK + recipeId, 1L);
     }
+
 }
