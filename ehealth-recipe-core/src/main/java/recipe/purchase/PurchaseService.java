@@ -276,6 +276,9 @@ public class PurchaseService {
                 } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(dbRecipe.getPayMode())) {
                     result.setCode(3);
                     result.setMsg("您已到院自取药品，无法进行配送");
+                } else if (RecipeBussConstant.PAYMODE_ONLINE.equals(dbRecipe.getPayMode())) {
+                    result.setCode(4);
+                    result.setMsg(dbRecipe.getOrderCode());
                 }
             }
             return true;
