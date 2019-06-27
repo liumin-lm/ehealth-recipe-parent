@@ -273,7 +273,7 @@ public class PurchaseService {
                 if (RecipeBussConstant.PAYMODE_TFDS.equals(dbRecipe.getPayMode())) {
                     result.setCode(2);
                     result.setMsg("您已到院自取药品，无法提交药店取药");
-                } else if (RecipeBussConstant.PAYMODE_ONLINE.equals(dbRecipe.getPayMode())) {
+                } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(dbRecipe.getPayMode())) {
                     result.setCode(3);
                     result.setMsg("您已到院自取药品，无法进行配送");
                 }
