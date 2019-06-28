@@ -199,7 +199,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 LOGGER.warn("uploadRecipeIndicators doctor is null. recipe.doctor={}", recipe.getDoctor());
                 continue;
             }
-            if(1 == doctorDTO.getTestPersonnel()){
+            if(Integer.valueOf(1).equals(doctorDTO.getTestPersonnel())){
                 LOGGER.warn("uploadRecipeIndicators doctor is testPersonnel. recipe.doctor={}", recipe.getDoctor());
                 continue;
             }

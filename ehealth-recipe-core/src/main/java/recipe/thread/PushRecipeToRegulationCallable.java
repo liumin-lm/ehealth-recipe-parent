@@ -58,9 +58,8 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
                     if (status == 2){
                         response = service.uploadRecipeAuditIndicators(Arrays.asList(recipe));
                         if (CommonConstant.SUCCESS.equals(response.getCode())){
-                            if (RecipeStatusConstant.CHECK_PASS_YS==recipe.getStatus()){
+                            /*if (RecipeStatusConstant.CHECK_PASS_YS==recipe.getStatus()){*/
                                 response = service.uploadRecipeCirculationIndicators(Arrays.asList(recipe));
-                            }
                         } else{
                             logger.warn("uploadRecipeAuditIndicators rpc execute error. recipe={}", JSONUtils.toString(recipe));
                         }
