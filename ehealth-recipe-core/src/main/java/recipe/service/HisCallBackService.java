@@ -17,6 +17,11 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
+import eh.base.constant.BussTypeConstant;
+import eh.base.constant.ErrorCode;
+import eh.cdr.constant.OrderStatusConstant;
+import eh.cdr.constant.RecipeStatusConstant;
+import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -138,6 +143,7 @@ public class HisCallBackService {
                     detailAttrMap = Maps.newHashMap();
                     detailAttrMap.put("drugGroup", detail.getDrugGroup());
                     detailAttrMap.put("orderNo", detail.getOrderNo());
+                    detailAttrMap.put("pharmNo", detail.getPharmNo());
                     //根据医院传入的价格更新药品总价
                     BigDecimal drugCost = detail.getDrugCost();
                     //外带药处方不做处理
@@ -431,6 +437,10 @@ public class HisCallBackService {
                             RecipeLogService.saveRecipeLog(recipeId, beforeStatus, RecipeStatusConstant.FINISH, logMemo);
                             //消息推送
                             RecipeMsgService.batchSendMsg(recipeId, msgStatus);
+                            if (organId == 1003064 || organId == 1003086){
+                                //推送处方到监管平台（江苏）
+                                RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipeId,2));
+                            }
                         }
                     }
                 }

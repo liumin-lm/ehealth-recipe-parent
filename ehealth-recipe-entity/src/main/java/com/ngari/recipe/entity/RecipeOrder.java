@@ -179,6 +179,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "取消原因")
     private String cancelReason;
 
+    @ItemProperty(alias = "药店编码")
+    private String drugStoreCode;
+
     @Column(name = "cancelReason")
     public String getCancelReason() {
         return cancelReason;
@@ -650,5 +653,14 @@ public class RecipeOrder implements Serializable {
 
     public void setCompleteAddress(String completeAddress) {
         this.completeAddress = completeAddress;
+    }
+
+    @Column(name = "drugStoreCode")
+    public String getDrugStoreCode() {
+        return drugStoreCode;
+    }
+
+    public void setDrugStoreCode(String drugStoreCode) {
+        this.drugStoreCode = drugStoreCode;
     }
 }

@@ -25,6 +25,11 @@ public class DepDetailBean {
     private String giveModeText;
 
     /**
+     *  购药方式文案显示
+     */
+    private String payModeText;
+
+    /**
      * 处方费
      */
     private BigDecimal recipeFee;
@@ -82,6 +87,15 @@ public class DepDetailBean {
      * 药店地址
      */
     private String address;
+
+    //药店坐标
+    private Position position;
+
+    //药店所属药企名称
+    private String belongDepName;
+
+    //距离
+    private Double distance;
 
     public Integer getDepId() {
         return depId;
@@ -209,5 +223,37 @@ public class DepDetailBean {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public Position getPosition() {
+        return position;
+    }
+
+    public void setPosition(Position position) {
+        this.position = position;
+    }
+
+    public String getBelongDepName() {
+        return belongDepName;
+    }
+
+    public void setBelongDepName(String belongDepName) {
+        this.belongDepName = belongDepName;
+    }
+
+    public String getPayModeText() {
+        return payModeText;
+    }
+
+    public void setPayModeText(String payModeText) {
+        this.payModeText = payModeText;
+    }
+
+    public Double getDistance() {
+        return distance;
+    }
+
+    public void setDistance(Double distance) {
+        this.distance = distance;
     }
 }

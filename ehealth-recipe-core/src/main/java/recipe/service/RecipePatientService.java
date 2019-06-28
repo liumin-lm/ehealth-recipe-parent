@@ -4,7 +4,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
@@ -162,7 +161,7 @@ public class RecipePatientService extends RecipeBaseService {
                         DrugEnterpriseConstant.COMPANY_PHARMACY.equals(dep.getCallSys())
                         || DrugEnterpriseConstant.COMPANY_ZFB.equals(dep.getCallSys())) {
                     //需要从接口获取药店列表
-                    DrugEnterpriseResult drugEnterpriseResult = remoteDrugService.findSupportDep(recipeIds, dep);
+                    DrugEnterpriseResult drugEnterpriseResult = remoteDrugService.findSupportDep(recipeIds, null, dep);
                     if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
                         Object listObj = drugEnterpriseResult.getObject();
                         if (null != listObj && listObj instanceof List) {

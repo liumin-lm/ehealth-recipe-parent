@@ -7,6 +7,7 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.AuditDrugListBean;
+import com.ngari.recipe.drug.model.UpDownDrugBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
 import ctd.controller.exception.ControllerException;
@@ -1240,6 +1241,36 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             return result;
         }
         result.setCode(StandardResultDTO.SUCCESS);
+        return result;
+    }
+
+    /**
+     * 上下架药品
+     * @param upDownDrugBean
+     * @return
+     */
+    @RpcService
+    public StandardResultDTO upDownDrug(UpDownDrugBean upDownDrugBean) {
+        StandardResultDTO result  = new StandardResultDTO();
+        result.setCode(StandardResultDTO.FAIL);
+        LOGGER.info("上架或下架药品-upDownDrugBean info:{}.", upDownDrugBean);
+        if (upDownDrugBean == null) {
+            result.setMsg("药品信息不能为空");
+            return result;
+        }
+        OrganService organService = BasicAPI.getService(OrganService.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        OrganDTO organ = organService.getOrganByOrganizeCode(upDownDrugBean.getOrganizeCode());
+        if (organ == null) {
+            result.setMsg("机构不存在");
+            return result;
+        }
+        Boolean succ = organDrugListDAO.updateOrganDrugListByOrganIdAndOrganDrugCode(organ.getOrganId(), upDownDrugBean.getOrganDrugCode(), ImmutableMap.of("status", upDownDrugBean.getStatus()));
+        if (succ) {
+            result.setCode(StandardResultDTO.SUCCESS);
+            result.setMsg("success");
+            return result;
+        }
         return result;
     }
 }

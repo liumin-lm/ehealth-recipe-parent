@@ -89,5 +89,10 @@ public class CacheConstant {
     public static final String KEY_CONFIG_RCP_AUTO_REVIEW = "RCP_CONFIG_AUTO_REVIEW";
 
 
+    /**
+     * 购药时处方分布式锁KEY
+     */
+    public static final String KEY_RCP_BUSS_PURCHASE_LOCK = "RCP_BUSS_PURCHASE_";
+
 
 }

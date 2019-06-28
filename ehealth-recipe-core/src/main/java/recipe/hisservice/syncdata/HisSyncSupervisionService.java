@@ -372,6 +372,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 req.setAuditDoctorName(doctorDTO.getName());
             }
             req.setAuditStatus(RecipeStatusConstant.CHECK_PASS_YS==recipe.getStatus()?"1":"2");
+            req.setRecipeCode(recipe.getRecipeCode());
             request.add(req);
         }
         try {
@@ -416,6 +417,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         RegulationRecipeCirculationIndicatorsReq req;
         for (Recipe recipe : recipeList) {
             req = new RegulationRecipeCirculationIndicatorsReq();
+            req.setRecipeCode(recipe.getRecipeCode());
             req.setOrganId(recipe.getClinicOrgan());
             req.setOrganName(recipe.getOrganName());
             //组织机构编码

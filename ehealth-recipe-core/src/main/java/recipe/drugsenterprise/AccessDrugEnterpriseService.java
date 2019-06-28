@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 通用药企对接服务(国药协议)
@@ -162,7 +163,7 @@ public abstract class AccessDrugEnterpriseService {
      * @param enterprise
      * @return
      */
-    public abstract DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, DrugsEnterprise enterprise);
+    public abstract DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise);
     
     /**
      * @param rxId  处⽅Id
