@@ -11,6 +11,7 @@ import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
+import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.filedownload.service.IFileDownloadService;
 import com.taobao.api.FileItem;
@@ -47,6 +48,7 @@ import javax.annotation.Nullable;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 阿里大药房对接服务
@@ -270,7 +272,7 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
     }
 
     @Override
-    public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, DrugsEnterprise enterprise) {
+    public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise) {
         return null;
     }
 

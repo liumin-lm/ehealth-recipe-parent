@@ -13,6 +13,7 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepStyleBean;
+import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -205,7 +206,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, DrugsEnterprise drugsEnterprise) {
+    public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext,DrugsEnterprise drugsEnterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         if (CollectionUtils.isEmpty(recipeIds)) {
             result.setMsg("处方ID集合为空");
@@ -225,7 +226,18 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             LOGGER.error("findSupportDep 生成处方数量为0. recipeIds={}, depId=[{}]", JSONUtils.toString(recipeIds), drugsEnterprise.getId());
             return result;
         }
-        sendInfo.put("TITLES", recipeInfoList);
+        List<Map<String, Object>> titlesInfoList = new ArrayList<>();
+        for (Map<String, Object> map : recipeInfoList) {
+            if (ext != null) {
+                map.put("RANGE", ext.get("range"));
+                Map<String, Object> position = new HashMap<>();
+                position.put("LONGITUDE", ext.get("longitude"));
+                position.put("LATITUDE", ext.get("latitude"));
+                map.put("POSITION", position);
+                titlesInfoList.add(map);
+            }
+        }
+        sendInfo.put("TITLES", titlesInfoList);
         String sendInfoStr = JSONUtils.toString(sendInfo);
         String methodName = "PrescriptionGYSLists";
         LOGGER.info("发送[{}][{}]内容：{}", drugEpName, methodName, sendInfoStr);
@@ -263,10 +275,20 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 call.addParameter(new QName(NAME_SPACE, "AppKey"), Constants.XSD_STRING, ParameterMode.IN);
                 call.addParameter(new QName(NAME_SPACE, "AppSecret"), Constants.XSD_STRING, ParameterMode.IN);
                 call.addParameter(new QName(NAME_SPACE, "PrescriptionInfo"), Constants.XSD_STRING, ParameterMode.IN);
+                if ("PrescriptionGYSLists".equals(method)) {
+                    call.addParameter(new QName(NAME_SPACE, "IsGYS"), Constants.XSD_STRING, ParameterMode.IN);
+                }
                 call.setReturnType(Constants.XSD_STRING);
+                Object resultObj;
+                if ("PrescriptionGYSLists".equals(method)) {
+                    Object[] param = {drugsEnterprise.getUserId(), drugsEnterprise.getPassword(), sendInfoStr, "0"};
+                    resultObj = call.invoke(param);
+                } else {
+                    Object[] param = {drugsEnterprise.getUserId(), drugsEnterprise.getPassword(), sendInfoStr};
+                    resultObj = call.invoke(param);
+                }
 
-                Object[] param = {drugsEnterprise.getUserId(), drugsEnterprise.getPassword(), sendInfoStr};
-                Object resultObj = call.invoke(param);
+
                 if (null != resultObj && resultObj instanceof String) {
                     resultJson = resultObj.toString();
                     LOGGER.info("调用[{}][{}]结果返回={}", drugEpName, method, resultJson);
@@ -304,7 +326,14 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                             detailBean.setExpressFee(MapValueUtil.getBigDecimal(dep, "PEISONGACCOUNT"));
                             detailBean.setGysCode(MapValueUtil.getString(dep, "GYSCODE"));
                             detailBean.setPharmacyCode(MapValueUtil.getString(dep, "GYSCODE"));
+                            detailBean.setDistance(MapValueUtil.getDouble(dep, "GYSDISTANCE"));
                             String sendMethod = MapValueUtil.getString(dep, "SENDMETHOD");
+                            detailBean.setAddress(MapValueUtil.getString(dep, "GYSADDRESS"));
+                            Position position = new Position();
+                            Map<String, Double> positionMap = (Map<String, Double>)MapValueUtil.getObject(dep, "GYSPOSITION");
+                            position.setLatitude(positionMap.get("latitude"));
+                            position.setLongitude(positionMap.get("longitude"));
+                            detailBean.setPosition(position);
                             String giveModeText = "";
                             if (StringUtils.isNotEmpty(sendMethod)) {
                                 if ("0".equals(sendMethod)) {
@@ -407,6 +436,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             try {
                 patient = iPatientService.get(recipe.getMpiid());
             } catch (Exception e) {
+                e.printStackTrace();
                 patient = null;
             }
             if (null == patient) {
@@ -496,6 +526,12 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             recipeMap.put("DOCTORCODE", recipe.getDoctor().toString());
             recipeMap.put("DOCTOR", iDoctorService.getNameById(recipe.getDoctor()));
 
+            //放置药店编码和名称
+            if (order != null && StringUtils.isNotEmpty(order.getDrugStoreCode())) {
+                recipeMap.put("GYSCODE", order.getDrugStoreCode());
+                recipeMap.put("GYSNAME", order.getDrugStoreName());
+            }
+
             //处理过期时间
             String validateDays = cacheService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS, "14");
             Date validate = DateConversion.getDateAftXDays(recipe.getSignDate(), Integer.parseInt(validateDays));
@@ -568,11 +604,9 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                         LOGGER.error("getYsqRecipeInfo usePathways为null");
                         detailMap.put("DISEASENAME1", "口服");
                     }
-
                     recipeDetailList.add(detailMap);
                 }
             }
-
             recipeInfoList.add(recipeMap);
         }
 

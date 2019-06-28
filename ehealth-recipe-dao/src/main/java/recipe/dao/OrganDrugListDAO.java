@@ -138,7 +138,7 @@ public abstract class OrganDrugListDAO extends
      * @param organDrugCode
      * @return
      */
-    @DAOMethod(sql = "from OrganDrugList where organId=:organId and organDrugCode=:organDrugCode")
+    @DAOMethod(sql = "from OrganDrugList where organId=:organId and organDrugCode=:organDrugCode and status = 1")
     public abstract OrganDrugList getByOrganIdAndOrganDrugCode(@DAOParam("organId") int organId, @DAOParam("organDrugCode") String organDrugCode);
 
     /**

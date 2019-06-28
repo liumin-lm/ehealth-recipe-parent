@@ -9,6 +9,7 @@ import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
+import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -211,7 +212,7 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, DrugsEnterprise enterprise) {
+    public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise) {
         return DrugEnterpriseResult.getSuccess();
     }
 
