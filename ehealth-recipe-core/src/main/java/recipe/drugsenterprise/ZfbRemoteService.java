@@ -355,7 +355,7 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, DrugsEnterprise enterprise) {
+    public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         String testData = redisClient.get(CacheConstant.KEY_PHARYACY_TEST_DATA);
         if (StringUtils.isNotEmpty(testData)) {
@@ -375,6 +375,8 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
         }
         return result;
     }
+
+
 
     @Override
     public String getDrugEnterpriseCallSys() {

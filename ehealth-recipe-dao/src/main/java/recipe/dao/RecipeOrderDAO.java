@@ -153,4 +153,26 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         return action.getResult();
     }
 
+    /**
+     * 根据需要变更的状态获取处方ID集合
+     *
+     * @param startDt
+     * @param endDt
+     * @return
+     */
+    public List<String> getRecipeIdForCancelRecipeOrder(final String startDt, final String endDt) {
+        HibernateStatelessResultAction<List<String>> action = new AbstractHibernateStatelessResultAction<List<String>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String sql = "select orderCode from RecipeOrder where createTime between '" + startDt + "' and '" + endDt + "' and status not in (6,7,8) and drugStoreCode is not null";
+
+                Query q = ss.createQuery(sql);
+                setResult(q.list());
+            }
+        };
+
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
 }

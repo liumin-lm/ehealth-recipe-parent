@@ -69,6 +69,8 @@ public class RecipeMsgService {
 
     private static final String RECIPE_NO_DRUG = "RecipeNoDrug";
 
+    private static final String RECIPE_ORDER_CANCEL = "RecipeOrderCancel";
+
     private static final String RECIPE_REMIND_NO_OPERATOR = "RecipeRemindNoOper";
 
     private static final String RECIPE_REMIND_NO_PAY = "RecipeRemindNoPay";
@@ -170,6 +172,8 @@ public class RecipeMsgService {
                 sendMsgInfo(recipeId, RECIPE_CHECK_NOT_PASS, organId);
             } else if (RecipeStatusConstant.CHECK_NOT_PASSYS_PAYONLINE == afterStatus) {
                 sendMsgInfo(recipeId, CHECK_NOT_PASS_YS_PAYONLINE, organId);
+            } else if (17 == afterStatus) {
+                sendMsgInfo(recipeId, RECIPE_ORDER_CANCEL, organId);
             } else if (RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY == afterStatus) {
                 sendMsgInfo(recipeId, CHECK_NOT_PASS_YS_REACHPAY, organId);
             } else if (RecipeStatusConstant.HIS_FAIL == afterStatus) {

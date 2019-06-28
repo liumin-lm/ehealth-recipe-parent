@@ -1,6 +1,7 @@
 package recipe.drugsenterprise;
 
 import com.ngari.base.sysparamter.service.ISysParamterService;
+import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.DAOFactory;
@@ -22,6 +23,7 @@ import recipe.service.common.RecipeCacheService;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static ctd.util.AppContextHolder.getBean;
 
@@ -141,15 +143,16 @@ public class RemoteDrugEnterpriseService {
     /**
      * 查找供应商
      *
-     * @param recipeId
-     * @return
+     * @param recipeIds 处方列表
+     * @param ext       额外信息
+     * @return 供应商信息
      */
     @RpcService
-    public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, DrugsEnterprise drugsEnterprise) {
+    public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise drugsEnterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         if (CollectionUtils.isNotEmpty(recipeIds) && null != drugsEnterprise) {
             AccessDrugEnterpriseService drugEnterpriseService = this.getServiceByDep(drugsEnterprise);
-            result = drugEnterpriseService.findSupportDep(recipeIds, drugsEnterprise);
+            result = drugEnterpriseService.findSupportDep(recipeIds, ext, drugsEnterprise);
             LOGGER.info("findSupportDep recipeIds={}, DrugEnterpriseResult={}", JSONUtils.toString(recipeIds), JSONUtils.toString(result));
         } else {
             LOGGER.warn("findSupportDep param error. recipeIds={}, drugsEnterprise={}", JSONUtils.toString(recipeIds), JSONUtils.toString(drugsEnterprise));

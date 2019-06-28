@@ -225,7 +225,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @param payMode
      * @return
      */
-    private RecipePayModeSupportBean setPayModeSupport(RecipeOrder order, Integer payMode) {
+    public RecipePayModeSupportBean setPayModeSupport(RecipeOrder order, Integer payMode) {
         RecipePayModeSupportBean payModeSupport = new RecipePayModeSupportBean();
         if (RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(payMode)) {
             payModeSupport.setSupportMedicalInsureance(true);
@@ -360,7 +360,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @param extInfo
      * @param toDbFlag
      */
-    private void setOrderFee(OrderCreateResult result, RecipeOrder order, List<Integer> recipeIds,
+    public void setOrderFee(OrderCreateResult result, RecipeOrder order, List<Integer> recipeIds,
                              List<Recipe> recipeList, RecipePayModeSupportBean payModeSupport,
                              Map<String, String> extInfo, Integer toDbFlag) {
         IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
@@ -570,7 +570,7 @@ public class RecipeOrderService extends RecipeBaseService {
         return recipeFee;
     }
 
-    private void setCreateOrderResult(OrderCreateResult result, RecipeOrder order, RecipePayModeSupportBean payModeSupport,
+    public void setCreateOrderResult(OrderCreateResult result, RecipeOrder order, RecipePayModeSupportBean payModeSupport,
                                       Integer toDbFlag) {
         if (payModeSupport.isSupportMedicalInsureance()) {
             result.setCouponType(null);
@@ -667,7 +667,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @param orderDAO
      * @return
      */
-    private boolean saveOrderToDB(RecipeOrder order, List<Recipe> recipeList, Integer payMode,
+    public boolean saveOrderToDB(RecipeOrder order, List<Recipe> recipeList, Integer payMode,
                                   OrderCreateResult result, RecipeDAO recipeDAO, RecipeOrderDAO orderDAO) {
         List<Integer> recipeIds = FluentIterable.from(recipeList).transform(new Function<Recipe, Integer>() {
             @Override
@@ -679,7 +679,7 @@ public class RecipeOrderService extends RecipeBaseService {
         try {
             createOrderToDB(order, recipeIds, orderDAO, recipeDAO);
         } catch (DAOException e) {
-            LOGGER.error("createOrder orderCode={}, error={}. ", order.getOrderCode(), e.getMessage());
+            LOGGER.warn("createOrder orderCode={}, error={}. ", order.getOrderCode(), e.getMessage());
             saveFlag = false;
         } finally {
             //如果小概率造成orderCode重复，则修改并重试
@@ -689,7 +689,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     createOrderToDB(order, recipeIds, orderDAO, recipeDAO);
                     saveFlag = true;
                 } catch (DAOException e) {
-                    LOGGER.error("createOrder again orderCode={}, error={}. ", order.getOrderCode(), e.getMessage());
+                    LOGGER.warn("createOrder again orderCode={}, error={}. ", order.getOrderCode(), e.getMessage());
                     saveFlag = false;
                     result.setCode(RecipeResultBean.FAIL);
                     result.setMsg("保存订单系统错误");
@@ -1190,7 +1190,7 @@ public class RecipeOrderService extends RecipeBaseService {
      *
      * @return
      */
-    private String getOrderCode(String mpiId) {
+    public String getOrderCode(String mpiId) {
         StringBuilder orderCode = new StringBuilder();
         orderCode.append(BussTypeConstant.RECIPE);
         String time = Long.toString(Calendar.getInstance().getTimeInMillis());

@@ -1644,4 +1644,32 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
 
     @DAOMethod(sql = "select signFile from Recipe where patientID =:patientId and signFile is not null and fromflag = 1")
     public abstract List<String> findSignFileIdByPatientId(@DAOParam("patientId") String patientId);
+
+    /**
+     * 根据需要变更的状态获取处方集合
+     *
+     * @param orderCodes
+     * @return
+     */
+    public List<Recipe> getRecipeListByOrderCodes(final List<String> orderCodes) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("from Recipe where  status in (2, 8) and giveMode = 3 and payMode = 4 ");
+                if (CollectionUtils.isNotEmpty(orderCodes)) {
+                    hql.append(" and orderCode in (");
+                    for (String orderCode : orderCodes) {
+                       hql.append("'").append(orderCode).append("',");
+                    }
+                    hql.deleteCharAt(hql.lastIndexOf(","));
+                    hql.append(")");
+                }
+                Query q = ss.createQuery(hql.toString());
+                setResult(q.list());
+            }
+        };
+
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }

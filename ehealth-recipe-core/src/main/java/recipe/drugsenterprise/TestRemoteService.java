@@ -1,5 +1,6 @@
 package recipe.drugsenterprise;
 
+import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,6 +8,7 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 测试药企，测试某些场景下药企不支持的功能，如 中药库存校验等
@@ -51,7 +53,7 @@ public class TestRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, DrugsEnterprise enterprise) {
+    public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise) {
         LOGGER.info("TestRemoteService findSupportDep not implement.");
         return DrugEnterpriseResult.getSuccess();
     }

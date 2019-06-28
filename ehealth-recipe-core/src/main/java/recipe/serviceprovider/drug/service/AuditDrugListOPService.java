@@ -16,6 +16,7 @@ import ctd.util.annotation.RpcBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import recipe.constant.ErrorCode;
 import recipe.dao.*;
 import recipe.drugsenterprise.YsqRemoteService;
@@ -186,10 +187,11 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         if (auditDrugList == null || drugList == null) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "药品不存在");
         }
-        OrganDrugList organDrugList = organDrugListDAO.getByDrugIdAndOrganId(drugListId, auditDrugList.getOrganId());
-        if (organDrugList != null) {
+        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
+        SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugListId,drugsEnterprises.get(0).getId());
+        if (saleDrugList != null) {
             LOGGER.info("saveAuditDrugListInfo:{},{}.", auditDrugListId, drugListId);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "该机构已经存在该药品,请更换药品匹配!");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "该配送药品目录已经存在该药品,请更换药品匹配!");
         }
         auditDrugList.setDrugClass(drugList.getDrugClass());
         auditDrugList.setDrugId(drugListId);
@@ -214,6 +216,10 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         saleDrugList.setOrganId(drugsEnterprises.get(0).getId());
         saleDrugList.setStatus(1);
         saleDrugList.setLastModify(new Date());
+        //新增字段
+        saleDrugList.setDrugName(auditDrugList.getDrugName());
+        saleDrugList.setSaleName(auditDrugList.getSaleName());
+        saleDrugList.setDrugSpec(auditDrugList.getDrugSpec());
         return saleDrugList;
     }
 
@@ -229,6 +235,23 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         organDrugList.setCreateDt(new Date());
         organDrugList.setStatus(1);
         organDrugList.setLastModify(new Date());
+        //新增字段
+        organDrugList.setDrugName(auditDrugList.getDrugName());
+        if (!StringUtils.isEmpty(auditDrugList.getSaleName()) && !auditDrugList.getSaleName().equals(auditDrugList.getDrugName())) {
+            organDrugList.setSaleName(auditDrugList.getDrugName() + " " + auditDrugList.getSaleName());
+        } else {
+            organDrugList.setSaleName(auditDrugList.getDrugName());
+        }
+        organDrugList.setDrugSpec(auditDrugList.getDrugSpec());
+        organDrugList.setUnit(auditDrugList.getUnit());
+        organDrugList.setUseDose(drugList.getUseDose());
+        organDrugList.setUseDoseUnit(StringUtils.isEmpty(drugList.getUseDoseUnit())?"":drugList.getUseDoseUnit());
+        organDrugList.setUsingRate(StringUtils.isEmpty(drugList.getUsingRate())?"":drugList.getUsingRate());
+        organDrugList.setUsePathways(drugList.getUsePathways());
+        organDrugList.setProducer(auditDrugList.getProducer());
+        organDrugList.setSearchKey(auditDrugList.getDrugName() + ";" + auditDrugList.getSaleName());
+        organDrugList.setPack(drugList.getPack());
+        organDrugList.setRecommendedUseDose(drugList.getUseDose());
         return organDrugList;
     }
 
