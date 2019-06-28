@@ -125,7 +125,7 @@ public class PurchaseService {
         }
 
         //处方单状态不是待处理 or 处方单已被处理
-        boolean dealFlag = checkRecipeIsDeal(dbRecipe, resultBean);
+        boolean dealFlag = checkRecipeIsUser(dbRecipe, resultBean);
         if(dealFlag){
             return resultBean;
         }
@@ -173,7 +173,7 @@ public class PurchaseService {
         }
 
         //处方单状态不是待处理 or 处方单已被处理
-        boolean dealFlag = checkRecipeIsDeal(dbRecipe, result);
+        boolean dealFlag = checkRecipeIsDeal(dbRecipe, result, extInfo);
         if(dealFlag){
             return result;
         }
@@ -263,19 +263,45 @@ public class PurchaseService {
      * @param result
      * @return true 已被处理
      */
-    private boolean checkRecipeIsDeal(Recipe dbRecipe, RecipeResultBean result){
+    private boolean checkRecipeIsDeal(Recipe dbRecipe, RecipeResultBean result, Map<String, String> extInfo){
+        Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
         if (RecipeStatusConstant.CHECK_PASS != dbRecipe.getStatus()
                 || 1 == dbRecipe.getChooseFlag()) {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("处方单已被处理");
             //判断是否已到院取药，查看 HisCallBackService *RecipesFromHis 方法处理
             if (Integer.valueOf(1).equals(dbRecipe.getPayFlag())) {
-                if (RecipeBussConstant.PAYMODE_TFDS.equals(dbRecipe.getPayMode())) {
+                if (RecipeBussConstant.PAYMODE_TO_HOS.equals(dbRecipe.getPayMode()) && RecipeBussConstant.PAYMODE_TFDS == payMode) {
                     result.setCode(2);
                     result.setMsg("您已到院自取药品，无法提交药店取药");
-                } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(dbRecipe.getPayMode())) {
+                } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(dbRecipe.getPayMode()) && RecipeBussConstant.PAYMODE_ONLINE == payMode) {
                     result.setCode(3);
                     result.setMsg("您已到院自取药品，无法进行配送");
+                } else if (RecipeBussConstant.PAYMODE_ONLINE.equals(dbRecipe.getPayMode())) {
+                    result.setCode(4);
+                    result.setMsg(dbRecipe.getOrderCode());
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 检查处方是否已被处理
+     * @param dbRecipe
+     * @param result
+     * @return true 已被处理
+     */
+    private boolean checkRecipeIsUser(Recipe dbRecipe, RecipeResultBean result){
+        if (RecipeStatusConstant.CHECK_PASS != dbRecipe.getStatus()
+                || 1 == dbRecipe.getChooseFlag()) {
+            result.setCode(RecipeResultBean.FAIL);
+            result.setMsg("处方单已被处理");
+            //判断是否已到院取药，查看 HisCallBackService *RecipesFromHis 方法处理
+            if (Integer.valueOf(1).equals(dbRecipe.getPayFlag())) {
+                if (RecipeBussConstant.PAYMODE_TO_HOS.equals(dbRecipe.getPayMode())) {
+                    result.setMsg("您已到院自取药品，无法选择其他购药方式");
                 }
             }
             return true;
@@ -290,4 +316,5 @@ public class PurchaseService {
     private boolean unLock(Integer recipeId) {
         return redisClient.setex(CacheConstant.KEY_RCP_BUSS_PURCHASE_LOCK + recipeId, 1L);
     }
+
 }
