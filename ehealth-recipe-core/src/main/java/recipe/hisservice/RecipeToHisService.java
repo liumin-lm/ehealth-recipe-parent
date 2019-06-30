@@ -326,10 +326,10 @@ public class RecipeToHisService {
      * @param request
      * @return
      */
-    public HisResponseTO docIndexToHis(DocIndexToHisReqTO request){
+    public HisResponseTO<DocIndexToHisResTO> docIndexToHis(DocIndexToHisReqTO request){
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("docIndexToHis request={}", JSONUtils.toString(request));
-        HisResponseTO response = null;
+        HisResponseTO<DocIndexToHisResTO> response = null;
         try {
             response = hisService.docIndexToHis(request);
             LOGGER.info("docIndexToHis response={}", JSONUtils.toString(response));
