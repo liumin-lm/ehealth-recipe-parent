@@ -138,7 +138,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         String sealData = null;
         for (Recipe recipe : recipeList) {
             req = new RegulationRecipeIndicatorsReq();
-            req.setBussID(LocalStringUtil.toString(recipe.getClinicId()));
 
             //机构处理
             organDTO = organMap.get(recipe.getClinicOrgan());
@@ -277,6 +276,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 consultId = consultIds.get(0);
             }
             if (consultId != null){
+                req.setBussID(consultId.toString());
                 ConsultBean consultBean = iConsultService.getById(consultId);
                 QuestionnaireBean questionnaire = iConsultService.getConsultQuestionnaireByConsultId(consultId);
                 if (consultBean != null){
