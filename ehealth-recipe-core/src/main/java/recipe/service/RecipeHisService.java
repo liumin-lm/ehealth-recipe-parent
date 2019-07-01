@@ -104,11 +104,10 @@ public class RecipeHisService extends RecipeBaseService {
                 if (hisResponseTO != null){
                     if ("200".equals(hisResponseTO.getMsgCode())){
                         //电子病历接口返回挂号序号
-                        DocIndexToHisResTO data = hisResponseTO.getData();
-                        if (data!=null){
-                            request.setRegisteredId(data.getRegisterId());
-                            request.setRegisterNo(data.getRegisterNo());
-                            request.setPatientId(data.getPatientId());
+                        if (hisResponseTO.getData()!=null){
+                            request.setRegisteredId(hisResponseTO.getData().getRegisterId());
+                            request.setRegisterNo(hisResponseTO.getData().getRegisterNo());
+                            request.setPatientId(hisResponseTO.getData().getPatientId());
                         }
                         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "推送电子病历成功");
                     }else {
