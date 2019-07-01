@@ -138,8 +138,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         String sealData = null;
         for (Recipe recipe : recipeList) {
             req = new RegulationRecipeIndicatorsReq();
-
-            /* req.setBussID(recipe.getRecipeId().toString());*/
+            req.setBussID(LocalStringUtil.toString(recipe.getClinicId()));
 
             //机构处理
             organDTO = organMap.get(recipe.getClinicOrgan());
