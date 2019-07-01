@@ -1138,8 +1138,23 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         validate(result , auditDrugListBean);
         AuditDrugList auditDrug = auditDrugListDAO.getByOrganizeCodeAndOrganDrugCode(auditDrugListBean.getOrganizeCode(), auditDrugListBean.getOrganDrugCode());
         if (auditDrug != null) {
-            LOGGER.info("该药品已经上传");
-            result.setMsg("该药品已经上传");
+            LOGGER.info("更新药品价格:[{}] [{}].", auditDrugListBean.getOrganDrugCode(), auditDrugListBean.getPrice());
+            //说明已经上传过该药品,为更新操作
+            try{
+                auditDrug.setPrice(auditDrugListBean.getPrice());
+                auditDrugListDAO.update(auditDrug);
+                //更新机构药品目录和配送药品目录的价格
+                OrganDrugList organDrugList = organDrugListDAO.get(auditDrug.getOrganDrugListId());
+                organDrugList.setSalePrice(BigDecimal.valueOf(auditDrugListBean.getPrice()));
+                organDrugListDAO.update(organDrugList);
+                SaleDrugList saleDrugList = saleDrugListDAO.get(auditDrug.getSaleDrugListId());
+                saleDrugList.setPrice(BigDecimal.valueOf(auditDrugListBean.getPrice()));
+                saleDrugListDAO.update(saleDrugList);
+                result.setCode(StandardResultDTO.SUCCESS);
+                result.setMsg("更新药品信息成功");
+            } catch (Exception e){
+                LOGGER.info("更新药品信息失败,{} {}.", auditDrugListBean.getOrganDrugCode(), e.getMessage());
+            }
             return result;
         }
         //包装药品数据
