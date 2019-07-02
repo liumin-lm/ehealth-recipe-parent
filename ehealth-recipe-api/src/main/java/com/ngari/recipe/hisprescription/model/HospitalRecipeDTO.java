@@ -49,6 +49,9 @@ public class HospitalRecipeDTO implements Serializable {
     @Verify(isNotNull = false, desc = "患者医院病历号")
     private String patientNumber;
 
+    @Verify(isNotNull = false, desc = "门诊号/挂号序号")
+    private String registerId;
+
     @Verify(desc = "性别", isInt = true)
     private String patientSex;
 
@@ -540,6 +543,14 @@ public class HospitalRecipeDTO implements Serializable {
 
     public void setDrugList(List<HospitalDrugDTO> drugList) {
         this.drugList = drugList;
+    }
+
+    public String getRegisterId() {
+        return registerId;
+    }
+
+    public void setRegisterId(String registerId) {
+        this.registerId = registerId;
     }
 
     public static HospitalRecipeDTO getTestObject(){

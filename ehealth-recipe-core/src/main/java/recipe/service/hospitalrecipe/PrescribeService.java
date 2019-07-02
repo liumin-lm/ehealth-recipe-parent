@@ -15,10 +15,7 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeCommonResTO;
 import com.ngari.recipe.common.utils.VerifyUtils;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -224,7 +221,6 @@ public class PrescribeService {
                     recipe.setMpiid(patient.getMpiId());
                 }
             }
-
             //设置其他参数
             PrescribeProcess.convertNgariRecipe(recipe, hospitalRecipeDTO);
 
@@ -252,12 +248,23 @@ public class PrescribeService {
                 recipe.setRecipeId(recipeId);
                 result.setData(recipe);
                 result.setCode(HosRecipeResult.SUCCESS);
+                //挂号序号/门诊号设置
+                if (StringUtils.isNotEmpty(hospitalRecipeDTO.getRegisterId())){
+                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+                    if (recipeExtend == null){
+                        recipeExtend = new RecipeExtend();
+                        recipeExtend.setRecipeId(recipeId);
+                        recipeExtend.setRegisterID(hospitalRecipeDTO.getRegisterId());
+                        recipeExtendDAO.saveRecipeExtend(recipeExtend);
+                    }else {
+                        recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("registerID", hospitalRecipeDTO.getRegisterId()));
+                    }
+                }
             } catch (Exception e) {
                 LOG.error("createPrescription 写入DB失败. recipe={}, detail={}", JSONUtils.toString(recipe),
                         JSONUtils.toString(details), e);
                 result.setMsg("写入DB失败");
             }
-
         } else {
             LOG.warn("createPrescription recipe is empty.");
             result.setMsg("处方对象为空");

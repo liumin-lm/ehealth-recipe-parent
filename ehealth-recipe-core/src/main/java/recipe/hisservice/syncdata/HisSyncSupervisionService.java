@@ -5,6 +5,7 @@ import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultBean;
+import com.ngari.consult.common.model.QuestionnaireBean;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.regulation.entity.RegulationRecipeAuditIndicatorsReq;
 import com.ngari.his.regulation.entity.RegulationRecipeCirculationIndicatorsReq;
@@ -138,8 +139,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         for (Recipe recipe : recipeList) {
             req = new RegulationRecipeIndicatorsReq();
 
-            /* req.setBussID(recipe.getRecipeId().toString());*/
-
             //机构处理
             organDTO = organMap.get(recipe.getClinicOrgan());
             if (null == organDTO) {
@@ -242,7 +241,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             }
 
             organDiseaseName = recipe.getOrganDiseaseName().replaceAll("；", "|");
-            /*req.setOriginalDiagnosis(organDiseaseName);*/
+            req.setOriginalDiagnosis(organDiseaseName);
             req.setPatientCardType(LocalStringUtil.toString(patientDTO.getCertificateType()));
             req.setPatientCertID(LocalStringUtil.toString(patientDTO.getCertificate()));
             req.setPatientName(patientDTO.getPatientName());
@@ -270,8 +269,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setTotalFee(recipe.getTotalMoney().doubleValue());
             req.setIsPay(recipe.getPayFlag().toString());
 
-            //过敏史标记 有无过敏史 0:无 1:有
-            req.setAllergyFlag("0");
             //主诉
             consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
                     recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
@@ -279,9 +276,23 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 consultId = consultIds.get(0);
             }
             if (consultId != null){
+                req.setBussID(consultId.toString());
                 ConsultBean consultBean = iConsultService.getById(consultId);
+                QuestionnaireBean questionnaire = iConsultService.getConsultQuestionnaireByConsultId(consultId);
                 if (consultBean != null){
                     req.setMainDieaseDescribe(consultBean.getLeaveMess());
+                    //咨询开始时间
+                    req.setConsultStartDate(consultBean.getStartDate());
+                }
+                if (questionnaire != null){
+                    //过敏史标记 有无过敏史 0:无 1:有
+                    req.setAllergyFlag(questionnaire.getAlleric().toString());
+                    //过敏史详情
+                    req.setAllergyInfo(questionnaire.getAllericMemo());
+                    //现病史
+                    req.setCurrentMedical(questionnaire.getDisease());
+                    //既往史
+                    req.setHistroyMedical(questionnaire.getDisease());
                 }
             }
             //门诊号处理
@@ -491,6 +502,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             if (drugList != null){
                 //药物剂型代码
                 reqDetail.setDosageForm(drugList.getDrugForm());
+                //厂商
+                reqDetail.setDrugManf(drugList.getProducer());
             }
             //药物使用总剂量
             reqDetail.setUseDosage("0");
