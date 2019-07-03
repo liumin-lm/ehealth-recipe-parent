@@ -31,16 +31,16 @@ public class HospitalRecipeDTO implements Serializable {
     @Verify(isNotNull = false, desc = "患者id")
     private String mpiId;
 
-    @Verify(desc = "患者证件类型")
+    @Verify(isNotNull = false,desc = "患者证件类型")
     private String certificateType;
 
-    @Verify(desc = "患者证件号")
+    @Verify(isNotNull = false,desc = "患者证件号")
     private String certificate;
 
-    @Verify(desc = "患者姓名")
+    @Verify(isNotNull = false,desc = "患者姓名")
     private String patientName;
 
-    @Verify(desc = "患者电话")
+    @Verify(isNotNull = false,desc = "患者电话")
     private String patientTel;
 
     @Verify(isNotNull = false, desc = "患者地址", maxLength = 100)
@@ -52,7 +52,7 @@ public class HospitalRecipeDTO implements Serializable {
     @Verify(isNotNull = false, desc = "门诊号/挂号序号")
     private String registerId;
 
-    @Verify(desc = "性别", isInt = true)
+    @Verify(isNotNull = false,desc = "性别", isInt = true)
     private String patientSex;
 
     @Verify(desc = "处方号")

@@ -214,7 +214,9 @@ public class PrescribeService {
                     LOG.warn("createPrescription 患者创建失败，doctorNumber={}, clinicOrgan={}",
                             hospitalRecipeDTO.getDoctorNumber(), clinicOrgan);
                     result.setMsg("患者创建失败");
-                    return result;
+                    if (StringUtils.isNotEmpty(hospitalRecipeDTO.getCertificate())){
+                        return result;
+                    }
                 } else {
                     recipe.setPatientName(patient.getPatientName());
                     recipe.setPatientStatus(1); //有效
