@@ -107,7 +107,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
             RecipeBean recipe = result.getData();
             recipeId = recipe.getRecipeId();
             //将流转处方推送给药企
-            drugsEnterpriseService.pushHosInteriorSupport(recipe.getRecipeId(),recipe.getClinicOrgan());
+            drugsEnterpriseService.pushHosTransferSupport(recipe.getRecipeId(),recipe.getClinicOrgan());
             String memo = "医院流转处方推送药企成功";
             //日志记录
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);

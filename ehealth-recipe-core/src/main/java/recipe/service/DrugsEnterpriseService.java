@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
 import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.serviceprovider.BaseService;
 
@@ -145,6 +146,27 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         //武昌需求处理，推送无库存的处方至医院补充库存药企
         DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         List<DrugsEnterprise> enterpriseList = enterpriseDAO.findByOrganIdAndHosInteriorSupport(organId);
+        if(CollectionUtils.isNotEmpty(enterpriseList)){
+            RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+            for (DrugsEnterprise dep : enterpriseList) {
+                service.pushSingleRecipeInfoWithDepId(recipeId, dep.getId());
+            }
+        }
+    }
+
+    /**
+     * 流转处方推送药企
+     * @param recipeId
+     * @param organId
+     */
+    @RpcService
+    public void pushHosTransferSupport(Integer recipeId, Integer organId){
+        //推送流转处方至医院指定取药药企
+        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(recipe.getPayMode());
+        List<DrugsEnterprise> enterpriseList = enterpriseDAO.findByOrganIdAndPayModeSupport(organId,payModeSupport);
         if(CollectionUtils.isNotEmpty(enterpriseList)){
             RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
             for (DrugsEnterprise dep : enterpriseList) {
