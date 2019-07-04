@@ -40,7 +40,7 @@ public class HospitalRecipeDTO implements Serializable {
     @Verify(isNotNull = false,desc = "患者姓名")
     private String patientName;
 
-    @Verify(isNotNull = false,desc = "患者电话")
+    @Verify(desc = "患者电话")
     private String patientTel;
 
     @Verify(isNotNull = false, desc = "患者地址", maxLength = 100)
