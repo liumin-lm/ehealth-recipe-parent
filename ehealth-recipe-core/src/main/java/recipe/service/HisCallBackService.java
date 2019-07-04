@@ -219,7 +219,7 @@ public class HisCallBackService {
             if(null != consultId){
                 try {
                     IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
-                    recipeOnLineConsultService.sendRecipeMsg(consultId,3);
+                    recipeOnLineConsultService.sendRecipeMsg(consultId,3,recipe.getRecipeMode());
                 } catch (Exception e) {
                     LOGGER.error("checkPassSuccess sendRecipeMsg error, type:3, consultId:{}, error:{}", consultId,e);
                 }

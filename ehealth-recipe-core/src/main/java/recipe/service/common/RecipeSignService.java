@@ -376,7 +376,7 @@ public class RecipeSignService {
         if(null != consultId){
             try {
                 IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
-                recipeOnLineConsultService.sendRecipeMsg(consultId,2);
+                recipeOnLineConsultService.sendRecipeMsg(consultId,2,recipeBean.getRecipeMode());
             } catch (Exception e){
                 LOG.error("doSignRecipeExt sendRecipeMsg error, type:2, consultId:{}, error:{}", consultId,e);
             }
