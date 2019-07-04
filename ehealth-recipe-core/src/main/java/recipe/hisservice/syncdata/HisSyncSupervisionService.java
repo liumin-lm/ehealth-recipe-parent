@@ -1,5 +1,7 @@
 package recipe.hisservice.syncdata;
 
+import com.ngari.base.cdr.model.OtherdocBean;
+import com.ngari.base.cdr.service.ICdrOtherdocService;
 import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
@@ -101,7 +103,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         SubCodeService subCodeService = BasicAPI.getService(SubCodeService.class);
         OrganService organService = BasicAPI.getService(OrganService.class);
         IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
 
@@ -135,7 +136,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         List<Integer> consultIds;
         RecipeExtend recipeExtend;
         RedisClient redisClient = RedisClient.instance();
-        String sealData = null;
+        String caSignature = null;
         for (Recipe recipe : recipeList) {
             req = new RegulationRecipeIndicatorsReq();
 
@@ -210,11 +211,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //设置医生电子签名
             if (doctorDTO.getESignId() != null){
                 try {
-                    sealData = redisClient.get(doctorDTO.getESignId());
+                    caSignature = redisClient.get(doctorDTO.getESignId()+"_signature");
                 }catch (Exception e){
-                    LOGGER.error("get doctorSign error. doctorId={}",doctorDTO.getDoctorId(), e);
+                    LOGGER.error("get caSignature error. doctorId={}",doctorDTO.getDoctorId(), e);
                 }
-                req.setDoctorSign(StringUtils.isNotEmpty(sealData)?sealData:"");
+                req.setDoctorSign(StringUtils.isNotEmpty(caSignature)?caSignature:"");
             }
             //药师处理
             if (recipe.getChecker() != null){
@@ -362,6 +363,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         Map<Integer, DoctorDTO> doctorMap = new HashMap<>(20);
         RegulationRecipeAuditIndicatorsReq req;
         DoctorDTO doctorDTO;
+        RedisClient redisClient = RedisClient.instance();
+        String caSignature = null;
         for (Recipe recipe : recipeList) {
             req = new RegulationRecipeAuditIndicatorsReq();
             req.setOrganId(recipe.getClinicOrgan());
@@ -378,6 +381,15 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 if (null == doctorDTO) {
                     LOGGER.warn("uploadRecipeIndicators checker is null. recipe.checker={}", recipe.getChecker());
                     continue;
+                }
+                //设置药师电子签名
+                if (doctorDTO.getESignId() != null){
+                    try {
+                        caSignature = redisClient.get(doctorDTO.getESignId()+"_signature");
+                    }catch (Exception e){
+                        LOGGER.error("get caSignature error. doctorId={}",doctorDTO.getDoctorId(), e);
+                    }
+                    req.setAuditDoctorSign(StringUtils.isNotEmpty(caSignature)?caSignature:"");
                 }
                 req.setAuditDoctorIdCard(doctorDTO.getIdNumber());
                 req.setAuditDoctorName(doctorDTO.getName());
