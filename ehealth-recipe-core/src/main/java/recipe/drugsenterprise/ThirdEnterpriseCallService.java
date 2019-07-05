@@ -1268,7 +1268,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     public StandardResultDTO upDownDrug(UpDownDrugBean upDownDrugBean) {
         StandardResultDTO result  = new StandardResultDTO();
         result.setCode(StandardResultDTO.FAIL);
-        LOGGER.info("上架或下架药品-upDownDrugBean info:{}.", upDownDrugBean);
+        LOGGER.info("上架或下架药品-upDownDrugBean info:{}.", JSONUtils.toString(upDownDrugBean));
         if (upDownDrugBean == null) {
             result.setMsg("药品信息不能为空");
             return result;

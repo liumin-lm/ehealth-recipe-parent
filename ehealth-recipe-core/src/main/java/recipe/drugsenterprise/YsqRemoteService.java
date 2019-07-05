@@ -92,7 +92,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             //为补充库存
             hosInteriorSupportFlag = false;
         }
-        List<Map<String, Object>> recipeInfoList = getYsqRecipeInfo(recipeIds, hosInteriorSupportFlag);
+        List<Map<String, Object>> recipeInfoList = getYsqRecipeInfo(recipeIds, hosInteriorSupportFlag, drugsEnterprise);
         if (recipeInfoList.isEmpty()) {
             result.setMsg("钥世圈推送处方数量为0");
             result.setCode(DrugEnterpriseResult.FAIL);
@@ -219,7 +219,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         Map<String, Object> sendInfo = new HashMap<>(1);
         //同时生成订单 0不生成 1生成
         sendInfo.put("EXEC_ORD", "0");
-        List<Map<String, Object>> recipeInfoList = getYsqRecipeInfo(recipeIds, false);
+        List<Map<String, Object>> recipeInfoList = getYsqRecipeInfo(recipeIds, false, drugsEnterprise);
         if (recipeInfoList.isEmpty()) {
             result.setMsg("生成处方数量为0");
             result.setCode(DrugEnterpriseResult.FAIL);
@@ -392,7 +392,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         }
     }
 
-    private List<Map<String, Object>> getYsqRecipeInfo(List<Integer> recipeIds, boolean sendRecipe) {
+    private List<Map<String, Object>> getYsqRecipeInfo(List<Integer> recipeIds, boolean sendRecipe, DrugsEnterprise drugsEnterprise) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
@@ -403,7 +403,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
         IOrganService iOrganService = ApplicationUtils.getBaseService(IOrganService.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         Recipe recipe;
         RecipeOrder order = null;
         PatientBean patient;
@@ -558,7 +558,11 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     }
 
                     if (!sendRecipe) {
-                        detailMap.put("GOODS", detail.getOrganDrugCode());
+                        SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
+                        LOGGER.info("YsqRemoteService-saleDrugList:[{}] [{}].", drugId, drugsEnterprise.getId());
+                        if (saleDrugList != null) {
+                            detailMap.put("GOODS", saleDrugList.getOrganDrugCode());
+                        }
                     } else {
                         detailMap.put("GOODS", drugId.toString());
                     }
