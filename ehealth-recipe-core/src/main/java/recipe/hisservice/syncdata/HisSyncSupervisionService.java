@@ -9,10 +9,9 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.model.QuestionnaireBean;
 import com.ngari.consult.common.service.IConsultService;
-import com.ngari.his.regulation.entity.RegulationRecipeAuditIndicatorsReq;
-import com.ngari.his.regulation.entity.RegulationRecipeCirculationIndicatorsReq;
-import com.ngari.his.regulation.entity.RegulationRecipeDetailIndicatorsReq;
-import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
+import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
+import com.ngari.his.recipe.mode.RecipeInfoTO;
+import com.ngari.his.regulation.entity.*;
 import com.ngari.his.regulation.service.IRegulationService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
@@ -48,6 +47,8 @@ import recipe.constant.RecipeSystemConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
+import recipe.service.RecipePreserveService;
+import recipe.service.RecipeService;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
@@ -103,6 +104,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         SubCodeService subCodeService = BasicAPI.getService(SubCodeService.class);
         OrganService organService = BasicAPI.getService(OrganService.class);
         IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
+        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
 
@@ -137,6 +139,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         RecipeExtend recipeExtend;
         RedisClient redisClient = RedisClient.instance();
         String caSignature = null;
+        FirstVisitRecord firstVisitRecord;
+        QueryRecipeResponseTO hosRecipeListInfo;
+        RecipeInfoTO recipeInfoTO;
         for (Recipe recipe : recipeList) {
             req = new RegulationRecipeIndicatorsReq();
 
@@ -255,8 +260,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setRecipeID(recipe.getRecipeId().toString());
             //处方唯一编号
             req.setRecipeUniqueID(recipe.getRecipeCode());
-           /* //互联网医院处方都是经过合理用药审查
-            req.setRationalFlag("0");*/
+            //互联网医院处方都是经过合理用药审查
+            req.setRationalFlag("0");
 
             req.setIcdCode(recipe.getOrganDiseaseId().replaceAll("；", "|"));
             req.setIcdName(organDiseaseName);
@@ -294,6 +299,19 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     req.setCurrentMedical(questionnaire.getDisease());
                     //既往史
                     req.setHistroyMedical(questionnaire.getDisease());
+                }
+            }
+            hosRecipeListInfo = recipeService.getHosRecipeListInfoByMpiId(recipe.getClinicOrgan(), recipe.getMpiid());
+            if (hosRecipeListInfo != null){
+                recipeInfoTO = hosRecipeListInfo.getData().get(0);
+                if (recipeInfoTO != null){
+                    //首诊记录
+                    firstVisitRecord = new FirstVisitRecord();
+                    //首诊门诊号
+                    firstVisitRecord.setPatientNumber(recipeInfoTO.getRegisteredId());
+                    //初诊就诊时间
+                    firstVisitRecord.setVisitDatetime(DateConversion.getCurrentDate(recipeInfoTO.getSignTime(),"yyyyMMddHHmmss"));
+                    req.setFirstVisitRecord(firstVisitRecord);
                 }
             }
             //门诊号处理
