@@ -454,7 +454,7 @@ public class RecipeService {
         if (null == recipe) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单不存在或者已删除");
         }
-        if (null == recipe.getStatus() || recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
+        if (null == recipe.getStatus() || recipe.getStatus() == RecipeStatusConstant.CHECK_PASS_YS) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方已被审核");
         }
 
