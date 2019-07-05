@@ -499,7 +499,9 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
             if (recipeExtend != null) {
                 String cardNo = recipeExtend.getCardNo();
-                recipeMap.put("ONECARDSOLUTION", cardNo);
+                if (StringUtils.isNotEmpty(cardNo)) {
+                    recipeMap.put("ONECARDSOLUTION", cardNo);
+                }
             }
             //周岁处理
             Date birthday = patient.getBirthday();
