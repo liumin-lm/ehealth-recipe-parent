@@ -7,7 +7,12 @@ import com.google.common.collect.Maps;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.patient.dto.EmploymentDTO;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.EmploymentService;
 import com.ngari.recipe.entity.OrganDrugList;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.DAOFactory;
 import ctd.spring.AppDomainContext;
@@ -16,13 +21,17 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.service.HisCallBackService;
+import recipe.service.RecipeCheckService;
 import recipe.service.RecipeLogService;
+import recipe.service.RecipeService;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -110,6 +119,9 @@ public class RecipeToHisService {
         LOGGER.info("listQuery request={}", JSONUtils.toString(request));
         try {
             RecipeListQueryResTO response = hisService.listQuery(request);
+            EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
+            RecipeCheckService recipeCheckService = ApplicationUtils.getRecipeService(RecipeCheckService.class);
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             LOGGER.info("listQuery response={}", JSONUtils.toString(response));
             if (null == response || null == response.getMsgCode()) {
                 return;
@@ -118,6 +130,10 @@ public class RecipeToHisService {
             List<String> payList = new ArrayList<>();
             List<String> finishList = new ArrayList<>();
             Integer organId = Integer.valueOf(response.getOrganID());
+            Recipe recipe;
+            Map<String, EmploymentDTO> employmentMap = Maps.newHashMap();
+            EmploymentDTO employmentDTO;
+            Map<String,Object> checkParam = Maps.newHashMap();
 
             for (QueryRepTO rep : list) {
                 Integer isPay = Integer.valueOf(rep.getIsPay());
@@ -131,6 +147,35 @@ public class RecipeToHisService {
                     //有效的处方单已支付 已发药 为已完成状态
                     if (isPay == 1 && phStatus == 1) {
                         finishList.add(rep.getRecipeNo());
+                    }
+                    //连云港二院处理
+                    if (StringUtils.isNotEmpty(rep.getAuditDoctorNo())){
+                        recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(rep.getRecipeNo(), organId);
+                        if (recipe != null && recipe.getChecker() == null){
+                            //审核医生信息处理
+                            employmentDTO = employmentMap.get(rep.getRecipeNo()+organId);
+                            if (null == employmentDTO) {
+                                employmentDTO = employmentService.getByJobNumberAndOrganId(
+                                        rep.getAuditDoctorNo(), organId);
+                                employmentMap.put(rep.getRecipeNo()+organId, employmentDTO);
+                            }
+                            if (null != employmentDTO) {
+                                recipe.setChecker(employmentDTO.getDoctorId());
+                                recipeDAO.update(recipe);
+                                //生成药师电子签名
+                                checkParam.put("recipeId",recipe.getRecipeId());
+                                //审核成功
+                                checkParam.put("result",1);
+                                checkParam.put("checkOrgan",organId);
+                                checkParam.put("checker",recipe.getChecker());
+                                recipeCheckService.saveCheckResult(checkParam);
+                                LOGGER.info("线下审方生成线上药师电子签名--end");
+                            } else {
+                                LOGGER.warn("listQuery 审核医生[{}]在平台没有执业点", rep.getAuditDoctorName());
+                            }
+                        }else {
+                            LOGGER.warn("listQuery 查询不到处方单,organId={},recipeCode={}",organId,rep.getRecipeNo());
+                        }
                     }
                 }
             }
