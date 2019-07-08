@@ -288,7 +288,4 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     List<String> findSignFileIdByPatientId(String patientId);
-
-    @RpcService
-    RecipeBean getByRecipeCodeAndClinicOrgan(String recipeCode,Integer clinicOrgan);
 }
