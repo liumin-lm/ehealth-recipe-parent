@@ -128,6 +128,10 @@ public class RecipeBussConstant {
      * 流转模式-浙江省互联网医院平台
      */
     public static String RECIPEMODE_ZJJGPT = "zjjgpt";
+    /**
+     * 流转模式-江苏省互联网医院平台
+     */
+    public static String RECIPEMODE_JSJGPT = "jssjgpt";
 
     
 }
