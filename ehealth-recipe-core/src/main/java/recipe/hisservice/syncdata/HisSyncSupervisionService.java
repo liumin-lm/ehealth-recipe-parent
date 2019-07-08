@@ -1,5 +1,7 @@
 package recipe.hisservice.syncdata;
 
+import com.ngari.base.cdr.model.OtherdocBean;
+import com.ngari.base.cdr.service.ICdrOtherdocService;
 import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
@@ -7,10 +9,9 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.model.QuestionnaireBean;
 import com.ngari.consult.common.service.IConsultService;
-import com.ngari.his.regulation.entity.RegulationRecipeAuditIndicatorsReq;
-import com.ngari.his.regulation.entity.RegulationRecipeCirculationIndicatorsReq;
-import com.ngari.his.regulation.entity.RegulationRecipeDetailIndicatorsReq;
-import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
+import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
+import com.ngari.his.recipe.mode.RecipeInfoTO;
+import com.ngari.his.regulation.entity.*;
 import com.ngari.his.regulation.service.IRegulationService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
@@ -46,6 +47,8 @@ import recipe.constant.RecipeSystemConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
+import recipe.service.RecipePreserveService;
+import recipe.service.RecipeService;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
@@ -101,7 +104,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         SubCodeService subCodeService = BasicAPI.getService(SubCodeService.class);
         OrganService organService = BasicAPI.getService(OrganService.class);
         IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-
+        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
 
@@ -135,7 +138,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         List<Integer> consultIds;
         RecipeExtend recipeExtend;
         RedisClient redisClient = RedisClient.instance();
-        String sealData = null;
+        String caSignature = null;
+        FirstVisitRecord firstVisitRecord;
+        QueryRecipeResponseTO hosRecipeListInfo;
+        RecipeInfoTO recipeInfoTO;
         for (Recipe recipe : recipeList) {
             req = new RegulationRecipeIndicatorsReq();
 
@@ -210,11 +216,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //设置医生电子签名
             if (doctorDTO.getESignId() != null){
                 try {
-                    sealData = redisClient.get(doctorDTO.getESignId());
+                    caSignature = redisClient.get(doctorDTO.getESignId()+"_signature");
                 }catch (Exception e){
-                    LOGGER.error("get doctorSign error. doctorId={}",doctorDTO.getDoctorId(), e);
+                    LOGGER.error("get caSignature error. doctorId={}",doctorDTO.getDoctorId(), e);
                 }
-                req.setDoctorSign(StringUtils.isNotEmpty(sealData)?sealData:"");
+                req.setDoctorSign(StringUtils.isNotEmpty(caSignature)?caSignature:"");
             }
             //药师处理
             if (recipe.getChecker() != null){
@@ -254,8 +260,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setRecipeID(recipe.getRecipeId().toString());
             //处方唯一编号
             req.setRecipeUniqueID(recipe.getRecipeCode());
-           /* //互联网医院处方都是经过合理用药审查
-            req.setRationalFlag("0");*/
+            //互联网医院处方都是经过合理用药审查
+            req.setRationalFlag("0");
 
             req.setIcdCode(recipe.getOrganDiseaseId().replaceAll("；", "|"));
             req.setIcdName(organDiseaseName);
@@ -293,6 +299,21 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     req.setCurrentMedical(questionnaire.getDisease());
                     //既往史
                     req.setHistroyMedical(questionnaire.getDisease());
+                }
+            }
+            hosRecipeListInfo = recipeService.getHosRecipeListInfoByMpiId(recipe.getClinicOrgan(), recipe.getMpiid());
+            if (hosRecipeListInfo != null){
+                if (CollectionUtils.isNotEmpty(hosRecipeListInfo.getData())){
+                    recipeInfoTO = hosRecipeListInfo.getData().get(0);
+                    if (recipeInfoTO != null){
+                        //首诊记录
+                        firstVisitRecord = new FirstVisitRecord();
+                        //首诊门诊号
+                        firstVisitRecord.setPatientNumber(recipeInfoTO.getRegisteredId());
+                        //初诊就诊时间
+                        firstVisitRecord.setVisitDatetime(DateConversion.getCurrentDate(recipeInfoTO.getSignTime(),"yyyyMMddHHmmss"));
+                        req.setFirstVisitRecord(firstVisitRecord);
+                    }
                 }
             }
             //门诊号处理
@@ -362,6 +383,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         Map<Integer, DoctorDTO> doctorMap = new HashMap<>(20);
         RegulationRecipeAuditIndicatorsReq req;
         DoctorDTO doctorDTO;
+        RedisClient redisClient = RedisClient.instance();
+        String caSignature = null;
         for (Recipe recipe : recipeList) {
             req = new RegulationRecipeAuditIndicatorsReq();
             req.setOrganId(recipe.getClinicOrgan());
@@ -378,6 +401,15 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 if (null == doctorDTO) {
                     LOGGER.warn("uploadRecipeIndicators checker is null. recipe.checker={}", recipe.getChecker());
                     continue;
+                }
+                //设置药师电子签名
+                if (doctorDTO.getESignId() != null){
+                    try {
+                        caSignature = redisClient.get(doctorDTO.getESignId()+"_signature");
+                    }catch (Exception e){
+                        LOGGER.error("get caSignature error. doctorId={}",doctorDTO.getDoctorId(), e);
+                    }
+                    req.setAuditDoctorSign(StringUtils.isNotEmpty(caSignature)?caSignature:"");
                 }
                 req.setAuditDoctorIdCard(doctorDTO.getIdNumber());
                 req.setAuditDoctorName(doctorDTO.getName());
