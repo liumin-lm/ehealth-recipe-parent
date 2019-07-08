@@ -507,6 +507,9 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             Date birthday = patient.getBirthday();
             if (null != birthday) {
                 recipeMap.put("AGE", Integer.toString(DateConversion.getAge(birthday)));
+            } else {
+                //有些医院不提供身份证号,年龄提供默认值
+                recipeMap.put("AGE", 25);
             }
             //身份信息使用原始身份证号，暂定空
             recipeMap.put("IDENTIFICATION", "");
