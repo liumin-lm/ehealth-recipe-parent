@@ -303,15 +303,17 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             }
             hosRecipeListInfo = recipeService.getHosRecipeListInfoByMpiId(recipe.getClinicOrgan(), recipe.getMpiid());
             if (hosRecipeListInfo != null){
-                recipeInfoTO = hosRecipeListInfo.getData().get(0);
-                if (recipeInfoTO != null){
-                    //首诊记录
-                    firstVisitRecord = new FirstVisitRecord();
-                    //首诊门诊号
-                    firstVisitRecord.setPatientNumber(recipeInfoTO.getRegisteredId());
-                    //初诊就诊时间
-                    firstVisitRecord.setVisitDatetime(DateConversion.getCurrentDate(recipeInfoTO.getSignTime(),"yyyyMMddHHmmss"));
-                    req.setFirstVisitRecord(firstVisitRecord);
+                if (CollectionUtils.isNotEmpty(hosRecipeListInfo.getData())){
+                    recipeInfoTO = hosRecipeListInfo.getData().get(0);
+                    if (recipeInfoTO != null){
+                        //首诊记录
+                        firstVisitRecord = new FirstVisitRecord();
+                        //首诊门诊号
+                        firstVisitRecord.setPatientNumber(recipeInfoTO.getRegisteredId());
+                        //初诊就诊时间
+                        firstVisitRecord.setVisitDatetime(DateConversion.getCurrentDate(recipeInfoTO.getSignTime(),"yyyyMMddHHmmss"));
+                        req.setFirstVisitRecord(firstVisitRecord);
+                    }
                 }
             }
             //门诊号处理
