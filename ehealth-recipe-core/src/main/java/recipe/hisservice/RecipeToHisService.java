@@ -174,7 +174,7 @@ public class RecipeToHisService {
                                 LOGGER.warn("listQuery 审核医生[{}]在平台没有执业点", rep.getAuditDoctorName());
                             }
                         }else {
-                            LOGGER.warn("listQuery 查询不到处方单,organId={},recipeCode={}",organId,rep.getRecipeNo());
+                            LOGGER.warn("listQuery 查询不到未审核处方单,organId={},recipeCode={}",organId,rep.getRecipeNo());
                         }
                     }
                 }
