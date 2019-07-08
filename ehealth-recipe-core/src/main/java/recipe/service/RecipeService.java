@@ -13,10 +13,18 @@ import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.model.DocIndexBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.payment.service.IPaymentService;
-import com.ngari.his.recipe.mode.DrugInfoTO;
+import com.ngari.consult.ConsultAPI;
+import com.ngari.consult.ConsultBean;
+import com.ngari.consult.common.model.ConsultExDTO;
+import com.ngari.consult.common.service.IConsultExService;
+import com.ngari.consult.common.service.IConsultService;
+import com.ngari.his.base.PatientBaseInfo;
+import com.ngari.his.recipe.mode.*;
+import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.dto.ConsultSetDTO;
+import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -30,6 +38,7 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
@@ -75,6 +84,7 @@ import java.math.BigDecimal;
 import java.util.*;
 
 import static ctd.persistence.DAOFactory.getDAO;
+import static recipe.service.RecipeServiceSub.convertPatientForRAP;
 
 /**
  * 处方服务类
@@ -444,7 +454,7 @@ public class RecipeService {
         if (null == recipe) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单不存在或者已删除");
         }
-        if (null == recipe.getStatus() || recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
+        if (null == recipe.getStatus() || recipe.getStatus() == RecipeStatusConstant.CHECK_PASS_YS) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方已被审核");
         }
 
@@ -2172,5 +2182,44 @@ public class RecipeService {
     public Map<String,Object> getHosRecipeList(Integer consultId,Integer organId,String mpiId) {
         RecipePreserveService preserveService = ApplicationUtils.getRecipeService(RecipePreserveService.class);
         return preserveService.getHosRecipeList(consultId,organId,mpiId);
+    }
+
+    @RpcService
+    public QueryRecipeResponseTO getHosRecipeListInfoByMpiId(Integer organId,String mpiId){
+        LOGGER.info("getHosRecipeListInfoByMpiId  organId={},mpiId={}", organId,mpiId);
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        PatientDTO patientDTO = patientService.get(mpiId);
+        if (patientDTO == null){
+            LOGGER.error("找不到该患者");
+            return null;
+        }
+        OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+        OrganDTO organDTO = organService.getByOrganId(organId);
+        if (organDTO == null){
+            LOGGER.error("找不到该机构");
+            return null;
+        }
+        Date endDate = DateTime.now().toDate();
+        Date startDate = DateConversion.getDateTimeDaysAgo(180);
+
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        QueryRecipeRequestTO request = new QueryRecipeRequestTO();
+        PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
+        patientBaseInfo.setPatientName(patientDTO.getPatientName());
+        patientBaseInfo.setCertificate(patientDTO.getCertificate());
+        patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
+        request.setPatientInfo(patientBaseInfo);
+        request.setStartDate(startDate);
+        request.setEndDate(endDate);
+        request.setOrgan(organId);
+        LOGGER.info("getHosRecipeList request={}", JSONUtils.toString(request));
+        QueryRecipeResponseTO response = null;
+        try {
+            response = hisService.queryRecipeListInfo(request);
+        } catch (Exception e) {
+            LOGGER.warn("getHosRecipeList his error. ", e);
+        }
+        LOGGER.info("getHosRecipeListInfoByMpiId msgCode={}, msg={},data={}", response.getMsgCode(), response.getMsg(),response.getData());
+        return response;
     }
 }
