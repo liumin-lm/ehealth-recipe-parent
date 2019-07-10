@@ -5,12 +5,11 @@
        			http://www.ngarihealth.com/schema/ssdev http://www.ngarihealth.com/schema/ssdev/ssdev.xsd">
 
     <!-- service register center -->
-    <ssdev:applicationDomain name="eh" registryAddress="${zk}" serverId="recipe" region="recipe-syp"/>
+    <ssdev:applicationDomain name="eh" registryAddress="${zk}" serverId="recipe"/>
     <ssdev:connector url="${url}">
         <ssdev:filter id="json"/>
         <ssdev:filter id="urt"/>
     </ssdev:connector>
-    <ssdev:mvcServer port="8899"/>
     <!-- pub/sub -->
     <ssdev:publisher id="publisher"/>
 
