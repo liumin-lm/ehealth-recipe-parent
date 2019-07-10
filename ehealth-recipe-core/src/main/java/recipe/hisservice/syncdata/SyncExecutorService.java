@@ -94,10 +94,10 @@ public class SyncExecutorService {
             LOGGER.warn("uploadRecipeIndicators openapi exception recipe={}", JSONUtils.toString(recipe), e);
         }*/
 
-        //上传hisApi方式
+       /* //上传hisApi方式
         HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
         try {
-            response = hisSyncService.uploadRecipeIndicators(Arrays.asList(recipe));
+            response = hisSyncService.uploadRecipeIndi cators(Arrays.asList(recipe));
             if (CommonConstant.SUCCESS.equals(response.getCode())) {
                 RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
                 //更新字段
@@ -115,7 +115,7 @@ public class SyncExecutorService {
         } catch (Exception e) {
             LOGGER.warn("uploadRecipeIndicators openapi exception recipe={}", JSONUtils.toString(recipe), e);
         }
-
+*/
 
     }
 
@@ -165,7 +165,7 @@ public class SyncExecutorService {
             LOGGER.warn("uploadRecipeVerificationIndicators openapi exception recipe={}", JSONUtils.toString(recipe), e);
         }*/
         //上传hisApi方式
-        HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+        /*HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
         try {
             response = hisSyncService.uploadRecipeVerificationIndicators(Arrays.asList(recipe));
             if (CommonConstant.SUCCESS.equals(response.getCode())){
@@ -180,7 +180,7 @@ public class SyncExecutorService {
             }
         } catch (Exception e) {
             LOGGER.warn("uploadRecipeVerificationIndicators openapi exception recipe={}", JSONUtils.toString(recipe), e);
-        }
+        }*/
 
     }
 

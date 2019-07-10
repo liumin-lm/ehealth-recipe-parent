@@ -1006,6 +1006,9 @@ public class RecipeService {
                 RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipeId), null, true);
                 //向患者推送处方消息
                 RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS);
+                //同步到互联网监管平台
+                SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
+                syncExecutorService.uploadRecipeIndicators(recipe);
             } else {
                 if (recipe.canMedicalPay()) {
                     //如果是可医保支付的单子，审核通过之后是变为待处理状态，需要用户支付完成才发往药企
@@ -1062,12 +1065,8 @@ public class RecipeService {
 
             orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("status", status), resultBean);
         }
-        if (!RecipeBussConstant.RECIPEMODE_JSJGPT.equals(recipeMode)) {
-            //同步到监管平台
-            SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
-            syncExecutorService.uploadRecipeIndicators(recipe);
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核通过处理完成");
-        }
+
+        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核通过处理完成");
         return resultBean;
     }
 
@@ -1088,6 +1087,9 @@ public class RecipeService {
         String recipeMode = recipe.getRecipeMode();
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
             RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.CHECK_NOT_PASSYS_PAYONLINE);
+            //同步到互联网监管平台
+            SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
+            syncExecutorService.uploadRecipeIndicators(recipe);
         } else {
             //根据付款方式提示不同消息
             if (RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) && PayConstant.PAY_FLAG_PAY_SUCCESS == recipe.getPayFlag()) {
@@ -1113,13 +1115,7 @@ public class RecipeService {
         //HIS消息发送
         //审核不通过 往his更新状态（已取消）
         hisService.recipeStatusUpdate(recipe.getRecipeId());
-        if (!RecipeBussConstant.RECIPEMODE_JSJGPT.equals(recipeMode)) {
-            //同步到监管平台
-            SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
-            syncExecutorService.uploadRecipeIndicators(recipe);
-
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核不通过处理完成");
-        }
+        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核不通过处理完成");
     }
 
     /**
