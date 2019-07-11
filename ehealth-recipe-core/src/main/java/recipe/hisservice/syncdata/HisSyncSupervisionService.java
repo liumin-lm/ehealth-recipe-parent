@@ -139,9 +139,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         RecipeExtend recipeExtend;
         RedisClient redisClient = RedisClient.instance();
         String caSignature = null;
-        FirstVisitRecord firstVisitRecord;
-        QueryRecipeResponseTO hosRecipeListInfo;
-        RecipeInfoTO recipeInfoTO;
         for (Recipe recipe : recipeList) {
             req = new RegulationRecipeIndicatorsReq();
 
@@ -266,7 +263,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setIcdCode(recipe.getOrganDiseaseId().replaceAll("；", "|"));
             req.setIcdName(organDiseaseName);
             req.setRecipeType(recipe.getRecipeType().toString());
-            /*req.setPacketsNum(recipe.getCopyNum());*/
+            req.setPacketsNum(recipe.getCopyNum());
             req.setDatein(recipe.getSignDate());
             req.setEffectivePeriod(recipe.getValueDays());
             req.setStartDate(recipe.getSignDate());
@@ -299,21 +296,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     req.setCurrentMedical(questionnaire.getDisease());
                     //既往史
                     req.setHistroyMedical(questionnaire.getDisease());
-                }
-            }
-            hosRecipeListInfo = recipeService.getHosRecipeListInfoByMpiId(recipe.getClinicOrgan(), recipe.getMpiid());
-            if (hosRecipeListInfo != null){
-                if (CollectionUtils.isNotEmpty(hosRecipeListInfo.getData())){
-                    recipeInfoTO = hosRecipeListInfo.getData().get(0);
-                    if (recipeInfoTO != null){
-                        //首诊记录
-                        firstVisitRecord = new FirstVisitRecord();
-                        //首诊门诊号
-                        firstVisitRecord.setPatientNumber(recipeInfoTO.getRegisteredId());
-                        //初诊就诊时间
-                        firstVisitRecord.setVisitDatetime(DateConversion.getCurrentDate(recipeInfoTO.getSignTime(),"yyyyMMddHHmmss"));
-                        req.setFirstVisitRecord(firstVisitRecord);
-                    }
                 }
             }
             //门诊号处理
