@@ -43,7 +43,7 @@ public abstract class PharmacyDAO extends HibernateSupportDelegateDAO<Pharmacy> 
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
                 hql.append("select * from cdr_pharmacy cp where cp.drugsenterpriseId = :enterpriseId and " +
-                        "round(6378.138*2*asin(sqrt(pow(sin( (cp.latitude*pi()/180 - :latitude*pi()/180)/2),2)+cos(cp.latitude*pi()/180)*cos(:latitude*pi()/180)* pow(sin( (cp.longitude*pi()/180 - :longitude*pi()/180)/2),2)))*1000) <= :range");
+                        "round(6378.138*2*asin(sqrt(pow(sin( (cp.latitude*pi()/180 - :latitude*pi()/180)/2),2)+cos(cp.latitude*pi()/180)*cos(:latitude*pi()/180)* pow(sin( (cp.longitude*pi()/180 - :longitude*pi()/180)/2),2)))) <= :range");
                 Query q = ss.createSQLQuery(hql.toString());
                 q.setParameter("latitude", latitude);
                 q.setParameter("enterpriseId", id);

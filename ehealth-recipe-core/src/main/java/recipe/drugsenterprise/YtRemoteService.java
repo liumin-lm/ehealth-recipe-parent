@@ -6,6 +6,7 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
+import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.filedownload.service.IFileDownloadService;
 import ctd.persistence.DAOFactory;
@@ -34,6 +35,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
 import recipe.service.RecipeOrderService;
 import recipe.service.common.RecipeCacheService;
+import recipe.util.DistanceUtil;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -270,6 +272,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         }
         OrganDTO organ = organService.getByOrganId(nowRecipe.getClinicOrgan());
         if(null != organ){
+            //这里保存的医院的社保编码
             sendYtRecipe.setHospitalCode(organ.getOrganizeCode());
         }else{
             LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{},对应的开处方机构不存在.", nowRecipe.getRecipeId());
@@ -719,7 +722,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
         List<Pharmacy> pharmacyList;
         if (ext != null && null != ext.get("RANGE") && null != ext.get("longitude") && null != ext.get("longitude")) {
-            pharmacyList = pharmacyDAO.findByDrugsenterpriseIdAndRangeAndLongitudeAndLatitude(enterprise.getId(), ext.get("RANGE"), Double.parseDouble(ext.get("longitude").toString()), Double.parseDouble(ext.get("latitude").toString()));
+            pharmacyList = pharmacyDAO.findByDrugsenterpriseIdAndRangeAndLongitudeAndLatitude(enterprise.getId(), Double.parseDouble(ext.get("RANGE").toString()), Double.parseDouble(ext.get("longitude").toString()), Double.parseDouble(ext.get("latitude").toString()));
         }else{
             LOGGER.warn("YtRemoteService.findSupportDep:请求的搜索参数不健全" );
             getFailResult(result, "请求的搜索参数不健全");
@@ -764,14 +767,28 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         //数据封装成页面展示数据
         List<DepDetailBean> pharmacyDetailPage = new ArrayList<>();
         SaleDrugList checkSaleDrug = null;
-        pharmacyList.forEach(pharmacyMsg -> {
+        Position position;
+        for (Pharmacy pharmacyMsg : pharmacyList) {
             DepDetailBean newDepDetailBean = new DepDetailBean();
             pharmacyDetailPage.add(newDepDetailBean);
             newDepDetailBean.setDepId(depId);
             newDepDetailBean.setDepName(depName);
             //根据药店信息获取上面跌加出的总价格
             newDepDetailBean.setRecipeFee(feeSumByPharmacyIdMap.get(pharmacyMsg.getPharmacyId()));
-        });
+            newDepDetailBean.setSendMethod("1");
+            newDepDetailBean.setSendMethod("0");
+            newDepDetailBean.setPharmacyCode(pharmacyMsg.getPharmacyCode());
+            newDepDetailBean.setAddress(pharmacyMsg.getPharmacyAddress());
+            position = new Position();
+            position.setLatitude(Double.parseDouble(pharmacyMsg.getPharmacyLatitude()));
+            position.setLongitude(Double.parseDouble(pharmacyMsg.getPharmacyLongitude()));
+            position.setRange(Integer.parseInt(ext.get("RANGE").toString()));
+            newDepDetailBean.setPosition(position);
+            newDepDetailBean.setBelongDepName(enterprise.getName());
+            newDepDetailBean.setDistance(DistanceUtil.getDistance(Double.parseDouble(ext.get("longitude").toString()),
+                    Double.parseDouble(ext.get("latitude").toString()), Double.parseDouble(pharmacyMsg.getPharmacyLatitude()), Double.parseDouble(pharmacyMsg.getPharmacyLongitude())));
+        }
+        result.setObject(pharmacyDetailPage);
         return result;
     }
 
