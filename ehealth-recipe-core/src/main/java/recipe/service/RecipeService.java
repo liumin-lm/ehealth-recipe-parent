@@ -2184,7 +2184,7 @@ public class RecipeService {
         return preserveService.getHosRecipeList(consultId,organId,mpiId);
     }
 
-    @RpcService
+    /*@RpcService
     public QueryRecipeResponseTO getHosRecipeListInfoByMpiId(Integer organId,String mpiId){
         LOGGER.info("getHosRecipeListInfoByMpiId  organId={},mpiId={}", organId,mpiId);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
@@ -2219,7 +2219,7 @@ public class RecipeService {
         } catch (Exception e) {
             LOGGER.warn("getHosRecipeList his error. ", e);
         }
-        LOGGER.info("getHosRecipeListInfoByMpiId msgCode={}, msg={},data={}", response.getMsgCode(), response.getMsg(),response.getData());
+        LOGGER.info("getHosRecipeListInfoByMpiId  response={}", JSONUtils.toString(response));
         return response;
-    }
+    }*/
 }
