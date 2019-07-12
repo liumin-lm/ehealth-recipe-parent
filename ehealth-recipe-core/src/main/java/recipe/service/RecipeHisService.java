@@ -100,12 +100,15 @@ public class RecipeHisService extends RecipeBaseService {
                 request = HisRequestInit.initRecipeSendRequestTOForWuChang(recipe, details, patientBean, cardBean);
                 //发送电子病历
                 DocIndexToHisReqTO docIndexToHisReqTO = HisRequestInit.initDocIndexToHisReqTO(recipe);
-                HisResponseTO hisResponseTO = service.docIndexToHis(docIndexToHisReqTO);
+                HisResponseTO<DocIndexToHisResTO> hisResponseTO = service.docIndexToHis(docIndexToHisReqTO);
                 if (hisResponseTO != null){
                     if ("200".equals(hisResponseTO.getMsgCode())){
                         //电子病历接口返回挂号序号
-                        String data = (String)hisResponseTO.getData();
-                        request.setRegisteredId(data);
+                        if (hisResponseTO.getData()!=null){
+                            request.setRegisteredId(hisResponseTO.getData().getRegisterId());
+                            request.setRegisterNo(hisResponseTO.getData().getRegisterNo());
+                            request.setPatientId(hisResponseTO.getData().getPatientId());
+                        }
                         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "推送电子病历成功");
                     }else {
                         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "推送电子病历失败。原因："+hisResponseTO.getMsg());
