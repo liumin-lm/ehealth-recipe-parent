@@ -44,6 +44,8 @@
 	<!--测试药企-->
 	<bean id="testRemoteService" class="recipe.drugsenterprise.TestRemoteService"></bean>
 
+	<bean id="ytRemoteService" class="recipe.drugsenterprise.YtRemoteService"></bean>
+
 	<!-- 处方对接HIS服务 -->
 	<bean id="recipeToHisService" class="recipe.hisservice.RecipeToHisService"></bean>
 

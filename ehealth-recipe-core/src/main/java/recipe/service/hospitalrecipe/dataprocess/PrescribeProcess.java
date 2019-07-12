@@ -8,7 +8,6 @@ import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.hisprescription.model.HosRecipeResult;
 import com.ngari.recipe.hisprescription.model.HospitalDrugDTO;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -28,7 +27,6 @@ import recipe.constant.RecipeSystemConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.service.hospitalrecipe.PrescribeService;
 import recipe.util.DateConversion;
 
 import javax.annotation.Nullable;
