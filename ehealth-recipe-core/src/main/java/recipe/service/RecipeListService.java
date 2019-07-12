@@ -58,7 +58,7 @@ import static recipe.service.RecipeServiceSub.convertRecipeForRAP;
  * @date:2017/2/13.
  */
 @RpcBean("recipeListService")
-public class RecipeListService {
+public class RecipeListService extends RecipeBaseService{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeListService.class);
 
@@ -466,6 +466,7 @@ public class RecipeListService {
      */
     @RpcService
     public List<Map<String, Object>> findRecipeListByDoctorAndPatient(Integer doctorId, String mpiId, int start, int limit) {
+        checkUserHasPermissionByDoctorId(doctorId);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
