@@ -35,14 +35,14 @@ public abstract class PharmacyDAO extends HibernateSupportDelegateDAO<Pharmacy> 
       * @return
       */
     @DAOMethod
-    public abstract List<Pharmacy> findByDrugsenterpriseId(int drugsenterpriseId);
+    public abstract List<Pharmacy> findByDrugsenterpriseIdAndStatus(int drugsenterpriseId, int status);
 
-    public List<Pharmacy> findByDrugsenterpriseIdAndRangeAndLongitudeAndLatitude(final Integer id, final Object range, final double longitude, final double latitude){
+    public List<Pharmacy> findByDrugsenterpriseIdAndStatusAndRangeAndLongitudeAndLatitude(final Integer id, final Object range, final double longitude, final double latitude){
         HibernateStatelessResultAction<List<Pharmacy>> action = new AbstractHibernateStatelessResultAction<List<Pharmacy>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("select * from cdr_pharmacy cp where cp.drugsenterpriseId = :enterpriseId and " +
+                hql.append("select * from cdr_pharmacy cp where cp.status = 1 cp.drugsenterpriseId = :enterpriseId and " +
                         "round(6378.138*2*asin(sqrt(pow(sin( (cp.latitude*pi()/180 - :latitude*pi()/180)/2),2)+cos(cp.latitude*pi()/180)*cos(:latitude*pi()/180)* pow(sin( (cp.longitude*pi()/180 - :longitude*pi()/180)/2),2)))) <= :range");
                 Query q = ss.createSQLQuery(hql.toString());
                 q.setParameter("latitude", latitude);

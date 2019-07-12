@@ -3,12 +3,11 @@ package com.ngari.recipe.entity;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
-import javax.persistence.Access;
-import javax.persistence.AccessType;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
+
+import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Schema
@@ -48,14 +47,9 @@ public class Pharmacy implements Serializable {
     @ItemProperty(alias = "修改时间")
     private Date lastModify;
 
-    public Date getLastModify() {
-        return lastModify;
-    }
-
-    public void setLastModify(Date lastModify) {
-        this.lastModify = lastModify;
-    }
-
+    @Id
+    @GeneratedValue(strategy = IDENTITY)
+    @Column(name = "pharmacyId", unique = true, nullable = false)
     public Integer getPharmacyId() {
         return pharmacyId;
     }
@@ -127,4 +121,13 @@ public class Pharmacy implements Serializable {
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
     }
+
+    public Date getLastModify() {
+        return lastModify;
+    }
+
+    public void setLastModify(Date lastModify) {
+        this.lastModify = lastModify;
+    }
+
 }
