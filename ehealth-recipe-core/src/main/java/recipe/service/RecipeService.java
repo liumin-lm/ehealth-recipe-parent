@@ -22,6 +22,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.drug.model.OrganDrugListDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.*;
@@ -138,6 +139,12 @@ public class RecipeService extends RecipeBaseService{
     public RecipeBean getByRecipeId(int recipeId) {
         Recipe recipe = DAOFactory.getDAO(RecipeDAO.class).get(recipeId);
         return ObjectCopyUtils.convert(recipe, RecipeBean.class);
+    }
+
+    @RpcService
+    public OrganDrugListDTO updateOrganDrugList(OrganDrugList organDrugList) {
+        OrganDrugListService organDrugListService = ApplicationUtils.getRecipeService(OrganDrugListService.class);
+        return organDrugListService.updateOrganDrugList(organDrugList);
     }
 
     @RpcService
