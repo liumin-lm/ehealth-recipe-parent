@@ -213,12 +213,17 @@ public class OrganDrugListService {
                 GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
                     @Override
                     public void run() {
-                        IProvinceIndicatorsDateUpdateService hisService =
-                                AppDomainContext.getBean("his.provinceDataUploadService", IProvinceIndicatorsDateUpdateService.class);
                         List<DrugCategoryReq> drugCategoryReqs = new ArrayList<>();
-                        DrugCategoryReq drugCategoryReq = packingDrugCategoryReq(saveOrganDrugList);
-                        drugCategoryReqs.add(drugCategoryReq);
-                        hisService.uploadDrugCatalogue(drugCategoryReqs);
+                        try{
+                            IProvinceIndicatorsDateUpdateService hisService =
+                                    AppDomainContext.getBean("his.provinceDataUploadService", IProvinceIndicatorsDateUpdateService.class);
+                            DrugCategoryReq drugCategoryReq = packingDrugCategoryReq(saveOrganDrugList);
+                            drugCategoryReqs.add(drugCategoryReq);
+                            hisService.uploadDrugCatalogue(drugCategoryReqs);
+                        } catch (Exception e) {
+                            logger.info("上传药品到监管平台失败,{"+JSONUtils.toString(drugCategoryReqs)+"},{"+e.getMessage()+"}.");
+                        }
+
                     }
                 });
             }
