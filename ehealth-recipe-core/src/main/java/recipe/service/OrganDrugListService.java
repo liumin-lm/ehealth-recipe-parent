@@ -172,7 +172,7 @@ public class OrganDrugListService {
      * @author zhongzx
      */
     @RpcService
-    public OrganDrugListDTO updateOrganDrugList(final OrganDrugList organDrugList) {
+    public OrganDrugListDTO updateOrganDrugList(OrganDrugList organDrugList) {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         if (null == organDrugList.getDrugId()) {
