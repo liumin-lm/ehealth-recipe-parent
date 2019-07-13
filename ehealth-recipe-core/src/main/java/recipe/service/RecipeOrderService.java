@@ -1024,6 +1024,9 @@ public class RecipeOrderService extends RecipeBaseService {
     public RecipeResultBean getOrderDetail(String orderCode) {
         RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
         RecipeOrder order = orderDAO.getByOrderCode(orderCode);
+        if (order != null){
+            checkUserHasPermission((Integer)JSONUtils.parse(order.getRecipeIdList(), List.class).get(0));
+        }
         return this.getOrderDetailById(order.getOrderId());
     }
 

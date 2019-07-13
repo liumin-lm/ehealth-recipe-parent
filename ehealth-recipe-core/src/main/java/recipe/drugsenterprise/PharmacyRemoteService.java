@@ -2,7 +2,6 @@ package recipe.drugsenterprise;
 
 import com.google.common.collect.Lists;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
-import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import ctd.util.JSONUtils;
 import org.apache.commons.beanutils.BeanUtils;

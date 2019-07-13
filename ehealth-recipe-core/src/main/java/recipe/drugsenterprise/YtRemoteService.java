@@ -11,8 +11,9 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.filedownload.service.IFileDownloadService;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.FastArrayList;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -23,8 +24,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.apache.lucene.util.CollectionUtil;
-import org.apache.poi.util.NullLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
@@ -33,7 +32,6 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
-import recipe.service.RecipeOrderService;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.DistanceUtil;
 
@@ -47,6 +45,7 @@ import java.util.*;
 * @Author: JRK
 * @Date: 2019/7/8
 */
+@RpcBean("ytRemoteService")
 public class YtRemoteService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(YtRemoteService.class);
@@ -63,6 +62,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
+    @RpcService
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         Integer depId = drugsEnterprise.getId();
@@ -79,12 +79,14 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 sendTokenAndUpdateHttpRequest(drugsEnterprise, drugsEnterpriseDAO, depId, depName, request, httpclient);
             }
         } catch (Exception e) {
-            LOGGER.error("YtRemoteService.tokenUpdateImpl:[{}][{}]更新token异常：{}", depId, depName, e);
+            e.printStackTrace();
+            LOGGER.error("YtRemoteService.tokenUpdateImpl:[{}][{}]更新token异常：{}", depId, depName, e.getMessage());
         } finally {
             try {
                 httpclient.close();
             } catch (Exception e) {
-                LOGGER.error("YtRemoteService.tokenUpdateImpl:http请求资源关闭异常: {}", e);
+                e.printStackTrace();
+                LOGGER.error("YtRemoteService.tokenUpdateImpl:http请求资源关闭异常: {}", e.getMessage());
             }
         }
 
@@ -193,12 +195,14 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                     pushRecipeHttpRequest(result, enterprise, depId, depName, sendYtRecipe, httpClient);
                 }
             } catch (Exception e) {
-                LOGGER.error("YtRemoteService.pushRecipeInfo:[{}][{}]更新token异常：{}", depId, depName, e);
+                e.printStackTrace();
+                LOGGER.error("YtRemoteService.pushRecipeInfo:[{}][{}]更新token异常：{}", depId, depName, e.getMessage());
             } finally {
                 try {
                     httpClient.close();
                 } catch (Exception e) {
-                    LOGGER.error("YtRemoteService.pushRecipeInfo:http请求资源关闭异常！");
+                    e.printStackTrace();
+                    LOGGER.error("YtRemoteService.pushRecipeInfo:http请求资源关闭异常: {}！", e.getMessage());
                 }
             }
 
@@ -313,8 +317,8 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             }
             sendYtRecipe.setImage(imgStr);
         } catch (Exception e) {
-            LOGGER.error("YtRemoteService.pushRecipeInfo:获取图片异常：{}", e);
-            getFailResult(result, "获取图片异常");
+            e.printStackTrace();
+            LOGGER.error("YtRemoteService.pushRecipeInfo:获取图片异常：{}", e.getMessage());
         }
         //检验并组装处方对应的详情信息
         assembleDrugListMsg(result, sendYtRecipe, nowRecipe, organ, enterprise);
@@ -553,6 +557,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
+    @RpcService
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
 
@@ -567,7 +572,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         Map<Integer, DetailDrugGroup> drugGroup = getDetailGroup(detailList);
         //获取药企下所有的药店
         PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
-        List<Pharmacy> pharmacyList = pharmacyDAO.findByDrugsenterpriseId(drugsEnterprise.getId());
+        List<Pharmacy> pharmacyList = pharmacyDAO.findByDrugsenterpriseIdAndStatus(drugsEnterprise.getId(), 1);
         SaleDrugList saleDrug = null;
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         //遍历药店，判断当有一个药店的所有的药品的库存量都够的话判断为库存足够
@@ -640,12 +645,14 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
 
                 }
             } catch (Exception e) {
-                LOGGER.error("YtRemoteService.scanStock:[{}]门店该[{}]药品查询库存异常：{}", pharmacy.getPharmacyCode(), pharmacy.getPharmacyCode(), e);
+                e.printStackTrace();
+                LOGGER.error("YtRemoteService.scanStock:[{}]门店该[{}]药品查询库存异常：{}", pharmacy.getPharmacyCode(), pharmacy.getPharmacyCode(), e.getMessage());
             } finally {
                 try {
                     httpClient.close();
                 } catch (Exception e) {
-                    LOGGER.error("YtRemoteService.scanStock:http请求资源关闭异常: {}", e);
+                    e.printStackTrace();
+                    LOGGER.error("YtRemoteService.scanStock:http请求资源关闭异常: {}", e.getMessage());
                 }
             }
         }
@@ -722,7 +729,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
         List<Pharmacy> pharmacyList;
         if (ext != null && null != ext.get("RANGE") && null != ext.get("longitude") && null != ext.get("longitude")) {
-            pharmacyList = pharmacyDAO.findByDrugsenterpriseIdAndRangeAndLongitudeAndLatitude(enterprise.getId(), Double.parseDouble(ext.get("RANGE").toString()), Double.parseDouble(ext.get("longitude").toString()), Double.parseDouble(ext.get("latitude").toString()));
+            pharmacyList = pharmacyDAO.findByDrugsenterpriseIdAndStatusAndRangeAndLongitudeAndLatitude(enterprise.getId(), Double.parseDouble(ext.get("RANGE").toString()), Double.parseDouble(ext.get("longitude").toString()), Double.parseDouble(ext.get("latitude").toString()));
         }else{
             LOGGER.warn("YtRemoteService.findSupportDep:请求的搜索参数不健全" );
             getFailResult(result, "请求的搜索参数不健全");
@@ -768,15 +775,16 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         List<DepDetailBean> pharmacyDetailPage = new ArrayList<>();
         SaleDrugList checkSaleDrug = null;
         Position position;
+        DepDetailBean newDepDetailBean;
         for (Pharmacy pharmacyMsg : pharmacyList) {
-            DepDetailBean newDepDetailBean = new DepDetailBean();
+            newDepDetailBean = new DepDetailBean();
             pharmacyDetailPage.add(newDepDetailBean);
             newDepDetailBean.setDepId(depId);
             newDepDetailBean.setDepName(depName);
             //根据药店信息获取上面跌加出的总价格
             newDepDetailBean.setRecipeFee(feeSumByPharmacyIdMap.get(pharmacyMsg.getPharmacyId()));
             newDepDetailBean.setSendMethod("1");
-            newDepDetailBean.setSendMethod("0");
+            newDepDetailBean.setPayMethod("0");
             newDepDetailBean.setPharmacyCode(pharmacyMsg.getPharmacyCode());
             newDepDetailBean.setAddress(pharmacyMsg.getPharmacyAddress());
             position = new Position();
