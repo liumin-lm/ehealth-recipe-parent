@@ -1,7 +1,12 @@
 package recipe.service;
 
 import com.google.common.collect.Lists;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.sync.mode.DrugCategoryReq;
+import com.ngari.platform.sync.service.IProvinceIndicatorsDateUpdateService;
 import com.ngari.recipe.drug.model.DrugListAndOrganDrugListDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.OrganDrugListDTO;
@@ -11,10 +16,12 @@ import com.ngari.recipe.entity.OrganDrugList;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import recipe.constant.ErrorCode;
@@ -165,7 +172,7 @@ public class OrganDrugListService {
      * @author zhongzx
      */
     @RpcService
-    public OrganDrugListDTO updateOrganDrugList(OrganDrugList organDrugList) {
+    public OrganDrugListDTO updateOrganDrugList(final OrganDrugList organDrugList) {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         if (null == organDrugList.getDrugId()) {
@@ -199,7 +206,22 @@ public class OrganDrugListService {
             organDrugList.setOrganDrugId(null);
             organDrugList.setProducer(drugList.getProducer());
             organDrugList.setProducerCode("");
-            OrganDrugList saveOrganDrugList = organDrugListDAO.save(organDrugList);
+            final OrganDrugList saveOrganDrugList = organDrugListDAO.save(organDrugList);
+            //机构药品目录保存成功,异步上传到监管平台
+            if (saveOrganDrugList != null) {
+                //(异步的过程，不影响主流程)
+                GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        IProvinceIndicatorsDateUpdateService hisService =
+                                AppDomainContext.getBean("his.provinceDataUploadService", IProvinceIndicatorsDateUpdateService.class);
+                        List<DrugCategoryReq> drugCategoryReqs = new ArrayList<>();
+                        DrugCategoryReq drugCategoryReq = packingDrugCategoryReq(saveOrganDrugList);
+                        drugCategoryReqs.add(drugCategoryReq);
+                        hisService.uploadDrugCatalogue(drugCategoryReqs);
+                    }
+                });
+            }
             return ObjectCopyUtils.convert(saveOrganDrugList, OrganDrugListDTO.class);
         } else {
             logger.info("修改机构药品服务[updateOrganDrugList]:" + JSONUtils.toString(organDrugList));
@@ -226,6 +248,29 @@ public class OrganDrugListService {
             }
             return ObjectCopyUtils.convert(target, OrganDrugListDTO.class);
         }
+    }
+
+    private DrugCategoryReq packingDrugCategoryReq(OrganDrugList organDrugList){
+        OrganService organService = BasicAPI.getService(OrganService.class);
+        OrganDTO organDTO = organService.getByOrganId(organDrugList.getOrganId());
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        DrugList drugList = drugListDAO.getById(organDrugList.getDrugId());
+        DrugCategoryReq drugCategoryReq = new DrugCategoryReq();
+        drugCategoryReq.setOrganID(organDrugList.getOrganId().toString());
+        drugCategoryReq.setOrganName(organDTO.getName());
+        drugCategoryReq.setPlatDrugCode(organDrugList.getDrugId().toString());
+        drugCategoryReq.setPlatDrugName(organDrugList.getDrugName());
+        drugCategoryReq.setHospDrugCode(organDrugList.getOrganDrugCode());
+        drugCategoryReq.setHospDrugName(organDrugList.getDrugName());
+        drugCategoryReq.setHospTradeName(organDrugList.getSaleName());
+        drugCategoryReq.setHospDrugPacking(organDrugList.getDrugSpec());
+        drugCategoryReq.setHospDrugManuf(organDrugList.getProducer());
+        drugCategoryReq.setUseFlag("1");
+        drugCategoryReq.setDrugClass(drugList.getDrugClass());
+        drugCategoryReq.setUpdateTime(new Date());
+        drugCategoryReq.setCreateTime(new Date());
+        drugCategoryReq.setUnitID(organDrugList.getUnit());
+        return drugCategoryReq;
     }
 
     private void updateValidate(OrganDrugList organDrugList) {
