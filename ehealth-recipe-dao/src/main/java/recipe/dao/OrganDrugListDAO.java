@@ -240,7 +240,7 @@ public abstract class OrganDrugListDAO extends
                         } else if (ObjectUtils.nullSafeEquals(status, ALL_DRUG_FLAG)) {
                             hql.append(" and a.status in (0, 1) and a.organId =:organId ");
                         }
-                        hql.append(" and b.status = 1 order by a.drugId desc");
+                        hql.append(" and b.status = 1 order by a.organDrugId desc");
                         Query countQuery = ss.createQuery("select count(*) " + hql.toString());
                         if (!StringUtils.isEmpty(drugClass)) {
                             countQuery.setParameter("drugClass", drugClass + "%");
