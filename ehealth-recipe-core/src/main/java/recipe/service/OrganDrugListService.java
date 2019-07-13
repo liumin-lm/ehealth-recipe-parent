@@ -340,12 +340,6 @@ public class OrganDrugListService {
                                                                                                final String drugClass,
                                                                                                final String keyword, final Integer status,
                                                                                                final int start, final int limit) {
-//        Set<Integer> o = new HashSet<Integer>();
-//        o.add(organId);
-
-        /*if(!SecurityService.isAuthoritiedOrgan(o)){
-            return null;
-        }*/
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         QueryResult result = organDrugListDAO.queryOrganDrugListByOrganIdAndKeyword(organId, drugClass, keyword, status, start, limit);
         result.setItems(covertData(result.getItems()));
