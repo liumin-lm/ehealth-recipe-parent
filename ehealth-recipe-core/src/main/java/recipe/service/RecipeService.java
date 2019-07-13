@@ -84,7 +84,7 @@ import static ctd.persistence.DAOFactory.getDAO;
  * @date:2016/4/27.
  */
 @RpcBean("recipeService")
-public class RecipeService {
+public class RecipeService extends RecipeBaseService{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeService.class);
 
@@ -1167,6 +1167,7 @@ public class RecipeService {
      */
     @RpcService
     public Map<String, Object> findRecipeAndDetailById(int recipeId) {
+        checkUserHasPermission(recipeId);
         return RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, true);
     }
 
@@ -1509,6 +1510,7 @@ public class RecipeService {
      */
     @RpcService
     public Map<String, Object> getPatientRecipeById(int recipeId) {
+        checkUserHasPermission(recipeId);
         return RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false);
     }
 

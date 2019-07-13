@@ -1,5 +1,7 @@
 package recipe.drugsenterprise.bean;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 
 /**
@@ -12,10 +14,12 @@ public class YtTokenResponse implements Serializable {
     /**
      * 新的访问token
      */
+    @JsonProperty(value = "TOKEN")
     private String TOKEN;
     /**
      * token的过期时间
      */
+    @JsonProperty(value = "EXPIRETIME")
     private String EXPIRETIME;
 
     public String getTOKEN() {
