@@ -5,6 +5,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.entity.Recipe;
 import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -96,23 +97,17 @@ public class RecipeBaseService {
             UserRoleToken urt = UserRoleToken.getCurrent();
             String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
             if (recipe != null){
-                if ("patient".equals(urt.getRoleId())) {
-                    PatientDTO patient = ctd.util.BeanUtils.map(urt.getProperty("patient"), PatientDTO.class);
-                    if (!patient.getMpiId().equals(recipe.getRequestMpiId())) {
-                        LOGGER.error("当前用户没有权限调用recipeId[{}],requestMpiId[{}],mpiId[{}],methodName[{}]", recipeId, recipe.getRequestMpiId(), patient.getMpiId(),methodName);
-                        throw new RuntimeException("当前登录用户没有权限");
-                    }
-                }else if ("doctor".equals(urt.getRoleId())){
-                    DoctorDTO doctor = ctd.util.BeanUtils.map(urt.getProperty("doctor"), DoctorDTO.class);
-                    if (!doctor.getDoctorId().equals(recipe.getDoctor())) {
-                        LOGGER.error("当前用户没有权限调用recipeId[{}],methodName[{}]", recipeId ,methodName);
-                        throw new RuntimeException("当前登录用户没有权限");
-                    }
+                if (urt.isPatient() && urt.isOwnPatient(recipe.getRequestMpiId())) {
+                    LOGGER.error("当前用户没有权限调用recipeId[{}],methodName[{}]", recipeId, recipe.getRequestMpiId(),methodName);
+                    throw new DAOException("当前登录用户没有权限");
+                }else if (urt.isDoctor() && urt.isSelfDoctor(recipe.getDoctor())){
+                    LOGGER.error("当前用户没有权限调用recipeId[{}],methodName[{}]", recipeId ,methodName);
+                    throw new DAOException("当前登录用户没有权限");
                 }
             }
         }catch (Exception e){
             LOGGER.error("checkUserHasPermission error",e);
-            throw new RuntimeException("当前登录用户没有权限");
+            throw new DAOException("当前登录用户没有权限");
         }
     }
 
@@ -120,16 +115,13 @@ public class RecipeBaseService {
         try {
             UserRoleToken urt = UserRoleToken.getCurrent();
             String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
-            if ("doctor".equals(urt.getRoleId())){
-                DoctorDTO doctor = ctd.util.BeanUtils.map(urt.getProperty("doctor"), DoctorDTO.class);
-                if (!doctor.getDoctorId().equals(doctorId)) {
-                    LOGGER.error("当前用户没有权限调用doctorId[{}],methodName[{}]", doctorId ,methodName);
-                    throw new RuntimeException("当前登录用户没有权限");
-                }
+            if (urt.isDoctor() && urt.isSelfDoctor(doctorId)){
+                LOGGER.error("当前用户没有权限调用doctorId[{}],methodName[{}]", doctorId ,methodName);
+                throw new DAOException("当前登录用户没有权限");
             }
         }catch (Exception e){
-            LOGGER.error("checkUserHasPermission error",e);
-            throw new RuntimeException("当前登录用户没有权限");
+            LOGGER.error("checkUserHasPermissionByDoctorId error",e);
+            throw new DAOException("当前登录用户没有权限");
         }
     }
 
