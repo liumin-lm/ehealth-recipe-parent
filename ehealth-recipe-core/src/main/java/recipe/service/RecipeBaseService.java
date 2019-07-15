@@ -91,36 +91,25 @@ public class RecipeBaseService {
     }
 
     public void checkUserHasPermission(Integer recipeId){
-        try {
-            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-            UserRoleToken urt = UserRoleToken.getCurrent();
-            String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
-            if (recipe != null){
-                if (!(urt.isPatient() && urt.isOwnPatient(recipe.getRequestMpiId()))) {
-                    LOGGER.error("当前用户没有权限调用recipeId[{}],methodName[{}]", recipeId, recipe.getRequestMpiId(),methodName);
-                    throw new DAOException("当前登录用户没有权限");
-                }else if (!(urt.isDoctor() && urt.isSelfDoctor(recipe.getDoctor()))){
-                    LOGGER.error("当前用户没有权限调用recipeId[{}],methodName[{}]", recipeId ,methodName);
-                    throw new DAOException("当前登录用户没有权限");
-                }
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+        if (recipe != null){
+            if ((urt.isPatient() && urt.isOwnPatient(recipe.getRequestMpiId()))||(urt.isDoctor() && urt.isSelfDoctor(recipe.getDoctor()))) {
+                return;
+            }else{
+                LOGGER.error("当前用户没有权限调用recipeId[{}],methodName[{}]", recipeId ,methodName);
+                throw new DAOException("当前登录用户没有权限");
             }
-        }catch (Exception e){
-            LOGGER.error("checkUserHasPermission error",e);
-            throw new DAOException("当前登录用户没有权限");
         }
     }
 
     public void checkUserHasPermissionByDoctorId(Integer doctorId){
-        try {
-            UserRoleToken urt = UserRoleToken.getCurrent();
-            String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
-            if (!(urt.isDoctor() && urt.isSelfDoctor(doctorId))){
-                LOGGER.error("当前用户没有权限调用doctorId[{}],methodName[{}]", doctorId ,methodName);
-                throw new DAOException("当前登录用户没有权限");
-            }
-        }catch (Exception e){
-            LOGGER.error("checkUserHasPermissionByDoctorId error",e);
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+        if (!(urt.isSelfDoctor(doctorId))){
+            LOGGER.error("当前用户没有权限调用doctorId[{}],methodName[{}]", doctorId ,methodName);
             throw new DAOException("当前登录用户没有权限");
         }
     }
