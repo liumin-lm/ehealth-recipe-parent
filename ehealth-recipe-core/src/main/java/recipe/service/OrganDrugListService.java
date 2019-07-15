@@ -206,27 +206,8 @@ public class OrganDrugListService {
             organDrugList.setOrganDrugId(null);
             organDrugList.setProducer(drugList.getProducer());
             organDrugList.setProducerCode("");
-            final OrganDrugList saveOrganDrugList = organDrugListDAO.save(organDrugList);
-            //机构药品目录保存成功,异步上传到监管平台
-            if (saveOrganDrugList != null) {
-                //(异步的过程，不影响主流程)
-                GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        List<DrugCategoryReq> drugCategoryReqs = new ArrayList<>();
-                        try{
-                            IProvinceIndicatorsDateUpdateService hisService =
-                                    AppDomainContext.getBean("his.provinceDataUploadService", IProvinceIndicatorsDateUpdateService.class);
-                            DrugCategoryReq drugCategoryReq = packingDrugCategoryReq(saveOrganDrugList);
-                            drugCategoryReqs.add(drugCategoryReq);
-                            hisService.uploadDrugCatalogue(drugCategoryReqs);
-                        } catch (Exception e) {
-                            logger.info("上传药品到监管平台失败,{"+JSONUtils.toString(drugCategoryReqs)+"},{"+e.getMessage()+"}.");
-                        }
-
-                    }
-                });
-            }
+            OrganDrugList saveOrganDrugList = organDrugListDAO.save(organDrugList);
+            uploadOrganDrugListToJg(saveOrganDrugList);
             return ObjectCopyUtils.convert(saveOrganDrugList, OrganDrugListDTO.class);
         } else {
             logger.info("修改机构药品服务[updateOrganDrugList]:" + JSONUtils.toString(organDrugList));
@@ -250,11 +231,37 @@ public class OrganDrugListService {
                 target.setLastModify(new Date());
                 validateOrganDrugList(target);
                 target = organDrugListDAO.update(target);
+                uploadOrganDrugListToJg(target);
             }
             return ObjectCopyUtils.convert(target, OrganDrugListDTO.class);
         }
     }
 
+    //上传机构药品到监管平台
+    private void uploadOrganDrugListToJg(final OrganDrugList saveOrganDrugList) {
+        //机构药品目录保存成功,异步上传到监管平台
+        if (saveOrganDrugList != null) {
+            //(异步的过程，不影响主流程)
+            GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
+                @Override
+                public void run() {
+                    List<DrugCategoryReq> drugCategoryReqs = new ArrayList<>();
+                    try{
+                        IProvinceIndicatorsDateUpdateService hisService =
+                                AppDomainContext.getBean("his.provinceDataUploadService", IProvinceIndicatorsDateUpdateService.class);
+                        DrugCategoryReq drugCategoryReq = packingDrugCategoryReq(saveOrganDrugList);
+                        drugCategoryReqs.add(drugCategoryReq);
+                        hisService.uploadDrugCatalogue(drugCategoryReqs);
+                    } catch (Exception e) {
+                        logger.info("上传药品到监管平台失败,{"+ JSONUtils.toString(drugCategoryReqs)+"},{"+e.getMessage()+"}.");
+                    }
+
+                }
+            });
+        }
+    }
+
+    //包装监管平台数据
     private DrugCategoryReq packingDrugCategoryReq(OrganDrugList organDrugList){
         OrganService organService = BasicAPI.getService(OrganService.class);
         OrganDTO organDTO = organService.getByOrganId(organDrugList.getOrganId());

@@ -94,7 +94,7 @@ public class DrugDistributionService {
      */
     @RpcService
     public PurchaseResponse purchase(PurchaseRequest request) {
-        //默认通知his取药方式,3-未知，0-医院取药，1-物流配送，2-药店取药
+        //默认通知his取药方式,3-未知，2-医院取药，1-物流配送，3-药店取药
         String deliveryType = "3";
         String val = redisClient.get(CacheConstant.KEY_SWITCH_PURCHASE_ON);
         PurchaseResponse response = ResponseUtils.getFailResponse(PurchaseResponse.class, "");
