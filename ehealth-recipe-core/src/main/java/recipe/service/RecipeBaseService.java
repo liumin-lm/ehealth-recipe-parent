@@ -5,6 +5,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.entity.Recipe;
 import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -98,15 +99,15 @@ public class RecipeBaseService {
             if (recipe != null){
                 if (urt.isPatient() && urt.isOwnPatient(recipe.getRequestMpiId())) {
                     LOGGER.error("当前用户没有权限调用recipeId[{}],methodName[{}]", recipeId, recipe.getRequestMpiId(),methodName);
-                    throw new RuntimeException("当前登录用户没有权限");
+                    throw new DAOException("当前登录用户没有权限");
                 }else if (urt.isDoctor() && urt.isSelfDoctor(recipe.getDoctor())){
                     LOGGER.error("当前用户没有权限调用recipeId[{}],methodName[{}]", recipeId ,methodName);
-                    throw new RuntimeException("当前登录用户没有权限");
+                    throw new DAOException("当前登录用户没有权限");
                 }
             }
         }catch (Exception e){
             LOGGER.error("checkUserHasPermission error",e);
-            throw new RuntimeException("当前登录用户没有权限");
+            throw new DAOException("当前登录用户没有权限");
         }
     }
 
@@ -116,11 +117,11 @@ public class RecipeBaseService {
             String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
             if (urt.isDoctor() && urt.isSelfDoctor(doctorId)){
                 LOGGER.error("当前用户没有权限调用doctorId[{}],methodName[{}]", doctorId ,methodName);
-                throw new RuntimeException("当前登录用户没有权限");
+                throw new DAOException("当前登录用户没有权限");
             }
         }catch (Exception e){
             LOGGER.error("checkUserHasPermissionByDoctorId error",e);
-            throw new RuntimeException("当前登录用户没有权限");
+            throw new DAOException("当前登录用户没有权限");
         }
     }
 
