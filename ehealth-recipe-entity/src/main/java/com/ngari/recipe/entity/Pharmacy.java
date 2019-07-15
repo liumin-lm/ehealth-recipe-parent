@@ -5,6 +5,8 @@ import ctd.schema.annotation.Schema;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import static javax.persistence.GenerationType.IDENTITY;
