@@ -200,6 +200,7 @@ public class RecipeService extends RecipeBaseService{
      */
     @RpcService
     public List<HashMap<String, Object>> findNewRecipeAndPatient(int doctorId, int start, int limit) {
+        checkUserHasPermissionByDoctorId(doctorId);
         return RecipeServiceSub.findRecipesAndPatientsByDoctor(doctorId, start, PageConstant.getPageLimit(limit), 0);
     }
 
@@ -213,6 +214,7 @@ public class RecipeService extends RecipeBaseService{
      */
     @RpcService
     public List<HashMap<String, Object>> findOldRecipeAndPatient(int doctorId, int start, int limit) {
+        checkUserHasPermissionByDoctorId(doctorId);
         return RecipeServiceSub.findRecipesAndPatientsByDoctor(doctorId, start, PageConstant.getPageLimit(limit), 1);
     }
 
