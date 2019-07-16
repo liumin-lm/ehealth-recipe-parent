@@ -821,7 +821,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
         List<Pharmacy> pharmacyList = new ArrayList<Pharmacy>();
         if (ext != null && null != ext.get(searchMapRANGE) && null != ext.get(searchMapLongitude) && null != ext.get(searchMapLatitude)) {
-            pharmacyList = pharmacyDAO.findByDrugsenterpriseIdAndStatusAndRangeAndLongitudeAndLatitude(enterprise.getId(), Double.parseDouble(ext.get("RANGE").toString()), Double.parseDouble(ext.get("longitude").toString()), Double.parseDouble(ext.get("latitude").toString()));
+            pharmacyList = pharmacyDAO.findByDrugsenterpriseIdAndStatusAndRangeAndLongitudeAndLatitude(enterprise.getId(), Double.parseDouble(ext.get(searchMapRANGE).toString()), Double.parseDouble(ext.get(searchMapLongitude).toString()), Double.parseDouble(ext.get(searchMapLatitude).toString()));
         }else{
             LOGGER.warn("YtRemoteService.findSupportDep:请求的搜索参数不健全" );
             getFailResult(result, "请求的搜索参数不健全");
