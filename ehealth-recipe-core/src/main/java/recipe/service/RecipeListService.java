@@ -188,6 +188,7 @@ public class RecipeListService extends RecipeBaseService{
     @RpcService
     public List<PatientRecipeDTO> findOtherRecipesForPatient(String mpiId, Integer index, Integer limit) {
         Assert.hasLength(mpiId, "findOtherRecipesForPatient mpiId is null.");
+        checkUserHasPermissionByMpiId(mpiId);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
