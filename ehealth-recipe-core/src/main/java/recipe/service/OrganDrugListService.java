@@ -250,7 +250,6 @@ public class OrganDrugListService {
                         IProvinceIndicatorsDateUpdateService hisService =
                                 AppDomainContext.getBean("his.provinceDataUploadService", IProvinceIndicatorsDateUpdateService.class);
                         DrugCategoryReq drugCategoryReq = packingDrugCategoryReq(saveOrganDrugList);
-                        logger.info("drugCategoryReq parames: " + JSONUtils.toString(drugCategoryReq));
                         drugCategoryReqs.add(drugCategoryReq);
                         hisService.uploadDrugCatalogue(drugCategoryReqs);
                     } catch (Exception e) {
@@ -282,7 +281,7 @@ public class OrganDrugListService {
         drugCategoryReq.setDrugClass(drugList.getDrugClass());
         drugCategoryReq.setUpdateTime(new Date());
         drugCategoryReq.setCreateTime(new Date());
-        drugCategoryReq.setUnitID(organDTO.getMinkeUnitID());
+        drugCategoryReq.setUnitID(organDTO.getOrganId().toString());
         return drugCategoryReq;
     }
 
