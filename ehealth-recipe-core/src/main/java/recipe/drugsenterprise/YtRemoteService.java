@@ -56,7 +56,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
 
     private static final String getStock = "medicine";
 
-    private static final String searchMapRANGE = "RANGE";
+    private static final String searchMapRANGE = "range";
 
     private static final String searchMapLatitude = "latitude";
 
@@ -309,6 +309,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         if(null != organ){
             //这里保存的医院的社保编码
             sendYtRecipe.setHospitalCode(organ.getOrganizeCode());
+            sendYtRecipe.setHospitalName(organ.getName());
         }else{
             LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{},对应的开处方机构不存在.", nowRecipe.getRecipeId());
             getFailResult(result, "开处方机构不存在");

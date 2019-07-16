@@ -52,6 +52,12 @@ public class YtRecipeDTO implements Serializable{
      *recipe下clinicOrgan对应的OrganCode
      */
     private String hospitalCode;
+
+    /**
+     * 医院编码
+     *recipe下clinicOrgan对应的OrganName
+     */
+    private String hospitalName;
     /**
      * 医生名称
      * recipe下doctor
@@ -167,6 +173,14 @@ public class YtRecipeDTO implements Serializable{
      * 商品明细
      */
     private List<YtDrugDTO> itemList;
+
+    public String getHospitalName() {
+        return hospitalName;
+    }
+
+    public void setHospitalName(String hospitalName) {
+        this.hospitalName = hospitalName;
+    }
 
     public String getOrgCode() {
         return orgCode;
