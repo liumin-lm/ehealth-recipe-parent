@@ -290,6 +290,10 @@ public class RecipePreserveService {
         return redisClient.sRemove(key, organId);
     }
 
+    @RpcService
+    public void redisSet(String key, String value){
+        redisClient.set(key, value);
+    }
 
     /**
      * 以下为key的操作
