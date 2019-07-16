@@ -620,18 +620,18 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         //遍历药店，判断当有一个药店的所有的药品的库存量都够的话判断为库存足够
         int complacentNum;
         boolean checkScan = false;
-//        for (Pharmacy pharmacy : pharmacyList) {
-//            complacentNum = 0;
-//            checkDrugListByDeil(drugGroup, drugsEnterprise, saleDrugListDAO, depId, saleDrug, result, pharmacy, complacentNum, 0, false);
-//            //只有当某一家药店有所有处方详情下的药品并且库存不超过，查询库存的结果设为成功
-//            if(complacentNum >= drugGroup.size()){
-//                checkScan = true;
-//                break;
-//            }
-//        }
-//        if(!checkScan){
-//            getFailResult(result, "当前药企下没有药店的药品库存足够");
-//        }
+        for (Pharmacy pharmacy : pharmacyList) {
+            complacentNum = 0;
+            checkDrugListByDeil(drugGroup, drugsEnterprise, saleDrugListDAO, depId, saleDrug, result, pharmacy, complacentNum, 0, false);
+            //只有当某一家药店有所有处方详情下的药品并且库存不超过，查询库存的结果设为成功
+            if(complacentNum >= drugGroup.size()){
+                checkScan = true;
+                break;
+            }
+        }
+        if(!checkScan){
+            getFailResult(result, "当前药企下没有药店的药品库存足够");
+        }
         return result;
     }
 
@@ -793,16 +793,16 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         Iterator<Pharmacy> iterator = pharmacyList.iterator();
         int complacentNum;
         double feeSum;
-//        while (iterator.hasNext()) {
-//            complacentNum = 0;
-//            feeSum = 0d;
-//            checkDrugListByDeil(drugGroup, enterprise, saleDrugListDAO, depId, saleDrug, result, iterator.next(), complacentNum, feeSum, true);
-//            if(complacentNum < drugGroup.size()){
-//                iterator.remove();
-//            }else{
-//                feeSumByPharmacyIdMap.put(iterator.next().getPharmacyId(), BigDecimal.valueOf(feeSum));
-//            }
-//        }
+        while (iterator.hasNext()) {
+            complacentNum = 0;
+            feeSum = 0d;
+            checkDrugListByDeil(drugGroup, enterprise, saleDrugListDAO, depId, saleDrug, result, iterator.next(), complacentNum, feeSum, true);
+            if(complacentNum < drugGroup.size()){
+                iterator.remove();
+            }else{
+                feeSumByPharmacyIdMap.put(iterator.next().getPharmacyId(), BigDecimal.valueOf(feeSum));
+            }
+        }
 
         //数据封装成页面展示数据
         List<DepDetailBean> pharmacyDetailPage = assemblePharmacyPageMsg(ext, enterprise, pharmacyList, depId, depName, feeSumByPharmacyIdMap);
