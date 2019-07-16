@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.google.common.collect.Lists;
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
@@ -251,7 +252,8 @@ public class OrganDrugListService {
                                 AppDomainContext.getBean("his.provinceDataUploadService", IProvinceIndicatorsDateUpdateService.class);
                         DrugCategoryReq drugCategoryReq = packingDrugCategoryReq(saveOrganDrugList);
                         drugCategoryReqs.add(drugCategoryReq);
-                        hisService.uploadDrugCatalogue(drugCategoryReqs);
+                        HisResponseTO hisResponseTO = hisService.uploadDrugCatalogue(drugCategoryReqs);
+                        logger.info("hisResponseTO parames:" + JSONUtils.toString(hisResponseTO));
                     } catch (Exception e) {
                         logger.info("上传药品到监管平台失败,{"+ JSONUtils.toString(drugCategoryReqs)+"},{"+e.getMessage()+"}.");
                     }
