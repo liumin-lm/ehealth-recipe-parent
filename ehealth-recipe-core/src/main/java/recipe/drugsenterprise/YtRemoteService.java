@@ -672,7 +672,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                         if(entry.getValue().getSumUsage() <= stockResponse.getStock()){
                             groupSumResult.setComplacentNum(groupSumResult.getComplacentNum() + 1);
                             if(sumFlag){
-                                groupSumResult.setFeeSum(groupSumResult.getFeeSum() + stockResponse.getPrice());
+                                groupSumResult.setFeeSum(groupSumResult.getFeeSum() + stockResponse.getPrice() * entry.getValue().getSumUsage());
                             }
                         }else{
                             break;
