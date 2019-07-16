@@ -618,13 +618,11 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         SaleDrugList saleDrug = null;
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         //遍历药店，判断当有一个药店的所有的药品的库存量都够的话判断为库存足够
-        int complacentNum;
         boolean checkScan = false;
         for (Pharmacy pharmacy : pharmacyList) {
-            complacentNum = 0;
-            checkDrugListByDeil(drugGroup, drugsEnterprise, saleDrugListDAO, depId, saleDrug, result, pharmacy, complacentNum, 0, false);
+            GroupSumResult groupSumResult = checkDrugListByDeil(drugGroup, drugsEnterprise, saleDrugListDAO, depId, saleDrug, result, pharmacy, false);
             //只有当某一家药店有所有处方详情下的药品并且库存不超过，查询库存的结果设为成功
-            if(complacentNum >= drugGroup.size()){
+            if(groupSumResult.getComplacentNum() >= drugGroup.size()){
                 checkScan = true;
                 break;
             }
@@ -647,12 +645,11 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
      * @param saleDrug 销售药品
      * @param result 结果集
      * @param pharmacy 药店
-     * @param complacentNum 校验成功的药品数量
-       * @param feeSum 总金额
      * @return void
     */
-    private void checkDrugListByDeil(Map<Integer, DetailDrugGroup> drugGroup, DrugsEnterprise drugsEnterprise, SaleDrugListDAO saleDrugListDAO, int depId, SaleDrugList saleDrug, DrugEnterpriseResult result, Pharmacy pharmacy, Integer complacentNum, double feeSum, boolean sumFlag) {
-         for (Map.Entry<Integer, DetailDrugGroup> entry : drugGroup.entrySet()) {
+    private GroupSumResult checkDrugListByDeil(Map<Integer, DetailDrugGroup> drugGroup, DrugsEnterprise drugsEnterprise, SaleDrugListDAO saleDrugListDAO, int depId, SaleDrugList saleDrug, DrugEnterpriseResult result, Pharmacy pharmacy, boolean sumFlag) {
+        GroupSumResult groupSumResult = new GroupSumResult();
+        for (Map.Entry<Integer, DetailDrugGroup> entry : drugGroup.entrySet()) {
             //发送请求访问药品的库存
             CloseableHttpClient httpClient = HttpClients.createDefault();
             try {
@@ -672,9 +669,9 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                         YtStockResponse stockResponse = JSONUtils.parse(responseStr, YtStockResponse.class);
                         LOGGER.info("YtRemoteService.scanStock:[{}]门店该[{}]药品查询库存，请求返回:{}", pharmacy.getPharmacyCode(), pharmacy.getPharmacyCode(), responseStr);
                         if(entry.getValue().getSumUsage() <= stockResponse.getStock()){
-                            complacentNum ++ ;
+                            groupSumResult.setComplacentNum(groupSumResult.getComplacentNum() + 1);
                             if(sumFlag){
-                                feeSum += stockResponse.getPrice();
+                                groupSumResult.setFeeSum(groupSumResult.getFeeSum() + stockResponse.getPrice());
                             }
                         }else{
                             break;
@@ -698,6 +695,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 }
             }
         }
+        return groupSumResult;
     }
 
     /**
@@ -791,16 +789,14 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         Map<Integer, BigDecimal> feeSumByPharmacyIdMap = new HashMap<>();
         //删除库存不够的药店
         Iterator<Pharmacy> iterator = pharmacyList.iterator();
-        int complacentNum;
-        double feeSum;
+        Pharmacy next;
         while (iterator.hasNext()) {
-            complacentNum = 0;
-            feeSum = 0d;
-            checkDrugListByDeil(drugGroup, enterprise, saleDrugListDAO, depId, saleDrug, result, iterator.next(), complacentNum, feeSum, true);
-            if(complacentNum < drugGroup.size()){
+            next = iterator.next();
+            GroupSumResult groupSumResult = checkDrugListByDeil(drugGroup, enterprise, saleDrugListDAO, depId, saleDrug, result, next, true);
+            if(groupSumResult.getComplacentNum() < drugGroup.size()){
                 iterator.remove();
             }else{
-                feeSumByPharmacyIdMap.put(iterator.next().getPharmacyId(), BigDecimal.valueOf(feeSum));
+                feeSumByPharmacyIdMap.put(next.getPharmacyId(), new BigDecimal(Double.toString(groupSumResult.getFeeSum())));
             }
         }
 
