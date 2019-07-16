@@ -855,7 +855,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             newDepDetailBean = new DepDetailBean();
             pharmacyDetailPage.add(newDepDetailBean);
             newDepDetailBean.setDepId(depId);
-            newDepDetailBean.setDepName(depName);
+            newDepDetailBean.setDepName(pharmacyMsg.getPharmacyName());
             //根据药店信息获取上面跌加出的总价格
             newDepDetailBean.setRecipeFee(feeSumByPharmacyIdMap.get(pharmacyMsg.getPharmacyId()));
             newDepDetailBean.setSendMethod(ytSendMethod);
