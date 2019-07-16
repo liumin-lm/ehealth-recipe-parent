@@ -667,7 +667,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                     String responseStr = EntityUtils.toString(httpEntity);
                     if(200 == response.getStatusLine().getStatusCode()){
                         YtStockResponse stockResponse = JSONUtils.parse(responseStr, YtStockResponse.class);
-                        LOGGER.info("YtRemoteService.scanStock:[{}]门店该[{}]药品查询库存，请求返回:{}", pharmacy.getPharmacyCode(), pharmacy.getPharmacyCode(), responseStr);
+                        LOGGER.info("YtRemoteService.scanStock:[{}]门店该[{}]药品查询库存，请求返回:{}", pharmacy.getPharmacyCode(), saleDrug.getOrganDrugCode(), responseStr);
                         if(entry.getValue().getSumUsage() <= stockResponse.getStock()){
                             groupSumResult.setComplacentNum(groupSumResult.getComplacentNum() + 1);
                             if(sumFlag){
@@ -677,15 +677,14 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                             break;
                         }
                     }else{
-                        LOGGER.warn("YtRemoteService.scanStock:[{}]门店该[{}]药品查询库存失败,失败原因:{}", pharmacy.getPharmacyCode(), pharmacy.getPharmacyCode(), responseStr);
-                        getFailResult(result, "药品查询库存失败");
+                        LOGGER.warn("YtRemoteService.scanStock:[{}]门店该[{}]药品查询库存失败,失败原因:{}", pharmacy.getPharmacyCode(), saleDrug.getOrganDrugCode(), responseStr);
                         break;
                     }
 
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("YtRemoteService.scanStock:[{}]门店该[{}]药品查询库存异常：{}", pharmacy.getPharmacyCode(), pharmacy.getPharmacyCode(), e.getMessage());
+                LOGGER.error("YtRemoteService.scanStock:[{}]门店该[{}]药品查询库存异常：{}", pharmacy.getPharmacyCode(), saleDrug.getOrganDrugCode(), e.getMessage());
             } finally {
                 try {
                     httpClient.close();
@@ -716,7 +715,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         //组装请求参数(组装权限验证部分)
         httpGet.setHeader(requestHeadJsonKey, requestHeadJsonValue);
         httpGet.setHeader(requestHeadPowerKey, drugsEnterprise.getToken());
-        LOGGER.info("YtRemoteService.scanStock:[{}]门店该[{}]药品发送查询库存请求", pharmacy.getPharmacyCode(), pharmacy.getPharmacyCode());
+        LOGGER.info("YtRemoteService.scanStock:[{}]门店该[{}]药品发送查询库存请求", pharmacy.getPharmacyCode(), saleDrug.getOrganDrugCode());
 
         //获取响应消息
         return httpClient.execute(httpGet);
