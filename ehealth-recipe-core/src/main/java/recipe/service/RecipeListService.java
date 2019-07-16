@@ -200,7 +200,7 @@ public class RecipeListService extends RecipeBaseService{
 
     /**
      * 获取所有处方单信息
-     *
+     * 患者端没有用到
      * @param mpiId
      * @param index
      * @param limit
@@ -209,7 +209,6 @@ public class RecipeListService extends RecipeBaseService{
     @RpcService
     public List<PatientRecipeDTO> findAllRecipesForPatient(String mpiId, Integer index, Integer limit) {
         Assert.hasLength(mpiId, "findAllRecipesForPatient mpiId is null.");
-        checkUserHasPermissionByMpiId(mpiId);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
 //        List<String> allMpiIds = recipeService.getAllMemberPatientsByCurrentPatient(mpiId);
