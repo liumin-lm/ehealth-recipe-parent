@@ -151,7 +151,7 @@ public class PayModeTFDS implements IPurchaseService{
         order.setDrugStoreName(MapValueUtil.getString(extInfo, "gysName"));
         order.setRecipeIdList("["+dbRecipe.getRecipeId()+"]");
         order.setDrugStoreAddr(MapValueUtil.getString(extInfo, "gysAddr"));
-
+        order.setEnterpriseId(MapValueUtil.getInteger(extInfo, "depId"));
         List<Recipe> recipeList = Arrays.asList(dbRecipe);
         Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
         if (null == calculateFee || Integer.valueOf(1).equals(calculateFee)) {

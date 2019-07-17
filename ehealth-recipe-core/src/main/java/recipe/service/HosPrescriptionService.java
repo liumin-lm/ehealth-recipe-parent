@@ -92,6 +92,36 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         return result;
     }
 
+    /**
+     * 接收第三方流转处方（仅流转不在平台做任何功能）
+     *
+     * @param hospitalRecipeDTO 医院处方
+     * @return 结果
+     */
+    @Override
+    @RpcService
+    public HosRecipeResult createTransferPrescription(HospitalRecipeDTO hospitalRecipeDTO) {
+        HosRecipeResult<RecipeBean> result = prescribeService.createPrescription(hospitalRecipeDTO);
+        Integer recipeId = null;
+        if (HosRecipeResult.SUCCESS.equals(result.getCode())) {
+            RecipeBean recipe = result.getData();
+            recipeId = recipe.getRecipeId();
+            //将流转处方推送给药企
+            drugsEnterpriseService.pushHosInteriorSupport(recipe.getRecipeId(),recipe.getClinicOrgan());
+            String memo = "医院流转处方推送药企成功";
+            //日志记录
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
+        }
+
+        if (HosRecipeResult.DUPLICATION.equals(result.getCode())) {
+            result.setCode(HosRecipeResult.SUCCESS);
+        }
+        RecipeBean backNew = new RecipeBean();
+        backNew.setRecipeId(recipeId);
+        result.setData(backNew);
+        return result;
+    }
+
     @RpcService
     public HosRecipeResult updateRecipeStatus(HospitalStatusUpdateDTO request) {
         HosRecipeResult result = prescribeService.updateRecipeStatus(request, null);

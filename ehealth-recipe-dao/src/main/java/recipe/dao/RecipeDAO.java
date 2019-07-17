@@ -142,7 +142,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      * @param clinicOrgan
      * @return
      */
-    @DAOMethod(sql = "from Recipe where recipeCode=:recipeCode and clinicOrgan=:clinicOrgan and fromflag=1")
+    @DAOMethod(sql = "from Recipe where recipeCode=:recipeCode and clinicOrgan=:clinicOrgan and fromflag in (1,2)")
     public abstract Recipe getByRecipeCodeAndClinicOrgan(@DAOParam("recipeCode") String recipeCode,
                                                          @DAOParam("clinicOrgan") Integer clinicOrgan);
 
@@ -1670,6 +1670,29 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         };
 
         HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * 监管平台反查接口
+     * @param organId
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    public List<Recipe> findSyncRecipeListByOrganId(final Integer organId, final String startDate,final String endDate){
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder(
+                        "from Recipe where fromflag=1 and signDate between '" + startDate + "' and '" + endDate
+                                + "' and clinicOrgan =:organId and syncFlag =0 ");
+                Query query = ss.createQuery(hql.toString());
+                query.setParameter("organId",organId);
+                setResult(query.list());
+            }
+        };
+
+        HibernateSessionTemplate.instance().executeReadOnly(action);
         return action.getResult();
     }
 }
