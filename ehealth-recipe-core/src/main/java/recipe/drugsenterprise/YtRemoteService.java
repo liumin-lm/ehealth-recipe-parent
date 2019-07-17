@@ -87,6 +87,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
 
     private static final Integer ytSource = 4;
 
+    private static final Integer requestPushSuccessCode = 204;
 
     public YtRemoteService() {
         RecipeCacheService recipeService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
@@ -265,11 +266,10 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         //获取响应消息
         CloseableHttpResponse response = httpClient.execute(httpPost);
         HttpEntity httpEntity = response.getEntity();
-        String responseStr = EntityUtils.toString(httpEntity);
-        if(CommonConstant.requestSuccessCode == response.getStatusLine().getStatusCode()){
-            LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送成功，请求返回:{}", enterprise.getId(), enterprise.getName(), responseStr);
+        if(requestPushSuccessCode == response.getStatusLine().getStatusCode()){
+            LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送成功，请求返回:{}", enterprise.getId(), enterprise.getName());
         }else{
-            LOGGER.warn("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送失败, 原因：{}", enterprise.getId(), enterprise.getName(), responseStr);
+            LOGGER.warn("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送失败", enterprise.getId(), enterprise.getName());
             getFailResult(result, "处方推送失败");
         }
         //关闭 HttpEntity 输入流
@@ -337,19 +337,16 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         String ossId = nowRecipe.getChemistSignFile();
 
         if(null != ossId){
-            try {
-                IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
-                String imgStr = fileDownloadService.downloadImg(ossId);
-                if(ObjectUtils.isEmpty(imgStr)){
-                    LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{}的ossid为{}处方笺不存在", nowRecipe.getRecipeId(), ossId);
-                    getFailResult(result, "处方笺不存在");
-                    return result;
-                }
-                sendYtRecipe.setImage(imgStr);
-            } catch (Exception e) {
-                e.printStackTrace();
-                LOGGER.error("YtRemoteService.pushRecipeInfo:获取图片异常：{}", e.getMessage());
+
+            IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+            String imgStr = fileDownloadService.downloadImg(ossId);
+            if(ObjectUtils.isEmpty(imgStr)){
+                LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{}的ossid为{}处方笺不存在", nowRecipe.getRecipeId(), ossId);
+                getFailResult(result, "处方笺不存在");
+                return result;
             }
+            sendYtRecipe.setImage(imgStr);
+
         }
         //检验并组装处方对应的详情信息
         assembleDrugListMsg(result, sendYtRecipe, nowRecipe, organ, enterprise);
@@ -431,8 +428,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 getFailResult(result, "药品的单价为空");
                 return result;
             }
-            //price = nowDetail.getSalePrice().doubleValue();
-            price = saleDrug.getRatePrice();
+            price = saleDrug.getPrice().doubleValue();
             quantity = nowDetail.getUseTotalDose();
 
             nowYtDrugDTO.setQuantity(quantity);
