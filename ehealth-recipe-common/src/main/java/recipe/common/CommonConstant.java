@@ -11,4 +11,6 @@ public class CommonConstant {
 
     public static final String FAIL = "001";
 
+    public static final Integer requestSuccessCode = 200;
+
 }
