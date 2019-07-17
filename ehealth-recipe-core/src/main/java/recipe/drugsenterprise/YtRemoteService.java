@@ -439,7 +439,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             nowYtDrugDTO.setPrice(price);
             nowYtDrugDTO.setAmount(price * quantity);
             nowYtDrugDTO.setUsage(nowDetail.getUsingRate());
-            //nowYtDrugDTO.setDosage(nowDetail.getUseDose() + nowDetail.getUseDoseUnit());
+            nowYtDrugDTO.setDosage(nowDetail.getUseDose() + nowDetail.getUseDoseUnit());
         }
         return null;
     }
