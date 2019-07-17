@@ -405,4 +405,38 @@ public class YtRecipeDTO implements Serializable{
     public void setItemList(List<YtDrugDTO> itemList) {
         this.itemList = itemList;
     }
+
+    @Override
+    public String toString() {
+        return "YtRecipeDTO{" +
+                "source=" + source +
+                ", orgCode='" + orgCode + '\'' +
+                ", sourceSerialNumber='" + sourceSerialNumber + '\'' +
+                ", externalNumber='" + externalNumber + '\'' +
+                ", hzMedicalFlag=" + hzMedicalFlag +
+                ", pTime='" + pTime + '\'' +
+                ", validDay=" + validDay +
+                ", hospitalCode='" + hospitalCode + '\'' +
+                ", hospitalName='" + hospitalName + '\'' +
+                ", doctorName='" + doctorName + '\'' +
+                ", patientName='" + patientName + '\'' +
+                ", sex=" + sex +
+                ", age=" + age +
+                ", phone='" + phone + '\'' +
+                ", address='" + address + '\'' +
+                ", symptom='" + symptom + '\'' +
+                ", costType=" + costType +
+                ", recordNo='" + recordNo + '\'' +
+                ", category='" + category + '\'' +
+                ", totalAmount=" + totalAmount +
+                ", transFee=" + transFee +
+                ", ifPay=" + ifPay +
+                ", payMode=" + payMode +
+                ", recipientName='" + recipientName + '\'' +
+                ", recipientAdd='" + recipientAdd + '\'' +
+                ", recipientTel='" + recipientTel + '\'' +
+                ", zipCode='" + zipCode + '\'' +
+                ", itemList=" + itemList +
+                '}';
+    }
 }
