@@ -437,10 +437,6 @@ public class HisCallBackService {
                             RecipeLogService.saveRecipeLog(recipeId, beforeStatus, RecipeStatusConstant.FINISH, logMemo);
                             //消息推送
                             RecipeMsgService.batchSendMsg(recipeId, msgStatus);
-                            if (organId == 1003064 || organId == 1003086){
-                                //推送处方到监管平台（江苏）
-                                RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipeId,2));
-                            }
                         }
                     }
                 }

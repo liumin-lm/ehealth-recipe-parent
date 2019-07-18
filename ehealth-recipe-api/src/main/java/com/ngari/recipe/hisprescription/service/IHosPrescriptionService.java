@@ -14,4 +14,7 @@ public interface IHosPrescriptionService {
 
     @RpcService
     HosRecipeResult createPrescription(HospitalRecipeDTO hospitalRecipeDTO);
+
+    @RpcService
+    HosRecipeResult createTransferPrescription(HospitalRecipeDTO hospitalRecipeDTO);
 }
