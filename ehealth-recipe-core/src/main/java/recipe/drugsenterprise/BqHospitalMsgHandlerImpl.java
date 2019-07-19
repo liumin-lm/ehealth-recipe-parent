@@ -22,6 +22,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.hisservice.RecipeToHisService;
+import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeMsgService;
 
@@ -94,6 +95,9 @@ public class BqHospitalMsgHandlerImpl implements BqHospitalMsgHandler {
                 //配送到家
                 LOGGER.info("配送到家消息发送{}.",recipe.getRecipeId());
                 RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.PATIENT_REACHPAY_FINISH);
+                //监管平台核销上传
+                SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
+                syncExecutorService.uploadRecipeVerificationIndicators(recipe.getRecipeId());
             }
         }
 
