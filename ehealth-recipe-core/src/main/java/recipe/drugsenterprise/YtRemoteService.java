@@ -638,7 +638,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
      * @param result 结果集
      * @param pharmacy 药店
        * @param sumFlag 库存检查结果
-     * @return void
+     * @return GroupSumResult 放回的药店下药品检查结果
     */
     private GroupSumResult checkDrugListByDeil(Map<Integer, DetailDrugGroup> drugGroup, DrugsEnterprise drugsEnterprise, SaleDrugList saleDrug, DrugEnterpriseResult result, Pharmacy pharmacy, boolean sumFlag) {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
@@ -778,25 +778,43 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         Integer depId = enterprise.getId();
         String depName = enterprise.getName();
-        SaleDrugList saleDrug = null;
         Map<Integer, BigDecimal> feeSumByPharmacyIdMap = new HashMap<>();
         //删除库存不够的药店
+        removeNoStockPhamacy(enterprise, result, pharmacyList, drugGroup, feeSumByPharmacyIdMap);
+
+        //数据封装成页面展示数据
+        List<DepDetailBean> pharmacyDetailPage = assemblePharmacyPageMsg(ext, enterprise, pharmacyList, feeSumByPharmacyIdMap);
+        result.setObject(pharmacyDetailPage);
+        return result;
+    }
+
+    /**
+     * @method  removeNoStockPhamacy
+     * @description 移除库存不够的
+     * @date: 2019/7/22
+     * @author: JRK
+     * @param enterprise 药企
+     * @param result 结果集
+     * @param pharmacyList 药店列表
+     * @param drugGroup 处方药品分组
+     * @param feeSumByPharmacyIdMap 符合库存的药店下对应处方药品下的总价
+     * @return void
+     */
+    private void removeNoStockPhamacy(DrugsEnterprise enterprise, DrugEnterpriseResult result, List<Pharmacy> pharmacyList, Map<Integer, DetailDrugGroup> drugGroup, Map<Integer, BigDecimal> feeSumByPharmacyIdMap) {
         Iterator<Pharmacy> iterator = pharmacyList.iterator();
         Pharmacy next;
+        SaleDrugList saleDrug = null;
         while (iterator.hasNext()) {
             next = iterator.next();
+            //判断药店库存
             GroupSumResult groupSumResult = checkDrugListByDeil(drugGroup, enterprise, saleDrug, result, next, true);
+            //不够的移除
             if(groupSumResult.getComplacentNum() < drugGroup.size()){
                 iterator.remove();
             }else{
                 feeSumByPharmacyIdMap.put(next.getPharmacyId(), new BigDecimal(Double.toString(groupSumResult.getFeeSum())));
             }
         }
-
-        //数据封装成页面展示数据
-        List<DepDetailBean> pharmacyDetailPage = assemblePharmacyPageMsg(ext, enterprise, pharmacyList, feeSumByPharmacyIdMap);
-        result.setObject(pharmacyDetailPage);
-        return result;
     }
 
     /**
@@ -859,6 +877,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             position.setRange(Integer.parseInt(ext.get(searchMapRANGE).toString()));
             newDepDetailBean.setPosition(position);
             newDepDetailBean.setBelongDepName(enterprise.getName());
+            //记录药店和用户两个经纬度的距离
             newDepDetailBean.setDistance(DistanceUtil.getDistance(Double.parseDouble(ext.get(searchMapLatitude).toString()),
                     Double.parseDouble(ext.get(searchMapLongitude).toString()), Double.parseDouble(pharmacyMsg.getPharmacyLatitude()), Double.parseDouble(pharmacyMsg.getPharmacyLongitude())));
         }
