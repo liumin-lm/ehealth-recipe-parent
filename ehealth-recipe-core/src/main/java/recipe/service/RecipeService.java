@@ -1099,9 +1099,6 @@ public class RecipeService extends RecipeBaseService{
         String recipeMode = recipe.getRecipeMode();
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
             RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.CHECK_NOT_PASSYS_PAYONLINE);
-            //同步到互联网监管平台
-            SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
-            syncExecutorService.uploadRecipeIndicators(recipe);
         } else {
             //根据付款方式提示不同消息
             if (RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) && PayConstant.PAY_FLAG_PAY_SUCCESS == recipe.getPayFlag()) {
