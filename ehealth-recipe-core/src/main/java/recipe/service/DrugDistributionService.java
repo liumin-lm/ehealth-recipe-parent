@@ -330,4 +330,56 @@ public class DrugDistributionService {
         HisResponseTO hisResult = service.updateTakeDrugWay(updateTakeDrugWayReqTO);
         LOGGER.info("取药方式更新通知his. param={},result={}", JSONUtils.toString(updateTakeDrugWayReqTO), JSONUtils.toString(hisResult));
     }
+
+
+    /**
+     *  查看订单
+     * @param request
+     * @return
+     */
+    @RpcService
+    public PurchaseResponse findOrder(PurchaseRequest request) {
+        PurchaseResponse response = ResponseUtils.getFailResponse(PurchaseResponse.class, "");
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.get(request.getRecipeId());
+        if (null == recipe) {
+            response.setMsg("处方不存在");
+            return response;
+        }
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAccount("aldyf");
+        if (null == drugsEnterprise) {
+            LOGGER.warn("purchase aldyf 药企不存在");
+            response.setMsg("aldyf 药企不存在");
+            return response;
+        }
+        DrugEnterpriseResult result = queryPrescription(recipe.getRecipeCode(), drugsEnterprise);
+        if (null == result.getObject()) {
+            response.setMsg("查询不到处方订单");
+            return response;
+        }
+        AlibabaAlihealthRxPrescriptionGetResponse aliResponse = (AlibabaAlihealthRxPrescriptionGetResponse) result.getObject();
+        AlibabaAlihealthRxPrescriptionGetResponse.RxPrescription rxPrescription = aliResponse.getModel();
+        if (null != rxPrescription) {
+            if (!rxPrescription.getUsable()) {
+                //已使用处方展示订单信息
+                List<AlibabaAlihealthRxPrescriptionGetResponse.RxOrderInfo> rxOrderInfoList = rxPrescription.getRxOrderList();
+                if (CollectionUtils.isNotEmpty(rxOrderInfoList)) {
+                    List<DeptOrderDTO> deptOrderDTOList = new ArrayList<>(rxOrderInfoList.size());
+                    DeptOrderDTO deptOrderDTO;
+                    for (AlibabaAlihealthRxPrescriptionGetResponse.RxOrderInfo rxOrderInfo : rxOrderInfoList) {
+                        deptOrderDTO = new DeptOrderDTO();
+                        deptOrderDTO.setOrderCode(rxOrderInfo.getBizOrderId());
+                        deptOrderDTO.setStatus(rxOrderInfo.getStatus());
+                        deptOrderDTO.setOrderDetailUrl(rxOrderInfo.getBizOrderDetailUrl());
+                        deptOrderDTOList.add(deptOrderDTO);
+                    }
+                    response.setOrderList(deptOrderDTOList);
+                    response.setCode(PurchaseResponse.ORDER_DETAIL);
+                    return response;
+                }
+            }
+        }
+        return response;
+    }
 }

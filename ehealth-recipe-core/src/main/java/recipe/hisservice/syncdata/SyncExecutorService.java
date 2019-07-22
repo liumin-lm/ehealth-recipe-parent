@@ -165,22 +165,22 @@ public class SyncExecutorService {
             LOGGER.warn("uploadRecipeVerificationIndicators openapi exception recipe={}", JSONUtils.toString(recipe), e);
         }*/
         //上传hisApi方式
-        /*HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+        HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
         try {
             response = hisSyncService.uploadRecipeVerificationIndicators(Arrays.asList(recipe));
             if (CommonConstant.SUCCESS.equals(response.getCode())){
                 //记录日志
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
                         recipe.getStatus(), "监管平台上传核销信息成功");
-                LOGGER.info("uploadRecipeVerificationIndicators openapi execute success. recipeId={}", recipe.getRecipeId());
+                LOGGER.info("uploadRecipeVerificationIndicators execute success. recipeId={}", recipe.getRecipeId());
             } else{
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
                         recipe.getStatus(), "监管平台上传核销信息失败,"+response.getMsg());
-                LOGGER.warn("uploadRecipeVerificationIndicators openapi execute error. recipe={}", JSONUtils.toString(recipe));
+                LOGGER.warn("uploadRecipeVerificationIndicators execute error. recipe={}", JSONUtils.toString(recipe));
             }
         } catch (Exception e) {
-            LOGGER.warn("uploadRecipeVerificationIndicators openapi exception recipe={}", JSONUtils.toString(recipe), e);
-        }*/
+            LOGGER.warn("uploadRecipeVerificationIndicators exception recipe={}", JSONUtils.toString(recipe), e);
+        }
 
     }
 

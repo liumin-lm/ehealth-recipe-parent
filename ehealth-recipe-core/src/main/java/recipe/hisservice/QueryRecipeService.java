@@ -10,18 +10,24 @@ import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
+import com.ngari.consult.ConsultBean;
+import com.ngari.consult.common.model.QuestionnaireBean;
+import com.ngari.consult.common.service.IConsultService;
+import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.DepartmentDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.DepartmentService;
-import com.ngari.recipe.entity.OrganDrugList;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.hisprescription.model.OrderItemDTO;
-import com.ngari.recipe.hisprescription.model.QueryRecipeInfoDTO;
-import com.ngari.recipe.hisprescription.model.QueryRecipeReqDTO;
-import com.ngari.recipe.hisprescription.model.QueryRecipeResultDTO;
+import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.dto.zjs.SubCodeDTO;
+import com.ngari.patient.service.*;
+import com.ngari.patient.service.zjs.SubCodeService;
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.entity.*;
+import com.ngari.recipe.hisprescription.model.*;
 import com.ngari.recipe.hisprescription.service.IQueryRecipeService;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.Dictionary;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -29,18 +35,23 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
-import recipe.dao.OrganDrugListDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeExtendDAO;
+import recipe.constant.RecipeStatusConstant;
+import recipe.constant.RecipeSystemConstant;
+import recipe.dao.*;
+import recipe.hisservice.syncdata.HisSyncSupervisionService;
+import recipe.service.RecipeService;
+import recipe.util.DateConversion;
+import recipe.util.LocalStringUtil;
+import recipe.util.RedisClient;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * 浙江互联网医院处方查询接口
@@ -51,6 +62,7 @@ public class QueryRecipeService implements IQueryRecipeService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(QueryRecipeService.class);
 
+    @Override
     @RpcService
     public QueryRecipeResultDTO queryRecipeInfo(QueryRecipeReqDTO queryRecipeReqDTO){
         QueryRecipeResultDTO resultDTO = new QueryRecipeResultDTO();
@@ -90,6 +102,104 @@ public class QueryRecipeService implements IQueryRecipeService {
         resultDTO.setData(infoDTO);
         LOGGER.info("queryRecipeInfo res={}", JSONUtils.toString(resultDTO));
         return resultDTO;
+    }
+
+    @Override
+    public List<RegulationRecipeIndicatorsDTO> queryRegulationRecipeData(Integer organId,String startDate,String endDate) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        List<Recipe> recipeList = recipeDAO.findSyncRecipeListByOrganId(organId, startDate, endDate);
+        if (CollectionUtils.isEmpty(recipeList)){
+            return new ArrayList<>();
+        }
+        HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+        List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
+        service.splicingBackRecipeData(recipeList,request);
+        List<RegulationRecipeIndicatorsDTO> result = ObjectCopyUtils.convert(request, RegulationRecipeIndicatorsDTO.class);
+        LOGGER.info("queryRegulationRecipeData data={}", JSONUtils.toString(result));
+        return result;
+    }
+
+    /**
+     * 处方撤销状态
+     *
+     * @param
+     * @return 1正常 2撤销
+     */
+    private String getVerificationStatus(Recipe recipe) {
+        if (RecipeStatusConstant.REVOKE == recipe.getStatus()
+                || RecipeStatusConstant.HIS_FAIL == recipe.getStatus() || RecipeStatusConstant.NO_DRUG == recipe.getStatus()
+                || RecipeStatusConstant.NO_PAY == recipe.getStatus() || RecipeStatusConstant.NO_OPERATOR == recipe.getStatus()
+                || RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
+            return "2";
+        }
+
+        return "1";
+    }
+
+    /**
+     * 设置处方详情数据
+     *
+     * @param req
+     * @param detailList
+     */
+    private void setDetail(RegulationRecipeIndicatorsDTO req, List<Recipedetail> detailList,
+                           Dictionary usingRateDic, Dictionary usePathwaysDic, Recipe recipe) {
+        RegulationRecipeDetailIndicatorsReq reqDetail;
+        DrugListDAO drugListDao = DAOFactory.getDAO(DrugListDAO.class);
+        List<RegulationRecipeDetailIndicatorsReq> list = new ArrayList<>(detailList.size());
+        /*double dosageDay;*/
+        DrugList drugList;
+        for (Recipedetail detail : detailList) {
+            reqDetail = new RegulationRecipeDetailIndicatorsReq();
+            reqDetail.setDrcode(detail.getOrganDrugCode());
+            reqDetail.setDrname(detail.getDrugName());
+            reqDetail.setDrmodel(detail.getDrugSpec());
+            reqDetail.setPack(detail.getPack());
+            reqDetail.setPackUnit(detail.getDrugUnit());
+            //频次
+            reqDetail.setFrequency(detail.getUsingRate());
+            //药品频次名称
+            if (null != usingRateDic) {
+                reqDetail.setFrequencyName(usingRateDic.getText(detail.getUsingRate()));
+            }
+            //用法
+            reqDetail.setAdmission(detail.getUsePathways());
+            //药品用法名称
+            if (null != usePathwaysDic) {
+                reqDetail.setAdmissionName(usePathwaysDic.getText(detail.getUsePathways()));
+            }
+            reqDetail.setDosage(detail.getUseDose().toString());
+            reqDetail.setDrunit(detail.getUseDoseUnit());
+            reqDetail.setDosageTotal(detail.getUseTotalDose().toString());
+            reqDetail.setUseDays(detail.getUseDays());
+            reqDetail.setRemark(detail.getMemo());
+            drugList = drugListDao.getById(detail.getDrugId());
+            if (drugList != null){
+                //药物剂型代码
+                reqDetail.setDosageForm(drugList.getDrugForm());
+                //厂商
+                reqDetail.setDrugManf(drugList.getProducer());
+            }
+            //药物使用总剂量
+            reqDetail.setUseDosage("0");
+            //药物日药量/DDD值
+            /*dosageDay = (detail.getUseDose())*(UsingRateFilter.transDailyTimes(detail.getUsingRate()));*/
+            reqDetail.setDosageDay("0");
+            //中药处方详细描述
+            if (RecipeUtil.isTcmType(recipe.getRecipeType())){
+                reqDetail.setTcmDescribe(detail.getUsingRate()+detail.getUsePathways());
+            }
+            //处方明细Id
+            reqDetail.setRecipeDetailId(detail.getRecipeDetailId());
+            //单价
+            reqDetail.setPrice(detail.getSalePrice());
+            //总价
+            reqDetail.setTotalPrice(detail.getDrugCost());
+
+            list.add(reqDetail);
+        }
+
+        req.setOrderList(list);
     }
 
     /**
