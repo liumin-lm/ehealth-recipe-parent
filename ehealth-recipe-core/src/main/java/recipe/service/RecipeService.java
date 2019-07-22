@@ -72,6 +72,7 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.service.common.RecipeCacheService;
+import recipe.thread.PushRecipeToHisCallable;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateRecipeStatusFromHisCallable;
@@ -804,9 +805,10 @@ public class RecipeService extends RecipeBaseService{
             }
         }
 
-        //HIS消息发送
-        boolean result = hisService.recipeSendHis(recipeId, null);
-        rMap.put("signResult", result);
+        //HIS消息发送--异步处理
+        /*boolean result = hisService.recipeSendHis(recipeId, null);*/
+        RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeId));
+        rMap.put("signResult", true);
         rMap.put("recipeId", recipeId);
         rMap.put("errorFlag", false);
 
