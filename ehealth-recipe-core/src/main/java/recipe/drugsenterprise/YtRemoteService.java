@@ -338,14 +338,22 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
 
         if(null != ossId){
 
-            IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
-            String imgStr = fileDownloadService.downloadImg(ossId);
-            if(ObjectUtils.isEmpty(imgStr)){
-                LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{}的ossid为{}处方笺不存在", nowRecipe.getRecipeId(), ossId);
-                getFailResult(result, "处方笺不存在");
+            try {
+                IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+                String imgStr = fileDownloadService.downloadImg(ossId);
+                if(ObjectUtils.isEmpty(imgStr)){
+                    LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{}的ossid为{}处方笺不存在", nowRecipe.getRecipeId(), ossId);
+                    getFailResult(result, "处方笺不存在");
+                    return result;
+                }
+                LOGGER.warn("YtRemoteService.pushRecipeInfo:{}处方，下载处方笺服务成功", nowRecipe.getRecipeId());
+                sendYtRecipe.setImage(imgStr);
+            } catch (Exception e) {
+                e.printStackTrace();
+                LOGGER.warn("YtRemoteService.pushRecipeInfo:{}处方，下载处方笺服务异常：{}.", nowRecipe.getRecipeId(), e.getMessage() );
+                getFailResult(result, "下载处方笺服务异常");
                 return result;
             }
-            sendYtRecipe.setImage(imgStr);
 
         }
         //检验并组装处方对应的详情信息
