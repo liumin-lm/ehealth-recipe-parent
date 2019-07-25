@@ -267,7 +267,7 @@ public class OrganDrugListService {
     //包装监管平台数据
     private DrugCategoryReq packingDrugCategoryReq(OrganDrugList organDrugList){
         OrganService organService = BasicAPI.getService(OrganService.class);
-        IMinkeOrganService minkeOrganService = (IMinkeOrganService) AppContextHolder.getBean("jgpt.minkeOrganService");
+        IMinkeOrganService minkeOrganService = AppContextHolder.getBean("jgpt.minkeOrganService", IMinkeOrganService.class);
         OrganDTO organDTO = organService.getByOrganId(organDrugList.getOrganId());
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         DrugList drugList = drugListDAO.getById(organDrugList.getDrugId());
