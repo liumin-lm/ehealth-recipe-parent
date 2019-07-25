@@ -2,6 +2,7 @@ package recipe.service;
 
 import com.google.common.collect.Lists;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.opbase.zjs.service.IMinkeOrganService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
@@ -18,6 +19,7 @@ import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
+import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -266,11 +268,13 @@ public class OrganDrugListService {
     //包装监管平台数据
     private DrugCategoryReq packingDrugCategoryReq(OrganDrugList organDrugList){
         OrganService organService = BasicAPI.getService(OrganService.class);
+        IMinkeOrganService minkeOrganService = (IMinkeOrganService) AppContextHolder.getBean("jgpt.minkeOrganService");
         OrganDTO organDTO = organService.getByOrganId(organDrugList.getOrganId());
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         DrugList drugList = drugListDAO.getById(organDrugList.getDrugId());
         DrugCategoryReq drugCategoryReq = new DrugCategoryReq();
-        drugCategoryReq.setOrganID(organDTO.getOrganizeCode());
+        String organId = minkeOrganService.getRegisterNumberByUnitId(organDTO.getMinkeUnitID());
+        drugCategoryReq.setOrganID(organId);
         drugCategoryReq.setOrganName(organDTO.getName());
         drugCategoryReq.setPlatDrugCode(organDrugList.getDrugId().toString());
         drugCategoryReq.setPlatDrugName(organDrugList.getDrugName());

@@ -58,7 +58,11 @@
                 <artifactId>ehealth-shadow-api</artifactId>
                 <version>1.0.1-SNAPSHOT</version>
             </dependency>
-
+            <dependency>
+                <groupId>ngari</groupId>
+                <artifactId>ehealth-regulation-api</artifactId>
+                <version>${ngari.jgpt.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.google.code.findbugs</groupId>
                 <artifactId>jsr305</artifactId>

@@ -63,6 +63,10 @@
             <artifactId>ehealth-shadow-api</artifactId>
         </dependency>
         <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-regulation-api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>ehealth-utils</artifactId>
         </dependency>
