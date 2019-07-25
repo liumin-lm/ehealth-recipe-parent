@@ -300,7 +300,7 @@ public class OrganDrugListService {
             drugCategoryReq.setHospDrugManuf(drugList.getProducer());
         }
 
-        drugCategoryReq.setUseFlag("1");
+        drugCategoryReq.setUseFlag(organDrugList.getStatus()+"");
         drugCategoryReq.setDrugClass(drugList.getDrugClass());
         drugCategoryReq.setUpdateTime(new Date());
         drugCategoryReq.setCreateTime(new Date());
