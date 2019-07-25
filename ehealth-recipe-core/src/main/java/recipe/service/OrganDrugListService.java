@@ -280,7 +280,12 @@ public class OrganDrugListService {
         if (StringUtils.isNotEmpty(organDrugList.getDrugSpec())) {
             drugCategoryReq.setHospDrugPacking(organDrugList.getDrugSpec());
         } else {
-            drugCategoryReq.setHospDrugPacking(drugList.getDrugSpec());
+            if (StringUtils.isNotEmpty(drugList.getDrugSpec())) {
+                drugCategoryReq.setHospDrugPacking(drugList.getDrugSpec());
+            } else {
+                drugCategoryReq.setHospDrugPacking("/");
+            }
+
         }
         if (StringUtils.isNotEmpty(organDrugList.getProducer())) {
             drugCategoryReq.setHospDrugManuf(organDrugList.getProducer());
