@@ -277,7 +277,12 @@ public class OrganDrugListService {
         drugCategoryReq.setOrganName(organDTO.getName());
         drugCategoryReq.setPlatDrugCode(organDrugList.getDrugId().toString());
         drugCategoryReq.setPlatDrugName(organDrugList.getDrugName());
-        drugCategoryReq.setHospDrugCode(organDrugList.getOrganDrugId().toString());
+        if (StringUtils.isNotEmpty(organDrugList.getOrganDrugCode())) {
+            drugCategoryReq.setHospDrugCode(organDrugList.getOrganDrugCode());
+        } else {
+            drugCategoryReq.setHospDrugCode(organDrugList.getOrganDrugId().toString());
+        }
+
         drugCategoryReq.setHospDrugName(organDrugList.getDrugName());
         drugCategoryReq.setHospTradeName(organDrugList.getSaleName());
         if (StringUtils.isNotEmpty(organDrugList.getDrugSpec())) {
