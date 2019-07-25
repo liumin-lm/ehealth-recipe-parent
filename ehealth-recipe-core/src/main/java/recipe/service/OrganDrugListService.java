@@ -270,7 +270,7 @@ public class OrganDrugListService {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         DrugList drugList = drugListDAO.getById(organDrugList.getDrugId());
         DrugCategoryReq drugCategoryReq = new DrugCategoryReq();
-        drugCategoryReq.setOrganID(organDrugList.getOrganDrugCode());
+        drugCategoryReq.setOrganID(organDTO.getOrganizeCode());
         drugCategoryReq.setOrganName(organDTO.getName());
         drugCategoryReq.setPlatDrugCode(organDrugList.getDrugId().toString());
         drugCategoryReq.setPlatDrugName(organDrugList.getDrugName());
