@@ -2,7 +2,7 @@ package recipe.service;
 
 import com.google.common.collect.Lists;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.opbase.zjs.service.IMinkeOrganService;
+import com.ngari.jgpt.zjs.service.IMinkeOrganService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
