@@ -330,6 +330,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                         "WHERE o.MpiId IN (:mpiIdList) and o.Effective = 1 ");
                 hql.append(") s ORDER BY s.recordDate desc");
                 Query q = ss.createSQLQuery(hql.toString());
+                LOGGER.info("findOtherRecipesForPatient sql:"+ hql.toString());
                 q.setParameterList("mpiIdList", mpiIdList);
                 if (CollectionUtils.isNotEmpty(notInRecipeIds)) {
                     q.setParameterList("notInRecipeIds", notInRecipeIds);
