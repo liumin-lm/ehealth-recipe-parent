@@ -326,11 +326,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 hql.append("UNION ALL ");
                 hql.append("SELECT 2 as type,o.CouponId as couponId, 0 as medicalPayFlag, " +
                         "o.OrderCode as recordCode,o.OrderId as recordId,o.MpiId as mpiId,'' as diseaseName," +
-                        "o.Status,o.ActualPrice as fee,o.CreateTime as recordDate,0 as recipeType, o.OrganId, 'ngarihealth' as recipeMode FROM cdr_recipeorder o " +
+                        "o.Status,o.ActualPrice as fee,o.CreateTime as recordDate,0 as recipeType, o.OrganId, 'ngarihealth' as recipeMode,case when o.drugStoreCode = null then 3 else 1 end AS giveMode FROM cdr_recipeorder o " +
                         "WHERE o.MpiId IN (:mpiIdList) and o.Effective = 1 ");
                 hql.append(") s ORDER BY s.recordDate desc");
                 Query q = ss.createSQLQuery(hql.toString());
-                LOGGER.info("findOtherRecipesForPatient sql:"+ hql.toString());
                 q.setParameterList("mpiIdList", mpiIdList);
                 if (CollectionUtils.isNotEmpty(notInRecipeIds)) {
                     q.setParameterList("notInRecipeIds", notInRecipeIds);
