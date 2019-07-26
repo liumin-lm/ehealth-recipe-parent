@@ -666,7 +666,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 } else if (cancelStatus == RecipeStatusConstant.NO_OPERATOR) {
                     //超过3天未操作
                     hql.append(" and fromflag = 1 and status=" + RecipeStatusConstant.CHECK_PASS
-                            + " and chooseFlag=0 ");
+                            + " and chooseFlag in (0,1) ");
                 }
                 Query q = ss.createQuery(hql.toString());
                 setResult(q.list());
