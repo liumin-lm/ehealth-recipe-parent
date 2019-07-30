@@ -117,14 +117,14 @@ public class RecipeBaseService {
     }
 
     /**
-     * 根据MpiId判断请求接口的患者是否是登录患者
+     * 根据MpiId判断请求接口的患者是否是登录患者或者该患者下的就诊人
      *
      * @param mpiId
      */
     public static void checkUserHasPermissionByMpiId(String mpiId) {
-        UserRoleToken urt = UserRoleToken.getCurrent();
         String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
-        if (!(urt.isOwnPatient(mpiId))){
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        if (!patientService.isPatientBelongUser(mpiId)){
             LOGGER.error("当前用户没有权限调用mpiId[{}],methodName[{}]", mpiId ,methodName);
             throw new DAOException("当前登录用户没有权限");
         }
