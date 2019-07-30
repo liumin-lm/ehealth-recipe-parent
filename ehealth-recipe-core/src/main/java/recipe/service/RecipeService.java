@@ -457,8 +457,13 @@ public class RecipeService extends RecipeBaseService{
         if (null == recipe) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单不存在或者已删除");
         }
-        if (null == recipe.getStatus() || recipe.getStatus() == RecipeStatusConstant.CHECK_PASS_YS) {
+        if (null == recipe.getStatus()
+                || recipe.getStatus() == RecipeStatusConstant.CHECK_PASS_YS
+                || recipe.getStatus() == RecipeStatusConstant.CHECK_NOT_PASS_YS) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方已被审核");
+        }
+        if (recipe.getStatus() == RecipeStatusConstant.REVOKE) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方已被医生撤销");
         }
 
         int beforeStatus = recipe.getStatus();
