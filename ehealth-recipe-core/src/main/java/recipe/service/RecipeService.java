@@ -1183,7 +1183,8 @@ public class RecipeService extends RecipeBaseService{
      */
     @RpcService
     public Map<String, Object> findRecipeAndDetailById(int recipeId) {
-        checkUserHasPermission(recipeId);
+        //bug#30596医生患者电子病历下方处方单，点击非本医生开具的处方单，打开页面显示错误----去掉越权
+        /*checkUserHasPermission(recipeId);*/
         return RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, true);
     }
 
