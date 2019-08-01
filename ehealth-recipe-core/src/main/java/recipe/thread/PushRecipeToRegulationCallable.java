@@ -27,7 +27,14 @@ import java.util.concurrent.Callable;
 public class PushRecipeToRegulationCallable implements Callable<String> {
 
     private Logger logger = LoggerFactory.getLogger(PushRecipeToRegulationCallable.class);
+    /**
+     * 江苏省监管平台
+     */
     private static final String REGULATION_JS = "jssjgpt";
+    /**
+     * 浙江省监管平台
+     */
+    private static final String REGULATION_ZJ = "zjsjgpt";
 
     private Integer recipeId;
 
@@ -55,6 +62,7 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
             for (ServiceConfigResponseTO serviceConfigResponseTO : list){
                 if (REGULATION_JS.equals(serviceConfigResponseTO.getRegulationAppDomainId())
                         && (serviceConfigResponseTO.getOrganid().equals(recipe.getClinicOrgan()))){
+                    //江苏省推送处方规则：（1）如果没有审核直接推送处方数据、（2）status=2表示审核了，则推送处方审核后的数据，（3）审核数据推送成功后再推送处方流转数据
                     if (status == 2){
                         response = service.uploadRecipeAuditIndicators(Arrays.asList(recipe));
                         if (CommonConstant.SUCCESS.equals(response.getCode())){
@@ -63,10 +71,17 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
                         } else{
                             logger.warn("uploadRecipeAuditIndicators rpc execute error. recipe={}", JSONUtils.toString(recipe));
                         }
-                    }else {
+                    } else {
+                        response = service.uploadRecipeIndicators(Arrays.asList(recipe));
+                    }
+                } else if (REGULATION_ZJ.equals(serviceConfigResponseTO.getRegulationAppDomainId())
+                        && (serviceConfigResponseTO.getOrganid().equals(recipe.getClinicOrgan()))) {
+                    //浙江省推送处方规则：（1）将status=2 处方审核后的数据推送给监管平台，不会推送审核中、流传的数据
+                    if (status == 2 && RecipeStatusConstant.CHECK_PASS_YS==recipe.getStatus()) {
                         response = service.uploadRecipeIndicators(Arrays.asList(recipe));
                     }
                 }
+
             }
         } catch (Exception e) {
             logger.warn("uploadRecipeIndicators exception recipe={}", JSONUtils.toString(recipe), e);

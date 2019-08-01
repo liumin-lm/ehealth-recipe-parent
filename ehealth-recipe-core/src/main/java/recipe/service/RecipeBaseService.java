@@ -1,10 +1,20 @@
 package recipe.service;
 
+import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.PatientService;
+import com.ngari.recipe.entity.Recipe;
+import ctd.account.UserRoleToken;
+import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeansException;
+import recipe.ApplicationUtils;
+import recipe.dao.RecipeDAO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,6 +90,44 @@ public class RecipeBaseService {
         }
 
         return list;
+    }
+
+    public void checkUserHasPermission(Integer recipeId){
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+        if (recipe != null){
+            if ((urt.isPatient() && urt.isOwnPatient(recipe.getRequestMpiId()))||(urt.isDoctor() && urt.isSelfDoctor(recipe.getDoctor()))) {
+                return;
+            }else{
+                LOGGER.error("当前用户没有权限调用recipeId[{}],methodName[{}]", recipeId ,methodName);
+                throw new DAOException("当前登录用户没有权限");
+            }
+        }
+    }
+
+    public void checkUserHasPermissionByDoctorId(Integer doctorId){
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+        if (!(urt.isSelfDoctor(doctorId))){
+            LOGGER.error("当前用户没有权限调用doctorId[{}],methodName[{}]", doctorId ,methodName);
+            throw new DAOException("当前登录用户没有权限");
+        }
+    }
+
+    /**
+     * 根据MpiId判断请求接口的患者是否是登录患者或者该患者下的就诊人
+     *
+     * @param mpiId
+     */
+    public static void checkUserHasPermissionByMpiId(String mpiId) {
+        String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        if (!patientService.isPatientBelongUser(mpiId)){
+            LOGGER.error("当前用户没有权限调用mpiId[{}],methodName[{}]", mpiId ,methodName);
+            throw new DAOException("当前登录用户没有权限");
+        }
     }
 
 }

@@ -129,5 +129,4 @@ public class RecipeBussConstant {
      */
     public static String RECIPEMODE_ZJJGPT = "zjjgpt";
 
-    
 }
