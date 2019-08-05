@@ -182,7 +182,7 @@ public class PayModeTFDS implements IPurchaseService{
             }
             return result;
         }catch (Exception e){
-            LOGGER.info("PayModeTFDS-getDepDetailBeansByPage,{}.", e.getMessage());
+            LOGGER.info("PayModeTFDS-getDepDetailBeansByPage,start:{},limit:{},{}.", start, limit, e.getMessage());
         }
         return null;
     }
