@@ -115,52 +115,53 @@ public class PayModeTFDS implements IPurchaseService{
             depDetailList = findAllSupportDeps(drugEnterpriseResult, dep, extInfo);
         }
         if (CollectionUtils.isNotEmpty(depDetailList)) {
-            List<Position> positions = new ArrayList<>();
-            Position position1 = new Position();
-            position1.setLatitude(30.180154);
-            position1.setLongitude(120.169144);
-
-            positions.add(position1);
-
-            Position position2 = new Position();
-            position2.setLatitude(30.180748);
-            position2.setLongitude(120.173264);
-
-            positions.add(position2);
-
-            Position position3 = new Position();
-            position3.setLatitude(30.183122);
-            position3.setLongitude(120.181503);
-
-            positions.add(position3);
-
-            Position position4 = new Position();
-            position4.setLatitude(30.174218);
-            position4.setLongitude(120.172577);
-
-            positions.add(position4);
-
-            Position position5 = new Position();
-            position5.setLatitude(30.165907);
-            position5.setLongitude(120.181503);
-
-            positions.add(position5);
-
-            for (int i = 0; i < 5; i++) {
-                DepDetailBean depDetailBean = new DepDetailBean();
-                depDetailBean.setDepId(i+1);
-                depDetailBean.setDistance(1.5 + i);
-                depDetailBean.setAddress("杭州市滨江区"+i);
-                depDetailBean.setRecipeFee(BigDecimal.valueOf(10+i));
-                depDetailBean.setMedicalFee(BigDecimal.valueOf(10+i));
-                depDetailBean.setGiveModeText("药店支付");
-                depDetailBean.setPosition(positions.get(i));
-                depDetailBean.setBelongDepName("钥世圈");
-                depDetailList.add(depDetailBean);
-            }
-
-            redisClient.setEX(key, Long.parseLong(EXPIRE_SECOND), depDetailList);
+            
         }
+        List<Position> positions = new ArrayList<>();
+        Position position1 = new Position();
+        position1.setLatitude(30.180154);
+        position1.setLongitude(120.169144);
+
+        positions.add(position1);
+
+        Position position2 = new Position();
+        position2.setLatitude(30.180748);
+        position2.setLongitude(120.173264);
+
+        positions.add(position2);
+
+        Position position3 = new Position();
+        position3.setLatitude(30.183122);
+        position3.setLongitude(120.181503);
+
+        positions.add(position3);
+
+        Position position4 = new Position();
+        position4.setLatitude(30.174218);
+        position4.setLongitude(120.172577);
+
+        positions.add(position4);
+
+        Position position5 = new Position();
+        position5.setLatitude(30.165907);
+        position5.setLongitude(120.181503);
+
+        positions.add(position5);
+
+        for (int i = 0; i < 5; i++) {
+            DepDetailBean depDetailBean = new DepDetailBean();
+            depDetailBean.setDepId(i+1);
+            depDetailBean.setDistance(1.5 + i);
+            depDetailBean.setAddress("杭州市滨江区"+i);
+            depDetailBean.setRecipeFee(BigDecimal.valueOf(10+i));
+            depDetailBean.setMedicalFee(BigDecimal.valueOf(10+i));
+            depDetailBean.setGiveModeText("药店支付");
+            depDetailBean.setPosition(positions.get(i));
+            depDetailBean.setBelongDepName("钥世圈");
+            depDetailList.add(depDetailBean);
+        }
+
+        redisClient.setEX(key, Long.parseLong(EXPIRE_SECOND), depDetailList);
         LOGGER.info("findSupportDepList recipeId={}, 获取到药店数量[{}]", recipeId, depDetailList.size());
         List<DepDetailBean> result = getDepDetailBeansByPage(extInfo, depDetailList);
         depListBean.setList(result);
