@@ -113,7 +113,9 @@ public class PayModeTFDS implements IPurchaseService{
             DrugEnterpriseResult drugEnterpriseResult = remoteDrugService.findSupportDep(recipeIds, extInfo, dep);
             depDetailList = findAllSupportDeps(drugEnterpriseResult, dep, extInfo);
         }
-        redisClient.setEX(key, Long.parseLong(EXPIRE_SECOND), depDetailList);
+        if (CollectionUtils.isNotEmpty(depDetailList)) {
+            redisClient.setEX(key, Long.parseLong(EXPIRE_SECOND), depDetailList);
+        }
         LOGGER.info("findSupportDepList recipeId={}, 获取到药店数量[{}]", recipeId, depDetailList.size());
         List<DepDetailBean> result = getDepDetailBeansByPage(extInfo, depDetailList);
         depListBean.setList(result);
@@ -126,7 +128,7 @@ public class PayModeTFDS implements IPurchaseService{
         Integer limit = MapValueUtil.getInteger(extInfo, "limit");
         //进行简单分页的操作
         List<DepDetailBean> result = new ArrayList<>();
-        if (depDetailList.size() > start) {
+        if (CollectionUtils.isNotEmpty(depDetailList) && depDetailList.size() > start) {
             result = depDetailList.subList(start, start + limit);
         }
         return result;
