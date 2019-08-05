@@ -44,6 +44,8 @@ public class PayModeTFDS implements IPurchaseService{
     private static final Logger LOGGER = LoggerFactory.getLogger(PayModeTFDS.class);
     private RedisClient redisClient = RedisClient.instance();
     private static String EXPIRE_SECOND;
+    private Integer start = 0;
+    private Integer limit = 20;
 
     public PayModeTFDS(){
         RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
@@ -115,7 +117,7 @@ public class PayModeTFDS implements IPurchaseService{
             depDetailList = findAllSupportDeps(drugEnterpriseResult, dep, extInfo);
         }
         if (CollectionUtils.isNotEmpty(depDetailList)) {
-            
+
         }
         List<Position> positions = new ArrayList<>();
         Position position1 = new Position();
@@ -170,8 +172,8 @@ public class PayModeTFDS implements IPurchaseService{
     }
 
     private List<DepDetailBean> getDepDetailBeansByPage(Map<String, String> extInfo, List<DepDetailBean> depDetailList) {
-        Integer start = MapValueUtil.getInteger(extInfo, "start");
-        Integer limit = MapValueUtil.getInteger(extInfo, "limit");
+        start = MapValueUtil.getInteger(extInfo, "start");
+        limit = MapValueUtil.getInteger(extInfo, "limit");
         //进行简单分页的操作
         List<DepDetailBean> result = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(depDetailList) && depDetailList.size() > start) {
