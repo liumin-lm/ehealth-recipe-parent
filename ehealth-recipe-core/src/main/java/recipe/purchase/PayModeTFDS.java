@@ -172,14 +172,19 @@ public class PayModeTFDS implements IPurchaseService{
     }
 
     private List<DepDetailBean> getDepDetailBeansByPage(Map<String, String> extInfo, List<DepDetailBean> depDetailList) {
-        start = MapValueUtil.getInteger(extInfo, "start");
-        limit = MapValueUtil.getInteger(extInfo, "limit");
-        //进行简单分页的操作
-        List<DepDetailBean> result = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(depDetailList) && depDetailList.size() > start) {
-            result = depDetailList.subList(start, start + limit);
+        try{
+            start = MapValueUtil.getInteger(extInfo, "start");
+            limit = MapValueUtil.getInteger(extInfo, "limit");
+            //进行简单分页的操作
+            List<DepDetailBean> result = new ArrayList<>();
+            if (CollectionUtils.isNotEmpty(depDetailList) && depDetailList.size() > start) {
+                result = depDetailList.subList(start, start + limit);
+            }
+            return result;
+        }catch (Exception e){
+            LOGGER.info("PayModeTFDS-getDepDetailBeansByPage,{}.", e.getMessage());
         }
-        return result;
+        return null;
     }
 
     @Override
