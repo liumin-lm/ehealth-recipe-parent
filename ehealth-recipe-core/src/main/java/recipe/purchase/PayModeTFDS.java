@@ -44,8 +44,6 @@ public class PayModeTFDS implements IPurchaseService{
     private static final Logger LOGGER = LoggerFactory.getLogger(PayModeTFDS.class);
     private RedisClient redisClient = RedisClient.instance();
     private static String EXPIRE_SECOND;
-    private Integer start = 0;
-    private Integer limit = 20;
 
     public PayModeTFDS(){
         RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
@@ -172,19 +170,14 @@ public class PayModeTFDS implements IPurchaseService{
     }
 
     private List<DepDetailBean> getDepDetailBeansByPage(Map<String, String> extInfo, List<DepDetailBean> depDetailList) {
-        try{
-            start = MapValueUtil.getInteger(extInfo, "start");
-            limit = MapValueUtil.getInteger(extInfo, "limit");
-            //进行简单分页的操作
-            List<DepDetailBean> result = new ArrayList<>();
-            if (CollectionUtils.isNotEmpty(depDetailList) && depDetailList.size() > start) {
-                result = depDetailList.subList(start, start + limit);
-            }
-            return result;
-        }catch (Exception e){
-            LOGGER.info("PayModeTFDS-getDepDetailBeansByPage,start:{},limit:{},{}.", start, limit, e.getMessage());
+        Integer start = MapValueUtil.getInteger(extInfo, "start");
+        Integer limit = MapValueUtil.getInteger(extInfo, "limit");
+        //进行简单分页的操作
+        List<DepDetailBean> result = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(depDetailList) && start != null && depDetailList.size() > start) {
+            result = depDetailList.subList(start, start + limit);
         }
-        return null;
+        return result;
     }
 
     @Override
