@@ -175,7 +175,11 @@ public class PayModeTFDS implements IPurchaseService{
         //进行简单分页的操作
         List<DepDetailBean> result = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(depDetailList) && start != null && depDetailList.size() > start) {
-            result = depDetailList.subList(start, start + limit);
+            if (depDetailList.size() < start + limit) {
+                result = depDetailList.subList(start, depDetailList.size());
+            } else {
+                result = depDetailList.subList(start, start + limit);
+            }
         }
         return result;
     }
