@@ -13,6 +13,7 @@ import com.ngari.base.patient.service.IPatientService;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.model.QuestionnaireBean;
 import com.ngari.consult.common.service.IConsultService;
+import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.OrganDTO;
@@ -20,6 +21,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.dto.zjs.SubCodeDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.service.zjs.SubCodeService;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.*;
 import com.ngari.recipe.hisprescription.service.IQueryRecipeService;
@@ -43,6 +45,7 @@ import recipe.bussutil.UsingRateFilter;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.*;
+import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.RecipeService;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
@@ -108,217 +111,12 @@ public class QueryRecipeService implements IQueryRecipeService {
         if (CollectionUtils.isEmpty(recipeList)){
             return new ArrayList<>();
         }
-        DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
-        IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
-        DoctorService doctorService = BasicAPI.getService(DoctorService.class);
-        PatientService patientService = BasicAPI.getService(PatientService.class);
-        SubCodeService subCodeService = BasicAPI.getService(SubCodeService.class);
-        OrganService organService = BasicAPI.getService(OrganService.class);
-        IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-
-        List<RegulationRecipeIndicatorsDTO> request = new ArrayList<>(recipeList.size());
-        Map<Integer, OrganDTO> organMap = new HashMap<>(20);
-        Map<Integer, DepartmentDTO> departMap = new HashMap<>(20);
-        /*Map<Integer, AppointDepartDTO> appointDepartMap = new HashMap<>(20);*/
-        Map<Integer, DoctorDTO> doctorMap = new HashMap<>(20);
-
-        Dictionary usingRateDic = null;
-        Dictionary usePathwaysDic = null;
-        try {
-            usingRateDic = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate");
-            usePathwaysDic = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways");
-        } catch (ControllerException e) {
-            LOGGER.warn("uploadRecipeIndicators dic error.");
-        }
-
-        //业务数据处理
-        Date now = DateTime.now().toDate();
-        RegulationRecipeIndicatorsDTO req;
-        OrganDTO organDTO;
-        String organDiseaseName;
-        DepartmentDTO departmentDTO;
-        DoctorDTO doctorDTO;
-        PatientDTO patientDTO;
-        SubCodeDTO subCodeDTO;
-        List<Recipedetail> detailList;
-        /*AppointDepartDTO appointDepart;*/
-        Integer consultId = null;
-        List<Integer> consultIds;
-        RecipeExtend recipeExtend;
-        RedisClient redisClient = RedisClient.instance();
-        String caSignature = null;
-        for (Recipe recipe : recipeList) {
-            req = new RegulationRecipeIndicatorsDTO();
-
-            //机构处理
-            organDTO = organMap.get(recipe.getClinicOrgan());
-            if (null == organDTO) {
-                organDTO = organService.get(recipe.getClinicOrgan());
-                organMap.put(recipe.getClinicOrgan(), organDTO);
-            }
-            if (null == organDTO) {
-                LOGGER.warn("uploadRecipeIndicators organ is null. recipe.clinicOrgan={}", recipe.getClinicOrgan());
-                continue;
-            }
-
-            /*if (StringUtils.isEmpty(req.getUnitID())) {
-                LOGGER.warn("uploadRecipeIndicators minkeUnitID is not in minkeOrganList. organ.organId={}",
-                        organDTO.getOrganId());
-                continue;
-            }*/
-
-            //科室处理
-            departmentDTO = departMap.get(recipe.getDepart());
-            if (null == departmentDTO) {
-                departmentDTO = departmentService.getById(recipe.getDepart());
-                departMap.put(recipe.getDepart(), departmentDTO);
-            }
-            if (null == departmentDTO) {
-                LOGGER.warn("uploadRecipeIndicators depart is null. recipe.depart={}", recipe.getDepart());
-                continue;
-            }
-            req.setDeptID(departmentDTO.getCode());
-            req.setDeptName(departmentDTO.getName());
-            //设置专科编码等
-            subCodeDTO = subCodeService.getByNgariProfessionCode(departmentDTO.getProfessionCode());
-            if (null == subCodeDTO) {
-                LOGGER.warn("uploadRecipeIndicators subCode is null. recipe.professionCode={}",
-                        departmentDTO.getProfessionCode());
-                continue;
-            }
-            req.setSubjectCode(subCodeDTO.getSubCode());
-            req.setSubjectName(subCodeDTO.getSubName());
-
-            //医生处理
-            req.setDoctorId(recipe.getDoctor().toString());
-            doctorDTO = doctorMap.get(recipe.getDoctor());
-            if (null == doctorDTO) {
-                doctorDTO = doctorService.get(recipe.getDoctor());
-                doctorMap.put(recipe.getDoctor(), doctorDTO);
-            }
-            if (null == doctorDTO) {
-                LOGGER.warn("uploadRecipeIndicators doctor is null. recipe.doctor={}", recipe.getDoctor());
-                continue;
-            }
-            if(Integer.valueOf(1).equals(doctorDTO.getTestPersonnel())){
-                LOGGER.warn("uploadRecipeIndicators doctor is testPersonnel. recipe.doctor={}", recipe.getDoctor());
-                continue;
-            }
-
-            req.setDoctorCertID(doctorDTO.getIdNumber());
-            req.setDoctorName(doctorDTO.getName());
-            //设置医生工号
-            req.setDoctorNo(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
-            //设置医生电子签名
-            if (doctorDTO.getESignId() != null){
-                try {
-                    caSignature = redisClient.get(doctorDTO.getESignId()+"_signature");
-                }catch (Exception e){
-                    LOGGER.error("get caSignature error. doctorId={}",doctorDTO.getDoctorId(), e);
-                }
-                req.setDoctorSign(StringUtils.isNotEmpty(caSignature)?caSignature:"");
-            }
-            //药师处理
-            if (recipe.getChecker() != null){
-                doctorDTO = doctorMap.get(recipe.getChecker());
-                if (null == doctorDTO) {
-                    doctorDTO = doctorService.get(recipe.getChecker());
-                    doctorMap.put(recipe.getChecker(), doctorDTO);
-                }
-                if (null == doctorDTO) {
-                    LOGGER.warn("uploadRecipeIndicators checker is null. recipe.checker={}", recipe.getChecker());
-                    continue;
-                }
-                req.setAuditDoctorCertID(doctorDTO.getIdNumber());
-                req.setAuditDoctor(doctorDTO.getName());
-                req.setAuditDoctorId(recipe.getChecker().toString());
-            }
-
-
-            //患者处理
-            patientDTO = patientService.get(recipe.getMpiid());
-            if (null == patientDTO) {
-                LOGGER.warn("uploadRecipeIndicators patient is null. recipe.patient={}", recipe.getMpiid());
-                continue;
-            }
-
-            organDiseaseName = recipe.getOrganDiseaseName().replaceAll("；", "|");
-            req.setOriginalDiagnosis(organDiseaseName);
-            req.setPatientCardType(LocalStringUtil.toString(patientDTO.getCertificateType()));
-            req.setPatientCertID(LocalStringUtil.toString(patientDTO.getCertificate()));
-            req.setPatientName(patientDTO.getPatientName());
-            req.setMobile(LocalStringUtil.toString(patientDTO.getMobile()));
-            req.setSex(patientDTO.getPatientSex());
-            req.setAge(DateConversion.calculateAge(patientDTO.getBirthday()));
-            req.setBirthDay(patientDTO.getBirthday());
-            //其他信息
-            //监管接收方现在使用recipeId去重
-            req.setRecipeID(recipe.getRecipeId().toString());
-            //处方唯一编号
-            req.setRecipeUniqueID(recipe.getRecipeCode());
-            //互联网医院处方都是经过合理用药审查
-            req.setRationalFlag("0");
-
-            req.setIcdCode(recipe.getOrganDiseaseId().replaceAll("；", "|"));
-            req.setIcdName(organDiseaseName);
-            req.setRecipeType(recipe.getRecipeType().toString());
-            req.setPacketsNum(recipe.getCopyNum());
-            req.setDatein(recipe.getSignDate());
-            req.setEffectivePeriod(recipe.getValueDays());
-            req.setStartDate(recipe.getSignDate());
-            req.setEndDate(DateConversion.getDateAftXDays(recipe.getSignDate(), recipe.getValueDays()));
-            req.setUpdateTime(now);
-            req.setTotalFee(recipe.getTotalMoney().doubleValue());
-            req.setIsPay(recipe.getPayFlag().toString());
-
-            //主诉
-            consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
-                    recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
-            if (CollectionUtils.isNotEmpty(consultIds)) {
-                consultId = consultIds.get(0);
-            }
-            if (consultId != null){
-                req.setBussID(consultId.toString());
-                ConsultBean consultBean = iConsultService.getById(consultId);
-                QuestionnaireBean questionnaire = iConsultService.getConsultQuestionnaireByConsultId(consultId);
-                if (consultBean != null){
-                    req.setMainDieaseDescribe(consultBean.getLeaveMess());
-                    //咨询开始时间
-                    req.setConsultStartDate(consultBean.getStartDate());
-                }
-                if (questionnaire != null){
-                    //过敏史标记 有无过敏史 0:无 1:有
-                    req.setAllergyFlag(questionnaire.getAlleric().toString());
-                    //过敏史详情
-                    req.setAllergyInfo(questionnaire.getAllericMemo());
-                    //现病史
-                    req.setCurrentMedical(questionnaire.getDisease());
-                    //既往史
-                    req.setHistroyMedical(questionnaire.getDisease());
-                }
-            }
-            //门诊号处理
-            recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-            if (recipeExtend != null){
-                req.setPatientNumber(recipeExtend.getRegisterID());
-            }
-
-            //撤销标记
-            req.setCancelFlag(getVerificationStatus(recipe));
-            //详情处理
-            detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
-            if (CollectionUtils.isEmpty(detailList)) {
-                LOGGER.warn("uploadRecipeIndicators detail is null. recipe.id={}", recipe.getRecipeId());
-                continue;
-            }
-            setDetail(req, detailList, usingRateDic, usePathwaysDic,recipe);
-
-            request.add(req);
-        }
-        LOGGER.info("queryRegulationRecipeData end={}", JSONUtils.toString(request));
-        return request;
+        HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+        List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
+        service.splicingBackRecipeData(recipeList,request);
+        List<RegulationRecipeIndicatorsDTO> result = ObjectCopyUtils.convert(request, RegulationRecipeIndicatorsDTO.class);
+        LOGGER.info("queryRegulationRecipeData data={}", JSONUtils.toString(result));
+        return result;
     }
 
     /**

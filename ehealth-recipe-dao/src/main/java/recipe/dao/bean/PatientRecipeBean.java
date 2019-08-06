@@ -59,6 +59,8 @@ public class PatientRecipeBean {
 
     private String recipeMode;
 
+    private Integer giveMode;
+
     public PatientRecipeBean() {
     }
 
@@ -244,5 +246,13 @@ public class PatientRecipeBean {
 
     public void setRecipeMode(String recipeMode) {
         this.recipeMode = recipeMode;
+    }
+
+    public Integer getGiveMode() {
+        return giveMode;
+    }
+
+    public void setGiveMode(Integer giveMode) {
+        this.giveMode = giveMode;
     }
 }
