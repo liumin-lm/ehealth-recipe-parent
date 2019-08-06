@@ -313,10 +313,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
                 hql.append("select s.type,s.recordCode,s.recordId,s.mpiId,s.diseaseName,s.status,s.fee," +
-                        "s.recordDate,s.couponId,s.medicalPayFlag,s.recipeType,s.organId,s.recipeMode from (");
+                        "s.recordDate,s.couponId,s.medicalPayFlag,s.recipeType,s.organId,s.recipeMode,s.giveMode from (");
                 hql.append("SELECT 1 as type,null as couponId, t.MedicalPayFlag as medicalPayFlag, t.RecipeID as recordCode,t.RecipeID as recordId," +
                         "t.MPIID as mpiId,t.OrganDiseaseName as diseaseName,t.Status,t.TotalMoney as fee," +
-                        "t.SignDate as recordDate,t.RecipeType as recipeType,t.ClinicOrgan as organId,t.recipeMode as recipeMode FROM cdr_recipe t " +
+                        "t.SignDate as recordDate,t.RecipeType as recipeType,t.ClinicOrgan as organId,t.recipeMode as recipeMode,t.giveMode as giveMode FROM cdr_recipe t " +
                         "left join cdr_recipeorder k on t.OrderCode=k.OrderCode ");
                 hql.append("WHERE t.MPIID IN (:mpiIdList) and (k.Effective is null or k.Effective = 0) ")
                         .append("and (t.ChooseFlag=1 or (t.ChooseFlag=0 and t.Status=" + RecipeStatusConstant.CHECK_PASS + ")) ");
@@ -326,8 +326,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 hql.append("UNION ALL ");
                 hql.append("SELECT 2 as type,o.CouponId as couponId, 0 as medicalPayFlag, " +
                         "o.OrderCode as recordCode,o.OrderId as recordId,o.MpiId as mpiId,'' as diseaseName," +
-                        "o.Status,o.ActualPrice as fee,o.CreateTime as recordDate,0 as recipeType, o.OrganId, 'ngarihealth' as recipeMode FROM cdr_recipeorder o " +
-                        "WHERE o.MpiId IN (:mpiIdList) and o.Effective = 1 ");
+                        "o.Status,o.ActualPrice as fee,o.CreateTime as recordDate,0 as recipeType, o.OrganId, 'ngarihealth' as recipeMode,w.GiveMode AS giveMode FROM cdr_recipeorder o JOIN cdr_recipe w ON o.OrderCode = w.OrderCode " +
+                        "AND o.MpiId IN (:mpiIdList) and o.Effective = 1 ");
                 hql.append(") s ORDER BY s.recordDate desc");
                 Query q = ss.createSQLQuery(hql.toString());
                 q.setParameterList("mpiIdList", mpiIdList);
@@ -359,6 +359,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                         patientRecipeBean.setRecipeType(Integer.parseInt(objs[10].toString()));
                         patientRecipeBean.setOrganId(Integer.parseInt(objs[11].toString()));
                         patientRecipeBean.setRecipeMode(objs[12].toString());
+                        if (null != objs[13]) {
+                            patientRecipeBean.setGiveMode(Integer.parseInt(objs[13].toString()));
+                        }
                         backList.add(patientRecipeBean);
                     }
                 }
@@ -662,8 +665,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                             + " and payFlag=0 and payMode=" + RecipeBussConstant.PAYMODE_ONLINE + " and orderCode is not null ");
                 } else if (cancelStatus == RecipeStatusConstant.NO_OPERATOR) {
                     //超过3天未操作
-                    hql.append(" and fromflag = 1 and status=" + RecipeStatusConstant.CHECK_PASS
-                            + " and chooseFlag=0 ");
+                    hql.append(" and fromflag = 1 and status=" + RecipeStatusConstant.CHECK_PASS );
                 }
                 Query q = ss.createQuery(hql.toString());
                 setResult(q.list());

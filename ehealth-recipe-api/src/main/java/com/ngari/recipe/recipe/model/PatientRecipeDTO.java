@@ -66,6 +66,8 @@ public class PatientRecipeDTO implements Serializable {
 
     private String recipeMode;
 
+    private Integer giveMode;
+
     private List<RecipeDetailBean> recipeDetail;
 
     public PatientRecipeDTO() {
@@ -261,5 +263,13 @@ public class PatientRecipeDTO implements Serializable {
 
     public void setRecipeDetail(List<RecipeDetailBean> recipeDetail) {
         this.recipeDetail = recipeDetail;
+    }
+
+    public Integer getGiveMode() {
+        return giveMode;
+    }
+
+    public void setGiveMode(Integer giveMode) {
+        this.giveMode = giveMode;
     }
 }

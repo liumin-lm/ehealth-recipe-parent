@@ -72,6 +72,7 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.service.common.RecipeCacheService;
+import recipe.thread.PushRecipeToHisCallable;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateRecipeStatusFromHisCallable;
@@ -94,7 +95,7 @@ import static recipe.service.RecipeServiceSub.convertPatientForRAP;
  * @date:2016/4/27.
  */
 @RpcBean("recipeService")
-public class RecipeService {
+public class RecipeService extends RecipeBaseService{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeService.class);
 
@@ -210,6 +211,7 @@ public class RecipeService {
      */
     @RpcService
     public List<HashMap<String, Object>> findNewRecipeAndPatient(int doctorId, int start, int limit) {
+        checkUserHasPermissionByDoctorId(doctorId);
         return RecipeServiceSub.findRecipesAndPatientsByDoctor(doctorId, start, PageConstant.getPageLimit(limit), 0);
     }
 
@@ -223,6 +225,7 @@ public class RecipeService {
      */
     @RpcService
     public List<HashMap<String, Object>> findOldRecipeAndPatient(int doctorId, int start, int limit) {
+        checkUserHasPermissionByDoctorId(doctorId);
         return RecipeServiceSub.findRecipesAndPatientsByDoctor(doctorId, start, PageConstant.getPageLimit(limit), 1);
     }
 
@@ -454,8 +457,13 @@ public class RecipeService {
         if (null == recipe) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单不存在或者已删除");
         }
-        if (null == recipe.getStatus() || recipe.getStatus() == RecipeStatusConstant.CHECK_PASS_YS) {
+        if (null == recipe.getStatus()
+                || recipe.getStatus() == RecipeStatusConstant.CHECK_PASS_YS
+                || recipe.getStatus() == RecipeStatusConstant.CHECK_NOT_PASS_YS) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方已被审核");
+        }
+        if (recipe.getStatus() == RecipeStatusConstant.REVOKE) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方已被医生撤销");
         }
 
         int beforeStatus = recipe.getStatus();
@@ -802,9 +810,10 @@ public class RecipeService {
             }
         }
 
-        //HIS消息发送
-        boolean result = hisService.recipeSendHis(recipeId, null);
-        rMap.put("signResult", result);
+        //HIS消息发送--异步处理
+        /*boolean result = hisService.recipeSendHis(recipeId, null);*/
+        RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeId));
+        rMap.put("signResult", true);
         rMap.put("recipeId", recipeId);
         rMap.put("errorFlag", false);
 
@@ -1016,6 +1025,9 @@ public class RecipeService {
                 RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipeId), null, true);
                 //向患者推送处方消息
                 RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS);
+                //同步到互联网监管平台
+                SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
+                syncExecutorService.uploadRecipeIndicators(recipe);
             } else {
                 if (recipe.canMedicalPay()) {
                     //如果是可医保支付的单子，审核通过之后是变为待处理状态，需要用户支付完成才发往药企
@@ -1073,9 +1085,6 @@ public class RecipeService {
             orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("status", status), resultBean);
         }
 
-        //同步到监管平台
-        SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
-        syncExecutorService.uploadRecipeIndicators(recipe);
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核通过处理完成");
         return resultBean;
     }
@@ -1122,11 +1131,6 @@ public class RecipeService {
         //HIS消息发送
         //审核不通过 往his更新状态（已取消）
         hisService.recipeStatusUpdate(recipe.getRecipeId());
-
-        //同步到监管平台
-        SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
-        syncExecutorService.uploadRecipeIndicators(recipe);
-        
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核不通过处理完成");
     }
 
@@ -1179,6 +1183,8 @@ public class RecipeService {
      */
     @RpcService
     public Map<String, Object> findRecipeAndDetailById(int recipeId) {
+        //bug#30596医生患者电子病历下方处方单，点击非本医生开具的处方单，打开页面显示错误----去掉越权
+        /*checkUserHasPermission(recipeId);*/
         return RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, true);
     }
 
@@ -1521,6 +1527,7 @@ public class RecipeService {
      */
     @RpcService
     public Map<String, Object> getPatientRecipeById(int recipeId) {
+        checkUserHasPermission(recipeId);
         return RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false);
     }
 

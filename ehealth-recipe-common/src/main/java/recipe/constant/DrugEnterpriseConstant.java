@@ -47,4 +47,9 @@ public class DrugEnterpriseConstant {
      * 华东药企
      */
     public static final String COMPANY_HDDYF = "hddyf";
+
+    /**
+     * 英特药企
+     */
+    public static final String COMPANY_YT = "yt";
 }

@@ -3,27 +3,21 @@ package recipe.hisservice.syncdata;
 import com.ngari.base.cdr.model.OtherdocBean;
 import com.ngari.base.cdr.service.ICdrOtherdocService;
 import com.ngari.base.employment.service.IEmploymentService;
-import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.model.QuestionnaireBean;
 import com.ngari.consult.common.service.IConsultService;
+import com.ngari.his.regulation.entity.*;
 import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.his.regulation.entity.*;
 import com.ngari.his.regulation.service.IRegulationService;
-import com.ngari.patient.dto.DepartmentDTO;
-import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.dto.OrganDTO;
-import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.dto.*;
 import com.ngari.patient.dto.zjs.SubCodeDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.service.zjs.SubCodeService;
-import com.ngari.recipe.entity.DrugList;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
@@ -44,6 +38,7 @@ import recipe.common.ResponseUtils;
 import recipe.common.response.CommonResponse;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.RecipeSystemConstant;
+import recipe.dao.*;
 import recipe.dao.DrugListDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -52,6 +47,9 @@ import recipe.service.RecipeService;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
+import recipe.constant.RecipeBussConstant;
+import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
+
 
 import java.util.*;
 
@@ -68,6 +66,12 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
     private static String HIS_SUCCESS = "200";
 
+    /**
+     *  同步处方数据
+     * @param recipeList
+     * @return
+     */
+
     @RpcService
     @Override
     public CommonResponse uploadRecipeIndicators(List<Recipe> recipeList) {
@@ -75,14 +79,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         CommonResponse commonResponse = ResponseUtils.getFailResponse(CommonResponse.class, "");
         if (CollectionUtils.isEmpty(recipeList)) {
             commonResponse.setMsg("处方列表为空");
-            return commonResponse;
-        }
-        IHisServiceConfigService configService = AppDomainContext.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
-        //获取所有监管平台机构列表
-        List<ServiceConfigResponseTO> list = configService.findAllRegulationOrgan();
-        if (CollectionUtils.isEmpty(list)) {
-            LOGGER.warn("uploadRecipeIndicators provUploadOrgan list is null.");
-            commonResponse.setMsg("需要同步机构列表为空");
             return commonResponse;
         }
 
@@ -94,8 +90,44 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             commonResponse.setMsg("需要同步机构列表为空");
             return commonResponse;
         }*/
+        List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
+        splicingBackRecipeData(recipeList,request);
 
+        try {
+            IRegulationService  hisService =
+                    AppDomainContext.getBean("his.regulationService", IRegulationService.class);
+            LOGGER.info("uploadRecipeIndicators request={}", JSONUtils.toString(request));
+            HisResponseTO response = hisService.uploadRecipeIndicators(recipeList.get(0).getClinicOrgan(), request);
+            LOGGER.info("uploadRecipeIndicators response={}", JSONUtils.toString(response));
+            if (HIS_SUCCESS.equals(response.getMsgCode())) {
+                //成功
+                commonResponse.setCode(CommonConstant.SUCCESS);
+                LOGGER.info("uploadRecipeIndicators execute success.");
+            } else {
+                commonResponse.setMsg(response.getMsg());
+            }
+        } catch (Exception e) {
+            LOGGER.warn("uploadRecipeIndicators HIS接口调用失败. request={}", JSONUtils.toString(request), e);
+            commonResponse.setMsg("HIS接口调用异常");
+        }
 
+        LOGGER.info("uploadRecipeIndicators commonResponse={}", JSONUtils.toString(commonResponse));
+        return commonResponse;
+    }
+
+    /**
+     * 拼接监管平台所需处方数据
+     * @param recipeList
+     * @param request
+     */
+    public void splicingBackRecipeData(List<Recipe> recipeList,List<RegulationRecipeIndicatorsReq> request) {
+        IHisServiceConfigService configService = AppDomainContext.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
+        //获取所有监管平台机构列表
+        List<ServiceConfigResponseTO> list = configService.findAllRegulationOrgan();
+        if (CollectionUtils.isEmpty(list)) {
+            LOGGER.warn("uploadRecipeIndicators provUploadOrgan list is null.");
+            return;
+        }
         DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
         IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
         /* AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);*/
@@ -108,7 +140,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
 
-        List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
         Map<Integer, OrganDTO> organMap = new HashMap<>(20);
         Map<Integer, DepartmentDTO> departMap = new HashMap<>(20);
         /*Map<Integer, AppointDepartDTO> appointDepartMap = new HashMap<>(20);*/
@@ -305,7 +336,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             }
 
             //撤销标记
-            req.setCancelFlag(getVerificationStatus(recipe));
+            req.setCancelFlag(getVerificationRevokeStatus(recipe));
+            //核销标记
+            req.setVerificationStatus(getVerificationStatus(recipe));
             //详情处理
             detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
             if (CollectionUtils.isEmpty(detailList)) {
@@ -316,33 +349,134 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
             request.add(req);
         }
+    }
 
+    /**
+     * 核销处方同步方法
+     * @param recipeList
+     * @return
+     */
+    @Override
+    @RpcService
+    public CommonResponse uploadRecipeVerificationIndicators(List<Recipe> recipeList) {
+        LOGGER.info("uploadRecipeVerificationIndicators recipeList length={}", Integer.valueOf(recipeList.size()));
+        CommonResponse commonResponse = ResponseUtils.getFailResponse(CommonResponse.class, "");
+        if (CollectionUtils.isEmpty(recipeList)) {
+            commonResponse.setMsg("处方列表为空");
+            return commonResponse;
+        }
+
+        IHisServiceConfigService configService = AppDomainContext.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
+
+        List<ServiceConfigResponseTO> list = configService.findAllRegulationOrgan();
+        if (CollectionUtils.isEmpty(list)) {
+            LOGGER.warn("uploadRecipeIndicators provUploadOrgan list is null.");
+            commonResponse.setMsg("需要同步机构列表为空");
+            return commonResponse;
+        }
+
+        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        OrganService organService = BasicAPI.getService(OrganService.class);
+
+        Map organMap = new HashMap(20);
+        List<RegulationRecipeVerificationIndicatorsReq> request = new ArrayList<>(recipeList.size());
+        Date now = DateTime.now().toDate();
+
+        RecipeOrder order = null;
+
+        for (Recipe recipe : recipeList) {
+            RegulationRecipeVerificationIndicatorsReq req = new RegulationRecipeVerificationIndicatorsReq();
+            req.setBussID(recipe.getRecipeId().toString());
+            req.setRecipeID(recipe.getRecipeId().toString());
+            req.setRecipeUniqueID(recipe.getRecipeCode());
+
+            if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                order = orderDAO.getByOrderCode(recipe.getOrderCode());
+            }
+
+            if (null == order) {
+                LOGGER.warn("uploadRecipeVerificationIndicators order is null. recipe.orderCode={}",
+                        recipe.getOrderCode());
+                continue;
+            }
+
+            //机构处理
+            OrganDTO organDTO = (OrganDTO)organMap.get(recipe.getClinicOrgan());
+            if (null == organDTO) {
+                organDTO = organService.get(recipe.getClinicOrgan());
+                organMap.put(recipe.getClinicOrgan(), organDTO);
+            }
+            if (null == organDTO) {
+                LOGGER.warn("uploadRecipeVerificationIndicators organ is null. recipe.clinicOrgan={}", recipe.getClinicOrgan());
+                continue;
+            }
+            for (ServiceConfigResponseTO uploadOrgan : list) {
+                if (uploadOrgan.getOrganid().equals(organDTO.getOrganId())) {
+                    req.setOrganID(LocalStringUtil.toString(organDTO.getOrganId()));
+                    req.setOrganName(organDTO.getName());
+                    break;
+                }
+            }
+
+            if (StringUtils.isEmpty(req.getUnitID())) {
+                LOGGER.warn("uploadRecipeVerificationIndicators minkeUnitID is not in minkeOrganList. organ.organId={}",
+                        organDTO.getOrganId());
+            }
+            if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())) {
+                req.setDeliveryType("1");
+                req.setDeliverySTDate(recipe.getStartSendDate());
+                req.setDeliveryFee(order.getExpressFee().toPlainString());
+                DrugsEnterprise enterprise = enterpriseDAO.get(order.getEnterpriseId());
+                if (null != enterprise) {
+                    req.setDeliveryFirm(enterprise.getName());
+                }
+            } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
+                req.setDeliveryType("0");
+                req.setDeliveryFirm("医院药房");
+            } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
+                req.setDeliveryType("3");
+                req.setDeliveryFirm(order.getDrugStoreName());
+            }
+
+            req.setVerificationTime(now);
+            req.setTotalFee(Double.valueOf(recipe.getTotalMoney().doubleValue()));
+            if (1 == order.getPayFlag().intValue()) {
+                req.setIsPay("1");
+            } else {
+                req.setIsPay("0");
+            }
+            req.setUpdateTime(now);
+
+            request.add(req);
+        }
         try {
-            IRegulationService  hisService =
-                    AppDomainContext.getBean("his.regulationService", IRegulationService.class);
-            LOGGER.info("uploadRecipeIndicators request={}", JSONUtils.toString(request));
-            HisResponseTO response = hisService.uploadRecipeIndicators(recipeList.get(0).getClinicOrgan(), request);
-            LOGGER.info("uploadRecipeIndicators response={}", JSONUtils.toString(response));
+
+            IRegulationService hisService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
+
+            LOGGER.info("uploadRecipeVerificationIndicators request={}", JSONUtils.toString(request));
+            HisResponseTO response = hisService.uploadRecipeVerificationIndicators((recipeList.get(0)).getClinicOrgan(), request);
+            LOGGER.info("uploadRecipeCirculationIndicators response={}", JSONUtils.toString(response));
             if (HIS_SUCCESS.equals(response.getMsgCode())) {
-                //成功
-                commonResponse.setCode(CommonConstant.SUCCESS);
-                LOGGER.info("uploadRecipeIndicators execute success.");
+                commonResponse.setCode("000");
+                LOGGER.info("uploadRecipeCirculationIndicators execute success.");
             } else {
                 commonResponse.setMsg(response.getMsg());
             }
         } catch (Exception e) {
-            LOGGER.warn("uploadRecipeIndicators HIS接口调用失败. request={}", JSONUtils.toString(request), e);
+            LOGGER.warn("uploadRecipeCirculationIndicators HIS接口调用失败. request={}", JSONUtils.toString(request), e);
             commonResponse.setMsg("HIS接口调用异常");
         }
 
-        LOGGER.info("uploadRecipeIndicators commonResponse={}", JSONUtils.toString(commonResponse));
+        LOGGER.info("uploadRecipeVerificationIndicators commonResponse={}", JSONUtils.toString(commonResponse));
         return commonResponse;
     }
 
-    @Override
-    public CommonResponse uploadRecipeVerificationIndicators(List<Recipe> recipeList) {
-        return null;
-    }
+    /**
+     *  处方审核数据同步
+     * @param recipeList
+     * @return
+     */
 
     public CommonResponse uploadRecipeAuditIndicators(List<Recipe> recipeList){
         LOGGER.info("uploadRecipeAuditIndicators recipeList length={}", recipeList.size());
@@ -422,6 +556,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         return commonResponse;
     }
 
+    /**
+     * 处方流转数据同步
+     * @param recipeList
+     * @return
+     */
     public CommonResponse uploadRecipeCirculationIndicators(List<Recipe> recipeList){
         LOGGER.info("uploadRecipeCirculationIndicators recipeList length={}", recipeList.size());
         CommonResponse commonResponse = ResponseUtils.getFailResponse(CommonResponse.class, "");
@@ -542,12 +681,12 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     }
 
     /**
-     * 处方核销状态判断，处方完成及开始配送都当做已核销处理
+     * 处方撤销状态判断
      *
-     * @param
-     * @return 1正常 2撤销
+     * @param recipe 1正常 2撤销
+     * @return
      */
-    private String getVerificationStatus(Recipe recipe) {
+    private String getVerificationRevokeStatus(Recipe recipe) {
         if (RecipeStatusConstant.REVOKE == recipe.getStatus()
                 || RecipeStatusConstant.HIS_FAIL == recipe.getStatus() || RecipeStatusConstant.NO_DRUG == recipe.getStatus()
                 || RecipeStatusConstant.NO_PAY == recipe.getStatus() || RecipeStatusConstant.NO_OPERATOR == recipe.getStatus()
@@ -556,5 +695,22 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         }
 
         return "1";
+    }
+    /**
+     * 处方核销状态判断，处方完成及开始配送都当做已核销处理
+     *
+     * @param  recipe status 0未核销 1已核销
+     * @return
+     */
+    private String getVerificationStatus(Recipe recipe) {
+        if (RecipeStatusConstant.FINISH == recipe.getStatus() || RecipeStatusConstant.WAIT_SEND == recipe.getStatus()
+                || RecipeStatusConstant.IN_SEND == recipe.getStatus() || RecipeStatusConstant.REVOKE == recipe.getStatus()
+                || RecipeStatusConstant.HIS_FAIL == recipe.getStatus() || RecipeStatusConstant.NO_DRUG == recipe.getStatus()
+                || RecipeStatusConstant.NO_PAY == recipe.getStatus() || RecipeStatusConstant.NO_OPERATOR == recipe.getStatus()
+                || RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
+            return "1";
+        }
+
+        return "0";
     }
 }
