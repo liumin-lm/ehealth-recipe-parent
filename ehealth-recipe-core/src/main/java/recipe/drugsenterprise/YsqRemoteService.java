@@ -8,8 +8,10 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
+import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.HealthCardService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepStyleBean;
@@ -501,6 +503,12 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 String cardNo = recipeExtend.getCardNo();
                 if (StringUtils.isNotEmpty(cardNo)) {
                     recipeMap.put("ONECARDSOLUTION", cardNo);
+                } else {
+                    HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
+                    List<HealthCardDTO> healthCardDTOS = healthCardService.findByMpiId(recipe.getMpiid());
+                    if (CollectionUtils.isNotEmpty(healthCardDTOS)) {
+                        recipeMap.put("ONECARDSOLUTION", healthCardDTOS.get(0).getCardId());
+                    }
                 }
             }
             //周岁处理
