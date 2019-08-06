@@ -58,7 +58,6 @@
                 <artifactId>ehealth-shadow-api</artifactId>
                 <version>1.0.1-SNAPSHOT</version>
             </dependency>
-
             <dependency>
                 <groupId>com.google.code.findbugs</groupId>
                 <artifactId>jsr305</artifactId>
@@ -74,6 +73,11 @@
                         <artifactId>ssdev-mvc</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>ngari</groupId>
+                <artifactId>ehealth-jgpt-api</artifactId>
+                <version>${ngari.jgpt.version}</version>
             </dependency>
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
