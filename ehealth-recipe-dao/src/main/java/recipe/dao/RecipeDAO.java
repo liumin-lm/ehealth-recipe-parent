@@ -1686,7 +1686,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder(
-                        "from Recipe where fromflag=1 and signDate between '" + startDate + "' and '" + endDate
+                        "from Recipe where fromflag=1 and lastModify between '" + startDate + "' and '" + endDate
                                 + "' and clinicOrgan =:organId and syncFlag =0 ");
                 Query query = ss.createQuery(hql.toString());
                 query.setParameter("organId",organId);
