@@ -9,6 +9,7 @@ import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.DAOFactory;
 import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -71,8 +72,9 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
             public Integer apply(ServiceConfigResponseTO regulation) {
                 return regulation.getOrganid();
             }});
+        logger.info("uploadRecipeIndicators regulationOrgan:"+JSONUtils.toString(list));
         try {
-            if (regulationOrgan.get(recipe.getClinicOrgan()) != null){
+            if (CollectionUtils.isNotEmpty(list) && regulationOrgan.get(recipe.getClinicOrgan()) != null){
                 String domainId = regulationOrgan.get(recipe.getClinicOrgan()).getRegulationAppDomainId();
                 if (REGULATION_JS.equals(domainId)){
                     //江苏省推送处方规则：（1）如果没有审核直接推送处方数据、（2）status=2表示审核了，则推送处方审核后的数据，（3）审核数据推送成功后再推送处方流转数据
