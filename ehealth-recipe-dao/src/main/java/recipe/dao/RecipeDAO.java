@@ -1686,11 +1686,14 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder(
-                        "from Recipe where fromflag=1 and lastModify between '" + startDate + "' and '" + endDate
-                                + "' and clinicOrgan =:organId and syncFlag =0 ");
+                        "from Recipe where fromflag=1 ");
                 //是否查的是已审核数据
                 if (checkFlag){
-                    hql.append("and checker is not null");
+                    hql.append("and checkDateYs between '" + startDate + "' and '" + endDate
+                            + "' and clinicOrgan =:organId and syncFlag =0 and checker is not null");
+                }else {
+                    hql.append("and lastModify between '" + startDate + "' and '" + endDate
+                            + "' and clinicOrgan =:organId and syncFlag =0 ");
                 }
                 Query query = ss.createQuery(hql.toString());
                 query.setParameter("organId",organId);
