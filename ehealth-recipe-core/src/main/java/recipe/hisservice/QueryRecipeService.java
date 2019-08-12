@@ -1,5 +1,6 @@
 package recipe.hisservice;
 
+import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.ngari.base.BaseAPI;
@@ -33,6 +34,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import es.vo.DiseaseVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -51,6 +53,7 @@ import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 /**
@@ -106,9 +109,11 @@ public class QueryRecipeService implements IQueryRecipeService {
 
     @Override
     @RpcService
-    public List<RegulationRecipeIndicatorsDTO> queryRegulationRecipeData(Integer organId,String startDate,String endDate) {
+    public List<RegulationRecipeIndicatorsDTO> queryRegulationRecipeData(Integer organId,Date startDate,Date endDate,Boolean checkFlag) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        List<Recipe> recipeList = recipeDAO.findSyncRecipeListByOrganId(organId, startDate, endDate);
+        String start = DateConversion.formatDateTimeWithSec(startDate);
+        String end = DateConversion.formatDateTimeWithSec(endDate);
+        List<Recipe> recipeList = recipeDAO.findSyncRecipeListByOrganId(organId, start, end,checkFlag);
         if (CollectionUtils.isEmpty(recipeList)){
             return new ArrayList<>();
         }
