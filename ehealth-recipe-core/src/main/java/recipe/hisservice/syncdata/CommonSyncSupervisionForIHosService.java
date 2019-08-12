@@ -253,15 +253,15 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
             req = new RecipeIndicatorsReq();
             if (recipe.getClinicId() != null){
                 req.setBussID(LocalStringUtil.toString(recipe.getClinicId()));
-                //处方来源 1-问诊 2复诊
-                req.setBussSource("2");
+                //处方来源 1-问诊 4复诊
+                req.setBussSource("4");
             }else {
                 consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
                         recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_GRAPHIC);
                 if (CollectionUtils.isNotEmpty(consultIds)) {
                     consultId = consultIds.get(0);
                     req.setBussID(LocalStringUtil.toString(consultId));
-                    //处方来源 1-问诊 2复诊
+                    //处方来源 1-问诊 4复诊
                     req.setBussSource("1");
                 }
             }
