@@ -759,6 +759,16 @@ public class RecipeService extends RecipeBaseService{
             // urt用于系统消息推送
             recipe.setRequestUrt(requestPatient.getUrt());
         }
+        //根据申请人mpiid，requestMode 获取当前咨询单consultId
+        IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
+        List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
+                recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
+        Integer consultId = null;
+        if (CollectionUtils.isNotEmpty(consultIds)) {
+            consultId = consultIds.get(0);
+            recipe.setClinicId(consultId);
+            rMap.put("consultId", consultId);
+        }
         recipe.setStatus(RecipeStatusConstant.UNSIGN);
         recipe.setSignDate(DateTime.now().toDate());
         Integer recipeId = recipe.getRecipeId();
