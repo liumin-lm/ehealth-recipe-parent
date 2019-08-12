@@ -105,6 +105,7 @@ public class QueryRecipeService implements IQueryRecipeService {
     }
 
     @Override
+    @RpcService
     public List<RegulationRecipeIndicatorsDTO> queryRegulationRecipeData(Integer organId,String startDate,String endDate) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         List<Recipe> recipeList = recipeDAO.findSyncRecipeListByOrganId(organId, startDate, endDate);
@@ -113,6 +114,7 @@ public class QueryRecipeService implements IQueryRecipeService {
         }
         HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
         List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
+        LOGGER.info("queryRegulationRecipeData start");
         service.splicingBackRecipeData(recipeList,request);
         List<RegulationRecipeIndicatorsDTO> result = ObjectCopyUtils.convert(request, RegulationRecipeIndicatorsDTO.class);
         LOGGER.info("queryRegulationRecipeData data={}", JSONUtils.toString(result));
