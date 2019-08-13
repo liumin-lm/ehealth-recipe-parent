@@ -438,7 +438,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             try {
                 patient = iPatientService.get(recipe.getMpiid());
             } catch (Exception e) {
-                e.printStackTrace();
+                LOGGER.error("getYsqRecipeInfo patient :" + e.getMessage());
                 patient = null;
             }
             if (null == patient) {
@@ -570,7 +570,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                         drugListMap.put(drugId, drug);
                     }
 
-                    if (!sendRecipe) {
+                    if (!sendRecipe && drugsEnterprise.getHosInteriorSupport() == 1) {
                         SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
                         LOGGER.info("YsqRemoteService-saleDrugList:[{}] [{}].", drugId, drugsEnterprise.getId());
                         if (saleDrugList != null) {
