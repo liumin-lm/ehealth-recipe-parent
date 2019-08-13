@@ -236,8 +236,8 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 position.put("LONGITUDE", ext.get("longitude"));
                 position.put("LATITUDE", ext.get("latitude"));
                 map.put("POSITION", position);
-                titlesInfoList.add(map);
             }
+            titlesInfoList.add(map);
         }
         sendInfo.put("TITLES", titlesInfoList);
         String sendInfoStr = JSONUtils.toString(sendInfo);
@@ -472,7 +472,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 recipeMap.put("METHOD", "");
             }
 
-            if (!sendRecipe) {
+            if (!sendRecipe && drugsEnterprise.getHosInteriorSupport() == 1) {
                 recipeMap.put("HOSCODE", organ.getOrganizeCode());
             } else {
                 recipeMap.put("HOSCODE", organ.getOrganId().toString());
