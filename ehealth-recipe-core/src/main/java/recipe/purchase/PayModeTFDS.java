@@ -80,7 +80,7 @@ public class PayModeTFDS implements IPurchaseService{
             }
             if (CollectionUtils.isEmpty(subDepList)) {
                 LOGGER.warn("findSupportDepList 该处方没有提供取药的药店. recipeId=[{}]", recipeId);
-                resultBean.setCode(RecipeResultBean.FAIL);
+                resultBean.setCode(5);
                 resultBean.setMsg("没有药企对应药店支持取药");
                 return resultBean;
             }
