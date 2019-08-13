@@ -128,16 +128,16 @@ public class RecipeHisService extends RecipeBaseService {
                 }).toList();
 
                 List<OrganDrugList> organDrugList = drugDao.findByOrganIdAndDrugIds(sendOrganId, drugIdList);
-                Map<Integer, OrganDrugList> drugIdAndProduce = Maps.uniqueIndex(organDrugList, new Function<OrganDrugList, Integer>() {
+                Map<String, OrganDrugList> drugIdAndProduce = Maps.uniqueIndex(organDrugList, new Function<OrganDrugList, String>() {
                     @Override
-                    public Integer apply(OrganDrugList input) {
-                        return input.getDrugId();
+                    public String apply(OrganDrugList input) {
+                        return input.getOrganDrugCode();
                     }
                 });
 
                 OrganDrugList organDrug;
                 for (OrderItemTO item : orderItemList) {
-                    organDrug = drugIdAndProduce.get(item.getDrugId());
+                    organDrug = drugIdAndProduce.get(item.getDrcode());
                     if (null != organDrug) {
                         item.setManfcode(organDrug.getProducerCode());
                     }
