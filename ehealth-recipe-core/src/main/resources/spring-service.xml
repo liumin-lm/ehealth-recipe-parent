@@ -15,4 +15,6 @@
     <!--药品搜索服务-->
     <reference id="es.drugSearchService" interface="es.api.DrugSearchService"/>
 
+    <reference id="jgpt.minkeOrganService" interface="com.ngari.jgpt.zjs.service.IMinkeOrganService"/>
+
 </s:beans>

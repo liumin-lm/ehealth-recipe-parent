@@ -80,7 +80,7 @@ public class PayModeTFDS implements IPurchaseService{
             }
             if (CollectionUtils.isEmpty(subDepList)) {
                 LOGGER.warn("findSupportDepList 该处方没有提供取药的药店. recipeId=[{}]", recipeId);
-                resultBean.setCode(RecipeResultBean.FAIL);
+                resultBean.setCode(5);
                 resultBean.setMsg("没有药企对应药店支持取药");
                 return resultBean;
             }
@@ -152,6 +152,7 @@ public class PayModeTFDS implements IPurchaseService{
         order.setRecipeIdList("["+dbRecipe.getRecipeId()+"]");
         order.setDrugStoreAddr(MapValueUtil.getString(extInfo, "gysAddr"));
         order.setEnterpriseId(MapValueUtil.getInteger(extInfo, "depId"));
+        order.setDrugStoreCode(MapValueUtil.getString(extInfo, "pharmacyCode"));
         List<Recipe> recipeList = Arrays.asList(dbRecipe);
         Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
         if (null == calculateFee || Integer.valueOf(1).equals(calculateFee)) {

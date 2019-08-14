@@ -78,6 +78,7 @@ public class RecipeListService extends RecipeBaseService{
     @RpcService
     public List<Map<String, Object>> findRecipesForDoctor(Integer doctorId, Integer recipeId, Integer limit) {
         Assert.notNull(doctorId, "findRecipesForDoctor doctor is null.");
+        checkUserHasPermissionByDoctorId(doctorId);
         recipeId = (null == recipeId || Integer.valueOf(0).equals(recipeId)) ? Integer.valueOf(Integer.MAX_VALUE) : recipeId;
 
         List<Map<String, Object>> list = new ArrayList<>(0);
@@ -142,7 +143,7 @@ public class RecipeListService extends RecipeBaseService{
     @RpcService
     public Map<String, Object> getLastestPendingRecipe(String mpiId) {
         Assert.hasLength(mpiId, "getLastestPendingRecipe mpiId is null.");
-
+        checkUserHasPermissionByMpiId(mpiId);
         HashMap<String, Object> map = Maps.newHashMap();
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -187,6 +188,7 @@ public class RecipeListService extends RecipeBaseService{
     @RpcService
     public List<PatientRecipeDTO> findOtherRecipesForPatient(String mpiId, Integer index, Integer limit) {
         Assert.hasLength(mpiId, "findOtherRecipesForPatient mpiId is null.");
+        checkUserHasPermissionByMpiId(mpiId);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
@@ -199,7 +201,7 @@ public class RecipeListService extends RecipeBaseService{
 
     /**
      * 获取所有处方单信息
-     *
+     * 患者端没有用到
      * @param mpiId
      * @param index
      * @param limit
@@ -505,6 +507,7 @@ public class RecipeListService extends RecipeBaseService{
      */
     @RpcService
     public List<PatientDTO> findHistoryPatientsFromRecipeByDoctor(Integer doctorId, int start, int limit) {
+        checkUserHasPermissionByDoctorId(doctorId);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         final List<String> mpiList = recipeDAO.findHistoryMpiIdsByDoctorId(doctorId, start, limit);
         if (mpiList.size() == 0) {

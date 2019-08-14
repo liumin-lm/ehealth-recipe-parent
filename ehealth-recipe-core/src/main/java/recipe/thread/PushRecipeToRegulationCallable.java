@@ -77,7 +77,7 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
                 } else if (REGULATION_ZJ.equals(serviceConfigResponseTO.getRegulationAppDomainId())
                         && (serviceConfigResponseTO.getOrganid().equals(recipe.getClinicOrgan()))) {
                     //浙江省推送处方规则：（1）将status=2 处方审核后的数据推送给监管平台，不会推送审核中、流传的数据
-                    if (status == 2) {
+                    if (status == 2 && RecipeStatusConstant.CHECK_PASS_YS==recipe.getStatus()) {
                         response = service.uploadRecipeIndicators(Arrays.asList(recipe));
                     }
                 }

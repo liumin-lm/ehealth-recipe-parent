@@ -81,14 +81,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             commonResponse.setMsg("处方列表为空");
             return commonResponse;
         }
-        IHisServiceConfigService configService = AppDomainContext.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
-        //获取所有监管平台机构列表
-        List<ServiceConfigResponseTO> list = configService.findAllRegulationOrgan();
-        if (CollectionUtils.isEmpty(list)) {
-            LOGGER.warn("uploadRecipeIndicators provUploadOrgan list is null.");
-            commonResponse.setMsg("需要同步机构列表为空");
-            return commonResponse;
-        }
 
        /* ProvUploadOrganService provUploadOrganService =
                 AppDomainContext.getBean("basic.provUploadOrganService", ProvUploadOrganService.class);
@@ -98,8 +90,44 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             commonResponse.setMsg("需要同步机构列表为空");
             return commonResponse;
         }*/
+        List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
+        splicingBackRecipeData(recipeList,request);
 
+        try {
+            IRegulationService  hisService =
+                    AppDomainContext.getBean("his.regulationService", IRegulationService.class);
+            LOGGER.info("uploadRecipeIndicators request={}", JSONUtils.toString(request));
+            HisResponseTO response = hisService.uploadRecipeIndicators(recipeList.get(0).getClinicOrgan(), request);
+            LOGGER.info("uploadRecipeIndicators response={}", JSONUtils.toString(response));
+            if (HIS_SUCCESS.equals(response.getMsgCode())) {
+                //成功
+                commonResponse.setCode(CommonConstant.SUCCESS);
+                LOGGER.info("uploadRecipeIndicators execute success.");
+            } else {
+                commonResponse.setMsg(response.getMsg());
+            }
+        } catch (Exception e) {
+            LOGGER.warn("uploadRecipeIndicators HIS接口调用失败. request={}", JSONUtils.toString(request), e);
+            commonResponse.setMsg("HIS接口调用异常");
+        }
 
+        LOGGER.info("uploadRecipeIndicators commonResponse={}", JSONUtils.toString(commonResponse));
+        return commonResponse;
+    }
+
+    /**
+     * 拼接监管平台所需处方数据
+     * @param recipeList
+     * @param request
+     */
+    public void splicingBackRecipeData(List<Recipe> recipeList,List<RegulationRecipeIndicatorsReq> request) {
+        IHisServiceConfigService configService = AppDomainContext.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
+        //获取所有监管平台机构列表
+        List<ServiceConfigResponseTO> list = configService.findAllRegulationOrgan();
+        if (CollectionUtils.isEmpty(list)) {
+            LOGGER.warn("uploadRecipeIndicators provUploadOrgan list is null.");
+            return;
+        }
         DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
         IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
         /* AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);*/
@@ -112,7 +140,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
 
-        List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
         Map<Integer, OrganDTO> organMap = new HashMap<>(20);
         Map<Integer, DepartmentDTO> departMap = new HashMap<>(20);
         /*Map<Integer, AppointDepartDTO> appointDepartMap = new HashMap<>(20);*/
@@ -322,27 +349,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
             request.add(req);
         }
-
-        try {
-            IRegulationService  hisService =
-                    AppDomainContext.getBean("his.regulationService", IRegulationService.class);
-            LOGGER.info("uploadRecipeIndicators request={}", JSONUtils.toString(request));
-            HisResponseTO response = hisService.uploadRecipeIndicators(recipeList.get(0).getClinicOrgan(), request);
-            LOGGER.info("uploadRecipeIndicators response={}", JSONUtils.toString(response));
-            if (HIS_SUCCESS.equals(response.getMsgCode())) {
-                //成功
-                commonResponse.setCode(CommonConstant.SUCCESS);
-                LOGGER.info("uploadRecipeIndicators execute success.");
-            } else {
-                commonResponse.setMsg(response.getMsg());
-            }
-        } catch (Exception e) {
-            LOGGER.warn("uploadRecipeIndicators HIS接口调用失败. request={}", JSONUtils.toString(request), e);
-            commonResponse.setMsg("HIS接口调用异常");
-        }
-
-        LOGGER.info("uploadRecipeIndicators commonResponse={}", JSONUtils.toString(commonResponse));
-        return commonResponse;
     }
 
     /**

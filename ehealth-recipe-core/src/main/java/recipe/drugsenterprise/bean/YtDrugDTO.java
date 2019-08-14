@@ -60,7 +60,7 @@ public class YtDrugDTO implements Serializable{
      * 非必填??
      *
      */
-    private Double dosage;
+    private String dosage;
 
     public String getSourceSerialNumber() {
         return sourceSerialNumber;
@@ -126,11 +126,11 @@ public class YtDrugDTO implements Serializable{
         this.usage = usage;
     }
 
-    public Double getDosage() {
+    public String getDosage() {
         return dosage;
     }
 
-    public void setDosage(Double dosage) {
+    public void setDosage(String dosage) {
         this.dosage = dosage;
     }
 }
