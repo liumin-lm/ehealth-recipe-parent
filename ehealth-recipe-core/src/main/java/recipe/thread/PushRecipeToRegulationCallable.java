@@ -89,7 +89,7 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
                     } else {
                         response = service.uploadRecipeIndicators(Arrays.asList(recipe));
                     }
-                }else if (REGULATION_ZJ.equals(domainId)||REGULATION_FJ.equals(domainId)){
+                }else if (REGULATION_ZJ.equals(domainId)){
                     //浙江省推送处方规则：（1）将status=2 处方审核后的数据推送给监管平台，不会推送审核中、流传的数据
                     //审核后推送
                     if (status == 2 && RecipeStatusConstant.CHECK_PASS_YS==recipe.getStatus()) {
