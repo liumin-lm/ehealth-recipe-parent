@@ -46,6 +46,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -61,6 +63,10 @@ public class DrugToolService implements IDrugToolService {
     private static final String SUFFIX_2007 = ".xlsx";
     //全局map
     private Map<String,Double> progressMap = Maps.newHashMap();
+    /**
+     * 用于药品小工具搜索历史记录缓存
+     */
+    private ConcurrentHashMap<String,ArrayBlockingQueue> cmap = new ConcurrentHashMap<>();
 
     @Resource
     private DrugListMatchDAO drugListMatchDAO;
@@ -398,6 +404,48 @@ public class DrugToolService implements IDrugToolService {
     @RpcService
     public List<OrganDTO> findOrganLikeShortName(String shortName){
         return organService.findOrganLikeShortName(shortName);
+    }
+
+    /**
+     * 关键字模糊匹配机构，并记录搜索人历史记录
+     * @param shortName 搜索内容
+     * @param userkey 搜索人的唯一标识
+     * @return
+     * @throws InterruptedException
+     */
+    @RpcService
+    public List<?> findOrganlikeShortNameSaveRecord(String shortName,String userkey) throws InterruptedException {
+        LOGGER.info("findOrganlikeShortNameSaveRecord shortName=={}=userkey={}==",shortName,userkey);
+        //创建一个存储容量为10的ArrayBlockingQueue对列
+        ArrayBlockingQueue queue = new ArrayBlockingQueue(10);
+        //当搜索框为空的情况，直接返回缓存中的历史记录数据
+        if (StringUtils.isEmpty(shortName)) {
+            List<Object> listCmap = new ArrayList<>();
+            //存在历史搜索记录
+            if (cmap.get(userkey) != null && cmap.get(userkey).size() > 0) {
+                queue = cmap.get(userkey);
+                Object[] arrayQueue = queue.toArray();
+                for (Object s : arrayQueue) {
+                    listCmap.add(s);
+                }
+            }
+            LOGGER.info("findOrganlikeShortNameSaveRecord HistoryRecord  queue{}==",queue.toString());
+            return listCmap;
+        //输入内容搜索时，将搜索到结果进行返回，并将搜索关键字存入缓存
+        } else {
+            if (cmap.get(userkey) != null && cmap.get(userkey).size() > 0) {
+                queue =  cmap.get(userkey);
+            }
+            //当容量超过10个时，取出第一个元素并删除
+            if (10 == queue.size()){
+                queue.poll();
+            }
+            queue.put(shortName);
+            cmap.put(userkey,queue);
+            LOGGER.info("findOrganlikeShortNameSaveRecord HistoryRecord  cmap{}==",cmap);
+            return organService.findOrganLikeShortName(shortName);
+        }
+
     }
 
     /**
