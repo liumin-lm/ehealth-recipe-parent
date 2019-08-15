@@ -302,10 +302,10 @@ public class RecipeToHisService {
         }).toList();
 
         List<OrganDrugList> organDrugList = drugDao.findByOrganIdAndDrugIds(organId, drugIdList);
-        Map<Integer, OrganDrugList> drugIdAndProduce = Maps.uniqueIndex(organDrugList, new Function<OrganDrugList, Integer>() {
+        Map<String, OrganDrugList> drugIdAndProduce = Maps.uniqueIndex(organDrugList, new Function<OrganDrugList, String>() {
             @Override
-            public Integer apply(OrganDrugList input) {
-                return input.getDrugId();
+            public String apply(OrganDrugList input) {
+                return input.getOrganDrugCode();
             }
         });
 
@@ -316,7 +316,7 @@ public class RecipeToHisService {
             drugInfo = new DrugInfoTO(detail.getOrganDrugCode());
             drugInfo.setPack(detail.getPack().toString());
             drugInfo.setPackUnit(detail.getDrugUnit());
-            organDrug = drugIdAndProduce.get(detail.getDrugId());
+            organDrug = drugIdAndProduce.get(detail.getOrganDrugCode());
             if (null != organDrug) {
                 drugInfo.setManfcode(organDrug.getProducerCode());
             }
