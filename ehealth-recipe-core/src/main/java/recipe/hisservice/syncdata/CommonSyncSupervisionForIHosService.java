@@ -1,6 +1,7 @@
 package recipe.hisservice.syncdata;
 
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.consult.common.service.IConsultService;
 import com.ngari.opbase.base.mode.MinkeOrganDTO;
 import com.ngari.opbase.zjs.service.IMinkeOrganService;
 import com.ngari.patient.dto.DepartmentDTO;
@@ -28,12 +29,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.common.response.CommonResponse;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
+import recipe.constant.RecipeSystemConstant;
 import recipe.dao.*;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
@@ -213,6 +216,7 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
         PatientService patientService = BasicAPI.getService(PatientService.class);
         SubCodeService subCodeService = BasicAPI.getService(SubCodeService.class);
         OrganService organService = BasicAPI.getService(OrganService.class);
+        IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
 
         AuditMedicinesDAO auditMedicinesDAO = DAOFactory.getDAO(AuditMedicinesDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
@@ -243,9 +247,25 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
         AuditMedicines medicine;
         SubCodeDTO subCodeDTO;
         List<Recipedetail> detailList;
+        List<Integer> consultIds;
+        Integer consultId = null;
         for (Recipe recipe : recipeList) {
             req = new RecipeIndicatorsReq();
-            req.setBussID(LocalStringUtil.toString(recipe.getClinicId()));
+            if (recipe.getClinicId() != null){
+                req.setBussID(LocalStringUtil.toString(recipe.getClinicId()));
+                //处方来源 1-问诊 4复诊
+                req.setBussSource("4");
+            }else {
+                consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
+                        recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_GRAPHIC);
+                if (CollectionUtils.isNotEmpty(consultIds)) {
+                    consultId = consultIds.get(0);
+                    req.setBussID(LocalStringUtil.toString(consultId));
+                    //处方来源 1-问诊 4复诊
+                    req.setBussSource("1");
+                }
+            }
+
 
             //机构处理
             organDTO = organMap.get(recipe.getClinicOrgan());

@@ -464,6 +464,7 @@ public class RecipeServiceSub {
                 }
                 i++;
             }
+            paramMap.put("drugNum", i);
         } catch (Exception e) {
             LOGGER.error("createParamMap 组装参数错误. recipeId={}, error ", recipe.getRecipeId(), e);
         }
@@ -544,6 +545,7 @@ public class RecipeServiceSub {
                 paramMap.put("tcmUsingRate", d.getUsingRate());
                 i++;
             }
+            paramMap.put("drugNum", i);
         } catch (Exception e) {
             LOGGER.error("createParamMapForChineseMedicine 组装参数错误. recipeId={}, error ", recipe.getRecipeId(), e);
         }
