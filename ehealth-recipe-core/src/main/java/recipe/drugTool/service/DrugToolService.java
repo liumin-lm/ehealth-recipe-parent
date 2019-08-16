@@ -479,7 +479,7 @@ public class DrugToolService implements IDrugToolService {
                 queue.poll();
             }
             ort.setOrganId(Integer.parseInt(organId));
-            ort.setShortName(shortName);
+            ort.setName(shortName);
 
             //去重，定义是否去重标签
             Boolean bl = true;
