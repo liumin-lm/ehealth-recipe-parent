@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+
 /**
 * @Description: HdPharmacyAndStockResponseData 类（或接口）是 药店列表可库存情况的响应数据
 * @Author: JRK
@@ -47,17 +49,18 @@ public class HdPharmacyAndStockResponseData implements Serializable {
     /**
      * 初始化操作
      */
-    public boolean init(){
+    public boolean init(Map<String, HdDrugRequestData> drugResult){
         boolean result = true;
-        this.totalFee = new BigDecimal(0.0d);
+        this.setTotalFee(new BigDecimal(0.0d));
         for (HdDrugResponseData drugsFee : drugInvs) {
-            if(null == drugsFee.getPrice() || null == drugsFee.getInvQty()){
+            if(null == drugsFee.getPrice()){
                 LOGGER.warn("HdRemoteService初始化处方单金额:[{}][{}]药店下[{}]药品价格信息不全."
                         , this.pharmacyId, this.pharmacyCode, drugsFee.getDrugCode());
                 result = false;
                 return result;
             }
-            this.totalFee.add(new BigDecimal(drugsFee.getPrice()).multiply(new BigDecimal(drugsFee.getInvQty())));
+            //这里注意计算的金额必须按照药店下对应药品的金额来计算实际金额
+            this.setTotalFee(this.getTotalFee().add(new BigDecimal(drugsFee.getPrice()).multiply(new BigDecimal(drugResult.get(drugsFee.getDrugCode()).getTotal()))));
         }
         return result;
     }

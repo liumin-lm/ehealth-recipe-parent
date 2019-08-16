@@ -789,8 +789,8 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         List<Recipedetail> detailList = detailDAO.findByRecipeId(nowRecipe.getRecipeId());
 
         //根据药品请求华东旗下的所有可用药店，当有一个可用说明库存是足够的
-
-        List<HdDrugRequestData> drugRequestDataList = getDrugRequestList(detailList, drugsEnterprise, result);
+        Map<String, HdDrugRequestData> resultMap = new HashMap<>();
+        List<HdDrugRequestData> drugRequestDataList = getDrugRequestList(resultMap, detailList, drugsEnterprise, result);
         if(DrugEnterpriseResult.FAIL == result.getCode()) return null;
         HdPharmacyAndStockRequest hdPharmacyAndStockRequest = new HdPharmacyAndStockRequest();
         hdPharmacyAndStockRequest.setDrugList(drugRequestDataList);
@@ -968,8 +968,8 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
      * @param  finalResult 请求的最终结果
      * @return java.util.List<recipe.drugsenterprise.bean.HdDrugRequestData>请求药店下药品信息列表
      */
-    private List<HdDrugRequestData> getDrugRequestList(List<Recipedetail> detailList, DrugsEnterprise drugsEnterprise, DrugEnterpriseResult finalResult) {
-        Map<String, HdDrugRequestData> result = new HashMap<>();
+    private List<HdDrugRequestData> getDrugRequestList(Map<String, HdDrugRequestData> result, List<Recipedetail> detailList, DrugsEnterprise drugsEnterprise, DrugEnterpriseResult finalResult) {
+
         HdDrugRequestData hdDrugRequestData;
         Double sum;
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
@@ -1047,13 +1047,14 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         //组装查询接口，根据当前请求，判断对应药店下的处方的药品是否有库存
 
         //根据请求返回的药店列表，获取对应药店下药品需求的总价格
-        HdPharmacyAndStockResponse responsResult = getFindPharamcyList(result, recipeIds, ext, enterprise);
+        Map<String, HdDrugRequestData> resultMap = new HashMap<>();
+        HdPharmacyAndStockResponse responsResult = getFindPharamcyList(result, recipeIds, ext, enterprise, resultMap);
         if(DrugEnterpriseResult.FAIL == result.getCode()) {
             return result;
         }
 
         //数据封装成页面展示数据
-        List<DepDetailBean> pharmacyDetailPage = assemblePharmacyPageMsg(ext, enterprise, responsResult);
+        List<DepDetailBean> pharmacyDetailPage = assemblePharmacyPageMsg(ext, enterprise, responsResult, resultMap);
         result.setObject(pharmacyDetailPage);
         return result;
     }
@@ -1067,9 +1068,10 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
      * @param recipeIds 处方单集合
      * @param ext 查询map
      * @param enterprise 药企
+     * @param  resultMap 处方下根据药品获取总需求量
      * @return recipe.drugsenterprise.bean.HdPharmacyAndStockResponse
      */
-    private HdPharmacyAndStockResponse getFindPharamcyList(DrugEnterpriseResult result, List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise){
+    private HdPharmacyAndStockResponse getFindPharamcyList(DrugEnterpriseResult result, List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise, Map<String, HdDrugRequestData> resultMap){
         HdPharmacyAndStockResponse resultResponse = null ;
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         //现在默认只有一个处方单
@@ -1098,7 +1100,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         //首先组装请求对象
         HdPharmacyAndStockRequest hdPharmacyAndStockRequest = new HdPharmacyAndStockRequest();
         if (ext != null && null != ext.get(searchMapRANGE) && null != ext.get(searchMapLongitude) && null != ext.get(searchMapLatitude)) {
-            List<HdDrugRequestData> drugRequestList = getDrugRequestList(detailList, enterprise, result);
+            List<HdDrugRequestData> drugRequestList = getDrugRequestList(resultMap, detailList, enterprise, result);
             if(DrugEnterpriseResult.FAIL == result.getCode()) return null;
             hdPharmacyAndStockRequest.setDrugList(drugRequestList);
             hdPharmacyAndStockRequest.setRange(ext.get(searchMapRANGE).toString());
@@ -1152,7 +1154,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
      * @param enterprise 药企
      * @return java.util.List<com.ngari.recipe.drugsenterprise.model.DepDetailBean> 页面药店信息展示
      */
-    private List<DepDetailBean> assemblePharmacyPageMsg(Map ext, DrugsEnterprise enterprise, HdPharmacyAndStockResponse responsResult) {
+    private List<DepDetailBean> assemblePharmacyPageMsg(Map ext, DrugsEnterprise enterprise, HdPharmacyAndStockResponse responsResult, Map<String, HdDrugRequestData> drugResult) {
         List<DepDetailBean> pharmacyDetailPage = new ArrayList<>();
         SaleDrugList checkSaleDrug = null;
         Position position;
@@ -1161,7 +1163,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         for (HdPharmacyAndStockResponseData pharmacyMsg : responsResult.getData()) {
             newDepDetailBean = new DepDetailBean();
             //这里只储存药店处方药品信总价初始化成功的药店
-            if(!pharmacyMsg.init()){
+            if(!pharmacyMsg.init(drugResult)){
                 continue;
             }
             newDepDetailBean.setRecipeFee(pharmacyMsg.getTotalFee());
