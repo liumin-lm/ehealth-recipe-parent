@@ -5,7 +5,6 @@ import com.google.common.collect.FluentIterable;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
-import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -57,6 +56,8 @@ public class PayModeTFDS implements IPurchaseService{
         DepListBean depListBean = new DepListBean();
         Integer recipeId = recipe.getRecipeId();
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+
+        //获取患者位置信息进行缓存处理
         String range = MapValueUtil.getString(extInfo, "range");
         String longitude = MapValueUtil.getString(extInfo, "longitude");
         String latitude = MapValueUtil.getString(extInfo, "latitude");
@@ -83,7 +84,7 @@ public class PayModeTFDS implements IPurchaseService{
         if (CollectionUtils.isEmpty(drugsEnterprises)) {
             //该机构没有对应可药店取药的药企
             resultBean.setCode(RecipeResultBean.FAIL);
-            resultBean.setMsg("没有对应可药店取药的药企");
+            resultBean.setMsg("该机构没有配置可药店取药的药企，请到运营平台进行配置");
             return resultBean;
         }
         LOGGER.info("findSupportDepList recipeId={}, 匹配到支持药店取药药企数量[{}]", recipeId, drugsEnterprises.size());
@@ -97,24 +98,20 @@ public class PayModeTFDS implements IPurchaseService{
         List<DepDetailBean> depDetailList = new ArrayList<>();
         //从缓存中获取药店列表
 
-        List<DrugsEnterprise> subDepList = new ArrayList<>(drugsEnterprises.size());
         for (DrugsEnterprise dep : drugsEnterprises) {
             //通过查询该药企对应药店库存
             boolean succFlag = scanStock(recipe, dep, drugIds);
-            if (succFlag) {
-                subDepList.add(dep);
-            }
-            if (CollectionUtils.isEmpty(subDepList)) {
-                LOGGER.warn("findSupportDepList 该处方没有提供取药的药店. recipeId=[{}]", recipeId);
-                resultBean.setCode(5);
-                resultBean.setMsg("没有药企对应药店支持取药");
-                return resultBean;
+            if (!succFlag) {
+                LOGGER.warn("findSupportDepList 当前药企无库存. 药企=[{}], recipeId=[{}]", dep.getName() ,recipeId);
+                continue;
             }
             //需要从接口获取药店列表
             DrugEnterpriseResult drugEnterpriseResult = remoteDrugService.findSupportDep(recipeIds, extInfo, dep);
             depDetailList = findAllSupportDeps(drugEnterpriseResult, dep, extInfo);
         }
-        redisClient.setEX(key, Long.parseLong(EXPIRE_SECOND), depDetailList);
+        if (CollectionUtils.isNotEmpty(depDetailList)) {
+            redisClient.setEX(key, Long.parseLong(EXPIRE_SECOND), depDetailList);
+        }
         LOGGER.info("findSupportDepList recipeId={}, 获取到药店数量[{}]", recipeId, depDetailList.size());
         List<DepDetailBean> result = getDepDetailBeansByPage(extInfo, depDetailList);
         depListBean.setList(result);
@@ -239,13 +236,6 @@ public class PayModeTFDS implements IPurchaseService{
         if (!succFlag) {
             LOGGER.warn("findSupportDepList 药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}], 药企名称=[{}]",
                     recipeId, dep.getId(), dep.getName());
-        } else {
-            //通过查询该药企库存，最终确定能否配送
-            succFlag = remoteDrugService.scanStock(dbRecipe.getRecipeId(), dep);
-            if (!succFlag) {
-                LOGGER.warn("scanStock 药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}], 药企名称=[{}]",
-                        dbRecipe.getRecipeId(), dep.getId(), dep.getName());
-            }
         }
         return succFlag;
     }
