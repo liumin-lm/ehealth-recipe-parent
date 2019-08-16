@@ -665,7 +665,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                             + " and payFlag=0 and payMode=" + RecipeBussConstant.PAYMODE_ONLINE + " and orderCode is not null ");
                 } else if (cancelStatus == RecipeStatusConstant.NO_OPERATOR) {
                     //超过3天未操作
-                    hql.append(" and fromflag = 1 and status=" + RecipeStatusConstant.CHECK_PASS + " or ( status="+ RecipeStatusConstant.READY_CHECK_YS +" and recipeMode='zjjgpt')");
+                    hql.append(" and fromflag = 1 and status=" + RecipeStatusConstant.CHECK_PASS );
                 }
                 Query q = ss.createQuery(hql.toString());
                 setResult(q.list());
