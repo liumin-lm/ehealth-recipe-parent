@@ -24,6 +24,7 @@ import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import jdk.nashorn.internal.runtime.linker.Bootstrap;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -32,6 +33,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.hibernate.StatelessSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.bean.OrganToolBean;
 import recipe.dao.DrugListDAO;
 import recipe.dao.DrugListMatchDAO;
 import recipe.dao.DrugToolUserDAO;
@@ -407,47 +409,67 @@ public class DrugToolService implements IDrugToolService {
     }
 
     /**
-     * 关键字模糊匹配机构，并记录搜索人历史记录
-     * @param shortName 搜索内容
-     * @param userkey 搜索人的唯一标识
-     * @return
-     * @throws InterruptedException
+     *  查询所有机构并封装返回参数给前端，存入前端缓存使用
      */
     @RpcService
-    public List<?> findOrganlikeShortNameSaveRecord(String shortName,String userkey) throws InterruptedException {
-        LOGGER.info("findOrganlikeShortNameSaveRecord shortName=={}=userkey={}==",shortName,userkey);
-        //创建一个存储容量为10的ArrayBlockingQueue对列
-        ArrayBlockingQueue queue = new ArrayBlockingQueue(10);
-        //当搜索框为空的情况，直接返回缓存中的历史记录数据
-        if (StringUtils.isEmpty(shortName)) {
-            List<Object> listCmap = new ArrayList<>();
-            //存在历史搜索记录
-            if (cmap.get(userkey) != null && cmap.get(userkey).size() > 0) {
-                queue = cmap.get(userkey);
-                Object[] arrayQueue = queue.toArray();
-                for (Object s : arrayQueue) {
-                    listCmap.add(s);
-                }
+    public List<OrganToolBean> findOrganByRecipeTools() {
+        LOGGER.info("findOrganByRecipeTools start");
+        List<OrganToolBean> toollist = new ArrayList<>();
+        try {
+            List<OrganDTO> organDTOList = organService.findOrganLikeShortName("");
+            for (OrganDTO o : organDTOList) {
+                OrganToolBean toolBean = new OrganToolBean();
+                toolBean.setName(o.getName());
+                toolBean.setOrganId(o.getOrganId());
+                toolBean.setPyCode(o.getPyCode());
+                toolBean.setShortName(o.getShortName());
+                toolBean.setWxAccount(o.getWxAccount());
+                toollist.add(toolBean);
             }
-            LOGGER.info("findOrganlikeShortNameSaveRecord HistoryRecord  queue{}==",queue.toString());
-            return listCmap;
-        //输入内容搜索时，将搜索到结果进行返回，并将搜索关键字存入缓存
+        } catch (Exception e) {
+            LOGGER.error("findOrganByRecipeTools 药品小工具查询所有机构接口异常");
+            e.printStackTrace();
         }
-        return organService.findOrganLikeShortName(shortName);
-
+        return toollist;
     }
+
     /**
-     *保存搜索人的历史记录，在导入药品库确定时调用
+     * 搜索当前用户的历史搜索记录
+     * @param userkey 搜索人的唯一标识
+     * @return
+     * @throws InterruptedException
+     */
+    @RpcService
+    public List<?> findOrganSearchHistoryRecord(String userkey) {
+        LOGGER.info("findOrganSearchHistoryRecord =userkey={}==",userkey);
+        //创建一个存储容量为10的ArrayBlockingQueue对列
+        ArrayBlockingQueue queue = new ArrayBlockingQueue(10);
+        List<Object> listCmap = new ArrayList<>();
+        //存在历史搜索记录
+        if (cmap.get(userkey) != null && cmap.get(userkey).size() > 0) {
+            queue = cmap.get(userkey);
+            Object[] arrayQueue = queue.toArray();
+            for (Object s : arrayQueue) {
+                listCmap.add(s);
+            }
+        }
+        LOGGER.info("findOrganSearchHistoryRecord HistoryRecord  queue{}==",queue.toString());
+        return listCmap;
+    }
+
+    /**
+     * 保存搜索人的历史记录，在导入药品库确定时调用
      * @param shortName 搜索内容
      * @param userkey 搜索人的唯一标识
      * @return
      * @throws InterruptedException
      */
     @RpcService
-    public void saveShortNameRecord(String shortName,String userkey) throws InterruptedException {
-        LOGGER.info("saveShortNameRecord shortName=={}=userkey={}==",shortName,userkey);
+    public void saveShortNameRecord(String shortName,String organId,String userkey) throws InterruptedException {
+        LOGGER.info("saveShortNameRecord shortName=={}==organId=={}==userkey={}==",shortName,organId,userkey);
         //创建一个存储容量为10的ArrayBlockingQueue对列
         ArrayBlockingQueue queue = new ArrayBlockingQueue(10);
+        OrganToolBean ort = new OrganToolBean();
         //当搜索框为空的情况，直接返回缓存中的历史记录数据
         if (!StringUtils.isEmpty(shortName)) {
             if (cmap.get(userkey) != null && cmap.get(userkey).size() > 0) {
@@ -457,9 +479,26 @@ public class DrugToolService implements IDrugToolService {
             if (10 == queue.size()){
                 queue.poll();
             }
-            queue.put(shortName);
+            ort.setOrganId(Integer.parseInt(organId));
+            ort.setShortName(shortName);
+
+            //去重，定义是否去重标签
+            Boolean bl = true;
+            Object[] arrayQueue = queue.toArray();
+            for (Object s : arrayQueue) {
+                OrganToolBean t = (OrganToolBean)s;
+                //通过organId过滤
+                if(t.getOrganId() == Integer.parseInt(organId)){
+                    bl = false;
+                    break;
+                }
+            }
+            if (bl) {
+                queue.put(ort);
+            }
+
             cmap.put(userkey,queue);
-            LOGGER.info("findOrganlikeShortNameSaveRecord HistoryRecord  cmap{}==",cmap);
+            LOGGER.info("saveShortNameRecord HistoryRecord  cmap{}==",cmap);
         }
 
     }
