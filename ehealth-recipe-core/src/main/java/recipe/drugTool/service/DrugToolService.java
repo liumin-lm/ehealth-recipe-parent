@@ -432,7 +432,24 @@ public class DrugToolService implements IDrugToolService {
             LOGGER.info("findOrganlikeShortNameSaveRecord HistoryRecord  queue{}==",queue.toString());
             return listCmap;
         //输入内容搜索时，将搜索到结果进行返回，并将搜索关键字存入缓存
-        } else {
+        }
+        return organService.findOrganLikeShortName(shortName);
+
+    }
+    /**
+     *保存搜索人的历史记录，在导入药品库确定时调用
+     * @param shortName 搜索内容
+     * @param userkey 搜索人的唯一标识
+     * @return
+     * @throws InterruptedException
+     */
+    @RpcService
+    public void saveShortNameRecord(String shortName,String userkey) throws InterruptedException {
+        LOGGER.info("saveShortNameRecord shortName=={}=userkey={}==",shortName,userkey);
+        //创建一个存储容量为10的ArrayBlockingQueue对列
+        ArrayBlockingQueue queue = new ArrayBlockingQueue(10);
+        //当搜索框为空的情况，直接返回缓存中的历史记录数据
+        if (!StringUtils.isEmpty(shortName)) {
             if (cmap.get(userkey) != null && cmap.get(userkey).size() > 0) {
                 queue =  cmap.get(userkey);
             }
@@ -443,10 +460,11 @@ public class DrugToolService implements IDrugToolService {
             queue.put(shortName);
             cmap.put(userkey,queue);
             LOGGER.info("findOrganlikeShortNameSaveRecord HistoryRecord  cmap{}==",cmap);
-            return organService.findOrganLikeShortName(shortName);
         }
 
     }
+
+
 
     /**
      * 药品匹配
