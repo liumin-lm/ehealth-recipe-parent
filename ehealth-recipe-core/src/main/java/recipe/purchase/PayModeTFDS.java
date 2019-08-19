@@ -96,19 +96,23 @@ public class PayModeTFDS implements IPurchaseService{
             drugIds.add(detail.getDrugId());
         }
         List<DepDetailBean> depDetailList = new ArrayList<>();
-        //从缓存中获取药店列表
 
         for (DrugsEnterprise dep : drugsEnterprises) {
+            List<DepDetailBean> depList = new ArrayList<>();
             //通过查询该药企对应药店库存
-            boolean succFlag = scanStock(recipe, dep, drugIds);
+            /*boolean succFlag = scanStock(recipe, dep, drugIds);
             if (!succFlag) {
                 LOGGER.warn("findSupportDepList 当前药企无库存. 药企=[{}], recipeId=[{}]", dep.getName() ,recipeId);
                 continue;
-            }
+            }*/
             //需要从接口获取药店列表
             DrugEnterpriseResult drugEnterpriseResult = remoteDrugService.findSupportDep(recipeIds, extInfo, dep);
-            depDetailList = findAllSupportDeps(drugEnterpriseResult, dep, extInfo);
+            depList = findAllSupportDeps(drugEnterpriseResult, dep, extInfo);
+            depDetailList.addAll(depList);
         }
+        //对药店列表进行排序
+        String sort = MapValueUtil.getString(extInfo, "sort");
+        Collections.sort(depDetailList, new DepDetailBeanComparator(sort));
         if (CollectionUtils.isNotEmpty(depDetailList)) {
             redisClient.setEX(key, Long.parseLong(EXPIRE_SECOND), depDetailList);
         }
@@ -263,9 +267,6 @@ public class PayModeTFDS implements IPurchaseService{
                 }
                 depDetailList.addAll(ysqList);
                 LOGGER.info("获取到的药店列表:{}.", JSONUtils.toString(depDetailList));
-                //对药店列表进行排序
-                String sort = MapValueUtil.getString(extInfo, "sort");
-                Collections.sort(depDetailList, new DepDetailBeanComparator(sort));
             }
         }
         return depDetailList;
