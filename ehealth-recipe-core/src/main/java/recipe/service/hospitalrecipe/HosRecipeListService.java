@@ -189,17 +189,20 @@ public class HosRecipeListService {
             Map<String, Object> map = setPatientInfo(request);
             patient = (PatientBean)map.get("patient");
             HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
-            HealthCardDTO healthCardDTO = new HealthCardDTO();
-            healthCardDTO.setMpiId(patient.getMpiId());
-            healthCardDTO.setCardId(request.getCardNo());
-            healthCardDTO.setCardType("1");
-            healthCardDTO.setCardOrgan(1003083);
-            healthCardDTO.setCardStatus(1);
-            healthCardDTO.setInitialCardID(request.getCardNo());
-            healthCardDTO.setCardSource("remote");
-            healthCardDTO.setCreateDate(new Date());
-            if (!healthCardService.saveHealthCardForRecipe(healthCardDTO)){
-                LOG.warn("addPatientForDoctor 就诊卡保存失败,healthCardDTO:{}.", JSONUtils.toString(healthCardDTO));
+            List<HealthCardDTO> healthCardDTOS = healthCardService.findByMpiId(patient.getMpiId());
+            if (CollectionUtils.isEmpty(healthCardDTOS)) {
+                HealthCardDTO healthCardDTO = new HealthCardDTO();
+                healthCardDTO.setMpiId(patient.getMpiId());
+                healthCardDTO.setCardId(request.getCardNo());
+                healthCardDTO.setCardType("1");
+                healthCardDTO.setCardOrgan(1003083);
+                healthCardDTO.setCardStatus(1);
+                healthCardDTO.setInitialCardID(request.getCardNo());
+                healthCardDTO.setCardSource("remote");
+                healthCardDTO.setCreateDate(new Date());
+                if (!healthCardService.saveHealthCardForRecipe(healthCardDTO)){
+                    LOG.warn("addPatientForDoctor 就诊卡保存失败,healthCardDTO:{}.", JSONUtils.toString(healthCardDTO));
+                }
             }
         } catch (Exception e) {
             LOG.warn("addPatientForDoctor 处理就诊人异常，doctorId={}",
