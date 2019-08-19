@@ -100,11 +100,11 @@ public class PayModeTFDS implements IPurchaseService{
         for (DrugsEnterprise dep : drugsEnterprises) {
             List<DepDetailBean> depList = new ArrayList<>();
             //通过查询该药企对应药店库存
-            /*boolean succFlag = scanStock(recipe, dep, drugIds);
+            boolean succFlag = scanStock(recipe, dep, drugIds);
             if (!succFlag) {
                 LOGGER.warn("findSupportDepList 当前药企无库存. 药企=[{}], recipeId=[{}]", dep.getName() ,recipeId);
                 continue;
-            }*/
+            }
             //需要从接口获取药店列表
             DrugEnterpriseResult drugEnterpriseResult = remoteDrugService.findSupportDep(recipeIds, extInfo, dep);
             depList = findAllSupportDeps(drugEnterpriseResult, dep, extInfo);
