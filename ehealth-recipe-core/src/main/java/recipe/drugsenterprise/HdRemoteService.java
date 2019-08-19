@@ -469,6 +469,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             try {
                 IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
                 String imgStr = fileDownloadService.downloadImg(ossId);
+                LOGGER.warn("HdRemoteService.pushRecipeInfo:图片{}", imgStr);
                 if(ObjectUtils.isEmpty(imgStr)){
                     LOGGER.warn("HdRemoteService.pushRecipeInfo:处方ID为{}的ossid为{}处方笺不存在", nowRecipe.getRecipeId(), ossId);
                     getFailResult(result, "处方笺不存在");
