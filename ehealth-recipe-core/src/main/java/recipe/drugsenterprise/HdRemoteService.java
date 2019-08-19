@@ -462,7 +462,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             return result;
         }
         //设置处方笺base
-        String ossId = nowRecipe.getSignFile();
+        String ossId = nowRecipe.getSignImg();
 
         if(null != ossId){
 
