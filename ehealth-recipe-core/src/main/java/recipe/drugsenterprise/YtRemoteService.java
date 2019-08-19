@@ -334,7 +334,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             return result;
         }
         //设置处方笺base
-        String ossId = nowRecipe.getChemistSignFile();
+        String ossId = nowRecipe.getSignFile();
 
         if(null != ossId){
 
