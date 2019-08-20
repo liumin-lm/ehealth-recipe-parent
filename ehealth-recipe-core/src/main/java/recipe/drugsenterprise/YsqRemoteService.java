@@ -236,6 +236,12 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 position.put("LONGITUDE", ext.get("longitude"));
                 position.put("LATITUDE", ext.get("latitude"));
                 map.put("POSITION", position);
+            } else {
+                map.put("RANGE", 90);
+                Map<String, Object> position = new HashMap<>();
+                position.put("LONGITUDE", "120.201685");
+                position.put("LATITUDE", "30.255732");
+                map.put("POSITION", position);
             }
             titlesInfoList.add(map);
         }
@@ -481,7 +487,12 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             recipeMap.put("HOSNAME", organ.getName());
             recipeMap.put("PRESCRIPTDATE", DateConversion.getDateFormatter(recipe.getSignDate(), DateConversion.DEFAULT_DATE_TIME));
             //医院处方号  医院机构?处方编号
-            recipeMap.put("INBILLNO", recipe.getClinicOrgan() + YSQ_SPLIT + recipe.getRecipeCode());
+            if (StringUtils.isNotEmpty(recipe.getRecipeCode())) {
+                recipeMap.put("INBILLNO", recipe.getClinicOrgan() + YSQ_SPLIT + recipe.getRecipeCode());
+            } else {
+                recipeMap.put("INBILLNO", recipe.getClinicOrgan() + YSQ_SPLIT + recipe.getRecipeId() + "ngari999");
+            }
+
             recipeMap.put("PATNAME", patient.getPatientName());
 
             //性别处理
