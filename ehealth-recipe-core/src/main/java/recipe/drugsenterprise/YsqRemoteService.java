@@ -481,8 +481,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             recipeMap.put("HOSNAME", organ.getName());
             recipeMap.put("PRESCRIPTDATE", DateConversion.getDateFormatter(recipe.getSignDate(), DateConversion.DEFAULT_DATE_TIME));
             //医院处方号  医院机构?处方编号
-            //TODO
-            recipeMap.put("INBILLNO", recipe.getClinicOrgan() + YSQ_SPLIT + recipe.getRecipeId() + "ngari999");
+            recipeMap.put("INBILLNO", recipe.getClinicOrgan() + YSQ_SPLIT + recipe.getRecipeCode());
             recipeMap.put("PATNAME", patient.getPatientName());
 
             //性别处理
