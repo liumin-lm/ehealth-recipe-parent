@@ -212,7 +212,6 @@ public abstract class OrganDrugListDAO extends
                     @SuppressWarnings("unchecked")
                     @Override
                     public void execute(StatelessSession ss) throws DAOException {
-                        //StringBuilder hql = new StringBuilder(" from DrugList d where 1=1 ");
                         if (status == 2) {
                             StringBuilder hql = new StringBuilder(" from DrugList d where 1=1 ");
                             if (!StringUtils.isEmpty(drugClass)) {
@@ -232,26 +231,12 @@ public abstract class OrganDrugListDAO extends
                                 }
                                 hql.append(")");
                             }
-                            if (ObjectUtils.nullSafeEquals(status, 0)) {
-                                hql.append(" and d.drugId in (select o.drugId from OrganDrugList o where o.status = 0 and o.organId =:organId)");
-                            } else if (ObjectUtils.nullSafeEquals(status, 1)) {
-                                hql.append(" and d.drugId in (select o.drugId from OrganDrugList o where o.status = 1 and o.organId =:organId)");
-                            } else if (ObjectUtils.nullSafeEquals(status, -1)) {
-                                hql.append(" and d.drugId not in (select o.drugId from OrganDrugList o where o.organId =:organId) ");
-                            } else if (ObjectUtils.nullSafeEquals(status, ALL_DRUG_FLAG)) {
-                                hql.append(" and d.drugId in (select o.drugId from OrganDrugList o where o.status in (0,1) and o.organId =:organId)");
-                            }
                             hql.append(" and d.status=1 order by d.drugId desc");
                             Query countQuery = ss.createQuery("select count(*) " + hql.toString());
                             if (!StringUtils.isEmpty(drugClass)) {
                                 countQuery.setParameter("drugClass", drugClass + "%");
                             }
-                            if (ObjectUtils.nullSafeEquals(status, 0)
-                                    || ObjectUtils.nullSafeEquals(status, 1)
-                                    || ObjectUtils.nullSafeEquals(status, -1)
-                                    || ObjectUtils.nullSafeEquals(status, 9)) {
-                                countQuery.setParameter("organId", organId);
-                            }
+
                             if (drugId != null) {
                                 countQuery.setParameter("drugId", drugId);
                             }
@@ -264,12 +249,6 @@ public abstract class OrganDrugListDAO extends
                             if (!StringUtils.isEmpty(drugClass)) {
                                 query.setParameter("drugClass", drugClass + "%");
                             }
-                            if (ObjectUtils.nullSafeEquals(status, 0)
-                                    || ObjectUtils.nullSafeEquals(status, 1)
-                                    || ObjectUtils.nullSafeEquals(status, -1)
-                                    || ObjectUtils.nullSafeEquals(status, 9)) {
-                                query.setParameter("organId", organId);
-                            }
                             if (drugId != null) {
                                 query.setParameter("drugId", drugId);
                             }
@@ -281,18 +260,7 @@ public abstract class OrganDrugListDAO extends
                             List<DrugList> list = query.list();
                             List<DrugListAndOrganDrugList> result = new ArrayList<DrugListAndOrganDrugList>();
                             for (DrugList drug : list) {
-                                List<OrganDrugList> organDrugLists = findOrganDrugs(drug.getDrugId(), organId, status);
-                                if (organDrugLists != null && organDrugLists.size() > 0) {
-                                    for (OrganDrugList organDrugList : organDrugLists) {
-                                        result.add(new DrugListAndOrganDrugList(drug, organDrugList));
-                                        if (ObjectUtils.nullSafeEquals(status, 2)) {
-                                            break;
-                                        }
-                                    }
-                                } else {
-                                    result.add(new DrugListAndOrganDrugList(drug, null));
-                                }
-
+                                result.add(new DrugListAndOrganDrugList(drug, null));
                             }
                             setResult(new QueryResult<DrugListAndOrganDrugList>(total, query.getFirstResult(), query.getMaxResults(), result));
                         } else {
