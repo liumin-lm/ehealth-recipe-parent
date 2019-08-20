@@ -111,6 +111,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
 
     private static final String hdSendMethod = "1";
 
+    private static final String imgHead = "data:image/jpeg;base64,";
 
     public HdRemoteService() {
         RecipeCacheService recipeService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
@@ -468,7 +469,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
 
             try {
                 IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
-                String imgStr = fileDownloadService.downloadImg(ossId);
+                String imgStr = imgHead + fileDownloadService.downloadImg(ossId);
                 if(ObjectUtils.isEmpty(imgStr)){
                     LOGGER.warn("HdRemoteService.pushRecipeInfo:处方ID为{}的ossid为{}处方笺不存在", nowRecipe.getRecipeId(), ossId);
                     getFailResult(result, "处方笺不存在");
