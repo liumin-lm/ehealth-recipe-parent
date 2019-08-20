@@ -413,4 +413,18 @@ public abstract class OrganDrugListDAO extends
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    /**
+     * 根据机构id删除
+     * @param organId
+     */
+    @DAOMethod(sql = " delete from OrganDrugList where organId =:organId")
+    public abstract void deleteByOrganId(@DAOParam("sourceOrgan") Integer organId);
+
+    /**
+     * 根据id删除
+     * @param id
+     */
+    @DAOMethod(sql = " delete from OrganDrugList where id =:id")
+    public abstract void deleteById(@DAOParam("id") Integer id);
 }
