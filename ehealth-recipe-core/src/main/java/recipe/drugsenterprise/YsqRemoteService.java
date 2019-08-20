@@ -177,7 +177,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 result.setCode(DrugEnterpriseResult.FAIL);
                 return result;
             }
-            if (!hosInteriorSupportFlag) {
+            if (!hosInteriorSupportFlag && drugsEnterprise.getHosInteriorSupport() == 1) {
                 recipeMap.put("HOSCODE", organ.getOrganizeCode());
             } else {
                 recipeMap.put("HOSCODE", organ.getOrganId().toString());
