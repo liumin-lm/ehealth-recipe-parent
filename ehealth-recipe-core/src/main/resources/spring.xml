@@ -90,4 +90,7 @@
         <property name="bqHospitalMsgHandler" ref="bqHospitalMsgHandler"/>
     </bean>
 	<bean id="bqHospitalMsgHandler" class="recipe.drugsenterprise.BqHospitalMsgHandlerImpl"/>
+	<bean class="ctd.util.DesensitizationsUtil" id="desensitizationsUtil">
+		<property name="pattern" value="${des.patterns}"/>
+	</bean>
 </beans>

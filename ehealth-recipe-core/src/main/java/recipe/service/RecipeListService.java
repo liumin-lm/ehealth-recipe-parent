@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
+import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -13,10 +14,7 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.recipe.model.PatientRecipeDTO;
-import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipe.model.RecipeRollingInfoBean;
+import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
@@ -160,6 +158,8 @@ public class RecipeListService extends RecipeBaseService{
             List<Map> recipesMap = new ArrayList<>(0);
             for (Integer recipeId : recipeIds) {
                 Map<String, Object> recipeInfo = recipeService.getPatientRecipeById(recipeId);
+                PatientDTO patient = (PatientDTO)recipeInfo.get("patient");
+                recipeInfo.put("patient", ObjectCopyUtils.convert(patient, PatientDS.class));
                 recipeGetModeTip = MapValueUtil.getString(recipeInfo, "recipeGetModeTip");
                 if (null != recipeInfo.get("checkEnterprise")) {
                     map.put("checkEnterprise", (Boolean) recipeInfo.get("checkEnterprise"));
@@ -171,7 +171,7 @@ public class RecipeListService extends RecipeBaseService{
             title = "暂无待处理处方单";
         }
 
-        List<PatientRecipeDTO> otherRecipes = this.findOtherRecipesForPatient(mpiId, 0, 1);
+        List<PatientRecipeDS> otherRecipes = this.findOtherRecipesForPatient(mpiId, 0, 1);
         if (CollectionUtils.isNotEmpty(otherRecipes)) {
             map.put("haveFinished", true);
         } else {
@@ -186,7 +186,7 @@ public class RecipeListService extends RecipeBaseService{
     }
 
     @RpcService
-    public List<PatientRecipeDTO> findOtherRecipesForPatient(String mpiId, Integer index, Integer limit) {
+    public List<PatientRecipeDS> findOtherRecipesForPatient(String mpiId, Integer index, Integer limit) {
         Assert.hasLength(mpiId, "findOtherRecipesForPatient mpiId is null.");
         checkUserHasPermissionByMpiId(mpiId);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
@@ -196,7 +196,8 @@ public class RecipeListService extends RecipeBaseService{
         //获取待处理那边最新的一单
         List<Integer> recipeIds = recipeDAO.findPendingRecipes(allMpiIds, RecipeStatusConstant.CHECK_PASS, 0, 1);
         List<PatientRecipeBean> backList = recipeDAO.findOtherRecipesForPatient(allMpiIds, recipeIds, index, limit);
-        return processListDate(backList, allMpiIds);
+
+        return ObjectCopyUtils.convert(processListDate(backList, allMpiIds), PatientRecipeDS.class);
     }
 
     /**
@@ -223,7 +224,7 @@ public class RecipeListService extends RecipeBaseService{
     /**
      * 处理列表数据
      *
-     * @param backList
+     * @param list
      * @param allMpiIds
      */
     private List<PatientRecipeDTO> processListDate(List<PatientRecipeBean> list, List<String> allMpiIds) {
