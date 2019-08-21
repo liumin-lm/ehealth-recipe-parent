@@ -2,7 +2,9 @@ package recipe.service;
 
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
@@ -135,5 +137,19 @@ public class RecipeTestService {
         DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
 
         return drugListExtService.findDrugListsByNameOrCodePageStaitc(organId, drugType, drugName, start);
+    }
+
+    @RpcService
+    public void updateCheckerName(){
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        DoctorService doctorService = BasicAPI.getService(DoctorService.class);
+        List<Recipe> recipes = recipeDAO.findAllRecipeListForChecker();
+        for (Recipe recipe : recipes) {
+            DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getChecker());
+            if (doctorDTO != null) {
+                recipe.setCheckerName(doctorDTO.getName());
+                recipeDAO.update(recipe);
+            }
+        }
     }
 }
