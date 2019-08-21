@@ -1698,6 +1698,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         return action.getResult();
     }
 
-    @DAOMethod(sql = "select *from Recipe where checker is not null ")
+    @DAOMethod(sql = "from Recipe where checker is not null ")
     public abstract List<Recipe> findAllRecipeListForChecker();
 }
