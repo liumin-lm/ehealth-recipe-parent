@@ -24,5 +24,5 @@
     <reference id="basic.provUploadOrganService" interface="com.ngari.patient.service.ProvUploadOrganService"/>
     <reference id="basic.appointDepartService" interface="com.ngari.patient.service.AppointDepartService"/>
     <reference id="basic.clientConfigService" interface="com.ngari.patient.service.ClientConfigService"/>
-
+    <reference id="basic.healthCardService" interface="com.ngari.patient.service.HealthCardService"/>
 </s:beans>

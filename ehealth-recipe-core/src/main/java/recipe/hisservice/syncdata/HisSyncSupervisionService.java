@@ -165,8 +165,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         SubCodeDTO subCodeDTO;
         List<Recipedetail> detailList;
         /*AppointDepartDTO appointDepart;*/
-        Integer consultId = null;
-        List<Integer> consultIds;
         RecipeExtend recipeExtend;
         RedisClient redisClient = RedisClient.instance();
         String caSignature = null;
@@ -304,15 +302,17 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setIsPay(recipe.getPayFlag().toString());
 
             //主诉
-            consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
+           /* consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
                     recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
             if (CollectionUtils.isNotEmpty(consultIds)) {
                 consultId = consultIds.get(0);
-            }
-            if (consultId != null){
-                req.setBussID(consultId.toString());
-                ConsultBean consultBean = iConsultService.getById(consultId);
-                QuestionnaireBean questionnaire = iConsultService.getConsultQuestionnaireByConsultId(consultId);
+            }*/
+            if (recipe.getClinicId() != null){
+                req.setBussID(recipe.getClinicId().toString());
+                //处方来源 1-问诊 4复诊
+                req.setBussSource("4");
+                ConsultBean consultBean = iConsultService.getById(recipe.getClinicId());
+                QuestionnaireBean questionnaire = iConsultService.getConsultQuestionnaireByConsultId(recipe.getClinicId());
                 if (consultBean != null){
                     req.setMainDieaseDescribe(consultBean.getLeaveMess());
                     //咨询开始时间

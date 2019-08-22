@@ -9,6 +9,8 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientExtendService;
+import com.ngari.patient.dto.HealthCardDTO;
+import com.ngari.patient.service.HealthCardService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeCommonBaseTO;
 import com.ngari.recipe.common.RecipeStandardResTO;
@@ -27,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
 import recipe.dao.RecipeDAO;
 import recipe.service.common.RecipeSingleService;
@@ -34,6 +37,7 @@ import recipe.service.hospitalrecipe.dto.HosRecipeListRequest;
 import recipe.util.ChinaIDNumberUtil;
 
 import javax.annotation.Nullable;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -184,6 +188,22 @@ public class HosRecipeListService {
         try {
             Map<String, Object> map = setPatientInfo(request);
             patient = (PatientBean)map.get("patient");
+            HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
+            List<HealthCardDTO> healthCardDTOS = healthCardService.findByMpiId(patient.getMpiId());
+            if (CollectionUtils.isEmpty(healthCardDTOS)) {
+                HealthCardDTO healthCardDTO = new HealthCardDTO();
+                healthCardDTO.setMpiId(patient.getMpiId());
+                healthCardDTO.setCardId(request.getCardNo());
+                healthCardDTO.setCardType("1");
+                healthCardDTO.setCardOrgan(1003083);
+                healthCardDTO.setCardStatus(1);
+                healthCardDTO.setInitialCardID(request.getCardNo());
+                healthCardDTO.setCardSource("remote");
+                healthCardDTO.setCreateDate(new Date());
+                if (!healthCardService.saveHealthCardForRecipe(healthCardDTO)){
+                    LOG.warn("addPatientForDoctor 就诊卡保存失败,healthCardDTO:{}.", JSONUtils.toString(healthCardDTO));
+                }
+            }
         } catch (Exception e) {
             LOG.warn("addPatientForDoctor 处理就诊人异常，doctorId={}",
                     request.getDoctorId(), e);
@@ -213,6 +233,9 @@ public class HosRecipeListService {
         }
         if (request.getCertificateType() == null) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "患者证件类型不能为空");
+        }
+        if (StringUtils.isEmpty(request.getCardNo())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "患者就诊卡号不能为空");
         }
     }
 

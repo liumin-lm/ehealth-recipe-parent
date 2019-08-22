@@ -665,7 +665,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                             + " and payFlag=0 and payMode=" + RecipeBussConstant.PAYMODE_ONLINE + " and orderCode is not null ");
                 } else if (cancelStatus == RecipeStatusConstant.NO_OPERATOR) {
                     //超过3天未操作
-                    hql.append(" and fromflag = 1 and status=" + RecipeStatusConstant.CHECK_PASS );
+                    hql.append(" and fromflag = 1 and status=" + RecipeStatusConstant.CHECK_PASS + " or ( status="+ RecipeStatusConstant.READY_CHECK_YS +" and recipeMode='zjjgpt' and signDate between '" + startDt + "' and '" + endDt + "' )");
                 }
                 Query q = ss.createQuery(hql.toString());
                 setResult(q.list());
@@ -1682,12 +1682,19 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      * @param endDate
      * @return
      */
-    public List<Recipe> findSyncRecipeListByOrganId(final Integer organId, final String startDate,final String endDate){
+    public List<Recipe> findSyncRecipeListByOrganId(final Integer organId, final String startDate,final String endDate,final Boolean checkFlag){
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder(
-                        "from Recipe where fromflag=1 and signDate between '" + startDate + "' and '" + endDate
-                                + "' and clinicOrgan =:organId and syncFlag =0 ");
+                        "from Recipe where fromflag=1 ");
+                //是否查的是已审核数据
+                if (checkFlag){
+                    hql.append("and checkDateYs between '" + startDate + "' and '" + endDate
+                            + "' and clinicOrgan =:organId and syncFlag =0 and checker is not null");
+                }else {
+                    hql.append("and lastModify between '" + startDate + "' and '" + endDate
+                            + "' and clinicOrgan =:organId and syncFlag =0 ");
+                }
                 Query query = ss.createQuery(hql.toString());
                 query.setParameter("organId",organId);
                 setResult(query.list());
