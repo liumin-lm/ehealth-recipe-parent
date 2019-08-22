@@ -353,6 +353,8 @@ public class PrescribeService {
 
             Integer recipeId = dbRecipe.getRecipeId();
             Map<String, Object> attrMap = Maps.newHashMap();
+            String trackingNo = otherInfo.get("trackingNo");
+            String companyName = otherInfo.get("companyName");
             switch (status) {
                 case RecipeStatusConstant.DELETE:
                     result = revokeRecipe(dbRecipe);
@@ -418,22 +420,41 @@ public class PrescribeService {
                             "HIS推送状态：医院取药已支付");
                     result.setCode(HosRecipeResult.SUCCESS);
                     break;
-                case RecipeStatusConstant.FINISH:
-                    attrMap.put("chooseFlag", 1);
-                    attrMap.put("payFlag", 1);
-                    attrMap.put("giveFlag", 1);
-                    attrMap.put("giveDate", DateTime.now().toDate());
-                    //以免进行处方失效前提醒
-                    attrMap.put("remindFlag", 1);
-                    attrMap.put("payDate", DateTime.now().toDate());
-                    attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_TO_HOS);
-                    attrMap.put("payMode", RecipeBussConstant.PAYMODE_TO_HOS);
-                    attrMap.put("enterpriseId", null);
-                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.FINISH, attrMap);
+                case RecipeStatusConstant.IN_SEND:
+                    //todo -----已申请配送更新物流信息
+                    if (StringUtils.isNotEmpty(trackingNo)&&StringUtils.isNotEmpty(companyName)){
 
+                    }
                     //日志记录
                     RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), RecipeStatusConstant.FINISH,
-                            "HIS推送状态：医院取药已完成");
+                            "HIS推送状态：已申请配送");
+                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.IN_SEND, attrMap);
+                    break;
+                case RecipeStatusConstant.FINISH:
+                    if (StringUtils.isNotEmpty(trackingNo)){
+                        //todo ------配送完成处理
+
+                        //日志记录
+                        RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), RecipeStatusConstant.FINISH,
+                                "HIS推送状态：配送到家已完成");
+                    }else {
+                        //医院取药完成处理
+                        attrMap.put("chooseFlag", 1);
+                        attrMap.put("payFlag", 1);
+                        attrMap.put("giveFlag", 1);
+                        attrMap.put("giveDate", DateTime.now().toDate());
+                        //以免进行处方失效前提醒
+                        attrMap.put("remindFlag", 1);
+                        attrMap.put("payDate", DateTime.now().toDate());
+                        attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_TO_HOS);
+                        attrMap.put("payMode", RecipeBussConstant.PAYMODE_TO_HOS);
+                        attrMap.put("enterpriseId", null);
+
+                        //日志记录
+                        RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), RecipeStatusConstant.FINISH,
+                                "HIS推送状态：医院取药已完成");
+                    }
+                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.FINISH, attrMap);
                     result.setCode(HosRecipeResult.SUCCESS);
                     break;
                 case RecipeStatusConstant.REVOKE:
