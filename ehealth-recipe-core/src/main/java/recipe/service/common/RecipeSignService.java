@@ -50,6 +50,7 @@ import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.hisservice.RecipeToHisService;
 import recipe.service.*;
+import recipe.thread.PushRecipeToHisCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.SaveAutoReviewRunable;
 import recipe.util.DigestUtil;
@@ -370,9 +371,8 @@ public class RecipeSignService {
         rMap.put("errorFlag", false);
 
         //发送HIS处方开具消息
-        RecipeToHisMqService hisMqService = ApplicationUtils.getRecipeService(RecipeToHisMqService.class);
-        hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipeBean,
-                HisBussConstant.TOHIS_RECIPE_STATUS_ADD));
+        sendRecipeToHIS(recipeBean);
+        //处方开完后发送聊天界面消息 -医院确认中
         if(null != consultId){
             try {
                 IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
@@ -384,6 +384,21 @@ public class RecipeSignService {
         }
         LOG.info("doSignRecipeExt execute ok! result={}", JSONUtils.toString(rMap));
         return rMap;
+    }
+
+    private void sendRecipeToHIS(RecipeBean recipeBean) {
+        //可通过缓存控制是互联网方式发送处方(his来查)还是平台模式发送处方(平台推送)
+        Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_NGARI_SENDRECIPETOHIS_LIST);
+        if(CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(recipeBean.getClinicOrgan().toString())){
+            //推送处方给his---recipesend
+            RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
+        }else {
+            //MQ推送处方开成功消息
+            RecipeToHisMqService hisMqService = ApplicationUtils.getRecipeService(RecipeToHisMqService.class);
+            hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipeBean,
+                    HisBussConstant.TOHIS_RECIPE_STATUS_ADD));
+        }
+
     }
 
     private boolean hisRecipeCheck(Map<String, Object> rMap, RecipeBean recipeBean) {
