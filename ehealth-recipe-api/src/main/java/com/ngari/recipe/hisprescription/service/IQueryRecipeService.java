@@ -5,6 +5,7 @@ import com.ngari.recipe.hisprescription.model.QueryRecipeResultDTO;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import ctd.util.annotation.RpcService;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -23,7 +24,11 @@ public interface IQueryRecipeService {
     /**
      * 监管平台处方反查接口
      * @param organId
+     * @param startDate
+     * @param endDate
+     * @param checkFlag
+     * @return
      */
     @RpcService
-    List<RegulationRecipeIndicatorsDTO> queryRegulationRecipeData(Integer organId,String startDate,String endDate);
+    List<RegulationRecipeIndicatorsDTO> queryRegulationRecipeData(Integer organId, Date startDate, Date endDate, Boolean checkFlag);
 }

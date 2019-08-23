@@ -7,6 +7,7 @@ import com.ngari.recipe.hisprescription.model.HospitalStatusUpdateDTO;
 import ctd.net.broadcast.Observer;
 import ctd.util.JSONUtils;
 import eh.msg.constant.MqConstant;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -50,6 +51,9 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
                 otherInfo.put("cardTypeName", notice.getCardTypeName());
                 otherInfo.put("cardNo", notice.getCardNo());
                 hospitalStatusUpdateDTO.setStatus(LocalStringUtil.toString(RecipeStatusConstant.CHECK_PASS));
+                if (StringUtils.isEmpty(notice.getCardNo())){
+                    otherInfo.put("distributionFlag", "1");
+                }
                 break;
 
             case HisBussConstant.FROMHIS_RECIPE_STATUS_PAY:

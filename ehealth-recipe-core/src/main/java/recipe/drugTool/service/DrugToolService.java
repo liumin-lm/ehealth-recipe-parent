@@ -646,4 +646,23 @@ public class DrugToolService implements IDrugToolService {
         result.put("usePathway",usePathwayList);
         return result;
     }
+
+    @RpcService
+    public void deleteDrugMatchData(Integer id,Boolean isOrganId){
+        if (isOrganId){
+            drugListMatchDAO.deleteByOrganId(id);
+        }else {
+            drugListMatchDAO.deleteById(id);
+        }
+    }
+
+    @RpcService
+    public void deleteOrganDrugData(Integer id,Boolean isOrganId){
+        if (isOrganId){
+            organDrugListDAO.deleteByOrganId(id);
+        }else {
+            organDrugListDAO.deleteById(id);
+        }
+    }
+
 }

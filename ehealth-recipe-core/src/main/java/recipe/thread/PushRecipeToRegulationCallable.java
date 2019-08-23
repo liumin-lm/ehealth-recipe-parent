@@ -1,12 +1,15 @@
 package recipe.thread;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.DAOFactory;
 import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -19,6 +22,7 @@ import recipe.service.RecipeLogService;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -36,9 +40,14 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
      */
     private static final String REGULATION_ZJ = "zjsjgpt";
 
+    /**
+     * 福建省监管平台
+     */
+    private static final String REGULATION_FJ = "fjsjgpt";
+
     private Integer recipeId;
 
-    private Integer status;
+    private Integer status;//2-处方审核后推送 1-开处方或者取消处方推送
 
     public PushRecipeToRegulationCallable(Integer recipeId,Integer status) {
         this.recipeId = recipeId;
@@ -58,30 +67,35 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
         //获取所有监管平台机构列表
         IHisServiceConfigService configService = AppDomainContext.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
         List<ServiceConfigResponseTO> list = configService.findAllRegulationOrgan();
+        Map<Integer,ServiceConfigResponseTO> regulationOrgan = Maps.uniqueIndex(list, new Function<ServiceConfigResponseTO,Integer>() {
+            @Override
+            public Integer apply(ServiceConfigResponseTO regulation) {
+                return regulation.getOrganid();
+            }});
+        logger.info("uploadRecipeIndicators regulationOrgan:"+JSONUtils.toString(list));
         try {
-            for (ServiceConfigResponseTO serviceConfigResponseTO : list){
-                if (REGULATION_JS.equals(serviceConfigResponseTO.getRegulationAppDomainId())
-                        && (serviceConfigResponseTO.getOrganid().equals(recipe.getClinicOrgan()))){
+            if (CollectionUtils.isNotEmpty(list) && regulationOrgan.get(recipe.getClinicOrgan()) != null){
+                String domainId = regulationOrgan.get(recipe.getClinicOrgan()).getRegulationAppDomainId();
+                if (REGULATION_JS.equals(domainId)){
                     //江苏省推送处方规则：（1）如果没有审核直接推送处方数据、（2）status=2表示审核了，则推送处方审核后的数据，（3）审核数据推送成功后再推送处方流转数据
-                    if (status == 2){
+                    if (status == 2) {
                         response = service.uploadRecipeAuditIndicators(Arrays.asList(recipe));
-                        if (CommonConstant.SUCCESS.equals(response.getCode())){
+                        if (CommonConstant.SUCCESS.equals(response.getCode())) {
                             /*if (RecipeStatusConstant.CHECK_PASS_YS==recipe.getStatus()){*/
-                                response = service.uploadRecipeCirculationIndicators(Arrays.asList(recipe));
-                        } else{
+                            response = service.uploadRecipeCirculationIndicators(Arrays.asList(recipe));
+                        } else {
                             logger.warn("uploadRecipeAuditIndicators rpc execute error. recipe={}", JSONUtils.toString(recipe));
                         }
                     } else {
                         response = service.uploadRecipeIndicators(Arrays.asList(recipe));
                     }
-                } else if (REGULATION_ZJ.equals(serviceConfigResponseTO.getRegulationAppDomainId())
-                        && (serviceConfigResponseTO.getOrganid().equals(recipe.getClinicOrgan()))) {
+                }else if (REGULATION_ZJ.equals(domainId)){
                     //浙江省推送处方规则：（1）将status=2 处方审核后的数据推送给监管平台，不会推送审核中、流传的数据
+                    //审核后推送
                     if (status == 2 && RecipeStatusConstant.CHECK_PASS_YS==recipe.getStatus()) {
                         response = service.uploadRecipeIndicators(Arrays.asList(recipe));
                     }
                 }
-
             }
         } catch (Exception e) {
             logger.warn("uploadRecipeIndicators exception recipe={}", JSONUtils.toString(recipe), e);
