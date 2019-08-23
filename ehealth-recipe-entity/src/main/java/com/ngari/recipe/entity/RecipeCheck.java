@@ -38,6 +38,9 @@ public class RecipeCheck implements Serializable{
     @Dictionary(id = "eh.base.dictionary.Doctor")
     private Integer checker;
 
+    @ItemProperty(alias = "审核人姓名")
+    private String checkerName;
+
     @ItemProperty(alias = "审核备注信息")
     private String memo;
 
@@ -56,6 +59,15 @@ public class RecipeCheck implements Serializable{
 
     public void setCheckId(Integer checkId) {
         this.checkId = checkId;
+    }
+
+    @Column(name = "CheckerName")
+    public String getCheckerName() {
+        return checkerName;
+    }
+
+    public void setCheckerName(String checkerName) {
+        this.checkerName = checkerName;
     }
 
     @Column(name = "Memo", length = 200)

@@ -9,6 +9,7 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeCheck;
 import ctd.account.session.ClientSession;
 import ctd.net.broadcast.MQHelper;
 import ctd.persistence.DAOFactory;
@@ -19,6 +20,7 @@ import eh.msg.constant.MqConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.dao.RecipeCheckDAO;
 import recipe.dao.RecipeDAO;
 import recipe.mq.OnsConfig;
 import recipe.util.RecipeMsgUtils;
@@ -141,14 +143,14 @@ public class RecipeTestService {
 
     @RpcService
     public void updateCheckerName(){
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
         DoctorService doctorService = BasicAPI.getService(DoctorService.class);
-        List<Recipe> recipes = recipeDAO.findAllRecipeListForChecker();
-        for (Recipe recipe : recipes) {
-            DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getChecker());
+        List<RecipeCheck> recipeChecks = recipeCheckDAO.findAllRecipeCheck();
+        for (RecipeCheck recipeCheck : recipeChecks) {
+            DoctorDTO doctorDTO = doctorService.getByDoctorId(recipeCheck.getChecker());
             if (doctorDTO != null) {
-                recipe.setCheckerName(doctorDTO.getName());
-                recipeDAO.update(recipe);
+                recipeCheck.setCheckerName(doctorDTO.getName());
+                recipeCheckDAO.update(recipeCheck);
             }
         }
     }

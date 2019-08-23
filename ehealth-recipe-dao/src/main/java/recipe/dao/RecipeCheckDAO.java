@@ -12,6 +12,7 @@ import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResu
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import recipe.constant.ErrorCode;
@@ -89,27 +90,31 @@ public abstract class RecipeCheckDAO extends HibernateSupportDelegateDAO<RecipeC
                 @Override
                 public void execute(StatelessSession ss)
                     throws Exception {
-                    StringBuilder hql =
-                        new StringBuilder("select distinct r from Recipe r");
-                    if (0 == searchFlag) {
-                        hql.append(" where r.doctorName like:searchString ");
-                    } else if (1 == searchFlag) {
-                        hql.append(" where r.checkerName like:searchString ");
+                    StringBuilder hql = new StringBuilder();
+                    if (1 == searchFlag) {
+                        //按照药师搜索
+                        hql.append("select r.* Recipe r join RecipeCheck w on r.recipeId = w.recipeId and w.checkerName like:searchString");
+                        hql.append(" and r.clinicOrgan in (:organs) order by w.checkDate desc");
+                    } else {
+                        hql.append("select distinct r from Recipe r");
+                        if (0 == searchFlag) {
+                            hql.append(" where r.doctorName like:searchString ");
+                        }
+                        else if (SEARCH_FLAG_PN == searchFlag) {
+                            hql.append(" where r.patientName like:searchString ");
+                        }
+                        else if (SEARCH_FLAG_BL == searchFlag) {
+                            hql.append(" where r.patientID like:searchString ");
+                        }
+                        else {
+                            throw new DAOException(ErrorCode.SERVICE_ERROR,
+                                    "searchFlag is invalid");
+                        }
+                        hql.append("and (r.checkDateYs is not null or r.status = 8) " +
+                                "and r.clinicOrgan in (:organs) order by r.signDate desc");
                     }
-                    else if (SEARCH_FLAG_PN == searchFlag) {
-                        hql.append(" where r.patientName like:searchString ");
-                    }
-                    else if (SEARCH_FLAG_BL == searchFlag) {
-                        hql.append(" where r.patientID like:searchString ");
-                    }
-                    else {
-                        throw new DAOException(ErrorCode.SERVICE_ERROR,
-                            "searchFlag is invalid");
-                    }
-                    hql.append("and (r.checkDateYs is not null or r.status = 8) " +
-                        "and r.clinicOrgan in (:organs) order by r.signDate desc");
-                    Query q = ss.createQuery(hql.toString());
 
+                    Query q = ss.createQuery(hql.toString());
                     q.setParameter("searchString", "%" + searchString + "%");
                     q.setParameterList("organs", organs);
                     if (null != start && null != limit) {
@@ -130,4 +135,7 @@ public abstract class RecipeCheckDAO extends HibernateSupportDelegateDAO<RecipeC
      */
     @DAOMethod(sql = "from RecipeCheck where recipeId=:recipeId order by checkDate desc")
     public abstract List<RecipeCheck> findByRecipeId(@DAOParam("recipeId") Integer recipeId);
+
+    @DAOMethod(sql = "from RecipeCheck ")
+    public abstract List<RecipeCheck> findAllRecipeCheck();
 }
