@@ -14,10 +14,7 @@ import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.message.model.RecipeTagMsgBean;
 import com.ngari.consult.message.service.IConsultMessageService;
-import com.ngari.patient.dto.ConsultSetDTO;
-import com.ngari.patient.dto.DepartmentDTO;
-import com.ngari.patient.dto.OrganDTO;
-import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.audit.model.AuditMedicineIssueDTO;
@@ -1048,6 +1045,11 @@ public class RecipeServiceSub {
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             map.put("recipeOrder", recipeOrder);
+        }
+        //设置医生手签图片id
+        DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
+        if (doctorDTO != null){
+            map.put("doctorSignImg",doctorDTO.getSignImage());
         }
         return map;
     }

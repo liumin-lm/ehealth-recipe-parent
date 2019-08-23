@@ -18,8 +18,8 @@
 	<import resource="spring-service.xml" />
 	<import resource="spring-redis.xml"/>
 	<import resource="spring-service-base.xml" />
-	<import resource="spring-service-basic.xml" />
-	<import resource="spring-service-consult.xml" />
+    <import resource="spring-service-basic.xml" />
+    <import resource="spring-service-consult.xml" />
 	<import resource="spring-service-his-center.xml" />
 	<import resource="spring-service-opbase.xml"/>
 
@@ -29,20 +29,22 @@
 	<!--钥世圈对接实现-->
 	<bean id="ysqRemoteService" class="recipe.drugsenterprise.YsqRemoteService"></bean>
 
-	<!--支付宝对接实现-->
-	<bean id="zfbRemoteService" class="recipe.drugsenterprise.ZfbRemoteService"></bean>
+    <!--支付宝对接实现-->
+    <bean id="zfbRemoteService" class="recipe.drugsenterprise.ZfbRemoteService"></bean>
 
-	<!--测试药企-->
-	<bean id="aldyfRemoteService" class="recipe.drugsenterprise.AldyfRemoteService"></bean>
+    <!--测试药企-->
+    <bean id="aldyfRemoteService" class="recipe.drugsenterprise.AldyfRemoteService"></bean>
 
-	<!--九州通对接实现-->
+    <!--九州通对接实现-->
 	<bean id="jztdyfRemoteService" class="recipe.drugsenterprise.JztdyfRemoteService"></bean>
 
-	<!--测试药店对接实现-->
-	<bean id="pharmacyRemoteService" class="recipe.drugsenterprise.PharmacyRemoteService"></bean>
+    <!--测试药店对接实现-->
+    <bean id="pharmacyRemoteService" class="recipe.drugsenterprise.PharmacyRemoteService"></bean>
 
 	<!--测试药企-->
 	<bean id="testRemoteService" class="recipe.drugsenterprise.TestRemoteService"></bean>
+
+	<bean id="ytRemoteService" class="recipe.drugsenterprise.YtRemoteService"></bean>
 
 	<!-- 处方对接HIS服务 -->
 	<bean id="recipeToHisService" class="recipe.hisservice.RecipeToHisService"></bean>
@@ -59,18 +61,18 @@
 		<property name="queueCapacity" value="300" />
 	</bean>
 
-	<!--合理用药设置-->
+    <!--合理用药设置-->
 	<bean class="recipe.audit.bean.PrescriptionConstants" id="prescriptionConstants">
 		<property name="wnPaServiceUrl" value="${wnpa.url}"/>
-		<property name="wnPaHosCode" value="${wnpa.hoscode}"/>
+        <property name="wnPaHosCode" value="${wnpa.hoscode}"/>
 	</bean>
 
-	<bean id="onsConfig" class="recipe.mq.OnsConfig" >
-		<property name="onsSwitch" value="${ons.switch.on}"/>
-		<property name="basicInfoTopic" value="${ons_topic_basicinfo}"/>
-		<property name="hisCdrinfo" value="${ons_topic_his_cdrinfo}"/>
-		<property name="dbModifyTopic" value="${ons_topic_dbmodify}"/>
-	</bean>
+    <bean id="onsConfig" class="recipe.mq.OnsConfig" >
+        <property name="onsSwitch" value="${ons.switch.on}"/>
+        <property name="basicInfoTopic" value="${ons_topic_basicinfo}"/>
+        <property name="hisCdrinfo" value="${ons_topic_his_cdrinfo}"/>
+        <property name="dbModifyTopic" value="${ons_topic_dbmodify}"/>
+    </bean>
 
 	<bean id="tokenUpdateService" class="recipe.service.TokenUpdateService" init-method="updateTokenAfterInit" ></bean>
 
@@ -82,13 +84,16 @@
 		<property name="appkey" value="25761410"/>
 		<property name="secret" value="f4511d0b3a0aa1bb349c9767270c14ef"/>
 		<property name="url" value="${taobao.buss.url}"/>
-		<property name="msgUrl" value="${taobao.buss.msgUrl}" />
-		<property name="msgGroup" value="default" />
+        <property name="msgUrl" value="${taobao.buss.msgUrl}" />
+        <property name="msgGroup" value="default" />
 	</bean>
 	<!--注入处方审核的消息-->
-	<bean id="bqHospitalTmcServer" class="com.alijk.bqhospital.alijk.message.BqHospitalTmcServer">
-		<property name="taobaoConf" ref="taobaoConf"/>
-		<property name="bqHospitalMsgHandler" ref="bqHospitalMsgHandler"/>
-	</bean>
+    <bean id="bqHospitalTmcServer" class="com.alijk.bqhospital.alijk.message.BqHospitalTmcServer">
+        <property name="taobaoConf" ref="taobaoConf"/>
+        <property name="bqHospitalMsgHandler" ref="bqHospitalMsgHandler"/>
+    </bean>
 	<bean id="bqHospitalMsgHandler" class="recipe.drugsenterprise.BqHospitalMsgHandlerImpl"/>
+	<bean class="ctd.util.DesensitizationsUtil" id="desensitizationsUtil">
+		<property name="pattern" value="${des.patterns}"/>
+	</bean>
 </beans>

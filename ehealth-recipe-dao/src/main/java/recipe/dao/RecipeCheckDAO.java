@@ -91,8 +91,10 @@ public abstract class RecipeCheckDAO extends HibernateSupportDelegateDAO<RecipeC
                     throws Exception {
                     StringBuilder hql =
                         new StringBuilder("select distinct r from Recipe r");
-                    if (0 == searchFlag || 1 == searchFlag) {
+                    if (0 == searchFlag) {
                         hql.append(" where r.doctorName like:searchString ");
+                    } else if (1 == searchFlag) {
+                        hql.append(" where r.checkerName like:searchString ");
                     }
                     else if (SEARCH_FLAG_PN == searchFlag) {
                         hql.append(" where r.patientName like:searchString ");

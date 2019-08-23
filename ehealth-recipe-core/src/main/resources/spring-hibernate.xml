@@ -39,6 +39,7 @@
                 <value>com.ngari.recipe</value>
                 <value>com.ngari.patient.dto</value>
                 <value>com.ngari.consult</value>
+                <value>com.ngari.patient.ds</value>
 			</array>
 		</property>
 		<property name="hibernateProperties">
