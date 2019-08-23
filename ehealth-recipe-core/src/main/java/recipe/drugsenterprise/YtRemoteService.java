@@ -89,6 +89,8 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
 
     private static final Integer requestPushSuccessCode = 204;
 
+    private static final String imgHead = "data:image/jpeg;base64,";
+
     public YtRemoteService() {
         RecipeCacheService recipeService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
         ORGANIZATION = recipeService.getRecipeParam("organization", "");
@@ -334,13 +336,13 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             return result;
         }
         //设置处方笺base
-        String ossId = nowRecipe.getChemistSignFile();
+        String ossId = nowRecipe.getSignImg();
 
         if(null != ossId){
 
             try {
                 IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
-                String imgStr = fileDownloadService.downloadImg(ossId);
+                String imgStr = imgHead + fileDownloadService.downloadImg(ossId);
                 if(ObjectUtils.isEmpty(imgStr)){
                     LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{}的ossid为{}处方笺不存在", nowRecipe.getRecipeId(), ossId);
                     getFailResult(result, "处方笺不存在");

@@ -34,6 +34,9 @@ public class HosRecipeListRequest implements Serializable{
     @Verify(desc = "组织结构编码")
     private String organId;
 
+    @Verify(desc = "就诊卡号")
+    private String cardNo;
+
     @Verify(desc = "分页开始下标")
     private Integer start;
 
@@ -94,6 +97,14 @@ public class HosRecipeListRequest implements Serializable{
 
     public void setOrganId(String organId) {
         this.organId = organId;
+    }
+
+    public String getCardNo() {
+        return cardNo;
+    }
+
+    public void setCardNo(String cardNo) {
+        this.cardNo = cardNo;
     }
 
     public Integer getStart() {
