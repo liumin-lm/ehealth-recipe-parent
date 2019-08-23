@@ -1704,7 +1704,4 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateSessionTemplate.instance().executeReadOnly(action);
         return action.getResult();
     }
-
-    @DAOMethod(sql = "from Recipe where checker is not null ")
-    public abstract List<Recipe> findAllRecipeListForChecker();
 }
