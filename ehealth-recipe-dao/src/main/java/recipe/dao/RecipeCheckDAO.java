@@ -136,6 +136,6 @@ public abstract class RecipeCheckDAO extends HibernateSupportDelegateDAO<RecipeC
     @DAOMethod(sql = "from RecipeCheck where recipeId=:recipeId order by checkDate desc")
     public abstract List<RecipeCheck> findByRecipeId(@DAOParam("recipeId") Integer recipeId);
 
-    @DAOMethod(sql = "from RecipeCheck ")
+    @DAOMethod(sql = "from RecipeCheck ", limit = 0)
     public abstract List<RecipeCheck> findAllRecipeCheck();
 }
