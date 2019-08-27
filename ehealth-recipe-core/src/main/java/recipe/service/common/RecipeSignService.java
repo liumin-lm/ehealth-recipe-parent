@@ -424,9 +424,7 @@ public class RecipeSignService {
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, ImmutableMap.of("distributionFlag", 1));
 
         //发送HIS处方开具消息
-        RecipeToHisMqService hisMqService = ApplicationUtils.getRecipeService(RecipeToHisMqService.class);
-        hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipeBeanDb,
-                HisBussConstant.TOHIS_RECIPE_STATUS_ADD));
+        sendRecipeToHIS(recipeBean);
 
         LOG.info("continueSignAfterCheckFailed execute ok! recipeId={}",recipeId);
         rMap.put("signResult", true);
