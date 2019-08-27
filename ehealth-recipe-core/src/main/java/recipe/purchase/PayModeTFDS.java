@@ -22,6 +22,7 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
+import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.RecipeOrderService;
@@ -252,6 +253,43 @@ public class PayModeTFDS implements IPurchaseService{
     @Override
     public String getServiceName() {
         return "payModeTFDSService";
+    }
+
+    @Override
+    public String getTipsByStatusForPatient(Recipe recipe, RecipeOrder order) {
+        Integer status = recipe.getStatus();
+        String orderCode = recipe.getOrderCode();
+        int orderStatus = order.getStatus();
+        String tips = "";
+        switch (status) {
+            case RecipeStatusConstant.CHECK_PASS:
+                if (StringUtils.isNotEmpty(orderCode)) {
+                    if (orderStatus == OrderStatusConstant.HAS_DRUG) {
+                        tips = "订单已处理，请到店取药";
+                    } else if (orderStatus == OrderStatusConstant.READY_DRUG) {
+                        tips = "订单已处理，正在准备药品";
+                    } else if (orderStatus == OrderStatusConstant.NO_DRUG) {
+                        tips = "药品已准备好，请到药店取药";
+                    }
+                }
+                break;
+            case RecipeStatusConstant.CHECK_PASS_YS:
+                if (orderStatus == OrderStatusConstant.HAS_DRUG) {
+                    tips = "处方已审核通过，请到店取药";
+                } else if (orderStatus == OrderStatusConstant.READY_DRUG) {
+                    tips = "处方已审核通过，正在准备药品";
+                } else if (orderStatus == OrderStatusConstant.NO_DRUG) {
+                    tips = "药品已准备好，请到药店取药";
+                }
+                break;
+            case RecipeStatusConstant.RECIPE_FAIL:
+                tips = "药店取药失败";
+                break;
+            case RecipeStatusConstant.FINISH:
+                tips = "到店取药成功，订单完成";
+                break;
+        }
+        return tips;
     }
 
     private List<DepDetailBean> findAllSupportDeps(DrugEnterpriseResult drugEnterpriseResult, DrugsEnterprise dep, Map<String, String> extInfo){

@@ -105,6 +105,11 @@ public class RecipeStatusConstant {
     public static final int CHECKING_HOS = 16;
 
     /**
+     * 取消：药店取药失败
+     */
+    public static final int RECIPE_FAIL = 17;
+
+    /**
      * 不存在的状态，用于微信发送,患者-未操作情况, 用于前一天提醒患者购药
      */
     public static final int PATIENT_NO_OPERATOR = 101;

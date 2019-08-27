@@ -18,6 +18,7 @@ import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
+import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.RecipeOrderService;
@@ -220,6 +221,34 @@ public class PayModeOnline implements IPurchaseService {
     @Override
     public String getServiceName() {
         return "payModeOnlineService";
+    }
+
+    @Override
+    public String getTipsByStatusForPatient(Recipe recipe, RecipeOrder order) {
+        Integer status = recipe.getStatus();
+        String orderCode = recipe.getOrderCode();
+        int orderStatus = order.getStatus();
+        String tips = "";
+        switch (status) {
+            case RecipeStatusConstant.CHECK_PASS:
+                if (StringUtils.isNotEmpty(orderCode)) {
+                    if (orderStatus == OrderStatusConstant.READY_SEND) {
+                        tips = "订单已处理，请耐心等待药品配送";
+                    }
+                }
+                break;
+            case RecipeStatusConstant.WAIT_SEND:
+            case RecipeStatusConstant.CHECK_PASS_YS:
+                tips = "处方已审核通过，请耐心等待药品配送";
+                break;
+            case RecipeStatusConstant.IN_SEND:
+                tips = "药企正在配送";
+                break;
+            case RecipeStatusConstant.FINISH:
+                tips = "药企配送完成，订单完成";
+                break;
+        }
+        return tips;
     }
 
     /**

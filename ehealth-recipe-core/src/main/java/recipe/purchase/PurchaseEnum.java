@@ -12,7 +12,8 @@ public enum PurchaseEnum {
     PAYMODE_COD(2, ""),
     PAYMODE_TO_HOS(3, "payModeToHosService"),
     PAYMODE_TFDS(4, "payModeTFDSService"),
-    PAYMODE_MEDICAL_INSURANCE(5, "payModeOnlineService");
+    PAYMODE_MEDICAL_INSURANCE(5, "payModeOnlineService"),
+    PAYMODE_DOWNLOAD(6, "payModeDownloadService");
 
 
     private Integer payMode;
