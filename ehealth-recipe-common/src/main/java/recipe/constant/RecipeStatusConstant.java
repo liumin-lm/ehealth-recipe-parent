@@ -110,6 +110,11 @@ public class RecipeStatusConstant {
     public static final int RECIPE_FAIL = 17;
 
     /**
+     * 处方已下载
+     */
+    public static final int RECIPE_DOWNLOADED = 18;
+
+    /**
      * 不存在的状态，用于微信发送,患者-未操作情况, 用于前一天提醒患者购药
      */
     public static final int PATIENT_NO_OPERATOR = 101;

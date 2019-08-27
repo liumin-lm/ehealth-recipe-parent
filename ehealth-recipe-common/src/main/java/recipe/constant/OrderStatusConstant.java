@@ -59,11 +59,6 @@ public class OrderStatusConstant {
     public static final Integer CANCEL_AUTO = 8;
 
     /**
-     * 已下载
-     */
-    public static final Integer DOWNLOADED = 11;
-
-    /**
      * 药店取药（无库存）
      */
     public static final Integer NO_DRUG = 12;
