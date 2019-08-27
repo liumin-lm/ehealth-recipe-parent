@@ -70,7 +70,7 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
         List<ServiceConfigResponseTO> list = configService.findAllRegulationOrgan();
         Map<Integer,String> regulationOrgan = new HashMap<>(list.size());
         for (ServiceConfigResponseTO serviceConfigResponseTO : list){
-            regulationOrgan.put(serviceConfigResponseTO.getOrganid(),serviceConfigResponseTO.getAppDomainId());
+            regulationOrgan.put(serviceConfigResponseTO.getOrganid(),serviceConfigResponseTO.getRegulationAppDomainId());
         }
         logger.info("uploadRecipeIndicators regulationOrgan:"+JSONUtils.toString(list));
         try {
