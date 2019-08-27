@@ -108,7 +108,6 @@ public class PurchaseService {
     @RpcService
     public RecipeResultBean filterSupportDepList(Integer recipeId, List<Integer> payModes, Map<String, String> extInfo) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         Recipe dbRecipe = recipeDAO.get(recipeId);
