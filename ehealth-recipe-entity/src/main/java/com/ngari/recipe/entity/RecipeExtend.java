@@ -56,9 +56,6 @@ public class RecipeExtend implements Serializable {
     private String  cardNo;
     /**互联网医院字段*/
 
-    @ItemProperty(alias = "医保标志0 非医保 1 医保")
-    private Integer medicalFlag;
-
     public RecipeExtend() {
     }
 
@@ -180,11 +177,4 @@ public class RecipeExtend implements Serializable {
         this.registerID = registerID;
     }
 
-    public Integer getMedicalFlag() {
-        return medicalFlag;
-    }
-
-    public void setMedicalFlag(Integer medicalFlag) {
-        this.medicalFlag = medicalFlag;
-    }
 }
