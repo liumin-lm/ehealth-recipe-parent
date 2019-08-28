@@ -95,8 +95,6 @@ public class PurchaseService {
         } catch (Exception e) {
             LOG.warn("showPurchaseMode 到院取药判断 exception. recipeId={}", recipeId, e);
         }
-
-
         return result;
     }
 
