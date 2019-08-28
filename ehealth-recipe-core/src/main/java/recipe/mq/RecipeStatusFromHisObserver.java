@@ -80,12 +80,12 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
                 break;
             case HisBussConstant.FROMHIS_RECIPE_STATUS_SENDING:
                 otherInfo.put("trackingNo", notice.getTrackingNo());
-                otherInfo.put("companyName", notice.getCompanyName());
+                otherInfo.put("companyId", notice.getCompanyId());
                 hospitalStatusUpdateDTO.setStatus(LocalStringUtil.toString(RecipeStatusConstant.IN_SEND));
                 break;
             case HisBussConstant.FROMHIS_RECIPE_STATUS_SENDED:
                 otherInfo.put("trackingNo", notice.getTrackingNo());
-                otherInfo.put("companyName", notice.getCompanyName());
+                otherInfo.put("companyId", notice.getCompanyId());
                 hospitalStatusUpdateDTO.setStatus(LocalStringUtil.toString(RecipeStatusConstant.FINISH));
                 break;
 

@@ -354,7 +354,7 @@ public class PrescribeService {
             Integer recipeId = dbRecipe.getRecipeId();
             Map<String, Object> attrMap = Maps.newHashMap();
             String trackingNo = otherInfo.get("trackingNo");
-            String companyName = otherInfo.get("companyName");
+            String companyId = otherInfo.get("companyId");
             switch (status) {
                 case RecipeStatusConstant.DELETE:
                     result = revokeRecipe(dbRecipe);
@@ -421,9 +421,15 @@ public class PrescribeService {
                     result.setCode(HosRecipeResult.SUCCESS);
                     break;
                 case RecipeStatusConstant.IN_SEND:
-                    //todo -----已申请配送更新物流信息
-                    if (StringUtils.isNotEmpty(trackingNo)&&StringUtils.isNotEmpty(companyName)){
-
+                    //已申请配送更新物流信息
+                    if (StringUtils.isNotEmpty(trackingNo)&&StringUtils.isNotEmpty(companyId)){
+                        String orderCode = dbRecipe.getOrderCode();
+                        if (StringUtils.isNotEmpty(orderCode)){
+                            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+                            attrMap.put("trackingNumber",trackingNo);
+                            attrMap.put("logisticsCompany",Integer.valueOf(companyId));
+                            recipeOrderDAO.updateByOrdeCode(orderCode,attrMap);
+                        }
                     }
                     //日志记录
                     RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), RecipeStatusConstant.FINISH,
@@ -432,8 +438,7 @@ public class PrescribeService {
                     break;
                 case RecipeStatusConstant.FINISH:
                     if (StringUtils.isNotEmpty(trackingNo)){
-                        //todo ------配送完成处理
-
+                        //配送完成处理
                         //日志记录
                         RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), RecipeStatusConstant.FINISH,
                                 "HIS推送状态：配送到家已完成");
