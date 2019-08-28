@@ -23,7 +23,9 @@ import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
+import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.ConsultSetDTO;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
@@ -425,6 +427,7 @@ public class RecipeService extends RecipeBaseService{
         resultBean.setRecipeId(recipeId);
         resultBean.setCheckResult(checkFlag);
         resultBean.setCheckDoctorId(checker);
+        DoctorService doctorService = BasicAPI.getService(DoctorService.class);
         //校验数据
         if (null == recipeId || null == checkOrgan || null == checker || null == checkFlag) {
             throw new DAOException(DAOException.VALUE_NEEDED, "recipeId or checkOrgan or checker or result is null");
@@ -499,6 +502,10 @@ public class RecipeService extends RecipeBaseService{
         recipeCheck.setCheckDate(now);
         recipeCheck.setMemo((StringUtils.isEmpty(memo)) ? "" : memo);
         recipeCheck.setCheckStatus(checkFlag);
+        DoctorDTO doctorDTO = doctorService.getByDoctorId(checker);
+        if (doctorDTO != null) {
+            recipeCheck.setCheckerName(doctorDTO.getName());
+        }
         List<RecipeCheckDetail> recipeCheckDetails;
         if (0 == checkFlag) {
             recipeCheckDetails = new ArrayList<>();
@@ -758,6 +765,16 @@ public class RecipeService extends RecipeBaseService{
             recipe.setRequestMpiId(requestPatient.getMpiId());
             // urt用于系统消息推送
             recipe.setRequestUrt(requestPatient.getUrt());
+        }
+        //根据申请人mpiid，requestMode 获取当前咨询单consultId
+        IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
+        List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
+                recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
+        Integer consultId = null;
+        if (CollectionUtils.isNotEmpty(consultIds)) {
+            consultId = consultIds.get(0);
+            recipe.setClinicId(consultId);
+            rMap.put("consultId", consultId);
         }
         recipe.setStatus(RecipeStatusConstant.UNSIGN);
         recipe.setSignDate(DateTime.now().toDate());
@@ -1528,7 +1545,10 @@ public class RecipeService extends RecipeBaseService{
     @RpcService
     public Map<String, Object> getPatientRecipeById(int recipeId) {
         checkUserHasPermission(recipeId);
-        return RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false);
+        Map<String, Object> result = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false);
+        PatientDTO patient = (PatientDTO) result.get("patient");
+        result.put("patient", ObjectCopyUtils.convert(patient, PatientDS.class));
+        return result;
     }
 
 

@@ -2,11 +2,14 @@ package recipe.service;
 
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeCheck;
 import ctd.account.session.ClientSession;
 import ctd.net.broadcast.MQHelper;
 import ctd.persistence.DAOFactory;
@@ -17,6 +20,7 @@ import eh.msg.constant.MqConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.dao.RecipeCheckDAO;
 import recipe.dao.RecipeDAO;
 import recipe.mq.OnsConfig;
 import recipe.util.RecipeMsgUtils;
@@ -135,5 +139,19 @@ public class RecipeTestService {
         DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
 
         return drugListExtService.findDrugListsByNameOrCodePageStaitc(organId, drugType, drugName, start);
+    }
+
+    @RpcService
+    public void updateCheckerName(){
+        RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
+        DoctorService doctorService = BasicAPI.getService(DoctorService.class);
+        List<RecipeCheck> recipeChecks = recipeCheckDAO.findAllRecipeCheck();
+        for (RecipeCheck recipeCheck : recipeChecks) {
+            DoctorDTO doctorDTO = doctorService.getByDoctorId(recipeCheck.getChecker());
+            if (doctorDTO != null) {
+                recipeCheck.setCheckerName(doctorDTO.getName());
+                recipeCheckDAO.update(recipeCheck);
+            }
+        }
     }
 }
