@@ -61,17 +61,17 @@ public class OrderStatusConstant {
     /**
      * 药店取药（无库存）
      */
-    public static final Integer NO_DRUG = 12;
+    public static final Integer NO_DRUG = 10;
 
     /**
      * 药店取药（准备中）
      */
-    public static final Integer READY_DRUG = 13;
+    public static final Integer READY_DRUG = 11;
 
     /**
      * 药店取药（有库存）
      */
-    public static final Integer HAS_DRUG = 14;
+    public static final Integer HAS_DRUG = 12;
 
 
 }
