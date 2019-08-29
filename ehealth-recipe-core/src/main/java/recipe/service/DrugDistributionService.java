@@ -228,6 +228,10 @@ public class DrugDistributionService {
             deliveryType = "2";
 
         } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(request.getType())) {
+            if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                response.setMsg("该处方单已使用，无法再次使用哦！");
+                return response;
+            }
             deliveryType = "0";
             if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus()) {
                 Integer consultId = recipe.getClinicId();
