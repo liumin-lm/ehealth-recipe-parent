@@ -154,7 +154,7 @@ public class PayModeDownloadService implements IPurchaseService{
         int orderStatus = null == order ? -1 : order.getStatus();
         String tips = "";
         //下载处方购药方式特殊状态,已下载
-        if(OrderStatusConstant.DOWNLOADED == orderStatus || RecipeStatusConstant.PATIENT_NO_PAY == status){
+        if(RecipeStatusConstant.RECIPE_DOWNLOADED == status){
             tips = "已下载处方签";
         }
         //下载处方购药下通用状态的文案

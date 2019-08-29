@@ -305,6 +305,7 @@ public class Recipe implements Serializable {
     private String signImg;
     /**
      * 添加属性 2019/08/29
+     * 审方模式
      */
     @ItemProperty(alias = "审核模式")
     private Integer reviewType;
@@ -450,6 +451,7 @@ public class Recipe implements Serializable {
         this.memo = memo;
     }
 
+    @Column(name = "reviewType")
     public Integer getReviewType() {
         return reviewType;
     }

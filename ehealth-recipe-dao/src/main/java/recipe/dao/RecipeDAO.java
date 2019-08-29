@@ -1727,7 +1727,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                         "AND o.MpiId IN (:mpiIdList) and o.Effective = 1 and w.Status IN (:orderStatusList)");
                 hql.append("UNION ALL ");
                 hql.append("SELECT 1 as type,null as couponId, t.MedicalPayFlag as medicalPayFlag, t.RecipeID as recordCode,t.RecipeID as recordId," +
-                                "t.MPIID as mpiId,t.OrganDiseaseName as diseaseName,t.Status,(case k.Effective when null then t.TotalMoney else k.ActualPrice end) as fee," +
+                                "t.MPIID as mpiId,t.OrganDiseaseName as diseaseName,t.Status,(case when k.Effective is null then t.TotalMoney else k.ActualPrice end) as fee," +
                                 "t.SignDate as recordDate,t.RecipeType as recipeType,t.ClinicOrgan as organId,t.recipeMode as recipeMode,t.giveMode as giveMode FROM cdr_recipe t " +
                                 "left join cdr_recipeorder k on t.OrderCode=k.OrderCode "+
                         "AND t.MpiId IN (:mpiIdList) and t.Status IN (:specialStatusList)");

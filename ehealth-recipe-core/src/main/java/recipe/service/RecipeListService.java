@@ -745,7 +745,7 @@ public class RecipeListService extends RecipeBaseService{
             payModeShowButtonBean.noUserButtons();
             return payModeShowButtonBean;
         }
-        List<String> configurations = new ArrayList<>(Arrays.asList(configService.getConfiguration(record.getOrganId(), "payModeDeploy").toString().split(",")));
+        List<String> configurations = new ArrayList<>(Arrays.asList((String[])configService.getConfiguration(record.getOrganId(), "payModeDeploy")));
         //将购药方式的显示map对象转化为页面展示的对象
         Map<String, Boolean> buttonMap = new HashMap<>();
         for (String configuration : configurations) {
@@ -754,7 +754,7 @@ public class RecipeListService extends RecipeBaseService{
         PayModeShowButtonBean buttonBean = JSONUtils.parse(JSON.toJSONString(buttonMap), PayModeShowButtonBean.class);
         //当审方为前置并且审核没有通过，设置成不可选择
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe recipe = recipeDAO.get(record.getRecipeId());
+        Recipe recipe = recipeDAO.get(0 == record.getRecipeId() ? record.getRecordId() : record.getRecipeId());
         if(null == recipe){
             LOGGER.warn("processTabListDate: recipeId:{},对应处方信息不存在,", record.getRecipeId());
         }
