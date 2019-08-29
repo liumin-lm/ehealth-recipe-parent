@@ -129,4 +129,9 @@ public class RecipeBussConstant {
      */
     public static String RECIPEMODE_ZJJGPT = "zjjgpt";
 
+    /**
+     * 下载处方
+     */
+    public static Integer PAYMODE_DOWNLOAD_RECIPE = 6;
+
 }

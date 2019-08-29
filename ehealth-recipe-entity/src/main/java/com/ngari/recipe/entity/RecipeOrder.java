@@ -167,6 +167,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "代煎费")
     private BigDecimal decoctionFee;
 
+    @ItemProperty(alias = "审核费")
+    private BigDecimal auditFee;
+
     @ItemProperty(alias = "机构代煎单价")
     private BigDecimal decoctionUnitPrice;
 
@@ -210,6 +213,16 @@ public class RecipeOrder implements Serializable {
         Date now = Calendar.getInstance().getTime();
         this.setCreateTime(now);
         this.setLastModifyTime(now);
+        this.setAuditFee(zero);
+    }
+
+    @Column(name = "AuditFee")
+    public BigDecimal getAuditFee() {
+        return auditFee;
+    }
+
+    public void setAuditFee(BigDecimal auditFee) {
+        this.auditFee = auditFee;
     }
 
     @Id

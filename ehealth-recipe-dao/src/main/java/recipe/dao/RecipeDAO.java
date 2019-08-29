@@ -1704,4 +1704,77 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateSessionTemplate.instance().executeReadOnly(action);
         return action.getResult();
     }
+
+    public List<PatientRecipeBean> findTabStatusRecipesForPatient(final List<String> mpiIdList,
+                                                                  final int start, final int limit, final List<Integer> recipeStatusList, final List<Integer> orderStatusList, final List<Integer> specialStatusList) {
+        HibernateStatelessResultAction<List<PatientRecipeBean>> action = new AbstractHibernateStatelessResultAction<List<PatientRecipeBean>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("select s.type,s.recordCode,s.recordId,s.mpiId,s.diseaseName,s.status,s.fee," +
+                        "s.recordDate,s.couponId,s.medicalPayFlag,s.recipeType,s.organId,s.recipeMode,s.giveMode from (");
+                hql.append("SELECT 1 as type,null as couponId, t.MedicalPayFlag as medicalPayFlag, t.RecipeID as recordCode,t.RecipeID as recordId," +
+                        "t.MPIID as mpiId,t.OrganDiseaseName as diseaseName,t.Status,t.TotalMoney as fee," +
+                        "t.SignDate as recordDate,t.RecipeType as recipeType,t.ClinicOrgan as organId,t.recipeMode as recipeMode,t.giveMode as giveMode FROM cdr_recipe t " +
+                        "left join cdr_recipeorder k on t.OrderCode=k.OrderCode ");
+                hql.append("WHERE t.MPIID IN (:mpiIdList) and (k.Effective is null or k.Effective = 0) ")
+                        .append("and (t.ChooseFlag=1 or (t.ChooseFlag=0 and t.Status IN (:recipeStatusList))) ");
+
+                hql.append("UNION ALL ");
+                hql.append("SELECT 2 as type,o.CouponId as couponId, 0 as medicalPayFlag, " +
+                        "o.OrderCode as recordCode,o.OrderId as recordId,o.MpiId as mpiId,'' as diseaseName," +
+                        "o.Status,o.ActualPrice as fee,o.CreateTime as recordDate,0 as recipeType, o.OrganId, 'ngarihealth' as recipeMode,w.GiveMode AS giveMode FROM cdr_recipeorder o JOIN cdr_recipe w ON o.OrderCode = w.OrderCode " +
+                        "AND o.MpiId IN (:mpiIdList) and o.Effective = 1 and w.Status IN (:orderStatusList)");
+                hql.append("UNION ALL ");
+                hql.append("SELECT 1 as type,null as couponId, t.MedicalPayFlag as medicalPayFlag, t.RecipeID as recordCode,t.RecipeID as recordId," +
+                                "t.MPIID as mpiId,t.OrganDiseaseName as diseaseName,t.Status,(case k.Effective when null then t.TotalMoney else k.ActualPrice end) as fee," +
+                                "t.SignDate as recordDate,t.RecipeType as recipeType,t.ClinicOrgan as organId,t.recipeMode as recipeMode,t.giveMode as giveMode FROM cdr_recipe t " +
+                                "left join cdr_recipeorder k on t.OrderCode=k.OrderCode "+
+                        "AND t.MpiId IN (:mpiIdList) and t.Status IN (:specialStatusList)");
+                hql.append(") s ORDER BY s.recordDate desc");
+
+                Query q = ss.createSQLQuery(hql.toString());
+                q.setParameterList("mpiIdList", mpiIdList);
+                q.setParameterList("orderStatusList", orderStatusList);
+                q.setParameterList("recipeStatusList", recipeStatusList);
+                q.setParameterList("specialStatusList", specialStatusList);
+
+                q.setMaxResults(limit);
+                q.setFirstResult(start);
+                List<Object[]> result = q.list();
+                List<PatientRecipeBean> backList = new ArrayList<>(limit);
+                if (CollectionUtils.isNotEmpty(result)) {
+                    PatientRecipeBean patientRecipeBean;
+                    for (Object[] objs : result) {
+                        patientRecipeBean = new PatientRecipeBean();
+                        patientRecipeBean.setRecordType(objs[0].toString());
+                        patientRecipeBean.setRecordCode(objs[1].toString());
+                        patientRecipeBean.setRecordId(Integer.parseInt(objs[2].toString()));
+                        patientRecipeBean.setMpiId(objs[3].toString());
+                        patientRecipeBean.setOrganDiseaseName(objs[4].toString());
+                        patientRecipeBean.setStatusCode(Integer.parseInt(objs[5].toString()));
+                        patientRecipeBean.setTotalMoney(new BigDecimal(objs[6].toString()));
+                        patientRecipeBean.setSignDate((Date) objs[7]);
+                        if (null != objs[8]) {
+                            patientRecipeBean.setCouponId(Integer.parseInt(objs[8].toString()));
+                        }
+                        if (null != objs[9]) {
+                            patientRecipeBean.setMedicalPayFlag(Integer.parseInt(objs[9].toString()));
+                        }
+                        patientRecipeBean.setRecipeType(Integer.parseInt(objs[10].toString()));
+                        patientRecipeBean.setOrganId(Integer.parseInt(objs[11].toString()));
+                        patientRecipeBean.setRecipeMode(objs[12].toString());
+                        if (null != objs[13]) {
+                            patientRecipeBean.setGiveMode(Integer.parseInt(objs[13].toString()));
+                        }
+                        backList.add(patientRecipeBean);
+                    }
+                }
+
+                setResult(backList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }
