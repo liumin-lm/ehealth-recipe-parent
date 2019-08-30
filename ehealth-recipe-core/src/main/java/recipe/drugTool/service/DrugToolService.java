@@ -474,27 +474,24 @@ public class DrugToolService implements IDrugToolService {
             if (cmap.get(userkey) != null && cmap.get(userkey).size() > 0) {
                 queue =  cmap.get(userkey);
             }
-            //当容量超过10个时，取出第一个元素并删除
-            if (10 == queue.size()){
-                queue.poll();
-            }
+
             ort.setOrganId(Integer.parseInt(organId));
             ort.setName(shortName);
 
-            //去重，定义是否去重标签
-            Boolean bl = true;
             Object[] arrayQueue = queue.toArray();
             for (Object s : arrayQueue) {
                 OrganToolBean t = (OrganToolBean)s;
                 //通过organId过滤
                 if(t.getOrganId() == Integer.parseInt(organId)){
-                    bl = false;
+                    queue.remove(s);
                     break;
                 }
             }
-            if (bl) {
-                queue.put(ort);
+            //当容量超过10个时，取出第一个元素并删除
+            if (10 == queue.size()){
+                queue.poll();
             }
+            queue.put(ort);
 
             cmap.put(userkey,queue);
             LOGGER.info("saveShortNameRecord HistoryRecord  cmap{}==",cmap);
