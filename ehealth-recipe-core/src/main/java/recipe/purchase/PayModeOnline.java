@@ -108,6 +108,7 @@ public class PayModeOnline implements IPurchaseService {
             depDetailBean.setDepName(dep.getName());
             depDetailBean.setRecipeFee(dbRecipe.getTotalMoney());
             depDetailBean.setBelongDepName(dep.getName());
+            depDetailBean.setOrderType(dep.getOrderType());
             depDetailBean.setPayModeText("在线支付");
 
             //如果是价格自定义的药企，则需要设置单独价格

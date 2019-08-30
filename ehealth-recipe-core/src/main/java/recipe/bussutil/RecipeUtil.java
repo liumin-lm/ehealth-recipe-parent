@@ -254,4 +254,9 @@ public class RecipeUtil {
 
     }
 
+    //将；用|代替
+    public static String getCode(String code) {
+        return code.replace("；","|");
+    }
+
 }

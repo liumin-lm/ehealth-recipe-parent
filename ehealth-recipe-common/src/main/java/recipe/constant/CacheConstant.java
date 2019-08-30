@@ -33,6 +33,11 @@ public class CacheConstant {
      */
     public static final String KEY_HIS_CHECK_LIST = "RCP_HIS_CHECK_LIST";
 
+    /**
+     * 互联网医院支持机构以平台模式推送处方的机构列表
+     */
+    public static final String KEY_NGARI_SENDRECIPETOHIS_LIST = "KEY_NGARI_SENDRECIPETOHIS_LIST";
+
 
 
     /**************************机构个性化配置**************************/

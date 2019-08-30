@@ -52,4 +52,9 @@ public class DrugEnterpriseConstant {
      * 英特药企
      */
     public static final String COMPANY_YT = "yt";
+
+    /**
+     * 华东虚拟药房（对接杭州市第三人民医院）
+     */
+    public static final String COMPANY_HDVIRTUALDYF = "HdVirtualdyf";
 }

@@ -1,11 +1,15 @@
 package recipe.purchase;
 
 import com.ngari.base.hisconfig.service.IHisConfigService;
+import com.ngari.consult.common.model.ConsultExDTO;
+import com.ngari.consult.common.service.IConsultExService;
+import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
@@ -21,15 +25,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.PltPurchaseResponse;
-import recipe.constant.CacheConstant;
-import recipe.constant.ErrorCode;
-import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
+import recipe.constant.*;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.RecipeListService;
 import recipe.service.RecipeService;
-import recipe.service.common.RecipeCacheService;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 
@@ -58,7 +59,7 @@ public class PurchaseService {
      * 获取可用购药方式
      * @param recipeId 处方单ID
      * @param mpiId    患者mpiId
-     * @return
+     * @return         响应
      */
     @RpcService
     public PltPurchaseResponse showPurchaseMode(Integer recipeId, String mpiId) {
@@ -94,21 +95,18 @@ public class PurchaseService {
         } catch (Exception e) {
             LOG.warn("showPurchaseMode 到院取药判断 exception. recipeId={}", recipeId, e);
         }
-
-
         return result;
     }
 
     /**
      * 根据对应的购药方式展示对应药企
      *
-     * @param recipeId
-     * @param payModes
+     * @param recipeId  处方id
+     * @param payModes  购药方式
      */
     @RpcService
     public RecipeResultBean filterSupportDepList(Integer recipeId, List<Integer> payModes, Map<String, String> extInfo) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         Recipe dbRecipe = recipeDAO.get(recipeId);
@@ -151,7 +149,7 @@ public class PurchaseService {
      *                 ps: decoctionFlag是中药处方时设置为1，gfFeeFlag是膏方时设置为1
      *                 gysCode, sendMethod, payMethod 字段为钥世圈字段，会在findSupportDepList接口中给出
      *                 payMode 如果钥世圈有供应商是多种方式支持，就传0
-     * @return
+     * @return  结果
      */
     @RpcService
     public OrderCreateResult order(Integer recipeId, Map<String, String> extInfo) {
@@ -259,8 +257,8 @@ public class PurchaseService {
 
     /**
      * 检查处方是否已被处理
-     * @param dbRecipe
-     * @param result
+     * @param dbRecipe  处方详情
+     * @param result    结果
      * @return true 已被处理
      */
     private boolean checkRecipeIsDeal(Recipe dbRecipe, RecipeResultBean result, Map<String, String> extInfo){
@@ -289,8 +287,8 @@ public class PurchaseService {
 
     /**
      * 检查处方是否已被处理
-     * @param dbRecipe
-     * @param result
+     * @param dbRecipe   处方详情
+     * @param result     结果
      * @return true 已被处理
      */
     private boolean checkRecipeIsUser(Recipe dbRecipe, RecipeResultBean result){
@@ -305,6 +303,35 @@ public class PurchaseService {
                 }
             }
             return true;
+        }
+        if (RecipeStatusConstant.CHECK_PASS == dbRecipe.getStatus()) {
+            Integer consultId = dbRecipe.getClinicId();
+            Integer medicalFlag = 0;
+            IConsultExService consultExService = ApplicationUtils.getConsultService(IConsultExService.class);
+            if (consultId != null) {
+                ConsultExDTO consultExDTO = consultExService.getByConsultId(consultId);
+                if (consultExDTO != null) {
+                    medicalFlag = consultExDTO.getMedicalFlag();
+                }
+            }
+            RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+            if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(dbRecipe.getRecipeMode()) && (RecipeExtendConstant.MEDICAL_FALG_YES == medicalFlag || dbRecipe.getChooseFlag() == 1)) {
+                OrganDTO organDTO = organService.getByOrganId(dbRecipe.getClinicOrgan());
+                List<Recipedetail> detailList = detailDAO.findByRecipeId(dbRecipe.getRecipeId());
+                result.setCode(RecipeResultBean.FAIL);
+                StringBuilder sb = new StringBuilder("您是医保病人，请到医院支付取药");
+                if(CollectionUtils.isNotEmpty(detailList)){
+                    String pharmNo = detailList.get(0).getPharmNo();
+                    if(StringUtils.isNotEmpty(pharmNo)){
+                        sb.append("医院取药窗口取药：["+ organDTO.getName() + "" + pharmNo + "取药窗口]");
+                    }else {
+                        sb.append("医院取药窗口取药：["+ organDTO.getName() + "取药窗口]");
+                    }
+                }
+                result.setMsg(sb.toString());
+                return true;
+            }
         }
         return false;
     }

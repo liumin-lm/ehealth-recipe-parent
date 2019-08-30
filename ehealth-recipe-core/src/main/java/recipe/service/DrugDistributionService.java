@@ -3,22 +3,36 @@ package recipe.service;
 import com.alijk.bqhospital.alijk.conf.TaobaoConf;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
+import com.ngari.base.employment.model.EmploymentBean;
+import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.consult.common.model.ConsultExDTO;
+import com.ngari.consult.common.service.IConsultExService;
+import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.UpdateTakeDrugWayReqTO;
+import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.OrganService;
+import com.ngari.patient.service.PatientService;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.utils.VerifyUtils;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
+import com.ngari.recipe.entity.Recipedetail;
 import com.taobao.api.response.AlibabaAlihealthRxPrescriptionGetResponse;
 import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.base.constant.ErrorCode;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -31,9 +45,7 @@ import recipe.bean.PurchaseRequest;
 import recipe.bean.PurchaseResponse;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
-import recipe.constant.CacheConstant;
-import recipe.constant.ParameterConstant;
-import recipe.constant.RecipeBussConstant;
+import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
@@ -144,10 +156,9 @@ public class DrugDistributionService {
             }
             return response;
         }
-
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        //TODO 先定死使用阿里药房处理
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAccount("aldyf");
+        OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+        List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
+        DrugsEnterprise drugsEnterprise = drugsEnterprises.get(0);
         if (null == drugsEnterprise) {
             LOGGER.warn("purchase aldyf 药企不存在");
             response.setMsg("该处方无法配送");
@@ -226,19 +237,29 @@ public class DrugDistributionService {
             deliveryType = "2";
 
         } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(request.getType())) {
-            deliveryType = "0";
-            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(request.getRecipeId());
-            if (recipeExtend == null
-                    || StringUtils.isEmpty(recipeExtend.getCardTypeName())
-                    || StringUtils.isEmpty(recipeExtend.getCardNo())) {
-                response.setMsg("无就诊卡信息,无法医院取药");
+            if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                response.setMsg("该处方单已使用，无法再次使用哦！");
                 return response;
             }
-
+            deliveryType = "0";
+            getMedicalMsg(response, recipe);
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(request.getRecipeId());
+            if (!"HdVirtualdyf".equals(drugsEnterprise.getAccount())) {
+                if (recipeExtend == null
+                        || StringUtils.isEmpty(recipeExtend.getCardTypeName())
+                        || StringUtils.isEmpty(recipeExtend.getCardNo())) {
+                    response.setMsg("无就诊卡信息,无法医院取药");
+                    return response;
+                }
+            }
             //说明处方没有其他途径购买的情况
             if (1 == recipe.getChooseFlag() && RecipeBussConstant.GIVEMODE_TO_HOS == recipe.getGiveMode()) {
-                response.setMsg("请携带就诊卡 " + recipeExtend.getCardNo());
+                if (!"HdVirtualdyf".equals(drugsEnterprise.getAccount())) {
+                    getMedicalMsg(response, recipe);
+                } else {
+                    response.setMsg("请携带就诊卡 " + recipeExtend.getCardNo());
+                }
                 return response;
             } else {
                 //已授权的情况下需要去系统查询处方使用状态
@@ -287,7 +308,40 @@ public class DrugDistributionService {
             if (recipe.getClinicId() != null) {
                 updateTakeDrugWayReqTO.setClinicID(recipe.getClinicId().toString());
             }
+            //患者信息处理
+            PatientService patientService = BasicAPI.getService(PatientService.class);
+            PatientDTO patient = patientService.get(recipe.getMpiid());
+            if (patient == null){
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "平台查询不到患者信息");
+            }
+            //患者信息
+            PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
+            patientBaseInfo.setCertificateType(patient.getCertificateType());
+            patientBaseInfo.setCertificate(patient.getCertificate());
+            patientBaseInfo.setPatientName(patient.getPatientName());
+            patientBaseInfo.setPatientID(recipe.getPatientID());
+            updateTakeDrugWayReqTO.setPatientBaseInfo(patientBaseInfo);
+            //取药方式
             updateTakeDrugWayReqTO.setDeliveryType(deliveryType);
+            //审方药师工号和姓名
+            if (recipe.getChecker()!=null){
+                IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
+                EmploymentBean primaryEmp = iEmploymentService.getPrimaryEmpByDoctorId(recipe.getChecker());
+                if (primaryEmp != null){
+                    updateTakeDrugWayReqTO.setCheckerId(primaryEmp.getJobNumber());
+                }
+                DoctorService doctorService = BasicAPI.getService(DoctorService.class);
+                DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getChecker());
+                if (doctorDTO!=null){
+                    updateTakeDrugWayReqTO.setCheckerName(doctorDTO.getName());
+                }
+            }
+            //处方总金额
+            updateTakeDrugWayReqTO.setPayment(recipe.getActualPrice());
+            //支付状态-这里默认未支付
+            updateTakeDrugWayReqTO.setPayFlag(0);
+            //支付方式
+            updateTakeDrugWayReqTO.setPayMode(recipe.getPayMode().toString());
             HisResponseTO hisResult = service.updateTakeDrugWay(updateTakeDrugWayReqTO);
             //更新平台处方
             recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("giveMode", request.getType(), "chooseFlag", 1));
@@ -296,6 +350,36 @@ public class DrugDistributionService {
             LOGGER.info("取药方式更新通知his. param={},result={}", JSONUtils.toString(updateTakeDrugWayReqTO), JSONUtils.toString(hisResult));
         }
         return response;
+    }
+
+    private void getMedicalMsg(PurchaseResponse response, Recipe recipe) {
+        if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus()) {
+            Integer consultId = recipe.getClinicId();
+            Integer medicalFlag = 0;
+            IConsultExService consultExService = ApplicationUtils.getConsultService(IConsultExService.class);
+            if (consultId != null) {
+                ConsultExDTO consultExDTO = consultExService.getByConsultId(consultId);
+                if (consultExDTO != null) {
+                    medicalFlag = consultExDTO.getMedicalFlag();
+                }
+            }
+            RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+            if (RecipeExtendConstant.MEDICAL_FALG_YES == medicalFlag) {
+                OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
+                List<Recipedetail> detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
+                StringBuilder sb = new StringBuilder("您是医保病人，请到医院支付取药");
+                if(CollectionUtils.isNotEmpty(detailList)){
+                    String pharmNo = detailList.get(0).getPharmNo();
+                    if(StringUtils.isNotEmpty(pharmNo)){
+                        sb.append("医院取药窗口取药：["+ organDTO.getName() + "" + pharmNo + "取药窗口]");
+                    }else {
+                        sb.append("医院取药窗口取药：["+ organDTO.getName() + "取药窗口]");
+                    }
+                }
+                response.setMsg(sb.toString());
+            }
+        }
     }
 
     /**

@@ -1344,13 +1344,19 @@ public class RecipeService extends RecipeBaseService{
             if (CollectionUtils.isNotEmpty(recipeList)) {
                 for (Recipe recipe : recipeList) {
                     if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
-                        try {
-                            //向阿里大药房推送处方过期的通知
-                            AldyfRemoteService aldyfRemoteService = ApplicationUtils.getRecipeService(AldyfRemoteService.class);
-                            DrugEnterpriseResult drugEnterpriseResult = aldyfRemoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.EXPIRE);
-                            LOGGER.info("向阿里大药房推送处方过期通知,{}", JSONUtils.toString(drugEnterpriseResult));
-                        } catch (Exception e) {
-                            LOGGER.info("向阿里大药房推送处方过期通知有问题{}", recipe.getRecipeId(), e);
+                        OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+                        List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
+                        for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+                            if ("aldyf".equals(drugsEnterprise.getCallSys())) {
+                                try {
+                                    //向阿里大药房推送处方过期的通知
+                                    AldyfRemoteService aldyfRemoteService = ApplicationUtils.getRecipeService(AldyfRemoteService.class);
+                                    DrugEnterpriseResult drugEnterpriseResult = aldyfRemoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.EXPIRE);
+                                    LOGGER.info("向阿里大药房推送处方过期通知,{}", JSONUtils.toString(drugEnterpriseResult));
+                                } catch (Exception e) {
+                                    LOGGER.info("向阿里大药房推送处方过期通知有问题{}", recipe.getRecipeId(), e);
+                                }
+                            }
                         }
                     }
                     memo.delete(0, memo.length());
