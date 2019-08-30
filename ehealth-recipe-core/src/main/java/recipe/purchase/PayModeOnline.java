@@ -64,7 +64,7 @@ public class PayModeOnline implements IPurchaseService {
             resultBean.setMsg("配送模式配置有误");
             return resultBean;
         }
-
+        LOG.info("drugsEnterpriseList organId:{}, payModeSupport:{}", dbRecipe.getClinicOrgan(), payModeSupport);
         //筛选出来的数据已经去掉不支持任何方式配送的药企
         List<DrugsEnterprise> drugsEnterpriseList =
                 drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(dbRecipe.getClinicOrgan(), payModeSupport);
