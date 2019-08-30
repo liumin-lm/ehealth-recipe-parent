@@ -304,6 +304,35 @@ public class PurchaseService {
             }
             return true;
         }
+        if (RecipeStatusConstant.CHECK_PASS == dbRecipe.getStatus()) {
+            Integer consultId = dbRecipe.getClinicId();
+            Integer medicalFlag = 0;
+            IConsultExService consultExService = ApplicationUtils.getConsultService(IConsultExService.class);
+            if (consultId != null) {
+                ConsultExDTO consultExDTO = consultExService.getByConsultId(consultId);
+                if (consultExDTO != null) {
+                    medicalFlag = consultExDTO.getMedicalFlag();
+                }
+            }
+            RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+            if (RecipeExtendConstant.MEDICAL_FALG_YES == medicalFlag) {
+                OrganDTO organDTO = organService.getByOrganId(dbRecipe.getClinicOrgan());
+                List<Recipedetail> detailList = detailDAO.findByRecipeId(dbRecipe.getRecipeId());
+                result.setCode(RecipeResultBean.FAIL);
+                StringBuilder sb = new StringBuilder("您是医保病人，请到医院支付取药");
+                if(CollectionUtils.isNotEmpty(detailList)){
+                    String pharmNo = detailList.get(0).getPharmNo();
+                    if(StringUtils.isNotEmpty(pharmNo)){
+                        sb.append("医院取药窗口取药：["+ organDTO.getName() + "" + pharmNo + "取药窗口]");
+                    }else {
+                        sb.append("医院取药窗口取药：["+ organDTO.getName() + "取药窗口]");
+                    }
+                }
+                result.setMsg(sb.toString());
+                return true;
+            }
+        }
         return false;
     }
 
