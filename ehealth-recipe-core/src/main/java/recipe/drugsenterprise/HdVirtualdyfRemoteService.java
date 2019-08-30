@@ -48,7 +48,7 @@ public class HdVirtualdyfRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
-        //2-医院取药，1-物流配送，3-药店取药
+        //0医院取药 1物流配送 2药店取药 3未知
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeIds.get(0));
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
