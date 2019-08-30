@@ -284,9 +284,10 @@ public class RecipeOrderService extends RecipeBaseService {
                     needDelList.add(recipe);
                     continue;
                 }
-
-                Integer depId = recipeService.supportDistributionExt(recipe.getRecipeId(), recipe.getClinicOrgan(),
-                        order.getEnterpriseId(), payMode);
+                //TODO depId = 201
+                /*Integer depId = recipeService.supportDistributionExt(recipe.getRecipeId(), recipe.getClinicOrgan(),
+                        order.getEnterpriseId(), payMode);*/
+                Integer depId = 201;
                 if (null == depId) {
                     LOGGER.error("处方id=" + recipe.getRecipeId() + "无法配送。");
                     result.setError("很抱歉，当前库存不足无法结算，请联系客服：" +
