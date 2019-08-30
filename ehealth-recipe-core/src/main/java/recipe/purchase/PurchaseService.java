@@ -196,8 +196,8 @@ public class PurchaseService {
         IHisConfigService iHisConfigService = ApplicationUtils.getBaseService(IHisConfigService.class);
         try {
             //判断院内是否已取药，防止重复购买
-            boolean flag = organService.getTakeMedicineFlagById(dbRecipe.getClinicOrgan());
-            boolean hisStatus = iHisConfigService.isHisEnable(dbRecipe.getClinicOrgan());
+            /*boolean flag = organService.getTakeMedicineFlagById(dbRecipe.getClinicOrgan());
+            boolean hisStatus = iHisConfigService.isHisEnable(dbRecipe.getClinicOrgan());*/
             //是否支持医院取药 true：支持
             //该医院不对接HIS的话，则不需要进行该校验
            /* if (flag && hisStatus) {
