@@ -316,7 +316,7 @@ public class PurchaseService {
             }
             RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
             OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
-            if (RecipeExtendConstant.MEDICAL_FALG_YES == medicalFlag) {
+            if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(dbRecipe.getRecipeMode()) && (RecipeExtendConstant.MEDICAL_FALG_YES == medicalFlag || dbRecipe.getChooseFlag() == 1)) {
                 OrganDTO organDTO = organService.getByOrganId(dbRecipe.getClinicOrgan());
                 List<Recipedetail> detailList = detailDAO.findByRecipeId(dbRecipe.getRecipeId());
                 result.setCode(RecipeResultBean.FAIL);

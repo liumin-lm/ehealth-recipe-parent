@@ -233,34 +233,7 @@ public class DrugDistributionService {
                 return response;
             }
             deliveryType = "0";
-            if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus()) {
-                Integer consultId = recipe.getClinicId();
-                Integer medicalFlag = 0;
-                IConsultExService consultExService = ApplicationUtils.getConsultService(IConsultExService.class);
-                if (consultId != null) {
-                    ConsultExDTO consultExDTO = consultExService.getByConsultId(consultId);
-                    if (consultExDTO != null) {
-                        medicalFlag = consultExDTO.getMedicalFlag();
-                    }
-                }
-                RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-                OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
-                if (RecipeExtendConstant.MEDICAL_FALG_YES == medicalFlag) {
-                    OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
-                    List<Recipedetail> detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
-                    StringBuilder sb = new StringBuilder("您是医保病人，请到医院支付取药");
-                    if(CollectionUtils.isNotEmpty(detailList)){
-                        String pharmNo = detailList.get(0).getPharmNo();
-                        if(StringUtils.isNotEmpty(pharmNo)){
-                            sb.append("医院取药窗口取药：["+ organDTO.getName() + "" + pharmNo + "取药窗口]");
-                        }else {
-                            sb.append("医院取药窗口取药：["+ organDTO.getName() + "取药窗口]");
-                        }
-                    }
-                    response.setMsg(sb.toString());
-                    return response;
-                }
-            }
+            getMedicalMsg(response, recipe);
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(request.getRecipeId());
             if (!"HdVirtualdyf".equals(drugsEnterprise.getAccount())) {
@@ -273,7 +246,11 @@ public class DrugDistributionService {
             }
             //说明处方没有其他途径购买的情况
             if (1 == recipe.getChooseFlag() && RecipeBussConstant.GIVEMODE_TO_HOS == recipe.getGiveMode()) {
-                response.setMsg("请携带就诊卡 " + recipeExtend.getCardNo());
+                if (!"HdVirtualdyf".equals(drugsEnterprise.getAccount())) {
+                    getMedicalMsg(response, recipe);
+                } else {
+                    response.setMsg("请携带就诊卡 " + recipeExtend.getCardNo());
+                }
                 return response;
             } else {
                 //已授权的情况下需要去系统查询处方使用状态
@@ -331,6 +308,36 @@ public class DrugDistributionService {
             LOGGER.info("取药方式更新通知his. param={},result={}", JSONUtils.toString(updateTakeDrugWayReqTO), JSONUtils.toString(hisResult));
         }
         return response;
+    }
+
+    private void getMedicalMsg(PurchaseResponse response, Recipe recipe) {
+        if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus()) {
+            Integer consultId = recipe.getClinicId();
+            Integer medicalFlag = 0;
+            IConsultExService consultExService = ApplicationUtils.getConsultService(IConsultExService.class);
+            if (consultId != null) {
+                ConsultExDTO consultExDTO = consultExService.getByConsultId(consultId);
+                if (consultExDTO != null) {
+                    medicalFlag = consultExDTO.getMedicalFlag();
+                }
+            }
+            RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+            if (RecipeExtendConstant.MEDICAL_FALG_YES == medicalFlag) {
+                OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
+                List<Recipedetail> detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
+                StringBuilder sb = new StringBuilder("您是医保病人，请到医院支付取药");
+                if(CollectionUtils.isNotEmpty(detailList)){
+                    String pharmNo = detailList.get(0).getPharmNo();
+                    if(StringUtils.isNotEmpty(pharmNo)){
+                        sb.append("医院取药窗口取药：["+ organDTO.getName() + "" + pharmNo + "取药窗口]");
+                    }else {
+                        sb.append("医院取药窗口取药：["+ organDTO.getName() + "取药窗口]");
+                    }
+                }
+                response.setMsg(sb.toString());
+            }
+        }
     }
 
     /**
