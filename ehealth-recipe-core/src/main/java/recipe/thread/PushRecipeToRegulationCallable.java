@@ -21,6 +21,7 @@ import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.RecipeLogService;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -67,15 +68,14 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
         //获取所有监管平台机构列表
         IHisServiceConfigService configService = AppDomainContext.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
         List<ServiceConfigResponseTO> list = configService.findAllRegulationOrgan();
-        Map<Integer,ServiceConfigResponseTO> regulationOrgan = Maps.uniqueIndex(list, new Function<ServiceConfigResponseTO,Integer>() {
-            @Override
-            public Integer apply(ServiceConfigResponseTO regulation) {
-                return regulation.getOrganid();
-            }});
+        Map<Integer,String> regulationOrgan = new HashMap<>(list.size());
+        for (ServiceConfigResponseTO serviceConfigResponseTO : list){
+            regulationOrgan.put(serviceConfigResponseTO.getOrganid(),serviceConfigResponseTO.getRegulationAppDomainId());
+        }
         logger.info("uploadRecipeIndicators regulationOrgan:"+JSONUtils.toString(list));
         try {
             if (CollectionUtils.isNotEmpty(list) && regulationOrgan.get(recipe.getClinicOrgan()) != null){
-                String domainId = regulationOrgan.get(recipe.getClinicOrgan()).getRegulationAppDomainId();
+                String domainId = regulationOrgan.get(recipe.getClinicOrgan());
                 if (REGULATION_JS.equals(domainId)){
                     //江苏省推送处方规则：（1）如果没有审核直接推送处方数据、（2）status=2表示审核了，则推送处方审核后的数据，（3）审核数据推送成功后再推送处方流转数据
                     if (status == 2) {
