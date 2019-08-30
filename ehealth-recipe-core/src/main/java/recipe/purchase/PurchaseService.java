@@ -200,14 +200,14 @@ public class PurchaseService {
             boolean hisStatus = iHisConfigService.isHisEnable(dbRecipe.getClinicOrgan());
             //是否支持医院取药 true：支持
             //该医院不对接HIS的话，则不需要进行该校验
-            if (flag && hisStatus) {
+           /* if (flag && hisStatus) {
                 String backInfo = recipeService.searchRecipeStatusFromHis(recipeId, 1);
                 if (StringUtils.isNotEmpty(backInfo)) {
                     result.setCode(RecipeResultBean.FAIL);
                     result.setMsg(backInfo);
                     return result;
                 }
-            }
+            }*/
         } catch (Exception e) {
             LOG.warn("order searchRecipeStatusFromHis exception. recipeId={}", recipeId, e);
         }
