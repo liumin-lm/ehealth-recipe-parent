@@ -306,7 +306,7 @@ public class DrugDistributionService {
             }
 
         }
-
+        LOGGER.info("response:{}.", JSONUtils.toString(response));
         //取药方式进行HIS推送
         if (CommonConstant.SUCCESS.equals(response.getCode())) {
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
