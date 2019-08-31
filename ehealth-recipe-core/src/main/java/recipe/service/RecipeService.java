@@ -421,6 +421,8 @@ public class RecipeService extends RecipeBaseService{
         Integer checkOrgan = MapValueUtil.getInteger(paramMap, "checkOrgan");
         Integer checker = MapValueUtil.getInteger(paramMap, "checker");
         Integer checkFlag = MapValueUtil.getInteger(paramMap, "result");
+        //是否是线下药师审核标记
+        Integer hosAuditFlag = MapValueUtil.getInteger(paramMap, "hosAuditFlag");
         CheckYsInfoBean resultBean = new CheckYsInfoBean();
         resultBean.setRecipeId(recipeId);
         resultBean.setCheckResult(checkFlag);
@@ -457,13 +459,10 @@ public class RecipeService extends RecipeBaseService{
         if (null == recipe) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单不存在或者已删除");
         }
-        if (null == recipe.getStatus()
-                || recipe.getStatus() == RecipeStatusConstant.CHECK_PASS_YS
-                || recipe.getStatus() == RecipeStatusConstant.CHECK_NOT_PASS_YS) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方已被审核");
-        }
-        if (recipe.getStatus() == RecipeStatusConstant.REVOKE) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方已被医生撤销");
+        if (hosAuditFlag == null){
+            if (null == recipe.getStatus() || recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方已被审核");
+            }
         }
 
         int beforeStatus = recipe.getStatus();

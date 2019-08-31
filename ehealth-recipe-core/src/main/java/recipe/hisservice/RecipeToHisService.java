@@ -168,6 +168,8 @@ public class RecipeToHisService {
                                 checkParam.put("result",1);
                                 checkParam.put("checkOrgan",organId);
                                 checkParam.put("checker",recipe.getChecker());
+                                //是否是线下药师审核标记
+                                checkParam.put("hosAuditFlag",1);
                                 recipeCheckService.saveCheckResult(checkParam);
                                 LOGGER.info("线下审方生成线上药师电子签名--end");
                             } else {
