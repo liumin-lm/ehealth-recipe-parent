@@ -398,7 +398,7 @@ public class RecipeToHisService {
     /**
      * 更新患者取药方式
      */
-    public HisResponseTO updateTakeDrugWay(UpdateTakeDrugWayReqTO request) throws Exception{
+    public HisResponseTO updateTakeDrugWay(UpdateTakeDrugWayReqTO request) {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.updateTakeDrugWay(request);
     }
