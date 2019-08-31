@@ -259,6 +259,7 @@ public class DrugDistributionService {
                 } else {
                     response.setMsg("请携带就诊卡 " + recipeExtend.getCardNo());
                 }
+                response.setCode(PurchaseResponse.TO_HOS_SUCCESS);
                 return response;
             } else {
                 //已授权的情况下需要去系统查询处方使用状态
