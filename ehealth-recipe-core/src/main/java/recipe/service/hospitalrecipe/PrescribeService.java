@@ -433,9 +433,9 @@ public class PrescribeService {
                         }
                     }
                     //日志记录
-                    RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), RecipeStatusConstant.FINISH,
+                    RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), RecipeStatusConstant.IN_SEND,
                             "HIS推送状态：已申请配送");
-                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.IN_SEND, attrMap);
+                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.IN_SEND, null);
                     break;
                 case RecipeStatusConstant.FINISH:
                     if (StringUtils.isNotEmpty(trackingNo)){
