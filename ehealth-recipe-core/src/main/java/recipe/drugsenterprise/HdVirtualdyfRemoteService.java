@@ -89,7 +89,7 @@ public class HdVirtualdyfRemoteService extends AccessDrugEnterpriseService {
         //支付状态
         updateTakeDrugWayReqTO.setPayFlag(recipe.getPayFlag());
         //支付方式
-        updateTakeDrugWayReqTO.setPayMode(recipe.getPayMode().toString());
+        updateTakeDrugWayReqTO.setPayMode("1");
         if (recipe.getPayFlag() ==1){
             //第三方支付交易流水号
             updateTakeDrugWayReqTO.setTradeNo(recipe.getTradeNo());

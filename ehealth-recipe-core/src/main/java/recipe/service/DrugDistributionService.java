@@ -304,59 +304,63 @@ public class DrugDistributionService {
         if (CommonConstant.SUCCESS.equals(response.getCode())) {
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
             OrganService organService = BasicAPI.getService(OrganService.class);
-            UpdateTakeDrugWayReqTO updateTakeDrugWayReqTO = new UpdateTakeDrugWayReqTO();
-            updateTakeDrugWayReqTO.setClinicOrgan(recipe.getClinicOrgan());
-            updateTakeDrugWayReqTO.setRecipeID(recipe.getRecipeCode());
-            updateTakeDrugWayReqTO.setOrganID(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
-            if (recipe.getClinicId() != null) {
-                updateTakeDrugWayReqTO.setClinicID(recipe.getClinicId().toString());
-            }
-            //患者信息处理
-            PatientService patientService = BasicAPI.getService(PatientService.class);
-            PatientDTO patient = patientService.get(recipe.getMpiid());
-            if (patient == null){
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "平台查询不到患者信息");
-            }
-            //患者信息
-            PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
-            patientBaseInfo.setCertificateType(patient.getCertificateType());
-            patientBaseInfo.setCertificate(patient.getCertificate());
-            patientBaseInfo.setPatientName(patient.getPatientName());
-            patientBaseInfo.setPatientID(recipe.getPatientID());
-            updateTakeDrugWayReqTO.setPatientBaseInfo(patientBaseInfo);
-            //取药方式
-            updateTakeDrugWayReqTO.setDeliveryType(deliveryType);
-            //审方药师工号和姓名
-            if (recipe.getChecker()!=null){
-                IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
-                EmploymentBean primaryEmp = iEmploymentService.getPrimaryEmpByDoctorId(recipe.getChecker());
-                if (primaryEmp != null){
-                    updateTakeDrugWayReqTO.setCheckerId(primaryEmp.getJobNumber());
+            try{
+                UpdateTakeDrugWayReqTO updateTakeDrugWayReqTO = new UpdateTakeDrugWayReqTO();
+                updateTakeDrugWayReqTO.setClinicOrgan(recipe.getClinicOrgan());
+                updateTakeDrugWayReqTO.setRecipeID(recipe.getRecipeCode());
+                updateTakeDrugWayReqTO.setOrganID(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
+                if (recipe.getClinicId() != null) {
+                    updateTakeDrugWayReqTO.setClinicID(recipe.getClinicId().toString());
                 }
-                DoctorService doctorService = BasicAPI.getService(DoctorService.class);
-                DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getChecker());
-                if (doctorDTO!=null){
-                    updateTakeDrugWayReqTO.setCheckerName(doctorDTO.getName());
+                //患者信息处理
+                PatientService patientService = BasicAPI.getService(PatientService.class);
+                PatientDTO patient = patientService.get(recipe.getMpiid());
+                if (patient == null){
+                    throw new DAOException(ErrorCode.SERVICE_ERROR, "平台查询不到患者信息");
                 }
-            }
-            //处方总金额
-            updateTakeDrugWayReqTO.setPayment(recipe.getActualPrice());
-            //支付状态-这里默认未支付
-            updateTakeDrugWayReqTO.setPayFlag(0);
-            //支付方式
-            if ("0".equals(deliveryType)) {
-                updateTakeDrugWayReqTO.setPayMode(RecipeBussConstant.PAYMODE_TO_HOS.toString());
-            } else if ("1".equals(deliveryType)) {
-                updateTakeDrugWayReqTO.setPayMode(RecipeBussConstant.PAYMODE_ONLINE.toString());
-            } else {
-                updateTakeDrugWayReqTO.setPayMode(RecipeBussConstant.PAYMODE_TFDS.toString());
-            }
-            HisResponseTO hisResult = service.updateTakeDrugWay(updateTakeDrugWayReqTO);
-            //更新平台处方
-            recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("giveMode", request.getType(), "chooseFlag", 1));
+                //患者信息
+                PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
+                patientBaseInfo.setCertificateType(patient.getCertificateType());
+                patientBaseInfo.setCertificate(patient.getCertificate());
+                patientBaseInfo.setPatientName(patient.getPatientName());
+                patientBaseInfo.setPatientID(recipe.getPatientID());
+                updateTakeDrugWayReqTO.setPatientBaseInfo(patientBaseInfo);
+                //取药方式
+                updateTakeDrugWayReqTO.setDeliveryType(deliveryType);
+                //审方药师工号和姓名
+                if (recipe.getChecker()!=null){
+                    IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
+                    EmploymentBean primaryEmp = iEmploymentService.getPrimaryEmpByDoctorId(recipe.getChecker());
+                    if (primaryEmp != null){
+                        updateTakeDrugWayReqTO.setCheckerId(primaryEmp.getJobNumber());
+                    }
+                    DoctorService doctorService = BasicAPI.getService(DoctorService.class);
+                    DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getChecker());
+                    if (doctorDTO!=null){
+                        updateTakeDrugWayReqTO.setCheckerName(doctorDTO.getName());
+                    }
+                }
+                //处方总金额
+                updateTakeDrugWayReqTO.setPayment(recipe.getActualPrice());
+                //支付状态-这里默认未支付
+                updateTakeDrugWayReqTO.setPayFlag(0);
+                //支付方式
+                if ("0".equals(deliveryType)) {
+                    updateTakeDrugWayReqTO.setPayMode(RecipeBussConstant.PAYMODE_TO_HOS.toString());
+                } else if ("1".equals(deliveryType)) {
+                    updateTakeDrugWayReqTO.setPayMode(RecipeBussConstant.PAYMODE_ONLINE.toString());
+                } else {
+                    updateTakeDrugWayReqTO.setPayMode(RecipeBussConstant.PAYMODE_TFDS.toString());
+                }
+                HisResponseTO hisResult = service.updateTakeDrugWay(updateTakeDrugWayReqTO);
+                //更新平台处方
+                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("giveMode", request.getType(), "chooseFlag", 1));
 
-            response.setCode(PurchaseResponse.TO_HOS_SUCCESS);
-            LOGGER.info("取药方式更新通知his. param={},result={}", JSONUtils.toString(updateTakeDrugWayReqTO), JSONUtils.toString(hisResult));
+                response.setCode(PurchaseResponse.TO_HOS_SUCCESS);
+                LOGGER.info("取药方式更新通知his. param={},result={}", JSONUtils.toString(updateTakeDrugWayReqTO), JSONUtils.toString(hisResult));
+            }catch (Exception e){
+                LOGGER.error("取药方式更新 error "+e);
+            }
         }
         return response;
     }
@@ -379,19 +383,20 @@ public class DrugDistributionService {
                 tips = "<b>您是医保病人，请到医院支付取药</b><br>医院取药窗口取药：";
             } else {
                 //tips = "请到医院支付取药，医院取药窗口：";
-                tips = "<b>您是医保病人，请到医院支付取药</b>医院取药窗口取药：";
+                tips = "<b>您是医保病人，请到医院支付取药</b><br><span>医院取药窗口取药：";
             }
             OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
             List<Recipedetail> detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
             if(CollectionUtils.isNotEmpty(detailList)){
                 String pharmNo = detailList.get(0).getPharmNo();
                 if(StringUtils.isNotEmpty(pharmNo)){
-                    tips += "["+ organDTO.getName() + "" + pharmNo + "取药窗口]";
+                    tips += "["+ organDTO.getName() + "" + pharmNo + "取药窗口]</span>";
                 }else {
-                    tips += "["+ organDTO.getName() + "取药窗口]";
+                    tips += "["+ organDTO.getName() + "取药窗口]</span>";
                 }
             }
             response.setMsg(tips);
+            response.setCode(CommonConstant.SUCCESS);
         }
     }
 
