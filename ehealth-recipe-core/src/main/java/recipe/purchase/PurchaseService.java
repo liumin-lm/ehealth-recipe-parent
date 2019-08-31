@@ -320,16 +320,21 @@ public class PurchaseService {
                 OrganDTO organDTO = organService.getByOrganId(dbRecipe.getClinicOrgan());
                 List<Recipedetail> detailList = detailDAO.findByRecipeId(dbRecipe.getRecipeId());
                 result.setCode(RecipeResultBean.FAIL);
-                StringBuilder sb = new StringBuilder("您是医保病人，请到医院支付取药");
+                String tips ;
+                if (RecipeExtendConstant.MEDICAL_FALG_YES == medicalFlag) {
+                    tips = "您是医保病人，请到医院支付取药，医院取药窗口：";
+                } else {
+                    tips = "请到医院支付取药，医院取药窗口：";
+                }
                 if(CollectionUtils.isNotEmpty(detailList)){
                     String pharmNo = detailList.get(0).getPharmNo();
                     if(StringUtils.isNotEmpty(pharmNo)){
-                        sb.append("医院取药窗口取药：["+ organDTO.getName() + "" + pharmNo + "取药窗口]");
+                        tips += "["+ organDTO.getName() + "" + pharmNo + "取药窗口]";
                     }else {
-                        sb.append("医院取药窗口取药：["+ organDTO.getName() + "取药窗口]");
+                        tips += "["+ organDTO.getName() + "取药窗口]";
                     }
                 }
-                result.setMsg(sb.toString());
+                result.setMsg(tips);
                 return true;
             }
         }

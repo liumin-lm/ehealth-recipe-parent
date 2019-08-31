@@ -380,19 +380,18 @@ public class DrugDistributionService {
             OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
             String tips ;
             if (RecipeExtendConstant.MEDICAL_FALG_YES == medicalFlag) {
-                tips = "<b>您是医保病人，请到医院支付取药</b><br>医院取药窗口取药：";
+                tips = "您是医保病人，请到医院支付取药，医院取药窗口取药：";
             } else {
-                //tips = "请到医院支付取药，医院取药窗口：";
-                tips = "<b>您是医保病人，请到医院支付取药</b><br><span>医院取药窗口取药：";
+                tips = "请到医院支付取药，医院取药窗口：";
             }
             OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
             List<Recipedetail> detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
             if(CollectionUtils.isNotEmpty(detailList)){
                 String pharmNo = detailList.get(0).getPharmNo();
                 if(StringUtils.isNotEmpty(pharmNo)){
-                    tips += "["+ organDTO.getName() + "" + pharmNo + "取药窗口]</span>";
+                    tips += "["+ organDTO.getName() + "" + pharmNo + "取药窗口]";
                 }else {
-                    tips += "["+ organDTO.getName() + "取药窗口]</span>";
+                    tips += "["+ organDTO.getName() + "取药窗口]";
                 }
             }
             response.setMsg(tips);
