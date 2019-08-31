@@ -5,11 +5,14 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.BaseAPI;
 import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
+import com.ngari.bus.hosrelation.model.HosrelationBean;
+import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.DepartmentDTO;
@@ -39,6 +42,7 @@ import recipe.bean.RecipeCheckPassResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
+import recipe.constant.BusTypeEnum;
 import recipe.constant.CacheConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
@@ -655,6 +659,12 @@ public class RecipeHisService extends RecipeBaseService {
         hisCheckRecipeReqTO.setOrganID(organService.getOrganizeCodeByOrganId(recipeBean.getClinicOrgan()));
         if (recipeBean.getClinicId() != null){
             hisCheckRecipeReqTO.setClinicID(recipeBean.getClinicId().toString());
+            IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
+            //挂号记录
+            HosrelationBean hosrelation = hosrelationService.getByBusIdAndBusType(recipeBean.getClinicId(), BusTypeEnum.CONSULT.getId());
+            if (hosrelation != null && StringUtils.isNotEmpty(hosrelation.getRegisterId())){
+                hisCheckRecipeReqTO.setClinicID(hosrelation.getRegisterId());
+            }
         }
         hisCheckRecipeReqTO.setRecipeID(recipeBean.getRecipeCode());
         IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
@@ -728,7 +738,7 @@ public class RecipeHisService extends RecipeBaseService {
 
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
         HisResponseTO hisResult = service.hisCheckRecipe(hisCheckRecipeReqTO);
-        LOGGER.info("hisRecipeCheck recipeId={} result={}", recipeBean.getRecipeId(),JSONUtils.toString(hisResult));
+        LOGGER.info("hisRecipeCheck request={} result={}", JSONUtils.toString(hisCheckRecipeReqTO),JSONUtils.toString(hisResult));
         if (hisResult==null){
             rMap.put("signResult", false);
             rMap.put("errorFlag",true);
