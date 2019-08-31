@@ -96,8 +96,11 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         hisRequest.setPlatRegisterId(String.valueOf(MapValueUtil.getInteger(map,"consultId")));
         //科室代码
         hisRequest.setDeptCode(MapValueUtil.getString(map,"deptCode"));
-        //复诊金额
-        hisRequest.setRegPrice(new BigDecimal(MapValueUtil.getDouble(map,"consultPrice")));
+        Double consultPrice = MapValueUtil.getDouble(map, "consultPrice");
+        if (consultPrice !=null){
+            //复诊金额
+            hisRequest.setRegPrice(new BigDecimal(consultPrice).setScale(2,BigDecimal.ROUND_HALF_UP));
+        }
         //支付状态
         hisRequest.setPayFlag(MapValueUtil.getInteger(map,"payFlag"));
         LOGGER.info("visitRegist request={}", JSONUtils.toString(hisRequest));
@@ -145,6 +148,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
             }
 
         }
+        LOGGER.info("visitRegist save hosrelationBean={}", JSONUtils.toString(hosrelationBean));
         hosrelationService.save(hosrelationBean);
         return response;
     }
