@@ -306,7 +306,7 @@ public class DrugDistributionService {
             }
 
         }
-
+        LOGGER.info("response:{}.", JSONUtils.toString(response));
         //取药方式进行HIS推送
         if (CommonConstant.SUCCESS.equals(response.getCode())) {
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
@@ -352,7 +352,14 @@ public class DrugDistributionService {
             updateTakeDrugWayReqTO.setPayFlag(0);
             //支付方式
             updateTakeDrugWayReqTO.setPayMode(recipe.getPayMode().toString());
-            HisResponseTO hisResult = service.updateTakeDrugWay(updateTakeDrugWayReqTO);
+            LOGGER.info("updateTakeDrugWayReqTO:{}.", JSONUtils.toString(updateTakeDrugWayReqTO));
+            HisResponseTO hisResult = null;
+            try{
+                hisResult = service.updateTakeDrugWay(updateTakeDrugWayReqTO);
+            }catch (Exception e){
+                LOGGER.info("error : {}.", e.getMessage());
+            }
+
             //更新平台处方
             recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("giveMode", request.getType(), "chooseFlag", 1));
 
