@@ -374,9 +374,11 @@ public class DrugDistributionService {
             }
             RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
             OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
-            String tips = "请到医院支付取药";
+            String tips = "请到医院支付取药</b>";
             if (RecipeExtendConstant.MEDICAL_FALG_YES == medicalFlag) {
-                tips = "您是医保病人，" + tips;
+                tips = "<b>您是医保病人，" + tips;
+            } else {
+                tips = "<b>";
             }
             OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
             List<Recipedetail> detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
