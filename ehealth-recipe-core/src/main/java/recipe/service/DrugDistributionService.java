@@ -137,7 +137,6 @@ public class DrugDistributionService {
         }
 
         String loginId = UserRoleToken.getCurrent().getUserId();
-        LOGGER.info("loginId={}.", loginId);
         //未授权且发起方式为 到院取药 之外的方式需要进行授权操作
         if (!authorization(loginId) && !RecipeBussConstant.GIVEMODE_TO_HOS.equals(request.getType())) {
             response.setCode(PurchaseResponse.AUTHORIZATION);
@@ -157,10 +156,8 @@ public class DrugDistributionService {
             }
             return response;
         }
-        LOGGER.info("到这里了");
         OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
         List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
-        LOGGER.info("drugsEnterprises:{}.", JSONUtils.toString(drugsEnterprises));
         DrugsEnterprise drugsEnterprise = drugsEnterprises.get(0);
         if (null == drugsEnterprise) {
             LOGGER.warn("purchase aldyf 药企不存在");
@@ -240,18 +237,12 @@ public class DrugDistributionService {
             deliveryType = "2";
 
         } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(request.getType())) {
-            LOGGER.info("到院取药到这里了。。。。");
             if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
                 response.setMsg("该处方单已使用，无法再次使用哦！");
                 return response;
             }
             deliveryType = "0";
-            try{
-                getMedicalMsg(response, recipe);
-            }catch (Exception e){
-                LOGGER.info("sssds:{}.", e.getMessage());
-            }
-
+            getMedicalMsg(response, recipe);
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(request.getRecipeId());
             if (!"HdVirtualdyf".equals(drugsEnterprise.getAccount())) {
@@ -273,7 +264,6 @@ public class DrugDistributionService {
             } else {
                 //已授权的情况下需要去系统查询处方使用状态
                 if(authorization(loginId)) {
-                    LOGGER.info("authorization(loginId)");
                     DrugEnterpriseResult result = queryPrescription(recipe.getRecipeCode(), drugsEnterprise);
                     if (null == result.getObject()) {
                         //说明处方获取失败
@@ -353,13 +343,7 @@ public class DrugDistributionService {
             //支付方式
             updateTakeDrugWayReqTO.setPayMode(recipe.getPayMode().toString());
             LOGGER.info("updateTakeDrugWayReqTO:{}.", JSONUtils.toString(updateTakeDrugWayReqTO));
-            HisResponseTO hisResult = null;
-            try{
-                hisResult = service.updateTakeDrugWay(updateTakeDrugWayReqTO);
-            }catch (Exception e){
-                LOGGER.info("error : {}.", e.getMessage());
-            }
-
+            HisResponseTO hisResult = service.updateTakeDrugWay(updateTakeDrugWayReqTO);
             //更新平台处方
             recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("giveMode", request.getType(), "chooseFlag", 1));
 
@@ -370,7 +354,6 @@ public class DrugDistributionService {
     }
 
     private void getMedicalMsg(PurchaseResponse response, Recipe recipe) {
-        LOGGER.info("查找标志了");
         if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus()) {
             Integer consultId = recipe.getClinicId();
             Integer medicalFlag = 0;
