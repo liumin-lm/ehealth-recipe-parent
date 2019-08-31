@@ -416,7 +416,7 @@ public class DrugDistributionService {
     }
 
     @RpcService
-    public void updatehisdrug(Integer recipeId,String deliveryType){
+    public void updatehisdrug(Integer recipeId,String deliveryType) throws Exception{
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
