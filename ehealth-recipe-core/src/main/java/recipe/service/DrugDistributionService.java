@@ -242,7 +242,6 @@ public class DrugDistributionService {
                 return response;
             }
             deliveryType = "0";
-            getMedicalMsg(response, recipe);
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(request.getRecipeId());
             if (!"HdVirtualdyf".equals(drugsEnterprise.getAccount())) {
@@ -255,7 +254,7 @@ public class DrugDistributionService {
             }
             //说明处方没有其他途径购买的情况
             if (1 == recipe.getChooseFlag() && RecipeBussConstant.GIVEMODE_TO_HOS == recipe.getGiveMode()) {
-                if (!"HdVirtualdyf".equals(drugsEnterprise.getAccount())) {
+                if ("HdVirtualdyf".equals(drugsEnterprise.getAccount())) {
                     getMedicalMsg(response, recipe);
                 } else {
                     response.setMsg("请携带就诊卡 " + recipeExtend.getCardNo());
@@ -289,12 +288,16 @@ public class DrugDistributionService {
                         return response;
                     }
                 }else{
-                    //该处方未推送到药企，可以到院取药
-                    response.setMsg("请携带就诊卡 " + recipeExtend.getCardNo());
-                    response.setCode(CommonConstant.SUCCESS);
+                    if (!"HdVirtualdyf".equals(drugsEnterprise.getAccount())) {
+                        //该处方未推送到药企，可以到院取药
+                        response.setMsg("请携带就诊卡 " + recipeExtend.getCardNo());
+                        response.setCode(CommonConstant.SUCCESS);
+                    } else {
+                        getMedicalMsg(response, recipe);
+                    }
+
                 }
             }
-
         }
         LOGGER.info("response:{}.", JSONUtils.toString(response));
         //取药方式进行HIS推送
@@ -341,8 +344,13 @@ public class DrugDistributionService {
             //支付状态-这里默认未支付
             updateTakeDrugWayReqTO.setPayFlag(0);
             //支付方式
-            updateTakeDrugWayReqTO.setPayMode(recipe.getPayMode().toString());
-            LOGGER.info("updateTakeDrugWayReqTO:{}.", JSONUtils.toString(updateTakeDrugWayReqTO));
+            if ("0".equals(deliveryType)) {
+                updateTakeDrugWayReqTO.setPayMode(RecipeBussConstant.PAYMODE_TO_HOS.toString());
+            } else if ("1".equals(deliveryType)) {
+                updateTakeDrugWayReqTO.setPayMode(RecipeBussConstant.PAYMODE_ONLINE.toString());
+            } else {
+                updateTakeDrugWayReqTO.setPayMode(RecipeBussConstant.PAYMODE_TFDS.toString());
+            }
             HisResponseTO hisResult = service.updateTakeDrugWay(updateTakeDrugWayReqTO);
             //更新平台处方
             recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("giveMode", request.getType(), "chooseFlag", 1));
@@ -366,20 +374,21 @@ public class DrugDistributionService {
             }
             RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
             OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+            String tips = "请到医院支付取药";
             if (RecipeExtendConstant.MEDICAL_FALG_YES == medicalFlag) {
-                OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
-                List<Recipedetail> detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
-                StringBuilder sb = new StringBuilder("您是医保病人，请到医院支付取药");
-                if(CollectionUtils.isNotEmpty(detailList)){
-                    String pharmNo = detailList.get(0).getPharmNo();
-                    if(StringUtils.isNotEmpty(pharmNo)){
-                        sb.append("医院取药窗口取药：["+ organDTO.getName() + "" + pharmNo + "取药窗口]");
-                    }else {
-                        sb.append("医院取药窗口取药：["+ organDTO.getName() + "取药窗口]");
-                    }
-                }
-                response.setMsg(sb.toString());
+                tips = "您是医保病人，" + tips;
             }
+            OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
+            List<Recipedetail> detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
+            if(CollectionUtils.isNotEmpty(detailList)){
+                String pharmNo = detailList.get(0).getPharmNo();
+                if(StringUtils.isNotEmpty(pharmNo)){
+                    tips += "医院取药窗口取药：["+ organDTO.getName() + "" + pharmNo + "取药窗口]";
+                }else {
+                    tips += "医院取药窗口取药：["+ organDTO.getName() + "取药窗口]";
+                }
+            }
+            response.setMsg(tips);
         }
     }
 
