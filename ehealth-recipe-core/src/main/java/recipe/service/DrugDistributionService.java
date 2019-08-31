@@ -379,7 +379,7 @@ public class DrugDistributionService {
                 tips = "<b>您是医保病人，请到医院支付取药</b><br>医院取药窗口取药：";
             } else {
                 //tips = "请到医院支付取药，医院取药窗口：";
-                tips = "<b>您是医保病人，请到医院支付取药</b>  医院取药窗口取药：";
+                tips = "<b>您是医保病人，请到医院支付取药</b>医院取药窗口取药：";
             }
             OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
             List<Recipedetail> detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
