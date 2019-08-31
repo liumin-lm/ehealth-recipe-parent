@@ -2149,8 +2149,8 @@ public class RecipeService extends RecipeBaseService{
                     }
                 }
             }
-            if (RecipeStatusConstant.CHECK_PASS_YS == status) {
-                //说明是可进行医保支付的单子或者是中药或膏方处方
+            if (RecipeStatusConstant.CHECK_PASS_YS == status || RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(dbRecipe.getRecipeMode())) {
+                //说明是可进行医保支付的单子或者是中药或膏方处方 或者是互联网审方前置模式下推送处方
                 RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
                 remoteDrugEnterpriseService.pushSingleRecipeInfo(recipeId);
             }
