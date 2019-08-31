@@ -428,6 +428,7 @@ public class PrescribeService {
                             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
                             attrMap.put("trackingNumber",trackingNo);
                             attrMap.put("logisticsCompany",Integer.valueOf(companyId));
+                            attrMap.put("status",OrderStatusConstant.SENDING);
                             recipeOrderDAO.updateByOrdeCode(orderCode,attrMap);
                         }
                     }
@@ -439,6 +440,12 @@ public class PrescribeService {
                 case RecipeStatusConstant.FINISH:
                     if (StringUtils.isNotEmpty(trackingNo)){
                         //配送完成处理
+                        attrMap.put("chooseFlag", 1);
+                        attrMap.put("payFlag", 1);
+                        //以免进行处方失效前提醒
+                        attrMap.put("remindFlag", 1);
+                        attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_SEND_TO_HOME);
+                        attrMap.put("payMode", RecipeBussConstant.PAYMODE_ONLINE);
                         //日志记录
                         RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), RecipeStatusConstant.FINISH,
                                 "HIS推送状态：配送到家已完成");
@@ -458,6 +465,12 @@ public class PrescribeService {
                         //日志记录
                         RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), RecipeStatusConstant.FINISH,
                                 "HIS推送状态：医院取药已完成");
+                    }
+                    //更新订单状态
+                    String orderCode = dbRecipe.getOrderCode();
+                    if (StringUtils.isNotEmpty(orderCode)){
+                        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+                        recipeOrderDAO.updateByOrdeCode(orderCode,ImmutableMap.of("status",OrderStatusConstant.FINISH));
                     }
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.FINISH, attrMap);
                     result.setCode(HosRecipeResult.SUCCESS);
