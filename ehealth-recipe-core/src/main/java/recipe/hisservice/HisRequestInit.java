@@ -3,10 +3,13 @@ package recipe.hisservice;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.BaseAPI;
 import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
+import com.ngari.bus.hosrelation.model.HosrelationBean;
+import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
@@ -30,6 +33,7 @@ import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
+import recipe.constant.BusTypeEnum;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.RecipeSystemConstant;
@@ -262,6 +266,15 @@ public class HisRequestInit {
         requestTO.setDeptID("");
         requestTO.setRecipeType((null != recipe.getRecipeType()) ? recipe
                 .getRecipeType().toString() : null);
+        //设置挂号序号---如果有
+        if (recipe.getClinicId() != null){
+            IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
+            //挂号记录
+            HosrelationBean hosrelation = hosrelationService.getByBusIdAndBusType(recipe.getClinicId(), BusTypeEnum.CONSULT.getId());
+            if (hosrelation != null && StringUtils.isNotEmpty(hosrelation.getRegisterId())){
+                requestTO.setRegisteredId(hosrelation.getRegisterId());
+            }
+        }
         //科室代码
         AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
         AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
