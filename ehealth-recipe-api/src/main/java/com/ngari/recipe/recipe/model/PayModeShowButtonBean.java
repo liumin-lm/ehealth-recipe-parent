@@ -34,6 +34,8 @@ public class PayModeShowButtonBean implements Serializable{
      */
     private Boolean optional = true;
 
+    private Integer buttonType;
+
     public PayModeShowButtonBean() {
     }
 
@@ -50,7 +52,17 @@ public class PayModeShowButtonBean implements Serializable{
         setSupportOnline(false);
         setSupportTFDS(false);
         setSupportToHos(false);
+        setButtonType(0);
     }
+
+    public Integer getButtonType() {
+        return buttonType;
+    }
+
+    public void setButtonType(Integer buttonType) {
+        this.buttonType = buttonType;
+    }
+
     public Boolean getSupportToHos() {
         return supportToHos;
     }

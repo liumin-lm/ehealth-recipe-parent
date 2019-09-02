@@ -761,7 +761,13 @@ public class RecipeListService extends RecipeBaseService{
         //判断购药按钮是否可选状态的,当审方方式是前置且正在审核中时，不可选
         boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() && RecipeStatusConstant.UNCHECK == recipe.getStatus());
         buttonBean.setOptional(isOptional);
+        buttonBean.setButtonType(getButtonType(record.getRecordType(), record.getStatusCode()));
         return buttonBean;
     }
+    private Integer getButtonType(String recordType, Integer statusCode) {
+        RecipePageButtonStatusEnum buttonStatus = RecipePageButtonStatusEnum.fromRecodeTypeAndRecodeCode(recordType, statusCode);
+        return buttonStatus.getPageButtonStatus();
+    }
+
 
 }
