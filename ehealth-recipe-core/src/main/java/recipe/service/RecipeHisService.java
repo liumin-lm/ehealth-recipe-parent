@@ -10,6 +10,7 @@ import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.recipe.common.RecipeResultBean;
@@ -73,7 +74,7 @@ public class RecipeHisService extends RecipeBaseService {
         if (null == recipe) {
             return false;
         }
-        //中药处方由于不需要跟HIS交互，故读写分离后有可能查询不到数据
+        //中药处方由于不需要跟HIS交互，故读写分离后有可能查询不到数据-----20190911已改造成运营平台可配置
         if (skipHis(recipe)) {
             RecipeCheckPassResult recipeCheckPassResult = new RecipeCheckPassResult();
             recipeCheckPassResult.setRecipeId(recipeId);
@@ -610,18 +611,27 @@ public class RecipeHisService extends RecipeBaseService {
     }
 
     /**
-     * 判断是否需要对接HIS
+     * 判断是否需要对接HIS----根据运营平台配置处方类型是否跳过his
      *
      * @param recipe
      * @return
      */
     private boolean skipHis(Recipe recipe) {
-        if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
-            // 中药，膏方处方目前不需要对接HIS
-            return true;
+        try {
+            IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            Integer[] recipeTypes = (Integer[])configurationCenterUtilsService.getConfiguration(recipe.getClinicOrgan(), "getRecipeTypeToHis");
+            List<Integer> recipeTypelist = Arrays.asList(recipeTypes);
+            if (recipeTypelist.contains(recipe.getRecipeType())) {
+                return false;
+            }
+        }catch (Exception e){
+            LOGGER.error("skipHis error "+ e.getMessage());
+            //按原来流程走-西药中成药默认对接his
+            if (!RecipeUtil.isTcmType(recipe.getRecipeType())) {
+                return false;
+            }
         }
-
-        return false;
+        return true;
     }
 
     /**
