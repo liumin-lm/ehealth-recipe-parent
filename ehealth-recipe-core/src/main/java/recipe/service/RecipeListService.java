@@ -764,6 +764,15 @@ public class RecipeListService extends RecipeBaseService{
         buttonBean.setButtonType(getButtonType(record.getRecordType(), record.getStatusCode()));
         return buttonBean;
     }
+    /**
+     * @method  getButtonType
+     * @description 获取按钮显示类型
+     * @date: 2019/9/2
+     * @author: JRK
+     * @param recordType 患者处方的类型
+     * @param statusCode 患者处方的状态
+     * @return java.lang.Integer 按钮的显示类型
+     */
     private Integer getButtonType(String recordType, Integer statusCode) {
         RecipePageButtonStatusEnum buttonStatus = RecipePageButtonStatusEnum.fromRecodeTypeAndRecodeCode(recordType, statusCode);
         return buttonStatus.getPageButtonStatus();
