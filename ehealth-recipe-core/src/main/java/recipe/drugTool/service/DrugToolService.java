@@ -153,7 +153,8 @@ public class DrugToolService implements IDrugToolService {
     }
 
     @Override
-    public Map<String,Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator) {
+    public synchronized Map<String,Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator) {
+        LOGGER.info(operator + "开始 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         Map<String,Object> result = Maps.newHashMap();
         if (StringUtils.isEmpty(operator)){
             result.put("code",609);
@@ -286,6 +287,7 @@ public class DrugToolService implements IDrugToolService {
             progress = new BigDecimal((float)rowIndex / total).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
             progressMap.put(organId+operator,progress*100);
         }
+        LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         result.put("code",200);
         return result;
     }
