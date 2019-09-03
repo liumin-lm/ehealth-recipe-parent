@@ -10,6 +10,7 @@ import com.ngari.base.operationrecords.model.OperationRecordsBean;
 import com.ngari.base.operationrecords.service.IOperationRecordsService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.service.IPatientService;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.message.model.RecipeTagMsgBean;
@@ -138,6 +139,20 @@ public class RecipeServiceSub {
             }
             recipe.setTotalMoney(totalMoney);
             recipe.setActualPrice(totalMoney);
+        }
+
+        //设置运营平台设置的审方模式
+        //互联网设置了默认值，平台没有设置默认值从运营平台取
+        if (recipe.getReviewType()!=null){
+            try {
+                IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+                Integer reviewType = (Integer)configurationService.getConfiguration(recipe.getClinicOrgan(), "reviewType");
+                recipe.setReviewType(reviewType);
+            }catch (Exception e){
+                LOGGER.error("获取运营平台审方方式配置异常"+e.getMessage());
+                //默认审方后置
+                recipe.setReviewType(RecipeBussConstant.AUDIT_POST);
+            }
         }
 
         //患者数据前面已校验

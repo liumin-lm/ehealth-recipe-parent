@@ -176,6 +176,11 @@ public class RecipeUtil {
         if (null == recipe.getRecipeMode()) {
             recipe.setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);
         }
+
+        //互联网模式默认为审方前置
+        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
+            recipe.setReviewType(RecipeBussConstant.AUDIT_PRE);
+        }
         
         //默认剂数为1
         if (null == recipe.getCopyNum() || recipe.getCopyNum() < 1) {

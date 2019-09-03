@@ -285,6 +285,11 @@
                 <artifactId>top-api-sdk-dev</artifactId>
                 <version>20190301</version>
             </dependency>
+            <dependency>
+                <groupId>org.reflections</groupId>
+                <artifactId>reflections</artifactId>
+                <version>0.9.10</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <build>
