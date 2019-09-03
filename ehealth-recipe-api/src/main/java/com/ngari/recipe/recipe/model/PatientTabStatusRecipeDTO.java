@@ -1,5 +1,6 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
@@ -72,7 +73,33 @@ public class PatientTabStatusRecipeDTO implements Serializable {
      */
     private PayModeShowButtonBean buttons;
 
+    /**
+     * 签名通过处方笺文件
+     */
+    private String signFile;
+
+    /**
+     * 审核通过处方笺文件
+     */
+    private String chemistSignFile;
+
     public PatientTabStatusRecipeDTO() {
+    }
+
+    public String getSignFile() {
+        return signFile;
+    }
+
+    public void setSignFile(String signFile) {
+        this.signFile = signFile;
+    }
+
+    public String getChemistSignFile() {
+        return chemistSignFile;
+    }
+
+    public void setChemistSignFile(String chemistSignFile) {
+        this.chemistSignFile = chemistSignFile;
     }
 
     public PayModeShowButtonBean getButtons() {

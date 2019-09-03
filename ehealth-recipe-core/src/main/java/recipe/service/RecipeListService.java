@@ -719,6 +719,9 @@ public class RecipeListService extends RecipeBaseService{
                         }
                     }
                 }
+
+                //添加处方笺文件，获取用户处方信息中的处方id，获取处方笺文件
+                getFile(record);
                 //存入每个页面的按钮信息（展示那种按钮，如果是购药按钮展示哪些按钮）
                 PayModeShowButtonBean buttons = getShowButton(record);
                 record.setButtons(buttons);
@@ -726,6 +729,25 @@ public class RecipeListService extends RecipeBaseService{
         }
 
         return backList;
+    }
+
+    /**
+     * @method  getFile
+     * @description 获取处方笺文件信息
+     * @date: 2019/9/3
+     * @author: JRK
+     * @param record 患者处方信息
+     * @return void
+     */
+    private void getFile(PatientTabStatusRecipeDTO record) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.get(0 == record.getRecipeId() ? record.getRecordId() : record.getRecipeId());
+        if(null == recipe){
+            LOGGER.warn("processTabListDate: recipeId:{},对应处方信息不存在,", record.getRecipeId());
+        }else{
+            record.setChemistSignFile(recipe.getChemistSignFile());
+            record.setSignFile(recipe.getSignFile());
+        }
     }
 
     /**
