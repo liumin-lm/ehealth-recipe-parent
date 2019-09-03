@@ -619,9 +619,9 @@ public class RecipeHisService extends RecipeBaseService {
     private boolean skipHis(Recipe recipe) {
         try {
             IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            Integer[] recipeTypes = (Integer[])configurationCenterUtilsService.getConfiguration(recipe.getClinicOrgan(), "getRecipeTypeToHis");
-            List<Integer> recipeTypelist = Arrays.asList(recipeTypes);
-            if (recipeTypelist.contains(recipe.getRecipeType())) {
+            String[] recipeTypes = (String[])configurationCenterUtilsService.getConfiguration(recipe.getClinicOrgan(), "getRecipeTypeToHis");
+            List<String> recipeTypelist = Arrays.asList(recipeTypes);
+            if (recipeTypelist.contains(Integer.toString(recipe.getRecipeType()))) {
                 return false;
             }
         }catch (Exception e){
