@@ -18,7 +18,11 @@ public enum RecipePageButtonStatusEnum {
     /**
      * 查看物流
      */
-    To_Send("2", OrderStatusConstant.SENDING, 2);
+    To_Send("2", OrderStatusConstant.SENDING, 2),
+    /**
+     * 不展示
+     */
+    No_Show("-1", -1, 3);
 
     private String recodeType;
 
@@ -38,7 +42,7 @@ public enum RecipePageButtonStatusEnum {
                 return e;
             }
         }
-        return To_Be_Pend;
+        return No_Show;
     }
 
     public String getRecodeType() {
