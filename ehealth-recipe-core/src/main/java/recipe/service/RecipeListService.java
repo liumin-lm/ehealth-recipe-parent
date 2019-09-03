@@ -222,7 +222,7 @@ public class RecipeListService extends RecipeBaseService{
     /**
      * 处理列表数据
      *
-     * @param backList
+     * @param list
      * @param allMpiIds
      */
     private List<PatientRecipeDTO> processListDate(List<PatientRecipeBean> list, List<String> allMpiIds) {
@@ -738,32 +738,83 @@ public class RecipeListService extends RecipeBaseService{
      * 医院下购药方式展示的按钮对象
      */
     private PayModeShowButtonBean getShowButton(PatientTabStatusRecipeDTO record) {
-        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-        //添加按钮配置项key
-        if(null == configService.getConfiguration(record.getOrganId(), "payModeDeploy")){
-            PayModeShowButtonBean payModeShowButtonBean = new PayModeShowButtonBean();
-            payModeShowButtonBean.noUserButtons();
-            return payModeShowButtonBean;
-        }
-        List<String> configurations = new ArrayList<>(Arrays.asList((String[])configService.getConfiguration(record.getOrganId(), "payModeDeploy")));
-        //将购药方式的显示map对象转化为页面展示的对象
-        Map<String, Boolean> buttonMap = new HashMap<>();
-        for (String configuration : configurations) {
-            buttonMap.put(configuration, true);
-        }
-        PayModeShowButtonBean buttonBean = JSONUtils.parse(JSON.toJSONString(buttonMap), PayModeShowButtonBean.class);
-        //当审方为前置并且审核没有通过，设置成不可选择
+        PayModeShowButtonBean payModeShowButtonBean = new PayModeShowButtonBean();
+
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.get(0 == record.getRecipeId() ? record.getRecordId() : record.getRecipeId());
         if(null == recipe){
             LOGGER.warn("processTabListDate: recipeId:{},对应处方信息不存在,", record.getRecipeId());
+            payModeShowButtonBean.noUserButtons();
+            return payModeShowButtonBean;
         }
-        //判断购药按钮是否可选状态的,当审方方式是前置且正在审核中时，不可选
-        boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() && RecipeStatusConstant.UNCHECK == recipe.getStatus());
-        buttonBean.setOptional(isOptional);
-        buttonBean.setButtonType(getButtonType(record.getRecordType(), record.getStatusCode()));
-        return buttonBean;
+        if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(record.getRecipeMode())){
+            //初始化平台按钮信息
+            payModeShowButtonBean.platformModeButtons();
+
+            IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+            //添加按钮配置项key
+            if(null == configService.getConfiguration(record.getOrganId(), "payModeDeploy")){
+                payModeShowButtonBean.noUserButtons();
+                return payModeShowButtonBean;
+            }
+            List<String> configurations = new ArrayList<>(Arrays.asList((String[])configService.getConfiguration(record.getOrganId(), "payModeDeploy")));
+            //将购药方式的显示map对象转化为页面展示的对象
+            Map<String, Boolean> buttonMap = new HashMap<>();
+            for (String configuration : configurations) {
+                buttonMap.put(configuration, true);
+            }
+            payModeShowButtonBean = JSONUtils.parse(JSON.toJSONString(buttonMap), PayModeShowButtonBean.class);
+            //当审方为前置并且审核没有通过，设置成不可选择
+
+            //判断购药按钮是否可选状态的,当审方方式是前置且正在审核中时，不可选
+            boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() && RecipeStatusConstant.UNCHECK == recipe.getStatus());
+            payModeShowButtonBean.setOptional(isOptional);
+
+        }else if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(record.getRecipeMode())){
+            //初始化互联网按钮信息
+            initInternetModel(record, payModeShowButtonBean, recipe);
+
+        }else{
+            LOGGER.warn("processTabListDate: recipeId:{}recipeMode:{},对应处方流转方式无法识别", record.getRecipeId(), record.getRecipeMode());
+            payModeShowButtonBean.noUserButtons();
+            return payModeShowButtonBean;
+        }
+
+        //设置按钮的展示类型
+        payModeShowButtonBean.setButtonType(getButtonType(record.getRecordType(), record.getStatusCode()));
+        return payModeShowButtonBean;
     }
+
+    /**
+     * @method  initInternetModel
+     * @description 初始化互联网模式的按钮信息
+     * @date: 2019/9/3
+     * @author: JRK
+     * @param record 患者处方信息
+     * @param payModeShowButtonBean 按钮信息
+     * @param recipe 处方信息
+     * @return void
+     */
+    private void initInternetModel(PatientTabStatusRecipeDTO record, PayModeShowButtonBean payModeShowButtonBean, Recipe recipe) {
+        //互联网方式的初始化
+        payModeShowButtonBean.internetModelButtons();
+
+        //互联网购药方式的配置
+        if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(record.getRecipeMode())){
+            //设置购药方式哪些可用
+            //配送到家默认可用
+            payModeShowButtonBean.setGivemode_send(true);
+            //到店取药默认不可用
+            payModeShowButtonBean.setGivemode_tfds(false);
+            //医院取药需要看数据
+            boolean hosFlag = true;
+            if(1 == recipe.getDistributionFlag()){
+                hosFlag = false;
+            }
+            payModeShowButtonBean.setGivemode_hos(hosFlag);
+        }
+    }
+
     /**
      * @method  getButtonType
      * @description 获取按钮显示类型
@@ -777,6 +828,5 @@ public class RecipeListService extends RecipeBaseService{
         RecipePageButtonStatusEnum buttonStatus = RecipePageButtonStatusEnum.fromRecodeTypeAndRecodeCode(recordType, statusCode);
         return buttonStatus.getPageButtonStatus();
     }
-
 
 }
