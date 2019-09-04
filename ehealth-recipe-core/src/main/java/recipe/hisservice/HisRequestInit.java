@@ -283,6 +283,8 @@ public class HisRequestInit {
         requestTO.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
         //医生名字
         requestTO.setDoctorName(recipe.getDoctorName());
+        //处方金额
+        requestTO.setSelfPayingFee(recipe.getActualPrice());
         if (null != patient) {
             // 患者信息
             String idCard = patient.getCertificate();
