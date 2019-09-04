@@ -55,7 +55,7 @@ public class PurchaseService {
 
 
     /**
-     * 获取可用购药方式
+     * 获取可用购药方式------------已废弃---已改造成从处方单详情里获取
      * @param recipeId 处方单ID
      * @param mpiId    患者mpiId
      * @return

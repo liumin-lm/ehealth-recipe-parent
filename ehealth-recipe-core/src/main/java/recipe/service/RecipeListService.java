@@ -574,7 +574,11 @@ public class RecipeListService extends RecipeBaseService{
                 map.put("memo",recipe.getMemo());
                 switch (recipe.getStatus()){
                     case RecipeStatusConstant.CHECK_PASS:
-                        map.put("statusText","请尽快去医院药房窗口取药");
+                        if (StringUtils.isNotEmpty(recipedetails.get(0).getPharmNo())){
+                            map.put("statusText","药师审核处方通过，请去医院取药窗口取药:["+recipedetails.get(0).getPharmNo()+"]");
+                        }else {
+                            map.put("statusText","药师审核处方通过，请去医院取药窗口取药");
+                        }
                         break;
                     case RecipeStatusConstant.NO_DRUG:
                     case RecipeStatusConstant.NO_OPERATOR:
@@ -585,6 +589,12 @@ public class RecipeListService extends RecipeBaseService{
                         break;
                     case RecipeStatusConstant.FINISH:
                         map.put("statusText","已完成");
+                        break;
+                    case RecipeStatusConstant.READY_CHECK_YS:
+                        map.put("statusText","等待药师审核处方");
+                        break;
+                    case RecipeStatusConstant.CHECK_NOT_PASS_YS:
+                        map.put("statusText","药师审核处方不通过，请联系开方医生");
                         break;
                     default:
                         map.put("statusText",DictionaryController.instance().get("eh.cdr.dictionary.RecipeStatus").getText(recipe.getStatus()));
