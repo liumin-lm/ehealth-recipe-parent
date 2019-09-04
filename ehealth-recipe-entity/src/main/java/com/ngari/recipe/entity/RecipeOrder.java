@@ -170,6 +170,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "审核费")
     private BigDecimal auditFee;
 
+    @ItemProperty(alias = "其余费用")
+    private BigDecimal otherFee;
+
     @ItemProperty(alias = "机构代煎单价")
     private BigDecimal decoctionUnitPrice;
 
@@ -214,15 +217,7 @@ public class RecipeOrder implements Serializable {
         this.setCreateTime(now);
         this.setLastModifyTime(now);
         this.setAuditFee(zero);
-    }
-
-    @Column(name = "AuditFee")
-    public BigDecimal getAuditFee() {
-        return auditFee;
-    }
-
-    public void setAuditFee(BigDecimal auditFee) {
-        this.auditFee = auditFee;
+        this.setOtherFee(zero);
     }
 
     @Id
@@ -342,6 +337,24 @@ public class RecipeOrder implements Serializable {
 
     public void setExpressFee(BigDecimal expressFee) {
         this.expressFee = expressFee;
+    }
+
+    @Column(name = "AuditFee")
+    public BigDecimal getAuditFee() {
+        return auditFee;
+    }
+
+    public void setAuditFee(BigDecimal auditFee) {
+        this.auditFee = auditFee;
+    }
+
+    @Column(name = "OtherFee")
+    public BigDecimal getOtherFee() {
+        return otherFee;
+    }
+
+    public void setOtherFee(BigDecimal otherFee) {
+        this.otherFee = otherFee;
     }
 
     @Column(name = "RecipeFee")

@@ -63,6 +63,12 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "配送费")
     private BigDecimal expressFee;
 
+    @ItemProperty(alias = "审核费")
+    private BigDecimal auditFee;
+
+    @ItemProperty(alias = "其余费用")
+    private BigDecimal otherFee;
+
     @ItemProperty(alias = "处方总费用")
     private BigDecimal recipeFee;
 
@@ -189,7 +195,8 @@ public class RecipeOrderBean implements Serializable {
         this.setPushFlag(0);
         Date now = Calendar.getInstance().getTime();
         this.setCreateTime(now);
-        this.setLastModifyTime(now);
+        this.setAuditFee(zero);
+        this.setOtherFee(zero);
     }
 
     public Integer getOrderId() {
@@ -302,6 +309,22 @@ public class RecipeOrderBean implements Serializable {
 
     public void setExpressFee(BigDecimal expressFee) {
         this.expressFee = expressFee;
+    }
+
+    public BigDecimal getAuditFee() {
+        return auditFee;
+    }
+
+    public void setAuditFee(BigDecimal auditFee) {
+        this.auditFee = auditFee;
+    }
+
+    public BigDecimal getOtherFee() {
+        return otherFee;
+    }
+
+    public void setOtherFee(BigDecimal otherFee) {
+        this.otherFee = otherFee;
     }
 
     public BigDecimal getRecipeFee() {

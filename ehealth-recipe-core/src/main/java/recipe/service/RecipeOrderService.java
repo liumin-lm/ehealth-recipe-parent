@@ -13,6 +13,7 @@ import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.payment.model.DabaiPayResult;
 import com.ngari.base.payment.service.IPaymentService;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.coupon.service.ICouponService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
@@ -106,6 +107,7 @@ public class RecipeOrderService extends RecipeBaseService {
     @RpcService
     public OrderCreateResult createOrder(List<Integer> recipeIds, Map<String, String> extInfo, Integer toDbFlag) {
         LOGGER.info("createOrder param: dbflag={}, ids={}, extInfo={}", toDbFlag, JSONUtils.toString(recipeIds), JSONUtils.toString(extInfo));
+        IConfigurationCenterUtilsService configurationCenterUtilsService = (IConfigurationCenterUtilsService)AppContextHolder.getBean("eh.configurationCenterUtils");
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
         RecipeOrder order = null;
         RecipePayModeSupportBean payModeSupport = null;
@@ -189,6 +191,10 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setExpressFee(BigDecimal.ZERO);
                 order.setTotalFee(BigDecimal.ZERO);
                 order.setActualPrice(BigDecimal.ZERO.doubleValue());
+                double auditFee = Double.parseDouble( configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_AUDITFEE).toString());
+                order.setAuditFee(BigDecimal.valueOf(auditFee));
+                double otherServiceFee = Double.parseDouble(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_OTHERFEE).toString());
+                order.setOtherFee(BigDecimal.valueOf(otherServiceFee));
             }
             if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == toDbFlag) {
                 boolean saveFlag = saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
@@ -364,6 +370,7 @@ public class RecipeOrderService extends RecipeBaseService {
                              List<Recipe> recipeList, RecipePayModeSupportBean payModeSupport,
                              Map<String, String> extInfo, Integer toDbFlag) {
         IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
+        IConfigurationCenterUtilsService configurationCenterUtilsService = (IConfigurationCenterUtilsService)AppContextHolder.getBean("eh.configurationCenterUtils");
         RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
         OrganConfigBean organConfig = iOrganConfigService.get(order.getOrganId());
 
@@ -388,6 +395,13 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setRegisterFee(new BigDecimal(cacheService.getParam(ParameterConstant.KEY_RECIPE_REGISTER_FEE, "0")));
             }
         }
+        //设置审方费用
+        Recipe firstRecipe = recipeList.get(0);
+        double auditFee = Double.parseDouble(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_AUDITFEE).toString());
+        order.setAuditFee(BigDecimal.valueOf(auditFee));
+        //设置其他服务费用
+        double otherServiceFee = Double.parseDouble(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_OTHERFEE).toString());
+        order.setOtherFee(BigDecimal.valueOf(otherServiceFee));
 
         //设置处方总费用
         BigDecimal recipeFee = BigDecimal.ZERO;
@@ -1242,6 +1256,16 @@ public class RecipeOrderService extends RecipeBaseService {
         //代煎费
         if (null != order.getDecoctionFee()) {
             full = full.add(order.getDecoctionFee());
+        }
+
+        //审方费
+        if (null != order.getAuditFee()) {
+            full = full.add(order.getAuditFee());
+        }
+
+        //其他服务费
+        if (null != order.getOtherFee()) {
+            full = full.add(order.getOtherFee());
         }
 
         return full.divide(BigDecimal.ONE, 3, RoundingMode.UP);
