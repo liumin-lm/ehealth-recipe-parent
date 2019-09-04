@@ -263,7 +263,7 @@ public class DrugDistributionService {
                 return response;
             } else {
                 //已授权的情况下需要去系统查询处方使用状态
-                if(authorization(loginId)) {
+                if(authorization(loginId) && "aldyf".equals(drugsEnterprise.getAccount())) {
                     DrugEnterpriseResult result = queryPrescription(recipe.getRecipeCode(), drugsEnterprise);
                     if (null == result.getObject()) {
                         //说明处方获取失败
