@@ -42,6 +42,7 @@ public class AuditPreMode extends AbstractAuidtMode {
         if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
             RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipeId), null, true);
             //向患者推送处方消息
+            //处方通知您有一张处方单需要处理，请及时查看。
             RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS);
             if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)){
                 //同步到互联网监管平台
@@ -59,26 +60,15 @@ public class AuditPreMode extends AbstractAuidtMode {
             return;
         }
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-        String recipeMode = recipe.getRecipeMode();
-        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
-            RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.CHECK_NOT_PASSYS_PAYONLINE);
-        } else {
-            //根据付款方式提示不同消息
-            if (RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) && PayConstant.PAY_FLAG_PAY_SUCCESS == recipe.getPayFlag()) {
-                if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
-                    RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.CHECK_NOT_PASSYS_PAYONLINE);
-                }
-            } else if (RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
-                //货到付款 | 药店取药
-                if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
-                    RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
-                }
-            }
-        }
+        //审方前置发送消息 ----此时还未支付
         if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipe.getFromflag())) {
             //发送审核不成功消息
             //${sendOrgan}：抱歉，您的处方未通过药师审核。如有收取费用，款项将为您退回，预计1-5个工作日到账。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
             RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_CHECKNOTPASS_4HIS, recipe);
+        }else if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())){
+            //发送审核不成功消息
+            //处方审核不通过通知您的处方单审核不通过，如有疑问，请联系开方医生
+            RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
         }
         //HIS消息发送
         //审核不通过 往his更新状态（已取消）

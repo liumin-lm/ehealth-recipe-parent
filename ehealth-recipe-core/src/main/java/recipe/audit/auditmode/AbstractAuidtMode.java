@@ -1,8 +1,10 @@
 package recipe.audit.auditmode;
 
+import com.google.common.collect.ImmutableMap;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.DAOFactory;
+import eh.cdr.constant.OrderStatusConstant;
 import eh.cdr.constant.RecipeStatusConstant;
 import eh.wxpay.constant.PayConstant;
 import recipe.ApplicationUtils;
@@ -12,6 +14,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.RecipeLogService;
+import recipe.service.RecipeOrderService;
 import recipe.service.RecipeServiceSub;
 import recipe.util.MapValueUtil;
 
@@ -44,6 +47,7 @@ public class AbstractAuidtMode implements IAuditMode{
         //默认待处理
         Integer status = RecipeStatusConstant.CHECK_PASS;
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         String giveMode = MapValueUtil.getString(attrMap,"giveMode");
         Integer payMode = MapValueUtil.getInteger(attrMap, "payMode");
         Integer payFlag = MapValueUtil.getInteger(attrMap, "payFlag");
@@ -65,12 +69,10 @@ public class AbstractAuidtMode implements IAuditMode{
                         memo = "医保支付成功，发送药企处方";
                     }
                 } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode)) {
-                    //收到userConfirm通知
-                    memo = "配送到家-货到付款成功";
+                    memo = "货到付款-待配送";
                 }
             } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode)) {
-                //收到userConfirm通知
-                memo = "药店取药-到店取药成功";
+                memo = "药店取药-待取药";
             }
             //记录日志
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), RecipeStatusConstant.CHECK_PASS, status, memo);
