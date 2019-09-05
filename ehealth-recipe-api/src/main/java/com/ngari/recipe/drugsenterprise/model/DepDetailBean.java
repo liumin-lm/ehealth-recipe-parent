@@ -97,6 +97,9 @@ public class DepDetailBean {
     //距离
     private Double distance;
 
+    //是否跳转第三方
+    private Integer orderType;
+
     public Integer getDepId() {
         return depId;
     }
@@ -255,5 +258,13 @@ public class DepDetailBean {
 
     public void setDistance(Double distance) {
         this.distance = distance;
+    }
+
+    public Integer getOrderType() {
+        return orderType;
+    }
+
+    public void setOrderType(Integer orderType) {
+        this.orderType = orderType;
     }
 }

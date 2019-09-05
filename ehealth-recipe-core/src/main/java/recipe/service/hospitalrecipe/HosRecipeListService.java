@@ -9,7 +9,9 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientExtendService;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.HealthCardDTO;
+import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.HealthCardService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeCommonBaseTO;
@@ -17,6 +19,7 @@ import com.ngari.recipe.common.RecipeStandardResTO;
 import com.ngari.recipe.common.utils.VerifyUtils;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
@@ -184,26 +187,14 @@ public class HosRecipeListService {
         } catch (ValidateException e) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "患者身份证件不正确");
         }
-
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        Integer doctorId = urt.getDoctorId();
+        LOG.info("addPatientForDoctor, isDoctor:{},doctorId:{}", urt.isDoctor(), urt.getDoctorId());
+        request.setDoctorId(doctorId);
         try {
             Map<String, Object> map = setPatientInfo(request);
             patient = (PatientBean)map.get("patient");
-            HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
-            List<HealthCardDTO> healthCardDTOS = healthCardService.findByMpiId(patient.getMpiId());
-            if (CollectionUtils.isEmpty(healthCardDTOS)) {
-                HealthCardDTO healthCardDTO = new HealthCardDTO();
-                healthCardDTO.setMpiId(patient.getMpiId());
-                healthCardDTO.setCardId(request.getCardNo());
-                healthCardDTO.setCardType("1");
-                healthCardDTO.setCardOrgan(1003083);
-                healthCardDTO.setCardStatus(1);
-                healthCardDTO.setInitialCardID(request.getCardNo());
-                healthCardDTO.setCardSource("remote");
-                healthCardDTO.setCreateDate(new Date());
-                if (!healthCardService.saveHealthCardForRecipe(healthCardDTO)){
-                    LOG.warn("addPatientForDoctor 就诊卡保存失败,healthCardDTO:{}.", JSONUtils.toString(healthCardDTO));
-                }
-            }
+            saveHealthCardForOrgan(request, patient, doctorId);
         } catch (Exception e) {
             LOG.warn("addPatientForDoctor 处理就诊人异常，doctorId={}",
                     request.getDoctorId(), e);
@@ -215,6 +206,33 @@ public class HosRecipeListService {
             }
         }
         return patient;
+    }
+
+    /**
+     * 保存健康卡信息
+     * @param request   链接请求参数
+     * @param patient   患者信息
+     * @param doctorId  医生ID
+     */
+    private void saveHealthCardForOrgan(HosRecipeListRequest request, PatientBean patient, Integer doctorId) {
+        HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
+        List<HealthCardDTO> healthCardDTOS = healthCardService.findByMpiId(patient.getMpiId());
+        DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
+        DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
+        if (CollectionUtils.isEmpty(healthCardDTOS)) {
+            HealthCardDTO healthCardDTO = new HealthCardDTO();
+            healthCardDTO.setMpiId(patient.getMpiId());
+            healthCardDTO.setCardId(request.getCardNo());
+            healthCardDTO.setCardType("1");
+            healthCardDTO.setCardOrgan(doctorDTO.getOrgan());
+            healthCardDTO.setCardStatus(1);
+            healthCardDTO.setInitialCardID(request.getCardNo());
+            healthCardDTO.setCardSource("remote");
+            healthCardDTO.setCreateDate(new Date());
+            if (!healthCardService.saveHealthCardForRecipe(healthCardDTO)){
+                LOG.warn("addPatientForDoctor 就诊卡保存失败,healthCardDTO:{}.", JSONUtils.toString(healthCardDTO));
+            }
+        }
     }
 
     private void validate(HosRecipeListRequest request){

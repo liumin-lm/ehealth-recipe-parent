@@ -20,6 +20,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
@@ -49,6 +50,7 @@ import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.mq.RecipeStatusFromHisObserver;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
@@ -422,5 +424,14 @@ public class RecipePreserveService {
     public void uploadRegulationAuditData(Integer recipeId){
         //手动推送处方到监管平台（江苏）
         RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipeId,2));
+    }
+
+    /**
+     * 手动接收从HIS发来的处方状态变更消息
+     */
+    @RpcService
+    public void testRecipeStatusFromHisObserver(NoticeNgariRecipeInfoReq req){
+        RecipeStatusFromHisObserver observer = new RecipeStatusFromHisObserver();
+        observer.onMessage(req);
     }
 }

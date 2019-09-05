@@ -68,6 +68,9 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "院内补充库存 0:非补充，1：补充库存")
     private Integer hosInteriorSupport;
 
+    @ItemProperty(alias = "提交订单的类型0 提交订单到第三方 1 系统提交")
+    private Integer orderType;
+
     @ItemProperty(alias = "状态标识")
     private Integer status;
 
@@ -209,6 +212,15 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setHosInteriorSupport(Integer hosInteriorSupport) {
         this.hosInteriorSupport = hosInteriorSupport;
+    }
+
+    @Column(name = "orderType")
+    public Integer getOrderType() {
+        return orderType;
+    }
+
+    public void setOrderType(Integer orderType) {
+        this.orderType = orderType;
     }
 
     @Column(name = "Status")

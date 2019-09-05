@@ -65,7 +65,7 @@ public class PayModeOnline implements IPurchaseService {
             resultBean.setMsg("配送模式配置有误");
             return resultBean;
         }
-
+        LOG.info("drugsEnterpriseList organId:{}, payModeSupport:{}", dbRecipe.getClinicOrgan(), payModeSupport);
         //筛选出来的数据已经去掉不支持任何方式配送的药企
         List<DrugsEnterprise> drugsEnterpriseList =
                 drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(dbRecipe.getClinicOrgan(), payModeSupport);
@@ -109,6 +109,7 @@ public class PayModeOnline implements IPurchaseService {
             depDetailBean.setDepName(dep.getName());
             depDetailBean.setRecipeFee(dbRecipe.getTotalMoney());
             depDetailBean.setBelongDepName(dep.getName());
+            depDetailBean.setOrderType(dep.getOrderType());
             depDetailBean.setPayModeText("在线支付");
 
             //如果是价格自定义的药企，则需要设置单独价格

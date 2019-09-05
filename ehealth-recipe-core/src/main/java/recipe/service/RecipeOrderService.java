@@ -290,7 +290,6 @@ public class RecipeOrderService extends RecipeBaseService {
                     needDelList.add(recipe);
                     continue;
                 }
-
                 Integer depId = recipeService.supportDistributionExt(recipe.getRecipeId(), recipe.getClinicOrgan(),
                         order.getEnterpriseId(), payMode);
                 if (null == depId) {

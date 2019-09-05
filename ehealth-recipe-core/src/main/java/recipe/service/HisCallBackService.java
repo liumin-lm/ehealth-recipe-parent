@@ -168,7 +168,7 @@ public class HisCallBackService {
                         detailAttrMap.put("drugCost", drugCost);
                         //因为从HIS返回回来的数据不是很全，所以要从DB获取一次
                         Recipedetail recipedetail = detailDAO.getByRecipeDetailId(detail.getRecipeDetailId());
-                        if (null != recipedetail.getUseTotalDose()) {
+                        if (recipedetail != null && null != recipedetail.getUseTotalDose()) {
                             BigDecimal salePrice = drugCost.divide(new BigDecimal(recipedetail.getUseTotalDose()), 2, RoundingMode.UP);
                             detailAttrMap.put("salePrice", salePrice);
                             priceMap.put(recipedetail.getDrugId(), salePrice);

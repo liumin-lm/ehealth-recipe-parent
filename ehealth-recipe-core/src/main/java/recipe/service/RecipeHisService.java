@@ -5,17 +5,25 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.BaseAPI;
 import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
+import com.ngari.bus.hosrelation.model.HosrelationBean;
+import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.*;
+import com.ngari.patient.dto.DepartmentDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.DepartmentService;
+import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -32,15 +40,20 @@ import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bean.RecipeCheckPassResult;
 import recipe.bussutil.RecipeUtil;
+import recipe.bussutil.UsePathwaysFilter;
+import recipe.bussutil.UsingRateFilter;
+import recipe.constant.BusTypeEnum;
 import recipe.constant.CacheConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
+import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.bean.DrugInfoHisBean;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisService;
+import recipe.util.DateConversion;
 import recipe.util.RedisClient;
 
 import java.util.*;
@@ -633,5 +646,120 @@ public class RecipeHisService extends RecipeBaseService {
     private boolean isHisEnable(Integer sendOrganId) {
         IHisConfigService iHisConfigService = ApplicationUtils.getBaseService(IHisConfigService.class);
         return iHisConfigService.isHisEnable(sendOrganId);
+    }
+
+    public boolean hisRecipeCheck(Map<String, Object> rMap, RecipeBean recipeBean) {
+        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        List<Recipedetail> details = detailDAO.findByRecipeId(recipeBean.getRecipeId());
+
+        HisCheckRecipeReqTO hisCheckRecipeReqTO = new HisCheckRecipeReqTO();
+        OrganService organService = BasicAPI.getService(OrganService.class);
+        DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
+        hisCheckRecipeReqTO.setClinicOrgan(recipeBean.getClinicOrgan());
+        hisCheckRecipeReqTO.setOrganID(organService.getOrganizeCodeByOrganId(recipeBean.getClinicOrgan()));
+        if (recipeBean.getClinicId() != null){
+            hisCheckRecipeReqTO.setClinicID(recipeBean.getClinicId().toString());
+            IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
+            //挂号记录
+            HosrelationBean hosrelation = hosrelationService.getByBusIdAndBusType(recipeBean.getClinicId(), BusTypeEnum.CONSULT.getId());
+            if (hosrelation != null && StringUtils.isNotEmpty(hosrelation.getRegisterId())){
+                hisCheckRecipeReqTO.setClinicID(hosrelation.getRegisterId());
+            }
+        }
+        hisCheckRecipeReqTO.setRecipeID(recipeBean.getRecipeCode());
+        IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+        PatientBean patientBean = iPatientService.get(recipeBean.getMpiid());
+        if (null != patientBean) {
+            //身份证
+            hisCheckRecipeReqTO.setCertID(patientBean.getIdcard());
+            //患者名
+            hisCheckRecipeReqTO.setPatientName(patientBean.getPatientName());
+            //患者性别
+            hisCheckRecipeReqTO.setPatientSex(patientBean.getPatientSex());
+            //病人类型
+        }
+        //医生工号
+        IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
+        if (recipeBean.getDoctor() != null){
+            String jobNumber = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipeBean.getDoctor(), recipeBean.getClinicOrgan(), recipeBean.getDepart());
+            hisCheckRecipeReqTO.setDoctorID(jobNumber);
+        }
+        //处方数量
+        hisCheckRecipeReqTO.setRecipeNum("1");
+        //诊断代码
+        hisCheckRecipeReqTO.setIcdCode(RecipeUtil.getCode(recipeBean.getOrganDiseaseId()));
+        //诊断名称
+        hisCheckRecipeReqTO.setIcdName(RecipeUtil.getCode(recipeBean.getOrganDiseaseName()));
+        //科室代码---行政科室代码
+        DepartmentDTO departmentDTO = departmentService.getById(recipeBean.getDepart());
+        if (departmentDTO!=null){
+            hisCheckRecipeReqTO.setDeptCode(departmentDTO.getCode());
+        }
+        //开单时间
+        hisCheckRecipeReqTO.setRecipeDate(DateConversion.formatDateTimeWithSec(recipeBean.getSignDate()));
+        //处方类别
+        hisCheckRecipeReqTO.setRecipeType(String.valueOf(recipeBean.getRecipeType()));
+        //处方金额
+        hisCheckRecipeReqTO.setRecipePrice(recipeBean.getTotalMoney());
+        //orderList
+        List<RecipeOrderItemTO> list = Lists.newArrayList();
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        if (null != details && !details.isEmpty()) {
+            for (Recipedetail detail : details) {
+                RecipeOrderItemTO item = new RecipeOrderItemTO();
+                item.setDosage((null != detail.getUseDose()) ? Double
+                        .toString(detail.getUseDose()) : null);
+                item.setDrcode(detail.getOrganDrugCode());
+                item.setDrname(detail.getDrugName());
+                item.setDrugManf(drugListDAO.getById(detail.getDrugId()).getProducer());
+                //频次
+                item.setFrequency(UsingRateFilter.filterNgari(recipeBean.getClinicOrgan(),detail.getUsingRate()));
+                //用法
+                item.setAdmission(UsePathwaysFilter.filterNgari(recipeBean.getClinicOrgan(),detail.getUsePathways()));
+                //用药天数
+                item.setUseDays(Integer.toString(detail.getUseDays()));
+                //剂量单位
+                item.setDrunit(detail.getUseDoseUnit());
+                // 开药数量
+                item.setTotalDose((null != detail.getUseTotalDose()) ? Double
+                        .toString(detail.getUseTotalDose()) : null);
+                //药品单位
+                item.setUnit(detail.getDrugUnit());
+                //药品规格
+                item.setDrModel(detail.getDrugSpec());
+                //药品包装
+                item.setPack(String.valueOf(detail.getPack()));
+                //药品包装单位
+                item.setPackUnit(detail.getDrugUnit());
+                list.add(item);
+            }
+            hisCheckRecipeReqTO.setOrderList(list);
+        }
+
+        RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+        HisResponseTO hisResult = service.hisCheckRecipe(hisCheckRecipeReqTO);
+        LOGGER.info("hisRecipeCheck request={} result={}", JSONUtils.toString(hisCheckRecipeReqTO),JSONUtils.toString(hisResult));
+        if (hisResult==null){
+            rMap.put("signResult", false);
+            rMap.put("errorFlag",true);
+            rMap.put("errorMsg", "his返回结果null");
+            return false;
+        }
+        if ("200".equals(hisResult.getMsgCode())){
+            Map<String,String> map = (Map<String,String>)hisResult.getData();
+            if ("0".equals(map.get("checkResult"))){
+                rMap.put("signResult", false);
+                rMap.put("errorFlag",true);
+                rMap.put("errorMsg", map.get("resultMark"));
+            }else {
+                return "1".equals(map.get("checkResult"));
+
+            }
+        }else {
+            rMap.put("signResult", false);
+            rMap.put("errorFlag",true);
+            rMap.put("errorMsg",hisResult.getMsg());
+        }
+        return false;
     }
 }

@@ -258,7 +258,7 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
 
     @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override

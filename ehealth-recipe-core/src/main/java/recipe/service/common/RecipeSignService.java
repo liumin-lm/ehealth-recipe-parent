@@ -12,8 +12,10 @@ import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.his.recipe.mode.HisCheckRecipeReqTO;
 import com.ngari.his.recipe.mode.RecipeOrderItemTO;
+import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -28,6 +30,7 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -40,6 +43,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
+import recipe.bussutil.RecipeUtil;
+import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
 import recipe.constant.*;
 import recipe.dao.DrugListDAO;
@@ -50,12 +55,10 @@ import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.hisservice.RecipeToHisService;
 import recipe.service.*;
+import recipe.thread.PushRecipeToHisCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.SaveAutoReviewRunable;
-import recipe.util.DigestUtil;
-import recipe.util.MapValueUtil;
-import recipe.util.RedisClient;
-import recipe.util.RegexUtils;
+import recipe.util.*;
 
 import java.util.Calendar;
 import java.util.List;
@@ -357,7 +360,8 @@ public class RecipeSignService {
         //判断机构是否需要his处方检查
         Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_HIS_CHECK_LIST);
         if(CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(recipeBean.getClinicOrgan().toString())){
-            boolean b = hisRecipeCheck(rMap, recipeBean);
+            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+            boolean b = hisService.hisRecipeCheck(rMap, recipeBean);
             if (!b){
                 return rMap;
             }
@@ -370,9 +374,8 @@ public class RecipeSignService {
         rMap.put("errorFlag", false);
 
         //发送HIS处方开具消息
-        RecipeToHisMqService hisMqService = ApplicationUtils.getRecipeService(RecipeToHisMqService.class);
-        hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipeBean,
-                HisBussConstant.TOHIS_RECIPE_STATUS_ADD));
+        sendRecipeToHIS(recipeBean);
+        //处方开完后发送聊天界面消息 -医院确认中
         if(null != consultId){
             try {
                 IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
@@ -386,86 +389,19 @@ public class RecipeSignService {
         return rMap;
     }
 
-    private boolean hisRecipeCheck(Map<String, Object> rMap, RecipeBean recipeBean) {
-        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        List<Recipedetail> details = detailDAO.findByRecipeId(recipeBean.getRecipeId());
-
-        HisCheckRecipeReqTO hisCheckRecipeReqTO = new HisCheckRecipeReqTO();
-        OrganService organService = BasicAPI.getService(OrganService.class);
-        hisCheckRecipeReqTO.setClinicOrgan(recipeBean.getClinicOrgan());
-        hisCheckRecipeReqTO.setOrganID(organService.getOrganizeCodeByOrganId(recipeBean.getClinicOrgan()));
-        if (recipeBean.getClinicId() != null){
-            hisCheckRecipeReqTO.setClinicID(recipeBean.getClinicId().toString());
-        }
-        hisCheckRecipeReqTO.setRecipeID(recipeBean.getRecipeCode());
-        IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
-        PatientBean patientBean = iPatientService.get(recipeBean.getMpiid());
-        if (null != patientBean) {
-            //身份证
-            hisCheckRecipeReqTO.setCertID(patientBean.getIdcard());
-            //患者名
-            hisCheckRecipeReqTO.setPatientName(patientBean.getPatientName());
-            //患者性别
-            hisCheckRecipeReqTO.setPatientSex(patientBean.getPatientSex());
-            //病人类型
-        }
-        //医生工号
-        IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
-        if (recipeBean.getDoctor() != null){
-            String jobNumber = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipeBean.getDoctor(), recipeBean.getClinicOrgan(), recipeBean.getDepart());
-            hisCheckRecipeReqTO.setDoctorID(jobNumber);
-        }
-        //处方数量
-        hisCheckRecipeReqTO.setRecipeNum("1");
-        //orderList
-        List<RecipeOrderItemTO> list = Lists.newArrayList();
-        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-        if (null != details && !details.isEmpty()) {
-            for (Recipedetail detail : details) {
-                RecipeOrderItemTO item = new RecipeOrderItemTO();
-                item.setDosage((null != detail.getUseDose()) ? Double
-                        .toString(detail.getUseDose()) : null);
-                item.setDrcode(detail.getOrganDrugCode());
-                item.setDrname(detail.getDrugName());
-                item.setDrugManf(drugListDAO.getById(detail.getDrugId()).getProducer());
-                item.setFrequency(UsingRateFilter.filterNgari(recipeBean.getClinicOrgan(),detail.getUsingRate()));
-                item.setUseDays(Integer.toString(detail.getUseDays()));
-                item.setDrunit(detail.getUseDoseUnit());
-                // 开药数量
-                item.setTotalDose((null != detail.getUseTotalDose()) ? Double
-                        .toString(detail.getUseTotalDose()) : null);
-                //药品单位
-                item.setUnit(detail.getDrugUnit());
-                list.add(item);
-            }
-            hisCheckRecipeReqTO.setOrderList(list);
-        }
-
-        RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-        HisResponseTO hisResult = service.hisCheckRecipe(hisCheckRecipeReqTO);
-        LOG.info("hisRecipeCheck recipeId={} result={}", recipeBean.getRecipeId(),JSONUtils.toString(hisResult));
-        if (hisResult==null){
-            rMap.put("signResult", false);
-            rMap.put("errorFlag",true);
-            rMap.put("errorMsg", "his返回结果null");
-            return false;
-        }
-        if ("200".equals(hisResult.getMsgCode())){
-            Map<String,String> map = (Map<String,String>)hisResult.getData();
-            if ("0".equals(map.get("checkResult"))){
-                rMap.put("signResult", false);
-                rMap.put("errorFlag",true);
-                rMap.put("errorMsg", map.get("resultMark"));
-            }else {
-                return "1".equals(map.get("checkResult"));
-
-            }
+    private void sendRecipeToHIS(RecipeBean recipeBean) {
+        //可通过缓存控制是互联网方式发送处方(his来查)还是平台模式发送处方(平台推送)
+        Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_NGARI_SENDRECIPETOHIS_LIST);
+        if(CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(recipeBean.getClinicOrgan().toString())){
+            //推送处方给his---recipesend
+            RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
         }else {
-            rMap.put("signResult", false);
-            rMap.put("errorFlag",true);
-            rMap.put("errorMsg",hisResult.getMsg());
+            //MQ推送处方开成功消息
+            RecipeToHisMqService hisMqService = ApplicationUtils.getRecipeService(RecipeToHisMqService.class);
+            hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipeBean,
+                    HisBussConstant.TOHIS_RECIPE_STATUS_ADD));
         }
-        return false;
+
     }
 
     /**
@@ -488,9 +424,7 @@ public class RecipeSignService {
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, ImmutableMap.of("distributionFlag", 1));
 
         //发送HIS处方开具消息
-        RecipeToHisMqService hisMqService = ApplicationUtils.getRecipeService(RecipeToHisMqService.class);
-        hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipeBeanDb,
-                HisBussConstant.TOHIS_RECIPE_STATUS_ADD));
+        sendRecipeToHIS(recipeBean);
 
         LOG.info("continueSignAfterCheckFailed execute ok! recipeId={}",recipeId);
         rMap.put("signResult", true);
