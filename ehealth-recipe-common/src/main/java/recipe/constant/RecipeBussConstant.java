@@ -137,15 +137,15 @@ public class RecipeBussConstant {
     /**
      * 审核模式-审方后置
      */
-    public final static Integer AUDIT_POST = 2;
+    public final static int AUDIT_POST = 2;
     /**
      * 审核模式-审方前置
      */
-    public final static Integer AUDIT_PRE = 1;
+    public final static int AUDIT_PRE = 1;
     /**
      * 审核模式-不需要审方
      */
-    public final static Integer NO_AUDIT = 0;
+    public final static int NO_AUDIT = 0;
 
 
 }

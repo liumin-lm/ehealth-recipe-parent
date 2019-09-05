@@ -65,6 +65,9 @@ public class RecipeListService extends RecipeBaseService{
 
     public static final String LIST_TYPE_ORDER = "2";
 
+    public static final Integer RECIPE_PAGE = 0;
+
+    public static final Integer ORDER_PAGE = 1;
 
     /**
      * 医生端处方列表展示
@@ -632,7 +635,7 @@ public class RecipeListService extends RecipeBaseService{
         }
         List<Integer> specialStatusList = new ArrayList<>();
         specialStatusList.add(RecipeStatusConstant.RECIPE_DOWNLOADED);
-        List<PatientRecipeBean> backList = recipeDAO.findTabStatusRecipesForPatient(allMpiIds, index, limit, TabStatusEnum.fromTabStatusAndStatusType(tabStatus, "recipe").getStatusList(), TabStatusEnum.fromTabStatusAndStatusType(tabStatus, "order").getStatusList(), specialStatusList);
+        List<PatientRecipeBean> backList = recipeDAO.findTabStatusRecipesForPatient(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), specialStatusList);
         return processTabListDate(backList, allMpiIds);
     }
 
@@ -730,11 +733,12 @@ public class RecipeListService extends RecipeBaseService{
                     }
                 }
 
-                //添加处方笺文件，获取用户处方信息中的处方id，获取处方笺文件
-                getFile(record);
+                //添加处方笺文件，获取用户处方信息中的处方id，获取处方笺文件,设置跳转的页面
+                getPageMsg(record);
                 //存入每个页面的按钮信息（展示那种按钮，如果是购药按钮展示哪些按钮）
                 PayModeShowButtonBean buttons = getShowButton(record);
                 record.setButtons(buttons);
+
             }
         }
 
@@ -749,7 +753,7 @@ public class RecipeListService extends RecipeBaseService{
      * @param record 患者处方信息
      * @return void
      */
-    private void getFile(PatientTabStatusRecipeDTO record) {
+    private void getPageMsg(PatientTabStatusRecipeDTO record) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.get(0 == record.getRecipeId() ? record.getRecordId() : record.getRecipeId());
         if(null == recipe){
@@ -757,6 +761,7 @@ public class RecipeListService extends RecipeBaseService{
         }else{
             record.setChemistSignFile(recipe.getChemistSignFile());
             record.setSignFile(recipe.getSignFile());
+            record.setJumpPageType(null == recipe.getOrderCode() ? RECIPE_PAGE : ORDER_PAGE);
         }
     }
 
@@ -780,16 +785,16 @@ public class RecipeListService extends RecipeBaseService{
             return payModeShowButtonBean;
         }
         if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(record.getRecipeMode())){
-            //初始化平台按钮信息
-            payModeShowButtonBean.platformModeButtons();
 
+            //获取配置项
             IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
             //添加按钮配置项key
-            if(null == configService.getConfiguration(record.getOrganId(), "payModeDeploy")){
+            Object payModeDeploy = configService.getConfiguration(record.getOrganId(), "payModeDeploy");
+            if(null == payModeDeploy){
                 payModeShowButtonBean.noUserButtons();
                 return payModeShowButtonBean;
             }
-            List<String> configurations = new ArrayList<>(Arrays.asList((String[])configService.getConfiguration(record.getOrganId(), "payModeDeploy")));
+            List<String> configurations = new ArrayList<>(Arrays.asList((String[])payModeDeploy));
             //将购药方式的显示map对象转化为页面展示的对象
             Map<String, Boolean> buttonMap = new HashMap<>();
             for (String configuration : configurations) {
@@ -828,22 +833,20 @@ public class RecipeListService extends RecipeBaseService{
      * @return void
      */
     private void initInternetModel(PatientTabStatusRecipeDTO record, PayModeShowButtonBean payModeShowButtonBean, Recipe recipe) {
-        //互联网方式的初始化
-        payModeShowButtonBean.internetModelButtons();
 
         //互联网购药方式的配置
         if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(record.getRecipeMode())){
             //设置购药方式哪些可用
             //配送到家默认可用
-            payModeShowButtonBean.setGivemode_send(true);
+            payModeShowButtonBean.setSupportOnline(true);
             //到店取药默认不可用
-            payModeShowButtonBean.setGivemode_tfds(false);
+            payModeShowButtonBean.setSupportTFDS(false);
             //医院取药需要看数据
             boolean hosFlag = true;
             if(1 == recipe.getDistributionFlag()){
                 hosFlag = false;
             }
-            payModeShowButtonBean.setGivemode_hos(hosFlag);
+            payModeShowButtonBean.setSupportToHos(hosFlag);
         }
     }
 

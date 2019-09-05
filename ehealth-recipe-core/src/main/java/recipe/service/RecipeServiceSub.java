@@ -4,6 +4,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.BaseAPI;
 import com.ngari.base.doctor.model.RelationDoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.operationrecords.model.OperationRecordsBean;
@@ -1025,15 +1026,32 @@ public class RecipeServiceSub {
             if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
                 //设置购药方式哪些可用
                 //配送到家默认可用
-                map.put("givemode_send", 1);
+                //Date:20190905
+                //Explain:将互联网的按钮和平台的按钮合并
+                map.put("supportOnline", 1);
                 //到店取药默认不可用
-                map.put("givemode_tfds", 0);
+                map.put("supportTFDS", 0);
                 //医院取药需要看数据
                 int hosFlag = 1;
                 if(1 == recipe.getDistributionFlag()){
                     hosFlag = 0;
                 }
-                map.put("givemode_hos", hosFlag);
+                map.put("supportToHos", hosFlag);
+            }
+            //Date:20190904
+            //Explain:添加患者点击按钮信息
+            if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())){
+                //获取配置项
+                IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+                //添加按钮配置项key
+                Object payModeDeploy = configService.getConfiguration(recipe.getClinicOrgan(), "payModeDeploy");
+                if(null != payModeDeploy){
+                    List<String> configurations = new ArrayList<>(Arrays.asList((String[])payModeDeploy));
+                    //将配置的购药方式放在map上
+                    for (String configuration : configurations) {
+                        map.put(configuration, 1);
+                    }
+                }
             }
         }
 

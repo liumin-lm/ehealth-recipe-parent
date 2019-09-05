@@ -83,7 +83,20 @@ public class PatientTabStatusRecipeDTO implements Serializable {
      */
     private String chemistSignFile;
 
+    /**
+     * 跳转展示页面
+     */
+    private Integer jumpPageType;
+
     public PatientTabStatusRecipeDTO() {
+    }
+
+    public Integer getJumpPageType() {
+        return jumpPageType;
+    }
+
+    public void setJumpPageType(Integer jumpPageType) {
+        this.jumpPageType = jumpPageType;
     }
 
     public String getSignFile() {

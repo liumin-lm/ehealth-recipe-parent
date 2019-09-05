@@ -37,18 +37,6 @@ public class PayModeShowButtonBean implements Serializable{
      * 按钮的展示形势(互联网+平台)
      */
     private Integer buttonType;
-    /**
-     * 互联网是否支持配送到家（互联网）
-     */
-    private Boolean givemode_send = false;
-    /**
-     * 互联网是否支持药店取药（互联网）
-     */
-    private Boolean givemode_tfds = false;
-    /**
-     * 互联网是否支持到院自取（互联网）
-     */
-    private Boolean givemode_hos = false;
 
     public PayModeShowButtonBean() {
     }
@@ -70,57 +58,7 @@ public class PayModeShowButtonBean implements Serializable{
         setSupportOnline(false);
         setSupportTFDS(false);
         setSupportToHos(false);
-        setGivemode_send(false);
-        setGivemode_hos(false);
-        setGivemode_tfds(false);
         setButtonType(0);
-    }
-
-    /**
-     * 互联网模式的展示方式
-     */
-    public void internetModelButtons (){
-        setOptional(true);
-        setSupportDownload(false);
-        setSupportOnline(false);
-        setSupportTFDS(false);
-        setSupportToHos(false);
-        setButtonType(0);
-    }
-
-    /**
-     * 平台模式的展示方式
-     */
-    public void platformModeButtons (){
-        setOptional(false);
-        setGivemode_hos(false);
-        setGivemode_send(false);
-        setGivemode_tfds(false);
-        setButtonType(0);
-    }
-
-    public Boolean getGivemode_send() {
-        return givemode_send;
-    }
-
-    public void setGivemode_send(Boolean givemode_send) {
-        this.givemode_send = givemode_send;
-    }
-
-    public Boolean getGivemode_tfds() {
-        return givemode_tfds;
-    }
-
-    public void setGivemode_tfds(Boolean givemode_tfds) {
-        this.givemode_tfds = givemode_tfds;
-    }
-
-    public Boolean getGivemode_hos() {
-        return givemode_hos;
-    }
-
-    public void setGivemode_hos(Boolean givemode_hos) {
-        this.givemode_hos = givemode_hos;
     }
 
     public Integer getButtonType() {

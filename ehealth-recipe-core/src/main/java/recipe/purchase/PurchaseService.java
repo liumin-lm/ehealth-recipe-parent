@@ -106,7 +106,7 @@ public class PurchaseService {
      * @param payModes  购药方式
      */
     @RpcService
-    public RecipeResultBean filterSupportDepList(Integer recipeId, List<Integer> payModes, Map<String, String> extInfo) {
+    public RecipeResultBean showPurchaseMode(Integer recipeId, List<Integer> payModes, Map<String, String> extInfo) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 

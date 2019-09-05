@@ -1718,7 +1718,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                         "t.SignDate as recordDate,t.RecipeType as recipeType,t.ClinicOrgan as organId,t.recipeMode as recipeMode,t.giveMode as giveMode FROM cdr_recipe t " +
                         "left join cdr_recipeorder k on t.OrderCode=k.OrderCode ");
                 hql.append("WHERE t.MPIID IN (:mpiIdList) and (k.Effective is null or k.Effective = 0) ")
-                        .append("and (t.ChooseFlag=1 or (t.ChooseFlag=0 and t.Status IN (:recipeStatusList))) ");
+                        .append(" and t.Status IN (:recipeStatusList) ");
 
                 hql.append("UNION ALL ");
                 hql.append("SELECT 2 as type,o.CouponId as couponId, 0 as medicalPayFlag, " +
@@ -1730,7 +1730,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                 "t.MPIID as mpiId,t.OrganDiseaseName as diseaseName,t.Status,(case when k.Effective is null then t.TotalMoney else k.ActualPrice end) as fee," +
                                 "t.SignDate as recordDate,t.RecipeType as recipeType,t.ClinicOrgan as organId,t.recipeMode as recipeMode,t.giveMode as giveMode FROM cdr_recipe t " +
                                 "left join cdr_recipeorder k on t.OrderCode=k.OrderCode "+
-                        "AND t.MpiId IN (:mpiIdList) and t.Status IN (:specialStatusList)");
+                        "WHERE t.MpiId IN (:mpiIdList) and t.Status IN (:specialStatusList)");
                 hql.append(") s ORDER BY s.recordDate desc");
 
                 Query q = ss.createSQLQuery(hql.toString());
