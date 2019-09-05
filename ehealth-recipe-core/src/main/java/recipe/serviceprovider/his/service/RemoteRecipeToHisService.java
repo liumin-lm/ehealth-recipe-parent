@@ -20,6 +20,7 @@ import recipe.constant.BusTypeEnum;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -91,6 +92,17 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         hisRequest.setUrt(Integer.valueOf(map.get("urt").toString()));
         hisRequest.setCardType(MapValueUtil.getString(map, "cardType"));
         hisRequest.setCardID(MapValueUtil.getString(map, "cardID"));
+        //平台复诊id
+        hisRequest.setPlatRegisterId(String.valueOf(MapValueUtil.getInteger(map,"consultId")));
+        //科室代码
+        hisRequest.setDeptCode(MapValueUtil.getString(map,"deptCode"));
+        Double consultPrice = MapValueUtil.getDouble(map, "consultPrice");
+        if (consultPrice !=null){
+            //复诊金额
+            hisRequest.setRegPrice(new BigDecimal(consultPrice).setScale(2,BigDecimal.ROUND_HALF_UP));
+        }
+        //支付状态
+        hisRequest.setPayFlag(MapValueUtil.getInteger(map,"payFlag"));
         LOGGER.info("visitRegist request={}", JSONUtils.toString(hisRequest));
         HisResponseTO<VisitRegistResponseTO> hisResponse = null;
         try {
@@ -136,6 +148,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
             }
 
         }
+        LOGGER.info("visitRegist save hosrelationBean={}", JSONUtils.toString(hosrelationBean));
         hosrelationService.save(hosrelationBean);
         return response;
     }

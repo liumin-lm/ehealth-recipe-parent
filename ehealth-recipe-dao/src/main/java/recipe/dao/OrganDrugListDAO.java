@@ -471,7 +471,7 @@ public abstract class OrganDrugListDAO extends
      * @param organId
      */
     @DAOMethod(sql = " delete from OrganDrugList where organId =:organId")
-    public abstract void deleteByOrganId(@DAOParam("sourceOrgan") Integer organId);
+    public abstract void deleteByOrganId(@DAOParam("organId") Integer organId);
 
     /**
      * 根据id删除

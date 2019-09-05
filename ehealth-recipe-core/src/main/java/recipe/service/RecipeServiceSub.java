@@ -1493,15 +1493,21 @@ public class RecipeServiceSub {
                     hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipe,
                             HisBussConstant.TOHIS_RECIPE_STATUS_REVOKE));
                     memo.append(",HIS推送成功");
-                    //向阿里大药房推送处方撤销通知
-                    DrugEnterpriseResult drugEnterpriseResult = null;
-                    try {
-                        AldyfRemoteService aldyfRemoteService = ApplicationUtils.getRecipeService(AldyfRemoteService.class);
-                        drugEnterpriseResult = aldyfRemoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.RETREAT);
-                    } catch (Exception e) {
-                        LOGGER.warn("cancelRecipeImpl  向阿里大药房推送处方撤销通知,{}",JSONUtils.toString(drugEnterpriseResult), e);
+                    OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+                    List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
+                    for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+                        if ("aldyf".equals(drugsEnterprise.getCallSys())) {
+                            //向阿里大药房推送处方撤销通知
+                            DrugEnterpriseResult drugEnterpriseResult = null;
+                            try {
+                                AldyfRemoteService aldyfRemoteService = ApplicationUtils.getRecipeService(AldyfRemoteService.class);
+                                drugEnterpriseResult = aldyfRemoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.RETREAT);
+                            } catch (Exception e) {
+                                LOGGER.warn("cancelRecipeImpl  向阿里大药房推送处方撤销通知,{}",JSONUtils.toString(drugEnterpriseResult), e);
+                            }
+                            LOGGER.info("向阿里大药房推送处方撤销通知,{}",JSONUtils.toString(drugEnterpriseResult));
+                        }
                     }
-                    LOGGER.info("向阿里大药房推送处方撤销通知,{}",JSONUtils.toString(drugEnterpriseResult));
                 }
                 //处方撤销后将状态设为已撤销，供记录日志使用
                 recipe.setStatus(RecipeStatusConstant.REVOKE);

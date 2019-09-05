@@ -35,7 +35,7 @@ public class HisBussConstant {
     public static final String FROMHIS_RECIPE_STATUS_PAY  = "2";
 
     /**
-     * 接收医院HIS处方状态-已发药
+     * 接收医院HIS处方状态-已发药-医院取药
      */
     public static final String FROMHIS_RECIPE_STATUS_FINISH  = "3";
 
@@ -53,5 +53,15 @@ public class HisBussConstant {
      * 接收医院HIS处方状态-处方拒绝接收
      */
     public static final String FROMHIS_RECIPE_STATUS_REJECT = "6";
+
+    /**
+     * 接收医院HIS处方状态-已申请配送
+     */
+    public static final String FROMHIS_RECIPE_STATUS_SENDING = "7";
+
+    /**
+     * 接收医院HIS处方状态-已配送
+     */
+    public static final String FROMHIS_RECIPE_STATUS_SENDED= "8";
 
 }
