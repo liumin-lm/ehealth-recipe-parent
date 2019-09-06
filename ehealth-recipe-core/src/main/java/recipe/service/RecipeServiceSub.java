@@ -1053,6 +1053,11 @@ public class RecipeServiceSub {
                     }
                 }
             }
+            //Date:20190904
+            //Explain:审核是否通过
+            boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() && RecipeStatusConstant.UNCHECK == recipe.getStatus());
+            map.put("optional", isOptional);
+
         }
 
         if (StringUtils.isEmpty(recipe.getMemo())) {
