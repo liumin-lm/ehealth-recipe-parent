@@ -129,4 +129,9 @@ public class RecipeBussConstant {
      */
     public static String RECIPEMODE_ZJJGPT = "zjjgpt";
 
+    /**
+     * 武昌项目配送模式--2九州通外延模式
+     */
+    public static String WUCHANG_JZT = "2";
+
 }
