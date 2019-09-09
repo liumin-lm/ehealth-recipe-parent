@@ -67,8 +67,8 @@ public class HospitalRecipeDTO implements Serializable {
     @Verify(desc = "处方类型", isInt = true)
     private String recipeType;
 
-    @Verify(isNotNull = false, desc = "是否有库存")
-    private String isDrugStock;
+    @Verify(isNotNull = false, desc = "配送模式，1:支付宝外配 2:九州通外延")
+    private String distributionMode;
 
     @Verify(desc = "开方科室")
     private String departId;
@@ -169,12 +169,12 @@ public class HospitalRecipeDTO implements Serializable {
     @Verify(desc = "药品详情")
     private List<HospitalDrugDTO> drugList;
 
-    public String getIsDrugStock() {
-        return isDrugStock;
+    public String getDistributionMode() {
+        return distributionMode;
     }
 
-    public void setIsDrugStock(String isDrugStock) {
-        this.isDrugStock = isDrugStock;
+    public void setDistributionMode(String distributionMode) {
+        this.distributionMode = distributionMode;
     }
 
     public String getClinicId() {
