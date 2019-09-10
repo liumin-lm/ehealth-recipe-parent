@@ -37,7 +37,6 @@ import ctd.util.annotation.RpcService;
 import eh.base.constant.ErrorCode;
 import eh.base.constant.PageConstant;
 import eh.cdr.constant.OrderStatusConstant;
-import eh.cdr.constant.RecipeStatusConstant;
 import eh.utils.params.ParameterConstant;
 import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
@@ -59,7 +58,6 @@ import recipe.drugsenterprise.AldyfRemoteService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.RecipeToHisCallbackService;
-import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.service.common.RecipeCacheService;
 import recipe.thread.PushRecipeToHisCallable;
 import recipe.thread.PushRecipeToRegulationCallable;
@@ -75,7 +73,6 @@ import java.math.BigDecimal;
 import java.util.*;
 
 import static ctd.persistence.DAOFactory.getDAO;
-import static recipe.service.RecipeServiceSub.convertPatientForRAP;
 
 /**
  * 处方服务类
@@ -1308,7 +1305,7 @@ public class RecipeService extends RecipeBaseService{
                 orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
                 //变更处方状态
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_OPERATOR, ImmutableMap.of("chooseFlag", 1));
-                RecipeMsgService.batchSendMsg(recipe, 17);
+                RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.RECIPE_ORDER_CACEL);
                 memo.append("已取消,超过3天未操作");
                 //HIS消息发送
                 boolean succFlag = hisService.recipeStatusUpdate(recipeId);
