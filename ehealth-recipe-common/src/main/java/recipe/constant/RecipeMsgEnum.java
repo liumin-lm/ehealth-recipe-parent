@@ -74,33 +74,27 @@ public enum RecipeMsgEnum {
 
     /**
      * Date:2019/09/09
-     * 待审核
-     */
-    RECIPE_UN_CHECK(1, "RecipeUnCheck"),
-
-    /**
-     * Date:2019/09/09
      * 药店取药-无库存-准备药品
      */
-    RECIPE_Drug_No_Stock_Ready(121, "DrugNoStockReady"),
+    RECIPE_DRUG_NO_STOCK_READY(121, "RecipeDrugNoStockReady"),
 
     /**
      * Date:2019/09/09
      * 药店取药-无库存-到货
      */
-    RECIPE_Drug_No_Stock_Arrival(122, "DrugNoStockArrival"),
+    RECIPE_DRUG_NO_STOCK_ARRIVAL(122, "DrugNoStockArrival"),
 
     /**
      * Date:2019/09/09
      * 药店取药-有库存-可取药
      */
-    RECIPE_Drug_Have_Stock(123, "DrugHaveStock"),
+    RECIPE_DRUG_HAVE_STOCK(123, "RecipeDrugHaveStock"),
 
     /**
      * Date:2019/09/09
      * 药店取药-完成
      */
-    RECIPE_Take_Medicine_Finish(124, "TakeMedicineFinish"),
+    RECIPE_TAKE_MEDICINE_FINISH(124, "RecipeTakeMedicineFinish"),
 
     /**
      * 默认消息

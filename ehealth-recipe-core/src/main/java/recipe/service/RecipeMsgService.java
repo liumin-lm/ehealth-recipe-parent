@@ -99,6 +99,14 @@ public class RecipeMsgService {
     //武昌新增，有库存情况
     private static final String RECIPE_HOSSUPPORT_INVENTORY = "RecipeHosSupportInventory";
 
+    private static final String RECIPE_DRUG_NO_STOCK_READY = "RecipeDrugNoStockReady";
+
+    private static final String RECIPE_DRUG_NO_STOCK_ARRIVAL = "RecipeDrugNoStockArrival";
+
+    private static final String RECIPE_DRUG_HAVE_STOCK = "RecipeDrugHaveStock";
+
+    private static final String RECIPE_TAKE_MEDICINE_FINISH = "RecipeTakeMedicineFinish";
+
     /**
      * 单个处方信息推送（根据处方ID）
      *
@@ -229,6 +237,14 @@ public class RecipeMsgService {
                 sendMsgInfo(recipeId, RECIPE_LOW_STOCKS, organId, Integer.toString(afterStatus));
             } else if (RecipeStatusConstant.RECIPR_NOT_CONFIRM_RECEIPT == afterStatus) {
                 sendMsgInfo(recipeId, RECIPR_NOT_CONFIRM_RECEIPT, organId, Integer.toString(afterStatus));
+            } else if (RecipeStatusConstant.RECIPE_DRUG_NO_STOCK_READY == afterStatus) {
+                sendMsgInfo(recipeId, RECIPE_DRUG_NO_STOCK_READY, organId, Integer.toString(afterStatus));
+            } else if (RecipeStatusConstant.RECIPE_DRUG_NO_STOCK_ARRIVAL == afterStatus) {
+                sendMsgInfo(recipeId, RECIPE_DRUG_NO_STOCK_ARRIVAL, organId, Integer.toString(afterStatus));
+            } else if (RecipeStatusConstant.RECIPE_DRUG_HAVE_STOCK == afterStatus) {
+                sendMsgInfo(recipeId, RECIPE_DRUG_HAVE_STOCK, organId, Integer.toString(afterStatus));
+            } else if (RecipeStatusConstant.RECIPE_TAKE_MEDICINE_FINISH == afterStatus) {
+                sendMsgInfo(recipeId, RECIPE_TAKE_MEDICINE_FINISH, organId, Integer.toString(afterStatus));
             } else {
                 //新处理方式
                 Map<String, String> extendValue = Maps.newHashMap();

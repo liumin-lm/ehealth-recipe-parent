@@ -174,4 +174,24 @@ public class RecipeStatusConstant {
      */
     public static final int RECIPE_ORDER_CACEL = 112;
 
+    /**
+     * 不存在的状态，药店取药-无库存-准备药品
+     */
+    public static final int RECIPE_DRUG_NO_STOCK_READY = 121;
+
+    /**
+     * 不存在的状态，药店取药-无库存-到货
+     */
+    public static final int RECIPE_DRUG_NO_STOCK_ARRIVAL = 122;
+
+    /**
+     * 不存在的状态，药店取药-有库存-可取药
+     */
+    public static final int RECIPE_DRUG_HAVE_STOCK = 123;
+
+    /**
+     * 不存在的状态，药店取药-完成
+     */
+    public static final int RECIPE_TAKE_MEDICINE_FINISH = 124;
+
 }
