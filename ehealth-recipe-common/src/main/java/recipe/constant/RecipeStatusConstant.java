@@ -169,4 +169,9 @@ public class RecipeStatusConstant {
      */
     public static final int RECIPR_NOT_CONFIRM_RECEIPT = 111;
 
+    /**
+     * 不存在的状态，用于处方订单取消
+     */
+    public static final int RECIPE_ORDER_CACEL = 112;
+
 }

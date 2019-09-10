@@ -1,8 +1,11 @@
 package recipe.purchase;
 
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
@@ -11,12 +14,17 @@ import ctd.persistence.DAOFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import recipe.ApplicationUtils;
+import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.dao.RecipeOrderDAO;
+import recipe.service.RecipeOrderService;
+import recipe.util.MapValueUtil;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -48,14 +56,42 @@ public class PayModeToHos implements IPurchaseService{
                 sb.append("选择到院自取后，需去医院取药窗口取药");
             }
         }
-
         resultBean.setMsg(sb.toString());
         return resultBean;
     }
 
     @Override
     public OrderCreateResult order(Recipe dbRecipe, Map<String, String> extInfo) {
-       return null;
+        OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
+        //定义处方订单
+        RecipeOrder order = new RecipeOrder();
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+
+        Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
+        RecipePayModeSupportBean payModeSupport = orderService.setPayModeSupport(order, payMode);
+
+        order.setMpiId(dbRecipe.getMpiid());
+        order.setOrganId(dbRecipe.getClinicOrgan());
+        order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
+        order.setStatus(OrderStatusConstant.READY_GET_DRUG);
+        order.setRecipeIdList("["+dbRecipe.getRecipeId()+"]");
+        List<Recipe> recipeList = Arrays.asList(dbRecipe);
+        Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
+        CommonOrder.createDefaultOrder(extInfo, result, order, payModeSupport, recipeList, calculateFee);
+        //设置为有效订单
+        order.setEffective(1);
+        boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
+        if(!saveFlag){
+            result.setCode(RecipeResultBean.FAIL);
+            result.setMsg("提交失败，请重新提交。");
+            return result;
+        }
+        orderService.setCreateOrderResult(result, order, payModeSupport, 1);
+        //更新处方信息
+        orderService.finishOrderPayWithoutPay(order.getOrderCode(), payMode);
+        return result;
     }
 
     @Override

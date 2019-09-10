@@ -166,10 +166,8 @@ public class PayModeOnline implements IPurchaseService {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("支付信息不全");
             return result;
-        } else {
-            order.setWxPayWay(payway);
         }
-
+        order.setWxPayWay(payway);
         //处理详情
         List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
         List<Integer> drugIds = FluentIterable.from(detailList).transform(new Function<Recipedetail, Integer>() {

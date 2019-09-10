@@ -185,22 +185,7 @@ public class PayModeTFDS implements IPurchaseService{
         order.setDrugStoreCode(MapValueUtil.getString(extInfo, "pharmacyCode"));
         List<Recipe> recipeList = Arrays.asList(dbRecipe);
         Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
-        if (null == calculateFee || Integer.valueOf(1).equals(calculateFee)) {
-            orderService.setOrderFee(result, order, Arrays.asList(recipeId), recipeList, payModeSupport, extInfo, 1);
-            if (StringUtils.isNotEmpty(extInfo.get("recipeFee"))) {
-                order.setRecipeFee(MapValueUtil.getBigDecimal(extInfo, "recipeFee"));
-                order.setActualPrice(Double.parseDouble(extInfo.get("recipeFee")));
-            }
-        } else {
-            //设置默认值
-            order.setExpressFee(BigDecimal.ZERO);
-            order.setTotalFee(BigDecimal.ZERO);
-            order.setRecipeFee(BigDecimal.ZERO);
-            order.setCouponFee(BigDecimal.ZERO);
-            order.setRegisterFee(BigDecimal.ZERO);
-            order.setActualPrice(BigDecimal.ZERO.doubleValue());
-        }
-
+        CommonOrder.createDefaultOrder(extInfo, result, order, payModeSupport, recipeList, calculateFee);
         //设置为有效订单
         order.setEffective(1);
         boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);

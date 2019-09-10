@@ -30,6 +30,6 @@ public class PurchaseConfigure {
 
     @Bean
     public IPurchaseService payModeDownloadService(){
-        return new PayModeDownloadService();
+        return new PayModeDownload();
     }
 }

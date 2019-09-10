@@ -36,7 +36,7 @@ import java.util.Map;
 * @Author: JRK
 * @Date: 2019/8/6
 */
-public class PayModeDownloadService implements IPurchaseService{
+public class PayModeDownload implements IPurchaseService{
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
@@ -57,40 +57,22 @@ public class PayModeDownloadService implements IPurchaseService{
 
     @Override
     public OrderCreateResult order(Recipe dbRecipe, Map<String, String> extInfo) {
-        //PayAmountTypeStatus payAmountTypeStatus = BuyMedicineProcessHandle.changeConfigToPayAmount(MapValueUtil.getInteger(extInfo, "reviewType"), MapValueUtil.getString(extInfo, "payMethod"), Boolean.parseBoolean(extInfo.get("payMethod")));
-
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
         RecipeOrder order = new RecipeOrder();
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
 
         Integer recipeId = dbRecipe.getRecipeId();
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
         RecipePayModeSupportBean payModeSupport = orderService.setPayModeSupport(order, payMode);
-        Integer depId = MapValueUtil.getInteger(extInfo, "depId");
         String payway = MapValueUtil.getString(extInfo, "payway");
         if (StringUtils.isEmpty(payway)) {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("支付信息不全");
             return result;
-        } else {
-            order.setWxPayWay(payway);
         }
-
-        //处理详情
-        List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
-        List<Integer> drugIds = FluentIterable.from(detailList).transform(new Function<Recipedetail, Integer>() {
-            @Override
-            public Integer apply(Recipedetail input) {
-                return input.getDrugId();
-            }
-        }).toList();
-
-        order.setEnterpriseId(depId);
-
+        order.setWxPayWay(payway);
         order.setRecipeIdList(JSONUtils.toString(Arrays.asList(recipeId)));
 
         // 暂时还是设置成处方单的患者，不然用户历史处方列表不好查找
@@ -102,23 +84,7 @@ public class PayModeDownloadService implements IPurchaseService{
         //设置订单各种费用
         List<Recipe> recipeList = Arrays.asList(dbRecipe);
         Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
-        if (null == calculateFee || Integer.valueOf(1).equals(calculateFee)) {
-            orderService.setOrderFee(result, order, Arrays.asList(recipeId), recipeList, payModeSupport, extInfo, 1);
-            if (StringUtils.isNotEmpty(extInfo.get("recipeFee"))) {
-                order.setRecipeFee(MapValueUtil.getBigDecimal(extInfo, "recipeFee"));
-                order.setActualPrice(Double.parseDouble(extInfo.get("recipeFee")));
-            }
-        } else {
-            //设置默认值
-            order.setExpressFee(BigDecimal.ZERO);
-            order.setTotalFee(BigDecimal.ZERO);
-            order.setRecipeFee(BigDecimal.ZERO);
-            order.setCouponFee(BigDecimal.ZERO);
-            order.setRegisterFee(BigDecimal.ZERO);
-            order.setActualPrice(BigDecimal.ZERO.doubleValue());
-        }
-        //orderService.setOrderFee(result, order, Arrays.asList(recipeId), recipeList, payModeSupport, extInfo, 1);
-
+        CommonOrder.createDefaultOrder(extInfo, result, order, payModeSupport, recipeList, calculateFee);
         //设置为有效订单
         order.setEffective(1);
         boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
@@ -127,9 +93,7 @@ public class PayModeDownloadService implements IPurchaseService{
             result.setMsg("订单保存出错");
             return result;
         }
-
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
-
         //修改订单线下支付的状态
         orderService.finishOrderPayWithoutPay(order.getOrderCode(), payMode);
         return result;
@@ -150,7 +114,6 @@ public class PayModeDownloadService implements IPurchaseService{
     @Override
     public String getTipsByStatusForPatient(Recipe recipe, RecipeOrder order) {
         Integer status = recipe.getStatus();
-        String orderCode = recipe.getOrderCode();
         int orderStatus = null == order ? -1 : order.getStatus();
         String tips = "";
         //下载处方购药方式特殊状态,已下载
