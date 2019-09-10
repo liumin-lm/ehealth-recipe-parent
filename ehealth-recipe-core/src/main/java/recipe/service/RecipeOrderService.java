@@ -149,6 +149,8 @@ public class RecipeOrderService extends RecipeBaseService {
         //指定了药企的话需要传该字段
         Integer depId = MapValueUtil.getInteger(extInfo, "depId");
         order.setEnterpriseId(depId);
+        order.setRecipeMode(recipeList.get(0).getRecipeMode());
+        order.setGiveMode(recipeList.get(0).getGiveMode());
         payModeSupport = setPayModeSupport(order, payMode);
         //校验处方列表是否都能进行配送
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {

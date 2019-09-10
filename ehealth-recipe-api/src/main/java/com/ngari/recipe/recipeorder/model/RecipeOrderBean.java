@@ -4,6 +4,7 @@ import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
+import javax.persistence.Transient;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Calendar;
@@ -176,6 +177,12 @@ public class RecipeOrderBean implements Serializable {
 
     @ItemProperty(alias = "完整地址")
     private String completeAddress;
+
+    @ItemProperty(alias = "处方流转模式")
+    private String recipeMode;
+
+    @ItemProperty(alias = "购药方式")
+    private Integer giveMode;
 
 
     public RecipeOrderBean() {
@@ -605,5 +612,21 @@ public class RecipeOrderBean implements Serializable {
 
     public void setCompleteAddress(String completeAddress) {
         this.completeAddress = completeAddress;
+    }
+
+    public String getRecipeMode() {
+        return recipeMode;
+    }
+
+    public void setRecipeMode(String recipeMode) {
+        this.recipeMode = recipeMode;
+    }
+
+    public Integer getGiveMode() {
+        return giveMode;
+    }
+
+    public void setGiveMode(Integer giveMode) {
+        this.giveMode = giveMode;
     }
 }

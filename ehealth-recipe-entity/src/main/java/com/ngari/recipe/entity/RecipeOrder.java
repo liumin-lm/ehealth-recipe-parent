@@ -188,6 +188,12 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "药店编码")
     private String drugStoreCode;
 
+    @ItemProperty(alias = "处方流转模式")
+    private String recipeMode;
+
+    @ItemProperty(alias = "购药方式")
+    private Integer giveMode;
+
     @Column(name = "cancelReason")
     public String getCancelReason() {
         return cancelReason;
@@ -688,5 +694,23 @@ public class RecipeOrder implements Serializable {
 
     public void setDrugStoreCode(String drugStoreCode) {
         this.drugStoreCode = drugStoreCode;
+    }
+
+    @Transient
+    public String getRecipeMode() {
+        return recipeMode;
+    }
+
+    public void setRecipeMode(String recipeMode) {
+        this.recipeMode = recipeMode;
+    }
+
+    @Transient
+    public Integer getGiveMode() {
+        return giveMode;
+    }
+
+    public void setGiveMode(Integer giveMode) {
+        this.giveMode = giveMode;
     }
 }
