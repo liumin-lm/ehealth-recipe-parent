@@ -130,10 +130,14 @@ public class RecipeBussConstant {
     public static String RECIPEMODE_ZJJGPT = "zjjgpt";
 
     /**
-     * 下载处方
+     * 下载处方支付场景
      */
     public static Integer PAYMODE_DOWNLOAD_RECIPE = 6;
 
+    /**
+     * 下载处方购药方式
+     */
+    public static Integer GIVEMODE_DOWNLOAD_RECIPE = 5;
     /**
      * 审核模式-审方后置
      */

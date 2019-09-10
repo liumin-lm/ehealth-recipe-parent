@@ -88,6 +88,10 @@ public class RecipeServiceSub {
 
     private static DepartmentService departmentService = ApplicationUtils.getBasicService(DepartmentService.class);
 
+    private static Integer[] showRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.IN_SEND, RecipeStatusConstant.WAIT_SEND, RecipeStatusConstant.FINISH};
+
+    private static Integer[] showDownloadRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS};
+
     @Autowired
     private static AldyfRemoteService aldyfRemoteService;
     
@@ -1059,12 +1063,12 @@ public class RecipeServiceSub {
             map.put("optional", isOptional);
             //Date:20190909
             //Explain:判断是否下载处方签
-            //判断流程首先配置中的下载处方签是否开通
-            //再判断处方的审核方式是否是不要审核
-            //当需要审核判断：1.处方是否支付（支付：状态为已支付，不支付：根据选择的购药方式状态）2.处方的审核签名有没有
-            //当不需要进行审核判断：处方是否支付（支付：状态为已支付，不支付：根据选择的购药方式状态）
 
-            //首先判断
+            //1.判断配置项中是否配置了下载处方签，
+            //2.是否是后置的，后置的判断状态是否是已审核，已完成, 配送中，
+            //3.如果不是后置的，判断实际金额是否为0：为0则ordercode关联则展示，不为0支付则展示
+            boolean isDownload = getDownConfig(recipe, order);
+            map.put("isDownload", isDownload);
         }
 
         if (StringUtils.isEmpty(recipe.getMemo())) {
@@ -1095,6 +1099,58 @@ public class RecipeServiceSub {
             map.put("recipeOrder", recipeOrder);
         }
         return map;
+    }
+
+    /**
+     * @method  getDownConfig
+     * @description 获取下载处方签的配置
+     * @date: 2019/9/10
+     * @author: JRK
+     * @param recipe 当前处方
+     * @param order 当前处方对应的订单
+     * @return boolean 是否可以下载
+     */
+    private static boolean getDownConfig(Recipe recipe, RecipeOrder order) {
+        Boolean isDownload = false;
+        //获取配置项
+        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+        //添加按钮配置项key
+        Object downloadPrescription = configService.getConfiguration(recipe.getClinicOrgan(), "downloadPrescription");
+        if(null != downloadPrescription){
+            boolean canDown = 0 == Integer.parseInt((String)downloadPrescription) ? false : true;
+            if(canDown){
+                isDownload = canDown(recipe, order, showRecipeStatus);
+            }else{
+                if(RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())){
+                    isDownload = canDown(recipe, order, showDownloadRecipeStatus);
+                }
+            }
+        }
+        return isDownload;
+    }
+
+    /**
+     * @method  canDown
+     * @description 修改下载配置项
+     * @date: 2019/9/10
+     * @author: JRK
+     * @param recipe 当前处方
+     * @param order 当前处方的订单
+     * @return boolean 是否可以下载处方签
+     */
+    private static boolean canDown(Recipe recipe, RecipeOrder order, Integer[] status) {
+        boolean isDownload = false;
+        if(ReviewTypeConstant.Preposition_Check == recipe.getReviewType()){
+            if( Arrays.asList(status).contains(recipe.getStatus())){
+                isDownload = true;
+            }
+        }else{
+            if(null != recipe.getOrderCode() && null != order && RecipeStatusConstant.FINISH != recipe.getStatus()){
+                if(0 == order.getActualPrice() || (0 < order.getActualPrice() && 1 == recipe.getPayFlag()))
+                    isDownload = true;
+            }
+        }
+        return isDownload;
     }
 
     public static List<AuditMedicinesDTO> getAuditMedicineIssuesByRecipeId(int recipeId) {

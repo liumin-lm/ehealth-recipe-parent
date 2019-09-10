@@ -2017,6 +2017,8 @@ public class RecipeService extends RecipeBaseService{
         } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(payMode)) {
             //到院取药
             giveMode = RecipeBussConstant.GIVEMODE_TO_HOS;
+        } else if(RecipeBussConstant.PAYMODE_DOWNLOAD_RECIPE.equals(payMode)){
+            giveMode = RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE;
         } else {
             giveMode = null;
         }

@@ -5,6 +5,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.BaseAPI;
 import com.ngari.base.address.model.AddressBean;
 import com.ngari.base.address.service.IAddressService;
 import com.ngari.base.hisconfig.model.HisServiceConfigBean;
@@ -1021,6 +1022,8 @@ public class RecipeOrderService extends RecipeBaseService {
             result.setObject(orderBean);
             // 支付完成后跳转到订单详情页需要加挂号费服务费可配置
             result.setExt(RecipeUtil.getParamFromOgainConfig(order));
+            //在扩展内容中设置下载处方签的判断
+            getDownConfig(result, order, recipeList);
         } else {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("不存在ID为" + orderId + "的订单");
@@ -1028,6 +1031,36 @@ public class RecipeOrderService extends RecipeBaseService {
 
         return result;
     }
+
+    public void getDownConfig(RecipeResultBean result, RecipeOrder order, List<Recipe> recipeList) {
+        //判断是否展示下载处方签按钮：1.在下载处方购药方式
+        //2.是否是后置，后置：判断审核是否审核通过状态
+        //3.不是后置:判断实际金额是否为0：为0则ordercode关联则展示，不为0支付则展示
+        Map<String, String> ext = result.getExt();
+        if(null == ext){
+            ext = Maps.newHashMap();
+        }
+        Boolean isDownload = false;
+        if(CollectionUtils.isNotEmpty(recipeList)){
+            Recipe nowRecipe = recipeList.get(0);
+            if(RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(nowRecipe.getGiveMode())){
+                if(ReviewTypeConstant.Preposition_Check == nowRecipe.getReviewType()){
+                    if(RecipeStatusConstant.CHECK_PASS_YS == nowRecipe.getStatus()){
+                        isDownload = true;
+                    }
+                }else{
+                    if(null != nowRecipe.getOrderCode() && null != order && RecipeStatusConstant.FINISH != nowRecipe.getStatus()){
+                        if(0 == order.getActualPrice() || (0 < order.getActualPrice() && 1 == nowRecipe.getPayFlag()))
+                            isDownload = true;
+                    }
+                }
+            }
+        }
+
+        ext.put("isDownload", isDownload.toString());
+        result.setExt(ext);
+    }
+
 
     /**
      * 获取订单详情
