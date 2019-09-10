@@ -2,6 +2,8 @@ package recipe.audit.auditmode;
 
 import com.google.common.collect.Maps;
 import org.reflections.Reflections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -12,8 +14,8 @@ import java.util.Set;
  */
 @Service
 public class AuditModeContext {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AuditModeContext.class);
     private static Map<Integer,String> map = Maps.newHashMap();
-    private IAuditMode auditMode;
 
     /*public IAuditMode getAuditMode(Integer auditMode){
         AuditModeEnum[] list = AuditModeEnum.values();
@@ -37,7 +39,7 @@ public class AuditModeContext {
         try {
             o = Class.forName(className).newInstance();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("getAuditModes error,use auditPostMode",e);
             return new AuditPostMode();
         }
         return (IAuditMode)o;

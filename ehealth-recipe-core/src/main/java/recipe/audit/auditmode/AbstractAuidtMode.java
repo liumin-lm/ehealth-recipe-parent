@@ -18,6 +18,7 @@ import recipe.service.RecipeOrderService;
 import recipe.service.RecipeServiceSub;
 import recipe.util.MapValueUtil;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 import static ctd.persistence.DAOFactory.getDAO;
@@ -55,7 +56,7 @@ public class AbstractAuidtMode implements IAuditMode{
         if (saveFlag) {
             attrMap.put("chooseFlag", 1);
             String memo = "";
-            if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(giveMode)) {
+            if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.toString().equals(giveMode)) {
                 if (RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
                     //线上支付
                     if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
@@ -71,11 +72,12 @@ public class AbstractAuidtMode implements IAuditMode{
                 } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode)) {
                     memo = "货到付款-待配送";
                 }
-            } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode)) {
+            } else if (RecipeBussConstant.GIVEMODE_TFDS.toString().equals(giveMode)) {
                 memo = "药店取药-待取药";
             }
             //记录日志
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), RecipeStatusConstant.CHECK_PASS, status, memo);
+
         } else {
             attrMap.put("chooseFlag", 0);
             if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipe.getFromflag())) {
@@ -95,8 +97,11 @@ public class AbstractAuidtMode implements IAuditMode{
             result.setCode(RecipeResultBean.FAIL);
             result.setError("更新处方失败，" + e.getMessage());
         }
-        //处方推送到药企
-        RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-        remoteDrugEnterpriseService.pushSingleRecipeInfo(recipe.getRecipeId());
+        if (saveFlag) {
+            //处方推送到药企
+            RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+            remoteDrugEnterpriseService.pushSingleRecipeInfo(recipe.getRecipeId());
+        }
+
     }
 }
