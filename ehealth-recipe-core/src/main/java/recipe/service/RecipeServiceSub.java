@@ -1057,7 +1057,14 @@ public class RecipeServiceSub {
             //Explain:审核是否通过
             boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() && RecipeStatusConstant.UNCHECK == recipe.getStatus());
             map.put("optional", isOptional);
+            //Date:20190909
+            //Explain:判断是否下载处方签
+            //判断流程首先配置中的下载处方签是否开通
+            //再判断处方的审核方式是否是不要审核
+            //当需要审核判断：1.处方是否支付（支付：状态为已支付，不支付：根据选择的购药方式状态）2.处方的审核签名有没有
+            //当不需要进行审核判断：处方是否支付（支付：状态为已支付，不支付：根据选择的购药方式状态）
 
+            //首先判断
         }
 
         if (StringUtils.isEmpty(recipe.getMemo())) {

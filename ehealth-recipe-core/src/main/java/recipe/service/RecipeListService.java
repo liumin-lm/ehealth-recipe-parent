@@ -864,4 +864,26 @@ public class RecipeListService extends RecipeBaseService{
         return buttonStatus.getPageButtonStatus();
     }
 
+    /**
+     * 审核前置弹窗确认点击按钮是否审核通过的
+     */
+    @RpcService
+    public Integer getCheckResult(Integer recipeId) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.get(recipeId);
+        if(null == recipe){
+            LOGGER.error("该处方不存在！");
+            return 0;
+        }
+
+        if(ReviewTypeConstant.Preposition_Check == recipe.getReviewType()){
+            if(RecipeStatusConstant.UNCHECK == recipe.getStatus()){
+                return 0;
+            }else if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()){
+                return 2;
+            }
+        }
+        return 1;
+    }
+
 }

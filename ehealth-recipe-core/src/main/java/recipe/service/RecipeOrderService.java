@@ -1085,7 +1085,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @return
      */
     @RpcService
-    public RecipeResultBean finishOrderPayWithoutPay(String orderCode, Integer payMode) {
+    public RecipeResultBean  finishOrderPayWithoutPay(String orderCode, Integer payMode) {
         return finishOrderPayImpl(orderCode, PayConstant.PAY_FLAG_NOT_PAY, payMode);
     }
 
