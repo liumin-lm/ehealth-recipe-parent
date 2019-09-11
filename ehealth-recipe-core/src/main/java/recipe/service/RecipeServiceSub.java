@@ -148,7 +148,7 @@ public class RecipeServiceSub {
 
         //设置运营平台设置的审方模式
         //互联网设置了默认值，平台没有设置默认值从运营平台取
-        if (recipe.getReviewType()!=null){
+        if (recipe.getReviewType() == null){
             try {
                 IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
                 Integer reviewType = (Integer)configurationService.getConfiguration(recipe.getClinicOrgan(), "reviewType");
