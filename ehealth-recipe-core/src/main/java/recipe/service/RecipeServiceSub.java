@@ -152,6 +152,7 @@ public class RecipeServiceSub {
             try {
                 IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
                 Integer reviewType = (Integer)configurationService.getConfiguration(recipe.getClinicOrgan(), "reviewType");
+                LOGGER.info("运营平台获取审方方式配置 reviewType[{}]",reviewType);
                 if (reviewType == null){
                     //默认审方后置
                     recipe.setReviewType(RecipeBussConstant.AUDIT_POST);

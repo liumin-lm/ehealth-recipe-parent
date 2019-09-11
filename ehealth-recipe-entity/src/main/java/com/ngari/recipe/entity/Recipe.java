@@ -451,15 +451,6 @@ public class Recipe implements Serializable {
         this.memo = memo;
     }
 
-    @Column(name = "reviewType")
-    public Integer getReviewType() {
-        return reviewType;
-    }
-
-    public void setReviewType(Integer reviewType) {
-        this.reviewType = reviewType;
-    }
-
     @Column(name = "patientStatus")
     public Integer getPatientStatus() {
         return patientStatus;
@@ -1266,5 +1257,14 @@ public class Recipe implements Serializable {
 
     public void setSignImg(String signImg) {
         this.signImg = signImg;
+    }
+
+    @Column(name = "reviewType")
+    public Integer getReviewType() {
+        return reviewType;
+    }
+
+    public void setReviewType(Integer reviewType) {
+        this.reviewType = reviewType;
     }
 }
