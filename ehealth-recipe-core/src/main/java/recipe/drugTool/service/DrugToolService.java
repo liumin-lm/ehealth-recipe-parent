@@ -301,12 +301,6 @@ public class DrugToolService implements IDrugToolService {
         return result;
     }
 
-    public static void main(String[] args) {
-        for (int i = 0; i < 3000; i++) {
-            double progress = new BigDecimal((float)i / 3000).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
-            System.out.println(progress);
-        }
-    }
 
     /*private void AutoMatch(DrugListMatch drug) {
         List<DrugList> drugLists = drugListDAO.findByDrugName(drug.getDrugName());
