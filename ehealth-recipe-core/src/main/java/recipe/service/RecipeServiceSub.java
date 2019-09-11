@@ -1123,7 +1123,7 @@ public class RecipeServiceSub {
         //添加按钮配置项key
         Object downloadPrescription = configService.getConfiguration(recipe.getClinicOrgan(), "downloadPrescription");
         if(null != downloadPrescription){
-            boolean canDown = 0 == Integer.parseInt((String)downloadPrescription) ? false : true;
+            boolean canDown = 0 == (Integer)downloadPrescription ? false : true;
             if(canDown){
                 isDownload = canDown(recipe, order, showRecipeStatus, false);
             }else{
