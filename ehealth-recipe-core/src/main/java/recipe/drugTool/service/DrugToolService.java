@@ -150,6 +150,7 @@ public class DrugToolService implements IDrugToolService {
                 progressMap.remove(key);
             }
         }
+        LOGGER.info("进度条加载={}=", progress);
         return progress;
     }
 
