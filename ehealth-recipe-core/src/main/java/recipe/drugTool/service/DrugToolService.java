@@ -63,7 +63,7 @@ public class DrugToolService implements IDrugToolService {
     private static final String SUFFIX_2003 = ".xls";
     private static final String SUFFIX_2007 = ".xlsx";
     //全局map
-    private Map<String,Double> progressMap = Maps.newHashMap();
+    private ConcurrentHashMap<String,Double> progressMap = new ConcurrentHashMap<>();
     /**
      * 用于药品小工具搜索历史记录缓存
      */
@@ -145,7 +145,6 @@ public class DrugToolService implements IDrugToolService {
         Double data = progressMap.get(key);
         if (data != null){
             progress = data;
-            LOGGER.info("进度条进度加载={}=", progress);
             if (progress >= 100){
                 progressMap.remove(key);
             }
@@ -286,7 +285,6 @@ public class DrugToolService implements IDrugToolService {
                 }
             }
             progress = new BigDecimal((float)rowIndex / total).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
-            LOGGER.info("进度条进度保存={}=", progress);
             progressMap.put(organId+operator,progress*100);
         }
         LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
