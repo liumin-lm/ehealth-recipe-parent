@@ -145,6 +145,7 @@ public class DrugToolService implements IDrugToolService {
         Double data = progressMap.get(key);
         if (data != null){
             progress = data;
+            LOGGER.info("进度条进度加载={}=", progress);
             if (progress >= 100){
                 progressMap.remove(key);
             }
@@ -285,6 +286,7 @@ public class DrugToolService implements IDrugToolService {
                 }
             }
             progress = new BigDecimal((float)rowIndex / total).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+            LOGGER.info("进度条进度保存={}=", progress);
             progressMap.put(organId+operator,progress*100);
         }
         LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
