@@ -63,6 +63,8 @@ public class DrugToolService implements IDrugToolService {
 
     private double progress;
 
+    private RedisClient redisClient = RedisClient.instance();
+
     private static final String SUFFIX_2003 = ".xls";
     private static final String SUFFIX_2007 = ".xlsx";
     //全局map
@@ -86,9 +88,6 @@ public class DrugToolService implements IDrugToolService {
 
     @Resource
     private OrganService organService;
-
-    @Resource
-    private RedisClient redisClient;
 
     private LoadingCache<String, List<DrugList>> drugListCache = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(new CacheLoader<String, List<DrugList>>() {
         @Override
