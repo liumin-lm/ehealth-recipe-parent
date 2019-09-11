@@ -35,6 +35,7 @@ public class AuditModeContext {
 
     public IAuditMode getAuditModes(Integer auditMode){
         String className = map.get(auditMode);
+        LOGGER.info("getAuditModes auditMode[{}] className[{}]",auditMode,className);
         Object o;
         try {
             o = Class.forName(className).newInstance();
