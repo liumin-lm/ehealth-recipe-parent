@@ -141,18 +141,15 @@ public class DrugToolService implements IDrugToolService {
 
     //获取进度条
     @RpcService
-    public double getProgress(int organId,String operator) throws InterruptedException {
-//        String key = organId +operator;
-//        Double data = progressMap.get(key);
-//        if (data != null){
-//            progress = data;
-//            if (progress >= 100){
-//                progressMap.remove(key);
-//            }
-//        }
-//        return progress;
-        progress+=10;
-        LOGGER.info("进度条加载={}=", progress);
+    public synchronized double getProgress(int organId,String operator) throws InterruptedException {
+        String key = organId +operator;
+        Double data = progressMap.get(key);
+        if (data != null){
+            progress = data;
+            if (progress >= 100){
+                progressMap.remove(key);
+            }
+        }
         return progress;
     }
 
