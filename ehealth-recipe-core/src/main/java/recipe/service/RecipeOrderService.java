@@ -73,6 +73,8 @@ public class RecipeOrderService extends RecipeBaseService {
 
     private RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
+    private static Integer[] showDownloadRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.RECIPE_DOWNLOADED};
+
     /**
      * 处方结算时创建临时订单
      *
@@ -1045,7 +1047,7 @@ public class RecipeOrderService extends RecipeBaseService {
             Recipe nowRecipe = recipeList.get(0);
             if(RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(nowRecipe.getGiveMode())){
                 if(ReviewTypeConstant.Preposition_Check == nowRecipe.getReviewType()){
-                    if(RecipeStatusConstant.CHECK_PASS_YS == nowRecipe.getStatus()){
+                    if(Arrays.asList(showDownloadRecipeStatus).contains(nowRecipe.getStatus())){
                         isDownload = true;
                     }
                 }else{

@@ -82,7 +82,7 @@ public enum RecipeMsgEnum {
      * Date:2019/09/09
      * 药店取药-无库存-到货
      */
-    RECIPE_DRUG_NO_STOCK_ARRIVAL(122, "DrugNoStockArrival"),
+    RECIPE_DRUG_NO_STOCK_ARRIVAL(122, "RecipeDrugNoStockArrival"),
 
     /**
      * Date:2019/09/09

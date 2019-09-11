@@ -90,7 +90,7 @@ public class RecipeServiceSub {
 
     private static Integer[] showRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.IN_SEND, RecipeStatusConstant.WAIT_SEND, RecipeStatusConstant.FINISH};
 
-    private static Integer[] showDownloadRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS};
+    private static Integer[] showDownloadRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.RECIPE_DOWNLOADED};
 
     @Autowired
     private static AldyfRemoteService aldyfRemoteService;
@@ -1119,10 +1119,10 @@ public class RecipeServiceSub {
         if(null != downloadPrescription){
             boolean canDown = 0 == Integer.parseInt((String)downloadPrescription) ? false : true;
             if(canDown){
-                isDownload = canDown(recipe, order, showRecipeStatus);
+                isDownload = canDown(recipe, order, showRecipeStatus, false);
             }else{
                 if(RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())){
-                    isDownload = canDown(recipe, order, showDownloadRecipeStatus);
+                    isDownload = canDown(recipe, order, showDownloadRecipeStatus, true);
                 }
             }
         }
@@ -1136,18 +1136,22 @@ public class RecipeServiceSub {
      * @author: JRK
      * @param recipe 当前处方
      * @param order 当前处方的订单
+       * @param isDownLoad 是否是下载处方
      * @return boolean 是否可以下载处方签
      */
-    private static boolean canDown(Recipe recipe, RecipeOrder order, Integer[] status) {
+    private static boolean canDown(Recipe recipe, RecipeOrder order, Integer[] status, Boolean isDownLoad) {
         boolean isDownload = false;
         if(ReviewTypeConstant.Preposition_Check == recipe.getReviewType()){
             if( Arrays.asList(status).contains(recipe.getStatus())){
                 isDownload = true;
             }
         }else{
-            if(null != recipe.getOrderCode() && null != order && RecipeStatusConstant.FINISH != recipe.getStatus()){
+            //如果实际金额为0则判断有没有关联ordercode，实际金额不为0则判断是否已经支付,展示下载处方签，
+            //当下载处方购药时，已完成处方不展示下载处方签
+            if(null != recipe.getOrderCode() && null != order && !(isDownLoad && RecipeStatusConstant.FINISH == recipe.getStatus())){
                 if(0 == order.getActualPrice() || (0 < order.getActualPrice() && 1 == recipe.getPayFlag()))
                     isDownload = true;
+
             }
         }
         return isDownload;
