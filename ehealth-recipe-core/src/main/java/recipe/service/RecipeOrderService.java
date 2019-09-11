@@ -1067,7 +1067,7 @@ public class RecipeOrderService extends RecipeBaseService {
     /**
      * 获取订单详情
      *
-     * @param orderCoe
+     * @param orderCode
      * @return
      */
     @RpcService

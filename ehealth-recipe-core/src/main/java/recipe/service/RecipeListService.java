@@ -567,9 +567,9 @@ public class RecipeListService extends RecipeBaseService{
                     String dSpec = "*"+detail.getUseTotalDose().intValue() + detail.getDrugUnit();
                     drugInfo.put("drugTotal",dSpec);
                     String useWay = "用法：每次" + detail.getUseDose() + detail.getUseDoseUnit()
-                   +"/"+usingRateDic.getText(detail.getUsingRate())
-                    +"/"+usePathwaysDic.getText(detail.getUsePathways())
-                    +detail.getUseDays() + "天";
+                            +"/"+usingRateDic.getText(detail.getUsingRate())
+                            +"/"+usePathwaysDic.getText(detail.getUsePathways())
+                            +detail.getUseDays() + "天";
                     drugInfo.put("useWay",useWay);
                     drugInfoList.add(drugInfo);
                 }
@@ -634,7 +634,9 @@ public class RecipeListService extends RecipeBaseService{
             return recipeList;
         }
         List<Integer> specialStatusList = new ArrayList<>();
-        specialStatusList.add(RecipeStatusConstant.RECIPE_DOWNLOADED);
+        if("ongoing".equals(tabStatus)){
+            specialStatusList.add(RecipeStatusConstant.RECIPE_DOWNLOADED);
+        }
         List<PatientRecipeBean> backList = recipeDAO.findTabStatusRecipesForPatient(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), specialStatusList);
         return processTabListDate(backList, allMpiIds);
     }

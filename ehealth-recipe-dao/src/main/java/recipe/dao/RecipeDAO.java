@@ -1592,7 +1592,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("from Recipe where signDate between '" + startDt + "' and '" + endDt + "' ");
-                    hql.append(" and fromflag = 1 and status=:status");
+                hql.append(" and fromflag = 1 and status=:status");
                 Query q = ss.createQuery(hql.toString());
                 q.setParameter("status",status);
                 setResult(q.list());
@@ -1661,7 +1661,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 if (CollectionUtils.isNotEmpty(orderCodes)) {
                     hql.append(" and orderCode in (");
                     for (String orderCode : orderCodes) {
-                       hql.append("'").append(orderCode).append("',");
+                        hql.append("'").append(orderCode).append("',");
                     }
                     hql.deleteCharAt(hql.lastIndexOf(","));
                     hql.append(")");
@@ -1725,19 +1725,24 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                         "o.OrderCode as recordCode,o.OrderId as recordId,o.MpiId as mpiId,'' as diseaseName," +
                         "o.Status,o.ActualPrice as fee,o.CreateTime as recordDate,0 as recipeType, o.OrganId, 'ngarihealth' as recipeMode,w.GiveMode AS giveMode FROM cdr_recipeorder o JOIN cdr_recipe w ON o.OrderCode = w.OrderCode " +
                         "AND o.MpiId IN (:mpiIdList) and o.Effective = 1 and w.Status IN (:orderStatusList)");
-                hql.append("UNION ALL ");
-                hql.append("SELECT 1 as type,null as couponId, t.MedicalPayFlag as medicalPayFlag, t.RecipeID as recordCode,t.RecipeID as recordId," +
-                                "t.MPIID as mpiId,t.OrganDiseaseName as diseaseName,t.Status,(case when k.Effective is null then t.TotalMoney else k.ActualPrice end) as fee," +
-                                "t.SignDate as recordDate,t.RecipeType as recipeType,t.ClinicOrgan as organId,t.recipeMode as recipeMode,t.giveMode as giveMode FROM cdr_recipe t " +
-                                "left join cdr_recipeorder k on t.OrderCode=k.OrderCode "+
-                        "WHERE t.MpiId IN (:mpiIdList) and t.Status IN (:specialStatusList)");
+                //添加下载处方的状态
+                if (CollectionUtils.isNotEmpty(specialStatusList)) {
+                    hql.append("UNION ALL ");
+                    hql.append("SELECT 1 as type,null as couponId, t.MedicalPayFlag as medicalPayFlag, t.RecipeID as recordCode,t.RecipeID as recordId," +
+                            "t.MPIID as mpiId,t.OrganDiseaseName as diseaseName,t.Status,(case when k.Effective is null then t.TotalMoney else k.ActualPrice end) as fee," +
+                            "t.SignDate as recordDate,t.RecipeType as recipeType,t.ClinicOrgan as organId,t.recipeMode as recipeMode,t.giveMode as giveMode FROM cdr_recipe t " +
+                            "left join cdr_recipeorder k on t.OrderCode=k.OrderCode "+
+                            "WHERE t.MpiId IN (:mpiIdList) and t.Status IN (:specialStatusList)");
+                }
                 hql.append(") s ORDER BY s.recordDate desc");
 
                 Query q = ss.createSQLQuery(hql.toString());
                 q.setParameterList("mpiIdList", mpiIdList);
                 q.setParameterList("orderStatusList", orderStatusList);
                 q.setParameterList("recipeStatusList", recipeStatusList);
-                q.setParameterList("specialStatusList", specialStatusList);
+                if(CollectionUtils.isNotEmpty(specialStatusList)){
+                    q.setParameterList("specialStatusList", specialStatusList);
+                }
 
                 q.setMaxResults(limit);
                 q.setFirstResult(start);
