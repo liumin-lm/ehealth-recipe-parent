@@ -142,19 +142,21 @@ public class DrugToolService implements IDrugToolService {
     //获取进度条
     @RpcService
     public double getProgress(int organId,String operator) throws InterruptedException {
-        String key = organId +operator;
-        Double data = progressMap.get(key);
-        if (data != null){
-            progress = data;
-            if (progress >= 100){
-                progressMap.remove(key);
-            }
-        }
+//        String key = organId +operator;
+//        Double data = progressMap.get(key);
+//        if (data != null){
+//            progress = data;
+//            if (progress >= 100){
+//                progressMap.remove(key);
+//            }
+//        }
+//        return progress;
+        progress+=10;
         return progress;
     }
 
     @Override
-    public synchronized Map<String,Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator) {
+    public  Map<String,Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator) {
         LOGGER.info(operator + "开始 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         progress = 0;
         Map<String,Object> result = Maps.newHashMap();
