@@ -38,6 +38,7 @@ import recipe.dao.DrugListMatchDAO;
 import recipe.dao.DrugToolUserDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.util.DrugMatchUtil;
+import recipe.util.RedisClient;
 
 import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
@@ -61,6 +62,8 @@ public class DrugToolService implements IDrugToolService {
     private static final Logger LOGGER = LoggerFactory.getLogger(DrugToolService.class);
 
     private double progress;
+
+    private RedisClient redisClient = RedisClient.instance();
 
     private static final String SUFFIX_2003 = ".xls";
     private static final String SUFFIX_2007 = ".xlsx";
@@ -143,7 +146,8 @@ public class DrugToolService implements IDrugToolService {
     @RpcService
     public synchronized double getProgress(int organId,String operator) throws InterruptedException {
         String key = organId +operator;
-        Double data = progressMap.get(key);
+//        Double data = progressMap.get(key);
+        Double data =  redisClient.get(organId+operator);
         if (data != null){
             progress = data;
             if (progress >= 100){
@@ -291,7 +295,8 @@ public class DrugToolService implements IDrugToolService {
                         }
                     }
                     progress = new BigDecimal((float)rowIndex / total).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
-                    progressMap.put(organId+operator,progress*100);
+                    redisClient.set(organId+operator,progress*100);
+//                    progressMap.put(organId+operator,progress*100);
                 }
             }
         });
