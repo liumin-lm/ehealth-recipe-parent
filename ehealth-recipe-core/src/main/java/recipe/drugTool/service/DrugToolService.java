@@ -152,6 +152,7 @@ public class DrugToolService implements IDrugToolService {
 //        }
 //        return progress;
         progress+=10;
+        LOGGER.info("进度条加载={}=", progress);
         return progress;
     }
 
