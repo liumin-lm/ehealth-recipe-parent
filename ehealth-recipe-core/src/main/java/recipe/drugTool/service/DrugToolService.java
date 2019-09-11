@@ -60,6 +60,8 @@ public class DrugToolService implements IDrugToolService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DrugToolService.class);
 
+    private double progress;
+
     private static final String SUFFIX_2003 = ".xls";
     private static final String SUFFIX_2007 = ".xlsx";
     //全局map
@@ -139,8 +141,7 @@ public class DrugToolService implements IDrugToolService {
 
     //获取进度条
     @RpcService
-    public double getProgress(int organId,String operator) {
-        double progress = 0;
+    public double getProgress(int organId,String operator) throws InterruptedException {
         String key = organId +operator;
         Double data = progressMap.get(key);
         if (data != null){
@@ -155,6 +156,7 @@ public class DrugToolService implements IDrugToolService {
     @Override
     public synchronized Map<String,Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator) {
         LOGGER.info(operator + "开始 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
+        progress = 0;
         Map<String,Object> result = Maps.newHashMap();
         if (StringUtils.isEmpty(operator)){
             result.put("code",609);
@@ -284,8 +286,11 @@ public class DrugToolService implements IDrugToolService {
                     LOGGER.error("save or update drugListMatch error "+e.getMessage());
                 }
             }
-            progress = new BigDecimal((float)rowIndex / total).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
-            progressMap.put(organId+operator,progress*100);
+            if (rowIndex % 100 == 0 || rowIndex == total){
+                progress = new BigDecimal((float)rowIndex / total).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+                progressMap.put(organId+operator,progress*100);
+            }
+
         }
         LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         result.put("code",200);
