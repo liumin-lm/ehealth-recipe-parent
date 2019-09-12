@@ -91,12 +91,6 @@ public enum RecipeMsgEnum {
     RECIPE_DRUG_HAVE_STOCK(123, "RecipeDrugHaveStock"),
 
     /**
-     * Date:2019/09/09
-     * 药店取药-完成
-     */
-    RECIPE_TAKE_MEDICINE_FINISH(124, "RecipeTakeMedicineFinish"),
-
-    /**
      * 默认消息
      */
     DEFAULT(999, "");

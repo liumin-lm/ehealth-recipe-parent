@@ -650,12 +650,23 @@ public class StandardEnterpriseCallService {
      */
     private void onlyChangeRecipeOrderStatus(ChangeStatusByGetDrugDTO changeStatus, StandardResultDTO result, Recipe nowRecipe) {
 
-        //这里校验传入的状态是否是待取药（无库存）/待取药（有库存）
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         Map<String, Object> updateMap = new HashMap<>();
         updateMap.put("status", changeStatus.getChangeStatus());
         //返回一个RecipeResultBean
         orderService.updateOrderInfo(nowRecipe.getOrderCode(), updateMap, null);
+
+        //发送取药提示信息给用户
+        Integer status = null;
+        //设置发送消息的内容
+        if(OrderStatusConstant.NO_DRUG.equals(changeStatus.getChangeStatus())){
+            status = RecipeStatusConstant.RECIPE_DRUG_NO_STOCK_ARRIVAL;
+        }else if (OrderStatusConstant.READY_DRUG.equals(changeStatus.getChangeStatus())){
+            status = RecipeStatusConstant.RECIPE_DRUG_NO_STOCK_READY;
+        }else if(OrderStatusConstant.HAS_DRUG.equals(changeStatus.getChangeStatus())){
+            status = RecipeStatusConstant.RECIPE_DRUG_HAVE_STOCK;
+        }
+        RecipeMsgService.batchSendMsg(nowRecipe, status);
 
     }
 
@@ -680,10 +691,8 @@ public class StandardEnterpriseCallService {
 
         //记录日志,处方的状态变更为失败的状态，记录失败的原因
         RecipeLogService.saveRecipeLog(changeStatus.getRecipeId(), nowRecipe.getStatus(), RecipeStatusConstant.NO_DRUG,
-                "处方单失败:" + changeStatus.getFailureReason());
+                 changeStatus.getFailureReason());
 
-        //发送消息
-        RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_CANCEL_4HIS, nowRecipe);
     }
 
 }

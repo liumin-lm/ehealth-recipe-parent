@@ -189,9 +189,4 @@ public class RecipeStatusConstant {
      */
     public static final int RECIPE_DRUG_HAVE_STOCK = 123;
 
-    /**
-     * 不存在的状态，药店取药-完成
-     */
-    public static final int RECIPE_TAKE_MEDICINE_FINISH = 124;
-
 }

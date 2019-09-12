@@ -105,8 +105,6 @@ public class RecipeMsgService {
 
     private static final String RECIPE_DRUG_HAVE_STOCK = "RecipeDrugHaveStock";
 
-    private static final String RECIPE_TAKE_MEDICINE_FINISH = "RecipeTakeMedicineFinish";
-
     /**
      * 单个处方信息推送（根据处方ID）
      *
@@ -243,9 +241,7 @@ public class RecipeMsgService {
                 sendMsgInfo(recipeId, RECIPE_DRUG_NO_STOCK_ARRIVAL, organId, Integer.toString(afterStatus));
             } else if (RecipeStatusConstant.RECIPE_DRUG_HAVE_STOCK == afterStatus) {
                 sendMsgInfo(recipeId, RECIPE_DRUG_HAVE_STOCK, organId, Integer.toString(afterStatus));
-            } else if (RecipeStatusConstant.RECIPE_TAKE_MEDICINE_FINISH == afterStatus) {
-                sendMsgInfo(recipeId, RECIPE_TAKE_MEDICINE_FINISH, organId, Integer.toString(afterStatus));
-            } else {
+            }  else {
                 //新处理方式
                 Map<String, String> extendValue = Maps.newHashMap();
                 RecipeMsgEnum msgEnum = RecipeMsgUtils.getEnumByStatus(afterStatus);
