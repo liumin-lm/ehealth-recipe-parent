@@ -297,7 +297,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
                 Integer depId = recipeService.supportDistributionExt(recipe.getRecipeId(), recipe.getClinicOrgan(),
                         order.getEnterpriseId(), payMode);
-                if (null == depId) {
+                if (null == depId && (recipe.getGiveMode() == 1 || recipe.getGiveMode() == 4)) {
                     LOGGER.error("处方id=" + recipe.getRecipeId() + "无法配送。");
                     result.setError("很抱歉，当前库存不足无法结算，请联系客服：" +
                             cacheService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
