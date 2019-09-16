@@ -9,7 +9,7 @@ package recipe.purchase;
 public enum PurchaseEnum {
 
     PAYMODE_ONLINE(1, "payModeOnlineService"),
-    PAYMODE_COD(2, ""),
+    PAYMODE_COD(2, "payModeOnlineService"),
     PAYMODE_TO_HOS(3, "payModeToHosService"),
     PAYMODE_TFDS(4, "payModeTFDSService"),
     PAYMODE_DOWNLOAD_RECIPE(6, "payModeDownloadService");

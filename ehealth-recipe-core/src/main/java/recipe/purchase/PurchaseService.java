@@ -132,7 +132,6 @@ public class PurchaseService {
             IPurchaseService purchaseService = getService(i);
             //如果涉及到多种购药方式合并成一个列表，此处需要进行合并
             resultBean = purchaseService.findSupportDepList(dbRecipe, extInfo);
-
         }
 
         return resultBean;
