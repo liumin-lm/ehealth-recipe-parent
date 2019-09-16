@@ -59,6 +59,8 @@ public class PayModeOnline implements IPurchaseService {
 
         //获取购药方式查询列表
         List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(getPayMode());
+        List<Integer> payModeSupportDoc = RecipeServiceSub.getDepSupportMode(getPayMode());
+        payModeSupport.addAll(payModeSupportDoc);
         if (CollectionUtils.isEmpty(payModeSupport)) {
             LOG.warn("findSupportDepList 处方[{}]无法匹配配送方式. payMode=[{}]", recipeId, getPayMode());
             resultBean.setCode(RecipeResultBean.FAIL);
@@ -101,6 +103,8 @@ public class PayModeOnline implements IPurchaseService {
             resultBean.setMsg("没有药企可以配送");
             return resultBean;
         }
+
+        subDepList = getAllSubDepList(subDepList);
 
         DepDetailBean depDetailBean;
         for (DrugsEnterprise dep : subDepList) {
@@ -254,6 +258,20 @@ public class PayModeOnline implements IPurchaseService {
                 break;
         }
         return tips;
+    }
+
+    private List<DrugsEnterprise> getAllSubDepList(List<DrugsEnterprise> subDepList) {
+        List<DrugsEnterprise> returnSubDepList = new ArrayList<>();
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        for (DrugsEnterprise drugsEnterprise : subDepList) {
+            returnSubDepList.add(drugsEnterprise);
+            if (drugsEnterprise.getPayModeSupport() == 9) {
+                DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(drugsEnterprise.getId());
+                enterprise.setPayModeSupport(1);
+                returnSubDepList.add(enterprise);
+            }
+        }
+        return returnSubDepList;
     }
 
     /**
