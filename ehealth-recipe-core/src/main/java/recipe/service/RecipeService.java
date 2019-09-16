@@ -23,6 +23,7 @@ import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
+import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.ConsultSetDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.OrganDTO;
@@ -84,6 +85,7 @@ import recipe.util.RedisClient;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 import static ctd.persistence.DAOFactory.getDAO;
 import static recipe.service.RecipeServiceSub.convertPatientForRAP;
@@ -932,30 +934,35 @@ public class RecipeService extends RecipeBaseService{
             }
             //高州市人民医院特殊处理
             if (1000423==recipeBean.getClinicOrgan()){
-                //TODO 特殊处理
-                PatientService patientService = BasicAPI.getService(PatientService.class);
-                PatientDTO patientDTO = patientService.getPatientByMpiId(recipeBean.getMpiid());
-                Date now = DateTime.now().toDate();
-                String str = "";
-                if(patientDTO != null && StringUtils.isNotEmpty(patientDTO.getCertificate())){
-                    str = patientDTO.getCertificate().substring(patientDTO.getCertificate().length()-5);
-                }
+                RecipeBusiThreadPool.submit(new Callable() {
+                    @Override
+                    public Object call() throws Exception {
+                        PatientService patientService = BasicAPI.getService(PatientService.class);
+                        PatientDTO patientDTO = patientService.getPatientByMpiId(recipeBean.getMpiid());
+                        Date now = DateTime.now().toDate();
+                        String str = "";
+                        if(patientDTO != null && StringUtils.isNotEmpty(patientDTO.getCertificate())){
+                            str = patientDTO.getCertificate().substring(patientDTO.getCertificate().length()-5);
+                        }
 
-                RecipeToHisCallbackService service = ApplicationUtils.getRecipeService(RecipeToHisCallbackService.class);
-                HisSendResTO response = new HisSendResTO();
-                response.setRecipeId(((Integer)rMap.get("recipeId")).toString());
-                List<OrderRepTO> repList = Lists.newArrayList();
-                OrderRepTO orderRepTO = new OrderRepTO();
-                //门诊号处理 年月日+患者身份证后5位 例：2019060407915
-                orderRepTO.setPatientID(DateConversion.getDateFormatter(now,"yyMMdd")+str);
-                orderRepTO.setRegisterID(orderRepTO.getPatientID());
-                //生成处方编号，不需要通过HIS去产生
-                String recipeCodeStr = DigestUtil.md5For16(recipeBean.getClinicOrgan() +
-                        recipeBean.getMpiid() + Calendar.getInstance().getTimeInMillis());
-                orderRepTO.setRecipeNo(recipeCodeStr);
-                repList.add(orderRepTO);
-                response.setData(repList);
-                service.sendSuccess(response);
+                        RecipeToHisCallbackService service = ApplicationUtils.getRecipeService(RecipeToHisCallbackService.class);
+                        HisSendResTO response = new HisSendResTO();
+                        response.setRecipeId(((Integer)rMap.get("recipeId")).toString());
+                        List<OrderRepTO> repList = Lists.newArrayList();
+                        OrderRepTO orderRepTO = new OrderRepTO();
+                        //门诊号处理 年月日+患者身份证后5位 例：2019060407915
+                        orderRepTO.setPatientID(DateConversion.getDateFormatter(now,"yyMMdd")+str);
+                        orderRepTO.setRegisterID(orderRepTO.getPatientID());
+                        //生成处方编号，不需要通过HIS去产生
+                        String recipeCodeStr = DigestUtil.md5For16(recipeBean.getClinicOrgan() +
+                                recipeBean.getMpiid() + Calendar.getInstance().getTimeInMillis());
+                        orderRepTO.setRecipeNo(recipeCodeStr);
+                        repList.add(orderRepTO);
+                        response.setData(repList);
+                        service.sendSuccess(response);
+                        return null;
+                    }
+                });
             }
         }
         LOGGER.info("doSignRecipeExt execute ok! rMap:" + JSONUtils.toString(rMap));
@@ -1549,7 +1556,10 @@ public class RecipeService extends RecipeBaseService{
     @RpcService
     public Map<String, Object> getPatientRecipeById(int recipeId) {
         checkUserHasPermission(recipeId);
-        return RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false);
+        Map<String, Object> result = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false);
+        PatientDTO patient = (PatientDTO) result.get("patient");
+        result.put("patient", ObjectCopyUtils.convert(patient, PatientDS.class));
+        return result;
     }
 
 

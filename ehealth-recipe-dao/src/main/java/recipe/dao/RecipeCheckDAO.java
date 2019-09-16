@@ -93,7 +93,7 @@ public abstract class RecipeCheckDAO extends HibernateSupportDelegateDAO<RecipeC
                     StringBuilder hql = new StringBuilder();
                     if (1 == searchFlag) {
                         //按照药师搜索
-                        hql.append("select r.* Recipe r join RecipeCheck w on r.recipeId = w.recipeId and w.checkerName like:searchString");
+                        hql.append("select r from Recipe r , RecipeCheck w where r.recipeId = w.recipeId and w.checkerName like:searchString");
                         hql.append(" and r.clinicOrgan in (:organs) order by w.checkDate desc");
                     } else {
                         hql.append("select distinct r from Recipe r");
@@ -136,6 +136,6 @@ public abstract class RecipeCheckDAO extends HibernateSupportDelegateDAO<RecipeC
     @DAOMethod(sql = "from RecipeCheck where recipeId=:recipeId order by checkDate desc")
     public abstract List<RecipeCheck> findByRecipeId(@DAOParam("recipeId") Integer recipeId);
 
-    @DAOMethod(sql = "from RecipeCheck ")
+    @DAOMethod(sql = "from RecipeCheck ", limit = 0)
     public abstract List<RecipeCheck> findAllRecipeCheck();
 }

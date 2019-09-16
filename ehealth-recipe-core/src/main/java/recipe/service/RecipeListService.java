@@ -158,8 +158,6 @@ public class RecipeListService extends RecipeBaseService{
             List<Map> recipesMap = new ArrayList<>(0);
             for (Integer recipeId : recipeIds) {
                 Map<String, Object> recipeInfo = recipeService.getPatientRecipeById(recipeId);
-                PatientDTO patient = (PatientDTO)recipeInfo.get("patient");
-                recipeInfo.put("patient", ObjectCopyUtils.convert(patient, PatientDS.class));
                 recipeGetModeTip = MapValueUtil.getString(recipeInfo, "recipeGetModeTip");
                 if (null != recipeInfo.get("checkEnterprise")) {
                     map.put("checkEnterprise", (Boolean) recipeInfo.get("checkEnterprise"));
