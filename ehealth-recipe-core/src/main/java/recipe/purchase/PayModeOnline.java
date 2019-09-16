@@ -59,8 +59,6 @@ public class PayModeOnline implements IPurchaseService {
 
         //获取购药方式查询列表
         List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(getPayMode());
-        List<Integer> payModeSupportCod = RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_COD);
-        payModeSupport.addAll(payModeSupportCod);
         if (CollectionUtils.isEmpty(payModeSupport)) {
             LOG.warn("findSupportDepList 处方[{}]无法匹配配送方式. payMode=[{}]", recipeId, getPayMode());
             resultBean.setCode(RecipeResultBean.FAIL);
@@ -112,7 +110,7 @@ public class PayModeOnline implements IPurchaseService {
             depDetailBean.setRecipeFee(dbRecipe.getTotalMoney());
             depDetailBean.setBelongDepName(dep.getName());
             depDetailBean.setOrderType(dep.getOrderType());
-            if (dbRecipe.getPayMode() == RecipeBussConstant.PAYMODE_ONLINE) {
+            if (dep.getPayModeSupport() == RecipeBussConstant.PAYMODE_ONLINE) {
                 depDetailBean.setPayModeText("在线支付");
                 depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_ONLINE);
             } else {
