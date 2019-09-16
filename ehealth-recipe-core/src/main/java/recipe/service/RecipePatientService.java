@@ -73,7 +73,7 @@ public class RecipePatientService extends RecipeBaseService {
             newBean.setList(Lists.newArrayList(Collections2.filter(depListBean.getList(), new Predicate<DepDetailBean>() {
                 @Override
                 public boolean apply(@Nullable DepDetailBean input) {
-                    if(input.getPayModeList().containsAll(payModes)){
+                    if(payModes.contains(input.getPayMode())){
                         return true;
                     }
                     return false;
@@ -287,7 +287,7 @@ public class RecipePatientService extends RecipeBaseService {
             //无法配送时间文案提示
             depDetailBean.setUnSendTitle(cacheService.getParam(ParameterConstant.KEY_RECIPE_UNSEND_TIP));
         }
-        depDetailBean.setPayModeList(payModeList);
+        depDetailBean.setPayMode(payModeList.get(0));
         depDetailBean.setGiveModeText(giveModeText);
         depDetailList.add(depDetailBean);
     }
