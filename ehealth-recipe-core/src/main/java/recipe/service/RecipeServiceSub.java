@@ -151,13 +151,13 @@ public class RecipeServiceSub {
         if (recipe.getReviewType() == null){
             try {
                 IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-                String reviewType = (String)configurationService.getConfiguration(recipe.getClinicOrgan(), "reviewType");
+                Integer reviewType = (Integer)configurationService.getConfiguration(recipe.getClinicOrgan(), "reviewType");
                 LOGGER.info("运营平台获取审方方式配置 reviewType[{}]",reviewType);
                 if (reviewType == null){
                     //默认审方后置
                     recipe.setReviewType(RecipeBussConstant.AUDIT_POST);
                 }else {
-                    recipe.setReviewType(Integer.parseInt(reviewType));
+                    recipe.setReviewType(reviewType);
                 }
             }catch (Exception e){
                 LOGGER.error("获取运营平台审方方式配置异常",e);
