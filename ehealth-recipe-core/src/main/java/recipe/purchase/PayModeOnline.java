@@ -27,10 +27,7 @@ import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author： 0184/yu_yun
@@ -271,6 +268,8 @@ public class PayModeOnline implements IPurchaseService {
                 returnSubDepList.add(enterprise);
             }
         }
+        //对货到付款和在线支付进行排序
+        Collections.sort(returnSubDepList, new SubDepListComparator());
         return returnSubDepList;
     }
 
@@ -314,4 +313,14 @@ public class PayModeOnline implements IPurchaseService {
         return succFlag;
     }
 
+    class SubDepListComparator implements Comparator<DrugsEnterprise> {
+
+        @Override
+        public int compare(DrugsEnterprise drugsEnterpriseOne, DrugsEnterprise drugsEnterpriseTwo) {
+            if (drugsEnterpriseOne.getPayModeSupport() > drugsEnterpriseTwo.getPayModeSupport()) {
+                return 1;
+            }
+            return 0;
+        }
+    }
 }
