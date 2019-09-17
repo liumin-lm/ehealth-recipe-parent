@@ -163,7 +163,6 @@ public class RecipeOrderService extends RecipeBaseService {
             if (null == needDelList) {
                 RecipeOrder dbOrder = orderDAO.getByOrderCode(result.getOrderCode());
                 setCreateOrderResult(result, dbOrder, payModeSupport, toDbFlag);
-                LOGGER.info("setCreateOrderResult go here.");
                 return result;
             }
             //过滤无法合并的处方单
@@ -225,7 +224,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             }
         }
-
+        LOGGER.info("setCreateOrderResult go here.");
         setCreateOrderResult(result, order, payModeSupport, toDbFlag);
         return result;
     }
