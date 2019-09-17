@@ -59,7 +59,7 @@ public class PayModeOnline implements IPurchaseService {
 
         //获取购药方式查询列表
         List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(getPayMode());
-        List<Integer> payModeSupportDoc = RecipeServiceSub.getDepSupportMode(getPayMode());
+        List<Integer> payModeSupportDoc = RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_COD);
         payModeSupport.addAll(payModeSupportDoc);
         if (CollectionUtils.isEmpty(payModeSupport)) {
             LOG.warn("findSupportDepList 处方[{}]无法匹配配送方式. payMode=[{}]", recipeId, getPayMode());
