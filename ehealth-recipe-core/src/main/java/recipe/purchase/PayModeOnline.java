@@ -102,6 +102,8 @@ public class PayModeOnline implements IPurchaseService {
         }
         LOG.info("before-subDepList:{}.", JSONUtils.toString(subDepList));
         subDepList = getAllSubDepList(subDepList);
+        //对货到付款和在线支付进行排序
+        Collections.sort(subDepList, new SubDepListComparator());
         LOG.info("after-subDepList:{}.", JSONUtils.toString(subDepList));
         DepDetailBean depDetailBean;
         for (DrugsEnterprise dep : subDepList) {
@@ -268,8 +270,6 @@ public class PayModeOnline implements IPurchaseService {
                 returnSubDepList.add(enterprise);
             }
         }
-        //对货到付款和在线支付进行排序
-        Collections.sort(returnSubDepList, new SubDepListComparator());
         return returnSubDepList;
     }
 
