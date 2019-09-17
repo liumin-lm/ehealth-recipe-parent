@@ -100,11 +100,7 @@ public class PayModeOnline implements IPurchaseService {
             resultBean.setMsg("没有药企可以配送");
             return resultBean;
         }
-        LOG.info("before-subDepList:{}.", JSONUtils.toString(subDepList));
         subDepList = getAllSubDepList(subDepList);
-        //对货到付款和在线支付进行排序
-        Collections.sort(subDepList, new SubDepListComparator());
-        LOG.info("after-subDepList:{}.", JSONUtils.toString(subDepList));
         DepDetailBean depDetailBean;
         for (DrugsEnterprise dep : subDepList) {
             depDetailBean = new DepDetailBean();
@@ -270,6 +266,8 @@ public class PayModeOnline implements IPurchaseService {
                 returnSubDepList.add(enterprise);
             }
         }
+        //对货到付款和在线支付进行排序
+        Collections.sort(returnSubDepList, new SubDepListComparator());
         return returnSubDepList;
     }
 
