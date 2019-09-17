@@ -321,7 +321,7 @@ public class PayModeOnline implements IPurchaseService {
             if (compare != 0) {
                 cp = compare > 0 ? 1 : -1;
             }
-            return 0;
+            return cp;
         }
     }
 }
