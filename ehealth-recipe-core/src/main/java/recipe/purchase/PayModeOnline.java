@@ -314,11 +314,12 @@ public class PayModeOnline implements IPurchaseService {
     }
 
     class SubDepListComparator implements Comparator<DrugsEnterprise> {
-
+        int cp = 0;
         @Override
         public int compare(DrugsEnterprise drugsEnterpriseOne, DrugsEnterprise drugsEnterpriseTwo) {
-            if (drugsEnterpriseOne.getPayModeSupport() > drugsEnterpriseTwo.getPayModeSupport()) {
-                return 1;
+            int compare = drugsEnterpriseOne.getPayModeSupport() - drugsEnterpriseTwo.getPayModeSupport();
+            if (compare != 0) {
+                cp = compare > 0 ? 1 : -1;
             }
             return 0;
         }
