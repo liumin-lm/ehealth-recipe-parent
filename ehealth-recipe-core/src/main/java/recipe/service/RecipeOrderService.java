@@ -297,7 +297,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
                 Integer depId = recipeService.supportDistributionExt(recipe.getRecipeId(), recipe.getClinicOrgan(),
                         order.getEnterpriseId(), payMode);
-                if (null == depId && (recipe.getGiveMode() == 1 || recipe.getGiveMode() == 4)) {
+                if (null == depId && ( payMode == 1 || payMode == 2 || payMode == 4) ) {
                     LOGGER.error("处方id=" + recipe.getRecipeId() + "无法配送。");
                     result.setError("很抱歉，当前库存不足无法结算，请联系客服：" +
                             cacheService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
@@ -510,17 +510,20 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setAddress4(address.getAddress4());
 
                 try {
+                    Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
                     //校验地址是否可以配送
-                    EnterpriseAddressService enterpriseAddressService = ApplicationUtils.getRecipeService(EnterpriseAddressService.class);
-                    int flag = enterpriseAddressService.allAddressCanSendForOrder(order.getEnterpriseId(), address.getAddress1(), address.getAddress2(), address.getAddress3());
-                    if (0 == flag) {
-                        order.setAddressCanSend(true);
-                    } else {
-                        boolean b = 1 == toDbFlag && (payModeSupport.isSupportMedicalInsureance() || payModeSupport.isSupportOnlinePay());
-                        if (b) {
-                            //只有需要真正保存订单时才提示
-                            result.setCode(RecipeResultBean.FAIL);
-                            result.setMsg("该地址无法配送");
+                    if (payMode == 1 || payMode == 2 || payMode == 4) {
+                        EnterpriseAddressService enterpriseAddressService = ApplicationUtils.getRecipeService(EnterpriseAddressService.class);
+                        int flag = enterpriseAddressService.allAddressCanSendForOrder(order.getEnterpriseId(), address.getAddress1(), address.getAddress2(), address.getAddress3());
+                        if (0 == flag) {
+                            order.setAddressCanSend(true);
+                        } else {
+                            boolean b = 1 == toDbFlag && (payModeSupport.isSupportMedicalInsureance() || payModeSupport.isSupportOnlinePay());
+                            if (b) {
+                                //只有需要真正保存订单时才提示
+                                result.setCode(RecipeResultBean.FAIL);
+                                result.setMsg("该地址无法配送");
+                            }
                         }
                     }
                 } catch (Exception e) {
