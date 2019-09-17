@@ -100,9 +100,9 @@ public class PayModeOnline implements IPurchaseService {
             resultBean.setMsg("没有药企可以配送");
             return resultBean;
         }
-
+        LOG.info("before-subDepList:{}.", JSONUtils.toString(subDepList));
         subDepList = getAllSubDepList(subDepList);
-
+        LOG.info("after-subDepList:{}.", JSONUtils.toString(subDepList));
         DepDetailBean depDetailBean;
         for (DrugsEnterprise dep : subDepList) {
             depDetailBean = new DepDetailBean();
