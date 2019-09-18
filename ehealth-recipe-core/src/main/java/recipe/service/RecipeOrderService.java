@@ -225,7 +225,6 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             }
         }
-        LOGGER.info("setCreateOrderResult go here.");
         setCreateOrderResult(result, order, payModeSupport, toDbFlag);
         return result;
     }
