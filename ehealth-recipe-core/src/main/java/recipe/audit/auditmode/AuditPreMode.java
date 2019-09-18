@@ -3,6 +3,8 @@ package recipe.audit.auditmode;
 import com.ngari.recipe.entity.Recipe;
 import eh.cdr.constant.RecipeStatusConstant;
 import eh.wxpay.constant.PayConstant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeMsgEnum;
@@ -21,11 +23,13 @@ import static ctd.persistence.DAOFactory.getDAO;
  */
 @AuditMode(RecipeBussConstant.AUDIT_PRE)
 public class AuditPreMode extends AbstractAuidtMode {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AuditPreMode.class);
     @Override
     public void afterHisCallBackChange(Integer status,Recipe recipe) {
         if (status == RecipeStatusConstant.CHECK_PASS){
             status = RecipeStatusConstant.READY_CHECK_YS;
         }
+        LOGGER.info("afterHisCallBackChange AuditPreMode status="+status);
     }
 
     @Override
