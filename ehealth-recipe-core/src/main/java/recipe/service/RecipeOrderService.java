@@ -26,6 +26,8 @@ import com.ngari.recipe.recipe.model.PatientRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
+import coupon.api.service.ICouponBaseService;
+import coupon.api.vo.Coupon;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -407,6 +409,9 @@ public class RecipeOrderService extends RecipeBaseService {
         double otherServiceFee = Double.parseDouble(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_OTHERFEE).toString());
         order.setOtherFee(BigDecimal.valueOf(otherServiceFee));
 
+        //设置优惠券信息
+        Integer couponId = MapValueUtil.getInteger(extInfo, "couponId");
+        order.setCouponId(couponId);
         //设置处方总费用
         BigDecimal recipeFee = BigDecimal.ZERO;
         for (Recipe recipe : recipeList) {
@@ -539,7 +544,22 @@ public class RecipeOrderService extends RecipeBaseService {
             }
         }
         order.setTotalFee(countOrderTotalFee(order));
-        order.setActualPrice(order.getTotalFee().doubleValue());
+        //计算优惠券价格
+        ICouponBaseService couponService = ApplicationUtils.getService(ICouponBaseService.class, "voucher.couponBaseService");
+        if (isUsefulCoupon(order.getCouponId())) {
+            Coupon coupon = couponService.lockCouponById(order.getCouponId(), order.getTotalFee());
+            LOGGER.info("RecipeOrderService use coupon , coupon info: {}.", JSONUtils.toString(coupon));
+            if (coupon != null) {
+                order.setCouponName(coupon.getCouponName());
+                order.setCouponFee(coupon.getDiscountAmount());
+            }
+            couponService.useCouponById(order.getCouponId());
+            if (order.getTotalFee().compareTo(order.getCouponFee()) > -1) {
+                order.setActualPrice(order.getTotalFee().subtract(order.getCouponFee()).doubleValue());
+            } else {
+                order.setActualPrice(order.getTotalFee().doubleValue());
+            }
+        }
     }
 
     public BigDecimal reCalculateRecipeFee(Integer enterpriseId, List<Integer> recipeIds) {
