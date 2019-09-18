@@ -5,7 +5,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ngari.base.BaseAPI;
 import com.ngari.base.address.model.AddressBean;
 import com.ngari.base.address.service.IAddressService;
 import com.ngari.base.hisconfig.model.HisServiceConfigBean;
@@ -545,7 +544,7 @@ public class RecipeOrderService extends RecipeBaseService {
         }
         order.setTotalFee(countOrderTotalFee(order));
         //计算优惠券价格
-        ICouponBaseService couponService = ApplicationUtils.getService(ICouponBaseService.class, "voucher.couponBaseService");
+        ICouponBaseService couponService = AppContextHolder.getBean("voucher.couponBaseService",ICouponBaseService.class);
         if (isUsefulCoupon(order.getCouponId())) {
             Coupon coupon = couponService.lockCouponById(order.getCouponId(), order.getTotalFee());
             LOGGER.info("RecipeOrderService use coupon , coupon info: {}.", JSONUtils.toString(coupon));
