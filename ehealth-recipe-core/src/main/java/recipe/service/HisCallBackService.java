@@ -185,30 +185,10 @@ public class HisCallBackService {
             recipeService.generateRecipePdfAndSign(recipe.getRecipeId());
 
             //TODO 根据审方模式改变状态
-            auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(status,recipe);
+            auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(status,recipe,memo);
 
         } catch (Exception e) {
             LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. ", e);
-        }
-        //生成文件成功后再去更新处方状态
-        recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), status, null);
-        //日志记录
-        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), status, memo);
-
-        //平台处方进行消息发送等操作
-        if (1 == recipe.getFromflag()) {
-            //发送消息
-            RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
-            if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
-                //增加药师首页待处理任务---创建任务
-                if (status == RecipeStatusConstant.READY_CHECK_YS) {
-//                Recipe dbRecipe = recipeDAO.getByRecipeId(recipe.getRecipeId());
-                    RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
-                    ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
-                }
-            }
-            //保存至电子病历
-            recipeService.saveRecipeDocIndex(recipe);
         }
 
         if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {

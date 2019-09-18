@@ -14,7 +14,7 @@ public interface IAuditMode {
      * his回调后的状态变更
      * @param status
      */
-    void afterHisCallBackChange(Integer status,Recipe recipe);
+    void afterHisCallBackChange(Integer status,Recipe recipe,String memo);
 
     /**
      * 审核处方后的变更

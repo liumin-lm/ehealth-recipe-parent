@@ -1,9 +1,14 @@
 package recipe.audit.auditmode;
 
 import com.google.common.collect.ImmutableMap;
+import com.ngari.home.asyn.model.BussCreateEvent;
+import com.ngari.home.asyn.service.IAsynDoBussService;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
+import eh.base.constant.BussTypeConstant;
 import eh.cdr.constant.OrderStatusConstant;
 import eh.cdr.constant.RecipeStatusConstant;
 import eh.wxpay.constant.PayConstant;
@@ -13,9 +18,7 @@ import recipe.constant.RecipeSystemConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.service.RecipeLogService;
-import recipe.service.RecipeOrderService;
-import recipe.service.RecipeServiceSub;
+import recipe.service.*;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
@@ -28,10 +31,36 @@ import static ctd.persistence.DAOFactory.getDAO;
  */
 public class AbstractAuidtMode implements IAuditMode{
     @Override
-    public void afterHisCallBackChange(Integer status, Recipe recipe) {
+    public void afterHisCallBackChange(Integer status, Recipe recipe,String memo) {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         //发送卡片
         RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipe.getRecipeId()), null, true);
+        saveStatusAndSendMsg(status,recipe,memo);
+    }
+
+    protected void saveStatusAndSendMsg(Integer status, Recipe recipe,String memo){
+        //生成文件成功后再去更新处方状态
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), status, null);
+        //日志记录
+        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), status, memo);
+
+        //平台处方进行消息发送等操作
+        if (1 == recipe.getFromflag()) {
+            //发送消息
+            RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
+            if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+                //增加药师首页待处理任务---创建任务
+                if (status == RecipeStatusConstant.READY_CHECK_YS) {
+//                Recipe dbRecipe = recipeDAO.getByRecipeId(recipe.getRecipeId());
+                    RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+                    ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
+                }
+            }
+            //保存至电子病历
+            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+            recipeService.saveRecipeDocIndex(recipe);
+        }
     }
 
     @Override
