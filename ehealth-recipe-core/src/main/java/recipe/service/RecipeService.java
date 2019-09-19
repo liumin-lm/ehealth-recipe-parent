@@ -460,7 +460,7 @@ public class RecipeService extends RecipeBaseService{
         int recipeStatus = RecipeStatusConstant.CHECK_NOT_PASS_YS;
         if (1 == checkFlag) {
             //根据审方模式改变状态
-            auditModeContext.getAuditModes(recipe.getReviewType()).afterAuditRecipeChange(recipeStatus);
+            recipeStatus = auditModeContext.getAuditModes(recipe.getReviewType()).afterAuditRecipeChange();
             if (recipe.canMedicalPay()) {
                 //如果是可医保支付的单子，审核是在用户看到之前，所以审核通过之后变为待处理状态
                 recipeStatus = RecipeStatusConstant.CHECK_PASS;

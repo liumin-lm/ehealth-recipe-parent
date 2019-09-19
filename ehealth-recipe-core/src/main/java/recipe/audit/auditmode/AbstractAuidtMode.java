@@ -64,7 +64,7 @@ public class AbstractAuidtMode implements IAuditMode{
     }
 
     @Override
-    public void afterAuditRecipeChange(Integer status) {}
+    public int afterAuditRecipeChange() {return RecipeStatusConstant.CHECK_PASS_YS;}
 
     @Override
     public void afterCheckPassYs(Recipe recipe) {}

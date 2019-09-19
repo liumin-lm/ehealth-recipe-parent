@@ -37,8 +37,8 @@ public class AuditPreMode extends AbstractAuidtMode {
     }
 
     @Override
-    public void afterAuditRecipeChange(Integer status) {
-        status = RecipeStatusConstant.CHECK_PASS;
+    public int afterAuditRecipeChange() {
+        return RecipeStatusConstant.CHECK_PASS;
     }
 
     @Override

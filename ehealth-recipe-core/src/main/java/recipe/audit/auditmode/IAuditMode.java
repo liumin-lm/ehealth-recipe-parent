@@ -11,16 +11,14 @@ import java.util.Map;
  */
 public interface IAuditMode {
     /**
-     * his回调后的状态变更
-     * @param status
+     * his回调后的变更
      */
     void afterHisCallBackChange(Integer status,Recipe recipe,String memo);
 
     /**
-     * 审核处方后的变更
-     * @param status
+     * 审核处方后的状态变更
      */
-    void afterAuditRecipeChange(Integer status);
+    int afterAuditRecipeChange();
 
     /**
      * 审核通过后逻辑处理

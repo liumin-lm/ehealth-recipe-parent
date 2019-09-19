@@ -44,11 +44,6 @@ public class AuditPostMode extends AbstractAuidtMode {
     private RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 
     @Override
-    public void afterAuditRecipeChange(Integer status) {
-        status = RecipeStatusConstant.CHECK_PASS_YS;
-    }
-
-    @Override
     public void afterCheckPassYs(Recipe recipe) {
         recipeService.afterCheckPassYs(recipe);
     }
