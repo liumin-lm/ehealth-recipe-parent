@@ -628,7 +628,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     return null;
                 }
             }
-            return BigDecimal.valueOf(order.getActualPrice());
+            return order.getTotalFee();
         }
     }
 
