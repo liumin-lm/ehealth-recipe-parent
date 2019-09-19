@@ -557,6 +557,8 @@ public class RecipeOrderService extends RecipeBaseService {
             } else {
                 order.setActualPrice(order.getTotalFee().doubleValue());
             }
+        } else {
+            order.setActualPrice(order.getTotalFee().doubleValue());
         }
     }
 
