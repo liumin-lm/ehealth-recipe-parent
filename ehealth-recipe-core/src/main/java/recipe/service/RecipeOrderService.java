@@ -18,6 +18,8 @@ import com.ngari.bus.coupon.service.ICouponService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.RecipeAPI;
+import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
 import com.ngari.recipe.entity.*;
@@ -25,6 +27,7 @@ import com.ngari.recipe.recipe.model.PatientRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
+import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
 import coupon.api.service.ICouponBaseService;
 import coupon.api.vo.Coupon;
 import ctd.persistence.DAOFactory;
@@ -422,7 +425,7 @@ public class RecipeOrderService extends RecipeBaseService {
         //药企是需要自己结算费用的，需要重新设置
         //在线支付才需要重新计算
         if (payModeSupport.isSupportOnlinePay() && null != order.getEnterpriseId() && 0 != order.getEnterpriseId()) {
-            recipeFee = reCalculateRecipeFee(order.getEnterpriseId(), recipeIds);
+            recipeFee = reCalculateRecipeFee(order.getEnterpriseId(), recipeIds, null);
         }
         order.setRecipeFee(recipeFee);
 
@@ -562,7 +565,7 @@ public class RecipeOrderService extends RecipeBaseService {
         }
     }
 
-    public BigDecimal reCalculateRecipeFee(Integer enterpriseId, List<Integer> recipeIds) {
+    public BigDecimal reCalculateRecipeFee(Integer enterpriseId, List<Integer> recipeIds, Map<String, String> extInfo) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -608,7 +611,25 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             }
         }
-        return recipeFee;
+        if (extInfo == null) {
+            //说明是重新计算药企处方费用的
+            return recipeFee;
+        } else {
+            //优惠券调用，返回总费用
+            //先判断处方是否已创建订单
+            IRecipeOrderService orderService = RecipeAPI.getService(IRecipeOrderService.class);
+            RecipeOrderBean order = orderService.getOrderByRecipeId(recipeIds.get(0));
+            if (null == order) {
+                RecipeBussResTO<RecipeOrderBean> resTO = orderService.createBlankOrder(recipeIds, extInfo);
+                if(null != resTO){
+                    order = resTO.getData();
+                }else{
+                    LOGGER.info("reCalculateRecipeFee createBlankOrder order is null.");
+                    return null;
+                }
+            }
+            return BigDecimal.valueOf(order.getActualPrice());
+        }
     }
 
     public void setCreateOrderResult(OrderCreateResult result, RecipeOrder order, RecipePayModeSupportBean payModeSupport,
