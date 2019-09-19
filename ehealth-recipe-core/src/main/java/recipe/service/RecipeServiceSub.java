@@ -814,6 +814,105 @@ public class RecipeServiceSub {
         return map;
     }
 
+    /**
+     * 状态文字提示（医生端）
+     *
+     * @param status
+     * @param recipe
+     * @param effective
+     * @return
+     */
+    public static Map<String, String> getTipsByStatusCopy(int status, Recipe recipe, boolean effective) {
+        String cancelReason = "";
+        String tips = "";
+        String listTips = "";
+        switch (status) {
+            case RecipeStatusConstant.CHECK_NOT_PASS:
+                tips = "审核未通过";
+                break;
+            case RecipeStatusConstant.UNSIGN:
+                tips = "未签名";
+                break;
+            case RecipeStatusConstant.UNCHECK:
+                tips = "待审核";
+                break;
+            case RecipeStatusConstant.CHECK_PASS:
+                tips = "待处理";
+                break;
+            case RecipeStatusConstant.REVOKE:
+                tips = "已取消";
+                cancelReason = "由于您已撤销，该处方单已失效";
+                break;
+            case RecipeStatusConstant.HAVE_PAY:
+                tips = "待取药";
+                break;
+            case RecipeStatusConstant.IN_SEND:
+                tips = "配送中";
+                break;
+            case RecipeStatusConstant.WAIT_SEND:
+                tips = "待配送";
+                break;
+            case RecipeStatusConstant.FINISH:
+                tips = "已完成";
+                break;
+            case RecipeStatusConstant.CHECK_PASS_YS:
+                if (StringUtils.isNotEmpty(recipe.getSupplementaryMemo())) {
+                    tips = "医生再次确认处方";
+                } else {
+                    tips = "审核通过";
+                }
+                listTips = "审核通过";
+                break;
+            case RecipeStatusConstant.READY_CHECK_YS:
+                tips = "待审核";
+                break;
+            case RecipeStatusConstant.HIS_FAIL:
+                tips = "已取消";
+                cancelReason = "可能由于医院接口异常，处方单已取消，请稍后重试！";
+                break;
+            case RecipeStatusConstant.NO_DRUG:
+                tips = "已取消";
+                cancelReason = "由于患者未及时取药，该处方单已失效";
+                break;
+            case RecipeStatusConstant.NO_PAY:
+                //修改文案
+                tips = "未支付";
+            case RecipeStatusConstant.NO_OPERATOR:
+                //修改文案
+                tips = "未处理";
+                cancelReason = "由于患者未及时支付，该处方单已取消。";
+                break;
+            case RecipeStatusConstant.CHECK_NOT_PASS_YS:
+                if (recipe.canMedicalPay()) {
+                    tips = "审核未通过";
+                } else {
+                    if (effective) {
+                        tips = "审核未通过";
+                    } else {
+                        tips = "已取消";
+                    }
+                }
+                break;
+            case RecipeStatusConstant.CHECKING_HOS:
+                tips = "医院确认中";
+                break;
+            //添加状态
+            case RecipeStatusConstant.RECIPE_FAIL:
+                tips = "失败";
+                break;
+            default:
+                tips = "未知状态" + status;
+        }
+        if (StringUtils.isEmpty(listTips)) {
+            listTips = tips;
+        }
+        Map<String, String> map = Maps.newHashMap();
+        map.put("tips", tips);
+        map.put("listTips", listTips);
+        map.put("cancelReason", cancelReason);
+        return map;
+    }
+
     public static void setPatientMoreInfo(PatientDTO patient, int doctorId) {
         RelationDoctorBean relationDoctor = iDoctorService.getByMpiidAndDoctorId(patient.getMpiId(), doctorId);
         //是否关注
@@ -1065,7 +1164,7 @@ public class RecipeServiceSub {
             }
             //Date:20190904
             //Explain:审核是否通过
-            boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() && RecipeStatusConstant.UNCHECK == recipe.getStatus());
+            boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() && RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus());
             map.put("optional", isOptional);
             //Date:20190909
             //Explain:判断是否下载处方签

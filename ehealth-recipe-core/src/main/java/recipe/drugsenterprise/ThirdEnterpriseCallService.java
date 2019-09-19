@@ -654,7 +654,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 //HIS消息发送
                 hisService.recipeFinish(recipeId);
                 //发送取药完成消息
-                RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.PATIENT_GETGRUG_FINISH);
+                RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_TAKE_MEDICINE_FINISH);
 
                 //监管平台核销上传
                 SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);

@@ -341,7 +341,7 @@ public class StandardEnterpriseCallService {
                 RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), RecipeStatusConstant.NO_DRUG,
                         "处方单配送失败:" + finishDTO.getMsg());
 
-                //发送消息
+                //发送消息(根据不同的取药方式发送不同的消息)
                 RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_CANCEL_4HIS, dbRecipe);
             }
 
@@ -657,17 +657,11 @@ public class StandardEnterpriseCallService {
         orderService.updateOrderInfo(nowRecipe.getOrderCode(), updateMap, null);
 
         //发送取药提示信息给用户
-        Integer status = null;
         //设置发送消息的内容
-        if(OrderStatusConstant.NO_DRUG.equals(changeStatus.getChangeStatus())){
-            status = RecipeStatusConstant.RECIPE_DRUG_NO_STOCK_ARRIVAL;
-        }else if (OrderStatusConstant.READY_DRUG.equals(changeStatus.getChangeStatus())){
-            status = RecipeStatusConstant.RECIPE_DRUG_NO_STOCK_READY;
-        }else if(OrderStatusConstant.HAS_DRUG.equals(changeStatus.getChangeStatus())){
-            status = RecipeStatusConstant.RECIPE_DRUG_HAVE_STOCK;
+        ThirdChangeStatusMsgEnum msgEnum = ThirdChangeStatusMsgEnum.fromStatusAndChangeStatus(1, changeStatus.getChangeStatus());
+        if(null != msgEnum){
+            RecipeMsgService.batchSendMsg(nowRecipe, msgEnum.getMsgStatus());
         }
-        RecipeMsgService.batchSendMsg(nowRecipe, status);
-
     }
 
     /**
@@ -682,7 +676,7 @@ public class StandardEnterpriseCallService {
      */
     private void failChangeRecipe(ChangeStatusByGetDrugDTO changeStatus, StandardResultDTO result, Recipe nowRecipe) {
         //修改处方的状态，为失败（失败有多种失败的情况状态）
-        Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(changeStatus.getRecipeId(), RecipeStatusConstant.NO_DRUG, null);
+        Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(changeStatus.getRecipeId(), RecipeStatusConstant.RECIPE_FAIL, null);
         if (rs) {
             //更新处方状态后，结束当前订单的状态
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
