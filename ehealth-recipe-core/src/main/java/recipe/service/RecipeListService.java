@@ -459,6 +459,79 @@ public class RecipeListService extends RecipeBaseService{
         return msg;
     }
 
+    private String getOrderStatusTabText(Integer status) {
+        String msg = "未知";
+        if (OrderStatusConstant.FINISH.equals(status)) {
+            msg = "已完成";
+        } else if (OrderStatusConstant.READY_PAY.equals(status)) {
+            msg = "待支付";
+        } else if (OrderStatusConstant.READY_GET_DRUG.equals(status) || OrderStatusConstant.NO_DRUG.equals(status) || OrderStatusConstant.HAS_DRUG.equals(status)) {
+            msg = "待取药";
+        } else if (OrderStatusConstant.READY_CHECK.equals(status)) {
+            msg = "待审核";
+        } else if (OrderStatusConstant.READY_SEND.equals(status)) {
+            msg = "待配送";
+        } else if (OrderStatusConstant.SENDING.equals(status)) {
+            msg = "配送中";
+        } else if (OrderStatusConstant.CANCEL_NOT_PASS.equals(status)) {
+            msg = "审核不通过";
+        } else if (OrderStatusConstant.CANCEL_AUTO.equals(status)
+                || OrderStatusConstant.CANCEL_MANUAL.equals(status)) {
+            msg = "已取消";
+        }else if (OrderStatusConstant.READY_DRUG.equals(status)){
+            msg = "准备中";
+        }
+
+        return msg;
+    }
+
+    private String getRecipeStatusTabText(int status) {
+        String msg;
+        switch (status) {
+            case RecipeStatusConstant.FINISH:
+                msg = "已完成";
+                break;
+            case RecipeStatusConstant.HAVE_PAY:
+                msg = "已支付，待取药";
+                break;
+            case RecipeStatusConstant.CHECK_PASS:
+                msg = "待处理";
+                break;
+            case RecipeStatusConstant.NO_PAY:
+                msg = "未支付";
+                break;
+            case RecipeStatusConstant.NO_OPERATOR:
+                msg = "未处理";
+                break;
+            case RecipeStatusConstant.REVOKE:
+            case RecipeStatusConstant.CHECK_NOT_PASS_YS:
+                msg = "审核不通过";
+                break;
+            case RecipeStatusConstant.DELETE:
+            case RecipeStatusConstant.HIS_FAIL:
+                msg = "已取消";
+                break;
+            case RecipeStatusConstant.IN_SEND:
+                msg = "配送中";
+                break;
+            case RecipeStatusConstant.WAIT_SEND:
+            case RecipeStatusConstant.READY_CHECK_YS:
+            case RecipeStatusConstant.CHECK_PASS_YS:
+                msg = "待配送";
+                break;
+            case RecipeStatusConstant.NO_DRUG:
+                msg = "失败";
+                break;
+            case RecipeStatusConstant.RECIPE_DOWNLOADED:
+                msg = "已下载";
+                break;
+            default:
+                msg = "未知状态";
+        }
+
+        return msg;
+    }
+
     /**
      * 查找指定医生和患者间开的处方单列表
      *
@@ -685,7 +758,7 @@ public class RecipeListService extends RecipeBaseService{
                 }
 
                 if (LIST_TYPE_RECIPE.equals(record.getRecordType())) {
-                    record.setStatusText(getRecipeStatusText(record.getStatusCode()));
+                    record.setStatusText(getRecipeStatusTabText(record.getStatusCode()));
                     //设置失效时间
                     if (RecipeStatusConstant.CHECK_PASS == record.getStatusCode()) {
                         record.setRecipeSurplusHours(RecipeServiceSub.getRecipeSurplusHours(record.getSignDate()));
@@ -695,7 +768,7 @@ public class RecipeListService extends RecipeBaseService{
                     record.setRecipeDetail(ObjectCopyUtils.convert(recipedetailList, RecipeDetailBean.class));
                 } else if (LIST_TYPE_ORDER.equals(record.getRecordType())) {
                     RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-                    record.setStatusText(getOrderStatusText(record.getStatusCode()));
+                    record.setStatusText(getOrderStatusTabText(record.getStatusCode()));
                     RecipeResultBean resultBean = orderService.getOrderDetailById(record.getRecordId());
                     if (RecipeResultBean.SUCCESS.equals(resultBean.getCode())) {
                         if (null != resultBean.getObject() && resultBean.getObject() instanceof RecipeOrderBean) {
@@ -806,7 +879,7 @@ public class RecipeListService extends RecipeBaseService{
             //当审方为前置并且审核没有通过，设置成不可选择
 
             //判断购药按钮是否可选状态的,当审方方式是前置且正在审核中时，不可选
-            boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() && RecipeStatusConstant.UNCHECK == recipe.getStatus());
+            boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() && RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus());
             payModeShowButtonBean.setOptional(isOptional);
 
         }else if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(record.getRecipeMode())){
@@ -879,7 +952,7 @@ public class RecipeListService extends RecipeBaseService{
         }
 
         if(ReviewTypeConstant.Preposition_Check == recipe.getReviewType()){
-            if(RecipeStatusConstant.UNCHECK == recipe.getStatus()){
+            if(RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus()){
                 return 0;
             }else if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()){
                 return 2;

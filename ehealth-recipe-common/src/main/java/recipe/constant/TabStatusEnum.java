@@ -13,11 +13,11 @@ public enum TabStatusEnum {
     /**
      * 进行中订单的状态（待支付，待审核|后置，待取药(库存足够/库存不足)，待配送，配送中，准备中）
      */
-    Ongoing_Order_StatusList("ongoing", "order", new ArrayList<>(Arrays.asList(1, 9, 12, 10, 3, 4, 11))),
+    Ongoing_Order_StatusList("ongoing", "order", new ArrayList<>(Arrays.asList(1, 9, 2, 12, 10, 3, 4, 11))),
     /**
      * 进行中处方的状态（待处理，待审核|前置）
      */
-    Ongoing_Recipe_StatusList("ongoing", "recipe" , new ArrayList<>(Arrays.asList(2, 1))),
+    Ongoing_Recipe_StatusList("ongoing", "recipe" , new ArrayList<>(Arrays.asList(2, 8))),
     /**
      * 已结束订单的状态(已完成)
      */

@@ -51,7 +51,7 @@ public class PayModeToHos implements IPurchaseService{
         if(CollectionUtils.isNotEmpty(detailList)){
             String pharmNo = detailList.get(0).getPharmNo();
             if(StringUtils.isNotEmpty(pharmNo)){
-                sb.append("到院自取需去医院取药窗口取药："+ organDTO.getName() + pharmNo + "取药窗口");
+                sb.append("选择到院自取后需去医院取药窗口取药：["+ organDTO.getName() + pharmNo + "取药窗口]");
             }else {
                 sb.append("选择到院自取后，需去医院取药窗口取药");
             }
