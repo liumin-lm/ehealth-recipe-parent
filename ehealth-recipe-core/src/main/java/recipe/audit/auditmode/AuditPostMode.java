@@ -107,18 +107,7 @@ public class AuditPostMode extends AbstractAuidtMode {
             }
         }
 
-        try {
-            boolean flag = recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), status, attrMap);
-            if (flag) {
-                result.setMsg(RecipeSystemConstant.SUCCESS);
-            } else {
-                result.setCode(RecipeResultBean.FAIL);
-                result.setError("更新处方失败");
-            }
-        } catch (Exception e) {
-            result.setCode(RecipeResultBean.FAIL);
-            result.setError("更新处方失败，" + e.getMessage());
-        }
+        super.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(),status,attrMap,result);
 
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
             if (RecipeStatusConstant.READY_CHECK_YS == status) {

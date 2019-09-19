@@ -114,8 +114,19 @@ public class AbstractAuidtMode implements IAuditMode{
             }
         }
 
+        updateRecipeInfoByRecipeId(recipe.getRecipeId(),status,attrMap,result);
+        if (saveFlag) {
+            //处方推送到药企
+            RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+            remoteDrugEnterpriseService.pushSingleRecipeInfo(recipe.getRecipeId());
+        }
+
+    }
+
+    protected void updateRecipeInfoByRecipeId(Integer recipeId,Integer status, Map<String, Object> attrMap,RecipeResultBean result){
         try {
-            boolean flag = recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), status, attrMap);
+            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+            boolean flag = recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, attrMap);
             if (flag) {
                 result.setMsg(RecipeSystemConstant.SUCCESS);
             } else {
@@ -126,11 +137,5 @@ public class AbstractAuidtMode implements IAuditMode{
             result.setCode(RecipeResultBean.FAIL);
             result.setError("更新处方失败，" + e.getMessage());
         }
-        if (saveFlag) {
-            //处方推送到药企
-            RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-            remoteDrugEnterpriseService.pushSingleRecipeInfo(recipe.getRecipeId());
-        }
-
     }
 }
