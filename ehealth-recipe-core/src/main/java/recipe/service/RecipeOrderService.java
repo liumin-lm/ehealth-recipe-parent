@@ -402,7 +402,6 @@ public class RecipeOrderService extends RecipeBaseService {
         //设置审方费用
         Recipe firstRecipe = recipeList.get(0);
         double auditFee = Double.parseDouble(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_AUDITFEE).toString());
-        LOGGER.info("auditFee :{}.", auditFee);
         order.setAuditFee(BigDecimal.valueOf(auditFee));
         //设置其他服务费用
         double otherServiceFee = Double.parseDouble(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_OTHERFEE).toString());
