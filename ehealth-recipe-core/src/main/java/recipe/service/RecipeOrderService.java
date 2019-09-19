@@ -561,7 +561,13 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setActualPrice(order.getTotalFee().doubleValue());
             }
         } else {
-            order.setActualPrice(order.getTotalFee().doubleValue());
+            Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
+            if (payMode == 6) {
+                //此时的实际费用是不包含药品费用的
+                order.setActualPrice(order.getTotalFee().subtract(order.getRecipeFee()).doubleValue());
+            } else {
+                order.setActualPrice(order.getTotalFee().doubleValue());
+            }
         }
     }
 
