@@ -4,6 +4,7 @@ import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
+import javax.persistence.Transient;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Calendar;
@@ -62,6 +63,12 @@ public class RecipeOrderBean implements Serializable {
 
     @ItemProperty(alias = "配送费")
     private BigDecimal expressFee;
+
+    @ItemProperty(alias = "审核费")
+    private BigDecimal auditFee;
+
+    @ItemProperty(alias = "其余费用")
+    private BigDecimal otherFee;
 
     @ItemProperty(alias = "处方总费用")
     private BigDecimal recipeFee;
@@ -171,6 +178,15 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "完整地址")
     private String completeAddress;
 
+    @ItemProperty(alias = "处方流转模式")
+    private String recipeMode;
+
+    @ItemProperty(alias = "购药方式")
+    private Integer giveMode;
+
+    @ItemProperty(alias = "药企名称")
+    private String enterpriseName;
+
 
     public RecipeOrderBean() {
         initData();
@@ -189,7 +205,8 @@ public class RecipeOrderBean implements Serializable {
         this.setPushFlag(0);
         Date now = Calendar.getInstance().getTime();
         this.setCreateTime(now);
-        this.setLastModifyTime(now);
+        this.setAuditFee(zero);
+        this.setOtherFee(zero);
     }
 
     public Integer getOrderId() {
@@ -302,6 +319,22 @@ public class RecipeOrderBean implements Serializable {
 
     public void setExpressFee(BigDecimal expressFee) {
         this.expressFee = expressFee;
+    }
+
+    public BigDecimal getAuditFee() {
+        return auditFee;
+    }
+
+    public void setAuditFee(BigDecimal auditFee) {
+        this.auditFee = auditFee;
+    }
+
+    public BigDecimal getOtherFee() {
+        return otherFee;
+    }
+
+    public void setOtherFee(BigDecimal otherFee) {
+        this.otherFee = otherFee;
     }
 
     public BigDecimal getRecipeFee() {
@@ -582,5 +615,29 @@ public class RecipeOrderBean implements Serializable {
 
     public void setCompleteAddress(String completeAddress) {
         this.completeAddress = completeAddress;
+    }
+
+    public String getRecipeMode() {
+        return recipeMode;
+    }
+
+    public void setRecipeMode(String recipeMode) {
+        this.recipeMode = recipeMode;
+    }
+
+    public Integer getGiveMode() {
+        return giveMode;
+    }
+
+    public void setGiveMode(Integer giveMode) {
+        this.giveMode = giveMode;
+    }
+
+    public String getEnterpriseName() {
+        return enterpriseName;
+    }
+
+    public void setEnterpriseName(String enterpriseName) {
+        this.enterpriseName = enterpriseName;
     }
 }

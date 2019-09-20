@@ -17,6 +17,8 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import eh.base.constant.BussTypeConstant;
 import eh.base.constant.ErrorCode;
 import eh.cdr.constant.OrderStatusConstant;
@@ -27,10 +29,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import recipe.ApplicationUtils;
+import recipe.audit.auditmode.AuditMode;
+import recipe.audit.auditmode.AuditModeContext;
 import recipe.bean.RecipeCheckPassResult;
 import recipe.bussutil.RecipeUtil;
-import recipe.constant.*;
+import recipe.constant.RecipeBussConstant;
+import recipe.constant.RecipeSystemConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -38,10 +45,10 @@ import recipe.dao.RecipeOrderDAO;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -51,9 +58,18 @@ import java.util.Map;
  * @author: 0184/yu_yun
  * @date: 2016/5/31.
  */
+@Component
 public class HisCallBackService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HisCallBackService.class);
+
+    @Autowired
+    private AuditModeContext auditMode;
+    private static AuditModeContext auditModeContext;
+    @PostConstruct
+    public void  init(){
+        auditModeContext = auditMode;
+    }
 
     /**
      * 处方HIS审核通过成功
@@ -91,9 +107,10 @@ public class HisCallBackService {
 
         String recipeMode = recipe.getRecipeMode();
         Integer status = RecipeStatusConstant.CHECK_PASS;
-        if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)){
+
+        /*if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)){
             status = RecipeStatusConstant.READY_CHECK_YS;
-        }
+        }*/
 
         String memo = "HIS审核返回：写入his成功，审核通过";
         if (isCheckPass) {
@@ -167,32 +184,11 @@ public class HisCallBackService {
             //写入his成功后，生成pdf并签名
             recipeService.generateRecipePdfAndSign(recipe.getRecipeId());
 
-            //发送卡片
-            if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)){
-                RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipe.getRecipeId()), null, true);
-            }
+            //TODO 根据审方模式改变状态
+            auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(status,recipe,memo);
+
         } catch (Exception e) {
             LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. ", e);
-        }
-        //生成文件成功后再去更新处方状态
-        recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), status, null);
-        //日志记录
-        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), status, memo);
-
-        //平台处方进行消息发送等操作
-        if (1 == recipe.getFromflag()) {
-            //发送消息
-            RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
-            if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
-                //增加药师首页待处理任务---创建任务
-                if (status == RecipeStatusConstant.READY_CHECK_YS) {
-//                Recipe dbRecipe = recipeDAO.getByRecipeId(recipe.getRecipeId());
-                    RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
-                    ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
-                }
-            }
-            //保存至电子病历
-            recipeService.saveRecipeDocIndex(recipe);
         }
 
         if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {

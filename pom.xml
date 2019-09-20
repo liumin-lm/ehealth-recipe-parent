@@ -6,7 +6,7 @@
     <parent>
         <groupId>ngari</groupId>
         <artifactId>ehealth-parent</artifactId>
-        <version>1.14.0.release-SNAPSHOT</version>
+        <version>1.14.11.hotfix-20190828-SNAPSHOT</version>
     </parent>
     <artifactId>ehealth-recipe-parent</artifactId>
     <name>处方</name>
@@ -41,6 +41,21 @@
                 <groupId>ssdev</groupId>
                 <artifactId>ssdev-broadcast-support</artifactId>
                 <version>${ssdev.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ngari</groupId>
+                <artifactId>ehealth-voucher-api</artifactId>
+                <version>${ngari.voucher.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>ssdev-rpc</artifactId>
+                        <groupId>ssdev</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>ssdev-core</artifactId>
+                        <groupId>ssdev</groupId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>${project.parent.groupId}</groupId>
@@ -284,6 +299,11 @@
                 <groupId>com.alihealth</groupId>
                 <artifactId>top-api-sdk-dev</artifactId>
                 <version>20190301</version>
+            </dependency>
+            <dependency>
+                <groupId>org.reflections</groupId>
+                <artifactId>reflections</artifactId>
+                <version>0.9.10</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

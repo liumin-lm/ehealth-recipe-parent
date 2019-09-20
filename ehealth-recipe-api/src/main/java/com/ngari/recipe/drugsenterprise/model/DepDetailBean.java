@@ -17,7 +17,7 @@ public class DepDetailBean {
 
     private String depName;
 
-    private List<Integer> payModeList;
+    private Integer payMode;
 
     /**
      *  给药方式文案显示
@@ -116,12 +116,12 @@ public class DepDetailBean {
         this.depName = depName;
     }
 
-    public List<Integer> getPayModeList() {
-        return payModeList;
+    public Integer getPayMode() {
+        return payMode;
     }
 
-    public void setPayModeList(List<Integer> payModeList) {
-        this.payModeList = payModeList;
+    public void setPayMode(Integer payMode) {
+        this.payMode = payMode;
     }
 
     public String getGiveModeText() {

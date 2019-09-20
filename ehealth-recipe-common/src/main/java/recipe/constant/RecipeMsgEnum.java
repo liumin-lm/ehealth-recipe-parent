@@ -8,6 +8,7 @@ package recipe.constant;
  */
 public enum RecipeMsgEnum {
     /**
+     *
      * 参考 RecipeStatusConstant
      */
     RECIPE_CHECK_NOT_PASS(-1, "RecipeCheckNotPass"),
@@ -70,6 +71,30 @@ public enum RecipeMsgEnum {
      * 武昌新增，有库存情况
      */
     RECIPE_HOSSUPPORT_INVENTORY(120,"RecipeHosSupportInventory"),
+
+    /**
+     * Date:2019/09/09
+     * 药店取药-无库存-准备药品
+     */
+    RECIPE_DRUG_NO_STOCK_READY(121, "RecipeDrugNoStockReady"),
+
+    /**
+     * Date:2019/09/09
+     * 药店取药-无库存-到货
+     */
+    RECIPE_DRUG_NO_STOCK_ARRIVAL(122, "RecipeDrugNoStockArrival"),
+
+    /**
+     * Date:2019/09/09
+     * 药店取药-有库存-可取药
+     */
+    RECIPE_DRUG_HAVE_STOCK(123, "RecipeDrugHaveStock"),
+
+    /**
+     * Date:2019/09/18
+     * 药店取药-已完成
+     */
+    RECIPE_TAKE_MEDICINE_FINISH(124, "RecipeTakeMedicineFinish"),
 
     /**
      * 默认消息

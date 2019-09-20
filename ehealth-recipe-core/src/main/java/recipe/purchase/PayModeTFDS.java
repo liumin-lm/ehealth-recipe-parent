@@ -22,6 +22,7 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
+import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.RecipeOrderService;
@@ -175,8 +176,8 @@ public class PayModeTFDS implements IPurchaseService{
         order.setMpiId(dbRecipe.getMpiid());
         order.setOrganId(dbRecipe.getClinicOrgan());
         order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
-        order.setStatus(OrderStatusConstant.READY_GET_DRUG);
-        order.setDrugStoreCode(MapValueUtil.getString(extInfo, "gysCode"));
+        //订单的状态统一到finishOrderPayWithoutPay中设置
+        //order.setStatus(OrderStatusConstant.READY_GET_DRUG);
         order.setDrugStoreName(MapValueUtil.getString(extInfo, "gysName"));
         order.setRecipeIdList("["+dbRecipe.getRecipeId()+"]");
         order.setDrugStoreAddr(MapValueUtil.getString(extInfo, "gysAddr"));
@@ -184,22 +185,7 @@ public class PayModeTFDS implements IPurchaseService{
         order.setDrugStoreCode(MapValueUtil.getString(extInfo, "pharmacyCode"));
         List<Recipe> recipeList = Arrays.asList(dbRecipe);
         Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
-        if (null == calculateFee || Integer.valueOf(1).equals(calculateFee)) {
-            orderService.setOrderFee(result, order, Arrays.asList(recipeId), recipeList, payModeSupport, extInfo, 1);
-            if (StringUtils.isNotEmpty(extInfo.get("recipeFee"))) {
-                order.setRecipeFee(MapValueUtil.getBigDecimal(extInfo, "recipeFee"));
-                order.setActualPrice(Double.parseDouble(extInfo.get("recipeFee")));
-            }
-        } else {
-            //设置默认值
-            order.setExpressFee(BigDecimal.ZERO);
-            order.setTotalFee(BigDecimal.ZERO);
-            order.setRecipeFee(BigDecimal.ZERO);
-            order.setCouponFee(BigDecimal.ZERO);
-            order.setRegisterFee(BigDecimal.ZERO);
-            order.setActualPrice(BigDecimal.ZERO.doubleValue());
-        }
-
+        CommonOrder.createDefaultOrder(extInfo, result, order, payModeSupport, recipeList, calculateFee);
         //设置为有效订单
         order.setEffective(1);
         boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
@@ -252,6 +238,43 @@ public class PayModeTFDS implements IPurchaseService{
     @Override
     public String getServiceName() {
         return "payModeTFDSService";
+    }
+
+    @Override
+    public String getTipsByStatusForPatient(Recipe recipe, RecipeOrder order) {
+        Integer status = recipe.getStatus();
+        String orderCode = recipe.getOrderCode();
+        int orderStatus = order.getStatus();
+        String tips = "";
+        switch (status) {
+            case RecipeStatusConstant.CHECK_PASS:
+                if (StringUtils.isNotEmpty(orderCode)) {
+                    if (orderStatus == OrderStatusConstant.HAS_DRUG) {
+                        tips = "订单已处理，请到店取药";
+                    } else if (orderStatus == OrderStatusConstant.READY_DRUG) {
+                        tips = "订单已处理，正在准备药品";
+                    } else if (orderStatus == OrderStatusConstant.NO_DRUG) {
+                        tips = "药品已准备好，请到药店取药";
+                    }
+                }
+                break;
+            case RecipeStatusConstant.CHECK_PASS_YS:
+                if (orderStatus == OrderStatusConstant.HAS_DRUG) {
+                    tips = "处方已审核通过，请到店取药";
+                } else if (orderStatus == OrderStatusConstant.READY_DRUG) {
+                    tips = "处方已审核通过，正在准备药品";
+                } else if (orderStatus == OrderStatusConstant.NO_DRUG) {
+                    tips = "药品已准备好，请到药店取药";
+                }
+                break;
+            case RecipeStatusConstant.RECIPE_FAIL:
+                tips = "药店取药失败";
+                break;
+            case RecipeStatusConstant.FINISH:
+                tips = "到店取药成功，订单完成";
+                break;
+        }
+        return tips;
     }
 
     private List<DepDetailBean> findAllSupportDeps(DrugEnterpriseResult drugEnterpriseResult, DrugsEnterprise dep, Map<String, String> extInfo){

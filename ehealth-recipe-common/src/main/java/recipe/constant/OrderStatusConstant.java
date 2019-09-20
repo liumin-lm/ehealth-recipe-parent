@@ -58,5 +58,20 @@ public class OrderStatusConstant {
      */
     public static final Integer CANCEL_AUTO = 8;
 
+    /**
+     * 药店取药（无库存可取药）
+     */
+    public static final Integer NO_DRUG = 10;
+
+    /**
+     * 药店取药（无库存准备中）
+     */
+    public static final Integer READY_DRUG = 11;
+
+    /**
+     * 药店取药（有库存可取药）
+     */
+    public static final Integer HAS_DRUG = 12;
+
 
 }

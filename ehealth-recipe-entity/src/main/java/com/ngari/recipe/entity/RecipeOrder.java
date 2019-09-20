@@ -167,6 +167,12 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "代煎费")
     private BigDecimal decoctionFee;
 
+    @ItemProperty(alias = "审核费")
+    private BigDecimal auditFee;
+
+    @ItemProperty(alias = "其余费用")
+    private BigDecimal otherFee;
+
     @ItemProperty(alias = "机构代煎单价")
     private BigDecimal decoctionUnitPrice;
 
@@ -181,6 +187,15 @@ public class RecipeOrder implements Serializable {
 
     @ItemProperty(alias = "药店编码")
     private String drugStoreCode;
+
+    @ItemProperty(alias = "处方流转模式")
+    private String recipeMode;
+
+    @ItemProperty(alias = "购药方式")
+    private Integer giveMode;
+
+    @ItemProperty(alias = "药企名称")
+    private String enterpriseName;
 
     @Column(name = "cancelReason")
     public String getCancelReason() {
@@ -210,6 +225,8 @@ public class RecipeOrder implements Serializable {
         Date now = Calendar.getInstance().getTime();
         this.setCreateTime(now);
         this.setLastModifyTime(now);
+        this.setAuditFee(zero);
+        this.setOtherFee(zero);
     }
 
     @Id
@@ -329,6 +346,24 @@ public class RecipeOrder implements Serializable {
 
     public void setExpressFee(BigDecimal expressFee) {
         this.expressFee = expressFee;
+    }
+
+    @Column(name = "AuditFee")
+    public BigDecimal getAuditFee() {
+        return auditFee;
+    }
+
+    public void setAuditFee(BigDecimal auditFee) {
+        this.auditFee = auditFee;
+    }
+
+    @Column(name = "OtherFee")
+    public BigDecimal getOtherFee() {
+        return otherFee;
+    }
+
+    public void setOtherFee(BigDecimal otherFee) {
+        this.otherFee = otherFee;
     }
 
     @Column(name = "RecipeFee")
@@ -662,5 +697,32 @@ public class RecipeOrder implements Serializable {
 
     public void setDrugStoreCode(String drugStoreCode) {
         this.drugStoreCode = drugStoreCode;
+    }
+
+    @Transient
+    public String getRecipeMode() {
+        return recipeMode;
+    }
+
+    public void setRecipeMode(String recipeMode) {
+        this.recipeMode = recipeMode;
+    }
+
+    @Transient
+    public Integer getGiveMode() {
+        return giveMode;
+    }
+
+    public void setGiveMode(Integer giveMode) {
+        this.giveMode = giveMode;
+    }
+
+    @Transient
+    public String getEnterpriseName() {
+        return enterpriseName;
+    }
+
+    public void setEnterpriseName(String enterpriseName) {
+        this.enterpriseName = enterpriseName;
     }
 }

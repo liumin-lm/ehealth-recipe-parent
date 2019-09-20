@@ -13,10 +13,13 @@ import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.payment.model.DabaiPayResult;
 import com.ngari.base.payment.service.IPaymentService;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.coupon.service.ICouponService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.RecipeAPI;
+import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
 import com.ngari.recipe.entity.*;
@@ -24,6 +27,9 @@ import com.ngari.recipe.recipe.model.PatientRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
+import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
+import coupon.api.service.ICouponBaseService;
+import coupon.api.vo.Coupon;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -71,6 +77,8 @@ public class RecipeOrderService extends RecipeBaseService {
 
     private RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
+    private static Integer[] showDownloadRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.RECIPE_DOWNLOADED};
+
     /**
      * 处方结算时创建临时订单
      *
@@ -106,6 +114,7 @@ public class RecipeOrderService extends RecipeBaseService {
     @RpcService
     public OrderCreateResult createOrder(List<Integer> recipeIds, Map<String, String> extInfo, Integer toDbFlag) {
         LOGGER.info("createOrder param: dbflag={}, ids={}, extInfo={}", toDbFlag, JSONUtils.toString(recipeIds), JSONUtils.toString(extInfo));
+        IConfigurationCenterUtilsService configurationCenterUtilsService = (IConfigurationCenterUtilsService)AppContextHolder.getBean("eh.configurationCenterUtils");
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
         RecipeOrder order = null;
         RecipePayModeSupportBean payModeSupport = null;
@@ -147,6 +156,8 @@ public class RecipeOrderService extends RecipeBaseService {
         //指定了药企的话需要传该字段
         Integer depId = MapValueUtil.getInteger(extInfo, "depId");
         order.setEnterpriseId(depId);
+        order.setRecipeMode(recipeList.get(0).getRecipeMode());
+        order.setGiveMode(recipeList.get(0).getGiveMode());
         payModeSupport = setPayModeSupport(order, payMode);
         //校验处方列表是否都能进行配送
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
@@ -189,6 +200,10 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setExpressFee(BigDecimal.ZERO);
                 order.setTotalFee(BigDecimal.ZERO);
                 order.setActualPrice(BigDecimal.ZERO.doubleValue());
+                double auditFee = Double.parseDouble( configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_AUDITFEE).toString());
+                order.setAuditFee(BigDecimal.valueOf(auditFee));
+                double otherServiceFee = Double.parseDouble(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_OTHERFEE).toString());
+                order.setOtherFee(BigDecimal.valueOf(otherServiceFee));
             }
             if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == toDbFlag) {
                 boolean saveFlag = saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
@@ -213,7 +228,6 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             }
         }
-
         setCreateOrderResult(result, order, payModeSupport, toDbFlag);
         return result;
     }
@@ -286,7 +300,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
                 Integer depId = recipeService.supportDistributionExt(recipe.getRecipeId(), recipe.getClinicOrgan(),
                         order.getEnterpriseId(), payMode);
-                if (null == depId) {
+                if (null == depId && ( payMode == 1 || payMode == 2 || payMode == 4) ) {
                     LOGGER.error("处方id=" + recipe.getRecipeId() + "无法配送。");
                     result.setError("很抱歉，当前库存不足无法结算，请联系客服：" +
                             cacheService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
@@ -363,6 +377,7 @@ public class RecipeOrderService extends RecipeBaseService {
                              List<Recipe> recipeList, RecipePayModeSupportBean payModeSupport,
                              Map<String, String> extInfo, Integer toDbFlag) {
         IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
+        IConfigurationCenterUtilsService configurationCenterUtilsService = (IConfigurationCenterUtilsService)AppContextHolder.getBean("eh.configurationCenterUtils");
         RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
         OrganConfigBean organConfig = iOrganConfigService.get(order.getOrganId());
 
@@ -387,7 +402,17 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setRegisterFee(new BigDecimal(cacheService.getParam(ParameterConstant.KEY_RECIPE_REGISTER_FEE, "0")));
             }
         }
+        //设置审方费用
+        Recipe firstRecipe = recipeList.get(0);
+        double auditFee = Double.parseDouble(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_AUDITFEE).toString());
+        order.setAuditFee(BigDecimal.valueOf(auditFee));
+        //设置其他服务费用
+        double otherServiceFee = Double.parseDouble(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_OTHERFEE).toString());
+        order.setOtherFee(BigDecimal.valueOf(otherServiceFee));
 
+        //设置优惠券信息
+        Integer couponId = MapValueUtil.getInteger(extInfo, "couponId");
+        order.setCouponId(couponId);
         //设置处方总费用
         BigDecimal recipeFee = BigDecimal.ZERO;
         for (Recipe recipe : recipeList) {
@@ -400,7 +425,7 @@ public class RecipeOrderService extends RecipeBaseService {
         //药企是需要自己结算费用的，需要重新设置
         //在线支付才需要重新计算
         if (payModeSupport.isSupportOnlinePay() && null != order.getEnterpriseId() && 0 != order.getEnterpriseId()) {
-            recipeFee = reCalculateRecipeFee(order.getEnterpriseId(), recipeIds);
+            recipeFee = reCalculateRecipeFee(order.getEnterpriseId(), recipeIds, null);
         }
         order.setRecipeFee(recipeFee);
 
@@ -491,17 +516,20 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setAddress4(address.getAddress4());
 
                 try {
+                    Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
                     //校验地址是否可以配送
-                    EnterpriseAddressService enterpriseAddressService = ApplicationUtils.getRecipeService(EnterpriseAddressService.class);
-                    int flag = enterpriseAddressService.allAddressCanSendForOrder(order.getEnterpriseId(), address.getAddress1(), address.getAddress2(), address.getAddress3());
-                    if (0 == flag) {
-                        order.setAddressCanSend(true);
-                    } else {
-                        boolean b = 1 == toDbFlag && (payModeSupport.isSupportMedicalInsureance() || payModeSupport.isSupportOnlinePay());
-                        if (b) {
-                            //只有需要真正保存订单时才提示
-                            result.setCode(RecipeResultBean.FAIL);
-                            result.setMsg("该地址无法配送");
+                    if (payMode == 1 || payMode == 2 || payMode == 4) {
+                        EnterpriseAddressService enterpriseAddressService = ApplicationUtils.getRecipeService(EnterpriseAddressService.class);
+                        int flag = enterpriseAddressService.allAddressCanSendForOrder(order.getEnterpriseId(), address.getAddress1(), address.getAddress2(), address.getAddress3());
+                        if (0 == flag) {
+                            order.setAddressCanSend(true);
+                        } else {
+                            boolean b = 1 == toDbFlag && (payModeSupport.isSupportMedicalInsureance() || payModeSupport.isSupportOnlinePay());
+                            if (b) {
+                                //只有需要真正保存订单时才提示
+                                result.setCode(RecipeResultBean.FAIL);
+                                result.setMsg("该地址无法配送");
+                            }
                         }
                     }
                 } catch (Exception e) {
@@ -517,10 +545,33 @@ public class RecipeOrderService extends RecipeBaseService {
             }
         }
         order.setTotalFee(countOrderTotalFee(order));
-        order.setActualPrice(order.getTotalFee().doubleValue());
+        //计算优惠券价格
+        ICouponBaseService couponService = AppContextHolder.getBean("voucher.couponBaseService",ICouponBaseService.class);
+        if (isUsefulCoupon(order.getCouponId())) {
+            Coupon coupon = couponService.lockCouponById(order.getCouponId(), order.getTotalFee());
+            LOGGER.info("RecipeOrderService use coupon , coupon info: {}.", JSONUtils.toString(coupon));
+            if (coupon != null) {
+                order.setCouponName(coupon.getCouponName());
+                order.setCouponFee(coupon.getDiscountAmount());
+            }
+            couponService.useCouponById(order.getCouponId());
+            if (order.getTotalFee().compareTo(order.getCouponFee()) > -1) {
+                order.setActualPrice(order.getTotalFee().subtract(order.getCouponFee()).doubleValue());
+            } else {
+                order.setActualPrice(order.getTotalFee().doubleValue());
+            }
+        } else {
+            Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
+            if (payMode == 6) {
+                //此时的实际费用是不包含药品费用的
+                order.setActualPrice(order.getTotalFee().subtract(order.getRecipeFee()).doubleValue());
+            } else {
+                order.setActualPrice(order.getTotalFee().doubleValue());
+            }
+        }
     }
 
-    public BigDecimal reCalculateRecipeFee(Integer enterpriseId, List<Integer> recipeIds) {
+    public BigDecimal reCalculateRecipeFee(Integer enterpriseId, List<Integer> recipeIds, Map<String, String> extInfo) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -566,7 +617,25 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             }
         }
-        return recipeFee;
+        if (extInfo == null) {
+            //说明是重新计算药企处方费用的
+            return recipeFee;
+        } else {
+            //优惠券调用，返回总费用
+            //先判断处方是否已创建订单
+            IRecipeOrderService orderService = RecipeAPI.getService(IRecipeOrderService.class);
+            RecipeOrderBean order = orderService.getOrderByRecipeId(recipeIds.get(0));
+            if (null == order) {
+                RecipeBussResTO<RecipeOrderBean> resTO = orderService.createBlankOrder(recipeIds, extInfo);
+                if(null != resTO){
+                    order = resTO.getData();
+                }else{
+                    LOGGER.info("reCalculateRecipeFee createBlankOrder order is null.");
+                    return null;
+                }
+            }
+            return order.getTotalFee();
+        }
     }
 
     public void setCreateOrderResult(OrderCreateResult result, RecipeOrder order, RecipePayModeSupportBean payModeSupport,
@@ -999,12 +1068,20 @@ public class RecipeOrderService extends RecipeBaseService {
                     }
                 }
             }
-
+            if (order.getEnterpriseId() != null) {
+                DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+                order.setEnterpriseName(drugsEnterprise.getName());
+            }
             RecipeOrderBean orderBean = ObjectCopyUtils.convert(order, RecipeOrderBean.class);
             orderBean.setList(patientRecipeBeanList);
             result.setObject(orderBean);
             // 支付完成后跳转到订单详情页需要加挂号费服务费可配置
             result.setExt(RecipeUtil.getParamFromOgainConfig(order));
+            //在扩展内容中设置下载处方签的判断
+            getDownConfig(result, order, recipeList);
+            //在扩展内容中添加展示审核金额
+            getShowAuditFee(result, order, recipeList);
         } else {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("不存在ID为" + orderId + "的订单");
@@ -1014,9 +1091,77 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     /**
+     * @method  getShowAuditFee
+     * @description 展示审核金额按钮的判断
+     * @date: 2019/9/20
+     * @author: JRK
+     * @param result 返回结果集
+     * @param order 返回的订单
+     * @param recipeList 订单关联的处方列表
+     * @return void
+     */
+    public void getShowAuditFee(RecipeResultBean result, RecipeOrder order, List<Recipe> recipeList) {
+
+        Map<String, String> ext = result.getExt();
+        if(null == ext){
+            ext = Maps.newHashMap();
+        }
+        Boolean showAuditFee = false;
+        if(CollectionUtils.isNotEmpty(recipeList)){
+            Recipe nowRecipe = recipeList.get(0);
+            if(null != nowRecipe){
+                showAuditFee = ReviewTypeConstant.Preposition_Check != nowRecipe.getReviewType();
+            }
+        }
+
+        ext.put("showAuditFee", showAuditFee ?  "1" : "0");
+        result.setExt(ext);
+    }
+
+    /**
+     * @method  getDownConfig
+     * @description 下载处方签展示按钮的判断
+     * @date: 2019/9/20
+     * @author: JRK
+     * @param result 返回结果集
+     * @param order 返回的订单
+     * @param recipeList 订单关联的处方列表
+     * @return void
+     */
+    public void getDownConfig(RecipeResultBean result, RecipeOrder order, List<Recipe> recipeList) {
+        //判断是否展示下载处方签按钮：1.在下载处方购药方式
+        //2.是否是后置，后置：判断审核是否审核通过状态
+        //3.不是后置:判断实际金额是否为0：为0则ordercode关联则展示，不为0支付则展示
+        Map<String, String> ext = result.getExt();
+        if(null == ext){
+            ext = Maps.newHashMap();
+        }
+        Boolean isDownload = false;
+        if(CollectionUtils.isNotEmpty(recipeList)){
+            Recipe nowRecipe = recipeList.get(0);
+            if(RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(nowRecipe.getGiveMode())){
+                if(ReviewTypeConstant.Preposition_Check == nowRecipe.getReviewType()){
+                    if(Arrays.asList(showDownloadRecipeStatus).contains(nowRecipe.getStatus())){
+                        isDownload = true;
+                    }
+                }else{
+                    if(null != nowRecipe.getOrderCode() && null != order && RecipeStatusConstant.FINISH != nowRecipe.getStatus()){
+                        if(0 == order.getActualPrice() || (0 < order.getActualPrice() && 1 == nowRecipe.getPayFlag()))
+                            isDownload = true;
+                    }
+                }
+            }
+        }
+
+        ext.put("isDownload", isDownload.toString());
+        result.setExt(ext);
+    }
+
+
+    /**
      * 获取订单详情
      *
-     * @param orderCoe
+     * @param orderCode
      * @return
      */
     @RpcService
@@ -1071,7 +1216,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @return
      */
     @RpcService
-    public RecipeResultBean finishOrderPayWithoutPay(String orderCode, Integer payMode) {
+    public RecipeResultBean  finishOrderPayWithoutPay(String orderCode, Integer payMode) {
         return finishOrderPayImpl(orderCode, PayConstant.PAY_FLAG_NOT_PAY, payMode);
     }
 
@@ -1082,16 +1227,52 @@ public class RecipeOrderService extends RecipeBaseService {
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
             Map<String, Object> attrMap = Maps.newHashMap();
             attrMap.put("payFlag", payFlag);
-            if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
-                attrMap.put("payTime", Calendar.getInstance().getTime());
-                attrMap.put("status", OrderStatusConstant.READY_SEND);
-                attrMap.put("effective", 1);
-            } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag) {
-                if (RecipeBussConstant.PAYMODE_COD.equals(payMode) || RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
-                    attrMap.put("effective", 1);
-                    attrMap.put("status", OrderStatusConstant.READY_CHECK);
+//            if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
+//                attrMap.put("payTime", Calendar.getInstance().getTime());
+//                attrMap.put("status", OrderStatusConstant.READY_SEND);
+//                attrMap.put("effective", 1);
+//            } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag) {
+//                if (RecipeBussConstant.PAYMODE_COD.equals(payMode) || RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
+//                    attrMap.put("effective", 1);
+//                    attrMap.put("status", OrderStatusConstant.READY_CHECK);
+//                }
+//            }
+            //date 20190919
+            //根据不同的购药方式设置订单的状态
+            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+            List<Integer> recipeIds = recipeDAO.findRecipeIdsByOrderCode(orderCode);
+            int payStatus = 0;
+            int noPayStatus = 0;
+            if(null != recipeIds){
+                Recipe nowRecipe = recipeDAO.get(recipeIds.get(0));
+                if(null != nowRecipe){
+                    Integer reviewType = nowRecipe.getReviewType();
+                    Integer giveMode = nowRecipe.getGiveMode();
+                    //首先判断是否支付成功调用，还是支付前调用
+                    if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
+                        //支付成功后
+                        payStatus = getPayStatus(reviewType, giveMode);
+                        attrMap.put("payTime", Calendar.getInstance().getTime());
+                        attrMap.put("status", payStatus);
+                        attrMap.put("effective", 1);
+                    } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag) {
+                        //支付前调用
+                        RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
+                        RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
+                        if(null != order){
+                            if(0 == order.getActualPrice()){
+                                noPayStatus = getPayStatus(reviewType, giveMode);
+                            }else{
+                                noPayStatus = OrderStatusConstant.READY_PAY;
+                            }
+                            attrMap.put("effective", 1);
+                            attrMap.put("status", noPayStatus);
+                        }
+                    }
                 }
             }
+
+
             this.updateOrderInfo(orderCode, attrMap, result);
         }
 
@@ -1107,6 +1288,34 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         return result;
+    }
+
+    /**
+     * @method  getPayStatus
+     * @description 获取订单的处理的状态
+     * @date: 2019/9/20
+     * @author: JRK
+     * @param reviewType 审核方式
+     * @param giveMode 购药方式
+     * @return int 订单的修改状态
+     */
+    private int getPayStatus(Integer reviewType, Integer giveMode) {
+        int payStatus = 0;
+        //支付成功、支付前不需要支付时判断审核方式
+        if(ReviewTypeConstant.Postposition_Check == reviewType){
+            //后置
+            payStatus = OrderStatusConstant.READY_CHECK;
+        }else{
+            //前置、不需要审核，根据购药方式判断
+            if(RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) ||
+                    RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode) ||
+                    RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(giveMode)){
+                payStatus = OrderStatusConstant.READY_GET_DRUG;
+            }else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(giveMode)){
+                payStatus = OrderStatusConstant.READY_SEND;
+            }
+        }
+        return payStatus;
     }
 
     /**
@@ -1241,6 +1450,16 @@ public class RecipeOrderService extends RecipeBaseService {
         //代煎费
         if (null != order.getDecoctionFee()) {
             full = full.add(order.getDecoctionFee());
+        }
+
+        //审方费
+        if (null != order.getAuditFee()) {
+            full = full.add(order.getAuditFee());
+        }
+
+        //其他服务费
+        if (null != order.getOtherFee()) {
+            full = full.add(order.getOtherFee());
         }
 
         return full.divide(BigDecimal.ONE, 3, RoundingMode.UP);

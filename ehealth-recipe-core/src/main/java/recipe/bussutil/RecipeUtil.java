@@ -3,6 +3,7 @@ package recipe.bussutil;
 import com.google.common.collect.Maps;
 import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.base.organconfig.service.IOrganConfigService;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
 import org.apache.commons.collections.CollectionUtils;
@@ -13,7 +14,6 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -128,6 +128,12 @@ public class RecipeUtil {
                 map.put("serviceChargeDesc", organConfig.getServiceChargeDesc());
                 map.put("serviceChargeRemark", organConfig.getServiceChargeRemark());
             }
+            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            BigDecimal otherFee = (BigDecimal)configurationService.getConfiguration(organId, "otherFee");
+            if (otherFee.compareTo(BigDecimal.ZERO) == 1) {
+                map.put("otherServiceChargeDesc", configurationService.getConfiguration(organId, "otherServiceChargeDesc").toString());
+                map.put("otherServiceChargeRemark", configurationService.getConfiguration(organId, "otherServiceChargeRemark").toString());
+            }
         }
         return map;
     }
@@ -175,6 +181,11 @@ public class RecipeUtil {
         //默认流转模式为平台模式
         if (null == recipe.getRecipeMode()) {
             recipe.setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);
+        }
+
+        //互联网模式默认为审方前置
+        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
+            recipe.setReviewType(RecipeBussConstant.AUDIT_PRE);
         }
         
         //默认剂数为1

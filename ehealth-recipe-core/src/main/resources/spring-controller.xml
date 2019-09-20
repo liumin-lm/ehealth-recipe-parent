@@ -10,6 +10,7 @@
         <ssdev:filter id="json"/>
         <ssdev:filter id="urt"/>
     </ssdev:connector>
+
     <!-- pub/sub -->
     <ssdev:publisher id="publisher"/>
 
