@@ -1068,7 +1068,11 @@ public class RecipeOrderService extends RecipeBaseService {
                     }
                 }
             }
-
+            if (order.getEnterpriseId() != null) {
+                DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+                order.setEnterpriseName(drugsEnterprise.getName());
+            }
             RecipeOrderBean orderBean = ObjectCopyUtils.convert(order, RecipeOrderBean.class);
             orderBean.setList(patientRecipeBeanList);
             result.setObject(orderBean);
