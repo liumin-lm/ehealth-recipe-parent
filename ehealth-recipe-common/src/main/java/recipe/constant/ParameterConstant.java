@@ -61,6 +61,12 @@ public class ParameterConstant {
      */
     public static final String KEY_ALI_ORDER_ADDR = "ALI_ORDER_ADDR";
 
+
+    /**
+     * 阿里下单跳转地址
+     */
+    public static final String KEY_ALI_O2O_ADDR = "ALI_O2O_ADDR";
+
     /**
      * 淘宝授权跳转地址
      */

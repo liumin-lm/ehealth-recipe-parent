@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>1.14.0.master-SNAPSHOT</version>
+        <version>1.14.12.hotfix-20190910-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -161,6 +161,22 @@
         <dependency>
             <groupId>com.alihealth</groupId>
             <artifactId>top-api-sdk-dev</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-basic-base</artifactId>
+            <version>1.13.1.master-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.alihealth</groupId>
+            <artifactId>taobao-sdk-java-daily_bg_type</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
     <profiles>

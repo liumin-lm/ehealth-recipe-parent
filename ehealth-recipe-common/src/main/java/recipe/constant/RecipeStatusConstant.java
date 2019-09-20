@@ -105,6 +105,16 @@ public class RecipeStatusConstant {
     public static final int CHECKING_HOS = 16;
 
     /**
+     * 医院审核确认中
+     */
+    public static final int EFFECTIVE = 21;
+
+    /**
+     * 医院审核确认中
+     */
+    public static final int USING = 22;
+
+    /**
      * 不存在的状态，用于微信发送,患者-未操作情况, 用于前一天提醒患者购药
      */
     public static final int PATIENT_NO_OPERATOR = 101;

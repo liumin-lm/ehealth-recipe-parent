@@ -1,10 +1,12 @@
 package recipe.drugsenterprise;
 
+import com.alijk.bqhospital.alijk.conf.TaobaoConf;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.EmploymentDTO;
@@ -12,6 +14,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.entity.*;
+import com.taobao.api.response.AlibabaAlihealthRxPrescriptionGetResponse;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import org.apache.commons.beanutils.BeanUtils;
@@ -29,9 +32,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.bean.DeptOrderDTO;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.bean.PurchaseResponse;
 import recipe.constant.CacheConstant;
 import recipe.constant.DrugEnterpriseConstant;
+import recipe.constant.ParameterConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.ZfbDrugDTO;
 import recipe.drugsenterprise.bean.ZfbRecipeDTO;
@@ -44,10 +50,8 @@ import recipe.util.RedisClient;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
+import java.text.MessageFormat;
+import java.util.*;
 
 /**
  * @author： 0184/yu_yun
@@ -64,6 +68,12 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
 
     @Autowired
     private RedisClient redisClient;
+
+    @Autowired
+    private TaobaoConf taobaoConf;
+
+    @Autowired
+    TmdyfRemoteService tmdyfRemoteService;
 
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
@@ -111,6 +121,11 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
 //                e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public void getJumpUrl(PurchaseResponse response, Recipe recipe, DrugsEnterprise drugsEnterprise) {
+        tmdyfRemoteService.getJumpUrl(response, recipe, drugsEnterprise);
     }
 
     @Override

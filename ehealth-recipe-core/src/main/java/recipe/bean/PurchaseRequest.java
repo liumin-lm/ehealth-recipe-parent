@@ -26,6 +26,9 @@ public class PurchaseRequest implements Serializable {
     @Verify(desc = "应用ID")
     private String appId;
 
+    @Verify(desc = "药企ID")
+    private Integer depId;
+
     public Integer getRecipeId() {
         return recipeId;
     }
@@ -48,5 +51,13 @@ public class PurchaseRequest implements Serializable {
 
     public void setAppId(String appId) {
         this.appId = appId;
+    }
+
+    public Integer getDepId() {
+        return depId;
+    }
+
+    public void setDepId(Integer depId) {
+        this.depId = depId;
     }
 }
