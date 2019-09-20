@@ -1,11 +1,14 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.BaseAPI;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
@@ -21,6 +24,7 @@ import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
@@ -31,9 +35,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
-import recipe.constant.OrderStatusConstant;
-import recipe.constant.ParameterConstant;
-import recipe.constant.RecipeStatusConstant;
+import recipe.constant.*;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
@@ -64,6 +66,9 @@ public class RecipeListService extends RecipeBaseService{
 
     public static final String LIST_TYPE_ORDER = "2";
 
+    public static final Integer RECIPE_PAGE = 0;
+
+    public static final Integer ORDER_PAGE = 1;
 
     /**
      * 医生端处方列表展示
@@ -456,6 +461,79 @@ public class RecipeListService extends RecipeBaseService{
         return msg;
     }
 
+    private String getOrderStatusTabText(Integer status) {
+        String msg = "未知";
+        if (OrderStatusConstant.FINISH.equals(status)) {
+            msg = "已完成";
+        } else if (OrderStatusConstant.READY_PAY.equals(status)) {
+            msg = "待支付";
+        } else if (OrderStatusConstant.READY_GET_DRUG.equals(status) || OrderStatusConstant.NO_DRUG.equals(status) || OrderStatusConstant.HAS_DRUG.equals(status)) {
+            msg = "待取药";
+        } else if (OrderStatusConstant.READY_CHECK.equals(status)) {
+            msg = "待审核";
+        } else if (OrderStatusConstant.READY_SEND.equals(status)) {
+            msg = "待配送";
+        } else if (OrderStatusConstant.SENDING.equals(status)) {
+            msg = "配送中";
+        } else if (OrderStatusConstant.CANCEL_NOT_PASS.equals(status)) {
+            msg = "审核不通过";
+        } else if (OrderStatusConstant.CANCEL_AUTO.equals(status)
+                || OrderStatusConstant.CANCEL_MANUAL.equals(status)) {
+            msg = "已取消";
+        }else if (OrderStatusConstant.READY_DRUG.equals(status)){
+            msg = "准备中";
+        }
+
+        return msg;
+    }
+
+    private String getRecipeStatusTabText(int status) {
+        String msg;
+        switch (status) {
+            case RecipeStatusConstant.FINISH:
+                msg = "已完成";
+                break;
+            case RecipeStatusConstant.HAVE_PAY:
+                msg = "已支付，待取药";
+                break;
+            case RecipeStatusConstant.CHECK_PASS:
+                msg = "待处理";
+                break;
+            case RecipeStatusConstant.NO_PAY:
+                msg = "未支付";
+                break;
+            case RecipeStatusConstant.NO_OPERATOR:
+                msg = "未处理";
+                break;
+            case RecipeStatusConstant.REVOKE:
+            case RecipeStatusConstant.CHECK_NOT_PASS_YS:
+                msg = "审核不通过";
+                break;
+            case RecipeStatusConstant.DELETE:
+            case RecipeStatusConstant.HIS_FAIL:
+                msg = "已取消";
+                break;
+            case RecipeStatusConstant.IN_SEND:
+                msg = "配送中";
+                break;
+            case RecipeStatusConstant.WAIT_SEND:
+            case RecipeStatusConstant.READY_CHECK_YS:
+            case RecipeStatusConstant.CHECK_PASS_YS:
+                msg = "待配送";
+                break;
+            case RecipeStatusConstant.NO_DRUG:
+                msg = "失败";
+                break;
+            case RecipeStatusConstant.RECIPE_DOWNLOADED:
+                msg = "已下载";
+                break;
+            default:
+                msg = "未知状态";
+        }
+
+        return msg;
+    }
+
     /**
      * 查找指定医生和患者间开的处方单列表
      *
@@ -564,9 +642,9 @@ public class RecipeListService extends RecipeBaseService{
                     String dSpec = "*"+detail.getUseTotalDose().intValue() + detail.getDrugUnit();
                     drugInfo.put("drugTotal",dSpec);
                     String useWay = "用法：每次" + detail.getUseDose() + detail.getUseDoseUnit()
-                   +"/"+usingRateDic.getText(detail.getUsingRate())
-                    +"/"+usePathwaysDic.getText(detail.getUsePathways())
-                    +detail.getUseDays() + "天";
+                            +"/"+usingRateDic.getText(detail.getUsingRate())
+                            +"/"+usePathwaysDic.getText(detail.getUsePathways())
+                            +detail.getUseDays() + "天";
                     drugInfo.put("useWay",useWay);
                     drugInfoList.add(drugInfo);
                 }
@@ -574,7 +652,11 @@ public class RecipeListService extends RecipeBaseService{
                 map.put("memo",recipe.getMemo());
                 switch (recipe.getStatus()){
                     case RecipeStatusConstant.CHECK_PASS:
-                        map.put("statusText","请尽快去医院药房窗口取药");
+                        if (StringUtils.isNotEmpty(recipedetails.get(0).getPharmNo())){
+                            map.put("statusText","药师审核处方通过，请去医院取药窗口取药:["+recipedetails.get(0).getPharmNo()+"]");
+                        }else {
+                            map.put("statusText","药师审核处方通过，请去医院取药窗口取药");
+                        }
                         break;
                     case RecipeStatusConstant.NO_DRUG:
                     case RecipeStatusConstant.NO_OPERATOR:
@@ -585,6 +667,12 @@ public class RecipeListService extends RecipeBaseService{
                         break;
                     case RecipeStatusConstant.FINISH:
                         map.put("statusText","已完成");
+                        break;
+                    case RecipeStatusConstant.READY_CHECK_YS:
+                        map.put("statusText","等待药师审核处方");
+                        break;
+                    case RecipeStatusConstant.CHECK_NOT_PASS_YS:
+                        map.put("statusText","药师审核处方不通过，请联系开方医生");
                         break;
                     default:
                         map.put("statusText",DictionaryController.instance().get("eh.cdr.dictionary.RecipeStatus").getText(recipe.getStatus()));
@@ -598,6 +686,281 @@ public class RecipeListService extends RecipeBaseService{
         }
 
         return result;
+    }
+
+    @RpcService
+    public List<PatientTabStatusRecipeDTO> findRecipesForPatientAndTabStatus(String tabStatus, String mpiId, Integer index, Integer limit) {
+        List<PatientTabStatusRecipeDTO> recipeList = new ArrayList<>();
+        Assert.hasLength(mpiId, "findRecipesForPatientAndTabStatus 用户id为空!");
+        checkUserHasPermissionByMpiId(mpiId);
+        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+
+        List<String> allMpiIds = recipeService.getAllMemberPatientsByCurrentPatient(mpiId);
+        //获取页面展示的对象
+        TabStatusEnum recipeStatusList = TabStatusEnum.fromTabStatusAndStatusType(tabStatus, "recipe");
+        if(null == recipeStatusList){
+            LOGGER.error("findRecipesForPatientAndTabStatus:{}tab没有查询到recipe的状态列表", tabStatus);
+            return recipeList;
+        }
+        TabStatusEnum orderStatusList = TabStatusEnum.fromTabStatusAndStatusType(tabStatus, "order");
+        if(null == orderStatusList){
+            LOGGER.error("findRecipesForPatientAndTabStatus:{}tab没有查询到order的状态列表", tabStatus);
+            return recipeList;
+        }
+        List<Integer> specialStatusList = new ArrayList<>();
+        if("ongoing".equals(tabStatus)){
+            specialStatusList.add(RecipeStatusConstant.RECIPE_DOWNLOADED);
+        }
+        List<PatientRecipeBean> backList = recipeDAO.findTabStatusRecipesForPatient(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), specialStatusList);
+        return processTabListDate(backList, allMpiIds);
+    }
+
+    /**
+     * 处理tab下的列表数据
+     *
+     * @param list
+     * @param allMpiIds
+     */
+    private List<PatientTabStatusRecipeDTO> processTabListDate(List<PatientRecipeBean> list, List<String> allMpiIds) {
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
+        List<PatientTabStatusRecipeDTO> backList = Lists.newArrayList();
+        if (CollectionUtils.isNotEmpty(list)) {
+            backList = ObjectCopyUtils.convert(list, PatientTabStatusRecipeDTO.class);
+            //处理订单类型数据
+            RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            List<PatientDTO> patientList = patientService.findByMpiIdIn(allMpiIds);
+            Map<String, PatientDTO> patientMap = Maps.newHashMap();
+            if (null != patientList && !patientList.isEmpty()) {
+                for (PatientDTO p : patientList) {
+                    if (StringUtils.isNotEmpty(p.getMpiId())) {
+                        patientMap.put(p.getMpiId(), p);
+                    }
+                }
+            }
+
+            Map<Integer, Boolean> checkEnterprise = Maps.newHashMap();
+            PatientDTO p;
+            for (PatientTabStatusRecipeDTO record : backList) {
+                p = patientMap.get(record.getMpiId());
+                if (null != p) {
+                    record.setPatientName(p.getPatientName());
+                    record.setPhoto(p.getPhoto());
+                    record.setPatientSex(p.getPatientSex());
+                }
+                //能否购药进行设置，默认可购药
+                record.setCheckEnterprise(true);
+                if (null != record.getOrganId()) {
+                    if (null == checkEnterprise.get(record.getOrganId())) {
+                        checkEnterprise.put(record.getOrganId(),
+                                drugsEnterpriseService.checkEnterprise(record.getOrganId()));
+                    }
+                    record.setCheckEnterprise(checkEnterprise.get(record.getOrganId()));
+                }
+
+                if (LIST_TYPE_RECIPE.equals(record.getRecordType())) {
+                    record.setStatusText(getRecipeStatusTabText(record.getStatusCode()));
+                    //设置失效时间
+                    if (RecipeStatusConstant.CHECK_PASS == record.getStatusCode()) {
+                        record.setRecipeSurplusHours(RecipeServiceSub.getRecipeSurplusHours(record.getSignDate()));
+                    }
+                    //药品详情
+                    List<Recipedetail> recipedetailList = detailDAO.findByRecipeId(record.getRecordId());
+                    record.setRecipeDetail(ObjectCopyUtils.convert(recipedetailList, RecipeDetailBean.class));
+                } else if (LIST_TYPE_ORDER.equals(record.getRecordType())) {
+                    RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+                    record.setStatusText(getOrderStatusTabText(record.getStatusCode()));
+                    RecipeResultBean resultBean = orderService.getOrderDetailById(record.getRecordId());
+                    if (RecipeResultBean.SUCCESS.equals(resultBean.getCode())) {
+                        if (null != resultBean.getObject() && resultBean.getObject() instanceof RecipeOrderBean) {
+                            RecipeOrderBean order = (RecipeOrderBean) resultBean.getObject();
+                            if (null != order.getLogisticsCompany()) {
+                                try {
+                                    //4.01需求：物流信息查询
+
+                                    String logComStr = DictionaryController.instance().get("eh.cdr.dictionary.KuaiDiNiaoCode")
+                                            .getText(order.getLogisticsCompany());
+                                    record.setLogisticsCompany(logComStr);
+                                    record.setTrackingNumber(order.getTrackingNumber());
+                                } catch (ControllerException e) {
+                                    LOGGER.warn("findRecipesForPatientAndTabStatus: 获取物流信息失败，物流方code={}", order.getLogisticsCompany());
+                                }
+                            }
+                            List<PatientRecipeDTO> recipeList = (List<PatientRecipeDTO>) order.getList();
+                            if (CollectionUtils.isNotEmpty(recipeList)) {
+                                for (PatientRecipeDTO recipe : recipeList) {
+
+                                    record.setRecipeId(recipe.getRecipeId());
+                                    record.setRecipeType(recipe.getRecipeType());
+                                    record.setOrganDiseaseName(recipe.getOrganDiseaseName());
+                                    record.setRecipeMode(recipe.getRecipeMode());
+                                    // 订单支付方式
+                                    record.setPayMode(recipe.getPayMode());
+                                    //药品详情
+                                    record.setRecipeDetail(recipe.getRecipeDetail());
+                                    if (RecipeStatusConstant.CHECK_PASS == recipe.getStatusCode()
+                                            && OrderStatusConstant.READY_PAY.equals(record.getStatusCode())) {
+                                        record.setRecipeSurplusHours(recipe.getRecipeSurplusHours());
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+
+                //添加处方笺文件，获取用户处方信息中的处方id，获取处方笺文件,设置跳转的页面
+                getPageMsg(record);
+                //存入每个页面的按钮信息（展示那种按钮，如果是购药按钮展示哪些按钮）
+                PayModeShowButtonBean buttons = getShowButton(record);
+                record.setButtons(buttons);
+
+            }
+        }
+
+        return backList;
+    }
+
+    /**
+     * @method  getFile
+     * @description 获取处方笺文件信息
+     * @date: 2019/9/3
+     * @author: JRK
+     * @param record 患者处方信息
+     * @return void
+     */
+    private void getPageMsg(PatientTabStatusRecipeDTO record) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.get(0 == record.getRecipeId() ? record.getRecordId() : record.getRecipeId());
+        if(null == recipe){
+            LOGGER.warn("processTabListDate: recipeId:{},对应处方信息不存在,", record.getRecipeId());
+        }else{
+            record.setChemistSignFile(recipe.getChemistSignFile());
+            record.setSignFile(recipe.getSignFile());
+            record.setJumpPageType(null == recipe.getOrderCode() ? RECIPE_PAGE : ORDER_PAGE);
+        }
+    }
+
+    /**
+     * @method  getShowButton
+     * @description 获取页面上展示的按钮信息，按钮展示：true，不展示：false
+     * @date: 2019/8/19
+     * @author: JRK
+     * @param record 获取医院的配置项
+     * @return com.ngari.recipe.recipe.model.PayModeShowButtonBean：
+     * 医院下购药方式展示的按钮对象
+     */
+    private PayModeShowButtonBean getShowButton(PatientTabStatusRecipeDTO record) {
+        PayModeShowButtonBean payModeShowButtonBean = new PayModeShowButtonBean();
+
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.get(0 == record.getRecipeId() ? record.getRecordId() : record.getRecipeId());
+        if(null == recipe){
+            LOGGER.warn("processTabListDate: recipeId:{},对应处方信息不存在,", record.getRecipeId());
+            payModeShowButtonBean.noUserButtons();
+            return payModeShowButtonBean;
+        }
+        if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(record.getRecipeMode())){
+
+            //获取配置项
+            IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+            //添加按钮配置项key
+            Object payModeDeploy = configService.getConfiguration(record.getOrganId(), "payModeDeploy");
+            if(null == payModeDeploy){
+                payModeShowButtonBean.noUserButtons();
+                return payModeShowButtonBean;
+            }
+            List<String> configurations = new ArrayList<>(Arrays.asList((String[])payModeDeploy));
+            //将购药方式的显示map对象转化为页面展示的对象
+            Map<String, Boolean> buttonMap = new HashMap<>();
+            for (String configuration : configurations) {
+                buttonMap.put(configuration, true);
+            }
+            payModeShowButtonBean = JSONUtils.parse(JSON.toJSONString(buttonMap), PayModeShowButtonBean.class);
+            //当审方为前置并且审核没有通过，设置成不可选择
+
+            //判断购药按钮是否可选状态的,当审方方式是前置且正在审核中时，不可选
+            boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() && RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus());
+            payModeShowButtonBean.setOptional(isOptional);
+
+        }else if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(record.getRecipeMode())){
+            //初始化互联网按钮信息
+            initInternetModel(record, payModeShowButtonBean, recipe);
+
+        }else{
+            LOGGER.warn("processTabListDate: recipeId:{}recipeMode:{},对应处方流转方式无法识别", record.getRecipeId(), record.getRecipeMode());
+            payModeShowButtonBean.noUserButtons();
+            return payModeShowButtonBean;
+        }
+
+        //设置按钮的展示类型
+        payModeShowButtonBean.setButtonType(getButtonType(record.getRecordType(), record.getStatusCode()));
+        return payModeShowButtonBean;
+    }
+
+    /**
+     * @method  initInternetModel
+     * @description 初始化互联网模式的按钮信息
+     * @date: 2019/9/3
+     * @author: JRK
+     * @param record 患者处方信息
+     * @param payModeShowButtonBean 按钮信息
+     * @param recipe 处方信息
+     * @return void
+     */
+    private void initInternetModel(PatientTabStatusRecipeDTO record, PayModeShowButtonBean payModeShowButtonBean, Recipe recipe) {
+
+        //互联网购药方式的配置
+        if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(record.getRecipeMode())){
+            //设置购药方式哪些可用
+            //配送到家默认可用
+            payModeShowButtonBean.setSupportOnline(true);
+            //到店取药默认不可用
+            payModeShowButtonBean.setSupportTFDS(false);
+            //医院取药需要看数据
+            boolean hosFlag = true;
+            if(1 == recipe.getDistributionFlag()){
+                hosFlag = false;
+            }
+            payModeShowButtonBean.setSupportToHos(hosFlag);
+        }
+    }
+
+    /**
+     * @method  getButtonType
+     * @description 获取按钮显示类型
+     * @date: 2019/9/2
+     * @author: JRK
+     * @param recordType 患者处方的类型
+     * @param statusCode 患者处方的状态
+     * @return java.lang.Integer 按钮的显示类型
+     */
+    private Integer getButtonType(String recordType, Integer statusCode) {
+        RecipePageButtonStatusEnum buttonStatus = RecipePageButtonStatusEnum.fromRecodeTypeAndRecodeCode(recordType, statusCode);
+        return buttonStatus.getPageButtonStatus();
+    }
+
+    /**
+     * 审核前置弹窗确认点击按钮是否审核通过的
+     */
+    @RpcService
+    public Integer getCheckResult(Integer recipeId) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.get(recipeId);
+        if(null == recipe){
+            LOGGER.error("该处方不存在！");
+            return 0;
+        }
+
+        if(ReviewTypeConstant.Preposition_Check == recipe.getReviewType()){
+            if(RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus()){
+                return 0;
+            }else if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()){
+                return 2;
+            }
+        }
+        return 1;
     }
 
 }

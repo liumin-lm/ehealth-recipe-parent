@@ -130,6 +130,29 @@ public class RecipeBussConstant {
     public static String RECIPEMODE_ZJJGPT = "zjjgpt";
 
     /**
+     * 下载处方支付场景
+     */
+    public static Integer PAYMODE_DOWNLOAD_RECIPE = 6;
+
+    /**
+     * 下载处方购药方式
+     */
+    public static Integer GIVEMODE_DOWNLOAD_RECIPE = 5;
+    /**
+     * 审核模式-审方后置
+     */
+    public final static int AUDIT_POST = 2;
+    /**
+     * 审核模式-审方前置
+     */
+    public final static int AUDIT_PRE = 1;
+    /**
+     * 审核模式-不需要审方
+     */
+    public final static int NO_AUDIT = 0;
+
+
+    /**
      * 武昌项目配送模式--2九州通外延模式
      */
     public static String WUCHANG_JZT = "2";

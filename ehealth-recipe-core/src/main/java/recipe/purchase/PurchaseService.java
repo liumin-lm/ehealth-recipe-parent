@@ -56,7 +56,7 @@ public class PurchaseService {
 
 
     /**
-     * 获取可用购药方式
+     * 获取可用购药方式------------已废弃---已改造成从处方单详情里获取
      * @param recipeId 处方单ID
      * @param mpiId    患者mpiId
      * @return         响应
@@ -101,7 +101,7 @@ public class PurchaseService {
     /**
      * 根据对应的购药方式展示对应药企
      *
-     * @param recipeId  处方id
+     * @param recipeId  处方ID
      * @param payModes  购药方式
      */
     @RpcService
@@ -132,7 +132,6 @@ public class PurchaseService {
             IPurchaseService purchaseService = getService(i);
             //如果涉及到多种购药方式合并成一个列表，此处需要进行合并
             resultBean = purchaseService.findSupportDepList(dbRecipe, extInfo);
-
         }
 
         return resultBean;
@@ -149,7 +148,7 @@ public class PurchaseService {
      *                 ps: decoctionFlag是中药处方时设置为1，gfFeeFlag是膏方时设置为1
      *                 gysCode, sendMethod, payMethod 字段为钥世圈字段，会在findSupportDepList接口中给出
      *                 payMode 如果钥世圈有供应商是多种方式支持，就传0
-     * @return  结果
+     * @return
      */
     @RpcService
     public OrderCreateResult order(Integer recipeId, Map<String, String> extInfo) {
@@ -257,7 +256,7 @@ public class PurchaseService {
 
     /**
      * 检查处方是否已被处理
-     * @param dbRecipe  处方详情
+     * @param dbRecipe  处方
      * @param result    结果
      * @return true 已被处理
      */
@@ -286,9 +285,54 @@ public class PurchaseService {
     }
 
     /**
+     * 获取处方详情单文案
+     * @param recipe 处方
+     * @param order  订单
+     * @return       文案
+     */
+    public String getTipsByStatusForPatient(Recipe recipe, RecipeOrder order) {
+        Integer status = recipe.getStatus();
+        Integer payMode = recipe.getPayMode();
+        Integer payFlag = recipe.getPayFlag();
+        String orderCode = recipe.getOrderCode();
+        String tips;
+        switch (status){
+            case RecipeStatusConstant.READY_CHECK_YS:
+                tips = "请耐心等待药师审核";
+                break;
+            case RecipeStatusConstant.CHECK_PASS:
+                if (StringUtils.isNotEmpty(orderCode) && payFlag == 0) {
+                    tips = "订单待支付，请于收到处方的3日内处理完成，否则处方将失效";
+                } else if (StringUtils.isEmpty(orderCode)){
+                    tips = "处方单待处理，请于收到处方的3日内处理完成，否则处方将失效";
+                } else {
+                    IPurchaseService purchaseService = getService(payMode);
+                    tips = purchaseService.getTipsByStatusForPatient(recipe, order);
+                }
+                break;
+            case RecipeStatusConstant.NO_PAY:
+                tips = "处方单未支付，已失效";
+                break;
+            case RecipeStatusConstant.NO_OPERATOR:
+                tips = "处方单未处理，已失效";
+                break;
+            case RecipeStatusConstant.CHECK_NOT_PASS_YS:
+                tips = "处方审核不通过，请联系开方医生";
+                break;
+            case RecipeStatusConstant.REVOKE:
+                tips = "由于医生已撤销，该处方单已失效，请联系医生";
+                break;
+            default:
+                IPurchaseService purchaseService = getService(payMode);
+                tips = purchaseService.getTipsByStatusForPatient(recipe, order);
+        }
+        return tips;
+    }
+
+    /**
      * 检查处方是否已被处理
-     * @param dbRecipe   处方详情
-     * @param result     结果
+     * @param dbRecipe  处方
+     * @param result    结果
      * @return true 已被处理
      */
     private boolean checkRecipeIsUser(Recipe dbRecipe, RecipeResultBean result){

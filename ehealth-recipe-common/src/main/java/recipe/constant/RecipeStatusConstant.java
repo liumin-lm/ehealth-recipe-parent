@@ -105,6 +105,16 @@ public class RecipeStatusConstant {
     public static final int CHECKING_HOS = 16;
 
     /**
+     * 取消：药店取药失败
+     */
+    public static final int RECIPE_FAIL = 17;
+
+    /**
+     * 处方已下载
+     */
+    public static final int RECIPE_DOWNLOADED = 18;
+
+    /**
      * 不存在的状态，用于微信发送,患者-未操作情况, 用于前一天提醒患者购药
      */
     public static final int PATIENT_NO_OPERATOR = 101;
@@ -158,5 +168,30 @@ public class RecipeStatusConstant {
      * 不存在的状态，收货提醒,超过3天没有确认收货，给患者发推送
      */
     public static final int RECIPR_NOT_CONFIRM_RECEIPT = 111;
+
+    /**
+     * 不存在的状态，用于处方订单取消
+     */
+    public static final int RECIPE_ORDER_CACEL = 112;
+
+    /**
+     * 不存在的状态，药店取药-无库存-准备药品
+     */
+    public static final int RECIPE_DRUG_NO_STOCK_READY = 121;
+
+    /**
+     * 不存在的状态，药店取药-无库存-到货
+     */
+    public static final int RECIPE_DRUG_NO_STOCK_ARRIVAL = 122;
+
+    /**
+     * 不存在的状态，药店取药-有库存-可取药
+     */
+    public static final int RECIPE_DRUG_HAVE_STOCK = 123;
+
+    /**
+     * 不存在的状态，药店取药-完成
+     */
+    public static final int RECIPE_TAKE_MEDICINE_FINISH = 124;
 
 }

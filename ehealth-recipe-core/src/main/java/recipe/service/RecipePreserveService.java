@@ -42,6 +42,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.audit.auditmode.AuditModeContext;
+import recipe.audit.auditmode.IAuditMode;
 import recipe.audit.bean.AutoAuditResult;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
@@ -73,6 +75,8 @@ public class RecipePreserveService {
 
     @Autowired
     private RedisClient redisClient;
+    @Autowired
+    private AuditModeContext auditModeContext;
 
     @RpcService
     public RecipeBean getByRecipeId(int recipeId) {
@@ -433,5 +437,14 @@ public class RecipePreserveService {
     public void testRecipeStatusFromHisObserver(NoticeNgariRecipeInfoReq req){
         RecipeStatusFromHisObserver observer = new RecipeStatusFromHisObserver();
         observer.onMessage(req);
+    }
+
+    /**
+     * 测试获取审方模式
+     */
+    @RpcService
+    public void test(Integer audit){
+        IAuditMode auditModes = auditModeContext.getAuditModes(audit);
+        System.out.println(auditModes);
     }
 }

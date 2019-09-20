@@ -2,6 +2,7 @@ package recipe.purchase;
 
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 
 import java.util.Map;
@@ -46,4 +47,12 @@ public interface IPurchaseService {
      * @return
      */
     String getServiceName();
+
+    /**
+     * 获取提示文案
+     * @param recipe
+     * @param order
+     * @return
+     */
+    String getTipsByStatusForPatient(Recipe recipe, RecipeOrder order);
 }

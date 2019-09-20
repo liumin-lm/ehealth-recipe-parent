@@ -303,7 +303,12 @@ public class Recipe implements Serializable {
 
     @ItemProperty(alias = "签名的处方img")
     private String signImg;
-
+    /**
+     * 添加属性 2019/08/29
+     * 审方模式
+     */
+    @ItemProperty(alias = "审核模式")
+    private Integer reviewType;
 
     public Recipe() {
     }
@@ -1252,5 +1257,14 @@ public class Recipe implements Serializable {
 
     public void setSignImg(String signImg) {
         this.signImg = signImg;
+    }
+
+    @Column(name = "reviewType")
+    public Integer getReviewType() {
+        return reviewType;
+    }
+
+    public void setReviewType(Integer reviewType) {
+        this.reviewType = reviewType;
     }
 }

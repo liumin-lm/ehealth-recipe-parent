@@ -4,12 +4,14 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.BaseAPI;
 import com.ngari.base.doctor.model.RelationDoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.operationrecords.model.OperationRecordsBean;
 import com.ngari.base.operationrecords.service.IOperationRecordsService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.service.IPatientService;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.message.model.RecipeTagMsgBean;
@@ -83,6 +85,10 @@ public class RecipeServiceSub {
 
     private static DepartmentService departmentService = ApplicationUtils.getBasicService(DepartmentService.class);
 
+    private static Integer[] showRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.IN_SEND, RecipeStatusConstant.WAIT_SEND, RecipeStatusConstant.FINISH};
+
+    private static Integer[] showDownloadRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.RECIPE_DOWNLOADED};
+
     @Autowired
     private static AldyfRemoteService aldyfRemoteService;
     
@@ -135,6 +141,26 @@ public class RecipeServiceSub {
             }
             recipe.setTotalMoney(totalMoney);
             recipe.setActualPrice(totalMoney);
+        }
+
+        //设置运营平台设置的审方模式
+        //互联网设置了默认值，平台没有设置默认值从运营平台取
+        if (recipe.getReviewType() == null){
+            try {
+                IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+                Integer reviewType = (Integer)configurationService.getConfiguration(recipe.getClinicOrgan(), "reviewType");
+                LOGGER.info("运营平台获取审方方式配置 reviewType[{}]",reviewType);
+                if (reviewType == null){
+                    //默认审方后置
+                    recipe.setReviewType(RecipeBussConstant.AUDIT_POST);
+                }else {
+                    recipe.setReviewType(reviewType);
+                }
+            }catch (Exception e){
+                LOGGER.error("获取运营平台审方方式配置异常",e);
+                //默认审方后置
+                recipe.setReviewType(RecipeBussConstant.AUDIT_POST);
+            }
         }
 
         //患者数据前面已校验
@@ -785,6 +811,105 @@ public class RecipeServiceSub {
         return map;
     }
 
+    /**
+     * 状态文字提示（医生端）
+     *
+     * @param status
+     * @param recipe
+     * @param effective
+     * @return
+     */
+    public static Map<String, String> getTipsByStatusCopy(int status, Recipe recipe, boolean effective) {
+        String cancelReason = "";
+        String tips = "";
+        String listTips = "";
+        switch (status) {
+            case RecipeStatusConstant.CHECK_NOT_PASS:
+                tips = "审核未通过";
+                break;
+            case RecipeStatusConstant.UNSIGN:
+                tips = "未签名";
+                break;
+            case RecipeStatusConstant.UNCHECK:
+                tips = "待审核";
+                break;
+            case RecipeStatusConstant.CHECK_PASS:
+                tips = "待处理";
+                break;
+            case RecipeStatusConstant.REVOKE:
+                tips = "已取消";
+                cancelReason = "由于您已撤销，该处方单已失效";
+                break;
+            case RecipeStatusConstant.HAVE_PAY:
+                tips = "待取药";
+                break;
+            case RecipeStatusConstant.IN_SEND:
+                tips = "配送中";
+                break;
+            case RecipeStatusConstant.WAIT_SEND:
+                tips = "待配送";
+                break;
+            case RecipeStatusConstant.FINISH:
+                tips = "已完成";
+                break;
+            case RecipeStatusConstant.CHECK_PASS_YS:
+                if (StringUtils.isNotEmpty(recipe.getSupplementaryMemo())) {
+                    tips = "医生再次确认处方";
+                } else {
+                    tips = "审核通过";
+                }
+                listTips = "审核通过";
+                break;
+            case RecipeStatusConstant.READY_CHECK_YS:
+                tips = "待审核";
+                break;
+            case RecipeStatusConstant.HIS_FAIL:
+                tips = "已取消";
+                cancelReason = "可能由于医院接口异常，处方单已取消，请稍后重试！";
+                break;
+            case RecipeStatusConstant.NO_DRUG:
+                tips = "已取消";
+                cancelReason = "由于患者未及时取药，该处方单已失效";
+                break;
+            case RecipeStatusConstant.NO_PAY:
+                //修改文案
+                tips = "未支付";
+            case RecipeStatusConstant.NO_OPERATOR:
+                //修改文案
+                tips = "未处理";
+                cancelReason = "由于患者未及时支付，该处方单已取消。";
+                break;
+            case RecipeStatusConstant.CHECK_NOT_PASS_YS:
+                if (recipe.canMedicalPay()) {
+                    tips = "审核未通过";
+                } else {
+                    if (effective) {
+                        tips = "审核未通过";
+                    } else {
+                        tips = "已取消";
+                    }
+                }
+                break;
+            case RecipeStatusConstant.CHECKING_HOS:
+                tips = "医院确认中";
+                break;
+            //添加状态
+            case RecipeStatusConstant.RECIPE_FAIL:
+                tips = "失败";
+                break;
+            default:
+                tips = "未知状态" + status;
+        }
+        if (StringUtils.isEmpty(listTips)) {
+            listTips = tips;
+        }
+        Map<String, String> map = Maps.newHashMap();
+        map.put("tips", tips);
+        map.put("listTips", listTips);
+        map.put("cancelReason", cancelReason);
+        return map;
+    }
+
     public static void setPatientMoreInfo(PatientDTO patient, int doctorId) {
         RelationDoctorBean relationDoctor = iDoctorService.getByMpiidAndDoctorId(patient.getMpiId(), doctorId);
         //是否关注
@@ -1007,16 +1132,45 @@ public class RecipeServiceSub {
             if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
                 //设置购药方式哪些可用
                 //配送到家默认可用
-                map.put("givemode_send", 1);
+                //Date:20190905
+                //Explain:将互联网的按钮和平台的按钮合并
+                map.put("supportOnline", 1);
                 //到店取药默认不可用
-                map.put("givemode_tfds", 0);
+                map.put("supportTFDS", 0);
                 //医院取药需要看数据
                 int hosFlag = 1;
                 if(1 == recipe.getDistributionFlag()){
                     hosFlag = 0;
                 }
-                map.put("givemode_hos", hosFlag);
+                map.put("supportToHos", hosFlag);
             }
+            //Date:20190904
+            //Explain:添加患者点击按钮信息
+            if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())){
+                //获取配置项
+                IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+                //添加按钮配置项key
+                Object payModeDeploy = configService.getConfiguration(recipe.getClinicOrgan(), "payModeDeploy");
+                if(null != payModeDeploy){
+                    List<String> configurations = new ArrayList<>(Arrays.asList((String[])payModeDeploy));
+                    //将配置的购药方式放在map上
+                    for (String configuration : configurations) {
+                        map.put(configuration, 1);
+                    }
+                }
+            }
+            //Date:20190904
+            //Explain:审核是否通过
+            boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() && RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus());
+            map.put("optional", isOptional);
+            //Date:20190909
+            //Explain:判断是否下载处方签
+
+            //1.判断配置项中是否配置了下载处方签，
+            //2.是否是后置的，后置的判断状态是否是已审核，已完成, 配送中，
+            //3.如果不是后置的，判断实际金额是否为0：为0则ordercode关联则展示，不为0支付则展示
+            boolean isDownload = getDownConfig(recipe, order);
+            map.put("isDownload", isDownload);
         }
 
         if (StringUtils.isEmpty(recipe.getMemo())) {
@@ -1052,6 +1206,62 @@ public class RecipeServiceSub {
             map.put("doctorSignImg",doctorDTO.getSignImage());
         }
         return map;
+    }
+
+    /**
+     * @method  getDownConfig
+     * @description 获取下载处方签的配置
+     * @date: 2019/9/10
+     * @author: JRK
+     * @param recipe 当前处方
+     * @param order 当前处方对应的订单
+     * @return boolean 是否可以下载
+     */
+    private static boolean getDownConfig(Recipe recipe, RecipeOrder order) {
+        Boolean isDownload = false;
+        //获取配置项
+        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+        //添加按钮配置项key
+        Object downloadPrescription = configService.getConfiguration(recipe.getClinicOrgan(), "downloadPrescription");
+        if(null != downloadPrescription){
+            boolean canDown = 0 == (Integer)downloadPrescription ? false : true;
+            if(canDown){
+                isDownload = canDown(recipe, order, showRecipeStatus, false);
+            }else{
+                if(RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())){
+                    isDownload = canDown(recipe, order, showDownloadRecipeStatus, true);
+                }
+            }
+        }
+        return isDownload;
+    }
+
+    /**
+     * @method  canDown
+     * @description 修改下载配置项
+     * @date: 2019/9/10
+     * @author: JRK
+     * @param recipe 当前处方
+     * @param order 当前处方的订单
+       * @param isDownLoad 是否是下载处方
+     * @return boolean 是否可以下载处方签
+     */
+    private static boolean canDown(Recipe recipe, RecipeOrder order, Integer[] status, Boolean isDownLoad) {
+        boolean isDownload = false;
+        if(ReviewTypeConstant.Preposition_Check == recipe.getReviewType()){
+            if( Arrays.asList(status).contains(recipe.getStatus())){
+                isDownload = true;
+            }
+        }else{
+            //如果实际金额为0则判断有没有关联ordercode，实际金额不为0则判断是否已经支付,展示下载处方签，
+            //当下载处方购药时，已完成处方不展示下载处方签
+            if(null != recipe.getOrderCode() && null != order && !(isDownLoad && RecipeStatusConstant.FINISH == recipe.getStatus())){
+                if(0 == order.getActualPrice() || (0 < order.getActualPrice() && 1 == recipe.getPayFlag()))
+                    isDownload = true;
+
+            }
+        }
+        return isDownload;
     }
 
     public static List<AuditMedicinesDTO> getAuditMedicineIssuesByRecipeId(int recipeId) {

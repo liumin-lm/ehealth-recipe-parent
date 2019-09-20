@@ -40,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
+import recipe.audit.auditmode.AuditModeContext;
 import recipe.bean.CheckYsInfoBean;
 import recipe.constant.BussTypeConstant;
 import recipe.constant.ErrorCode;
@@ -52,6 +53,7 @@ import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
+import javax.annotation.Resource;
 import java.util.*;
 
 /**
@@ -72,6 +74,9 @@ public class RecipeCheckService {
     private DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
 
     private DepartmentService departmentService = ApplicationUtils.getBasicService(DepartmentService.class);
+
+    @Resource
+    private AuditModeContext auditModeContext;
 
     /**
      * zhongzx
@@ -510,13 +515,17 @@ public class RecipeCheckService {
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         //审核成功往药厂发消息
         if (1 == result) {
-            recipeService.afterCheckPassYs(recipe);
+            /*recipeService.afterCheckPassYs(recipe);*/
+            //TODO 根据审方模式改变
+            auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckPassYs(recipe);
         } else {
             IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
             boolean secondsignflag = iOrganConfigService.getEnableSecondsignByOrganId(recipe.getClinicOrgan());
             //不支持二次签名的机构直接执行后续操作
             if (!secondsignflag) {
-                recipeService.afterCheckNotPassYs(recipe);
+                /*recipeService.afterCheckNotPassYs(recipe);*/
+                //TODO 根据审方模式改变
+                auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckNotPassYs(recipe);
             }
         }
 

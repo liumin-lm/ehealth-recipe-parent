@@ -43,6 +43,21 @@
                 <version>${ssdev.version}</version>
             </dependency>
             <dependency>
+                <groupId>ngari</groupId>
+                <artifactId>ehealth-voucher-api</artifactId>
+                <version>${ngari.voucher.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>ssdev-rpc</artifactId>
+                        <groupId>ssdev</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>ssdev-core</artifactId>
+                        <groupId>ssdev</groupId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-es-api</artifactId>
                 <version>${ngari.es.version}</version>
@@ -284,6 +299,11 @@
                 <groupId>com.alihealth</groupId>
                 <artifactId>top-api-sdk-dev</artifactId>
                 <version>20190301</version>
+            </dependency>
+            <dependency>
+                <groupId>org.reflections</groupId>
+                <artifactId>reflections</artifactId>
+                <version>0.9.10</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

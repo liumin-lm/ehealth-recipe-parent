@@ -162,6 +162,14 @@
             <groupId>com.alihealth</groupId>
             <artifactId>top-api-sdk-dev</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-voucher-api</artifactId>
+        </dependency>
     </dependencies>
     <profiles>
         <profile>

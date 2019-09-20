@@ -95,5 +95,5 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
      * @return
      */
     @RpcService
-    BigDecimal reCalculateRecipeFee(Integer enterpriseId, List<Integer> recipeIds);
+    BigDecimal reCalculateRecipeFee(Integer enterpriseId, List<Integer> recipeIds, Map<String, String> extInfo);
 }
