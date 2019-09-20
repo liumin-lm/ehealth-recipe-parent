@@ -3,6 +3,7 @@ package recipe.bussutil;
 import com.google.common.collect.Maps;
 import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.base.organconfig.service.IOrganConfigService;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
 import org.apache.commons.collections.CollectionUtils;
@@ -13,7 +14,6 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -127,6 +127,12 @@ public class RecipeUtil {
             if (null != organConfig) {
                 map.put("serviceChargeDesc", organConfig.getServiceChargeDesc());
                 map.put("serviceChargeRemark", organConfig.getServiceChargeRemark());
+            }
+            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            Double otherFee = (Double)configurationService.getConfiguration(organId, "otherFee");
+            if (otherFee > 0.0) {
+                map.put("otherServiceChargeDesc", configurationService.getConfiguration(organId, "otherServiceChargeDesc").toString());
+                map.put("otherServiceChargeRemark", configurationService.getConfiguration(organId, "otherServiceChargeRemark").toString());
             }
         }
         return map;
