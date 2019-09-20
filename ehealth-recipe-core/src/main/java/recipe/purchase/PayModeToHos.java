@@ -90,7 +90,7 @@ public class PayModeToHos implements IPurchaseService{
         }
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
         //更新处方信息
-        orderService.finishOrderPayWithoutPay(order.getOrderCode(), payMode);
+        //orderService.finishOrderPayWithoutPay(order.getOrderCode(), payMode);
         return result;
     }
 
