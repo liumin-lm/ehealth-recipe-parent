@@ -32,6 +32,12 @@ public class PurchaseResponse extends CommonResponse {
      */
     public static final String TO_HOS_SUCCESS = "005";
 
+
+    /**
+     * 下单
+     */
+    public static final String JUMP = "006";
+
     private String authUrl;
 
     private String orderUrl;
