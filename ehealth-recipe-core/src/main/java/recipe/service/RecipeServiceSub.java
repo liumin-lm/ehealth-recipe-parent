@@ -51,6 +51,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.AldyfRemoteService;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
+import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
@@ -1085,7 +1086,12 @@ public class RecipeServiceSub {
             map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId));
         } else {
             RecipeOrder order = orderDAO.getOrderByRecipeId(recipeId);
-            map.put("tips", getTipsByStatusForPatient(recipe, order));
+            if (recipe.getRecipeMode() == RecipeBussConstant.RECIPEMODE_ZJJGPT) {
+                map.put("tips", getTipsByStatusForPatient(recipe, order));
+            } else {
+                PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+                map.put("tips", purchaseService.getTipsByStatusForPatient(recipe, order));
+            }
             boolean b = null != recipe.getEnterpriseId() && RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())
                     && (recipe.getStatus() == RecipeStatusConstant.WAIT_SEND || recipe.getStatus() == RecipeStatusConstant.IN_SEND
                     || recipe.getStatus() == RecipeStatusConstant.FINISH);
