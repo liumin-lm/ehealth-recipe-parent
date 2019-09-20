@@ -38,6 +38,7 @@ import recipe.dao.DrugListMatchDAO;
 import recipe.dao.DrugToolUserDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.util.DrugMatchUtil;
+import recipe.util.RedisClient;
 
 import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
@@ -60,10 +61,14 @@ public class DrugToolService implements IDrugToolService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DrugToolService.class);
 
+    private double progress;
+
+    private RedisClient redisClient = RedisClient.instance();
+
     private static final String SUFFIX_2003 = ".xls";
     private static final String SUFFIX_2007 = ".xlsx";
     //全局map
-    private Map<String,Double> progressMap = Maps.newHashMap();
+    private ConcurrentHashMap<String,Double> progressMap = new ConcurrentHashMap<>();
     /**
      * 用于药品小工具搜索历史记录缓存
      */
@@ -139,22 +144,25 @@ public class DrugToolService implements IDrugToolService {
 
     //获取进度条
     @RpcService
-    public double getProgress(int organId,String operator) {
-        double progress = 0;
+    public double getProgress(int organId,String operator) throws InterruptedException {
         String key = organId +operator;
-        Double data = progressMap.get(key);
+//        Double data = progressMap.get(key);
+        Double data =  redisClient.get(key);
         if (data != null){
             progress = data;
             if (progress >= 100){
-                progressMap.remove(key);
+//                progressMap.remove(key);
+                redisClient.sRemove(key);
             }
         }
+        LOGGER.info("进度条加载={}=", progress);
         return progress;
     }
 
     @Override
-    public synchronized Map<String,Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator) {
+    public synchronized   Map<String,Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator) {
         LOGGER.info(operator + "开始 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
+        progress = 0;
         Map<String,Object> result = Maps.newHashMap();
         if (StringUtils.isEmpty(operator)){
             result.put("code",609);
@@ -214,12 +222,13 @@ public class DrugToolService implements IDrugToolService {
                     result.put("msg","【第"+rowIndex+"行】存在药品编号为空，请重新导入");
                     return result;
                 }
-                drug.setOrganDrugCode(getStrFromCell(row.getCell(0)));
+
                 if (StringUtils.isEmpty(getStrFromCell(row.getCell(1)))){
                     result.put("code",609);
                     result.put("msg","【第"+rowIndex+"行】药品名为空，请重新导入");
                     return result;
                 }
+                drug.setOrganDrugCode(getStrFromCell(row.getCell(0)));
                 drug.setDrugName(getStrFromCell(row.getCell(1)));
                 drug.setSaleName(getStrFromCell(row.getCell(2)));
                 drug.setDrugSpec(getStrFromCell(row.getCell(3)));
@@ -277,20 +286,23 @@ public class DrugToolService implements IDrugToolService {
                 try{
                     boolean isSuccess = drugListMatchDAO.updateData(drug);
                     if (!isSuccess){
-                    //自动匹配功能暂无法提供
-                    //*AutoMatch(drug);*//*
+                        //自动匹配功能暂无法提供
+                        //*AutoMatch(drug);*//*
                         drugListMatchDAO.save(drug);}
                 }catch(Exception e){
                     LOGGER.error("save or update drugListMatch error "+e.getMessage());
                 }
             }
             progress = new BigDecimal((float)rowIndex / total).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
-            progressMap.put(organId+operator,progress*100);
+            redisClient.set(organId+operator,progress*100);
+//                    progressMap.put(organId+operator,progress*100);
         }
+
         LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         result.put("code",200);
         return result;
     }
+
 
     /*private void AutoMatch(DrugListMatch drug) {
         List<DrugList> drugLists = drugListDAO.findByDrugName(drug.getDrugName());
