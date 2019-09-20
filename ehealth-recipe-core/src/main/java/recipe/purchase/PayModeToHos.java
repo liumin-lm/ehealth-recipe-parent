@@ -75,7 +75,8 @@ public class PayModeToHos implements IPurchaseService{
         order.setMpiId(dbRecipe.getMpiid());
         order.setOrganId(dbRecipe.getClinicOrgan());
         order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
-        order.setStatus(OrderStatusConstant.READY_PAY);
+        //订单的状态统一到finishOrderPayWithoutPay中设置
+        //order.setStatus(OrderStatusConstant.READY_GET_DRUG);
         order.setRecipeIdList("["+dbRecipe.getRecipeId()+"]");
         List<Recipe> recipeList = Arrays.asList(dbRecipe);
         Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");

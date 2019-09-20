@@ -1025,17 +1025,35 @@ public class RecipeService extends RecipeBaseService{
                     //向患者推送处方消息
                     RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS);
                 } else {
-                    if (RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
+                    /*if (RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
                         //货到付款|药店取药 审核完成，往药企发送审核完成消息
                         Integer status = OrderStatusConstant.READY_SEND;
                         //到店取药审核完成是带取药状态
+                        //data:20190919
+                        //添加到院取药和下载处方的状态（这里后置的逻辑）
                         if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
                             status = OrderStatusConstant.READY_GET_DRUG;
                         }
                         orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("status", status), resultBean);
                         //发送患者审核完成消息
                         RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS_YS);
+                    }*/
+
+                    //date:20190920
+                    //审核通过后设置订单的状态（后置）
+                    Integer status = OrderStatusConstant.READY_SEND;
+                    //到店取药审核完成是带取药状态
+                    //data:20190919
+                    //添加到院取药和下载处方的状态（这里后置的逻辑）
+                    if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())
+                            || RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode()) ||
+                            RecipeBussConstant.PAYMODE_DOWNLOAD_RECIPE.equals(recipe.getPayMode())) {
+                        status = OrderStatusConstant.READY_GET_DRUG;
                     }
+                    orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("status", status), resultBean);
+                    //发送患者审核完成消息
+                    RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS_YS);
+
                     //6.24 货到付款或者药店取药也走药师审核通过推送处方信息
                     // 平台处方发送药企处方信息
                     service.pushSingleRecipeInfo(recipeId);
