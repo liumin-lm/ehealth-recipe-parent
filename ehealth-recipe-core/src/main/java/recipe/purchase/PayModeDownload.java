@@ -79,7 +79,7 @@ public class PayModeDownload implements IPurchaseService{
         order.setMpiId(dbRecipe.getMpiid());
         order.setOrganId(dbRecipe.getClinicOrgan());
         order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
-        order.setStatus(OrderStatusConstant.READY_GET_DRUG);
+        order.setStatus(OrderStatusConstant.READY_PAY);
 
         //设置订单各种费用
         List<Recipe> recipeList = Arrays.asList(dbRecipe);
