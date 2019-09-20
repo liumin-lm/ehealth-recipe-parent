@@ -19,6 +19,7 @@ import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
+import recipe.constant.ReviewTypeConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.RecipeOrderService;
@@ -198,10 +199,28 @@ public class PayModeOnline implements IPurchaseService {
         order.setMpiId(dbRecipe.getMpiid());
         order.setOrganId(dbRecipe.getClinicOrgan());
         order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
-        order.setStatus(OrderStatusConstant.READY_PAY);
         //设置订单各种费用和配送地址
         List<Recipe> recipeList = Arrays.asList(dbRecipe);
         orderService.setOrderFee(result, order, Arrays.asList(recipeId), recipeList, payModeSupport, extInfo, 1);
+
+        //判断设置状态
+        int reviewType = dbRecipe.getReviewType();
+        Integer giveMode = dbRecipe.getGiveMode();
+        Integer payStatus = null;
+        //判断处方是否免费
+        if(0 >= order.getActualPrice()){
+            //免费不需要走支付
+            if(ReviewTypeConstant.Postposition_Check == reviewType){
+                payStatus = OrderStatusConstant.READY_CHECK;
+            }else{
+                payStatus = OrderStatusConstant.READY_SEND;
+            }
+        }else{
+            //走支付，待支付
+            payStatus = OrderStatusConstant.READY_PAY;
+        }
+
+        order.setStatus(payStatus);
 
         //设置为有效订单
         order.setEffective(1);

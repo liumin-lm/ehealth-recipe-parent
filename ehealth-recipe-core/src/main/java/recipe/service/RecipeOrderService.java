@@ -1076,6 +1076,8 @@ public class RecipeOrderService extends RecipeBaseService {
             result.setExt(RecipeUtil.getParamFromOgainConfig(order));
             //在扩展内容中设置下载处方签的判断
             getDownConfig(result, order, recipeList);
+            //在扩展内容中添加展示审核金额
+            getShowAuditFee(result, order, recipeList);
         } else {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("不存在ID为" + orderId + "的订单");
@@ -1084,6 +1086,44 @@ public class RecipeOrderService extends RecipeBaseService {
         return result;
     }
 
+    /**
+     * @method  getShowAuditFee
+     * @description 展示审核金额按钮的判断
+     * @date: 2019/9/20
+     * @author: JRK
+     * @param result 返回结果集
+     * @param order 返回的订单
+     * @param recipeList 订单关联的处方列表
+     * @return void
+     */
+    public void getShowAuditFee(RecipeResultBean result, RecipeOrder order, List<Recipe> recipeList) {
+
+        Map<String, String> ext = result.getExt();
+        if(null == ext){
+            ext = Maps.newHashMap();
+        }
+        Boolean showAuditFee = false;
+        if(CollectionUtils.isNotEmpty(recipeList)){
+            Recipe nowRecipe = recipeList.get(0);
+            if(null != nowRecipe){
+                showAuditFee = ReviewTypeConstant.Preposition_Check != nowRecipe.getReviewType();
+            }
+        }
+
+        ext.put("showAuditFee", showAuditFee ?  "1" : "0");
+        result.setExt(ext);
+    }
+
+    /**
+     * @method  getDownConfig
+     * @description 下载处方签展示按钮的判断
+     * @date: 2019/9/20
+     * @author: JRK
+     * @param result 返回结果集
+     * @param order 返回的订单
+     * @param recipeList 订单关联的处方列表
+     * @return void
+     */
     public void getDownConfig(RecipeResultBean result, RecipeOrder order, List<Recipe> recipeList) {
         //判断是否展示下载处方签按钮：1.在下载处方购药方式
         //2.是否是后置，后置：判断审核是否审核通过状态
@@ -1183,16 +1223,52 @@ public class RecipeOrderService extends RecipeBaseService {
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
             Map<String, Object> attrMap = Maps.newHashMap();
             attrMap.put("payFlag", payFlag);
-            if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
-                attrMap.put("payTime", Calendar.getInstance().getTime());
-                attrMap.put("status", OrderStatusConstant.READY_SEND);
-                attrMap.put("effective", 1);
-            } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag) {
-                if (RecipeBussConstant.PAYMODE_COD.equals(payMode) || RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
-                    attrMap.put("effective", 1);
-                    attrMap.put("status", OrderStatusConstant.READY_CHECK);
+//            if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
+//                attrMap.put("payTime", Calendar.getInstance().getTime());
+//                attrMap.put("status", OrderStatusConstant.READY_SEND);
+//                attrMap.put("effective", 1);
+//            } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag) {
+//                if (RecipeBussConstant.PAYMODE_COD.equals(payMode) || RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
+//                    attrMap.put("effective", 1);
+//                    attrMap.put("status", OrderStatusConstant.READY_CHECK);
+//                }
+//            }
+            //date 20190919
+            //根据不同的购药方式设置订单的状态
+            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+            List<Integer> recipeIds = recipeDAO.findRecipeIdsByOrderCode(orderCode);
+            int payStatus = 0;
+            int noPayStatus = 0;
+            if(null != recipeIds){
+                Recipe nowRecipe = recipeDAO.get(recipeIds.get(0));
+                if(null != nowRecipe){
+                    Integer reviewType = nowRecipe.getReviewType();
+                    Integer giveMode = nowRecipe.getGiveMode();
+                    //首先判断是否支付成功调用，还是支付前调用
+                    if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
+                        //支付成功后
+                        payStatus = getPayStatus(reviewType, giveMode);
+                        attrMap.put("payTime", Calendar.getInstance().getTime());
+                        attrMap.put("status", payStatus);
+                        attrMap.put("effective", 1);
+                    } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag) {
+                        //支付前调用
+                        RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
+                        RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
+                        if(null != order){
+                            if(0 == order.getActualPrice()){
+                                noPayStatus = getPayStatus(reviewType, giveMode);
+                            }else{
+                                noPayStatus = OrderStatusConstant.READY_PAY;
+                            }
+                            attrMap.put("effective", 1);
+                            attrMap.put("status", noPayStatus);
+                        }
+                    }
                 }
             }
+
+
             this.updateOrderInfo(orderCode, attrMap, result);
         }
 
@@ -1208,6 +1284,34 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         return result;
+    }
+
+    /**
+     * @method  getPayStatus
+     * @description 获取订单的处理的状态
+     * @date: 2019/9/20
+     * @author: JRK
+     * @param reviewType 审核方式
+     * @param giveMode 购药方式
+     * @return int 订单的修改状态
+     */
+    private int getPayStatus(Integer reviewType, Integer giveMode) {
+        int payStatus = 0;
+        //支付成功、支付前不需要支付时判断审核方式
+        if(ReviewTypeConstant.Postposition_Check == reviewType){
+            //后置
+            payStatus = OrderStatusConstant.READY_CHECK;
+        }else{
+            //前置、不需要审核，根据购药方式判断
+            if(RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) ||
+                    RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode) ||
+                    RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(giveMode)){
+                payStatus = OrderStatusConstant.READY_GET_DRUG;
+            }else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(giveMode)){
+                payStatus = OrderStatusConstant.READY_SEND;
+            }
+        }
+        return payStatus;
     }
 
     /**

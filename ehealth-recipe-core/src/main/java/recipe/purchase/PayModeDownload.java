@@ -79,12 +79,15 @@ public class PayModeDownload implements IPurchaseService{
         order.setMpiId(dbRecipe.getMpiid());
         order.setOrganId(dbRecipe.getClinicOrgan());
         order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
-        order.setStatus(OrderStatusConstant.READY_GET_DRUG);
 
         //设置订单各种费用
         List<Recipe> recipeList = Arrays.asList(dbRecipe);
         Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
         CommonOrder.createDefaultOrder(extInfo, result, order, payModeSupport, recipeList, calculateFee);
+
+        //订单的状态统一到finishOrderPayWithoutPay中设置
+        //order.setStatus(OrderStatusConstant.READY_GET_DRUG);
+
         //设置为有效订单
         order.setEffective(1);
         boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);

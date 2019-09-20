@@ -322,6 +322,20 @@ public class StandardEnterpriseCallService {
                             RecipeStatusConstant.FINISH, "处方单配送完成,配送人：" + finishDTO.getSender());
                     //HIS消息发送
                     hisService.recipeFinish(recipeId);
+
+                    //date:20190919
+                    //添加用户消息
+                    Integer msgStatus = null;
+                    if(RecipeBussConstant.GIVEMODE_TO_HOS.equals(dbRecipe.getGiveMode())){
+                        msgStatus = RecipeStatusConstant.PATIENT_GETGRUG_FINISH;
+                    }else if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())){
+                        msgStatus = RecipeStatusConstant.PATIENT_REACHPAY_FINISH;
+                    }else if(RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())){
+                        msgStatus = RecipeStatusConstant.RECIPE_TAKE_MEDICINE_FINISH;
+                    }
+                    if(null != msgStatus){
+                        RecipeMsgService.batchSendMsg(dbRecipe, msgStatus);
+                    }
                 }
 
                 //HOS处方发送完成短信
