@@ -1,0 +1,568 @@
+package recipe.drugsenterprise;
+
+import com.alibaba.fastjson.JSON;
+import com.alijk.bqhospital.alijk.conf.TaobaoConf;
+import com.alijk.bqhospital.alijk.dto.BaseResult;
+import com.alijk.bqhospital.alijk.service.AlihealthHospitalService;
+import com.alijk.bqhospital.alijk.utils.TaobaoClientUtils;
+import com.google.common.collect.ImmutableMap;
+import com.ngari.base.BaseAPI;
+import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
+import com.ngari.base.organ.model.OrganBean;
+import com.ngari.base.organ.service.IOrganService;
+import com.ngari.patient.base.domain.Patient;
+import com.ngari.patient.dto.*;
+import com.ngari.patient.service.*;
+import com.ngari.recipe.entity.*;
+import com.qimencloud.api.sceneqimen.request.AlibabaAlihealthDrugstoreGetRequest;
+import com.qimencloud.api.sceneqimen.request.AlibabaAlihealthPrescriptionStatusSyncRequest;
+import com.qimencloud.api.sceneqimen.response.AlibabaAlihealthDrugstoreGetResponse;
+import com.qimencloud.api.sceneqimen.response.AlibabaAlihealthPrescriptionStatusSyncResponse;
+import com.taobao.api.ApiException;
+import com.taobao.api.DefaultTaobaoClient;
+import com.taobao.api.TaobaoClient;
+import com.taobao.api.TaobaoResponse;
+import com.taobao.api.internal.spi.CheckResult;
+import com.taobao.api.internal.spi.SpiUtils;
+import com.taobao.api.request.*;
+import com.taobao.api.response.*;
+import ctd.account.UserRoleToken;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
+import ctd.persistence.DAOFactory;
+import ctd.spring.AppDomainContext;
+import ctd.util.AppContextHolder;
+import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
+import eh.utils.DateConversion;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.zookeeper.OpResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import recipe.ApplicationUtils;
+import recipe.bean.DrugEnterpriseResult;
+import recipe.bean.PurchaseResponse;
+import recipe.constant.DrugEnterpriseConstant;
+import recipe.constant.ParameterConstant;
+import recipe.constant.RecipeBussConstant;
+import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
+import recipe.dao.RecipeExtendDAO;
+import recipe.dao.SaleDrugListDAO;
+import recipe.drugsenterprise.bean.StandardResultDTO;
+import recipe.drugsenterprise.bean.StandardStateDTO;
+import recipe.service.common.RecipeCacheService;
+import sun.misc.BASE64Decoder;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.util.*;
+
+/**
+ * @description 天猫大药房对接服务
+ * @author gmw
+ * @date 2019/9/11
+ */
+@RpcBean("tmdyfRemoteService")
+public class TmdyfRemoteService extends AccessDrugEnterpriseService{
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TmdyfRemoteService.class);
+
+    private static final String EXPIRE_TIP = "请重新授权";
+
+    @Autowired
+    private AlihealthHospitalService alihealthHospitalService;
+
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
+
+    @Autowired
+    private RecipeDAO recipeDAO;
+
+    @Autowired
+    private TaobaoConf taobaoConf;
+//
+//    @Autowired
+//    StandardEnterpriseCallService standardEnterpriseCallService;
+
+    @Override
+    public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
+        LOGGER.info("AldyfRemoteService tokenUpdateImpl not implement.");
+    }
+
+    /*
+     * @description 获取天猫大药房的跳转url并且发送处方
+     * @author gmw
+     * @date 2019/9/12
+     * @param
+     * @return
+     */
+    @Override
+    public void getJumpUrl(PurchaseResponse response, Recipe recipe, DrugsEnterprise drugsEnterprise) {
+
+        if (0 == recipe.getPushFlag()) {
+            //处方未推送，进行处方推送
+            DrugEnterpriseResult result = pushRecipeInfo(Collections.singletonList(recipe.getRecipeId()), drugsEnterprise.getId());
+            if(DrugEnterpriseResult.FAIL == result.getCode()){
+                LOGGER.warn("该处方无法配送", recipe.getRecipeId());
+                response.setMsg(result.getMsg());
+                return;
+            }
+        }
+
+        //获取医院城市编码（6位）
+        OrganService organService = BasicAPI.getService(OrganService.class);
+        OrganDTO organCode = organService.getByOrganId(recipe.getClinicOrgan());
+        String cityCode = null;
+        if(organCode.getAddrArea().length() >= 4){
+            cityCode = organCode.getAddrArea().substring(4) + "00";
+        } else {
+            cityCode = organCode.getAddrArea() + "00";
+            for(int i = organCode.getAddrArea().length(); i<6; i++){
+                cityCode = cityCode + "0";
+            }
+        }
+
+        RecipeCacheService RecipeCache = ApplicationUtils.getBaseService(RecipeCacheService.class);
+        String url = RecipeCache.getRecipeParam(ParameterConstant.KEY_ALI_O2O_ADDR, null);
+        if(url == null){
+            LOGGER.warn("未获取O2O跳转url,请检查数据库配置");
+            response.setMsg("未获取O2O跳转url,请检查数据库配置");
+            return ;
+        }
+        if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME == recipe.getGiveMode() &&
+            RecipeStatusEnum.USING.getKey().equals(recipe.getStatus())){
+            //配送到家URL
+            url = url + "?rxNo=" + recipe.getRecipeCode() +"&action=o2o&cityCode=" + cityCode;
+        } else {
+            //药店取药取药URL
+            url = url + "?rxNo=" + recipe.getRecipeCode() +"&action=offline&cityCode=" + cityCode;
+        }
+        response.setOrderUrl(url);
+        response.setCode(PurchaseResponse.ORDER);
+
+    }
+
+    @Override
+    public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
+        return null;
+    }
+
+    public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, Integer depId) {
+
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        if (ObjectUtils.isEmpty(recipeIds)) {
+            getDrugEnterpriseResult(result, "处方ID参数为空");
+        }
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+//        Integer depId = enterprise.getId();
+
+        List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
+
+        if (!ObjectUtils.isEmpty(recipeList)) {
+            PatientService patientService = BasicAPI.getService(PatientService.class);
+            DoctorService doctorService = BasicAPI.getService(DoctorService.class);
+            EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
+            OrganService organService = BasicAPI.getService(OrganService.class);
+            DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
+//            ICurrentUserInfoService userInfoService = BasicAPI.getService(ICurrentUserInfoService.class);
+
+            ICurrentUserInfoService userInfoService = AppContextHolder.getBean(
+                "eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
+            for (Recipe dbRecipe : recipeList ) {
+//                String loginId = patientService.getLoginIdByMpiId(dbRecipe.getRequestMpiId());
+//                String accessToken = aldyfRedisService.getTaobaoAccessToken(loginId);
+//                if (ObjectUtils.isEmpty(accessToken)) {
+//                    return getDrugEnterpriseResult(result, EXPIRE_TIP);
+//                }
+//                alihealthHospitalService.setTopSessionKey(accessToken);
+//                LOGGER.info("获取到accessToken:{}, loginId:{}", accessToken, loginId);
+
+
+                AlibabaAlihealthOutflowPrescriptionCreateRequest request = new AlibabaAlihealthOutflowPrescriptionCreateRequest ();
+                AlibabaAlihealthOutflowPrescriptionCreateRequest.PrescriptionOutflowUpdateRequest requestParam = new AlibabaAlihealthOutflowPrescriptionCreateRequest.PrescriptionOutflowUpdateRequest ();
+
+
+                //操作人手机号
+                Patient patient2 = UserRoleToken.getCurrent().getProperty("patient", Patient.class);
+                if(null != patient2.getMobile()){
+                    requestParam.setMobilePhone(patient2.getMobile());
+                } else {
+                    return getDrugEnterpriseResult(result, "操作人手机号不能为空");
+                }
+
+                //操作人支付宝user_id
+                String openId = userInfoService.getSimpleWxAccount().getOpenId();
+                if(null != openId){
+                    requestParam.setAlipayUserId(openId);
+                } else {
+                    return getDrugEnterpriseResult(result, "操作人支付宝user_id不能为空");
+                }
+
+                //获取患者信息
+                PatientDTO patient = patientService.get(dbRecipe.getMpiid());
+
+                if (!ObjectUtils.isEmpty(patient)) {
+                    int patientAge = patient.getBirthday() == null ? 0 : DateConversion
+                            .getAge(patient.getBirthday());
+                    requestParam.setPatientId(dbRecipe.getMpiid());
+                    if(null != patient.getPatientName()){
+                        requestParam.setPatientName(patient.getPatientName());
+                    } else {
+                        return getDrugEnterpriseResult(result, "患者姓名不能为空");
+                    }
+
+                    requestParam.setAge(patientAge+"");
+                    if(null != patient.getPatientSex()){
+                        try {
+                            requestParam.setSex(DictionaryController.instance().get("eh.base.dictionary.Gender").getText(patient.getPatientSex()));
+                        } catch (Exception e) {
+                            return getDrugEnterpriseResult(result, "获取患者性别异常");
+                        }
+                    } else {
+                        return getDrugEnterpriseResult(result, "患者性别不能为空");
+                    }
+                    requestParam.setAddress(patient.getAddress());
+
+//                  requestParam.setIdNumber(patient.getIdcard());
+                } else {
+                    return getDrugEnterpriseResult(result, "患者不存在");
+                }
+                //获取处方信息
+                requestParam.setVisitId(dbRecipe.getClinicId() + "");
+
+                //获取医生信息
+                DoctorDTO doctor = doctorService.get(dbRecipe.getDoctor());
+                if (!ObjectUtils.isEmpty(doctor)) {
+                    requestParam.setDoctorId(doctor.getDoctorId() + "");
+                    if(null != patient.getPatientName()){
+                        requestParam.setDoctorName(doctor.getName());
+                    } else {
+                        return getDrugEnterpriseResult(result, "就诊医生姓名不能为空");
+                    }
+                    //科室信息
+                    EmploymentDTO employment = employmentService.getPrimaryEmpByDoctorId(dbRecipe.getDoctor());
+                    if (!ObjectUtils.isEmpty(employment)) {
+                        Integer departmentId = employment.getDepartment();
+                        DepartmentDTO departmentDTO = departmentService.get(departmentId);
+                        if (!ObjectUtils.isEmpty(departmentDTO)) {
+                            requestParam.setDetpId(departmentDTO.getDeptId() + "");
+                            requestParam.setDeptName(StringUtils.isEmpty(departmentDTO.getName())?"全科":departmentDTO.getName());
+                        } else {
+                            return getDrugEnterpriseResult(result, "医生主执业点不存在");
+                        }
+                    } else {
+                        return getDrugEnterpriseResult(result, "医生主执业点不存在");
+                    }
+                } else {
+                    return getDrugEnterpriseResult(result, "医生不存在");
+                }
+
+                //DiagnosticParam 患者主诉
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(dbRecipe.getRecipeId());
+                if(null != recipeExtend){
+                    requestParam.setMainTell(recipeExtend.getMainDieaseDescribe());   //患者主诉
+                    requestParam.setProblemNow(recipeExtend.getHistoryOfPresentIllness());   //现病史
+                    requestParam.setBodyCheck(recipeExtend.getPhysicalCheck());   //一般检查
+                }
+                requestParam.setDoctorAdvice(dbRecipe.getMemo());               //医生嘱言
+
+                //封装诊断信息
+                if(null != dbRecipe.getOrganDiseaseId() && null != dbRecipe.getOrganDiseaseId()){
+                    List<AlibabaAlihealthOutflowPrescriptionCreateRequest.Diagnose> diagnose = new ArrayList<>();
+                    String [] diseaseIds = dbRecipe.getOrganDiseaseId().split(",");
+                    String [] diseaseNames = dbRecipe.getOrganDiseaseName().split(",");
+                    for (int i = 0; i < diseaseIds.length; i++) {
+                        AlibabaAlihealthOutflowPrescriptionCreateRequest.Diagnose disease = new AlibabaAlihealthOutflowPrescriptionCreateRequest.Diagnose ();
+                        disease.setIcdCode(diseaseIds[i]);
+                        disease.setIcdName(diseaseNames[i]);
+                        diagnose.add(disease);
+                    }
+                    requestParam.setDiagnoses(diagnose);
+                } else {
+                    return getDrugEnterpriseResult(result, "诊断信息不能为空");
+                }
+
+                //药品详情
+                RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+                List<Recipedetail> detailList = detailDAO.findByRecipeId(dbRecipe.getRecipeId());
+                List<AlibabaAlihealthOutflowPrescriptionCreateRequest.Drugs> drugParams = new ArrayList<>();
+                if (!ObjectUtils.isEmpty(detailList)) {
+                    SaleDrugListDAO saleDrugDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+                    for (int i = 0; i < detailList.size(); i++) {
+                        //一张处方单可能包含相同的药品
+                        SaleDrugList saleDrugList = saleDrugDAO.getByDrugIdAndOrganId(detailList.get(i).getDrugId(), depId);
+                        if (ObjectUtils.isEmpty(saleDrugList)) {
+                            return getDrugEnterpriseResult(result, "未找到对应的saleDrugList");
+                        }
+                        AlibabaAlihealthOutflowPrescriptionCreateRequest.Drugs drugParam = new AlibabaAlihealthOutflowPrescriptionCreateRequest.Drugs();
+
+                        drugParam.setSpec(saleDrugList.getDrugSpec());        //药品规格
+                        drugParam.setTotal(detailList.get(i).getUseTotalDose() + "");    //药品数量
+                        drugParam.setDrugId(saleDrugList.getOrganDrugCode());
+                        drugParam.setDrugName(saleDrugList.getSaleName());    //商品名称
+                        drugParam.setDay(detailList.get(i).getUseDays() + "");    //天数
+                        drugParam.setNote(detailList.get(i).getMemo());    //说明
+                        drugParam.setDose(detailList.get(i).getUseDose() + "");    //用量
+                        drugParam.setDrugCommonName(saleDrugList.getDrugName());  //药品通用名
+                        drugParam.setDoseUnit(detailList.get(i).getUseDoseUnit());      //用量单位
+                        drugParam.setTotalUnit(detailList.get(i).getDrugUnit());      //开具单位(盒)
+                        drugParam.setPrice(detailList.get(i).getSalePrice() + "");      //单价
+                        drugParam.setSpuid(saleDrugList.getOrganDrugCode());
+                        try {
+                            //频次
+                            drugParam.setFrequency(DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detailList.get(i).getUsingRate()));
+                            //用法
+                            drugParam.setDoseUsage(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detailList.get(i).getUsePathways()));
+                        } catch (ControllerException e) {
+                            return getDrugEnterpriseResult(result, "药物使用频率使用途径获取失败");
+                        }
+
+                        drugParams.add(drugParam);
+                    }
+                    requestParam.setDrugs(drugParams);
+                }
+
+                //获取处方信息
+                //处方编号
+                if(null != dbRecipe.getRecipeCode()){
+                    requestParam.setRxNo(dbRecipe.getRecipeCode());
+                } else {
+                    return getDrugEnterpriseResult(result, "处方编号不能为空");
+                }
+                //处方类型
+                requestParam.setRxType(dbRecipe.getRecipeType() + "");
+
+                String organizeCode = organService.getOrganizeCodeByOrganId(dbRecipe.getClinicOrgan());
+                requestParam.setChannelCode(organizeCode);
+                Map<String, String> attributes = new HashMap<String, String>();
+                attributes.put("prescriptionCreateTime", dbRecipe.getSignDate().toString());
+
+                Date ExpiredTime = DateConversion.getDateAftXDays(dbRecipe.getSignDate(), 3);
+                attributes.put("prescriptionExpiredTime", dbRecipe.getSignDate() + "");
+                attributes.put("prescriptionExpiredTime", ExpiredTime + "");
+                String attributesJson = JSONUtils.toString(attributes);
+                requestParam.setAttributes(attributesJson);
+
+//              requestParam.setVisitTime(dbRecipe.getSignDate());
+
+                LOGGER.info("requestParam 处方信息:{}.", getJsonLog(requestParam));
+                request.setCreateRequest(requestParam);
+
+                try{
+                    TaobaoClient client = new DefaultTaobaoClient(this.taobaoConf.getUrl(), this.taobaoConf.getAppkey(), this.taobaoConf.getSecret());
+                    AlibabaAlihealthOutflowPrescriptionCreateResponse rsp = client.execute(request);
+                    LOGGER.info("上传处方，{}", getJsonLog(rsp));
+
+                    if (StringUtils.isEmpty(rsp.getServiceResult().getErrCode())) {
+                        //说明成功,更新处方标志
+                        recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("pushFlag", 1));
+                    } else {
+                        return getDrugEnterpriseResult(result, rsp.getServiceResult().getErrMessage());
+                    }
+                }catch (Exception e){
+                    LOGGER.info("推送处方失败{}", dbRecipe.getRecipeId(), e);
+                    return getDrugEnterpriseResult(result, e.getMessage());
+                }
+            }
+        }
+
+        return result;
+    }
+
+    @Override
+    public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
+        return DrugEnterpriseResult.getSuccess();
+    }
+
+    @Override
+    public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
+        return DrugEnterpriseResult.getSuccess();
+    }
+
+    @Override
+    public DrugEnterpriseResult pushCheckResult(Integer recipeId, Integer checkFlag, DrugsEnterprise enterprise) {
+        return DrugEnterpriseResult.getSuccess();
+    }
+
+    @Override
+    public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise) {
+        return null;
+    }
+
+    @Override
+    public String getDrugEnterpriseCallSys() {
+        return DrugEnterpriseConstant.COMPANY_ALDYF;
+    }
+
+    /*
+     * @description 推送药企处方状态，由于只是个别药企需要实现，故有默认实现
+     * @author gmw
+     * @date 2019/9/18
+     * @param rxId  recipeCode
+     * @param status  status
+     * @return recipe.bean.DrugEnterpriseResult
+     */
+    @RpcService
+    @Override
+    public DrugEnterpriseResult updatePrescriptionStatus(String rxId, int status) {
+        LOGGER.info("更新处方状态");
+        DrugEnterpriseResult drugEnterpriseResult = new DrugEnterpriseResult(DrugEnterpriseResult.SUCCESS);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe dbRecipe = recipeDAO.getByRecipeCode(rxId);
+        if (ObjectUtils.isEmpty(dbRecipe)) {
+            LOGGER.info("处方不存在{}.", rxId);
+            return getDrugEnterpriseResult(drugEnterpriseResult, "处方不存在");
+        }
+
+        //调用扁鹊接口改变处方状态
+        AlibabaAlihealthOutflowPrescriptionSyncstatusRequest request = new AlibabaAlihealthOutflowPrescriptionSyncstatusRequest();
+        AlibabaAlihealthOutflowPrescriptionSyncstatusRequest.SyncPrescriptionStatusRequest requestParam =
+            new AlibabaAlihealthOutflowPrescriptionSyncstatusRequest.SyncPrescriptionStatusRequest ();
+        requestParam.setRxNo(rxId);
+        requestParam.setStatus(status+"");
+        request.setSyncStatusRequest(requestParam);
+        try {
+            TaobaoClient client = new DefaultTaobaoClient(this.taobaoConf.getUrl(), this.taobaoConf.getAppkey(), this.taobaoConf.getSecret());
+            AlibabaAlihealthOutflowPrescriptionSyncstatusResponse rsp = client.execute(request);
+
+            LOGGER.info("更新处方状态，{}", getJsonLog(rsp.getServiceResult()));
+            if (StringUtils.isEmpty(rsp.getServiceResult().getErrCode())) {
+                //说明成功
+                drugEnterpriseResult.setObject(rsp.getServiceResult().getData());
+                drugEnterpriseResult.setCode(DrugEnterpriseResult.SUCCESS);
+            } else {
+                String errorMsg = rsp.getServiceResult().getErrMessage();
+                if ("53".equals(rsp.getServiceResult().getErrCode())) {
+                    errorMsg = EXPIRE_TIP;
+                }
+                drugEnterpriseResult.setMsg(errorMsg);
+                drugEnterpriseResult.setCode(DrugEnterpriseResult.FAIL);
+            }
+        } catch (ApiException e) {
+            e.printStackTrace();
+        }
+
+        return drugEnterpriseResult;
+    }
+
+    /*
+     * @description 淘宝处方状态变更
+     * @author gmw
+     * @date 2019/9/19
+     * @param [request]
+     * @return java.lang.String
+     */
+    @RpcService
+    public String changeState(HttpServletRequest request) {
+        CheckResult result = null;
+//        try {
+//            result = SpiUtils.checkSign(request, this.taobaoConf.getSecret());
+//        } catch (IOException e) {
+//            return "{\"result\":{\"errorMessage\":\"Illegal request\",\"errorCode\":\"sign-check-failure\","
+//                + "\"success\":\"false\"}}";
+//        }
+//        if (!result.isSuccess()) {
+//            return "{\"result\":{\"errorMessage\":\"Illegal request\",\"errorCode\":\"sign-check-failure\","
+//                + "\"success\":\"false\"}}";
+//        }
+        String requestParam = result.getRequestBody();
+        //获取入参
+        AlibabaAlihealthPrescriptionStatusSyncRequest aRequest = JSON.parseObject(
+            requestParam, AlibabaAlihealthPrescriptionStatusSyncRequest.class);
+
+        //业务逻辑
+        StandardStateDTO state = new StandardStateDTO ();
+        state.setRecipeCode(aRequest.getRxNo());
+        state.setOrganId(aRequest.getHospitalId());
+        state.setStatus(RecipeStatusEnum.getKey(aRequest.getStatus()));
+        StandardResultDTO resulta = new StandardEnterpriseCallService ().changeState(Collections.singletonList(state));
+        //出参对象
+        AlibabaAlihealthPrescriptionStatusSyncResponse response = new AlibabaAlihealthPrescriptionStatusSyncResponse();
+        AlibabaAlihealthPrescriptionStatusSyncResponse.ResultDo resultDo = new AlibabaAlihealthPrescriptionStatusSyncResponse.ResultDo();
+
+        if(StandardResultDTO.SUCCESS == resulta.getCode()){
+            resultDo.setSuccess(true);
+        } else {
+            resultDo.setSuccess(false);
+            resultDo.setErrorMessage(resulta.getMsg());
+            resultDo.setErrorCode(resulta.getCode());
+        }
+        return JSON.toJSONString(response);
+    }
+
+//    /**
+//     *
+//     * @param rxId  处⽅Id
+//     * @param queryOrder  是否查询订单
+//     * @return 处方单
+//     */
+//    @Override
+//    public DrugEnterpriseResult queryPrescription(String rxId, Boolean queryOrder) {
+//        PatientService patientService = BasicAPI.getService(PatientService.class);
+//        OrganService organService = BasicAPI.getService(OrganService.class);
+//        DrugEnterpriseResult drugEnterpriseResult = new DrugEnterpriseResult(DrugEnterpriseResult.SUCCESS);
+//        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+//        Recipe dbRecipe = recipeDAO.getByRecipeCode(rxId);
+//        if (ObjectUtils.isEmpty(dbRecipe)) {
+//            return getDrugEnterpriseResult(drugEnterpriseResult, "处方不存在");
+//        }
+//        String outHospitalId = organService.getOrganizeCodeByOrganId(dbRecipe.getClinicOrgan());
+//        if (StringUtils.isEmpty(outHospitalId)) {
+//            return getDrugEnterpriseResult(drugEnterpriseResult, "医院的外部编码不能为空");
+//        }
+//        String loginId = patientService.getLoginIdByMpiId(dbRecipe.getRequestMpiId());
+//        String accessToken = aldyfRedisService.getTaobaoAccessToken(loginId);
+//        if (ObjectUtils.isEmpty(accessToken)) {
+//            return getDrugEnterpriseResult(drugEnterpriseResult, EXPIRE_TIP);
+//        }
+//        LOGGER.info("获取到accessToken:{}, loginId:{},{},{}", accessToken, loginId, rxId, outHospitalId);
+//        alihealthHospitalService.setTopSessionKey(accessToken);
+//        AlibabaAlihealthRxPrescriptionGetRequest prescriptionGetRequest = new AlibabaAlihealthRxPrescriptionGetRequest();
+//        prescriptionGetRequest.setRxId(rxId);
+//        prescriptionGetRequest.setOutHospitalId(outHospitalId);
+//        BaseResult<AlibabaAlihealthRxPrescriptionGetResponse> responseBaseResult = alihealthHospitalService.queryPrescription(prescriptionGetRequest);
+//        LOGGER.info("查询处方，{}", getJsonLog(responseBaseResult));
+//        getAldyfResult(drugEnterpriseResult, responseBaseResult);
+//        return drugEnterpriseResult;
+//    }
+
+    /**
+     * 返回调用信息
+     * @param result DrugEnterpriseResult
+     * @param msg     提示信息
+     * @return DrugEnterpriseResult
+     */
+    private DrugEnterpriseResult getDrugEnterpriseResult(DrugEnterpriseResult result, String msg) {
+        result.setMsg(msg);
+        result.setCode(DrugEnterpriseResult.FAIL);
+        LOGGER.info("AldyfRemoteService-getDrugEnterpriseResult提示信息：{}.", msg);
+        return result;
+    }
+
+    private Integer getClinicOrganByOrganId(String organId, String clinicOrgan) throws Exception {
+        Integer co = null;
+        if (StringUtils.isEmpty(clinicOrgan)) {
+            IOrganService organService = BaseAPI.getService(IOrganService.class);
+
+            List<OrganBean> organList = organService.findByOrganizeCode(organId);
+            if (CollectionUtils.isNotEmpty(organList)) {
+                co = organList.get(0).getOrganId();
+            }
+        } else {
+            co = Integer.parseInt(clinicOrgan);
+        }
+        return co;
+    }
+
+    private static String getJsonLog(Object object) {
+        return JSONUtils.toString(object);
+    }
+}
