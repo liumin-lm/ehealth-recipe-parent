@@ -194,6 +194,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "购药方式")
     private Integer giveMode;
 
+    @ItemProperty(alias = "药企名称")
+    private String enterpriseName;
+
     @Column(name = "cancelReason")
     public String getCancelReason() {
         return cancelReason;
@@ -712,5 +715,14 @@ public class RecipeOrder implements Serializable {
 
     public void setGiveMode(Integer giveMode) {
         this.giveMode = giveMode;
+    }
+
+    @Transient
+    public String getEnterpriseName() {
+        return enterpriseName;
+    }
+
+    public void setEnterpriseName(String enterpriseName) {
+        this.enterpriseName = enterpriseName;
     }
 }

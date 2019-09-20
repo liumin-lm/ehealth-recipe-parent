@@ -184,6 +184,9 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "购药方式")
     private Integer giveMode;
 
+    @ItemProperty(alias = "药企名称")
+    private String enterpriseName;
+
 
     public RecipeOrderBean() {
         initData();
@@ -628,5 +631,13 @@ public class RecipeOrderBean implements Serializable {
 
     public void setGiveMode(Integer giveMode) {
         this.giveMode = giveMode;
+    }
+
+    public String getEnterpriseName() {
+        return enterpriseName;
+    }
+
+    public void setEnterpriseName(String enterpriseName) {
+        this.enterpriseName = enterpriseName;
     }
 }
