@@ -256,7 +256,13 @@ public class RecipeOrderService extends RecipeBaseService {
         } else if (RecipeBussConstant.PAYMODE_COMPLEX.equals(payMode)) {
             payModeSupport.setSupportComplex(true);
             order.setEffective(0);
-        } else {
+        } else if (RecipeBussConstant.PAYMODE_DOWNLOAD_RECIPE.equals(payMode)) {
+            payModeSupport.setSupportDownload(true);
+            order.setEffective(0);
+        } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(payMode)){
+            payModeSupport.setSupportToHos(true);
+            order.setEffective(0);
+        }else {
             payModeSupport.setSupportOnlinePay(true);
             order.setEffective(1);
         }
@@ -473,7 +479,7 @@ public class RecipeOrderService extends RecipeBaseService {
         order.setCopyNum(totalCopyNum);
         order.setDecoctionFee(otherFee);
         //药店取药不需要地址信息
-        if (payModeSupport.isSupportTFDS()) {
+        if (payModeSupport.isSupportTFDS() || payModeSupport.isSupportDownload() || payModeSupport.isSupportToHos()) {
             order.setAddressCanSend(true);
             order.setExpressFee(BigDecimal.ZERO);
         } else {
@@ -518,7 +524,6 @@ public class RecipeOrderService extends RecipeBaseService {
                 try {
                     Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
                     //校验地址是否可以配送
-                    if (payMode == 1 || payMode == 2 || payMode == 4) {
                         EnterpriseAddressService enterpriseAddressService = ApplicationUtils.getRecipeService(EnterpriseAddressService.class);
                         int flag = enterpriseAddressService.allAddressCanSendForOrder(order.getEnterpriseId(), address.getAddress1(), address.getAddress2(), address.getAddress3());
                         if (0 == flag) {
@@ -531,7 +536,6 @@ public class RecipeOrderService extends RecipeBaseService {
                                 result.setMsg("该地址无法配送");
                             }
                         }
-                    }
                 } catch (Exception e) {
                     result.setCode(RecipeResultBean.FAIL);
                     result.setMsg(e.getMessage());
