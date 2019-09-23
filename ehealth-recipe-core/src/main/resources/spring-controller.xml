@@ -5,7 +5,7 @@
        			http://www.ngarihealth.com/schema/ssdev http://www.ngarihealth.com/schema/ssdev/ssdev.xsd">
 
     <!-- service register center -->
-    <ssdev:applicationDomain name="eh" registryAddress="${zk}" serverId="recipe"/>
+    <ssdev:applicationDomain name="eh" registryAddress="localhost://127.0.0.1:2181" serverId="recipe"/>
     <ssdev:connector url="${url}">
         <ssdev:filter id="json"/>
         <ssdev:filter id="urt"/>

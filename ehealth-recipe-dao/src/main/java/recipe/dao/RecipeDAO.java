@@ -197,6 +197,14 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     @DAOMethod(sql = "update Recipe set orderCode=null where orderCode=:orderCode")
     public abstract void updateOrderCodeToNullByOrderCode(@DAOParam("orderCode") String orderCode);
 
+    /**
+     * 根据订单编号更新订单编号为空
+     *
+     * @param orderCode
+     */
+    @DAOMethod(sql = "update Recipe set orderCode=null ,chooseFlag=0  where orderCode=:orderCode")
+    public abstract void updateOrderCodeToNullByOrderCodeAndClearChoose(@DAOParam("orderCode") String orderCode);
+
     public List<Integer> findDoctorIdSortByCount(final String startDt, final String endDt,
                                                  final List<Integer> organs, final List<Integer> testDocIds,
                                                  final int start, final int limit) {

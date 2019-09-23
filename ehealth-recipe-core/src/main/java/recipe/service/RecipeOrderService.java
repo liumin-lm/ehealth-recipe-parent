@@ -978,7 +978,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     //订单手动取消，处方单可以进行重新支付
                     //更新处方的orderCode
                     RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-                    recipeDAO.updateOrderCodeToNullByOrderCode(order.getOrderCode());
+                    recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode());
                 }
             }
         }

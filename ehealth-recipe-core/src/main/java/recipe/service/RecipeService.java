@@ -2143,4 +2143,30 @@ public class RecipeService extends RecipeBaseService{
         LOGGER.info("getHosRecipeListInfoByMpiId  response={}", JSONUtils.toString(response));
         return response;
     }*/
+
+    @RpcService
+    public RecipeResultBean getPageDetailed(int recipeId) {
+        RecipeResultBean result = RecipeResultBean.getSuccess();
+        Recipe nowRecipe = DAOFactory.getDAO(RecipeDAO.class).get(recipeId);
+        if(null == nowRecipe){
+            LOGGER.info("getPageDetailed: [recipeId:" + recipeId + "] 对应的处方信息不存在！");
+            result.setCode(RecipeResultBean.FAIL);
+            result.setError("处方单id对应的处方为空");
+            return result;
+        }
+        Map<String, String> ext = new HashMap<>();
+        if(null == nowRecipe.getOrderCode()){
+            Map<String, Object> recipeMap = getPatientRecipeById(recipeId);
+            result.setObject(recipeMap);
+            ext.put("jumpType", "0");
+            result.setExt(ext);
+        }else{
+            RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+            RecipeResultBean orderDetail = orderService.getOrderDetail(nowRecipe.getOrderCode());
+            result.setObject(orderDetail);
+            ext.put("jumpType", "1");
+            result.setExt(ext);
+        }
+        return result;
+    }
 }

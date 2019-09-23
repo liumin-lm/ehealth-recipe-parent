@@ -13,11 +13,11 @@ public enum RecipePayTipEnum {
     /**
      * 配送到家货到付款，审核费用不为0
      */
-    Send_To_Home_Below_Need_CheckFee("ngarihealth", 1, 2, false, "", "(需先支付药师审核费：<em>¥1.00</em>，其余费用货到支付)"),
+    Send_To_Home_Below_Need_CheckFee("ngarihealth", 1, 2, false, "", "(需先支付药师审核费：<em>¥</em>，其余费用货到支付)"),
     /**
      * 到院取药，不需要审方/审方金额为0
      */
-    To_Hos_No_CheckFee("ngarihealth", 2, 3, true, "提交订单后，药品费用需到医院进行支付。", "（费用请到药店支付）"),
+    To_Hos_No_CheckFee("ngarihealth", 2, 3, true, "提交订单后，药品费用需到医院进行支付。", "（费用请到医院支付）"),
     /**
      * 到院取药，审核费用不为0
      */
@@ -25,11 +25,11 @@ public enum RecipePayTipEnum {
     /**
      * 药店取药，不需要审方/审方金额为0
      */
-    TFDS_No_CheckFee("ngarihealth", 3, 4, true, "提交订单后，药品费用需到医院进行支付。", "（费用请到药店支付）"),
+    TFDS_No_CheckFee("ngarihealth", 3, 4, true, "提交订单后，药品费用需到药店进行支付。", "（费用请到药店支付）"),
     /**
      * 药店取药，审核费用不为0
      */
-    TFDS_Need_CheckFee("ngarihealth", 3, 4, false, "提交订单后，药品费用需到医院进行支付。", "（需先支付药师审核费：<em>¥</em>，其余到医院支付）"),
+    TFDS_Need_CheckFee("ngarihealth", 3, 4, false, "提交订单后，药品费用需到药店进行支付。", "（需先支付药师审核费：<em>¥</em>，其余到药店支付）"),
     /**
      * 下载处方，不需要审方/审方金额为0
      */
