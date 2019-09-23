@@ -2145,7 +2145,7 @@ public class RecipeService extends RecipeBaseService{
     }*/
 
     @RpcService
-    public RecipeResultBean getPageDetailed(int recipeId) {
+    public RecipeResultBean getPageDetail(int recipeId) {
         RecipeResultBean result = RecipeResultBean.getSuccess();
         Recipe nowRecipe = DAOFactory.getDAO(RecipeDAO.class).get(recipeId);
         if(null == nowRecipe){
@@ -2163,9 +2163,15 @@ public class RecipeService extends RecipeBaseService{
         }else{
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
             RecipeResultBean orderDetail = orderService.getOrderDetail(nowRecipe.getOrderCode());
-            result.setObject(orderDetail);
-            ext.put("jumpType", "1");
-            result.setExt(ext);
+            result = orderDetail;
+            Map<String, String> nowExt = result.getExt();
+            if(null == nowExt){
+                ext.put("jumpType", "1");
+                result.setExt(ext);
+            }else{
+                nowExt.put("jumpType", "1");
+                result.setExt(nowExt);
+            }
         }
         return result;
     }
