@@ -202,7 +202,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      *
      * @param orderCode
      */
-    @DAOMethod(sql = "update Recipe set orderCode=null ,chooseFlag=0  where orderCode=:orderCode")
+    @DAOMethod(sql = "update Recipe set orderCode=null ,chooseFlag=0, status = 2  where orderCode=:orderCode")
     public abstract void updateOrderCodeToNullByOrderCodeAndClearChoose(@DAOParam("orderCode") String orderCode);
 
     public List<Integer> findDoctorIdSortByCount(final String startDt, final String endDt,
