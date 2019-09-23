@@ -1704,4 +1704,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateSessionTemplate.instance().executeReadOnly(action);
         return action.getResult();
     }
+
+    @DAOMethod(sql = "select distinct doctorId from Recipe",limit = 0)
+    public abstract List<Integer> findDoctorIdByHistoryRecipe();
 }
