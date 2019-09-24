@@ -515,13 +515,34 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             resultDo.setSuccess(false);
             resultDo.setErrorMessage("未能获取处方信息");
             resultDo.setErrorCode("500");
+            response.setResult(resultDo);
+            return JSON.toJSONString(response);
         }
 
-        state.setStatus(RecipeStatusEnum.getKey(aRequest.getStatus()));
+        if(null != aRequest.getHospitalId()){
+            state.setStatus(RecipeStatusEnum.getKey(aRequest.getStatus()));
+        } else {
+            resultDo.setSuccess(false);
+            resultDo.setErrorMessage("处方状态不能为空");
+            resultDo.setErrorCode("500");
+            response.setResult(resultDo);
+            return JSON.toJSONString(response);
+        }
+
+        if(null != aRequest.getHospitalId()){
+            state.setOrganId(aRequest.getHospitalId());
+        } else {
+            resultDo.setSuccess(false);
+            resultDo.setErrorMessage("医院的外部编码不能为空");
+            resultDo.setErrorCode("500");
+            response.setResult(resultDo);
+            return JSON.toJSONString(response);
+        }
+
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         state.setDate(simpleDateFormat.format(new Date()));
         state.setAccount("tmdyf");
-        state.setOrganId(aRequest.getHospitalId());
+
         StandardEnterpriseCallService distributionService = getBean("distributionService", StandardEnterpriseCallService.class);
         StandardResultDTO resulta = distributionService.changeState(Collections.singletonList(state));
 
@@ -532,6 +553,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             resultDo.setErrorMessage(resulta.getMsg());
             resultDo.setErrorCode("500");
         }
+        response.setResult(resultDo);
         return JSON.toJSONString(response);
     }
 
