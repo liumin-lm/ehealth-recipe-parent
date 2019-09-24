@@ -16,7 +16,7 @@ public enum RecipeStatusEnum {
     //已过期
     EXPIRED("20", "EXPIRED"),
     //已退回
-    RETURNED("6", "RETURNED");
+    RETURNED("23", "RETURNED");
 
     private String key;
     private String value;

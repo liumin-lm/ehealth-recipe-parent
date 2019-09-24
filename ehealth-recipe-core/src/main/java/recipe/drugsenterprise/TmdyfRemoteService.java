@@ -66,6 +66,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static ctd.util.AppContextHolder.getBean;
+
 /**
  * @description 天猫大药房对接服务
  * @author gmw
@@ -79,19 +81,10 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
     private static final String EXPIRE_TIP = "请重新授权";
 
     @Autowired
-    private AlihealthHospitalService alihealthHospitalService;
-
-    @Autowired
     private RecipeExtendDAO recipeExtendDAO;
 
     @Autowired
-    private RecipeDAO recipeDAO;
-
-    @Autowired
     private TaobaoConf taobaoConf;
-//
-//    @Autowired
-//    StandardEnterpriseCallService standardEnterpriseCallService;
 
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
@@ -496,23 +489,12 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
      * @description 淘宝处方状态变更
      * @author gmw
      * @date 2019/9/19
-     * @param [request]
+     * @param requestParam
      * @return java.lang.String
      */
     @RpcService
-    public String changeState(HttpServletRequest request) {
-        CheckResult result = null;
-        try {
-            result = SpiUtils.checkSign(request, this.taobaoConf.getSecret());
-        } catch (IOException e) {
-            return "{\"result\":{\"errorMessage\":\"Illegal request\",\"errorCode\":\"sign-check-failure\","
-                + "\"success\":\"false\"}}";
-        }
-        if (!result.isSuccess()) {
-            return "{\"result\":{\"errorMessage\":\"Illegal request\",\"errorCode\":\"sign-check-failure\","
-                + "\"success\":\"false\"}}";
-        }
-        String requestParam = result.getRequestBody();
+    public String changeState(String requestParam) {
+
         //获取入参
         AlibabaAlihealthPrescriptionStatusSyncRequest aRequest = JSON.parseObject(
             requestParam, AlibabaAlihealthPrescriptionStatusSyncRequest.class);
@@ -529,7 +511,6 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         if(null != recipeIds && recipeIds.size() != 0){
             recipe = recipeDAO.getByRecipeId(recipeIds.get(0));
             state.setRecipeCode(recipe.getRecipeCode());
-            state.setOrganId(aRequest.getHospitalId());
         } else {
             resultDo.setSuccess(false);
             resultDo.setErrorMessage("未能获取处方信息");
@@ -537,7 +518,12 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         }
 
         state.setStatus(RecipeStatusEnum.getKey(aRequest.getStatus()));
-        StandardResultDTO resulta = new StandardEnterpriseCallService().changeState(Collections.singletonList(state));
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        state.setDate(simpleDateFormat.format(new Date()));
+        state.setAccount("tmdyf");
+        state.setOrganId(aRequest.getHospitalId());
+        StandardEnterpriseCallService distributionService = getBean("distributionService", StandardEnterpriseCallService.class);
+        StandardResultDTO resulta = distributionService.changeState(Collections.singletonList(state));
 
         if(StandardResultDTO.SUCCESS == resulta.getCode()){
             resultDo.setSuccess(true);
@@ -594,7 +580,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
     private DrugEnterpriseResult getDrugEnterpriseResult(DrugEnterpriseResult result, String msg) {
         result.setMsg(msg);
         result.setCode(DrugEnterpriseResult.FAIL);
-        LOGGER.info("AldyfRemoteService-getDrugEnterpriseResult提示信息：{}.", msg);
+        LOGGER.info("TmdyfRemoteService-getDrugEnterpriseResult提示信息：{}.", msg);
         return result;
     }
 
