@@ -306,7 +306,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
                 Integer depId = recipeService.supportDistributionExt(recipe.getRecipeId(), recipe.getClinicOrgan(),
                         order.getEnterpriseId(), payMode);
-                if (null == depId && ( payMode == 1 || payMode == 2 || payMode == 4) ) {
+                if (null == depId && ( payModeSupport.isSupportOnlinePay() || payModeSupport.isSupportCOD()|| payModeSupport.isSupportTFDS()) ) {
                     LOGGER.error("处方id=" + recipe.getRecipeId() + "无法配送。");
                     result.setError("很抱歉，当前库存不足无法结算，请联系客服：" +
                             cacheService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
@@ -566,7 +566,7 @@ public class RecipeOrderService extends RecipeBaseService {
             }
         } else {
             Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
-            if (payMode == 6) {
+            if (payMode == RecipeBussConstant.PAYMODE_DOWNLOAD_RECIPE) {
                 //此时的实际费用是不包含药品费用的
                 order.setActualPrice(order.getTotalFee().subtract(order.getRecipeFee()).doubleValue());
             } else {
