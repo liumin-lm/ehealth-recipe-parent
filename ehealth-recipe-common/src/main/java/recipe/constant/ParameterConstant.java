@@ -63,7 +63,7 @@ public class ParameterConstant {
 
 
     /**
-     * 阿里下单跳转地址
+     * 淘宝下单跳转地址
      */
     public static final String KEY_ALI_O2O_ADDR = "ALI_O2O_ADDR";
 

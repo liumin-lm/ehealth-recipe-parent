@@ -11,6 +11,10 @@ import java.util.List;
  * @version： 1.0
  */
 public class PurchaseResponse extends CommonResponse {
+    /**
+     * 校验异常
+     */
+    public static final String CHECKWARN = "001";
 
     /**
      * 需要鉴权
