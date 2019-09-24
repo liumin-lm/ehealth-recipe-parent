@@ -136,32 +136,16 @@ public class DrugDistributionService {
             return response;
         }
 
-        String loginId = UserRoleToken.getCurrent().getUserId();
-        //未授权且发起方式为 到院取药 之外的方式需要进行授权操作
-        if (!authorization(loginId) && !RecipeBussConstant.GIVEMODE_TO_HOS.equals(request.getType())) {
-            response.setCode(PurchaseResponse.AUTHORIZATION);
-            response.setMsg("用户需要鉴权");
-            try {
-                ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
-                IWXServiceInterface wxService = ApplicationUtils.getService(IWXServiceInterface.class, "wxService");
-
-                //配置回调地址
-                String param = iSysParamterService.getParam(ParameterConstant.KEY_TAOBAO_AUTHORIZATION_ADDR, null);
-                response.setAuthUrl(MessageFormat.format(param, taobaoConf.getAppkey(),
-                        wxService.urlJoin()+"/taobao/callBack_code", loginId+"$"+request.getRecipeId()+"$"+request.getAppId()));
-            } catch (Exception e) {
-                LOGGER.warn("purchase 组装授权页出错. loginId={}", loginId, e);
-                response.setCode(CommonConstant.FAIL);
-                response.setMsg("跳转授权页面失败");
-            }
-            return response;
-        }
-        //        OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-        //        List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
-        //        DrugsEnterprise drugsEnterprise = drugsEnterprises.get(0);
         //根据药企ID获取药企信息
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(request.getDepId());
+        DrugsEnterprise drugsEnterprise = null;
+        if(null == request.getDepId()){
+            OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+            List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
+            drugsEnterprise = drugsEnterprises.get(0);
+        } else {
+            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+            drugsEnterprise = drugsEnterpriseDAO.get(request.getDepId());
+        }
 
         if (null == drugsEnterprise) {
             LOGGER.warn("purchase aldyf 药企不存在");
@@ -169,8 +153,31 @@ public class DrugDistributionService {
             return response;
         }
 
+
+        String loginId = UserRoleToken.getCurrent().getUserId();
+
         if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(request.getType()) ||
             RecipeBussConstant.GIVEMODE_TFDS.equals(request.getType())) {
+
+            //未授权且发起方式为 到院取药 之外的方式需要进行授权操作(天猫大药房除外)
+            if (!"tmdyf".equals(drugsEnterprise.getAccount()) && !authorization(loginId)) {
+                response.setCode(PurchaseResponse.AUTHORIZATION);
+                response.setMsg("用户需要鉴权");
+                try {
+                    ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
+                    IWXServiceInterface wxService = ApplicationUtils.getService(IWXServiceInterface.class, "wxService");
+
+                    //配置回调地址
+                    String param = iSysParamterService.getParam(ParameterConstant.KEY_TAOBAO_AUTHORIZATION_ADDR, null);
+                    response.setAuthUrl(MessageFormat.format(param, taobaoConf.getAppkey(),
+                        wxService.urlJoin()+"/taobao/callBack_code", loginId+"$"+request.getRecipeId()+"$"+request.getAppId()));
+                } catch (Exception e) {
+                    LOGGER.warn("purchase 组装授权页出错. loginId={}", loginId, e);
+                    response.setCode(CommonConstant.FAIL);
+                    response.setMsg("跳转授权页面失败");
+                }
+                return response;
+            }
 
             if(RecipeBussConstant.GIVEMODE_TFDS.equals(request.getType())){
                 deliveryType = "2";
