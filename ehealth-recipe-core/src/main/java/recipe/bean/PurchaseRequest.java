@@ -26,7 +26,7 @@ public class PurchaseRequest implements Serializable {
     @Verify(desc = "应用ID")
     private String appId;
 
-    @Verify(desc = "药企ID")
+    @Verify(desc = "药企ID", isNotNull = false)
     private Integer depId;
 
     public Integer getRecipeId() {
