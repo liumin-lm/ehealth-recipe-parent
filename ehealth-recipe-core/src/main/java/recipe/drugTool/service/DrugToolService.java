@@ -148,10 +148,13 @@ public class DrugToolService implements IDrugToolService {
         String key = organId +operator;
 //        Double data = progressMap.get(key);
         Double data =  redisClient.get(key);
+        int i = 0;
         if (data != null){
             progress = data;
             if (progress >= 100){
 //                progressMap.remove(key);
+                //让当前线程等待5秒，来让前端能够跳转到导入成功页面
+                Thread.sleep(3000);
                 redisClient.sRemove(key);
             }
         }
