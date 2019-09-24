@@ -117,19 +117,24 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         OrganDTO organCode = organService.getByOrganId(recipe.getClinicOrgan());
         String cityCode = null;
         if(organCode.getAddrArea().length() >= 4){
-            cityCode = organCode.getAddrArea().substring(4) + "00";
+            cityCode = organCode.getAddrArea().substring(0,4) + "00";
         } else {
             cityCode = organCode.getAddrArea() + "00";
-            for(int i = organCode.getAddrArea().length(); i<6; i++){
+            for(int i = cityCode.length(); i<6; i++){
                 cityCode = cityCode + "0";
             }
         }
 
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        if(null == recipeExtend.getRxNo()){
+            LOGGER.warn("无法获取天猫对应处方编码");
+            response.setMsg("无法获取天猫对应处方编码");
+            return ;
+        }
         RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
         String url = cacheService.getRecipeParam(ParameterConstant.KEY_ALI_O2O_ADDR, null);
         if(url == null){
             LOGGER.warn("未获取O2O跳转url,请检查数据库配置");
-            response.setMsg(PurchaseResponse.CHECKWARN);
             response.setMsg("未获取O2O跳转url,请检查数据库配置");
             return ;
         }
@@ -137,10 +142,10 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             !RecipeStatusEnum.USING.getKey().equals(recipe.getStatus()) &&
             !RecipeStatusEnum.USING.getKey().equals(recipe.getStatus())){
             //配送到家URL
-            url = url + "?rxNo=" + recipe.getRecipeCode() +"&action=o2o&cityCode=" + cityCode;
+            url = url + "?rxNo=" + recipeExtend.getRxNo() +"&action=o2o&cityCode=" + cityCode;
         } else {
             //药店取药取药URL
-            url = url + "?rxNo=" + recipe.getRecipeCode() +"&action=offline&cityCode=" + cityCode;
+            url = url + "?rxNo=" + recipeExtend.getRxNo() +"&action=offline&cityCode=" + cityCode;
         }
         response.setOrderUrl(url);
         response.setCode(PurchaseResponse.ORDER);
@@ -495,6 +500,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
     @RpcService
     public String changeState(String requestParam) {
 
+        LOGGER.info("收到天猫更新处方请求，开始");
         //获取入参
         AlibabaAlihealthPrescriptionStatusSyncRequest aRequest = JSON.parseObject(
             requestParam, AlibabaAlihealthPrescriptionStatusSyncRequest.class);
@@ -553,6 +559,8 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             resultDo.setErrorMessage(resulta.getMsg());
             resultDo.setErrorCode("500");
         }
+
+        LOGGER.info("天猫更新处方请求执行结束");
         response.setResult(resultDo);
         return JSON.toJSONString(response);
     }
