@@ -105,14 +105,24 @@ public class RecipeStatusConstant {
     public static final int CHECKING_HOS = 16;
 
     /**
-     * 医院审核确认中
+     * 天猫可使用
      */
     public static final int EFFECTIVE = 21;
 
     /**
-     * 医院审核确认中
+     * 天猫使用中
      */
     public static final int USING = 22;
+
+    /**
+     * 天猫已过期
+     */
+    public static final int EXPIRED = 20;
+
+    /**
+     * 天猫已退回
+     */
+    public static final int RETURNED = 23;
 
     /**
      * 不存在的状态，用于微信发送,患者-未操作情况, 用于前一天提醒患者购药

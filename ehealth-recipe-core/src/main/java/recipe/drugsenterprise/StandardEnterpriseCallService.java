@@ -243,6 +243,8 @@ public class StandardEnterpriseCallService {
                 case RecipeStatusConstant.EFFECTIVE:
                 case RecipeStatusConstant.USING:
                 case RecipeStatusConstant.FINISH:
+                case RecipeStatusConstant.EXPIRED:
+                case RecipeStatusConstant.RETURNED:
                     Boolean rsTao = recipeDAO.updateRecipeInfoByRecipeId(recipeId,
                         status, recipeAttrMap);
                     if (!rsTao){

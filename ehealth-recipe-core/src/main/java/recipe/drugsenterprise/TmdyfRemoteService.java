@@ -66,6 +66,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static ctd.util.AppContextHolder.getBean;
+
 /**
  * @description 天猫大药房对接服务
  * @author gmw
@@ -496,23 +498,12 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
      * @description 淘宝处方状态变更
      * @author gmw
      * @date 2019/9/19
-     * @param [request]
+     * @param requestParam
      * @return java.lang.String
      */
     @RpcService
-    public String changeState(HttpServletRequest request) {
-        CheckResult result = null;
-        try {
-            result = SpiUtils.checkSign(request, this.taobaoConf.getSecret());
-        } catch (IOException e) {
-            return "{\"result\":{\"errorMessage\":\"Illegal request\",\"errorCode\":\"sign-check-failure\","
-                + "\"success\":\"false\"}}";
-        }
-        if (!result.isSuccess()) {
-            return "{\"result\":{\"errorMessage\":\"Illegal request\",\"errorCode\":\"sign-check-failure\","
-                + "\"success\":\"false\"}}";
-        }
-        String requestParam = result.getRequestBody();
+    public String changeState(String requestParam) {
+
         //获取入参
         AlibabaAlihealthPrescriptionStatusSyncRequest aRequest = JSON.parseObject(
             requestParam, AlibabaAlihealthPrescriptionStatusSyncRequest.class);
@@ -530,6 +521,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             recipe = recipeDAO.getByRecipeId(recipeIds.get(0));
             state.setRecipeCode(recipe.getRecipeCode());
             state.setOrganId(aRequest.getHospitalId());
+            state.setClinicOrgan(aRequest.getHospitalId());
         } else {
             resultDo.setSuccess(false);
             resultDo.setErrorMessage("未能获取处方信息");
@@ -537,7 +529,11 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         }
 
         state.setStatus(RecipeStatusEnum.getKey(aRequest.getStatus()));
-        StandardResultDTO resulta = new StandardEnterpriseCallService().changeState(Collections.singletonList(state));
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        state.setDate(simpleDateFormat.format(new Date()));
+        state.setAccount("tmdyf");
+        StandardEnterpriseCallService distributionService = getBean("distributionService", StandardEnterpriseCallService.class);
+        StandardResultDTO resulta = distributionService.changeState(Collections.singletonList(state));
 
         if(StandardResultDTO.SUCCESS == resulta.getCode()){
             resultDo.setSuccess(true);
