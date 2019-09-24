@@ -81,19 +81,10 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
     private static final String EXPIRE_TIP = "请重新授权";
 
     @Autowired
-    private AlihealthHospitalService alihealthHospitalService;
-
-    @Autowired
     private RecipeExtendDAO recipeExtendDAO;
 
     @Autowired
-    private RecipeDAO recipeDAO;
-
-    @Autowired
     private TaobaoConf taobaoConf;
-//
-//    @Autowired
-//    StandardEnterpriseCallService standardEnterpriseCallService;
 
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
@@ -520,8 +511,6 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         if(null != recipeIds && recipeIds.size() != 0){
             recipe = recipeDAO.getByRecipeId(recipeIds.get(0));
             state.setRecipeCode(recipe.getRecipeCode());
-            state.setOrganId(aRequest.getHospitalId());
-            state.setClinicOrgan(aRequest.getHospitalId());
         } else {
             resultDo.setSuccess(false);
             resultDo.setErrorMessage("未能获取处方信息");
@@ -532,6 +521,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         state.setDate(simpleDateFormat.format(new Date()));
         state.setAccount("tmdyf");
+        state.setOrganId(aRequest.getHospitalId());
         StandardEnterpriseCallService distributionService = getBean("distributionService", StandardEnterpriseCallService.class);
         StandardResultDTO resulta = distributionService.changeState(Collections.singletonList(state));
 
@@ -590,7 +580,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
     private DrugEnterpriseResult getDrugEnterpriseResult(DrugEnterpriseResult result, String msg) {
         result.setMsg(msg);
         result.setCode(DrugEnterpriseResult.FAIL);
-        LOGGER.info("AldyfRemoteService-getDrugEnterpriseResult提示信息：{}.", msg);
+        LOGGER.info("TmdyfRemoteService-getDrugEnterpriseResult提示信息：{}.", msg);
         return result;
     }
 
