@@ -39,6 +39,7 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.bussutil.RecipeUtil;
+import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.constant.*;
 import recipe.dao.*;
@@ -126,10 +127,17 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         //根据药企ID获取具体跳转的url地址
-        RemoteDrugEnterpriseService remoteDrugEnterpriseService =
-            ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-        AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
-        remoteService.getJumpUrl(response, recipe, drugsEnterprise);
+        try {
+            RemoteDrugEnterpriseService remoteDrugEnterpriseService =
+                ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+            AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+            remoteService.getJumpUrl(response, recipe, drugsEnterprise);
+        } catch (Exception e) {
+            LOGGER.warn("获取跳转实现异常--{}", e);
+            response.setCode(CommonConstant.FAIL);
+            response.setMsg("获取跳转实现异常--{}" +  e);
+            return;
+        }
         if(PurchaseResponse.ORDER.equals(response.getCode())){
             response.setCode(PurchaseResponse.JUMP);
         }
