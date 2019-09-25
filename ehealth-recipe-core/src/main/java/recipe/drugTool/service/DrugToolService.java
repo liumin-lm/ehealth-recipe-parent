@@ -145,16 +145,15 @@ public class DrugToolService implements IDrugToolService {
     //获取进度条
     @RpcService
     public double getProgress(int organId,String operator) throws InterruptedException {
-        String key = organId +operator;
+        String key = organId + operator;
 //      Double data = progressMap.get(key);
         Double data =  redisClient.get(key);
-        int i = 0;
         if (data != null){
             progress = data;
-            if (progress >= 100 && redisClient.exists(key)){
-//              progressMap.remove(key);
-                redisClient.sRemove(key);
-            }
+//            if (progress >= 100 && redisClient.exists(key)){
+//                 progressMap.remove(key);
+//                 redisClient.sRemove(key);
+//            }
         }
         LOGGER.info("进度条加载={}=", progress);
         return progress;
@@ -164,6 +163,10 @@ public class DrugToolService implements IDrugToolService {
     public synchronized   Map<String,Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator) {
         LOGGER.info(operator + "开始 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         progress = 0;
+        String key = organId + operator;
+        if (redisClient.exists(key) && Integer.parseInt(redisClient.get(key)) == 100) {
+            redisClient.sRemove(key);
+        }
         Map<String,Object> result = Maps.newHashMap();
         if (StringUtils.isEmpty(operator)){
             result.put("code",609);
