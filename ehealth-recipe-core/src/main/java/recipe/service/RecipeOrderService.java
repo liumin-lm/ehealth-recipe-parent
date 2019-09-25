@@ -36,10 +36,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.bean.PurchaseResponse;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.bussutil.RecipeUtil;
+import recipe.common.ResponseUtils;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.drugsenterprise.YsqRemoteService;
@@ -86,6 +89,40 @@ public class RecipeOrderService extends RecipeBaseService {
             order = (RecipeOrderBean) result.getObject();
         }
         return order;
+    }
+
+    /*
+     * @description 获取订单信息跳转地址（互联网）
+     * @author gmw
+     * @date 2019/9/25
+     * @param [recipeId]
+     * @return void
+     */
+    @RpcService
+    public void getRecipeOrderUrl(int recipeId, Integer depId) {
+
+        LOGGER.info("获取订单信息跳转地址开始，处方ID：{}.", recipeId);
+        //获取处方信息
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+
+        //获取药企信息
+        DrugsEnterprise drugsEnterprise = null;
+        if(null == depId){
+            OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+            List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
+            drugsEnterprise = drugsEnterprises.get(0);
+        } else {
+            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+            drugsEnterprise = drugsEnterpriseDAO.get(depId);
+        }
+        //根据药企ID获取具体跳转的url地址
+        RemoteDrugEnterpriseService remoteDrugEnterpriseService =
+            ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+        PurchaseResponse response = ResponseUtils.getFailResponse(PurchaseResponse.class, "");
+        remoteService.getJumpUrl(response, recipe, drugsEnterprise);
+
     }
 
     /**
@@ -1016,7 +1053,7 @@ public class RecipeOrderService extends RecipeBaseService {
     /**
      * 获取订单详情
      *
-     * @param orderCoe
+     * @param orderCode
      * @return
      */
     @RpcService

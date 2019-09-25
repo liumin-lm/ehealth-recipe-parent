@@ -514,7 +514,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         if(null == aRequest.getRxNo()){
             resultDo.setSuccess(false);
-            resultDo.setErrorMessage("处方编码不能为空");
+            resultDo.setErrorMessage("rnNO can not be null");
             resultDo.setErrorCode("500");
             response.setResult(resultDo);
             LOGGER.warn("参数异常--{}",JSON.toJSONString(response));
@@ -529,7 +529,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             state.setClinicOrgan(null == recipe.getClinicOrgan() ? null : recipe.getClinicOrgan() +"");
         } else {
             resultDo.setSuccess(false);
-            resultDo.setErrorMessage("未能获取处方信息");
+            resultDo.setErrorMessage("invalid rnNO: "+aRequest.getRxNo()+"，can not get recipeInfo");
             resultDo.setErrorCode("500");
             response.setResult(resultDo);
             LOGGER.warn("参数异常--{}",JSON.toJSONString(response));
@@ -540,7 +540,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             state.setStatus(RecipeStatusEnum.getKey(aRequest.getStatus()));
         } else {
             resultDo.setSuccess(false);
-            resultDo.setErrorMessage("处方状态不能为空");
+            resultDo.setErrorMessage("status can not be null");
             resultDo.setErrorCode("500");
             response.setResult(resultDo);
             LOGGER.warn("参数异常--{}",JSON.toJSONString(response));
