@@ -212,7 +212,7 @@ public class DrugDistributionService {
             remoteService.getJumpUrl(response, recipe, drugsEnterprise);
             if(PurchaseResponse.ORDER.equals(response.getCode())){
                 //更新平台处方
-                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("giveMode", request.getType()));
+                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("giveMode", request.getType(), "chooseFlag", 1));
             }
 
         } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(request.getType())) {
