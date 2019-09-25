@@ -100,7 +100,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
      */
     @Override
     public void getJumpUrl(PurchaseResponse response, Recipe recipe, DrugsEnterprise drugsEnterprise) {
-
+        LOGGER.info("获取跳转地址开始，处方ID：{}.", recipe.getRecipeId());
         if (0 == recipe.getPushFlag()) {
             //处方未推送，进行处方推送
             DrugEnterpriseResult result = pushRecipeInfo(Collections.singletonList(recipe.getRecipeId()), drugsEnterprise.getId());
@@ -149,7 +149,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         }
         response.setOrderUrl(url);
         response.setCode(PurchaseResponse.ORDER);
-
+        LOGGER.info("获取跳转地址结束，返回信息：{}.", response);
     }
 
     @Override
