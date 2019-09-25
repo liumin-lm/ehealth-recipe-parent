@@ -150,7 +150,7 @@ public class DrugToolService implements IDrugToolService {
         Double data =  redisClient.get(key);
         if (data != null){
             progress = data;
-            if (progress >= 100 && redisClient.exists(key)){
+            if (progress == 100 && redisClient.exists(key)){
 //                 progressMap.remove(key);
                  redisClient.del(key);
             }
@@ -163,6 +163,10 @@ public class DrugToolService implements IDrugToolService {
     public synchronized   Map<String,Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator) {
         LOGGER.info(operator + "开始 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         progress = 0;
+        String key = organId + operator;
+        if (redisClient.exists(key)) {
+            redisClient.del(key);
+        }
         Map<String,Object> result = Maps.newHashMap();
         if (StringUtils.isEmpty(operator)){
             result.put("code",609);
