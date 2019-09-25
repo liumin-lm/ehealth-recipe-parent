@@ -38,7 +38,7 @@ public class PurchaseResponse extends CommonResponse {
 
 
     /**
-     * 下单
+     * 跳转
      */
     public static final String JUMP = "006";
 
