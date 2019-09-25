@@ -149,7 +149,6 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         }
         response.setOrderUrl(url);
         response.setCode(PurchaseResponse.ORDER);
-        LOGGER.info("获取跳转地址结束，返回信息：{}.", response);
     }
 
     @Override
