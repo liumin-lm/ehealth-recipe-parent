@@ -165,7 +165,7 @@ public class DrugToolService implements IDrugToolService {
         progress = 0;
         String key = organId + operator;
         if (redisClient.exists(key)) {
-            redisClient.sRemove(key);
+            redisClient.del(key);
         }
         Map<String,Object> result = Maps.newHashMap();
         if (StringUtils.isEmpty(operator)){
