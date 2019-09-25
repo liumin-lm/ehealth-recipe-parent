@@ -117,11 +117,12 @@ public class RecipeOrderService extends RecipeBaseService {
             drugsEnterprise = drugsEnterpriseDAO.get(depId);
         }
 
-
         PurchaseResponse response = ResponseUtils.getFailResponse(PurchaseResponse.class, "");
 
-        if("tmdyf".equals(drugsEnterprise.getAccount())){
+        //暂时没找到好的控制字段，只能用写死天猫了
+        if(!"tmdyf".equals(drugsEnterprise.getAccount())){
             response.setCode(PurchaseResponse.CHECKWARN);
+            return;
         }
 
         //根据药企ID获取具体跳转的url地址

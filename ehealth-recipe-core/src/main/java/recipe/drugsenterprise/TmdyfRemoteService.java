@@ -528,8 +528,8 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             //天猫的机构编码和纳里不一致,直接用纳里的机构编码
             state.setClinicOrgan(null == recipe.getClinicOrgan() ? null : recipe.getClinicOrgan() +"");
         } else {
-            resultDo.setSuccess(false);
-            resultDo.setErrorMessage("invalid rnNO: "+aRequest.getRxNo()+", can not get recipeInfo");
+            resultDo.setSuccess(true);
+            resultDo.setErrorMessage("invalid rnNO: "+aRequest.getRxNo()+"，can not get recipeInfo，异常");
             resultDo.setErrorCode("500");
             response.setResult(resultDo);
             LOGGER.warn("参数异常--{}",JSON.toJSONString(response));
@@ -561,7 +561,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         if(StandardResultDTO.SUCCESS == resulta.getCode()){
             resultDo.setSuccess(true);
         } else {
-            resultDo.setSuccess(false);
+            resultDo.setSuccess(true);
             resultDo.setErrorMessage(resulta.getMsg());
             resultDo.setErrorCode("500");
         }
