@@ -5,7 +5,9 @@ import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import ctd.persistence.DAOFactory;
 import eh.base.constant.BussTypeConstant;
 import eh.cdr.constant.RecipeStatusConstant;
 import eh.wxpay.constant.PayConstant;
@@ -21,11 +23,9 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeMsgEnum;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.service.RecipeCheckService;
-import recipe.service.RecipeLogService;
-import recipe.service.RecipeMsgService;
-import recipe.service.RecipeService;
+import recipe.service.*;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 
@@ -43,6 +43,8 @@ public class AuditPostMode extends AbstractAuidtMode {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuditPostMode.class);
 
     private RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+
+    private RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
 
     @Override
     public void afterCheckPassYs(Recipe recipe) {
@@ -86,17 +88,35 @@ public class AuditPostMode extends AbstractAuidtMode {
                         memo = "医保支付成功，发送药企处方";
                     }
                 } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode)) {
-                    //收到userConfirm通知
-                    status = RecipeStatusConstant.READY_CHECK_YS;
+//                    //收到userConfirm通知
+//                    status = RecipeStatusConstant.READY_CHECK_YS;
+//                    memo = "配送到家-货到付款成功";
+                    //date 21090925
+                    //货到付款添加支付成功后修改状态
+                    if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
+                        status = RecipeStatusConstant.READY_CHECK_YS;
+                    }
                     memo = "配送到家-货到付款成功";
                 }
             } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)) {
                 //医院取药-线上支付，这块其实已经用不到了
-                status = RecipeStatusConstant.HAVE_PAY;
+//                status = RecipeStatusConstant.HAVE_PAY;
+//                memo = "医院取药-线上支付成功";
+                //date 20190925
+                //添加支付成功后修改状态
+                if(PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag){
+                    status = RecipeStatusConstant.READY_CHECK_YS;
+                }
                 memo = "医院取药-线上支付成功";
             } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode)) {
                 //收到userConfirm通知
-                status = RecipeStatusConstant.READY_CHECK_YS;
+//                status = RecipeStatusConstant.READY_CHECK_YS;
+//                memo = "药店取药-到店取药成功";
+                //date 20190925
+                //添加支付成功后修改状态
+                if(PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag){
+                    status = RecipeStatusConstant.READY_CHECK_YS;
+                }
                 memo = "药店取药-到店取药成功";
             }
             //记录日志

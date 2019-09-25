@@ -1544,7 +1544,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 Integer payFlag = MapValueUtil.getInteger(recipeInfo, "payFlag");
                 if (Integer.valueOf(PayConstant.PAY_FLAG_PAY_SUCCESS).equals(payFlag)
                         || Integer.valueOf(PayConstant.PAY_FLAG_NOT_PAY).equals(payFlag)) {
-                    //支付成功调用
+
                     resultBean = recipeService.updateRecipePayResultImplForOrder(saveFlag, recipeId, payFlag, recipeInfo);
                     if (RecipeResultBean.FAIL.equals(resultBean.getCode())) {
                         result.setCode(RecipeResultBean.FAIL);
