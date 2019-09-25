@@ -164,7 +164,7 @@ public class DrugToolService implements IDrugToolService {
         LOGGER.info(operator + "开始 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         progress = 0;
         String key = organId + operator;
-        if (redisClient.exists(key) && Integer.parseInt(redisClient.get(key)) == 100) {
+        if (redisClient.exists(key)) {
             redisClient.sRemove(key);
         }
         Map<String,Object> result = Maps.newHashMap();
