@@ -210,57 +210,10 @@ public class DrugDistributionService {
             //根据药企ID获取具体跳转的url地址
             AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
             remoteService.getJumpUrl(response, recipe, drugsEnterprise);
-//            if (null == result.getObject()) {
-//                //没有处方进行处方推送
-//                RemoteDrugEnterpriseService remoteDrugEnterpriseService =
-//                        ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-//                remoteDrugEnterpriseService.pushSingleRecipeInfoWithDepId(request.getRecipeId(), drugsEnterprise.getId());
-//                //说明处方获取失败
-//                LOGGER.warn("purchase queryPrescription retunr null. recipeId={}", request.getRecipeId());
-//                LOGGER.info("purchase 重新发起推送. recipeId={}", request.getRecipeId());
-//                PurchaseResponse subResponse = purchase(request);
-//                return subResponse;
-//            }
-//
-//            AlibabaAlihealthRxPrescriptionGetResponse aliResponse = (AlibabaAlihealthRxPrescriptionGetResponse) result.getObject();
-//            AlibabaAlihealthRxPrescriptionGetResponse.RxPrescription rxPrescription = aliResponse.getModel();
-//            if (null != rxPrescription) {
-//                if (rxPrescription.getUsable()) {
-//                    //可下单则跳转到淘宝下单页
-//                    ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
-//                    String param = iSysParamterService.getParam(ParameterConstant.KEY_ALI_ORDER_ADDR, null);
-//                    response.setOrderUrl(MessageFormat.format(param, taobaoConf.getAppkey(), recipe.getRecipeCode()));
-//                    response.setCode(PurchaseResponse.ORDER);
-//                    return response;
-//                } else {
-//                    //已使用处方展示订单信息
-//                    List<AlibabaAlihealthRxPrescriptionGetResponse.RxOrderInfo> rxOrderInfoList = rxPrescription.getRxOrderList();
-//                    if (CollectionUtils.isNotEmpty(rxOrderInfoList)) {
-//                        List<DeptOrderDTO> deptOrderDTOList = new ArrayList<>(rxOrderInfoList.size());
-//                        DeptOrderDTO deptOrderDTO;
-//                        for (AlibabaAlihealthRxPrescriptionGetResponse.RxOrderInfo rxOrderInfo : rxOrderInfoList) {
-//                            deptOrderDTO = new DeptOrderDTO();
-//                            deptOrderDTO.setOrderCode(rxOrderInfo.getBizOrderId());
-//                            deptOrderDTO.setStatus(rxOrderInfo.getStatus());
-//                            deptOrderDTO.setOrderDetailUrl(rxOrderInfo.getBizOrderDetailUrl());
-//                            deptOrderDTOList.add(deptOrderDTO);
-//                        }
-//                        response.setOrderList(deptOrderDTOList);
-//                        response.setCode(PurchaseResponse.ORDER_DETAIL);
-//                        return response;
-//                    }
-//                }
-//            } else {
-//                //没有处方进行处方推送
-//                RemoteDrugEnterpriseService remoteDrugEnterpriseService =
-//                        ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-//                remoteDrugEnterpriseService.pushSingleRecipeInfoWithDepId(request.getRecipeId(), drugsEnterprise.getId());
-//                LOGGER.warn("purchase queryPrescription rxPrescription is null. recipeId={}", request.getRecipeId());
-//                response.setMsg("该处方无法配送");
-//                return response;
-//            }
-//        } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(request.getType())) {
-//            deliveryType = "2";
+            if(PurchaseResponse.ORDER.equals(response.getCode())){
+                //更新平台处方
+                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("giveMode", request.getType()));
+            }
 
         } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(request.getType())) {
             if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
