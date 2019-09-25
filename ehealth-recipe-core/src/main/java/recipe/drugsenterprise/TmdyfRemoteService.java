@@ -517,6 +517,8 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         if(null != recipeIds && recipeIds.size() != 0){
             recipe = recipeDAO.getByRecipeId(recipeIds.get(0));
             state.setRecipeCode(recipe.getRecipeCode());
+            //天猫的机构编码和纳里不一致,直接用纳里的机构编码
+            state.setClinicOrgan(null == recipe.getClinicOrgan() ? null : recipe.getClinicOrgan() +"");
         } else {
             resultDo.setSuccess(false);
             resultDo.setErrorMessage("未能获取处方信息");
@@ -530,16 +532,6 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         } else {
             resultDo.setSuccess(false);
             resultDo.setErrorMessage("处方状态不能为空");
-            resultDo.setErrorCode("500");
-            response.setResult(resultDo);
-            return JSON.toJSONString(response);
-        }
-
-        if(null != aRequest.getHospitalId()){
-            state.setOrganId(aRequest.getHospitalId());
-        } else {
-            resultDo.setSuccess(false);
-            resultDo.setErrorMessage("医院的外部编码不能为空");
             resultDo.setErrorCode("500");
             response.setResult(resultDo);
             return JSON.toJSONString(response);
