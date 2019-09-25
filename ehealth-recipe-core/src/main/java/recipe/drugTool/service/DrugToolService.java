@@ -211,7 +211,6 @@ public class DrugToolService implements IDrugToolService {
             return result;
         }
 
-        double progress;
         DrugListMatch drug;
         Row row;
         for (int rowIndex = 1; rowIndex <= total; rowIndex++) {
