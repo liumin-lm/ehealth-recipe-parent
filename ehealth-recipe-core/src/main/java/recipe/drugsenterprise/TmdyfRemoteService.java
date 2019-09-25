@@ -88,7 +88,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
 
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
-        LOGGER.info("AldyfRemoteService tokenUpdateImpl not implement.");
+        LOGGER.info("TmdyfRemoteService tokenUpdateImpl not implement.");
     }
 
     /*
@@ -500,7 +500,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
     @RpcService
     public String changeState(String requestParam) {
 
-        LOGGER.info("收到天猫更新处方请求，开始");
+        LOGGER.info("收到天猫更新处方请求，开始--{}" + requestParam);
         //获取入参
         AlibabaAlihealthPrescriptionStatusSyncRequest aRequest = JSON.parseObject(
             requestParam, AlibabaAlihealthPrescriptionStatusSyncRequest.class);
@@ -517,6 +517,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             resultDo.setErrorMessage("处方编码不能为空");
             resultDo.setErrorCode("500");
             response.setResult(resultDo);
+            LOGGER.warn("参数异常--{}",JSON.toJSONString(response));
             return JSON.toJSONString(response);
         }
         List<Integer> recipeIds = recipeExtendDAO.findRecipeIdsByRxNo(aRequest.getRxNo());
@@ -531,6 +532,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             resultDo.setErrorMessage("未能获取处方信息");
             resultDo.setErrorCode("500");
             response.setResult(resultDo);
+            LOGGER.warn("参数异常--{}",JSON.toJSONString(response));
             return JSON.toJSONString(response);
         }
 
@@ -541,6 +543,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             resultDo.setErrorMessage("处方状态不能为空");
             resultDo.setErrorCode("500");
             response.setResult(resultDo);
+            LOGGER.warn("参数异常--{}",JSON.toJSONString(response));
             return JSON.toJSONString(response);
         }
 

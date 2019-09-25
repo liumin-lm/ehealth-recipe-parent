@@ -1008,7 +1008,7 @@ public class RecipeServiceSub {
                 //设置购药方式哪些可用
                 //配送到家默认可用
                 map.put("givemode_send", 1);
-                //到店取药默认不可用
+                //到店取药默认不可用（20190926小版本改为默认可用）
                 map.put("givemode_tfds", 1);
                 //医院取药需要看数据
                 int hosFlag = 1;
