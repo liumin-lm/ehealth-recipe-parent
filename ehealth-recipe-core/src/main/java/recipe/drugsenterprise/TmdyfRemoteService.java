@@ -529,7 +529,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             state.setClinicOrgan(null == recipe.getClinicOrgan() ? null : recipe.getClinicOrgan() +"");
         } else {
             resultDo.setSuccess(false);
-            resultDo.setErrorMessage("invalid rnNO: "+aRequest.getRxNo()+"，can not get recipeInfo");
+            resultDo.setErrorMessage("invalid rnNO: "+aRequest.getRxNo()+", can not get recipeInfo");
             resultDo.setErrorCode("500");
             response.setResult(resultDo);
             LOGGER.warn("参数异常--{}",JSON.toJSONString(response));
