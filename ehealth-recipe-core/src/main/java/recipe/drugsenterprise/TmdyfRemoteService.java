@@ -142,10 +142,10 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             !RecipeStatusEnum.USING.getKey().equals(recipe.getStatus()) &&
             !RecipeStatusEnum.USING.getKey().equals(recipe.getStatus())){
             //配送到家URL
-            url = url + "?rxNo=" + recipeExtend.getRxNo() +"&action=o2o&cityCode=" + cityCode;
+            url = url + "rxNo=" + recipeExtend.getRxNo() +"&action=o2o&cityCode=" + cityCode;
         } else {
             //药店取药取药URL
-            url = url + "?rxNo=" + recipeExtend.getRxNo() +"&action=offline&cityCode=" + cityCode;
+            url = url + "rxNo=" + recipeExtend.getRxNo() +"&action=offline&cityCode=" + cityCode;
         }
         response.setOrderUrl(url);
         response.setCode(PurchaseResponse.ORDER);
@@ -529,7 +529,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             state.setClinicOrgan(null == recipe.getClinicOrgan() ? null : recipe.getClinicOrgan() +"");
         } else {
             resultDo.setSuccess(true);
-            resultDo.setErrorMessage("invalid rnNO: "+aRequest.getRxNo()+"，can not get recipeInfo，异常");
+            resultDo.setErrorMessage("invalid rnNO: "+aRequest.getRxNo()+"，can not get recipeInfo");
             resultDo.setErrorCode("500");
             response.setResult(resultDo);
             LOGGER.warn("参数异常--{}",JSON.toJSONString(response));
