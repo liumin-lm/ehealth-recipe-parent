@@ -512,6 +512,13 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         StandardStateDTO state = new StandardStateDTO ();
 
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        if(null == aRequest.getRxNo()){
+            resultDo.setSuccess(false);
+            resultDo.setErrorMessage("处方编码不能为空");
+            resultDo.setErrorCode("500");
+            response.setResult(resultDo);
+            return JSON.toJSONString(response);
+        }
         List<Integer> recipeIds = recipeExtendDAO.findRecipeIdsByRxNo(aRequest.getRxNo());
         Recipe recipe = null;
         if(null != recipeIds && recipeIds.size() != 0){
@@ -527,7 +534,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             return JSON.toJSONString(response);
         }
 
-        if(null != aRequest.getHospitalId()){
+        if(null != aRequest.getStatus()){
             state.setStatus(RecipeStatusEnum.getKey(aRequest.getStatus()));
         } else {
             resultDo.setSuccess(false);
@@ -537,9 +544,13 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             return JSON.toJSONString(response);
         }
 
+        //没有业务含义，仅满足校验用
+        state.setOrganId(aRequest.getHospitalId());
+        state.setAccount("tmdyf");
+
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         state.setDate(simpleDateFormat.format(new Date()));
-        state.setAccount("tmdyf");
+
 
         StandardEnterpriseCallService distributionService = getBean("distributionService", StandardEnterpriseCallService.class);
         StandardResultDTO resulta = distributionService.changeState(Collections.singletonList(state));
