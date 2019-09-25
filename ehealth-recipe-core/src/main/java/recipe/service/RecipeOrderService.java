@@ -116,11 +116,18 @@ public class RecipeOrderService extends RecipeBaseService {
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             drugsEnterprise = drugsEnterpriseDAO.get(depId);
         }
+
+
+        PurchaseResponse response = ResponseUtils.getFailResponse(PurchaseResponse.class, "");
+
+        if("tmdyf".equals(drugsEnterprise.getAccount())){
+            response.setCode(PurchaseResponse.CHECKWARN);
+        }
+
         //根据药企ID获取具体跳转的url地址
         RemoteDrugEnterpriseService remoteDrugEnterpriseService =
             ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
-        PurchaseResponse response = ResponseUtils.getFailResponse(PurchaseResponse.class, "");
         remoteService.getJumpUrl(response, recipe, drugsEnterprise);
         if(PurchaseResponse.ORDER.equals(response.getCode())){
             response.setCode(PurchaseResponse.JUMP);
