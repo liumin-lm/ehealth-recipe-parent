@@ -122,6 +122,9 @@ public class RecipeOrderService extends RecipeBaseService {
         AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
         PurchaseResponse response = ResponseUtils.getFailResponse(PurchaseResponse.class, "");
         remoteService.getJumpUrl(response, recipe, drugsEnterprise);
+        if(PurchaseResponse.ORDER.equals(response.getCode())){
+            response.setCode(PurchaseResponse.JUMP);
+        }
 
     }
 
