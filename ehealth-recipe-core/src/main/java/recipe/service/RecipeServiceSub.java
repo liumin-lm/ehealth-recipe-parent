@@ -1009,7 +1009,7 @@ public class RecipeServiceSub {
                 //配送到家默认可用
                 map.put("givemode_send", 1);
                 //到店取药默认不可用
-                map.put("givemode_tfds", 0);
+                map.put("givemode_tfds", 1);
                 //医院取药需要看数据
                 int hosFlag = 1;
                 if(1 == recipe.getDistributionFlag()){
