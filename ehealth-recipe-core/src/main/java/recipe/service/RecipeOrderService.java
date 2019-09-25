@@ -100,7 +100,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @return void
      */
     @RpcService
-    public void getRecipeOrderUrl(int recipeId, Integer depId) {
+    public PurchaseResponse getRecipeOrderUrl(int recipeId, Integer depId) {
 
         LOGGER.info("获取订单信息跳转地址开始，处方ID：{}.", recipeId);
         //获取处方信息
@@ -123,7 +123,7 @@ public class RecipeOrderService extends RecipeBaseService {
         //暂时没找到好的控制字段，只能用写死天猫了
         if(!"tmdyf".equals(drugsEnterprise.getAccount())){
             response.setCode(PurchaseResponse.CHECKWARN);
-            return;
+            return response;
         }
 
         //根据药企ID获取具体跳转的url地址
@@ -136,12 +136,12 @@ public class RecipeOrderService extends RecipeBaseService {
             LOGGER.warn("获取跳转实现异常--{}", e);
             response.setCode(CommonConstant.FAIL);
             response.setMsg("获取跳转实现异常--{}" +  e);
-            return;
+            return response;
         }
         if(PurchaseResponse.ORDER.equals(response.getCode())){
             response.setCode(PurchaseResponse.JUMP);
         }
-
+        return response;
     }
 
     /**
