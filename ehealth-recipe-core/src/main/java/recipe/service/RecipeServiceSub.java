@@ -772,6 +772,10 @@ public class RecipeServiceSub {
             case RecipeStatusConstant.CHECKING_HOS:
                 tips = "医院确认中";
                 break;
+            //天猫特殊状态
+            case RecipeStatusConstant.USING:
+                tips = "处理中";
+                break;
             default:
                 tips = "未知状态" + status;
         }
