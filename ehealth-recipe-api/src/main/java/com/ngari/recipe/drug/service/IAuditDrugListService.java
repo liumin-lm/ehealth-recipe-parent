@@ -23,7 +23,7 @@ public interface IAuditDrugListService {
     QueryResult<AuditDrugListDTO> findAllDrugListByOrganId(Integer organId, String drugClass, String keyword ,Integer start, Integer limit);
 
     @RpcService
-    List<DrugListBean> matchAllDrugListByName(String drugName);
+    List<DrugListBean> matchAllDrugListByName(String drugName, String saleName, String drugSpec, String producer);
 
     @RpcService
     void saveAuditDrugListInfo(Integer auditDrugListId, Integer drugListId);
