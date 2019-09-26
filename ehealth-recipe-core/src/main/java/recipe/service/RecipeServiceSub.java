@@ -1177,6 +1177,10 @@ public class RecipeServiceSub {
             case RecipeStatusConstant.REVOKE:
                 tips = "由于医生已撤销，该处方单已失效，请联系医生.";
                 break;
+            //天猫特殊状态
+            case RecipeStatusConstant.USING:
+                tips = "处理中";
+                break;
             default:
                 tips = "未知状态" + status;
 
