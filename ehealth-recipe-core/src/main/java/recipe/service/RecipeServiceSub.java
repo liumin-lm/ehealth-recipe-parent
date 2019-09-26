@@ -1252,10 +1252,16 @@ public class RecipeServiceSub {
      */
     private static boolean canDown(Recipe recipe, RecipeOrder order, Integer[] status, Boolean isDownLoad) {
         boolean isDownload = false;
-        if(ReviewTypeConstant.Preposition_Check == recipe.getReviewType()){
-            if( Arrays.asList(status).contains(recipe.getStatus())){
+        //后置的时候判断处方的状态是一些状态的时候是展示按钮的
+        if(ReviewTypeConstant.Postposition_Check == recipe.getReviewType()){
+            if( Arrays.asList(status).contains(recipe.getStatus())) {
                 isDownload = true;
             }
+        }else if(ReviewTypeConstant.Not_Need_Check == recipe.getReviewType() && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())){
+            //这里当是不需审核，且选择的下载处方的购药方式的时候，没有产生订单，直接判断没有选定购药方式
+             if(1 == recipe.getChooseFlag()){
+                 isDownload = true;
+             }
         }else{
             //如果实际金额为0则判断有没有关联ordercode，实际金额不为0则判断是否已经支付,展示下载处方签，
             //当下载处方购药时，已完成处方不展示下载处方签
