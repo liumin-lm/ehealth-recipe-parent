@@ -43,7 +43,9 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.AldyfRemoteService;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.service.common.RecipeCacheService;
@@ -1504,16 +1506,28 @@ public class RecipeServiceSub {
                     OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
                     List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
                     for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
-                        if ("aldyf".equals(drugsEnterprise.getCallSys())) {
-                            //向阿里大药房推送处方撤销通知
-                            DrugEnterpriseResult drugEnterpriseResult = null;
+//                        if ("aldyf".equals(drugsEnterprise.getCallSys())) {
+//                            //向阿里大药房推送处方撤销通知
+//                            DrugEnterpriseResult drugEnterpriseResult = null;
+//                            try {
+//                                AldyfRemoteService aldyfRemoteService = ApplicationUtils.getRecipeService(AldyfRemoteService.class);
+//                                drugEnterpriseResult = aldyfRemoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.RETREAT);
+//                            } catch (Exception e) {
+//                                LOGGER.warn("cancelRecipeImpl  向阿里大药房推送处方撤销通知,{}",JSONUtils.toString(drugEnterpriseResult), e);
+//                            }
+//                            LOGGER.info("向阿里大药房推送处方撤销通知,{}",JSONUtils.toString(drugEnterpriseResult));
+//                        }
+                        if ("aldyf".equals(drugsEnterprise.getCallSys()) || "tmdyf".equals(drugsEnterprise.getCallSys())) {
+                            //向药企推送处方过期的通知
+                            RemoteDrugEnterpriseService remoteDrugEnterpriseService =
+                                ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
                             try {
-                                AldyfRemoteService aldyfRemoteService = ApplicationUtils.getRecipeService(AldyfRemoteService.class);
-                                drugEnterpriseResult = aldyfRemoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.RETREAT);
+                                AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+                                DrugEnterpriseResult drugEnterpriseResult = remoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.RETREAT);
+                                LOGGER.info("向药企推送处方过期通知,{}", JSONUtils.toString(drugEnterpriseResult));
                             } catch (Exception e) {
-                                LOGGER.warn("cancelRecipeImpl  向阿里大药房推送处方撤销通知,{}",JSONUtils.toString(drugEnterpriseResult), e);
+                                LOGGER.info("向药企推送处方过期通知有问题{}", recipe.getRecipeId(), e);
                             }
-                            LOGGER.info("向阿里大药房推送处方撤销通知,{}",JSONUtils.toString(drugEnterpriseResult));
                         }
                     }
                 }
