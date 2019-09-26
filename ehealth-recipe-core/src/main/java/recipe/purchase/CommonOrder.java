@@ -3,15 +3,11 @@ package recipe.purchase;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
-import ctd.util.JSONUtils;
-import org.apache.commons.lang3.StringUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.service.RecipeOrderService;
-import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -27,10 +23,6 @@ public class CommonOrder {
         Recipe recipe = recipeList.get(0);
         if (null == calculateFee || Integer.valueOf(1).equals(calculateFee)) {
             orderService.setOrderFee(result, order, Arrays.asList(recipe.getRecipeId()), recipeList, payModeSupport, extInfo, 1);
-            if (StringUtils.isNotEmpty(extInfo.get("recipeFee"))) {
-                order.setRecipeFee(MapValueUtil.getBigDecimal(extInfo, "recipeFee"));
-                order.setActualPrice(Double.parseDouble(extInfo.get("recipeFee")));
-            }
         } else {
             //设置默认值
             order.setExpressFee(BigDecimal.ZERO);
