@@ -1114,7 +1114,9 @@ public class RecipeOrderService extends RecipeBaseService {
         if(CollectionUtils.isNotEmpty(recipeList)){
             Recipe nowRecipe = recipeList.get(0);
             if(null != nowRecipe){
-                showAuditFee = ReviewTypeConstant.Preposition_Check != nowRecipe.getReviewType();
+                //判断时候需要展示审方费用：
+                //当不是不需要审核
+                showAuditFee = ReviewTypeConstant.Not_Need_Check != nowRecipe.getReviewType();
             }
         }
 
