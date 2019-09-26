@@ -52,6 +52,7 @@ import recipe.bean.PurchaseResponse;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeBussConstant;
+import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -101,36 +102,6 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
     @Override
     public void getJumpUrl(PurchaseResponse response, Recipe recipe, DrugsEnterprise drugsEnterprise) {
         LOGGER.info("获取跳转地址开始，处方ID：{}.", recipe.getRecipeId());
-        if (0 == recipe.getPushFlag()) {
-            //处方未推送，进行处方推送
-            DrugEnterpriseResult result = pushRecipeInfo(Collections.singletonList(recipe.getRecipeId()), drugsEnterprise.getId());
-            if(DrugEnterpriseResult.FAIL == result.getCode()){
-                LOGGER.warn("该处方无法配送--" + result.getMsg(), recipe.getRecipeId());
-                response.setMsg(PurchaseResponse.CHECKWARN);
-                response.setMsg(result.getMsg());
-                return;
-            }
-        }
-
-        //获取医院城市编码（6位）
-        OrganService organService = BasicAPI.getService(OrganService.class);
-        OrganDTO organCode = organService.getByOrganId(recipe.getClinicOrgan());
-        String cityCode = null;
-        if(organCode.getAddrArea().length() >= 4){
-            cityCode = organCode.getAddrArea().substring(0,4) + "00";
-        } else {
-            cityCode = organCode.getAddrArea() + "00";
-            for(int i = cityCode.length(); i<6; i++){
-                cityCode = cityCode + "0";
-            }
-        }
-
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        if(null == recipeExtend.getRxNo()){
-            LOGGER.warn("无法获取天猫对应处方编码");
-            response.setMsg("无法获取天猫对应处方编码");
-            return ;
-        }
         RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
         String url = cacheService.getRecipeParam(ParameterConstant.KEY_ALI_O2O_ADDR, null);
         if(url == null){
@@ -138,17 +109,60 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             response.setMsg("未获取O2O跳转url,请检查数据库配置");
             return ;
         }
-        if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME == recipe.getGiveMode() &&
-            !RecipeStatusEnum.USING.getKey().equals(recipe.getStatus()) &&
-            !RecipeStatusEnum.USING.getKey().equals(recipe.getStatus())){
-            //配送到家URL
-            url = url + "rxNo=" + recipeExtend.getRxNo() +"&action=o2o&cityCode=" + cityCode;
+
+        // 查看取药信息url
+        if(RecipeStatusConstant.USING == recipe.getStatus() || RecipeStatusConstant.FINISH == recipe.getStatus()){
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if(null == recipeExtend.getRxNo()){
+                LOGGER.warn("无法获取天猫对应处方编码");
+                response.setMsg("无法获取天猫对应处方编码");
+                return ;
+            }
+            url = url + "rxNo=" + recipeExtend.getRxNo() +"&action=getDrugInfo";
+            response.setCode(PurchaseResponse.JUMP);
         } else {
-            //药店取药取药URL
-            url = url + "rxNo=" + recipeExtend.getRxNo() +"&action=offline&cityCode=" + cityCode;
+            if (0 == recipe.getPushFlag()) {
+                //处方未推送，进行处方推送
+                DrugEnterpriseResult result = pushRecipeInfo(Collections.singletonList(recipe.getRecipeId()), drugsEnterprise.getId());
+                if(DrugEnterpriseResult.FAIL == result.getCode()){
+                    LOGGER.warn("该处方无法配送--" + result.getMsg(), recipe.getRecipeId());
+                    response.setMsg(PurchaseResponse.CHECKWARN);
+                    response.setMsg(result.getMsg());
+                    return;
+                }
+            }
+
+            //获取医院城市编码（6位）
+            OrganService organService = BasicAPI.getService(OrganService.class);
+            OrganDTO organCode = organService.getByOrganId(recipe.getClinicOrgan());
+            String cityCode = null;
+            if(organCode.getAddrArea().length() >= 4){
+                cityCode = organCode.getAddrArea().substring(0,4) + "00";
+            } else {
+                cityCode = organCode.getAddrArea() + "00";
+                for(int i = cityCode.length(); i<6; i++){
+                    cityCode = cityCode + "0";
+                }
+            }
+
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if(null == recipeExtend.getRxNo()){
+                LOGGER.warn("无法获取天猫对应处方编码");
+                response.setMsg("无法获取天猫对应处方编码");
+                return ;
+            }
+
+            if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME == recipe.getGiveMode()){
+                //配送到家URL
+                url = url + "rxNo=" + recipeExtend.getRxNo() +"&action=o2o&cityCode=" + cityCode;
+            } else {
+                //药店取药取药URL
+                url = url + "rxNo=" + recipeExtend.getRxNo() +"&action=offline&cityCode=" + cityCode;
+            }
+            response.setCode(PurchaseResponse.ORDER);
         }
+
         response.setOrderUrl(url);
-        response.setCode(PurchaseResponse.ORDER);
     }
 
     @Override
