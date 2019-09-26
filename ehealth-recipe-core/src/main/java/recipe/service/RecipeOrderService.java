@@ -138,9 +138,7 @@ public class RecipeOrderService extends RecipeBaseService {
             response.setMsg("获取跳转实现异常--{}" +  e);
             return response;
         }
-        if(PurchaseResponse.ORDER.equals(response.getCode())){
-            response.setCode(PurchaseResponse.JUMP);
-        }
+
         return response;
     }
 
