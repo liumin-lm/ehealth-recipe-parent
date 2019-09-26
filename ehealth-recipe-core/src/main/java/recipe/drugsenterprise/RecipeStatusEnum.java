@@ -8,7 +8,7 @@ package recipe.drugsenterprise;
  */
 public enum RecipeStatusEnum {
     //可使用
-    EFFECTIVE("21", "EFFECTIVE"),
+    EFFECTIVE("2", "EFFECTIVE"),
     //使用中
     USING("22", "USING"),
     //已使用

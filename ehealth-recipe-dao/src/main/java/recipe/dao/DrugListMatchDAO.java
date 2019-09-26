@@ -195,8 +195,8 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
         return action.getResult();
     }
 
-    @DAOMethod(sql = "from DrugListMatch where sourceOrgan =:organId and status =2")
-    public abstract List<DrugListMatch> findReadyComimitDataByOrgan(@DAOParam("organId")int organId);
+    @DAOMethod(sql = "from DrugListMatch where sourceOrgan =:organId and status =:status")
+    public abstract List<DrugListMatch> findDataByOrganAndStatus(@DAOParam("organId")int organId,@DAOParam("status")int status);
 
     /**
      * 根据id删除

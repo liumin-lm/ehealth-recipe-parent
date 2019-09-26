@@ -560,7 +560,7 @@ public class DrugToolService implements IDrugToolService {
             @SuppressWarnings("unchecked")
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                List<DrugListMatch> lists = drugListMatchDAO.findReadyComimitDataByOrgan(organId);
+                List<DrugListMatch> lists = drugListMatchDAO.findDataByOrganAndStatus(organId,2);
                 int num = 0;
                 //更新数据到organDrugList并更新状态已提交
                 for (DrugListMatch drugListMatch : lists){
@@ -678,5 +678,65 @@ public class DrugToolService implements IDrugToolService {
             organDrugListDAO.deleteById(id);
         }
     }
+
+    /**
+     * 根据药品id更新匹配表药品机构编码
+     * @param map
+     */
+    @RpcService
+    public void updateMatchCodeById(Map<Integer, String> map){
+        for (Map.Entry<Integer, String> entry : map.entrySet()) {
+            drugListMatchDAO.updateDrugListMatchInfoById(entry.getKey(),ImmutableMap.of("organDrugCode",entry.getValue()));
+        }
+    }
+
+    /**
+     * 上传未匹配数据到通用药品目录
+     * @param organId 机构id
+     * @param isHaveOrganId 通用药品目录是否包含机构来源
+     * @return
+     */
+    @RpcService
+    public Integer uploadNoMatchData(Integer organId,Boolean isHaveOrganId) {
+        List<DrugListMatch> data = drugListMatchDAO.findDataByOrganAndStatus(organId,3);
+        if (CollectionUtils.isNotEmpty(data)){
+            for (DrugListMatch drugListMatch : data){
+                DrugList drugList = new DrugList();
+                //药品名
+                drugList.setDrugName(drugListMatch.getDrugName());
+                //商品名
+                drugList.setSaleName(drugListMatch.getSaleName());
+                //一次剂量
+                drugList.setUseDose(drugListMatch.getUseDose());
+                //剂量单位
+                drugList.setUseDoseUnit(drugListMatch.getUseDoseUnit());
+                //规格
+                drugList.setDrugSpec(drugListMatch.getDrugSpec());
+                //药品包装数量
+                drugList.setPack(drugListMatch.getPack());
+                //药品单位
+                drugList.setUnit(drugListMatch.getUnit());
+                //药品类型
+                drugList.setDrugType(drugListMatch.getDrugType());
+                //剂型
+                drugList.setDrugForm(drugListMatch.getDrugForm());
+                drugList.setPrice1(drugListMatch.getPrice().doubleValue());
+                drugList.setPrice2(drugListMatch.getPrice().doubleValue());
+                //厂家
+                drugList.setProducer(drugListMatch.getProducer());
+                //其他
+                drugList.setDrugClass("1901");
+                drugList.setStatus(1);
+                //来源机构
+                if (isHaveOrganId){
+                    drugList.setSourceOrgan(organId);
+                }
+                drugListDAO.save(drugList);
+            }
+            return data.size();
+        }
+        return 0;
+    }
+
 
 }
