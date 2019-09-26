@@ -568,7 +568,7 @@ public class RecipeOrderService extends RecipeBaseService {
             Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
             if (payMode != RecipeBussConstant.PAYMODE_ONLINE) {
                 //此时的实际费用是不包含药品费用的
-                order.setActualPrice(order.getTotalFee().subtract(order.getRecipeFee()).doubleValue());
+                order.setActualPrice(order.getAuditFee().doubleValue());
             } else {
                 order.setActualPrice(order.getTotalFee().doubleValue());
             }

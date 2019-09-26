@@ -102,6 +102,7 @@ public class RecipeService extends RecipeBaseService{
 
     private RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
+    private static final int havChooseFlag = 1;
     @Autowired
     private RedisClient redisClient;
 
@@ -2175,4 +2176,45 @@ public class RecipeService extends RecipeBaseService{
         }
         return result;
     }
+
+    @RpcService
+    public RecipeResultBean changeRecipeStatusInfo(int recipeId, int status) {
+        RecipeResultBean result = RecipeResultBean.getSuccess();
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.get(recipeId);
+        if(null == recipe){
+            LOGGER.info("changeRecipeStatusInfo: [recipeId:" + recipeId + "] 对应的处方信息不存在！");
+            result.setCode(RecipeResultBean.FAIL);
+            result.setError("处方单id对应的处方为空");
+            return result;
+        }
+        Map<String, Object> searchMap = new HashMap<>();
+        //判断修改的处方的状态是否是已下载
+        if(status == RecipeStatusConstant.RECIPE_DOWNLOADED){
+            //当前处方下载处方状态的时候，确认处方的购药方式
+            //首先判断处方的
+            if(havChooseFlag == recipe.getChooseFlag() && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE != recipe.getGiveMode()){
+                LOGGER.info("changeRecipeStatusInfo: [recipeId:" + recipeId + "] 对应的处方的购药方式不是下载处方不能设置成已下载状态！");
+                result.setCode(RecipeResultBean.FAIL);
+                result.setError("处方选择的购药方式不是下载处方");
+                return result;
+            }
+            Integer beforStatus = recipe.getStatus();
+            searchMap.put("giveMode", RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE);
+            searchMap.put("chooseFlag", havChooseFlag);
+            //更新处方的信息
+            Boolean updateResult = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.RECIPE_DOWNLOADED, searchMap);
+            //更新处方log信息
+            if(updateResult){
+                RecipeLogService.saveRecipeLog(recipeId, beforStatus, RecipeStatusConstant.RECIPE_DOWNLOADED, "已下载状态修改成功");
+            }else{
+                LOGGER.info("changeRecipeStatusInfo: [recipeId:" + recipeId + "] 处方更新已下载状态失败！");
+                result.setCode(RecipeResultBean.FAIL);
+                result.setError("处方更新已下载状态失败");
+                return result;
+            }
+        }
+        return result;
+    }
+
 }

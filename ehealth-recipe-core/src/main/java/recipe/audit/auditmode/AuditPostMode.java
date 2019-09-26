@@ -118,6 +118,10 @@ public class AuditPostMode extends AbstractAuidtMode {
                     status = RecipeStatusConstant.READY_CHECK_YS;
                 }
                 memo = "药店取药-到店取药成功";
+            }else if (RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(giveMode)){
+                if(PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag){
+                    status = RecipeStatusConstant.READY_CHECK_YS;
+                }
             }
             //记录日志
             RecipeLogService.saveRecipeLog(dbRecipe.getRecipeId(), RecipeStatusConstant.CHECK_PASS, status, memo);
