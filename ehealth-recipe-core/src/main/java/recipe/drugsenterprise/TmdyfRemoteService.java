@@ -297,7 +297,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                 if (!ObjectUtils.isEmpty(detailList)) {
                     SaleDrugListDAO saleDrugDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
                     for (int i = 0; i < detailList.size(); i++) {
-                        //一张处方单可能包含相同的药品
+                        //一张处方单可能包含相同的药品purchaseService
                         SaleDrugList saleDrugList = saleDrugDAO.getByDrugIdAndOrganId(detailList.get(i).getDrugId(), depId);
                         if (ObjectUtils.isEmpty(saleDrugList)) {
                             return getDrugEnterpriseResult(result, "未找到对应的saleDrugList");
