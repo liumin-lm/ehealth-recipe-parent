@@ -374,7 +374,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                 SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
                 String expiredTimeString = simpleDateFormat.format(expiredTime);
                 String signDateString = simpleDateFormat.format(dbRecipe.getSignDate());
-                attributes.put("prescriptionExpiredTime", signDateString);
+                attributes.put("prescriptionCreateTime", signDateString);
                 attributes.put("prescriptionExpiredTime", expiredTimeString);
                 String attributesJson = JSONUtils.toString(attributes);
                 requestParam.setAttributes(attributesJson);
