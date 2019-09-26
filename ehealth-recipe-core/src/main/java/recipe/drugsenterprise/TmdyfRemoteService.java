@@ -52,6 +52,7 @@ import recipe.bean.PurchaseResponse;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeBussConstant;
+import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -138,15 +139,22 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             response.setMsg("未获取O2O跳转url,请检查数据库配置");
             return ;
         }
-        if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME == recipe.getGiveMode() &&
-            !RecipeStatusEnum.USING.getKey().equals(recipe.getStatus()) &&
-            !RecipeStatusEnum.USING.getKey().equals(recipe.getStatus())){
-            //配送到家URL
-            url = url + "rxNo=" + recipeExtend.getRxNo() +"&action=o2o&cityCode=" + cityCode;
+//        if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME == recipe.getGiveMode() &&
+//            !RecipeStatusEnum.USING.getKey().equals(recipe.getStatus()) &&
+//            !RecipeStatusEnum.USING.getKey().equals(recipe.getStatus())){
+        // 查看取药信息url
+        if(RecipeStatusConstant.USING == recipe.getStatus() || RecipeStatusConstant.FINISH == recipe.getStatus()){
+            url = url + "rxNo=" + recipeExtend.getRxNo() +"&action=getDrugInfo";
         } else {
-            //药店取药取药URL
-            url = url + "rxNo=" + recipeExtend.getRxNo() +"&action=offline&cityCode=" + cityCode;
+            if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME == recipe.getGiveMode()){
+                //配送到家URL
+                url = url + "rxNo=" + recipeExtend.getRxNo() +"&action=o2o&cityCode=" + cityCode;
+            } else {
+                //药店取药取药URL
+                url = url + "rxNo=" + recipeExtend.getRxNo() +"&action=offline&cityCode=" + cityCode;
+            }
         }
+
         response.setOrderUrl(url);
         response.setCode(PurchaseResponse.ORDER);
     }
