@@ -313,18 +313,14 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                         } else {
                             return getDrugEnterpriseResult(result, "药品数量不能为空");
                         }
-                        if(null != saleDrugList.getDrugName()){
-                            drugParam.setDrugName(saleDrugList.getDrugName());    //药品名称
-                        } else {
-                            return getDrugEnterpriseResult(result, "药品名称不能为空");
-                        }
+                        drugParam.setDrugName(saleDrugList.getSaleName());    //药品名称
                         if(null != detailList.get(i).getUseDose()){
                             drugParam.setDose(detailList.get(i).getUseDose() + "");    //用量
                         } else {
                             return getDrugEnterpriseResult(result, "药品用量不能为空");
                         }
-                        if(null != saleDrugList.getSaleName()){
-                            drugParam.setDrugCommonName(saleDrugList.getSaleName());  //药品通用名称
+                        if(null != saleDrugList.getDrugName()){
+                            drugParam.setDrugCommonName(saleDrugList.getDrugName());  //药品通用名称
                         } else {
                             return getDrugEnterpriseResult(result, "药品通用名称不能为空");
                         }
@@ -372,8 +368,8 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                 Map<String, String> attributes = new HashMap<String, String>();
                 Date expiredTime = DateConversion.getDateAftXDays(dbRecipe.getSignDate(), 3);
                 SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-                String expiredTimeString = simpleDateFormat.format(expiredTime);
                 String signDateString = simpleDateFormat.format(dbRecipe.getSignDate());
+                String expiredTimeString = simpleDateFormat.format(expiredTime);
                 attributes.put("prescriptionCreateTime", signDateString);
                 attributes.put("prescriptionExpiredTime", expiredTimeString);
                 String attributesJson = JSONUtils.toString(attributes);

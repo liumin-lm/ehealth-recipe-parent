@@ -263,7 +263,7 @@ public class PurchaseService {
      */
     private boolean checkRecipeIsDeal(Recipe dbRecipe, RecipeResultBean result, Map<String, String> extInfo){
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
-        if ((RecipeStatusConstant.CHECK_PASS != dbRecipe.getStatus() && RecipeStatusConstant.EFFECTIVE != dbRecipe.getStatus())
+        if (RecipeStatusConstant.CHECK_PASS != dbRecipe.getStatus()
                 || 1 == dbRecipe.getChooseFlag()) {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("处方单已被处理");
@@ -292,8 +292,8 @@ public class PurchaseService {
      * @return true 已被处理
      */
     private boolean checkRecipeIsUser(Recipe dbRecipe, RecipeResultBean result){
-        if ((RecipeStatusConstant.CHECK_PASS != dbRecipe.getStatus() && RecipeStatusConstant.EFFECTIVE != dbRecipe.getStatus())
-            || 1 == dbRecipe.getChooseFlag()) {
+        if (RecipeStatusConstant.CHECK_PASS != dbRecipe.getStatus()
+                || 1 == dbRecipe.getChooseFlag()) {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("处方单已被处理");
             //判断是否已到院取药，查看 HisCallBackService *RecipesFromHis 方法处理

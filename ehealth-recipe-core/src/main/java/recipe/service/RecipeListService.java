@@ -429,7 +429,6 @@ public class RecipeListService extends RecipeBaseService{
             case RecipeStatusConstant.HAVE_PAY:
                 msg = "已支付，待取药";
                 break;
-            case RecipeStatusConstant.EFFECTIVE:
             case RecipeStatusConstant.CHECK_PASS:
                 msg = "待处理";
                 break;
@@ -451,7 +450,7 @@ public class RecipeListService extends RecipeBaseService{
                 msg = "待配送";
                 break;
             case RecipeStatusConstant.USING:
-                msg = "锁定中";
+                msg = "处理中";
                 break;
             default:
                 msg = "未知状态";

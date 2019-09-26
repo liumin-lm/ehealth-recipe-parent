@@ -107,7 +107,7 @@ public class RecipeStatusConstant {
     /**
      * 天猫可使用
      */
-    public static final int EFFECTIVE = 21;
+    public static final int EFFECTIVE = 2;
 
     /**
      * 天猫使用中
