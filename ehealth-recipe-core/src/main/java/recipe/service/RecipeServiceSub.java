@@ -1059,7 +1059,7 @@ public class RecipeServiceSub {
             }
             map.put("medicalFlag", medicalFlag);
             if (null != recipe.getChecker() && recipe.getChecker() > 0) {
-                String ysTel = iDoctorService.getMobileByDoctorId(recipe.getChecker());
+                String ysTel = doctorService.getMobileByDoctorId(recipe.getChecker());
                 if (StringUtils.isNotEmpty(ysTel)) {
                     recipe.setCheckerTel(ysTel);
                 }
