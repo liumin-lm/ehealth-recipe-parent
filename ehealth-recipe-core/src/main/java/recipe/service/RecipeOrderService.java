@@ -1219,9 +1219,9 @@ public class RecipeOrderService extends RecipeBaseService {
             }
 
             //钥世圈处理
-            if (DrugEnterpriseConstant.COMPANY_YSQ.equals(remoteDrugEnterpriseService.getDepAccount(order.getEnterpriseId()))) {
+            /*if (DrugEnterpriseConstant.COMPANY_YSQ.equals(remoteDrugEnterpriseService.getDepAccount(order.getEnterpriseId()))) {
                 thirdUrl = remoteDrugEnterpriseService.getYsqOrderInfoUrl(recipe);
-            }
+            }*/
         }
         return thirdUrl;
     }
