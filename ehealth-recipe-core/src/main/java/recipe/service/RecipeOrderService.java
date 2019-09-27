@@ -548,7 +548,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             }
         }
-        order.setTotalFee(countOrderTotalFee(order));
+        order.setTotalFee(countOrderTotalFeeByRecipeInfo(order, firstRecipe));
         //计算优惠券价格
         ICouponBaseService couponService = AppContextHolder.getBean("voucher.couponBaseService",ICouponBaseService.class);
         if (isUsefulCoupon(order.getCouponId())) {
@@ -1429,6 +1429,41 @@ public class RecipeOrderService extends RecipeBaseService {
      */
     public BigDecimal countOrderTotalFee(RecipeOrder order) {
         return countOrderTotalFeeWithCoupon(null, order);
+    }
+
+    public BigDecimal countOrderTotalFeeByRecipeInfo(RecipeOrder order, Recipe recipe) {
+        BigDecimal full = BigDecimal.ZERO;
+
+        //处方费用
+        full = full.add(order.getRecipeFee());
+
+        //配送费
+        if (null != order.getExpressFee()) {
+            full = full.add(order.getExpressFee());
+        }
+
+        //挂号费
+        if (null != order.getRegisterFee()) {
+            full = full.add(order.getRegisterFee());
+        }
+
+        //代煎费
+        if (null != order.getDecoctionFee()) {
+            full = full.add(order.getDecoctionFee());
+        }
+
+       //审方费,计算当审方模式不是不需要你审方才计算
+        if (null != recipe && ReviewTypeConstant.Not_Need_Check != recipe.getReviewType()
+                && null != order.getAuditFee() ) {
+            full = full.add(order.getAuditFee());
+        }
+
+        //其他服务费
+        if (null != order.getOtherFee()) {
+            full = full.add(order.getOtherFee());
+        }
+
+        return full.divide(BigDecimal.ONE, 3, RoundingMode.UP);
     }
 
     /**
