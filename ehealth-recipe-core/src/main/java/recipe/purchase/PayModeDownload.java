@@ -132,4 +132,9 @@ public class PayModeDownload implements IPurchaseService{
         }
         return tips;
     }
+
+    @Override
+    public Integer getOrderStatus(Recipe recipe) {
+        return OrderStatusConstant.READY_GET_DRUG;
+    }
 }

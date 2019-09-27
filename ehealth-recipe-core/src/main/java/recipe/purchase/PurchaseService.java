@@ -334,6 +334,20 @@ public class PurchaseService {
     }
 
     /**
+     * 获取订单的状态
+     * @param recipe 处方详情
+     * @return 订单状态
+     */
+    public Integer getOrderStatus(Recipe recipe) {
+        if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())) {
+            return OrderStatusConstant.READY_SEND;
+        } else {
+            IPurchaseService purchaseService = getService(recipe.getPayMode());
+            return purchaseService.getOrderStatus(recipe);
+        }
+    }
+
+    /**
      * 检查处方是否已被处理
      * @param dbRecipe  处方
      * @param result    结果
