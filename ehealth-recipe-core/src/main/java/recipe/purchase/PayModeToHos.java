@@ -76,7 +76,7 @@ public class PayModeToHos implements IPurchaseService{
         order.setOrganId(dbRecipe.getClinicOrgan());
         order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
         //订单的状态统一到finishOrderPayWithoutPay中设置
-        //order.setStatus(OrderStatusConstant.READY_GET_DRUG);
+        order.setStatus(OrderStatusConstant.READY_GET_DRUG);
         order.setRecipeIdList("["+dbRecipe.getRecipeId()+"]");
         List<Recipe> recipeList = Arrays.asList(dbRecipe);
         Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
@@ -90,6 +90,8 @@ public class PayModeToHos implements IPurchaseService{
             return result;
         }
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
+        //更新处方信息
+        orderService.finishOrderPayWithoutPay(order.getOrderCode(), payMode);
         return result;
     }
 

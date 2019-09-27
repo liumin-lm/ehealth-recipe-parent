@@ -88,7 +88,20 @@ public class PatientTabStatusRecipeDTO implements Serializable {
      */
     private Integer jumpPageType;
 
+    /**
+     * 当前处方对应的订单code
+     */
+    private String orderCode;
+
     public PatientTabStatusRecipeDTO() {
+    }
+
+    public String getOrderCode() {
+        return orderCode;
+    }
+
+    public void setOrderCode(String orderCode) {
+        this.orderCode = orderCode;
     }
 
     public Integer getJumpPageType() {
