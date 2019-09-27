@@ -33,11 +33,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipeCheckPassResult;
-import recipe.constant.OrderStatusConstant;
-import recipe.constant.PayConstant;
-import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
+import recipe.constant.*;
 import recipe.dao.*;
+import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.*;
 import recipe.service.hospitalrecipe.dataprocess.PrescribeProcess;
@@ -74,7 +72,7 @@ public class PrescribeService {
     /**
      * 创建处方
      *
-     * @param recipeInfo 处方json格式数据
+     * @param hospitalRecipeDTO 处方json格式数据
      * @return
      */
     @RpcService
@@ -461,6 +459,23 @@ public class PrescribeService {
                         attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_TO_HOS);
                         attrMap.put("payMode", RecipeBussConstant.PAYMODE_TO_HOS);
                         attrMap.put("enterpriseId", null);
+
+                        //给天猫大药房推送医院取药完成接口
+                        OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+                        List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(Integer.valueOf(request.getOrganId()), 1);
+                        DrugsEnterprise drugsEnterprise = drugsEnterprises.get(0);
+                        if ("tmdyf".equals(drugsEnterprise.getCallSys())) {
+                            RemoteDrugEnterpriseService remoteDrugEnterpriseService =
+                                ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+                            try {
+                                AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+                                DrugEnterpriseResult drugEnterpriseResult = remoteService.updatePrescriptionStatus(dbRecipe.getRecipeCode(), RecipeStatusConstant.FINISH);
+                                LOG.info("向药企推送处方医院取药完成通知,{}", JSONUtils.toString(drugEnterpriseResult));
+                            } catch (Exception e) {
+                                LOG.info("向药企推送处方医院取药完成通知有问题{}", dbRecipe.getRecipeId(), e);
+                            }
+
+                        }
 
                         //日志记录
                         RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), RecipeStatusConstant.FINISH,
