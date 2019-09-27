@@ -324,7 +324,11 @@ public class PurchaseService {
                 break;
             default:
                 IPurchaseService purchaseService = getService(payMode);
-                tips = purchaseService.getTipsByStatusForPatient(recipe, order);
+                if(null == purchaseService){
+                    tips = "";
+                }else{
+                    tips = purchaseService.getTipsByStatusForPatient(recipe, order);
+                }
         }
         return tips;
     }

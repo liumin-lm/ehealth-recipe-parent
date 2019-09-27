@@ -21,10 +21,7 @@ import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.ds.PatientDS;
-import com.ngari.patient.dto.ConsultSetDTO;
-import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.dto.OrganDTO;
-import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
@@ -111,6 +108,7 @@ public class RecipeService extends RecipeBaseService{
 
     private RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
+    private static final int havChooseFlag = 1;
     @Autowired
     private RedisClient redisClient;
 
@@ -164,16 +162,16 @@ public class RecipeService extends RecipeBaseService{
      */
     @RpcService
     public Map<String, Object> openRecipeOrNot(Integer doctorId) {
-        IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
+        EmploymentService employmentService = ApplicationUtils.getBasicService(EmploymentService.class);
         ConsultSetService consultSetService = ApplicationUtils.getBasicService(ConsultSetService.class);
 
         Boolean canCreateRecipe = false;
         String tips = "";
         Map<String, Object> map = Maps.newHashMap();
-        List<EmploymentBean> employmentList = iEmploymentService.findEmByDoctorId(doctorId);
+        List<EmploymentDTO> employmentList = employmentService.findEmploymentByDoctorId(doctorId);
         List<Integer> organIdList = new ArrayList<>();
         if (employmentList.size() > 0) {
-            for (EmploymentBean employment : employmentList) {
+            for (EmploymentDTO employment : employmentList) {
                 organIdList.add(employment.getOrganId());
             }
             OrganDrugListDAO organDrugListDAO = getDAO(OrganDrugListDAO.class);
@@ -1575,6 +1573,8 @@ public class RecipeService extends RecipeBaseService{
      * @param flag     1:表示处方单详情页从到院取药转直接支付的情况判断
      * @return 0未处理  1线上支付 2货到付款 3到院支付
      */
+
+
     @RpcService
     public int getRecipePayMode(int recipeId, int flag) {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
@@ -2165,4 +2165,77 @@ public class RecipeService extends RecipeBaseService{
         LOGGER.info("getHosRecipeListInfoByMpiId  response={}", JSONUtils.toString(response));
         return response;
     }*/
+
+    @RpcService
+    public RecipeResultBean getPageDetail(int recipeId) {
+        RecipeResultBean result = RecipeResultBean.getSuccess();
+        Recipe nowRecipe = DAOFactory.getDAO(RecipeDAO.class).get(recipeId);
+        if(null == nowRecipe){
+            LOGGER.info("getPageDetailed: [recipeId:" + recipeId + "] 对应的处方信息不存在！");
+            result.setCode(RecipeResultBean.FAIL);
+            result.setError("处方单id对应的处方为空");
+            return result;
+        }
+        Map<String, String> ext = new HashMap<>();
+        if(null == nowRecipe.getOrderCode()){
+            Map<String, Object> recipeMap = getPatientRecipeById(recipeId);
+            result.setObject(recipeMap);
+            ext.put("jumpType", "0");
+            result.setExt(ext);
+        }else{
+            RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+            RecipeResultBean orderDetail = orderService.getOrderDetail(nowRecipe.getOrderCode());
+            result = orderDetail;
+            Map<String, String> nowExt = result.getExt();
+            if(null == nowExt){
+                ext.put("jumpType", "1");
+                result.setExt(ext);
+            }else{
+                nowExt.put("jumpType", "1");
+                result.setExt(nowExt);
+            }
+        }
+        return result;
+    }
+
+    @RpcService
+    public RecipeResultBean changeRecipeStatusInfo(int recipeId, int status) {
+        RecipeResultBean result = RecipeResultBean.getSuccess();
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.get(recipeId);
+        if(null == recipe){
+            LOGGER.info("changeRecipeStatusInfo: [recipeId:" + recipeId + "] 对应的处方信息不存在！");
+            result.setCode(RecipeResultBean.FAIL);
+            result.setError("处方单id对应的处方为空");
+            return result;
+        }
+        Map<String, Object> searchMap = new HashMap<>();
+        //判断修改的处方的状态是否是已下载
+        if(status == RecipeStatusConstant.RECIPE_DOWNLOADED){
+            //当前处方下载处方状态的时候，确认处方的购药方式
+            //首先判断处方的
+            if(havChooseFlag == recipe.getChooseFlag() && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE != recipe.getGiveMode()){
+                LOGGER.info("changeRecipeStatusInfo: [recipeId:" + recipeId + "] 对应的处方的购药方式不是下载处方不能设置成已下载状态！");
+                result.setCode(RecipeResultBean.FAIL);
+                result.setError("处方选择的购药方式不是下载处方");
+                return result;
+            }
+            Integer beforStatus = recipe.getStatus();
+            searchMap.put("giveMode", RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE);
+            searchMap.put("chooseFlag", havChooseFlag);
+            //更新处方的信息
+            Boolean updateResult = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.RECIPE_DOWNLOADED, searchMap);
+            //更新处方log信息
+            if(updateResult){
+                RecipeLogService.saveRecipeLog(recipeId, beforStatus, RecipeStatusConstant.RECIPE_DOWNLOADED, "已下载状态修改成功");
+            }else{
+                LOGGER.info("changeRecipeStatusInfo: [recipeId:" + recipeId + "] 处方更新已下载状态失败！");
+                result.setCode(RecipeResultBean.FAIL);
+                result.setError("处方更新已下载状态失败");
+                return result;
+            }
+        }
+        return result;
+    }
+
 }

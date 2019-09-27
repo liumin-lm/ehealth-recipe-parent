@@ -86,7 +86,7 @@ public class PayModeDownload implements IPurchaseService{
         CommonOrder.createDefaultOrder(extInfo, result, order, payModeSupport, recipeList, calculateFee);
 
         //订单的状态统一到finishOrderPayWithoutPay中设置
-        //order.setStatus(OrderStatusConstant.READY_GET_DRUG);
+        order.setStatus(OrderStatusConstant.READY_GET_DRUG);
 
         //设置为有效订单
         order.setEffective(1);

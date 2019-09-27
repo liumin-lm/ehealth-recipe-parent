@@ -48,6 +48,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.AldyfRemoteService;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
+import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
@@ -911,7 +912,7 @@ public class RecipeServiceSub {
     }
 
     public static void setPatientMoreInfo(PatientDTO patient, int doctorId) {
-        RelationDoctorBean relationDoctor = iDoctorService.getByMpiidAndDoctorId(patient.getMpiId(), doctorId);
+        RelationDoctorBean relationDoctor = doctorService.getByMpiidAndDoctorId(patient.getMpiId(), doctorId);
         //是否关注
         Boolean relationFlag = false;
         //是否签约
@@ -923,7 +924,7 @@ public class RecipeServiceSub {
                 signFlag = true;
             }
 
-            labelNames = iPatientService.findLabelNamesByRPId(relationDoctor.getRelationDoctorId());
+            labelNames = patientService.findLabelNamesByRPId(relationDoctor.getRelationDoctorId());
 
         }
         patient.setRelationFlag(relationFlag);
@@ -1082,7 +1083,12 @@ public class RecipeServiceSub {
             map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId));
         } else {
             RecipeOrder order = orderDAO.getOrderByRecipeId(recipeId);
-            map.put("tips", getTipsByStatusForPatient(recipe, order));
+            if (recipe.getRecipeMode() == RecipeBussConstant.RECIPEMODE_ZJJGPT) {
+                map.put("tips", getTipsByStatusForPatient(recipe, order));
+            } else {
+                PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+                map.put("tips", purchaseService.getTipsByStatusForPatient(recipe, order));
+            }
             boolean b = null != recipe.getEnterpriseId() && RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())
                     && (recipe.getStatus() == RecipeStatusConstant.WAIT_SEND || recipe.getStatus() == RecipeStatusConstant.IN_SEND
                     || recipe.getStatus() == RecipeStatusConstant.FINISH);
@@ -1248,10 +1254,16 @@ public class RecipeServiceSub {
      */
     private static boolean canDown(Recipe recipe, RecipeOrder order, Integer[] status, Boolean isDownLoad) {
         boolean isDownload = false;
-        if(ReviewTypeConstant.Preposition_Check == recipe.getReviewType()){
-            if( Arrays.asList(status).contains(recipe.getStatus())){
+        //后置的时候判断处方的状态是一些状态的时候是展示按钮的
+        if(ReviewTypeConstant.Postposition_Check == recipe.getReviewType()){
+            if( Arrays.asList(status).contains(recipe.getStatus())) {
                 isDownload = true;
             }
+        }else if(ReviewTypeConstant.Not_Need_Check == recipe.getReviewType() && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())){
+            //这里当是不需审核，且选择的下载处方的购药方式的时候，没有产生订单，直接判断没有选定购药方式
+             if(1 == recipe.getChooseFlag()){
+                 isDownload = true;
+             }
         }else{
             //如果实际金额为0则判断有没有关联ordercode，实际金额不为0则判断是否已经支付,展示下载处方签，
             //当下载处方购药时，已完成处方不展示下载处方签
