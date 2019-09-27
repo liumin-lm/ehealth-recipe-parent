@@ -113,7 +113,7 @@ public class PayModeToHos implements IPurchaseService{
         String tips = "";
         switch (status) {
             case RecipeStatusConstant.CHECK_PASS:
-                if (StringUtils.isEmpty(orderCode) && payFlag == 1) {
+                if (StringUtils.isNotEmpty(orderCode) && payFlag == 1) {
                     tips = "订单已处理，请到院取药";
                 }
                 break;
@@ -128,5 +128,10 @@ public class PayModeToHos implements IPurchaseService{
                 break;
         }
         return tips;
+    }
+
+    @Override
+    public Integer getOrderStatus(Recipe recipe) {
+        return OrderStatusConstant.READY_GET_DRUG;
     }
 }
