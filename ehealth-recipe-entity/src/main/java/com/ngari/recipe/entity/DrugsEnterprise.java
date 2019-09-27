@@ -77,6 +77,9 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "排序，1最前，越往后越小")
     private Integer sort;
 
+    @ItemProperty(alias = "校验药品库存标志0 不需要校验 1 需要校验")
+    private Integer checkInventoryFlag;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -239,6 +242,15 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setSort(Integer sort) {
         this.sort = sort;
+    }
+
+    @Column(name = "checkInventoryFlag")
+    public Integer getCheckInventoryFlag() {
+        return checkInventoryFlag;
+    }
+
+    public void setCheckInventoryFlag(Integer checkInventoryFlag) {
+        this.checkInventoryFlag = checkInventoryFlag;
     }
 
     @Override

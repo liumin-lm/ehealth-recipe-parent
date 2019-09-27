@@ -177,7 +177,11 @@ public class PayModeTFDS implements IPurchaseService{
         order.setOrganId(dbRecipe.getClinicOrgan());
         order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
         //订单的状态统一到finishOrderPayWithoutPay中设置
-        order.setStatus(OrderStatusConstant.READY_GET_DRUG);
+        if (dep.getCheckInventoryFlag() == 1 && succFlag){
+            order.setStatus(OrderStatusConstant.HAS_DRUG);
+        } else {
+            order.setStatus(OrderStatusConstant.READY_DRUG);
+        }
         order.setDrugStoreName(MapValueUtil.getString(extInfo, "gysName"));
         order.setRecipeIdList("["+dbRecipe.getRecipeId()+"]");
         order.setDrugStoreAddr(MapValueUtil.getString(extInfo, "gysAddr"));
@@ -211,7 +215,7 @@ public class PayModeTFDS implements IPurchaseService{
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         Integer recipeId = dbRecipe.getRecipeId();
-        boolean succFlag;
+        boolean succFlag = false;
         if(null == dep || CollectionUtils.isEmpty(drugIds)){
             return false;
         }
@@ -222,10 +226,12 @@ public class PayModeTFDS implements IPurchaseService{
                 succFlag = true;
             }
         }
-        succFlag = remoteDrugService.scanStock(recipeId, dep);
-        if (!succFlag) {
-            LOGGER.warn("findSupportDepList 药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}], 药企名称=[{}]",
-                    recipeId, dep.getId(), dep.getName());
+        if (dep.getCheckInventoryFlag() == 1) {
+            succFlag = remoteDrugService.scanStock(recipeId, dep);
+            if (!succFlag) {
+                LOGGER.warn("findSupportDepList 药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}], 药企名称=[{}]",
+                        recipeId, dep.getId(), dep.getName());
+            }
         }
         return succFlag;
     }
