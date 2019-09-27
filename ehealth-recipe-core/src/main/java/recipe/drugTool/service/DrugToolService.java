@@ -684,9 +684,9 @@ public class DrugToolService implements IDrugToolService {
      * @param map
      */
     @RpcService
-    public void updateMatchCodeById(Map<Integer, String> map){
-        for (Map.Entry<Integer, String> entry : map.entrySet()) {
-            drugListMatchDAO.updateDrugListMatchInfoById(entry.getKey(),ImmutableMap.of("organDrugCode",entry.getValue()));
+    public void updateMatchCodeById(Map<String, String> map){
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            drugListMatchDAO.updateDrugListMatchInfoById(Integer.valueOf(entry.getKey()),ImmutableMap.of("organDrugCode",entry.getValue()));
         }
     }
 
