@@ -334,7 +334,7 @@ public class PurchaseService {
     }
 
     /**
-     * 获取药店取药的状态
+     * 获取订单的状态
      * @param recipe 处方详情
      * @return 订单状态
      */
