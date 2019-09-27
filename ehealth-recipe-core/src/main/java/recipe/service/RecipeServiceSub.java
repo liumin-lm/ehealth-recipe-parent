@@ -912,7 +912,7 @@ public class RecipeServiceSub {
     }
 
     public static void setPatientMoreInfo(PatientDTO patient, int doctorId) {
-        RelationDoctorBean relationDoctor = iDoctorService.getByMpiidAndDoctorId(patient.getMpiId(), doctorId);
+        RelationDoctorBean relationDoctor = doctorService.getByMpiidAndDoctorId(patient.getMpiId(), doctorId);
         //是否关注
         Boolean relationFlag = false;
         //是否签约
@@ -924,7 +924,7 @@ public class RecipeServiceSub {
                 signFlag = true;
             }
 
-            labelNames = iPatientService.findLabelNamesByRPId(relationDoctor.getRelationDoctorId());
+            labelNames = patientService.findLabelNamesByRPId(relationDoctor.getRelationDoctorId());
 
         }
         patient.setRelationFlag(relationFlag);

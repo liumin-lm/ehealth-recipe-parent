@@ -759,8 +759,8 @@ public class RecipeCheckService {
     private List<Integer> findAPOrganIdsByDoctorId(Integer doctorId) {
         List<Integer> organIds = null;
         if (null != doctorId) {
-            IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
-            organIds = iDoctorService.findAPOrganIdsByDoctorId(doctorId);
+            DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
+            organIds = doctorService.findAPOrganIdsByDoctorId(doctorId);
         }
 
         return organIds;
