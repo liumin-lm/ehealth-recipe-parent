@@ -172,6 +172,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
 
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, Integer depId) {
 
+        LOGGER.info("推送处方至天猫大药房开始，处方ID：{}.", JSONUtils.toString(recipeIds));
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         if (ObjectUtils.isEmpty(recipeIds)) {
             getDrugEnterpriseResult(result, "处方ID参数为空");
@@ -400,6 +401,8 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                     LOGGER.info("上传处方，{}", getJsonLog(rsp));
 
                     if (StringUtils.isEmpty(rsp.getSubCode())) {
+
+                        LOGGER.info("推送处方至成功：", rsp.getServiceResult().getData());
                         //说明成功,更新处方标志
                         recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("pushFlag", 1));
                         recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("rxNo", rsp.getServiceResult().getData()));
