@@ -1463,8 +1463,10 @@ public class RecipeOrderService extends RecipeBaseService {
             full = full.add(order.getDecoctionFee());
         }
 
-        //审方费
-        if (null != order.getAuditFee()) {
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        List<Recipe> recipes = recipeDAO.getRecipeListByOrderCodes(Arrays.asList(order.getOrderCode()));
+        //审方费,计算当审方模式不是不需要你审方才计算
+        if (CollectionUtils.isNotEmpty(recipes) && ReviewTypeConstant.Not_Need_Check != recipes.get(0).getReviewType() && null != order.getAuditFee() ) {
             full = full.add(order.getAuditFee());
         }
 

@@ -9,47 +9,43 @@ public enum RecipePayTipEnum {
     /**
      * 配送到家货到付款，不需要审方/审方金额为0
      */
-    Send_To_Home_Below_No_CheckFee("ngarihealth", 1, 2, true, "", "（费用货到支付)"),
+    Send_To_Home_Below_No_CheckFee("ngarihealth", 2, true, "", "（费用货到支付)"),
     /**
      * 配送到家货到付款，审核费用不为0
      */
-    Send_To_Home_Below_Need_CheckFee("ngarihealth", 1, 2, false, "", "(需先支付药师审核费：<em>¥</em>，其余费用货到支付)"),
+    Send_To_Home_Below_Need_CheckFee("ngarihealth", 2, false, "", "(需先支付药师审核费：<em>¥</em>，其余费用货到支付)"),
     /**
      * 到院取药，不需要审方/审方金额为0
      */
-    To_Hos_No_CheckFee("ngarihealth", 2, 3, true, "提交订单后，药品费用需到医院进行支付。", "（费用请到医院支付）"),
+    To_Hos_No_CheckFee("ngarihealth", 3, true, "提交订单后，药品费用需到医院进行支付。", "（费用请到医院支付）"),
     /**
      * 到院取药，审核费用不为0
      */
-    To_Hos_Need_CheckFee("ngarihealth", 2, 3, false, "提交订单后，药品费用需到医院进行支付。", "（需先支付药师审核费：<em>¥</em>，其余到医院支付）"),
+    To_Hos_Need_CheckFee("ngarihealth", 3, false, "提交订单后，药品费用需到医院进行支付。", "（需先支付药师审核费：<em>¥</em>，其余到医院支付）"),
     /**
      * 药店取药，不需要审方/审方金额为0
      */
-    TFDS_No_CheckFee("ngarihealth", 3, 4, true, "提交订单后，药品费用需到药店进行支付。", "（费用请到药店支付）"),
+    TFDS_No_CheckFee("ngarihealth", 4, true, "提交订单后，药品费用需到药店进行支付。", "（费用请到药店支付）"),
     /**
      * 药店取药，审核费用不为0
      */
-    TFDS_Need_CheckFee("ngarihealth", 3, 4, false, "提交订单后，药品费用需到药店进行支付。", "（需先支付药师审核费：<em>¥</em>，其余到药店支付）"),
+    TFDS_Need_CheckFee("ngarihealth", 4, false, "提交订单后，药品费用需到药店进行支付。", "（需先支付药师审核费：<em>¥</em>，其余到药店支付）"),
     /**
      * 下载处方，不需要审方/审方金额为0
      */
-    Download_No_CheckFee("ngarihealth", 5, 6, true, "", "提交订单后可下载处方签"),
+    Download_No_CheckFee("ngarihealth", 6, true, "", "提交订单后可下载处方签"),
     /**
      * 下载处方，审核费用不为0
      */
-    Download_Need_CheckFee("ngarihealth", 5, 6, false, "", "(支付药师审核费后可下载处方签）"),
+    Download_Need_CheckFee("ngarihealth", 6, false, "", "(支付药师审核费后可下载处方签）"),
     /**
      * 默认值
      */
-    Default("", 0, 0, false, null, null);
+    Default("", 0, false, null, null);
     /**
      * 处方模式
      */
     private String recipeMode;
-    /**
-     * 购药方式
-     */
-    private Integer giveMode;
     /**
      * 支付方式
      */
@@ -67,18 +63,17 @@ public enum RecipePayTipEnum {
     */
     private String payNote;
 
-    RecipePayTipEnum(String recipeMode, Integer giveMode, Integer payMode, Boolean notNeedCheckFee, String payNote, String payTip) {
+    RecipePayTipEnum(String recipeMode, Integer payMode, Boolean notNeedCheckFee, String payNote, String payTip) {
         this.recipeMode = recipeMode;
         this.payNote = payNote;
-        this.giveMode = giveMode;
         this.payMode = payMode;
         this.notNeedCheckFee = notNeedCheckFee;
         this.payTip = payTip;
     }
 
-    public static RecipePayTipEnum fromRecipeModeAndGiveModeAndPayModeAndNotNeedCheckFee(String recipeMode, Integer giveMode, Integer payMode, Boolean notNeedCheckFee){
+    public static RecipePayTipEnum fromRecipeModeAndPayModeAndNotNeedCheckFee(String recipeMode, Integer payMode, Boolean notNeedCheckFee){
         for(RecipePayTipEnum ep : RecipePayTipEnum.values()){
-            if(ep.getRecipeMode().equalsIgnoreCase(recipeMode) && ep.getGiveMode().equals(giveMode)
+            if(ep.getRecipeMode().equalsIgnoreCase(recipeMode)
                     && ep.getPayMode().equals(payMode) && ep.getNotNeedCheckFee().equals(notNeedCheckFee)){
                 return ep;
             }
@@ -92,14 +87,6 @@ public enum RecipePayTipEnum {
 
     public void setRecipeMode(String recipeMode) {
         this.recipeMode = recipeMode;
-    }
-
-    public Integer getGiveMode() {
-        return giveMode;
-    }
-
-    public void setGiveMode(Integer giveMode) {
-        this.giveMode = giveMode;
     }
 
     public Integer getPayMode() {

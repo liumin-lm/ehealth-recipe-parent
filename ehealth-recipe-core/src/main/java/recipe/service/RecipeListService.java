@@ -515,9 +515,13 @@ public class RecipeListService extends RecipeBaseService{
                 msg = "配送中";
                 break;
             case RecipeStatusConstant.WAIT_SEND:
-            case RecipeStatusConstant.READY_CHECK_YS:
-            case RecipeStatusConstant.CHECK_PASS_YS:
                 msg = "待配送";
+                break;
+            case RecipeStatusConstant.READY_CHECK_YS:
+                msg = "待审核";
+                break;
+            case RecipeStatusConstant.CHECK_PASS_YS:
+                msg = "审核通过";
                 break;
             case RecipeStatusConstant.NO_DRUG:
                 msg = "失败";
@@ -894,7 +898,7 @@ public class RecipeListService extends RecipeBaseService{
         }
 
         //设置按钮的展示类型
-        payModeShowButtonBean.setButtonType(getButtonType(record.getRecordType(), record.getStatusCode()));
+        payModeShowButtonBean.setButtonType(getButtonType(recipe.getReviewType(), record.getRecordType(), record.getStatusCode()));
         return payModeShowButtonBean;
     }
 
@@ -935,8 +939,8 @@ public class RecipeListService extends RecipeBaseService{
      * @param statusCode 患者处方的状态
      * @return java.lang.Integer 按钮的显示类型
      */
-    private Integer getButtonType(String recordType, Integer statusCode) {
-        RecipePageButtonStatusEnum buttonStatus = RecipePageButtonStatusEnum.fromRecodeTypeAndRecodeCode(recordType, statusCode);
+    private Integer getButtonType(Integer reviewType, String recordType, Integer statusCode) {
+        RecipePageButtonStatusEnum buttonStatus = RecipePageButtonStatusEnum.fromRecodeTypeAndRecodeCodeAndReviewType(recordType, statusCode, reviewType);
         return buttonStatus.getPageButtonStatus();
     }
 

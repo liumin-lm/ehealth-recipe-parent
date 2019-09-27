@@ -1554,6 +1554,8 @@ public class RecipeService extends RecipeBaseService{
      * @param flag     1:表示处方单详情页从到院取药转直接支付的情况判断
      * @return 0未处理  1线上支付 2货到付款 3到院支付
      */
+
+
     @RpcService
     public int getRecipePayMode(int recipeId, int flag) {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
