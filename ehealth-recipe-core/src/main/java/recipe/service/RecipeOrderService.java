@@ -49,6 +49,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.drugsenterprise.YsqRemoteService;
+import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
@@ -1262,7 +1263,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     //首先判断是否支付成功调用，还是支付前调用
                     if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
                         //支付成功后
-                        payStatus = getPayStatus(reviewType, giveMode);
+                        payStatus = getPayStatus(reviewType, giveMode, nowRecipe);
                         attrMap.put("payTime", Calendar.getInstance().getTime());
                         attrMap.put("status", payStatus);
                         attrMap.put("effective", 1);
@@ -1272,7 +1273,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
                         if(null != order){
                             if(0 == order.getActualPrice()){
-                                noPayStatus = getPayStatus(reviewType, giveMode);
+                                noPayStatus = getPayStatus(reviewType, giveMode, nowRecipe);
                             }else{
                                 noPayStatus = OrderStatusConstant.READY_PAY;
                             }
@@ -1310,7 +1311,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @param giveMode 购药方式
      * @return int 订单的修改状态
      */
-    private int getPayStatus(Integer reviewType, Integer giveMode) {
+    private int getPayStatus(Integer reviewType, Integer giveMode, Recipe nowRecipe) {
         int payStatus = 0;
         //支付成功、支付前不需要支付时判断审核方式
         if(ReviewTypeConstant.Postposition_Check == reviewType){
@@ -1318,13 +1319,16 @@ public class RecipeOrderService extends RecipeBaseService {
             payStatus = OrderStatusConstant.READY_CHECK;
         }else{
             //前置、不需要审核，根据购药方式判断
-            if(RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) ||
-                    RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode) ||
-                    RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(giveMode)){
-                payStatus = OrderStatusConstant.READY_GET_DRUG;
-            }else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(giveMode)){
-                payStatus = OrderStatusConstant.READY_SEND;
-            }
+//            if(RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) ||
+//                    RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode) ||
+//                    RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(giveMode)){
+//                payStatus = OrderStatusConstant.READY_GET_DRUG;
+//            }else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(giveMode)){
+//                payStatus = OrderStatusConstant.READY_SEND;
+//            }
+            //修改成根据购药方式来
+            PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+            payStatus = purchaseService.getOrderStatus(nowRecipe);
         }
         return payStatus;
     }

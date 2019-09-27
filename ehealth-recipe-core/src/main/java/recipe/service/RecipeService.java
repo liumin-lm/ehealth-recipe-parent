@@ -63,6 +63,8 @@ import recipe.drugsenterprise.AldyfRemoteService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.RecipeToHisCallbackService;
+import recipe.purchase.IPurchaseService;
+import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.thread.PushRecipeToHisCallable;
 import recipe.thread.PushRecipeToRegulationCallable;
@@ -1062,11 +1064,13 @@ public class RecipeService extends RecipeBaseService{
                     //到店取药审核完成是带取药状态
                     //data:20190919
                     //添加到院取药和下载处方的状态（这里后置的逻辑）
-                    if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())
-                            || RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode()) ||
-                            RecipeBussConstant.PAYMODE_DOWNLOAD_RECIPE.equals(recipe.getPayMode())) {
-                        status = OrderStatusConstant.READY_GET_DRUG;
-                    }
+//                    if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())
+//                            || RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode()) ||
+//                            RecipeBussConstant.PAYMODE_DOWNLOAD_RECIPE.equals(recipe.getPayMode())) {
+//                        status = OrderStatusConstant.READY_GET_DRUG;
+//                    }
+                    PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+                    status = purchaseService.getOrderStatus(recipe);
                     orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("status", status), resultBean);
                     //发送患者审核完成消息
                     RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS_YS);
