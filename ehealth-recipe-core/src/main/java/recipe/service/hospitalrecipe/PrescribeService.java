@@ -460,21 +460,23 @@ public class PrescribeService {
                         attrMap.put("payMode", RecipeBussConstant.PAYMODE_TO_HOS);
                         attrMap.put("enterpriseId", null);
 
-                        //给天猫大药房推送医院取药完成接口
-                        OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-                        List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(Integer.valueOf(request.getOrganId()), 1);
-                        DrugsEnterprise drugsEnterprise = drugsEnterprises.get(0);
-                        if ("tmdyf".equals(drugsEnterprise.getCallSys())) {
-                            RemoteDrugEnterpriseService remoteDrugEnterpriseService =
-                                ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-                            try {
-                                AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
-                                DrugEnterpriseResult drugEnterpriseResult = remoteService.updatePrescriptionStatus(dbRecipe.getRecipeCode(), RecipeStatusConstant.FINISH);
-                                LOG.info("向药企推送处方医院取药完成通知,{}", JSONUtils.toString(drugEnterpriseResult));
-                            } catch (Exception e) {
-                                LOG.info("向药企推送处方医院取药完成通知有问题{}", dbRecipe.getRecipeId(), e);
-                            }
+                        //给天猫大药房推送医院取药完成接口(往药企推送过处方才会更新)
+                        if(dbRecipe.getPushFlag() == 1){
+                            OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+                            List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(Integer.valueOf(request.getOrganId()), 1);
+                            DrugsEnterprise drugsEnterprise = drugsEnterprises.get(0);
+                            if ("tmdyf".equals(drugsEnterprise.getCallSys())) {
+                                RemoteDrugEnterpriseService remoteDrugEnterpriseService =
+                                    ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+                                try {
+                                    AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+                                    DrugEnterpriseResult drugEnterpriseResult = remoteService.updatePrescriptionStatus(dbRecipe.getRecipeCode(), RecipeStatusConstant.FINISH);
+                                    LOG.info("向药企推送处方医院取药完成通知,{}", JSONUtils.toString(drugEnterpriseResult));
+                                } catch (Exception e) {
+                                    LOG.info("向药企推送处方医院取药完成通知有问题{}", dbRecipe.getRecipeId(), e);
+                                }
 
+                            }
                         }
 
                         //日志记录
