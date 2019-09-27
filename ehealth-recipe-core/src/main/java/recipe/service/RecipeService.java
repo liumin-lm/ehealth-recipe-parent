@@ -1360,7 +1360,7 @@ public class RecipeService extends RecipeBaseService{
                         OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
                         List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
                         for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
-                            if ("aldyf".equals(drugsEnterprise.getCallSys()) || "tmdyf".equals(drugsEnterprise.getCallSys())) {
+                            if ("aldyf".equals(drugsEnterprise.getCallSys()) || ("tmdyf".equals(drugsEnterprise.getCallSys()) && recipe.getPushFlag() == 1)) {
                                 //向药企推送处方过期的通知
                                 RemoteDrugEnterpriseService remoteDrugEnterpriseService =
                                     ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
