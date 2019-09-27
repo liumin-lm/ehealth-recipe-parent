@@ -55,4 +55,11 @@ public interface IPurchaseService {
      * @return
      */
     String getTipsByStatusForPatient(Recipe recipe, RecipeOrder order);
+
+    /**
+     * 获取药店取药的状态
+     * @param recipe 处方详情
+     * @return 订单状态
+     */
+    Integer getOrderStatus(Recipe recipe);
 }
