@@ -898,6 +898,9 @@ public class RecipeServiceSub {
             case RecipeStatusConstant.RECIPE_FAIL:
                 tips = "失败";
                 break;
+            case RecipeStatusConstant.RECIPE_DOWNLOADED:
+                tips = "已下载";
+                break;
             default:
                 tips = "未知状态" + status;
         }
