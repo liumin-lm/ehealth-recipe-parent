@@ -21,6 +21,14 @@ public class RecipePayModeSupportBean {
      */
     private boolean supportTFDS = false;
     /**
+     * 下载处方标志
+     */
+    private boolean supportDownload = false;
+    /**
+     * 到院取药标志
+     */
+    private boolean supportToHos = false;
+    /**
      * 支持多种购药方式
      */
     private boolean supportComplex = false;
@@ -30,6 +38,8 @@ public class RecipePayModeSupportBean {
         this.supportMedicalInsureance = false;
         this.supportCOD = false;
         this.supportTFDS = false;
+        this.supportDownload = false;
+        this.supportToHos = false;
         this.supportComplex = false;
     }
 
@@ -63,6 +73,22 @@ public class RecipePayModeSupportBean {
 
     public void setSupportTFDS(boolean supportTFDS) {
         this.supportTFDS = supportTFDS;
+    }
+
+    public boolean isSupportDownload() {
+        return supportDownload;
+    }
+
+    public void setSupportDownload(boolean supportDownload) {
+        this.supportDownload = supportDownload;
+    }
+
+    public boolean isSupportToHos() {
+        return supportToHos;
+    }
+
+    public void setSupportToHos(boolean supportToHos) {
+        this.supportToHos = supportToHos;
     }
 
     public boolean isSupportComplex() {

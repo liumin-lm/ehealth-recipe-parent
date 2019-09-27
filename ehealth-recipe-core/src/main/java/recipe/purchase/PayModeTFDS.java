@@ -177,7 +177,7 @@ public class PayModeTFDS implements IPurchaseService{
         order.setOrganId(dbRecipe.getClinicOrgan());
         order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
         //订单的状态统一到finishOrderPayWithoutPay中设置
-        //order.setStatus(OrderStatusConstant.READY_GET_DRUG);
+        order.setStatus(OrderStatusConstant.READY_GET_DRUG);
         order.setDrugStoreName(MapValueUtil.getString(extInfo, "gysName"));
         order.setRecipeIdList("["+dbRecipe.getRecipeId()+"]");
         order.setDrugStoreAddr(MapValueUtil.getString(extInfo, "gysAddr"));

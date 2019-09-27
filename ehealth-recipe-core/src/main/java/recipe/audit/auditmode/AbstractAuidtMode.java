@@ -1,6 +1,5 @@
 package recipe.audit.auditmode;
 
-import com.google.common.collect.ImmutableMap;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -9,7 +8,6 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import eh.base.constant.BussTypeConstant;
-import eh.cdr.constant.OrderStatusConstant;
 import eh.cdr.constant.RecipeStatusConstant;
 import eh.wxpay.constant.PayConstant;
 import recipe.ApplicationUtils;
@@ -21,7 +19,6 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.*;
 import recipe.util.MapValueUtil;
 
-import java.math.BigDecimal;
 import java.util.Map;
 
 import static ctd.persistence.DAOFactory.getDAO;
@@ -78,8 +75,8 @@ public class AbstractAuidtMode implements IAuditMode{
         Integer status = RecipeStatusConstant.CHECK_PASS;
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        String giveMode = MapValueUtil.getString(attrMap,"giveMode");
-        Integer payMode = MapValueUtil.getInteger(attrMap, "payMode");
+        Integer giveMode = null == MapValueUtil.getInteger(attrMap,"giveMode") ? recipe.getGiveMode() : MapValueUtil.getInteger(attrMap,"giveMode");
+        Integer payMode = null == MapValueUtil.getInteger(attrMap, "payMode") ? recipe.getPayMode() : MapValueUtil.getInteger(attrMap,"payMode");
         Integer payFlag = MapValueUtil.getInteger(attrMap, "payFlag");
         //根据传入的方式来处理, 因为供应商列表，钥世圈提供的有可能是多种方式都支持，当时这2个值是保存为null的
         if (saveFlag) {
