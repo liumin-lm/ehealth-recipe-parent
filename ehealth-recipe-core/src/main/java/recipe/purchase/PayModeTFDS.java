@@ -281,9 +281,8 @@ public class PayModeTFDS implements IPurchaseService{
 
     @Override
     public Integer getOrderStatus(Recipe recipe) {
-        Integer orderStatus = OrderStatusConstant.HAS_DRUG;
+        Integer orderStatus;
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        List<Integer> recipeIds = Arrays.asList(recipe.getRecipeId());
         DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise dep = enterpriseDAO.getById(recipe.getEnterpriseId());
         //处理详情
