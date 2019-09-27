@@ -374,7 +374,7 @@ public class PrescribeService {
                     result.setCode(HosRecipeResult.SUCCESS);
 
                     OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-                    List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(Integer.valueOf(request.getOrganId()), 1);
+                    List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(clinicOrgan, 1);
                     DrugsEnterprise drugsEnterprise = drugsEnterprises.get(0);
                     if ("aldyf".equals(drugsEnterprise.getCallSys())) {
                         //判断用户是否已鉴权
@@ -464,7 +464,7 @@ public class PrescribeService {
                         //给天猫大药房推送医院取药完成接口(往药企推送过处方才会更新)
                         if(dbRecipe.getPushFlag() == 1){
                             OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO1 = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-                            List<DrugsEnterprise> drugsEnterprises1 = organAndDrugsepRelationDAO1.findDrugsEnterpriseByOrganIdAndStatus(Integer.valueOf(request.getOrganId()), 1);
+                            List<DrugsEnterprise> drugsEnterprises1 = organAndDrugsepRelationDAO1.findDrugsEnterpriseByOrganIdAndStatus(clinicOrgan, 1);
                             DrugsEnterprise drugsEnterprise1 = drugsEnterprises1.get(0);
                             if ("tmdyf".equals(drugsEnterprise1.getCallSys())) {
                                 RemoteDrugEnterpriseService remoteDrugEnterpriseService =
