@@ -1,11 +1,13 @@
 package recipe.drugsenterprise;
 
+import com.alijk.bqhospital.alijk.conf.TaobaoConf;
 import com.alijk.bqhospital.alijk.dto.BaseResult;
 import com.alijk.bqhospital.alijk.service.AlihealthHospitalService;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.EmploymentDTO;
@@ -30,14 +32,18 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.utils.DateConversion;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
+import recipe.bean.DeptOrderDTO;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.bean.PurchaseResponse;
 import recipe.constant.DrugEnterpriseConstant;
+import recipe.constant.ParameterConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -46,7 +52,9 @@ import sun.misc.BASE64Decoder;
 
 import javax.annotation.Nullable;
 import java.io.OutputStream;
+import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -71,9 +79,66 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
     @Autowired
     private AldyfRedisService aldyfRedisService;
 
+    @Autowired
+    private TaobaoConf taobaoConf;
+
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
         LOGGER.info("AldyfRemoteService tokenUpdateImpl not implement.");
+    }
+
+    @Override
+    public void getJumpUrl(PurchaseResponse response, Recipe recipe, DrugsEnterprise drugsEnterprise) {
+
+        DrugEnterpriseResult result = queryPrescription(recipe.getRecipeCode(), true);
+
+        RemoteDrugEnterpriseService remoteDrugEnterpriseService =
+            ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        if (null == result.getObject()) {
+            //没有处方进行处方推送
+            pushRecipeInfo(Collections.singletonList(recipe.getRecipeId()), drugsEnterprise);
+            //说明处方获取失败
+//            LOGGER.warn("purchase queryPrescription retunr null. recipeId={}", recipe.getRecipeId());
+//            LOGGER.info("purchase 重新发起推送. recipeId={}", recipe.getRecipeId());
+//            PurchaseResponse subResponse = purchase(request);
+        }
+        AlibabaAlihealthRxPrescriptionGetResponse aliResponse = (AlibabaAlihealthRxPrescriptionGetResponse) result.getObject();
+        AlibabaAlihealthRxPrescriptionGetResponse.RxPrescription rxPrescription = aliResponse.getModel();
+        if (null != rxPrescription) {
+            if (rxPrescription.getUsable()) {
+                //可下单则跳转到淘宝下单页
+                ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
+                String param = iSysParamterService.getParam(ParameterConstant.KEY_ALI_ORDER_ADDR, null);
+                response.setOrderUrl(MessageFormat.format(param, taobaoConf.getAppkey(), recipe.getRecipeCode()));
+                response.setCode(PurchaseResponse.ORDER);
+                //                return response;
+            } else {
+                //已使用处方展示订单信息
+                List<AlibabaAlihealthRxPrescriptionGetResponse.RxOrderInfo> rxOrderInfoList = rxPrescription.getRxOrderList();
+                if (CollectionUtils.isNotEmpty(rxOrderInfoList)) {
+                    List<DeptOrderDTO> deptOrderDTOList = new ArrayList<>(rxOrderInfoList.size());
+                    DeptOrderDTO deptOrderDTO;
+                    for (AlibabaAlihealthRxPrescriptionGetResponse.RxOrderInfo rxOrderInfo : rxOrderInfoList) {
+                        deptOrderDTO = new DeptOrderDTO();
+                        deptOrderDTO.setOrderCode(rxOrderInfo.getBizOrderId());
+                        deptOrderDTO.setStatus(rxOrderInfo.getStatus());
+                        deptOrderDTO.setOrderDetailUrl(rxOrderInfo.getBizOrderDetailUrl());
+                        deptOrderDTOList.add(deptOrderDTO);
+                    }
+                    response.setOrderList(deptOrderDTOList);
+                    response.setCode(PurchaseResponse.ORDER_DETAIL);
+                    //                    return response;
+                }
+            }
+        } else {
+            //没有处方进行处方推送
+//            RemoteDrugEnterpriseService remoteDrugEnterpriseService =
+//                ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+            pushRecipeInfo(Collections.singletonList(recipe.getRecipeId()), drugsEnterprise);
+//            LOGGER.warn("purchase queryPrescription rxPrescription is null. recipeId={}", recipe.getRecipeId());
+//            response.setMsg("该处方无法配送");
+//            return response;
+        }
     }
 
     @Override

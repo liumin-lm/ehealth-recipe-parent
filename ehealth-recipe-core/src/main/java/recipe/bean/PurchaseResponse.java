@@ -11,6 +11,10 @@ import java.util.List;
  * @version： 1.0
  */
 public class PurchaseResponse extends CommonResponse {
+    /**
+     * 校验异常
+     */
+    public static final String CHECKWARN = "001";
 
     /**
      * 需要鉴权
@@ -31,6 +35,12 @@ public class PurchaseResponse extends CommonResponse {
      * 到院取药成功
      */
     public static final String TO_HOS_SUCCESS = "005";
+
+
+    /**
+     * 跳转
+     */
+    public static final String JUMP = "006";
 
     private String authUrl;
 

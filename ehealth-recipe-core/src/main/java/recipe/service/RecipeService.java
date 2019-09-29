@@ -59,6 +59,7 @@ import recipe.bussutil.RecipeValidateUtil;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
+import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.AldyfRemoteService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
@@ -1361,16 +1362,28 @@ public class RecipeService extends RecipeBaseService{
                         OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
                         List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
                         for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
-                            if ("aldyf".equals(drugsEnterprise.getCallSys())) {
+                            if ("aldyf".equals(drugsEnterprise.getCallSys()) || ("tmdyf".equals(drugsEnterprise.getCallSys()) && recipe.getPushFlag() == 1)) {
+                                //向药企推送处方过期的通知
+                                RemoteDrugEnterpriseService remoteDrugEnterpriseService =
+                                    ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
                                 try {
-                                    //向阿里大药房推送处方过期的通知
-                                    AldyfRemoteService aldyfRemoteService = ApplicationUtils.getRecipeService(AldyfRemoteService.class);
-                                    DrugEnterpriseResult drugEnterpriseResult = aldyfRemoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.EXPIRE);
-                                    LOGGER.info("向阿里大药房推送处方过期通知,{}", JSONUtils.toString(drugEnterpriseResult));
+                                    AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+                                    DrugEnterpriseResult drugEnterpriseResult = remoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.EXPIRE);
+                                    LOGGER.info("向药企推送处方过期通知,{}", JSONUtils.toString(drugEnterpriseResult));
                                 } catch (Exception e) {
-                                    LOGGER.info("向阿里大药房推送处方过期通知有问题{}", recipe.getRecipeId(), e);
+                                    LOGGER.info("向药企推送处方过期通知有问题{}", recipe.getRecipeId(), e);
                                 }
+//                                try {
+//                                    //向阿里大药房推送处方过期的通知
+//                                    AldyfRemoteService aldyfRemoteService = ApplicationUtils.getRecipeService(AldyfRemoteService.class);
+//                                    DrugEnterpriseResult drugEnterpriseResult = aldyfRemoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.EXPIRE);
+//                                    LOGGER.info("向阿里大药房推送处方过期通知,{}", JSONUtils.toString(drugEnterpriseResult));
+//                                } catch (Exception e) {
+//                                    LOGGER.info("向阿里大药房推送处方过期通知有问题{}", recipe.getRecipeId(), e);
+//                                }
                             }
+
+
                         }
                     }
                     memo.delete(0, memo.length());

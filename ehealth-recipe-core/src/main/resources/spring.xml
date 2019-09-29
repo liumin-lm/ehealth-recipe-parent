@@ -55,6 +55,9 @@
 	<!--处方对接华东虚拟药企对接杭州市三医院-->
 	<bean id="hdVirtualdyfRemoteService" class="recipe.drugsenterprise.HdVirtualdyfRemoteService"></bean>
 
+	<!--天猫药企-->
+	<bean id="tmdyfRemoteService" class="recipe.drugsenterprise.TmdyfRemoteService"></bean>
+
 	<bean id="busTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" destroy-method="shutdown">
 		<!-- 线程池活跃的线程数 -->
 		<property name="corePoolSize" value="5" />

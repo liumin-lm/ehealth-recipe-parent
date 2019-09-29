@@ -42,5 +42,6 @@
 
     <reference id="eh.remoteFileDownloadService" interface="com.ngari.recipe.filedownload.service.IFileDownloadService"/>
     <reference id="eh.configurationCenterUtils" interface="com.ngari.base.property.service.IConfigurationCenterUtilsService" />
-    
+    <reference id="eh.remoteCurrentUserInfoService" interface="com.ngari.base.currentuserinfo.service.ICurrentUserInfoService"/>
+
 </s:beans>

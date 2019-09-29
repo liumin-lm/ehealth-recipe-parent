@@ -56,6 +56,9 @@ public class RecipeExtend implements Serializable {
     private String  cardNo;
     /**互联网医院字段*/
 
+    @ItemProperty(alias = "天猫返回处方编号")
+    private String  rxNo;
+
     public RecipeExtend() {
     }
 
@@ -175,6 +178,15 @@ public class RecipeExtend implements Serializable {
 
     public void setRegisterID(String registerID) {
         this.registerID = registerID;
+    }
+
+    @Column(name = "rxNo")
+    public String getRxNo() {
+        return rxNo;
+    }
+
+    public void setRxNo(String rxNo) {
+        this.rxNo = rxNo;
     }
 
 }
