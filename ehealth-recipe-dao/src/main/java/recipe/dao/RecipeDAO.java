@@ -1791,10 +1791,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         return action.getResult();
     }
 
-<<<<<<< Updated upstream
     @DAOMethod(sql = "select distinct doctor from Recipe where doctor is not null",limit = 0)
     public abstract List<Integer> findDoctorIdByHistoryRecipe();
-=======
+
     /**
      * 查找指定医生和患者间开的处方单列表
      *
@@ -1827,5 +1826,4 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         List<Recipe> recipes = action.getResult();
         return recipes;
     }
->>>>>>> Stashed changes
 }

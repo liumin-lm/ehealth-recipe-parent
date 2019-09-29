@@ -322,6 +322,9 @@ public class PurchaseService {
             case RecipeStatusConstant.REVOKE:
                 tips = "由于医生已撤销，该处方单已失效，请联系医生";
                 break;
+            case RecipeStatusConstant.RECIPE_DOWNLOADED:
+                tips = "已下载处方签";
+                break;
             default:
                 IPurchaseService purchaseService = getService(payMode);
                 if(null == purchaseService){
