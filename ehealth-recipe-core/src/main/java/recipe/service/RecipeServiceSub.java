@@ -1186,6 +1186,12 @@ public class RecipeServiceSub {
             //3.如果不是后置的，判断实际金额是否为0：为0则ordercode关联则展示，不为0支付则展示
             boolean isDownload = getDownConfig(recipe, order);
             map.put("isDownload", isDownload);
+            //date 2190929
+            //添加处方详情上提示信息的展示颜色类型
+            RecipeTipesColorTypeEnum colorType = RecipeTipesColorTypeEnum.fromRecipeStatus(recipe.getStatus());
+            if(null != colorType){
+                map.put("tipsType", colorType.getShowType());
+            }
         }
 
         if (StringUtils.isEmpty(recipe.getMemo())) {

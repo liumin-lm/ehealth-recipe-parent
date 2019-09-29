@@ -989,7 +989,8 @@ public class RecipeService extends RecipeBaseService{
         } else {
             afterStatus = RecipeStatusConstant.CHECK_PASS;
         }
-
+        //date 20190929
+        //这里提示文案描述，扩展成二次审核通过/二次审核不通过的说明
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), afterStatus,
                 ImmutableMap.of("supplementaryMemo", recipe.getSupplementaryMemo()));
         afterCheckPassYs(dbRecipe);

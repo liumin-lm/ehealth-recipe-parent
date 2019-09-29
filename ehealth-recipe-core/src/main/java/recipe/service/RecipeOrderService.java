@@ -465,7 +465,9 @@ public class RecipeOrderService extends RecipeBaseService {
         }
         //设置审方费用
         Recipe firstRecipe = recipeList.get(0);
-        double auditFee = Double.parseDouble(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_AUDITFEE).toString());
+        //date 20190929
+        //审方费判断非不需要审核再去计算
+        double auditFee = ReviewTypeConstant.Not_Need_Check == firstRecipe.getReviewType() ? 0d : Double.parseDouble(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_AUDITFEE).toString());
         order.setAuditFee(BigDecimal.valueOf(auditFee));
         //设置其他服务费用
         double otherServiceFee = Double.parseDouble(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_OTHERFEE).toString());
@@ -1140,7 +1142,7 @@ public class RecipeOrderService extends RecipeBaseService {
             //在扩展内容中设置下载处方签的判断
             getDownConfig(result, order, recipeList);
             //在扩展内容中添加展示审核金额
-            getShowAuditFee(result, order, recipeList);
+            getShowAuditFeeAndTips(result, order, recipeList);
         } else {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("不存在ID为" + orderId + "的订单");
@@ -1159,7 +1161,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @param recipeList 订单关联的处方列表
      * @return void
      */
-    public void getShowAuditFee(RecipeResultBean result, RecipeOrder order, List<Recipe> recipeList) {
+    public void getShowAuditFeeAndTips(RecipeResultBean result, RecipeOrder order, List<Recipe> recipeList) {
 
         Map<String, String> ext = result.getExt();
         if(null == ext){
@@ -1172,11 +1174,36 @@ public class RecipeOrderService extends RecipeBaseService {
                 //判断时候需要展示审方费用：
                 //当不是不需要审核
                 showAuditFee = ReviewTypeConstant.Not_Need_Check != nowRecipe.getReviewType();
+                //添加文案提示的
+                getOrderTips(ext, nowRecipe, order);
+                //设置页面上提示文案的颜色信息
+                RecipeTipesColorTypeEnum colorType = RecipeTipesColorTypeEnum.fromRecipeStatus(nowRecipe.getStatus());
+                if(null != colorType){
+                    ext.put("tipsType", colorType.getShowType());
+                }
             }
         }
 
         ext.put("showAuditFee", showAuditFee ?  "1" : "0");
         result.setExt(ext);
+    }
+
+    /**
+     * @method  getOrderTips
+     * @description 获取订单的提示
+     * @date: 2019/9/29
+     * @author: JRK
+     * @param ext
+     * @param nowRecipe
+     * @return void
+     */
+    private void getOrderTips(Map<String, String> ext, Recipe nowRecipe, RecipeOrder order) {
+        if (nowRecipe.getRecipeMode() == RecipeBussConstant.RECIPEMODE_ZJJGPT) {
+            ext.put("tips", RecipeServiceSub.getTipsByStatusForPatient(nowRecipe, order));
+        } else {
+            PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+            ext.put("tips", purchaseService.getTipsByStatusForPatient(nowRecipe, order));
+        }
     }
 
     /**
@@ -1512,7 +1539,7 @@ public class RecipeOrderService extends RecipeBaseService {
 
        //审方费,计算当审方模式不是不需要你审方才计算
         if (null != recipe && ReviewTypeConstant.Not_Need_Check != recipe.getReviewType()
-                && null != order.getAuditFee() ) {
+                && null != order.getAuditFee()) {
             full = full.add(order.getAuditFee());
         }
 

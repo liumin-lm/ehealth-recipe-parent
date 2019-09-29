@@ -1791,6 +1791,41 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         return action.getResult();
     }
 
+<<<<<<< Updated upstream
     @DAOMethod(sql = "select distinct doctor from Recipe where doctor is not null",limit = 0)
     public abstract List<Integer> findDoctorIdByHistoryRecipe();
+=======
+    /**
+     * 查找指定医生和患者间开的处方单列表
+     *
+     * @param doctorId
+     * @param mpiId
+     * @param start
+     * @param limit
+     * @return
+     */
+    public List<Recipe> findRecipeListByDoctorAndPatientAndStatusList(final Integer doctorId, final String mpiId,
+                                                         final Integer start, final Integer limit, final List<Integer> statusList) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String hql = "from Recipe where mpiid=:mpiid and doctor=:doctor and status IN (:statusList)" +
+                        " order by createDate desc";
+                Query query = ss.createQuery(hql);
+                query.setParameter("doctor", doctorId);
+                query.setParameter("mpiid", mpiId);
+                query.setParameterList("statusList", statusList);
+                if (null != start && null != limit) {
+                    query.setFirstResult(start);
+                    query.setMaxResults(limit);
+                }
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+
+        List<Recipe> recipes = action.getResult();
+        return recipes;
+    }
+>>>>>>> Stashed changes
 }
