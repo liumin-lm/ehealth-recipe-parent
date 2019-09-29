@@ -171,12 +171,6 @@
             <artifactId>ehealth-voucher-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>ngari</groupId>
-            <artifactId>ehealth-basic-base</artifactId>
-            <version>1.13.1.master-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>com.alihealth</groupId>
             <artifactId>taobao-sdk-java-daily_bg_type</artifactId>
             <version>1.0</version>

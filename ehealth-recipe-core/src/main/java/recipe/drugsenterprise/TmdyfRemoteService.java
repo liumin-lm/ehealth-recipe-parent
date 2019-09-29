@@ -2,36 +2,25 @@ package recipe.drugsenterprise;
 
 import com.alibaba.fastjson.JSON;
 import com.alijk.bqhospital.alijk.conf.TaobaoConf;
-import com.alijk.bqhospital.alijk.dto.BaseResult;
-import com.alijk.bqhospital.alijk.service.AlihealthHospitalService;
-import com.alijk.bqhospital.alijk.utils.TaobaoClientUtils;
 import com.google.common.collect.ImmutableMap;
 import com.ngari.base.BaseAPI;
-import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
-import com.ngari.patient.base.domain.Patient;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.entity.*;
-import com.qimencloud.api.sceneqimen.request.AlibabaAlihealthDrugstoreGetRequest;
 import com.qimencloud.api.sceneqimen.request.AlibabaAlihealthPrescriptionStatusSyncRequest;
-import com.qimencloud.api.sceneqimen.response.AlibabaAlihealthDrugstoreGetResponse;
 import com.qimencloud.api.sceneqimen.response.AlibabaAlihealthPrescriptionStatusSyncResponse;
 import com.taobao.api.ApiException;
 import com.taobao.api.DefaultTaobaoClient;
 import com.taobao.api.TaobaoClient;
-import com.taobao.api.TaobaoResponse;
-import com.taobao.api.internal.spi.CheckResult;
-import com.taobao.api.internal.spi.SpiUtils;
 import com.taobao.api.request.*;
 import com.taobao.api.response.*;
 import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
-import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -39,13 +28,10 @@ import ctd.util.annotation.RpcService;
 import eh.utils.DateConversion;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.zookeeper.OpResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
@@ -60,10 +46,6 @@ import recipe.dao.SaleDrugListDAO;
 import recipe.drugsenterprise.bean.StandardResultDTO;
 import recipe.drugsenterprise.bean.StandardStateDTO;
 import recipe.service.common.RecipeCacheService;
-import sun.misc.BASE64Decoder;
-
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -206,7 +188,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
 
 
                 //操作人手机号
-                Patient patient2 = UserRoleToken.getCurrent().getProperty("patient", Patient.class);
+                PatientDTO patient2 = UserRoleToken.getCurrent().getProperty("patient", PatientDTO.class);
                 if(null != patient2.getMobile()){
                     requestParam.setMobilePhone(patient2.getMobile());
                 } else {
