@@ -2,6 +2,7 @@ package recipe.dao;
 
 import com.ngari.recipe.entity.RecipeExtend;
 import ctd.persistence.annotation.DAOMethod;
+import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
 import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResultAction;
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
@@ -14,6 +15,7 @@ import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import org.springframework.util.ObjectUtils;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -114,6 +116,16 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    /*
+     * @description 根据天猫回传处方编码获取处方id集合
+     * @author gmw
+     * @date 2019/9/23
+     * @param rxNo
+     * @return List<Integer>
+     */
+    @DAOMethod(sql = "select recipeId from RecipeExtend where rxNo=:rxNo")
+    public abstract List<Integer> findRecipeIdsByRxNo(@DAOParam("rxNo") String rxNo);
 
 
 }

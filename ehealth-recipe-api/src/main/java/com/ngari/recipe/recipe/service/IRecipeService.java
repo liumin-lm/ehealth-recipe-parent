@@ -288,4 +288,11 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     List<String> findSignFileIdByPatientId(String patientId);
+
+    /**
+     * 运营平台使用 获取可以开方的医生处理老数据
+     * @return
+     */
+    @RpcService
+    List<Integer> findDoctorIdByHistoryRecipe();
 }

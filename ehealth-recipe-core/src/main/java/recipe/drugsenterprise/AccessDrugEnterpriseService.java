@@ -1,6 +1,7 @@
 package recipe.drugsenterprise;
 
 import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -8,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.bean.PurchaseResponse;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateDrugsEpCallable;
 
@@ -119,6 +121,14 @@ public abstract class AccessDrugEnterpriseService {
      */
     public abstract void tokenUpdateImpl(DrugsEnterprise drugsEnterprise);
 
+    /**
+     * 获取互联网药企页面跳转地址
+     *
+     * @param drugsEnterprise
+     */
+    public void getJumpUrl(PurchaseResponse response, Recipe recipe, DrugsEnterprise drugsEnterprise) {
+
+    }
     /**
      * 推送处方
      *

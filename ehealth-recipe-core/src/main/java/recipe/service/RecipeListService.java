@@ -454,6 +454,9 @@ public class RecipeListService extends RecipeBaseService{
             case RecipeStatusConstant.CHECK_PASS_YS:
                 msg = "待配送";
                 break;
+            case RecipeStatusConstant.USING:
+                msg = "处理中";
+                break;
             default:
                 msg = "未知状态";
         }

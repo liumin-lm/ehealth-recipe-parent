@@ -136,37 +136,54 @@ public class DrugDistributionService {
             return response;
         }
 
-        String loginId = UserRoleToken.getCurrent().getUserId();
-        //未授权且发起方式为 到院取药 之外的方式需要进行授权操作
-        if (!authorization(loginId) && !RecipeBussConstant.GIVEMODE_TO_HOS.equals(request.getType())) {
-            response.setCode(PurchaseResponse.AUTHORIZATION);
-            response.setMsg("用户需要鉴权");
-            try {
-                ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
-                IWXServiceInterface wxService = ApplicationUtils.getService(IWXServiceInterface.class, "wxService");
-
-                //配置回调地址
-                String param = iSysParamterService.getParam(ParameterConstant.KEY_TAOBAO_AUTHORIZATION_ADDR, null);
-                response.setAuthUrl(MessageFormat.format(param, taobaoConf.getAppkey(),
-                        wxService.urlJoin()+"/taobao/callBack_code", loginId+"$"+request.getRecipeId()+"$"+request.getAppId()));
-            } catch (Exception e) {
-                LOGGER.warn("purchase 组装授权页出错. loginId={}", loginId, e);
-                response.setCode(CommonConstant.FAIL);
-                response.setMsg("跳转授权页面失败");
-            }
-            return response;
+        //根据药企ID获取药企信息
+        DrugsEnterprise drugsEnterprise = null;
+        if(null == request.getDepId()){
+            OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+            List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
+            drugsEnterprise = drugsEnterprises.get(0);
+        } else {
+            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+            drugsEnterprise = drugsEnterpriseDAO.get(request.getDepId());
         }
-        OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-        List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
-        DrugsEnterprise drugsEnterprise = drugsEnterprises.get(0);
+
         if (null == drugsEnterprise) {
             LOGGER.warn("purchase aldyf 药企不存在");
             response.setMsg("该处方无法配送");
             return response;
         }
 
-        if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(request.getType())) {
-            deliveryType = "1";
+
+        String loginId = UserRoleToken.getCurrent().getUserId();
+
+        if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(request.getType()) ||
+            RecipeBussConstant.GIVEMODE_TFDS.equals(request.getType())) {
+
+            //未授权且发起方式为 到院取药 之外的方式需要进行授权操作(天猫大药房除外)
+            if (!"tmdyf".equals(drugsEnterprise.getAccount()) && !authorization(loginId)) {
+                response.setCode(PurchaseResponse.AUTHORIZATION);
+                response.setMsg("用户需要鉴权");
+                try {
+                    ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
+                    IWXServiceInterface wxService = ApplicationUtils.getService(IWXServiceInterface.class, "wxService");
+
+                    //配置回调地址
+                    String param = iSysParamterService.getParam(ParameterConstant.KEY_TAOBAO_AUTHORIZATION_ADDR, null);
+                    response.setAuthUrl(MessageFormat.format(param, taobaoConf.getAppkey(),
+                        wxService.urlJoin()+"/taobao/callBack_code", loginId+"$"+request.getRecipeId()+"$"+request.getAppId()));
+                } catch (Exception e) {
+                    LOGGER.warn("purchase 组装授权页出错. loginId={}", loginId, e);
+                    response.setCode(CommonConstant.FAIL);
+                    response.setMsg("跳转授权页面失败");
+                }
+                return response;
+            }
+
+            if(RecipeBussConstant.GIVEMODE_TFDS.equals(request.getType())){
+                deliveryType = "2";
+            } else {
+                deliveryType = "1";
+            }
             if (1 == recipe.getChooseFlag() && RecipeBussConstant.GIVEMODE_SEND_TO_HOME == recipe.getGiveMode()) {
                 //已使用到院取药方式
                 response.setMsg("该处方单已使用，无法再次使用哦！");
@@ -179,62 +196,24 @@ public class DrugDistributionService {
             List<Integer> drugIdList = detailDAO.findDrugIdByRecipeId(request.getRecipeId());
             Long count = saleDrugListDAO.getCountByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIdList);
             if (count.intValue() != drugIdList.size()) {
-                LOGGER.warn("purchase aldyf saleDrugList无法配送所有药品. drugIdList={}", JSONUtils.toString(drugIdList));
-                response.setMsg("该处方无法配送");
+                LOGGER.warn("purchase aldyf saleDrugList药品存货不足，无法购药. drugIdList={}", JSONUtils.toString(drugIdList));
+                response.setMsg("药品存货不足，无法购药");
                 return response;
             }
 
-            DrugEnterpriseResult result = queryPrescription(recipe.getRecipeCode(), drugsEnterprise);
-            if (null == result.getObject()) {
-                //没有处方进行处方推送
-                RemoteDrugEnterpriseService remoteDrugEnterpriseService =
-                        ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-                remoteDrugEnterpriseService.pushSingleRecipeInfoWithDepId(request.getRecipeId(), drugsEnterprise.getId());
-                //说明处方获取失败
-                LOGGER.warn("purchase queryPrescription retunr null. recipeId={}", request.getRecipeId());
-                LOGGER.info("purchase 重新发起推送. recipeId={}", request.getRecipeId());
-                PurchaseResponse subResponse = purchase(request);
-                return subResponse;
+            recipe.setGiveMode(request.getType());
+//            DrugEnterpriseResult result = queryPrescription(recipe.getRecipeCode(), drugsEnterprise);
+
+            RemoteDrugEnterpriseService remoteDrugEnterpriseService =
+                ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+
+            //根据药企ID获取具体跳转的url地址
+            AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+            remoteService.getJumpUrl(response, recipe, drugsEnterprise);
+            if(PurchaseResponse.ORDER.equals(response.getCode())){
+                //更新平台处方
+                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("giveMode", request.getType()));
             }
-            AlibabaAlihealthRxPrescriptionGetResponse aliResponse = (AlibabaAlihealthRxPrescriptionGetResponse) result.getObject();
-            AlibabaAlihealthRxPrescriptionGetResponse.RxPrescription rxPrescription = aliResponse.getModel();
-            if (null != rxPrescription) {
-                if (rxPrescription.getUsable()) {
-                    //可下单则跳转到淘宝下单页
-                    ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
-                    String param = iSysParamterService.getParam(ParameterConstant.KEY_ALI_ORDER_ADDR, null);
-                    response.setOrderUrl(MessageFormat.format(param, taobaoConf.getAppkey(), recipe.getRecipeCode()));
-                    response.setCode(PurchaseResponse.ORDER);
-                    return response;
-                } else {
-                    //已使用处方展示订单信息
-                    List<AlibabaAlihealthRxPrescriptionGetResponse.RxOrderInfo> rxOrderInfoList = rxPrescription.getRxOrderList();
-                    if (CollectionUtils.isNotEmpty(rxOrderInfoList)) {
-                        List<DeptOrderDTO> deptOrderDTOList = new ArrayList<>(rxOrderInfoList.size());
-                        DeptOrderDTO deptOrderDTO;
-                        for (AlibabaAlihealthRxPrescriptionGetResponse.RxOrderInfo rxOrderInfo : rxOrderInfoList) {
-                            deptOrderDTO = new DeptOrderDTO();
-                            deptOrderDTO.setOrderCode(rxOrderInfo.getBizOrderId());
-                            deptOrderDTO.setStatus(rxOrderInfo.getStatus());
-                            deptOrderDTO.setOrderDetailUrl(rxOrderInfo.getBizOrderDetailUrl());
-                            deptOrderDTOList.add(deptOrderDTO);
-                        }
-                        response.setOrderList(deptOrderDTOList);
-                        response.setCode(PurchaseResponse.ORDER_DETAIL);
-                        return response;
-                    }
-                }
-            } else {
-                //没有处方进行处方推送
-                RemoteDrugEnterpriseService remoteDrugEnterpriseService =
-                        ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-                remoteDrugEnterpriseService.pushSingleRecipeInfoWithDepId(request.getRecipeId(), drugsEnterprise.getId());
-                LOGGER.warn("purchase queryPrescription rxPrescription is null. recipeId={}", request.getRecipeId());
-                response.setMsg("该处方无法配送");
-                return response;
-            }
-        } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(request.getType())) {
-            deliveryType = "2";
 
         } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(request.getType())) {
             if (StringUtils.isNotEmpty(recipe.getOrderCode())) {

@@ -33,11 +33,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipeCheckPassResult;
-import recipe.constant.OrderStatusConstant;
-import recipe.constant.PayConstant;
-import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
+import recipe.constant.*;
 import recipe.dao.*;
+import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.*;
 import recipe.service.hospitalrecipe.dataprocess.PrescribeProcess;
@@ -74,7 +72,7 @@ public class PrescribeService {
     /**
      * 创建处方
      *
-     * @param recipeInfo 处方json格式数据
+     * @param hospitalRecipeDTO 处方json格式数据
      * @return
      */
     @RpcService
@@ -375,24 +373,25 @@ public class PrescribeService {
                     HisCallBackService.checkPassSuccess(recipeCheckPassResult, true);
                     result.setCode(HosRecipeResult.SUCCESS);
 
-                    //判断用户是否已鉴权
-                    if(StringUtils.isNotEmpty(dbRecipe.getRequestMpiId())) {
-                        DrugDistributionService drugDistributionService =
-                                ApplicationUtils.getRecipeService(DrugDistributionService.class);
-                        PatientService patientService = BasicAPI.getService(PatientService.class);
-                        String loginId = patientService.getLoginIdByMpiId(dbRecipe.getRequestMpiId());
-                        if (drugDistributionService.authorization(loginId)) {
-                            //推送阿里处方推片和信息
-                            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-                            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAccount("aldyf");
-                            if (null == drugsEnterprise) {
-                                LOG.warn("updateRecipeStatus aldyf 药企不存在");
-                            }
-                            RemoteDrugEnterpriseService remoteDrugEnterpriseService =
-                                    ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-                            DrugEnterpriseResult deptResult =
+                    OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+                    List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(clinicOrgan, 1);
+                    DrugsEnterprise drugsEnterprise = drugsEnterprises.get(0);
+                    if ("aldyf".equals(drugsEnterprise.getCallSys())) {
+                        //判断用户是否已鉴权
+                        if (StringUtils.isNotEmpty(dbRecipe.getRequestMpiId())) {
+                            DrugDistributionService drugDistributionService = ApplicationUtils.getRecipeService(DrugDistributionService.class);
+                            PatientService patientService = BasicAPI.getService(PatientService.class);
+                            String loginId = patientService.getLoginIdByMpiId(dbRecipe.getRequestMpiId());
+                            if (drugDistributionService.authorization(loginId)) {
+                                //推送阿里处方推片和信息
+                                if (null == drugsEnterprise) {
+                                    LOG.warn("updateRecipeStatus aldyf 药企不存在");
+                                }
+                                RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+                                DrugEnterpriseResult deptResult =
                                     remoteDrugEnterpriseService.pushSingleRecipeInfoWithDepId(recipeId, drugsEnterprise.getId());
-                            LOG.info("updateRecipeStatus 推送药企处方，result={}", JSONUtils.toString(deptResult));
+                                LOG.info("updateRecipeStatus 推送药企处方，result={}", JSONUtils.toString(deptResult));
+                            }
                         }
                     }
 
@@ -461,6 +460,25 @@ public class PrescribeService {
                         attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_TO_HOS);
                         attrMap.put("payMode", RecipeBussConstant.PAYMODE_TO_HOS);
                         attrMap.put("enterpriseId", null);
+
+                        //给天猫大药房推送医院取药完成接口(往药企推送过处方才会更新)
+                        if(dbRecipe.getPushFlag() == 1){
+                            OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO1 = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+                            List<DrugsEnterprise> drugsEnterprises1 = organAndDrugsepRelationDAO1.findDrugsEnterpriseByOrganIdAndStatus(clinicOrgan, 1);
+                            DrugsEnterprise drugsEnterprise1 = drugsEnterprises1.get(0);
+                            if ("tmdyf".equals(drugsEnterprise1.getCallSys())) {
+                                RemoteDrugEnterpriseService remoteDrugEnterpriseService =
+                                    ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+                                try {
+                                    AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise1);
+                                    DrugEnterpriseResult drugEnterpriseResult = remoteService.updatePrescriptionStatus(dbRecipe.getRecipeCode(), RecipeStatusConstant.FINISH);
+                                    LOG.info("向药企推送处方医院取药完成通知,{}", JSONUtils.toString(drugEnterpriseResult));
+                                } catch (Exception e) {
+                                    LOG.info("向药企推送处方医院取药完成通知有问题{}", dbRecipe.getRecipeId(), e);
+                                }
+
+                            }
+                        }
 
                         //日志记录
                         RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), RecipeStatusConstant.FINISH,

@@ -64,6 +64,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import static ctd.persistence.DAOFactory.getDAO;
 
@@ -96,6 +97,7 @@ public class RecipeSignService {
      */
     @RpcService
     public RecipeStandardResTO<Map> sign(Integer recipeId, RecipeStandardReqTO request) {
+
         RecipeStandardResTO<Map> response = RecipeStandardResTO.getRequest(Map.class);
         response.setCode(RecipeCommonBaseTO.FAIL);
         //TODO 先校验处方是否有效
@@ -175,13 +177,20 @@ public class RecipeSignService {
         }
 
         //签名
-        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-        try {
-            //写入his成功后，生成pdf并签名
-            recipeService.generateRecipePdfAndSign(recipeId);
-        } catch (Exception e) {
-            LOG.warn("sign 签名服务异常，recipeId={}", recipeId, e);
-        }
+        RecipeBusiThreadPool.submit(new Callable() {
+            @Override
+            public Object call() throws Exception {
+                RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+                try {
+                    //写入his成功后，生成pdf并签名
+                    recipeService.generateRecipePdfAndSign(recipeId);
+                } catch (Exception e) {
+                    LOG.warn("sign 签名服务异常，recipeId={}", recipeId, e);
+                }
+                return null;
+            }
+        });
+
 
         //修改订单
         if (StringUtils.isEmpty(dbRecipe.getOrderCode())) {

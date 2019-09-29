@@ -237,6 +237,34 @@ public class StandardEnterpriseCallService {
                         return result;
                     }
                     break;
+
+                /**
+                 * 药企端处方状态变更（更新处方表recipe而不更订单表）（O2O专用）
+                 */
+                case RecipeStatusConstant.EFFECTIVE:
+                case RecipeStatusConstant.EXPIRED:
+                case RecipeStatusConstant.RETURNED:
+                    recipeAttrMap.put("chooseFlag", 0);
+                    Boolean rsTao1 = recipeDAO.updateRecipeInfoByRecipeId(recipeId,
+                        status, recipeAttrMap);
+                    if (!rsTao1){
+                        result.setMsg("[" + recipeCode + "]处方单更新失败");
+                        LOGGER.warn("changeState HOS处方单状态变更失败，recipeCode={}, status={}", recipeCode, status);
+                        return result;
+                    }
+                    break;
+                case RecipeStatusConstant.USING:
+                case RecipeStatusConstant.FINISH:
+                    recipeAttrMap.put("chooseFlag", 1);
+                    Boolean rsTao = recipeDAO.updateRecipeInfoByRecipeId(recipeId,
+                        status, recipeAttrMap);
+                    if (!rsTao){
+                        result.setMsg("[" + recipeCode + "]处方单更新失败");
+                        LOGGER.warn("changeState HOS处方单状态变更失败，recipeCode={}, status={}", recipeCode, status);
+                        return result;
+                    }
+                    break;
+
                 default:
                     result.setMsg("[" + stateDTO.getRecipeCode() + "]不支持变更的状态");
                     return result;

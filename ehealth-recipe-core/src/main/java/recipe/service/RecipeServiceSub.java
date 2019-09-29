@@ -45,7 +45,9 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.AldyfRemoteService;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.purchase.PurchaseService;
@@ -799,6 +801,10 @@ public class RecipeServiceSub {
             case RecipeStatusConstant.CHECKING_HOS:
                 tips = "医院确认中";
                 break;
+            //天猫特殊状态
+            case RecipeStatusConstant.USING:
+                tips = "处理中";
+                break;
             default:
                 tips = "未知状态" + status;
         }
@@ -1141,8 +1147,8 @@ public class RecipeServiceSub {
                 //Date:20190905
                 //Explain:将互联网的按钮和平台的按钮合并
                 map.put("supportOnline", 1);
-                //到店取药默认不可用
-                map.put("supportTFDS", 0);
+                //到店取药默认不可用（20190926小版本改为默认可用）
+                map.put("supportTFDS", 1);
                 //医院取药需要看数据
                 int hosFlag = 1;
                 if(1 == recipe.getDistributionFlag()){
@@ -1394,6 +1400,10 @@ public class RecipeServiceSub {
                 break;
             case RecipeStatusConstant.REVOKE:
                 tips = "由于医生已撤销，该处方单已失效，请联系医生.";
+                break;
+            //天猫特殊状态
+            case RecipeStatusConstant.USING:
+                tips = "处理中";
                 break;
             default:
                 tips = "未知状态" + status;
