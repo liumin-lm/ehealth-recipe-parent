@@ -861,6 +861,7 @@ public class RecipeListService extends RecipeBaseService{
             record.setSignFile(recipe.getSignFile());
             record.setJumpPageType(null == recipe.getOrderCode() ? RECIPE_PAGE : ORDER_PAGE);
             record.setOrderCode(recipe.getOrderCode());
+            record.setClinicOrgan(recipe.getClinicOrgan());
         }
     }
 
