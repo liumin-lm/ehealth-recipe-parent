@@ -608,7 +608,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             }
         }
-        order.setTotalFee(countOrderTotalFeeByRecipeInfo(order, firstRecipe));
+        order.setTotalFee(countOrderTotalFeeByRecipeInfo(order, firstRecipe, payModeSupport));
         //计算优惠券价格
         ICouponBaseService couponService = AppContextHolder.getBean("voucher.couponBaseService",ICouponBaseService.class);
         if (isUsefulCoupon(order.getCouponId())) {
@@ -1528,8 +1528,15 @@ public class RecipeOrderService extends RecipeBaseService {
         return countOrderTotalFeeWithCoupon(null, order);
     }
 
-    public BigDecimal countOrderTotalFeeByRecipeInfo(RecipeOrder order, Recipe recipe) {
+    public BigDecimal countOrderTotalFeeByRecipeInfo(RecipeOrder order, Recipe recipe, RecipePayModeSupportBean payModeSupport) {
         BigDecimal full = BigDecimal.ZERO;
+        //date 20190930
+        //添加判断，当处方选择购药方式是下载处方，总金额按照审核费来计算
+        if(payModeSupport.isSupportDownload()){
+            full = full.add(order.getAuditFee());
+            return full.divide(BigDecimal.ONE, 3, RoundingMode.UP);
+        }
+
 
         //处方费用
         full = full.add(order.getRecipeFee());
