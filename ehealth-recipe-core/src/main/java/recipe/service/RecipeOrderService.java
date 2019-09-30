@@ -15,7 +15,10 @@ import com.ngari.base.payment.model.DabaiPayResult;
 import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.coupon.service.ICouponService;
+import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.RecipeAPI;
@@ -1106,6 +1109,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     prb.setPayMode(recipe.getPayMode());
                     prb.setRecipeType(recipe.getRecipeType());
                     prb.setRecipeMode(recipe.getRecipeMode());
+                    prb.setChemistSignFile(recipe.getChemistSignFile());
                     //药品详情
                     recipedetails = detailDAO.findByRecipeId(recipe.getRecipeId());
                     prb.setRecipeDetail(ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class));
@@ -1113,6 +1117,14 @@ public class RecipeOrderService extends RecipeBaseService {
                             && OrderStatusConstant.READY_PAY.equals(order.getStatus())) {
                         prb.setRecipeSurplusHours(RecipeServiceSub.getRecipeSurplusHours(recipe.getSignDate()));
                     }
+                    //添加处方的取药窗口
+                    OrganService organService = BasicAPI.getService(OrganService.class);
+                    OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
+                    //取处方详情中的药品的取药窗口信息
+                    if(CollectionUtils.isNotEmpty(recipedetails) && null != recipedetails.get(0).getPharmNo()){
+                        prb.setGetDrugWindow(organDTO.getName() + recipedetails.get(0).getPharmNo() + "取药窗口");
+                    }
+
                     patientRecipeBeanList.add(prb);
 
                     if (1 == order.getEffective()) {
@@ -1224,29 +1236,29 @@ public class RecipeOrderService extends RecipeBaseService {
         if(null == ext){
             ext = Maps.newHashMap();
         }
-        Boolean isDownload = false;
+        String isDownload = "0";
         if(CollectionUtils.isNotEmpty(recipeList)){
             Recipe nowRecipe = recipeList.get(0);
             if(RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(nowRecipe.getGiveMode())){
                 if(ReviewTypeConstant.Postposition_Check == nowRecipe.getReviewType()){
                     if(Arrays.asList(showDownloadRecipeStatus).contains(nowRecipe.getStatus())){
-                        isDownload = true;
+                        isDownload = "1";
                     }
                 }else if(ReviewTypeConstant.Not_Need_Check == nowRecipe.getReviewType() && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(nowRecipe.getGiveMode())){
                     //这里当是不需审核，且选择的下载处方的购药方式的时候，没有产生订单，直接判断没有选定购药方式
                     if(1 == nowRecipe.getChooseFlag()){
-                        isDownload = true;
+                        isDownload = "1";
                     }
                 }else{
                     if(null != nowRecipe.getOrderCode() && null != order && RecipeStatusConstant.FINISH != nowRecipe.getStatus()){
                         if(0 == order.getActualPrice() || (0 < order.getActualPrice() && 1 == nowRecipe.getPayFlag()))
-                            isDownload = true;
+                            isDownload = "1";
                     }
                 }
             }
         }
 
-        ext.put("isDownload", isDownload.toString());
+        ext.put("isDownload", isDownload);
         result.setExt(ext);
     }
 

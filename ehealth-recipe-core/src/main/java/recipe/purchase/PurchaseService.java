@@ -325,6 +325,9 @@ public class PurchaseService {
             case RecipeStatusConstant.RECIPE_DOWNLOADED:
                 tips = "已下载处方签";
                 break;
+            case RecipeStatusConstant.USING:
+                tips = "处理中";
+                break;
             default:
                 IPurchaseService purchaseService = getService(payMode);
                 if(null == purchaseService){

@@ -542,6 +542,9 @@ public class RecipeListService extends RecipeBaseService{
             case RecipeStatusConstant.RECIPE_DOWNLOADED:
                 msg = "已下载";
                 break;
+            case RecipeStatusConstant.USING:
+                msg = "处理中";
+                break;
             default:
                 msg = "未知状态";
         }

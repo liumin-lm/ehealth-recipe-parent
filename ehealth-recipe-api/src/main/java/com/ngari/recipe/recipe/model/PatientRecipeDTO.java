@@ -70,7 +70,33 @@ public class PatientRecipeDTO implements Serializable {
 
     private List<RecipeDetailBean> recipeDetail;
 
+    /**
+     * 药师签名的处方PDF
+     */
+    private String chemistSignFile;
+
+    /**
+     * 处方的取药窗口
+     */
+    private String getDrugWindow;
+
     public PatientRecipeDTO() {
+    }
+
+    public String getChemistSignFile() {
+        return chemistSignFile;
+    }
+
+    public void setChemistSignFile(String chemistSignFile) {
+        this.chemistSignFile = chemistSignFile;
+    }
+
+    public String getGetDrugWindow() {
+        return getDrugWindow;
+    }
+
+    public void setGetDrugWindow(String getDrugWindow) {
+        this.getDrugWindow = getDrugWindow;
     }
 
     public int getRecipeId() {
