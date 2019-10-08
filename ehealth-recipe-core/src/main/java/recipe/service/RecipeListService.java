@@ -862,10 +862,28 @@ public class RecipeListService extends RecipeBaseService{
         }else{
             record.setChemistSignFile(recipe.getChemistSignFile());
             record.setSignFile(recipe.getSignFile());
-            record.setJumpPageType(null == recipe.getOrderCode() ? RECIPE_PAGE : ORDER_PAGE);
+            record.setJumpPageType(getJumpPage(recipe));
             record.setOrderCode(recipe.getOrderCode());
             record.setClinicOrgan(recipe.getClinicOrgan());
         }
+    }
+
+    /**
+     * @method  getJumpPage
+     * @description 获取跳转的方式
+     * @date: 2019/10/8
+     * @author: JRK
+     * @param recipe 处方信息
+     * @return java.lang.Integer
+     */
+    private Integer getJumpPage(Recipe recipe) {
+        Integer jumpPage = RECIPE_PAGE;
+        if(RecipeStatusConstant.USING == recipe.getStatus()){
+            jumpPage = ORDER_PAGE;
+        }else{
+            jumpPage = null == recipe.getOrderCode() ? RECIPE_PAGE : ORDER_PAGE;
+        }
+        return jumpPage;
     }
 
     /**
