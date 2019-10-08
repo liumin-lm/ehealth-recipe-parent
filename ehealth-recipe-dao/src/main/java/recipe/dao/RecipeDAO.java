@@ -668,12 +668,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("from Recipe where signDate between '" + startDt + "' and '" + endDt + "' ");
                 if (cancelStatus == RecipeStatusConstant.NO_PAY) {
-                    //超过3天未支付
+                    //超过3天未支付，支付模式修改
                     hql.append(" and fromflag in (1,2) and status=" + RecipeStatusConstant.CHECK_PASS
-                            + " and payFlag=0 and payMode=" + RecipeBussConstant.PAYMODE_ONLINE + " and orderCode is not null ");
+                            + " and payFlag=0 and payMode is not null and orderCode is not null ");
                 } else if (cancelStatus == RecipeStatusConstant.NO_OPERATOR) {
-                    //超过3天未操作
-                    hql.append(" and fromflag = 1 and status=" + RecipeStatusConstant.CHECK_PASS + " or ( status="+ RecipeStatusConstant.READY_CHECK_YS +" and recipeMode='zjjgpt' and signDate between '" + startDt + "' and '" + endDt + "' )");
+                    //超过3天未操作,添加前置未操作的判断
+                    hql.append(" and fromflag = 1 and status= " + RecipeStatusConstant.CHECK_PASS + " and payMode is null or ( status="+ RecipeStatusConstant.READY_CHECK_YS +" and reviewType = 1 and signDate between '" + startDt + "' and '" + endDt + "' )");
                 }
                 Query q = ss.createQuery(hql.toString());
                 setResult(q.list());
