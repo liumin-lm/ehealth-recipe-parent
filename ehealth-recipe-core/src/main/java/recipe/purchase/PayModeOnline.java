@@ -276,7 +276,7 @@ public class PayModeOnline implements IPurchaseService {
 
     @Override
     public Integer getOrderStatus(Recipe recipe) {
-        return OrderStatusConstant.READY_GET_DRUG;
+        return OrderStatusConstant.READY_SEND;
     }
 
     private List<DrugsEnterprise> getAllSubDepList(List<DrugsEnterprise> subDepList) {

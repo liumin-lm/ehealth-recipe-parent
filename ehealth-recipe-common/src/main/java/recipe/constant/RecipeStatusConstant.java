@@ -30,6 +30,7 @@ public class RecipeStatusConstant {
     public static final int UNCHECK = 1;
 
     /**
+     *
      * 审核通过(医院平台)
      */
     public static final int CHECK_PASS = 2;

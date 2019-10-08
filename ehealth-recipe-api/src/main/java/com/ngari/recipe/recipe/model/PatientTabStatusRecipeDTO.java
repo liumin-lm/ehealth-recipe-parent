@@ -93,6 +93,11 @@ public class PatientTabStatusRecipeDTO implements Serializable {
      */
     private String orderCode;
 
+    /**
+     * 当前处方对应的订单code
+     */
+    private Integer clinicOrgan;
+
     public PatientTabStatusRecipeDTO() {
     }
 
@@ -334,5 +339,13 @@ public class PatientTabStatusRecipeDTO implements Serializable {
 
     public void setGiveMode(Integer giveMode) {
         this.giveMode = giveMode;
+    }
+
+    public Integer getClinicOrgan() {
+        return clinicOrgan;
+    }
+
+    public void setClinicOrgan(Integer clinicOrgan) {
+        this.clinicOrgan = clinicOrgan;
     }
 }

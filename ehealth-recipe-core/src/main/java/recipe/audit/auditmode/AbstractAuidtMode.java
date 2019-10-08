@@ -26,7 +26,7 @@ import static ctd.persistence.DAOFactory.getDAO;
 /**
  * created by shiyuping on 2019/9/3
  */
-public class AbstractAuidtMode implements IAuditMode{
+public abstract class AbstractAuidtMode implements IAuditMode{
     @Override
     public void afterHisCallBackChange(Integer status, Recipe recipe,String memo) {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
@@ -49,7 +49,6 @@ public class AbstractAuidtMode implements IAuditMode{
             if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
                 //增加药师首页待处理任务---创建任务
                 if (status == RecipeStatusConstant.READY_CHECK_YS) {
-//                Recipe dbRecipe = recipeDAO.getByRecipeId(recipe.getRecipeId());
                     RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
                     ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
                 }
@@ -73,8 +72,6 @@ public class AbstractAuidtMode implements IAuditMode{
     public void afterPayChange(Boolean saveFlag, Recipe recipe, RecipeResultBean result, Map<String, Object> attrMap) {
         //默认待处理
         Integer status = RecipeStatusConstant.CHECK_PASS;
-        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         Integer giveMode = null == MapValueUtil.getInteger(attrMap,"giveMode") ? recipe.getGiveMode() : MapValueUtil.getInteger(attrMap,"giveMode");
         Integer payMode = null == MapValueUtil.getInteger(attrMap, "payMode") ? recipe.getPayMode() : MapValueUtil.getInteger(attrMap,"payMode");
         Integer payFlag = MapValueUtil.getInteger(attrMap, "payFlag");

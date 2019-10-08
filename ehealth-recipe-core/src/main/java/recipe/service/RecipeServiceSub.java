@@ -904,6 +904,9 @@ public class RecipeServiceSub {
             case RecipeStatusConstant.RECIPE_FAIL:
                 tips = "失败";
                 break;
+            case RecipeStatusConstant.RECIPE_DOWNLOADED:
+                tips = "已下载";
+                break;
             default:
                 tips = "未知状态" + status;
         }
@@ -918,7 +921,7 @@ public class RecipeServiceSub {
     }
 
     public static void setPatientMoreInfo(PatientDTO patient, int doctorId) {
-        RelationDoctorBean relationDoctor = iDoctorService.getByMpiidAndDoctorId(patient.getMpiId(), doctorId);
+        RelationDoctorBean relationDoctor = doctorService.getByMpiidAndDoctorId(patient.getMpiId(), doctorId);
         //是否关注
         Boolean relationFlag = false;
         //是否签约
@@ -930,7 +933,7 @@ public class RecipeServiceSub {
                 signFlag = true;
             }
 
-            labelNames = iPatientService.findLabelNamesByRPId(relationDoctor.getRelationDoctorId());
+            labelNames = patientService.findLabelNamesByRPId(relationDoctor.getRelationDoctorId());
 
         }
         patient.setRelationFlag(relationFlag);
@@ -1066,7 +1069,7 @@ public class RecipeServiceSub {
             }
             map.put("medicalFlag", medicalFlag);
             if (null != recipe.getChecker() && recipe.getChecker() > 0) {
-                String ysTel = iDoctorService.getMobileByDoctorId(recipe.getChecker());
+                String ysTel = doctorService.getMobileByDoctorId(recipe.getChecker());
                 if (StringUtils.isNotEmpty(ysTel)) {
                     recipe.setCheckerTel(ysTel);
                 }
@@ -1183,6 +1186,12 @@ public class RecipeServiceSub {
             //3.如果不是后置的，判断实际金额是否为0：为0则ordercode关联则展示，不为0支付则展示
             boolean isDownload = getDownConfig(recipe, order);
             map.put("isDownload", isDownload);
+            //date 2190929
+            //添加处方详情上提示信息的展示颜色类型
+            RecipeTipesColorTypeEnum colorType = RecipeTipesColorTypeEnum.fromRecipeStatus(recipe.getStatus());
+            if(null != colorType){
+                map.put("tipsType", colorType.getShowType());
+            }
         }
 
         if (StringUtils.isEmpty(recipe.getMemo())) {

@@ -696,4 +696,50 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    /**
+     * 匹配搜索药品
+     * @param drugName 药品名称
+     * @param saleName 商品名称
+     * @param drugSpec 药品规格
+     * @param producer 生产厂家
+     * @return         药品列表
+     */
+    public List<DrugList> findDrugListByNameOrSpec(final String drugName, final String saleName, final String drugSpec, final String producer) {
+        HibernateStatelessResultAction<List<DrugList>> action = new AbstractHibernateStatelessResultAction<List<DrugList>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("from DrugList where sourceOrgan is null and Status = 1 ");
+                if (StringUtils.isNotEmpty(drugName)) {
+                    hql.append(" and drugName like :drugName ");
+                }
+                if (StringUtils.isNotEmpty(saleName)) {
+                    hql.append(" and saleName like :saleName ");
+                }
+                if (StringUtils.isNotEmpty(drugSpec)) {
+                    hql.append(" and drugSpec like :drugSpec ");
+                }
+                if (StringUtils.isNotEmpty(producer)) {
+                    hql.append(" and producer like :producer ");
+                }
+                Query q = ss.createQuery(hql.toString());
+                if (StringUtils.isNotEmpty(drugName)) {
+                    q.setParameter("drugName", "%" + drugName + "%");
+                }
+                if (StringUtils.isNotEmpty(saleName)) {
+                    q.setParameter("saleName", "%" + saleName + "%");
+                }
+                if (StringUtils.isNotEmpty(drugSpec)) {
+                    q.setParameter("drugSpec", "%" + drugSpec + "%");
+                }
+                if (StringUtils.isNotEmpty(producer)) {
+                    q.setParameter("producer", "%" + producer + "%");
+                }
+
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }

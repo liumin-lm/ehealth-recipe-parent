@@ -295,4 +295,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     List<Integer> findDoctorIdByHistoryRecipe();
+
+    @RpcService
+    RecipeBean getRecipeByOrderCode(String orderCode);
 }

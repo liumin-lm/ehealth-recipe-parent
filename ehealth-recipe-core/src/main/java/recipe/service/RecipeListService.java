@@ -70,6 +70,10 @@ public class RecipeListService extends RecipeBaseService{
 
     public static final Integer ORDER_PAGE = 1;
 
+    //历史处方显示的状态：未处理、未支付、审核不通过、失败、已完成
+    public static final Integer[] historyRecipeListShowStatusList = {RecipeStatusConstant.NO_OPERATOR,
+            RecipeStatusConstant.NO_PAY, RecipeStatusConstant.CHECK_NOT_PASS_YS, RecipeStatusConstant.RECIPE_FAIL, RecipeStatusConstant.FINISH};
+
     /**
      * 医生端处方列表展示
      *
@@ -108,7 +112,11 @@ public class RecipeListService extends RecipeBaseService{
                 if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
                     effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
                 }
-                Map<String, String> tipMap = RecipeServiceSub.getTipsByStatus(recipe.getStatus(), recipe, effective);
+                //Map<String, String> tipMap = RecipeServiceSub.getTipsByStatus(recipe.getStatus(), recipe, effective);
+                //date 20190929
+                //修改医生端状态文案显示
+                Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, effective);
+
                 recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
                 recipeMap.put(recipe.getRecipeId(), convertRecipeForRAP(recipe));
             }
@@ -534,6 +542,9 @@ public class RecipeListService extends RecipeBaseService{
             case RecipeStatusConstant.RECIPE_DOWNLOADED:
                 msg = "已下载";
                 break;
+            case RecipeStatusConstant.USING:
+                msg = "处理中";
+                break;
             default:
                 msg = "未知状态";
         }
@@ -559,7 +570,9 @@ public class RecipeListService extends RecipeBaseService{
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
 
         List<Map<String, Object>> list = new ArrayList<>();
-        List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId, mpiId, start, limit);
+        //List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId, mpiId, start, limit);
+        //修改逻辑历史处方中获取的处方列表：只显示未处理、未支付、审核不通过、失败、已完成状态的
+        List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatientAndStatusList(doctorId, mpiId, start, limit, new ArrayList<>(Arrays.asList(historyRecipeListShowStatusList)));
         PatientDTO patient = RecipeServiceSub.convertPatientForRAP(patientService.get(mpiId));
         if (CollectionUtils.isNotEmpty(recipes)) {
             for (Recipe recipe : recipes) {
@@ -571,7 +584,11 @@ public class RecipeListService extends RecipeBaseService{
                 if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
                     effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
                 }
-                Map<String, String> tipMap = RecipeServiceSub.getTipsByStatus(recipe.getStatus(), recipe, effective);
+                //Map<String, String> tipMap = RecipeServiceSub.getTipsByStatus(recipe.getStatus(), recipe, effective);
+                //date 20190929
+                //修改医生端状态文案显示
+                Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, effective);
+
                 recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
                 map.put("recipe", RecipeServiceSub.convertRecipeForRAP(recipe));
                 map.put("patient", patient);
@@ -847,6 +864,7 @@ public class RecipeListService extends RecipeBaseService{
             record.setSignFile(recipe.getSignFile());
             record.setJumpPageType(null == recipe.getOrderCode() ? RECIPE_PAGE : ORDER_PAGE);
             record.setOrderCode(recipe.getOrderCode());
+            record.setClinicOrgan(recipe.getClinicOrgan());
         }
     }
 

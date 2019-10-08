@@ -301,7 +301,7 @@ public class PurchaseService {
                 tips = "请耐心等待药师审核";
                 break;
             case RecipeStatusConstant.CHECK_PASS:
-                if (StringUtils.isNotEmpty(orderCode) && payFlag == 0) {
+                if (StringUtils.isNotEmpty(orderCode) && payFlag == 0  && order.getActualPrice() > 0) {
                     tips = "订单待支付，请于收到处方的3日内处理完成，否则处方将失效";
                 } else if (StringUtils.isEmpty(orderCode)){
                     tips = "处方单待处理，请于收到处方的3日内处理完成，否则处方将失效";
@@ -321,6 +321,12 @@ public class PurchaseService {
                 break;
             case RecipeStatusConstant.REVOKE:
                 tips = "由于医生已撤销，该处方单已失效，请联系医生";
+                break;
+            case RecipeStatusConstant.RECIPE_DOWNLOADED:
+                tips = "已下载处方签";
+                break;
+            case RecipeStatusConstant.USING:
+                tips = "处理中";
                 break;
             default:
                 IPurchaseService purchaseService = getService(payMode);

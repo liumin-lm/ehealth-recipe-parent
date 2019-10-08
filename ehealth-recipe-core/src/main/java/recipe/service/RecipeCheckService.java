@@ -42,10 +42,7 @@ import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.bean.CheckYsInfoBean;
-import recipe.constant.BussTypeConstant;
-import recipe.constant.ErrorCode;
-import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
+import recipe.constant.*;
 import recipe.dao.*;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
@@ -519,14 +516,8 @@ public class RecipeCheckService {
             //TODO 根据审方模式改变
             auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckPassYs(recipe);
         } else {
-            IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
-            boolean secondsignflag = iOrganConfigService.getEnableSecondsignByOrganId(recipe.getClinicOrgan());
-            //不支持二次签名的机构直接执行后续操作
-            if (!secondsignflag) {
-                /*recipeService.afterCheckNotPassYs(recipe);*/
-                //TODO 根据审方模式改变
-                auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckNotPassYs(recipe);
-            }
+            //审核不通过后处理
+            doAfterCheckNotPassYs(recipe);
         }
 
         Map<String, Object> resMap = Maps.newHashMap();
@@ -552,6 +543,37 @@ public class RecipeCheckService {
         RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(),2));
 
         return resMap;
+    }
+
+    private void doAfterCheckNotPassYs(Recipe recipe) {
+        //由于支持二次签名的机构第一次审方不通过时医生收不到消息。所以将审核不通过推送消息放这里处理
+        sendCheckNotPassYsMsg(recipe);
+        IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
+        boolean secondsignflag = iOrganConfigService.getEnableSecondsignByOrganId(recipe.getClinicOrgan());
+        //不支持二次签名的机构直接执行后续操作
+        if (!secondsignflag) {
+            /*recipeService.afterCheckNotPassYs(recipe);*/
+            //TODO 根据审方模式改变
+            auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckNotPassYs(recipe);
+        }
+        //HIS消息发送
+        //审核不通过 往his更新状态（已取消）
+        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+        hisService.recipeStatusUpdate(recipe.getRecipeId());
+        //记录日志
+        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核不通过处理完成");
+    }
+
+    private void sendCheckNotPassYsMsg(Recipe recipe) {
+        if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipe.getFromflag())) {
+            //发送审核不成功消息
+            //${sendOrgan}：抱歉，您的处方未通过药师审核。如有收取费用，款项将为您退回，预计1-5个工作日到账。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
+            RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_CHECKNOTPASS_4HIS, recipe);
+        }else if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())){
+            //发送审核不成功消息
+            //处方审核不通过通知您的处方单审核不通过，如有疑问，请联系开方医生
+            RecipeMsgService.batchSendMsg(recipe, eh.cdr.constant.RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
+        }
     }
 
     /**
@@ -759,8 +781,8 @@ public class RecipeCheckService {
     private List<Integer> findAPOrganIdsByDoctorId(Integer doctorId) {
         List<Integer> organIds = null;
         if (null != doctorId) {
-            IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
-            organIds = iDoctorService.findAPOrganIdsByDoctorId(doctorId);
+            DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
+            organIds = doctorService.findAPOrganIdsByDoctorId(doctorId);
         }
 
         return organIds;

@@ -5,8 +5,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.department.service.IDepartmentService;
-import com.ngari.base.employment.model.EmploymentBean;
-import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.base.esign.service.IESignBaseService;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
@@ -15,15 +13,10 @@ import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.recipe.mode.DrugInfoTO;
-import com.ngari.his.base.PatientBaseInfo;
-import com.ngari.his.recipe.mode.*;
-import com.ngari.his.recipe.service.IRecipeHisService;
-import com.ngari.home.asyn.model.BussCreateEvent;
-import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.ConsultSetDTO;
 import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -63,10 +56,10 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
-import recipe.drugsenterprise.AldyfRemoteService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.RecipeToHisCallbackService;
+import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.thread.PushRecipeToHisCallable;
 import recipe.thread.PushRecipeToRegulationCallable;
@@ -166,16 +159,16 @@ public class RecipeService extends RecipeBaseService{
      */
     @RpcService
     public Map<String, Object> openRecipeOrNot(Integer doctorId) {
-        IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
+        EmploymentService employmentService = ApplicationUtils.getBasicService(EmploymentService.class);
         ConsultSetService consultSetService = ApplicationUtils.getBasicService(ConsultSetService.class);
 
         Boolean canCreateRecipe = false;
         String tips = "";
         Map<String, Object> map = Maps.newHashMap();
-        List<EmploymentBean> employmentList = iEmploymentService.findEmByDoctorId(doctorId);
+        List<EmploymentDTO> employmentList = employmentService.findEmploymentByDoctorId(doctorId);
         List<Integer> organIdList = new ArrayList<>();
         if (employmentList.size() > 0) {
-            for (EmploymentBean employment : employmentList) {
+            for (EmploymentDTO employment : employmentList) {
                 organIdList.add(employment.getOrganId());
             }
             OrganDrugListDAO organDrugListDAO = getDAO(OrganDrugListDAO.class);
@@ -996,7 +989,8 @@ public class RecipeService extends RecipeBaseService{
         } else {
             afterStatus = RecipeStatusConstant.CHECK_PASS;
         }
-
+        //date 20190929
+        //这里提示文案描述，扩展成二次审核通过/二次审核不通过的说明
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), afterStatus,
                 ImmutableMap.of("supplementaryMemo", recipe.getSupplementaryMemo()));
         afterCheckPassYs(dbRecipe);
@@ -1066,11 +1060,13 @@ public class RecipeService extends RecipeBaseService{
                     //到店取药审核完成是带取药状态
                     //data:20190919
                     //添加到院取药和下载处方的状态（这里后置的逻辑）
-                    if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())
-                            || RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode()) ||
-                            RecipeBussConstant.PAYMODE_DOWNLOAD_RECIPE.equals(recipe.getPayMode())) {
-                        status = OrderStatusConstant.READY_GET_DRUG;
-                    }
+//                    if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())
+//                            || RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode()) ||
+//                            RecipeBussConstant.PAYMODE_DOWNLOAD_RECIPE.equals(recipe.getPayMode())) {
+//                        status = OrderStatusConstant.READY_GET_DRUG;
+//                    }
+                    PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+                    status = purchaseService.getOrderStatus(recipe);
                     orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("status", status), resultBean);
                     //发送患者审核完成消息
                     RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS_YS);
@@ -1132,7 +1128,6 @@ public class RecipeService extends RecipeBaseService{
         if (!effective) {
             return;
         }
-        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         //相应订单处理
         orderService.cancelOrderByRecipeId(recipe.getRecipeId(), OrderStatusConstant.CANCEL_NOT_PASS);
@@ -1142,25 +1137,21 @@ public class RecipeService extends RecipeBaseService{
             //线上支付
             //微信退款
             wxPayRefundForRecipe(2, recipe.getRecipeId(), null);
-            if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
+            /*if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
                 RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.CHECK_NOT_PASSYS_PAYONLINE);
-            }
+            }*/
         } else if (RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
             //货到付款 | 药店取药
-            if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
+           /* if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
                 RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
-            }
+            }*/
         }
 
-        if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipe.getFromflag())) {
+        /*if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipe.getFromflag())) {
             //发送审核不成功消息
             //${sendOrgan}：抱歉，您的处方未通过药师审核。如有收取费用，款项将为您退回，预计1-5个工作日到账。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
             RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_CHECKNOTPASS_4HIS, recipe);
-        }
-        //HIS消息发送
-        //审核不通过 往his更新状态（已取消）
-        hisService.recipeStatusUpdate(recipe.getRecipeId());
-        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核不通过处理完成");
+        }*/
     }
 
     /**

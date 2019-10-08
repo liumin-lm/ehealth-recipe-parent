@@ -36,6 +36,13 @@ public enum RecipePageButtonStatusEnum {
     Pre_To_Be_Pend("1", RecipeStatusConstant.READY_CHECK_YS,
             Arrays.asList(ReviewTypeConstant.Preposition_Check), 0),
     /**
+     * date 20190930
+     * 添加锁定处方
+     */
+    Lock_Recipe("1", RecipeStatusConstant.USING,
+            Arrays.asList(ReviewTypeConstant.Not_Need_Check,
+                    ReviewTypeConstant.Postposition_Check, ReviewTypeConstant.Preposition_Check), 3),
+    /**
      * 不展示
      */
     No_Show("-1", -1,

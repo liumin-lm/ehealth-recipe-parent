@@ -24,6 +24,7 @@ import recipe.dao.RecipeOrderDAO;
 import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -113,8 +114,14 @@ public class PayModeToHos implements IPurchaseService{
         String tips = "";
         switch (status) {
             case RecipeStatusConstant.CHECK_PASS:
-                if (StringUtils.isNotEmpty(orderCode) && payFlag == 1) {
-                    tips = "订单已处理，请到院取药";
+                //date 20190930
+                //先判断是否需要支付，再判断有没有支付
+                if (StringUtils.isNotEmpty(orderCode)) {
+                    if(0 >= BigDecimal.ZERO.compareTo(recipe.getActualPrice())){
+                        tips = "订单已处理，请到院取药";
+                    }else if(0 < BigDecimal.ZERO.compareTo(recipe.getActualPrice()) && payFlag == 1){
+                        tips = "订单已处理，请到院取药";
+                    }
                 }
                 break;
             case RecipeStatusConstant.CHECK_PASS_YS:
