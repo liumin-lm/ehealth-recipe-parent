@@ -19,6 +19,7 @@ import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DepartmentService;
+import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.OrganDrugList;
@@ -101,7 +102,7 @@ public class RecipeHisService extends RecipeBaseService {
             RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
             OrganDrugListDAO drugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-            IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
+            EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
 
             List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
             PatientBean patientBean = iPatientService.get(recipe.getMpiid());
@@ -689,7 +690,7 @@ public class RecipeHisService extends RecipeBaseService {
             //病人类型
         }
         //医生工号
-        IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
+        EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
         if (recipeBean.getDoctor() != null){
             String jobNumber = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipeBean.getDoctor(), recipeBean.getClinicOrgan(), recipeBean.getDepart());
             hisCheckRecipeReqTO.setDoctorID(jobNumber);

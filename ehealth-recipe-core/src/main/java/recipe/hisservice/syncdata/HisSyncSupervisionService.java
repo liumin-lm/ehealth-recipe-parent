@@ -129,7 +129,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             return;
         }
         DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
-        IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
+        EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
         /* AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);*/
         DoctorService doctorService = BasicAPI.getService(DoctorService.class);
         PatientService patientService = BasicAPI.getService(PatientService.class);

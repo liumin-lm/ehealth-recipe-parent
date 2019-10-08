@@ -239,14 +239,14 @@ public class QueryRecipeService implements IQueryRecipeService {
         recipeDTO.setClinicID((null != recipe.getClinicId()) ? Integer.toString(recipe
                 .getClinicId()) : null);
         //转换平台医生id为工号返回his
-        IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
+        EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
         if (recipe.getDoctor() != null){
             String jobNumber = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart());
             recipeDTO.setDoctorID(jobNumber);
         }
         //审核医生
         if (recipe.getChecker() != null){
-            String jobNumberChecker = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDepart(), recipe.getClinicOrgan(), recipe.getDepart());
+            String jobNumberChecker = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getChecker(), recipe.getClinicOrgan(), recipe.getDepart());
             recipeDTO.setAuditDoctor(jobNumberChecker);
         }else {
             recipeDTO.setAuditDoctor(recipeDTO.getDoctorID());
