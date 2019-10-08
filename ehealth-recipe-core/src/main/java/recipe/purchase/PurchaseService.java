@@ -317,8 +317,13 @@ public class PurchaseService {
                 tips = "处方单未处理，已失效";
                 break;
             case RecipeStatusConstant.CHECK_NOT_PASS_YS:
-                tips = "处方审核不通过，请联系开方医生";
-                break;
+                if(null != order && OrderStatusConstant.CANCEL_NOT_PASS == order.getStatus()){
+                    tips = "处方审核不通过，请联系开方医生";
+                    break;
+                }else{
+                    tips = "请耐心等待药师审核";
+                    break;
+                }
             case RecipeStatusConstant.REVOKE:
                 tips = "由于医生已撤销，该处方单已失效，请联系医生";
                 break;
