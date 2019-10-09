@@ -454,18 +454,14 @@ public class RecipeOrderService extends RecipeBaseService {
         //当前操作人的编码，用于获取地址列表信息等
         String operMpiId = MapValueUtil.getString(extInfo, "operMpiId");
 
-        //设置挂号费
-        if (payModeSupport.isSupportMedicalInsureance() || payModeSupport.isSupportCOD()
-                || payModeSupport.isSupportTFDS() || payModeSupport.isSupportComplex()) {
-            order.setRegisterFee(BigDecimal.ZERO);
+        //设置挂号费（之前是区分购药方式的，要去区分购药方式来挂号费，现在不区分根据配置项来）
+        BigDecimal registerFee = organConfig.getPriceForRecipeRegister();
+        if (null != registerFee) {
+            order.setRegisterFee(registerFee);
         } else {
-            BigDecimal registerFee = organConfig.getPriceForRecipeRegister();
-            if (null != registerFee) {
-                order.setRegisterFee(registerFee);
-            } else {
-                order.setRegisterFee(new BigDecimal(cacheService.getParam(ParameterConstant.KEY_RECIPE_REGISTER_FEE, "0")));
-            }
+            order.setRegisterFee(new BigDecimal(cacheService.getParam(ParameterConstant.KEY_RECIPE_REGISTER_FEE, "0")));
         }
+
         //设置审方费用
         Recipe firstRecipe = recipeList.get(0);
         //date 20190929
