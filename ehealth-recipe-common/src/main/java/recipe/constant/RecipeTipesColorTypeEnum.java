@@ -28,7 +28,7 @@ public enum RecipeTipesColorTypeEnum {
      * 未支付, 未处理, 药师未审核通过, 医生已撤销, 取药失败
      */
     Recipe_Fail(new ArrayList<>(Arrays.asList(RecipeStatusConstant.NO_PAY,
-                    RecipeStatusConstant.NO_OPERATOR, RecipeStatusConstant.REVOKE, RecipeStatusConstant.RECIPE_FAIL)), "2");
+                    RecipeStatusConstant.NO_OPERATOR, RecipeStatusConstant.CHECK_NOT_PASS_YS, RecipeStatusConstant.REVOKE, RecipeStatusConstant.RECIPE_FAIL)), "2");
     /**
      * 处方模式
      */

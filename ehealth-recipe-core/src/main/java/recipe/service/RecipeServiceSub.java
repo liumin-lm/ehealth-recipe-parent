@@ -887,15 +887,8 @@ public class RecipeServiceSub {
                 cancelReason = "由于患者未及时支付，该处方单已取消。";
                 break;
             case RecipeStatusConstant.CHECK_NOT_PASS_YS:
-                if (recipe.canMedicalPay()) {
-                    tips = "审核未通过";
-                } else {
-                    if (effective) {
-                        tips = "审核未通过";
-                    } else {
-                        tips = "已取消";
-                    }
-                }
+                //这里统一成审核未通过
+                tips = "审核未通过";
                 break;
             case RecipeStatusConstant.CHECKING_HOS:
                 tips = "医院确认中";
@@ -1043,7 +1036,7 @@ public class RecipeServiceSub {
             // 获取处方单药品总价
             RecipeUtil.getRecipeTotalPriceRange(recipe, recipedetails);
             boolean effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
-            Map<String, String> tipMap = RecipeServiceSub.getTipsByStatus(recipe.getStatus(), recipe, effective);
+            Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, effective);
             map.put("tips", MapValueUtil.getString(tipMap, "tips"));
             map.put("cancelReason", MapValueUtil.getString(tipMap, "cancelReason"));
             RecipeCheckService service = ApplicationUtils.getRecipeService(RecipeCheckService.class);
