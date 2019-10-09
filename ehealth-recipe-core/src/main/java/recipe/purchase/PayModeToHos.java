@@ -117,9 +117,9 @@ public class PayModeToHos implements IPurchaseService{
                 //date 20190930
                 //先判断是否需要支付，再判断有没有支付
                 if (StringUtils.isNotEmpty(orderCode)) {
-                    if(0 >= BigDecimal.ZERO.compareTo(recipe.getActualPrice())){
+                    if(0 <= BigDecimal.ZERO.compareTo(recipe.getActualPrice())){
                         tips = "订单已处理，请到院取药";
-                    }else if(0 < BigDecimal.ZERO.compareTo(recipe.getActualPrice()) && payFlag == 1){
+                    }else if(0 > BigDecimal.ZERO.compareTo(recipe.getActualPrice()) && payFlag == 1){
                         tips = "订单已处理，请到院取药";
                     }
                 }

@@ -960,8 +960,8 @@ public class RecipeListService extends RecipeBaseService{
             //设置购药方式哪些可用
             //配送到家默认可用
             payModeShowButtonBean.setSupportOnline(true);
-            //到店取药默认不可用
-            payModeShowButtonBean.setSupportTFDS(false);
+            //到店取药默认不可用(20190926修改成可用了)
+            payModeShowButtonBean.setSupportTFDS(true);
             //医院取药需要看数据
             boolean hosFlag = true;
             if(1 == recipe.getDistributionFlag()){
