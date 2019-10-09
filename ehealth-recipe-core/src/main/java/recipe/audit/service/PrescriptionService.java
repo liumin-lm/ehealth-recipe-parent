@@ -92,7 +92,8 @@ public class PrescriptionService {
             throw new DAOException("审方机构不存在");
         }
         String serviceName = judicialOrgan.getCallSys() + "PrescriptionService";
-        return AppContextHolder.getBean(serviceName,IntellectJudicialService.class);
+        LOGGER.info("PrescriptionService getService serviceName:{}.", serviceName);
+        return AppContextHolder.getBean(serviceName, IntellectJudicialService.class);
     }
     
 }
