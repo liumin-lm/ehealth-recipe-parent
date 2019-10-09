@@ -59,6 +59,7 @@ import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.RecipeToHisCallbackService;
+import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.thread.PushRecipeToHisCallable;
@@ -72,6 +73,9 @@ import recipe.util.RedisClient;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
 
@@ -1464,8 +1468,8 @@ public class RecipeService extends RecipeBaseService{
             if (CollectionUtils.isNotEmpty(recipeIds)) {
                 //批量更新 处方失效前提醒标志位
                 recipeDAO.updateRemindFlagByRecipeId(recipeIds);
-                //批量信息推送
-                RecipeMsgService.batchSendMsg(recipeIds, status);
+                //批量信息推送（失效前的消息提示取消）
+                //RecipeMsgService.batchSendMsg(recipeIds, status);
             }
         }
     }
@@ -2243,6 +2247,53 @@ public class RecipeService extends RecipeBaseService{
             }
         }
         return result;
+    }
+
+    /**
+     * 定时任务:定时将下载处方后3天的处方设置成已完成
+     * 每小时扫描一次，当前时间到前3天时间轴上的处方已下载
+     */
+    @RpcService
+    public void changeDownLoadToFinishTask() {
+        LOGGER.info("changeDownLoadToFinishTask: 开始定时任务，设置已下载3天后处方为已完成！");
+        //首先获取当前时间前6天的时间到当前时间前3天时间区间
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern(DateConversion.DEFAULT_DATE_TIME);
+        String endDate = LocalDateTime.now().minusDays(3).format(fmt);
+        String startDate = LocalDateTime.now().minusDays(6).format(fmt);
+        //获取当前时间区间状态是已下载的处方单
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        List<Recipe> recipeList = recipeDAO.findDowloadedRecipeToFinishList(startDate, endDate);
+        Integer recipeId;
+        //将处方单状态设置为已完成
+        if(CollectionUtils.isNotEmpty(recipeList)){
+            for(Recipe recipe : recipeList){
+                //更新处方的状态-已完成
+                recipeId = recipe.getRecipeId();
+                Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), RecipeStatusConstant.FINISH, null);
+                //完成订单
+                if (rs) {
+                    LOGGER.info("changeDownLoadToFinishTask: 处方{}设置处方为已完成！", recipeId);
+                    //完成订单
+                    RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+                    RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+
+                    orderService.finishOrder(recipe.getOrderCode(), recipe.getPayMode(), null);
+                    LOGGER.info("changeDownLoadToFinishTask: 订单{}设置为已完成！", recipe.getOrderCode());
+                    //记录日志
+                    RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.RECIPE_DOWNLOADED, RecipeStatusConstant.FINISH, "下载处方订单完成");
+                    //HIS消息发送
+                    hisService.recipeFinish(recipeId);
+                    //发送取药完成消息(暂时不需要发送消息推送)
+
+                    //监管平台核销上传
+                    SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
+                    syncExecutorService.uploadRecipeVerificationIndicators(recipeId);
+                } else {
+                    LOGGER.warn("处方：{},更新失败", recipe.getRecipeId());
+                }
+            }
+        }
+
     }
 
 }

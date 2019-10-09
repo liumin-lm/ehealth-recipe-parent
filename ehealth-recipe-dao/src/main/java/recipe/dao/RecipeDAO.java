@@ -1832,4 +1832,21 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         List<Recipe> recipes = action.getResult();
         return recipes;
     }
+
+
+    public List<Recipe> findDowloadedRecipeToFinishList(final String startDate,final String endDate) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder
+                        ("from Recipe where fromflag in (1,2) and status = 18 and lastModify between '" + startDate + "' and '" + endDate + "'");
+
+                Query query = ss.createQuery(hql.toString());
+
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }
