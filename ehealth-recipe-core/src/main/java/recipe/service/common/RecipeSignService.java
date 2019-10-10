@@ -23,9 +23,7 @@ import com.ngari.recipe.common.RecipeCommonBaseTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.RecipeStandardReqTO;
 import com.ngari.recipe.common.RecipeStandardResTO;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
@@ -47,10 +45,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
 import recipe.constant.*;
-import recipe.dao.DrugListDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeOrderDAO;
+import recipe.dao.*;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.hisservice.RecipeToHisService;
@@ -65,6 +60,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
 
@@ -329,8 +325,43 @@ public class RecipeSignService {
      * @param drugIds
      */
     @RpcService
-    public void canOpenRecipeDrugs(Integer recipeId,List<Integer> drugIds){
+    public void canOpenRecipeDrugs(Integer recipeId,List<Integer> drugIds,Integer giveMode){
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (recipe == null){
+            throw new DAOException(ErrorCode.SERVICE_ERROR,"该处方不存在");
+        }
         RecipeServiceSub.canOpenRecipeDrugs(recipeId,drugIds);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        boolean isSupport = false;
+        //到院取药判断九州通药品是否支持
+        if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)){
+            //取该机构下配置的补充库存药企
+            List<DrugsEnterprise> enterpriseList = enterpriseDAO.findByOrganIdAndHosInteriorSupport(recipe.getClinicOrgan());
+            for (DrugsEnterprise drugsEnterprise: enterpriseList){
+                List<SaleDrugList> saleDruglists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIds);
+                if (CollectionUtils.isNotEmpty(saleDruglists) && saleDruglists.size() == drugIds.size()){
+                    //存在即支持
+                    isSupport = true;
+                    break;
+                }
+            }
+
+        }else {
+            //其他购药方式 药品在支付宝是否支持
+            List<SaleDrugList> zfbDrug = saleDrugListDAO.findByOrganIdAndDrugIds(103, drugIds);
+            if (CollectionUtils.isNotEmpty(zfbDrug) && zfbDrug.size() == drugIds.size()){
+                isSupport = true;
+            }
+        }
+        if (!isSupport){
+            DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+            List<DrugList> drugList = drugListDAO.findByDrugIds(drugIds);
+            //拼接不支持药品名
+            String drugNames = drugList.stream().map(DrugList::getDrugName).collect(Collectors.joining(","));
+            throw new DAOException(ErrorCode.SERVICE_ERROR,drugNames+"不能开具在一张处方上！");
+        }
+
     }
 
     /**

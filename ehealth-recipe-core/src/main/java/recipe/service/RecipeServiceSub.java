@@ -384,6 +384,7 @@ public class RecipeServiceSub {
             if (!filterFlag) {
                 noFilterDrugName.add(drugListMap.get(drugId).getDrugName());
             } else {
+                //取交集
                 firstDrugDepIds.retainAll(depIds);
             }
         }
