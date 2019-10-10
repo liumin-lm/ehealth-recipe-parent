@@ -20,7 +20,9 @@ import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.OrganService;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
@@ -58,6 +60,7 @@ import recipe.util.DateConversion;
 import recipe.util.RedisClient;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author yu_yun
@@ -771,5 +774,38 @@ public class RecipeHisService extends RecipeBaseService {
             rMap.put("errorMsg",hisResult.getMsg());
         }
         return false;
+    }
+
+    /**
+     * 武昌基础药品数据同步给his
+     * @param drugLists
+     */
+    @RpcService
+    public void syncDrugListToHis(List<DrugList> drugLists){
+        RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+        OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+
+        List<DrugList> list = Lists.newArrayList();
+        for (DrugList drugList : drugLists) {
+            //武昌机构用的药品基础药品数据sourceorgan都为1001780
+            if (drugList.getSourceOrgan() == 1001780){
+               list.add(drugList);
+            }
+        }
+        if (CollectionUtils.isEmpty(list)){
+            return;
+        }
+        //武昌机构集合
+        Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_WUCHANG_ORGAN_LIST);
+        SyncDrugListToHisReqTO request;
+        List<DrugListTO> drugListTO = ObjectCopyUtils.convert(list, DrugListTO.class);
+        for (String organId : organIdList){
+            request = new SyncDrugListToHisReqTO();
+            request.setClinicOrgan(Integer.valueOf(organId));
+            //组织机构编码
+            request.setOrganCode(organService.getOrganizeCodeByOrganId(Integer.valueOf(organId)));
+            request.setDrugList(drugListTO);
+            service.syncDrugListToHis(request);
+        }
     }
 }

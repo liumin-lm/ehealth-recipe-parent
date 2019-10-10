@@ -22,6 +22,7 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.HisRecipeBean;
@@ -46,6 +47,7 @@ import recipe.audit.bean.AutoAuditResult;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.CacheConstant;
+import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
@@ -433,5 +435,17 @@ public class RecipePreserveService {
     public void testRecipeStatusFromHisObserver(NoticeNgariRecipeInfoReq req){
         RecipeStatusFromHisObserver observer = new RecipeStatusFromHisObserver();
         observer.onMessage(req);
+    }
+
+    /**
+     * 手动同步基础药品数据给his(武昌)
+     * @param sourceOrgan
+     */
+    @RpcService
+    public void syncDrugListToHis(Integer sourceOrgan){
+        DrugListDAO dao = DAOFactory.getDAO(DrugListDAO.class);
+        List<DrugList> drugs = dao.findDrugListBySourceOrgan(sourceOrgan);
+        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+        hisService.syncDrugListToHis(drugs);
     }
 }

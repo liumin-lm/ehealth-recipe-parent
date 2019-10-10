@@ -3,6 +3,7 @@ package recipe.mq;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.OrganDrugList;
 import ctd.net.broadcast.Observer;
@@ -19,12 +20,15 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.util.StringUtils;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
+import recipe.service.RecipeHisService;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.LocalStringUtil;
 import shadow.message.ShadowMessage;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * @author： 0184/yu_yun
@@ -70,6 +74,13 @@ public class DrugSyncObserver implements Observer<ShadowMessage> {
             //非删除情况
             if (0 == deleteFlag) {
                 drugList = drugListDAO.findByDrugIds(rowIdList);
+                //武昌模式--更新或者新增药品同步到his
+                List<DrugList> finalDrugList = drugList;
+                RecipeBusiThreadPool.submit(()->{
+                    RecipeHisService recipeHisService = RecipeAPI.getService(RecipeHisService.class);
+                    recipeHisService.syncDrugListToHis(finalDrugList);
+                    return null;
+                });
                 PatientDrugDetailVO detailVo;
                 for (DrugList drug : drugList) {
                     //只更新基础药品库信息

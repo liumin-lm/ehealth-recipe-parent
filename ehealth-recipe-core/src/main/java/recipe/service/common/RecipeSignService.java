@@ -88,6 +88,9 @@ public class RecipeSignService {
     @Autowired
     private RedisClient redisClient;
 
+    @Autowired
+    private DrugsEnterpriseService drugsEnterpriseService;
+
     /**
      * 武昌模式签名方法
      *
@@ -167,6 +170,18 @@ public class RecipeSignService {
                 //患者自由选择
                 depId = null;
                 payMode = RecipeBussConstant.PAYMODE_COMPLEX;
+            } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)){
+                //到院取药----走九州通补充库存模式
+                payMode = RecipeBussConstant.PAYMODE_TO_HOS;
+                //推送处方到九州通
+                //没有库存就推送九州通
+                drugsEnterpriseService.pushHosInteriorSupport(dbRecipe.getRecipeId(),dbRecipe.getClinicOrgan());
+                //发送患者没库存消息
+                RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_HOSSUPPORT_NOINVENTORY, ObjectCopyUtils.convert(dbRecipe, Recipe.class));
+                String memo = "医院保存没库存处方并推送九州通/发送无库存短信成功";
+                //日志记录
+                RecipeLogService.saveRecipeLog(dbRecipe.getRecipeId(), dbRecipe.getStatus(), dbRecipe.getStatus(), memo);
+
             } else {
                 response.setMsg("缺少取药方式");
                 return response;
@@ -182,7 +197,7 @@ public class RecipeSignService {
             public Object call() throws Exception {
                 RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
                 try {
-                    //写入his成功后，生成pdf并签名
+                    //生成pdf并签名
                     recipeService.generateRecipePdfAndSign(recipeId);
                 } catch (Exception e) {
                     LOG.warn("sign 签名服务异常，recipeId={}", recipeId, e);
@@ -306,6 +321,16 @@ public class RecipeSignService {
             RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_READYCHECK_4HIS, dbRecipe);
         }
         return response;
+    }
+
+    /**
+     * 武昌模式判断药品能否开在一张处方单上
+     * @param recipeId
+     * @param drugIds
+     */
+    @RpcService
+    public void canOpenRecipeDrugs(Integer recipeId,List<Integer> drugIds){
+        RecipeServiceSub.canOpenRecipeDrugs(recipeId,drugIds);
     }
 
     /**
