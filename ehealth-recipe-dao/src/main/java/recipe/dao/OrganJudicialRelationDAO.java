@@ -2,6 +2,7 @@ package recipe.dao;
 
 import com.ngari.recipe.entity.OrganJudicialRelation;
 import ctd.persistence.annotation.DAOMethod;
+import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
 import ctd.util.annotation.RpcSupportDAO;
 
@@ -19,5 +20,5 @@ public abstract class OrganJudicialRelationDAO extends HibernateSupportDelegateD
     }
 
     @DAOMethod(sql = "from OrganJudicialRelation where organId=:organId ")
-    public abstract OrganJudicialRelation getOrganJudicialRelationByOrganId(Integer organId);
+    public abstract OrganJudicialRelation getOrganJudicialRelationByOrganId(@DAOParam("organId") int organId);
 }
