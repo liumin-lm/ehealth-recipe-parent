@@ -317,7 +317,7 @@ public class PurchaseService {
                 tips = "处方单未处理，已失效";
                 break;
             case RecipeStatusConstant.CHECK_NOT_PASS_YS:
-                if(null != order && OrderStatusConstant.CANCEL_NOT_PASS == order.getStatus()){
+                if(RecipecCheckStatusConstant.Check_Normal == recipe.getCheckStatus()){
                     tips = "处方审核不通过，请联系开方医生";
                     break;
                 }else{
