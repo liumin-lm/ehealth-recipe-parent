@@ -263,6 +263,12 @@ public class RecipeUtil {
             recipe.setPatientStatus(1);
         }
 
+        //date 20191011
+        //设置处方审核状态默认值
+        if (null == recipe.getCheckStatus()) {
+            recipe.setCheckStatus(0);
+        }
+
     }
 
     //将；用|代替
