@@ -925,7 +925,8 @@ public class RecipeListService extends RecipeBaseService{
             //当审方为前置并且审核没有通过，设置成不可选择
 
             //判断购药按钮是否可选状态的,当审方方式是前置且正在审核中时，不可选
-            boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() && RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus());
+            boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() &&
+                    (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus())));
             payModeShowButtonBean.setOptional(isOptional);
 
         }else if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(record.getRecipeMode())){
