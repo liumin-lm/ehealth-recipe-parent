@@ -990,7 +990,8 @@ public class RecipeService extends RecipeBaseService{
         }
 
         Integer afterStatus = RecipeStatusConstant.CHECK_PASS_YS;
-        if (!dbRecipe.canMedicalPay()) {
+        //添加后置状态设置
+        if (ReviewTypeConstant.Postposition_Check == recipe.getReviewType() || !dbRecipe.canMedicalPay()) {
             RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
             boolean effective = orderDAO.isEffectiveOrder(dbRecipe.getOrderCode(), dbRecipe.getPayMode());
             if (null != recipe.getOrderCode() && !effective) {
