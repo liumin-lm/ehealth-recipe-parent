@@ -991,7 +991,22 @@ public class RecipeService extends RecipeBaseService{
 
         Integer afterStatus = RecipeStatusConstant.CHECK_PASS_YS;
         //添加后置状态设置
-        if (ReviewTypeConstant.Postposition_Check == recipe.getReviewType() || !dbRecipe.canMedicalPay()) {
+        if(ReviewTypeConstant.Postposition_Check == dbRecipe.getReviewType()){
+            if (!dbRecipe.canMedicalPay()) {
+                RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
+                boolean effective = orderDAO.isEffectiveOrder(dbRecipe.getOrderCode(), dbRecipe.getPayMode());
+                if (null != recipe.getOrderCode() && !effective) {
+                    resultBean.setCode(RecipeResultBean.FAIL);
+                    resultBean.setMsg("该处方已失效");
+                    return resultBean;
+                }
+            } else {
+                afterStatus = RecipeStatusConstant.CHECK_PASS;
+            }
+        }else if(ReviewTypeConstant.Preposition_Check == dbRecipe.getReviewType()){
+            afterStatus = RecipeStatusConstant.CHECK_PASS;
+        }
+        if (!dbRecipe.canMedicalPay()) {
             RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
             boolean effective = orderDAO.isEffectiveOrder(dbRecipe.getOrderCode(), dbRecipe.getPayMode());
             if (null != recipe.getOrderCode() && !effective) {
@@ -1051,6 +1066,12 @@ public class RecipeService extends RecipeBaseService{
                 SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
                 syncExecutorService.uploadRecipeIndicators(recipe);
             } else {*/
+            if(ReviewTypeConstant.Preposition_Check == recipe.getReviewType()){
+                //如果是可医保支付的单子，审核通过之后是变为待处理状态，需要用户支付完成才发往药企
+                RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipeId), null, true);
+                //向患者推送处方消息
+                RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS);
+            }else if(ReviewTypeConstant.Postposition_Check == recipe.getReviewType()){
                 if (recipe.canMedicalPay()) {
                     //如果是可医保支付的单子，审核通过之后是变为待处理状态，需要用户支付完成才发往药企
                     RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipeId), null, true);
@@ -1092,6 +1113,8 @@ public class RecipeService extends RecipeBaseService{
                     // 平台处方发送药企处方信息
                     service.pushSingleRecipeInfo(recipeId);
                 }
+            }
+
         } else if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipe.getFromflag())) {
             Integer status = OrderStatusConstant.READY_SEND;
             if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
