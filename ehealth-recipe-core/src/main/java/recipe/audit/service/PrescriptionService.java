@@ -8,6 +8,7 @@ import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.slf4j.Logger;
@@ -83,10 +84,18 @@ public class PrescriptionService {
     private IntellectJudicialService getService(Integer organId){
         OrganJudicialRelationDAO organJudicialRelationDAO = DAOFactory.getDAO(OrganJudicialRelationDAO.class);
         OrganJudicialRelation organJudicialRelation = organJudicialRelationDAO.getOrganJudicialRelationByOrganId(organId);
-        if (organJudicialRelation == null) {
-            throw new DAOException("请为该机构配置审方机构");
-        }
         JudicialOrganDAO judicialOrganDAO = DAOFactory.getDAO(JudicialOrganDAO.class);
+        if (organJudicialRelation == null) {
+            LOGGER.info("PrescriptionService getService 没有维护智能审方关系");
+            OrganJudicialRelation judicialRelation = new OrganJudicialRelation();
+            judicialRelation.setOrganId(organId);
+            //默认配置卫宁智能审方
+            JudicialOrgan judicialOrgan = judicialOrganDAO.getByAccount("winning");
+            judicialRelation.setJudicialorganId(judicialOrgan.getJudicialorganId());
+            organJudicialRelationDAO.save(judicialRelation);
+            organJudicialRelation = organJudicialRelationDAO.getOrganJudicialRelationByOrganId(organId);
+        }
+        LOGGER.info("PrescriptionService getService organJudicialRelation:{}.", JSONUtils.toString(organJudicialRelation));
         JudicialOrgan judicialOrgan = judicialOrganDAO.getByJudicialorganId(organJudicialRelation.getJudicialorganId());
         if (judicialOrgan == null) {
             throw new DAOException("审方机构不存在");

@@ -20,4 +20,7 @@ public abstract class JudicialOrganDAO extends HibernateSupportDelegateDAO<Judic
 
     @DAOMethod
     public abstract JudicialOrgan getByJudicialorganId(Integer id);
+
+    @DAOMethod
+    public abstract JudicialOrgan getByAccount(String account);
 }
