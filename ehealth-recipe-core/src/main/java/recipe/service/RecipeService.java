@@ -933,8 +933,9 @@ public class RecipeService extends RecipeBaseService{
                     recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap);
                 }
             }
-            //高州市人民医院特殊处理
-            if (1000423==recipeBean.getClinicOrgan()){
+            //个性化医院特殊处理，开完处方模拟his成功返回数据（假如前置机不提供默认返回数据）
+            Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_SKIP_HISRECIPE_LIST);
+            if (organIdList != null && organIdList.contains(recipeBean.getClinicOrgan())){
                 RecipeBusiThreadPool.submit(new Callable() {
                     @Override
                     public Object call() throws Exception {
