@@ -736,7 +736,7 @@ public class RecipeListService extends RecipeBaseService{
         if("ongoing".equals(tabStatus)){
             specialStatusList.add(RecipeStatusConstant.RECIPE_DOWNLOADED);
         }
-        List<PatientRecipeBean> backList = recipeDAO.findTabStatusRecipesForPatient(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), specialStatusList);
+        List<PatientRecipeBean> backList = recipeDAO.findTabStatusRecipesForPatient(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), specialStatusList, tabStatus);
         return processTabListDate(backList, allMpiIds);
     }
 
@@ -998,10 +998,16 @@ public class RecipeListService extends RecipeBaseService{
         }
 
         if(ReviewTypeConstant.Preposition_Check == recipe.getReviewType()){
+            //date 2019/10/10
+            //添加一次审核不通过标识位
             if(RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus()){
                 return 0;
             }else if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()){
-                return 2;
+                if(RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus()){
+                    return 0;
+                }else{
+                    return 2;
+                }
             }
         }
         return 1;

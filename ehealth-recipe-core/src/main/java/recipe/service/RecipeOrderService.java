@@ -1185,7 +1185,12 @@ public class RecipeOrderService extends RecipeBaseService {
                 //添加文案提示的
                 getOrderTips(ext, nowRecipe, order);
                 //设置页面上提示文案的颜色信息
-                RecipeTipesColorTypeEnum colorType = RecipeTipesColorTypeEnum.fromRecipeStatus(nowRecipe.getStatus());
+                //添加一次审核不通过的判断，等价于待审核
+                Integer recipestatus = nowRecipe.getStatus();
+                if(RecipecCheckStatusConstant.First_Check_No_Pass ==nowRecipe.getCheckStatus()){
+                    recipestatus = RecipeStatusConstant.READY_CHECK_YS;
+                }
+                RecipeTipesColorTypeEnum colorType = RecipeTipesColorTypeEnum.fromRecipeStatus(recipestatus);
                 if(null != colorType){
                     ext.put("tipsType", colorType.getShowType());
                 }

@@ -94,7 +94,7 @@ public class PatientTabStatusRecipeDTO implements Serializable {
     private String orderCode;
 
     /**
-     * 当前处方对应的订单code
+     * 当前处方对应的开方医院
      */
     private Integer clinicOrgan;
 

@@ -483,6 +483,9 @@ public class RecipeService extends RecipeBaseService{
         attrMap.put("checkOrgan", checkOrgan);
         attrMap.put("checker", checker);
         attrMap.put("checkFailMemo", (StringUtils.isEmpty(memo)) ? "" : memo);
+        //date 2019/10/10
+        //添加逻辑: 设置处方审核状态为常态
+        attrMap.put("checkStatus", RecipecCheckStatusConstant.Check_Normal);
 
         //保存审核记录和详情审核记录
         RecipeCheck recipeCheck = new RecipeCheck();
@@ -586,6 +589,11 @@ public class RecipeService extends RecipeBaseService{
             LOGGER.error("reCreatedRecipe 该处方不是审核未通过的处方. recipeId=[{}]", recipeId);
             return Lists.newArrayList();
         }
+        //更新处方一次审核不通过标记
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        Map<String, Object> updateMap = new HashMap<>();
+        updateMap.put("checkStatus", RecipecCheckStatusConstant.Check_Normal);
+        recipeDAO.updateRecipeInfoByRecipeId(recipeId, updateMap);
         //根据审方模式改变--审核未通过处理
         auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckNotPassYs(dbRecipe);
         List<Recipedetail> detailBeanList = RecipeValidateUtil.validateDrugsImpl(dbRecipe);
@@ -985,7 +993,7 @@ public class RecipeService extends RecipeBaseService{
         if (!dbRecipe.canMedicalPay()) {
             RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
             boolean effective = orderDAO.isEffectiveOrder(dbRecipe.getOrderCode(), dbRecipe.getPayMode());
-            if (!effective) {
+            if (null != recipe.getOrderCode() && !effective) {
                 resultBean.setCode(RecipeResultBean.FAIL);
                 resultBean.setMsg("该处方已失效");
                 return resultBean;
@@ -993,10 +1001,14 @@ public class RecipeService extends RecipeBaseService{
         } else {
             afterStatus = RecipeStatusConstant.CHECK_PASS;
         }
+        Map<String, Object> updateMap = new HashMap<>();
+        updateMap.put("supplementaryMemo", recipe.getSupplementaryMemo());
+        updateMap.put("checkStatus", RecipecCheckStatusConstant.Check_Normal);
+
         //date 20190929
         //这里提示文案描述，扩展成二次审核通过/二次审核不通过的说明
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), afterStatus,
-                ImmutableMap.of("supplementaryMemo", recipe.getSupplementaryMemo()));
+                updateMap);
         afterCheckPassYs(dbRecipe);
         try {
             //生成pdf并签名

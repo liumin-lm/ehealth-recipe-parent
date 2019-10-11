@@ -546,8 +546,6 @@ public class RecipeCheckService {
     }
 
     private void doAfterCheckNotPassYs(Recipe recipe) {
-        //由于支持二次签名的机构第一次审方不通过时医生收不到消息。所以将审核不通过推送消息放这里处理
-        sendCheckNotPassYsMsg(recipe);
         IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
         boolean secondsignflag = iOrganConfigService.getEnableSecondsignByOrganId(recipe.getClinicOrgan());
         //不支持二次签名的机构直接执行后续操作
@@ -555,7 +553,16 @@ public class RecipeCheckService {
             /*recipeService.afterCheckNotPassYs(recipe);*/
             //TODO 根据审方模式改变
             auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckNotPassYs(recipe);
+        }else{
+            //需要二次审核，这里是一次审核不通过的流程
+            //需要将处方的审核状态设置成一次审核不通过的状态
+            Map<String, Object> updateMap = new HashMap<>();
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            updateMap.put("checkStatus", RecipecCheckStatusConstant.First_Check_No_Pass);
+            recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), updateMap);
         }
+        //由于支持二次签名的机构第一次审方不通过时医生收不到消息。所以将审核不通过推送消息放这里处理
+        sendCheckNotPassYsMsg(recipe);
         //HIS消息发送
         //审核不通过 往his更新状态（已取消）
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
@@ -569,7 +576,9 @@ public class RecipeCheckService {
             //发送审核不成功消息
             //${sendOrgan}：抱歉，您的处方未通过药师审核。如有收取费用，款项将为您退回，预计1-5个工作日到账。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
             RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_CHECKNOTPASS_4HIS, recipe);
-        }else if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())){
+        //date 2019/10/10
+        //添加判断 一次审核不通过不需要向患者发送消息
+        }else if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag()) && RecipecCheckStatusConstant.Check_Normal == recipe.getCheckStatus()){
             //发送审核不成功消息
             //处方审核不通过通知您的处方单审核不通过，如有疑问，请联系开方医生
             RecipeMsgService.batchSendMsg(recipe, eh.cdr.constant.RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);

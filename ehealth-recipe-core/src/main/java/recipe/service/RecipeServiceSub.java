@@ -661,7 +661,7 @@ public class RecipeServiceSub {
             if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
                 effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
             }
-            Map<String, String> tipMap = getTipsByStatus(recipe.getStatus(), recipe, effective);
+            Map<String, String> tipMap = getTipsByStatusCopy(recipe.getStatus(), recipe, effective);
             recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
             recipeMap.put(recipe.getRecipeId(), convertRecipeForRAP(recipe));
         }
@@ -830,6 +830,7 @@ public class RecipeServiceSub {
         String cancelReason = "";
         String tips = "";
         String listTips = "";
+
         switch (status) {
             case RecipeStatusConstant.CHECK_NOT_PASS:
                 tips = "审核未通过";
@@ -887,8 +888,10 @@ public class RecipeServiceSub {
                 cancelReason = "由于患者未及时支付，该处方单已取消。";
                 break;
             case RecipeStatusConstant.CHECK_NOT_PASS_YS:
-                //这里统一成审核未通过
+                //这里逻辑修改：原先处方取消后，保留处方的状态
+                //现在初始化成待处理的状态
                 tips = "审核未通过";
+
                 break;
             case RecipeStatusConstant.CHECKING_HOS:
                 tips = "医院确认中";
@@ -1073,7 +1076,10 @@ public class RecipeServiceSub {
             }
 
             //审核不通过处方单详情增加二次签名标记
-            boolean b = RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && (recipe.canMedicalPay() || effective);
+            //date 20191011
+            //添加一次审核不通过标志位,取消之前通过订单是否有效的判断
+            //boolean b = RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && (recipe.canMedicalPay() || effective);
+            boolean b = RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && (recipe.canMedicalPay() || (RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus()));
             if (b) {
                 map.put("secondSignFlag", iOrganConfigService.getEnableSecondsignByOrganId(recipe.getClinicOrgan()));
             }
@@ -1185,7 +1191,12 @@ public class RecipeServiceSub {
             map.put("isDownload", isDownload);
             //date 2190929
             //添加处方详情上提示信息的展示颜色类型
-            RecipeTipesColorTypeEnum colorType = RecipeTipesColorTypeEnum.fromRecipeStatus(recipe.getStatus());
+            //添加一次审核不通过，状态待审核
+            Integer recipestatus = recipe.getStatus();
+            if(RecipecCheckStatusConstant.First_Check_No_Pass ==recipe.getCheckStatus()){
+                recipestatus = RecipeStatusConstant.READY_CHECK_YS;
+            }
+            RecipeTipesColorTypeEnum colorType = RecipeTipesColorTypeEnum.fromRecipeStatus(recipestatus);
             if(null != colorType){
                 map.put("tipsType", colorType.getShowType());
             }
