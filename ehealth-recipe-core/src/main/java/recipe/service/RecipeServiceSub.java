@@ -1179,7 +1179,8 @@ public class RecipeServiceSub {
             }
             //Date:20190904
             //Explain:审核是否通过
-            boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() && RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus());
+            boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() &&
+                    (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus())));
             map.put("optional", isOptional);
             //Date:20190909
             //Explain:判断是否下载处方签
@@ -1193,13 +1194,32 @@ public class RecipeServiceSub {
             //添加处方详情上提示信息的展示颜色类型
             //添加一次审核不通过，状态待审核
             Integer recipestatus = recipe.getStatus();
-            if(RecipecCheckStatusConstant.First_Check_No_Pass ==recipe.getCheckStatus()){
+            if(RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus()){
                 recipestatus = RecipeStatusConstant.READY_CHECK_YS;
             }
             RecipeTipesColorTypeEnum colorType = RecipeTipesColorTypeEnum.fromRecipeStatus(recipestatus);
             if(null != colorType){
                 map.put("tipsType", colorType.getShowType());
             }
+            //date 2191011
+            //添加处方详情上是否展示按钮
+            boolean showButton = false;
+            if(ReviewTypeConstant.Preposition_Check == recipe.getReviewType()){
+                //带药师审核，审核一次不通过，待处理无订单
+                if (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus()
+                        || RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus()
+                        || (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode())) {
+
+                    showButton = true;
+                }
+            }else{
+                if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode()) {
+
+                    showButton = true;
+                }
+            }
+            map.put("showButton", showButton);
+
         }
 
         if (StringUtils.isEmpty(recipe.getMemo())) {
