@@ -269,6 +269,10 @@ public class RecipeSignService {
             status = RecipeStatusConstant.READY_CHECK_YS;
             sendYsCheck = true;
         }
+        if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)){
+            //到院取药这里结束了
+            status = RecipeStatusConstant.FINISH;
+        }
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, attrMap);
 
         //HIS同步处理
