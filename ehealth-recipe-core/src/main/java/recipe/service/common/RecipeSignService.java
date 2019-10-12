@@ -177,6 +177,9 @@ public class RecipeSignService {
                 String memo = "医院保存没库存处方并推送九州通/发送无库存短信成功";
                 //日志记录
                 RecipeLogService.saveRecipeLog(dbRecipe.getRecipeId(), dbRecipe.getStatus(), dbRecipe.getStatus(), memo);
+                //到院取药这里就应该结束了
+                response.setCode(RecipeCommonBaseTO.SUCCESS);
+                return response;
 
             } else {
                 response.setMsg("缺少取药方式");
