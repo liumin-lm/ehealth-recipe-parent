@@ -12,6 +12,7 @@ import recipe.ApplicationUtils;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
+import recipe.constant.ReviewTypeConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import java.math.BigDecimal;
@@ -185,7 +186,7 @@ public class RecipeUtil {
 
         //互联网模式默认为审方前置
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
-            recipe.setReviewType(RecipeBussConstant.AUDIT_PRE);
+            recipe.setReviewType(ReviewTypeConstant.Preposition_Check);
         }
         
         //默认剂数为1

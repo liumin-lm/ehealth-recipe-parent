@@ -18,10 +18,7 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.RecipeUtil;
-import recipe.constant.CacheConstant;
-import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeMsgEnum;
-import recipe.constant.RecipeSystemConstant;
+import recipe.constant.*;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
@@ -38,7 +35,7 @@ import static ctd.persistence.DAOFactory.getDAO;
  * created by shiyuping on 2019/8/15
  * 审方后置
  */
-@AuditMode(RecipeBussConstant.AUDIT_POST)
+@AuditMode(ReviewTypeConstant.Postposition_Check)
 public class AuditPostMode extends AbstractAuidtMode {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuditPostMode.class);
 

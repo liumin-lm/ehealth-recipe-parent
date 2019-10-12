@@ -6,10 +6,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeMsgEnum;
+import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDetailDAO;
 import recipe.hisservice.syncdata.SyncExecutorService;
-import recipe.service.RecipeHisService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeServiceSub;
@@ -20,7 +19,7 @@ import static ctd.persistence.DAOFactory.getDAO;
  * created by shiyuping on 2019/8/15
  * 审方前置
  */
-@AuditMode(RecipeBussConstant.AUDIT_PRE)
+@AuditMode(ReviewTypeConstant.Preposition_Check)
 public class AuditPreMode extends AbstractAuidtMode {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuditPreMode.class);
     @Override
