@@ -97,6 +97,9 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "医院药房名字")
     private String pharmacyName;
 
+    @ItemProperty(alias = "监管平台药品编码")
+    private String regulationDrugCode;
+
 
     public OrganDrugList() {
     }
@@ -330,5 +333,14 @@ public class OrganDrugList implements java.io.Serializable {
 
     public void setPharmacyName(String pharmacyName) {
         this.pharmacyName = pharmacyName;
+    }
+
+    @Column(name = "regulationDrugCode")
+    public String getRegulationDrugCode() {
+        return regulationDrugCode;
+    }
+
+    public void setRegulationDrugCode(String regulationDrugCode) {
+        this.regulationDrugCode = regulationDrugCode;
     }
 }

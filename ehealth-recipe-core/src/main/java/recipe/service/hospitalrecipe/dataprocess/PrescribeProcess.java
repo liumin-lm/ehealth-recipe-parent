@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author： 0184/yu_yun
@@ -142,9 +143,6 @@ public class PrescribeProcess {
         }));
 
         List<RecipeDetailBean> recipeDetails = new ArrayList<>(hosDetailList.size());
-        Integer recipeType = Integer.parseInt(hospitalRecipeDTO.getRecipeType());
-        boolean isTcmType = (RecipeBussConstant.RECIPETYPE_TCM.equals(recipeType)
-                || RecipeBussConstant.RECIPETYPE_HP.equals(recipeType)) ? true : false;
 
         Integer clinicOrgan = Integer.parseInt(hospitalRecipeDTO.getClinicOrgan());
         //从base_organdruglist获取平台药品ID数据
@@ -164,65 +162,8 @@ public class PrescribeProcess {
                 for (DrugList drug : drugList) {
                     drugRel.put(codeIdRel.get(drug.getDrugId()), drug);
                 }
-
-                RecipeDetailBean recipedetail;
-                DrugList drug;
-                String usingRate;
-                String usePathways;
-                Date now = DateTime.now().toDate();
-                for (HospitalDrugDTO hosDetail : hosDetailList) {
-                    drug = drugRel.get(hosDetail.getDrugCode());
-                    if (null != drug) {
-                        recipedetail = new RecipeDetailBean();
-                        recipedetail.setCreateDt(now);
-                        recipedetail.setLastModify(now);
-                        recipedetail.setDrugId(drug.getDrugId());
-                        recipedetail.setOrganDrugCode(hosDetail.getDrugCode());
-                        recipedetail.setDrugName(StringUtils.defaultString(hosDetail.getDrugName(),
-                                drug.getSaleName()));
-                        recipedetail.setDrugSpec(StringUtils.defaultString(hosDetail.getSpecification(),
-                                drug.getDrugSpec()));
-                        recipedetail.setUseTotalDose(StringUtils.isEmpty(hosDetail.getTotal()) ?
-                                1 : Double.parseDouble(hosDetail.getTotal()));
-                        recipedetail.setUseDose(StringUtils.isEmpty(hosDetail.getUseDose()) ?
-                                drug.getUseDose() : Double.parseDouble(hosDetail.getUseDose()));
-                        recipedetail.setUseDays(StringUtils.isEmpty(hosDetail.getUesDays()) ?
-                                1 : Integer.parseInt(hosDetail.getUesDays()));
-                        //设置平台药品数据
-                        recipedetail.setPack(drug.getPack());
-                        recipedetail.setDrugUnit(drug.getUnit());
-                        recipedetail.setUseDoseUnit(drug.getUseDoseUnit());
-                        recipedetail.setDefaultUseDose(drug.getUseDose());
-                        recipedetail.setPharmNo(hosDetail.getPharmNo());
-                        recipedetail.setMemo(hosDetail.getMemo());
-                        recipedetail.setStatus(1);
-                        //中药或者膏方
-                        if (isTcmType) {
-                            usingRate = UsingRateFilter.filter(clinicOrgan, hospitalRecipeDTO.getTcmUsingRate());
-                            usePathways = UsePathwaysFilter.filter(clinicOrgan, hospitalRecipeDTO.getTcmUsePathways());
-                            //用法
-                            recipedetail.setUsePathways(StringUtils.defaultString(usePathways, drug.getUsePathways()));
-                            //频次
-                            recipedetail.setUsingRate(StringUtils.defaultString(usingRate, drug.getUsingRate()));
-                        } else {
-                            //西药等如果医院不做处理需要进行字典转换
-                            usingRate = UsingRateFilter.filter(clinicOrgan, hosDetail.getUsingRate());
-                            usePathways = UsePathwaysFilter.filter(clinicOrgan, hosDetail.getUsePathways());
-                            //用法
-                            recipedetail.setUsePathways(StringUtils.defaultString(usePathways, drug.getUsePathways()));
-                            //频次
-                            recipedetail.setUsingRate(StringUtils.defaultString(usingRate, drug.getUsingRate()));
-                        }
-
-                        //设置价格
-                        recipedetail.setSalePrice(StringUtils.isEmpty(hosDetail.getDrugFee()) ?
-                                BigDecimal.ZERO : new BigDecimal(hosDetail.getDrugFee()));
-                        recipedetail.setDrugCost(StringUtils.isEmpty(hosDetail.getDrugTotalFee()) ?
-                                BigDecimal.ZERO : new BigDecimal(hosDetail.getDrugTotalFee()));
-
-                        recipeDetails.add(recipedetail);
-                    }
-                }
+                //处理药品数据
+                doRecipeDetail(drugRel,hospitalRecipeDTO,recipeDetails,hosDetailList);
             } else {
                 LOG.warn("convertNgariDetail drugList数据与医院不匹配. organDrugCode={}, drugList.size={}",
                         JSONUtils.toString(organDrugCodeList), drugList.size());
@@ -233,6 +174,72 @@ public class PrescribeProcess {
         }
 
         return recipeDetails;
+    }
+
+    private static void doRecipeDetail(Map<String, DrugList> drugRel, HospitalRecipeDTO hospitalRecipeDTO, List<RecipeDetailBean> recipeDetails,List<HospitalDrugDTO> hosDetailList) {
+        Integer recipeType = Integer.parseInt(hospitalRecipeDTO.getRecipeType());
+        boolean isTcmType = (RecipeBussConstant.RECIPETYPE_TCM.equals(recipeType)
+                || RecipeBussConstant.RECIPETYPE_HP.equals(recipeType)) ? true : false;
+
+        Integer clinicOrgan = Integer.parseInt(hospitalRecipeDTO.getClinicOrgan());
+        RecipeDetailBean recipedetail;
+        DrugList drug;
+        String usingRate;
+        String usePathways;
+        Date now = DateTime.now().toDate();
+        for (HospitalDrugDTO hosDetail : hosDetailList) {
+            drug = drugRel.get(hosDetail.getDrugCode());
+            if (null != drug) {
+                recipedetail = new RecipeDetailBean();
+                recipedetail.setCreateDt(now);
+                recipedetail.setLastModify(now);
+                recipedetail.setDrugId(drug.getDrugId());
+                recipedetail.setOrganDrugCode(hosDetail.getDrugCode());
+                recipedetail.setDrugName(StringUtils.defaultString(hosDetail.getDrugName(),
+                        drug.getSaleName()));
+                recipedetail.setDrugSpec(StringUtils.defaultString(hosDetail.getSpecification(),
+                        drug.getDrugSpec()));
+                recipedetail.setUseTotalDose(StringUtils.isEmpty(hosDetail.getTotal()) ?
+                        1 : Double.parseDouble(hosDetail.getTotal()));
+                recipedetail.setUseDose(StringUtils.isEmpty(hosDetail.getUseDose()) ?
+                        drug.getUseDose() : Double.parseDouble(hosDetail.getUseDose()));
+                recipedetail.setUseDays(StringUtils.isEmpty(hosDetail.getUesDays()) ?
+                        1 : Integer.parseInt(hosDetail.getUesDays()));
+                //设置平台药品数据
+                recipedetail.setPack(drug.getPack());
+                recipedetail.setDrugUnit(drug.getUnit());
+                recipedetail.setUseDoseUnit(drug.getUseDoseUnit());
+                recipedetail.setDefaultUseDose(drug.getUseDose());
+                recipedetail.setPharmNo(hosDetail.getPharmNo());
+                recipedetail.setMemo(hosDetail.getMemo());
+                recipedetail.setStatus(1);
+                //中药或者膏方
+                if (isTcmType) {
+                    usingRate = UsingRateFilter.filter(clinicOrgan, hospitalRecipeDTO.getTcmUsingRate());
+                    usePathways = UsePathwaysFilter.filter(clinicOrgan, hospitalRecipeDTO.getTcmUsePathways());
+                    //用法
+                    recipedetail.setUsePathways(StringUtils.defaultString(usePathways, drug.getUsePathways()));
+                    //频次
+                    recipedetail.setUsingRate(StringUtils.defaultString(usingRate, drug.getUsingRate()));
+                } else {
+                    //西药等如果医院不做处理需要进行字典转换
+                    usingRate = UsingRateFilter.filter(clinicOrgan, hosDetail.getUsingRate());
+                    usePathways = UsePathwaysFilter.filter(clinicOrgan, hosDetail.getUsePathways());
+                    //用法
+                    recipedetail.setUsePathways(StringUtils.defaultString(usePathways, drug.getUsePathways()));
+                    //频次
+                    recipedetail.setUsingRate(StringUtils.defaultString(usingRate, drug.getUsingRate()));
+                }
+
+                //设置价格
+                recipedetail.setSalePrice(StringUtils.isEmpty(hosDetail.getDrugFee()) ?
+                        BigDecimal.ZERO : new BigDecimal(hosDetail.getDrugFee()));
+                recipedetail.setDrugCost(StringUtils.isEmpty(hosDetail.getDrugTotalFee()) ?
+                        BigDecimal.ZERO : new BigDecimal(hosDetail.getDrugTotalFee()));
+
+                recipeDetails.add(recipedetail);
+            }
+        }
     }
 
     /**
@@ -274,4 +281,23 @@ public class PrescribeProcess {
         return hospitalRecipeDTO;
     }
 
+    //转换详情数据（武昌传的是平台drugId）
+    public static List<RecipeDetailBean> convertNgariDetailForWuChang(HospitalRecipeDTO hospitalRecipeDTO) {
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        //his传的药品数据
+        List<HospitalDrugDTO> hosDetailList = hospitalRecipeDTO.getDrugList();
+        List<RecipeDetailBean> recipeDetails = new ArrayList<>(hosDetailList.size());
+
+        //从base_druglist获取药品具体数据
+        List<Integer> list = hosDetailList.stream().map(HospitalDrugDTO::getDrugCode).map(Integer::parseInt).collect(Collectors.toList());
+        List<DrugList> drugList = drugListDAO.findByDrugIds(list);
+        //drugId -> DrugList
+        Map<String, DrugList> drugRel = Maps.newHashMap();
+        for (DrugList drug : drugList) {
+            drugRel.put(drug.getDrugId().toString(), drug);
+        }
+
+        doRecipeDetail(drugRel,hospitalRecipeDTO,recipeDetails,hosDetailList);
+        return recipeDetails;
+    }
 }
