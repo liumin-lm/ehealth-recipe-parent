@@ -355,6 +355,7 @@ public class RecipeServiceSub {
 
 
         //供应商一致性校验，取第一个药品能配送的药企作为标准
+        // TODO: 2019/10/12 这里是否应该按照机构配置了的药企作为条件来查找是否能配送 未做 
         Map<Integer, List<String>> drugDepRel = saleDrugListDAO.findDrugDepRelation(drugIds);
         //无法配送药品校验
         List<String> noFilterDrugName = new ArrayList<>();
