@@ -302,12 +302,14 @@ public class RecipeSingleService {
             case RecipeStatusConstant.FINISH:
                 if (RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())){
                     statusTxt = "患者取药完成";
-                }else if (RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode())) {
+                }else if (RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode())||RecipeBussConstant.GIVEMODE_TO_HOS.equals(dbRecipe.getGiveMode())) {
                     statusTxt = "处方单已完成";
                 }else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())){
                     statusTxt = "配送完成";
                 }
                 break;
+            default:
+                statusTxt = "未知状态";break;
         }
 
         return statusTxt;
