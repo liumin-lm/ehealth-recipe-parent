@@ -583,7 +583,7 @@ public class RecipeCheckService {
             RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_CHECKNOTPASS_4HIS, recipe);
         //date 2019/10/10
         //添加判断 一次审核不通过不需要向患者发送消息
-        }else if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag()) && RecipecCheckStatusConstant.Check_Normal == recipe.getCheckStatus()){
+        }else if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())){
             //发送审核不成功消息
             //处方审核不通过通知您的处方单审核不通过，如有疑问，请联系开方医生
             RecipeMsgService.batchSendMsg(recipe, eh.cdr.constant.RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
