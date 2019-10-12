@@ -29,13 +29,15 @@ import static ctd.persistence.DAOFactory.getDAO;
 public abstract class AbstractAuidtMode implements IAuditMode{
     @Override
     public void afterHisCallBackChange(Integer status, Recipe recipe,String memo) {
-        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        //发送卡片
-        RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipe.getRecipeId()), null, true);
         saveStatusAndSendMsg(status,recipe,memo);
     }
 
     protected void saveStatusAndSendMsg(Integer status, Recipe recipe,String memo){
+        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        //发送卡片
+        if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())){
+            RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipe.getRecipeId()), null, true);
+        }
         //生成文件成功后再去更新处方状态
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), status, null);
