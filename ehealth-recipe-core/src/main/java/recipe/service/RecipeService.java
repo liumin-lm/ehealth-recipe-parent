@@ -594,6 +594,9 @@ public class RecipeService extends RecipeBaseService{
         Map<String, Object> updateMap = new HashMap<>();
         updateMap.put("checkStatus", RecipecCheckStatusConstant.Check_Normal);
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, updateMap);
+
+        //添加发送不通过消息
+        RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
         //根据审方模式改变--审核未通过处理
         auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckNotPassYs(dbRecipe);
         List<Recipedetail> detailBeanList = RecipeValidateUtil.validateDrugsImpl(dbRecipe);
