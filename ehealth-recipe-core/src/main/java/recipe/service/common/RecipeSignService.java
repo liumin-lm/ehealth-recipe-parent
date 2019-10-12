@@ -127,7 +127,7 @@ public class RecipeSignService {
         Map<String, Object> conditions = request.getConditions();
         Integer giveMode = MapValueUtil.getInteger(conditions, "giveMode");
         Integer depId = MapValueUtil.getInteger(conditions, "depId");
-        if (null == depId && !RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)) {
+        if (null == depId && !RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)&& !RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)) {
             response.setMsg("缺少药企编码");
             return response;
         }
