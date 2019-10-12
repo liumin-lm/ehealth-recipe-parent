@@ -882,10 +882,12 @@ public class RecipeServiceSub {
             case RecipeStatusConstant.NO_PAY:
                 //修改文案
                 tips = "未支付";
+                cancelReason = "由于患者未及时支付，该处方单已取消。";
+                break;
             case RecipeStatusConstant.NO_OPERATOR:
                 //修改文案
                 tips = "未处理";
-                cancelReason = "由于患者未及时支付，该处方单已取消。";
+                cancelReason = "由于患者未及时处理，该处方已取消。";
                 break;
             case RecipeStatusConstant.CHECK_NOT_PASS_YS:
                 //这里逻辑修改：原先处方取消后，保留处方的状态
@@ -1204,20 +1206,26 @@ public class RecipeServiceSub {
             //date 2191011
             //添加处方详情上是否展示按钮
             boolean showButton = false;
-            if(ReviewTypeConstant.Preposition_Check == recipe.getReviewType()){
-                //带药师审核，审核一次不通过，待处理无订单
-                if (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus()
-                        || RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus()
-                        || (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode())) {
+            if(!((null == map.get("supportTFDS") || 0 == Integer.parseInt(map.get("supportTFDS").toString())) &&
+                    (null == map.get("supportOnline") || 0 == Integer.parseInt(map.get("supportOnline").toString())) &&
+                    (null == map.get("supportDownload") || 0 == Integer.parseInt(map.get("supportDownload").toString())) &&
+                    (null == map.get("supportToHos") || 0 == Integer.parseInt(map.get("supportToHos").toString())))){
+                if(ReviewTypeConstant.Preposition_Check == recipe.getReviewType()){
+                    //带药师审核，审核一次不通过，待处理无订单
+                    if (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus()
+                            || RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus()
+                            || (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode())) {
 
-                    showButton = true;
-                }
-            }else{
-                if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode()) {
+                        showButton = true;
+                    }
+                }else{
+                    if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode()) {
 
-                    showButton = true;
+                        showButton = true;
+                    }
                 }
             }
+
             map.put("showButton", showButton);
 
         }

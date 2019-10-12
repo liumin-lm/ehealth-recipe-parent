@@ -70,9 +70,9 @@ public class RecipeListService extends RecipeBaseService{
 
     public static final Integer ORDER_PAGE = 1;
 
-    //历史处方显示的状态：未处理、未支付、审核不通过、失败、已完成
+    //历史处方显示的状态：未处理、未支付、审核不通过、失败、已完成、his失败
     public static final Integer[] historyRecipeListShowStatusList = {RecipeStatusConstant.NO_OPERATOR,
-            RecipeStatusConstant.NO_PAY, RecipeStatusConstant.CHECK_NOT_PASS_YS, RecipeStatusConstant.RECIPE_FAIL, RecipeStatusConstant.FINISH};
+            RecipeStatusConstant.NO_PAY, RecipeStatusConstant.CHECK_NOT_PASS_YS, RecipeStatusConstant.RECIPE_FAIL, RecipeStatusConstant.FINISH, RecipeStatusConstant.HIS_FAIL};
 
     /**
      * 医生端处方列表展示
