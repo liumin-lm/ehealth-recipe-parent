@@ -167,9 +167,9 @@ public class RecipeSignService {
                 depId = null;
                 payMode = RecipeBussConstant.PAYMODE_COMPLEX;
             } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)){
-                //到院取药----走九州通补充库存模式
+                //到院取药----走九州通补充库存模式----这里直接推送--不需要审核
                 payMode = RecipeBussConstant.PAYMODE_TO_HOS;
-                //推送处方到九州通
+                //武昌模式到院取药推送处方到九州通
                 //没有库存就推送九州通
                 drugsEnterpriseService.pushHosInteriorSupport(dbRecipe.getRecipeId(),dbRecipe.getClinicOrgan());
                 //发送患者没库存消息
@@ -177,7 +177,6 @@ public class RecipeSignService {
                 String memo = "医院保存没库存处方并推送九州通/发送无库存短信成功";
                 //日志记录
                 RecipeLogService.saveRecipeLog(dbRecipe.getRecipeId(), dbRecipe.getStatus(), dbRecipe.getStatus(), memo);
-
             } else {
                 response.setMsg("缺少取药方式");
                 return response;
@@ -268,10 +267,6 @@ public class RecipeSignService {
         if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) || RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)) {
             status = RecipeStatusConstant.READY_CHECK_YS;
             sendYsCheck = true;
-        }
-        if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)){
-            //到院取药这里结束了
-            status = RecipeStatusConstant.FINISH;
         }
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, attrMap);
 
