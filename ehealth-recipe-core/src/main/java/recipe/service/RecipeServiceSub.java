@@ -884,12 +884,12 @@ public class RecipeServiceSub {
                 break;
             case RecipeStatusConstant.NO_PAY:
                 //修改文案
-                tips = "未支付";
+                tips = "已取消";
                 cancelReason = "由于患者未及时支付，该处方单已取消。";
                 break;
             case RecipeStatusConstant.NO_OPERATOR:
                 //修改文案
-                tips = "未处理";
+                tips = "已取消";
                 cancelReason = "由于患者未及时处理，该处方已取消。";
                 break;
             case RecipeStatusConstant.CHECK_NOT_PASS_YS:
