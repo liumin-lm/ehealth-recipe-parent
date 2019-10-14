@@ -122,6 +122,9 @@ public class RecipeService extends RecipeBaseService{
     @Autowired
     private RedisClient redisClient;
 
+    @Autowired
+    private DrugsEnterpriseService drugsEnterpriseService;
+
     /**
      * 药师审核不通过
      */
@@ -1094,6 +1097,8 @@ public class RecipeService extends RecipeBaseService{
                 //发送审核成功消息
                 //${sendOrgan}：您的处方已审核通过，我们将以最快的速度配送到：${addr}。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
                 RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_CHECKPASS_4STH, recipe);
+            } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode())){
+                status = OrderStatusConstant.READY_GET_DRUG;
             } else {
                 status = OrderStatusConstant.READY_GET_DRUG;
                 // HOS处方发送药企处方信息，由于是自由选择，所以匹配到的药企都发送一遍

@@ -262,6 +262,7 @@ public class RecipeSingleService {
                 statusTxt = "已取消";
                 break;
             case RecipeStatusConstant.CHECK_PASS:
+                statusTxt = "待处理";
                 //配送到家已支付
                 if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
                         && Integer.valueOf(0).equals(dbRecipe.getPayFlag())) {
@@ -309,7 +310,6 @@ public class RecipeSingleService {
                 }
                 break;
             default:
-                statusTxt = "未知状态";break;
         }
 
         return statusTxt;
