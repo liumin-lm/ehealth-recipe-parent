@@ -783,9 +783,12 @@ public class RecipeServiceSub {
                 cancelReason = "由于患者未及时取药，该处方单已失效";
                 break;
             case RecipeStatusConstant.NO_PAY:
-            case RecipeStatusConstant.NO_OPERATOR:
                 tips = "已取消";
                 cancelReason = "由于患者未及时支付，该处方单已取消。";
+                break;
+            case RecipeStatusConstant.NO_OPERATOR:
+                tips = "已取消";
+                cancelReason = "由于患者未及时处理，该处方单已取消。";
                 break;
             case RecipeStatusConstant.CHECK_NOT_PASS_YS:
                 if (recipe.canMedicalPay()) {
