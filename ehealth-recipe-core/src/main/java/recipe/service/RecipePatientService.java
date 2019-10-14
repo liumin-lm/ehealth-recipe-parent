@@ -249,7 +249,7 @@ public class RecipePatientService extends RecipeBaseService {
 
         } else {
             resultBean.setCode(RecipeResultBean.FAIL);
-            resultBean.setMsg("很抱歉，未能匹配到可以配送的药企，请联系客服：" +
+            resultBean.setMsg("很抱歉，未能匹配到可以支持的药企，请联系客服：" +
                     cacheService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
         }
 

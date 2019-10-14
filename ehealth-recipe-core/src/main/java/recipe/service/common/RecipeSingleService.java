@@ -217,6 +217,10 @@ public class RecipeSingleService {
                 break;
             case RecipeStatusConstant.CHECK_PASS:
                 notation = 3;
+                if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(dbRecipe.getGiveMode())) {
+                    //到院取药没有下一步流程了 用1返回
+                    notation = 1;
+                }
                 break;
             case RecipeStatusConstant.READY_CHECK_YS:
                 if (RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())) {
