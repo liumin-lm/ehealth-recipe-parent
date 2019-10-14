@@ -486,7 +486,8 @@ public class RecipeOrderService extends RecipeBaseService {
         }
         //药企是需要自己结算费用的，需要重新设置
         //在线支付才需要重新计算
-        if (payModeSupport.isSupportOnlinePay() && null != order.getEnterpriseId() && 0 != order.getEnterpriseId()) {
+        //药店取药，货到付款也需要重新计算药品金额
+        if (payModeSupport.isSupportCOD() && payModeSupport.isSupportTFDS() && payModeSupport.isSupportOnlinePay() && null != order.getEnterpriseId()) {
             recipeFee = reCalculateRecipeFee(order.getEnterpriseId(), recipeIds, null);
         }
         order.setRecipeFee(recipeFee);

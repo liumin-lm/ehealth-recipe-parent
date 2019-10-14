@@ -1176,7 +1176,10 @@ public class RecipeService extends RecipeBaseService{
         orderService.cancelOrderByRecipeId(recipe.getRecipeId(), OrderStatusConstant.CANCEL_NOT_PASS);
 
         //根据付款方式提示不同消息
-        if (RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) && PayConstant.PAY_FLAG_PAY_SUCCESS == recipe.getPayFlag()) {
+        //date 2019/10/14
+        //逻辑修改成，退款的不筛选支付方式
+        //if (RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) && PayConstant.PAY_FLAG_PAY_SUCCESS == recipe.getPayFlag()) {
+        if (PayConstant.PAY_FLAG_PAY_SUCCESS == recipe.getPayFlag()) {
             //线上支付
             //微信退款
             wxPayRefundForRecipe(2, recipe.getRecipeId(), null);
@@ -1516,18 +1519,39 @@ public class RecipeService extends RecipeBaseService{
     /**
      * 定时任务: 查询过期的药师审核不通过，需要医生二次确认的处方
      * 查询规则: 药师审核不通过时间点的 2天前-1月前这段时间内，医生未处理的处方单
+     *
+     * //date 2019/10/14
+     * //修改规则：处方开放时间，时间点的 3天前-1月前这段时间内，医生未处理的处方单
      */
     @RpcService
     public void afterCheckNotPassYsTask() {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
 
-        String endDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(2), DateConversion.DEFAULT_DATE_TIME);
+        //将一次审方不通过的处方，搁置的设置成审核不通过
+        String endDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(3), DateConversion.DEFAULT_DATE_TIME);
         String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(RECIPE_EXPIRED_SECTION), DateConversion.DEFAULT_DATE_TIME);
         //根据条件查询出来的数据都是需要主动退款的
-        List<Recipe> list = recipeDAO.findCheckNotPassNeedDealList(startDt, endDt);
+        List<Recipe> list = recipeDAO.findFirstCheckNoPass(startDt, endDt);
         LOGGER.info("afterCheckNotPassYsTask 处理数量=[{}], 详情={}", list.size(), JSONUtils.toString(list));
+        Map<String, Object> updateMap = new HashMap<>();
         for (Recipe recipe : list) {
-            afterCheckNotPassYs(recipe);
+            //判断处方是否有关联订单，
+            if(null != recipe.getOrderCode()){
+                // 关联：修改处方一次审核不通过的标志位，并且把订单的状态审核成审核不通过
+                //更新处方标志位
+                updateMap.put("checkStatus", RecipecCheckStatusConstant.Check_Normal);
+                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), updateMap);
+                //更新订单的状态，退款
+                afterCheckNotPassYs(recipe);
+            }else{
+                // 不关联：修改处方一次审核不通过的标志位
+                //更新处方标志位
+                updateMap.put("checkStatus", RecipecCheckStatusConstant.Check_Normal);
+                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), updateMap);
+            }
+            //发消息(审核不通过的)
+            //添加发送不通过消息
+            RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
         }
     }
 

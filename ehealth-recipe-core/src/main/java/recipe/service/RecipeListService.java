@@ -70,9 +70,9 @@ public class RecipeListService extends RecipeBaseService{
 
     public static final Integer ORDER_PAGE = 1;
 
-    //历史处方显示的状态：未处理、未支付、审核不通过、失败、已完成、his失败
-    public static final Integer[] historyRecipeListShowStatusList = {RecipeStatusConstant.NO_OPERATOR,
-            RecipeStatusConstant.NO_PAY, RecipeStatusConstant.CHECK_NOT_PASS_YS, RecipeStatusConstant.RECIPE_FAIL, RecipeStatusConstant.FINISH, RecipeStatusConstant.HIS_FAIL};
+    //历史处方显示的状态：未处理、未支付、审核不通过、失败、已完成、his失败、取药失败
+    public static final Integer[] HistoryRecipeListShowStatusList = {RecipeStatusConstant.NO_OPERATOR,
+            RecipeStatusConstant.NO_PAY, RecipeStatusConstant.CHECK_NOT_PASS_YS, RecipeStatusConstant.RECIPE_FAIL, RecipeStatusConstant.FINISH, RecipeStatusConstant.HIS_FAIL, RecipeStatusConstant.NO_DRUG};
 
     /**
      * 医生端处方列表展示
@@ -572,7 +572,7 @@ public class RecipeListService extends RecipeBaseService{
         List<Map<String, Object>> list = new ArrayList<>();
         //List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId, mpiId, start, limit);
         //修改逻辑历史处方中获取的处方列表：只显示未处理、未支付、审核不通过、失败、已完成状态的
-        List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatientAndStatusList(doctorId, mpiId, start, limit, new ArrayList<>(Arrays.asList(historyRecipeListShowStatusList)));
+        List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatientAndStatusList(doctorId, mpiId, start, limit, new ArrayList<>(Arrays.asList(HistoryRecipeListShowStatusList)));
         PatientDTO patient = RecipeServiceSub.convertPatientForRAP(patientService.get(mpiId));
         if (CollectionUtils.isNotEmpty(recipes)) {
             for (Recipe recipe : recipes) {

@@ -1857,4 +1857,29 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    /**
+     * 查询过期的药师审核不通过，需要医生二次确认的处方
+     * 处方中，审核标记位是一次审核不通过状态的
+     * @param startDt
+     * @param endDt
+     * @return
+     */
+    public List<Recipe> findFirstCheckNoPass(final String startDt, final String endDt) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("select r from Recipe r where " +
+                        " r.signDate between '" + startDt + "' and '" + endDt + "' and r.status=" + RecipeStatusConstant.CHECK_NOT_PASS_YS +
+                        " and r.checkStatus = 1 ");
+                Query q = ss.createQuery(hql.toString());
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+
+        return action.getResult();
+    }
+
 }
