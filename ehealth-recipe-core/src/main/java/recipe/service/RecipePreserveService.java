@@ -10,10 +10,7 @@ import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.base.PatientBaseInfo;
-import com.ngari.his.recipe.mode.QueryRecipeRequestTO;
-import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
-import com.ngari.his.recipe.mode.RecipeDetailTO;
-import com.ngari.his.recipe.mode.RecipeInfoTO;
+import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -33,6 +30,7 @@ import com.ngari.recipe.recipelog.model.RecipeLogBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -52,6 +50,7 @@ import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.hisservice.RecipeToHisService;
 import recipe.mq.RecipeStatusFromHisObserver;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
@@ -442,10 +441,31 @@ public class RecipePreserveService {
      * @param sourceOrgan
      */
     @RpcService
-    public void syncDrugListToHis(Integer sourceOrgan){
+    public int syncDrugListToHis(Integer sourceOrgan){
         DrugListDAO dao = DAOFactory.getDAO(DrugListDAO.class);
-        List<DrugList> drugs = dao.findDrugListBySourceOrgan(sourceOrgan);
-        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-        hisService.syncDrugListToHis(drugs);
+        RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+        OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+        String organCode = organService.getOrganizeCodeByOrganId(sourceOrgan);
+        //批量同步
+        int start = 0;
+        int limit = 200;
+        int total = 0;
+        while (true){
+            List<DrugList> drugs = dao.findDrugListBySourceOrgan(sourceOrgan,start,limit);
+            if (drugs == null || drugs.size() == 0){
+                return total;
+            }
+            total += drugs.size();
+            List<DrugListTO> drugListTO = ObjectCopyUtils.convert(drugs, DrugListTO.class);
+            SyncDrugListToHisReqTO request = new SyncDrugListToHisReqTO();
+            request.setClinicOrgan(sourceOrgan);
+            //组织机构编码
+            request.setOrganCode(organCode);
+            request.setDrugList(drugListTO);
+            service.syncDrugListToHis(request);
+
+            start += limit;
+        }
+
     }
 }
