@@ -328,7 +328,7 @@ public class PurchaseService {
                 tips = "由于医生已撤销，该处方单已失效，请联系医生";
                 break;
             case RecipeStatusConstant.RECIPE_DOWNLOADED:
-                tips = "已下载处方签";
+                tips = "已下载处方笺";
                 break;
             case RecipeStatusConstant.USING:
                 tips = "处理中";

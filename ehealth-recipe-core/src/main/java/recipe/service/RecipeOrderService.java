@@ -1547,16 +1547,12 @@ public class RecipeOrderService extends RecipeBaseService {
 
     public BigDecimal countOrderTotalFeeByRecipeInfo(RecipeOrder order, Recipe recipe, RecipePayModeSupportBean payModeSupport) {
         BigDecimal full = BigDecimal.ZERO;
-        //date 20190930
-        //添加判断，当处方选择购药方式是下载处方，总金额按照审核费来计算
-        if(payModeSupport.isSupportDownload()){
-            full = full.add(order.getAuditFee());
-            return full.divide(BigDecimal.ONE, 3, RoundingMode.UP);
-        }
-
-
+        //date 20191015
+        //添加判断，当处方选择购药方式是下载处方，不计算药品费用
         //处方费用
-        full = full.add(order.getRecipeFee());
+        if(!payModeSupport.isSupportDownload()) {
+            full = full.add(order.getRecipeFee());
+        }
 
         //配送费
         if (null != order.getExpressFee()) {

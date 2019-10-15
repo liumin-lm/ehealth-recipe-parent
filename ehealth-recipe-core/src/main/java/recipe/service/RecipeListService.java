@@ -472,7 +472,7 @@ public class RecipeListService extends RecipeBaseService{
         return msg;
     }
 
-    private String getOrderStatusTabText(Integer status) {
+    private String getOrderStatusTabText(Integer status, Integer giveMode) {
         String msg = "未知";
         if (OrderStatusConstant.FINISH.equals(status)) {
             msg = "已完成";
@@ -493,6 +493,8 @@ public class RecipeListService extends RecipeBaseService{
             msg = "已取消";
         }else if (OrderStatusConstant.READY_DRUG.equals(status)){
             msg = "准备中";
+        }else if (OrderStatusConstant.READY_GET_DRUG.equals(status) &&null != giveMode && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(giveMode)){
+            msg = "待下载";
         }
 
         return msg;
@@ -540,7 +542,7 @@ public class RecipeListService extends RecipeBaseService{
                 msg = "失败";
                 break;
             case RecipeStatusConstant.RECIPE_DOWNLOADED:
-                msg = "已下载";
+                msg = "待取药";
                 break;
             case RecipeStatusConstant.USING:
                 msg = "处理中";
@@ -794,7 +796,7 @@ public class RecipeListService extends RecipeBaseService{
                     record.setRecipeDetail(ObjectCopyUtils.convert(recipedetailList, RecipeDetailBean.class));
                 } else if (LIST_TYPE_ORDER.equals(record.getRecordType())) {
                     RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-                    record.setStatusText(getOrderStatusTabText(record.getStatusCode()));
+                    record.setStatusText(getOrderStatusTabText(record.getStatusCode(), record.getGiveMode()));
                     RecipeResultBean resultBean = orderService.getOrderDetailById(record.getRecordId());
                     if (RecipeResultBean.SUCCESS.equals(resultBean.getCode())) {
                         if (null != resultBean.getObject() && resultBean.getObject() instanceof RecipeOrderBean) {
