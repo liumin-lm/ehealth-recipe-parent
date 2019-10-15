@@ -59,6 +59,7 @@ import recipe.hisservice.RecipeToHisService;
 import recipe.util.DateConversion;
 import recipe.util.RedisClient;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -789,6 +790,10 @@ public class RecipeHisService extends RecipeBaseService {
         for (DrugList drugList : drugLists) {
             //武昌机构用的药品基础药品数据sourceorgan都为1001780
             if (drugList.getSourceOrgan() == 1001780){
+                //double失真
+                drugList.setUseDose(BigDecimal.valueOf(drugList.getUseDose()).doubleValue());
+                drugList.setPrice1(BigDecimal.valueOf(drugList.getPrice1()).doubleValue());
+                drugList.setPrice2(drugList.getPrice1());
                list.add(drugList);
             }
         }

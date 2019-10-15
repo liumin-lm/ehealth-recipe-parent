@@ -57,6 +57,7 @@ import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
 import recipe.util.RedisClient;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 import static recipe.service.RecipeServiceSub.convertPatientForRAP;
@@ -448,7 +449,7 @@ public class RecipePreserveService {
         String organCode = organService.getOrganizeCodeByOrganId(sourceOrgan);
         //批量同步
         int start = 0;
-        int limit = 200;
+        int limit = 100;
         int total = 0;
         while (true){
             List<DrugList> drugs = dao.findDrugListBySourceOrgan(sourceOrgan,start,limit);
@@ -457,6 +458,12 @@ public class RecipePreserveService {
             }
             total += drugs.size();
             List<DrugListTO> drugListTO = ObjectCopyUtils.convert(drugs, DrugListTO.class);
+            //double失真处理
+            for (DrugListTO drugTO : drugListTO){
+                drugTO.setUseDose(BigDecimal.valueOf(drugTO.getUseDose()).doubleValue());
+                drugTO.setPrice1(BigDecimal.valueOf(drugTO.getPrice1()).doubleValue());
+                drugTO.setPrice2(drugTO.getPrice1());
+            }
             SyncDrugListToHisReqTO request = new SyncDrugListToHisReqTO();
             request.setClinicOrgan(sourceOrgan);
             //组织机构编码
