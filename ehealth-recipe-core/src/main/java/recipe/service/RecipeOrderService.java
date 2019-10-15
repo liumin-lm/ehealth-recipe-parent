@@ -1245,8 +1245,8 @@ public class RecipeOrderService extends RecipeBaseService {
                     if(Arrays.asList(showDownloadRecipeStatus).contains(nowRecipe.getStatus())){
                         isDownload = "1";
                     }
-                }else if(ReviewTypeConstant.Not_Need_Check == nowRecipe.getReviewType() && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(nowRecipe.getGiveMode())){
-                    //这里当是不需审核，且选择的下载处方的购药方式的时候，没有产生订单，直接判断没有选定购药方式
+                }else if(ReviewTypeConstant.Not_Need_Check == nowRecipe.getReviewType() && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(nowRecipe.getGiveMode()) && RecipeStatusConstant.FINISH != nowRecipe.getStatus()){
+                    //这里当是不需审核，且选择的下载处方的购药方式的时候，没有产生订单，且不是完成状态，直接判断没有选定购药方式
                     if(1 == nowRecipe.getChooseFlag()){
                         isDownload = "1";
                     }

@@ -1313,7 +1313,7 @@ public class RecipeServiceSub {
             if( Arrays.asList(status).contains(recipe.getStatus())) {
                 isDownload = true;
             }
-        }else if(ReviewTypeConstant.Not_Need_Check == recipe.getReviewType() && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())){
+        }else if(ReviewTypeConstant.Not_Need_Check == recipe.getReviewType() && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode()) && RecipeStatusConstant.FINISH != recipe.getStatus()){
             //这里当是不需审核，且选择的下载处方的购药方式的时候，没有产生订单，直接判断没有选定购药方式
              if(1 == recipe.getChooseFlag()){
                  isDownload = true;
