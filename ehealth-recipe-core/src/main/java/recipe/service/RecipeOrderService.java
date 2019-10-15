@@ -1393,7 +1393,7 @@ public class RecipeOrderService extends RecipeBaseService {
     private void sendTfdsMsg(Recipe nowRecipe) {
         //药店取药推送
         LOGGER.info("sendTfdsMsg nowRecipe:{}.", JSONUtils.toString(nowRecipe));
-        if (nowRecipe.getPayMode() == RecipeBussConstant.PAYMODE_TFDS && nowRecipe.getRecipeType() != 2) {
+        if (nowRecipe.getPayMode() == RecipeBussConstant.PAYMODE_TFDS && nowRecipe.getReviewType() != 2) {
             RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             if (nowRecipe.getEnterpriseId() == null) {
