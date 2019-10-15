@@ -1392,6 +1392,7 @@ public class RecipeOrderService extends RecipeBaseService {
     //药店有库存或者无库存备货给患者推送消息
     private void sendTfdsMsg(Recipe nowRecipe) {
         //药店取药推送
+        LOGGER.info("sendTfdsMsg nowRecipe:{}.", JSONUtils.toString(nowRecipe));
         if (nowRecipe.getPayMode() == RecipeBussConstant.PAYMODE_TFDS && nowRecipe.getRecipeType() != 2) {
             RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
