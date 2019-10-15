@@ -615,7 +615,6 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setCouponName(coupon.getCouponName());
                 order.setCouponFee(coupon.getDiscountAmount());
             }
-            couponService.useCouponById(order.getCouponId());
             if (order.getTotalFee().compareTo(order.getCouponFee()) > -1) {
                 order.setActualPrice(order.getTotalFee().subtract(order.getCouponFee()).doubleValue());
             } else {
@@ -1340,6 +1339,7 @@ public class RecipeOrderService extends RecipeBaseService {
             List<Integer> recipeIds = recipeDAO.findRecipeIdsByOrderCode(orderCode);
             int payStatus = 0;
             int noPayStatus = 0;
+
             if(null != recipeIds){
                 Recipe nowRecipe = recipeDAO.get(recipeIds.get(0));
                 if(null != nowRecipe){
@@ -1352,7 +1352,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         attrMap.put("payTime", Calendar.getInstance().getTime());
                         attrMap.put("status", payStatus);
                         attrMap.put("effective", 1);
-                        sendTfdsMsg(nowRecipe);
+                        sendTfdsMsgAndUseCoupon(nowRecipe);
                     } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag) {
                         //支付前调用
                         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
@@ -1360,7 +1360,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         if(null != order){
                             if(0 == order.getActualPrice()){
                                 noPayStatus = getPayStatus(reviewType, giveMode, nowRecipe);
-                                sendTfdsMsg(nowRecipe);
+                                sendTfdsMsgAndUseCoupon(nowRecipe);
                             }else{
                                 noPayStatus = OrderStatusConstant.READY_PAY;
                             }
@@ -1390,7 +1390,7 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     //药店有库存或者无库存备货给患者推送消息
-    private void sendTfdsMsg(Recipe nowRecipe) {
+    private void sendTfdsMsgAndUseCoupon(Recipe nowRecipe) {
         //药店取药推送
         LOGGER.info("sendTfdsMsg nowRecipe:{}.", JSONUtils.toString(nowRecipe));
         if (nowRecipe.getPayMode() == RecipeBussConstant.PAYMODE_TFDS && nowRecipe.getReviewType() != 2) {
@@ -1409,6 +1409,12 @@ public class RecipeOrderService extends RecipeBaseService {
                     RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_DRUG_NO_STOCK_READY, nowRecipe);
                 }
             }
+        }
+        RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(nowRecipe.getOrderCode());
+        if (nowRecipe.getPayMode() == RecipeBussConstant.PAYMODE_ONLINE && isUsefulCoupon(order.getCouponId())) {
+            ICouponBaseService couponService = AppContextHolder.getBean("voucher.couponBaseService",ICouponBaseService.class);
+            couponService.useCouponById(order.getCouponId());
         }
     }
 
