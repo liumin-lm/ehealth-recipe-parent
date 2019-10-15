@@ -1633,15 +1633,11 @@ public class RecipeService extends RecipeBaseService{
     @RpcService
     public Map<String, Object> getPatientRecipeById(int recipeId) {
         checkUserHasPermission(recipeId);
-        try{
-            Map<String, Object> result = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false);
-            PatientDTO patient = (PatientDTO) result.get("patient");
-            result.put("patient", ObjectCopyUtils.convert(patient, PatientDS.class));
-            return result;
-        }catch (Exception e){
-            LOGGER.info("error {}.", e);
-        }
-        return null;
+
+        Map<String, Object> result = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false);
+        PatientDTO patient = (PatientDTO) result.get("patient");
+        result.put("patient", ObjectCopyUtils.convert(patient, PatientDS.class));
+        return result;
     }
 
 

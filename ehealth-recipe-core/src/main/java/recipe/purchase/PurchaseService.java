@@ -295,6 +295,10 @@ public class PurchaseService {
         Integer payMode = recipe.getPayMode();
         Integer payFlag = recipe.getPayFlag();
         String orderCode = recipe.getOrderCode();
+        if (order == null) {
+            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+            order = recipeOrderDAO.getByOrderCode(orderCode);
+        }
         String tips;
         switch (status){
             case RecipeStatusConstant.READY_CHECK_YS:
