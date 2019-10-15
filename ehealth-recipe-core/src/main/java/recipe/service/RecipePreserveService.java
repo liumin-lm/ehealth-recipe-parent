@@ -460,9 +460,17 @@ public class RecipePreserveService {
             List<DrugListTO> drugListTO = ObjectCopyUtils.convert(drugs, DrugListTO.class);
             //double失真处理
             for (DrugListTO drugTO : drugListTO){
-                drugTO.setUseDose(BigDecimal.valueOf(drugTO.getUseDose()).doubleValue());
-                drugTO.setPrice1(BigDecimal.valueOf(drugTO.getPrice1()).doubleValue());
+                if (drugTO.getUseDose() != null){
+                    drugTO.setUseDose(BigDecimal.valueOf(drugTO.getUseDose()).doubleValue());
+                }
+                if (drugTO.getPrice1() != null){
+                    drugTO.setPrice1(BigDecimal.valueOf(drugTO.getPrice1()).doubleValue());
+
+                }else {
+                    drugTO.setPrice1(0.0);
+                }
                 drugTO.setPrice2(drugTO.getPrice1());
+
             }
             SyncDrugListToHisReqTO request = new SyncDrugListToHisReqTO();
             request.setClinicOrgan(sourceOrgan);
