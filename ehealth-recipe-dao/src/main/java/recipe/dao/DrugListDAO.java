@@ -697,6 +697,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
         return action.getResult();
     }
 
-    @DAOMethod(sql = "from DrugList where sourceOrgan =:sourceOrgan",limit = 0)
-    public abstract List<DrugList> findDrugListBySourceOrgan(@DAOParam("sourceOrgan") int sourceOrgan);
+    @DAOMethod(sql = "from DrugList where sourceOrgan =:sourceOrgan")
+    public abstract List<DrugList> findDrugListBySourceOrgan(@DAOParam("sourceOrgan") int sourceOrgan,@DAOParam(pageStart = true) int start,
+                                                             @DAOParam(pageLimit = true) int limit);
 }
