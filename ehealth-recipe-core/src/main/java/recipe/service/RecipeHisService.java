@@ -790,9 +790,16 @@ public class RecipeHisService extends RecipeBaseService {
         for (DrugList drugList : drugLists) {
             //武昌机构用的药品基础药品数据sourceorgan都为1001780
             if (drugList.getSourceOrgan() == 1001780){
-                //double失真
-                drugList.setUseDose(BigDecimal.valueOf(drugList.getUseDose()).doubleValue());
-                drugList.setPrice1(BigDecimal.valueOf(drugList.getPrice1()).doubleValue());
+                //double失真处理
+                if (drugList.getUseDose() != null){
+                    drugList.setUseDose(BigDecimal.valueOf(drugList.getUseDose()).doubleValue());
+                }
+                if (drugList.getPrice1() != null){
+                    drugList.setPrice1(BigDecimal.valueOf(drugList.getPrice1()).doubleValue());
+
+                }else {
+                    drugList.setPrice1(0.0);
+                }
                 drugList.setPrice2(drugList.getPrice1());
                list.add(drugList);
             }
