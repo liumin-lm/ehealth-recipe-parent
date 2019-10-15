@@ -448,7 +448,7 @@ public class RecipePreserveService {
         String organCode = organService.getOrganizeCodeByOrganId(sourceOrgan);
         //批量同步
         int start = 0;
-        int limit = 200;
+        int limit = 500;
         int total = 0;
         while (true){
             List<DrugList> drugs = dao.findDrugListBySourceOrgan(sourceOrgan,start,limit);
