@@ -1334,16 +1334,6 @@ public class RecipeOrderService extends RecipeBaseService {
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
             Map<String, Object> attrMap = Maps.newHashMap();
             attrMap.put("payFlag", payFlag);
-//            if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
-//                attrMap.put("payTime", Calendar.getInstance().getTime());
-//                attrMap.put("status", OrderStatusConstant.READY_SEND);
-//                attrMap.put("effective", 1);
-//            } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag) {
-//                if (RecipeBussConstant.PAYMODE_COD.equals(payMode) || RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
-//                    attrMap.put("effective", 1);
-//                    attrMap.put("status", OrderStatusConstant.READY_CHECK);
-//                }
-//            }
             //date 20190919
             //根据不同的购药方式设置订单的状态
             RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
@@ -1362,6 +1352,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         attrMap.put("payTime", Calendar.getInstance().getTime());
                         attrMap.put("status", payStatus);
                         attrMap.put("effective", 1);
+                        sendTfdsMsg(nowRecipe);
                     } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag) {
                         //支付前调用
                         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
@@ -1369,6 +1360,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         if(null != order){
                             if(0 == order.getActualPrice()){
                                 noPayStatus = getPayStatus(reviewType, giveMode, nowRecipe);
+                                sendTfdsMsg(nowRecipe);
                             }else{
                                 noPayStatus = OrderStatusConstant.READY_PAY;
                             }
@@ -1395,6 +1387,28 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         return result;
+    }
+
+    //药店有库存或者无库存备货给患者推送消息
+    private void sendTfdsMsg(Recipe nowRecipe) {
+        //药店取药推送
+        if (nowRecipe.getPayMode() == RecipeBussConstant.PAYMODE_TFDS && nowRecipe.getRecipeType() != 2) {
+            RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+            if (nowRecipe.getEnterpriseId() == null) {
+                LOGGER.info("审方前置或者不审核-药店取药-药企为空");
+            } else {
+                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(nowRecipe.getEnterpriseId());
+                boolean scanFlag = remoteDrugService.scanStock(nowRecipe.getRecipeId(), drugsEnterprise);
+                if (scanFlag) {
+                    //表示需要进行库存校验并且有库存
+                    RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_DRUG_HAVE_STOCK, nowRecipe);
+                } else if (drugsEnterprise.getCheckInventoryFlag() == 2) {
+                    //表示无库存但是药店可备货
+                    RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_DRUG_NO_STOCK_READY, nowRecipe);
+                }
+            }
+        }
     }
 
     /**

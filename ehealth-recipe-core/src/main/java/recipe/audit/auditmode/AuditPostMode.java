@@ -4,6 +4,7 @@ import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -19,6 +20,7 @@ import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.constant.*;
+import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
@@ -115,6 +117,23 @@ public class AuditPostMode extends AbstractAuidtMode {
                     status = RecipeStatusConstant.READY_CHECK_YS;
                 }
                 memo = "药店取药-到店取药成功";
+                //此处增加药店取药消息推送
+                RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+                DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                if (dbRecipe.getEnterpriseId() == null) {
+                    LOGGER.info("审方后置-药店取药-药企为空");
+                } else {
+                    DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(dbRecipe.getEnterpriseId());
+                    boolean scanFlag = remoteDrugService.scanStock(dbRecipe.getRecipeId(), drugsEnterprise);
+                    if (scanFlag) {
+                        //表示需要进行库存校验并且有库存
+                        RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_DRUG_HAVE_STOCK, dbRecipe);
+                    } else if (drugsEnterprise.getCheckInventoryFlag() == 2) {
+                        //表示无库存但是药店可备货
+                        RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_DRUG_NO_STOCK_READY, dbRecipe);
+                    }
+                }
+
             }else if (RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(giveMode)){
                 if(PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag){
                     status = RecipeStatusConstant.READY_CHECK_YS;
