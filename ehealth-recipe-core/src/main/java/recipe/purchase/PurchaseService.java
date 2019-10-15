@@ -337,6 +337,12 @@ public class PurchaseService {
             case RecipeStatusConstant.USING:
                 tips = "处理中";
                 break;
+            case RecipeStatusConstant.FINISH:
+                //特应性处理:下载处方，不需要审核,不更新payMode
+                if(ReviewTypeConstant.Not_Need_Check == recipe.getReviewType() && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())){
+                    tips = "订单完成";
+                    break;
+                }
             default:
                 IPurchaseService purchaseService = getService(payMode);
                 if(null == purchaseService){

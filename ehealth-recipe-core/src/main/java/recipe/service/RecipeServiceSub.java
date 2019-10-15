@@ -906,7 +906,7 @@ public class RecipeServiceSub {
                 tips = "失败";
                 break;
             case RecipeStatusConstant.RECIPE_DOWNLOADED:
-                tips = "已下载";
+                tips = "待取药";
                 break;
             //天猫特殊状态
             case RecipeStatusConstant.USING:

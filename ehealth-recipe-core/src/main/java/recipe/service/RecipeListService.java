@@ -480,6 +480,9 @@ public class RecipeListService extends RecipeBaseService{
             msg = "待支付";
         } else if (OrderStatusConstant.READY_GET_DRUG.equals(status) || OrderStatusConstant.NO_DRUG.equals(status) || OrderStatusConstant.HAS_DRUG.equals(status)) {
             msg = "待取药";
+            if(OrderStatusConstant.READY_GET_DRUG.equals(status) && null != giveMode && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(giveMode)){
+                msg = "待下载";
+            }
         } else if (OrderStatusConstant.READY_CHECK.equals(status)) {
             msg = "待审核";
         } else if (OrderStatusConstant.READY_SEND.equals(status)) {
@@ -493,8 +496,6 @@ public class RecipeListService extends RecipeBaseService{
             msg = "已取消";
         }else if (OrderStatusConstant.READY_DRUG.equals(status)){
             msg = "准备中";
-        }else if (OrderStatusConstant.READY_GET_DRUG.equals(status) &&null != giveMode && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(giveMode)){
-            msg = "待下载";
         }
 
         return msg;
