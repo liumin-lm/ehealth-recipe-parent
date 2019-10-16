@@ -1891,7 +1891,7 @@ public class RecipeService extends RecipeBaseService{
                 } else {
                     //通过查询该药企库存，最终确定能否配送
                     succFlag = remoteDrugService.scanStock(recipeId, dep);
-                    if (succFlag) {
+                    if (succFlag || dep.getCheckInventoryFlag() == 2) {
                         subDepList.add(dep);
                         //只需要查询单供应商就返回
                         if (sigle) {
