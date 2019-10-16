@@ -86,6 +86,11 @@ public class TestDrugStoreRemoteService extends AccessDrugEnterpriseService {
             position.setLatitude(Double.parseDouble(pharmacy.getPharmacyLatitude()));
             depDetailBean.setPosition(position);
             depDetailBean.setRecipeFee(new BigDecimal(20));
+            depDetailBean.setPayMode(4);
+            depDetailBean.setExpressFee(BigDecimal.ZERO);
+            depDetailBean.setGysCode(pharmacy.getPharmacyCode());
+            depDetailBean.setSendMethod("0");
+            depDetailBean.setPayMode(20);
             depDetailBean.setAddress(pharmacy.getPharmacyAddress());
             depDetailBean.setDistance(2.0);
             depDetailBean.setPharmacyCode(pharmacy.getPharmacyCode());
