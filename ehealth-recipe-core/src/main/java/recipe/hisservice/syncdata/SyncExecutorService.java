@@ -11,6 +11,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -205,9 +206,12 @@ public class SyncExecutorService {
         if (CollectionUtils.isNotEmpty(list)){
             List<Integer> organs = Lists.newArrayList();
             for (ServiceConfigResponseTO serviceConfigResponseTO : list){
-                if (REGULATION_GD.equals(serviceConfigResponseTO.getRegulationAppDomainId())){
+                if (StringUtils.isNotEmpty(serviceConfigResponseTO.getRegulationAppDomainId()) && serviceConfigResponseTO.getRegulationAppDomainId().startsWith(REGULATION_GD)){
                     organs.add(serviceConfigResponseTO.getOrganid());
                 }
+                /*if (REGULATION_GD.equals(serviceConfigResponseTO.getRegulationAppDomainId())){
+                    organs.add(serviceConfigResponseTO.getOrganid());
+                }*/
             }
             List<Recipe> recipeList = recipeDAO.findRecipeListForDate(organs, startDt, endDt);
             LOGGER.info("uploadRecipeIndicatorsTimeTask size="+recipeList.size());
