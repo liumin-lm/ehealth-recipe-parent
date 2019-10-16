@@ -668,7 +668,7 @@ public class StandardEnterpriseCallService {
                     break;
                 //第二种：药店取药购药方式下，患者支付成功后，药店确认库存，库存足够为待取药（有库存）/库存不足为待取药（无库存）的订单状态
                 case GetDrugChangeStatusSceneConstant.Only_Change_RecipeOrderStatus:
-                    onlyChangeRecipeOrderStatus(changeStatus, result, nowRecipe);
+                    onlyChangeRecipeOrderStatus(changeStatus, nowRecipe);
                     break;
                 default:
                     result.setMsg("[" + changeStatus.getInstallScene() + "]不支持该变更设置场景");
@@ -690,7 +690,7 @@ public class StandardEnterpriseCallService {
      * @param nowRecipe 当前的处方
      * @return void
      */
-    private void onlyChangeRecipeOrderStatus(ChangeStatusByGetDrugDTO changeStatus, StandardResultDTO result, Recipe nowRecipe) {
+    private void onlyChangeRecipeOrderStatus(ChangeStatusByGetDrugDTO changeStatus, Recipe nowRecipe) {
 
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         Map<String, Object> updateMap = new HashMap<>();
@@ -701,6 +701,7 @@ public class StandardEnterpriseCallService {
         //发送取药提示信息给用户
         //设置发送消息的内容
         ThirdChangeStatusMsgEnum msgEnum = ThirdChangeStatusMsgEnum.fromStatusAndChangeStatus(1, changeStatus.getChangeStatus());
+        LOGGER.info("onlyChangeRecipeOrderStatus msgEnum:{}.", JSONUtils.toString(msgEnum));
         if(null != msgEnum){
             RecipeMsgService.batchSendMsg(nowRecipe, msgEnum.getMsgStatus());
         }
