@@ -102,7 +102,7 @@ public class PayModeTFDS implements IPurchaseService{
             List<DepDetailBean> depList = new ArrayList<>();
             //通过查询该药企对应药店库存
             boolean succFlag = scanStock(recipe, dep, drugIds);
-            if (!succFlag) {
+            if (!succFlag && dep.getCheckInventoryFlag() != 2) {
                 LOGGER.warn("findSupportDepList 当前药企无库存. 药企=[{}], recipeId=[{}]", dep.getName() ,recipeId);
                 continue;
             }
@@ -165,7 +165,7 @@ public class PayModeTFDS implements IPurchaseService{
         //患者提交订单前,先进行库存校验
 
         boolean succFlag = scanStock(dbRecipe, dep, drugIds);
-        if(!succFlag){
+        if(!succFlag && dep.getCheckInventoryFlag() != 2){
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("抱歉，配送商库存不足无法配送。请稍后尝试提交，或更换配送商。");
             return result;
