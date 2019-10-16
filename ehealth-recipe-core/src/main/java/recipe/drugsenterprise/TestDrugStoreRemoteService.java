@@ -47,6 +47,9 @@ public class TestDrugStoreRemoteService extends AccessDrugEnterpriseService {
         LOGGER.info("TestDrugStoreRemoteService-scanStock recipe:{}.", JSONUtils.toString(recipe));
         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         String scanStockResult = recipeParameterDao.getByName("scanStockResult");
+        if (recipe.getStatus() == -1) {
+            return DrugEnterpriseResult.getSuccess();
+        }
         if ("1".equals(scanStockResult)) {
             return DrugEnterpriseResult.getSuccess();
         } else {
