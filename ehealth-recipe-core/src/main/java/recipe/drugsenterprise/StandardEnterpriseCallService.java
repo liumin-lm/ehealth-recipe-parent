@@ -701,7 +701,6 @@ public class StandardEnterpriseCallService {
         //发送取药提示信息给用户
         //设置发送消息的内容
         ThirdChangeStatusMsgEnum msgEnum = ThirdChangeStatusMsgEnum.fromStatusAndChangeStatus(1, changeStatus.getChangeStatus());
-        LOGGER.info("onlyChangeRecipeOrderStatus msgEnum:{}.", JSONUtils.toString(msgEnum));
         if(null != msgEnum){
             RecipeMsgService.batchSendMsg(nowRecipe, msgEnum.getMsgStatus());
         }
