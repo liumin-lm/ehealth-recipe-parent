@@ -58,6 +58,9 @@
 	<!--天猫药企-->
 	<bean id="tmdyfRemoteService" class="recipe.drugsenterprise.TmdyfRemoteService"></bean>
 
+	<!--测试药店-->
+	<bean id="testDrugStoreRemoteService" class="recipe.drugsenterprise.TestDrugStoreRemoteService"/>
+
 	<bean id="busTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" destroy-method="shutdown">
 		<!-- 线程池活跃的线程数 -->
 		<property name="corePoolSize" value="5" />
