@@ -11,17 +11,7 @@ public enum ThirdChangeStatusMsgEnum {
     /**
      * 修改订单状态：无库存可取药
      */
-    Get_Drug_No_Stock(1, OrderStatusConstant.NO_DRUG, RecipeStatusConstant.RECIPE_DRUG_NO_STOCK_ARRIVAL),
-
-    /**
-     * 修改订单状态：无库存准备中
-     */
-    Get_Drug_No_Stock_Ready(1, OrderStatusConstant.READY_DRUG, RecipeStatusConstant.RECIPE_DRUG_NO_STOCK_READY),
-
-    /**
-     * 修改订单状态：有库存可取药
-     */
-    Get_Drug_Has_Stock(1, OrderStatusConstant.HAS_DRUG, RecipeStatusConstant.RECIPE_DRUG_NO_STOCK_ARRIVAL);
+    Get_Drug_No_Stock(1, OrderStatusConstant.NO_DRUG, RecipeStatusConstant.RECIPE_DRUG_NO_STOCK_ARRIVAL);
 
     //0:修改的处方状态，1：修改的订单状态
     private int status;
