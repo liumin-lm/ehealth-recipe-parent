@@ -44,8 +44,7 @@ public class TestDrugStoreRemoteService extends AccessDrugEnterpriseService {
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        LOGGER.info("TestDrugStoreRemoteService-scanStock recipe:{}.", JSONUtils.toString(recipe));
-        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+       RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         String scanStockResult = recipeParameterDao.getByName("scanStockResult");
         if (recipe.getStatus() == -1) {
             return DrugEnterpriseResult.getSuccess();
@@ -97,7 +96,6 @@ public class TestDrugStoreRemoteService extends AccessDrugEnterpriseService {
             depDetailBeans.add(depDetailBean);
         }
         result.setObject(depDetailBeans);
-        LOGGER.info("TestDrugStoreRemoteService-findSupportDep result:{}.", JSONUtils.toString(result));
         return result;
     }
 
