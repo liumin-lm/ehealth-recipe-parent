@@ -108,7 +108,6 @@ public class PayModeTFDS implements IPurchaseService{
             }
             //需要从接口获取药店列表
             DrugEnterpriseResult drugEnterpriseResult = remoteDrugService.findSupportDep(recipeIds, extInfo, dep);
-            LOGGER.info("药店详情:{}.", JSONUtils.toString(drugEnterpriseResult));
             depList = findAllSupportDeps(drugEnterpriseResult, dep, extInfo);
             depDetailList.addAll(depList);
         }
