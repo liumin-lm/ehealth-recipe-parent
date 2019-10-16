@@ -337,6 +337,14 @@ public class PurchaseService {
             case RecipeStatusConstant.USING:
                 tips = "处理中";
                 break;
+            //date 2019/10/16
+            //添加处方状态文案，已删除，同步his失败
+            case RecipeStatusConstant.DELETE:
+                tips = "处方单已删除";
+                break;
+            case RecipeStatusConstant.HIS_FAIL:
+                tips = "处方单同步his写入失败";
+                break;
             case RecipeStatusConstant.FINISH:
                 //特应性处理:下载处方，不需要审核,不更新payMode
                 if(ReviewTypeConstant.Not_Need_Check == recipe.getReviewType() && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())){

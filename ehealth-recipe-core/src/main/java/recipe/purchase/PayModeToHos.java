@@ -134,6 +134,7 @@ public class PayModeToHos implements IPurchaseService{
             case RecipeStatusConstant.CHECK_PASS_YS:
                 tips = "处方已审核通过，请到院取药";
                 break;
+            case RecipeStatusConstant.NO_DRUG:
             case RecipeStatusConstant.RECIPE_FAIL:
                 tips = "到院取药失败";
                 break;

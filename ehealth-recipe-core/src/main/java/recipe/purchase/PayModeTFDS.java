@@ -274,6 +274,7 @@ public class PayModeTFDS implements IPurchaseService{
                     tips = "药品已准备好，请到药店取药";
                 }
                 break;
+            case RecipeStatusConstant.NO_DRUG:
             case RecipeStatusConstant.RECIPE_FAIL:
                 tips = "药店取药失败";
                 break;

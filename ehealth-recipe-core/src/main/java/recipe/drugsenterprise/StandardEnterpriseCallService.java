@@ -718,7 +718,7 @@ public class StandardEnterpriseCallService {
      */
     private void failChangeRecipe(ChangeStatusByGetDrugDTO changeStatus, StandardResultDTO result, Recipe nowRecipe) {
         //修改处方的状态，为失败（失败有多种失败的情况状态）
-        Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(changeStatus.getRecipeId(), RecipeStatusConstant.RECIPE_FAIL, null);
+        Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(changeStatus.getRecipeId(), RecipeStatusConstant.NO_DRUG, null);
         if (rs) {
             //更新处方状态后，结束当前订单的状态
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);

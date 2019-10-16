@@ -71,8 +71,10 @@ public class RecipeListService extends RecipeBaseService{
     public static final Integer ORDER_PAGE = 1;
 
     //历史处方显示的状态：未处理、未支付、审核不通过、失败、已完成、his失败、取药失败
+    //date 20191016
+    //历史处方展示的状态不包含已删除，已撤销，同步his失败（原已取消状态）
     public static final Integer[] HistoryRecipeListShowStatusList = {RecipeStatusConstant.NO_OPERATOR,
-            RecipeStatusConstant.NO_PAY, RecipeStatusConstant.CHECK_NOT_PASS_YS, RecipeStatusConstant.RECIPE_FAIL, RecipeStatusConstant.FINISH, RecipeStatusConstant.HIS_FAIL, RecipeStatusConstant.NO_DRUG};
+            RecipeStatusConstant.NO_PAY, RecipeStatusConstant.CHECK_NOT_PASS_YS, RecipeStatusConstant.RECIPE_FAIL, RecipeStatusConstant.FINISH, RecipeStatusConstant.NO_DRUG};
 
     /**
      * 医生端处方列表展示
@@ -519,13 +521,20 @@ public class RecipeListService extends RecipeBaseService{
             case RecipeStatusConstant.NO_OPERATOR:
                 msg = "未处理";
                 break;
+            //已撤销从已取消拆出来
             case RecipeStatusConstant.REVOKE:
+                msg = "已撤销";
+                break;
+            //已撤销从已取消拆出来
+            case RecipeStatusConstant.DELETE:
+                msg = "已删除";
+                break;
+            //写入his失败从已取消拆出来
+            case RecipeStatusConstant.HIS_FAIL:
+                msg = "写入his失败";
+                break;
             case RecipeStatusConstant.CHECK_NOT_PASS_YS:
                 msg = "审核不通过";
-                break;
-            case RecipeStatusConstant.DELETE:
-            case RecipeStatusConstant.HIS_FAIL:
-                msg = "已取消";
                 break;
             case RecipeStatusConstant.IN_SEND:
                 msg = "配送中";
@@ -539,7 +548,9 @@ public class RecipeListService extends RecipeBaseService{
             case RecipeStatusConstant.CHECK_PASS_YS:
                 msg = "审核通过";
                 break;
+            //这里患者取药失败和取药失败都判定为失败
             case RecipeStatusConstant.NO_DRUG:
+            case RecipeStatusConstant.RECIPE_FAIL:
                 msg = "失败";
                 break;
             case RecipeStatusConstant.RECIPE_DOWNLOADED:

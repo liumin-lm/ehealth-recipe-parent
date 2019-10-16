@@ -26,9 +26,14 @@ public enum RecipeTipesColorTypeEnum {
     /**
      * 处方处理失败
      * 未支付, 未处理, 药师未审核通过, 医生已撤销, 取药失败
+     * date 20191016
+     * tab 列表添加展示已删除，已撤销，同步his失败状态的处方
+     * 将同步his失败状态，已删除设置为红色
      */
     Recipe_Fail(new ArrayList<>(Arrays.asList(RecipeStatusConstant.NO_PAY,
-                    RecipeStatusConstant.NO_OPERATOR, RecipeStatusConstant.CHECK_NOT_PASS_YS, RecipeStatusConstant.REVOKE, RecipeStatusConstant.RECIPE_FAIL)), "2");
+                    RecipeStatusConstant.NO_OPERATOR, RecipeStatusConstant.CHECK_NOT_PASS_YS,
+            RecipeStatusConstant.REVOKE, RecipeStatusConstant.RECIPE_FAIL,
+            RecipeStatusConstant.NO_DRUG, RecipeStatusConstant.DELETE, RecipeStatusConstant.HIS_FAIL)), "2");
     /**
      * 处方模式
      */
