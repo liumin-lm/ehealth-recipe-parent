@@ -1,5 +1,7 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
@@ -29,7 +31,9 @@ public class PatientTabStatusRecipeDTO implements Serializable {
     private String recordCode;
 
     private String mpiId;
-
+    @Desensitizations(
+            type = DesensitizationsType.NAME
+    )
     private String patientName;
 
     private String photo;
