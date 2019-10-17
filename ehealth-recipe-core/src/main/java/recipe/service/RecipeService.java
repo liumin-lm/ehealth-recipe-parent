@@ -1128,6 +1128,28 @@ public class RecipeService extends RecipeBaseService{
                     service.pushSingleRecipeInfo(recipeId);
                 }
             }
+            //date 2019/10/17
+            //添加审核后的有库存无库存的消息平台逻辑
+            //消息发送：平台处方且购药方式药店取药
+            if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode()) && RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())){
+                //此处增加药店取药消息推送
+                RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+                DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                if (recipe.getEnterpriseId() == null) {
+                    LOGGER.info("审方后置-药店取药-药企为空");
+                } else {
+                    DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
+                    boolean scanFlag = remoteDrugService.scanStock(recipe.getRecipeId(), drugsEnterprise);
+                    LOGGER.info("AuditPostMode afterCheckPassYs scanFlag:{}.", scanFlag);
+                    if (scanFlag) {
+                        //表示需要进行库存校验并且有库存
+                        RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_DRUG_HAVE_STOCK, recipe);
+                    } else if (drugsEnterprise.getCheckInventoryFlag() == 2) {
+                        //表示无库存但是药店可备货
+                        RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_DRUG_NO_STOCK_READY, recipe);
+                    }
+                }
+            }
 
         } else if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipe.getFromflag())) {
             Integer status = OrderStatusConstant.READY_SEND;

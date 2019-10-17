@@ -96,4 +96,14 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
      */
     @RpcService
     BigDecimal reCalculateRecipeFee(Integer enterpriseId, List<Integer> recipeIds, Map<String, String> extInfo);
+
+
+    /**
+     * 根据处方ID获取对应的订单，且不区分是否失效
+     *
+     * @param recipeId 处方ID
+     * @return RecipeOrderBean
+     */
+    @RpcService
+    RecipeOrderBean getRelationOrderByRecipeId(int recipeId);
 }
