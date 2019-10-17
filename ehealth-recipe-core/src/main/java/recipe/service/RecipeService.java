@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
+import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
@@ -61,10 +62,7 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
-import recipe.thread.PushRecipeToHisCallable;
-import recipe.thread.PushRecipeToRegulationCallable;
-import recipe.thread.RecipeBusiThreadPool;
-import recipe.thread.UpdateRecipeStatusFromHisCallable;
+import recipe.thread.*;
 import recipe.util.DateConversion;
 import recipe.util.DigestUtil;
 import recipe.util.MapValueUtil;
@@ -111,6 +109,9 @@ public class RecipeService extends RecipeBaseService{
 
     @Resource
     private AuditModeContext auditModeContext;
+
+    @Autowired
+    private DrugsEnterpriseService drugsEnterpriseService;
 
     /**
      * 药师审核不通过
@@ -915,41 +916,51 @@ public class RecipeService extends RecipeBaseService{
                     recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap);
                 }
             }
-            //高州市人民医院特殊处理
-            if (1000423==recipeBean.getClinicOrgan()){
-                RecipeBusiThreadPool.submit(new Callable() {
-                    @Override
-                    public Object call() throws Exception {
-                        PatientService patientService = BasicAPI.getService(PatientService.class);
-                        PatientDTO patientDTO = patientService.getPatientByMpiId(recipeBean.getMpiid());
-                        Date now = DateTime.now().toDate();
-                        String str = "";
-                        if(patientDTO != null && StringUtils.isNotEmpty(patientDTO.getCertificate())){
-                            str = patientDTO.getCertificate().substring(patientDTO.getCertificate().length()-5);
-                        }
-
-                        RecipeToHisCallbackService service = ApplicationUtils.getRecipeService(RecipeToHisCallbackService.class);
-                        HisSendResTO response = new HisSendResTO();
-                        response.setRecipeId(((Integer)rMap.get("recipeId")).toString());
-                        List<OrderRepTO> repList = Lists.newArrayList();
-                        OrderRepTO orderRepTO = new OrderRepTO();
-                        //门诊号处理 年月日+患者身份证后5位 例：2019060407915
-                        orderRepTO.setPatientID(DateConversion.getDateFormatter(now,"yyMMdd")+str);
-                        orderRepTO.setRegisterID(orderRepTO.getPatientID());
-                        //生成处方编号，不需要通过HIS去产生
-                        String recipeCodeStr = DigestUtil.md5For16(recipeBean.getClinicOrgan() +
-                                recipeBean.getMpiid() + Calendar.getInstance().getTimeInMillis());
-                        orderRepTO.setRecipeNo(recipeCodeStr);
-                        repList.add(orderRepTO);
-                        response.setData(repList);
-                        service.sendSuccess(response);
-                        return null;
-                    }
-                });
-            }
+            //个性化医院特殊处理，开完处方模拟his成功返回数据（假如前置机不提供默认返回数据）
+            doHisReturnSuccessForOrgan(recipeBean,rMap);
+        }
+        PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
+        if (prescriptionService.getIntellectJudicialFlag(recipeBean.getClinicOrgan()) == 1) {
+            //更新审方信息
+            RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
         }
         LOGGER.info("doSignRecipeExt execute ok! rMap:" + JSONUtils.toString(rMap));
         return rMap;
+    }
+
+    private void doHisReturnSuccessForOrgan(RecipeBean recipeBean, Map<String, Object> rMap) {
+        Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_SKIP_HISRECIPE_LIST);
+        if (organIdList != null && organIdList.contains(recipeBean.getClinicOrgan())){
+            RecipeBusiThreadPool.submit(new Callable() {
+                @Override
+                public Object call() throws Exception {
+                    PatientService patientService = BasicAPI.getService(PatientService.class);
+                    PatientDTO patientDTO = patientService.getPatientByMpiId(recipeBean.getMpiid());
+                    Date now = DateTime.now().toDate();
+                    String str = "";
+                    if(patientDTO != null && StringUtils.isNotEmpty(patientDTO.getCertificate())){
+                        str = patientDTO.getCertificate().substring(patientDTO.getCertificate().length()-5);
+                    }
+
+                    RecipeToHisCallbackService service = ApplicationUtils.getRecipeService(RecipeToHisCallbackService.class);
+                    HisSendResTO response = new HisSendResTO();
+                    response.setRecipeId(((Integer)rMap.get("recipeId")).toString());
+                    List<OrderRepTO> repList = Lists.newArrayList();
+                    OrderRepTO orderRepTO = new OrderRepTO();
+                    //门诊号处理 年月日+患者身份证后5位 例：2019060407915
+                    orderRepTO.setPatientID(DateConversion.getDateFormatter(now,"yyMMdd")+str);
+                    orderRepTO.setRegisterID(orderRepTO.getPatientID());
+                    //生成处方编号，不需要通过HIS去产生
+                    String recipeCodeStr = DigestUtil.md5For16(recipeBean.getClinicOrgan() +
+                            recipeBean.getMpiid() + Calendar.getInstance().getTimeInMillis());
+                    orderRepTO.setRecipeNo(recipeCodeStr);
+                    repList.add(orderRepTO);
+                    response.setData(repList);
+                    service.sendSuccess(response);
+                    return null;
+                }
+            });
+        }
     }
 
     /**
@@ -1090,6 +1101,8 @@ public class RecipeService extends RecipeBaseService{
                 //发送审核成功消息
                 //${sendOrgan}：您的处方已审核通过，我们将以最快的速度配送到：${addr}。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
                 RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_CHECKPASS_4STH, recipe);
+            } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode())){
+                status = OrderStatusConstant.READY_GET_DRUG;
             } else {
                 status = OrderStatusConstant.READY_GET_DRUG;
                 // HOS处方发送药企处方信息，由于是自由选择，所以匹配到的药企都发送一遍

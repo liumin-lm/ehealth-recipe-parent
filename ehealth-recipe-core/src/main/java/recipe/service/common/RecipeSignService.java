@@ -23,9 +23,7 @@ import com.ngari.recipe.common.RecipeCommonBaseTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.RecipeStandardReqTO;
 import com.ngari.recipe.common.RecipeStandardResTO;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
@@ -47,10 +45,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
 import recipe.constant.*;
-import recipe.dao.DrugListDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeOrderDAO;
+import recipe.dao.*;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.hisservice.RecipeToHisService;
@@ -65,6 +60,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
 
@@ -87,6 +83,9 @@ public class RecipeSignService {
 
     @Autowired
     private RedisClient redisClient;
+
+    @Autowired
+    private DrugsEnterpriseService drugsEnterpriseService;
 
     /**
      * 武昌模式签名方法
@@ -128,7 +127,7 @@ public class RecipeSignService {
         Map<String, Object> conditions = request.getConditions();
         Integer giveMode = MapValueUtil.getInteger(conditions, "giveMode");
         Integer depId = MapValueUtil.getInteger(conditions, "depId");
-        if (null == depId && !RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)) {
+        if (null == depId && !RecipeBussConstant.GIVEMODE_FREEDOM.equals(giveMode)&& !RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)) {
             response.setMsg("缺少药企编码");
             return response;
         }
@@ -167,6 +166,17 @@ public class RecipeSignService {
                 //患者自由选择
                 depId = null;
                 payMode = RecipeBussConstant.PAYMODE_COMPLEX;
+            } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)){
+                //到院取药----走九州通补充库存模式----这里直接推送--不需要审核
+                payMode = RecipeBussConstant.PAYMODE_TO_HOS;
+                //武昌模式到院取药推送处方到九州通
+                //没有库存就推送九州通
+                drugsEnterpriseService.pushHosInteriorSupport(dbRecipe.getRecipeId(),dbRecipe.getClinicOrgan());
+                //发送患者没库存消息
+                RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_HOSSUPPORT_NOINVENTORY, ObjectCopyUtils.convert(dbRecipe, Recipe.class));
+                String memo = "医院保存没库存处方并推送九州通/发送无库存短信成功";
+                //日志记录
+                RecipeLogService.saveRecipeLog(dbRecipe.getRecipeId(), dbRecipe.getStatus(), dbRecipe.getStatus(), memo);
             } else {
                 response.setMsg("缺少取药方式");
                 return response;
@@ -182,7 +192,7 @@ public class RecipeSignService {
             public Object call() throws Exception {
                 RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
                 try {
-                    //写入his成功后，生成pdf并签名
+                    //生成pdf并签名
                     recipeService.generateRecipePdfAndSign(recipeId);
                 } catch (Exception e) {
                     LOG.warn("sign 签名服务异常，recipeId={}", recipeId, e);
@@ -306,6 +316,51 @@ public class RecipeSignService {
             RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_READYCHECK_4HIS, dbRecipe);
         }
         return response;
+    }
+
+    /**
+     * 武昌模式判断药品能否开在一张处方单上
+     * @param recipeId
+     * @param drugIds
+     */
+    @RpcService
+    public void canOpenRecipeDrugs(Integer recipeId,List<Integer> drugIds,Integer giveMode){
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (recipe == null){
+            throw new DAOException(ErrorCode.SERVICE_ERROR,"该处方不存在");
+        }
+        RecipeServiceSub.canOpenRecipeDrugs(recipeId,drugIds);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        boolean isSupport = false;
+        //到院取药判断九州通药品是否支持
+        if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)){
+            //取该机构下配置的补充库存药企
+            List<DrugsEnterprise> enterpriseList = enterpriseDAO.findByOrganIdAndHosInteriorSupport(recipe.getClinicOrgan());
+            for (DrugsEnterprise drugsEnterprise: enterpriseList){
+                List<SaleDrugList> saleDruglists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIds);
+                if (CollectionUtils.isNotEmpty(saleDruglists) && saleDruglists.size() == drugIds.size()){
+                    //存在即支持
+                    isSupport = true;
+                    break;
+                }
+            }
+
+        }else {
+            //其他购药方式 药品在支付宝是否支持
+            List<SaleDrugList> zfbDrug = saleDrugListDAO.findByOrganIdAndDrugIds(103, drugIds);
+            if (CollectionUtils.isNotEmpty(zfbDrug) && zfbDrug.size() == drugIds.size()){
+                isSupport = true;
+            }
+        }
+        if (!isSupport){
+            DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+            List<DrugList> drugList = drugListDAO.findByDrugIds(drugIds);
+            //拼接不支持药品名
+            String drugNames = drugList.stream().map(DrugList::getDrugName).collect(Collectors.joining(","));
+            throw new DAOException(ErrorCode.SERVICE_ERROR,drugNames+"不能开具在一张处方上！");
+        }
+
     }
 
     /**

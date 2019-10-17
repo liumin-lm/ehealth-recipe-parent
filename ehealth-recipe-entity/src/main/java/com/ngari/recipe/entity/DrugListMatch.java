@@ -141,6 +141,9 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "院内搜索关键字")
     private String retrievalCode;
 
+    @ItemProperty(alias = "监管平台药品编码")
+    private String regulationDrugCode;
+
     @Column(name = "retrievalCode ")
     public String getRetrievalCode() {
         return retrievalCode;
@@ -399,5 +402,12 @@ public class DrugListMatch implements java.io.Serializable {
         this.approvalNumber = approvalNumber;
     }
 
+    @Column(name = "regulationDrugCode", length = 20)
+    public String getRegulationDrugCode() {
+        return regulationDrugCode;
+    }
 
+    public void setRegulationDrugCode(String regulationDrugCode) {
+        this.regulationDrugCode = regulationDrugCode;
+    }
 }

@@ -404,4 +404,17 @@ public class RecipeToHisService {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.updateTakeDrugWay(request);
     }
+
+    public HisResponseTO syncDrugListToHis(SyncDrugListToHisReqTO request) {
+        LOGGER.info("syncDrugListToHis request={}", JSONUtils.toString(request));
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        HisResponseTO response = null;
+        try {
+            response = hisService.syncDrugListToHis(request);
+            LOGGER.info("syncDrugListToHis response={}", JSONUtils.toString(response));
+        } catch (Exception e) {
+            LOGGER.error("syncDrugListToHis error ", e);
+        }
+        return response;
+    }
 }

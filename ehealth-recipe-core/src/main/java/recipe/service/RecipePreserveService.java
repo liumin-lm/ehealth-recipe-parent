@@ -10,10 +10,7 @@ import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.base.PatientBaseInfo;
-import com.ngari.his.recipe.mode.QueryRecipeRequestTO;
-import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
-import com.ngari.his.recipe.mode.RecipeDetailTO;
-import com.ngari.his.recipe.mode.RecipeInfoTO;
+import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -22,6 +19,7 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.HisRecipeBean;
@@ -32,6 +30,7 @@ import com.ngari.recipe.recipelog.model.RecipeLogBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -48,16 +47,19 @@ import recipe.audit.bean.AutoAuditResult;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.CacheConstant;
+import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.hisservice.RecipeToHisService;
 import recipe.mq.RecipeStatusFromHisObserver;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
 import recipe.util.RedisClient;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 import static recipe.service.RecipeServiceSub.convertPatientForRAP;
@@ -446,5 +448,51 @@ public class RecipePreserveService {
     public void test(Integer audit){
         IAuditMode auditModes = auditModeContext.getAuditModes(audit);
         System.out.println(auditModes);
+    }
+
+    /**
+     * 手动同步基础药品数据给his(武昌)
+     * @param sourceOrgan
+     */
+    @RpcService
+    public int syncDrugListToHis(Integer sourceOrgan){
+        DrugListDAO dao = DAOFactory.getDAO(DrugListDAO.class);
+        RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+        OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+        String organCode = organService.getOrganizeCodeByOrganId(sourceOrgan);
+        //批量同步
+        int start = 0;
+        int limit = 100;
+        int total = 0;
+        while (true){
+            List<DrugList> drugs = dao.findDrugListBySourceOrgan(sourceOrgan,start,limit);
+            if (drugs == null || drugs.size() == 0){
+                return total;
+            }
+            total += drugs.size();
+            List<DrugListTO> drugListTO = ObjectCopyUtils.convert(drugs, DrugListTO.class);
+            //double失真处理
+            for (DrugListTO drugTO : drugListTO){
+                if (drugTO.getUseDose() != null){
+                    drugTO.setUseDose(BigDecimal.valueOf(drugTO.getUseDose()).doubleValue());
+                }
+                if (drugTO.getPrice1() != null){
+                    drugTO.setPrice1(BigDecimal.valueOf(drugTO.getPrice1()).doubleValue());
+
+                }else {
+                    drugTO.setPrice1(0.0);
+                }
+                drugTO.setPrice2(drugTO.getPrice1());
+
+            }
+            SyncDrugListToHisReqTO request = new SyncDrugListToHisReqTO();
+            request.setClinicOrgan(sourceOrgan);
+            //组织机构编码
+            request.setOrganCode(organCode);
+            request.setDrugList(drugListTO);
+            service.syncDrugListToHis(request);
+            start += limit;
+        }
+
     }
 }
