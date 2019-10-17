@@ -80,6 +80,7 @@ public class TestDrugStoreRemoteService extends AccessDrugEnterpriseService {
         for (Pharmacy pharmacy : pharmacies) {
             DepDetailBean depDetailBean = new DepDetailBean();
             depDetailBean.setDepId(pharmacy.getDrugsenterpriseId());
+            depDetailBean.setDepName(pharmacy.getPharmacyName());
             Position position = new Position();
             position.setLongitude(Double.parseDouble(pharmacy.getPharmacyLongitude()));
             position.setLatitude(Double.parseDouble(pharmacy.getPharmacyLatitude()));
