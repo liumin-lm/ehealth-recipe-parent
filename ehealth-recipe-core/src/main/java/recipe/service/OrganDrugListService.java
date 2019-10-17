@@ -2,6 +2,8 @@ package recipe.service;
 
 import com.google.common.collect.Lists;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.regulation.entity.RegulationDrugCategoryReq;
+import com.ngari.his.regulation.service.IRegulationService;
 import com.ngari.jgpt.zjs.service.IMinkeOrganService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
@@ -248,13 +250,16 @@ public class OrganDrugListService {
             GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
                 @Override
                 public void run() {
-                    List<DrugCategoryReq> drugCategoryReqs = new ArrayList<>();
+                    List<RegulationDrugCategoryReq> drugCategoryReqs = new ArrayList<>();
                     try{
-                        IProvinceIndicatorsDateUpdateService hisService =
-                                AppDomainContext.getBean("his.provinceDataUploadService", IProvinceIndicatorsDateUpdateService.class);
-                        DrugCategoryReq drugCategoryReq = packingDrugCategoryReq(saveOrganDrugList);
+                        /*IProvinceIndicatorsDateUpdateService hisService =
+                                AppDomainContext.getBean("his.provinceDataUploadService", IProvinceIndicatorsDateUpdateService.class);*/
+                        //使用最新的上传方式，兼容互联网环境和平台环境上传
+                        IRegulationService hisService =
+                                AppDomainContext.getBean("his.regulationService", IRegulationService.class);
+                        RegulationDrugCategoryReq drugCategoryReq = packingDrugCategoryReq(saveOrganDrugList);
                         drugCategoryReqs.add(drugCategoryReq);
-                        HisResponseTO hisResponseTO = hisService.uploadDrugCatalogue(drugCategoryReqs);
+                        HisResponseTO hisResponseTO = hisService.uploadDrugCatalogue(saveOrganDrugList.getOrganId(),drugCategoryReqs);
                         logger.info("hisResponseTO parames:" + JSONUtils.toString(hisResponseTO));
                     } catch (Exception e) {
                         logger.info("上传药品到监管平台失败,{"+ JSONUtils.toString(drugCategoryReqs)+"},{"+e.getMessage()+"}.");
@@ -265,14 +270,16 @@ public class OrganDrugListService {
     }
 
     //包装监管平台数据
-    private DrugCategoryReq packingDrugCategoryReq(OrganDrugList organDrugList){
+    private RegulationDrugCategoryReq packingDrugCategoryReq(OrganDrugList organDrugList){
         OrganService organService = BasicAPI.getService(OrganService.class);
         IMinkeOrganService minkeOrganService = AppContextHolder.getBean("jgpt.minkeOrganService", IMinkeOrganService.class);
         OrganDTO organDTO = organService.getByOrganId(organDrugList.getOrganId());
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         DrugList drugList = drugListDAO.getById(organDrugList.getDrugId());
-        DrugCategoryReq drugCategoryReq = new DrugCategoryReq();
+        RegulationDrugCategoryReq drugCategoryReq = new RegulationDrugCategoryReq();
         String organId = minkeOrganService.getRegisterNumberByUnitId(organDTO.getMinkeUnitID());
+        //这俩个字段 在his-server set进去了 平台模式这里可以不传
+        drugCategoryReq.setUnitID(organDTO.getMinkeUnitID());
         drugCategoryReq.setOrganID(organId);
         drugCategoryReq.setOrganName(organDTO.getName());
         drugCategoryReq.setPlatDrugCode(organDrugList.getDrugId().toString());
@@ -304,7 +311,6 @@ public class OrganDrugListService {
         drugCategoryReq.setDrugClass(drugList.getDrugClass());
         drugCategoryReq.setUpdateTime(new Date());
         drugCategoryReq.setCreateTime(new Date());
-        drugCategoryReq.setUnitID(organDTO.getMinkeUnitID());
         return drugCategoryReq;
     }
 
