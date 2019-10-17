@@ -273,6 +273,7 @@ public class PayModeOnline implements IPurchaseService {
             case RecipeStatusConstant.FINISH:
                 tips = "药企配送完成，订单完成";
                 break;
+                default:
         }
         return tips;
     }

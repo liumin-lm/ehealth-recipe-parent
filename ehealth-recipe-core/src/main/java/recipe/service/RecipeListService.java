@@ -933,7 +933,7 @@ public class RecipeListService extends RecipeBaseService{
             }
             List<String> configurations = new ArrayList<>(Arrays.asList((String[])payModeDeploy));
             //将购药方式的显示map对象转化为页面展示的对象
-            Map<String, Boolean> buttonMap = new HashMap<>();
+            Map<String, Boolean> buttonMap = new HashMap<>(10);
             for (String configuration : configurations) {
                 buttonMap.put(configuration, true);
             }

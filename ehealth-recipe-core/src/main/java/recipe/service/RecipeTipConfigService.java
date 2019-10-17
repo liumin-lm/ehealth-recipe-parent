@@ -29,7 +29,7 @@ public class RecipeTipConfigService {
         RecipeCacheService recipeCacheService= ApplicationUtils.getRecipeService(RecipeCacheService.class);
         String doctorRiskTip=recipeCacheService.getParam(tip);
         String doctorRiskTipTitle=recipeCacheService.getParam(title);
-        Map<String,Object> map=new HashMap<>();
+        Map<String,Object> map=new HashMap<>(2);
         map.put("doctorRiskTip",doctorRiskTip);
         map.put("doctorRiskTipTitle",doctorRiskTipTitle);
         return map;

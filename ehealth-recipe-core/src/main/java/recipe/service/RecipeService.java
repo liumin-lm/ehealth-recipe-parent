@@ -2286,7 +2286,7 @@ public class RecipeService extends RecipeBaseService{
             result.setError("处方单id对应的处方为空");
             return result;
         }
-        Map<String, String> ext = new HashMap<>();
+        Map<String, String> ext = new HashMap<>(10);
         if(null == nowRecipe.getOrderCode()){
             Map<String, Object> recipeMap = getPatientRecipeById(recipeId);
             result.setObject(recipeMap);
@@ -2319,7 +2319,7 @@ public class RecipeService extends RecipeBaseService{
             result.setError("处方单id对应的处方为空");
             return result;
         }
-        Map<String, Object> searchMap = new HashMap<>();
+        Map<String, Object> searchMap = new HashMap<>(10);
         //判断修改的处方的状态是否是已下载
         if(status == RecipeStatusConstant.RECIPE_DOWNLOADED){
             //当前处方下载处方状态的时候，确认处方的购药方式
