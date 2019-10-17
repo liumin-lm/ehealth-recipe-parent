@@ -69,7 +69,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
                 result.setCode(HosRecipeResult.FAIL);
                 result.setMsg(orderResult.getMsg());
             }
-            //是否走外配模式 现根据distributionMode判断，1:支付宝外配 2:九州通外延
+           /* //是否走外配模式 现根据distributionMode判断，1:支付宝外配 2:九州通外延
             if (RecipeBussConstant.WUCHANG_JZT.equals(hospitalRecipeDTO.getDistributionMode())){
                 //没有库存就推送九州通
                 drugsEnterpriseService.pushHosInteriorSupport(recipe.getRecipeId(),recipe.getClinicOrgan());
@@ -78,7 +78,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
                 String memo = "医院保存没库存处方并推送九州通/发送无库存短信成功";
                 //日志记录
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
-            }
+            }*/
         }
 
         if (HosRecipeResult.DUPLICATION.equals(result.getCode())) {

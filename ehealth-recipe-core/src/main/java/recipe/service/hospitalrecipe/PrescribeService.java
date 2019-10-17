@@ -1,6 +1,7 @@
 package recipe.service.hospitalrecipe;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.ngari.base.BaseAPI;
@@ -20,6 +21,7 @@ import com.ngari.recipe.hisprescription.model.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.wxpay.service.INgariRefundService;
+import com.sun.javafx.scene.control.skin.ListCellSkin;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -39,9 +41,11 @@ import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.*;
 import recipe.service.hospitalrecipe.dataprocess.PrescribeProcess;
+import recipe.util.RedisClient;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author： 0184/yu_yun
@@ -68,6 +72,9 @@ public class PrescribeService {
 
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
+
+    @Autowired
+    private RedisClient redisClient;
 
     /**
      * 创建处方
@@ -229,7 +236,21 @@ public class PrescribeService {
             recipe.setFromflag(RecipeBussConstant.FROMFLAG_HIS_USE);
 
             //创建详情数据
-            List<RecipeDetailBean> details = PrescribeProcess.convertNgariDetail(hospitalRecipeDTO);
+            List<RecipeDetailBean> details;
+            //武昌机构集合
+            Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_WUCHANG_ORGAN_LIST);
+            try {
+                if ((CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(recipe.getClinicOrgan().toString()))){
+                    details = PrescribeProcess.convertNgariDetailForWuChang(hospitalRecipeDTO);
+                }else {
+                    details= PrescribeProcess.convertNgariDetail(hospitalRecipeDTO);
+                }
+            } catch (Exception e) {
+                LOG.warn("createPrescription 药品详情转换异常, hospitalRecipeDTO={},{}", JSONUtils.toString(hospitalRecipeDTO),e);
+                result.setMsg("药品详情转换异常,请检查药品数据是否正确");
+                return result;
+            }
+
             if (CollectionUtils.isEmpty(details)) {
                 LOG.warn("createPrescription 药品详情转换错误, hospitalRecipeDTO={}", JSONUtils.toString(hospitalRecipeDTO));
                 result.setMsg("药品详情转换错误");

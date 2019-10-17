@@ -217,6 +217,10 @@ public class RecipeSingleService {
                 break;
             case RecipeStatusConstant.CHECK_PASS:
                 notation = 3;
+                if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(dbRecipe.getGiveMode())) {
+                    //到院取药没有下一步流程了 用1返回
+                    notation = 1;
+                }
                 break;
             case RecipeStatusConstant.READY_CHECK_YS:
                 if (RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())) {
@@ -262,6 +266,7 @@ public class RecipeSingleService {
                 statusTxt = "已取消";
                 break;
             case RecipeStatusConstant.CHECK_PASS:
+                statusTxt = "待处理";
                 //配送到家已支付
                 if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
                         && Integer.valueOf(0).equals(dbRecipe.getPayFlag())) {
@@ -302,12 +307,13 @@ public class RecipeSingleService {
             case RecipeStatusConstant.FINISH:
                 if (RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())){
                     statusTxt = "患者取药完成";
-                }else if (RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode())) {
+                }else if (RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode())||RecipeBussConstant.GIVEMODE_TO_HOS.equals(dbRecipe.getGiveMode())) {
                     statusTxt = "处方单已完成";
                 }else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())){
                     statusTxt = "配送完成";
                 }
                 break;
+            default:
         }
 
         return statusTxt;

@@ -39,6 +39,12 @@ public class CacheConstant {
     public static final String KEY_NGARI_SENDRECIPETOHIS_LIST = "KEY_NGARI_SENDRECIPETOHIS_LIST";
 
 
+    /**
+     * 开处方跳过his对接organId列表
+     */
+    public static final String KEY_SKIP_HISRECIPE_LIST = "RCP_SKIP_HISRECIPE_LIST";
+
+
 
     /**************************机构个性化配置**************************/
 
