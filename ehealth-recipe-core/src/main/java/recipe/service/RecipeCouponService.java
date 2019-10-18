@@ -8,6 +8,8 @@ import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
@@ -20,6 +22,7 @@ import recipe.dao.RecipeOrderDAO;
 @RpcBean("recipeCouponService")
 public class RecipeCouponService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecipeCouponService.class);
     /**
      * 在药师审核不通过、医生二次开具处方、三天定时任务
      * 返回优惠券给用户
@@ -27,6 +30,7 @@ public class RecipeCouponService {
      */
     @RpcService
     public void unuseCouponByRecipeId(Integer recipeId){
+        LOGGER.info("RecipeCouponService-unuseCouponByRecipeId:{}.", recipeId);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (recipe != null && recipe.getPayMode() == RecipeBussConstant.PAYMODE_ONLINE) {
@@ -35,6 +39,7 @@ public class RecipeCouponService {
                 RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                 if (recipeOrder.getCouponId() != null && recipeOrder.getCouponId() > 0) {
                     //返还优惠券
+                    LOGGER.info("RecipeCouponService-unuseCouponByRecipeId 返还优惠券:{}.", recipeOrder.getCouponId());
                     ICouponBaseService couponService = AppContextHolder.getBean("voucher.couponBaseService",ICouponBaseService.class);
                     couponService.unuseCouponById(recipeOrder.getCouponId());
                 }
