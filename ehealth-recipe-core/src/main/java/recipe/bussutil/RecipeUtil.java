@@ -5,9 +5,12 @@ import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.recipe.entity.*;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
@@ -15,6 +18,8 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
+import recipe.service.RecipeOrderService;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -29,6 +34,7 @@ import java.util.Map;
  */
 public class RecipeUtil {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecipeUtil.class);
     /**
      * 获取处方单上药品总价
      *
@@ -134,6 +140,16 @@ public class RecipeUtil {
             if (null != otherFee && otherFee.compareTo(BigDecimal.ZERO) == 1 && null != configurationService.getConfiguration(organId, "otherServiceChargeDesc") && null != configurationService.getConfiguration(organId, "otherServiceChargeRemark")) {
                 map.put("otherServiceChargeDesc", configurationService.getConfiguration(organId, "otherServiceChargeDesc").toString());
                 map.put("otherServiceChargeRemark", configurationService.getConfiguration(organId, "otherServiceChargeRemark").toString());
+            }
+            if (order.getLogisticsCompany() != null) {
+                try{
+                    String logComStr = DictionaryController.instance().get("eh.cdr.dictionary.KuaiDiNiaoCode")
+                            .getText(order.getLogisticsCompany());
+                    map.put("logisticsCompanyPY", logComStr);
+                }catch (Exception e){
+                    LOGGER.info("getParamFromOgainConfig error msg:{}.", e.getMessage());
+                }
+
             }
         }
         return map;
