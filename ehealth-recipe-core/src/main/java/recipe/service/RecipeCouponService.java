@@ -6,6 +6,7 @@ import coupon.api.service.ICouponBaseService;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.RecipeDAO;
@@ -24,6 +25,7 @@ public class RecipeCouponService extends RecipeBaseService{
      * 返回优惠券给用户
      * @param recipeId  处方ID
      */
+    @RpcService
     public void unuseCouponByRecipeId(Integer recipeId){
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
