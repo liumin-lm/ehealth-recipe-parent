@@ -553,12 +553,11 @@ public class RecipeCheckService {
         boolean secondsignflag = iOrganConfigService.getEnableSecondsignByOrganId(recipe.getClinicOrgan());
         //不支持二次签名的机构直接执行后续操作
         if (!secondsignflag) {
-            /*recipeService.afterCheckNotPassYs(recipe);*/
-            //TODO 根据审方模式改变
-            auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckNotPassYs(recipe);
             //一次审核不通过的需要将优惠券释放
             RecipeCouponService recipeCouponService = ApplicationUtils.getRecipeService(RecipeCouponService.class);
             recipeCouponService.unuseCouponByRecipeId(recipe.getRecipeId());
+            //TODO 根据审方模式改变
+            auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckNotPassYs(recipe);
         }else{
             //需要二次审核，这里是一次审核不通过的流程
             //需要将处方的审核状态设置成一次审核不通过的状态
