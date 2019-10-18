@@ -1,6 +1,7 @@
 package recipe.audit.auditmode;
 
 import com.ngari.recipe.entity.Recipe;
+import ctd.persistence.DAOFactory;
 import eh.cdr.constant.RecipeStatusConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,11 @@ public class AuditPreMode extends AbstractAuidtMode {
         if (status == RecipeStatusConstant.CHECK_PASS){
             status = RecipeStatusConstant.READY_CHECK_YS;
         }
+        // 平台模式前置需要发送卡片
+        if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())){
+            RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipe.getRecipeId()), null, true);
+        }
         super.saveStatusAndSendMsg(status,recipe,memo);
     }
 
@@ -42,11 +48,11 @@ public class AuditPreMode extends AbstractAuidtMode {
         String recipeMode = recipe.getRecipeMode();
         //正常平台处方
         if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
-            RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipeId), null, true);
-            //向患者推送处方消息
-            //处方通知您有一张处方单需要处理，请及时查看。
-            RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS_YS);
             if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)){
+                RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipeId), null, true);
+                //向患者推送处方消息
+                //处方通知您有一张处方单需要处理，请及时查看。
+                RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS_YS);
                 //同步到互联网监管平台
                 SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
                 syncExecutorService.uploadRecipeIndicators(recipe);
