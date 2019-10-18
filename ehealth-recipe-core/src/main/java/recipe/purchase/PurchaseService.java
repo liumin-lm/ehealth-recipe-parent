@@ -13,6 +13,7 @@ import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
+import coupon.api.service.ICouponBaseService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -373,6 +374,26 @@ public class PurchaseService {
         } else {
             IPurchaseService purchaseService = getService(recipe.getPayMode());
             return purchaseService.getOrderStatus(recipe);
+        }
+    }
+
+    /**
+     * 在药师审核不通过、医生二次开具处方、三天定时任务
+     * @param recipeId  处方ID
+     */
+    public void unlockCouponByRecipeId(Integer recipeId){
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (recipe != null && recipe.getPayMode() == RecipeBussConstant.PAYMODE_ONLINE) {
+            if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+                RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                if (recipeOrder.getCouponId() != null && recipeOrder.getCouponId() > 0) {
+                    //释放优惠券
+                    ICouponBaseService couponService = AppContextHolder.getBean("voucher.couponBaseService",ICouponBaseService.class);
+                    couponService.unlockCouponById(recipeOrder.getCouponId());
+                }
+            }
         }
     }
 

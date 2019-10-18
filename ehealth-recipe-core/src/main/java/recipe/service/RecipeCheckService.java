@@ -25,12 +25,14 @@ import com.ngari.recipe.recipe.model.GuardianBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
+import coupon.api.service.ICouponBaseService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -44,6 +46,7 @@ import recipe.audit.auditmode.AuditModeContext;
 import recipe.bean.CheckYsInfoBean;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.purchase.PurchaseService;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ChinaIDNumberUtil;
@@ -553,6 +556,9 @@ public class RecipeCheckService {
             /*recipeService.afterCheckNotPassYs(recipe);*/
             //TODO 根据审方模式改变
             auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckNotPassYs(recipe);
+            //一次审核不通过的需要将优惠券释放
+            PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+            purchaseService.unlockCouponByRecipeId(recipe.getRecipeId());
         }else{
             //需要二次审核，这里是一次审核不通过的流程
             //需要将处方的审核状态设置成一次审核不通过的状态
