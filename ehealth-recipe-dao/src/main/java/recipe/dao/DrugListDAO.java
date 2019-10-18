@@ -480,7 +480,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
             @SuppressWarnings("unchecked")
             @Override
             public void execute(StatelessSession ss) throws DAOException {
-                StringBuilder hql = new StringBuilder("From DrugList where 1=1");
+                StringBuilder hql = new StringBuilder("From DrugList where 1=1 and sourceOrgan is NULL ");
                 if (!StringUtils.isEmpty(drugClass)) {
                     hql.append(" and drugClass like :drugClass");
                 }
