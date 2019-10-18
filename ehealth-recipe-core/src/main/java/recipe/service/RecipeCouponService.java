@@ -5,6 +5,7 @@ import com.ngari.recipe.entity.RecipeOrder;
 import coupon.api.service.ICouponBaseService;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
@@ -37,6 +38,7 @@ public class RecipeCouponService {
             if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
                 RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
                 RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                LOGGER.info("RecipeCouponService-unuseCouponByRecipeId recipeOrder:{}.", JSONUtils.toString(recipeOrder));
                 if (recipeOrder.getCouponId() != null && recipeOrder.getCouponId() > 0) {
                     //返还优惠券
                     LOGGER.info("RecipeCouponService-unuseCouponByRecipeId 返还优惠券:{}.", recipeOrder.getCouponId());
