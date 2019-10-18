@@ -34,7 +34,9 @@ public class RecipeCouponService {
         LOGGER.info("RecipeCouponService-unuseCouponByRecipeId:{}.", recipeId);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        if (recipe != null && recipe.getPayMode() == RecipeBussConstant.PAYMODE_ONLINE) {
+        LOGGER.info("RecipeCouponService-unuseCouponByRecipeId:{}.", JSONUtils.toString(recipe));
+        if (recipe != null && RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode())) {
+            LOGGER.info("RecipeCouponService-unuseCouponByRecipeId:ceshi.");
             if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
                 RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
                 RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
