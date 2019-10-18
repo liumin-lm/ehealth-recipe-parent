@@ -379,6 +379,7 @@ public class PurchaseService {
 
     /**
      * 在药师审核不通过、医生二次开具处方、三天定时任务
+     * 返回优惠券给用户
      * @param recipeId  处方ID
      */
     public void unlockCouponByRecipeId(Integer recipeId){
@@ -389,9 +390,9 @@ public class PurchaseService {
                 RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
                 RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                 if (recipeOrder.getCouponId() != null && recipeOrder.getCouponId() > 0) {
-                    //释放优惠券
+                    //返还优惠券
                     ICouponBaseService couponService = AppContextHolder.getBean("voucher.couponBaseService",ICouponBaseService.class);
-                    couponService.unlockCouponById(recipeOrder.getCouponId());
+                    couponService.unuseCouponById(recipeOrder.getCouponId());
                 }
             }
         }
