@@ -52,7 +52,7 @@ public class AuditPreMode extends AbstractAuidtMode {
                 RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipeId), null, true);
                 //向患者推送处方消息
                 //处方通知您有一张处方单需要处理，请及时查看。
-                RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS_YS);
+                RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS);
                 //同步到互联网监管平台
                 SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
                 syncExecutorService.uploadRecipeIndicators(recipe);
