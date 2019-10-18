@@ -18,7 +18,7 @@ import recipe.dao.RecipeOrderDAO;
  * @date 2019\10\18 0018 13:58
  */
 @RpcBean("recipeCouponService")
-public class RecipeCouponService extends RecipeBaseService{
+public class RecipeCouponService {
 
     /**
      * 在药师审核不通过、医生二次开具处方、三天定时任务
