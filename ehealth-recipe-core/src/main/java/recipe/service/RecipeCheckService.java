@@ -557,8 +557,8 @@ public class RecipeCheckService {
             //TODO 根据审方模式改变
             auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckNotPassYs(recipe);
             //一次审核不通过的需要将优惠券释放
-            PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
-            purchaseService.unlockCouponByRecipeId(recipe.getRecipeId());
+            RecipeCouponService recipeCouponService = ApplicationUtils.getRecipeService(RecipeCouponService.class);
+            recipeCouponService.unuseCouponByRecipeId(recipe.getRecipeId());
         }else{
             //需要二次审核，这里是一次审核不通过的流程
             //需要将处方的审核状态设置成一次审核不通过的状态

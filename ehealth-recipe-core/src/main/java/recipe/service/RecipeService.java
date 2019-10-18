@@ -596,8 +596,8 @@ public class RecipeService extends RecipeBaseService{
         updateMap.put("checkStatus", RecipecCheckStatusConstant.Check_Normal);
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, updateMap);
         //患者如果使用优惠券将优惠券解锁
-        PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
-        purchaseService.unlockCouponByRecipeId(recipeId);
+        RecipeCouponService recipeCouponService = ApplicationUtils.getRecipeService(RecipeCouponService.class);
+        recipeCouponService.unuseCouponByRecipeId(recipeId);
         //添加发送不通过消息
         RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
         //根据审方模式改变--审核未通过处理
@@ -1488,8 +1488,8 @@ public class RecipeService extends RecipeBaseService{
                     }
                     if (RecipeStatusConstant.NO_PAY == status) {
                         //未支付，三天后自动取消后，优惠券自动释放
-                        PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
-                        purchaseService.unlockCouponByRecipeId(recipeId);
+                        RecipeCouponService recipeCouponService = ApplicationUtils.getRecipeService(RecipeCouponService.class);
+                        recipeCouponService.unuseCouponByRecipeId(recipeId);
                     }
                     //推送处方到监管平台(江苏)
                     RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(),1));
