@@ -1352,7 +1352,10 @@ public class RecipeOrderService extends RecipeBaseService {
                         attrMap.put("payTime", Calendar.getInstance().getTime());
                         attrMap.put("status", payStatus);
                         attrMap.put("effective", 1);
-                        sendTfdsMsgAndUseCoupon(nowRecipe);
+                        //date 20191017
+                        //添加使用优惠券(支付后释放)
+                        useCoupon(nowRecipe, payMode);
+                        sendTfdsMsg(nowRecipe, payMode, orderCode);
                     } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag) {
                         //支付前调用
                         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
@@ -1360,7 +1363,10 @@ public class RecipeOrderService extends RecipeBaseService {
                         if(null != order){
                             if(0 == order.getActualPrice()){
                                 noPayStatus = getPayStatus(reviewType, giveMode, nowRecipe);
-                                sendTfdsMsgAndUseCoupon(nowRecipe);
+                                //date 20191017
+                                //添加使用优惠券（不需支付，释放）
+                                useCoupon(nowRecipe, payMode);
+                                sendTfdsMsg(nowRecipe, payMode, orderCode);
                             }else{
                                 noPayStatus = OrderStatusConstant.READY_PAY;
                             }
@@ -1389,18 +1395,39 @@ public class RecipeOrderService extends RecipeBaseService {
         return result;
     }
 
+    /**
+     * @method  useCoupon
+     * @description 使用优惠券
+     * @date: 2019/10/17
+     * @author: JRK
+     * @param nowRecipe 处方
+    * @param payMode 支付方式
+     * @return void
+     */
+    private void useCoupon(Recipe nowRecipe, Integer payMode){
+        RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(nowRecipe.getOrderCode());
+        if (nowRecipe.getPayMode() == RecipeBussConstant.PAYMODE_ONLINE && isUsefulCoupon(order.getCouponId())) {
+            ICouponBaseService couponService = AppContextHolder.getBean("voucher.couponBaseService",ICouponBaseService.class);
+            couponService.useCouponById(order.getCouponId());
+        }
+    }
+
     //药店有库存或者无库存备货给患者推送消息
-    private void sendTfdsMsgAndUseCoupon(Recipe nowRecipe) {
+    private void sendTfdsMsg(Recipe nowRecipe, Integer payMode, String orderCode) {
         //药店取药推送
         LOGGER.info("sendTfdsMsg nowRecipe:{}.", JSONUtils.toString(nowRecipe));
-        if (nowRecipe.getPayMode() == RecipeBussConstant.PAYMODE_TFDS && nowRecipe.getReviewType() != 2) {
+        if (RecipeBussConstant.PAYMODE_TFDS.equals(payMode) && nowRecipe.getReviewType() != 2) {
             RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-            if (nowRecipe.getEnterpriseId() == null) {
+            RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
+            RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
+            //这里去的是订单中存的药企信息
+            if (order.getEnterpriseId() == null) {
                 LOGGER.info("审方前置或者不审核-药店取药-药企为空");
             } else {
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(nowRecipe.getEnterpriseId());
-                boolean scanFlag = remoteDrugService.scanStock(nowRecipe.getRecipeId(), drugsEnterprise);
+                boolean scanFlag = remoteDrugService.scanStock(order.getEnterpriseId(), drugsEnterprise);
                 if (scanFlag) {
                     //表示需要进行库存校验并且有库存
                     RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_DRUG_HAVE_STOCK, nowRecipe);
@@ -1410,12 +1437,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             }
         }
-        RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
-        RecipeOrder order = recipeOrderDAO.getByOrderCode(nowRecipe.getOrderCode());
-        if (nowRecipe.getPayMode() == RecipeBussConstant.PAYMODE_ONLINE && isUsefulCoupon(order.getCouponId())) {
-            ICouponBaseService couponService = AppContextHolder.getBean("voucher.couponBaseService",ICouponBaseService.class);
-            couponService.useCouponById(order.getCouponId());
-        }
+
     }
 
     /**

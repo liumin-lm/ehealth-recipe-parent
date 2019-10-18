@@ -122,6 +122,9 @@ public class DrugList implements java.io.Serializable {
     @ItemProperty(alias = "机构药品编码")
     private String organDrugCode;
 
+    @ItemProperty(alias = "基药标识")
+    private Integer baseDrug;
+
     public DrugList() {
     }
 
@@ -470,5 +473,14 @@ public class DrugList implements java.io.Serializable {
 
     public void setDrugForm(String drugForm) {
         this.drugForm = drugForm;
+    }
+
+    @Column(name = "baseDrug")
+    public Integer getBaseDrug() {
+        return baseDrug;
+    }
+
+    public void setBaseDrug(Integer baseDrug) {
+        this.baseDrug = baseDrug;
     }
 }

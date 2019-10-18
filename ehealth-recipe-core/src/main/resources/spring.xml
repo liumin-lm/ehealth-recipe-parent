@@ -61,6 +61,9 @@
 	<!--测试药店-->
 	<bean id="testDrugStoreRemoteService" class="recipe.drugsenterprise.TestDrugStoreRemoteService"/>
 
+	<!--卫宁健康智能审方-->
+	<bean id="winningPrescriptionService" class="recipe.audit.service.WinningPrescriptionService"/>
+
 	<bean id="busTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" destroy-method="shutdown">
 		<!-- 线程池活跃的线程数 -->
 		<property name="corePoolSize" value="5" />

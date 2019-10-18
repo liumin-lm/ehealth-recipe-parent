@@ -276,7 +276,7 @@ public class HosRecipeListService {
             patientExist = true;
             patient = patList.get(0);
         }
-        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> map = new HashMap<>(2);
         map.put("patient", patient);
         map.put("patientExist", patientExist);
         return map;

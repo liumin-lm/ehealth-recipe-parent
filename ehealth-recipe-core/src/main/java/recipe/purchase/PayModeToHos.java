@@ -141,6 +141,7 @@ public class PayModeToHos implements IPurchaseService{
             case RecipeStatusConstant.FINISH:
                 tips = "到院取药成功，订单完成";
                 break;
+                default:
         }
         return tips;
     }

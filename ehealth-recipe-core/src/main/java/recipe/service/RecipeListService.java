@@ -76,6 +76,8 @@ public class RecipeListService extends RecipeBaseService{
     public static final Integer[] HistoryRecipeListShowStatusList = {RecipeStatusConstant.NO_OPERATOR,
             RecipeStatusConstant.NO_PAY, RecipeStatusConstant.CHECK_NOT_PASS_YS, RecipeStatusConstant.RECIPE_FAIL, RecipeStatusConstant.FINISH, RecipeStatusConstant.NO_DRUG};
 
+    public static final Integer No_Show_Button = 3;
+
     /**
      * 医生端处方列表展示
      *
@@ -931,7 +933,7 @@ public class RecipeListService extends RecipeBaseService{
             }
             List<String> configurations = new ArrayList<>(Arrays.asList((String[])payModeDeploy));
             //将购药方式的显示map对象转化为页面展示的对象
-            Map<String, Boolean> buttonMap = new HashMap<>();
+            Map<String, Boolean> buttonMap = new HashMap<>(10);
             for (String configuration : configurations) {
                 buttonMap.put(configuration, true);
             }
@@ -954,7 +956,7 @@ public class RecipeListService extends RecipeBaseService{
         }
 
         //设置按钮的展示类型
-        payModeShowButtonBean.setButtonType(getButtonType(recipe.getReviewType(), record.getRecordType(), record.getStatusCode()));
+        payModeShowButtonBean.setButtonType(getButtonType(payModeShowButtonBean, recipe.getReviewType(), record.getRecordType(), record.getStatusCode()));
         return payModeShowButtonBean;
     }
 
@@ -995,9 +997,21 @@ public class RecipeListService extends RecipeBaseService{
      * @param statusCode 患者处方的状态
      * @return java.lang.Integer 按钮的显示类型
      */
-    private Integer getButtonType(Integer reviewType, String recordType, Integer statusCode) {
-        RecipePageButtonStatusEnum buttonStatus = RecipePageButtonStatusEnum.fromRecodeTypeAndRecodeCodeAndReviewType(recordType, statusCode, reviewType);
-        return buttonStatus.getPageButtonStatus();
+    private Integer getButtonType(PayModeShowButtonBean payModeShowButtonBean, Integer reviewType, String recordType, Integer statusCode) {
+        //添加判断，当选药按钮都不显示的时候，按钮状态为不展示
+        if(null != payModeShowButtonBean){
+            if(!payModeShowButtonBean.getSupportDownload() && !payModeShowButtonBean.getSupportOnline() &&
+                    !payModeShowButtonBean.getSupportTFDS() && !payModeShowButtonBean.getSupportToHos()) {
+                return No_Show_Button;
+            }else{
+                RecipePageButtonStatusEnum buttonStatus = RecipePageButtonStatusEnum.fromRecodeTypeAndRecodeCodeAndReviewType(recordType, statusCode, reviewType);
+                return buttonStatus.getPageButtonStatus();
+            }
+        }else{
+            LOGGER.error("当前按钮的显示信息不存在");
+            return No_Show_Button;
+        }
+
     }
 
     /**

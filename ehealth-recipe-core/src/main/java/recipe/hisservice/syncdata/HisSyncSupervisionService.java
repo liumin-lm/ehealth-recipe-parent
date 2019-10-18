@@ -624,12 +624,20 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                            Dictionary usingRateDic, Dictionary usePathwaysDic, Recipe recipe) {
         RegulationRecipeDetailIndicatorsReq reqDetail;
         DrugListDAO drugListDao = DAOFactory.getDAO(DrugListDAO.class);
+        OrganDrugListDAO organDrugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<RegulationRecipeDetailIndicatorsReq> list = new ArrayList<>(detailList.size());
         /*double dosageDay;*/
         DrugList drugList;
+        OrganDrugList organDrugList;
         for (Recipedetail detail : detailList) {
             reqDetail = new RegulationRecipeDetailIndicatorsReq();
-            reqDetail.setDrcode(detail.getOrganDrugCode());
+            organDrugList = organDrugDao.getByOrganIdAndDrugId(recipe.getClinicOrgan(),detail.getDrugId());
+            if (organDrugList == null){
+                reqDetail.setDrcode(detail.getOrganDrugCode());
+            }else {
+                reqDetail.setDrcode(StringUtils.isNotEmpty(organDrugList.getRegulationDrugCode())?organDrugList.getRegulationDrugCode():organDrugList.getOrganDrugCode());
+            }
+
             reqDetail.setDrname(detail.getDrugName());
             reqDetail.setDrmodel(detail.getDrugSpec());
             reqDetail.setPack(detail.getPack());

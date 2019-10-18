@@ -1,8 +1,6 @@
 package recipe.thread;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.recipe.entity.Recipe;
@@ -42,7 +40,7 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
     private static final String REGULATION_ZJ = "zjsjgpt";
 
     /**
-     * 福建省监管平台
+     * 福建省监管平台(通过前置机来平台查询处方)
      */
     private static final String REGULATION_FJ = "fjsjgpt";
 

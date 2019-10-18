@@ -23,7 +23,7 @@ public enum TabStatusEnum {
      * date 2019/10/16
      * 修改已完成，可能没有订单，所以直接取处方已完成的状态
      */
-    Isover_Order_StatusList("isover", "order", new ArrayList<>(Arrays.asList(-1))),
+    Isover_Order_StatusList("isover", "order", new ArrayList<>(Arrays.asList(5))),
     /**
      * 已结束处方的状态(未处理，失败，未支付，审核不通过, 已完成, 已撤销，已删除，推his失败)
      */

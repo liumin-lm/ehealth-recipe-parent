@@ -60,6 +60,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 供recipeService调用
@@ -257,8 +258,6 @@ public class RecipeServiceSub {
 
         if (CollectionUtils.isNotEmpty(drugIds)) {
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-            DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
 
             //是否为老的药品兼容方式，老的药品传入方式没有organDrugCode
             boolean oldFlag = organDrugCodes.isEmpty() ? true : false;
@@ -303,50 +302,8 @@ public class RecipeServiceSub {
                     DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
                     boolean checkEnterprise = drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan());
                     if (checkEnterprise) {
-                        List<DrugList> drugList = drugListDAO.findByDrugIds(drugIds);
-                        Map<Integer, DrugList> drugListMap = Maps.newHashMap();
-                        for (DrugList obj : drugList) {
-                            drugListMap.put(obj.getDrugId(), obj);
-                        }
-                        
-                        //供应商一致性校验，取第一个药品能配送的药企作为标准
-                        Map<Integer, List<String>> drugDepRel = saleDrugListDAO.findDrugDepRelation(drugIds);
-                        //无法配送药品校验
-                        List<String> noFilterDrugName = new ArrayList<>();
-                        for (Integer drugId : drugIds) {
-                            if (CollectionUtils.isEmpty(drugDepRel.get(drugId))) {
-                                noFilterDrugName.add(drugListMap.get(drugId).getDrugName());
-                            }
-                        }
-                        if (CollectionUtils.isNotEmpty(noFilterDrugName)) {
-                            LOGGER.warn("setDetailsInfo 存在无法配送的药品. recipeId=[{}], drugIds={}, noFilterDrugName={}",
-                                    recipe.getRecipeId(), JSONUtils.toString(drugIds), JSONUtils.toString(noFilterDrugName));
-                            throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(noFilterDrugName) + "无法配送！");
-                        }
-
-                        noFilterDrugName.clear();
-                        List<String> firstDrugDepIds = drugDepRel.get(drugIds.get(0));
-                        for (Integer drugId : drugDepRel.keySet()) {
-                            List<String> depIds = drugDepRel.get(drugId);
-                            boolean filterFlag = false;
-                            for (String depId : depIds) {
-                                //匹配到一个药企相同则可跳过
-                                if (firstDrugDepIds.contains(depId)) {
-                                    filterFlag = true;
-                                    break;
-                                }
-                            }
-                            if (!filterFlag) {
-                                noFilterDrugName.add(drugListMap.get(drugId).getDrugName());
-                            } else {
-                                firstDrugDepIds.retainAll(depIds);
-                            }
-                        }
-                        if (CollectionUtils.isNotEmpty(noFilterDrugName)) {
-                            LOGGER.error("setDetailsInfo 存在无法一起配送的药品. recipeId=[{}], drugIds={}, noFilterDrugName={}",
-                                    recipe.getRecipeId(), JSONUtils.toString(drugIds), JSONUtils.toString(noFilterDrugName));
-                            throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(noFilterDrugName) + "不能开具在一张处方上！");
-                        }
+                        //判断药品能否开在一张处方单上
+                        canOpenRecipeDrugs(recipe.getRecipeId(),drugIds);
                     }
                 } else if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
                     //浙江省互联网医院模式不需要这么多校验
@@ -410,6 +367,60 @@ public class RecipeServiceSub {
         recipe.setTotalMoney(totalMoney);
         recipe.setActualPrice(totalMoney);
         return success;
+    }
+
+    public static void canOpenRecipeDrugs(Integer recipeId,List<Integer> drugIds) {
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        List<DrugList> drugList = drugListDAO.findByDrugIds(drugIds);
+       /* Map<Integer, DrugList> drugListMap = Maps.newHashMap();
+        for (DrugList obj : drugList) {
+            drugListMap.put(obj.getDrugId(), obj);
+        }*/
+        //list转map
+        Map<Integer, DrugList> drugListMap = drugList.stream().collect(Collectors.toMap(DrugList::getDrugId, a -> a));
+
+
+        //供应商一致性校验，取第一个药品能配送的药企作为标准
+        // TODO: 2019/10/12 这里是否应该按照机构配置了的药企作为条件来查找是否能配送 未做 
+        Map<Integer, List<String>> drugDepRel = saleDrugListDAO.findDrugDepRelation(drugIds);
+        //无法配送药品校验
+        List<String> noFilterDrugName = new ArrayList<>();
+        for (Integer drugId : drugIds) {
+            if (CollectionUtils.isEmpty(drugDepRel.get(drugId))) {
+                noFilterDrugName.add(drugListMap.get(drugId).getDrugName());
+            }
+        }
+        if (CollectionUtils.isNotEmpty(noFilterDrugName)) {
+            LOGGER.warn("setDetailsInfo 存在无法配送的药品. recipeId=[{}], drugIds={}, noFilterDrugName={}",
+                    recipeId, JSONUtils.toString(drugIds), JSONUtils.toString(noFilterDrugName));
+            throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(noFilterDrugName) + "无法配送！");
+        }
+
+        noFilterDrugName.clear();
+        List<String> firstDrugDepIds = drugDepRel.get(drugIds.get(0));
+        for (Integer drugId : drugDepRel.keySet()) {
+            List<String> depIds = drugDepRel.get(drugId);
+            boolean filterFlag = false;
+            for (String depId : depIds) {
+                //匹配到一个药企相同则可跳过
+                if (firstDrugDepIds.contains(depId)) {
+                    filterFlag = true;
+                    break;
+                }
+            }
+            if (!filterFlag) {
+                noFilterDrugName.add(drugListMap.get(drugId).getDrugName());
+            } else {
+                //取交集
+                firstDrugDepIds.retainAll(depIds);
+            }
+        }
+        if (CollectionUtils.isNotEmpty(noFilterDrugName)) {
+            LOGGER.error("setDetailsInfo 存在无法一起配送的药品. recipeId=[{}], drugIds={}, noFilterDrugName={}",
+                    recipeId, JSONUtils.toString(drugIds), JSONUtils.toString(noFilterDrugName));
+            throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(noFilterDrugName) + "不能开具在一张处方上！");
+        }
     }
 
     /**
@@ -1284,7 +1295,7 @@ public class RecipeServiceSub {
         //添加按钮配置项key
         Object downloadPrescription = configService.getConfiguration(recipe.getClinicOrgan(), "downloadPrescription");
         if(null != downloadPrescription){
-            boolean canDown = 0 == (Integer)downloadPrescription ? false : true;
+            boolean canDown = 0 != (Integer)downloadPrescription;
             if(canDown){
                 isDownload = canDown(recipe, order, showRecipeStatus, false);
             }else{

@@ -280,6 +280,7 @@ public class PayModeTFDS implements IPurchaseService{
             case RecipeStatusConstant.FINISH:
                 tips = "到店取药成功，订单完成";
                 break;
+                default:
         }
         return tips;
     }

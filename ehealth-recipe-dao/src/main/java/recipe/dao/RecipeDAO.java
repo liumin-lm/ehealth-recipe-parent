@@ -1618,7 +1618,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateStatelessResultAction<QueryResult<Recipe>> action = new AbstractHibernateStatelessResultAction<QueryResult<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                String hql = "from Recipe where requestMpiId=:mpiid and clinicOrgan =:clinicOrgan and status in (2,6,9,12,14) order by createDate desc";
+                String hql = "from Recipe where requestMpiId=:mpiid and clinicOrgan =:clinicOrgan and status in (2,6,8,9,12,14) order by createDate desc";
                 Query query = ss.createQuery(hql);
                 query.setParameter("mpiid", mpiId);
                 query.setParameter("clinicOrgan", organId);
@@ -1729,7 +1729,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 //添加前置的逻辑：前置时，一次审核不通过，处方判定为待审核，需要在待处理列表中，显示状态为待处理
                 if("ongoing".equals(tabStatus)){
                     //进行中：加入前置一次审核不通过的作为待审核的处方
-                    hql.append(" and (t.Status IN (:recipeStatusList) or (t.reviewType = 1 and t.checkStatus = 1 and t.status = 15))");
+                    //hql.append(" and (t.Status IN (:recipeStatusList) or (t.reviewType = 1 and t.checkStatus = 1 and t.status = 15))");
+                    //date 20191017
+                    //去掉互联网待审核的，sql根据平台和互联网逻辑分开,前半部分是平台的，后半部分是互联网的（互联网“处方部分”状态只展示为待处理的）
+                    hql.append(" and ((t.recipeMode != 'zjjgpt' && t.Status IN (:recipeStatusList) or (t.reviewType = 1 and t.checkStatus = 1 and t.status = 15)) or (t.recipeMode = 'zjjgpt' and t.Status = 2))");
                 }else{
                     //已处理：排除一次审核不通过的
                     hql.append(" and t.Status IN (:recipeStatusList) and t.checkStatus != 1 ");
