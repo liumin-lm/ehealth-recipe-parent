@@ -14,6 +14,7 @@ import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.payment.model.DabaiPayResult;
 import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.bus.coupon.model.CouponBean;
 import com.ngari.bus.coupon.service.ICouponService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -1144,6 +1145,14 @@ public class RecipeOrderService extends RecipeBaseService {
             }
             RecipeOrderBean orderBean = ObjectCopyUtils.convert(order, RecipeOrderBean.class);
             orderBean.setList(patientRecipeBeanList);
+            ICouponBaseService couponService = AppContextHolder.getBean("voucher.couponBaseService",ICouponBaseService.class);
+            if(null != orderBean.getCouponId()){
+                Coupon coupon = couponService.getCouponById(orderBean.getCouponId());
+                if(null != coupon){
+                    orderBean.setCouponDesc(coupon.getCouponDesc());
+                }
+            }
+
             result.setObject(orderBean);
             // 支付完成后跳转到订单详情页需要加挂号费服务费可配置
             result.setExt(RecipeUtil.getParamFromOgainConfig(order));

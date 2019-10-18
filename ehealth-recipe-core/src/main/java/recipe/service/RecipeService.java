@@ -25,6 +25,8 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
+import com.ngari.recipe.recipeorder.model.RecipeOrderInfoBean;
 import com.ngari.wxpay.service.INgariRefundService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -1082,12 +1084,7 @@ public class RecipeService extends RecipeBaseService{
                 SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
                 syncExecutorService.uploadRecipeIndicators(recipe);
             } else {*/
-            if(ReviewTypeConstant.Preposition_Check == recipe.getReviewType()){
-                //如果是可医保支付的单子，审核通过之后是变为待处理状态，需要用户支付完成才发往药企
-                RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipeId), null, true);
-                //向患者推送处方消息
-                RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS);
-            }else if(ReviewTypeConstant.Postposition_Check == recipe.getReviewType()){
+            if(ReviewTypeConstant.Postposition_Check == recipe.getReviewType()){
                 if (recipe.canMedicalPay()) {
                     //如果是可医保支付的单子，审核通过之后是变为待处理状态，需要用户支付完成才发往药企
                     RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipeId), null, true);
@@ -2294,8 +2291,8 @@ public class RecipeService extends RecipeBaseService{
             return result;
         }
         Map<String, String> ext = new HashMap<>(10);
+        Map<String, Object> recipeMap = getPatientRecipeById(recipeId);
         if(null == nowRecipe.getOrderCode()){
-            Map<String, Object> recipeMap = getPatientRecipeById(recipeId);
             result.setObject(recipeMap);
             ext.put("jumpType", "0");
             result.setExt(ext);
@@ -2307,10 +2304,20 @@ public class RecipeService extends RecipeBaseService{
             if(null == nowExt){
                 ext.put("jumpType", "1");
                 result.setExt(ext);
+
             }else{
                 nowExt.put("jumpType", "1");
                 result.setExt(nowExt);
             }
+            //date 2019/10/18
+            //添加逻辑：添加处方的信息
+            if(null != result.getObject()){
+                RecipeOrderBean orderBean = (RecipeOrderBean)result.getObject();
+                RecipeOrderInfoBean infoBean = ObjectCopyUtils.convert(orderBean, RecipeOrderInfoBean.class);
+                infoBean.setRecipeInfoMap(recipeMap);
+                result.setObject(infoBean);
+            }
+
         }
         return result;
     }

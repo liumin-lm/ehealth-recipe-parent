@@ -4,20 +4,20 @@ import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
-import javax.persistence.Transient;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
- * @company: ngarihealth
- * @author: 0184/yu_yun
- * @date:2017/2/13.
+ * @author: JRK
+ * @date:209/10/18.
+ * 处方以及订单信息
  */
 @Schema
-public class RecipeOrderBean implements Serializable {
+public class RecipeOrderInfoBean implements Serializable {
 
     private static final long serialVersionUID = -1365227235362189226L;
 
@@ -192,7 +192,12 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "优惠券描述")
     private String couponDesc;
 
-    public RecipeOrderBean() {
+    //date 2019/10/18
+    //添加优惠卷信息
+    @ItemProperty(alias = "处方详情描述")
+    private Map<String, Object> recipeInfoMap;
+
+    public RecipeOrderInfoBean() {
         initData();
     }
 
@@ -211,6 +216,14 @@ public class RecipeOrderBean implements Serializable {
         this.setCreateTime(now);
         this.setAuditFee(zero);
         this.setOtherFee(zero);
+    }
+
+    public Map<String, Object> getRecipeInfoMap() {
+        return recipeInfoMap;
+    }
+
+    public void setRecipeInfoMap(Map<String, Object> recipeInfoMap) {
+        this.recipeInfoMap = recipeInfoMap;
     }
 
     public String getCouponDesc() {
