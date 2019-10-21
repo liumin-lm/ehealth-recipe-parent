@@ -14,7 +14,7 @@ public interface IFileDownloadService {
     public String downloadImg(String ossId);
 
     @RpcService
-    InputStream downloadAsStream(String ossId);
+    byte[] downloadAsByte(String ossId);
 
     @RpcService
     FileMetaRecord downloadAsRecord(String ossId);
