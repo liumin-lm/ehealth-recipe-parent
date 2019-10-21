@@ -615,6 +615,7 @@ public class RecipeOrderService extends RecipeBaseService {
             if (coupon != null) {
                 order.setCouponName(coupon.getCouponName());
                 order.setCouponFee(coupon.getDiscountAmount());
+                order.setCouponDesc(coupon.getCouponDesc());
             }
             if (order.getTotalFee().compareTo(order.getCouponFee()) > -1) {
                 order.setActualPrice(order.getTotalFee().subtract(order.getCouponFee()).doubleValue());
@@ -1145,14 +1146,6 @@ public class RecipeOrderService extends RecipeBaseService {
             }
             RecipeOrderBean orderBean = ObjectCopyUtils.convert(order, RecipeOrderBean.class);
             orderBean.setList(patientRecipeBeanList);
-            ICouponBaseService couponService = AppContextHolder.getBean("voucher.couponBaseService",ICouponBaseService.class);
-            if(null != orderBean.getCouponId()){
-                Coupon coupon = couponService.getCouponById(orderBean.getCouponId());
-                if(null != coupon){
-                    orderBean.setCouponDesc(coupon.getCouponDesc());
-                }
-            }
-
             result.setObject(orderBean);
             // 支付完成后跳转到订单详情页需要加挂号费服务费可配置
             result.setExt(RecipeUtil.getParamFromOgainConfig(order));

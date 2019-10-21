@@ -62,6 +62,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "优惠金额")
     private BigDecimal couponFee;
 
+    @ItemProperty(alias = "优惠描述")
+    private String couponDesc;
+
     @ItemProperty(alias = "挂号费")
     private BigDecimal registerFee;
 
@@ -227,6 +230,14 @@ public class RecipeOrder implements Serializable {
         this.setLastModifyTime(now);
         this.setAuditFee(zero);
         this.setOtherFee(zero);
+    }
+
+    public String getCouponDesc() {
+        return couponDesc;
+    }
+
+    public void setCouponDesc(String couponDesc) {
+        this.couponDesc = couponDesc;
     }
 
     @Id
