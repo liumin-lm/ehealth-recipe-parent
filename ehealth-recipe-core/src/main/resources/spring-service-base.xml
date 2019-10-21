@@ -40,7 +40,7 @@
     <reference interface="com.ngari.bus.coupon.service.ICouponService" id="eh.couponService"/>
     <reference interface="com.ngari.bus.hosrelation.service.IHosrelationService" id="eh.remoteHosrelationService"/>
 
-    <reference id="eh.remoteFileDownloadService" interface="com.ngari.recipe.third.IFileDownloadService"/>
+    <reference id="eh.remoteFileDownloadService" interface="recipe.third.IFileDownloadService"/>
     <reference id="eh.configurationCenterUtils" interface="com.ngari.base.property.service.IConfigurationCenterUtilsService" />
     <reference id="eh.remoteCurrentUserInfoService" interface="com.ngari.base.currentuserinfo.service.ICurrentUserInfoService"/>
 
