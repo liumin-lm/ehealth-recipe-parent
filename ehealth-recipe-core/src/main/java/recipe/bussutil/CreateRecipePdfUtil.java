@@ -36,22 +36,10 @@ public class CreateRecipePdfUtil {
             //添加图片
             addImgForRecipePdf(input,output,url);
             //上传pdf文件
-            FileMetaRecord meta = new FileMetaRecord();
-            meta.setManageUnit("eh");
-            meta.setOwner(fileMetaRecord.getOwner());
-            meta.setLastModify(new Date());
-            meta.setUploadTime(new Date());
-            meta.setMode(0);
-            meta.setNotes("recipe");
-            meta.setCatalog("other-doc"); // 测试
-            meta.setContentType("application/pdf");
-            meta.setFileName(fileMetaRecord.getFileName());
-            meta.setFileSize(file.length());
-            fileId = fileUploadService.fileUpload(meta,file);
+            byte[] bytes = File2byte(file);
+            fileId = fileUploadService.uploadFileWithoutUrt(bytes,fileMetaRecord.getFileName());
             //删除本地文件
             file.delete();
-            //删除oss文件
-            fileUploadService.deleteByFileId(pdfId);
         }
         return fileId;
 
@@ -87,5 +75,28 @@ public class CreateRecipePdfUtil {
         stamper.close();
         reader.close();
         input.close();
+    }
+
+    private static byte[] File2byte(File tradeFile){
+        byte[] buffer = null;
+        try
+        {
+            FileInputStream fis = new FileInputStream(tradeFile);
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            byte[] b = new byte[1024];
+            int n;
+            while ((n = fis.read(b)) != -1)
+            {
+                bos.write(b, 0, n);
+            }
+            fis.close();
+            bos.close();
+            buffer = bos.toByteArray();
+        }catch (FileNotFoundException e){
+            e.printStackTrace();
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+        return buffer;
     }
 }
