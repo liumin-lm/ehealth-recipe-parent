@@ -69,6 +69,16 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      */
     private static final int REQUEST_ERROR = 412;
 
+    /**
+     * 检查订单
+     */
+    private static final Integer CHECK_ORDER = 2;
+
+    /**
+     * 检查处方
+     */
+    private static final Integer CHECK_RECIPE = 1;
+
     @Autowired
     private YsqRemoteService ysqRemoteService;
 
@@ -82,7 +92,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         LOGGER.info("readyToSend param : " + JSONUtils.toString(paramMap));
 
         ThirdResultBean backMsg = ThirdResultBean.getFail();
-        int code = validateRecipe(paramMap, backMsg, RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.WAIT_SEND);
+        int code = validateRecipe(paramMap, backMsg, RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.WAIT_SEND, CHECK_RECIPE);
 
         if (REQUEST_ERROR_REAPET == code) {
             backMsg.setCode(REQUEST_OK);
@@ -238,7 +248,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         LOGGER.info("toSend param : " + JSONUtils.toString(paramMap));
 
         ThirdResultBean backMsg = ThirdResultBean.getFail();
-        int code = validateRecipe(paramMap, backMsg, RecipeStatusConstant.WAIT_SEND, RecipeStatusConstant.IN_SEND);
+        int code = validateRecipe(paramMap, backMsg, OrderStatusConstant.READY_SEND, OrderStatusConstant.SENDING, CHECK_ORDER);
 
         if (REQUEST_ERROR_REAPET == code) {
             backMsg.setCode(REQUEST_OK);
@@ -269,7 +279,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         for (Map<String, Object> paramMap : list) {
             ThirdResultBean thirdResultBean = ThirdResultBean.getFail();
             thirdResultBean.setRecipeCode(MapValueUtil.getString(paramMap, "recipeCode"));
-            int code = validateRecipe(paramMap, thirdResultBean, RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.IN_SEND);
+            int code = validateRecipe(paramMap, thirdResultBean, RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.IN_SEND, CHECK_RECIPE);
 
             if (REQUEST_ERROR_REAPET == code) {
                 thirdResultBean.setCode(REQUEST_OK);
@@ -360,7 +370,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         LOGGER.info("finishRecipe param : " + JSONUtils.toString(paramMap));
 
         ThirdResultBean backMsg = ThirdResultBean.getFail();
-        int code = validateRecipe(paramMap, backMsg, RecipeStatusConstant.IN_SEND, RecipeStatusConstant.FINISH);
+        int code = validateRecipe(paramMap, backMsg, OrderStatusConstant.SENDING, OrderStatusConstant.FINISH, CHECK_ORDER);
 
         if (REQUEST_ERROR_REAPET == code) {
             backMsg.setCode(REQUEST_OK);
@@ -442,7 +452,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         LOGGER.info("updateRecipeInfo param : " + JSONUtils.toString(paramMap));
 
         ThirdResultBean backMsg = ThirdResultBean.getFail();
-        int code = validateRecipe(paramMap, backMsg, null, null);
+        int code = validateRecipe(paramMap, backMsg, null, null, CHECK_RECIPE);
 
         if (REQUEST_OK != code) {
             LOGGER.warn("updateRecipeInfo error. info={}, recipeId=[{}]", JSONUtils.toString(backMsg), backMsg.getBusId());
@@ -612,7 +622,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         LOGGER.info("recordDrugStoreResult param : " + JSONUtils.toString(paramMap));
 
         ThirdResultBean backMsg = ThirdResultBean.getFail();
-        int code = validateRecipe(paramMap, backMsg, null, null);
+        int code = validateRecipe(paramMap, backMsg, null, null, CHECK_RECIPE);
 
         if (REQUEST_OK != code) {
             LOGGER.warn("recipeId=[{}], recordDrugStoreResult:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
@@ -698,7 +708,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         LOGGER.info("userConfirm param : " + JSONUtils.toString(paramMap));
 
         ThirdResultBean backMsg = ThirdResultBean.getFail();
-        int code = validateRecipe(paramMap, backMsg, null, null);
+        int code = validateRecipe(paramMap, backMsg, null, null, CHECK_RECIPE);
 
         if (REQUEST_OK != code) {
             LOGGER.warn("recipeId=[{}], userConfirm:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
@@ -888,7 +898,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      * @param beforeStatus 有值进行校验，没值不校验
      * @return
      */
-    private int validateRecipe(Map<String, Object> paramMap, ThirdResultBean thirdResultBean, Integer beforeStatus, Integer afterStatus) {
+    private int validateRecipe(Map<String, Object> paramMap, ThirdResultBean thirdResultBean, Integer beforeStatus, Integer afterStatus, Integer checkStatus) {
         int code = REQUEST_OK;
         if (null == paramMap) {
             code = REQUEST_ERROR;
@@ -930,21 +940,42 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             errorMsg = "该处方不存在";
         }
 
+        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrder order = orderDAO.getOrderByRecipeId(recipeId);
+
+        //配送到家-处方完成方法，处方准备并配送接口，该处方改成配送中，待配送状态
+        //配送中->已完成，审核通过->配送中，待配送->配送中，审核通过->带配送
         if (REQUEST_OK == code && null != beforeStatus) {
-            if (!recipe.getStatus().equals(beforeStatus)) {
-                if (recipe.getStatus().equals(afterStatus)) {
-                    code = REQUEST_ERROR_REAPET;
-                } else {
-                    code = REQUEST_ERROR;
-                    if (RecipeStatusConstant.CHECK_PASS_YS == beforeStatus) {
-                        errorMsg = "该处方单不是药师审核通过的处方";
-                    } else if (RecipeStatusConstant.WAIT_SEND == beforeStatus) {
-                        errorMsg = "该处方单不是待配送的处方";
-                    } else if (RecipeStatusConstant.IN_SEND == beforeStatus) {
-                        errorMsg = "该处方单不是配送中的处方";
+            if(CHECK_ORDER.equals(checkStatus)){
+                if (!order.getStatus().equals(beforeStatus)) {
+                    if (order.getStatus().equals(afterStatus)) {
+                        code = REQUEST_ERROR_REAPET;
+                    } else {
+                        code = REQUEST_ERROR;
+                        if (OrderStatusConstant.READY_SEND == beforeStatus) {
+                            errorMsg = "该处方单不是待配送的处方";
+                        } else if (OrderStatusConstant.SENDING == beforeStatus) {
+                            errorMsg = "该处方单不是配送中的处方";
+                        }
+                    }
+                }
+            }else{
+                if (!recipe.getStatus().equals(beforeStatus)) {
+                    if (recipe.getStatus().equals(afterStatus)) {
+                        code = REQUEST_ERROR_REAPET;
+                    } else {
+                        code = REQUEST_ERROR;
+                        if (RecipeStatusConstant.CHECK_PASS_YS == beforeStatus) {
+                            errorMsg = "该处方单不是药师审核通过的处方";
+                        } else if (RecipeStatusConstant.WAIT_SEND == beforeStatus) {
+                            errorMsg = "该处方单不是待配送的处方";
+                        } else if (RecipeStatusConstant.IN_SEND == beforeStatus) {
+                            errorMsg = "该处方单不是配送中的处方";
+                        }
                     }
                 }
             }
+
         }
 
         thirdResultBean.setBusId((null == recipe) ? null : recipe.getRecipeId());
@@ -959,6 +990,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
         return code;
     }
+
 
     /**
      * 获取订单修改信息
