@@ -69,7 +69,7 @@ public class CreateRecipePdfUtil {
         //参数r为弧度，如果旋转角度为30度，则参数r= Math.PI/6。
         //image.setRotation((float) (Math.PI/6));
         //设置图片在页面中的坐标
-        image.setAbsolutePosition(250,440);
+        image.setAbsolutePosition(250,500);
         page.addImage(image);
 
         stamper.close();
