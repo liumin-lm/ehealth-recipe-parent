@@ -735,25 +735,29 @@ public class RecipeListService extends RecipeBaseService{
         checkUserHasPermissionByMpiId(mpiId);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-
-        List<String> allMpiIds = recipeService.getAllMemberPatientsByCurrentPatient(mpiId);
-        //获取页面展示的对象
-        TabStatusEnum recipeStatusList = TabStatusEnum.fromTabStatusAndStatusType(tabStatus, "recipe");
-        if(null == recipeStatusList){
-            LOGGER.error("findRecipesForPatientAndTabStatus:{}tab没有查询到recipe的状态列表", tabStatus);
-            return recipeList;
+        try{
+            List<String> allMpiIds = recipeService.getAllMemberPatientsByCurrentPatient(mpiId);
+            //获取页面展示的对象
+            TabStatusEnum recipeStatusList = TabStatusEnum.fromTabStatusAndStatusType(tabStatus, "recipe");
+            if(null == recipeStatusList){
+                LOGGER.error("findRecipesForPatientAndTabStatus:{}tab没有查询到recipe的状态列表", tabStatus);
+                return recipeList;
+            }
+            TabStatusEnum orderStatusList = TabStatusEnum.fromTabStatusAndStatusType(tabStatus, "order");
+            if(null == orderStatusList){
+                LOGGER.error("findRecipesForPatientAndTabStatus:{}tab没有查询到order的状态列表", tabStatus);
+                return recipeList;
+            }
+            List<Integer> specialStatusList = new ArrayList<>();
+            if("ongoing".equals(tabStatus)){
+                specialStatusList.add(RecipeStatusConstant.RECIPE_DOWNLOADED);
+            }
+            List<PatientRecipeBean> backList = recipeDAO.findTabStatusRecipesForPatient(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), specialStatusList, tabStatus);
+            return processTabListDate(backList, allMpiIds);
+        }catch(Exception e){
+            LOGGER.error("findRecipesForPatientAndTabStatus error :{}.", e.getMessage());
         }
-        TabStatusEnum orderStatusList = TabStatusEnum.fromTabStatusAndStatusType(tabStatus, "order");
-        if(null == orderStatusList){
-            LOGGER.error("findRecipesForPatientAndTabStatus:{}tab没有查询到order的状态列表", tabStatus);
-            return recipeList;
-        }
-        List<Integer> specialStatusList = new ArrayList<>();
-        if("ongoing".equals(tabStatus)){
-            specialStatusList.add(RecipeStatusConstant.RECIPE_DOWNLOADED);
-        }
-        List<PatientRecipeBean> backList = recipeDAO.findTabStatusRecipesForPatient(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), specialStatusList, tabStatus);
-        return processTabListDate(backList, allMpiIds);
+        return null;
     }
 
     /**
