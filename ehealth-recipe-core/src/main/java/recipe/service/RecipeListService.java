@@ -735,7 +735,7 @@ public class RecipeListService extends RecipeBaseService{
         checkUserHasPermissionByMpiId(mpiId);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        try{
+
             List<String> allMpiIds = recipeService.getAllMemberPatientsByCurrentPatient(mpiId);
             //获取页面展示的对象
             TabStatusEnum recipeStatusList = TabStatusEnum.fromTabStatusAndStatusType(tabStatus, "recipe");
@@ -752,6 +752,7 @@ public class RecipeListService extends RecipeBaseService{
             if("ongoing".equals(tabStatus)){
                 specialStatusList.add(RecipeStatusConstant.RECIPE_DOWNLOADED);
             }
+        try{
             List<PatientRecipeBean> backList = recipeDAO.findTabStatusRecipesForPatient(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), specialStatusList, tabStatus);
             return processTabListDate(backList, allMpiIds);
         }catch(Exception e){
