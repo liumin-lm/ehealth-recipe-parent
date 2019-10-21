@@ -3,8 +3,13 @@ package recipe.purchase;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
+import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
+import recipe.bussutil.CreateRecipePdfUtil;
+import recipe.constant.ErrorCode;
+import recipe.dao.RecipeDAO;
 import recipe.service.RecipeOrderService;
 
 import java.math.BigDecimal;
@@ -31,6 +36,23 @@ public class CommonOrder {
             order.setCouponFee(BigDecimal.ZERO);
             order.setRegisterFee(BigDecimal.ZERO);
             order.setActualPrice(BigDecimal.ZERO.doubleValue());
+        }
+    }
+
+    //订单完成更新pdf中的取药标签
+    public static void finishGetDrugUpdatePdf(Integer recipeId) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.get(recipeId);
+        //更新pdf
+        if(null == recipe || null == recipe.getChemistSignFile()){
+            return;
+        }
+        try {
+            String newPfd = CreateRecipePdfUtil.transPdfIdForRecipePdf(recipe.getChemistSignFile());
+            recipe.setChemistSignFile(newPfd);
+            recipeDAO.save(recipe);
+        } catch(Exception e) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "更新pdf失败!");
         }
     }
 }

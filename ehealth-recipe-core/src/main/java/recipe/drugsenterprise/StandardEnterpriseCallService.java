@@ -30,6 +30,7 @@ import recipe.ApplicationUtils;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
+import recipe.purchase.CommonOrder;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
@@ -364,6 +365,7 @@ public class StandardEnterpriseCallService {
                     if(null != msgStatus){
                         RecipeMsgService.batchSendMsg(dbRecipe, msgStatus);
                     }
+                    CommonOrder.finishGetDrugUpdatePdf(recipeId);
                 }
 
                 //HOS处方发送完成短信

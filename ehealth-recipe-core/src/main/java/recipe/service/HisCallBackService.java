@@ -42,6 +42,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.purchase.CommonOrder;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 
@@ -433,6 +434,8 @@ public class HisCallBackService {
                             RecipeLogService.saveRecipeLog(recipeId, beforeStatus, RecipeStatusConstant.FINISH, logMemo);
                             //消息推送
                             RecipeMsgService.batchSendMsg(recipeId, msgStatus);
+                            //更新pdf
+                            CommonOrder.finishGetDrugUpdatePdf(recipeId);
                         }
                     }
                 }
