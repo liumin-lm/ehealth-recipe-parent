@@ -1,10 +1,12 @@
 package recipe.purchase;
 
+import com.google.common.collect.ImmutableMap;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import org.apache.commons.lang3.StringUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.bussutil.CreateRecipePdfUtil;
@@ -49,10 +51,11 @@ public class CommonOrder {
         }
         try {
             String newPfd = CreateRecipePdfUtil.transPdfIdForRecipePdf(recipe.getChemistSignFile());
-            recipe.setChemistSignFile(newPfd);
-            recipeDAO.save(recipe);
+            if (StringUtils.isNotEmpty(newPfd)){
+                recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("ChemistSignFile",newPfd));
+            }
         } catch(Exception e) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "更新pdf失败!");
+            e.printStackTrace();
         }
     }
 }
