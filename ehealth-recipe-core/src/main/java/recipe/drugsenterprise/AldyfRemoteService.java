@@ -15,7 +15,6 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.filedownload.service.IFileDownloadService;
 import com.taobao.api.FileItem;
 import com.taobao.api.request.AlibabaAlihealthRxPrescriptionAddRequest;
 import com.taobao.api.request.AlibabaAlihealthRxPrescriptionGetRequest;
@@ -48,6 +47,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.SaleDrugListDAO;
+import recipe.third.IFileDownloadService;
 import sun.misc.BASE64Decoder;
 
 import javax.annotation.Nullable;

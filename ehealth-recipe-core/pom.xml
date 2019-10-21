@@ -180,6 +180,10 @@
             <artifactId>javax.servlet-api</artifactId>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itextpdf</artifactId>
+        </dependency>
     </dependencies>
     <profiles>
         <profile>
