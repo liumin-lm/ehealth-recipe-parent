@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
+import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
@@ -54,6 +55,7 @@ import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
+import recipe.thread.SaveAutoReviewRunable;
 import recipe.util.*;
 
 import java.math.BigDecimal;
@@ -1108,7 +1110,11 @@ public class RecipeServiceSub {
             }
 
             //增加医生返回智能审方结果药品问题列表 2018.11.26 shiyp
-            map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId));
+            //判断开关是否开启
+            PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
+            if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
+                map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId));
+            }
         } else {
             RecipeOrder order = orderDAO.getOrderByRecipeId(recipeId);
             if (recipe.getRecipeMode() == RecipeBussConstant.RECIPEMODE_ZJJGPT) {
