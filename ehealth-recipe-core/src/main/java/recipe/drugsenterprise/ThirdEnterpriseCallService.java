@@ -933,9 +933,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                     code = REQUEST_ERROR_REAPET;
                 } else {
                     code = REQUEST_ERROR;
-                    if (RecipeStatusConstant.CHECK_PASS_YS == beforeStatus) {
-                        errorMsg = "该处方单不是药师审核通过的处方";
-                    } else if (RecipeStatusConstant.WAIT_SEND == beforeStatus) {
+                    if (RecipeStatusConstant.WAIT_SEND == beforeStatus) {
                         errorMsg = "该处方单不是待配送的处方";
                     } else if (RecipeStatusConstant.IN_SEND == beforeStatus) {
                         errorMsg = "该处方单不是配送中的处方";
