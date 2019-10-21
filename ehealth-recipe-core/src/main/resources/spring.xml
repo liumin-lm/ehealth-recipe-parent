@@ -58,6 +58,9 @@
 	<!--天猫药企-->
 	<bean id="tmdyfRemoteService" class="recipe.drugsenterprise.TmdyfRemoteService"></bean>
 
+	<!--测试药店-->
+	<bean id="testDrugStoreRemoteService" class="recipe.drugsenterprise.TestDrugStoreRemoteService"/>
+
 	<!--卫宁健康智能审方-->
 	<bean id="winningPrescriptionService" class="recipe.audit.service.WinningPrescriptionService"/>
 

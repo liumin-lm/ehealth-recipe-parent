@@ -152,7 +152,7 @@ public class AuditDrugListOPService implements IAuditDrugListService{
      * @return  药品目录
      */
     @Override
-    public List<DrugListBean> matchAllDrugListByName(String drugName) {
+    public List<DrugListBean> matchAllDrugListByName(String drugName, String saleName, String drugSpec, String producer) {
         String str;
         try{
             str = DrugMatchUtil.match(drugName);
@@ -164,7 +164,7 @@ public class AuditDrugListOPService implements IAuditDrugListService{
         //根据药品名取标准药品库查询相关药品
         List<DrugList> drugLists = null;
         try {
-            drugLists = drugListDAO.findBySaleNameOrDrugNameLike(str);
+            drugLists = drugListDAO.findDrugListByNameOrSpec(str, saleName, drugSpec, producer);
         } catch (Exception e) {
             LOGGER.error("drugMatch:" + e.getMessage());
         }

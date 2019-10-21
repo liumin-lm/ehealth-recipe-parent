@@ -19,6 +19,7 @@ import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DepartmentService;
+import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
@@ -93,6 +94,7 @@ public class RecipeHisService extends RecipeBaseService {
         }
         //中药处方由于不需要跟HIS交互，故读写分离后有可能查询不到数据
         if (skipHis(recipe)) {
+            LOGGER.info("skip his!!! recipeId={}",recipeId);
             RecipeCheckPassResult recipeCheckPassResult = new RecipeCheckPassResult();
             recipeCheckPassResult.setRecipeId(recipeId);
             recipeCheckPassResult.setRecipeCode(RandomStringUtils.randomAlphanumeric(10));
@@ -105,11 +107,17 @@ public class RecipeHisService extends RecipeBaseService {
             RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
             OrganDrugListDAO drugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-            IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
+            EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
 
             List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
             PatientBean patientBean = iPatientService.get(recipe.getMpiid());
-            HealthCardBean cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
+            HealthCardBean cardBean = null;
+            try {
+                cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
+
+            }catch (Exception e){
+                LOGGER.error("开处方获取医保卡异常",e);
+            }
             //创建请求体
             RecipeSendRequestTO request = HisRequestInit.initRecipeSendRequestTO(recipe, details, patientBean, cardBean);
             //是否是武昌机构，替换请求体
@@ -693,7 +701,7 @@ public class RecipeHisService extends RecipeBaseService {
             //病人类型
         }
         //医生工号
-        IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
+        EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
         if (recipeBean.getDoctor() != null){
             String jobNumber = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipeBean.getDoctor(), recipeBean.getClinicOrgan(), recipeBean.getDepart());
             hisCheckRecipeReqTO.setDoctorID(jobNumber);

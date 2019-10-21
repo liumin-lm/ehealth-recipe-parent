@@ -72,4 +72,14 @@ public class ParameterConstant {
      */
     public static final String KEY_TAOBAO_AUTHORIZATION_ADDR = "TAOBAO_AUTHORIZATION_ADDR";
 
+    /**
+     * 审核费用
+     */
+    public static final String KEY_AUDITFEE = "auditFee";
+
+    /**
+     * 其他服务费用
+     */
+    public static final String KEY_OTHERFEE = "otherFee";
+
 }

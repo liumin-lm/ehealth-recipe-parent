@@ -30,6 +30,7 @@ import recipe.ApplicationUtils;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
+import recipe.purchase.CommonOrder;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
@@ -38,6 +39,7 @@ import recipe.util.DateConversion;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -349,6 +351,21 @@ public class StandardEnterpriseCallService {
                             RecipeStatusConstant.FINISH, "处方单配送完成,配送人：" + finishDTO.getSender());
                     //HIS消息发送
                     hisService.recipeFinish(recipeId);
+
+                    //date:20190919
+                    //添加用户消息
+                    Integer msgStatus = null;
+                    if(RecipeBussConstant.GIVEMODE_TO_HOS.equals(dbRecipe.getGiveMode())){
+                        msgStatus = RecipeStatusConstant.PATIENT_GETGRUG_FINISH;
+                    }else if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())){
+                        msgStatus = RecipeStatusConstant.PATIENT_REACHPAY_FINISH;
+                    }else if(RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())){
+                        msgStatus = RecipeStatusConstant.RECIPE_TAKE_MEDICINE_FINISH;
+                    }
+                    if(null != msgStatus){
+                        RecipeMsgService.batchSendMsg(dbRecipe, msgStatus);
+                    }
+                    CommonOrder.finishGetDrugUpdatePdf(recipeId);
                 }
 
                 //HOS处方发送完成短信
@@ -368,7 +385,7 @@ public class StandardEnterpriseCallService {
                 RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), RecipeStatusConstant.NO_DRUG,
                         "处方单配送失败:" + finishDTO.getMsg());
 
-                //发送消息
+                //发送消息(根据不同的取药方式发送不同的消息)
                 RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_CANCEL_4HIS, dbRecipe);
             }
 
@@ -623,4 +640,97 @@ public class StandardEnterpriseCallService {
         }
         return result;
     }
+
+    @RpcService
+    public StandardResultDTO updateStatusByPatientGetDrug(List<ChangeStatusByGetDrugDTO> list) {
+        LOGGER.info("updateStatusByPatientGetDrug 药企调用接口更新状态. param = {}", list);
+        StandardResultDTO result = new StandardResultDTO();
+        result.setCode(StandardResultDTO.SUCCESS);
+        //校验提交修改状态的处方信息是否和
+        for (ChangeStatusByGetDrugDTO changeStatusByGetDrugDTO : list) {
+            //校验药企传输数据安全性
+            changeStatusByGetDrugDTO.checkRation(result);
+            if (StandardResultDTO.FAIL == result.getCode()) {
+                return result;
+            }
+        }
+        //接口目的是为了设置患者确认购药方式后获取药品过程中药企设置处方/处方订单状态
+        //现在有两种情况：
+        for (ChangeStatusByGetDrugDTO changeStatus : list) {
+            Recipe nowRecipe = recipeDAO.get(changeStatus.getRecipeId());
+            if(null == nowRecipe){
+                result.setMsg("[" + changeStatus.getRecipeId() + "]当前处方信息不存在！");
+                result.setCode(StandardResultDTO.FAIL);
+                return result;
+            }
+            switch (changeStatus.getInstallScene().intValue()){
+                //第一种：取药失败时候，处方的状态设置为失败，同时设置recipeLog中设置失败的原因
+                case GetDrugChangeStatusSceneConstant.Fail_Change_Recipe:
+                    failChangeRecipe(changeStatus, result, nowRecipe);
+                    break;
+                //第二种：药店取药购药方式下，患者支付成功后，药店确认库存，库存足够为待取药（有库存）/库存不足为待取药（无库存）的订单状态
+                case GetDrugChangeStatusSceneConstant.Only_Change_RecipeOrderStatus:
+                    onlyChangeRecipeOrderStatus(changeStatus, nowRecipe);
+                    break;
+                default:
+                    result.setMsg("[" + changeStatus.getInstallScene() + "]不支持该变更设置场景");
+                    result.setCode(StandardResultDTO.FAIL);
+                    break;
+            }
+        }
+
+        LOGGER.info("updateStatusByPatientGetDrug 接口调用结束");
+        return result;
+    }
+    /**
+     * @method  onlyChangeRecipeOrderStatus
+     * @description 只需要修改订单状态
+     * @date: 2019/8/23
+     * @author: JRK
+     * @param changeStatus 药企方修改处方状态信息
+     * @param result 请求结果
+     * @param nowRecipe 当前的处方
+     * @return void
+     */
+    private void onlyChangeRecipeOrderStatus(ChangeStatusByGetDrugDTO changeStatus, Recipe nowRecipe) {
+
+        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+        Map<String, Object> updateMap = new HashMap<>();
+        updateMap.put("status", changeStatus.getChangeStatus());
+        //返回一个RecipeResultBean
+        orderService.updateOrderInfo(nowRecipe.getOrderCode(), updateMap, null);
+
+        //发送取药提示信息给用户
+        //设置发送消息的内容
+        ThirdChangeStatusMsgEnum msgEnum = ThirdChangeStatusMsgEnum.fromStatusAndChangeStatus(1, changeStatus.getChangeStatus());
+        if(null != msgEnum){
+            RecipeMsgService.batchSendMsg(nowRecipe, msgEnum.getMsgStatus());
+        }
+    }
+
+    /**
+     * @method  failChangeRecipe
+     * @description 修改处方失败状态
+     * @date: 2019/8/23
+     * @author: JRK
+     * @param changeStatus 药企方修改处方状态信息
+     * @param result 请求结果
+     * @param nowRecipe 当前的处方
+     * @return void
+     */
+    private void failChangeRecipe(ChangeStatusByGetDrugDTO changeStatus, StandardResultDTO result, Recipe nowRecipe) {
+        //修改处方的状态，为失败（失败有多种失败的情况状态）
+        Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(changeStatus.getRecipeId(), RecipeStatusConstant.NO_DRUG, null);
+        if (rs) {
+            //更新处方状态后，结束当前订单的状态
+            RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+            orderService.cancelOrderByCode(nowRecipe.getOrderCode(), OrderStatusConstant.CANCEL_AUTO);
+        }
+
+        //记录日志,处方的状态变更为失败的状态，记录失败的原因
+        RecipeLogService.saveRecipeLog(changeStatus.getRecipeId(), nowRecipe.getStatus(), RecipeStatusConstant.NO_DRUG,
+                 changeStatus.getFailureReason());
+
+    }
+
 }

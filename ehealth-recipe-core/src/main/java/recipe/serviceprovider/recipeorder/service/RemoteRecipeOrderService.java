@@ -98,10 +98,17 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
 
     @RpcService
     @Override
-    public BigDecimal reCalculateRecipeFee(Integer enterpriseId, List<Integer> recipeIds) {
+    public BigDecimal reCalculateRecipeFee(Integer enterpriseId, List<Integer> recipeIds, Map<String, String> extInfo) {
         RecipeOrderService service = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        return service.reCalculateRecipeFee(enterpriseId,recipeIds);
+        return service.reCalculateRecipeFee(enterpriseId,recipeIds,extInfo);
     }
 
+    @RpcService
+    @Override
+    public RecipeOrderBean getRelationOrderByRecipeId(int recipeId) {
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrder order = recipeOrderDAO.getRelationOrderByRecipeId(recipeId);
+        return getBean(order, RecipeOrderBean.class);
+    }
 
 }

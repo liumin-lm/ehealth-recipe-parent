@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>1.14.13.master-SNAPSHOT</version>
+        <version>1.15.0.release-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -163,10 +163,12 @@
             <artifactId>top-api-sdk-dev</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+        </dependency>
+        <dependency>
             <groupId>ngari</groupId>
-            <artifactId>ehealth-basic-base</artifactId>
-            <version>1.13.1.master-SNAPSHOT</version>
-            <scope>compile</scope>
+            <artifactId>ehealth-voucher-api</artifactId>
         </dependency>
         <dependency>
             <groupId>com.alihealth</groupId>
@@ -177,6 +179,10 @@
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itextpdf</artifactId>
         </dependency>
     </dependencies>
     <profiles>

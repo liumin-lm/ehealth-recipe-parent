@@ -303,7 +303,20 @@ public class Recipe implements Serializable {
 
     @ItemProperty(alias = "签名的处方img")
     private String signImg;
+    /**
+     * 添加属性 2019/08/29
+     * 审方模式
+     */
+    @ItemProperty(alias = "审核模式")
+    private Integer reviewType;
 
+    /**
+     * 添加属性 2019/10/10
+     * 审核状态标记位，暂时标记一次审核不通过
+     * 处方进行二次审核，一次审核不通过更新字段，二次审核通过/不通过再更新字段
+     */
+    @ItemProperty(alias = "审核状态标记位")
+    private Integer checkStatus;
 
     public Recipe() {
     }
@@ -444,6 +457,15 @@ public class Recipe implements Serializable {
         this.sendDate = sendDate;
         this.signDate = signDate;
         this.memo = memo;
+    }
+
+    @Column(name = "checkStatus")
+    public Integer getCheckStatus() {
+        return checkStatus;
+    }
+
+    public void setCheckStatus(Integer checkStatus) {
+        this.checkStatus = checkStatus;
     }
 
     @Column(name = "patientStatus")
@@ -1252,5 +1274,14 @@ public class Recipe implements Serializable {
 
     public void setSignImg(String signImg) {
         this.signImg = signImg;
+    }
+
+    @Column(name = "reviewType")
+    public Integer getReviewType() {
+        return reviewType;
+    }
+
+    public void setReviewType(Integer reviewType) {
+        this.reviewType = reviewType;
     }
 }

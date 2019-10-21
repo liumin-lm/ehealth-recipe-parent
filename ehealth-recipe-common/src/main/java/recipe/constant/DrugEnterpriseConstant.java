@@ -57,4 +57,9 @@ public class DrugEnterpriseConstant {
      * 华东虚拟药房（对接杭州市第三人民医院）
      */
     public static final String COMPANY_HDVIRTUALDYF = "HdVirtualdyf";
+
+    /**
+     * 测试药店药企
+     */
+    public static final String COMPANY_TEST_DRUGSTORE = "testDrugStore";
 }

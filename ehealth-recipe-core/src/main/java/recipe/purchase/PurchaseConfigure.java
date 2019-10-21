@@ -27,4 +27,9 @@ public class PurchaseConfigure {
     public IPurchaseService payModeToHosService(){
         return new PayModeToHos();
     }
+
+    @Bean
+    public IPurchaseService payModeDownloadService(){
+        return new PayModeDownload();
+    }
 }

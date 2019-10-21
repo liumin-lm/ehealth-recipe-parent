@@ -35,6 +35,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.StandardResultDTO;
 import recipe.hisservice.syncdata.SyncExecutorService;
+import recipe.purchase.CommonOrder;
 import recipe.service.*;
 import recipe.serviceprovider.BaseService;
 import recipe.third.IWXServiceInterface;
@@ -414,6 +415,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 //配送到家
                 RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.PATIENT_REACHPAY_FINISH);
             }
+            //更新pdf
+            CommonOrder.finishGetDrugUpdatePdf(recipeId);
         } else {
             code = ErrorCode.SERVICE_ERROR;
             errorMsg = "电子处方更新失败";
@@ -654,12 +657,13 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 //HIS消息发送
                 hisService.recipeFinish(recipeId);
                 //发送取药完成消息
-                RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.PATIENT_GETGRUG_FINISH);
+                RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_TAKE_MEDICINE_FINISH);
 
                 //监管平台核销上传
                 SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
                 syncExecutorService.uploadRecipeVerificationIndicators(recipeId);
-                
+                //更新pdf
+                CommonOrder.finishGetDrugUpdatePdf(recipeId);
             } else {
                 code = ErrorCode.SERVICE_ERROR;
                 errorMsg = "电子处方更新失败";
@@ -881,7 +885,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      * 校验处方相关信息
      *
      * @param paramMap
-     * @param backMsg
      * @param beforeStatus 有值进行校验，没值不校验
      * @return
      */

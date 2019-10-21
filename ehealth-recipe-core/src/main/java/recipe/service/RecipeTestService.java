@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.itextpdf.text.DocumentException;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.patient.dto.DoctorDTO;
@@ -11,6 +12,8 @@ import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeCheck;
 import ctd.account.session.ClientSession;
+import ctd.mvc.upload.exception.FileRegistryException;
+import ctd.mvc.upload.exception.FileRepositoryException;
 import ctd.net.broadcast.MQHelper;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -20,6 +23,7 @@ import eh.msg.constant.MqConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.dao.RecipeCheckDAO;
 import recipe.dao.RecipeDAO;
 import recipe.mq.OnsConfig;
@@ -153,5 +157,25 @@ public class RecipeTestService {
                 recipeCheckDAO.update(recipeCheck);
             }
         }
+    }
+
+    @RpcService
+    public String testChangePdf(String ossid){
+
+        try {
+            String s = CreateRecipePdfUtil.transPdfIdForRecipePdf(ossid);
+            return s;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (DocumentException e) {
+            e.printStackTrace();
+        } catch (FileRegistryException e) {
+            e.printStackTrace();
+        } catch (FileRepositoryException e) {
+            e.printStackTrace();
+        }
+        return null;
+
+
     }
 }

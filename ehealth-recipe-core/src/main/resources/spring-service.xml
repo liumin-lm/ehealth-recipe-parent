@@ -17,4 +17,6 @@
 
     <reference id="jgpt.minkeOrganService" interface="com.ngari.jgpt.zjs.service.IMinkeOrganService"/>
 
+    <!--优惠券-->
+    <reference id="voucher.couponBaseService" interface="coupon.api.service.ICouponBaseService"/>
 </s:beans>

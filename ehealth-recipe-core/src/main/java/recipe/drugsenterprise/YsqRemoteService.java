@@ -345,15 +345,11 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                             String giveModeText = "";
                             if (StringUtils.isNotEmpty(sendMethod)) {
                                 if ("0".equals(sendMethod)) {
-                                    detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_COD));
+                                    detailBean.setPayMode(RecipeBussConstant.PAYMODE_COD);
                                     giveModeText = "配送到家";
                                 } else if ("1".equals(sendMethod)) {
-                                    detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_TFDS));
-                                } else if ("2".equals(sendMethod)) {
-                                    detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_COD, RecipeBussConstant.PAYMODE_TFDS));
+                                    detailBean.setPayMode(RecipeBussConstant.PAYMODE_TFDS);
                                 }
-                            } else {
-                                detailBean.setPayModeList(Arrays.asList(RecipeBussConstant.PAYMODE_COD, RecipeBussConstant.PAYMODE_TFDS));
                             }
                             detailBean.setGiveModeText(giveModeText);
                             detailBean.setSendMethod(sendMethod);
