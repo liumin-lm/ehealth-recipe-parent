@@ -25,7 +25,7 @@ public class CreateRecipePdfUtil {
 
         IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
         IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
-        InputStream input = fileDownloadService.downloadAsStream(pdfId);
+        InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
         FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
         String fileId = null;
         if (fileMetaRecord != null){
