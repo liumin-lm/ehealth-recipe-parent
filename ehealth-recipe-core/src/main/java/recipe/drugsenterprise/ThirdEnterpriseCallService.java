@@ -92,7 +92,15 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         LOGGER.info("readyToSend param : " + JSONUtils.toString(paramMap));
 
         ThirdResultBean backMsg = ThirdResultBean.getFail();
-        int code = validateRecipe(paramMap, backMsg, RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.WAIT_SEND, CHECK_RECIPE);
+        Recipe recipe = getRecipe(paramMap);
+        int code ;
+        if (recipe.getReviewType() == 2) {
+            //为审方后置
+            code = validateRecipe(paramMap, backMsg, RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.WAIT_SEND, CHECK_RECIPE);
+        } else {
+            //前置或者不审核
+            code = validateRecipe(paramMap, backMsg, RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.WAIT_SEND, CHECK_RECIPE);
+        }
 
         if (REQUEST_ERROR_REAPET == code) {
             backMsg.setCode(REQUEST_OK);
@@ -104,7 +112,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
-        Recipe recipe = backMsg.getRecipe();
         Integer recipeId = recipe.getRecipeId();
         String errorMsg = "";
         String sendDateStr = MapValueUtil.getString(paramMap, "sendDate");
@@ -904,36 +911,12 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             code = REQUEST_ERROR;
             return code;
         }
-
         String errorMsg = "";
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe recipe = null;
+        Recipe recipe;
         //处方查询条件可分为
         //1 处方ID
         //2 recipeCode由  机构ID-处方编号  组成 （钥世圈）
-        Integer recipeId = MapValueUtil.getInteger(paramMap, "recipeId");
-        if (null != recipeId) {
-            recipe = recipeDAO.getByRecipeId(recipeId);
-        } else {
-            Integer organId = MapValueUtil.getInteger(paramMap, "organId");
-            //该编号有可能组成: 机构ID-处方编号
-            String recipeCodeStr = MapValueUtil.getString(paramMap, "recipeCode");
-            if (StringUtils.isNotEmpty(recipeCodeStr)) {
-                if (recipeCodeStr.contains(YsqRemoteService.YSQ_SPLIT)) {
-                    String[] recipeCodeInfo = recipeCodeStr.split(
-                            YsqRemoteService.YSQ_SPLIT);
-                    Integer length2 = 2;
-                    if (null != recipeCodeInfo && length2 == recipeCodeInfo.length) {
-                        organId = Integer.parseInt(recipeCodeInfo[0]);
-                        recipeCodeStr = recipeCodeInfo[1];
-                    }
-                }
-            }
-
-            if (null != organId && StringUtils.isNotEmpty(recipeCodeStr)) {
-                recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCodeStr, organId);
-            }
-        }
+        recipe = getRecipe(paramMap);
 
         if (null == recipe) {
             code = REQUEST_ERROR;
@@ -941,7 +924,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         }
 
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        RecipeOrder order = orderDAO.getOrderByRecipeId(recipeId);
+        RecipeOrder order = orderDAO.getOrderByRecipeId(recipe.getRecipeId());
 
         //配送到家-处方完成方法，处方准备并配送接口，该处方改成配送中，待配送状态
         //配送中->已完成，审核通过->配送中，待配送->配送中，审核通过->带配送
@@ -989,6 +972,35 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         }
 
         return code;
+    }
+
+    private Recipe getRecipe(Map<String, Object> paramMap) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Integer recipeId = MapValueUtil.getInteger(paramMap, "recipeId");
+        Recipe recipe = null;
+        if (null != recipeId) {
+            recipe = recipeDAO.getByRecipeId(recipeId);
+        } else {
+            Integer organId = MapValueUtil.getInteger(paramMap, "organId");
+            //该编号有可能组成: 机构ID-处方编号
+            String recipeCodeStr = MapValueUtil.getString(paramMap, "recipeCode");
+            if (StringUtils.isNotEmpty(recipeCodeStr)) {
+                if (recipeCodeStr.contains(YsqRemoteService.YSQ_SPLIT)) {
+                    String[] recipeCodeInfo = recipeCodeStr.split(
+                            YsqRemoteService.YSQ_SPLIT);
+                    Integer length2 = 2;
+                    if (null != recipeCodeInfo && length2 == recipeCodeInfo.length) {
+                        organId = Integer.parseInt(recipeCodeInfo[0]);
+                        recipeCodeStr = recipeCodeInfo[1];
+                    }
+                }
+            }
+
+            if (null != organId && StringUtils.isNotEmpty(recipeCodeStr)) {
+                recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCodeStr, organId);
+            }
+        }
+        return recipe;
     }
 
 
