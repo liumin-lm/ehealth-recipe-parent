@@ -30,6 +30,7 @@ import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import recipe.constant.ErrorCode;
+import recipe.dao.CompareDrugDAO;
 import recipe.dao.DrugListDAO;
 import recipe.dao.DrugProducerDAO;
 import recipe.dao.OrganDrugListDAO;
@@ -275,6 +276,7 @@ public class OrganDrugListService {
         IMinkeOrganService minkeOrganService = AppContextHolder.getBean("jgpt.minkeOrganService", IMinkeOrganService.class);
         OrganDTO organDTO = organService.getByOrganId(organDrugList.getOrganId());
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        CompareDrugDAO compareDrugDAO = DAOFactory.getDAO(CompareDrugDAO.class);
         DrugList drugList = drugListDAO.getById(organDrugList.getDrugId());
         RegulationDrugCategoryReq drugCategoryReq = new RegulationDrugCategoryReq();
         String organId = minkeOrganService.getRegisterNumberByUnitId(organDTO.getMinkeUnitID());
@@ -282,7 +284,13 @@ public class OrganDrugListService {
         drugCategoryReq.setUnitID(organDTO.getMinkeUnitID());
         drugCategoryReq.setOrganID(organId);
         drugCategoryReq.setOrganName(organDTO.getName());
-        drugCategoryReq.setPlatDrugCode(organDrugList.getDrugId().toString());
+        //如果存在 转换省平台药品id
+        Integer targetDrugId = compareDrugDAO.findTargetDrugIdByOriginalDrugId(organDrugList.getDrugId());
+        if (targetDrugId != null){
+            drugCategoryReq.setPlatDrugCode(targetDrugId.toString());
+        }else {
+            drugCategoryReq.setPlatDrugCode(organDrugList.getDrugId().toString());
+        }
         drugCategoryReq.setPlatDrugName(organDrugList.getDrugName());
         if (StringUtils.isNotEmpty(organDrugList.getOrganDrugCode())) {
             drugCategoryReq.setHospDrugCode(organDrugList.getOrganDrugCode());
