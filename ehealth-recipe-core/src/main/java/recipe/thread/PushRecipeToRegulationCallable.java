@@ -10,22 +10,23 @@ import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.common.CommonConstant;
 import recipe.common.response.CommonResponse;
+import recipe.constant.CacheConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.RecipeLogService;
+import recipe.util.RedisClient;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 /**
  * created by shiyuping on 2019/6/13
+ * @author shiyuping
  */
 public class PushRecipeToRegulationCallable implements Callable<String> {
 
@@ -46,7 +47,10 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
 
     private Integer recipeId;
 
-    private Integer status;//2-处方审核后推送 1-开处方或者取消处方推送
+    /**
+     * 2-处方审核后推送 1-开处方或者取消处方推送
+     */
+    private Integer status;
 
     public PushRecipeToRegulationCallable(Integer recipeId,Integer status) {
         this.recipeId = recipeId;
@@ -72,6 +76,7 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
         }
         logger.info("uploadRecipeIndicators regulationOrgan:"+JSONUtils.toString(list));
         try {
+            // TODO: 2019/10/22 这里考虑做个优化 各个状态都推送给前置机 由前置机判断什么状态的处方推哪个监管平台
             if (CollectionUtils.isNotEmpty(list) && regulationOrgan.get(recipe.getClinicOrgan()) != null){
                 String domainId = regulationOrgan.get(recipe.getClinicOrgan());
                 if (REGULATION_JS.equals(domainId)){
@@ -94,6 +99,13 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
                         response = service.uploadRecipeIndicators(Arrays.asList(recipe));
                     }
                 }
+                //从缓存中取机构列表上传--可配置
+                RedisClient redisClient = RedisClient.instance();
+                Set<String> organIdList = redisClient.sMembers(CacheConstant.UPLOAD_OPEN_RECIPE_LIST);
+                if (organIdList != null && organIdList.contains(recipe.getClinicOrgan().toString())){
+                    response = service.uploadRecipeIndicators(Arrays.asList(recipe));
+                }
+
             }
         } catch (Exception e) {
             logger.warn("uploadRecipeIndicators exception recipe={}", JSONUtils.toString(recipe), e);

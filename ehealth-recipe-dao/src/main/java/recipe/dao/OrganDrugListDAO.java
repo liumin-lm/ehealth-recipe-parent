@@ -479,4 +479,13 @@ public abstract class OrganDrugListDAO extends
      */
     @DAOMethod(sql = " delete from OrganDrugList where id =:id")
     public abstract void deleteById(@DAOParam("id") Integer id);
+
+    /**
+     * 根据机构id获取机构药品
+     *
+     * @param organId
+     * @return
+     */
+    @DAOMethod(sql = "select Organ OrganDrugList OrganDrugList where organId=:organId",limit = 0)
+    public abstract List<OrganDrugList> findOrganDrugByOrganId(@DAOParam("organId") int organId);
 }
