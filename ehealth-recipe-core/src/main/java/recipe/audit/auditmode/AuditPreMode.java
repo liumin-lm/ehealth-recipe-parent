@@ -29,10 +29,13 @@ public class AuditPreMode extends AbstractAuidtMode {
             status = RecipeStatusConstant.READY_CHECK_YS;
         }
         // 平台模式前置需要发送卡片
-        if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())){
+        //if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())){
+        //待审核只有平台发
+        if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())){
             RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
             RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipe.getRecipeId()), null, true);
         }
+        //}
         super.saveStatusAndSendMsg(status,recipe,memo);
     }
 
@@ -48,6 +51,7 @@ public class AuditPreMode extends AbstractAuidtMode {
         String recipeMode = recipe.getRecipeMode();
         //正常平台处方
         if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
+            //审核通过只有互联网发
             if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)){
                 RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipeId), null, true);
                 //同步到互联网监管平台
