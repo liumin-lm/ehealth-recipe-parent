@@ -259,9 +259,9 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setExpressFee(BigDecimal.ZERO);
                 order.setTotalFee(BigDecimal.ZERO);
                 order.setActualPrice(BigDecimal.ZERO.doubleValue());
-                double auditFee = Double.parseDouble( configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_AUDITFEE).toString());
+                double auditFee = getFee(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_AUDITFEE));
                 order.setAuditFee(BigDecimal.valueOf(auditFee));
-                double otherServiceFee = Double.parseDouble(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_OTHERFEE).toString());
+                double otherServiceFee = getFee(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_OTHERFEE));
                 order.setOtherFee(BigDecimal.valueOf(otherServiceFee));
             }
             if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == toDbFlag) {
@@ -289,6 +289,12 @@ public class RecipeOrderService extends RecipeBaseService {
         }
         setCreateOrderResult(result, order, payModeSupport, toDbFlag);
         return result;
+    }
+
+    //设置金额
+    private double getFee(Object fee) {
+        return null != fee ?
+                Double.parseDouble(fee.toString()) : 0d;
     }
 
     /**
@@ -467,10 +473,10 @@ public class RecipeOrderService extends RecipeBaseService {
         Recipe firstRecipe = recipeList.get(0);
         //date 20190929
         //审方费判断非不需要审核再去计算
-        double auditFee = ReviewTypeConstant.Not_Need_Check == firstRecipe.getReviewType() ? 0d : Double.parseDouble(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_AUDITFEE).toString());
+        double auditFee = ReviewTypeConstant.Not_Need_Check == firstRecipe.getReviewType() ? 0d : getFee(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_AUDITFEE));
         order.setAuditFee(BigDecimal.valueOf(auditFee));
         //设置其他服务费用
-        double otherServiceFee = Double.parseDouble(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_OTHERFEE).toString());
+        double otherServiceFee = getFee(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_OTHERFEE));
         order.setOtherFee(BigDecimal.valueOf(otherServiceFee));
 
         //设置优惠券信息
