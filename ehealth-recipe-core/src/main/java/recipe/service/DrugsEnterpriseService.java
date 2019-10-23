@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
 import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.serviceprovider.BaseService;
@@ -129,7 +130,10 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
     public boolean checkEnterprise(Integer organId){
         OrganConfigService organConfigService = BasicAPI.getService(OrganConfigService.class);
         Integer checkEnterprise = organConfigService.getCheckEnterpriseByOrganId(organId);
-        if(Integer.valueOf(0).equals(checkEnterprise)){
+        //获取机构配置的药企是否存在 如果有则需要校验 没有则不需要
+        OrganAndDrugsepRelationDAO dao = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+        List<DrugsEnterprise> enterprise = dao.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
+        if(Integer.valueOf(0).equals(checkEnterprise) || CollectionUtils.isEmpty(enterprise)){
             return false;
         }
 
