@@ -90,7 +90,7 @@ public class PurchaseService {
             boolean hisStatus = iHisConfigService.isHisEnable(dbRecipe.getClinicOrgan());
             //机构设置，是否可以到院取药
             //date 20191022,修改到院取药配置项
-            boolean flag = RecipeServiceSub.getDrugToHos(dbRecipe.getClinicOrgan());
+            boolean flag = RecipeServiceSub.getDrugToHos(recipeId, dbRecipe.getClinicOrgan());
             if (Integer.valueOf(0).equals(dbRecipe.getDistributionFlag())
                     && hisStatus && flag) {
                 result.setToHos(true);
@@ -199,7 +199,7 @@ public class PurchaseService {
         try {
             //判断院内是否已取药，防止重复购买
             //date 20191022到院取药取配置项
-            boolean flag = RecipeServiceSub.getDrugToHos(dbRecipe.getClinicOrgan());
+            boolean flag = RecipeServiceSub.getDrugToHos(recipeId, dbRecipe.getClinicOrgan());
             boolean hisStatus = iHisConfigService.isHisEnable(dbRecipe.getClinicOrgan());
             //是否支持医院取药 true：支持
             //该医院不对接HIS的话，则不需要进行该校验

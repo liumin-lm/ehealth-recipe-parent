@@ -1729,7 +1729,7 @@ public class RecipeService extends RecipeBaseService{
         }
         boolean succFlag = false;
         //date 20191022到院取药取配置项
-        boolean flag = RecipeServiceSub.getDrugToHos(clinicOrgan);
+        boolean flag = RecipeServiceSub.getDrugToHos(recipeId, clinicOrgan);
         //是否支持医院取药 true：支持
         if (flag) {
             String backInfo = searchRecipeStatusFromHis(recipeId, 1);
@@ -1756,7 +1756,7 @@ public class RecipeService extends RecipeBaseService{
     public Integer supportDistributionExt(Integer recipeId, Integer clinicOrgan, Integer selectDepId, Integer payMode) {
         Integer backDepId = null;
         //date 20191022 修改到院取药配置项
-        boolean flag = RecipeServiceSub.getDrugToHos(clinicOrgan);
+        boolean flag = RecipeServiceSub.getDrugToHos(recipeId, clinicOrgan);
         //是否支持医院取药 true：支持
         //该医院不对接HIS的话，则不需要进行该校验
         if (flag) {

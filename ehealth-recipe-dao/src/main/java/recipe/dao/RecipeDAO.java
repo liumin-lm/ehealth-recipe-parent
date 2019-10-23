@@ -1732,7 +1732,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                     //hql.append(" and (t.Status IN (:recipeStatusList) or (t.reviewType = 1 and t.checkStatus = 1 and t.status = 15))");
                     //date 20191017
                     //去掉互联网待审核的，sql根据平台和互联网逻辑分开,前半部分是平台的，后半部分是互联网的（互联网“处方部分”状态只展示为待处理的）
-                    hql.append(" and ((t.recipeMode != 'zjjgpt' && t.Status IN (:recipeStatusList) or (t.reviewType = 1 and t.checkStatus = 1 and t.status = 15)) or (t.recipeMode = 'zjjgpt' and t.Status = 2))");
+                    hql.append(" and ((t.recipeMode != 'zjjgpt' && t.Status IN (:recipeStatusList) or (t.reviewType = 1 and t.checkStatus = 1 and t.status = 15)) or (t.recipeMode = 'zjjgpt' and t.Status in (2, 22)))");
                 }else{
                     //已处理：排除一次审核不通过的
                     hql.append(" and t.Status IN (:recipeStatusList) and t.checkStatus != 1 ");

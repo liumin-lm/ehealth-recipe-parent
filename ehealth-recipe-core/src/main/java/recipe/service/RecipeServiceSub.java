@@ -1292,6 +1292,10 @@ public class RecipeServiceSub {
      * @return boolean 是否可以下载
      */
     private static boolean getDownConfig(Recipe recipe, RecipeOrder order) {
+        //互联网的不需要下载处方笺
+        if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
+            return false;
+        }
         Boolean isDownload = false;
         //获取配置项
         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
@@ -1827,21 +1831,33 @@ public class RecipeServiceSub {
     /**
      * 获取医院时候可以药店取药
      */
-    public static Boolean getDrugToHos(Integer organId) {
-        //获取配置项
-        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-        Object payModeDeploy = configService.getConfiguration(organId, "payModeDeploy");
-        if(null == payModeDeploy){
+    public static Boolean getDrugToHos(Integer recipeId, Integer organId) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.get(recipeId);
+        if(null == recipe){
+            LOGGER.info("处方不存在 recipeId[{}]", recipeId);
             return false;
         }
-        List<String> configurations = new ArrayList<>(Arrays.asList((String[])payModeDeploy));
-        //将购药方式的显示map对象转化为页面展示的对象
-        Map<String, Boolean> buttonMap = new HashMap<>(10);
-        for (String configuration : configurations) {
-            buttonMap.put(configuration, true);
+        //平台的取平台配置项
+        if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())){
+            //获取配置项
+            IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+            Object payModeDeploy = configService.getConfiguration(organId, "payModeDeploy");
+            if(null == payModeDeploy){
+                return false;
+            }
+            List<String> configurations = new ArrayList<>(Arrays.asList((String[])payModeDeploy));
+            //将购药方式的显示map对象转化为页面展示的对象
+            Map<String, Boolean> buttonMap = new HashMap<>(10);
+            for (String configuration : configurations) {
+                buttonMap.put(configuration, true);
+            }
+            //通过配置获取是否可以到院取药
+            return (null == buttonMap.get("supportToHos") || !buttonMap.get("supportToHos")) ? false : true;
+        }else{
+            return organService.getTakeMedicineFlagById(organId);
         }
-        //通过配置获取是否可以到院取药
-        return (null == buttonMap.get("supportToHos") || !buttonMap.get("supportToHos")) ? false : true;
+
 
     }
 }
