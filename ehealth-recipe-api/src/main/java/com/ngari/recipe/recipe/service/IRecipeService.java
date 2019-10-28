@@ -4,6 +4,7 @@ import com.ngari.recipe.IBaseService;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
+import com.ngari.recipe.recipe.model.NoticePlatRecipeFlowInfoDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeRollingInfoBean;
@@ -298,4 +299,6 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     RecipeBean getRecipeByOrderCode(String orderCode);
+
+    Map<String,Object> noticePlatRecipeFlowInfo(NoticePlatRecipeFlowInfoDTO req);
 }
