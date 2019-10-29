@@ -13,6 +13,9 @@ public class CacheConstant {
      */
     public static final String KEY_PHARYACY_TEST_DATA = "RCP_PHARYACY_TEST_DATA";
 
+
+    /********************************以下为机构列表项内容********************************/
+
     /**
      * 跳过人工审核organId列表
      */
@@ -43,6 +46,11 @@ public class CacheConstant {
      * 开处方跳过his对接organId列表
      */
     public static final String KEY_SKIP_HISRECIPE_LIST = "RCP_SKIP_HISRECIPE_LIST";
+
+    /**
+     * 上传监管平台 开完处方就上传organId列表
+     */
+    public static final String UPLOAD_OPEN_RECIPE_LIST = "UPLOAD_OPEN_RECIPE_LIST";
 
 
 

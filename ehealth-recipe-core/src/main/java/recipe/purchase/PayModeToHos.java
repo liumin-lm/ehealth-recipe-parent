@@ -92,7 +92,14 @@ public class PayModeToHos implements IPurchaseService{
         }
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
         //更新处方信息
-        orderService.finishOrderPayWithoutPay(order.getOrderCode(), payMode);
+        //更新处方信息
+        if(0d >= order.getActualPrice()){
+            //如果不需要支付则不走支付,直接掉支付后的逻辑
+            orderService.finishOrderPay(order.getOrderCode(), 1, MapValueUtil.getInteger(extInfo, "payMode"));
+        }else{
+            //需要支付则走支付前的逻辑
+            orderService.finishOrderPayWithoutPay(order.getOrderCode(), payMode);
+        }
         return result;
     }
 
@@ -117,9 +124,9 @@ public class PayModeToHos implements IPurchaseService{
                 //date 20190930
                 //先判断是否需要支付，再判断有没有支付
                 if (StringUtils.isNotEmpty(orderCode)) {
-                    if(0 >= BigDecimal.ZERO.compareTo(recipe.getActualPrice())){
+                    if(0d >= order.getActualPrice()){
                         tips = "订单已处理，请到院取药";
-                    }else if(0 < BigDecimal.ZERO.compareTo(recipe.getActualPrice()) && payFlag == 1){
+                    }else if(0d < order.getActualPrice() && payFlag == 1){
                         tips = "订单已处理，请到院取药";
                     }
                 }
@@ -127,12 +134,14 @@ public class PayModeToHos implements IPurchaseService{
             case RecipeStatusConstant.CHECK_PASS_YS:
                 tips = "处方已审核通过，请到院取药";
                 break;
+            case RecipeStatusConstant.NO_DRUG:
             case RecipeStatusConstant.RECIPE_FAIL:
                 tips = "到院取药失败";
                 break;
             case RecipeStatusConstant.FINISH:
                 tips = "到院取药成功，订单完成";
                 break;
+                default:
         }
         return tips;
     }

@@ -102,7 +102,7 @@ public class PayModeTFDS implements IPurchaseService{
             List<DepDetailBean> depList = new ArrayList<>();
             //通过查询该药企对应药店库存
             boolean succFlag = scanStock(recipe, dep, drugIds);
-            if (!succFlag) {
+            if (!succFlag && dep.getCheckInventoryFlag() != 2) {
                 LOGGER.warn("findSupportDepList 当前药企无库存. 药企=[{}], recipeId=[{}]", dep.getName() ,recipeId);
                 continue;
             }
@@ -165,7 +165,7 @@ public class PayModeTFDS implements IPurchaseService{
         //患者提交订单前,先进行库存校验
 
         boolean succFlag = scanStock(dbRecipe, dep, drugIds);
-        if(!succFlag){
+        if(!succFlag && dep.getCheckInventoryFlag() != 2){
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("抱歉，配送商库存不足无法配送。请稍后尝试提交，或更换配送商。");
             return result;
@@ -196,7 +196,13 @@ public class PayModeTFDS implements IPurchaseService{
         }
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
         //更新处方信息
-        orderService.finishOrderPayWithoutPay(order.getOrderCode(), payMode);
+        if(0d >= order.getActualPrice()){
+            //如果不需要支付则不走支付,直接掉支付后的逻辑
+            orderService.finishOrderPay(order.getOrderCode(), 1, MapValueUtil.getInteger(extInfo, "payMode"));
+        }else{
+            //需要支付则走支付前的逻辑
+            orderService.finishOrderPayWithoutPay(order.getOrderCode(), payMode);
+        }
         return result;
     }
 
@@ -222,12 +228,10 @@ public class PayModeTFDS implements IPurchaseService{
                 succFlag = true;
             }
         }
-        if (dep.getCheckInventoryFlag() == 1) {
-            succFlag = remoteDrugService.scanStock(recipeId, dep);
-            if (!succFlag) {
-                LOGGER.warn("findSupportDepList 药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}], 药企名称=[{}]",
-                        recipeId, dep.getId(), dep.getName());
-            }
+
+        succFlag = remoteDrugService.scanStock(recipeId, dep);
+        if (!succFlag) {
+            LOGGER.warn("findSupportDepList 药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}], 药企名称=[{}]", recipeId, dep.getId(), dep.getName());
         }
         return succFlag;
     }
@@ -269,19 +273,21 @@ public class PayModeTFDS implements IPurchaseService{
                     tips = "药品已准备好，请到药店取药";
                 }
                 break;
+            case RecipeStatusConstant.NO_DRUG:
             case RecipeStatusConstant.RECIPE_FAIL:
                 tips = "药店取药失败";
                 break;
             case RecipeStatusConstant.FINISH:
                 tips = "到店取药成功，订单完成";
                 break;
+                default:
         }
         return tips;
     }
 
     @Override
     public Integer getOrderStatus(Recipe recipe) {
-        Integer orderStatus;
+        Integer orderStatus = OrderStatusConstant.HAS_DRUG;
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise dep = enterpriseDAO.getById(recipe.getEnterpriseId());
@@ -292,9 +298,9 @@ public class PayModeTFDS implements IPurchaseService{
             drugIds.add(detail.getDrugId());
         }
         boolean succFlag = scanStock(recipe, dep, drugIds);
-        if (dep.getCheckInventoryFlag() == 1 && succFlag){
+        if (succFlag){
             orderStatus = OrderStatusConstant.HAS_DRUG ;
-        } else {
+        } else if (dep.getCheckInventoryFlag() == 2) {
             orderStatus = OrderStatusConstant.READY_DRUG;
         }
         return orderStatus;

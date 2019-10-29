@@ -42,6 +42,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.purchase.CommonOrder;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 
@@ -423,9 +424,9 @@ public class HisCallBackService {
 
                         Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.FINISH, attrMap);
                         if (rs) {
-                            //线下支付完成后取消订单
+                            //线下支付完成后结束订单
                             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-                            orderService.cancelOrderByRecipeId(recipeId, OrderStatusConstant.CANCEL_AUTO);
+                            orderService.finishOrder(recipe.getOrderCode(), recipe.getPayMode(), null);
                             //保存至电子病历
 //                            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 //                            recipeService.saveRecipeDocIndex(recipe);
@@ -433,6 +434,8 @@ public class HisCallBackService {
                             RecipeLogService.saveRecipeLog(recipeId, beforeStatus, RecipeStatusConstant.FINISH, logMemo);
                             //消息推送
                             RecipeMsgService.batchSendMsg(recipeId, msgStatus);
+                            //更新pdf
+                            CommonOrder.finishGetDrugUpdatePdf(recipeId);
                         }
                     }
                 }

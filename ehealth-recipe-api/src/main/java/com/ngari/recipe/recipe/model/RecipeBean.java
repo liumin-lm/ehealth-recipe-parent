@@ -301,8 +301,18 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias="处方审核方式")
     private Integer reviewType;
 
+    @ItemProperty(alias="处方审核状态")
+    private Integer checkStatus;
 
     public RecipeBean() {
+    }
+
+    public Integer getCheckStatus() {
+        return checkStatus;
+    }
+
+    public void setCheckStatus(Integer checkStatus) {
+        this.checkStatus = checkStatus;
     }
 
     /**

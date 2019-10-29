@@ -13,6 +13,7 @@ import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
+import coupon.api.service.ICouponBaseService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -31,6 +32,7 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.RecipeListService;
 import recipe.service.RecipeService;
+import recipe.service.RecipeServiceSub;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 
@@ -87,7 +89,8 @@ public class PurchaseService {
             OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
             boolean hisStatus = iHisConfigService.isHisEnable(dbRecipe.getClinicOrgan());
             //机构设置，是否可以到院取药
-            boolean flag = organService.getTakeMedicineFlagById(dbRecipe.getClinicOrgan());
+            //date 20191022,修改到院取药配置项
+            boolean flag = RecipeServiceSub.getDrugToHos(recipeId, dbRecipe.getClinicOrgan());
             if (Integer.valueOf(0).equals(dbRecipe.getDistributionFlag())
                     && hisStatus && flag) {
                 result.setToHos(true);
@@ -195,7 +198,8 @@ public class PurchaseService {
         IHisConfigService iHisConfigService = ApplicationUtils.getBaseService(IHisConfigService.class);
         try {
             //判断院内是否已取药，防止重复购买
-            boolean flag = organService.getTakeMedicineFlagById(dbRecipe.getClinicOrgan());
+            //date 20191022到院取药取配置项
+            boolean flag = RecipeServiceSub.getDrugToHos(recipeId, dbRecipe.getClinicOrgan());
             boolean hisStatus = iHisConfigService.isHisEnable(dbRecipe.getClinicOrgan());
             //是否支持医院取药 true：支持
             //该医院不对接HIS的话，则不需要进行该校验
@@ -295,6 +299,10 @@ public class PurchaseService {
         Integer payMode = recipe.getPayMode();
         Integer payFlag = recipe.getPayFlag();
         String orderCode = recipe.getOrderCode();
+        if (order == null) {
+            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+            order = recipeOrderDAO.getByOrderCode(orderCode);
+        }
         String tips;
         switch (status){
             case RecipeStatusConstant.READY_CHECK_YS:
@@ -317,7 +325,7 @@ public class PurchaseService {
                 tips = "处方单未处理，已失效";
                 break;
             case RecipeStatusConstant.CHECK_NOT_PASS_YS:
-                if(null != order && OrderStatusConstant.CANCEL_NOT_PASS == order.getStatus()){
+                if(RecipecCheckStatusConstant.Check_Normal == recipe.getCheckStatus()){
                     tips = "处方审核不通过，请联系开方医生";
                     break;
                 }else{
@@ -328,11 +336,25 @@ public class PurchaseService {
                 tips = "由于医生已撤销，该处方单已失效，请联系医生";
                 break;
             case RecipeStatusConstant.RECIPE_DOWNLOADED:
-                tips = "已下载处方签";
+                tips = "已下载处方笺";
                 break;
             case RecipeStatusConstant.USING:
                 tips = "处理中";
                 break;
+            //date 2019/10/16
+            //添加处方状态文案，已删除，同步his失败
+            case RecipeStatusConstant.DELETE:
+                tips = "处方单已删除";
+                break;
+            case RecipeStatusConstant.HIS_FAIL:
+                tips = "处方单同步his写入失败";
+                break;
+            case RecipeStatusConstant.FINISH:
+                //特应性处理:下载处方，不需要审核,不更新payMode
+                if(ReviewTypeConstant.Not_Need_Check == recipe.getReviewType() && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())){
+                    tips = "订单完成";
+                    break;
+                }
             default:
                 IPurchaseService purchaseService = getService(payMode);
                 if(null == purchaseService){

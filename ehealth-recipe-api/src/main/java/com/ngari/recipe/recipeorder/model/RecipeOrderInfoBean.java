@@ -1,29 +1,25 @@
-package com.ngari.recipe.entity;
+package com.ngari.recipe.recipeorder.model;
 
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-
-import static javax.persistence.GenerationType.IDENTITY;
+import java.util.Map;
 
 /**
- * @company: ngarihealth
- * @author: 0184/yu_yun
- * @date:2017/2/13.
+ * @author: JRK
+ * @date:209/10/18.
+ * 处方以及订单信息
  */
-@Entity
 @Schema
-@Table(name = "cdr_recipeorder")
-@Access(AccessType.PROPERTY)
-public class RecipeOrder implements Serializable {
-    private static final long serialVersionUID = -1L;
+public class RecipeOrderInfoBean implements Serializable {
+
+    private static final long serialVersionUID = -1365227235362189226L;
 
     @ItemProperty(alias = "订单ID")
     private Integer orderId;
@@ -62,14 +58,17 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "优惠金额")
     private BigDecimal couponFee;
 
-    @ItemProperty(alias = "优惠描述")
-    private String couponDesc;
-
     @ItemProperty(alias = "挂号费")
     private BigDecimal registerFee;
 
     @ItemProperty(alias = "配送费")
     private BigDecimal expressFee;
+
+    @ItemProperty(alias = "审核费")
+    private BigDecimal auditFee;
+
+    @ItemProperty(alias = "其余费用")
+    private BigDecimal otherFee;
 
     @ItemProperty(alias = "处方总费用")
     private BigDecimal recipeFee;
@@ -170,12 +169,6 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "代煎费")
     private BigDecimal decoctionFee;
 
-    @ItemProperty(alias = "审核费")
-    private BigDecimal auditFee;
-
-    @ItemProperty(alias = "其余费用")
-    private BigDecimal otherFee;
-
     @ItemProperty(alias = "机构代煎单价")
     private BigDecimal decoctionUnitPrice;
 
@@ -184,12 +177,6 @@ public class RecipeOrder implements Serializable {
 
     @ItemProperty(alias = "完整地址")
     private String completeAddress;
-
-    @ItemProperty(alias = "取消原因")
-    private String cancelReason;
-
-    @ItemProperty(alias = "药店编码")
-    private String drugStoreCode;
 
     @ItemProperty(alias = "处方流转模式")
     private String recipeMode;
@@ -200,23 +187,23 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "药企名称")
     private String enterpriseName;
 
-    @Column(name = "cancelReason")
-    public String getCancelReason() {
-        return cancelReason;
-    }
+    //date 2019/10/18
+    //添加优惠卷信息
+    @ItemProperty(alias = "优惠券描述")
+    private String couponDesc;
 
-    public void setCancelReason(String cancelReason) {
-        this.cancelReason = cancelReason;
-    }
+    //date 2019/10/18
+    //添加优惠卷信息
+    @ItemProperty(alias = "处方详情描述")
+    private Map<String, Object> recipeInfoMap;
 
-    public RecipeOrder() {
+    public RecipeOrderInfoBean() {
         initData();
     }
 
     public void initData() {
         this.setEffective(1);
         this.setDivisionFlag(0);
-        //未支付
         this.setPayFlag(0);
         BigDecimal zero = BigDecimal.ZERO;
         this.setCouponFee(zero);
@@ -227,9 +214,16 @@ public class RecipeOrder implements Serializable {
         this.setPushFlag(0);
         Date now = Calendar.getInstance().getTime();
         this.setCreateTime(now);
-        this.setLastModifyTime(now);
         this.setAuditFee(zero);
         this.setOtherFee(zero);
+    }
+
+    public Map<String, Object> getRecipeInfoMap() {
+        return recipeInfoMap;
+    }
+
+    public void setRecipeInfoMap(Map<String, Object> recipeInfoMap) {
+        this.recipeInfoMap = recipeInfoMap;
     }
 
     public String getCouponDesc() {
@@ -240,9 +234,6 @@ public class RecipeOrder implements Serializable {
         this.couponDesc = couponDesc;
     }
 
-    @Id
-    @GeneratedValue(strategy = IDENTITY)
-    @Column(name = "OrderId", unique = true, nullable = false)
     public Integer getOrderId() {
         return orderId;
     }
@@ -251,7 +242,6 @@ public class RecipeOrder implements Serializable {
         this.orderId = orderId;
     }
 
-    @Column(name = "OrderCode")
     public String getOrderCode() {
         return orderCode;
     }
@@ -260,7 +250,6 @@ public class RecipeOrder implements Serializable {
         this.orderCode = orderCode;
     }
 
-    @Column(name = "MpiId")
     public String getMpiId() {
         return mpiId;
     }
@@ -269,7 +258,6 @@ public class RecipeOrder implements Serializable {
         this.mpiId = mpiId;
     }
 
-    @Column(name = "OrganId")
     public Integer getOrganId() {
         return organId;
     }
@@ -278,7 +266,6 @@ public class RecipeOrder implements Serializable {
         this.organId = organId;
     }
 
-    @Column(name = "Status")
     public Integer getStatus() {
         return status;
     }
@@ -287,7 +274,6 @@ public class RecipeOrder implements Serializable {
         this.status = status;
     }
 
-    @Column(name = "Effective")
     public Integer getEffective() {
         return effective;
     }
@@ -296,7 +282,6 @@ public class RecipeOrder implements Serializable {
         this.effective = effective;
     }
 
-    @Column(name = "DivisionFlag")
     public Integer getDivisionFlag() {
         return divisionFlag;
     }
@@ -305,7 +290,6 @@ public class RecipeOrder implements Serializable {
         this.divisionFlag = divisionFlag;
     }
 
-    @Column(name = "RecipeIdList")
     public String getRecipeIdList() {
         return recipeIdList;
     }
@@ -314,7 +298,6 @@ public class RecipeOrder implements Serializable {
         this.recipeIdList = recipeIdList;
     }
 
-    @Column(name = "PayFlag")
     public Integer getPayFlag() {
         return payFlag;
     }
@@ -323,7 +306,6 @@ public class RecipeOrder implements Serializable {
         this.payFlag = payFlag;
     }
 
-    @Column(name = "CouponId")
     public Integer getCouponId() {
         return couponId;
     }
@@ -332,79 +314,6 @@ public class RecipeOrder implements Serializable {
         this.couponId = couponId;
     }
 
-    @Column(name = "CouponFee")
-    public BigDecimal getCouponFee() {
-        return couponFee;
-    }
-
-    public void setCouponFee(BigDecimal couponFee) {
-        this.couponFee = couponFee;
-    }
-
-    @Column(name = "RegisterFee")
-    public BigDecimal getRegisterFee() {
-        return registerFee;
-    }
-
-    public void setRegisterFee(BigDecimal registerFee) {
-        this.registerFee = registerFee;
-    }
-
-    @Column(name = "ExpressFee")
-    public BigDecimal getExpressFee() {
-        return expressFee;
-    }
-
-    public void setExpressFee(BigDecimal expressFee) {
-        this.expressFee = expressFee;
-    }
-
-    @Column(name = "AuditFee")
-    public BigDecimal getAuditFee() {
-        return auditFee;
-    }
-
-    public void setAuditFee(BigDecimal auditFee) {
-        this.auditFee = auditFee;
-    }
-
-    @Column(name = "OtherFee")
-    public BigDecimal getOtherFee() {
-        return otherFee;
-    }
-
-    public void setOtherFee(BigDecimal otherFee) {
-        this.otherFee = otherFee;
-    }
-
-    @Column(name = "RecipeFee")
-    public BigDecimal getRecipeFee() {
-        return recipeFee;
-    }
-
-    public void setRecipeFee(BigDecimal recipeFee) {
-        this.recipeFee = recipeFee;
-    }
-
-    @Column(name = "TotalFee")
-    public BigDecimal getTotalFee() {
-        return totalFee;
-    }
-
-    public void setTotalFee(BigDecimal totalFee) {
-        this.totalFee = totalFee;
-    }
-
-    @Column(name = "ActualPrice")
-    public Double getActualPrice() {
-        return actualPrice;
-    }
-
-    public void setActualPrice(Double actualPrice) {
-        this.actualPrice = actualPrice;
-    }
-
-    @Column(name = "CouponName")
     public String getCouponName() {
         return couponName;
     }
@@ -413,7 +322,70 @@ public class RecipeOrder implements Serializable {
         this.couponName = couponName;
     }
 
-    @Column(name = "TradeNo")
+    public BigDecimal getCouponFee() {
+        return couponFee;
+    }
+
+    public void setCouponFee(BigDecimal couponFee) {
+        this.couponFee = couponFee;
+    }
+
+    public BigDecimal getRegisterFee() {
+        return registerFee;
+    }
+
+    public void setRegisterFee(BigDecimal registerFee) {
+        this.registerFee = registerFee;
+    }
+
+    public BigDecimal getExpressFee() {
+        return expressFee;
+    }
+
+    public void setExpressFee(BigDecimal expressFee) {
+        this.expressFee = expressFee;
+    }
+
+    public BigDecimal getAuditFee() {
+        return auditFee;
+    }
+
+    public void setAuditFee(BigDecimal auditFee) {
+        this.auditFee = auditFee;
+    }
+
+    public BigDecimal getOtherFee() {
+        return otherFee;
+    }
+
+    public void setOtherFee(BigDecimal otherFee) {
+        this.otherFee = otherFee;
+    }
+
+    public BigDecimal getRecipeFee() {
+        return recipeFee;
+    }
+
+    public void setRecipeFee(BigDecimal recipeFee) {
+        this.recipeFee = recipeFee;
+    }
+
+    public BigDecimal getTotalFee() {
+        return totalFee;
+    }
+
+    public void setTotalFee(BigDecimal totalFee) {
+        this.totalFee = totalFee;
+    }
+
+    public Double getActualPrice() {
+        return actualPrice;
+    }
+
+    public void setActualPrice(Double actualPrice) {
+        this.actualPrice = actualPrice;
+    }
+
     public String getTradeNo() {
         return tradeNo;
     }
@@ -422,7 +394,6 @@ public class RecipeOrder implements Serializable {
         this.tradeNo = tradeNo;
     }
 
-    @Column(name = "WxPayWay")
     public String getWxPayWay() {
         return wxPayWay;
     }
@@ -431,7 +402,6 @@ public class RecipeOrder implements Serializable {
         this.wxPayWay = wxPayWay;
     }
 
-    @Column(name = "OutTradeNo")
     public String getOutTradeNo() {
         return outTradeNo;
     }
@@ -440,7 +410,6 @@ public class RecipeOrder implements Serializable {
         this.outTradeNo = outTradeNo;
     }
 
-    @Column(name = "PayOrganId")
     public String getPayOrganId() {
         return payOrganId;
     }
@@ -449,7 +418,6 @@ public class RecipeOrder implements Serializable {
         this.payOrganId = payOrganId;
     }
 
-    @Column(name = "WxPayErrorCode")
     public String getWxPayErrorCode() {
         return wxPayErrorCode;
     }
@@ -458,7 +426,6 @@ public class RecipeOrder implements Serializable {
         this.wxPayErrorCode = wxPayErrorCode;
     }
 
-    @Column(name = "EnterpriseId")
     public Integer getEnterpriseId() {
         return enterpriseId;
     }
@@ -467,7 +434,6 @@ public class RecipeOrder implements Serializable {
         this.enterpriseId = enterpriseId;
     }
 
-    @Column(name = "DepSn")
     public String getDepSn() {
         return depSn;
     }
@@ -476,7 +442,6 @@ public class RecipeOrder implements Serializable {
         this.depSn = depSn;
     }
 
-    @Column(name = "PushFlag")
     public Integer getPushFlag() {
         return pushFlag;
     }
@@ -485,7 +450,6 @@ public class RecipeOrder implements Serializable {
         this.pushFlag = pushFlag;
     }
 
-    @Column(name = "AddressID")
     public Integer getAddressID() {
         return addressID;
     }
@@ -494,7 +458,6 @@ public class RecipeOrder implements Serializable {
         this.addressID = addressID;
     }
 
-    @Column(name = "Receiver")
     public String getReceiver() {
         return receiver;
     }
@@ -503,7 +466,6 @@ public class RecipeOrder implements Serializable {
         this.receiver = receiver;
     }
 
-    @Column(name = "RecMobile")
     public String getRecMobile() {
         return recMobile;
     }
@@ -512,7 +474,6 @@ public class RecipeOrder implements Serializable {
         this.recMobile = recMobile;
     }
 
-    @Column(name = "RecTel")
     public String getRecTel() {
         return recTel;
     }
@@ -521,7 +482,6 @@ public class RecipeOrder implements Serializable {
         this.recTel = recTel;
     }
 
-    @Column(name = "Address1")
     public String getAddress1() {
         return address1;
     }
@@ -530,7 +490,6 @@ public class RecipeOrder implements Serializable {
         this.address1 = address1;
     }
 
-    @Column(name = "Address2")
     public String getAddress2() {
         return address2;
     }
@@ -539,7 +498,6 @@ public class RecipeOrder implements Serializable {
         this.address2 = address2;
     }
 
-    @Column(name = "Address3")
     public String getAddress3() {
         return address3;
     }
@@ -548,7 +506,6 @@ public class RecipeOrder implements Serializable {
         this.address3 = address3;
     }
 
-    @Column(name = "Address4")
     public String getAddress4() {
         return address4;
     }
@@ -557,7 +514,6 @@ public class RecipeOrder implements Serializable {
         this.address4 = address4;
     }
 
-    @Column(name = "ZipCode")
     public String getZipCode() {
         return zipCode;
     }
@@ -566,7 +522,6 @@ public class RecipeOrder implements Serializable {
         this.zipCode = zipCode;
     }
 
-    @Column(name = "CreateTime")
     public Date getCreateTime() {
         return createTime;
     }
@@ -575,7 +530,6 @@ public class RecipeOrder implements Serializable {
         this.createTime = createTime;
     }
 
-    @Column(name = "PayTime")
     public Date getPayTime() {
         return payTime;
     }
@@ -584,7 +538,6 @@ public class RecipeOrder implements Serializable {
         this.payTime = payTime;
     }
 
-    @Column(name = "SendTime")
     public Date getSendTime() {
         return sendTime;
     }
@@ -593,7 +546,6 @@ public class RecipeOrder implements Serializable {
         this.sendTime = sendTime;
     }
 
-    @Column(name = "FinishTime")
     public Date getFinishTime() {
         return finishTime;
     }
@@ -602,7 +554,6 @@ public class RecipeOrder implements Serializable {
         this.finishTime = finishTime;
     }
 
-    @Column(name = "LastModifyTime")
     public Date getLastModifyTime() {
         return lastModifyTime;
     }
@@ -611,7 +562,6 @@ public class RecipeOrder implements Serializable {
         this.lastModifyTime = lastModifyTime;
     }
 
-    @Transient
     public List<? extends Object> getList() {
         return list;
     }
@@ -620,7 +570,6 @@ public class RecipeOrder implements Serializable {
         this.list = list;
     }
 
-    @Transient
     public Boolean getAddressCanSend() {
         return addressCanSend;
     }
@@ -629,7 +578,6 @@ public class RecipeOrder implements Serializable {
         this.addressCanSend = addressCanSend;
     }
 
-    @Column(name = "LogisticsCompany")
     public Integer getLogisticsCompany() {
         return logisticsCompany;
     }
@@ -638,7 +586,6 @@ public class RecipeOrder implements Serializable {
         this.logisticsCompany = logisticsCompany;
     }
 
-    @Column(name = "TrackingNumber")
     public String getTrackingNumber() {
         return trackingNumber;
     }
@@ -647,7 +594,6 @@ public class RecipeOrder implements Serializable {
         this.trackingNumber = trackingNumber;
     }
 
-    @Column(name = "DrugStoreName")
     public String getDrugStoreName() {
         return drugStoreName;
     }
@@ -656,7 +602,6 @@ public class RecipeOrder implements Serializable {
         this.drugStoreName = drugStoreName;
     }
 
-    @Column(name = "DrugStoreAddr")
     public String getDrugStoreAddr() {
         return drugStoreAddr;
     }
@@ -665,7 +610,6 @@ public class RecipeOrder implements Serializable {
         this.drugStoreAddr = drugStoreAddr;
     }
 
-    @Column(name = "DecoctionFee")
     public BigDecimal getDecoctionFee() {
         return decoctionFee;
     }
@@ -674,7 +618,6 @@ public class RecipeOrder implements Serializable {
         this.decoctionFee = decoctionFee;
     }
 
-    @Transient
     public BigDecimal getDecoctionUnitPrice() {
         return decoctionUnitPrice;
     }
@@ -683,7 +626,6 @@ public class RecipeOrder implements Serializable {
         this.decoctionUnitPrice = decoctionUnitPrice;
     }
 
-    @Transient
     public Integer getCopyNum() {
         return copyNum;
     }
@@ -692,7 +634,6 @@ public class RecipeOrder implements Serializable {
         this.copyNum = copyNum;
     }
 
-    @Transient
     public String getCompleteAddress() {
         return completeAddress;
     }
@@ -701,16 +642,6 @@ public class RecipeOrder implements Serializable {
         this.completeAddress = completeAddress;
     }
 
-    @Column(name = "drugStoreCode")
-    public String getDrugStoreCode() {
-        return drugStoreCode;
-    }
-
-    public void setDrugStoreCode(String drugStoreCode) {
-        this.drugStoreCode = drugStoreCode;
-    }
-
-    @Transient
     public String getRecipeMode() {
         return recipeMode;
     }
@@ -719,7 +650,6 @@ public class RecipeOrder implements Serializable {
         this.recipeMode = recipeMode;
     }
 
-    @Transient
     public Integer getGiveMode() {
         return giveMode;
     }
@@ -728,7 +658,6 @@ public class RecipeOrder implements Serializable {
         this.giveMode = giveMode;
     }
 
-    @Transient
     public String getEnterpriseName() {
         return enterpriseName;
     }

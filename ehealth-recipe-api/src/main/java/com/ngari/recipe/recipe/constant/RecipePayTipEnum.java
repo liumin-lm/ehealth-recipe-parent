@@ -33,11 +33,11 @@ public enum RecipePayTipEnum {
     /**
      * 下载处方，不需要审方/审方金额为0
      */
-    Download_No_CheckFee("ngarihealth", 6, true, "", "提交订单后可下载处方签"),
+    Download_No_CheckFee("ngarihealth", 6, true, "", "提交订单后可下载处方笺"),
     /**
      * 下载处方，审核费用不为0
      */
-    Download_Need_CheckFee("ngarihealth", 6, false, "", "(支付药师审核费后可下载处方签）"),
+    Download_Need_CheckFee("ngarihealth", 6, false, "", "(支付药师审核费后可下载处方笺）"),
     /**
      * 默认值
      */

@@ -8,7 +8,6 @@ import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.filedownload.service.IFileDownloadService;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -32,6 +31,7 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
 import recipe.service.common.RecipeCacheService;
+import recipe.third.IFileDownloadService;
 import recipe.util.DistanceUtil;
 
 import java.io.IOException;

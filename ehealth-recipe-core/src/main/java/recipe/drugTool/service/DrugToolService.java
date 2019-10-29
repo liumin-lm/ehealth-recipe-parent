@@ -8,6 +8,7 @@ import com.google.common.collect.Maps;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drugTool.service.IDrugToolService;
 import com.ngari.recipe.entity.DrugList;
@@ -37,6 +38,7 @@ import recipe.dao.DrugListDAO;
 import recipe.dao.DrugListMatchDAO;
 import recipe.dao.DrugToolUserDAO;
 import recipe.dao.OrganDrugListDAO;
+import recipe.service.OrganDrugListService;
 import recipe.util.DrugMatchUtil;
 import recipe.util.RedisClient;
 
@@ -88,6 +90,8 @@ public class DrugToolService implements IDrugToolService {
 
     @Resource
     private OrganService organService;
+    @Resource
+    private OrganDrugListService organDrugListService;
 
     private LoadingCache<String, List<DrugList>> drugListCache = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(new CacheLoader<String, List<DrugList>>() {
         @Override
@@ -736,6 +740,19 @@ public class DrugToolService implements IDrugToolService {
             return data.size();
         }
         return 0;
+    }
+
+    /**
+     * 上传机构药品数据到监管平台备案
+     * @param organId
+     */
+    @RpcService
+    public void uploadDrugToRegulation(Integer organId){
+        List<OrganDrugList> organDrug = organDrugListDAO.findOrganDrugByOrganId(organId);
+        for (OrganDrugList organDrugList : organDrug){
+            organDrugListService.uploadDrugToRegulation(organDrugList);
+        }
+
     }
 
 

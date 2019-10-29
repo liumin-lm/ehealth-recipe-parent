@@ -20,12 +20,16 @@ public enum TabStatusEnum {
     Ongoing_Recipe_StatusList("ongoing", "recipe" , new ArrayList<>(Arrays.asList(2, 8))),
     /**
      * 已结束订单的状态(已完成)
+     * date 2019/10/16
+     * 修改已完成，可能没有订单，所以直接取处方已完成的状态
      */
     Isover_Order_StatusList("isover", "order", new ArrayList<>(Arrays.asList(5))),
     /**
-     * 已结束处方的状态(未处理，失败，未支付，审核不通过)
+     * 已结束处方的状态(未处理，失败，未支付，审核不通过, 已完成, 已撤销，已删除，推his失败)
+     * date 20191023
+     * 结束添加互联网的天猫结束状态:天猫已过期,天猫已退回
      */
-    Isover_Recipe_StatusList("isover", "recipe", new ArrayList<>(Arrays.asList(14, 17, 13, 15)));
+    Isover_Recipe_StatusList("isover", "recipe", new ArrayList<>(Arrays.asList(14, 17, 13, 15, 12, 6, 9, 10, 11, 20, 23)));
 
     private String tabStatus;
 

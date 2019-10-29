@@ -98,7 +98,14 @@ public class PayModeDownload implements IPurchaseService{
         }
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
         //修改订单线下支付的状态
-        orderService.finishOrderPayWithoutPay(order.getOrderCode(), payMode);
+        //更新处方信息
+        if(0d >= order.getActualPrice()){
+            //如果不需要支付则不走支付,直接掉支付后的逻辑
+            orderService.finishOrderPay(order.getOrderCode(), 1, MapValueUtil.getInteger(extInfo, "payMode"));
+        }else{
+            //需要支付则走支付前的逻辑
+            orderService.finishOrderPayWithoutPay(order.getOrderCode(), payMode);
+        }
         return result;
     }
 
@@ -121,14 +128,19 @@ public class PayModeDownload implements IPurchaseService{
         String tips = "";
         //下载处方购药方式特殊状态,已下载
         if(RecipeStatusConstant.RECIPE_DOWNLOADED == status){
-            tips = "已下载处方签";
+            tips = "已下载处方笺";
         }
         //下载处方购药下通用状态的文案
         if(OrderStatusConstant.FINISH == orderStatus || RecipeStatusConstant.FINISH == status){
             tips = "订单完成";
         }
         if(OrderStatusConstant.READY_GET_DRUG == orderStatus){
-            tips = "订单已处理，请下载处方笺";
+            if(ReviewTypeConstant.Postposition_Check == recipe.getReviewType()){
+                tips = "处方已审核通过，请下载处方笺";
+            }else if(ReviewTypeConstant.Preposition_Check == recipe.getReviewType()){
+
+                tips = "订单已处理，请下载处方笺";
+            }
         }
         return tips;
     }

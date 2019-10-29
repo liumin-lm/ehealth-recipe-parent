@@ -19,6 +19,7 @@ import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.service.AppointDepartService;
 import com.ngari.patient.service.DoctorService;
+import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.entity.*;
 import ctd.dictionary.DictionaryController;
@@ -687,8 +688,8 @@ public class HisRequestInit {
             requestTO.setTreatmentDate(DateConversion.formatDateTimeWithSec(new Date()));
             //医生工号
             //设置医生工号
-            IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
-            requestTO.setDoctorCode(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
+            EmploymentService employmentService = ApplicationUtils.getBasicService(EmploymentService.class);
+            requestTO.setDoctorCode(employmentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
 
             //获取扩展表数据
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);

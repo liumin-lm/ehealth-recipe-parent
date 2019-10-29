@@ -232,7 +232,10 @@ public class PayModeOnline implements IPurchaseService {
         }
 
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
-
+        if(0d >= order.getActualPrice()){
+            //如果不需要支付则不走支付
+            orderService.finishOrderPay(order.getOrderCode(), 1, MapValueUtil.getInteger(extInfo, "payMode"));
+        }
         return result;
     }
 
@@ -270,6 +273,7 @@ public class PayModeOnline implements IPurchaseService {
             case RecipeStatusConstant.FINISH:
                 tips = "药企配送完成，订单完成";
                 break;
+                default:
         }
         return tips;
     }

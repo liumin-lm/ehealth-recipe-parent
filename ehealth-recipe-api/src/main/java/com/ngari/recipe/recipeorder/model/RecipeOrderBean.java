@@ -187,6 +187,10 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "药企名称")
     private String enterpriseName;
 
+    //date 2019/10/18
+    //添加优惠卷信息
+    @ItemProperty(alias = "优惠券描述")
+    private String couponDesc;
 
     public RecipeOrderBean() {
         initData();
@@ -207,6 +211,14 @@ public class RecipeOrderBean implements Serializable {
         this.setCreateTime(now);
         this.setAuditFee(zero);
         this.setOtherFee(zero);
+    }
+
+    public String getCouponDesc() {
+        return couponDesc;
+    }
+
+    public void setCouponDesc(String couponDesc) {
+        this.couponDesc = couponDesc;
     }
 
     public Integer getOrderId() {

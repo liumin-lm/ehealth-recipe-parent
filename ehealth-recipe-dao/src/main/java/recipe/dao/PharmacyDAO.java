@@ -3,6 +3,7 @@ package recipe.dao;
 
 import com.ngari.recipe.entity.Pharmacy;
 import ctd.persistence.annotation.DAOMethod;
+import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
 import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResultAction;
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
@@ -86,5 +87,9 @@ public abstract class PharmacyDAO extends HibernateSupportDelegateDAO<Pharmacy> 
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    @DAOMethod(sql = "from Pharmacy where 1=1 ")
+    public abstract List<Pharmacy> findAll(@DAOParam(pageStart = true) int start,
+                                           @DAOParam(pageLimit = true) int limit);
 
 }

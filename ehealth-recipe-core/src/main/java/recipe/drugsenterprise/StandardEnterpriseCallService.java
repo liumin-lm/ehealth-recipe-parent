@@ -30,6 +30,7 @@ import recipe.ApplicationUtils;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
+import recipe.purchase.CommonOrder;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
@@ -364,6 +365,7 @@ public class StandardEnterpriseCallService {
                     if(null != msgStatus){
                         RecipeMsgService.batchSendMsg(dbRecipe, msgStatus);
                     }
+                    CommonOrder.finishGetDrugUpdatePdf(recipeId);
                 }
 
                 //HOS处方发送完成短信
@@ -668,7 +670,7 @@ public class StandardEnterpriseCallService {
                     break;
                 //第二种：药店取药购药方式下，患者支付成功后，药店确认库存，库存足够为待取药（有库存）/库存不足为待取药（无库存）的订单状态
                 case GetDrugChangeStatusSceneConstant.Only_Change_RecipeOrderStatus:
-                    onlyChangeRecipeOrderStatus(changeStatus, result, nowRecipe);
+                    onlyChangeRecipeOrderStatus(changeStatus, nowRecipe);
                     break;
                 default:
                     result.setMsg("[" + changeStatus.getInstallScene() + "]不支持该变更设置场景");
@@ -690,7 +692,7 @@ public class StandardEnterpriseCallService {
      * @param nowRecipe 当前的处方
      * @return void
      */
-    private void onlyChangeRecipeOrderStatus(ChangeStatusByGetDrugDTO changeStatus, StandardResultDTO result, Recipe nowRecipe) {
+    private void onlyChangeRecipeOrderStatus(ChangeStatusByGetDrugDTO changeStatus, Recipe nowRecipe) {
 
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         Map<String, Object> updateMap = new HashMap<>();
@@ -718,7 +720,7 @@ public class StandardEnterpriseCallService {
      */
     private void failChangeRecipe(ChangeStatusByGetDrugDTO changeStatus, StandardResultDTO result, Recipe nowRecipe) {
         //修改处方的状态，为失败（失败有多种失败的情况状态）
-        Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(changeStatus.getRecipeId(), RecipeStatusConstant.RECIPE_FAIL, null);
+        Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(changeStatus.getRecipeId(), RecipeStatusConstant.NO_DRUG, null);
         if (rs) {
             //更新处方状态后，结束当前订单的状态
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);

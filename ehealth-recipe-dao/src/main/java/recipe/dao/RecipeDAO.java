@@ -1618,7 +1618,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateStatelessResultAction<QueryResult<Recipe>> action = new AbstractHibernateStatelessResultAction<QueryResult<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                String hql = "from Recipe where requestMpiId=:mpiid and clinicOrgan =:clinicOrgan and status in (2,6,9,12,14) order by createDate desc";
+                String hql = "from Recipe where requestMpiId=:mpiid and clinicOrgan =:clinicOrgan and status in (2,6,8,9,12,14,15) order by createDate desc";
                 Query query = ss.createQuery(hql);
                 query.setParameter("mpiid", mpiId);
                 query.setParameter("clinicOrgan", organId);
@@ -1714,7 +1714,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     }
 
     public List<PatientRecipeBean> findTabStatusRecipesForPatient(final List<String> mpiIdList,
-                                                                  final int start, final int limit, final List<Integer> recipeStatusList, final List<Integer> orderStatusList, final List<Integer> specialStatusList) {
+                                                                  final int start, final int limit, final List<Integer> recipeStatusList, final List<Integer> orderStatusList, final List<Integer> specialStatusList, final String tabStatus) {
         HibernateStatelessResultAction<List<PatientRecipeBean>> action = new AbstractHibernateStatelessResultAction<List<PatientRecipeBean>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -1722,11 +1722,22 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 hql.append("select s.type,s.recordCode,s.recordId,s.mpiId,s.diseaseName,s.status,s.fee," +
                         "s.recordDate,s.couponId,s.medicalPayFlag,s.recipeType,s.organId,s.recipeMode,s.giveMode from (");
                 hql.append("SELECT 1 as type,null as couponId, t.MedicalPayFlag as medicalPayFlag, t.RecipeID as recordCode,t.RecipeID as recordId," +
-                        "t.MPIID as mpiId,t.OrganDiseaseName as diseaseName,t.Status,t.TotalMoney as fee," +
+                        "t.MPIID as mpiId,t.OrganDiseaseName as diseaseName,(case when (t.reviewType = 1 and t.checkStatus = 1 and t.status = 15) then 8 else t.Status end) as Status,t.TotalMoney as fee," +
                         "t.SignDate as recordDate,t.RecipeType as recipeType,t.ClinicOrgan as organId,t.recipeMode as recipeMode,t.giveMode as giveMode FROM cdr_recipe t " +
                         "left join cdr_recipeorder k on t.OrderCode=k.OrderCode ");
-                hql.append("WHERE t.MPIID IN (:mpiIdList) and (k.Effective is null or k.Effective = 0) ")
-                        .append(" and t.Status IN (:recipeStatusList) ");
+                hql.append("WHERE t.MPIID IN (:mpiIdList) and (k.Effective is null or k.Effective = 0) ");
+                //添加前置的逻辑：前置时，一次审核不通过，处方判定为待审核，需要在待处理列表中，显示状态为待处理
+                if("ongoing".equals(tabStatus)){
+                    //进行中：加入前置一次审核不通过的作为待审核的处方
+                    //hql.append(" and (t.Status IN (:recipeStatusList) or (t.reviewType = 1 and t.checkStatus = 1 and t.status = 15))");
+                    //date 20191017
+                    //去掉互联网待审核的，sql根据平台和互联网逻辑分开,前半部分是平台的，后半部分是互联网的（互联网“处方部分”状态只展示为待处理的）
+                    hql.append(" and ((t.recipeMode != 'zjjgpt' && t.Status IN (:recipeStatusList) or (t.reviewType = 1 and t.checkStatus = 1 and t.status = 15)) or (t.recipeMode = 'zjjgpt' and t.Status in (2, 22)))");
+                }else{
+                    //已处理：排除一次审核不通过的
+                    hql.append(" and t.Status IN (:recipeStatusList) and t.checkStatus != 1 ");
+                }
+
 
                 hql.append("UNION ALL ");
                 if (CollectionUtils.isNotEmpty(specialStatusList)) {
@@ -1832,4 +1843,46 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         List<Recipe> recipes = action.getResult();
         return recipes;
     }
+
+
+    public List<Recipe> findDowloadedRecipeToFinishList(final String startDate,final String endDate) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder
+                        ("from Recipe where fromflag in (1,2) and status = 18 and lastModify between '" + startDate + "' and '" + endDate + "'");
+
+                Query query = ss.createQuery(hql.toString());
+
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * 查询过期的药师审核不通过，需要医生二次确认的处方
+     * 处方中，审核标记位是一次审核不通过状态的
+     * @param startDt
+     * @param endDt
+     * @return
+     */
+    public List<Recipe> findFirstCheckNoPass(final String startDt, final String endDt) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("select r from Recipe r where " +
+                        " r.signDate between '" + startDt + "' and '" + endDt + "' and r.status=" + RecipeStatusConstant.CHECK_NOT_PASS_YS +
+                        " and r.checkStatus = 1 ");
+                Query q = ss.createQuery(hql.toString());
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+
+        return action.getResult();
+    }
+
 }

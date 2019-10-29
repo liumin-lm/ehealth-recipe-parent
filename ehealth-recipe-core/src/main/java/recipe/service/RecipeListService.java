@@ -70,9 +70,13 @@ public class RecipeListService extends RecipeBaseService{
 
     public static final Integer ORDER_PAGE = 1;
 
-    //历史处方显示的状态：未处理、未支付、审核不通过、失败、已完成
-    public static final Integer[] historyRecipeListShowStatusList = {RecipeStatusConstant.NO_OPERATOR,
-            RecipeStatusConstant.NO_PAY, RecipeStatusConstant.CHECK_NOT_PASS_YS, RecipeStatusConstant.RECIPE_FAIL, RecipeStatusConstant.FINISH};
+    //历史处方显示的状态：未处理、未支付、审核不通过、失败、已完成、his失败、取药失败
+    //date 20191016
+    //历史处方展示的状态不包含已删除，已撤销，同步his失败（原已取消状态）
+    public static final Integer[] HistoryRecipeListShowStatusList = {RecipeStatusConstant.NO_OPERATOR,
+            RecipeStatusConstant.NO_PAY, RecipeStatusConstant.CHECK_NOT_PASS_YS, RecipeStatusConstant.RECIPE_FAIL, RecipeStatusConstant.FINISH, RecipeStatusConstant.NO_DRUG};
+
+    public static final Integer No_Show_Button = 3;
 
     /**
      * 医生端处方列表展示
@@ -472,7 +476,7 @@ public class RecipeListService extends RecipeBaseService{
         return msg;
     }
 
-    private String getOrderStatusTabText(Integer status) {
+    private String getOrderStatusTabText(Integer status, Integer giveMode) {
         String msg = "未知";
         if (OrderStatusConstant.FINISH.equals(status)) {
             msg = "已完成";
@@ -480,6 +484,9 @@ public class RecipeListService extends RecipeBaseService{
             msg = "待支付";
         } else if (OrderStatusConstant.READY_GET_DRUG.equals(status) || OrderStatusConstant.NO_DRUG.equals(status) || OrderStatusConstant.HAS_DRUG.equals(status)) {
             msg = "待取药";
+            if(OrderStatusConstant.READY_GET_DRUG.equals(status) && null != giveMode && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(giveMode)){
+                msg = "待下载";
+            }
         } else if (OrderStatusConstant.READY_CHECK.equals(status)) {
             msg = "待审核";
         } else if (OrderStatusConstant.READY_SEND.equals(status)) {
@@ -516,13 +523,20 @@ public class RecipeListService extends RecipeBaseService{
             case RecipeStatusConstant.NO_OPERATOR:
                 msg = "未处理";
                 break;
+            //已撤销从已取消拆出来
             case RecipeStatusConstant.REVOKE:
+                msg = "已撤销";
+                break;
+            //已撤销从已取消拆出来
+            case RecipeStatusConstant.DELETE:
+                msg = "已删除";
+                break;
+            //写入his失败从已取消拆出来
+            case RecipeStatusConstant.HIS_FAIL:
+                msg = "写入his失败";
+                break;
             case RecipeStatusConstant.CHECK_NOT_PASS_YS:
                 msg = "审核不通过";
-                break;
-            case RecipeStatusConstant.DELETE:
-            case RecipeStatusConstant.HIS_FAIL:
-                msg = "已取消";
                 break;
             case RecipeStatusConstant.IN_SEND:
                 msg = "配送中";
@@ -536,11 +550,13 @@ public class RecipeListService extends RecipeBaseService{
             case RecipeStatusConstant.CHECK_PASS_YS:
                 msg = "审核通过";
                 break;
+            //这里患者取药失败和取药失败都判定为失败
             case RecipeStatusConstant.NO_DRUG:
+            case RecipeStatusConstant.RECIPE_FAIL:
                 msg = "失败";
                 break;
             case RecipeStatusConstant.RECIPE_DOWNLOADED:
-                msg = "已下载";
+                msg = "待取药";
                 break;
             case RecipeStatusConstant.USING:
                 msg = "处理中";
@@ -572,7 +588,7 @@ public class RecipeListService extends RecipeBaseService{
         List<Map<String, Object>> list = new ArrayList<>();
         //List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId, mpiId, start, limit);
         //修改逻辑历史处方中获取的处方列表：只显示未处理、未支付、审核不通过、失败、已完成状态的
-        List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatientAndStatusList(doctorId, mpiId, start, limit, new ArrayList<>(Arrays.asList(historyRecipeListShowStatusList)));
+        List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatientAndStatusList(doctorId, mpiId, start, limit, new ArrayList<>(Arrays.asList(HistoryRecipeListShowStatusList)));
         PatientDTO patient = RecipeServiceSub.convertPatientForRAP(patientService.get(mpiId));
         if (CollectionUtils.isNotEmpty(recipes)) {
             for (Recipe recipe : recipes) {
@@ -736,8 +752,13 @@ public class RecipeListService extends RecipeBaseService{
         if("ongoing".equals(tabStatus)){
             specialStatusList.add(RecipeStatusConstant.RECIPE_DOWNLOADED);
         }
-        List<PatientRecipeBean> backList = recipeDAO.findTabStatusRecipesForPatient(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), specialStatusList);
-        return processTabListDate(backList, allMpiIds);
+        try{
+            List<PatientRecipeBean> backList = recipeDAO.findTabStatusRecipesForPatient(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), specialStatusList, tabStatus);
+            return processTabListDate(backList, allMpiIds);
+        }catch(Exception e){
+            LOGGER.error("findRecipesForPatientAndTabStatus error :{}.", e.getMessage());
+        }
+        return null;
     }
 
     /**
@@ -794,7 +815,7 @@ public class RecipeListService extends RecipeBaseService{
                     record.setRecipeDetail(ObjectCopyUtils.convert(recipedetailList, RecipeDetailBean.class));
                 } else if (LIST_TYPE_ORDER.equals(record.getRecordType())) {
                     RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-                    record.setStatusText(getOrderStatusTabText(record.getStatusCode()));
+                    record.setStatusText(getOrderStatusTabText(record.getStatusCode(), record.getGiveMode()));
                     RecipeResultBean resultBean = orderService.getOrderDetailById(record.getRecordId());
                     if (RecipeResultBean.SUCCESS.equals(resultBean.getCode())) {
                         if (null != resultBean.getObject() && resultBean.getObject() instanceof RecipeOrderBean) {
@@ -917,7 +938,7 @@ public class RecipeListService extends RecipeBaseService{
             }
             List<String> configurations = new ArrayList<>(Arrays.asList((String[])payModeDeploy));
             //将购药方式的显示map对象转化为页面展示的对象
-            Map<String, Boolean> buttonMap = new HashMap<>();
+            Map<String, Boolean> buttonMap = new HashMap<>(10);
             for (String configuration : configurations) {
                 buttonMap.put(configuration, true);
             }
@@ -925,7 +946,8 @@ public class RecipeListService extends RecipeBaseService{
             //当审方为前置并且审核没有通过，设置成不可选择
 
             //判断购药按钮是否可选状态的,当审方方式是前置且正在审核中时，不可选
-            boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() && RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus());
+            boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() &&
+                    (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus())));
             payModeShowButtonBean.setOptional(isOptional);
 
         }else if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(record.getRecipeMode())){
@@ -939,7 +961,7 @@ public class RecipeListService extends RecipeBaseService{
         }
 
         //设置按钮的展示类型
-        payModeShowButtonBean.setButtonType(getButtonType(recipe.getReviewType(), record.getRecordType(), record.getStatusCode()));
+        payModeShowButtonBean.setButtonType(getButtonType(payModeShowButtonBean, recipe.getReviewType(), record.getRecordType(), record.getStatusCode()));
         return payModeShowButtonBean;
     }
 
@@ -960,8 +982,8 @@ public class RecipeListService extends RecipeBaseService{
             //设置购药方式哪些可用
             //配送到家默认可用
             payModeShowButtonBean.setSupportOnline(true);
-            //到店取药默认不可用
-            payModeShowButtonBean.setSupportTFDS(false);
+            //到店取药默认不可用(20190926修改成可用了)
+            payModeShowButtonBean.setSupportTFDS(true);
             //医院取药需要看数据
             boolean hosFlag = true;
             if(1 == recipe.getDistributionFlag()){
@@ -980,9 +1002,21 @@ public class RecipeListService extends RecipeBaseService{
      * @param statusCode 患者处方的状态
      * @return java.lang.Integer 按钮的显示类型
      */
-    private Integer getButtonType(Integer reviewType, String recordType, Integer statusCode) {
-        RecipePageButtonStatusEnum buttonStatus = RecipePageButtonStatusEnum.fromRecodeTypeAndRecodeCodeAndReviewType(recordType, statusCode, reviewType);
-        return buttonStatus.getPageButtonStatus();
+    private Integer getButtonType(PayModeShowButtonBean payModeShowButtonBean, Integer reviewType, String recordType, Integer statusCode) {
+        //添加判断，当选药按钮都不显示的时候，按钮状态为不展示
+        if(null != payModeShowButtonBean){
+            if(!payModeShowButtonBean.getSupportDownload() && !payModeShowButtonBean.getSupportOnline() &&
+                    !payModeShowButtonBean.getSupportTFDS() && !payModeShowButtonBean.getSupportToHos()) {
+                return No_Show_Button;
+            }else{
+                RecipePageButtonStatusEnum buttonStatus = RecipePageButtonStatusEnum.fromRecodeTypeAndRecodeCodeAndReviewType(recordType, statusCode, reviewType);
+                return buttonStatus.getPageButtonStatus();
+            }
+        }else{
+            LOGGER.error("当前按钮的显示信息不存在");
+            return No_Show_Button;
+        }
+
     }
 
     /**
@@ -998,10 +1032,16 @@ public class RecipeListService extends RecipeBaseService{
         }
 
         if(ReviewTypeConstant.Preposition_Check == recipe.getReviewType()){
+            //date 2019/10/10
+            //添加一次审核不通过标识位
             if(RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus()){
                 return 0;
             }else if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()){
-                return 2;
+                if(RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus()){
+                    return 0;
+                }else{
+                    return 2;
+                }
             }
         }
         return 1;
