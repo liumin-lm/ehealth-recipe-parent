@@ -348,6 +348,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @Override
+    @RpcService
     public Map<String,Object> noticePlatRecipeFlowInfo(NoticePlatRecipeFlowInfoDTO req) {
         TmdyfRemoteService service = ApplicationUtils.getRecipeService(TmdyfRemoteService.class);
         LOGGER.info("noticePlatRecipeFlowInfo req=",JSONUtils.toString(req));
