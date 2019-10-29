@@ -351,7 +351,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     public Map<String,Object> noticePlatRecipeFlowInfo(NoticePlatRecipeFlowInfoDTO req) {
         TmdyfRemoteService service = ApplicationUtils.getRecipeService(TmdyfRemoteService.class);
-        LOGGER.info("noticePlatRecipeFlowInfo req=",JSONUtils.toString(req));
+        LOGGER.info("noticePlatRecipeFlowInfo req={}",JSONUtils.toString(req));
         Map<String,Object> map = Maps.newHashMap();
         if (req != null && StringUtils.isNotEmpty(req.getPutOnRecordID())&& StringUtils.isNotEmpty(req.getRecipeID())){
             try {
@@ -359,7 +359,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 if (StringUtils.isNotEmpty(result.getMsg())){
                     map.put("msg",result.getMsg());
                 }
-                LOGGER.info("noticePlatRecipeFlowInfo res=",JSONUtils.toString(result));
+                LOGGER.info("noticePlatRecipeFlowInfo res={}",JSONUtils.toString(result));
             }catch (Exception e){
                 LOGGER.error("noticePlatRecipeFlowInfo error.",e);
                 map.put("msg","处理异常");
