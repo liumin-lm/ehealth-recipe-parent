@@ -60,7 +60,7 @@ public class AuditPreMode extends AbstractAuidtMode {
             }
             //向患者推送处方消息
             //处方通知您有一张处方单需要处理，请及时查看。
-            RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS);
+            RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS_YS);
         }
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核通过处理完成");
     }
