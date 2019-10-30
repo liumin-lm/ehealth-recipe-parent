@@ -465,7 +465,7 @@ public class RecipePreserveService {
         int limit = 100;
         int total = 0;
         while (true){
-            List<DrugList> drugs = dao.findDrugListBySourceOrgan(sourceOrgan,start,limit);
+            List<DrugList> drugs = dao.findDrugListBySourceOrgan(1001780,start,limit);
             if (drugs == null || drugs.size() == 0){
                 return total;
             }
