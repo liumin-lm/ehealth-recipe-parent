@@ -454,7 +454,7 @@ public class RecipePreserveService {
      * 手动同步基础药品数据给his(武昌)
      * @param sourceOrgan
      */
-    @RpcService
+    @RpcService(timeout = 600)
     public int syncDrugListToHis(Integer sourceOrgan){
         DrugListDAO dao = DAOFactory.getDAO(DrugListDAO.class);
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
