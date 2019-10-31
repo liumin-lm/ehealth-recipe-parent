@@ -25,6 +25,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.common.CommonConstant;
@@ -83,7 +84,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(104);
         //findSupportDep(Arrays.asList(3204), null, enterprise);
-        pushRecipeInfo(Arrays.asList(3200), enterprise);
+        pushRecipeInfo(Arrays.asList(3191), enterprise);
     }
 
     @Override
@@ -108,18 +109,18 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
 
             hrPushRecipeInfo.setOrderId(recipeOrder.getOrderCode());
             hrPushRecipeInfo.setStoreId(recipeOrder.getDrugStoreCode());
-            hrPushRecipeInfo.setDescription("无");
             hrPushRecipeInfo.setIsNeedInvoice(false);
             hrPushRecipeInfo.setPickMode(RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getGiveMode()) ? 0 : 1 );
             hrPushRecipeInfo.setSettleMode(RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getGiveMode()) ? 1 : 2);
-            hrPushRecipeInfo.setPayFlag(recipeOrder.getPayFlag() == 1 ? "1" : "0");
-            hrPushRecipeInfo.setAmount(recipeOrder.getActualPrice());
+            hrPushRecipeInfo.setPayFlag(recipeOrder.getPayFlag() == 1 ? 1 : 0);
+            hrPushRecipeInfo.setAmount(Double.parseDouble(recipeOrder.getRecipeFee().toString()));
             ReceiveAddress receiveAddress = new ReceiveAddress();
             //设置用户信息
             PatientDTO patientDTO = patientService.getPatientByMpiId(recipe.getMpiid());
             if (patientDTO == null) {
                 return getDrugEnterpriseResult(result, "用户不存在");
             }
+            hrPushRecipeInfo.setDescription(patientDTO.getPatientName() + "的订单");
             receiveAddress.setPhone(patientDTO.getMobile());
             receiveAddress.setReceiver(patientDTO.getPatientName());
             String province = getAddressDic(recipeOrder.getAddress1());
@@ -137,6 +138,8 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
 
             receiveAddress.setDetail(province + city + district + street);
 
+            receiveAddress.setDescription("无");
+
             hrPushRecipeInfo.setReceiveAddress(receiveAddress);
 
             //设置患者
@@ -145,7 +148,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
             HrPatient hrPatient = new HrPatient();
             hrPatient.setPatientId(patientDTO.getMpiId());
             hrPatient.setName(patientDTO.getPatientName());
-            hrPatient.setIdentityType("1");
+            hrPatient.setIdentityType(1);
             hrPatient.setIdentityNo(patientDTO.getIdcard());
             if ("1".equals(patientDTO.getPatientSex())) {
                 hrPatient.setSex(0);
@@ -160,6 +163,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
             linkAddress.setDistrict(district);
             linkAddress.setStreet(street);
             linkAddress.setDetail(province + city + district + street);
+            linkAddress.setDescription("无");
             hrPatient.setLinkAddress(linkAddress);
             Patients.add(hrPatient);
 
@@ -175,8 +179,13 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
             hrPrescr.setBuyerId(patientDTO.getMpiId());
             hrPrescr.setDiagnosisResult(recipe.getOrganDiseaseName());
             hrPrescr.setMedicalOrder(recipe.getMemo());
-            //RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeId(recipe.getRecipeId());
-            hrPrescr.setReviewerName("ceshi");
+            if (recipe.getChecker() != null) {
+                DoctorDTO checker = doctorService.getByDoctorId(recipe.getChecker());
+                hrPrescr.setReviewerName(checker.getName());
+            } else {
+                hrPrescr.setReviewerName("0000");
+            }
+
             hrPrescr.setDescription("".equals(recipe.getMemo())?"无":recipe.getMemo());
             OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
             if (organDTO == null) {
@@ -203,7 +212,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
             hrPrescr.setDoctorName(doctor.getName());
             hrPrescr.setHospitalId(organDTO.getOrganId().toString()); //医院编码
             hrPrescr.setDoctorId(recipe.getDoctor().toString());
-            hrPrescr.setPrescrAmount(recipeOrder.getRecipeFee().toString());
+            hrPrescr.setPrescrAmount(Double.parseDouble(recipeOrder.getRecipeFee().toString()));
             hrPrescr.setImageUri("https://baseapi.ngarihealth.com/ehealth-base/upload/5db6cee86b1d292bdea932f6");
             List<HrDetail> Details = new ArrayList<>();
             List<HrDrugDetail> drugDetails = new ArrayList<>();
@@ -217,30 +226,27 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
                 }
                 detail.setProductId(saleDrugList.getOrganDrugCode());
                 drugDetail.setProductId(saleDrugList.getOrganDrugCode());
-                detail.setPrice(recipedetails.get(i).getSalePrice().toString());
-                detail.setQuantity(recipedetails.get(i).getUseTotalDose().toString());
-                detail.setUnit(recipedetails.get(i).getUseDoseUnit());
+                detail.setPrice(Double.parseDouble(recipedetails.get(i).getSalePrice().toString()));
+                detail.setQuantity(recipedetails.get(i).getUseTotalDose().intValue());
+                detail.setUnit(recipedetails.get(i).getDrugUnit());
                 detail.setDescription("".equals(recipedetails.get(i).getMemo()) ? "无" : recipedetails.get(i).getMemo());
-                detail.setDrugDoseQuantity(recipedetails.get(i).getUseDose().toString());
+                detail.setDrugDoseQuantity(recipedetails.get(i).getUseDose());
                 detail.setDrugDoseUnit(recipedetails.get(i).getUseDoseUnit());
-                StringBuilder frequency = new StringBuilder();
                 String usingRate ;
                 String usePathways ;
                 try {
                     usingRate = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(recipedetails.get(i).getUsingRate());
                     usePathways = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipedetails.get(i).getUsePathways());
-                    frequency.append(usingRate).append(usePathways);
                 } catch (ControllerException e) {
                     return getDrugEnterpriseResult(result, "药物使用频率使用途径获取失败");
                 }
-                detail.setFrequency(frequency.toString());
-                detail.setFrequencyQuantity(recipedetails.get(i).getUsingRate());
+                detail.setFrequency(recipedetails.get(i).getUsingRate());
                 detail.setFrequencyDescription(usingRate);
                 detail.setUsage(recipedetails.get(i).getUsePathways());
                 detail.setUsageDescription(usePathways);
-                detail.setPerDosageQuantity(recipedetails.get(i).getUseDose().toString());
+                detail.setPerDosageQuantity(recipedetails.get(i).getUseDose());
                 detail.setPerDosageUnit(recipedetails.get(i).getUseDoseUnit());
-                detail.setDays(recipedetails.get(i).getUseDays().toString());
+                detail.setDays(recipedetails.get(i).getUseDays());
 
                 detail.setCommonName(saleDrugList.getDrugName());
                 detail.setSpecs(saleDrugList.getDrugSpec());
@@ -253,10 +259,10 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
                     return getDrugEnterpriseResult(result, "机构药品目录不存在" + recipedetails.get(i).getDrugId());
                 }
                 drugDetail.setProducer(organDrugList.getProducer());
-                drugDetail.setQuantity(recipedetails.get(i).getUseTotalDose().toString());
-                drugDetail.setPrice(saleDrugList.getPrice().toString());
-                drugDetail.setUnit(recipedetails.get(i).getUseDoseUnit());
-                drugDetail.setAmount(saleDrugList.getPrice().toString());
+                drugDetail.setQuantity(recipedetails.get(i).getUseTotalDose().intValue());
+                drugDetail.setPrice(Double.parseDouble(saleDrugList.getPrice().toString()));
+                drugDetail.setUnit(recipedetails.get(i).getDrugUnit());
+                drugDetail.setAmount(Double.parseDouble(saleDrugList.getPrice().toString()));
                 drugDetail.setDescription("无");
                 Details.add(detail);
                 drugDetails.add(drugDetail);
@@ -285,8 +291,8 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
             HttpEntity httpEntity = response.getEntity();
             String responseStr = EntityUtils.toString(httpEntity);
             LOGGER.info("[{}][{}] pushRecipeInfo 返回:{}", depId, enterprise.getName(), responseStr);
-            JztTokenResponse jztResponse = JSONUtils.parse(responseStr, JztTokenResponse.class);
-            if (jztResponse.getCode() == 200 && jztResponse.isSuccess()) {
+
+            if (StringUtils.isNotEmpty(responseStr) && responseStr.contains("OrderId")) {
                 Recipe dbRecipe = recipeList.get(0);
                 //成功
                 result.setCode(DrugEnterpriseResult.SUCCESS);
@@ -295,9 +301,8 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
                 LOGGER.info("[{}][{}] pushRecipeInfo {} success.", depId, enterprise.getName(), JSONUtils.toString(recipeIds));
             } else {
                 //失败
-                result.setMsg(jztResponse.getMsg());
                 LOGGER.warn("[{}][{}] pushRecipeInfo {} fail. msg={}", depId, enterprise.getName(),
-                        JSONUtils.toString(recipeIds), jztResponse.getMsg());
+                        JSONUtils.toString(recipeIds), responseStr);
             }
             //关闭 HttpEntity 输入流
             EntityUtils.consume(httpEntity);
@@ -499,7 +504,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
     private List<HrStoreBean> findHaveStockStores(List<Integer> recipeIds, Map ext, DrugsEnterprise drugsEnterprise){
         Integer recipeId = recipeIds.get(0);
         List<HrStoreBean> totalHaveStockStores = new ArrayList<>();
-        List<HrStoreBean> hrStoreBeans;
+        List<HrStoreBean> hrStoreBeans = new ArrayList<>();
         if (ext != null) {
             //通过坐标获取一定范围内的药店
             hrStoreBeans = findStoreByPosintion(ext, drugsEnterprise);
@@ -512,12 +517,11 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
         if (recipe == null) {
             return null;
         }
-        List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
         List<Recipedetail> detailList = recipeDetailDAO.findByRecipeId(recipeId);
         List<Integer> drugIds = new ArrayList<>(detailList.size());
-        List<Map<String, String>> drugsNumMap = new ArrayList<>();
         Map<String, String> map = new HashMap<>();
-        for (Recipedetail recipedetail : recipedetails) {
+        for (Recipedetail recipedetail : recipeDetails) {
             drugIds.add(recipedetail.getDrugId());
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
             map.put(saleDrugList.getOrganDrugCode(), recipedetail.getUseTotalDose().toString());
@@ -538,18 +542,20 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
             List<HrStoreResponse> hrStoreResponses = findScanStockStores(parames.toString(), drugsEnterprise);
             int whileCount = 0;
             int haveStockNum = 0;
-            for (HrStoreResponse hrStoreResponse : hrStoreResponses) {
-                whileCount++;
-                if (StringUtils.isNotEmpty(hrStoreResponse.getQuantity()) && Integer.parseInt(hrStoreResponse.getQuantity()) >= 0) {
-                    if (map.containsKey(hrStoreResponse.getProductId())){
-                        String useTotalDose = map.get(hrStoreResponse.getProductId());
-                        if (Double.parseDouble(useTotalDose) < Double.parseDouble(hrStoreResponse.getQuantity())) {
-                            haveStockNum++;
+            if (!CollectionUtils.isEmpty(hrStoreResponses)) {
+                for (HrStoreResponse hrStoreResponse : hrStoreResponses) {
+                    whileCount++;
+                    if (StringUtils.isNotEmpty(hrStoreResponse.getQuantity()) && Integer.parseInt(hrStoreResponse.getQuantity()) >= 0) {
+                        if (map.containsKey(hrStoreResponse.getProductId())){
+                            String useTotalDose = map.get(hrStoreResponse.getProductId());
+                            if (Double.parseDouble(useTotalDose) < Double.parseDouble(hrStoreResponse.getQuantity())) {
+                                haveStockNum++;
+                            }
                         }
                     }
                 }
             }
-            if (whileCount == haveStockNum) {
+            if (whileCount == haveStockNum && whileCount != 0) {
                 totalHaveStockStores.add(hrStoreBeans.get(i));
             }
         }

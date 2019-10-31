@@ -14,10 +14,10 @@ public class HrDrugDetail implements Serializable {
     private String CommonName;
     private String Specs;
     private String Producer;
-    private String Quantity;
-    private String Price;
+    private int Quantity;
+    private Double Price;
     private String Unit;
-    private String Amount;
+    private Double Amount;
     private String Description;
 
     public String getProductId() {
@@ -60,19 +60,19 @@ public class HrDrugDetail implements Serializable {
         Producer = producer;
     }
 
-    public String getQuantity() {
+    public int getQuantity() {
         return Quantity;
     }
 
-    public void setQuantity(String quantity) {
+    public void setQuantity(int quantity) {
         Quantity = quantity;
     }
 
-    public String getPrice() {
+    public Double getPrice() {
         return Price;
     }
 
-    public void setPrice(String price) {
+    public void setPrice(Double price) {
         Price = price;
     }
 
@@ -84,11 +84,11 @@ public class HrDrugDetail implements Serializable {
         Unit = unit;
     }
 
-    public String getAmount() {
+    public Double getAmount() {
         return Amount;
     }
 
-    public void setAmount(String amount) {
+    public void setAmount(Double amount) {
         Amount = amount;
     }
 

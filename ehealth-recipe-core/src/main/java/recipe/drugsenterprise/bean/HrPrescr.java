@@ -25,7 +25,7 @@ public class HrPrescr implements Serializable{
     private String DoctorName;
     private String HospitalId;
     private String DoctorId;
-    private String PrescrAmount;
+    private Double PrescrAmount;
     private List<HrDetail> Details;
 
     public String getPatientId() {
@@ -148,11 +148,11 @@ public class HrPrescr implements Serializable{
         DoctorId = doctorId;
     }
 
-    public String getPrescrAmount() {
+    public Double getPrescrAmount() {
         return PrescrAmount;
     }
 
-    public void setPrescrAmount(String prescrAmount) {
+    public void setPrescrAmount(Double prescrAmount) {
         PrescrAmount = prescrAmount;
     }
 

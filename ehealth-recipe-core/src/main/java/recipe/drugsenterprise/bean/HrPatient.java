@@ -11,9 +11,9 @@ public class HrPatient implements Serializable{
 
     private String PatientId;
     private String Name;
-    private String IdentityType;
+    private int IdentityType;
     private String IdentityNo;
-    private Integer Sex;
+    private int Sex;
     private String Birthday;
     private String Mobile;
     private LinkAddress LinkAddress;
@@ -34,11 +34,11 @@ public class HrPatient implements Serializable{
         Name = name;
     }
 
-    public String getIdentityType() {
+    public int getIdentityType() {
         return IdentityType;
     }
 
-    public void setIdentityType(String identityType) {
+    public void setIdentityType(int identityType) {
         IdentityType = identityType;
     }
 

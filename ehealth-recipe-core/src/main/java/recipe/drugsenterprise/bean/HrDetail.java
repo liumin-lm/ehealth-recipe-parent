@@ -10,20 +10,20 @@ public class HrDetail implements Serializable{
     private static final long serialVersionUID = 5575779677866678724L;
 
     private String ProductId;
-    private String Price;
-    private String Quantity;
+    private Double Price;
+    private int Quantity;
     private String Unit;
     private String Description;
-    private String DrugDoseQuantity;
+    private Double DrugDoseQuantity;
     private String DrugDoseUnit;
     private String Frequency;
-    private String FrequencyQuantity;
+    private int FrequencyQuantity;
     private String FrequencyDescription;
     private String Usage;
     private String UsageDescription;
-    private String PerDosageQuantity;
+    private Double PerDosageQuantity;
     private String PerDosageUnit;
-    private String Days;
+    private int Days;
     private String Style;
     private String CommonName;
     private String Specs;
@@ -38,19 +38,19 @@ public class HrDetail implements Serializable{
         ProductId = productId;
     }
 
-    public String getPrice() {
+    public Double getPrice() {
         return Price;
     }
 
-    public void setPrice(String price) {
+    public void setPrice(Double price) {
         Price = price;
     }
 
-    public String getQuantity() {
+    public int getQuantity() {
         return Quantity;
     }
 
-    public void setQuantity(String quantity) {
+    public void setQuantity(int quantity) {
         Quantity = quantity;
     }
 
@@ -70,11 +70,11 @@ public class HrDetail implements Serializable{
         Description = description;
     }
 
-    public String getDrugDoseQuantity() {
+    public Double getDrugDoseQuantity() {
         return DrugDoseQuantity;
     }
 
-    public void setDrugDoseQuantity(String drugDoseQuantity) {
+    public void setDrugDoseQuantity(Double drugDoseQuantity) {
         DrugDoseQuantity = drugDoseQuantity;
     }
 
@@ -94,11 +94,11 @@ public class HrDetail implements Serializable{
         Frequency = frequency;
     }
 
-    public String getFrequencyQuantity() {
+    public int getFrequencyQuantity() {
         return FrequencyQuantity;
     }
 
-    public void setFrequencyQuantity(String frequencyQuantity) {
+    public void setFrequencyQuantity(int frequencyQuantity) {
         FrequencyQuantity = frequencyQuantity;
     }
 
@@ -126,11 +126,11 @@ public class HrDetail implements Serializable{
         UsageDescription = usageDescription;
     }
 
-    public String getPerDosageQuantity() {
+    public Double getPerDosageQuantity() {
         return PerDosageQuantity;
     }
 
-    public void setPerDosageQuantity(String perDosageQuantity) {
+    public void setPerDosageQuantity(Double perDosageQuantity) {
         PerDosageQuantity = perDosageQuantity;
     }
 
@@ -142,11 +142,11 @@ public class HrDetail implements Serializable{
         PerDosageUnit = perDosageUnit;
     }
 
-    public String getDays() {
+    public int getDays() {
         return Days;
     }
 
-    public void setDays(String days) {
+    public void setDays(int days) {
         Days = days;
     }
 

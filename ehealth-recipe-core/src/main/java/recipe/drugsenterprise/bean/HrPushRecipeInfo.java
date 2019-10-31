@@ -13,10 +13,10 @@ public class HrPushRecipeInfo implements Serializable{
     private String OrderId;
     private String StoreId;
     private String Description;
-    private boolean IsNeedInvoice;
-    private Integer PickMode;
-    private Integer SettleMode;
-    private String PayFlag;
+    private Boolean IsNeedInvoice;
+    private int PickMode;
+    private int SettleMode;
+    private int PayFlag;
     private Double Amount;
     private ReceiveAddress ReceiveAddress;
     private List<HrPatient> Patients;
@@ -71,11 +71,11 @@ public class HrPushRecipeInfo implements Serializable{
         SettleMode = settleMode;
     }
 
-    public String getPayFlag() {
+    public int getPayFlag() {
         return PayFlag;
     }
 
-    public void setPayFlag(String payFlag) {
+    public void setPayFlag(int payFlag) {
         PayFlag = payFlag;
     }
 
