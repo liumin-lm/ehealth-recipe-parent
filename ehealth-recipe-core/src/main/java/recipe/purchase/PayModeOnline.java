@@ -15,11 +15,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
-import recipe.constant.OrderStatusConstant;
-import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
-import recipe.constant.ReviewTypeConstant;
+import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.RecipeOrderService;
@@ -75,7 +73,6 @@ public class PayModeOnline implements IPurchaseService {
             resultBean.setMsg("没有药企可以配送");
             return resultBean;
         }
-
 
         //处理详情
         List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
@@ -142,7 +139,8 @@ public class PayModeOnline implements IPurchaseService {
 
             depDetailList.add(depDetailBean);
         }
-
+        //此处校验是否存在支持药店配送的药企
+        checkStoreForSendToHom(dbRecipe, depDetailList);
         depListBean.setSigle(false);
         if (CollectionUtils.isNotEmpty(depDetailList) && depDetailList.size() == 1) {
             depListBean.setSigle(true);
@@ -168,6 +166,7 @@ public class PayModeOnline implements IPurchaseService {
         RecipePayModeSupportBean payModeSupport = orderService.setPayModeSupport(order, payMode);
         Integer depId = MapValueUtil.getInteger(extInfo, "depId");
         String payway = MapValueUtil.getString(extInfo, "payway");
+
         if (StringUtils.isEmpty(payway)) {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("支付信息不全");
@@ -199,6 +198,13 @@ public class PayModeOnline implements IPurchaseService {
         order.setMpiId(dbRecipe.getMpiid());
         order.setOrganId(dbRecipe.getClinicOrgan());
         order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
+        String drugStoreCode = MapValueUtil.getString(extInfo, "pharmacyCode");
+        if (StringUtils.isNotEmpty(drugStoreCode)) {
+            String drugStoreName = MapValueUtil.getString(extInfo, "depName");
+            //String DrugStoreAddr = MapValueUtil.
+            order.setDrugStoreCode(drugStoreCode);
+            order.setDrugStoreName(drugStoreName);
+        }
         //设置订单各种费用和配送地址
         List<Recipe> recipeList = Arrays.asList(dbRecipe);
         orderService.setOrderFee(result, order, Arrays.asList(recipeId), recipeList, payModeSupport, extInfo, 1);
@@ -348,6 +354,40 @@ public class PayModeOnline implements IPurchaseService {
                 cp = compare > 0 ? 1 : -1;
             }
             return cp;
+        }
+    }
+
+    private void checkStoreForSendToHom(Recipe dbRecipe, List<DepDetailBean> depDetailList) {
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByOrganId(dbRecipe.getClinicOrgan());
+        for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+            if (DrugEnterpriseConstant.COMPANY_HR.equals(drugsEnterprise.getCallSys())) {
+                //将药店配送的药企移除
+                for (DepDetailBean depDetailBean : depDetailList) {
+                    if (depDetailBean.getDepId() == drugsEnterprise.getId()) {
+                        depDetailList.remove(depDetailBean);
+                        break;
+                    }
+                }
+                //特殊处理,对华润药企特殊处理,包含华润药企,需要将华润药企替换成药店
+                RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+                //需要从接口获取药店列表
+                DrugEnterpriseResult drugEnterpriseResult = remoteDrugService.findSupportDep(Arrays.asList(dbRecipe.getRecipeId()), null, drugsEnterprise);
+
+                if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
+                    Object result = drugEnterpriseResult.getObject();
+                    if (result != null && result instanceof List) {
+                        List<DepDetailBean> hrList = (List) result;
+                        for (DepDetailBean depDetailBean : hrList) {
+                            depDetailBean.setDepId(drugsEnterprise.getId());
+                            depDetailBean.setBelongDepName(drugsEnterprise.getName());
+                            depDetailBean.setPayModeText("在线支付");
+                        }
+                        depDetailList.addAll(hrList);
+                        LOG.info("获取到的药店列表:{}.", JSONUtils.toString(depDetailList));
+                    }
+                }
+            }
         }
     }
 }
