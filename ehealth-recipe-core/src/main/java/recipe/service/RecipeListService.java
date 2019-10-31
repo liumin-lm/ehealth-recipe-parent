@@ -899,11 +899,7 @@ public class RecipeListService extends RecipeBaseService{
      */
     private Integer getJumpPage(Recipe recipe) {
         Integer jumpPage = RECIPE_PAGE;
-        if(RecipeStatusConstant.USING == recipe.getStatus()){
-            jumpPage = ORDER_PAGE;
-        }else{
-            jumpPage = null == recipe.getOrderCode() ? RECIPE_PAGE : ORDER_PAGE;
-        }
+        jumpPage = null == recipe.getOrderCode() ? RECIPE_PAGE : ORDER_PAGE;
         return jumpPage;
     }
 
