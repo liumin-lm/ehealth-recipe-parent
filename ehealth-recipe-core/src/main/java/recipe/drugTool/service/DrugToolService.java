@@ -14,6 +14,7 @@ import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.ProvinceDrugListBean;
 import com.ngari.recipe.drugTool.service.IDrugToolService;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.UpdateMatchStatusFormBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.dictionary.DictionaryItem;
@@ -81,6 +82,11 @@ public class DrugToolService implements IDrugToolService {
      */
     public static final Integer[] Ready_Match_StatusList = {DrugMatchConstant.ALREADY_MATCH, DrugMatchConstant.SUBMITED};
 
+    /*平台类型*/
+    private static final int Platform_Type = 0;
+
+    /*省平台类型*/
+    private static final int Province_Platform_Type = 1;
 
     @Resource
     private DrugListMatchDAO drugListMatchDAO;
@@ -111,8 +117,9 @@ public class DrugToolService implements IDrugToolService {
 
     private LoadingCache<String, List<ProvinceDrugList>> provinceDrugListCache = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(new CacheLoader<String, List<ProvinceDrugList>>() {
         @Override
-        public List<ProvinceDrugList> load(String str) throws Exception {
-            return provinceDrugListDAO.findByProvinceSaleNameLike(str);
+        public List<ProvinceDrugList> load(String searchStr) throws Exception {
+            String[] searchStrs = searchStr.split("-");
+            return provinceDrugListDAO.findByProvinceSaleNameLike(searchStrs[1], searchStrs[0]);
         }
     });
 
@@ -868,15 +875,8 @@ public class DrugToolService implements IDrugToolService {
      */
     @RpcService
     public List<ProvinceDrugList> findProvinceDrugList(Integer organId) {
-        OrganDTO organDTO = organService.get(organId);
-        String addrArea = organDTO.getAddrArea();
-        //校验省平台的地址信息合理性
-        if(null == addrArea || 2 > addrArea.length()){
-            LOGGER.error("findProvinceDrugList() error : 医院[{}],对应的省信息不全", organId);
-            throw new DAOException(DAOException.VALUE_NEEDED, "医院对应的省信息不全");
-        }
-        return provinceDrugListDAO.findByProvinceIdAndStatus(addrArea.substring(0, 2), 1);
-
+        String addrArea = checkOrganAddrArea(organId);
+        return provinceDrugListDAO.findByProvinceIdAndStatus(addrArea, 1);
     }
 
     /**
@@ -885,20 +885,8 @@ public class DrugToolService implements IDrugToolService {
      */
     @RpcService
     public void updateOrganDrugMatchByProvinceDrug(int organId) {
-        //查询是否有意需要更新状态的药品（将匹配药品中已匹配的和已提交）
-        //这里直接判断机构对应省药品有无药品
-        OrganDTO organDTO = organService.get(organId);
-        if(null == organDTO){
-            LOGGER.warn("updateOrganDrugMatchByProvinceDrug 当期机构[{}]不存在", organId);
-            return;
-        }
-        String addrArea = organDTO.getAddrArea();
-        //校验省平台的地址信息合理性
-        if(null == addrArea || 2 > addrArea.length()){
-            LOGGER.error("updateOrganDrugMatchByProvinceDrug() error : 医院[{}],对应的省信息不全", organId);
-            throw new DAOException(DAOException.VALUE_NEEDED, "医院对应的省信息不全");
-        }
-        Long provinceDrugNum = provinceDrugListDAO.getCountByProvinceIdAndStatus(addrArea.substring(0, 2), 1);
+        String addrArea = checkOrganAddrArea(organId);
+        Long provinceDrugNum = provinceDrugListDAO.getCountByProvinceIdAndStatus(addrArea, 1);
         //更新药品状态成匹配中
         if(0L < provinceDrugNum){
             //批量将匹配药品状态设置成匹配中
@@ -906,48 +894,79 @@ public class DrugToolService implements IDrugToolService {
         }
     }
 
+    private String checkOrganAddrArea(int organId) {
+        //查询是否有意需要更新状态的药品（将匹配药品中已匹配的和已提交）
+        //这里直接判断机构对应省药品有无药品
+        OrganDTO organDTO = organService.get(organId);
+        if(null == organDTO){
+            LOGGER.warn("updateOrganDrugMatchByProvinceDrug 当期机构[{}]不存在", organId);
+            return null;
+        }
+        String addrArea = organDTO.getAddrArea();
+        //校验省平台的地址信息合理性
+        if(null == addrArea || 2 > addrArea.length()){
+            LOGGER.error("updateOrganDrugMatchByProvinceDrug() error : 医院[{}],对应的省信息不全", organId);
+            throw new DAOException(DAOException.VALUE_NEEDED, "医院对应的省信息不全");
+        }
+        return addrArea.substring(0, 2);
+    }
+
     /**
      * @method  updateMatchStatusCurrent
      * @description 选中的平台药品/省平台药品匹配机构药品
      * @date: 2019/10/25
      * @author: JRK
-     * @param drugId 更新的药品id
-     * @param matchDrugInfo 匹配上的平台药品id/匹配上省平台的药品code
-     * @param operator 操作人
-     * @param haveProvinceDrug 是否有当前机构对应省的药品（由前端查询list是否为空判断）
+     * @param updateMatchStatusFormBean 属性值
+     * drugId 更新的药品id
+     * matchDrugId 匹配上的平台药品id
+     * matchDrugInfo 匹配上省平台的药品code
+     * operator 操作人
+     * haveProvinceDrug 是否有当前机构对应省的药品（由前端查询list是否为空判断）
      * @return void
      */
     @RpcService
-    public void updateMatchStatusCurrent(int drugId, String matchDrugInfo, String operator, Boolean haveProvinceDrug) {
+    public void updateMatchStatusCurrent(UpdateMatchStatusFormBean updateMatchStatusFormBean) {
+        String operator = updateMatchStatusFormBean.getOperator();
         if (StringUtils.isEmpty(operator)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "operator is required");
         }
-        if (StringUtils.isEmpty(matchDrugInfo)) {
-            throw new DAOException(DAOException.VALUE_NEEDED, "matchDrugInfo is required");
-        }
+
+        //更新状态数据准备
+        Integer drugId = updateMatchStatusFormBean.getDrugId();
         DrugListMatch drugListMatch = drugListMatchDAO.get(drugId);
+        Integer drugListMatchStatus = drugListMatch.getStatus();
         if(null == drugListMatch){
             LOGGER.warn("updateMatchStatusCurrent 当期对照药品[{}]不存在", drugId);
             return;
         }
+        int makeType = updateMatchStatusFormBean.getMakeType();
+        Boolean haveProvinceDrug = updateMatchStatusFormBean.getHaveProvinceDrug();
+        Integer matchDrugId = updateMatchStatusFormBean.getMatchDrugId();
+        String matchDrugInfo = updateMatchStatusFormBean.getMatchDrugInfo();
+
+
         Map<String, Object> updateMap = new HashMap<>();
         //判断是否有省平台药品对应
-        int status = 0;
-        if(haveProvinceDrug){
-            //有省平台数据时，判断是匹配平台的还是匹配省平台的
-            if(null != drugListMatch.getMatchDrugId()){
-                //匹配审平台的时候，设置审平台的药瓶code
-                status = DrugMatchConstant.ALREADY_MATCH;
-                updateMap.put("regulationDrugCode", matchDrugInfo);
+        Integer status = 0;
+        if(Platform_Type == makeType){
+            //平台匹配操作
+            if(haveProvinceDrug){
+                //匹配省平台的时候
+                status = geUpdateStatus(drugId, drugListMatchStatus, "updateMatchStatusCurrent 当前匹配药品[{}]状态[{}]不能进行平台匹配");
+                if (status == null) return;
             }else{
-                //有省平台，更新成匹配中;
-                status = DrugMatchConstant.MATCHING;
-                updateMap.put("matchDrugId", Integer.parseInt(matchDrugInfo));
+                //无匹省台的时候
+                status = DrugMatchConstant.ALREADY_MATCH;
             }
+            updateMap.put("matchDrugId", matchDrugId);
+        }else if (Province_Platform_Type == makeType){
+            //省平台匹配操作
+            status = geUpdateStatus(drugId, drugListMatchStatus, "updateMatchStatusCurrent 当前匹配药品[{}]状态[{}]不能进行省平台匹配");
+            if (status == null) return;
+            updateMap.put("regulationDrugCode", matchDrugInfo);
         }else{
-            //无省平台，更新成已匹配
-            status = DrugMatchConstant.ALREADY_MATCH;
-            updateMap.put("matchDrugId", Integer.parseInt(matchDrugInfo));
+            LOGGER.info("updateMatchStatusCurrent 传入操作状态非平台和省平台", makeType);
+            return;
         }
         updateMap.put("operator", operator);
         updateMap.put("status", status);
@@ -955,41 +974,116 @@ public class DrugToolService implements IDrugToolService {
         LOGGER.info("updateMatchStatusCurrent 操作人->{}更新已匹配状态,drugId={};status ->before={},after={}", operator, drugId, drugListMatch.getStatus(), status);
     }
 
+    /*获取更新后的对照状态状态*/
+    private Integer geUpdateStatus(Integer drugId, Integer drugListMatchStatus, String message) {
+        Integer status;
+        if(DrugMatchConstant.UNMATCH == drugListMatchStatus){
+            status = DrugMatchConstant.MATCHING;
+        }else if(DrugMatchConstant.MATCHING == drugListMatchStatus){
+            status = DrugMatchConstant.ALREADY_MATCH;
+        }else{
+            LOGGER.info(message, drugId, drugListMatchStatus);
+            return null;
+        }
+        return status;
+    }
+
     /**
      * 省药品匹配
      */
     @RpcService
-    public List<ProvinceDrugListBean> provinceDrugMatch(int drugId) {
+    public List<ProvinceDrugListBean> provinceDrugMatch(int drugId, int organId) {
         DrugListMatch drugListMatch = drugListMatchDAO.get(drugId);
 
         if(null == drugListMatch){
             LOGGER.warn("provinceDrugMatch 当期药品[{}]不在机构对照列表中", drugId);
             return null;
         }
-        String str = DrugMatchUtil.match(drugListMatch.getDrugName());
+        List<ProvinceDrugList> provinceDrugLists = getProvinceDrugLists(organId, drugListMatch);
+        List<ProvinceDrugListBean> provinceDrugListBeans = getProvinceDrugListBean(drugListMatch, provinceDrugLists);
+
+        return provinceDrugListBeans;
+
+    }
+
+    /*根据匹配的药品销售名，获取相似名称的省平台药品*/
+    private List<ProvinceDrugList> getProvinceDrugLists(int organId, DrugListMatch drugListMatch) {
+        String addrArea = checkOrganAddrArea(organId);
+        String likeDrugName = DrugMatchUtil.match(drugListMatch.getDrugName());
         //根据药品名取标准药品库查询相关药品
         List<ProvinceDrugList> provinceDrugLists = null;
-        List<ProvinceDrugListBean> provinceDrugListBeans = null;
         try {
-            provinceDrugLists = provinceDrugListCache.get(str);
+            provinceDrugLists = provinceDrugListCache.get(addrArea+ "-" + likeDrugName);
         } catch (ExecutionException e) {
             LOGGER.error("drugMatch:" + e.getMessage());
         }
+        return provinceDrugLists;
+    }
 
+    /*渲染页面上的勾选展示的项*/
+    private List<ProvinceDrugListBean> getProvinceDrugListBean(DrugListMatch drugListMatch, List<ProvinceDrugList> provinceDrugLists) {
+        List<ProvinceDrugListBean> provinceDrugListBeans = null;
         //已匹配状态返回匹配药品id
         if (CollectionUtils.isNotEmpty(provinceDrugLists)) {
             provinceDrugListBeans = ObjectCopyUtils.convert(provinceDrugLists, ProvinceDrugListBean.class);
             if (drugListMatch.getStatus().equals(DrugMatchConstant.ALREADY_MATCH) || drugListMatch.getStatus().equals(DrugMatchConstant.SUBMITED)) {
                 for (ProvinceDrugListBean provinceDrugListBean : provinceDrugListBeans) {
                     //判断当前关联省平台药品code和关联code一致
-                    if (provinceDrugListBean.getProvinceDrugCode().equals(drugListMatch.getRegulationDrugCode())) {
+                    if (null != provinceDrugListBean.getProvinceDrugCode() && provinceDrugListBean.getProvinceDrugCode().equals(drugListMatch.getRegulationDrugCode())) {
                         provinceDrugListBean.setMatched(true);
                     }
                 }
             }
         }
         return provinceDrugListBeans;
-
     }
+
+    /**
+     * 取消已匹配状态和已提交状态
+     */
+    @RpcService
+    public void cancelMatchStatusByOrgan(Integer drugId, String operator, Integer makeType, Boolean haveProvinceDrug) {
+        if (StringUtils.isEmpty(operator)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "operator is required");
+        }
+        Map<String, Object> updateMap = new HashMap<>();
+        DrugListMatch drugListMatch = drugListMatchDAO.get(drugId);
+        Integer status = 0;
+        if(Platform_Type == makeType){
+            if(haveProvinceDrug){
+                status = getCancelStatus(drugId, drugListMatch.getStatus(), "cancelMatchStatusByOrgan 当前匹配药品[{}]状态[{}]不能取消平台匹配");
+                if (status == null) return;
+            }else{
+                status = DrugMatchConstant.UNMATCH;
+            }
+            updateMap.put("matchDrugId", null);
+        }else if(Province_Platform_Type == makeType){
+            status = getCancelStatus(drugId, drugListMatch.getStatus(), "cancelMatchStatusByOrgan 当前匹配药品[{}]状态[{}]不能取消省平台匹配");
+            if (status == null) return;
+            updateMap.put("regulationDrugCode", null);
+        }else{
+            LOGGER.info("cancelMatchStatusByOrgan 传入操作状态非平台和省平台", makeType);
+            return;
+        }
+        updateMap.put("status", status);
+        updateMap.put("operator", operator);
+        drugListMatchDAO.updateDrugListMatchInfoById(drugId, updateMap);
+        LOGGER.info("cancelMatchStatusByOrgan 操作人取消关联->{}更新状态,drugId={};status ->before={},after={}", operator, drugId, drugListMatch.getStatus(), status);
+    }
+
+    /*获取取消匹配后的对照状态状态*/
+    private Integer getCancelStatus(Integer drugId, Integer drugListMatchStatus, String message) {
+        Integer status;
+        if(DrugMatchConstant.ALREADY_MATCH == drugListMatchStatus){
+            status = DrugMatchConstant.MATCHING;
+        }else if(DrugMatchConstant.MATCHING == drugListMatchStatus){
+            status = DrugMatchConstant.UNMATCH;
+        }else{
+            LOGGER.info(message, drugId, drugListMatchStatus);
+            return null;
+        }
+        return status;
+    }
+
 
 }

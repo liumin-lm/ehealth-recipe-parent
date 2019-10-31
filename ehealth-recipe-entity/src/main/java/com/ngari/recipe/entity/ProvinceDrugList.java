@@ -265,7 +265,7 @@ public class ProvinceDrugList implements Serializable {
         this.pack = pack;
     }
 
-    @Transient
+    @Column(name = "provinceDrugCode")
     public String getProvinceDrugCode() {
         return provinceDrugCode;
     }

@@ -116,7 +116,8 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
                 if (null != changeAttr && !changeAttr.isEmpty()) {
                     for (String key : changeAttr.keySet()) {
                         if (key.equals("status")&&changeAttr.get(key).equals(0)){
-                            hql.append(",matchDrugId = null");
+                            hql.append(" ,matchDrugId = null");
+                            hql.append(" ,regulationDrugCode = null");
                         }
                         hql.append("," + key + "=:" + key);
                     }
