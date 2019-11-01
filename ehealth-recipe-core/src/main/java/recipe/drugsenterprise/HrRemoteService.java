@@ -9,10 +9,8 @@ import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
-import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
-import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -77,14 +75,6 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
         LOGGER.info("HrRemoteService tokenUpdateImpl not implement.");
-    }
-
-    @RpcService
-    public void test(){
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(104);
-        //findSupportDep(Arrays.asList(3204), null, enterprise);
-        pushRecipeInfo(Arrays.asList(3191), enterprise);
     }
 
     @Override
@@ -179,13 +169,13 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
             hrPrescr.setBuyerId(patientDTO.getMpiId());
             hrPrescr.setDiagnosisResult(recipe.getOrganDiseaseName());
             hrPrescr.setMedicalOrder(recipe.getMemo());
-            if (recipe.getChecker() != null) {
+           /* if (recipe.getChecker() != null) {
                 DoctorDTO checker = doctorService.getByDoctorId(recipe.getChecker());
                 hrPrescr.setReviewerName(checker.getName());
             } else {
                 hrPrescr.setReviewerName("0000");
-            }
-
+            }*/
+            hrPrescr.setReviewerName("秦军");
             hrPrescr.setDescription("".equals(recipe.getMemo())?"无":recipe.getMemo());
             OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
             if (organDTO == null) {
@@ -376,6 +366,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
         // 创建默认的httpClient实例.
         CloseableHttpClient httpClient = HttpClients.createDefault();
         try {
+            queryString = getUtf8Str(queryString);
             CloseableHttpResponse response = sendStockHttpRequest(drugsEnterprise, path, queryString, httpClient);
             HttpEntity httpEntity = response.getEntity();
             String responseStr = EntityUtils.toString(httpEntity);
@@ -460,6 +451,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
      */
     private String sign(String queryString, String path, String body, DrugsEnterprise enterprise){
         LOGGER.info("sign:{},{},{}", queryString, path, body);
+        queryString = getUtf8Str(queryString);
         String userName = enterprise.getUserId();
         String password = enterprise.getPassword();
         String time = getTime(new Date());
@@ -577,5 +569,15 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
             }
         }
         return "";
+    }
+
+    private static String getUtf8Str(String queryString){
+        String query = "";
+        try {
+            query = new String(queryString.getBytes("ISO-8859-1"), "utf-8");
+        } catch (Exception e) {
+            LOGGER.info("getUtf8Str error.");
+        }
+        return query;
     }
 }
