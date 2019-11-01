@@ -11,6 +11,7 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -46,6 +47,7 @@ import java.util.*;
  * @author yinsheng
  * @date 2019\10\24 0024 16:50
  */
+@RpcBean("hrRemoteService")
 public class HrRemoteService extends AccessDrugEnterpriseService{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HrRemoteService.class);
@@ -309,6 +311,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
         return null;
     }
 
+    @RpcService
     @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
