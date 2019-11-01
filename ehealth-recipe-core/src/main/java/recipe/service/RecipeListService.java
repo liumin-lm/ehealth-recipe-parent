@@ -964,6 +964,7 @@ public class RecipeListService extends RecipeBaseService{
         payModeShowButtonBean.setButtonType(getButtonType(payModeShowButtonBean, recipe.getReviewType(), record.getRecordType(), record.getStatusCode()));
         payModeShowButtonBean.setButtonType(0);
         payModeShowButtonBean.setSupportOnline(true);
+        payModeShowButtonBean.setSupportTFDS(true);
         return payModeShowButtonBean;
     }
 
