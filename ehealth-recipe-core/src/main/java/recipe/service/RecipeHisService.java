@@ -169,7 +169,14 @@ public class RecipeHisService extends RecipeBaseService {
                 for (OrderItemTO item : orderItemList) {
                     organDrug = drugIdAndProduce.get(item.getDrcode());
                     if (null != organDrug) {
+                        //生产厂家
                         item.setManfcode(organDrug.getProducerCode());
+                        //药房名称
+                        item.setPharmacy(organDrug.getPharmacyName());
+                        //单价
+                        item.setItemPrice(organDrug.getSalePrice());
+                        //产地名称
+                        item.setDrugManf(organDrug.getProducer());
                     }
                 }
 
