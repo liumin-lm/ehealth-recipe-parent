@@ -962,6 +962,8 @@ public class RecipeListService extends RecipeBaseService{
 
         //设置按钮的展示类型
         payModeShowButtonBean.setButtonType(getButtonType(payModeShowButtonBean, recipe.getReviewType(), record.getRecordType(), record.getStatusCode()));
+        payModeShowButtonBean.setButtonType(0);
+        payModeShowButtonBean.setSupportOnline(true);
         return payModeShowButtonBean;
     }
 
