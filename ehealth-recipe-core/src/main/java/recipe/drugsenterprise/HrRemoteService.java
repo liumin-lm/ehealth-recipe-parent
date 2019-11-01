@@ -394,6 +394,9 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
         Double range = MapValueUtil.getDouble(ext, "range");
         Double longitude = MapValueUtil.getDouble(ext, "longitude");
         Double latitude = MapValueUtil.getDouble(ext, "latitude");
+        if (longitude == null || latitude == null) {
+            return new ArrayList<>();
+        }
         String path = "/api/platform/store/list/distance";
         String queryString = "Longitude=" + longitude + "&Latitude=" + latitude + "&Distance=" + range;
         // 创建默认的httpClient实例.
