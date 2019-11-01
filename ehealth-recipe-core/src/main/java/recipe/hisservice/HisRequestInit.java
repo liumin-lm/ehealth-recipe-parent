@@ -349,10 +349,10 @@ public class HisRequestInit {
                         .getRecipeDetailId()));
                 orderItem.setDrcode(detail.getOrganDrugCode());
                 orderItem.setDrname(detail.getDrugName());
-                //药房名称
+
                 OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(recipe.getClinicOrgan(), detail.getOrganDrugCode());
                 if (organDrug!=null){
-                    orderItem.setPharmacy(organDrug.getPharmacyName());
+
                 }
                 //药品规格
                 orderItem.setDrmodel(detail.getDrugSpec());
