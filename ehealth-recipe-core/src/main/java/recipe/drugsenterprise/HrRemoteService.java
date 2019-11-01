@@ -506,7 +506,8 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
             //获取所有药店
             hrStoreBeans = findAllStores(drugsEnterprise);
         }
-        //库存校验采用：医生开方时获取所有的药店,根据药店+药品去校验库存.
+        return hrStoreBeans;
+        /*//库存校验采用：医生开方时获取所有的药店,根据药店+药品去校验库存.
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (recipe == null) {
             return null;
@@ -554,7 +555,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
             }
         }
         LOGGER.info("HrRemoteService.findHaveStockStores totalHaveStockStores:{}.", JSONUtils.toString(totalHaveStockStores));
-        return totalHaveStockStores;
+        return totalHaveStockStores;*/
     }
 
     /**
