@@ -17,16 +17,16 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.DepartmentDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.DepartmentService;
-import com.ngari.patient.service.EmploymentService;
-import com.ngari.patient.service.OrganService;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.recipe.model.HisSendResTO;
+import com.ngari.recipe.recipe.model.OrderRepTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
@@ -36,6 +36,7 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -56,8 +57,10 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.bean.DrugInfoHisBean;
 import recipe.hisservice.HisRequestInit;
+import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.RecipeToHisService;
 import recipe.util.DateConversion;
+import recipe.util.DigestUtil;
 import recipe.util.RedisClient;
 
 import java.math.BigDecimal;
@@ -95,10 +98,11 @@ public class RecipeHisService extends RecipeBaseService {
         //中药处方由于不需要跟HIS交互，故读写分离后有可能查询不到数据
         if (skipHis(recipe)) {
             LOGGER.info("skip his!!! recipeId={}",recipeId);
-            RecipeCheckPassResult recipeCheckPassResult = new RecipeCheckPassResult();
+           /* RecipeCheckPassResult recipeCheckPassResult = new RecipeCheckPassResult();
             recipeCheckPassResult.setRecipeId(recipeId);
             recipeCheckPassResult.setRecipeCode(RandomStringUtils.randomAlphanumeric(10));
-            HisCallBackService.checkPassSuccess(recipeCheckPassResult, true);
+            HisCallBackService.checkPassSuccess(recipeCheckPassResult, true);*/
+            doHisReturnSuccess(recipe);
             return result;
         }
 
@@ -178,6 +182,33 @@ public class RecipeHisService extends RecipeBaseService {
             LOGGER.error("recipeSendHis 医院HIS未启用[organId:" + sendOrganId + ",recipeId:" + recipeId + "]");
         }
         return result;
+    }
+
+    private void doHisReturnSuccess(Recipe recipe) {
+        PatientService patientService = BasicAPI.getService(PatientService.class);
+        PatientDTO patientDTO = patientService.getPatientByMpiId(recipe.getMpiid());
+        Date now = DateTime.now().toDate();
+        String str = "";
+        if(patientDTO != null && StringUtils.isNotEmpty(patientDTO.getCertificate())){
+            str = patientDTO.getCertificate().substring(patientDTO.getCertificate().length()-5);
+        }
+
+        RecipeToHisCallbackService service = ApplicationUtils.getRecipeService(RecipeToHisCallbackService.class);
+        HisSendResTO response = new HisSendResTO();
+        response.setRecipeId(String.valueOf(recipe.getRecipeId()));
+        List<OrderRepTO> repList = Lists.newArrayList();
+        OrderRepTO orderRepTO = new OrderRepTO();
+        //门诊号处理 年月日+患者身份证后5位 例：2019060407915
+        orderRepTO.setPatientID(DateConversion.getDateFormatter(now,"yyMMdd")+str);
+        orderRepTO.setRegisterID(orderRepTO.getPatientID());
+        //生成处方编号，不需要通过HIS去产生
+        String recipeCodeStr = DigestUtil.md5For16(recipe.getClinicOrgan() +
+                recipe.getMpiid() + Calendar.getInstance().getTimeInMillis());
+        orderRepTO.setRecipeNo(recipeCodeStr);
+        repList.add(orderRepTO);
+        response.setData(repList);
+        service.sendSuccess(response);
+        LOGGER.info("skip his success!!! recipeId={}",recipe.getRecipeId());
     }
 
     /**
