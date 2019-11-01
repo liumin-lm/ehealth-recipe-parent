@@ -391,14 +391,14 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
     }
 
     private List<HrStoreBean> findStoreByPosintion(Map ext, DrugsEnterprise drugsEnterprise){
-        Double range = MapValueUtil.getDouble(ext, "range");
-        Double longitude = MapValueUtil.getDouble(ext, "longitude");
-        Double latitude = MapValueUtil.getDouble(ext, "latitude");
+        String range = MapValueUtil.getString(ext, "range");
+        String longitude = MapValueUtil.getString(ext, "longitude");
+        String latitude = MapValueUtil.getString(ext, "latitude");
         if (longitude == null || latitude == null) {
             return new ArrayList<>();
         }
         String path = "/api/platform/store/list/distance";
-        String queryString = "Longitude=" + longitude + "&Latitude=" + latitude + "&Distance=" + range;
+        String queryString = "Longitude=" + Double.parseDouble(longitude) + "&Latitude=" + Double.parseDouble(latitude) + "&Distance=" + Double.parseDouble(range);
         // 创建默认的httpClient实例.
         CloseableHttpClient httpClient = HttpClients.createDefault();
         try{
