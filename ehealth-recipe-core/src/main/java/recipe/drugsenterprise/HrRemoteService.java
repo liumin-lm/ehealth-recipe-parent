@@ -46,7 +46,6 @@ import java.util.*;
  * @author yinsheng
  * @date 2019\10\24 0024 16:50
  */
-@RpcBean("hrRemoteService")
 public class HrRemoteService extends AccessDrugEnterpriseService{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HrRemoteService.class);
