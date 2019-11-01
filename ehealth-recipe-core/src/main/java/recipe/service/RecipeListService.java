@@ -9,14 +9,11 @@ import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
-import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeParameter;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
@@ -40,7 +37,6 @@ import recipe.constant.*;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.dao.RecipeParameterDao;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.dao.bean.RecipeRollingInfo;
 import recipe.service.common.RecipeCacheService;
@@ -964,12 +960,6 @@ public class RecipeListService extends RecipeBaseService{
 
         //设置按钮的展示类型
         payModeShowButtonBean.setButtonType(getButtonType(payModeShowButtonBean, recipe.getReviewType(), record.getRecordType(), record.getStatusCode()));
-        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-        String value = recipeParameterDao.getByName("scanStockResult");
-        payModeShowButtonBean.setButtonType(Integer.parseInt(value));
-        payModeShowButtonBean.setSupportOnline(true);
-        payModeShowButtonBean.setSupportTFDS(true);
-        payModeShowButtonBean.setSupportTFDS(true);
         return payModeShowButtonBean;
     }
 
