@@ -965,6 +965,7 @@ public class RecipeListService extends RecipeBaseService{
         payModeShowButtonBean.setButtonType(0);
         payModeShowButtonBean.setSupportOnline(true);
         payModeShowButtonBean.setSupportTFDS(true);
+        payModeShowButtonBean.setSupportTFDS(true);
         return payModeShowButtonBean;
     }
 
