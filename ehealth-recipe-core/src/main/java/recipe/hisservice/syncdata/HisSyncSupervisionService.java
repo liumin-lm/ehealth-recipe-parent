@@ -1,19 +1,17 @@
 package recipe.hisservice.syncdata;
 
-import com.ngari.base.cdr.model.OtherdocBean;
-import com.ngari.base.cdr.service.ICdrOtherdocService;
-import com.ngari.base.employment.service.IEmploymentService;
+import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.model.QuestionnaireBean;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.regulation.entity.*;
-import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
-import com.ngari.his.recipe.mode.RecipeInfoTO;
-import com.ngari.his.regulation.entity.*;
 import com.ngari.his.regulation.service.IRegulationService;
-import com.ngari.patient.dto.*;
+import com.ngari.patient.dto.DepartmentDTO;
+import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.dto.zjs.SubCodeDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.service.zjs.SubCodeService;
@@ -36,20 +34,13 @@ import recipe.bussutil.RecipeUtil;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.common.response.CommonResponse;
+import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.constant.RecipeSystemConstant;
 import recipe.dao.*;
-import recipe.dao.DrugListDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeExtendDAO;
-import recipe.service.RecipePreserveService;
 import recipe.service.RecipeService;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
-import recipe.constant.RecipeBussConstant;
-import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
-
 
 import java.util.*;
 
@@ -62,7 +53,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     /**
      * logger
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(CommonSyncSupervisionService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HisSyncSupervisionService.class);
 
     private static String HIS_SUCCESS = "200";
 
