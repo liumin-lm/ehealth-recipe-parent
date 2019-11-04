@@ -406,8 +406,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
             HttpEntity httpEntity = response.getEntity();
             String responseStr = EntityUtils.toString(httpEntity);
             LOGGER.info("HrRemoteService.findStoreByPosintion.responseStr: {}.", responseStr);
-            if(CommonConstant.requestSuccessCode == response.getStatusLine().getStatusCode()){
-                responseStr = "[" + responseStr + "]";
+            if(CommonConstant.requestSuccessCode == response.getStatusLine().getStatusCode() && responseStr.contains("StoreName")){
                 List<HrStoreBean> hrStoreBeans = JSONObject.parseArray(responseStr, HrStoreBean.class);
                 LOGGER.info("HrRemoteService.findStoreByPosintion.hrStoreBean: {}.", JSONUtils.toString(hrStoreBeans));
                 return hrStoreBeans;
