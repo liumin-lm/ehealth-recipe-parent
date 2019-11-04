@@ -433,7 +433,6 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
             HttpEntity httpEntity = response.getEntity();
             String responseStr = EntityUtils.toString(httpEntity);
             LOGGER.info("HrRemoteService.findAllStores.responseStr: {}.", responseStr);
-            responseStr = "[" + responseStr + "]";
             if(CommonConstant.requestSuccessCode == response.getStatusLine().getStatusCode()){
                 List<HrStoreBean> hrStoreBeans = JSONObject.parseArray(responseStr, HrStoreBean.class);
                 LOGGER.info("HrRemoteService.findAllStores.hrStoreBean: {}.", JSONUtils.toString(hrStoreBeans));
