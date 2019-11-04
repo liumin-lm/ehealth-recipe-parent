@@ -1039,11 +1039,11 @@ public class DrugToolService implements IDrugToolService {
         if(null != configResponse){
             ServiceConfigResponseTO config = configResponse.getData();
             if(null == config.getRegulation()){
-                LOGGER.info("当期机构[{}]没有配置监管平台", organId);
+                LOGGER.info("当前机构[{}]没有配置监管平台", organId);
                 return false;
             }
         }else{
-            LOGGER.warn("没有对应当期机构[{}]的配置", organId);
+            LOGGER.warn("没有对应当前机构[{}]的配置", organId);
             return false;
         }
         return true;
