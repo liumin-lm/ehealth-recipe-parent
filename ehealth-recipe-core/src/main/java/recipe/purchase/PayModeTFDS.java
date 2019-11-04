@@ -341,6 +341,9 @@ public class PayModeTFDS implements IPurchaseService{
                 }
             } else {
                 //距离排序
+                if (depDetailBeanOne.getDistance() == null || depDetailBeanTwo.getDistance() == null) {
+                    return -1;
+                }
                 Double distance = depDetailBeanOne.getDistance() - depDetailBeanTwo.getDistance();
                 if (distance != 0.0) {
                     cp = (distance > 0.0) ? 2 : -1;
