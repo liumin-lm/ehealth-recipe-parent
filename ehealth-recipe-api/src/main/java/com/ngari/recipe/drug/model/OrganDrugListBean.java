@@ -89,6 +89,9 @@ public class OrganDrugListBean implements java.io.Serializable {
     @ItemProperty(alias = "院内检索关键字")
     private String retrievalCode;
 
+    @ItemProperty(alias = "监管平台药品编码")
+    private String regulationDrugCode;
+
     public OrganDrugListBean() {
     }
 
@@ -287,5 +290,13 @@ public class OrganDrugListBean implements java.io.Serializable {
 
     public void setRetrievalCode(String retrievalCode) {
         this.retrievalCode = retrievalCode;
+    }
+
+    public String getRegulationDrugCode() {
+        return regulationDrugCode;
+    }
+
+    public void setRegulationDrugCode(String regulationDrugCode) {
+        this.regulationDrugCode = regulationDrugCode;
     }
 }
