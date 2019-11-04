@@ -502,7 +502,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
         Integer recipeId = recipeIds.get(0);
         List<HrStoreBean> totalHaveStockStores = new ArrayList<>();
         List<HrStoreBean> hrStoreBeans = new ArrayList<>();
-        if (ext != null) {
+        if (ext != null && ext.size() > 0) {
             //通过坐标获取一定范围内的药店
             hrStoreBeans = findStoreByPosintion(ext, drugsEnterprise);
         } else {

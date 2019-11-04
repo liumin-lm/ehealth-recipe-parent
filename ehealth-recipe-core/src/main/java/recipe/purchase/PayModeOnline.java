@@ -363,8 +363,10 @@ public class PayModeOnline implements IPurchaseService {
         for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
             if (DrugEnterpriseConstant.COMPANY_HR.equals(drugsEnterprise.getCallSys())) {
                 //将药店配送的药企移除
+                BigDecimal recipeFree = BigDecimal.ZERO;
                 for (DepDetailBean depDetailBean : depDetailList) {
                     if (depDetailBean.getDepId() == drugsEnterprise.getId()) {
+                        recipeFree = depDetailBean.getRecipeFee();
                         depDetailList.remove(depDetailBean);
                         break;
                     }
@@ -383,6 +385,7 @@ public class PayModeOnline implements IPurchaseService {
                             depDetailBean.setBelongDepName(depDetailBean.getDepName());
                             depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_ONLINE);
                             depDetailBean.setPayModeText("在线支付");
+                            depDetailBean.setRecipeFee(recipeFree);
                         }
                         depDetailList.addAll(hrList);
                         LOG.info("获取到的药店列表:{}.", JSONUtils.toString(depDetailList));
