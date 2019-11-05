@@ -522,7 +522,12 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
         for (Recipedetail recipedetail : recipeDetails) {
             drugIds.add(recipedetail.getDrugId());
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
-            map.put(saleDrugList.getOrganDrugCode(), recipedetail.getUseTotalDose().toString());
+            if(saleDrugList != null && StringUtils.isNotEmpty(saleDrugList.getOrganDrugCode())) {
+                map.put(saleDrugList.getOrganDrugCode(), recipedetail.getUseTotalDose().toString());
+            } else {
+                LOGGER.info("HrRemoteService.findHaveStockStores 配送药品目录OrganDrugCode为空，drugId:{}.", recipedetail.getDrugId());
+                return new ArrayList<>();
+            }
         }
         StringBuilder parames = new StringBuilder();
         for (int i = 0; i < hrStoreBeans.size(); i++) {
