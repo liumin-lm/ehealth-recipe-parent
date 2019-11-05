@@ -1051,7 +1051,7 @@ public class DrugToolService implements IDrugToolService {
         HisResponseTO<ServiceConfigResponseTO> configResponse = configService.queryHisServiceConfigByOrganid(organId);
         if(null != configResponse){
             ServiceConfigResponseTO config = configResponse.getData();
-            if(null == config.getRegulation()){
+            if(null == config || null == config.getRegulation()){
                 LOGGER.info("当前机构[{}]没有配置监管平台", organId);
                 return false;
             }
