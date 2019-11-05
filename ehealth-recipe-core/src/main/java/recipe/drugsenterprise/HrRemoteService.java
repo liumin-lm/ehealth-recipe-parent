@@ -171,13 +171,12 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
             hrPrescr.setBuyerId(patientDTO.getMpiId());
             hrPrescr.setDiagnosisResult(recipe.getOrganDiseaseName());
             hrPrescr.setMedicalOrder(recipe.getMemo());
-           /* if (recipe.getChecker() != null) {
+            if (recipe.getChecker() != null) {
                 DoctorDTO checker = doctorService.getByDoctorId(recipe.getChecker());
                 hrPrescr.setReviewerName(checker.getName());
             } else {
                 hrPrescr.setReviewerName("0000");
-            }*/
-            hrPrescr.setReviewerName("秦军");
+            }
             hrPrescr.setDescription("".equals(recipe.getMemo())?"无":recipe.getMemo());
             OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
             if (organDTO == null) {
@@ -390,7 +389,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
                 LOGGER.warn("资源关闭失败.", e);
             }
         }
-        return null;
+        return new ArrayList<>();
     }
 
     private List<HrStoreBean> findStoreByPosintion(Map ext, DrugsEnterprise drugsEnterprise){
@@ -514,7 +513,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
         //库存校验采用：医生开方时获取所有的药店,根据药店+药品去校验库存.
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (recipe == null) {
-            return null;
+            return new ArrayList<>();
         }
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
         List<Recipedetail> detailList = recipeDetailDAO.findByRecipeId(recipeId);
@@ -523,7 +522,12 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
         for (Recipedetail recipedetail : recipeDetails) {
             drugIds.add(recipedetail.getDrugId());
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
-            map.put(saleDrugList.getOrganDrugCode(), recipedetail.getUseTotalDose().toString());
+            if(saleDrugList != null && StringUtils.isNotEmpty(saleDrugList.getOrganDrugCode())) {
+                map.put(saleDrugList.getOrganDrugCode(), recipedetail.getUseTotalDose().toString());
+            } else {
+                LOGGER.info("HrRemoteService.findHaveStockStores 配送药品目录OrganDrugCode为空，drugId:{}.", recipedetail.getDrugId());
+                return new ArrayList<>();
+            }
         }
         StringBuilder parames = new StringBuilder();
         for (int i = 0; i < hrStoreBeans.size(); i++) {
