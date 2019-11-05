@@ -9,6 +9,7 @@ import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
+import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -204,7 +205,9 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
             hrPrescr.setHospitalId(organDTO.getOrganId().toString()); //医院编码
             hrPrescr.setDoctorId(recipe.getDoctor().toString());
             hrPrescr.setPrescrAmount(Double.parseDouble(recipeOrder.getRecipeFee().toString()));
-            hrPrescr.setImageUri("https://baseapi.ngarihealth.com/ehealth-base/upload/5db6cee86b1d292bdea932f6");
+            RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+            String fileImgUrl = parameterDao.getByName("fileImgUrl");
+            hrPrescr.setImageUri(fileImgUrl + recipe.getSignImg());
             List<HrDetail> Details = new ArrayList<>();
             List<HrDrugDetail> drugDetails = new ArrayList<>();
             List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
