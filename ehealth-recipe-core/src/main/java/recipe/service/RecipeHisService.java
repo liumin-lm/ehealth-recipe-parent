@@ -763,15 +763,21 @@ public class RecipeHisService extends RecipeBaseService {
         hisCheckRecipeReqTO.setRecipePrice(recipeBean.getTotalMoney());
         //orderList
         List<RecipeOrderItemTO> list = Lists.newArrayList();
-        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         if (null != details && !details.isEmpty()) {
             for (Recipedetail detail : details) {
                 RecipeOrderItemTO item = new RecipeOrderItemTO();
+                OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(recipeBean.getClinicOrgan(), detail.getOrganDrugCode());
                 item.setDosage((null != detail.getUseDose()) ? Double
                         .toString(detail.getUseDose()) : null);
                 item.setDrcode(detail.getOrganDrugCode());
                 item.setDrname(detail.getDrugName());
-                item.setDrugManf(drugListDAO.getById(detail.getDrugId()).getProducer());
+                if (organDrug != null){
+                    item.setDrugManf(organDrug.getProducer());
+                    item.setManfCode(organDrug.getProducerCode());
+                    //药品单价
+                    item.setPrice(organDrug.getSalePrice());
+                }
                 //频次
                 item.setFrequency(UsingRateFilter.filterNgari(recipeBean.getClinicOrgan(),detail.getUsingRate()));
                 //用法
