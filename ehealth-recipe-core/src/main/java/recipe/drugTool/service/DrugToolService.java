@@ -399,6 +399,7 @@ public class DrugToolService implements IDrugToolService {
             drug.setIndications(getStrFromCell(row.getCell(14)));
             drug.setDrugForm(getStrFromCell(row.getCell(15)));
             drug.setPackingMaterials(getStrFromCell(row.getCell(16)));
+            drug.setRegulationDrugCode(getStrFromCell(row.getCell(19)));
             drug.setSourceOrgan(organId);
             drug.setStatus(0);
             drug.setOperator(operator);
