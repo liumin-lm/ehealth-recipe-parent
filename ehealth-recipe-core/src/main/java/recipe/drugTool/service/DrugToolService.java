@@ -9,6 +9,7 @@ import com.google.common.collect.Maps;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.regulation.service.IRegulationService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -119,13 +120,6 @@ public class DrugToolService implements IDrugToolService {
         }
     });
 
-    private LoadingCache<String, List<ProvinceDrugList>> provinceDrugListCache = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(new CacheLoader<String, List<ProvinceDrugList>>() {
-        @Override
-        public List<ProvinceDrugList> load(String searchStr) throws Exception {
-            String[] searchStrs = searchStr.split("-");
-            return provinceDrugListDAO.findByProvinceSaleNameLike(searchStrs[1], searchStrs[0]);
-        }
-    });
 
     @RpcService
     public void resetMatchCache() {
@@ -257,7 +251,9 @@ public class DrugToolService implements IDrugToolService {
                 if ("药品编号".equals(drugCode.trim()) && "药品通用名".equals(drugName.trim()) && "院内检索码".equals(retrievalCode.trim())) {
                     continue;
                 } else {
-                    throw new DAOException("模板有误，请确认！");
+                    result.put("code", 609);
+                    result.put("msg", "模板有误，请确认！");
+                    return result;
                 }
 
             } drug = new DrugListMatch();
@@ -415,6 +411,7 @@ public class DrugToolService implements IDrugToolService {
         if (errDrugListMatchList.size()>0){
             result.put("code", 609);
             result.put("msg", errDrugListMatchList);
+            return result;
         }
 
         LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
@@ -587,7 +584,7 @@ public class DrugToolService implements IDrugToolService {
                 listCmap.add(s);
             }
         }
-        LOGGER.info("findOrganSearchHistoryRecord HistoryRecord  queue{}==", queue.toString());
+        LOGGER.info("findOrganSearchHistoryRecord HistoryRecord  queue{}==", queue.size());
         return listCmap;
     }
 
@@ -1000,14 +997,14 @@ public class DrugToolService implements IDrugToolService {
      * 省药品匹配
      */
     @RpcService
-    public List<ProvinceDrugListBean> provinceDrugMatch(int drugId, int organId) {
+    public List<ProvinceDrugListBean> provinceDrugMatch(int drugId, int organId, int start, int limit, String seacrhString) {
         DrugListMatch drugListMatch = drugListMatchDAO.get(drugId);
 
         if(null == drugListMatch){
             LOGGER.warn("provinceDrugMatch 当期药品[{}]不在机构对照列表中", drugId);
             return null;
         }
-        List<ProvinceDrugList> provinceDrugLists = getProvinceDrugLists(organId, drugListMatch);
+        List<ProvinceDrugList> provinceDrugLists = getProvinceDrugLists(organId, drugListMatch, start, limit, seacrhString);
         if(null == provinceDrugLists){
             //如果没有省平台药品数据则为null
             return null;
@@ -1019,7 +1016,7 @@ public class DrugToolService implements IDrugToolService {
     }
 
     /*根据匹配的药品销售名，获取相似名称的省平台药品*/
-    private List<ProvinceDrugList> getProvinceDrugLists(int organId, DrugListMatch drugListMatch) {
+    private List<ProvinceDrugList> getProvinceDrugLists(int organId, DrugListMatch drugListMatch, int start, int limit, String seacrhString) {
         List<ProvinceDrugList> provinceDrugLists = new ArrayList<>();
         if (!checkOrganRegulation(organId)) return null;
 
@@ -1032,20 +1029,28 @@ public class DrugToolService implements IDrugToolService {
 
         //根据药品名取标准药品库查询相关药品
         String likeDrugName = DrugMatchUtil.match(drugListMatch.getDrugName());
-        try {
-            List<ProvinceDrugList> searchDrugs = provinceDrugListCache.get(addrArea + "-" + likeDrugName);
-            if(CollectionUtils.isNotEmpty(searchDrugs)){
-                provinceDrugLists = searchDrugs;
-            }
-        } catch (ExecutionException e) {
-            LOGGER.error("drugMatch:" + e.getMessage());
-            return null;
+
+        List<ProvinceDrugList> searchDrugs = provinceDrugListDAO.findByProvinceSaleNameLike(likeDrugName, addrArea, start, limit, seacrhString);
+        if(CollectionUtils.isNotEmpty(searchDrugs)){
+            provinceDrugLists = searchDrugs;
         }
+
         return provinceDrugLists;
     }
 
     /*判断当前机构下的建挂壁平台有没有配置，没有配置判断为没有省平台药品*/
     private boolean checkOrganRegulation(int organId) {
+        IRegulationService regulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
+        try {
+            Boolean haveList = regulationService.checkRegulationList();
+            if(!haveList){
+                //没有这个配置，则说明是互联网，默认关联互联网平台的，不需要在查有没有关联互联网平台
+                return true;
+            }
+        }catch (Exception e) {
+            LOGGER.warn("查询互联网列表失败{}.",e);
+        }
+
         //首先判断his配置中机构有没有监管平台。没有就不返回省平台列表
         IHisServiceConfigService configService = AppDomainContext.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
         HisResponseTO<ServiceConfigResponseTO> configResponse = configService.queryHisServiceConfigByOrganid(organId);
