@@ -104,7 +104,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
             hrPushRecipeInfo.setIsNeedInvoice(false);
             hrPushRecipeInfo.setPickMode(RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getGiveMode()) ? 0 : 1 );
             hrPushRecipeInfo.setSettleMode(RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getGiveMode()) ? 1 : 2);
-            hrPushRecipeInfo.setPayFlag(recipeOrder.getPayFlag() == 1 ? 1 : 0);
+            hrPushRecipeInfo.setPayFlag(RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getGiveMode()) ? 1 : 0);
             hrPushRecipeInfo.setAmount(Double.parseDouble(recipeOrder.getRecipeFee().toString()));
             ReceiveAddress receiveAddress = new ReceiveAddress();
             //设置用户信息
