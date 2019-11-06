@@ -1436,6 +1436,7 @@ public class RecipeOrderService extends RecipeBaseService {
             } else {
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(nowRecipe.getEnterpriseId());
                 boolean scanFlag = remoteDrugService.scanStock(order.getEnterpriseId(), drugsEnterprise);
+                LOGGER.info("sendTfdsMsg sacnFlag: {}.", scanFlag);
                 if (scanFlag) {
                     //表示需要进行库存校验并且有库存
                     RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_DRUG_HAVE_STOCK, nowRecipe);
