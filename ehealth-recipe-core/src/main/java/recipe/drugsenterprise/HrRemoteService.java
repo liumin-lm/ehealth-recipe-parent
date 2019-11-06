@@ -219,7 +219,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
                 }
                 detail.setProductId(saleDrugList.getOrganDrugCode());
                 drugDetail.setProductId(saleDrugList.getOrganDrugCode());
-                detail.setPrice(Double.parseDouble(recipedetails.get(i).getSalePrice().toString()));
+                detail.setPrice(Double.parseDouble(saleDrugList.getPrice().toString()));
                 detail.setQuantity(recipedetails.get(i).getUseTotalDose().intValue());
                 detail.setUnit(recipedetails.get(i).getDrugUnit());
                 detail.setDescription("".equals(recipedetails.get(i).getMemo()) ? "无" : recipedetails.get(i).getMemo());
@@ -255,7 +255,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
                 drugDetail.setQuantity(recipedetails.get(i).getUseTotalDose().intValue());
                 drugDetail.setPrice(Double.parseDouble(saleDrugList.getPrice().toString()));
                 drugDetail.setUnit(recipedetails.get(i).getDrugUnit());
-                drugDetail.setAmount(Double.parseDouble(saleDrugList.getPrice().toString()));
+                drugDetail.setAmount(Double.parseDouble(saleDrugList.getPrice().toString()) * recipedetails.get(i).getUseTotalDose().intValue());
                 drugDetail.setDescription("无");
                 Details.add(detail);
                 drugDetails.add(drugDetail);
