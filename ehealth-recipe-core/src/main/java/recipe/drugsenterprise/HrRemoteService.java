@@ -558,7 +558,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
                     }
                 }
             }
-            if (whileCount == haveStockNum && whileCount != 0) {
+            if (whileCount == haveStockNum && whileCount != 0 && haveStockNum == drugIds.size()) {
                 totalHaveStockStores.add(hrStoreBeans.get(i));
             }
         }
