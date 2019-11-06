@@ -199,7 +199,7 @@ public class MedicationGuideService {
             throw new DAOException(ErrorCode.SERVICE_ERROR,"处方明细不存在");
         }
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
-        PatientDTO patient = patientService.getByMpiId(recipe.getMpiid());
+        PatientDTO patient = patientService.getPatientByMpiId(recipe.getMpiid());
         PatientInfoDTO patientParam = new PatientInfoDTO();
         //患者编号
         patientParam.setPatientCode(recipe.getPatientID());

@@ -14,6 +14,7 @@ import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -43,6 +44,7 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
     private OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
 
     @Override
+    @RpcService
     public Map<String,Object> getHtml5LinkInfo(PatientInfoDTO patient, RecipeBean recipeBean, List<RecipeDetailBean> recipeDetails, String reqType) {
         //拼接请求参数
         WinningMedicationGuideReqDTO requestParam = assembleRequestParam(patient, recipeBean, recipeDetails, reqType);
@@ -107,6 +109,8 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
                 }
             }
             req.setDiagnosisInfo(diagnosisParam);
+            //请求类型
+            req.setReqType(reqType);
         } catch (Exception e) {
             LOGGER.error("assembleRequestParam error"+e);
         }
@@ -132,7 +136,10 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
             HttpEntity httpEntity = response.getEntity();
             String responseStr = EntityUtils.toString(httpEntity);
             LOGGER.info("getHtml5LinkHttpRequest response={}", responseStr);
-            html5Link = requestStr;
+            Html5LinkDTO linkDTO = JSONUtils.parse(responseStr, Html5LinkDTO.class);
+            if (StringUtils.isNotEmpty(linkDTO.getUrl())){
+                html5Link = linkDTO.getUrl();
+            }
 
             //关闭 HttpEntity 输入流
             EntityUtils.consume(httpEntity);
