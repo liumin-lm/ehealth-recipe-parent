@@ -310,7 +310,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
                 LOGGER.warn("资源关闭失败.", e);
             }
         }
-        return null;
+        return result;
     }
 
     @RpcService
