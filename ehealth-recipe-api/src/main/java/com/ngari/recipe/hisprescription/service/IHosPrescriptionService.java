@@ -17,4 +17,12 @@ public interface IHosPrescriptionService {
 
     @RpcService
     HosRecipeResult createTransferPrescription(HospitalRecipeDTO hospitalRecipeDTO);
+
+    /**
+     * 接收his推送的处方 并推送用药指导模板消息
+     * @param hospitalRecipeDTO
+     * @return
+     */
+    @RpcService
+    HosRecipeResult sendMedicationGuideData(HospitalRecipeDTO hospitalRecipeDTO);
 }

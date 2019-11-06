@@ -2,7 +2,9 @@ package recipe.util;
 
 import ctd.schema.exception.ValidateException;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.Days;
 import org.joda.time.LocalDate;
+import org.joda.time.Months;
 import org.joda.time.Years;
 import org.joda.time.format.DateTimeFormat;
 
@@ -166,4 +168,45 @@ public class ChinaIDNumberUtil
 		idCard = str1 + "***********" + str2;
 		return idCard;
 	}
+
+    /**
+     * 传入18或15位身份证,获取年龄 小于一岁时传递值xx月xx天 大于一岁直接数值字符串类型
+     * @param idNumber 18或15位位身份证号
+     * @throws ValidateException  校验异常，身份证必须18位
+     */
+    public static String getStringAgeFromIDNumber(String idNumber) throws ValidateException{
+        int len = idNumber.length();
+        int len18 = 18;
+        if (len != len18) {
+            idNumber = convert15To18(idNumber);
+        }
+        int age120 = 120;
+        String birth = idNumber.substring(6, 14);
+        Integer age;
+        try {
+            LocalDate birthDay = DateTimeFormat.forPattern("yyyyMMdd")
+                    .parseLocalDate(birth);
+            LocalDate now = new LocalDate();
+            age = Years.yearsBetween(birthDay, now).getYears();
+            if (age < 0 || age > age120) {
+                throw new ValidateException("BirthdayOverflow[" + birth + "]");
+            }
+            if (age == 0){
+                int months = Months.monthsBetween(birthDay, now).getMonths();
+                int days = Days.daysBetween(birthDay, now).getDays();
+                if (months == 0){
+                    return days+"天";
+                }else {
+                    days = days - months*30;
+                    return months+"月"+days+"天";
+                }
+            }
+        } catch (RuntimeException e) {
+            throw new ValidateException("BirthdayDateInvaid[" + birth + "]");
+        }
+        return String.valueOf(age);
+    }
+    public static void main(String[] args) throws Exception{
+        System.out.println(getStringAgeFromIDNumber("350101201908092136"));
+    }
 }

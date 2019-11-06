@@ -1,19 +1,27 @@
 package recipe.service;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.patient.service.OrganService;
+import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.hisprescription.model.HosRecipeResult;
+import com.ngari.recipe.hisprescription.model.HospitalDrugDTO;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.hisprescription.model.HospitalStatusUpdateDTO;
 import com.ngari.recipe.hisprescription.service.IHosPrescriptionService;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
+import ctd.persistence.exception.DAOException;
+import ctd.schema.exception.ValidateException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.formula.constant.ErrorConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,10 +30,14 @@ import recipe.ApplicationUtils;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeMsgEnum;
+import recipe.medicationguide.bean.PatientInfoDTO;
+import recipe.medicationguide.service.MedicationGuideService;
 import recipe.service.hospitalrecipe.PrescribeService;
+import recipe.util.ChinaIDNumberUtil;
 
 import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -117,6 +129,26 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         RecipeBean backNew = new RecipeBean();
         backNew.setRecipeId(recipeId);
         result.setData(backNew);
+        return result;
+    }
+
+    /**
+     *  用药指导
+     *  场景三-接收his推送的处方(不保存) 并推送用药指导模板消息
+     * @param hospitalRecipeDTO
+     * @return
+     */
+    @Override
+    @RpcService
+    public HosRecipeResult sendMedicationGuideData(HospitalRecipeDTO hospitalRecipeDTO) {
+        HosRecipeResult result = new HosRecipeResult();
+        LOG.info("sendMedicationGuideData reqParam={}",JSONUtils.toString(hospitalRecipeDTO));
+        MedicationGuideService guideService = ApplicationUtils.getRecipeService(MedicationGuideService.class);
+        //reqType 请求类型（1：二维码扫码推送详情 2：自动推送详情链接跳转请求 ）
+        hospitalRecipeDTO.setReqType("2");
+        //推送微信模板消息
+        guideService.sendMedicationGuideMsg(null,null,hospitalRecipeDTO);
+        result.setCode(HosRecipeResult.SUCCESS);
         return result;
     }
 
