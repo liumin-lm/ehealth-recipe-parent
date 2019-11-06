@@ -342,18 +342,12 @@ public class HisRequestInit {
 
         if (null != details && !details.isEmpty()) {
             List<OrderItemTO> orderList = new ArrayList<>();
-            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             for (Recipedetail detail : details) {
                 OrderItemTO orderItem = new OrderItemTO();
                 orderItem.setOrderID(Integer.toString(detail
                         .getRecipeDetailId()));
                 orderItem.setDrcode(detail.getOrganDrugCode());
                 orderItem.setDrname(detail.getDrugName());
-
-                OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(recipe.getClinicOrgan(), detail.getOrganDrugCode());
-                if (organDrug!=null){
-
-                }
                 //药品规格
                 orderItem.setDrmodel(detail.getDrugSpec());
                 orderItem.setPackUnit(detail.getDrugUnit());
