@@ -54,14 +54,22 @@ public abstract class ProvinceDrugListDAO extends HibernateSupportDelegateDAO<Pr
      * @param name
      * @return
      */
-    public List<ProvinceDrugList> findByProvinceSaleNameLike(final String name, final String address) {
+    public List<ProvinceDrugList> findByProvinceSaleNameLike(final String name, final String address, final int start, final int limit, final String seacrhString) {
         HibernateStatelessResultAction<List<ProvinceDrugList>> action = new AbstractHibernateStatelessResultAction<List<ProvinceDrugList>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("from ProvinceDrugList where provinceId = :address and status = 1 and saleName like :name");
+                if(null != seacrhString){
+                    hql.append(" and (saleName like :seacrhString OR drugName like :seacrhString or producer like :seacrhString )");
+                }
                 Query q = ss.createQuery(hql.toString());
                 q.setParameter("name", "%" + name + "%");
                 q.setParameter("address", address);
+                if(null != seacrhString){
+                    q.setParameter("seacrhString", "%" + seacrhString + "%");
+                }
+                q.setMaxResults(limit);
+                q.setFirstResult(start);
                 setResult(q.list());
             }
         };
