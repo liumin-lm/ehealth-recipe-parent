@@ -761,7 +761,7 @@ public class DrugToolService implements IDrugToolService {
         DrugListMatch db;
         for (DrugListMatch drugListMatch : lists) {
             db = drugListMatchDAO.get(drugListMatch.getDrugId());
-            if (1 == db.getStatus() && db.getMatchDrugId() != null && null != db.getRegulationDrugCode()) {
+            if (1 == db.getStatus()) {
                 db.setUsingRate(drugListMatch.getUsingRate());
                 db.setUsePathways(drugListMatch.getUsePathways());
                 db.setDefaultUseDose(drugListMatch.getDefaultUseDose());
@@ -1013,7 +1013,16 @@ public class DrugToolService implements IDrugToolService {
             //平台的更新
             //说明已经匹配，只需要修改匹配的药品代码就行了
             if(haveMatchDrug){
-                status = drugListMatchStatus;
+                //已提交的也可以更新
+                if(DrugMatchConstant.SUBMITED == drugListMatchStatus){
+                    if(haveRegulationDrugCode){
+                        status = DrugMatchConstant.ALREADY_MATCH;
+                    }else{
+                        status = DrugMatchConstant.MATCHING;
+                    }
+                }else{
+                    status = drugListMatchStatus;
+                }
             }else{
                 //没有匹配的话，判断有没有省药品字段
                 if(haveRegulationDrugCode){
@@ -1026,7 +1035,16 @@ public class DrugToolService implements IDrugToolService {
             //省平台的更新
             //说明已经匹配，只需要修改匹配的省药品代码就行了
             if(haveRegulationDrugCode){
-                status = drugListMatchStatus;
+                //已提交的也可以更新
+                if(DrugMatchConstant.SUBMITED == drugListMatchStatus){
+                    if(haveMatchDrug){
+                        status = DrugMatchConstant.ALREADY_MATCH;
+                    }else{
+                        status = DrugMatchConstant.MATCHING;
+                    }
+                }else{
+                    status = drugListMatchStatus;
+                }
             }else{
                 //没有匹配的话，判断有没有药品字段
                 if(haveMatchDrug){
@@ -1147,14 +1165,14 @@ public class DrugToolService implements IDrugToolService {
         Integer status = 0;
         if(Platform_Type == makeType){
             if(haveProvinceDrug){
-                status = getCancelStatus(drugId, drugListMatch.getStatus(), "cancelMatchStatusByOrgan 当前匹配药品[{}]状态[{}]不能取消平台匹配");
+                status = getCancelStatus(drugListMatch, "cancelMatchStatusByOrgan 当前匹配药品[{}]状态[{}]不能取消平台匹配");
                 if (status == null) return status;
             }else{
                 status = DrugMatchConstant.UNMATCH;
             }
             updateMap.put("matchDrugId", null);
         }else if(Province_Platform_Type == makeType){
-            status = getCancelStatus(drugId, drugListMatch.getStatus(), "cancelMatchStatusByOrgan 当前匹配药品[{}]状态[{}]不能取消省平台匹配");
+            status = getCancelStatus(drugListMatch, "cancelMatchStatusByOrgan 当前匹配药品[{}]状态[{}]不能取消省平台匹配");
             if (status == null) return status;
             updateMap.put("regulationDrugCode", null);
         }else{
@@ -1169,12 +1187,26 @@ public class DrugToolService implements IDrugToolService {
     }
 
     /*获取取消匹配后的对照状态状态*/
-    private Integer getCancelStatus(Integer drugId, Integer drugListMatchStatus, String message) {
+    private Integer getCancelStatus(DrugListMatch drugListMatch, String message) {
+        Integer drugId = drugListMatch.getDrugId();
+        Integer drugListMatchStatus = drugListMatch.getStatus();
+        boolean haveMatchDrug = null != drugListMatch.getMatchDrugId();
+        boolean haveRegulationDrugCode = null != drugListMatch.getRegulationDrugCode();
+
         Integer status;
         if(DrugMatchConstant.ALREADY_MATCH == drugListMatchStatus){
             status = DrugMatchConstant.MATCHING;
-        }else if(DrugMatchConstant.MATCHING == drugListMatchStatus){
+        }else if(DrugMatchConstant.MATCHING == drugListMatchStatus) {
             status = DrugMatchConstant.UNMATCH;
+        }else if(DrugMatchConstant.SUBMITED == drugListMatchStatus){
+            if((!haveMatchDrug && haveRegulationDrugCode) && (haveMatchDrug && !haveRegulationDrugCode)){
+                status = DrugMatchConstant.UNMATCH;
+            }else if(haveMatchDrug && haveRegulationDrugCode){
+                status = DrugMatchConstant.MATCHING;
+            }else{
+                LOGGER.info(message, drugId, drugListMatchStatus);
+                return null;
+            }
         }else{
             LOGGER.info(message, drugId, drugListMatchStatus);
             return null;
