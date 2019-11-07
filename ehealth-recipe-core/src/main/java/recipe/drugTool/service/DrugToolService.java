@@ -760,8 +760,8 @@ public class DrugToolService implements IDrugToolService {
     public void drugCommit(List<DrugListMatch> lists) {
         DrugListMatch db;
         for (DrugListMatch drugListMatch : lists) {
-            if (drugListMatch.getStatus().equals(1) && drugListMatch.getMatchDrugId() != null) {
-                db = drugListMatchDAO.get(drugListMatch.getDrugId());
+            db = drugListMatchDAO.get(drugListMatch.getDrugId());
+            if (1 == db.getStatus() && db.getMatchDrugId() != null && null != db.getRegulationDrugCode()) {
                 db.setStatus(2);
                 drugListMatchDAO.update(db);
             }
