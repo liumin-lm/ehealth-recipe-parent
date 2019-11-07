@@ -248,7 +248,7 @@ public class DrugToolService implements IDrugToolService {
                 String drugCode = getStrFromCell(row.getCell(0));
                 String drugName = getStrFromCell(row.getCell(1));
                 String retrievalCode = getStrFromCell(row.getCell(18));
-                if ("药品编号".equals(drugCode.trim()) && "药品通用名".equals(drugName.trim()) && "院内检索码".equals(retrievalCode.trim())) {
+                if ("药品编号".equals(drugCode) && "药品通用名".equals(drugName) && "院内检索码".equals(retrievalCode)) {
                     continue;
                 } else {
                     result.put("code", 609);
