@@ -969,16 +969,11 @@ public class DrugToolService implements IDrugToolService {
         Map<String, Object> updateMap = new HashMap<>();
         //判断是否有省平台药品对应
         Integer status = 0;
-        boolean haveMatchDrug = false;
-        boolean haveRegulationDrugCode = false;
         if(Platform_Type == makeType){
             //平台匹配操作
             if(haveProvinceDrug){
                 //匹配省平台的时候
-                if(null != drugListMatch.getMatchDrugId()){
-                    haveMatchDrug = true;
-                }
-                status = geUpdateStatus(drugId, drugListMatchStatus, haveMatchDrug, "updateMatchStatusCurrent 当前匹配药品[{}]状态[{}]不能进行省平台匹配");
+                status = geUpdateStatus(drugListMatch, Platform_Type);
                 if (status == null) return null;
             }else{
                 //无匹省台的时候
@@ -987,10 +982,7 @@ public class DrugToolService implements IDrugToolService {
             updateMap.put("matchDrugId", matchDrugId);
         }else if (Province_Platform_Type == makeType){
             //省平台匹配操作
-            if(null != drugListMatch.getRegulationDrugCode()){
-                haveRegulationDrugCode = true;
-            }
-            status = geUpdateStatus(drugId, drugListMatchStatus, haveRegulationDrugCode, "updateMatchStatusCurrent 当前匹配药品[{}]状态[{}]不能进行省平台匹配");
+            status = geUpdateStatus(drugListMatch, Province_Platform_Type);
             if (status == null) return null;
             updateMap.put("regulationDrugCode", matchDrugInfo);
         }else{
@@ -1005,20 +997,41 @@ public class DrugToolService implements IDrugToolService {
     }
 
     /*获取更新后的对照状态状态*/
-    private Integer geUpdateStatus(Integer drugId, Integer drugListMatchStatus, Boolean flag, String message) {
+    private Integer geUpdateStatus(DrugListMatch drugListMatch, int updateType) {
+        Integer drugId = drugListMatch.getDrugId();
+        Integer drugListMatchStatus = drugListMatch.getStatus();
+        boolean haveMatchDrug = null != drugListMatch.getMatchDrugId();
+        boolean haveRegulationDrugCode = null != drugListMatch.getRegulationDrugCode();
+
         Integer status;
-        if(flag){
-            status = drugListMatchStatus;
-        }else{
-            if(DrugMatchConstant.UNMATCH == drugListMatchStatus){
-                status = DrugMatchConstant.MATCHING;
-            }else if(DrugMatchConstant.MATCHING == drugListMatchStatus){
-                status = DrugMatchConstant.ALREADY_MATCH;
+        if(Platform_Type == updateType){
+            //平台的更新
+            //说明已经匹配，只需要修改匹配的药品代码就行了
+            if(haveMatchDrug){
+                status = drugListMatchStatus;
             }else{
-                LOGGER.info(message, drugId, drugListMatchStatus);
-                status = null;
+                //没有匹配的话，判断有没有省药品字段
+                if(haveRegulationDrugCode){
+                    status = DrugMatchConstant.ALREADY_MATCH;
+                }else{
+                    status = DrugMatchConstant.MATCHING;
+                }
+            }
+        }else{
+            //省平台的更新
+            //说明已经匹配，只需要修改匹配的省药品代码就行了
+            if(haveRegulationDrugCode){
+                status = drugListMatchStatus;
+            }else{
+                //没有匹配的话，判断有没有药品字段
+                if(haveMatchDrug){
+                    status = DrugMatchConstant.ALREADY_MATCH;
+                }else{
+                    status = DrugMatchConstant.MATCHING;
+                }
             }
         }
+
 
         return status;
     }
