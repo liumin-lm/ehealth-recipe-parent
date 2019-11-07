@@ -35,7 +35,7 @@ public class WinningMedicationGuideReqDTO implements Serializable {
      * 请求类型
      */
     @JsonProperty("ReqType")
-    private String reqType;
+    private Integer reqType;
 
     public PatientInfoDTO getPatientInfo() {
         return patientInfo;
@@ -69,11 +69,11 @@ public class WinningMedicationGuideReqDTO implements Serializable {
         this.diagnosisInfo = diagnosisInfo;
     }
 
-    public String getReqType() {
+    public Integer getReqType() {
         return reqType;
     }
 
-    public void setReqType(String reqType) {
+    public void setReqType(Integer reqType) {
         this.reqType = reqType;
     }
 }

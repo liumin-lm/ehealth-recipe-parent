@@ -7,10 +7,7 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.hisprescription.model.HosRecipeResult;
-import com.ngari.recipe.hisprescription.model.HospitalDrugDTO;
-import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import com.ngari.recipe.hisprescription.model.HospitalStatusUpdateDTO;
+import com.ngari.recipe.hisprescription.model.*;
 import com.ngari.recipe.hisprescription.service.IHosPrescriptionService;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -145,10 +142,26 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         LOG.info("sendMedicationGuideData reqParam={}",JSONUtils.toString(hospitalRecipeDTO));
         MedicationGuideService guideService = ApplicationUtils.getRecipeService(MedicationGuideService.class);
         //reqType 请求类型（1：二维码扫码推送详情 2：自动推送详情链接跳转请求 ）
-        hospitalRecipeDTO.setReqType("2");
+        hospitalRecipeDTO.setReqType(RecipeBussConstant.REQ_TYPE_AUTO);
         //推送微信模板消息
         guideService.sendMedicationGuideMsg(null,null,hospitalRecipeDTO);
         result.setCode(HosRecipeResult.SUCCESS);
+        return result;
+    }
+
+    /**
+     * 用药指导----前置机根据医院相关参数信息来获取二维码
+     * @param recipeQrCodeReqDTO
+     * @return
+     */
+    @Override
+    @RpcService
+    public HosRecipeResult getQrUrlForRecipeRemind(RecipeQrCodeReqDTO recipeQrCodeReqDTO) {
+        LOG.info("getQrUrlForRecipeRemind reqParam={}",JSONUtils.toString(recipeQrCodeReqDTO));
+        HosRecipeResult result = new HosRecipeResult();
+        result.setCode(HosRecipeResult.SUCCESS);
+        //二维码数据
+        result.setData("http://weixin.qq.com/q/wUT4gFHlYVUY-jup6mzf");
         return result;
     }
 

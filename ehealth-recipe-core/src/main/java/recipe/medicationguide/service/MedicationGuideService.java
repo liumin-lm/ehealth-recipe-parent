@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
+import recipe.constant.RecipeBussConstant;
 import recipe.dao.MedicationGuideDAO;
 import recipe.dao.OrganMedicationGuideRelationDAO;
 import recipe.dao.RecipeDAO;
@@ -72,7 +73,7 @@ public class MedicationGuideService {
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
         HospitalRecipeDTO hospitalRecipeDTO = service.queryHisPatientRecipeInfo(organId,qrInfo);
         //reqType 请求类型（1：二维码扫码推送详情 2：自动推送详情链接跳转请求 ）
-        hospitalRecipeDTO.setReqType("1");
+        hospitalRecipeDTO.setReqType(RecipeBussConstant.REQ_TYPE_QRCODE);
         //发送模板消息
         sendMedicationGuideMsg(appId,openId,hospitalRecipeDTO);
     }
@@ -93,7 +94,7 @@ public class MedicationGuideService {
             patient.setPatientName(hospitalRecipeDTO.getPatientName());
             //科室名
             patient.setDeptName(hospitalRecipeDTO.getDepartId());
-            patient.setGender(hospitalRecipeDTO.getPatientSex());
+            patient.setGender(Integer.valueOf(hospitalRecipeDTO.getPatientSex()));
             patient.setDocDate(hospitalRecipeDTO.getCreateDate());
             patient.setPatientAge(String.valueOf(ChinaIDNumberUtil.getStringAgeFromIDNumber(hospitalRecipeDTO.getCertificate())));
             //患者编号
@@ -112,7 +113,7 @@ public class MedicationGuideService {
                 detailBean.setUseDose(Double.valueOf(drugDTO.getUseDose()));
                 detailBean.setUseDoseUnit(drugDTO.getUseDoseUnit());
                 detailBean.setDrugName(drugDTO.getDrugName());
-                detailBean.setDrugCode(drugDTO.getDrugCode());
+                detailBean.setOrganDrugCode(drugDTO.getDrugCode());
             }
         } catch (Exception e) {
             LOGGER.error("sendMedicationGuideData set param error",e);
@@ -201,38 +202,37 @@ public class MedicationGuideService {
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         PatientDTO patient = patientService.getPatientByMpiId(recipe.getMpiid());
         PatientInfoDTO patientParam = new PatientInfoDTO();
-        //患者编号
-        patientParam.setPatientCode(recipe.getPatientID());
-        patientParam.setPatientName(patient.getPatientName());
+
 
         try {
+            //患者编号
+            patientParam.setPatientCode(recipe.getPatientID());
+            patientParam.setPatientName(patient.getPatientName());
             Dictionary departDic = DictionaryController.instance().get("eh.base.dictionary.Depart");
             patientParam.setDeptName(departDic.getText(recipe.getDepart()));
-        } catch (ControllerException e) {
+            //就诊号
+            patientParam.setAdminNo(recipe.getPatientID());
+            patientParam.setCardType(1);
+            patientParam.setCard(patient.getCertificate());
+            patientParam.setPatientAge(String.valueOf(ChinaIDNumberUtil.getStringAgeFromIDNumber(patient.getCertificate())));
+            patientParam.setGender(Integer.valueOf(patient.getPatientSex()));
+            patientParam.setDocDate(DateConversion.formatDateTimeWithSec(recipe.getSignDate()));
+            patientParam.setFlag(0);
+        } catch (Exception e) {
             LOGGER.error("getHtml5Link error",e);
         }
-        //就诊号
-        patientParam.setAdminNo(recipe.getPatientID());
-        patientParam.setCardType("1");
-        patientParam.setCard(patient.getCertificate());
-        try {
-            patientParam.setPatientAge(String.valueOf(ChinaIDNumberUtil.getStringAgeFromIDNumber(patient.getCertificate())));
-        } catch (ValidateException e) {
-            LOGGER.error("getHtml5Link error",e);
-        } patientParam.setGender(patient.getPatientSex());
-        patientParam.setDocDate(DateConversion.formatDateTimeWithSec(recipe.getSignDate()));
-        patientParam.setFlag("0");
+
         RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
         List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class);
         //reqType 请求类型（1：二维码扫码推送详情 2：自动推送详情链接跳转请求 ）
-        Map<String, Object> map = getHtml5Link(patientParam, recipeBean, recipeDetailBeans, "2");
+        Map<String, Object> map = getHtml5Link(patientParam, recipeBean, recipeDetailBeans, RecipeBussConstant.REQ_TYPE_AUTO);
         return (String) map.get("url");
     }
 
     /**
      * 获取药品说明页面URL
      */
-    public Map<String,Object> getHtml5Link(PatientInfoDTO patient, RecipeBean recipe, List<RecipeDetailBean> recipeDetail, String reqType){
+    public Map<String,Object> getHtml5Link(PatientInfoDTO patient, RecipeBean recipe, List<RecipeDetailBean> recipeDetail, Integer reqType){
         LOGGER.info("medicationGuideService getHtml5Link start");
         IMedicationGuideService medicationGuideService = getGuideService(recipe.getClinicOrgan());
         return medicationGuideService.getHtml5LinkInfo(patient,recipe,recipeDetail,reqType);
