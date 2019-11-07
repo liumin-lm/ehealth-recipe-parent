@@ -1,6 +1,7 @@
 package recipe.dao;
 
 import com.ngari.recipe.entity.DrugListMatch;
+import com.ngari.recipe.entity.OrganDrugList;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.bean.QueryResult;
@@ -115,7 +116,8 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
                 if (null != changeAttr && !changeAttr.isEmpty()) {
                     for (String key : changeAttr.keySet()) {
                         if (key.equals("status")&&changeAttr.get(key).equals(0)){
-                            hql.append(",matchDrugId = null");
+                            hql.append(" ,matchDrugId = null");
+                            hql.append(" ,regulationDrugCode = null");
                         }
                         hql.append("," + key + "=:" + key);
                     }
@@ -211,4 +213,11 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
      */
     @DAOMethod(sql = " delete from DrugListMatch where sourceOrgan =:sourceOrgan")
     public abstract void deleteByOrganId(@DAOParam("sourceOrgan") Integer organId);
+
+    @DAOMethod(sql = "update DrugListMatch set status = :resultStatus where sourceOrgan = :organId and regulationDrugCode Is Null and status in :statusList")
+    public abstract void updateStatusListToStatus(@DAOParam("statusList") List<Integer> statusList, @DAOParam("organId") Integer organId, @DAOParam("resultStatus") Integer resultStatus);
+
+    @DAOMethod(sql = "select count(*) from DrugListMatch where sourceOrgan =:organId and status not in :noStatusList")
+    public abstract long getCountByNoStatus(@DAOParam("organId")int organId, @DAOParam("noStatusList")List<Integer> noStatusList);
+
 }

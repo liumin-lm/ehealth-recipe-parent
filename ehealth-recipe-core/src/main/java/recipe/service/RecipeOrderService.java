@@ -1435,7 +1435,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 LOGGER.info("审方前置或者不审核-药店取药-药企为空");
             } else {
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(nowRecipe.getEnterpriseId());
-                boolean scanFlag = remoteDrugService.scanStock(order.getEnterpriseId(), drugsEnterprise);
+                boolean scanFlag = remoteDrugService.scanStock(nowRecipe.getRecipeId(), drugsEnterprise);
+                LOGGER.info("sendTfdsMsg sacnFlag: {}.", scanFlag);
                 if (scanFlag) {
                     //表示需要进行库存校验并且有库存
                     RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_DRUG_HAVE_STOCK, nowRecipe);
