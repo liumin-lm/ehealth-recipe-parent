@@ -757,11 +757,13 @@ public class DrugToolService implements IDrugToolService {
      * 药品提交(将匹配完成的数据提交更新)----互联网六期改为人工提交
      */
     @RpcService
-    public void drugCommit(final List<DrugListMatch> lists) {
+    public void drugCommit(List<DrugListMatch> lists) {
+        DrugListMatch db;
         for (DrugListMatch drugListMatch : lists) {
-            if (drugListMatch.getStatus().equals(1) && drugListMatch.getMatchDrugId() != null) {
-                drugListMatch.setStatus(2);
-                drugListMatchDAO.update(drugListMatch);
+            db = drugListMatchDAO.get(drugListMatch.getDrugId());
+            if (1 == db.getStatus() && db.getMatchDrugId() != null && null != db.getRegulationDrugCode()) {
+                db.setStatus(2);
+                drugListMatchDAO.update(db);
             }
         }
     }
