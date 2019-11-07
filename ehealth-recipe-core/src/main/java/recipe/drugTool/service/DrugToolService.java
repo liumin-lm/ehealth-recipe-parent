@@ -762,6 +762,9 @@ public class DrugToolService implements IDrugToolService {
         for (DrugListMatch drugListMatch : lists) {
             db = drugListMatchDAO.get(drugListMatch.getDrugId());
             if (1 == db.getStatus() && db.getMatchDrugId() != null && null != db.getRegulationDrugCode()) {
+                db.setUsingRate(drugListMatch.getUsingRate());
+                db.setUsePathways(drugListMatch.getUsePathways());
+                db.setDefaultUseDose(drugListMatch.getDefaultUseDose());
                 db.setStatus(2);
                 drugListMatchDAO.update(db);
             }
