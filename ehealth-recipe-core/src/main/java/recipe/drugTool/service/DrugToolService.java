@@ -758,10 +758,12 @@ public class DrugToolService implements IDrugToolService {
      */
     @RpcService
     public void drugCommit(List<DrugListMatch> lists) {
+        DrugListMatch db;
         for (DrugListMatch drugListMatch : lists) {
             if (drugListMatch.getStatus().equals(1) && drugListMatch.getMatchDrugId() != null) {
-                drugListMatch.setStatus(2);
-                drugListMatchDAO.update(drugListMatch);
+                db = drugListMatchDAO.get(drugListMatch.getDrugId());
+                db.setStatus(2);
+                drugListMatchDAO.update(db);
             }
         }
     }
