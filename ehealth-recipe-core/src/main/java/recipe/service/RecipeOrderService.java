@@ -1289,6 +1289,27 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     /**
+     * 获取订单详情
+     *
+     * @param giveMode
+     * @return
+     */
+    @RpcService
+    public Map<Integer, String> getOrderStatusEnum(Integer giveMode) {
+        HashMap<Integer, String> map = new HashMap ();
+        if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(giveMode)){
+            map.put(OrderStatusConstant.READY_SEND, "待配送");
+            map.put(OrderStatusConstant.SENDING, "配送中");
+        } else {
+            map.put(OrderStatusConstant.READY_GET_DRUG, "待取药");
+        }
+        map.put(OrderStatusConstant.FINISH, "已完成");
+        map.put(OrderStatusConstant.FAIL, "取药失败");
+
+        return map;
+    }
+
+    /**
      * 获取运费
      *
      * @param enterpriseId
@@ -1686,7 +1707,44 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     /**
-     * 更新订单信息
+     * 更新处方订单信息(状态维护)
+     *
+     * @param recipeId
+     * @param attrMap
+     * @return
+     */
+    @RpcService
+    public RecipeResultBean updateOrderStatus(Integer recipeId, Map<String, Object> attrMap) {
+
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        //状态转化
+        Integer status2 = RecipeStatusToOrderEnum.getValue((Integer)attrMap.get("status"));
+        attrMap.put("lastModifyTime", new Date());
+        //更新订单状态
+        String orderCode= this.getOrderCodeByRecipeId(recipeId);
+        RecipeResultBean resultBean = this.updateOrderInfo(orderCode, attrMap, null);
+        if(resultBean.getCode().equals(RecipeResultBean.FAIL)){
+            return resultBean;
+        }
+
+        //同步处方状态
+        try {
+            boolean recipeSave = recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("status", status2, "lastModify", new Date()));
+            if (!recipeSave) {
+                resultBean.setCode(RecipeResultBean.FAIL);
+                resultBean.setError("处方单状态同步失败");
+            }
+
+        } catch (Exception e) {
+            resultBean.setCode(RecipeResultBean.FAIL);
+            resultBean.setError("处方单状态同步失败," + e.getMessage());
+        }
+        LOGGER.info("updateOrderStatus 更新处方订单信息成功");
+        return resultBean;
+    }
+
+    /**
+     * 更新订单信息addDrugsEnterprise
      *
      * @param orderCode
      * @param attrMap
@@ -1711,10 +1769,12 @@ public class RecipeOrderService extends RecipeBaseService {
             if (!flag) {
                 result.setCode(RecipeResultBean.FAIL);
                 result.setError("订单更新失败");
+                LOGGER.error("订单更新失败");
             }
         } catch (Exception e) {
             result.setCode(RecipeResultBean.FAIL);
             result.setError("订单更新失败," + e.getMessage());
+            LOGGER.error("订单更新失败,{}", JSONUtils.toString(e.getMessage()));
         }
 
         return result;

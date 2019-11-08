@@ -1,5 +1,6 @@
 package com.ngari.recipe.entity;
 
+import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
@@ -82,6 +83,7 @@ public class DrugsEnterprise implements java.io.Serializable {
     private Integer checkInventoryFlag;
 
     @ItemProperty(alias = "创建类型：1：非自建  0：自建")
+    @Dictionary(id = "eh.cdr.dictionary.Deptype")
     private Integer createType;
 
     @Id
