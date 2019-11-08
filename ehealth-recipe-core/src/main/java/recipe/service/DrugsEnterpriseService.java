@@ -103,15 +103,11 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
             pharmacy.setPharmacyName(drugsEnterpriseBean.getName());
             pharmacy.setPharmacyAddress(map.get("pharmacyAddress"));
             pharmacy.setPharmacyPhone(map.get("pharmacyPhone"));
-            //获取药店经纬度坐标
-            String pharmacyCoordinate = map.get("pharmacyCoordinate");
-            if(null == pharmacyCoordinate){
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "pharmacyCoordinate is null!");
-            }
-            pharmacyCoordinate = pharmacyCoordinate.replace("，",",");
-            String[] pharmacyCoordinateS = pharmacyCoordinate.split(",");
-            pharmacy.setPharmacyLongitude(pharmacyCoordinateS[0]);
-            pharmacy.setPharmacyLatitude(pharmacyCoordinateS[1]);
+            //获取药店经度
+            pharmacy.setPharmacyLongitude(map.get("pharmacyLongitude"));
+            //获取药店纬度
+            pharmacy.setPharmacyLatitude(map.get("pharmacyLatitude"));
+
             pharmacy.setStatus(1);
             pharmacy.setCreateTime(drugsEnterprise.getCreateDate());
             pharmacy.setLastModify(drugsEnterprise.getLastModify());
@@ -166,15 +162,10 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
             pharmacy.setDrugsenterpriseId(drugsEnterpriseBean.getId());
             pharmacy.setPharmacyAddress(map.get("pharmacyAddress"));
             pharmacy.setPharmacyPhone(map.get("pharmacyPhone"));
-            //获取药店经纬度坐标
-            String pharmacyCoordinate = map.get("pharmacyCoordinate");
-            if(null == pharmacyCoordinate){
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "pharmacyCoordinate is null!");
-            }
-            pharmacyCoordinate = pharmacyCoordinate.replace("，",",");
-            String[] pharmacyCoordinateS = pharmacyCoordinate.split(",");
-            pharmacy.setPharmacyLongitude(pharmacyCoordinateS[0]);
-            pharmacy.setPharmacyLatitude(pharmacyCoordinateS[1]);
+            //获取药店经度
+            pharmacy.setPharmacyLongitude(map.get("pharmacyLongitude"));
+            //获取药店纬度度
+            pharmacy.setPharmacyLatitude(map.get("pharmacyLatitude"));
             pharmacy.setLastModify(target.getLastModify());
 
             List<Pharmacy> list = pharmacyDAO.findByDepId(drugsEnterpriseBean.getId());
@@ -205,29 +196,34 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
      * @author houxr 2016-09-11
      */
     @RpcService
-    public QueryResult<DrugsEnterpriseBean> queryDrugsEnterpriseByStartAndLimit(final String name, final int start, final int limit) {
+    public QueryResult<DrugsEnterpriseBean> queryDrugsEnterpriseByStartAndLimit(final String name, final Integer createType, final int start, final int limit) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        QueryResult result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByStartAndLimit(name, start, limit);
+        QueryResult result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByStartAndLimit(name, createType, start, limit);
         List<DrugsEnterpriseBean> list = getList(result.getItems(), DrugsEnterpriseBean.class);
 
-        PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
-        List<Pharmacy> listS = pharmacyDAO.findLimit(start, limit);
-
-        for(DrugsEnterpriseBean drugsEnterpriseBean : list){
-            //自建药企关联药店信息
-            if(0 == drugsEnterpriseBean.getCreateType()){
-                for(Pharmacy pharmacy : listS){
-                    if(pharmacy.getDrugsenterpriseId().equals(drugsEnterpriseBean.getId())){
-                        HashMap<String, String> map = new HashMap<String, String> ();
-                        map.put("pharmacyAddress", pharmacy.getPharmacyAddress());
-                        map.put("pharmacyPhone", pharmacy.getPharmacyPhone());
-                        map.put("pharmacyCoordinate", pharmacy.getPharmacyLongitude() + "，" + pharmacy.getPharmacyLatitude());
-                        drugsEnterpriseBean.setPharmacyInfo(map);
-                        break;
+        if(null != createType && createType.equals(0)){
+            PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
+            List<Pharmacy> listS = pharmacyDAO.findLimit(start, limit);
+            for(DrugsEnterpriseBean drugsEnterpriseBean : list){
+                //自建药企关联药店信息
+                if(0 == drugsEnterpriseBean.getCreateType()){
+                    for(Pharmacy pharmacy : listS){
+                        if(pharmacy.getDrugsenterpriseId().equals(drugsEnterpriseBean.getId())){
+                            HashMap<String, String> map = new HashMap<String, String> ();
+                            map.put("pharmacyAddress", pharmacy.getPharmacyAddress());
+                            map.put("pharmacyPhone", pharmacy.getPharmacyPhone());
+                            //获取药店经度
+                            map.put("pharmacyLongitude", pharmacy.getPharmacyLongitude());
+                            //获取药店纬度
+                            map.put("pharmacyLatitude", pharmacy.getPharmacyLatitude());
+                            drugsEnterpriseBean.setPharmacyInfo(map);
+                            break;
+                        }
                     }
                 }
             }
         }
+
         result.setItems(list);
         return result;
     }

@@ -25,7 +25,7 @@ public class PatientInfoDTO implements Serializable {
      * 卡类型（1身份证 2 医保卡 3 临时卡）
      */
     @JsonProperty("CardType")
-    private String cardType;
+    private Integer cardType;
     /**
      * 患者姓名
      */
@@ -40,7 +40,7 @@ public class PatientInfoDTO implements Serializable {
      * 性别 1男 2女
      */
     @JsonProperty("Gender")
-    private String gender;
+    private Integer gender;
     /**
      * 就诊科室名称
      */
@@ -55,7 +55,7 @@ public class PatientInfoDTO implements Serializable {
      * 标识字段（暂未定义）默认0
      */
     @JsonProperty("Flag")
-    private String flag;
+    private Integer flag;
     /**
      * 处方开具时间 精确到秒
      */
@@ -78,11 +78,11 @@ public class PatientInfoDTO implements Serializable {
         this.card = card;
     }
 
-    public String getCardType() {
+    public Integer getCardType() {
         return cardType;
     }
 
-    public void setCardType(String cardType) {
+    public void setCardType(Integer cardType) {
         this.cardType = cardType;
     }
 
@@ -102,11 +102,11 @@ public class PatientInfoDTO implements Serializable {
         this.patientAge = patientAge;
     }
 
-    public String getGender() {
+    public Integer getGender() {
         return gender;
     }
 
-    public void setGender(String gender) {
+    public void setGender(Integer gender) {
         this.gender = gender;
     }
 
@@ -126,11 +126,11 @@ public class PatientInfoDTO implements Serializable {
         this.adminNo = adminNo;
     }
 
-    public String getFlag() {
+    public Integer getFlag() {
         return flag;
     }
 
-    public void setFlag(String flag) {
+    public void setFlag(Integer flag) {
         this.flag = flag;
     }
 

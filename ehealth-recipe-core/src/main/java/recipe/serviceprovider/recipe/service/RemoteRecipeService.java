@@ -1,16 +1,14 @@
 package recipe.serviceprovider.recipe.service;
 
 
+import com.google.common.collect.Maps;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.recipe.model.HisSendResTO;
-import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipe.model.RecipeRollingInfoBean;
+import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
@@ -22,9 +20,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.drugsenterprise.TmdyfRemoteService;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.service.RecipeCheckService;
 import recipe.service.RecipeListService;
@@ -345,5 +345,27 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             return ObjectCopyUtils.convert(recipe, RecipeBean.class);
         }
         return null;
+    }
+
+    @Override
+    @RpcService
+    public Map<String,Object> noticePlatRecipeFlowInfo(NoticePlatRecipeFlowInfoDTO req) {
+        TmdyfRemoteService service = ApplicationUtils.getRecipeService(TmdyfRemoteService.class);
+        LOGGER.info("noticePlatRecipeFlowInfo req={}",JSONUtils.toString(req));
+        Map<String,Object> map = Maps.newHashMap();
+        if (req != null && StringUtils.isNotEmpty(req.getPutOnRecordID())&& StringUtils.isNotEmpty(req.getRecipeID())){
+            try {
+                DrugEnterpriseResult result = service.updateMedicalInsuranceRecord(req.getRecipeID(), req.getPutOnRecordID());
+                if (StringUtils.isNotEmpty(result.getMsg())){
+                    map.put("msg",result.getMsg());
+                }
+                LOGGER.info("noticePlatRecipeFlowInfo res={}",JSONUtils.toString(result));
+            }catch (Exception e){
+                LOGGER.error("noticePlatRecipeFlowInfo error.",e);
+                map.put("msg","处理异常");
+            }
+        }
+        return map;
+
     }
 }

@@ -46,10 +46,11 @@ import java.util.*;
 /**
  * @author： 0184/yu_yun
  * @date： 2019/2/14
- * @description： 同步监管数据 (openAPI调用)
+ * @description： 同步监管数据 (openAPI调用)----原本纳里平台上传互联网平台用 现已废弃 兼容HisSyncSupervisionService
  * @version： 1.0
  */
 @RpcBean("commonSyncSupervisionService")
+@Deprecated
 public class CommonSyncSupervisionService implements ICommonSyncSupervisionService {
 
     /**

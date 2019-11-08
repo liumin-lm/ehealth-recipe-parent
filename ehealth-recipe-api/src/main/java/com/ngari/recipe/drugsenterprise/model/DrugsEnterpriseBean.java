@@ -1,5 +1,6 @@
 package com.ngari.recipe.drugsenterprise.model;
 
+import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 import ctd.util.JSONUtils;
@@ -69,6 +70,7 @@ public class DrugsEnterpriseBean implements Serializable {
     private Map<String, String> pharmacyInfo;
 
     @ItemProperty(alias = "创建类型：1：非自建  0：自建")
+    @Dictionary(id = "eh.cdr.dictionary.Deptype")
     private Integer createType;
 
     public DrugsEnterpriseBean() {

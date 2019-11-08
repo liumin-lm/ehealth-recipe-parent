@@ -19,5 +19,5 @@ public interface IMedicationGuideService {
      * @param reqType 请求类型（1：二维码扫码推送详情 2：自动推送详情链接跳转请求 ）
      * @return
      */
-    Map<String,Object> getHtml5LinkInfo(PatientInfoDTO patient, RecipeBean recipeBean, List<RecipeDetailBean> recipeDetails, String reqType);
+    Map<String,Object> getHtml5LinkInfo(PatientInfoDTO patient, RecipeBean recipeBean, List<RecipeDetailBean> recipeDetails, Integer reqType);
 }

@@ -55,7 +55,7 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
     /**
      * logger
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(CommonSyncSupervisionService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommonSyncSupervisionForIHosService.class);
 
     private static String HIS_SUCCESS = "200";
 
@@ -326,6 +326,8 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
             }
             req.setDoctorCertID(doctorDTO.getIdNumber());
             req.setDoctorName(doctorDTO.getName());
+            //医生签名
+            req.setCAInfo(doctorDTO.getName());
 
             //药师处理
             doctorDTO = doctorMap.get(recipe.getChecker());

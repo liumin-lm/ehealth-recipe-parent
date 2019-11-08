@@ -28,10 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.ThirdResultBean;
-import recipe.constant.ErrorCode;
-import recipe.constant.OrderStatusConstant;
-import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
+import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.StandardResultDTO;
 import recipe.hisservice.syncdata.SyncExecutorService;
@@ -133,103 +130,107 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             code = ErrorCode.SERVICE_ERROR;
             errorMsg = "电子处方更新失败";
         }
+        Integer depId = recipe.getEnterpriseId();
+        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(depId);
+        if (!DrugEnterpriseConstant.COMPANY_HR.equals(drugsEnterprise.getCallSys())) {
+            Object listObj = paramMap.get("dtl");
+            boolean detailRs = false;
+            if (rs) {
+                if (null != listObj) {
+                    if (listObj instanceof List) {
+                        List<HashMap<String, Object>> detailList = (List<HashMap<String, Object>>) paramMap.get("dtl");
+                        if (CollectionUtils.isNotEmpty(detailList)) {
+                            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
 
-        Object listObj = paramMap.get("dtl");
-        boolean detailRs = false;
-        if (rs) {
-            if (null != listObj) {
-                if (listObj instanceof List) {
-                    List<HashMap<String, Object>> detailList = (List<HashMap<String, Object>>) paramMap.get("dtl");
-                    if (CollectionUtils.isNotEmpty(detailList)) {
-                        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-
-                        boolean drugSearchFlag = false;
-                        //药品和详情关系 key:drugId  value:detailId
-                        Map<Integer, Integer> detailIdAndDrugId = new HashMap<>(detailList.size());
-                        //判断是传了dtlId或者drugId
-                        Integer drugId = MapValueUtil.getInteger(detailList.get(0), "drugId");
-                        if (null != drugId) {
-                            drugSearchFlag = true;
-                            List<Recipedetail> dbDetailList = recipeDetailDAO.findByRecipeId(recipeId);
-                            for (Recipedetail recipedetail : dbDetailList) {
-                                detailIdAndDrugId.put(recipedetail.getDrugId(), recipedetail.getRecipeDetailId());
-                            }
-                        }
-
-                        Map<String, Object> detailAttrMap;
-                        Integer dtlId;
-                        String goodId;
-                        String drugBatch;
-                        Date validDate;
-                        Double qty;
-                        Double price;
-                        Double rate;
-                        Double ratePrice;
-                        Double totalPrice;
-                        Double tax;
-                        Double totalRatePrice;
-                        for (HashMap<String, Object> detailMap : detailList) {
-                            detailAttrMap = Maps.newHashMap();
-                            if (drugSearchFlag) {
-                                dtlId = detailIdAndDrugId.get(MapValueUtil.getInteger(detailMap, "drugId"));
-                            } else {
-                                dtlId = MapValueUtil.getInteger(detailMap, "dtlId");
-                            }
-                            goodId = MapValueUtil.getString(detailMap, "goodId");
-                            drugBatch = MapValueUtil.getString(detailMap, "drugBatch");
-                            validDate = DateConversion.parseDate(MapValueUtil.getString(detailMap, "validDate"), DateConversion.DEFAULT_DATE_TIME);
-                            qty = MapValueUtil.getDouble(detailMap, "qty");
-                            price = MapValueUtil.getDouble(detailMap, "price");
-                            rate = MapValueUtil.getDouble(detailMap, "rate");
-                            ratePrice = MapValueUtil.getDouble(detailMap, "ratePrice");
-                            totalPrice = MapValueUtil.getDouble(detailMap, "value");
-                            tax = MapValueUtil.getDouble(detailMap, "tax");
-                            totalRatePrice = MapValueUtil.getDouble(detailMap, "sumValue");
-
-                            //药品配送企业平台药品ID
-                            detailAttrMap.put("drugCode", goodId);
-                            detailAttrMap.put("drugBatch", drugBatch);
-                            detailAttrMap.put("validDate", validDate);
-                            detailAttrMap.put("sendNumber", qty);
-                            if (null != price) {
-                                detailAttrMap.put("price", new BigDecimal(price));
-                            }
-                            detailAttrMap.put("rate", rate);
-                            if (null != ratePrice) {
-                                detailAttrMap.put("ratePrice", new BigDecimal(ratePrice));
-                            }
-                            if (null != totalPrice) {
-                                detailAttrMap.put("totalPrice", new BigDecimal(totalPrice));
-                            }
-                            if (null != tax) {
-                                detailAttrMap.put("tax", new BigDecimal(tax));
-                            }
-                            if (null != totalRatePrice) {
-                                detailAttrMap.put("totalRatePrice", new BigDecimal(totalRatePrice));
+                            boolean drugSearchFlag = false;
+                            //药品和详情关系 key:drugId  value:detailId
+                            Map<Integer, Integer> detailIdAndDrugId = new HashMap<>(detailList.size());
+                            //判断是传了dtlId或者drugId
+                            Integer drugId = MapValueUtil.getInteger(detailList.get(0), "drugId");
+                            if (null != drugId) {
+                                drugSearchFlag = true;
+                                List<Recipedetail> dbDetailList = recipeDetailDAO.findByRecipeId(recipeId);
+                                for (Recipedetail recipedetail : dbDetailList) {
+                                    detailIdAndDrugId.put(recipedetail.getDrugId(), recipedetail.getRecipeDetailId());
+                                }
                             }
 
-                            if (null != dtlId) {
-                                boolean detailRs1 = recipeDetailDAO.updateRecipeDetailByRecipeDetailId(dtlId, detailAttrMap);
-                                if (detailRs1) {
-                                    detailRs = true;
+                            Map<String, Object> detailAttrMap;
+                            Integer dtlId;
+                            String goodId;
+                            String drugBatch;
+                            Date validDate;
+                            Double qty;
+                            Double price;
+                            Double rate;
+                            Double ratePrice;
+                            Double totalPrice;
+                            Double tax;
+                            Double totalRatePrice;
+                            for (HashMap<String, Object> detailMap : detailList) {
+                                detailAttrMap = Maps.newHashMap();
+                                if (drugSearchFlag) {
+                                    dtlId = detailIdAndDrugId.get(MapValueUtil.getInteger(detailMap, "drugId"));
                                 } else {
-                                    detailRs = false;
-                                    code = ErrorCode.SERVICE_ERROR;
-                                    errorMsg = "电子处方详情 ID为：" + dtlId + " 的药品更新失败";
-                                    break;
+                                    dtlId = MapValueUtil.getInteger(detailMap, "dtlId");
+                                }
+                                goodId = MapValueUtil.getString(detailMap, "goodId");
+                                drugBatch = MapValueUtil.getString(detailMap, "drugBatch");
+                                validDate = DateConversion.parseDate(MapValueUtil.getString(detailMap, "validDate"), DateConversion.DEFAULT_DATE_TIME);
+                                qty = MapValueUtil.getDouble(detailMap, "qty");
+                                price = MapValueUtil.getDouble(detailMap, "price");
+                                rate = MapValueUtil.getDouble(detailMap, "rate");
+                                ratePrice = MapValueUtil.getDouble(detailMap, "ratePrice");
+                                totalPrice = MapValueUtil.getDouble(detailMap, "value");
+                                tax = MapValueUtil.getDouble(detailMap, "tax");
+                                totalRatePrice = MapValueUtil.getDouble(detailMap, "sumValue");
+
+                                //药品配送企业平台药品ID
+                                detailAttrMap.put("drugCode", goodId);
+                                detailAttrMap.put("drugBatch", drugBatch);
+                                detailAttrMap.put("validDate", validDate);
+                                detailAttrMap.put("sendNumber", qty);
+                                if (null != price) {
+                                    detailAttrMap.put("price", new BigDecimal(price));
+                                }
+                                detailAttrMap.put("rate", rate);
+                                if (null != ratePrice) {
+                                    detailAttrMap.put("ratePrice", new BigDecimal(ratePrice));
+                                }
+                                if (null != totalPrice) {
+                                    detailAttrMap.put("totalPrice", new BigDecimal(totalPrice));
+                                }
+                                if (null != tax) {
+                                    detailAttrMap.put("tax", new BigDecimal(tax));
+                                }
+                                if (null != totalRatePrice) {
+                                    detailAttrMap.put("totalRatePrice", new BigDecimal(totalRatePrice));
+                                }
+
+                                if (null != dtlId) {
+                                    boolean detailRs1 = recipeDetailDAO.updateRecipeDetailByRecipeDetailId(dtlId, detailAttrMap);
+                                    if (detailRs1) {
+                                        detailRs = true;
+                                    } else {
+                                        detailRs = false;
+                                        code = ErrorCode.SERVICE_ERROR;
+                                        errorMsg = "电子处方详情 ID为：" + dtlId + " 的药品更新失败";
+                                        break;
+                                    }
                                 }
                             }
                         }
                     }
+                } else {
+                    detailRs = true;
                 }
-            } else {
-                detailRs = true;
             }
-        }
 
-        if (rs && detailRs) {
-            code = REQUEST_OK;
-            errorMsg = "";
+            if (rs && detailRs) {
+                code = REQUEST_OK;
+                errorMsg = "";
+            }
         }
 
         //监管平台核销上传
@@ -1150,9 +1151,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      * @author houxr 2016-09-11
      */
     @RpcService
-    public QueryResult<DrugsEnterpriseBean> queryDrugsEnterpriseByStartAndLimit(final String name, final int start, final int limit) {
+    public QueryResult<DrugsEnterpriseBean> queryDrugsEnterpriseByStartAndLimit(final String name, final Integer createType, final int start, final int limit) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        QueryResult result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByStartAndLimit(name, start, limit);
+        QueryResult result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByStartAndLimit(name, createType, start, limit);
         List<DrugsEnterpriseBean> list = getList(result.getItems(), DrugsEnterpriseBean.class);
         result.setItems(list);
         return result;

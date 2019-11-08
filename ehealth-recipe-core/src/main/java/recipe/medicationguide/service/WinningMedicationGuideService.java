@@ -4,6 +4,7 @@ package recipe.medicationguide.service;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.entity.MedicationGuide;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -45,7 +46,7 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
 
     @Override
     @RpcService
-    public Map<String,Object> getHtml5LinkInfo(PatientInfoDTO patient, RecipeBean recipeBean, List<RecipeDetailBean> recipeDetails, String reqType) {
+    public Map<String,Object> getHtml5LinkInfo(PatientInfoDTO patient, RecipeBean recipeBean, List<RecipeDetailBean> recipeDetails, Integer reqType) {
         //拼接请求参数
         WinningMedicationGuideReqDTO requestParam = assembleRequestParam(patient, recipeBean, recipeDetails, reqType);
         //获取请求url
@@ -68,14 +69,18 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
         return result;
     }
 
-    private WinningMedicationGuideReqDTO assembleRequestParam(PatientInfoDTO patient, RecipeBean recipeBean, List<RecipeDetailBean> recipeDetails, String reqType) {
+    private WinningMedicationGuideReqDTO assembleRequestParam(PatientInfoDTO patient, RecipeBean recipeBean, List<RecipeDetailBean> recipeDetails, Integer reqType) {
         WinningMedicationGuideReqDTO req = new WinningMedicationGuideReqDTO();
         try {
             req.setPatientInfo(patient);
             //组装医院信息数据
             HospInfoDTO hospParam = new HospInfoDTO();
             hospParam.setId(String.valueOf(recipeBean.getClinicOrgan()));
-            hospParam.setOrganizationalCode(organService.getOrganizeCodeByOrganId(recipeBean.getClinicOrgan()));
+            OrganDTO organDTO = organService.getByOrganId(recipeBean.getClinicOrgan());
+            if (organDTO != null){
+                hospParam.setOrganizationalCode(organDTO.getOrganizeCode());
+                hospParam.setAreaCode(organDTO.getAddrArea());
+            }
             hospParam.setName(recipeBean.getOrganName());
             req.setHospInfo(hospParam);
             //组装药品信息数据
@@ -83,7 +88,7 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
             for (RecipeDetailBean detail : recipeDetails) {
                 DrugUseDTO drugUseDTO = new DrugUseDTO();
                 drugUseDTO.setDrugName(detail.getDrugName());
-                drugUseDTO.setDrugCode(detail.getDrugCode());
+                drugUseDTO.setDrugCode(detail.getOrganDrugCode());
                 //口服/每次75mg/每日两次
                 if (detail.getRecipeDetailId() != null) {
                     Dictionary usingRateDic = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate");

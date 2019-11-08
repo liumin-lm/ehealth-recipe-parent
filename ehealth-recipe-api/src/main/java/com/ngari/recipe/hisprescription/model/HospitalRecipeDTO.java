@@ -164,7 +164,7 @@ public class HospitalRecipeDTO implements Serializable {
     private String tcmNum;
 
     //reqType 请求类型（1：二维码扫码推送详情 2：自动推送详情链接跳转请求 ）
-    private String reqType;
+    private Integer reqType;
 
     @Verify(desc = "药品详情")
     private List<HospitalDrugDTO> drugList;
@@ -545,11 +545,11 @@ public class HospitalRecipeDTO implements Serializable {
         this.registerId = registerId;
     }
 
-    public String getReqType() {
+    public Integer getReqType() {
         return reqType;
     }
 
-    public void setReqType(String reqType) {
+    public void setReqType(Integer reqType) {
         this.reqType = reqType;
     }
 
