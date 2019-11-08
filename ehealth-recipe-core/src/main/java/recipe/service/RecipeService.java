@@ -949,7 +949,7 @@ public class RecipeService extends RecipeBaseService{
 
     private void doHisReturnSuccessForOrgan(RecipeBean recipeBean, Map<String, Object> rMap) {
         Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_SKIP_HISRECIPE_LIST);
-        if (organIdList != null && organIdList.contains(recipeBean.getClinicOrgan())){
+        if (organIdList != null && organIdList.contains(recipeBean.getClinicOrgan().toString())){
             RecipeBusiThreadPool.submit(new Callable() {
                 @Override
                 public Object call() throws Exception {

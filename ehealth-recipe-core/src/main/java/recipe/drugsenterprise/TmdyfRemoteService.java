@@ -565,6 +565,60 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         return JSON.toJSONString(response);
     }
 
+    /**
+     * 更新处方医保备案号
+     * @param recipeCode 处方号
+     * @param medicalInsuranceRecord 医保备案号
+     * @return
+     */
+    @RpcService
+    public DrugEnterpriseResult updateMedicalInsuranceRecord(String recipeCode, String medicalInsuranceRecord) {
+        LOGGER.info("更新处方医保备案号 start");
+        DrugEnterpriseResult drugEnterpriseResult = new DrugEnterpriseResult(DrugEnterpriseResult.SUCCESS);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe dbRecipe = recipeDAO.getByRecipeCode(recipeCode);
+        if (ObjectUtils.isEmpty(dbRecipe)) {
+            LOGGER.info("处方不存在 recipeCode={}.", recipeCode);
+            return getDrugEnterpriseResult(drugEnterpriseResult, "处方不存在");
+        }
+        AlibabaAlihealthOutflowPrescriptionUpdateRequest request = new AlibabaAlihealthOutflowPrescriptionUpdateRequest();
+
+        AlibabaAlihealthOutflowPrescriptionUpdateRequest.PrescriptionOutflowUpdateRequest requestParam = new AlibabaAlihealthOutflowPrescriptionUpdateRequest.PrescriptionOutflowUpdateRequest();
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(dbRecipe.getRecipeId());
+        if(null != recipeExtend && null != recipeExtend.getRxNo()){
+            //与阿里对应的处方号
+            requestParam.setRxNo(recipeExtend.getRxNo());
+        } else {
+            return getDrugEnterpriseResult(drugEnterpriseResult, "无法获取阿里对应处方编码");
+        }
+        //医保备案号
+        requestParam.setCardNumber(medicalInsuranceRecord);
+        //医保
+        requestParam.setFeeType("MEDICAL_INSURANCE");
+        requestParam.setSyncHisResult(true);
+        request.setUpdateRequest(requestParam);
+        LOGGER.info("更新处方医保备案号，request ={}", getJsonLog(request));
+        try {
+            TaobaoClient client = new DefaultTaobaoClient(this.taobaoConf.getUrl(), this.taobaoConf.getAppkey(), this.taobaoConf.getSecret());
+            AlibabaAlihealthOutflowPrescriptionUpdateResponse rsp = client.execute(request);
+
+            LOGGER.info("更新处方医保备案号，res ={}", getJsonLog(rsp.getServiceResult()));
+            if (StringUtils.isEmpty(rsp.getSubCode())) {
+                //说明成功
+                drugEnterpriseResult.setObject(rsp.getServiceResult().getData());
+                drugEnterpriseResult.setCode(DrugEnterpriseResult.SUCCESS);
+            } else {
+                String errorMsg = rsp.getSubMsg();
+                drugEnterpriseResult.setMsg(errorMsg);
+                drugEnterpriseResult.setCode(DrugEnterpriseResult.FAIL);
+            }
+        } catch (ApiException e) {
+            LOGGER.error("更新处方医保备案号错误，recipeId= {}", dbRecipe.getRecipeId(),e);
+            return getDrugEnterpriseResult(drugEnterpriseResult, "更新处方医保备案号异常");
+        }
+        return drugEnterpriseResult;
+    }
+
 //    /**
 //     *
 //     * @param rxId  处⽅Id
