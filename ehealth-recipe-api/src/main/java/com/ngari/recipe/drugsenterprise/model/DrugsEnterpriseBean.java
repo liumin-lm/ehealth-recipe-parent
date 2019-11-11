@@ -70,7 +70,7 @@ public class DrugsEnterpriseBean implements Serializable {
     private Map<String, String> pharmacyInfo;
 
     @ItemProperty(alias = "创建类型：1：非自建  0：自建")
-    @Dictionary(id = "eh.cdr.dictionary.Deptype")
+    @Dictionary(id = "eh.cdr.dictionary.DepType")
     private Integer createType;
 
     public DrugsEnterpriseBean() {
