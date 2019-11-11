@@ -1,5 +1,7 @@
 package recipe.drugsenterprise;
 
+import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
+import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Pharmacy;
 import ctd.persistence.DAOFactory;
@@ -9,8 +11,10 @@ import org.slf4j.LoggerFactory;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.PharmacyDAO;
+import recipe.util.DistanceUtil;
 import recipe.util.MapValueUtil;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -65,15 +69,30 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
         if (longitude != null && latitude != null) {
             //药店取药
             List<Pharmacy> pharmacyList = getPharmacies(recipeIds, ext, enterprise, result);
-        } else {
-            //配送到家
-
+            List<DepDetailBean> detailList = new ArrayList<>();
+            DepDetailBean detailBean;
+            for (Pharmacy pharmacy : pharmacyList) {
+                detailBean = new DepDetailBean();
+                detailBean.setDepId(enterprise.getId());
+                detailBean.setDepName(pharmacy.getPharmacyName());
+                detailBean.setRecipeFee(BigDecimal.ZERO);
+                detailBean.setExpressFee(BigDecimal.ZERO);
+                detailBean.setPharmacyCode(pharmacy.getPharmacyCode());
+                detailBean.setAddress(pharmacy.getPharmacyAddress());
+                Position position = new Position();
+                position.setLatitude(Double.parseDouble(pharmacy.getPharmacyLatitude()));
+                position.setLongitude(Double.parseDouble(pharmacy.getPharmacyLongitude()));
+                position.setRange(Integer.parseInt(ext.get(searchMapRANGE).toString()));
+                detailBean.setPosition(position);
+                detailBean.setBelongDepName(enterprise.getName());
+                //记录药店和用户两个经纬度的距离
+                detailBean.setDistance(DistanceUtil.getDistance(Double.parseDouble(ext.get(searchMapLatitude).toString()),
+                        Double.parseDouble(ext.get(searchMapLongitude).toString()), Double.parseDouble(pharmacy.getPharmacyLatitude()), Double.parseDouble(pharmacy.getPharmacyLongitude())));
+                detailList.add(detailBean);
+            }
+            result.setObject(detailList);
         }
-
-        if(DrugEnterpriseResult.FAIL == result.getCode()){
-            return result;
-        }
-        return null;
+        return result;
     }
 
     @Override
