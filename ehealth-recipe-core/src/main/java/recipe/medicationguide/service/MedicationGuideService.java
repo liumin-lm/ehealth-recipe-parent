@@ -1,29 +1,29 @@
 package recipe.medicationguide.service;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.common.utils.VerifyUtils;
 import com.ngari.recipe.entity.MedicationGuide;
 import com.ngari.recipe.entity.OrganMedicationGuideRelation;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.hisprescription.model.HospitalDrugDTO;
-import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import com.ngari.recipe.hisprescription.model.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
-import ctd.schema.exception.ValidateException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,45 +71,47 @@ public class MedicationGuideService {
         }
         //根据扫描出来的二维码信息去查his处方信息
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-        HospitalRecipeDTO hospitalRecipeDTO = service.queryHisPatientRecipeInfo(organId,qrInfo);
+        HosPatientRecipeDTO hosPatientRecipeDTO = service.queryHisPatientRecipeInfo(organId,qrInfo);
         //reqType 请求类型（1：二维码扫码推送详情 2：自动推送详情链接跳转请求 ）
-        hospitalRecipeDTO.setReqType(RecipeBussConstant.REQ_TYPE_QRCODE);
+        hosPatientRecipeDTO.setReqType(RecipeBussConstant.REQ_TYPE_QRCODE);
         //发送模板消息
-        sendMedicationGuideMsg(appId,openId,hospitalRecipeDTO);
+        sendMedicationGuideMsg(appId,openId,hosPatientRecipeDTO);
     }
 
     /**
      * 用药指导
      * 场景一-扫码后触发-微信事件消息--WXCallbackListenerImpl》onEvent
      * 场景三-线下开处方线上推送消息--前提患者已在公众号注册过
-     * @param hospitalRecipeDTO
+     * @param hosPatientRecipeDTO
      */
-    public void sendMedicationGuideMsg(String appId, String openId,HospitalRecipeDTO hospitalRecipeDTO){
-        verifyParam(hospitalRecipeDTO);
+    public void sendMedicationGuideMsg(String appId, String openId, HosPatientRecipeDTO hosPatientRecipeDTO){
+        verifyParam(hosPatientRecipeDTO);
         OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
         PatientInfoDTO patient = new PatientInfoDTO();
         RecipeBean recipe = new RecipeBean();
         List<RecipeDetailBean> recipeDetails = Lists.newArrayList();
+        HosPatientDTO hosPatient = hosPatientRecipeDTO.getPatient();
+        HosRecipeDTO hosRecipe = hosPatientRecipeDTO.getRecipe();
         try {
-            patient.setPatientName(hospitalRecipeDTO.getPatientName());
+            patient.setPatientName(hosPatient.getPatientName());
             //科室名
-            patient.setDeptName(hospitalRecipeDTO.getDepartId());
-            patient.setGender(Integer.valueOf(hospitalRecipeDTO.getPatientSex()));
-            patient.setDocDate(hospitalRecipeDTO.getCreateDate());
-            patient.setPatientAge(String.valueOf(ChinaIDNumberUtil.getStringAgeFromIDNumber(hospitalRecipeDTO.getCertificate())));
+            patient.setDeptName(hosRecipe.getDepartName());
+            patient.setGender(Integer.valueOf(hosPatient.getPatientSex()));
+            patient.setDocDate(hosRecipe.getSignTime());
+            patient.setPatientAge(String.valueOf(ChinaIDNumberUtil.getStringAgeFromIDNumber(hosPatient.getCertificate())));
             //患者编号
-            patient.setPatientCode(hospitalRecipeDTO.getPatientNumber());
+            patient.setPatientCode(hosPatient.getPatientID());
             //就诊号
-            patient.setAdminNo(hospitalRecipeDTO.getClinicId());
-            recipe.setClinicOrgan(Integer.valueOf(hospitalRecipeDTO.getClinicOrgan()));
+            patient.setAdminNo(hosPatientRecipeDTO.getClinicNo());
+            recipe.setClinicOrgan(Integer.valueOf(hosPatientRecipeDTO.getOrganId()));
             recipe.setOrganName(organService.getShortNameById(recipe.getClinicOrgan()));
-            recipe.setOrganDiseaseName(hospitalRecipeDTO.getOrganDiseaseName());
-            recipe.setOrganDiseaseId(hospitalRecipeDTO.getOrganDiseaseId());
+            recipe.setOrganDiseaseName(hosRecipe.getDiseaseName());
+            recipe.setOrganDiseaseId(hosRecipe.getDisease());
             RecipeDetailBean detailBean;
-            for (HospitalDrugDTO drugDTO : hospitalRecipeDTO.getDrugList()){
+            for (HosRecipeDetailDTO drugDTO : hosRecipe.getDetailData()){
                 detailBean = new RecipeDetailBean();
                 detailBean.setUsingRate(drugDTO.getUsingRate());
-                detailBean.setUsePathways(drugDTO.getUsePathways());
+                detailBean.setUsePathways(drugDTO.getUsePathWays());
                 detailBean.setUseDose(Double.valueOf(drugDTO.getUseDose()));
                 detailBean.setUseDoseUnit(drugDTO.getUseDoseUnit());
                 detailBean.setDrugName(drugDTO.getDrugName());
@@ -119,7 +121,7 @@ public class MedicationGuideService {
             LOGGER.error("sendMedicationGuideData set param error",e);
         }
         //获取用药指导链接
-        Map<String, Object> map = getHtml5Link(patient, recipe, recipeDetails, hospitalRecipeDTO.getReqType());
+        Map<String, Object> map = getHtml5Link(patient, recipe, recipeDetails, hosPatientRecipeDTO.getReqType());
         sendMedicationGuideMsg(appId,openId,map);
     }
 
@@ -134,52 +136,65 @@ public class MedicationGuideService {
         }
     }
 
-    private void verifyParam(HospitalRecipeDTO hospitalRecipeDTO) {
-        if (StringUtils.isEmpty(hospitalRecipeDTO.getCertificate())){
-            throw new DAOException(DAOException.VALUE_NEEDED, "certificate is required!");
-        }
-        if (StringUtils.isEmpty(hospitalRecipeDTO.getPatientName())){
-            throw new DAOException(DAOException.VALUE_NEEDED, "patientName is required!");
-        }
-        if (StringUtils.isEmpty(hospitalRecipeDTO.getClinicOrgan())){
-            throw new DAOException(DAOException.VALUE_NEEDED, "clinicOrgan is required!");
-        }
-        if (StringUtils.isEmpty(hospitalRecipeDTO.getPatientSex())){
-            throw new DAOException(DAOException.VALUE_NEEDED, "patientSex is required!");
-        }
-        if (StringUtils.isEmpty(hospitalRecipeDTO.getPatientNumber())){
-            throw new DAOException(DAOException.VALUE_NEEDED, "patientNumber is required!");
-        }
-        if (StringUtils.isEmpty(hospitalRecipeDTO.getClinicId())){
-            throw new DAOException(DAOException.VALUE_NEEDED, "clinicId is required!");
-        }
-        if (StringUtils.isEmpty(hospitalRecipeDTO.getCreateDate())){
-            throw new DAOException(DAOException.VALUE_NEEDED, "createDate is required!");
-        }
-        if (StringUtils.isEmpty(hospitalRecipeDTO.getDepartId())){
-            throw new DAOException(DAOException.VALUE_NEEDED, "departId is required!");
-        }
-        if (StringUtils.isEmpty(hospitalRecipeDTO.getOrganDiseaseName())){
-            throw new DAOException(DAOException.VALUE_NEEDED, "organDiseaseName is required!");
-        }
-        if (StringUtils.isEmpty(hospitalRecipeDTO.getOrganDiseaseId())){
-            throw new DAOException(DAOException.VALUE_NEEDED, "organDiseaseId is required!");
-        }
-        if (hospitalRecipeDTO.getDrugList() == null){
-            throw new DAOException(DAOException.VALUE_NEEDED, "drugList is required!");
-        }
-        for (HospitalDrugDTO drugDTO : hospitalRecipeDTO.getDrugList()){
-            if (StringUtils.isEmpty(drugDTO.getDrugCode())){
-                throw new DAOException(DAOException.VALUE_NEEDED, "drugCode is required!");
+    private void verifyParam(HosPatientRecipeDTO hosPatientRecipeDTO) {
+        if (null != hosPatientRecipeDTO) {
+            HosPatientDTO hosPatient = hosPatientRecipeDTO.getPatient();
+            HosRecipeDTO hosRecipe = hosPatientRecipeDTO.getRecipe();
+            if (hosPatient == null){
+                throw new DAOException(DAOException.VALUE_NEEDED, "patient is required!");
             }
-            if (StringUtils.isEmpty(drugDTO.getDrugName())){
-                throw new DAOException(DAOException.VALUE_NEEDED, "drugName is required!");
+            if (hosRecipe == null){
+                throw new DAOException(DAOException.VALUE_NEEDED, "recipe is required!");
             }
-            if (StringUtils.isEmpty(drugDTO.getUsingRate())){
-                throw new DAOException(DAOException.VALUE_NEEDED, "usingRate is required!");
+            if (StringUtils.isEmpty(hosPatientRecipeDTO.getClinicNo())){
+                throw new DAOException(DAOException.VALUE_NEEDED, "clinicNo is required!");
             }
-            if (StringUtils.isEmpty(drugDTO.getUsePathways())){
-                throw new DAOException(DAOException.VALUE_NEEDED, "usePathways is required!");
+            if (StringUtils.isEmpty(hosPatient.getCertificate())){
+                throw new DAOException(DAOException.VALUE_NEEDED, "certificate is required!");
+            }
+            if (StringUtils.isEmpty(hosPatient.getPatientName())){
+                throw new DAOException(DAOException.VALUE_NEEDED, "patientName is required!");
+            }
+            if (StringUtils.isEmpty(hosPatientRecipeDTO.getOrganId())){
+                throw new DAOException(DAOException.VALUE_NEEDED, "organId is required!");
+            }
+            if (StringUtils.isEmpty(hosPatient.getPatientSex())){
+                throw new DAOException(DAOException.VALUE_NEEDED, "patientSex is required!");
+            }
+            if (StringUtils.isEmpty(hosPatient.getPatientID())){
+                throw new DAOException(DAOException.VALUE_NEEDED, "patientID is required!");
+            }
+            if (StringUtils.isEmpty(hosPatientRecipeDTO.getClinicNo())){
+                throw new DAOException(DAOException.VALUE_NEEDED, "clinicNo is required!");
+            }
+            if (StringUtils.isEmpty(hosRecipe.getSignTime())){
+                throw new DAOException(DAOException.VALUE_NEEDED, "signTime is required!");
+            }
+            if (StringUtils.isEmpty(hosRecipe.getDepartName())){
+                throw new DAOException(DAOException.VALUE_NEEDED, "departId is required!");
+            }
+            if (StringUtils.isEmpty(hosRecipe.getDiseaseName())){
+                throw new DAOException(DAOException.VALUE_NEEDED, "diseaseName is required!");
+            }
+            if (StringUtils.isEmpty(hosRecipe.getDisease())){
+                throw new DAOException(DAOException.VALUE_NEEDED, "disease is required!");
+            }
+            if (hosRecipe.getDetailData() == null){
+                throw new DAOException(DAOException.VALUE_NEEDED, "detailData is required!");
+            }
+            for (HosRecipeDetailDTO drugDTO : hosRecipe.getDetailData()){
+                if (StringUtils.isEmpty(drugDTO.getDrugCode())){
+                    throw new DAOException(DAOException.VALUE_NEEDED, "drugCode is required!");
+                }
+                if (StringUtils.isEmpty(drugDTO.getDrugName())){
+                    throw new DAOException(DAOException.VALUE_NEEDED, "drugName is required!");
+                }
+                if (StringUtils.isEmpty(drugDTO.getUsingRate())){
+                    throw new DAOException(DAOException.VALUE_NEEDED, "usingRate is required!");
+                }
+                if (StringUtils.isEmpty(drugDTO.getUsePathWays())){
+                    throw new DAOException(DAOException.VALUE_NEEDED, "usePathWays is required!");
+                }
             }
         }
     }

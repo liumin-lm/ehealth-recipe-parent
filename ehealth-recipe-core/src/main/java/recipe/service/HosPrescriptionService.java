@@ -137,14 +137,14 @@ public class HosPrescriptionService implements IHosPrescriptionService {
      */
     @Override
     @RpcService
-    public HosRecipeResult sendMedicationGuideData(HospitalRecipeDTO hospitalRecipeDTO) {
+    public HosRecipeResult sendMedicationGuideData(HosPatientRecipeDTO hosPatientRecipeDTO) {
         HosRecipeResult result = new HosRecipeResult();
-        LOG.info("sendMedicationGuideData reqParam={}",JSONUtils.toString(hospitalRecipeDTO));
+        LOG.info("sendMedicationGuideData reqParam={}",JSONUtils.toString(hosPatientRecipeDTO));
         MedicationGuideService guideService = ApplicationUtils.getRecipeService(MedicationGuideService.class);
         //reqType 请求类型（1：二维码扫码推送详情 2：自动推送详情链接跳转请求 ）
-        hospitalRecipeDTO.setReqType(RecipeBussConstant.REQ_TYPE_AUTO);
+        hosPatientRecipeDTO.setReqType(RecipeBussConstant.REQ_TYPE_AUTO);
         //推送微信模板消息
-        guideService.sendMedicationGuideMsg(null,null,hospitalRecipeDTO);
+        guideService.sendMedicationGuideMsg(null,null,hosPatientRecipeDTO);
         result.setCode(HosRecipeResult.SUCCESS);
         return result;
     }

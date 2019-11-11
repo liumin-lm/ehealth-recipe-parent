@@ -16,6 +16,7 @@ import com.ngari.platform.recipe.mode.HospitalRecipeBean;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.hisprescription.model.HosPatientRecipeDTO;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
 import ctd.spring.AppDomainContext;
@@ -421,19 +422,21 @@ public class RecipeToHisService {
         return response;
     }
 
-    public HospitalRecipeDTO queryHisPatientRecipeInfo(String organId,String qrInfo){
+    public HosPatientRecipeDTO queryHisPatientRecipeInfo(String organId, String qrInfo){
         LOGGER.info("queryHisPatientRecipeInfo organId={},qrInfo={}", organId,qrInfo);
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
-        HisResponseTO<HospitalRecipeBean> response = null;
+        HisResponseTO<HosPatientRecipeBean> response;
+        HosPatientRecipeBean hosPatientRecipeBean = null;
         try {
             QueryHisPatientRecipeInfoReq req = new QueryHisPatientRecipeInfoReq();
             req.setOrganId(Integer.valueOf(organId));
             req.setQrInfo(qrInfo);
             response = hisService.queryHisPatientRecipeInfo(req);
+            hosPatientRecipeBean = response.getData();
             LOGGER.info("syncDrugListToHis response={}", JSONUtils.toString(response));
         } catch (Exception e) {
             LOGGER.error("syncDrugListToHis error ", e);
         }
-        return ObjectCopyUtils.convert(response.getData(),HospitalRecipeDTO.class);
+        return ObjectCopyUtils.convert(hosPatientRecipeBean,HosPatientRecipeDTO.class);
     }
 }

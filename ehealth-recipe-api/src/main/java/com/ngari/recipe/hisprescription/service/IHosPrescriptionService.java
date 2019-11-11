@@ -1,5 +1,6 @@
 package com.ngari.recipe.hisprescription.service;
 
+import com.ngari.recipe.hisprescription.model.HosPatientRecipeDTO;
 import com.ngari.recipe.hisprescription.model.HosRecipeResult;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.hisprescription.model.RecipeQrCodeReqDTO;
@@ -21,11 +22,11 @@ public interface IHosPrescriptionService {
 
     /**
      * 接收his推送的处方 并推送用药指导模板消息
-     * @param hospitalRecipeDTO
+     * @param hosPatientRecipeDTO
      * @return
      */
     @RpcService
-    HosRecipeResult sendMedicationGuideData(HospitalRecipeDTO hospitalRecipeDTO);
+    HosRecipeResult sendMedicationGuideData(HosPatientRecipeDTO hosPatientRecipeDTO);
 
     /**
      * 用药指导
