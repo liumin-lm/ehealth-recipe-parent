@@ -753,6 +753,8 @@ public class RecipeOrderService extends RecipeBaseService {
         if(null != order && (null != order.getAddress1() && null != order.getAddress2() && null != order.getAddress3())){
             CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
             order.setCompleteAddress(commonRemoteService.getCompleteAddress(order));
+        }else{
+            LOGGER.info("当前订单的配送地址信息不全！");
         }
     }
 
