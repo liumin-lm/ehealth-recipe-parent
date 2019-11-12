@@ -2,8 +2,13 @@ package recipe.service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ngari.patient.service.OrganService;
-import com.ngari.patient.service.PatientService;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.base.qrinfo.model.BusQrInfoBean;
+import com.ngari.base.qrinfo.model.QRInfoBean;
+import com.ngari.base.qrinfo.service.INgariQrInfoService;
+import com.ngari.patient.dto.ClientConfigDTO;
+import com.ngari.patient.dto.OrganConfigDTO;
+import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
@@ -12,11 +17,18 @@ import com.ngari.recipe.hisprescription.service.IHosPrescriptionService;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
+import com.ngari.upload.service.IUrlResourceService;
+import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
+import ctd.spring.AppDomainContext;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.base.constant.ClientConfigConstant;
+import eh.base.constant.ErrorCode;
+import eh.qrcode.constant.QRInfoConstant;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.formula.constant.ErrorConstant;
 import org.slf4j.Logger;
@@ -132,7 +144,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
     /**
      *  用药指导
      *  场景三-接收his推送的处方(不保存) 并推送用药指导模板消息
-     * @param hospitalRecipeDTO
+     * @param hosPatientRecipeDTO
      * @return
      */
     @Override
@@ -151,18 +163,82 @@ public class HosPrescriptionService implements IHosPrescriptionService {
 
     /**
      * 用药指导----前置机根据医院相关参数信息来获取二维码
-     * @param recipeQrCodeReqDTO
+     * @param req
      * @return
      */
     @Override
     @RpcService
-    public HosRecipeResult getQrUrlForRecipeRemind(RecipeQrCodeReqDTO recipeQrCodeReqDTO) {
-        LOG.info("getQrUrlForRecipeRemind reqParam={}",JSONUtils.toString(recipeQrCodeReqDTO));
+    public HosRecipeResult getQrUrlForRecipeRemind(RecipeQrCodeReqDTO req) {
+        LOG.info("getQrUrlForRecipeRemind reqParam={}",JSONUtils.toString(req));
+        verifyParam(req);
         HosRecipeResult result = new HosRecipeResult();
+        //根据前置机传的appId获取指定的端
+        ClientConfigDTO clientConfig = getClientConfig(req.getAppId(), req.getOrganId(), req.getClientType());
+        if(clientConfig==null){
+            result.setCode(HosRecipeResult.FAIL);
+            result.setMsg("未找到公众号appId="+req.getAppId()+"，无法生成二维码");
+            throw new DAOException(ErrorCode.SERVICE_ERROR,"未找到公众号appId="+req.getAppId()+"，无法生成二维码");
+        }
+        String qrUrl = getQrUrl(clientConfig,req.getClientType(), req.getOrganId(), req.getQrInfo());
         result.setCode(HosRecipeResult.SUCCESS);
         //二维码数据
-        result.setData("http://weixin.qq.com/q/wUT4gFHlYVUY-jup6mzf");
+        result.setData(qrUrl);
         return result;
+    }
+
+    private String getQrUrl(ClientConfigDTO clientConfig, String clientType, Integer organId, String qrcodeInfo) {
+        INgariQrInfoService ngariQrInfoService = AppContextHolder.getBean("eh.ngariQrInfoService", INgariQrInfoService.class);
+        String sceneStr=new StringBuffer(QRInfoConstant.QRTYPE_RECIPE_REMIND).append("_")
+                .append(organId).append("_")
+                .append(qrcodeInfo)
+                .toString();
+        BusQrInfoBean bean = new BusQrInfoBean();
+        bean.setExpireSeconds(null);
+        bean.setSceneStr(sceneStr);
+        bean.setOrganId(organId);
+        bean.setQrType(QRInfoConstant.QRTYPE_RECIPE_REMIND);
+        bean.setCreateWay(clientType);
+        //生成业务相关临时二维码[临时]* 二维码失效则重新生成* 二维码内容自定义
+        QRInfoBean qrInfo = ngariQrInfoService.createBriefQRInfoForBusCustom(bean, clientConfig);
+        String fileid=qrInfo==null?null:qrInfo.getQrCode();
+        if(fileid==null){
+            return null;
+        }
+        //拼装二维码
+        IUrlResourceService urlResourceService =
+                AppDomainContext.getBean("eh.urlResourceService", IUrlResourceService.class);
+        String uploadUrl = urlResourceService.getUrlByParam("imgUrl");
+        return new StringBuffer(uploadUrl).append(fileid).toString();
+    }
+
+    private ClientConfigDTO getClientConfig(String appId, Integer organId, String clientType) {
+        ClientConfigService ccService = BasicAPI.getService(ClientConfigService.class);
+        OrganConfigService organConfigService=BasicAPI.getService(OrganConfigService.class);
+        IConfigurationCenterUtilsService configurationCenterUtils = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        //根据前置机传的appId获取指定的端
+        ClientConfigDTO clientConfigDTO = ccService.getClientConfigByAppKey(appId);
+        //前置机未指定公众号，则取运营平台默认的医生二维码指定的支付宝，或者微信
+        if(clientConfigDTO==null){
+            //医生默认微信二维码
+            if(ClientConfigConstant.APP_CLIENTTYPE_WX.equals(clientType)){
+                OrganConfigDTO organConfig = organConfigService.getOrganConifigById(organId);
+                Integer wxConfigId =organConfig==null?null:organConfig.getWxConfigId();
+                clientConfigDTO =ccService.getByTypeAndClientId(clientType,wxConfigId);
+            }else if(ClientConfigConstant.APP_CLIENTTYPE_ALILIFE.equals(clientType)){
+                //医生默认支付宝二维码
+                String qrCodeAppId  = (String) configurationCenterUtils.getConfiguration(organId,"Qraliapp");
+                clientConfigDTO =ccService.getClientConfigByAppKey(qrCodeAppId);
+            }
+        }
+        return clientConfigDTO;
+    }
+
+    private void verifyParam(RecipeQrCodeReqDTO req) {
+        if(StringUtils.isEmpty(req.getQrInfo())
+                ||StringUtils.isEmpty(req.getClientType())
+                ||req.getOrganId()==null){
+            throw new DAOException(ErrorCode.SERVICE_ERROR,"qrcodeInfo,clientType,organId 参数不完整");
+        }
     }
 
     @RpcService
