@@ -21,4 +21,6 @@
 
     <!--优惠券-->
     <reference id="voucher.couponBaseService" interface="coupon.api.service.ICouponBaseService"/>
+    <!--网络门诊-->
+    <reference id="nc.networkclinicMsgService" interface="networkclinic.api.service.INetworkclinicMsgService"/>
 </s:beans>

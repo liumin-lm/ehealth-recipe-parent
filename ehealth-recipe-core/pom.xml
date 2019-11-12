@@ -184,6 +184,10 @@
             <groupId>com.itextpdf</groupId>
             <artifactId>itextpdf</artifactId>
         </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-networkclinic-api</artifactId>
+        </dependency>
     </dependencies>
     <profiles>
         <profile>

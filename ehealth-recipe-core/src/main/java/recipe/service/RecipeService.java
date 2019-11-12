@@ -769,7 +769,8 @@ public class RecipeService extends RecipeBaseService{
             // urt用于系统消息推送
             recipe.setRequestUrt(requestPatient.getUrt());
         }
-        //根据申请人mpiid，requestMode 获取当前咨询单consultId
+        //11月大版本改造-------咨询id有前端传入
+        /*//根据申请人mpiid，requestMode 获取当前咨询单consultId
         IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
         List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
                 recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
@@ -778,7 +779,7 @@ public class RecipeService extends RecipeBaseService{
             consultId = consultIds.get(0);
             recipe.setClinicId(consultId);
             rMap.put("consultId", consultId);
-        }
+        }*/
         recipe.setStatus(RecipeStatusConstant.UNSIGN);
         recipe.setSignDate(DateTime.now().toDate());
         Integer recipeId = recipe.getRecipeId();
@@ -927,13 +928,14 @@ public class RecipeService extends RecipeBaseService{
                 Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
                 List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
                 RecipeServiceSub.sendRecipeTagToPatient(recipe, details, rMap, false);
-                Integer consultId = MapValueUtil.getInteger(rMap, "consultId");
+                //11月大版本改造----咨询id由前端传入
+                /*Integer consultId = MapValueUtil.getInteger(rMap, "consultId");
                 if(null != consultId) {
                     RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
                     Map<String, Object> attrMap = Maps.newHashMap();
                     attrMap.put("clinicId", consultId);
                     recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap);
-                }
+                }*/
             }
             //个性化医院特殊处理，开完处方模拟his成功返回数据（假如前置机不提供默认返回数据）
             doHisReturnSuccessForOrgan(recipeBean,rMap);

@@ -143,4 +143,17 @@ public class RecipeBussConstant {
     public static Integer REQ_TYPE_QRCODE = 1;
     public static Integer REQ_TYPE_AUTO = 2;
 
+    /**
+     * 处方业务来源-问诊
+     */
+    public static Integer BUSS_SOURCE_WZ = 1;
+    /**
+     * 处方业务来源-在线复诊
+     */
+    public static Integer BUSS_SOURCE_FZ = 2;
+    /**
+     * 处方业务来源-网络咨询
+     */
+    public static Integer BUSS_SOURCE_WLZX = 3;
+
 }
