@@ -334,6 +334,7 @@ public class RecipeCheckService {
             if (null != drugsEnterprise) {
                 e.setName(drugsEnterprise.getName());
                 e.setPayModeSupport(drugsEnterprise.getPayModeSupport());
+                e.setCreateType(drugsEnterprise.getCreateType());
             }
         }
         RecipeOrderBean order = null;
