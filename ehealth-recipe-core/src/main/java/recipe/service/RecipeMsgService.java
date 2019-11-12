@@ -25,9 +25,11 @@ import recipe.dao.RecipeOrderDAO;
 import recipe.service.common.RecipeCacheService;
 import recipe.third.IWXPushMessService;
 import recipe.util.DateConversion;
+import recipe.util.MapValueUtil;
 import recipe.util.RecipeMsgUtils;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -438,6 +440,13 @@ public class RecipeMsgService {
     public static void sendMedicationGuideMsg(String appId, String templateId, String openId, String url, Map<String, Object> data) {
         IWXPushMessService wxPMService = AppContextHolder.getBean("wx.wxPushMessService", IWXPushMessService.class);
         if (StringUtils.isNotEmpty(url)){
+            Map<String,Object> extendsValue = new HashMap();
+            extendsValue.put("first", "用药提醒");
+            extendsValue.put("keyword1",MapValueUtil.getString(data,"patientName"));
+            extendsValue.put("keyword2",MapValueUtil.getString(data,"recipeType"));
+            extendsValue.put("keyword3",MapValueUtil.getString(data,"doctorName"));
+            extendsValue.put("keyword4",MapValueUtil.getString(data,"signTime"));
+            extendsValue.put("remark",MapValueUtil.getString(data,"drugInfo"));
             Map map = wxPMService.pushTemplateMessage(appId, templateId, openId, url, data);
             LOGGER.info("sendMedicationGuideMsg templateMessage result ={}",JSONUtils.toString(map));
         }else {
