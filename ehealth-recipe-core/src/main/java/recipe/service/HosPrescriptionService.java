@@ -172,14 +172,23 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         LOG.info("getQrUrlForRecipeRemind reqParam={}",JSONUtils.toString(req));
         verifyParam(req);
         HosRecipeResult result = new HosRecipeResult();
-        //根据前置机传的appId获取指定的端
-        ClientConfigDTO clientConfig = getClientConfig(req.getAppId(), req.getOrganId(), req.getClientType());
-        if(clientConfig==null){
+        String qrUrl;
+        try {
+            //根据前置机传的appId获取指定的端
+            ClientConfigDTO clientConfig = getClientConfig(req.getAppId(), req.getOrganId(), req.getClientType());
+            if(clientConfig==null){
+                result.setCode(HosRecipeResult.FAIL);
+                result.setMsg("未找到公众号appId="+req.getAppId()+"，无法生成二维码");
+                LOG.info("getQrUrlForRecipeRemind error msg={}","未找到公众号appId="+req.getAppId()+"，无法生成二维码");
+                return result;
+            }
+            qrUrl = getQrUrl(clientConfig,req.getClientType(), req.getOrganId(), req.getQrInfo());
+        } catch (Exception e) {
+            LOG.error("getQrUrlForRecipeRemind error",e);
             result.setCode(HosRecipeResult.FAIL);
-            result.setMsg("未找到公众号appId="+req.getAppId()+"，无法生成二维码");
-            throw new DAOException(ErrorCode.SERVICE_ERROR,"未找到公众号appId="+req.getAppId()+"，无法生成二维码");
+            result.setMsg("获取二维码异常");
+            return result;
         }
-        String qrUrl = getQrUrl(clientConfig,req.getClientType(), req.getOrganId(), req.getQrInfo());
         result.setCode(HosRecipeResult.SUCCESS);
         //二维码数据
         result.setData(qrUrl);
