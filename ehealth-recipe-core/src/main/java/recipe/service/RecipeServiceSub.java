@@ -12,9 +12,9 @@ import com.ngari.base.operationrecords.service.IOperationRecordsService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.common.dto.RecipeTagMsgBean;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.service.IConsultService;
-import com.ngari.consult.message.model.RecipeTagMsgBean;
 import com.ngari.consult.message.service.IConsultMessageService;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
@@ -43,16 +43,13 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.constant.*;
 import recipe.dao.*;
-import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.AldyfRemoteService;
-import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
-import recipe.thread.SaveAutoReviewRunable;
 import recipe.util.*;
 
 import java.math.BigDecimal;
@@ -1634,7 +1631,7 @@ public class RecipeServiceSub {
                         }
                         LOGGER.info("sendRecipeMsgTag recipeTagMsg={}", JSONUtils.toString(recipeTagMsg));
                         //将消息存入数据库consult_msg，并发送环信消息
-                        iConsultMessageService.handleRecipeMsg(consultBean, recipeTagMsg);
+                        iConsultMessageService.handleRecipeMsg(consultId, recipeTagMsg, consultBean.getConsultDoctor());
                     }
                 }
             }
