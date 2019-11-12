@@ -440,14 +440,14 @@ public class RecipeMsgService {
     public static void sendMedicationGuideMsg(String appId, String templateId, String openId, String url, Map<String, Object> data) {
         IWXPushMessService wxPMService = AppContextHolder.getBean("wx.wxPushMessService", IWXPushMessService.class);
         if (StringUtils.isNotEmpty(url)){
-            Map<String,Object> extendsValue = new HashMap();
+            Map<String,Object> extendsValue = Maps.newHashMap();
             extendsValue.put("first", "用药提醒");
             extendsValue.put("keyword1",MapValueUtil.getString(data,"patientName"));
             extendsValue.put("keyword2",MapValueUtil.getString(data,"recipeType"));
             extendsValue.put("keyword3",MapValueUtil.getString(data,"doctorName"));
             extendsValue.put("keyword4",MapValueUtil.getString(data,"signTime"));
             extendsValue.put("remark",MapValueUtil.getString(data,"drugInfo"));
-            Map map = wxPMService.pushTemplateMessage(appId, templateId, openId, url, data);
+            Map map = wxPMService.pushTemplateMessage(appId, templateId, openId, url, extendsValue);
             LOGGER.info("sendMedicationGuideMsg templateMessage result ={}",JSONUtils.toString(map));
         }else {
             //如果没获取到用药指导url，推送客服消息
