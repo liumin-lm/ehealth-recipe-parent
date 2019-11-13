@@ -296,7 +296,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                 new AbstractHibernateStatelessResultAction<Boolean>() {
                     @Override
                     public void execute(StatelessSession ss) throws DAOException {
-                        Query q = ss.createQuery(sql);
+                        Query q = ss.createSQLQuery(sql);
                         q.executeUpdate();
                         setResult(true);
                     }

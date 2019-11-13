@@ -36,6 +36,7 @@ import recipe.ApplicationUtils;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.dao.*;
 import recipe.mq.OnsConfig;
+import recipe.util.DateConversion;
 import recipe.util.RecipeMsgUtils;
 
 import java.io.IOException;
@@ -198,7 +199,7 @@ public class RecipeTestService {
         IRegulationService hisService =
                 AppDomainContext.getBean("his.regulationService", IRegulationService.class);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndCreateDt(organId, createDate);
+        List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndCreateDt(organId, DateConversion.parseDate(createDate,"yyyy-MM-dd HH:mm:ss"));
         LOGGER.info("RecipeTestService-insertDrugCategoryByOrganId organDrugLists count:{}.", organDrugLists.size());
         for (OrganDrugList organDrugList : organDrugLists) {
             RegulationDrugCategoryReq drugCategoryReq = packingDrugCategoryReq(organDrugList);
@@ -208,7 +209,7 @@ public class RecipeTestService {
                 HisResponseTO hisResponseTO = hisService.uploadDrugCatalogue(organDrugList.getOrganId(),drugCategoryReqs);
                 LOGGER.info("RecipeTestService-insertDrugCategoryByOrganId hisResponseTO parames:" + JSONUtils.toString(hisResponseTO));
             }catch (Exception e){
-                LOGGER.error("RecipeTestService-insertDrugCategoryByOrganId hisResponseTO error:" + JSONUtils.toString(organDrugList) + e.getMessage());
+                LOGGER.error("RecipeTestService-insertDrugCategoryByOrganId hisResponseTO error:" + JSONUtils.toString(organDrugList) + JSONUtils.toString(e.getStackTrace()));
             }
         }
 
@@ -246,7 +247,11 @@ public class RecipeTestService {
         drugCategoryReq.setHospDrugManuf(organDrugList.getProducer());
 
         drugCategoryReq.setUseFlag(organDrugList.getStatus()+"");
-        drugCategoryReq.setDrugClass(drugList.getDrugClass());
+        if (drugList == null) {
+            drugCategoryReq.setDrugClass("1901");
+        } else {
+            drugCategoryReq.setDrugClass(drugList.getDrugClass());
+        }
         drugCategoryReq.setUpdateTime(new Date());
         drugCategoryReq.setCreateTime(new Date());
         LOGGER.info("RecipeTestService-packingDrugCategoryReq drugCategoryReq:" + JSONUtils.toString(drugCategoryReq));

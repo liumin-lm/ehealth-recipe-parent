@@ -24,10 +24,7 @@ import recipe.dao.bean.DrugInfoHisBean;
 import recipe.dao.bean.DrugListAndOrganDrugList;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 医疗机构用药目录dao
@@ -515,7 +512,7 @@ public abstract class OrganDrugListDAO extends
      * @param createDt 创建时间
      * @return
      */
-    @DAOMethod(sql = "from OrganDrugList where organId=:organId and createDt =:createDt and status =1")
-    public abstract List<OrganDrugList> findByOrganIdAndCreateDt(@DAOParam("organId") int organId, @DAOParam("createDt") String createDt);
+    @DAOMethod(sql = "from OrganDrugList where organId=:organId and createDt =:createDt and status =1", limit = 0)
+    public abstract List<OrganDrugList> findByOrganIdAndCreateDt(@DAOParam("organId") int organId, @DAOParam("createDt") Date createDt);
 
 }
