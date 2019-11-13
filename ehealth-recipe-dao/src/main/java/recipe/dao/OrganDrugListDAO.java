@@ -507,4 +507,15 @@ public abstract class OrganDrugListDAO extends
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    /**
+     * 通过organId和创建时间获取
+     *
+     * @param organId  机构Id
+     * @param createDt 创建时间
+     * @return
+     */
+    @DAOMethod(sql = "from OrganDrugList where organId=:organId and createDt =:createDt and status =1")
+    public abstract List<OrganDrugList> findByOrganIdAndCreateDt(@DAOParam("organId") int organId, @DAOParam("createDt") String createDt);
+
 }

@@ -3,12 +3,19 @@ package recipe.service;
 import com.itextpdf.text.DocumentException;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
+import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.regulation.entity.RegulationDrugCategoryReq;
+import com.ngari.his.regulation.service.IRegulationService;
+import com.ngari.jgpt.zjs.service.IMinkeOrganService;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
+import com.ngari.recipe.entity.DrugList;
+import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeCheck;
 import ctd.account.session.ClientSession;
@@ -16,23 +23,23 @@ import ctd.mvc.upload.exception.FileRegistryException;
 import ctd.mvc.upload.exception.FileRepositoryException;
 import ctd.net.broadcast.MQHelper;
 import ctd.persistence.DAOFactory;
+import ctd.spring.AppDomainContext;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.msg.constant.MqConstant;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bussutil.CreateRecipePdfUtil;
-import recipe.dao.RecipeCheckDAO;
-import recipe.dao.RecipeDAO;
+import recipe.dao.*;
 import recipe.mq.OnsConfig;
 import recipe.util.RecipeMsgUtils;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author yu_yun
@@ -177,5 +184,72 @@ public class RecipeTestService {
         return null;
 
 
+    }
+
+    @RpcService
+    public boolean insertSaleDrugListBySql(String sql){
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        return saleDrugListDAO.insertSaleDrugListBySql(sql);
+    }
+
+    @RpcService
+    public void insertDrugCategoryByOrganId(Integer organId, String createDate){
+        List<RegulationDrugCategoryReq> drugCategoryReqs = new ArrayList<>();
+        IRegulationService hisService =
+                AppDomainContext.getBean("his.regulationService", IRegulationService.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndCreateDt(organId, createDate);
+        LOGGER.info("RecipeTestService-insertDrugCategoryByOrganId organDrugLists count:{}.", organDrugLists.size());
+        for (OrganDrugList organDrugList : organDrugLists) {
+            RegulationDrugCategoryReq drugCategoryReq = packingDrugCategoryReq(organDrugList);
+            drugCategoryReqs.add(drugCategoryReq);
+
+            try{
+                HisResponseTO hisResponseTO = hisService.uploadDrugCatalogue(organDrugList.getOrganId(),drugCategoryReqs);
+                LOGGER.info("RecipeTestService-insertDrugCategoryByOrganId hisResponseTO parames:" + JSONUtils.toString(hisResponseTO));
+            }catch (Exception e){
+                LOGGER.error("RecipeTestService-insertDrugCategoryByOrganId hisResponseTO error:" + JSONUtils.toString(organDrugList) + e.getMessage());
+            }
+        }
+
+    }
+
+    private RegulationDrugCategoryReq packingDrugCategoryReq(OrganDrugList organDrugList){
+        OrganService organService = BasicAPI.getService(OrganService.class);
+        IMinkeOrganService minkeOrganService = AppContextHolder.getBean("jgpt.minkeOrganService", IMinkeOrganService.class);
+        OrganDTO organ = organService.getByOrganId(organDrugList.getOrganId());
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        CompareDrugDAO compareDrugDAO = DAOFactory.getDAO(CompareDrugDAO.class);
+        DrugList drugList = drugListDAO.getById(organDrugList.getDrugId());
+        RegulationDrugCategoryReq drugCategoryReq = new RegulationDrugCategoryReq();
+        String organId = minkeOrganService.getRegisterNumberByUnitId(organ.getMinkeUnitID());
+        drugCategoryReq.setUnitID(organ.getMinkeUnitID());
+        drugCategoryReq.setOrganID(organId);
+        drugCategoryReq.setOrganName(organ.getName());
+        Integer targetDrugId = compareDrugDAO.findTargetDrugIdByOriginalDrugId(organDrugList.getDrugId());
+        if (targetDrugId != null){
+            drugCategoryReq.setPlatDrugCode(targetDrugId.toString());
+        }else {
+            drugCategoryReq.setPlatDrugCode(organDrugList.getDrugId().toString());
+        }
+        drugCategoryReq.setPlatDrugName(organDrugList.getDrugName());
+        if (StringUtils.isNotEmpty(organDrugList.getOrganDrugCode())) {
+            drugCategoryReq.setHospDrugCode(organDrugList.getOrganDrugCode());
+        } else {
+            drugCategoryReq.setHospDrugCode(organDrugList.getOrganDrugId().toString());
+        }
+
+        drugCategoryReq.setHospDrugName(organDrugList.getDrugName());
+        drugCategoryReq.setHospTradeName(organDrugList.getSaleName());
+        drugCategoryReq.setHospDrugPacking(organDrugList.getDrugSpec());
+
+        drugCategoryReq.setHospDrugManuf(organDrugList.getProducer());
+
+        drugCategoryReq.setUseFlag(organDrugList.getStatus()+"");
+        drugCategoryReq.setDrugClass(drugList.getDrugClass());
+        drugCategoryReq.setUpdateTime(new Date());
+        drugCategoryReq.setCreateTime(new Date());
+        LOGGER.info("RecipeTestService-packingDrugCategoryReq drugCategoryReq:" + JSONUtils.toString(drugCategoryReq));
+        return drugCategoryReq;
     }
 }
