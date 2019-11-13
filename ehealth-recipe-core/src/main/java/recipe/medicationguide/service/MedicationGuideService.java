@@ -1,18 +1,19 @@
 package recipe.medicationguide.service;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.common.utils.VerifyUtils;
 import com.ngari.recipe.entity.MedicationGuide;
 import com.ngari.recipe.entity.OrganMedicationGuideRelation;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.hisprescription.model.*;
+import com.ngari.recipe.hisprescription.model.HosPatientDTO;
+import com.ngari.recipe.hisprescription.model.HosPatientRecipeDTO;
+import com.ngari.recipe.hisprescription.model.HosRecipeDTO;
+import com.ngari.recipe.hisprescription.model.HosRecipeDetailDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.dictionary.Dictionary;
@@ -23,7 +24,6 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,8 +54,6 @@ public class MedicationGuideService {
 
     /** logger */
     private static final Logger LOGGER = LoggerFactory.getLogger(MedicationGuideService.class);
-    /**微信事件推送模板id*/
-    private static final String WX_TEMPLATE_ID = "";
 
     /**
      * 扫码后--接收weixin-service扫码后的信息并获取跳转url再推送消息
@@ -128,18 +126,9 @@ public class MedicationGuideService {
         map.put("idCard",hosPatient.getCertificate());
         map.put("patientName",hosPatient.getPatientName());
         map.put("signTime",hosRecipe.getSignTime());
-        sendMedicationGuideMsg(appId,openId,map);
-    }
-
-    private void sendMedicationGuideMsg(String appId, String openId,Map<String,Object> map) {
-        String url = (String) map.get("url");
-        if (StringUtils.isEmpty(appId)&& StringUtils.isEmpty(openId)){
-            //发送微信模板消息
-            RecipeMsgService.sendMedicationGuideMsg(map);
-        }else {
-            //发送微信模板事件消息
-            RecipeMsgService.sendMedicationGuideMsg(appId,WX_TEMPLATE_ID,openId,url,map);
-        }
+        map.put("appId",appId);
+        map.put("openId",openId);
+        RecipeMsgService.sendMedicationGuideMsg(map);
     }
 
     private void verifyParam(HosPatientRecipeDTO hosPatientRecipeDTO) {
