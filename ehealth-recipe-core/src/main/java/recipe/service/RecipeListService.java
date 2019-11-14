@@ -924,10 +924,11 @@ public class RecipeListService extends RecipeBaseService{
             payModeShowButtonBean.noUserButtons();
             return payModeShowButtonBean;
         }
+        //获取配置项
+        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
         if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(record.getRecipeMode())){
 
-            //获取配置项
-            IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+
             //添加按钮配置项key
             Object payModeDeploy = configService.getConfiguration(record.getOrganId(), "payModeDeploy");
             if(null == payModeDeploy){
@@ -957,7 +958,14 @@ public class RecipeListService extends RecipeBaseService{
             payModeShowButtonBean.noUserButtons();
             return payModeShowButtonBean;
         }
-
+        //已完成的处方单设置
+        if (LIST_TYPE_ORDER.equals(record.getRecordType())&& OrderStatusConstant.FINISH.equals(record.getStatusCode())){
+            //设置用药指导按钮
+            Boolean flag = (Boolean)configService.getConfiguration(record.getOrganId(), "medicationGuideFlag");
+            if (flag){
+                payModeShowButtonBean.setSupportMedicationGuide(true);
+            }
+        }
         //设置按钮的展示类型
         payModeShowButtonBean.setButtonType(getButtonType(payModeShowButtonBean, recipe.getReviewType(), record.getRecordType(), record.getStatusCode()));
         return payModeShowButtonBean;
