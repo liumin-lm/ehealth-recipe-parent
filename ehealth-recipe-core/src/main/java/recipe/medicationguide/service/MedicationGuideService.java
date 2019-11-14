@@ -114,6 +114,7 @@ public class MedicationGuideService {
                 detailBean.setUseDoseUnit(drugDTO.getUseDoseUnit());
                 detailBean.setDrugName(drugDTO.getDrugName());
                 detailBean.setOrganDrugCode(drugDTO.getDrugCode());
+                recipeDetails.add(detailBean);
             }
         } catch (Exception e) {
             LOGGER.error("sendMedicationGuideData set param error",e);
@@ -254,9 +255,9 @@ public class MedicationGuideService {
      * @return         0 关闭 1 打开
      */
     @RpcService
-    public Integer getMedicationGuideFlag(Integer organId){
+    public Boolean getMedicationGuideFlag(Integer organId){
         IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        return (Integer)configurationCenterUtilsService.getConfiguration(organId, "medicationGuideFlag");
+        return (Boolean)configurationCenterUtilsService.getConfiguration(organId, "medicationGuideFlag");
     }
 
     private IMedicationGuideService getGuideService(Integer organId){

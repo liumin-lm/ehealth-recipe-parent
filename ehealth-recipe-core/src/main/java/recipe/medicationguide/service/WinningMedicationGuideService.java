@@ -59,11 +59,10 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
         //获取模板参数
         Map<String,Object> result = Maps.newHashMap();
         result.put("url",url);
-        result.put("name",requestParam.getPatientInfo().getPatientName()+"/"+requestParam.getPatientInfo().getGender()+"/"+requestParam.getPatientInfo().getPatientAge());
         List<DrugUseDTO> drugUseList = requestParam.getDrugUseList();
         StringBuilder drugInfo = new StringBuilder();
         for (DrugUseDTO drugUseDTO : drugUseList) {
-            drugInfo.append(drugUseDTO.getDrugName()).append("/n").append("用法").append(drugUseDTO.getDrugUsed()).append("/n");
+            drugInfo.append(drugUseDTO.getDrugName()).append("/n").append("用法:").append(drugUseDTO.getDrugUsed()).append("/n");
         }
         result.put("drugInfo",drugInfo);
         return result;
