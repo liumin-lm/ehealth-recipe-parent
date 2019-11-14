@@ -16,10 +16,7 @@ import com.ngari.platform.recipe.mode.HospitalRecipeBean;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.hisprescription.model.HosPatientDTO;
-import com.ngari.recipe.hisprescription.model.HosPatientRecipeDTO;
-import com.ngari.recipe.hisprescription.model.HosRecipeDTO;
-import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import com.ngari.recipe.hisprescription.model.*;
 import ctd.persistence.DAOFactory;
 import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
@@ -440,7 +437,11 @@ public class RecipeToHisService {
             hosPatientRecipeDTO = ObjectCopyUtils.convert(hosPatientRecipeBean, HosPatientRecipeDTO.class);
             HosPatientDTO patientDTO = ObjectCopyUtils.convert(hosPatientRecipeBean.getPatient(), HosPatientDTO.class);
             HosRecipeDTO recipeDTO = ObjectCopyUtils.convert(hosPatientRecipeBean.getRecipe(), HosRecipeDTO.class);
-            hosPatientRecipeDTO.setRecipe(recipeDTO);
+            if (recipeDTO != null){
+                List<HosRecipeDetailDTO> recipeDateil = ObjectCopyUtils.convert(hosPatientRecipeBean.getRecipe().getDetailData(), HosRecipeDetailDTO.class);
+                recipeDTO.setDetailData(recipeDateil);
+                hosPatientRecipeDTO.setRecipe(recipeDTO);
+            }
             hosPatientRecipeDTO.setPatient(patientDTO);
         } catch (Exception e) {
             LOGGER.error("queryHisPatientRecipeInfo error ", e);
