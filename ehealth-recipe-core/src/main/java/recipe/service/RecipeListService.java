@@ -959,7 +959,8 @@ public class RecipeListService extends RecipeBaseService{
             return payModeShowButtonBean;
         }
         //已完成的处方单设置
-        if (LIST_TYPE_ORDER.equals(record.getRecordType())&& OrderStatusConstant.FINISH.equals(record.getStatusCode())){
+        if ((LIST_TYPE_ORDER.equals(record.getRecordType())&& OrderStatusConstant.FINISH.equals(record.getStatusCode()))
+            || (LIST_TYPE_RECIPE.equals(record.getRecordType())&& RecipeStatusConstant.FINISH == record.getStatusCode())){
             //设置用药指导按钮
             Boolean flag = (Boolean)configService.getConfiguration(record.getOrganId(), "medicationGuideFlag");
             if (flag){
