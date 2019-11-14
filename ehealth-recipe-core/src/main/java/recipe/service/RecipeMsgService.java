@@ -445,7 +445,7 @@ public class RecipeMsgService {
      *  前置机(推送his处方药品等信息)->recipe(获取第三方url)->sms(发送微信模板消息)
      */
     public static void sendMedicationGuideMsg(Map<String, Object> param) {
-        String organId = MapValueUtil.getString(param, "organId");
-        sendMsgInfo(0,"medicationGuidePush",Integer.valueOf(organId),JSONUtils.toString(param));
+        Integer organId = MapValueUtil.getInteger(param, "organId");
+        sendMsgInfo(0,"medicationGuidePush",organId,JSONUtils.toString(param));
     }
 }

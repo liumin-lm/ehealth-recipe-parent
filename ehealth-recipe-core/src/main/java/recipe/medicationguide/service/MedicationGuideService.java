@@ -114,6 +114,7 @@ public class MedicationGuideService {
                 detailBean.setUseDoseUnit(drugDTO.getUseDoseUnit());
                 detailBean.setDrugName(drugDTO.getDrugName());
                 detailBean.setOrganDrugCode(drugDTO.getDrugCode());
+                recipeDetails.add(detailBean);
             }
         } catch (Exception e) {
             LOGGER.error("sendMedicationGuideData set param error",e);
