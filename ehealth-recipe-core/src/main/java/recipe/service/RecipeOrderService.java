@@ -14,6 +14,8 @@ import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.payment.model.DabaiPayResult;
 import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.base.push.model.SmsInfoBean;
+import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.bus.coupon.model.CouponBean;
 import com.ngari.bus.coupon.service.ICouponService;
 import com.ngari.patient.dto.OrganDTO;
@@ -1380,7 +1382,19 @@ public class RecipeOrderService extends RecipeBaseService {
      */
     @RpcService
     public RecipeResultBean  finishOrderPayWithoutPay(String orderCode, Integer payMode) {
-        return finishOrderPayImpl(orderCode, PayConstant.PAY_FLAG_NOT_PAY, payMode);
+//        return finishOrderPayImpl(orderCode, PayConstant.PAY_FLAG_NOT_PAY, payMode);
+        LOGGER.info("测试发短信");
+        SmsInfoBean smsInfo=new SmsInfoBean();
+        smsInfo.setBusType("RecipeOrderCreate");
+        smsInfo.setSmsType("RecipeOrderCreate");
+        smsInfo.setBusId(3025);
+        smsInfo.setOrganId(0);
+
+        Map<String,Object> smsMap = Maps.newHashMap();
+        smsInfo.setExtendValue(JSONUtils.toString(smsMap));
+        ISmsPushService smsPushService = ApplicationUtils.getBaseService(ISmsPushService.class);
+        smsPushService.pushMsgData2OnsExtendValue(smsInfo);
+        return null;
     }
 
     public RecipeResultBean finishOrderPayImpl(String orderCode, int payFlag, Integer payMode) {
@@ -1432,6 +1446,17 @@ public class RecipeOrderService extends RecipeBaseService {
                         }
                     }
                 }
+
+                SmsInfoBean smsInfo=new SmsInfoBean();
+                smsInfo.setBusType("RecipeOrderCreate");
+                smsInfo.setSmsType("RecipeOrderCreate");
+                smsInfo.setBusId(recipeIds.get(0));
+                smsInfo.setOrganId(0);
+
+                Map<String,Object> smsMap = Maps.newHashMap();
+                smsInfo.setExtendValue(JSONUtils.toString(smsMap));
+                ISmsPushService smsPushService = ApplicationUtils.getBaseService(ISmsPushService.class);
+                smsPushService.pushMsgData2OnsExtendValue(smsInfo);
             }
 
 
