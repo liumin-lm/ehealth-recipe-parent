@@ -6,6 +6,8 @@ import com.ngari.base.searchservice.model.DrugSearchTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.DrugList;
+import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.SaleDrugList;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.dictionary.DictionaryItem;
@@ -20,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.dao.DrugListDAO;
+import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.SaleDrugListDAO;
 import recipe.serviceprovider.BaseService;
 
 import java.util.ArrayList;
@@ -153,9 +157,9 @@ public class DrugListExtService extends BaseService<DrugListBean> {
      */
     public List<SearchDrugDetailDTO> searchDrugListWithES(Integer organId, Integer drugType, String drugName,
                                                           Integer start, Integer limit) {
-//        ISearchService searchService = ApplicationUtils.getBaseService(ISearchService.class);
         DrugSearchService searchService = AppContextHolder.getBean("es.drugSearchService", DrugSearchService.class);
-
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugSearchTO searchTO = new DrugSearchTO();
         searchTO.setDrugName(StringUtils.isEmpty(drugName) ? "" : drugName.toLowerCase());
         searchTO.setOrgan(null == organId ? null : String.valueOf(organId));
@@ -163,7 +167,6 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         searchTO.setStart(start);
         searchTO.setLimit(limit);
         LOGGER.info("searchDrugListWithES DrugSearchTO={} ", JSONUtils.toString(searchTO));
-//        List<String> drugInfo = searchService.findDrugList(searchTO);
         List<String> drugInfo = searchService.searchHighlightedPagesForDoctor(searchTO.getDrugName(), searchTO.getOrgan(),
                 searchTO.getDrugType(), searchTO.getStart(), searchTO.getLimit());
         List<SearchDrugDetailDTO> dList = new ArrayList<>(drugInfo.size());
@@ -190,6 +193,12 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 }
                 if (null != drugList &&StringUtils.isEmpty(drugList.getUsePathways())){
                     drugList.setUsePathways("");
+                }
+                //针对岳阳市人民医院增加库存
+                if (organId !=null && organId == 1) {
+                    List<DrugsEnterprise> drugsEnterprises = enterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
+                    SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugList.getDrugId(), drugsEnterprises.get(0).getId());
+                    drugList.setInventory(saleDrugList.getInventory());
                 }
                 dList.add(drugList);
             }

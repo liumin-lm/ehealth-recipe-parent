@@ -14,10 +14,7 @@ import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
-import com.ngari.recipe.entity.DrugList;
-import com.ngari.recipe.entity.OrganDrugList;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeCheck;
+import com.ngari.recipe.entity.*;
 import ctd.account.session.ClientSession;
 import ctd.mvc.upload.exception.FileRegistryException;
 import ctd.mvc.upload.exception.FileRepositoryException;
@@ -40,6 +37,7 @@ import recipe.util.DateConversion;
 import recipe.util.RecipeMsgUtils;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.*;
 
 /**
@@ -257,4 +255,12 @@ public class RecipeTestService {
         LOGGER.info("RecipeTestService-packingDrugCategoryReq drugCategoryReq:" + JSONUtils.toString(drugCategoryReq));
         return drugCategoryReq;
     }
+
+    @RpcService
+    public Integer updateIn(Integer organId, Integer drugId, Double userTotalDose){
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        BigDecimal totalDose = new BigDecimal(userTotalDose);
+        return saleDrugListDAO.updateInventoryByOrganIdAndDrugId(organId, drugId, totalDose);
+    }
+
 }
