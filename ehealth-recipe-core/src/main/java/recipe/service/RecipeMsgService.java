@@ -8,7 +8,6 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.DAOFactory;
-import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -23,8 +22,8 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.common.RecipeCacheService;
-import recipe.third.IWXPushMessService;
 import recipe.util.DateConversion;
+import recipe.util.MapValueUtil;
 import recipe.util.RecipeMsgUtils;
 
 import java.util.Collections;
@@ -435,17 +434,9 @@ public class RecipeMsgService {
      *  场景一-扫码后触发-微信事件消息--WXCallbackListenerImpl》onEvent
      *  wxservice(扫码) -> recipe(得到参数) -> 前置机(获取his药品相关信息) -> recipe(第三方获取跳转url) —> wxservice(推送微信模板事件消息)
      */
+    @Deprecated
     public static void sendMedicationGuideMsg(String appId, String templateId, String openId, String url, Map<String, Object> data) {
-        IWXPushMessService wxPMService = AppContextHolder.getBean("wx.wxPushMessService", IWXPushMessService.class);
-        if (StringUtils.isNotEmpty(url)){
-            Map map = wxPMService.pushTemplateMessage(appId, templateId, openId, url, data);
-            LOGGER.info("sendMedicationGuideMsg templateMessage result ={}",JSONUtils.toString(map));
-        }else {
-            //如果没获取到用药指导url，推送客服消息
-            String msg = "没有查询到相关患者信息,请确认扫描的二维码是否正确";
-            String result = wxPMService.sendCustomerMsg(appId, openId, msg);
-            LOGGER.info("sendMedicationGuideMsg customerMsg result ={}",result);
-        }
+        //已经移到sms里处理
     }
 
     /**
@@ -454,6 +445,7 @@ public class RecipeMsgService {
      *  前置机(推送his处方药品等信息)->recipe(获取第三方url)->sms(发送微信模板消息)
      */
     public static void sendMedicationGuideMsg(Map<String, Object> param) {
-        sendMsgInfo(0,"medicationGuidePush",0,JSONUtils.toString(param));
+        String organId = MapValueUtil.getString(param, "organId");
+        sendMsgInfo(0,"medicationGuidePush",Integer.valueOf(organId),JSONUtils.toString(param));
     }
 }

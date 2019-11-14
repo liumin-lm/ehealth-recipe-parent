@@ -721,6 +721,8 @@ public class RecipeOrderService extends RecipeBaseService {
             //COUPON_BUSTYPE_RECIPE_HOME_PAYONLINE(5,CouponConstant.COUPON_BUSTYPE_RECIPE,CouponConstant.COUPON_SUBTYPE_RECIPE_HOME_PAYONLINE,"电子处方-配送到家-在线支付"),
             result.setCouponType(5);
         }
+
+        setAppOtherMessage(order);
         result.setObject(ObjectCopyUtils.convert(order, RecipeOrderBean.class));
         if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == toDbFlag && null != order.getOrderId()) {
             result.setOrderCode(order.getOrderCode());
@@ -728,6 +730,32 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         LOGGER.info("createOrder finish. result={}", JSONUtils.toString(result));
+    }
+
+    /**
+     * @method  setAppOtherMessage
+     * @description 添加设置app端的额外信息
+     * @date: 2019/11/12
+     * @author: JRK
+     * @param order
+     * @return void
+     */
+    private void setAppOtherMessage(RecipeOrder order){
+        //date 2019/11/12
+        //设置订单的配送地址，配送的药企名
+        if (null != order && order.getEnterpriseId() != null) {
+            //设置配送方名称
+            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+            order.setEnterpriseName(drugsEnterprise.getName());
+        }
+        //设置送货地址
+        if(null != order && (null != order.getAddress1() && null != order.getAddress2() && null != order.getAddress3())){
+            CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
+            order.setCompleteAddress(commonRemoteService.getCompleteAddress(order));
+        }else{
+            LOGGER.info("当前订单的配送地址信息不全！");
+        }
     }
 
     /**

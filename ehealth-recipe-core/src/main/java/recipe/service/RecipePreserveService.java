@@ -137,19 +137,22 @@ public class RecipePreserveService {
             throw new DAOException(609, "找不到该机构");
         }
         String cardId = null;
+        IConsultService service = ConsultAPI.getService(IConsultService.class);
+        if (consultId == null){
+            List<ConsultBean> consultBeans = service.findConsultByMpiId(Arrays.asList(mpiId));
+            if (CollectionUtils.isNotEmpty(consultBeans)){
+                consultId = consultBeans.get(0).getConsultId();
+            }
+        }
         if (consultId != null){
-            IConsultService service = ConsultAPI.getService(IConsultService.class);
             ConsultBean consultBean = service.getById(consultId);
-            if(null == consultBean){
-                return result;
+            if(null != consultBean){
+                IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
+                ConsultExDTO consultExDTO = exService.getByConsultId(consultId);
+                if(null != consultExDTO && StringUtils.isNotEmpty(consultExDTO.getCardId())){
+                    cardId = consultExDTO.getCardId();
+                }
             }
-
-            IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
-            ConsultExDTO consultExDTO = exService.getByConsultId(consultId);
-            if(null == consultExDTO || StringUtils.isEmpty(consultExDTO.getCardId())){
-                return result;
-            }
-            cardId = consultExDTO.getCardId();
         }
 
         Date endDate = DateTime.now().toDate();
@@ -159,6 +162,7 @@ public class RecipePreserveService {
         QueryRecipeRequestTO request = new QueryRecipeRequestTO();
         PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
         patientBaseInfo.setPatientName(patientDTO.getPatientName());
+        //福建省立需要传输的就诊卡号
         patientBaseInfo.setPatientID(cardId);
         patientBaseInfo.setCertificate(patientDTO.getCertificate());
         patientBaseInfo.setCertificateType(patientDTO.getCertificateType());

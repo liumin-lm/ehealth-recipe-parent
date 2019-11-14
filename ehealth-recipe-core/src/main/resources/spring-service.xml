@@ -12,7 +12,6 @@
 
     <!--微信服务-->
     <reference interface="recipe.third.IWXServiceInterface" id="wx.wxService"/>
-    <reference interface="recipe.third.IWXPushMessService" id="wx.wxPushMessService"/>
 
     <!--药品搜索服务-->
     <reference id="es.drugSearchService" interface="es.api.DrugSearchService"/>
@@ -21,4 +20,6 @@
 
     <!--优惠券-->
     <reference id="voucher.couponBaseService" interface="coupon.api.service.ICouponBaseService"/>
+    <!--网络门诊-->
+    <reference id="nc.networkclinicMsgService" interface="networkclinic.api.service.INetworkclinicMsgService"/>
 </s:beans>
