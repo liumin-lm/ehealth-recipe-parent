@@ -14,6 +14,8 @@ import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.payment.model.DabaiPayResult;
 import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.base.push.model.SmsInfoBean;
+import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.bus.coupon.model.CouponBean;
 import com.ngari.bus.coupon.service.ICouponService;
 import com.ngari.patient.dto.OrganDTO;
@@ -1432,8 +1434,29 @@ public class RecipeOrderService extends RecipeBaseService {
                         }
                     }
                 }
-            }
+                //自建类型的药企需要给药企发送短信
+                DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(nowRecipe.getEnterpriseId());
+                if(drugsEnterprise != null && drugsEnterprise.getCreateType() != null &&
+                   0 == drugsEnterprise.getCreateType()){
+                    SmsInfoBean smsInfo=new SmsInfoBean();
+                    smsInfo.setBusType("RecipeOrderCreate");
+                    smsInfo.setSmsType("RecipeOrderCreate");
+                    smsInfo.setBusId(recipeIds.get(0));
+                    smsInfo.setOrganId(0);
 
+                    Map<String,Object> smsMap = Maps.newHashMap();
+
+                    //设置设置自建药企的电话号码
+                    PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
+                    List<Pharmacy> list = pharmacyDAO.findByDepId(nowRecipe.getEnterpriseId());
+                    smsMap.put("mobile", list.get(0).getPharmacyPhone());
+
+                    smsInfo.setExtendValue(JSONUtils.toString(smsMap));
+                    ISmsPushService smsPushService = ApplicationUtils.getBaseService(ISmsPushService.class);
+                    smsPushService.pushMsgData2OnsExtendValue(smsInfo);
+                }
+            }
 
             this.updateOrderInfo(orderCode, attrMap, result);
         }
@@ -1751,7 +1774,14 @@ public class RecipeOrderService extends RecipeBaseService {
         attrMap.put("lastModifyTime", new Date());
         //更新订单状态
         String orderCode= this.getOrderCodeByRecipeId(recipeId);
-        RecipeResultBean resultBean = this.updateOrderInfo(orderCode, attrMap, null);
+        RecipeResultBean resultBean = RecipeResultBean.getSuccess();;
+        if(null == orderCode){
+            resultBean.setCode(RecipeResultBean.FAIL);
+            resultBean.setError("更新处方订单信息失败，找不到订单信息");
+            return resultBean;
+        }
+
+        resultBean= this.updateOrderInfo(orderCode, attrMap, null);
         if(resultBean.getCode().equals(RecipeResultBean.FAIL)){
             return resultBean;
         }
