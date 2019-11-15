@@ -53,6 +53,7 @@ public class EnterpriseInfoChangeService {
             HttpEntity httpEntity = response.getEntity();
             String responseStr = EntityUtils.toString(httpEntity);
             List<StoreInventoryResponse> storeResponses = JSONObject.parseArray(responseStr, StoreInventoryResponse.class);
+            LOGGER.info("EnterpriseInfoChangeService-updateStoreInventory storeResponses:{}.", storeResponses);
             if (storeResponses != null && storeResponses.size() > 0) {
 
             }
