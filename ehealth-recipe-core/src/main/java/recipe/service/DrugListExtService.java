@@ -97,7 +97,18 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         if (CollectionUtils.isNotEmpty(dList)) {
             getHospitalPrice(organId, dList);
         }
-        return getList(dList, DrugListBean.class);
+        List<DrugListBean> drugListBeans = getList(dList, DrugListBean.class);
+        //设置岳阳市人民医院药品库存
+        if (organId == 1) {
+            for (DrugListBean drugListBean : drugListBeans) {
+                SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+                DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                List<DrugsEnterprise> drugsEnterprises = enterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugListBean.getDrugId(), drugsEnterprises.get(0).getId());
+                drugListBean.setInventory(saleDrugList.getInventory());
+            }
+        }
+        return drugListBeans;
     }
 
     /**
