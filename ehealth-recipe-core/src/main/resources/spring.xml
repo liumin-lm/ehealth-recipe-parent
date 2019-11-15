@@ -11,6 +11,12 @@
 	<apollo:config />
 	<apollo:config namespaces="DEV.publicUrl"/>
 
+	<!-- 文件token校验 -->
+	<bean class="ctd.util.FileAuth">
+		<constructor-arg name="accessKey" value="${fileauth.accesskey}"/>
+		<constructor-arg name="secret" value="${fileauth.secret}"/>
+	</bean>
+
 	<import resource="classpath:/ctd/util/exp/spring-expr-base.xml"/>
 	<import resource="spring-hibernate.xml" />
 	<import resource="spring-controller.xml"/>
