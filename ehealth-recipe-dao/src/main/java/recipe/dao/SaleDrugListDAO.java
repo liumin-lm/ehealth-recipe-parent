@@ -328,4 +328,14 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    /**
+     * 根据药品编码获取数据
+     * @param organId
+     * @param drugCode
+     * @return
+     */
+    @DAOMethod(sql = "from SaleDrugList where organId=:organId and organDrugCode =:drugCode ")
+    public abstract SaleDrugList getByOrganIdAndDrugCode(@DAOParam("organId") int organId, @DAOParam("drugCode") String drugCode);
+
 }
