@@ -11,9 +11,12 @@ import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.EmploymentService;
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.HospitalRecipeBean;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.hisprescription.model.*;
 import ctd.persistence.DAOFactory;
 import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
@@ -416,5 +419,33 @@ public class RecipeToHisService {
             LOGGER.error("syncDrugListToHis error ", e);
         }
         return response;
+    }
+
+    public HosPatientRecipeDTO queryHisPatientRecipeInfo(String organId, String qrInfo){
+        LOGGER.info("queryHisPatientRecipeInfo organId={},qrInfo={}", organId,qrInfo);
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        HisResponseTO<HosPatientRecipeBean> response;
+        HosPatientRecipeBean hosPatientRecipeBean;
+        HosPatientRecipeDTO hosPatientRecipeDTO = null;
+        try {
+            QueryHisPatientRecipeInfoReq req = new QueryHisPatientRecipeInfoReq();
+            req.setOrganId(Integer.valueOf(organId));
+            req.setQrInfo(qrInfo);
+            response = hisService.queryHisPatientRecipeInfo(req);
+            hosPatientRecipeBean = response.getData();
+            LOGGER.info("queryHisPatientRecipeInfo response={}", JSONUtils.toString(response));
+            hosPatientRecipeDTO = ObjectCopyUtils.convert(hosPatientRecipeBean, HosPatientRecipeDTO.class);
+            HosPatientDTO patientDTO = ObjectCopyUtils.convert(hosPatientRecipeBean.getPatient(), HosPatientDTO.class);
+            HosRecipeDTO recipeDTO = ObjectCopyUtils.convert(hosPatientRecipeBean.getRecipe(), HosRecipeDTO.class);
+            if (recipeDTO != null){
+                List<HosRecipeDetailDTO> recipeDateil = ObjectCopyUtils.convert(hosPatientRecipeBean.getRecipe().getDetailData(), HosRecipeDetailDTO.class);
+                recipeDTO.setDetailData(recipeDateil);
+                hosPatientRecipeDTO.setRecipe(recipeDTO);
+            }
+            hosPatientRecipeDTO.setPatient(patientDTO);
+        } catch (Exception e) {
+            LOGGER.error("queryHisPatientRecipeInfo error ", e);
+        }
+        return hosPatientRecipeDTO;
     }
 }

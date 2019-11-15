@@ -73,5 +73,10 @@ public class OrderStatusConstant {
      */
     public static final Integer HAS_DRUG = 12;
 
+    /**
+     * 取药失败
+     */
+    public static final Integer FAIL = 17;
+
 
 }

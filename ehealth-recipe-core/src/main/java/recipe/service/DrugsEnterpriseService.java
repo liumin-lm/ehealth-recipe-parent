@@ -4,6 +4,7 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganConfigService;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.Pharmacy;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
@@ -19,11 +20,15 @@ import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganAndDrugsepRelationDAO;
+import recipe.dao.PharmacyDAO;
 import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.serviceprovider.BaseService;
 
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 药企相关接口
@@ -55,47 +60,165 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
     /**
      * 新建药企
      *
-     * @param drugsEnterprise
+     * @param drugsEnterpriseBean
      * @return
      * @author houxr 2016-09-11
      */
     @RpcService
-    public DrugsEnterpriseBean addDrugsEnterprise(final DrugsEnterprise drugsEnterprise) {
-        if (null == drugsEnterprise) {
+    public DrugsEnterpriseBean addDrugsEnterprise(final DrugsEnterpriseBean drugsEnterpriseBean) {
+        if (null == drugsEnterpriseBean) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "DrugsEnterprise is null");
         }
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findAllDrugsEnterpriseByName(drugsEnterprise.getName());
+        List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findAllDrugsEnterpriseByName(drugsEnterpriseBean.getName());
         if (drugsEnterpriseList.size() != 0) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "DrugsEnterprise exist!");
         }
-        DrugsEnterprise newDrugsEnterprise = drugsEnterpriseDAO.save(drugsEnterprise);
-        return getBean(newDrugsEnterprise, DrugsEnterpriseBean.class);
-    }
 
+        if( null == drugsEnterpriseBean.getCreateType()){
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "createType is null!");
+        }
+        drugsEnterpriseBean.setSort(100);
+        drugsEnterpriseBean.setCreateDate(new Date());
+        drugsEnterpriseBean.setLastModify(new Date());
+
+        //拆分药企信息
+        DrugsEnterprise drugsEnterprise = getBean(drugsEnterpriseBean, DrugsEnterprise.class);
+
+        //存储药企信息
+        DrugsEnterprise newDrugsEnterprise = drugsEnterpriseDAO.save(drugsEnterprise);
+
+        if( 0 == drugsEnterpriseBean.getCreateType()){
+            //自建药企要存储药店信息
+
+            //拆分药企信息
+            Map<String, String> map = drugsEnterpriseBean.getPharmacyInfo();
+            if(null == map || map.size() == 0){
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "pharmacy is null!");
+            }
+
+            //封装药店信息
+            Pharmacy pharmacy = new Pharmacy();
+            pharmacy.setDrugsenterpriseId(newDrugsEnterprise.getId());
+            pharmacy.setPharmacyName(drugsEnterpriseBean.getName());
+            pharmacy.setPharmacyAddress(map.get("pharmacyAddress"));
+            pharmacy.setPharmacyPhone(map.get("pharmacyPhone"));
+            //获取药店经度
+            pharmacy.setPharmacyLongitude(map.get("pharmacyLongitude"));
+            //获取药店纬度
+            pharmacy.setPharmacyLatitude(map.get("pharmacyLatitude"));
+
+            pharmacy.setStatus(1);
+            pharmacy.setCreateTime(drugsEnterprise.getCreateDate());
+            pharmacy.setLastModify(drugsEnterprise.getLastModify());
+
+            //存储药店信息
+            PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
+            pharmacyDAO.save(pharmacy);
+
+        }
+        return drugsEnterpriseBean;
+    }
 
     /**
      * 更新药企
      *
-     * @param drugsEnterprise
+     * @param drugsEnterpriseBean
      * @return
      * @author houxr 2016-09-11
      */
     @RpcService
-    public DrugsEnterpriseBean updateDrugsEnterprise(final DrugsEnterprise drugsEnterprise) {
-        if (null == drugsEnterprise) {
+    public DrugsEnterpriseBean updateDrugsEnterprise(final DrugsEnterpriseBean drugsEnterpriseBean) {
+        if (null == drugsEnterpriseBean) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "DrugsEnterprise is null");
         }
-        LOGGER.info(JSONUtils.toString(drugsEnterprise));
+        LOGGER.info(JSONUtils.toString(drugsEnterpriseBean));
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise target = drugsEnterpriseDAO.get(drugsEnterprise.getId());
+        DrugsEnterprise target = drugsEnterpriseDAO.get(drugsEnterpriseBean.getId());
         if (null == target) {
             throw new DAOException(DAOException.ENTITIY_NOT_FOUND, "DrugsEnterprise not exist!");
         }
+
+        //拆分药企信息
+        DrugsEnterprise drugsEnterprise = getBean(drugsEnterpriseBean, DrugsEnterprise.class);
+
         BeanUtils.map(drugsEnterprise, target);
+        target.setLastModify(new Date());
         target = drugsEnterpriseDAO.update(target);
+
+
+        if(null != drugsEnterpriseBean.getCreateType() && 0 == drugsEnterpriseBean.getCreateType()){
+            //自建药企要存储药店信息
+
+            //拆分药企信息
+            Map<String, String> map = drugsEnterpriseBean.getPharmacyInfo();
+
+            PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
+
+
+            //封装药店信息
+            Pharmacy pharmacy = new Pharmacy();
+            pharmacy.setDrugsenterpriseId(drugsEnterpriseBean.getId());
+            pharmacy.setPharmacyAddress(map.get("pharmacyAddress"));
+            pharmacy.setPharmacyPhone(map.get("pharmacyPhone"));
+            //获取药店经度
+            pharmacy.setPharmacyLongitude(map.get("pharmacyLongitude"));
+            //获取药店纬度度
+            pharmacy.setPharmacyLatitude(map.get("pharmacyLatitude"));
+            pharmacy.setLastModify(target.getLastModify());
+
+            List<Pharmacy> list = pharmacyDAO.findByDepId(drugsEnterpriseBean.getId());
+            if (null == list || list.size() == 0) {
+                //插入药店信息
+                pharmacy.setPharmacyName(drugsEnterpriseBean.getName());
+                pharmacy.setCreateTime(target.getLastModify());
+                pharmacy.setStatus(1);
+                pharmacyDAO.save(pharmacy);
+            } else {
+                BeanUtils.map(pharmacy, list.get(0));
+                //更新药店信息
+                pharmacyDAO.update(list.get(0));
+            }
+
+
+        }
         return getBean(target, DrugsEnterpriseBean.class);
     }
+
+    /**
+     * @description 根据药企ID获取药企
+     * @author gmw
+     * @date 2019/11/12
+     * @param id
+     * @return com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean
+     */
+    @RpcService
+    public DrugsEnterpriseBean findDrugsEnterpriseById(final Integer id) {
+        DrugsEnterpriseBean result;
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(id);
+        result = getBean(drugsEnterprise, DrugsEnterpriseBean.class);
+
+        //自建药企关联药店信息
+        if(null == result.getCreateType() || result.getCreateType().equals(0)){
+            PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
+            List<Pharmacy> listS = pharmacyDAO.findByDepId(id);
+            for(Pharmacy pharmacy : listS){
+                HashMap<String, String> map = new HashMap<String, String> ();
+                map.put("pharmacyAddress", pharmacy.getPharmacyAddress());
+                map.put("pharmacyPhone", pharmacy.getPharmacyPhone());
+                //获取药店经度
+                map.put("pharmacyLongitude", pharmacy.getPharmacyLongitude());
+                //获取药店纬度
+                map.put("pharmacyLatitude", pharmacy.getPharmacyLatitude());
+                result.setPharmacyInfo(map);
+                break;
+            }
+        }
+
+        return result;
+    }
+
 
     /**
      * 根据药企名称分页查询药企
@@ -107,10 +230,34 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
      * @author houxr 2016-09-11
      */
     @RpcService
-    public QueryResult<DrugsEnterpriseBean> queryDrugsEnterpriseByStartAndLimit(final String name, final int start, final int limit) {
+    public QueryResult<DrugsEnterpriseBean> queryDrugsEnterpriseByStartAndLimit(final String name, final Integer createType, final int start, final int limit) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        QueryResult result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByStartAndLimit(name, start, limit);
+        QueryResult result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByStartAndLimit(name, createType, start, limit);
         List<DrugsEnterpriseBean> list = getList(result.getItems(), DrugsEnterpriseBean.class);
+
+        if(null == createType || createType.equals(0)){
+            PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
+            List<Pharmacy> listS = pharmacyDAO.find1();
+            for(DrugsEnterpriseBean drugsEnterpriseBean : list){
+                //自建药企关联药店信息
+                if(0 == drugsEnterpriseBean.getCreateType()){
+                    for(Pharmacy pharmacy : listS){
+                        if(pharmacy.getDrugsenterpriseId().equals(drugsEnterpriseBean.getId())){
+                            HashMap<String, String> map = new HashMap<String, String> ();
+                            map.put("pharmacyAddress", pharmacy.getPharmacyAddress());
+                            map.put("pharmacyPhone", pharmacy.getPharmacyPhone());
+                            //获取药店经度
+                            map.put("pharmacyLongitude", pharmacy.getPharmacyLongitude());
+                            //获取药店纬度
+                            map.put("pharmacyLatitude", pharmacy.getPharmacyLatitude());
+                            drugsEnterpriseBean.setPharmacyInfo(map);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
         result.setItems(list);
         return result;
     }

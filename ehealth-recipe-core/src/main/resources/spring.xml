@@ -67,6 +67,9 @@
 	<!--华润药企-->
 	<bean id="hrRemoteService" class="recipe.drugsenterprise.HrRemoteService"/>
 
+	<!--自定义药企-->
+	<bean id="commonSelfRemoteService" class="recipe.drugsenterprise.CommonSelfRemoteService"/>
+
 	<bean id="busTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" destroy-method="shutdown">
 		<!-- 线程池活跃的线程数 -->
 		<property name="corePoolSize" value="5" />

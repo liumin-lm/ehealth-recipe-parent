@@ -310,6 +310,11 @@ public class RecipeCheckService {
         }
 
         Map<String, Object> map = Maps.newHashMap();
+        //date 20191111
+        //添加处方审核状态
+        Integer checkResult = getCheckResultByPending(recipe);
+        map.put("checkStatus", checkResult);
+
         List<Recipedetail> details = detailDAO.findByRecipeId(recipeId);
         //获取审核不通过详情
         List<Map<String, Object>> mapList = getCheckNotPassDetail(recipeId);
@@ -329,6 +334,7 @@ public class RecipeCheckService {
             if (null != drugsEnterprise) {
                 e.setName(drugsEnterprise.getName());
                 e.setPayModeSupport(drugsEnterprise.getPayModeSupport());
+                e.setCreateType(drugsEnterprise.getCreateType());
             }
         }
         RecipeOrderBean order = null;
@@ -436,6 +442,41 @@ public class RecipeCheckService {
                         checkResult = 2;
                     }
 
+                }
+            }
+        }
+
+        return checkResult;
+    }
+
+    /**
+     * 获取待审核列表审核结果
+     *
+     * @param recipe checkResult 0:未审核 1:通过 2:不通过 3:二次签名 4:失效
+     * @return
+     */
+    private Integer getCheckResultByPending(Recipe recipe) {
+        Integer checkResult = 0;
+        Integer status = recipe.getStatus();
+        if (RecipeStatusConstant.READY_CHECK_YS == status) {
+            checkResult = RecipePharmacistCheckConstant.Already_Check;
+        } else {
+            if (StringUtils.isNotEmpty(recipe.getSupplementaryMemo())) {
+                checkResult = RecipePharmacistCheckConstant.Second_Sign;
+            } else {
+                RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
+                List<RecipeCheck> recipeCheckList = recipeCheckDAO.findByRecipeId(recipe.getRecipeId());
+                //有审核记录就展示
+                if(CollectionUtils.isNotEmpty(recipeCheckList)){
+                    RecipeCheck recipeCheck = recipeCheckList.get(0);
+                    if (1 == recipeCheck.getCheckStatus()) {
+                        checkResult = RecipePharmacistCheckConstant.Check_No_Pass;
+                    } else {
+                        checkResult = RecipePharmacistCheckConstant.Check_Pass;
+                    }
+                //记录没有审核信息的处方，说明是没有进行审核的状态是失效的
+                }else{
+                    checkResult = RecipePharmacistCheckConstant.Check_Failure;
                 }
             }
         }

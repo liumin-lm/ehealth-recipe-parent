@@ -1,10 +1,12 @@
 package com.ngari.recipe.entity;
 
+import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.Map;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -79,6 +81,10 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     @ItemProperty(alias = "校验药品库存标志0 不需要校验 1 需要校验")
     private Integer checkInventoryFlag;
+
+    @ItemProperty(alias = "创建类型：1：非自建  0：自建")
+    @Dictionary(id = "eh.cdr.dictionary.DepType")
+    private Integer createType;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -251,6 +257,14 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setCheckInventoryFlag(Integer checkInventoryFlag) {
         this.checkInventoryFlag = checkInventoryFlag;
+    }
+
+    public Integer getCreateType() {
+        return createType;
+    }
+
+    public void setCreateType(Integer createType) {
+        this.createType = createType;
     }
 
     @Override

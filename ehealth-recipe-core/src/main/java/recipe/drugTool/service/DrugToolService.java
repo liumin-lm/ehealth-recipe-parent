@@ -827,6 +827,17 @@ public class DrugToolService implements IDrugToolService {
             drugListMatchDAO.updateDrugListMatchInfoById(Integer.valueOf(entry.getKey()), ImmutableMap.of("organDrugCode", entry.getValue()));
         }
     }
+    /**
+     * 根据id更新机构药品表药品机构编码
+     *
+     * @param map
+     */
+    @RpcService
+    public void updateOrganDrugCodeById(Map<String, String> map) {
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            organDrugListDAO.updateOrganDrugById(Integer.valueOf(entry.getKey()), ImmutableMap.of("organDrugCode", entry.getValue()));
+        }
+    }
 
     /**
      * 上传未匹配数据到通用药品目录
