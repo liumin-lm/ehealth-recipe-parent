@@ -105,7 +105,9 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                 List<DrugsEnterprise> drugsEnterprises = enterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
                 SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugListBean.getDrugId(), drugsEnterprises.get(0).getId());
-                drugListBean.setInventory(saleDrugList.getInventory());
+                if (saleDrugList != null) {
+                    drugListBean.setInventory(saleDrugList.getInventory());
+                }
             }
         }
         return drugListBeans;
@@ -209,7 +211,9 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 if (organId != null && organId == 1) {
                     List<DrugsEnterprise> drugsEnterprises = enterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
                     SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugList.getDrugId(), drugsEnterprises.get(0).getId());
-                    drugList.setInventory(saleDrugList.getInventory());
+                    if (saleDrugList != null) {
+                        drugList.setInventory(saleDrugList.getInventory());
+                    }
                 }
                 dList.add(drugList);
             }
