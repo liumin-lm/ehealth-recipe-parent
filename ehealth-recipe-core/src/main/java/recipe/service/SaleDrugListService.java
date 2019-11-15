@@ -5,6 +5,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.DrugListAndSaleDrugListDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.SaleDrugListDTO;
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.SaleDrugList;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
@@ -145,5 +146,19 @@ public class SaleDrugListService {
         }
 
         return newList;
+    }
+
+    @RpcService
+    public boolean checkDrugIntroduce(Integer drugId, Integer useTotalDose){
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        List<DrugsEnterprise> enterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
+        if (enterprises != null && enterprises.size() > 0) {
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, enterprises.get(0).getId());
+            if (saleDrugList != null && saleDrugList.getInventory() != null && saleDrugList.getInventory().intValue() > useTotalDose) {
+                return true;
+            }
+        }
+        return false;
     }
 }

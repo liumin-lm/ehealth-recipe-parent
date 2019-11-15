@@ -290,4 +290,42 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    public boolean insertSaleDrugListBySql(final String sql){
+        HibernateStatelessResultAction<Boolean> action =
+                new AbstractHibernateStatelessResultAction<Boolean>() {
+                    @Override
+                    public void execute(StatelessSession ss) throws DAOException {
+                        Query q = ss.createSQLQuery(sql);
+                        q.executeUpdate();
+                        setResult(true);
+                    }
+                };
+
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * 更新药品库存
+     *
+     * @param organId  药企
+     * @param drugId   药品编码
+     * @param useTotalDose 开药数量
+     */
+    public Integer updateInventoryByOrganIdAndDrugId(final Integer organId, final Integer drugId, final BigDecimal useTotalDose) {
+        HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String hql = "update SaleDrugList set inventory=(inventory-:useTotalDose) where organId=:organId and drugId =:drugId and inventory >=:useTotalDose";
+                Query q = ss.createQuery(hql);
+                q.setParameter("organId", organId);
+                q.setParameter("drugId", drugId);
+                q.setParameter("useTotalDose", useTotalDose);
+                setResult(q.executeUpdate());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }
