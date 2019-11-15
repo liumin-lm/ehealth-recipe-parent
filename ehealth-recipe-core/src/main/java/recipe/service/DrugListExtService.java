@@ -195,7 +195,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     drugList.setUsePathways("");
                 }
                 //针对岳阳市人民医院增加库存
-                if (organId !=null && organId == 1) {
+                if (organId != null && organId == 1) {
                     List<DrugsEnterprise> drugsEnterprises = enterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
                     SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugList.getDrugId(), drugsEnterprises.get(0).getId());
                     drugList.setInventory(saleDrugList.getInventory());
