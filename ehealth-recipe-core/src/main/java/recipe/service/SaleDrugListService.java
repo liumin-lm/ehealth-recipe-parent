@@ -149,13 +149,13 @@ public class SaleDrugListService {
     }
 
     @RpcService
-    public boolean checkDrugIntroduce(Integer drugId, Integer introduce){
+    public boolean checkDrugIntroduce(Integer drugId, Integer useTotalDose){
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         List<DrugsEnterprise> enterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
         if (enterprises != null && enterprises.size() > 0) {
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, enterprises.get(0).getId());
-            if (saleDrugList != null && saleDrugList.getInventory() != null && saleDrugList.getInventory().intValue() > introduce) {
+            if (saleDrugList != null && saleDrugList.getInventory() != null && saleDrugList.getInventory().intValue() > useTotalDose) {
                 return true;
             }
         }
