@@ -85,6 +85,11 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         //拆分药企信息
         DrugsEnterprise drugsEnterprise = getBean(drugsEnterpriseBean, DrugsEnterprise.class);
 
+        drugsEnterprise.setCallSys("commonSelf");
+        drugsEnterprise.setHosInteriorSupport(0);
+        drugsEnterprise.setOrderType(1);
+        drugsEnterprise.setCheckInventoryFlag(1);
+        drugsEnterprise.setPayModeSupport(9);
         //存储药企信息
         DrugsEnterprise newDrugsEnterprise = drugsEnterpriseDAO.save(drugsEnterprise);
 
@@ -108,6 +113,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
             //获取药店纬度
             pharmacy.setPharmacyLatitude(map.get("pharmacyLatitude"));
 
+            pharmacy.setPharmacyCode(newDrugsEnterprise.getId() + "");
             pharmacy.setStatus(1);
             pharmacy.setCreateTime(drugsEnterprise.getCreateDate());
             pharmacy.setLastModify(drugsEnterprise.getLastModify());
@@ -167,6 +173,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
             pharmacy.setPharmacyLatitude(map.get("pharmacyLatitude"));
             pharmacy.setLastModify(target.getLastModify());
 
+            pharmacy.setPharmacyCode(drugsEnterpriseBean.getId() + "");
             List<Pharmacy> list = pharmacyDAO.findByDepId(drugsEnterpriseBean.getId());
             if (null == list || list.size() == 0) {
                 //插入药店信息
