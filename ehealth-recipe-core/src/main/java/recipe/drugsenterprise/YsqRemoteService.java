@@ -104,7 +104,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         String sendInfoStr = JSONUtils.toString(sendInfo);
         String methodName = "AcceptPrescription";
         LOGGER.info("发送[{}][{}]内容：{}", drugEpName, methodName, sendInfoStr);
-
+        updateEnterpriseInventory(recipeIds.get(0), drugsEnterprise);
         //发送药企信息
         sendAndDealResult(drugsEnterprise, methodName, sendInfoStr, result);
 
@@ -136,28 +136,20 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
 
         //岳阳钥匙圈的需要对库存进行操作
-        for (Recipedetail recipedetail : recipedetails) {
-            Integer drugId = recipedetail.getDrugId();
-            Double useTotalDose = recipedetail.getUseTotalDose();
-            BigDecimal totalDose = new BigDecimal(useTotalDose);
-            LOGGER.info("YsqRemoteService-updateEnterpriseInventory 更新库存成功,更新药品:{},更新数量:{}.", drugId, totalDose);
-            return saleDrugListDAO.updateInventoryByOrganIdAndDrugId(drugsEnterprise.getId(), drugId, totalDose);
+        if ("岳阳-钥世圈".equals(drugsEnterprise.getName())) {
+            for (Recipedetail recipedetail : recipedetails) {
+                Integer drugId = recipedetail.getDrugId();
+                Double useTotalDose = recipedetail.getUseTotalDose();
+                BigDecimal totalDose = new BigDecimal(useTotalDose);
+                LOGGER.info("YsqRemoteService-updateEnterpriseInventory 更新库存成功,更新药品:{},更新数量:{},处方单号：{}.", drugId, totalDose, recipeId);
+                return saleDrugListDAO.updateInventoryByOrganIdAndDrugId(drugsEnterprise.getId(), drugId, totalDose);
+            }
         }
         return -1;
     }
 
     @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        //此处对于岳阳钥匙圈进行库存的操作
-        if ("岳阳-钥世圈".equals(drugsEnterprise.getName())) {
-            Integer updateLine = updateEnterpriseInventory(recipeId, drugsEnterprise);
-            if (updateLine >= 1) {
-                //说明减库存操作成功
-                return DrugEnterpriseResult.getSuccess();
-            } else {
-                return DrugEnterpriseResult.getFail();
-            }
-        }
         return DrugEnterpriseResult.getSuccess();
     }
 
