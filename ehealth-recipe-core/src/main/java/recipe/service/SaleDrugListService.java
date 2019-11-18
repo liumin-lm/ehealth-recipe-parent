@@ -155,7 +155,7 @@ public class SaleDrugListService {
         List<DrugsEnterprise> enterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
         if (enterprises != null && enterprises.size() > 0) {
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, enterprises.get(0).getId());
-            if (saleDrugList != null && saleDrugList.getInventory() != null && saleDrugList.getInventory().intValue() > useTotalDose) {
+            if (saleDrugList != null && saleDrugList.getInventory() != null && saleDrugList.getInventory().intValue() >= useTotalDose) {
                 return true;
             }
         }
