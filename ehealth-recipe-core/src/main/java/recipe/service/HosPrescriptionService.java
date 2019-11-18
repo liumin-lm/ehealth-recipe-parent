@@ -197,7 +197,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
 
     private String getQrUrl(ClientConfigDTO clientConfig, String clientType, Integer organId, String qrcodeInfo) {
         INgariQrInfoService ngariQrInfoService = AppContextHolder.getBean("eh.ngariQrInfoService", INgariQrInfoService.class);
-        String sceneStr=new StringBuffer(QRInfoConstant.QRTYPE_RECIPE_REMIND).append("_")
+        String sceneStr=new StringBuffer().append(QRInfoConstant.QRTYPE_RECIPE_REMIND).append("_")
                 .append(organId).append("_")
                 .append(qrcodeInfo)
                 .toString();
