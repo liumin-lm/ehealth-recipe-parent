@@ -46,10 +46,12 @@ public class EnterpriseInfoChangeService {
             String time = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
             String roledata = recipeParameterDao.getByName("yy-roledata");
             String password = recipeParameterDao.getByName("yy-password");
+            String roleidStr = recipeParameterDao.getByName("yy-roleid");
+            Long roleid = Long.parseLong(roleidStr);
             String url = recipeParameterDao.getByName("yy-url");
             String sign = DigestUtil.encodeMD5(roledata + password + time);
             String param = String.format("?timestamp=%s&roledata=%s&sign=%s", time, roledata, sign);
-            String data = "{\"intfaceStatus\":{\"roleid\":1220001}}";
+            String data = "{\"intfaceStatus\":{\"roleid\":" + roleid + "}}";
             CloseableHttpClient httpClient = HttpClients.createDefault();
             String path = url + param;
             HttpPost httpPost = new HttpPost(path);
