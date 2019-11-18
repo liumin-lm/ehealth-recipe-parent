@@ -134,7 +134,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-
+        LOGGER.info("YsqRemoteService-updateEnterpriseInventory recipeId:{}, drugsEnterprise:{}.", recipeId, JSONUtils.toString(drugsEnterprise));
         //岳阳钥匙圈的需要对库存进行操作
         if ("岳阳-钥世圈".equals(drugsEnterprise.getName())) {
             for (Recipedetail recipedetail : recipedetails) {
