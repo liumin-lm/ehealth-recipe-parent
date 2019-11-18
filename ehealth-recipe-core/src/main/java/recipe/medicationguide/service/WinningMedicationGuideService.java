@@ -157,6 +157,9 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
                 LOGGER.warn("getHtml5LinkHttpRequest httpClient close error", e);
             }
         }
+        if (StringUtils.isEmpty(html5Link)){
+            html5Link = "https://www.baidu.com";
+        }
         return html5Link;
     }
 }
