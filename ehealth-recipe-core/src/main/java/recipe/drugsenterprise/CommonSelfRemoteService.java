@@ -4,6 +4,8 @@ import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Pharmacy;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.SaleDrugList;
 import ctd.persistence.DAOFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -11,6 +13,9 @@ import org.slf4j.LoggerFactory;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.PharmacyDAO;
+import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
+import recipe.dao.SaleDrugListDAO;
 import recipe.util.DistanceUtil;
 import recipe.util.MapValueUtil;
 
@@ -66,6 +71,22 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         String longitude = MapValueUtil.getString(ext, searchMapLongitude);
         String latitude = MapValueUtil.getString(ext, searchMapLatitude);
+        if (recipeIds == null) {
+            return DrugEnterpriseResult.getFail();
+        }
+        Integer recipeId = recipeIds.get(0);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (recipe == null) {
+            return DrugEnterpriseResult.getFail();
+        }
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        List<Integer> drugs = recipeDetailDAO.findDrugIdByRecipeId(recipeId);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(enterprise.getId(), drugs);
+        if (CollectionUtils.isEmpty(saleDrugLists) || saleDrugLists.size() < drugs.size()) {
+            return DrugEnterpriseResult.getFail();
+        }
         if (longitude != null && latitude != null) {
             //药店取药
             List<Pharmacy> pharmacyList = getPharmacies(recipeIds, ext, enterprise, result);
