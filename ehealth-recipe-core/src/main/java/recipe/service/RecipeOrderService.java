@@ -1777,7 +1777,7 @@ public class RecipeOrderService extends RecipeBaseService {
         attrMap.put("lastModifyTime", new Date());
         //更新订单状态
         String orderCode= this.getOrderCodeByRecipeId(recipeId);
-        RecipeResultBean resultBean = RecipeResultBean.getSuccess();;
+        RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         if(null == orderCode){
             resultBean.setCode(RecipeResultBean.FAIL);
             resultBean.setError("更新处方订单信息失败，找不到订单信息");
