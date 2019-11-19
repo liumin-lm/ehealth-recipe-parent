@@ -42,8 +42,10 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.utils.DateConversion;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -1771,13 +1773,15 @@ public class RecipeOrderService extends RecipeBaseService {
     @RpcService
     public RecipeResultBean updateOrderStatus(Integer recipeId, Map<String, Object> attrMap) {
 
+        RecipeResultBean resultBean = RecipeResultBean.getSuccess();
+
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         //状态转化
         Integer status2 = RecipeStatusToOrderEnum.getValue((Integer)attrMap.get("status"));
-        attrMap.put("lastModifyTime", new Date());
+        attrMap.put("lastModifyTime", DateTime.now().toString(DateConversion.DEFAULT_DATE_TIME));
+        attrMap.put("sendTime", DateTime.now().toString(DateConversion.DEFAULT_DATE_TIME));
         //更新订单状态
         String orderCode= this.getOrderCodeByRecipeId(recipeId);
-        RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         if(null == orderCode){
             resultBean.setCode(RecipeResultBean.FAIL);
             resultBean.setError("更新处方订单信息失败，找不到订单信息");
@@ -1790,8 +1794,15 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         //同步处方状态
+        Map<String, Object> recipeMap = new HashMap<>();
+        recipeMap.put("sendDate", DateTime.now().toString(DateConversion.DEFAULT_DATE_TIME));
+        recipeMap.put("sender", "system");
+        recipeMap.put("status", status2);
+        recipeMap.put("lastModify", new Date());
+        //以免进行处方失效前提醒
+        recipeMap.put("remindFlag", 1);
         try {
-            boolean recipeSave = recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("status", status2, "lastModify", new Date()));
+            boolean recipeSave = recipeDAO.updateRecipeInfoByRecipeId(recipeId, recipeMap);
             if (!recipeSave) {
                 resultBean.setCode(RecipeResultBean.FAIL);
                 resultBean.setError("处方单状态同步失败");
@@ -1801,6 +1812,9 @@ public class RecipeOrderService extends RecipeBaseService {
             resultBean.setCode(RecipeResultBean.FAIL);
             resultBean.setError("处方单状态同步失败," + e.getMessage());
         }
+        //向患者端发送消息
+        RecipeMsgService.batchSendMsg(recipeId, status2);
+
         LOGGER.info("updateOrderStatus 更新处方订单信息成功");
         return resultBean;
     }
