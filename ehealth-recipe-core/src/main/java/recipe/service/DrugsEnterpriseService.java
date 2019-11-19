@@ -85,11 +85,14 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         //拆分药企信息
         DrugsEnterprise drugsEnterprise = getBean(drugsEnterpriseBean, DrugsEnterprise.class);
 
+        //默认值设定
         drugsEnterprise.setCallSys("commonSelf");
         drugsEnterprise.setHosInteriorSupport(0);
         drugsEnterprise.setOrderType(1);
         drugsEnterprise.setCheckInventoryFlag(1);
         drugsEnterprise.setPayModeSupport(9);
+        drugsEnterprise.setSettlementMode(0);
+
         //存储药企信息
         DrugsEnterprise newDrugsEnterprise = drugsEnterpriseDAO.save(drugsEnterprise);
 
