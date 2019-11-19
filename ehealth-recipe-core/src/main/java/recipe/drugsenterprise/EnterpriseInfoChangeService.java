@@ -73,7 +73,7 @@ public class EnterpriseInfoChangeService {
                     if (saleDrugList != null) {
                         if (saleDrugList.getInventory() != null && saleDrugList.getInventory().doubleValue() != storeqty) {
                             saleDrugList.setInventory(new BigDecimal(storeqty));
-                            saleDrugListDAO.save(saleDrugList);
+                            saleDrugListDAO.update(saleDrugList);
                         }
                     }
                 }
