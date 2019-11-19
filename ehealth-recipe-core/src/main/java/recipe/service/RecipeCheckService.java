@@ -470,9 +470,9 @@ public class RecipeCheckService {
                 if(CollectionUtils.isNotEmpty(recipeCheckList)){
                     RecipeCheck recipeCheck = recipeCheckList.get(0);
                     if (1 == recipeCheck.getCheckStatus()) {
-                        checkResult = RecipePharmacistCheckConstant.Check_No_Pass;
-                    } else {
                         checkResult = RecipePharmacistCheckConstant.Check_Pass;
+                    } else {
+                        checkResult = RecipePharmacistCheckConstant.Check_No_Pass;
                     }
                 //记录没有审核信息的处方，说明是没有进行审核的状态是失效的
                 }else{
