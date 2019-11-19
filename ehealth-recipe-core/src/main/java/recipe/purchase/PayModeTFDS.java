@@ -112,11 +112,15 @@ public class PayModeTFDS implements IPurchaseService{
             DrugEnterpriseResult drugEnterpriseResult = remoteDrugService.findSupportDep(recipeIds, extInfo, dep);
             depList = findAllSupportDeps(drugEnterpriseResult, dep, extInfo);
             depDetailList.addAll(depList);
+        }
 
+        for (DepDetailBean depDetailBean : depDetailBeans) {
+            Integer depId = depDetailBean.getDepId();
+            DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(depId);
             //如果是价格自定义的药企，则需要设置单独价格
-            if (Integer.valueOf(0).equals(dep.getSettlementMode())) {
+            if (enterprise != null && Integer.valueOf(0).equals(enterprise.getSettlementMode())) {
                 SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-                List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(dep.getId(), drugIds);
+                List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(enterprise.getId(), drugIds);
                 if (CollectionUtils.isNotEmpty(saleDrugLists)) {
                     BigDecimal total = BigDecimal.ZERO;
                     try {
@@ -126,14 +130,12 @@ public class PayModeTFDS implements IPurchaseService{
                                     .divide(BigDecimal.ONE, 3, RoundingMode.UP));
                         }
                     } catch (Exception e) {
-                        LOGGER.warn("findSupportDepList 重新计算药企ID为[{}]的结算价格出错. drugIds={}", dep.getId(),
+                        LOGGER.warn("findSupportDepList 重新计算药企ID为[{}]的结算价格出错. drugIds={}", enterprise.getId(),
                                 JSONUtils.toString(drugIds), e);
                         continue;
                     }
-                    for (DepDetailBean depDetailBean : depDetailList) {
-                        //重置药企处方价格
-                        depDetailBean.setRecipeFee(total);
-                    }
+                    //重置药企处方价格
+                    depDetailBean.setRecipeFee(total);
                 }
             }
         }
