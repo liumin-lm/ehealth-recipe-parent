@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.SaleDrugList;
 import ctd.persistence.DAOFactory;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.http.HttpEntity;
@@ -20,6 +21,7 @@ import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeParameterDao;
 import recipe.dao.SaleDrugListDAO;
 import recipe.drugsenterprise.bean.StoreInventoryResponse;
+import recipe.drugsenterprise.bean.YueyResponse;
 import recipe.util.DigestUtil;
 
 import java.math.BigDecimal;
@@ -62,10 +64,9 @@ public class EnterpriseInfoChangeService {
             HttpEntity httpEntity = response.getEntity();
             String responseStr = EntityUtils.toString(httpEntity);
             LOGGER.info("EnterpriseInfoChangeService-updateStoreInventory responseStr:{}.", responseStr);
-            List<StoreInventoryResponse> storeResponses = JSONObject.parseArray(responseStr, StoreInventoryResponse.class);
-            LOGGER.info("EnterpriseInfoChangeService-updateStoreInventory storeResponses:{}.", storeResponses);
-            if (storeResponses != null && storeResponses.size() > 0) {
-                for (StoreInventoryResponse storeInventoryResponse : storeResponses) {
+            YueyResponse storeResponses = JSONUtils.parse(responseStr, YueyResponse.class);
+            if (storeResponses != null && "200".equals(storeResponses.getCode())) {
+                for (StoreInventoryResponse storeInventoryResponse : storeResponses.getData()) {
                     String hwarecode = storeInventoryResponse.getHwarecode();
                     double storeqty = storeInventoryResponse.getStoreqty();
                     List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
