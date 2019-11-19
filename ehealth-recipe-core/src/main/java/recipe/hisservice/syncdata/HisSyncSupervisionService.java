@@ -301,7 +301,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             if (recipe.getClinicId() != null){
                 req.setBussID(recipe.getClinicId().toString());
                 //处方来源 1-问诊 4复诊
-                req.setBussSource("4");
+                if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())){
+                    req.setBussSource("4");
+                }else {
+                    req.setBussSource("1");
+                }
                 ConsultBean consultBean = iConsultService.getById(recipe.getClinicId());
                 QuestionnaireBean questionnaire = iConsultService.getConsultQuestionnaireByConsultId(recipe.getClinicId());
                 if (consultBean != null){
