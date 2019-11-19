@@ -256,6 +256,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
                 drugDetail.setQuantity(recipedetails.get(i).getUseTotalDose().intValue());
                 drugDetail.setPrice(Double.parseDouble(saleDrugList.getPrice().toString()));
                 drugDetail.setUnit(recipedetails.get(i).getDrugUnit());
+
                 BigDecimal totalAmount = saleDrugList.getPrice().multiply(new BigDecimal(recipedetails.get(i).getUseTotalDose().intValue()));
                 drugDetail.setAmount(totalAmount.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue());
                 drugDetail.setDescription("无");
