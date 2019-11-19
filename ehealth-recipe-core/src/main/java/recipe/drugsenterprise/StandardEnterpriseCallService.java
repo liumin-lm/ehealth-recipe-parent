@@ -734,17 +734,25 @@ public class StandardEnterpriseCallService {
     }
 
     @RpcService
-    public StandardResultDTO readjustDrugPrice(Integer storeId, String drugCode, double price){
-        LOGGER.info("StandardEnterpriseCallService-readjustDrugPrice storeId:{}, drugCode:{}.", storeId, drugCode);
+    public StandardResultDTO readjustDrugPrice(String account, String drugCode, double price){
+        LOGGER.info("StandardEnterpriseCallService-readjustDrugPrice storeId:{}, drugCode:{}.", account, drugCode);
         StandardResultDTO result = new StandardResultDTO();
         result.setCode(StandardResultDTO.SUCCESS);
-        if (storeId == null || StringUtils.isEmpty(drugCode) || price < 0.0) {
+        if (StringUtils.isEmpty(account) || StringUtils.isEmpty(drugCode) || price < 0.0) {
             result.setCode(StandardResultDTO.FAIL);
             result.setMsg("参数不能为空");
             return result;
         }
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAccount(account);
+        if (drugsEnterprise == null) {
+            result.setCode(StandardResultDTO.FAIL);
+            result.setMsg("药企不存在");
+            return result;
+        }
+
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        SaleDrugList saleDrugList = saleDrugListDAO.getByOrganIdAndDrugCode(storeId, drugCode);
+        SaleDrugList saleDrugList = saleDrugListDAO.getByOrganIdAndDrugCode(drugsEnterprise.getId(), drugCode);
         if (saleDrugList == null) {
             result.setCode(StandardResultDTO.FAIL);
             result.setMsg("未查到待调价的药品");
