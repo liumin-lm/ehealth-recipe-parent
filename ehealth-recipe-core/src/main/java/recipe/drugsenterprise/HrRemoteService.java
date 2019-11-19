@@ -248,11 +248,11 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
                 drugDetail.setMedicineName(saleDrugList.getSaleName());
                 drugDetail.setCommonName(saleDrugList.getDrugName());
                 drugDetail.setSpecs(saleDrugList.getDrugSpec());
-                OrganDrugList organDrugList = organDrugListDAO.getByDrugIdAndOrganId(recipedetails.get(i).getDrugId(), recipe.getClinicOrgan());
-                if (organDrugList == null) {
+                List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetails.get(i).getDrugId(), recipe.getClinicOrgan());
+                if (organDrugLists == null) {
                     return getDrugEnterpriseResult(result, "机构药品目录不存在" + recipedetails.get(i).getDrugId());
                 }
-                drugDetail.setProducer(organDrugList.getProducer());
+                drugDetail.setProducer(organDrugLists.get(0).getProducer());
                 drugDetail.setQuantity(recipedetails.get(i).getUseTotalDose().intValue());
                 drugDetail.setPrice(Double.parseDouble(saleDrugList.getPrice().toString()));
                 drugDetail.setUnit(recipedetails.get(i).getDrugUnit());
