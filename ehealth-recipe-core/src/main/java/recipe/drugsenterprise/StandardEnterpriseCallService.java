@@ -733,4 +733,23 @@ public class StandardEnterpriseCallService {
 
     }
 
+    @RpcService
+    public StandardResultDTO readjustDrugPrice(Integer storeId, String drugCode, double price){
+        LOGGER.info("StandardEnterpriseCallService-readjustDrugPrice storeId:{}, drugCode:{}.", storeId, drugCode);
+        StandardResultDTO result = new StandardResultDTO();
+        result.setCode(StandardResultDTO.FAIL);
+        if (storeId == null || StringUtils.isEmpty(drugCode)) {
+            result.setMsg("参数不能为空");
+        }
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        SaleDrugList saleDrugList = saleDrugListDAO.getByOrganIdAndDrugCode(storeId, drugCode);
+        if (saleDrugList == null) {
+            result.setCode(StandardResultDTO.FAIL);
+            result.setMsg("未查到待调价的药品");
+        }
+        saleDrugList.setPrice(new BigDecimal(price));
+        saleDrugListDAO.save(saleDrugList);
+        return result;
+    }
+
 }
