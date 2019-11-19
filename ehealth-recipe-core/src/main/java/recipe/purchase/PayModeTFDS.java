@@ -114,7 +114,7 @@ public class PayModeTFDS implements IPurchaseService{
             depDetailList.addAll(depList);
         }
 
-        for (DepDetailBean depDetailBean : depDetailBeans) {
+        for (DepDetailBean depDetailBean : depDetailList) {
             Integer depId = depDetailBean.getDepId();
             DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(depId);
             //如果是价格自定义的药企，则需要设置单独价格
