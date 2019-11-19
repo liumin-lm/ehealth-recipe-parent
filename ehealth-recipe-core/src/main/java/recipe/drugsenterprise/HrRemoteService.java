@@ -105,7 +105,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
             hrPushRecipeInfo.setPickMode(RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getGiveMode()) ? 0 : 1 );
             hrPushRecipeInfo.setSettleMode(RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getGiveMode()) ? 1 : 2);
             hrPushRecipeInfo.setPayFlag(RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getGiveMode()) ? 1 : 0);
-            hrPushRecipeInfo.setAmount(Double.parseDouble(recipeOrder.getRecipeFee().toString()));
+            hrPushRecipeInfo.setAmount(recipeOrder.getRecipeFee().setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue());
             ReceiveAddress receiveAddress = new ReceiveAddress();
             //设置用户信息
             PatientDTO patientDTO = patientService.getPatientByMpiId(recipe.getMpiid());
@@ -203,7 +203,8 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
             hrPrescr.setDoctorName(doctor.getName());
             hrPrescr.setHospitalId(organDTO.getOrganId().toString()); //医院编码
             hrPrescr.setDoctorId(recipe.getDoctor().toString());
-            hrPrescr.setPrescrAmount(Double.parseDouble(recipeOrder.getRecipeFee().toString()));
+            hrPrescr.setPrescrAmount(recipeOrder.getRecipeFee().setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue());
+
             RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
             String fileImgUrl = parameterDao.getByName("fileImgUrl");
             hrPrescr.setImageUri(fileImgUrl + recipe.getSignImg());
@@ -255,7 +256,8 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
                 drugDetail.setQuantity(recipedetails.get(i).getUseTotalDose().intValue());
                 drugDetail.setPrice(Double.parseDouble(saleDrugList.getPrice().toString()));
                 drugDetail.setUnit(recipedetails.get(i).getDrugUnit());
-                drugDetail.setAmount(Double.parseDouble(saleDrugList.getPrice().toString()) * recipedetails.get(i).getUseTotalDose().intValue());
+                BigDecimal totalAmount = saleDrugList.getPrice().multiply(new BigDecimal(recipedetails.get(i).getUseTotalDose().intValue()));
+                drugDetail.setAmount(totalAmount.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue());
                 drugDetail.setDescription("无");
                 Details.add(detail);
                 drugDetails.add(drugDetail);
