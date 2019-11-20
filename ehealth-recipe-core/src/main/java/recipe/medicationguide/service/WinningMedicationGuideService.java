@@ -140,13 +140,14 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
             HttpEntity httpEntity = response.getEntity();
             String responseStr = EntityUtils.toString(httpEntity);
             LOGGER.info("getHtml5LinkHttpRequest response={}", responseStr);
-            html5Link = responseStr;
-
+            if (StringUtils.isNotEmpty(responseStr)&&responseStr.contains("http")){
+                html5Link = responseStr.substring(1,responseStr.length()-1);
+            }
             //关闭 HttpEntity 输入流
             EntityUtils.consume(httpEntity);
             response.close();
         } catch (Exception e) {
-            LOGGER.warn("getHtml5LinkHttpRequest error", e);
+            LOGGER.error("getHtml5LinkHttpRequest error", e);
         } finally {
             try {
                 httpClient.close();
