@@ -85,8 +85,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
     }
 
     private void setStoreIntroduce(int organId, List<DrugListBean> drugListBeans) {
-        //TODO 岳阳1003083
-        if (organId == 1) {
+        if (organId == 1003083) {
             for (DrugListBean drugListBean : drugListBeans) {
                 SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
                 DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
@@ -216,8 +215,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     drugList.setUsePathways("");
                 }
                 //针对岳阳市人民医院增加库存
-                //TODO 岳阳1003083
-                if (organId != null && organId == 1) {
+                if (organId != null && organId == 1003083) {
                     List<DrugsEnterprise> drugsEnterprises = enterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
                     SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugList.getDrugId(), drugsEnterprises.get(0).getId());
                     if (saleDrugList != null) {
