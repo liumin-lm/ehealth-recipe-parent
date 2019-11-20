@@ -27,6 +27,7 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
@@ -39,6 +40,7 @@ import recipe.medicationguide.bean.PatientInfoDTO;
 import recipe.service.RecipeMsgService;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
+import recipe.util.RedisClient;
 
 import java.util.List;
 import java.util.Map;
@@ -54,6 +56,9 @@ public class MedicationGuideService {
 
     /** logger */
     private static final Logger LOGGER = LoggerFactory.getLogger(MedicationGuideService.class);
+
+    @Autowired
+    private RedisClient redisClient;
 
     /**
      * 扫码后--接收weixin-service扫码后的信息并获取跳转url再推送消息
@@ -262,23 +267,29 @@ public class MedicationGuideService {
 
     private IMedicationGuideService getGuideService(Integer organId){
         OrganMedicationGuideRelationDAO organMedicationGuideRelationDAO = DAOFactory.getDAO(OrganMedicationGuideRelationDAO.class);
-        OrganMedicationGuideRelation organMedicationGuideRelation = organMedicationGuideRelationDAO.getOrganMedicationGuideRelationByOrganId(organId);
         MedicationGuideDAO medicationGuideDAO = DAOFactory.getDAO(MedicationGuideDAO.class);
-        if (organMedicationGuideRelation == null) {
-            LOGGER.info("medicationGuideService getService 没有维护用药指导机构关系");
-            organMedicationGuideRelation = new OrganMedicationGuideRelation();
-            organMedicationGuideRelation.setOrganId(organId);
-            //默认配置卫宁智能审方
-            MedicationGuide medicationGuide = medicationGuideDAO.getByCallSys("winning");
-            if (medicationGuide == null){
-                throw new DAOException(ErrorCode.SERVICE_ERROR,"未配置默认用于指导第三方信息");
+        Integer guideId = redisClient.get("MedicationGuide_" + organId);
+        if (guideId == null){
+            OrganMedicationGuideRelation organMedicationGuideRelation = organMedicationGuideRelationDAO.getOrganMedicationGuideRelationByOrganId(organId);
+            if (organMedicationGuideRelation == null) {
+                LOGGER.info("medicationGuideService getService 没有维护用药指导机构关系");
+                organMedicationGuideRelation = new OrganMedicationGuideRelation();
+                organMedicationGuideRelation.setOrganId(organId);
+                //默认配置卫宁智能审方
+                MedicationGuide medicationGuide = medicationGuideDAO.getByCallSys("winning");
+                if (medicationGuide == null){
+                    throw new DAOException(ErrorCode.SERVICE_ERROR,"未配置默认用于指导第三方信息");
+                }
+                organMedicationGuideRelation.setGuideId(medicationGuide.getGuideId());
+                organMedicationGuideRelationDAO.save(organMedicationGuideRelation);
+                organMedicationGuideRelation = organMedicationGuideRelationDAO.getOrganMedicationGuideRelationByOrganId(organId);
             }
-            organMedicationGuideRelation.setGuideId(medicationGuide.getGuideId());
-            organMedicationGuideRelationDAO.save(organMedicationGuideRelation);
-            organMedicationGuideRelation = organMedicationGuideRelationDAO.getOrganMedicationGuideRelationByOrganId(organId);
+            LOGGER.info("medicationGuideService getService organMedicationGuideRelation:{}.", JSONUtils.toString(organMedicationGuideRelation));
+            guideId =organMedicationGuideRelation.getGuideId();
+            //缓存一周
+            redisClient.setEX("MedicationGuide_"+organId,7 * 24 * 3600L,guideId);
         }
-        LOGGER.info("medicationGuideService getService organMedicationGuideRelation:{}.", JSONUtils.toString(organMedicationGuideRelation));
-        MedicationGuide medicationGuide = medicationGuideDAO.getByGuideId(organMedicationGuideRelation.getGuideId());
+        MedicationGuide medicationGuide = medicationGuideDAO.getByGuideId(guideId);
         if (medicationGuide == null) {
             throw new DAOException(ErrorCode.SERVICE_ERROR,"用药指导第三方不存在");
         }
