@@ -686,17 +686,17 @@ public class DrugToolService implements IDrugToolService {
      * 药品提交至organDrugList(将匹配完成的数据提交更新)人工提交
      */
     @RpcService
-    public Map<String, Integer> drugManualCommit(final int organId) {
+    public Map<String, Integer> drugManualCommit(int organId,int status) {
         List<DrugListMatch> matchDataByOrgan = drugListMatchDAO.findMatchDataByOrgan(organId);
         final HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
             @SuppressWarnings("unchecked")
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                List<DrugListMatch> lists = drugListMatchDAO.findDataByOrganAndStatus(organId, 2);
+                List<DrugListMatch> lists = drugListMatchDAO.findDataByOrganAndStatus(organId, status);
                 int num = 0;
                 //更新数据到organDrugList并更新状态已提交
                 for (DrugListMatch drugListMatch : lists) {
-                    if (drugListMatch.getStatus().equals(2) && drugListMatch.getMatchDrugId() != null) {
+                    if (drugListMatch.getMatchDrugId() != null) {
                         OrganDrugList organDrugList = new OrganDrugList();
                         organDrugList.setDrugId(drugListMatch.getMatchDrugId());
                         organDrugList.setOrganDrugCode(drugListMatch.getOrganDrugCode());
