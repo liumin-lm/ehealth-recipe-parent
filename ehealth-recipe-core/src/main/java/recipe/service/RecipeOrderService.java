@@ -1778,8 +1778,9 @@ public class RecipeOrderService extends RecipeBaseService {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         //状态转化
         Integer status2 = RecipeStatusToOrderEnum.getValue((Integer)attrMap.get("status"));
-        attrMap.put("lastModifyTime", DateTime.now().toString(DateConversion.DEFAULT_DATE_TIME));
-        attrMap.put("sendTime", DateTime.now().toString(DateConversion.DEFAULT_DATE_TIME));
+        attrMap.put("lastModifyTime", new Date());
+        attrMap.put("sendTime", new Date());
+
         //更新订单状态
         String orderCode= this.getOrderCodeByRecipeId(recipeId);
         if(null == orderCode){
@@ -1795,7 +1796,7 @@ public class RecipeOrderService extends RecipeBaseService {
 
         //同步处方状态
         Map<String, Object> recipeMap = new HashMap<>();
-        recipeMap.put("sendDate", DateTime.now().toString(DateConversion.DEFAULT_DATE_TIME));
+        recipeMap.put("sendDate", new Date());
         recipeMap.put("sender", "system");
         recipeMap.put("status", status2);
         recipeMap.put("lastModify", new Date());
