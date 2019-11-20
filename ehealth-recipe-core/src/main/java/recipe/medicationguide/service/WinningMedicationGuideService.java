@@ -140,10 +140,7 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
             HttpEntity httpEntity = response.getEntity();
             String responseStr = EntityUtils.toString(httpEntity);
             LOGGER.info("getHtml5LinkHttpRequest response={}", responseStr);
-            Html5LinkDTO linkDTO = JSONUtils.parse(responseStr, Html5LinkDTO.class);
-            if (StringUtils.isNotEmpty(linkDTO.getUrl())){
-                html5Link = linkDTO.getUrl();
-            }
+            html5Link = responseStr;
 
             //关闭 HttpEntity 输入流
             EntityUtils.consume(httpEntity);
@@ -156,9 +153,6 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
             } catch (IOException e) {
                 LOGGER.warn("getHtml5LinkHttpRequest httpClient close error", e);
             }
-        }
-        if (StringUtils.isEmpty(html5Link)){
-            html5Link = "https://www.baidu.com";
         }
         return html5Link;
     }

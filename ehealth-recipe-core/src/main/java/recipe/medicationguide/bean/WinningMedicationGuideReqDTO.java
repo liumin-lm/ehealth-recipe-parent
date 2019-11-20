@@ -29,7 +29,7 @@ public class WinningMedicationGuideReqDTO implements Serializable {
     /**
      * 诊断信息数据
      */
-    @JsonProperty("DiagnosisInfo")
+    @JsonProperty("DiagnosisInfoList")
     private List<DiagnosisInfoDTO> diagnosisInfo;
     /**
      * 请求类型
