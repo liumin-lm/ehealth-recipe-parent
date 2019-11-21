@@ -125,6 +125,9 @@ public class DrugListBean implements Serializable {
         isMatched = matched;
     }
 
+    @ItemProperty(alias = "药品库存")
+    private BigDecimal inventory;
+
     public DrugListBean() {
     }
 
@@ -371,5 +374,13 @@ public class DrugListBean implements Serializable {
 
     public void setOrganDrugCode(String organDrugCode) {
         this.organDrugCode = organDrugCode;
+    }
+
+    public BigDecimal getInventory() {
+        return inventory;
+    }
+
+    public void setInventory(BigDecimal inventory) {
+        this.inventory = inventory;
     }
 }
