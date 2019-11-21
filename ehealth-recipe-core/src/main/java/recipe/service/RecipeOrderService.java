@@ -57,10 +57,7 @@ import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.constant.*;
 import recipe.dao.*;
-import recipe.drugsenterprise.AccessDrugEnterpriseService;
-import recipe.drugsenterprise.CommonRemoteService;
-import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.drugsenterprise.YsqRemoteService;
+import recipe.drugsenterprise.*;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.MapValueUtil;
@@ -1776,47 +1773,63 @@ public class RecipeOrderService extends RecipeBaseService {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
 
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         //状态转化
         Integer status2 = RecipeStatusToOrderEnum.getValue((Integer)attrMap.get("status"));
-        attrMap.put("lastModifyTime", new Date());
+        attrMap.put("sender", "system");
         attrMap.put("sendTime", new Date());
-
-        //更新订单状态
-        String orderCode= this.getOrderCodeByRecipeId(recipeId);
-        if(null == orderCode){
-            resultBean.setCode(RecipeResultBean.FAIL);
-            resultBean.setError("更新处方订单信息失败，找不到订单信息");
-            return resultBean;
-        }
-
-        resultBean= this.updateOrderInfo(orderCode, attrMap, null);
-        if(resultBean.getCode().equals(RecipeResultBean.FAIL)){
-            return resultBean;
-        }
-
-        //同步处方状态
-        Map<String, Object> recipeMap = new HashMap<>();
-        recipeMap.put("sendDate", new Date());
-        recipeMap.put("sender", "system");
-        recipeMap.put("status", status2);
-        recipeMap.put("lastModify", new Date());
-        //以免进行处方失效前提醒
-        recipeMap.put("remindFlag", 1);
-        try {
-            boolean recipeSave = recipeDAO.updateRecipeInfoByRecipeId(recipeId, recipeMap);
-            if (!recipeSave) {
-                resultBean.setCode(RecipeResultBean.FAIL);
-                resultBean.setError("处方单状态同步失败");
+        ThirdEnterpriseCallService thirdEnterpriseCallService = new ThirdEnterpriseCallService();
+        if(1 == recipe.getGiveMode()){
+            if(RecipeStatusConstant.IN_SEND == status2){
+                resultBean = thirdEnterpriseCallService.toSend(attrMap);
+            } else if (RecipeStatusConstant.FINISH == status2){
+                resultBean = thirdEnterpriseCallService.toSend(attrMap);
             }
-
-        } catch (Exception e) {
-            resultBean.setCode(RecipeResultBean.FAIL);
-            resultBean.setError("处方单状态同步失败," + e.getMessage());
+        } else if (3 == recipe.getGiveMode()){
+            if(RecipeStatusConstant.FINISH == status2){
+                attrMap.put("result", "1");
+                resultBean = thirdEnterpriseCallService.recordDrugStoreResult(attrMap);
+            } else if (RecipeStatusConstant.RECIPE_FAIL == status2){
+                attrMap.put("result", "2");
+                resultBean = thirdEnterpriseCallService.recordDrugStoreResult(attrMap);
+            }
         }
-        //向患者端发送消息
-        RecipeMsgService.batchSendMsg(recipeId, status2);
-
-        LOGGER.info("updateOrderStatus 更新处方订单信息成功");
+//
+//        //更新订单状态
+//        String orderCode= this.getOrderCodeByRecipeId(recipeId);
+//        if(null == orderCode){
+//            resultBean.setCode(RecipeResultBean.FAIL);
+//            resultBean.setError("更新处方订单信息失败，找不到订单信息");
+//            return resultBean;
+//        }
+//
+//        resultBean= this.updateOrderInfo(orderCode, attrMap, null);
+//        if(resultBean.getCode().equals(RecipeResultBean.FAIL)){
+//            return resultBean;
+//        }
+//
+//        //同步处方状态
+//        Map<String, Object> recipeMap = new HashMap<>();
+//        recipeMap.put("sendDate", new Date());
+//        recipeMap.put("status", status2);
+//        recipeMap.put("lastModify", new Date());
+//        //以免进行处方失效前提醒
+//        recipeMap.put("remindFlag", 1);
+//        try {
+//            boolean recipeSave = recipeDAO.updateRecipeInfoByRecipeId(recipeId, recipeMap);
+//            if (!recipeSave) {
+//                resultBean.setCode(RecipeResultBean.FAIL);
+//                resultBean.setError("处方单状态同步失败");
+//            }
+//
+//        } catch (Exception e) {
+//            resultBean.setCode(RecipeResultBean.FAIL);
+//            resultBean.setError("处方单状态同步失败," + e.getMessage());
+//        }
+//        //向患者端发送消息
+//        RecipeMsgService.batchSendMsg(recipeId, status2);
+//
+//        LOGGER.info("updateOrderStatus 更新处方订单信息成功");
         return resultBean;
     }
 
