@@ -30,10 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
-import recipe.constant.DrugEnterpriseConstant;
-import recipe.constant.ParameterConstant;
-import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
+import recipe.constant.*;
 import recipe.dao.*;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
@@ -44,6 +41,7 @@ import recipe.util.MapValueUtil;
 
 import javax.xml.namespace.QName;
 import javax.xml.rpc.ParameterMode;
+import java.math.BigDecimal;
 import java.net.URL;
 import java.util.*;
 
@@ -67,6 +65,8 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
     private static final String PRESCRIPTION_GYS_LISTS = "PrescriptionGYSLists";
 
     public static final String YSQ_SPLIT = "-";
+
+    private static final String KEY_RCP_DRUG_INVENTORY_LOCK = "RCP_DRUG_INVENTORY_";
 
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
@@ -104,7 +104,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         String sendInfoStr = JSONUtils.toString(sendInfo);
         String methodName = "AcceptPrescription";
         LOGGER.info("发送[{}][{}]内容：{}", drugEpName, methodName, sendInfoStr);
-
+        updateEnterpriseInventory(recipeIds.get(0), drugsEnterprise);
         //发送药企信息
         sendAndDealResult(drugsEnterprise, methodName, sendInfoStr, result);
 
@@ -130,9 +130,25 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         return result;
     }
 
+    private Integer updateEnterpriseInventory(Integer recipeId, DrugsEnterprise drugsEnterprise) {
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        //岳阳钥匙圈的需要对库存进行操作
+        if ("岳阳-钥世圈".equals(drugsEnterprise.getName())) {
+            for (Recipedetail recipedetail : recipedetails) {
+                Integer drugId = recipedetail.getDrugId();
+                Double useTotalDose = recipedetail.getUseTotalDose();
+                BigDecimal totalDose = new BigDecimal(useTotalDose);
+                LOGGER.info("YsqRemoteService-updateEnterpriseInventory 更新库存成功,更新药品:{},更新数量:{},处方单号：{}.", drugId, totalDose, recipeId);
+                return saleDrugListDAO.updateInventoryByOrganIdAndDrugId(drugsEnterprise.getId(), drugId, totalDose);
+            }
+        }
+        return -1;
+    }
+
     @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        LOGGER.info("YsqRemoteService scanStock not implement.");
         return DrugEnterpriseResult.getSuccess();
     }
 
@@ -706,4 +722,5 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         sendAndDealResult(drugsEnterprise, methodName, sendInfoStr, result);
         return result;
     }
+
 }
