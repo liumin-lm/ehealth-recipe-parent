@@ -1778,6 +1778,7 @@ public class RecipeOrderService extends RecipeBaseService {
         Integer status2 = RecipeStatusToOrderEnum.getValue((Integer)attrMap.get("status"));
         attrMap.put("sender", "system");
         attrMap.put("sendTime", new Date());
+        attrMap.put("recipeId", recipeId);
         ThirdEnterpriseCallService thirdEnterpriseCallService = new ThirdEnterpriseCallService();
         if(1 == recipe.getGiveMode()){
             if(RecipeStatusConstant.IN_SEND == status2){
