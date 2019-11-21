@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -1349,12 +1350,22 @@ public class RecipeService extends RecipeBaseService{
             organIds.add(organId);
         }
 
+        OrganDrugListDAO organDrugListDAO = getDAO(OrganDrugListDAO.class);
+        Long updateNum = 0L;
         List<String> unuseDrugs = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(organIds)) {
             for (int oid : organIds) {
                 //查询起始下标
                 int startIndex = 0;
                 boolean finishFlag = true;
+                //获取纳里机构药品目录
+                List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(oid);
+                Map<String, OrganDrugList> drugMap = Maps.uniqueIndex(details, new Function<OrganDrugList, String>() {
+                    @Override
+                    public String apply(OrganDrugList input) {
+                        return input.getOrganDrugCode();
+                    }
+                });
                 do {
                     unuseDrugs.clear();
                     List<DrugInfoTO> drugInfoList = hisService.getDrugInfoFromHis(oid, false, startIndex);
@@ -1364,19 +1375,33 @@ public class RecipeService extends RecipeBaseService{
                             if ("0".equals(drug.getUseflag())) {
                                 unuseDrugs.add(drug.getDrcode());
                             }
+                            OrganDrugList nowOrganDrug = drugMap.get(drug.getDrcode());
+                            //获取金额
+                            BigDecimal drugPrice = null == drug.getDrugPrice() ? new BigDecimal(-1) : new BigDecimal(drug.getDrugPrice());
+
+                            if(null != nowOrganDrug && !drugPrice.equals(new BigDecimal(-1))){
+                                if(0 != drugPrice.compareTo(nowOrganDrug.getSalePrice())){
+                                    //更新当前不匹配的药品价格
+                                    nowOrganDrug.setSalePrice(drugPrice);
+                                    organDrugListDAO.update(nowOrganDrug);
+                                    updateNum++;
+                                }
+                            }
                         }
 
 //                        if (CollectionUtils.isNotEmpty(unuseDrugs)) {
                         //暂时不启用自动修改
 //                            organDrugListDAO.updateStatusByOrganDrugCode(unuseDrugs, 0);
 //                        }
-                        startIndex += 100;
+                        startIndex += 10;
                         LOGGER.info("drugInfoSynTask organId=[{}] 同步完成. 关闭药品数量[{}], drugCode={}", oid, unuseDrugs.size(), JSONUtils.toString(unuseDrugs));
                     } else {
-                        LOGGER.error("drugInfoSynTask organId=[{}] total=[{}] 药品信息更新结束.", startIndex, oid);
+                        LOGGER.info("drugInfoSynTask organId=[{}] total=[{}] 药品信息更新结束.", oid, updateNum);
+                        LOGGER.info("drugInfoSynTask organId=[{}] total=[{}] 药品金额更新完成.", oid, updateNum);
                         finishFlag = false;
                     }
                 } while (finishFlag);
+
             }
         } else {
             LOGGER.info("drugInfoSynTask organIds is empty.");
