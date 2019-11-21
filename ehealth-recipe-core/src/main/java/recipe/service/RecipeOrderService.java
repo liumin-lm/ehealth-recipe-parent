@@ -1784,7 +1784,7 @@ public class RecipeOrderService extends RecipeBaseService {
             if(RecipeStatusConstant.IN_SEND == status2){
                 resultBean = thirdEnterpriseCallService.toSend(attrMap);
             } else if (RecipeStatusConstant.FINISH == status2){
-                resultBean = thirdEnterpriseCallService.toSend(attrMap);
+                resultBean = thirdEnterpriseCallService.finishRecipe(attrMap);
             }
         } else if (3 == recipe.getGiveMode()){
             if(RecipeStatusConstant.FINISH == status2){
