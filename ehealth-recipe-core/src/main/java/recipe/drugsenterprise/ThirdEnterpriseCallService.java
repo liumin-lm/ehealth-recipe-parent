@@ -449,6 +449,75 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     }
 
     /**
+     * 配送到家-处方完成方法
+     *
+     * @param paramMap
+     * @return
+     */
+    @RpcService
+    public ThirdResultBean RecipeFall(Map<String, Object> paramMap) {
+        LOGGER.info("RecipeFall param : " + JSONUtils.toString(paramMap));
+
+        ThirdResultBean backMsg = ThirdResultBean.getFail();
+        int code = validateRecipe(paramMap, backMsg, OrderStatusConstant.SENDING, OrderStatusConstant.FAIL, CHECK_ORDER);
+
+        if (REQUEST_ERROR_REAPET == code) {
+            backMsg.setCode(REQUEST_OK);
+            return backMsg;
+        } else if (REQUEST_ERROR == code) {
+            LOGGER.warn("recipeId=[{}], RecipeFall:{}", backMsg.getBusId(), JSONUtils.toString(backMsg));
+            return backMsg;
+        }
+
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+
+        Recipe recipe = backMsg.getRecipe();
+        Integer recipeId = recipe.getRecipeId();
+        String errorMsg = "";
+        String sendDateStr = MapValueUtil.getString(paramMap, "sendDate");
+        //此处为配送人
+        String sender = MapValueUtil.getString(paramMap, "sender");
+
+        Map<String, Object> attrMap = Maps.newHashMap();
+        attrMap.put("giveDate", StringUtils.isEmpty(sendDateStr) ? DateTime.now().toDate() :
+            DateConversion.parseDate(sendDateStr, DateConversion.DEFAULT_DATE_TIME));
+        attrMap.put("giveFlag", 1);
+        attrMap.put("giveUser", sender);
+        //如果是货到付款还要更新付款时间和付款状态
+//        if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) && RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
+//            attrMap.put("payFlag", 1);
+//            attrMap.put("payDate", new Date());
+//        }
+        String recipeFeeStr = MapValueUtil.getString(paramMap, "recipeFee");
+        if (StringUtils.isNotEmpty(recipeFeeStr)) {
+            attrMap.put("totalMoney", new BigDecimal(recipeFeeStr));
+        }
+        //更新处方信息
+        Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.FINISH, attrMap);
+
+        if (rs) {
+            //患者未取药
+            RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+
+            orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.FAIL);
+            RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.RECIPE_FAIL, "取药失败，原因:" + MapValueUtil.getString(paramMap, "cancelReason"));
+            //发送取药失败消息
+            RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_FAIL);
+
+        } else {
+            code = ErrorCode.SERVICE_ERROR;
+            errorMsg = "电子处方更新失败";
+        }
+
+        backMsg.setCode(code);
+        backMsg.setMsg(errorMsg);
+        backMsg.setRecipe(null);
+        LOGGER.info("RecipeFall:" + JSONUtils.toString(backMsg));
+
+        return backMsg;
+    }
+
+    /**
      * 更新处方相关信息
      *
      * @param paramMap

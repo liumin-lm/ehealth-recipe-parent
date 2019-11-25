@@ -90,7 +90,6 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         drugsEnterprise.setHosInteriorSupport(0);
         drugsEnterprise.setOrderType(1);
         drugsEnterprise.setCheckInventoryFlag(1);
-        drugsEnterprise.setPayModeSupport(9);
         drugsEnterprise.setSettlementMode(0);
 
         //存储药企信息
