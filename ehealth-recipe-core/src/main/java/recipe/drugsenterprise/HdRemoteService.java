@@ -367,7 +367,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 String responseStr =  EntityUtils.toString(httpEntity);
                 pushRecipeResponse =
                         JSONUtils.parse(responseStr, HdPushRecipeResponse.class);
-                if(null == pushRecipeResponse){
+                if(null == pushRecipeResponse || null == pushRecipeResponse.getSuccess()){
                     LOGGER.warn("HdRemoteService.pushRecipeInfo:[{}][{}]处方推送没有响应", enterprise.getId(), enterprise.getName());
                     getFailResult(result, "处方推送没有响应");
                 }
@@ -799,6 +799,9 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
 
 
         HdPharmacyAndStockResponse responseResult = checkPharmacyAndDrugMsgRequest(drugsEnterprise, hdPharmacyAndStockRequest, result, "scanStock");
+        if(DrugEnterpriseResult.FAIL == result.getCode())
+            return null;
+
         //如果返回token超时就刷新token重新进行请求(鉴权失败，重新请求token，更新后重新进行访问当前接口)
         DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         HdTokenRequest request;
@@ -860,7 +863,10 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 HttpEntity httpEntity = response.getEntity();
                 String responseStr = EntityUtils.toString(httpEntity);
                 responseResult = JSONUtils.parse(responseStr, HdPharmacyAndStockResponse.class);
-                if(null == responseResult){
+                LOGGER.info("HdRemoteService." + methodName + "请求返回:{}", responseStr);
+                //date 20191121
+                //添加判断请求是否正常（是否返回成功失败标志位success）
+                if(null == responseResult || null == responseResult.getSuccess()){
                     LOGGER.warn("HdRemoteService.findSupportDep:查询可用的药店及其药品信息,请求没有响应结果");
                     getFailResult(result, "请求没有响应结果");
                     return responseResult;
@@ -926,7 +932,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 HttpEntity httpEntity = response.getEntity();
                 String responseStr = EntityUtils.toString(httpEntity);
                 responseResult = JSONUtils.parse(responseStr, HdPharmacyAndStockResponse.class);
-                if(null == responseResult){
+                if(null == responseResult || null == responseResult.getSuccess()){
                     LOGGER.warn("HdRemoteService.scanStock:查询可用的药店及其药品信息,请求没有响应结果");
                     getFailResult(result, "请求没有响应结果");
                     return responseResult;
@@ -1117,6 +1123,9 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
 
         //根据请求返回的药店列表，获取对应药店下药品需求的总价格
         HdPharmacyAndStockResponse responseResult = checkPharmacyAndDrugMsgRequest(enterprise, hdPharmacyAndStockRequest, result, "findSupportDep");
+        if(DrugEnterpriseResult.FAIL == result.getCode())
+            return null;
+
         //如果返回token超时就刷新token重新进行请求(鉴权失败，重新请求token，更新后重新进行访问当前接口)
         DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         HdTokenRequest request;
