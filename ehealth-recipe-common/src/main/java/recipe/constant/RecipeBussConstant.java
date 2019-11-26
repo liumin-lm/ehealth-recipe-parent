@@ -144,6 +144,10 @@ public class RecipeBussConstant {
     public static Integer REQ_TYPE_AUTO = 2;
 
     /**
+     * 处方业务来源-无-医生直接开处方
+     */
+    public static Integer BUSS_SOURCE_NONE = 0;
+    /**
      * 处方业务来源-问诊
      */
     public static Integer BUSS_SOURCE_WZ = 1;

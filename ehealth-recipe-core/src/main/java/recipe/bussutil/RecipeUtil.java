@@ -195,6 +195,11 @@ public class RecipeUtil {
             recipe.setRecipeType(RecipeBussConstant.RECIPETYPE_WM);
         }
 
+        //默认业务来源为无
+        if (null == recipe.getBussSource()) {
+            recipe.setBussSource(RecipeBussConstant.BUSS_SOURCE_NONE);
+        }
+
         //默认流转模式为平台模式
         if (null == recipe.getRecipeMode()) {
             recipe.setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);
