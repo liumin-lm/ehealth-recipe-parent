@@ -1,5 +1,6 @@
 package recipe.medicationguide.service;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.patient.dto.PatientDTO;
@@ -77,8 +78,18 @@ public class MedicationGuideService {
         HosPatientRecipeDTO hosPatientRecipeDTO = service.queryHisPatientRecipeInfo(organId,qrInfo);
         //reqType 请求类型（1：二维码扫码推送详情 2：自动推送详情链接跳转请求 ）
         hosPatientRecipeDTO.setReqType(RecipeBussConstant.REQ_TYPE_QRCODE);
+        boolean flag = true;
+        try {
+            verifyParam(hosPatientRecipeDTO);
+        } catch (Exception e) {
+            LOGGER.error("pushMedicationGuideMsgByQrCode verifyParam error",e);
+            flag = false;
+            RecipeMsgService.sendMedicationGuideMsg(ImmutableMap.of("appId",appId,"openId",openId,"url","","organId",0));
+        }
         //发送模板消息
-        sendMedicationGuideMsg(appId,openId,hosPatientRecipeDTO);
+        if (flag){
+            sendMedicationGuideMsg(appId,openId,hosPatientRecipeDTO);
+        }
     }
 
     /**

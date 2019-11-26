@@ -210,6 +210,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         //生成业务相关临时二维码[临时]* 二维码失效则重新生成* 二维码内容自定义
         QRInfoBean qrInfo = ngariQrInfoService.createBriefQRInfoForBusCustom(bean, clientConfig);
         String fileid=qrInfo==null?null:qrInfo.getQrCode();
+        LOG.info("RecipeRemind getQrUrl qrInfo={}",JSONUtils.toString(qrInfo));
         if(fileid==null){
             return null;
         }
