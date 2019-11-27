@@ -587,20 +587,20 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setAddress4(address.getAddress4());
 
                 try {
-                    Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
+
                     //校验地址是否可以配送
-                        EnterpriseAddressService enterpriseAddressService = ApplicationUtils.getRecipeService(EnterpriseAddressService.class);
-                        int flag = enterpriseAddressService.allAddressCanSendForOrder(order.getEnterpriseId(), address.getAddress1(), address.getAddress2(), address.getAddress3());
-                        if (0 == flag) {
-                            order.setAddressCanSend(true);
-                        } else {
-                            boolean b = 1 == toDbFlag && (payModeSupport.isSupportMedicalInsureance() || payModeSupport.isSupportOnlinePay());
-                            if (b) {
-                                //只有需要真正保存订单时才提示
-                                result.setCode(RecipeResultBean.FAIL);
-                                result.setMsg("该地址无法配送");
-                            }
+                    EnterpriseAddressService enterpriseAddressService = ApplicationUtils.getRecipeService(EnterpriseAddressService.class);
+                    int flag = enterpriseAddressService.allAddressCanSendForOrder(order.getEnterpriseId(), address.getAddress1(), address.getAddress2(), address.getAddress3());
+                    if (0 == flag) {
+                        order.setAddressCanSend(true);
+                    } else {
+                        boolean b = 1 == toDbFlag && (payModeSupport.isSupportMedicalInsureance() || payModeSupport.isSupportOnlinePay());
+                        if (b) {
+                            //只有需要真正保存订单时才提示
+                            result.setCode(RecipeResultBean.FAIL);
+                            result.setMsg("该地址无法配送");
                         }
+                    }
                 } catch (Exception e) {
                     result.setCode(RecipeResultBean.FAIL);
                     result.setMsg(e.getMessage());
