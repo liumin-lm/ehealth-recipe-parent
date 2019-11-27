@@ -458,6 +458,11 @@ public class RecipeCheckService {
     private Integer getCheckResultByPending(Recipe recipe) {
         Integer checkResult = 0;
         Integer status = recipe.getStatus();
+        //date 20191127
+        //添加前置判断:当审核方式是不需要审核则返回通过审核状态
+        if(ReviewTypeConstant.Not_Need_Check == recipe.getReviewType()){
+            return RecipePharmacistCheckConstant.Check_Pass;
+        }
         if (RecipeStatusConstant.READY_CHECK_YS == status) {
             checkResult = RecipePharmacistCheckConstant.Already_Check;
         } else {
