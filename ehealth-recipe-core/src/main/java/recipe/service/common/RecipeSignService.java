@@ -510,7 +510,9 @@ public class RecipeSignService {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
 
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
-        if (null == dbRecipe || dbRecipe.getStatus() != RecipeStatusConstant.CHECKING_HOS) {
+        //date 20191127
+        //重试功能添加his写入失败的处方
+        if (null == dbRecipe || (dbRecipe.getStatus() != RecipeStatusConstant.CHECKING_HOS && dbRecipe.getStatus() != RecipeStatusConstant.HIS_FAIL)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方不能重试");
         }
 

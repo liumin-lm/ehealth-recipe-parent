@@ -708,7 +708,9 @@ public class RecipeService extends RecipeBaseService{
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
 
         Integer status = recipeDAO.getStatusByRecipeId(recipeId);
-        if (null == status || status != RecipeStatusConstant.CHECKING_HOS) {
+        //date 20191127
+        //重试功能添加his写入失败的处方
+        if (null == status || (status != RecipeStatusConstant.CHECKING_HOS && status != RecipeStatusConstant.HIS_FAIL)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方不能重试");
         }
 
