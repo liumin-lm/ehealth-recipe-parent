@@ -1621,6 +1621,7 @@ public class RecipeServiceSub {
         if (consultId != null) {
             if (null != rMap && null == rMap.get("consultId")) {
                 rMap.put("consultId", consultId);
+                rMap.put("bussSource", bussSource);
             }
 
             if (send) {
