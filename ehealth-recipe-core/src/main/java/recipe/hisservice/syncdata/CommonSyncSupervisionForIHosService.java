@@ -252,10 +252,12 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
             if (recipe.getClinicId() != null){
                 req.setBussID(LocalStringUtil.toString(recipe.getClinicId()));
                 //处方来源 1-问诊 4复诊
-                if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())){
-                    req.setBussSource("4");
-                }else {
-                    req.setBussSource("1");
+                if (!RecipeBussConstant.BUSS_SOURCE_NONE.equals(recipe.getBussSource())){
+                    if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())){
+                        req.setBussSource("4");
+                    }else {
+                        req.setBussSource("1");
+                    }
                 }
             }
 
