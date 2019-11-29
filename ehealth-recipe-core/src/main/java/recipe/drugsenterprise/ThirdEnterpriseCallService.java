@@ -493,7 +493,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             attrMap.put("totalMoney", new BigDecimal(recipeFeeStr));
         }
         //更新处方信息
-        Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.FINISH, attrMap);
+        Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.RECIPE_FAIL, attrMap);
 
         if (rs) {
             //患者未取药
