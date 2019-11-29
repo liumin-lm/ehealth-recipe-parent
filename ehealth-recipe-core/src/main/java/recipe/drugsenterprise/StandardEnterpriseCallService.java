@@ -730,6 +730,14 @@ public class StandardEnterpriseCallService {
 
     }
 
+    /**
+     * 同步药企药品价格
+     * @param account      药企标识
+     * @param hospitalId   机构ID
+     * @param drugCode     配送药品编码
+     * @param price        销售价格
+     * @return             000 成功
+     */
     @RpcService
     public StandardResultDTO readjustDrugPrice(String account, Integer hospitalId,String drugCode, double price){
         LOGGER.info("StandardEnterpriseCallService-readjustDrugPrice storeId:{}, hospitalId:{},drugCode:{}.", account, hospitalId,drugCode);
