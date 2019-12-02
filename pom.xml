@@ -224,7 +224,7 @@
             <dependency>
                 <groupId>com.ctrip.framework.apollo</groupId>
                 <artifactId>apollo-client</artifactId>
-                <version>0.8.0</version>
+                <version>${apollo}</version>
             </dependency>
             <dependency>
                 <groupId>commons-lang</groupId>
