@@ -1325,15 +1325,15 @@ public class RecipeOrderService extends RecipeBaseService {
      */
     @RpcService
     public Map<Integer, String> getOrderStatusEnum(Integer giveMode) {
-        HashMap<Integer, String> map = new HashMap ();
+        HashMap<Integer, String> map = new HashMap<>();
         if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(giveMode)){
             map.put(OrderStatusConstant.READY_SEND, "待配送");
             map.put(OrderStatusConstant.SENDING, "配送中");
         } else {
             map.put(OrderStatusConstant.READY_GET_DRUG, "待取药");
+            map.put(OrderStatusConstant.FAIL, "取药失败");
         }
         map.put(OrderStatusConstant.FINISH, "已完成");
-        map.put(OrderStatusConstant.FAIL, "取药失败");
 
         return map;
     }
