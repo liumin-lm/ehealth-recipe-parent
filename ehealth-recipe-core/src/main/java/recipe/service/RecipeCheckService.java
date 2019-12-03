@@ -255,6 +255,8 @@ public class RecipeCheckService {
         r.setStatus(recipe.getStatus());
         //配送方式
         r.setGiveMode(recipe.getGiveMode());
+        //支付状态
+        r.setPayFlag(recipe.getPayFlag());
         try {
             String showTip = DictionaryController.instance().get("eh.cdr.dictionary.RecipeStatus").getText(recipe.getStatus());
             r.setShowTip(showTip);
