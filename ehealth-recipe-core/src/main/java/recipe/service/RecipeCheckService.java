@@ -2,7 +2,6 @@ package recipe.service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
@@ -25,17 +24,16 @@ import com.ngari.recipe.recipe.model.GuardianBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
-import coupon.api.service.ICouponBaseService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
-import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -46,7 +44,6 @@ import recipe.audit.auditmode.AuditModeContext;
 import recipe.bean.CheckYsInfoBean;
 import recipe.constant.*;
 import recipe.dao.*;
-import recipe.purchase.PurchaseService;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ChinaIDNumberUtil;
@@ -570,15 +567,6 @@ public class RecipeCheckService {
         //审核处方单（药师相关数据处理）
         CheckYsInfoBean resultBean = recipeService.reviewRecipe(paramMap);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        //审核成功往药厂发消息
-        if (1 == result) {
-            /*recipeService.afterCheckPassYs(recipe);*/
-            //TODO 根据审方模式改变
-            auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckPassYs(recipe);
-        } else {
-            //审核不通过后处理
-            doAfterCheckNotPassYs(recipe);
-        }
 
         Map<String, Object> resMap = Maps.newHashMap();
         resMap.put("result", resultBean.isRs());
@@ -586,22 +574,33 @@ public class RecipeCheckService {
         //把审核结果再返回前端 0:未审核 1:通过 2:不通过
         resMap.put("check", (1 == result) ? 1 : 2);
 
-
-        //将审核结果推送HIS
-        try {
-            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-            hisService.recipeAudit(recipe, resultBean);
-        } catch (Exception e) {
-            LOGGER.warn("saveCheckResult send recipeAudit to his error. recipeId={}", recipeId, e);
-        }
-
-        if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
-            //增加药师首页待处理任务---完成任务
-            ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussFinishEvent(recipeId, BussTypeConstant.RECIPE));
-        }
+        //审核成功往药厂发消息
+        //审方做异步处理
+        GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
+            @Override
+            public void run() {
+                if (1 == result) {
+                    //审方成功
+                    auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckPassYs(recipe);
+                } else {
+                    //审核不通过后处理
+                    doAfterCheckNotPassYs(recipe);
+                }
+                //将审核结果推送HIS
+                try {
+                    RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+                    hisService.recipeAudit(recipe, resultBean);
+                } catch (Exception e) {
+                    LOGGER.warn("saveCheckResult send recipeAudit to his error. recipeId={}", recipeId, e);
+                }
+                if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+                    //增加药师首页待处理任务---完成任务
+                    ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussFinishEvent(recipeId, BussTypeConstant.RECIPE));
+                }
+            }
+        });
         //推送处方到监管平台(江苏)
         RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(),2));
-
         return resMap;
     }
 
