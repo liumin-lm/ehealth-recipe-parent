@@ -1395,7 +1395,7 @@ public class RecipeService extends RecipeBaseService{
                         //暂时不启用自动修改
 //                            organDrugListDAO.updateStatusByOrganDrugCode(unuseDrugs, 0);
 //                        }
-                        startIndex += 10;
+                        startIndex += 1;
                         LOGGER.info("drugInfoSynTask organId=[{}] 同步完成. 关闭药品数量[{}], drugCode={}", oid, unuseDrugs.size(), JSONUtils.toString(unuseDrugs));
                     } else {
                         LOGGER.info("drugInfoSynTask organId=[{}] total=[{}] 药品信息更新结束.", oid, updateNum);
