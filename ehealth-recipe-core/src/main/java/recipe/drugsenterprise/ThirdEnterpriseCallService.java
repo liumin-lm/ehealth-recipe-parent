@@ -995,7 +995,10 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder order = orderDAO.getOrderByRecipeId(recipe.getRecipeId());
-
+        if(order == null){
+            code = REQUEST_ERROR;
+            errorMsg = "处方未获取到有效订单";
+        }
         //配送到家-处方完成方法，处方准备并配送接口，该处方改成配送中，待配送状态
         //配送中->已完成，审核通过->配送中，待配送->配送中，审核通过->带配送
         if (REQUEST_OK == code && null != beforeStatus) {
