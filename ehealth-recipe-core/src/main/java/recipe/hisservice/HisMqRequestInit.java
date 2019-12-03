@@ -30,6 +30,7 @@ public class HisMqRequestInit {
         //TODO 增加冗余字段
         notice.setOrganizeCode(organService.getOrganizeCodeByOrganId(recipeBean.getClinicOrgan()));
         notice.setRecipeID(recipeBean.getRecipeCode());
+        notice.setPlatRecipeID(String.valueOf(recipeBean.getRecipeId()));
         notice.setRecipeStatus(status);
         notice.setRemark(recipeBean.getRecipeMemo());
         return notice;
@@ -43,6 +44,7 @@ public class HisMqRequestInit {
         notice.setOrganId(recipe.getClinicOrgan());
         notice.setOrganizeCode(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
         notice.setRecipeID(recipe.getRecipeCode());
+        notice.setPlatRecipeID(String.valueOf(recipe.getRecipeId()));
         notice.setRecipeStatus(status);
         notice.setRemark(recipe.getRecipeMemo());
         return notice;
