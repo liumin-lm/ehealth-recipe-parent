@@ -459,7 +459,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         LOGGER.info("RecipeFall param : " + JSONUtils.toString(paramMap));
 
         ThirdResultBean backMsg = ThirdResultBean.getFail();
-        int code = validateRecipe(paramMap, backMsg, OrderStatusConstant.SENDING, OrderStatusConstant.FAIL, CHECK_ORDER);
+        int code = validateRecipe(paramMap, backMsg, null, OrderStatusConstant.FAIL, CHECK_ORDER);
 
         if (REQUEST_ERROR_REAPET == code) {
             backMsg.setCode(REQUEST_OK);
