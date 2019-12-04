@@ -803,8 +803,9 @@ public class RecipeHisService extends RecipeBaseService {
         }
 
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+        LOGGER.info("hisRecipeCheck req={}", JSONUtils.toString(hisCheckRecipeReqTO));
         HisResponseTO hisResult = service.hisCheckRecipe(hisCheckRecipeReqTO);
-        LOGGER.info("hisRecipeCheck request={} result={}", JSONUtils.toString(hisCheckRecipeReqTO),JSONUtils.toString(hisResult));
+        LOGGER.info("hisRecipeCheck res={}", JSONUtils.toString(hisResult));
         if (hisResult==null){
             rMap.put("signResult", false);
             rMap.put("errorFlag",true);
