@@ -14,6 +14,7 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
@@ -968,7 +969,7 @@ public class RecipeListService extends RecipeBaseService{
             }
         }
 
-        payModeShowButtonBean.setButtonType(getButtonType(payModeShowButtonBean, recipe.getReviewType(), record.getRecordType(), record.getStatusCode(), showUseDrugConfig));
+        payModeShowButtonBean.setButtonType(getButtonType(payModeShowButtonBean, recipe, record.getRecordType(), record.getStatusCode(), showUseDrugConfig));
         return payModeShowButtonBean;
     }
 
@@ -1009,14 +1010,23 @@ public class RecipeListService extends RecipeBaseService{
      * @param statusCode 患者处方的状态
      * @return java.lang.Integer 按钮的显示类型
      */
-    private Integer getButtonType(PayModeShowButtonBean payModeShowButtonBean, Integer reviewType, String recordType, Integer statusCode, Boolean showUseDrugConfig) {
+    private Integer getButtonType(PayModeShowButtonBean payModeShowButtonBean, Recipe recipe, String recordType, Integer statusCode, Boolean showUseDrugConfig) {
         //添加判断，当选药按钮都不显示的时候，按钮状态为不展示
         if(null != payModeShowButtonBean){
             //当处方在待处理、前置待审核通过时，购药配送为空不展示按钮
             Boolean noHaveBuyDrugConfig = !payModeShowButtonBean.getSupportOnline() &&
                     !payModeShowButtonBean.getSupportTFDS() && !payModeShowButtonBean.getSupportToHos();
 
-            RecipePageButtonStatusEnum buttonStatus = RecipePageButtonStatusEnum.fromRecodeTypeAndRecodeCodeAndReviewTypeByConfigure(recordType, statusCode, reviewType, showUseDrugConfig, noHaveBuyDrugConfig);
+            //只有当亲处方有订单，且物流公司和订单号都有时展示物流信息
+            Boolean haveSendInfo = false;
+            RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+            RecipeOrder order = orderDAO.getOrderByRecipeId(recipe.getRecipeId());
+            if(null != order && null != order.getLogisticsCompany() && null != order.getTrackingNumber()){
+                haveSendInfo = true;
+            }
+
+            RecipePageButtonStatusEnum buttonStatus = RecipePageButtonStatusEnum.
+                    fromRecodeTypeAndRecodeCodeAndReviewTypeByConfigure(recordType, statusCode, recipe.getReviewType(), showUseDrugConfig, noHaveBuyDrugConfig, haveSendInfo);
             return buttonStatus.getPageButtonStatus();
         }else{
             LOGGER.error("当前按钮的显示信息不存在");

@@ -109,7 +109,7 @@ public enum RecipePageButtonStatusEnum {
      * @param reviewType 处方审核的模式
      * @return recipe.constant.RecipePageButtonStatusEnum 页面展示按钮的形式
      */
-    public static RecipePageButtonStatusEnum fromRecodeTypeAndRecodeCodeAndReviewTypeByConfigure(String recodeType, Integer recodeCode, Integer reviewType, Boolean showUseDrugConfig, Boolean noHaveBuyDrugConfig) {
+    public static RecipePageButtonStatusEnum fromRecodeTypeAndRecodeCodeAndReviewTypeByConfigure(String recodeType, Integer recodeCode, Integer reviewType, Boolean showUseDrugConfig, Boolean noHaveBuyDrugConfig, Boolean haveSendInfo) {
         for (RecipePageButtonStatusEnum e : RecipePageButtonStatusEnum.values()) {
             if (e.getRecodeType().equals(recodeType)  && e.getRecodeCode() == recodeCode && e.getReviewType().contains(reviewType)) {
                 //根据模块的配置项具体的按钮展示
@@ -120,6 +120,11 @@ public enum RecipePageButtonStatusEnum {
 
                 //展示购药方式按钮，当没有配置购药方式时不展示按钮
                 if(0 == e.getPageButtonStatus() && noHaveBuyDrugConfig){
+                    return No_Show;
+                }
+
+                //展示查看物流按钮，当配送信息不全时不展示按钮
+                if(2 == e.getPageButtonStatus() && !haveSendInfo){
                     return No_Show;
                 }
                 return e;

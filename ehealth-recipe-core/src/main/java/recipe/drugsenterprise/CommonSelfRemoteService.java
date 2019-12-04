@@ -7,6 +7,8 @@ import com.ngari.recipe.entity.Pharmacy;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.SaleDrugList;
 import ctd.persistence.DAOFactory;
+import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,7 @@ import java.util.Map;
  * @author yinsheng
  * @date 2019\11\7 0007 14:20
  */
+@RpcBean("commonSelfRemoteService")
 public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
 
     private static final String searchMapRANGE = "range";
@@ -45,8 +48,12 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
     }
 
     @Override
+    @RpcService
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         LOGGER.info("PublicSelfRemoteService pushRecipeInfo not implement.");
+        //date 2019/12/4
+        //添加自建药企推送处方时推送消息给药企
+        pushMessageToEnterprise(recipeIds);
         return DrugEnterpriseResult.getSuccess();
     }
 
