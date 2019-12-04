@@ -502,7 +502,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.FAIL);
             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.RECIPE_FAIL, "取药失败，原因:" + MapValueUtil.getString(paramMap, "cancelReason"));
             //发送取药失败消息
-            RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_FAIL);
+            RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.NO_DRUG);
 
         } else {
             code = ErrorCode.SERVICE_ERROR;
