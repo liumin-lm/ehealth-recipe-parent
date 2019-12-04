@@ -31,7 +31,6 @@ import java.util.Map;
  * @author yinsheng
  * @date 2019\11\7 0007 14:20
  */
-@RpcBean("commonSelfRemoteService")
 public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
 
     private static final String searchMapRANGE = "range";
@@ -48,7 +47,6 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
     }
 
     @Override
-    @RpcService
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         LOGGER.info("PublicSelfRemoteService pushRecipeInfo not implement.");
         //date 2019/12/4
