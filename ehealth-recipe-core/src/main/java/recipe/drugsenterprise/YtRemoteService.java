@@ -268,10 +268,13 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         //获取响应消息
         CloseableHttpResponse response = httpClient.execute(httpPost);
         HttpEntity httpEntity = response.getEntity();
+        //date 20191129
+        //添加推送处方结果展示
+        String responseStr =  EntityUtils.toString(httpEntity);
         if(requestPushSuccessCode == response.getStatusLine().getStatusCode()){
-            LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送成功，请求返回:{}", enterprise.getId(), enterprise.getName());
+            LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送成功，请求返回:{}", enterprise.getId(), enterprise.getName(), responseStr);
         }else{
-            LOGGER.warn("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送失败", enterprise.getId(), enterprise.getName());
+            LOGGER.warn("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送失败,请求返回:{}", enterprise.getId(), enterprise.getName(), responseStr);
             getFailResult(result, "处方推送失败");
         }
         //关闭 HttpEntity 输入流

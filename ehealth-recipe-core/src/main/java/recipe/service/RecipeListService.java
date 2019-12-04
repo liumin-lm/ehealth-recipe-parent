@@ -14,6 +14,7 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
@@ -71,8 +72,10 @@ public class RecipeListService extends RecipeBaseService{
     //历史处方显示的状态：未处理、未支付、审核不通过、失败、已完成、his失败、取药失败
     //date 20191016
     //历史处方展示的状态不包含已删除，已撤销，同步his失败（原已取消状态）
+    //date 20191126
+    //添加上已撤销的处方
     public static final Integer[] HistoryRecipeListShowStatusList = {RecipeStatusConstant.NO_OPERATOR,
-            RecipeStatusConstant.NO_PAY, RecipeStatusConstant.CHECK_NOT_PASS_YS, RecipeStatusConstant.RECIPE_FAIL, RecipeStatusConstant.FINISH, RecipeStatusConstant.NO_DRUG};
+            RecipeStatusConstant.NO_PAY, RecipeStatusConstant.CHECK_NOT_PASS_YS, RecipeStatusConstant.RECIPE_FAIL, RecipeStatusConstant.FINISH, RecipeStatusConstant.NO_DRUG, RecipeStatusConstant.REVOKE};
 
     public static final Integer No_Show_Button = 3;
 
@@ -920,10 +923,11 @@ public class RecipeListService extends RecipeBaseService{
             payModeShowButtonBean.noUserButtons();
             return payModeShowButtonBean;
         }
+        //获取配置项
+        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
         if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(record.getRecipeMode())){
 
-            //获取配置项
-            IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+
             //添加按钮配置项key
             Object payModeDeploy = configService.getConfiguration(record.getOrganId(), "payModeDeploy");
             if(null == payModeDeploy){
@@ -955,7 +959,17 @@ public class RecipeListService extends RecipeBaseService{
         }
 
         //设置按钮的展示类型
-        payModeShowButtonBean.setButtonType(getButtonType(payModeShowButtonBean, recipe.getReviewType(), record.getRecordType(), record.getStatusCode()));
+        Boolean showUseDrugConfig = (Boolean)configService.getConfiguration(record.getOrganId(), "medicationGuideFlag");
+        //已完成的处方单设置
+        if ((LIST_TYPE_ORDER.equals(record.getRecordType())&& OrderStatusConstant.FINISH.equals(record.getStatusCode()))
+                || (LIST_TYPE_RECIPE.equals(record.getRecordType())&& RecipeStatusConstant.FINISH == record.getStatusCode())){
+            //设置用药指导按钮
+            if (showUseDrugConfig){
+                payModeShowButtonBean.setSupportMedicationGuide(true);
+            }
+        }
+
+        payModeShowButtonBean.setButtonType(getButtonType(payModeShowButtonBean, recipe, record.getRecordType(), record.getStatusCode(), showUseDrugConfig));
         return payModeShowButtonBean;
     }
 
@@ -996,16 +1010,24 @@ public class RecipeListService extends RecipeBaseService{
      * @param statusCode 患者处方的状态
      * @return java.lang.Integer 按钮的显示类型
      */
-    private Integer getButtonType(PayModeShowButtonBean payModeShowButtonBean, Integer reviewType, String recordType, Integer statusCode) {
+    private Integer getButtonType(PayModeShowButtonBean payModeShowButtonBean, Recipe recipe, String recordType, Integer statusCode, Boolean showUseDrugConfig) {
         //添加判断，当选药按钮都不显示的时候，按钮状态为不展示
         if(null != payModeShowButtonBean){
-            if(!payModeShowButtonBean.getSupportDownload() && !payModeShowButtonBean.getSupportOnline() &&
-                    !payModeShowButtonBean.getSupportTFDS() && !payModeShowButtonBean.getSupportToHos()) {
-                return No_Show_Button;
-            }else{
-                RecipePageButtonStatusEnum buttonStatus = RecipePageButtonStatusEnum.fromRecodeTypeAndRecodeCodeAndReviewType(recordType, statusCode, reviewType);
-                return buttonStatus.getPageButtonStatus();
+            //当处方在待处理、前置待审核通过时，购药配送为空不展示按钮
+            Boolean noHaveBuyDrugConfig = !payModeShowButtonBean.getSupportOnline() &&
+                    !payModeShowButtonBean.getSupportTFDS() && !payModeShowButtonBean.getSupportToHos();
+
+            //只有当亲处方有订单，且物流公司和订单号都有时展示物流信息
+            Boolean haveSendInfo = false;
+            RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+            RecipeOrder order = orderDAO.getOrderByRecipeId(recipe.getRecipeId());
+            if(null != order && null != order.getLogisticsCompany() && StringUtils.isNotEmpty(order.getTrackingNumber())){
+                haveSendInfo = true;
             }
+
+            RecipePageButtonStatusEnum buttonStatus = RecipePageButtonStatusEnum.
+                    fromRecodeTypeAndRecodeCodeAndReviewTypeByConfigure(recordType, statusCode, recipe.getReviewType(), showUseDrugConfig, noHaveBuyDrugConfig, haveSendInfo);
+            return buttonStatus.getPageButtonStatus();
         }else{
             LOGGER.error("当前按钮的显示信息不存在");
             return No_Show_Button;

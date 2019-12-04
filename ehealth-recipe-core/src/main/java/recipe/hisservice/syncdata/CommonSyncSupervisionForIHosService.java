@@ -247,22 +247,17 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
         AuditMedicines medicine;
         SubCodeDTO subCodeDTO;
         List<Recipedetail> detailList;
-        List<Integer> consultIds;
-        Integer consultId = null;
         for (Recipe recipe : recipeList) {
             req = new RecipeIndicatorsReq();
             if (recipe.getClinicId() != null){
                 req.setBussID(LocalStringUtil.toString(recipe.getClinicId()));
                 //处方来源 1-问诊 4复诊
-                req.setBussSource("4");
-            }else {
-                consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
-                        recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_GRAPHIC);
-                if (CollectionUtils.isNotEmpty(consultIds)) {
-                    consultId = consultIds.get(0);
-                    req.setBussID(LocalStringUtil.toString(consultId));
-                    //处方来源 1-问诊 4复诊
-                    req.setBussSource("1");
+                if (!RecipeBussConstant.BUSS_SOURCE_NONE.equals(recipe.getBussSource())){
+                    if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())){
+                        req.setBussSource("4");
+                    }else {
+                        req.setBussSource("1");
+                    }
                 }
             }
 

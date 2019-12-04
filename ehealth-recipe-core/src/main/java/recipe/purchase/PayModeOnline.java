@@ -241,6 +241,16 @@ public class PayModeOnline implements IPurchaseService {
         if(0d >= order.getActualPrice()){
             //如果不需要支付则不走支付
             orderService.finishOrderPay(order.getOrderCode(), 1, MapValueUtil.getInteger(extInfo, "payMode"));
+        }else{
+            Recipe nowRecipe = recipeDAO.get(recipeId);
+            //处方需要支付，需要在确认订单将购药方式绑定上
+            if(null == nowRecipe){
+                result.setCode(RecipeResultBean.FAIL);
+                result.setMsg("当前处方" + recipeId + "不存在！");
+                return result;
+            }
+            nowRecipe.setChooseFlag(1);
+            recipeDAO.update(nowRecipe);
         }
         return result;
     }

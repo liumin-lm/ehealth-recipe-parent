@@ -518,7 +518,7 @@ public class RecipeHisService extends RecipeBaseService {
             if (searchAll) {
                 backList = service.queryDrugInfo(requestList, organId);
             } else {
-                List<DrugInfoHisBean> drugInfoList = organDrugListDAO.findDrugInfoByOrganId(organId, start, 100);
+                List<DrugInfoHisBean> drugInfoList = organDrugListDAO.findDrugInfoByOrganId(organId, start, 1);
                 if (CollectionUtils.isNotEmpty(drugInfoList)) {
                     requestList = Lists.newArrayList();
                     DrugInfoTO drugInfoTO;

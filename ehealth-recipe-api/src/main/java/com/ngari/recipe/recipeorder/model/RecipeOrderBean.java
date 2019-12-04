@@ -192,6 +192,9 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "优惠券描述")
     private String couponDesc;
 
+    @ItemProperty(alias = "取消原因")
+    private String cancelReason;
+
     public RecipeOrderBean() {
         initData();
     }
@@ -651,5 +654,13 @@ public class RecipeOrderBean implements Serializable {
 
     public void setEnterpriseName(String enterpriseName) {
         this.enterpriseName = enterpriseName;
+    }
+
+    public String getCancelReason() {
+        return cancelReason;
+    }
+
+    public void setCancelReason(String cancelReason) {
+        this.cancelReason = cancelReason;
     }
 }

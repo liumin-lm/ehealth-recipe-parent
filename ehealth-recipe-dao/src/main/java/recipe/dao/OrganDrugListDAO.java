@@ -516,6 +516,32 @@ public abstract class OrganDrugListDAO extends
         return action.getResult();
     }
 
+    public Boolean updateOrganDrugById(final int organDrugId, final Map<String, ?> changeAttr) {
+        HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("update DrugListMatch set lastModify=current_timestamp() ");
+                if (null != changeAttr && !changeAttr.isEmpty()) {
+                    for (String key : changeAttr.keySet()) {
+                        hql.append("," + key + "=:" + key);
+                    }
+                }
+                hql.append(" where OrganDrugId=:organDrugId");
+                Query q = ss.createQuery(hql.toString());
+                q.setParameter("organDrugId", organDrugId);
+                if (null != changeAttr && !changeAttr.isEmpty()) {
+                    for (String key : changeAttr.keySet()) {
+                        q.setParameter(key, changeAttr.get(key));
+                    }
+                }
+                int flag = q.executeUpdate();
+                setResult(flag == 1);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
     /**
      * 通过organId和创建时间获取
      *

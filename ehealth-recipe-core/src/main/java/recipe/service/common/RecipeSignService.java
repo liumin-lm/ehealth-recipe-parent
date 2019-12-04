@@ -397,7 +397,8 @@ public class RecipeSignService {
         String recipeCodeStr = "ngari" + DigestUtil.md5For16(recipeBean.getClinicOrgan() +
                 recipeBean.getMpiid() + Calendar.getInstance().getTimeInMillis());
         recipeBean.setRecipeCode(recipeCodeStr);
-        //根据申请人mpiid，requestMode 获取当前咨询单consultId
+        //11月大版本改造 咨询id由前端传入
+       /* //根据申请人mpiid，requestMode 获取当前咨询单consultId
         IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
         List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipeBean.getRequestMpiId(),
                 recipeBean.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
@@ -406,7 +407,7 @@ public class RecipeSignService {
             consultId = consultIds.get(0);
             recipeBean.setClinicId(consultId);
             rMap.put("consultId", consultId);
-        }
+        }*/
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
         if (null != recipeId && recipeId > 0) {
             Integer status = recipeDAO.getStatusByRecipeId(recipeId);
@@ -440,7 +441,8 @@ public class RecipeSignService {
         //发送HIS处方开具消息
         sendRecipeToHIS(recipeBean);
         //处方开完后发送聊天界面消息 -医院确认中
-        if(null != consultId){
+        Integer consultId = recipeBean.getClinicId();
+        if(null != consultId && !RecipeBussConstant.BUSS_SOURCE_WLZX.equals(recipeBean.getBussSource())){
             try {
                 IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
                 recipeOnLineConsultService.sendRecipeMsg(consultId,2);
@@ -508,7 +510,9 @@ public class RecipeSignService {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
 
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
-        if (null == dbRecipe || dbRecipe.getStatus() != RecipeStatusConstant.CHECKING_HOS) {
+        //date 20191127
+        //重试功能添加his写入失败的处方
+        if (null == dbRecipe || (dbRecipe.getStatus() != RecipeStatusConstant.CHECKING_HOS && dbRecipe.getStatus() != RecipeStatusConstant.HIS_FAIL)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方不能重试");
         }
 

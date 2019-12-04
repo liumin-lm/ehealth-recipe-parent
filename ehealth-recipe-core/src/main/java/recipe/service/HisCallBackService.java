@@ -205,14 +205,15 @@ public class HisCallBackService {
         }
         //2019/5/16 互联网模式--- 医生开完处方之后聊天界面系统消息提示
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)){
-            //根据申请人mpiid，requestMode 获取当前咨询单consultId
+            /*//根据申请人mpiid，requestMode 获取当前咨询单consultId
             IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
             List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
                     recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
             Integer consultId = null;
             if (CollectionUtils.isNotEmpty(consultIds)) {
                 consultId = consultIds.get(0);
-            }
+            }*/
+            Integer consultId = recipe.getClinicId();
             if(null != consultId){
                 try {
                     IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);

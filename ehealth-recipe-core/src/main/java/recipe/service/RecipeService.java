@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -707,7 +708,9 @@ public class RecipeService extends RecipeBaseService{
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
 
         Integer status = recipeDAO.getStatusByRecipeId(recipeId);
-        if (null == status || status != RecipeStatusConstant.CHECKING_HOS) {
+        //date 20191127
+        //重试功能添加his写入失败的处方
+        if (null == status || (status != RecipeStatusConstant.CHECKING_HOS && status != RecipeStatusConstant.HIS_FAIL)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方不能重试");
         }
 
@@ -769,7 +772,8 @@ public class RecipeService extends RecipeBaseService{
             // urt用于系统消息推送
             recipe.setRequestUrt(requestPatient.getUrt());
         }
-        //根据申请人mpiid，requestMode 获取当前咨询单consultId
+        //11月大版本改造-------咨询id有前端传入
+        /*//根据申请人mpiid，requestMode 获取当前咨询单consultId
         IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
         List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
                 recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
@@ -778,7 +782,7 @@ public class RecipeService extends RecipeBaseService{
             consultId = consultIds.get(0);
             recipe.setClinicId(consultId);
             rMap.put("consultId", consultId);
-        }
+        }*/
         recipe.setStatus(RecipeStatusConstant.UNSIGN);
         recipe.setSignDate(DateTime.now().toDate());
         Integer recipeId = recipe.getRecipeId();
@@ -927,13 +931,14 @@ public class RecipeService extends RecipeBaseService{
                 Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
                 List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
                 RecipeServiceSub.sendRecipeTagToPatient(recipe, details, rMap, false);
-                Integer consultId = MapValueUtil.getInteger(rMap, "consultId");
+                //11月大版本改造----咨询id由前端传入
+                /*Integer consultId = MapValueUtil.getInteger(rMap, "consultId");
                 if(null != consultId) {
                     RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
                     Map<String, Object> attrMap = Maps.newHashMap();
                     attrMap.put("clinicId", consultId);
                     recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap);
-                }
+                }*/
             }
             //个性化医院特殊处理，开完处方模拟his成功返回数据（假如前置机不提供默认返回数据）
             doHisReturnSuccessForOrgan(recipeBean,rMap);
@@ -1329,12 +1334,12 @@ public class RecipeService extends RecipeBaseService{
     /**
      * 定时任务:同步HIS医院药品信息
      */
-    @RpcService
+    @RpcService(timeout = 600000)
     public void drugInfoSynTask() {
         drugInfoSynTaskExt(null);
     }
 
-    @RpcService
+    @RpcService(timeout = 600000)
     public void drugInfoSynTaskExt(Integer organId) {
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
         IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
@@ -1347,12 +1352,26 @@ public class RecipeService extends RecipeBaseService{
             organIds.add(organId);
         }
 
+        OrganDrugListDAO organDrugListDAO = getDAO(OrganDrugListDAO.class);
+        Long updateNum = 0L;
         List<String> unuseDrugs = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(organIds)) {
             for (int oid : organIds) {
                 //查询起始下标
                 int startIndex = 0;
                 boolean finishFlag = true;
+                //获取纳里机构药品目录
+                List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(oid);
+                if(null == details || 0 >= details.size()){
+                    LOGGER.info("drugInfoSynTask 当前医院organId=[{}]，平台没有匹配到机构药品.", oid);
+                    continue;
+                }
+                Map<String, OrganDrugList> drugMap = Maps.uniqueIndex(details, new Function<OrganDrugList, String>() {
+                    @Override
+                    public String apply(OrganDrugList input) {
+                        return input.getOrganDrugCode();
+                    }
+                });
                 do {
                     unuseDrugs.clear();
                     List<DrugInfoTO> drugInfoList = hisService.getDrugInfoFromHis(oid, false, startIndex);
@@ -1362,19 +1381,33 @@ public class RecipeService extends RecipeBaseService{
                             if ("0".equals(drug.getUseflag())) {
                                 unuseDrugs.add(drug.getDrcode());
                             }
+                            OrganDrugList nowOrganDrug = drugMap.get(drug.getDrcode());
+                            //获取金额
+                            BigDecimal drugPrice = null == drug.getDrugPrice() ? new BigDecimal(-1) : new BigDecimal(drug.getDrugPrice());
+
+                            if(null != nowOrganDrug && !drugPrice.equals(new BigDecimal(-1))){
+                                if(0 != drugPrice.compareTo(nowOrganDrug.getSalePrice())){
+                                    //更新当前不匹配的药品价格
+                                    nowOrganDrug.setSalePrice(drugPrice);
+                                    organDrugListDAO.update(nowOrganDrug);
+                                    updateNum++;
+                                }
+                            }
                         }
 
 //                        if (CollectionUtils.isNotEmpty(unuseDrugs)) {
                         //暂时不启用自动修改
 //                            organDrugListDAO.updateStatusByOrganDrugCode(unuseDrugs, 0);
 //                        }
-                        startIndex += 100;
+                        startIndex += 1;
                         LOGGER.info("drugInfoSynTask organId=[{}] 同步完成. 关闭药品数量[{}], drugCode={}", oid, unuseDrugs.size(), JSONUtils.toString(unuseDrugs));
                     } else {
-                        LOGGER.error("drugInfoSynTask organId=[{}] total=[{}] 药品信息更新结束.", startIndex, oid);
+                        LOGGER.info("drugInfoSynTask organId=[{}] total=[{}] 药品信息更新结束.", oid, updateNum);
+                        LOGGER.info("drugInfoSynTask organId=[{}] total=[{}] 药品金额更新完成.", oid, updateNum);
                         finishFlag = false;
                     }
                 } while (finishFlag);
+
             }
         } else {
             LOGGER.info("drugInfoSynTask organIds is empty.");
@@ -1412,7 +1445,7 @@ public class RecipeService extends RecipeBaseService{
                 int recipeId = recipe.getRecipeId();
                 //相应订单处理
                 order = orderDAO.getOrderByRecipeId(recipeId);
-                orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+                orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, null);
                 //变更处方状态
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_OPERATOR, ImmutableMap.of("chooseFlag", 1));
                 RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.RECIPE_ORDER_CACEL);
@@ -1465,7 +1498,7 @@ public class RecipeService extends RecipeBaseService{
                     int recipeId = recipe.getRecipeId();
                     //相应订单处理
                     order = orderDAO.getOrderByRecipeId(recipeId);
-                    orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+                    orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, null);
                     if (recipe.getFromflag().equals(RecipeBussConstant.FROMFLAG_HIS_USE)){
                         orderDAO.updateByOrdeCode(order.getOrderCode(),ImmutableMap.of("cancelReason", "患者未在规定时间内支付，该处方单已失效"));
                         //发送超时取消消息
@@ -2020,9 +2053,9 @@ public class RecipeService extends RecipeBaseService{
         if (1 == flag) {
             orderService.updateOrderInfo(order.getOrderCode(), ImmutableMap.of("status", OrderStatusConstant.READY_PAY), null);
         } else if (PUSH_FAIL == flag) {
-            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, null);
         } else if (REFUND_MANUALLY == flag) {
-            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, null);
             //处理处方单
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, null);
         }
@@ -2410,5 +2443,56 @@ public class RecipeService extends RecipeBaseService{
         }
 
     }
+
+    @RpcService
+    public void updateHisDrug(DrugInfoTO drug) {
+        //校验药品数据安全
+        if (!checkDrugInfo(drug)) return;
+        LOGGER.info("updateHisDrug organId=[{}],当前同步药品数据:{}.", drug.getOrganId(), JSONUtils.toString(drug));
+
+        Integer oid = drug.getOrganId();
+        OrganDrugListDAO organDrugListDAO = getDAO(OrganDrugListDAO.class);
+
+        OrganDrugList nowOrganDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(oid, drug.getDrcode());
+        LOGGER.info("updateHisDrug 更新药品金额,更新前药品信息：{}", JSONUtils.toString(nowOrganDrug));
+
+        //获取金额
+        BigDecimal salePrice = nowOrganDrug.getSalePrice();
+        BigDecimal drugPrice = null == drug.getDrugPrice() ? new BigDecimal(-1) : new BigDecimal(drug.getDrugPrice());
+
+        if(null != nowOrganDrug && !drugPrice.equals(new BigDecimal(-1))){
+            //判断药品金额是否有改动，有改动更新药品价格
+            if(0 != drugPrice.compareTo(salePrice)){
+                //更新当前不匹配的药品价格
+                nowOrganDrug.setSalePrice(drugPrice);
+                organDrugListDAO.update(nowOrganDrug);
+                LOGGER.info("updateHisDrug 更新药品金额,更新后药品信息：{},药品已更新", JSONUtils.toString(nowOrganDrug));
+            }else{
+                LOGGER.info("updateHisDrug 当前药品{}价格无变化，无需更新", JSONUtils.toString(nowOrganDrug));
+            }
+        }
+
+    }
+
+    private boolean checkDrugInfo(DrugInfoTO drug) {
+        if(null == drug){
+            LOGGER.info("updateHisDrug 当前his的更新药品信息为空！");
+            return false;
+        }
+        if(null == drug.getOrganId()){
+            LOGGER.info("updateHisDrug 当前药品信息，机构信息为空！");
+            return false;
+        }
+        if(null == drug.getDrcode()){
+            LOGGER.info("updateHisDrug 当前药品信息，药品code信息为空！");
+            return false;
+        }
+        if(null == drug.getDrugPrice()){
+            LOGGER.info("updateHisDrug 当前药品信息，药品金额信息为空！");
+            return false;
+        }
+        return true;
+    }
+
 
 }

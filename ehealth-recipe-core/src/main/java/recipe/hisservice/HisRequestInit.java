@@ -16,11 +16,9 @@ import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.AppointDepartDTO;
+import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.service.AppointDepartService;
-import com.ngari.patient.service.DoctorService;
-import com.ngari.patient.service.EmploymentService;
-import com.ngari.patient.service.OrganService;
+import com.ngari.patient.service.*;
 import com.ngari.recipe.entity.*;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -282,6 +280,15 @@ public class HisRequestInit {
         requestTO.setDepartCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
         //科室名称
         requestTO.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
+        //互联网环境下没有挂号科室 取department表
+        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
+            DepartmentService departService = ApplicationUtils.getBasicService(DepartmentService.class);
+            DepartmentDTO departmentDTO = departService.getById(recipe.getDepart());
+            //科室编码
+            requestTO.setDepartCode((null != departmentDTO) ? departmentDTO.getCode() : "");
+            //科室名称
+            requestTO.setDepartName((null != departmentDTO) ? departmentDTO.getName() : "");
+        }
         //医生名字
         requestTO.setDoctorName(recipe.getDoctorName());
         //处方金额

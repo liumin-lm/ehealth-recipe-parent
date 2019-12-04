@@ -1,15 +1,25 @@
 package recipe.drugsenterprise;
 
+import com.google.common.collect.Maps;
+import com.ngari.base.push.model.SmsInfoBean;
+import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.Pharmacy;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
+import ctd.persistence.DAOFactory;
+import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
+import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.PharmacyDAO;
+import recipe.dao.RecipeDAO;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateDrugsEpCallable;
 
@@ -200,4 +210,45 @@ public abstract class AccessDrugEnterpriseService {
      * @return
      */
     public abstract String getDrugEnterpriseCallSys();
+
+
+    //当前处方为配送到家、到院取药的时候，当处方推送到药企后自建的药企需要推送短信消息给药企
+    public static void pushMessageToEnterprise(List<Integer> recipeIds) {
+        Integer recipeId;
+        if(null != recipeIds && 0 < recipeIds.size()){
+            recipeId = recipeIds.get(0);
+        }else{
+            LOGGER.warn("当前推送的处方信息为空，无法推送消息！");
+            return;
+        }
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe nowRecipe = recipeDAO.get(recipeId);
+        if(null != nowRecipe && null != nowRecipe.getEnterpriseId()){
+
+            //自建类型的药企需要给药企发送短信
+            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(nowRecipe.getEnterpriseId());
+            if(drugsEnterprise != null && drugsEnterprise.getCreateType() != null &&
+                    0 == drugsEnterprise.getCreateType()){
+                LOGGER.info("pushMessageToEnterprise 当前处方[{}]需要推送订单消息给药企", recipeId);
+                SmsInfoBean smsInfo=new SmsInfoBean();
+                smsInfo.setBusType("RecipeOrderCreate");
+                smsInfo.setSmsType("RecipeOrderCreate");
+                smsInfo.setBusId(recipeId);
+                smsInfo.setOrganId(0);
+
+                Map<String,Object> smsMap = Maps.newHashMap();
+
+                //设置自建药企的电话号码
+                PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
+                List<Pharmacy> list = pharmacyDAO.findByDepId(nowRecipe.getEnterpriseId());
+                smsMap.put("mobile", list.get(0).getPharmacyPhone());
+
+                smsInfo.setExtendValue(JSONUtils.toString(smsMap));
+                ISmsPushService smsPushService = ApplicationUtils.getBaseService(ISmsPushService.class);
+                smsPushService.pushMsgData2OnsExtendValue(smsInfo);
+                LOGGER.info("pushMessageToEnterprise 当前处方[{}]已推送药企[{}],订单消息", recipeId, nowRecipe.getEnterpriseId());
+            }
+        }
+    }
 }

@@ -80,4 +80,10 @@ public abstract class ProvinceDrugListDAO extends HibernateSupportDelegateDAO<Pr
     /*根据关联省的省药品列表数据导入量*/
     @DAOMethod(sql = "select count(*) from ProvinceDrugList pd where pd.provinceId = :provinceId and pd.status = :status)", limit = 0)
     public abstract Long getCountByProvinceIdAndStatus(@DAOParam("provinceId")String provinceId, @DAOParam("status")int status);
+
+    @DAOMethod(sql = " delete from ProvinceDrugList where provinceId =:provinceId")
+    public abstract void deleteByProvinceId(@DAOParam("provinceId")String id);
+
+    @DAOMethod(sql = " delete from ProvinceDrugList where provinceDrugId =:provinceDrugId")
+    public abstract void deleteByProvinceDrugId(@DAOParam("provinceDrugId")Integer provinceDrugId);
 }

@@ -12,9 +12,9 @@ import com.ngari.base.operationrecords.service.IOperationRecordsService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.common.dto.RecipeTagMsgBean;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.service.IConsultService;
-import com.ngari.consult.message.model.RecipeTagMsgBean;
 import com.ngari.consult.message.service.IConsultMessageService;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
@@ -28,7 +28,9 @@ import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
+import networkclinic.api.service.INetworkclinicMsgService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -43,16 +45,13 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.constant.*;
 import recipe.dao.*;
-import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.AldyfRemoteService;
-import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
-import recipe.thread.SaveAutoReviewRunable;
 import recipe.util.*;
 
 import java.math.BigDecimal;
@@ -1592,38 +1591,48 @@ public class RecipeServiceSub {
         RecipeTagMsgBean recipeTagMsg = getRecipeMsgTag(recipe, details);
         //由于就诊人改造，已经可以知道申请人的信息，所以可以直接往当前咨询发消息
         if (StringUtils.isNotEmpty(recipe.getRequestMpiId()) && null != recipe.getDoctor()) {
-            sendRecipeMsgTag(recipe.getRequestMpiId(), recipe.getDoctor(), recipeTagMsg, rMap, send);
+            sendRecipeMsgTag(recipe.getRequestMpiId(), recipe, recipeTagMsg, rMap, send);
         } else if (StringUtils.isNotEmpty(recipe.getMpiid()) && null != recipe.getDoctor()) {
             //处方的患者编号在咨询单里其实是就诊人编号，不是申请人编号
             List<String> requestMpiIds = iConsultService.findPendingConsultByMpiIdAndDoctor(recipe.getMpiid(),
                     recipe.getDoctor());
             if (CollectionUtils.isNotEmpty(requestMpiIds)) {
                 for (String requestMpiId : requestMpiIds) {
-                    sendRecipeMsgTag(requestMpiId, recipe.getDoctor(), recipeTagMsg, rMap, send);
+                    sendRecipeMsgTag(requestMpiId,recipe, recipeTagMsg, rMap, send);
                 }
             }
         }
     }
 
-    private static void sendRecipeMsgTag(String requestMpiId, int doctorId, RecipeTagMsgBean recipeTagMsg,
+    private static void sendRecipeMsgTag(String requestMpiId, Recipe recipe, RecipeTagMsgBean recipeTagMsg,
                                          Map<String, Object> rMap, boolean send) {
-        IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
+        INetworkclinicMsgService iNetworkclinicMsgService = AppContextHolder.getBean("nc.networkclinicMsgService", INetworkclinicMsgService.class);
         IConsultMessageService iConsultMessageService = ApplicationUtils.getConsultService(IConsultMessageService.class);
-
-        //根据申请人mpiid，requestMode 获取当前咨询单consultId
+        //11月大版本改造--咨询id由前端传入
+        /*//根据申请人mpiid，requestMode 获取当前咨询单consultId
         Integer consultId = null;
         List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(requestMpiId,
                 doctorId, RecipeSystemConstant.CONSULT_TYPE_RECIPE);
         if (CollectionUtils.isNotEmpty(consultIds)) {
             consultId = consultIds.get(0);
-        }
+        }*/
+        Integer consultId = recipe.getClinicId();
+        Integer bussSource = recipe.getBussSource();
         if (consultId != null) {
             if (null != rMap && null == rMap.get("consultId")) {
                 rMap.put("consultId", consultId);
+                rMap.put("bussSource", bussSource);
             }
 
             if (send) {
-                ConsultBean consultBean = iConsultService.get(consultId);
+                //11月大版本改造--咨询单或者网络门诊单是否正在处理中有他们那边判断
+                LOGGER.info("sendRecipeMsgTag recipeTagMsg={}", JSONUtils.toString(recipeTagMsg));
+                if (RecipeBussConstant.BUSS_SOURCE_WLZX.equals(bussSource)){
+                    iNetworkclinicMsgService.handleRecipeMsg(consultId,recipeTagMsg,recipe.getDoctor());
+                }else {
+                    iConsultMessageService.handleRecipeMsg(consultId,recipeTagMsg,recipe.getDoctor());
+                }
+                /*ConsultBean consultBean = iConsultService.get(consultId);
                 if (consultBean != null) {
                     //判断咨询单状态是否为处理中
                     if (consultBean.getConsultStatus() == RecipeSystemConstant.CONSULT_STATUS_HANDLING) {
@@ -1634,9 +1643,9 @@ public class RecipeServiceSub {
                         }
                         LOGGER.info("sendRecipeMsgTag recipeTagMsg={}", JSONUtils.toString(recipeTagMsg));
                         //将消息存入数据库consult_msg，并发送环信消息
-                        iConsultMessageService.handleRecipeMsg(consultBean, recipeTagMsg);
+                        iConsultMessageService.handleRecipeMsg(consultId, recipeTagMsg, consultBean.getConsultDoctor());
                     }
-                }
+                }*/
             }
         }
     }
@@ -1769,7 +1778,7 @@ public class RecipeServiceSub {
                 changeAttr.put("chooseFlag", 1);
             }
             result = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.REVOKE, changeAttr);
-            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, null);
             if (result) {
                 msg = "处方撤销成功";
                 //向患者推送处方撤销消息

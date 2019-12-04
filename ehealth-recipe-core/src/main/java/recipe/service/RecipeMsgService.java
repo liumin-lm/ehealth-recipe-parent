@@ -23,6 +23,7 @@ import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.DateConversion;
+import recipe.util.MapValueUtil;
 import recipe.util.RecipeMsgUtils;
 
 import java.util.Collections;
@@ -425,5 +426,26 @@ public class RecipeMsgService {
         } else {
             LOGGER.info("doAfterMedicalInsurancePaySuccess recipe is null, recipeId[{}]", recipeId);
         }
+    }
+
+    /**
+     *  发送用药指导模板消息---
+     *
+     *  场景一-扫码后触发-微信事件消息--WXCallbackListenerImpl》onEvent
+     *  wxservice(扫码) -> recipe(得到参数) -> 前置机(获取his药品相关信息) -> recipe(第三方获取跳转url) —> wxservice(推送微信模板事件消息)
+     */
+    @Deprecated
+    public static void sendMedicationGuideMsg(String appId, String templateId, String openId, String url, Map<String, Object> data) {
+        //已经移到sms里处理
+    }
+
+    /**
+     *  发送用药指导模板消息--
+     *  场景三-线下开处方线上推送消息--前提患者已在公众号注册过
+     *  前置机(推送his处方药品等信息)->recipe(获取第三方url)->sms(发送微信模板消息)
+     */
+    public static void sendMedicationGuideMsg(Map<String, Object> param) {
+        Integer organId = MapValueUtil.getInteger(param, "organId");
+        sendMsgInfo(0,"medicationGuidePush",organId,JSONUtils.toString(param));
     }
 }
