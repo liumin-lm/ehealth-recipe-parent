@@ -1436,31 +1436,6 @@ public class RecipeOrderService extends RecipeBaseService {
                         }
                     }
                 }
-                if(null != nowRecipe.getEnterpriseId()){
-
-                    //自建类型的药企需要给药企发送短信
-                    DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-                    DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(nowRecipe.getEnterpriseId());
-                    if(drugsEnterprise != null && drugsEnterprise.getCreateType() != null &&
-                            0 == drugsEnterprise.getCreateType()){
-                        SmsInfoBean smsInfo=new SmsInfoBean();
-                        smsInfo.setBusType("RecipeOrderCreate");
-                        smsInfo.setSmsType("RecipeOrderCreate");
-                        smsInfo.setBusId(recipeIds.get(0));
-                        smsInfo.setOrganId(0);
-
-                        Map<String,Object> smsMap = Maps.newHashMap();
-
-                        //设置设置自建药企的电话号码
-                        PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
-                        List<Pharmacy> list = pharmacyDAO.findByDepId(nowRecipe.getEnterpriseId());
-                        smsMap.put("mobile", list.get(0).getPharmacyPhone());
-
-                        smsInfo.setExtendValue(JSONUtils.toString(smsMap));
-                        ISmsPushService smsPushService = ApplicationUtils.getBaseService(ISmsPushService.class);
-                        smsPushService.pushMsgData2OnsExtendValue(smsInfo);
-                    }
-                }
             }
 
             this.updateOrderInfo(orderCode, attrMap, result);
