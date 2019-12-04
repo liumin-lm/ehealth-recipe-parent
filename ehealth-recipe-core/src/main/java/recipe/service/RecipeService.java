@@ -1339,7 +1339,7 @@ public class RecipeService extends RecipeBaseService{
         drugInfoSynTaskExt(null);
     }
 
-    @RpcService
+    @RpcService(timeout = 600000)
     public void drugInfoSynTaskExt(Integer organId) {
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
         IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
@@ -1362,6 +1362,10 @@ public class RecipeService extends RecipeBaseService{
                 boolean finishFlag = true;
                 //获取纳里机构药品目录
                 List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(oid);
+                if(null == details || 0 >= details.size()){
+                    LOGGER.info("drugInfoSynTask 当前医院organId=[{}]，平台没有匹配到机构药品.", oid);
+                    continue;
+                }
                 Map<String, OrganDrugList> drugMap = Maps.uniqueIndex(details, new Function<OrganDrugList, String>() {
                     @Override
                     public String apply(OrganDrugList input) {
