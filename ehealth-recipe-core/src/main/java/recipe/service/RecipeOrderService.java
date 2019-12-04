@@ -982,7 +982,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @return
      */
     @RpcService
-    public RecipeResultBean cancelOrderByCode(String orderCode, Integer status) {
+    public RecipeResultBean cancelOrderByCode(String orderCode, Integer status, String cancelReason) {
         RecipeResultBean result = RecipeResultBean.getSuccess();
         if (StringUtils.isEmpty(orderCode) || null == status) {
             result.setCode(RecipeResultBean.FAIL);
@@ -990,7 +990,7 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
-            result = cancelOrder(getDAO(RecipeOrderDAO.class).getByOrderCode(orderCode), status);
+            result = cancelOrder(getDAO(RecipeOrderDAO.class).getByOrderCode(orderCode), status, cancelReason);
         }
 
         return result;
@@ -1012,7 +1012,7 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
-            result = cancelOrder(getDAO(RecipeOrderDAO.class).getOrderByRecipeId(recipeId), status);
+            result = cancelOrder(getDAO(RecipeOrderDAO.class).getOrderByRecipeId(recipeId), status, null);
         }
 
         return result;
@@ -1032,7 +1032,7 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
-            result = cancelOrder(getDAO(RecipeOrderDAO.class).get(orderId), status);
+            result = cancelOrder(getDAO(RecipeOrderDAO.class).get(orderId), status, null);
         }
 
         return result;
@@ -1044,7 +1044,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @param order
      * @return
      */
-    public RecipeResultBean cancelOrder(RecipeOrder order, Integer status) {
+    public RecipeResultBean cancelOrder(RecipeOrder order, Integer status, String cancelReason) {
         RecipeResultBean result = RecipeResultBean.getSuccess();
         if (null == order || null == status) {
             result.setCode(RecipeResultBean.FAIL);
@@ -1057,6 +1057,9 @@ public class RecipeOrderService extends RecipeBaseService {
             Map<String, Object> orderAttrMap = Maps.newHashMap();
             orderAttrMap.put("effective", 0);
             orderAttrMap.put("status", status);
+            if(null != cancelReason){
+                orderAttrMap.put("cancelReason", cancelReason);
+            }
 //            orderAttrMap.put("finishTime", Calendar.getInstance().getTime());
 
             if (null != order) {

@@ -499,7 +499,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             //患者未取药
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
 
-            orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.FAIL);
+            orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.FAIL, MapValueUtil.getString(paramMap, "cancelReason"));
             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.RECIPE_FAIL, "取药失败，原因:" + MapValueUtil.getString(paramMap, "cancelReason"));
             //发送取药失败消息
             RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.NO_DRUG);
@@ -759,7 +759,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             //患者未取药
             Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_DRUG, attrMap);
             if (rs) {
-                orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.CANCEL_AUTO);
+                orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.CANCEL_AUTO, null);
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.NO_DRUG, "到店取药失败，原因:" + MapValueUtil.getString(paramMap, "reason"));
                 //发送取药失败消息
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.NO_DRUG);
