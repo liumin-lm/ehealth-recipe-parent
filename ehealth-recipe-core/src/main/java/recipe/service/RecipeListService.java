@@ -1021,7 +1021,7 @@ public class RecipeListService extends RecipeBaseService{
             Boolean haveSendInfo = false;
             RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             RecipeOrder order = orderDAO.getOrderByRecipeId(recipe.getRecipeId());
-            if(null != order && null != order.getLogisticsCompany() && null != order.getTrackingNumber()){
+            if(null != order && null != order.getLogisticsCompany() && StringUtils.isNotEmpty(order.getTrackingNumber())){
                 haveSendInfo = true;
             }
 
