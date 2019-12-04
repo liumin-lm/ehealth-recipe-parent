@@ -1793,8 +1793,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 attrMap.put("result", "1");
                 resultBean = thirdEnterpriseCallService.recordDrugStoreResult(attrMap);
             } else if (RecipeStatusConstant.RECIPE_FAIL == status2){
-                attrMap.put("result", "2");
-                resultBean = thirdEnterpriseCallService.recordDrugStoreResult(attrMap);
+                resultBean = thirdEnterpriseCallService.RecipeFall(attrMap);
             }
         }
 //
