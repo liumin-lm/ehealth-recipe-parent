@@ -1334,7 +1334,7 @@ public class RecipeService extends RecipeBaseService{
     /**
      * 定时任务:同步HIS医院药品信息
      */
-    @RpcService
+    @RpcService(timeout = 600000)
     public void drugInfoSynTask() {
         drugInfoSynTaskExt(null);
     }
@@ -2439,5 +2439,56 @@ public class RecipeService extends RecipeBaseService{
         }
 
     }
+
+    @RpcService
+    public void updateHisDrug(DrugInfoTO drug) {
+        //校验药品数据安全
+        if (!checkDrugInfo(drug)) return;
+        LOGGER.info("updateHisDrug organId=[{}],当前同步药品数据:{}.", drug.getOrganId(), JSONUtils.toString(drug));
+
+        Integer oid = drug.getOrganId();
+        OrganDrugListDAO organDrugListDAO = getDAO(OrganDrugListDAO.class);
+
+        OrganDrugList nowOrganDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(oid, drug.getDrcode());
+        LOGGER.info("updateHisDrug 更新药品金额,更新前药品信息：{}", JSONUtils.toString(nowOrganDrug));
+
+        //获取金额
+        BigDecimal salePrice = nowOrganDrug.getSalePrice();
+        BigDecimal drugPrice = null == drug.getDrugPrice() ? new BigDecimal(-1) : new BigDecimal(drug.getDrugPrice());
+
+        if(null != nowOrganDrug && !drugPrice.equals(new BigDecimal(-1))){
+            //判断药品金额是否有改动，有改动更新药品价格
+            if(0 != drugPrice.compareTo(salePrice)){
+                //更新当前不匹配的药品价格
+                nowOrganDrug.setSalePrice(drugPrice);
+                organDrugListDAO.update(nowOrganDrug);
+                LOGGER.info("updateHisDrug 更新药品金额,更新后药品信息：{},药品已更新", JSONUtils.toString(nowOrganDrug));
+            }else{
+                LOGGER.info("updateHisDrug 当前药品{}价格无变化，无需更新", JSONUtils.toString(nowOrganDrug));
+            }
+        }
+
+    }
+
+    private boolean checkDrugInfo(DrugInfoTO drug) {
+        if(null == drug){
+            LOGGER.info("updateHisDrug 当前his的更新药品信息为空！");
+            return false;
+        }
+        if(null == drug.getOrganId()){
+            LOGGER.info("updateHisDrug 当前药品信息，机构信息为空！");
+            return false;
+        }
+        if(null == drug.getDrcode()){
+            LOGGER.info("updateHisDrug 当前药品信息，药品code信息为空！");
+            return false;
+        }
+        if(null == drug.getDrugPrice()){
+            LOGGER.info("updateHisDrug 当前药品信息，药品金额信息为空！");
+            return false;
+        }
+        return true;
+    }
+
 
 }
