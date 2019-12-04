@@ -1330,7 +1330,7 @@ public class RecipeOrderService extends RecipeBaseService {
             map.put(OrderStatusConstant.READY_SEND, "待配送");
             map.put(OrderStatusConstant.SENDING, "配送中");
         } else {
-            map.put(OrderStatusConstant.READY_GET_DRUG, "待取药");
+            map.put(OrderStatusConstant.HAS_DRUG, "待取药");
             map.put(OrderStatusConstant.FAIL, "取药失败");
         }
         map.put(OrderStatusConstant.FINISH, "已完成");
