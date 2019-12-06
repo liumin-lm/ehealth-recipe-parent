@@ -549,7 +549,7 @@ public class PrescribeService {
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         //如果已付款则需要进行退款
         RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
-        orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, null);
+        orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
         //取消处方单
         recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), RecipeStatusConstant.DELETE, null);
 

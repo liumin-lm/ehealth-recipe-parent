@@ -498,11 +498,22 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         if (rs) {
             //患者未取药
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+            Map<String, Object> orderAttrMap = new HashMap();
 
-            orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.FAIL, MapValueUtil.getString(paramMap, "cancelReason"));
-            RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.RECIPE_FAIL, "取药失败，原因:" + MapValueUtil.getString(paramMap, "cancelReason"));
-            //发送取药失败消息
-            RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.NO_DRUG);
+            orderAttrMap.put("status", OrderStatusConstant.FAIL);
+            orderAttrMap.put("cancelReason", MapValueUtil.getString(paramMap, "cancelReason"));
+            RecipeResultBean result = orderService.updateOrderInfo(recipe.getOrderCode(), orderAttrMap, null);
+
+//            orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.FAIL, MapValueUtil.getString(paramMap, "cancelReason"));
+            if(RecipeResultBean.FAIL == result.getCode()){
+                code = ErrorCode.SERVICE_ERROR;
+                errorMsg = "处方订单更新失败";
+            } else {
+                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.RECIPE_FAIL, "取药失败，原因:" + MapValueUtil.getString(paramMap, "cancelReason"));
+                //发送取药失败消息
+                RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.NO_DRUG);
+            }
+
 
         } else {
             code = ErrorCode.SERVICE_ERROR;
@@ -759,7 +770,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             //患者未取药
             Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_DRUG, attrMap);
             if (rs) {
-                orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.CANCEL_AUTO, null);
+                orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.CANCEL_AUTO);
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.NO_DRUG, "到店取药失败，原因:" + MapValueUtil.getString(paramMap, "reason"));
                 //发送取药失败消息
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.NO_DRUG);

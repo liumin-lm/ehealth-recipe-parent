@@ -213,7 +213,7 @@ public class StandardEnterpriseCallService {
                                 RecipeStatusConstant.NO_DRUG, "取药失败，原因:" + stateDTO.getReason());
 
                         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-                        RecipeResultBean orderRs = orderService.cancelOrderByCode(orderCode, OrderStatusConstant.CANCEL_AUTO, null);
+                        RecipeResultBean orderRs = orderService.cancelOrderByCode(orderCode, OrderStatusConstant.CANCEL_AUTO);
                         if (RecipeResultBean.SUCCESS.equals(orderRs.getCode())) {
                             orderAttrMap.put("cancelReason", stateDTO.getReason());
                             orderDAO.updateByOrdeCode(orderCode, orderAttrMap);
@@ -375,7 +375,7 @@ public class StandardEnterpriseCallService {
                 Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_DRUG, null);
                 if (rs) {
                     RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-                    orderService.cancelOrderByCode(dbRecipe.getOrderCode(), OrderStatusConstant.CANCEL_AUTO, null);
+                    orderService.cancelOrderByCode(dbRecipe.getOrderCode(), OrderStatusConstant.CANCEL_AUTO);
                 }
 
                 //记录日志
@@ -721,7 +721,7 @@ public class StandardEnterpriseCallService {
         if (rs) {
             //更新处方状态后，结束当前订单的状态
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-            orderService.cancelOrderByCode(nowRecipe.getOrderCode(), OrderStatusConstant.CANCEL_AUTO, null);
+            orderService.cancelOrderByCode(nowRecipe.getOrderCode(), OrderStatusConstant.CANCEL_AUTO);
         }
 
         //记录日志,处方的状态变更为失败的状态，记录失败的原因

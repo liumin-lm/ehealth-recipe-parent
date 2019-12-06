@@ -1778,7 +1778,7 @@ public class RecipeServiceSub {
                 changeAttr.put("chooseFlag", 1);
             }
             result = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.REVOKE, changeAttr);
-            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, null);
+            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
             if (result) {
                 msg = "处方撤销成功";
                 //向患者推送处方撤销消息
