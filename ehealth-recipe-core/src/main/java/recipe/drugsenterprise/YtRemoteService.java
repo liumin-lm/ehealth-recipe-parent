@@ -261,7 +261,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         httpPost.setHeader(requestHeadJsonKey, requestHeadJsonValue);
         httpPost.setHeader(requestHeadPowerKey, enterprise.getToken());
         String requestStr = JSONUtils.toString(sendYtRecipe);
-        LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]推送处方请求，请求内容：{}", enterprise.getId(), enterprise.getName(), sendYtRecipe);
+        LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]推送处方请求，请求内容：{}", enterprise.getId(), enterprise.getName(), requestStr);
         StringEntity requestEntry = new StringEntity(requestStr, ContentType.APPLICATION_JSON);
         httpPost.setEntity(requestEntry);
 
