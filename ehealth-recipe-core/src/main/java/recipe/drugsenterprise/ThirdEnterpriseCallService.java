@@ -502,6 +502,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
             orderAttrMap.put("status", OrderStatusConstant.FAIL);
             orderAttrMap.put("cancelReason", MapValueUtil.getString(paramMap, "cancelReason"));
+            orderAttrMap.put("effective", 0);
             RecipeResultBean result = orderService.updateOrderInfo(recipe.getOrderCode(), orderAttrMap, null);
 
 //            orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.FAIL, MapValueUtil.getString(paramMap, "cancelReason"));
