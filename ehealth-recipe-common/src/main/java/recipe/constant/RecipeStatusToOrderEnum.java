@@ -8,7 +8,7 @@ package recipe.constant;
  */
 public enum RecipeStatusToOrderEnum {
     //待取药
-    WAITDRUG(2, 3),
+    WAITDRUG(12, 3),
     //待配送
     WAITSEND(3, 5),
     //配送中

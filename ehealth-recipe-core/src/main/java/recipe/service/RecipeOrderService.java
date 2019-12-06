@@ -1755,7 +1755,7 @@ public class RecipeOrderService extends RecipeBaseService {
         attrMap.put("sendTime", new Date());
         attrMap.put("recipeId", recipeId);
         ThirdEnterpriseCallService thirdEnterpriseCallService = new ThirdEnterpriseCallService();
-        if(1 == recipe.getGiveMode()){
+        if(1 == recipe.getGiveMode() && status2 != null){
             if(RecipeStatusConstant.IN_SEND == status2){
                 resultBean = thirdEnterpriseCallService.toSend(attrMap);
             } else if (RecipeStatusConstant.FINISH == status2){
@@ -1763,7 +1763,7 @@ public class RecipeOrderService extends RecipeBaseService {
             } else if (RecipeStatusConstant.RECIPE_FAIL == status2){
                 resultBean = thirdEnterpriseCallService.RecipeFall(attrMap);
             }
-        } else if (3 == recipe.getGiveMode()){
+        } else if (3 == recipe.getGiveMode() && status2 != null){
             if(RecipeStatusConstant.FINISH == status2){
                 attrMap.put("result", "1");
                 resultBean = thirdEnterpriseCallService.recordDrugStoreResult(attrMap);
