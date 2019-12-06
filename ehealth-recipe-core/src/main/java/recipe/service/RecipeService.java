@@ -1445,7 +1445,7 @@ public class RecipeService extends RecipeBaseService{
                 int recipeId = recipe.getRecipeId();
                 //相应订单处理
                 order = orderDAO.getOrderByRecipeId(recipeId);
-                orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, null);
+                orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
                 //变更处方状态
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_OPERATOR, ImmutableMap.of("chooseFlag", 1));
                 RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.RECIPE_ORDER_CACEL);
@@ -1498,7 +1498,7 @@ public class RecipeService extends RecipeBaseService{
                     int recipeId = recipe.getRecipeId();
                     //相应订单处理
                     order = orderDAO.getOrderByRecipeId(recipeId);
-                    orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, null);
+                    orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
                     if (recipe.getFromflag().equals(RecipeBussConstant.FROMFLAG_HIS_USE)){
                         orderDAO.updateByOrdeCode(order.getOrderCode(),ImmutableMap.of("cancelReason", "患者未在规定时间内支付，该处方单已失效"));
                         //发送超时取消消息
@@ -2053,9 +2053,9 @@ public class RecipeService extends RecipeBaseService{
         if (1 == flag) {
             orderService.updateOrderInfo(order.getOrderCode(), ImmutableMap.of("status", OrderStatusConstant.READY_PAY), null);
         } else if (PUSH_FAIL == flag) {
-            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, null);
+            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
         } else if (REFUND_MANUALLY == flag) {
-            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, null);
+            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
             //处理处方单
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, null);
         }
