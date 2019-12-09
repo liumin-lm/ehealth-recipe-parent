@@ -922,6 +922,9 @@ public class RecipeServiceSub {
             case RecipeStatusConstant.USING:
                 tips = "处理中";
                 break;
+            case RecipeStatusConstant.RECIPE_MEDICAL_FAIL:
+                tips = "医保上传失败";
+                break;
             default:
                 tips = "未知状态" + status;
         }

@@ -21,10 +21,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.entity.DrugList;
-import com.ngari.recipe.entity.OrganDrugList;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.HisSendResTO;
 import com.ngari.recipe.recipe.model.OrderRepTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -51,10 +48,7 @@ import recipe.constant.BusTypeEnum;
 import recipe.constant.CacheConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.dao.DrugListDAO;
-import recipe.dao.OrganDrugListDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
+import recipe.dao.*;
 import recipe.dao.bean.DrugInfoHisBean;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
@@ -819,6 +813,20 @@ public class RecipeHisService extends RecipeBaseService {
                 rMap.put("errorFlag",true);
                 rMap.put("errorMsg", map.get("resultMark"));
             }else {
+                //预校验返回 取药方式1配送到家 2医院取药 3两者都支持
+                String giveMode = map.get("giveMode");
+                //配送药企代码
+                String deliveryCode = map.get("deliveryCode");
+                //配送药企名称
+                String deliveryName = map.get("deliveryName");
+                if (StringUtils.isNotEmpty(giveMode)){
+                    RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+                    RecipeExtend extend = new RecipeExtend();
+                    extend.setGiveModeFormHis(giveMode);
+                    extend.setDeliveryCode(deliveryCode);
+                    extend.setDeliveryName(deliveryName);
+                    recipeExtendDAO.saveRecipeExtend(extend);
+                }
                 return "1".equals(map.get("checkResult"));
 
             }
