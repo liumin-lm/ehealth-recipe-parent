@@ -70,7 +70,7 @@ public class PayModeOnline implements IPurchaseService {
         if (CollectionUtils.isEmpty(drugsEnterpriseList)) {
             LOG.warn("findSupportDepList 处方[{}]没有任何药企可以进行配送！", recipeId);
             resultBean.setCode(5);
-            resultBean.setMsg("抱歉，没有可以选择的药企");
+            resultBean.setMsg("抱歉，没有可选择的药企");
             return resultBean;
         }
 
@@ -95,7 +95,7 @@ public class PayModeOnline implements IPurchaseService {
         if (CollectionUtils.isEmpty(subDepList)) {
             LOG.warn("findSupportDepList 该处方无法配送. recipeId=[{}]", recipeId);
             resultBean.setCode(5);
-            resultBean.setMsg("抱歉，没有可以选择的药企");
+            resultBean.setMsg("抱歉，没有可选择的药企");
             return resultBean;
         }
         subDepList = getAllSubDepList(subDepList);
