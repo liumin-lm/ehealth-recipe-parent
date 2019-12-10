@@ -36,6 +36,7 @@ import recipe.util.DateConversion;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -732,39 +733,42 @@ public class StandardEnterpriseCallService {
 
     /**
      * 同步药企药品价格
-     * @param account      药企标识
-     * @param hospitalId   机构ID
-     * @param drugCode     配送药品编码
-     * @param price        销售价格
+     * @param readjustDrugDTOS      药企标识
      * @return             000 成功
      */
     @RpcService
-    public StandardResultDTO readjustDrugPrice(String account, Integer hospitalId,String drugCode, double price){
-        LOGGER.info("StandardEnterpriseCallService-readjustDrugPrice storeId:{}, hospitalId:{},drugCode:{}.", account, hospitalId,drugCode);
-        StandardResultDTO result = new StandardResultDTO();
-        result.setCode(StandardResultDTO.SUCCESS);
-        if (StringUtils.isEmpty(account) || StringUtils.isEmpty(drugCode) || price < 0.0 || hospitalId == null) {
-            result.setCode(StandardResultDTO.FAIL);
-            result.setMsg("参数不能为空");
-            return result;
-        }
-        OrganAndDrugsepRelationDAO drugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-        List<DrugsEnterprise> drugsEnterprises = drugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(hospitalId, 1);
-        for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
-            if (account.equals(drugsEnterprise.getAccount())) {
-                SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-                SaleDrugList saleDrugList = saleDrugListDAO.getByOrganIdAndDrugCode(drugsEnterprise.getId(), drugCode);
-                if (saleDrugList == null) {
-                    result.setCode(StandardResultDTO.FAIL);
-                    result.setMsg("未查到待调价的药品");
-                    return result;
-                } else {
-                    saleDrugList.setPrice(new BigDecimal(price));
-                    saleDrugListDAO.update(saleDrugList);
+    public List<StandardResultDTO> readjustDrugPrice(List<ReadjustDrugDTO> readjustDrugDTOS){
+        LOGGER.info("StandardEnterpriseCallService-readjustDrugPrice readjustDrugDTOS:{}.", JSONUtils.toString(readjustDrugDTOS));
+        List<StandardResultDTO> standardResultDTOS = new ArrayList<>();
+        for (ReadjustDrugDTO readjustDrugDTO : readjustDrugDTOS) {
+            StandardResultDTO result = new StandardResultDTO();
+            result.setCode(StandardResultDTO.SUCCESS);
+            String account = readjustDrugDTO.getAccount();
+            Integer hospitalId = readjustDrugDTO.getHospitalId();
+            String drugCode = readjustDrugDTO.getDrugCode();
+            Double price = readjustDrugDTO.getPrice();
+            OrganAndDrugsepRelationDAO drugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+            List<DrugsEnterprise> drugsEnterprises = drugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(hospitalId, 1);
+            for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+                if (account.equals(drugsEnterprise.getAccount())) {
+                    SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+                    SaleDrugList saleDrugList = saleDrugListDAO.getByOrganIdAndDrugCode(drugsEnterprise.getId(), drugCode);
+                    if (saleDrugList == null) {
+                        result.setCode(StandardResultDTO.FAIL);
+                        result.setMsg("未查到待调价的药品");
+                        result.setData(readjustDrugDTO);
+                        standardResultDTOS.add(result);
+                    } else {
+                        saleDrugList.setPrice(new BigDecimal(price));
+                        saleDrugListDAO.update(saleDrugList);
+                        result.setData(readjustDrugDTO);
+                        standardResultDTOS.add(result);
+                    }
                 }
             }
         }
-        return result;
+        LOGGER.info("StandardEnterpriseCallService-readjustDrugPrice standardResultDTOS:{}.", JSONUtils.toString(standardResultDTOS));
+        return standardResultDTOS;
     }
 
 }
