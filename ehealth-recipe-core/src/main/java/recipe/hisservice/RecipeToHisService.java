@@ -261,7 +261,7 @@ public class RecipeToHisService {
         try {
             DrugInfoResponseTO response = hisService.queryDrugInfo(request);
             LOGGER.info("queryDrugInfo response={}", JSONUtils.toString(response));
-            if (null != response && Integer.valueOf(0).equals(response.getMsgCode())) {
+            if (null != response && Integer.valueOf(200).equals(response.getMsgCode())) {
                 return (null != response.getData()) ? response.getData() : new ArrayList<DrugInfoTO>();
             }
         } catch (Exception e) {
