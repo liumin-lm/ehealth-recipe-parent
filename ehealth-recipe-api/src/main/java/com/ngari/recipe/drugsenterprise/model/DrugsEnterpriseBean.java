@@ -1,11 +1,13 @@
 package com.ngari.recipe.drugsenterprise.model;
 
+import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 import ctd.util.JSONUtils;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * 药企
@@ -63,6 +65,13 @@ public class DrugsEnterpriseBean implements Serializable {
 
     @ItemProperty(alias = "排序，1最前，越往后越小")
     private Integer sort;
+
+    @ItemProperty(alias = "药店信息")
+    private Map<String, String> pharmacyInfo;
+
+    @ItemProperty(alias = "创建类型：1：非自建  0：自建")
+    @Dictionary(id = "eh.cdr.dictionary.DepType")
+    private Integer createType;
 
     public DrugsEnterpriseBean() {
     }
@@ -185,6 +194,22 @@ public class DrugsEnterpriseBean implements Serializable {
 
     public void setSort(Integer sort) {
         this.sort = sort;
+    }
+
+    public Map<String, String> getPharmacyInfo() {
+        return pharmacyInfo;
+    }
+
+    public void setPharmacyInfo(Map<String, String> pharmacyInfo) {
+        this.pharmacyInfo = pharmacyInfo;
+    }
+
+    public Integer getCreateType() {
+        return createType;
+    }
+
+    public void setCreateType(Integer createType) {
+        this.createType = createType;
     }
 
     @Override

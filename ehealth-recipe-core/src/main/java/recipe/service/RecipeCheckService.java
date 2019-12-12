@@ -2,7 +2,6 @@ package recipe.service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
@@ -25,17 +24,16 @@ import com.ngari.recipe.recipe.model.GuardianBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
-import coupon.api.service.ICouponBaseService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
-import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -46,7 +44,6 @@ import recipe.audit.auditmode.AuditModeContext;
 import recipe.bean.CheckYsInfoBean;
 import recipe.constant.*;
 import recipe.dao.*;
-import recipe.purchase.PurchaseService;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ChinaIDNumberUtil;
@@ -258,6 +255,8 @@ public class RecipeCheckService {
         r.setStatus(recipe.getStatus());
         //配送方式
         r.setGiveMode(recipe.getGiveMode());
+        //支付状态
+        r.setPayFlag(recipe.getPayFlag());
         try {
             String showTip = DictionaryController.instance().get("eh.cdr.dictionary.RecipeStatus").getText(recipe.getStatus());
             r.setShowTip(showTip);
@@ -310,6 +309,11 @@ public class RecipeCheckService {
         }
 
         Map<String, Object> map = Maps.newHashMap();
+        //date 20191111
+        //添加处方审核状态
+        Integer checkResult = getCheckResultByPending(recipe);
+        map.put("checkStatus", checkResult);
+
         List<Recipedetail> details = detailDAO.findByRecipeId(recipeId);
         //获取审核不通过详情
         List<Map<String, Object>> mapList = getCheckNotPassDetail(recipeId);
@@ -329,6 +333,7 @@ public class RecipeCheckService {
             if (null != drugsEnterprise) {
                 e.setName(drugsEnterprise.getName());
                 e.setPayModeSupport(drugsEnterprise.getPayModeSupport());
+                e.setCreateType(drugsEnterprise.getCreateType());
             }
         }
         RecipeOrderBean order = null;
@@ -348,6 +353,7 @@ public class RecipeCheckService {
                 childRecipeFlag = true;
             }
         }
+
         map.put("childRecipeFlag", childRecipeFlag);
         map.put("guardian", guardian);
 
@@ -358,6 +364,16 @@ public class RecipeCheckService {
         map.put("details", ObjectCopyUtils.convert(details, RecipeDetailBean.class));
         map.put("drugsEnterprise", e);
         map.put("recipeOrder", order);
+
+        //运营平台 编辑订单信息按钮是否显示（自建药企、已审核、配送到家、药店取药、已支付）
+        if(e.getCreateType() != null && e.getCreateType() == 0
+            && checkResult != null && (checkResult == 1 || checkResult == 3)
+            && r.getGiveMode() != null && (r.getGiveMode() == 1 || r.getGiveMode() == 3)
+            && r.getPayFlag() != null && r.getPayFlag() == 1){
+            map.put("editFlag", 1);
+        } else {
+            map.put("editFlag", 0);
+        }
         return map;
     }
 
@@ -444,6 +460,46 @@ public class RecipeCheckService {
     }
 
     /**
+     * 获取待审核列表审核结果
+     *
+     * @param recipe checkResult 0:未审核 1:通过 2:不通过 3:二次签名 4:失效
+     * @return
+     */
+    private Integer getCheckResultByPending(Recipe recipe) {
+        Integer checkResult = 0;
+        Integer status = recipe.getStatus();
+        //date 20191127
+        //添加前置判断:当审核方式是不需要审核则返回通过审核状态
+        if(ReviewTypeConstant.Not_Need_Check == recipe.getReviewType()){
+            return RecipePharmacistCheckConstant.Check_Pass;
+        }
+        if (RecipeStatusConstant.READY_CHECK_YS == status) {
+            checkResult = RecipePharmacistCheckConstant.Already_Check;
+        } else {
+            if (StringUtils.isNotEmpty(recipe.getSupplementaryMemo())) {
+                checkResult = RecipePharmacistCheckConstant.Second_Sign;
+            } else {
+                RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
+                List<RecipeCheck> recipeCheckList = recipeCheckDAO.findByRecipeId(recipe.getRecipeId());
+                //有审核记录就展示
+                if(CollectionUtils.isNotEmpty(recipeCheckList)){
+                    RecipeCheck recipeCheck = recipeCheckList.get(0);
+                    if (1 == recipeCheck.getCheckStatus()) {
+                        checkResult = RecipePharmacistCheckConstant.Check_Pass;
+                    } else {
+                        checkResult = RecipePharmacistCheckConstant.Check_No_Pass;
+                    }
+                //记录没有审核信息的处方，说明是没有进行审核的状态是失效的
+                }else{
+                    checkResult = RecipePharmacistCheckConstant.Check_Failure;
+                }
+            }
+        }
+
+        return checkResult;
+    }
+
+    /**
      * 获取原因文本
      *
      * @param reList
@@ -513,15 +569,6 @@ public class RecipeCheckService {
         //审核处方单（药师相关数据处理）
         CheckYsInfoBean resultBean = recipeService.reviewRecipe(paramMap);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        //审核成功往药厂发消息
-        if (1 == result) {
-            /*recipeService.afterCheckPassYs(recipe);*/
-            //TODO 根据审方模式改变
-            auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckPassYs(recipe);
-        } else {
-            //审核不通过后处理
-            doAfterCheckNotPassYs(recipe);
-        }
 
         Map<String, Object> resMap = Maps.newHashMap();
         resMap.put("result", resultBean.isRs());
@@ -529,22 +576,33 @@ public class RecipeCheckService {
         //把审核结果再返回前端 0:未审核 1:通过 2:不通过
         resMap.put("check", (1 == result) ? 1 : 2);
 
-
-        //将审核结果推送HIS
-        try {
-            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-            hisService.recipeAudit(recipe, resultBean);
-        } catch (Exception e) {
-            LOGGER.warn("saveCheckResult send recipeAudit to his error. recipeId={}", recipeId, e);
-        }
-
-        if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
-            //增加药师首页待处理任务---完成任务
-            ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussFinishEvent(recipeId, BussTypeConstant.RECIPE));
-        }
+        //审核成功往药厂发消息
+        //审方做异步处理
+        GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
+            @Override
+            public void run() {
+                if (1 == result) {
+                    //审方成功
+                    auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckPassYs(recipe);
+                } else {
+                    //审核不通过后处理
+                    doAfterCheckNotPassYs(recipe);
+                }
+                //将审核结果推送HIS
+                try {
+                    RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+                    hisService.recipeAudit(recipe, resultBean);
+                } catch (Exception e) {
+                    LOGGER.warn("saveCheckResult send recipeAudit to his error. recipeId={}", recipeId, e);
+                }
+                if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+                    //增加药师首页待处理任务---完成任务
+                    ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussFinishEvent(recipeId, BussTypeConstant.RECIPE));
+                }
+            }
+        });
         //推送处方到监管平台(江苏)
         RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(),2));
-
         return resMap;
     }
 

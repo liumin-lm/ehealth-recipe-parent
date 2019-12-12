@@ -137,7 +137,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      * @param limit
      * @return
      */
-    public QueryResult<DrugsEnterprise> queryDrugsEnterpriseResultByStartAndLimit(final String name, final int start, final int limit) {
+    public QueryResult<DrugsEnterprise> queryDrugsEnterpriseResultByStartAndLimit(final String name, final Integer createType, final int start, final int limit) {
         HibernateStatelessResultAction<QueryResult<DrugsEnterprise>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugsEnterprise>>() {
             @SuppressWarnings("unchecked")
             public void execute(StatelessSession ss) throws DAOException {
@@ -148,6 +148,11 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
                     hql.append(" and d.name like :name");
                     params.put("name", "%" + name + "%");
                 }
+                if (null != createType) {
+                    hql.append(" and d.createType = :createType");
+                    params.put("createType", createType);
+                }
+
                 hql.append(" order by d.createDate desc ");
 
                 Query query = ss.createQuery("SELECT count(*) " + hql.toString());

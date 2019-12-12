@@ -29,6 +29,11 @@ public class PayModeShowButtonBean implements Serializable{
      * 到院取药购药方式（平台）
      */
     private Boolean supportToHos = false;
+
+    /**
+     * 用药指导显示按钮
+     */
+    private Boolean supportMedicationGuide = false;
     /**
      * 是否可选择（平台）
      */
@@ -107,6 +112,14 @@ public class PayModeShowButtonBean implements Serializable{
 
     public void setOptional(Boolean optional) {
         this.optional = optional;
+    }
+
+    public Boolean getSupportMedicationGuide() {
+        return supportMedicationGuide;
+    }
+
+    public void setSupportMedicationGuide(Boolean supportMedicationGuide) {
+        this.supportMedicationGuide = supportMedicationGuide;
     }
 
     @Override

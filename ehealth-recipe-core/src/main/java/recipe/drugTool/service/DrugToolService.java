@@ -816,6 +816,18 @@ public class DrugToolService implements IDrugToolService {
         }
     }
 
+    @RpcService
+    public void deleteProvinceDrugData(Integer id, Boolean isProvinceId) {
+        if (isProvinceId) {
+            if(null == id){
+               LOGGER.warn("当前清除省平台的数据，没有需要的省区域信息！");
+            }
+            provinceDrugListDAO.deleteByProvinceId(id.toString());
+        } else {
+            provinceDrugListDAO.deleteByProvinceDrugId(id);
+        }
+    }
+
     /**
      * 根据药品id更新匹配表药品机构编码
      *
@@ -825,6 +837,17 @@ public class DrugToolService implements IDrugToolService {
     public void updateMatchCodeById(Map<String, String> map) {
         for (Map.Entry<String, String> entry : map.entrySet()) {
             drugListMatchDAO.updateDrugListMatchInfoById(Integer.valueOf(entry.getKey()), ImmutableMap.of("organDrugCode", entry.getValue()));
+        }
+    }
+    /**
+     * 根据id更新机构药品表药品机构编码
+     *
+     * @param map
+     */
+    @RpcService
+    public void updateOrganDrugCodeById(Map<String, String> map) {
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            organDrugListDAO.updateOrganDrugById(Integer.valueOf(entry.getKey()), ImmutableMap.of("organDrugCode", entry.getValue()));
         }
     }
 

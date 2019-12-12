@@ -40,6 +40,8 @@ public class HospitalDrugDTO implements Serializable {
     @Verify(desc = "每次使用剂量")
     private String useDose;
 
+    private String useDoseUnit;
+
     @Verify(desc = "药品单价", isMoney = true)
     private String drugFee;
 
@@ -190,5 +192,13 @@ public class HospitalDrugDTO implements Serializable {
 
     public void setMemo(String memo) {
         this.memo = memo;
+    }
+
+    public String getUseDoseUnit() {
+        return useDoseUnit;
+    }
+
+    public void setUseDoseUnit(String useDoseUnit) {
+        this.useDoseUnit = useDoseUnit;
     }
 }

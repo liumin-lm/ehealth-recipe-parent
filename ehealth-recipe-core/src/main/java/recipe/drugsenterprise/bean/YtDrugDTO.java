@@ -133,4 +133,19 @@ public class YtDrugDTO implements Serializable{
     public void setDosage(String dosage) {
         this.dosage = dosage;
     }
+
+    @Override
+    public String toString() {
+        return "YtDrugDTO{" +
+                "sourceSerialNumber='" + sourceSerialNumber + '\'' +
+                ", hospitalCode='" + hospitalCode + '\'' +
+                ", itemNo='" + itemNo + '\'' +
+                ", code='" + code + '\'' +
+                ", quantity=" + quantity +
+                ", price=" + price +
+                ", amount=" + amount +
+                ", usage='" + usage + '\'' +
+                ", dosage='" + dosage + '\'' +
+                '}';
+    }
 }

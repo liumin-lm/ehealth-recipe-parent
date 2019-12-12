@@ -23,7 +23,10 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "订单编号")
     private String orderCode;
 
-    @ItemProperty(alias = "就诊序号")
+    @ItemProperty(alias = "开处方来源 1问诊 2复诊(在线续方) 3网络门诊")
+    private Integer bussSource;
+
+    @ItemProperty(alias = "就诊序号(对应来源的业务id)")
     private Integer clinicId;
 
     @ItemProperty(alias = "主索引")
@@ -1123,5 +1126,13 @@ public class RecipeBean implements Serializable {
     public boolean canMedicalPay() {
         Integer useMedicalFlag = 1;
         return (useMedicalFlag.equals(medicalPayFlag)) ? true : false;
+    }
+
+    public Integer getBussSource() {
+        return bussSource;
+    }
+
+    public void setBussSource(Integer bussSource) {
+        this.bussSource = bussSource;
     }
 }
