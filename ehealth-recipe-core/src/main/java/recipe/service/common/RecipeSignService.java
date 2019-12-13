@@ -528,7 +528,8 @@ public class RecipeSignService {
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
         //date 20191127
         //重试功能添加his写入失败的处方
-        if (null == dbRecipe || (dbRecipe.getStatus() != RecipeStatusConstant.CHECKING_HOS && dbRecipe.getStatus() != RecipeStatusConstant.HIS_FAIL)) {
+        //目前仅 医院确认中、his上传处方失败、医保上传失败状态下可以重试处方
+        if (null == dbRecipe || canNoRetryStatus(dbRecipe.getStatus())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方不能重试");
         }
 
@@ -540,6 +541,25 @@ public class RecipeSignService {
 
         LOG.info("sendNewRecipeToHIS execute ok! result={}", JSONUtils.toString(resultBean));
         return resultBean;
+    }
+
+    /**
+     * 是否不能重试处方的状态
+     * @param status
+     * @return true-不能重试  flase-可以重试
+     */
+    private boolean canNoRetryStatus(Integer status) {
+        boolean flag;
+        switch (status){
+            case RecipeStatusConstant.CHECKING_HOS:
+            case RecipeStatusConstant.HIS_FAIL:
+            case RecipeStatusConstant.RECIPE_MEDICAL_FAIL:
+                flag = false;
+                break;
+            default:
+                flag = true;
+        }
+        return flag;
     }
 
 }
