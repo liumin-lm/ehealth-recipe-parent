@@ -234,7 +234,7 @@ public class RecipeExtend implements Serializable {
         this.deliveryName = deliveryName;
     }
 
-    @Column(name = "medicalSettleData")
+    @Column(name = "insuredArea")
     public String getInsuredArea() {
         return insuredArea;
     }
