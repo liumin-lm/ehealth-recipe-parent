@@ -833,6 +833,8 @@ public class RecipeService extends RecipeBaseService{
                 return rMap;
             }
         }
+        //发送his签更新处方状态
+        recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, null);
 
         //HIS消息发送--异步处理
         /*boolean result = hisService.recipeSendHis(recipeId, null);*/

@@ -200,6 +200,12 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "药企名称")
     private String enterpriseName;
 
+    @ItemProperty(alias = "期望配送日期")
+    private String expectSendDate;
+
+    @ItemProperty(alias = "期望配送时间")
+    private String expectSendTime;
+
     @Column(name = "cancelReason")
     public String getCancelReason() {
         return cancelReason;
@@ -672,6 +678,24 @@ public class RecipeOrder implements Serializable {
 
     public void setDecoctionFee(BigDecimal decoctionFee) {
         this.decoctionFee = decoctionFee;
+    }
+
+    @Column(name = "ExpectSendDate")
+    public String getExpectSendDate() {
+        return expectSendDate;
+    }
+
+    public void setExpectSendDate(String expectSendDate) {
+        this.expectSendDate = expectSendDate;
+    }
+
+    @Column(name = "ExpectSendTime")
+    public String getExpectSendTime() {
+        return expectSendTime;
+    }
+
+    public void setExpectSendTime(String expectSendTime) {
+        this.expectSendTime = expectSendTime;
     }
 
     @Transient

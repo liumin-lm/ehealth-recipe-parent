@@ -7,6 +7,7 @@ import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
@@ -24,6 +25,7 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.drugsenterprise.TmdyfRemoteService;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.service.RecipeCheckService;
@@ -316,6 +318,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
         return ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class);
+    }
+
+    @Override
+    public RecipeExtendBean findRecipeExtendByRecipeId(Integer recipeId) {
+        RecipeExtendDAO RecipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = RecipeExtendDAO.getByRecipeId(recipeId);
+        return ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
     }
 
     @Override

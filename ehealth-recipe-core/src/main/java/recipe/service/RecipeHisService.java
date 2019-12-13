@@ -21,10 +21,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.entity.DrugList;
-import com.ngari.recipe.entity.OrganDrugList;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.HisSendResTO;
 import com.ngari.recipe.recipe.model.OrderRepTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -51,10 +48,7 @@ import recipe.constant.BusTypeEnum;
 import recipe.constant.CacheConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.dao.DrugListDAO;
-import recipe.dao.OrganDrugListDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
+import recipe.dao.*;
 import recipe.dao.bean.DrugInfoHisBean;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
@@ -727,7 +721,9 @@ public class RecipeHisService extends RecipeBaseService {
             }
         }
         hisCheckRecipeReqTO.setRecipeID(recipeBean.getRecipeCode());
+        hisCheckRecipeReqTO.setPlatRecipeID(recipeBean.getRecipeId());
         IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+        //患者信息
         PatientBean patientBean = iPatientService.get(recipeBean.getMpiid());
         if (null != patientBean) {
             //身份证
@@ -736,6 +732,8 @@ public class RecipeHisService extends RecipeBaseService {
             hisCheckRecipeReqTO.setPatientName(patientBean.getPatientName());
             //患者性别
             hisCheckRecipeReqTO.setPatientSex(patientBean.getPatientSex());
+            //患者电话
+            hisCheckRecipeReqTO.setPatientTel(patientBean.getMobile());
             //病人类型
         }
         //医生工号
@@ -774,6 +772,7 @@ public class RecipeHisService extends RecipeBaseService {
                 item.setDrname(detail.getDrugName());
                 if (organDrug != null){
                     item.setDrugManf(organDrug.getProducer());
+                    //药品产地编码
                     item.setManfCode(organDrug.getProducerCode());
                     //药品单价
                     item.setPrice(organDrug.getSalePrice());
@@ -797,14 +796,17 @@ public class RecipeHisService extends RecipeBaseService {
                 item.setPack(String.valueOf(detail.getPack()));
                 //药品包装单位
                 item.setPackUnit(detail.getDrugUnit());
+                //备注
+                item.setRemark(detail.getMemo());
                 list.add(item);
             }
             hisCheckRecipeReqTO.setOrderList(list);
         }
 
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+        LOGGER.info("hisRecipeCheck req={}", JSONUtils.toString(hisCheckRecipeReqTO));
         HisResponseTO hisResult = service.hisCheckRecipe(hisCheckRecipeReqTO);
-        LOGGER.info("hisRecipeCheck request={} result={}", JSONUtils.toString(hisCheckRecipeReqTO),JSONUtils.toString(hisResult));
+        LOGGER.info("hisRecipeCheck res={}", JSONUtils.toString(hisResult));
         if (hisResult==null){
             rMap.put("signResult", false);
             rMap.put("errorFlag",true);
@@ -818,6 +820,20 @@ public class RecipeHisService extends RecipeBaseService {
                 rMap.put("errorFlag",true);
                 rMap.put("errorMsg", map.get("resultMark"));
             }else {
+                //预校验返回 取药方式1配送到家 2医院取药 3两者都支持
+                String giveMode = map.get("giveMode");
+                //配送药企代码
+                String deliveryCode = map.get("deliveryCode");
+                //配送药企名称
+                String deliveryName = map.get("deliveryName");
+                if (StringUtils.isNotEmpty(giveMode)){
+                    RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+                    RecipeExtend extend = new RecipeExtend();
+                    extend.setGiveModeFormHis(giveMode);
+                    extend.setDeliveryCode(deliveryCode);
+                    extend.setDeliveryName(deliveryName);
+                    recipeExtendDAO.saveRecipeExtend(extend);
+                }
                 return "1".equals(map.get("checkResult"));
 
             }

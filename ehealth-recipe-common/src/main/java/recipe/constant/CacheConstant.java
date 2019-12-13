@@ -34,7 +34,7 @@ public class CacheConstant {
     /**
      * 支持HIS处方检查功能的机构列表
      */
-    public static final String KEY_HIS_CHECK_LIST = "RCP_HIS_CHECK_LIST";
+    public static final String KEY_HIS_CHECK_LIST = "RCP_HIS_CHECK_No。LIST";
 
     /**
      * 互联网医院支持机构以平台模式推送处方的机构列表

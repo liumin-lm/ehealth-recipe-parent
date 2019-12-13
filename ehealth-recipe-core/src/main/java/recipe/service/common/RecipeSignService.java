@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.service.IConsultService;
@@ -422,16 +423,12 @@ public class RecipeSignService {
         rMap.put("recipeId", recipeId);
 
 
-        //判断机构是否需要his处方检查
-        Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_HIS_CHECK_LIST);
-        if(CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(recipeBean.getClinicOrgan().toString())){
-            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-            boolean b = hisService.hisRecipeCheck(rMap, recipeBean);
-            if (!b){
-                return rMap;
-            }
-
+        //his处方预检查
+        boolean b = hisRecipeCheck(rMap, recipeBean);
+        if (!b){
+            return rMap;
         }
+
         //更新审方信息
         RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, details));
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, null);
@@ -453,6 +450,25 @@ public class RecipeSignService {
         }
         LOG.info("doSignRecipeExt execute ok! result={}", JSONUtils.toString(rMap));
         return rMap;
+    }
+
+    private boolean hisRecipeCheck(Map<String, Object> rMap, RecipeBean recipeBean) {
+        //判断机构是否需要his处方检查 ---运营平台机构配置
+        try {
+            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            Boolean hisRecipeCheckFlag = (Boolean)configurationService.getConfiguration(recipeBean.getClinicOrgan(), "hisRecipeCheckFlag");
+            if(hisRecipeCheckFlag){
+                RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+                return hisService.hisRecipeCheck(rMap, recipeBean);
+            }
+        } catch (Exception e) {
+            LOG.error("hisRecipeCheck error",e);
+            rMap.put("signResult", false);
+            rMap.put("errorFlag",true);
+            rMap.put("errorMsg", "his处方检查异常");
+            return false;
+        }
+        return true;
     }
 
     private void sendRecipeToHIS(RecipeBean recipeBean) {
@@ -512,7 +528,8 @@ public class RecipeSignService {
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
         //date 20191127
         //重试功能添加his写入失败的处方
-        if (null == dbRecipe || (dbRecipe.getStatus() != RecipeStatusConstant.CHECKING_HOS && dbRecipe.getStatus() != RecipeStatusConstant.HIS_FAIL)) {
+        //目前仅 医院确认中、his上传处方失败、医保上传失败状态下可以重试处方
+        if (null == dbRecipe || canNoRetryStatus(dbRecipe.getStatus())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方不能重试");
         }
 
@@ -524,6 +541,25 @@ public class RecipeSignService {
 
         LOG.info("sendNewRecipeToHIS execute ok! result={}", JSONUtils.toString(resultBean));
         return resultBean;
+    }
+
+    /**
+     * 是否不能重试处方的状态
+     * @param status
+     * @return true-不能重试  flase-可以重试
+     */
+    private boolean canNoRetryStatus(Integer status) {
+        boolean flag;
+        switch (status){
+            case RecipeStatusConstant.CHECKING_HOS:
+            case RecipeStatusConstant.HIS_FAIL:
+            case RecipeStatusConstant.RECIPE_MEDICAL_FAIL:
+                flag = false;
+                break;
+            default:
+                flag = true;
+        }
+        return flag;
     }
 
 }

@@ -195,6 +195,15 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "取消原因")
     private String cancelReason;
 
+    @ItemProperty(alias = "期望配送日期")
+    private String expectSendDate;
+
+    @ItemProperty(alias = "期望配送时间")
+    private String expectSendTime;
+
+    @ItemProperty(alias = "运费细则图片ID")
+    private String transFeeDetail;
+
     public RecipeOrderBean() {
         initData();
     }
@@ -662,5 +671,29 @@ public class RecipeOrderBean implements Serializable {
 
     public void setCancelReason(String cancelReason) {
         this.cancelReason = cancelReason;
+    }
+
+    public String getExpectSendDate() {
+        return expectSendDate;
+    }
+
+    public String getExpectSendTime() {
+        return expectSendTime;
+    }
+
+    public void setExpectSendDate(String expectSendDate) {
+        this.expectSendDate = expectSendDate;
+    }
+
+    public void setExpectSendTime(String expectSendTime) {
+        this.expectSendTime = expectSendTime;
+    }
+
+    public String getTransFeeDetail() {
+        return transFeeDetail;
+    }
+
+    public void setTransFeeDetail(String transFeeDetail) {
+        this.transFeeDetail = transFeeDetail;
     }
 }

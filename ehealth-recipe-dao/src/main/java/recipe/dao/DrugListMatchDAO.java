@@ -138,7 +138,7 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
         return action.getResult();
     }
 
-    @DAOMethod(sql = "from DrugListMatch where sourceOrgan =:organId")
+    @DAOMethod(sql = "from DrugListMatch where sourceOrgan =:organId",limit = 0)
     public abstract List<DrugListMatch> findMatchDataByOrgan(@DAOParam("organId") int organId);
 
     public QueryResult<DrugListMatch> findMatchDataByOrgan(final int organId, final int start, final int limit){
@@ -197,7 +197,7 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
         return action.getResult();
     }
 
-    @DAOMethod(sql = "from DrugListMatch where sourceOrgan =:organId and status =:status")
+    @DAOMethod(sql = "from DrugListMatch where sourceOrgan =:organId and status =:status",limit = 0)
     public abstract List<DrugListMatch> findDataByOrganAndStatus(@DAOParam("organId")int organId,@DAOParam("status")int status);
 
     /**
