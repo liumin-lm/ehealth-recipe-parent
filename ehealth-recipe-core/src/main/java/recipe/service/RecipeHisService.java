@@ -721,7 +721,9 @@ public class RecipeHisService extends RecipeBaseService {
             }
         }
         hisCheckRecipeReqTO.setRecipeID(recipeBean.getRecipeCode());
+        hisCheckRecipeReqTO.setPlatRecipeID(recipeBean.getRecipeId());
         IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+        //患者信息
         PatientBean patientBean = iPatientService.get(recipeBean.getMpiid());
         if (null != patientBean) {
             //身份证
@@ -730,6 +732,8 @@ public class RecipeHisService extends RecipeBaseService {
             hisCheckRecipeReqTO.setPatientName(patientBean.getPatientName());
             //患者性别
             hisCheckRecipeReqTO.setPatientSex(patientBean.getPatientSex());
+            //患者电话
+            hisCheckRecipeReqTO.setPatientTel(patientBean.getMobile());
             //病人类型
         }
         //医生工号
@@ -768,6 +772,7 @@ public class RecipeHisService extends RecipeBaseService {
                 item.setDrname(detail.getDrugName());
                 if (organDrug != null){
                     item.setDrugManf(organDrug.getProducer());
+                    //药品产地编码
                     item.setManfCode(organDrug.getProducerCode());
                     //药品单价
                     item.setPrice(organDrug.getSalePrice());
@@ -791,6 +796,8 @@ public class RecipeHisService extends RecipeBaseService {
                 item.setPack(String.valueOf(detail.getPack()));
                 //药品包装单位
                 item.setPackUnit(detail.getDrugUnit());
+                //备注
+                item.setRemark(detail.getMemo());
                 list.add(item);
             }
             hisCheckRecipeReqTO.setOrderList(list);
