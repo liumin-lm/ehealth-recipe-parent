@@ -116,7 +116,7 @@ public class RecipeStatusConstant {
     public static final int RECIPE_DOWNLOADED = 18;
 
     /**
-     * 医保上传失败
+     * 取消：医保上传失败
      */
     public static final int RECIPE_MEDICAL_FAIL = 19;
 
@@ -144,6 +144,10 @@ public class RecipeStatusConstant {
      * 医保上传确认中
      */
     public static final int CHECKING_MEDICAL_INSURANCE = 24;
+    /**
+     * 取消:医保上传确认中--三天未回传-已取消
+     */
+    public static final int NO_MEDICAL_INSURANCE_RETURN = 25;
 
     /**
      * 不存在的状态，用于微信发送,患者-未操作情况, 用于前一天提醒患者购药

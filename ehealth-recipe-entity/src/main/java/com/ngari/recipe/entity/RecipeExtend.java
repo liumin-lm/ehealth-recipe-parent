@@ -68,6 +68,15 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "his返回的配送药企名称")
     private String deliveryName;
 
+    @ItemProperty(alias = "医保返回的医院机构编码")
+    private String hospOrgCodeFromMedical;
+
+    @ItemProperty(alias = "参保地统筹区")
+    private String insuredArea;
+
+    @ItemProperty(alias = "医保结算请求串")
+    private String medicalSettleData;
+
     public RecipeExtend() {
     }
 
@@ -223,5 +232,32 @@ public class RecipeExtend implements Serializable {
 
     public void setDeliveryName(String deliveryName) {
         this.deliveryName = deliveryName;
+    }
+
+    @Column(name = "medicalSettleData")
+    public String getInsuredArea() {
+        return insuredArea;
+    }
+
+    public void setInsuredArea(String insuredArea) {
+        this.insuredArea = insuredArea;
+    }
+
+    @Column(name = "medicalSettleData")
+    public String getMedicalSettleData() {
+        return medicalSettleData;
+    }
+
+    public void setMedicalSettleData(String medicalSettleData) {
+        this.medicalSettleData = medicalSettleData;
+    }
+
+    @Column(name = "hospOrgCodeFromMedical")
+    public String getHospOrgCodeFromMedical() {
+        return hospOrgCodeFromMedical;
+    }
+
+    public void setHospOrgCodeFromMedical(String hospOrgCodeFromMedical) {
+        this.hospOrgCodeFromMedical = hospOrgCodeFromMedical;
     }
 }
