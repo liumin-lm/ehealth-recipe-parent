@@ -2,6 +2,7 @@ package recipe.mq;
 
 import com.ngari.platform.recipe.mode.NoticePlatRecipeMedicalInfoReq;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import ctd.net.broadcast.Observer;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -10,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.service.RecipeLogService;
 
 /**
@@ -30,7 +32,9 @@ public class RecipeMedicalInfoFromHisObserver implements Observer<NoticePlatReci
         if (null == req) {
             return;
         }
+        //上传状态
         String uploadStatus = req.getUploadStatus();
+
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe dbRecipe = recipeDAO.getByRecipeCode(req.getRecipeCode());
         if (null != dbRecipe) {
@@ -38,11 +42,13 @@ public class RecipeMedicalInfoFromHisObserver implements Observer<NoticePlatReci
             Integer status = RecipeStatusConstant.CHECKING_MEDICAL_INSURANCE;
             String memo = "";
             if ("1".equals(uploadStatus)){
+                //上传成功
                 if (RecipeStatusConstant.READY_CHECK_YS != dbRecipe.getStatus()){
                     status = RecipeStatusConstant.READY_CHECK_YS;
                     memo = "His医保信息上传成功";
                 }
             }else {
+                //上传失败
                 //失败原因
                 String failureInfo = req.getFailureInfo();
                 status = RecipeStatusConstant.RECIPE_MEDICAL_FAIL;
@@ -51,7 +57,26 @@ public class RecipeMedicalInfoFromHisObserver implements Observer<NoticePlatReci
             recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), status, null);
             //日志记录
             RecipeLogService.saveRecipeLog(dbRecipe.getRecipeId(), dbRecipe.getStatus(), status, memo);
+
+            //保存医保返回数据
+            saveMedicalInfoForRecipe(req,dbRecipe.getRecipeId());
         }
 
+    }
+
+    private void saveMedicalInfoForRecipe(NoticePlatRecipeMedicalInfoReq req, Integer recipeId) {
+        //医院机构编码
+        String hospOrgCode = req.getHospOrgCode();
+        //参保地统筹区
+        String insuredArea = req.getInsuredArea();
+        //医保结算请求串
+        String medicalSettleData = req.getMedicalSettleData();
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = new RecipeExtend();
+        recipeExtend.setRecipeId(recipeId);
+        recipeExtend.setInsuredArea(insuredArea);
+        recipeExtend.setMedicalSettleData(medicalSettleData);
+        recipeExtend.setHospOrgCodeFromMedical(hospOrgCode);
+        recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
     }
 }
