@@ -1010,7 +1010,7 @@ public class RecipeListService extends RecipeBaseService{
                 payModeShowButtonBean.setSupportToHos(true);
             } else if ("3".equals(recipeExtend.getGiveModeFormHis())){
                 payModeShowButtonBean.setSupportOnline(true);
-                payModeShowButtonBean.setSupportOnline(true);
+                payModeShowButtonBean.setSupportToHos(true);
                 //都支持
             } else{
                 //都不支持
