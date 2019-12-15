@@ -1171,24 +1171,10 @@ public class RecipeServiceSub {
                 recipe.setTotalMoney(null);
             }
 
-            if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
-                //设置购药方式哪些可用
-                //配送到家默认可用
-                //Date:20190905
-                //Explain:将互联网的按钮和平台的按钮合并
-                map.put("supportOnline", 1);
-                //到店取药默认不可用（20190926小版本改为默认可用）
-                map.put("supportTFDS", 1);
-                //医院取药需要看数据
-                int hosFlag = 1;
-                if(1 == recipe.getDistributionFlag()){
-                    hosFlag = 0;
-                }
-                map.put("supportToHos", hosFlag);
-            }
             //Date:20190904
             //Explain:添加患者点击按钮信息
-            if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())){
+            if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode()) ||
+                RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
                 //获取配置项
                 IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
                 //添加按钮配置项key
@@ -1200,7 +1186,23 @@ public class RecipeServiceSub {
                         map.put(configuration, 1);
                     }
                 }
+
+                //互联网按钮信息（特殊化）
+                if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
+                    //Date:20190905
+                    //Explain:将互联网的按钮和平台的按钮合并
+                    //                map.put("supportOnline", 1);
+                    //                //到店取药默认不可用（20190926小版本改为默认可用）
+                    //                map.put("supportTFDS", 1);
+                    //医院取药需要看数据
+                    int hosFlag = 1;
+                    if(1 == recipe.getDistributionFlag()){
+                        hosFlag = 0;
+                    }
+                    map.put("supportToHos", hosFlag);
+                }
             }
+
             //Date:20190904
             //Explain:审核是否通过
             boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() &&
