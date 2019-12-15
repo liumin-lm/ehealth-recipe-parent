@@ -1189,17 +1189,16 @@ public class RecipeServiceSub {
 
                 //互联网按钮信息（特殊化）
                 if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
-                    //Date:20190905
-                    //Explain:将互联网的按钮和平台的按钮合并
-                    //                map.put("supportOnline", 1);
-                    //                //到店取药默认不可用（20190926小版本改为默认可用）
-                    //                map.put("supportTFDS", 1);
-                    //医院取药需要看数据
-                    int hosFlag = 1;
-                    if(1 == recipe.getDistributionFlag()){
-                        hosFlag = 0;
+                    PayModeShowButtonBean payModeShowButtonBean = new PayModeShowButtonBean();
+                    RecipeListService recipeListService = new RecipeListService();
+                    recipeListService.initInternetModel(null, payModeShowButtonBean, recipe);
+
+                    if(null != payModeShowButtonBean.getSupportOnline() && payModeShowButtonBean.getSupportOnline().equals(false)){
+                        map.put("supportToHos", false);
                     }
-                    map.put("supportToHos", hosFlag);
+                    if(null != payModeShowButtonBean.getSupportOnline() && payModeShowButtonBean.getSupportOnline().equals(false)){
+                        map.put("supportOnline", false);
+                    }
                 }
             }
 
