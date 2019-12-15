@@ -1002,11 +1002,15 @@ public class RecipeListService extends RecipeBaseService{
         if(null != recipeExtend.getGiveModeFormHis()){
             if("1".equals(recipeExtend.getGiveModeFormHis())){
                 //只支持配送到家
+                payModeShowButtonBean.setSupportOnline(true);
                 payModeShowButtonBean.setSupportToHos(false);
             } else if ("2".equals(recipeExtend.getGiveModeFormHis())){
                 //只支持到院取药
                 payModeShowButtonBean.setSupportOnline(false);
+                payModeShowButtonBean.setSupportToHos(true);
             } else if ("3".equals(recipeExtend.getGiveModeFormHis())){
+                payModeShowButtonBean.setSupportOnline(true);
+                payModeShowButtonBean.setSupportOnline(true);
                 //都支持
             } else{
                 //都不支持
