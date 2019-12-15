@@ -1194,10 +1194,10 @@ public class RecipeServiceSub {
                     recipeListService.initInternetModel(null, payModeShowButtonBean, recipe);
 
                     if(null != payModeShowButtonBean.getSupportOnline() && payModeShowButtonBean.getSupportOnline().equals(false)){
-                        map.put("supportToHos", false);
+                        map.put("supportToHos", 0);
                     }
                     if(null != payModeShowButtonBean.getSupportOnline() && payModeShowButtonBean.getSupportOnline().equals(false)){
-                        map.put("supportOnline", false);
+                        map.put("supportOnline", 0);
                     }
                 }
             }

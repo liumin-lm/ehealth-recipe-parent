@@ -206,6 +206,12 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "期望配送时间")
     private String expectSendTime;
 
+    @ItemProperty(alias = "医保结算订单号")
+    private String settleOrderNo;
+
+    @ItemProperty(alias = "医保结算人脸识别token")
+    private String smkFaceToken;
+
     @Column(name = "cancelReason")
     public String getCancelReason() {
         return cancelReason;
@@ -759,5 +765,21 @@ public class RecipeOrder implements Serializable {
 
     public void setEnterpriseName(String enterpriseName) {
         this.enterpriseName = enterpriseName;
+    }
+
+    public String getSettleOrderNo() {
+        return settleOrderNo;
+    }
+
+    public void setSettleOrderNo(String settleOrderNo) {
+        this.settleOrderNo = settleOrderNo;
+    }
+
+    public String getSmkFaceToken() {
+        return smkFaceToken;
+    }
+
+    public void setSmkFaceToken(String smkFaceToken) {
+        this.smkFaceToken = smkFaceToken;
     }
 }
