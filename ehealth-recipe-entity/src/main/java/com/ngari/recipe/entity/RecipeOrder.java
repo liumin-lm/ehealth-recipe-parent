@@ -767,6 +767,7 @@ public class RecipeOrder implements Serializable {
         this.enterpriseName = enterpriseName;
     }
 
+    @Column(name = "settleOrderNo")
     public String getSettleOrderNo() {
         return settleOrderNo;
     }
@@ -775,6 +776,7 @@ public class RecipeOrder implements Serializable {
         this.settleOrderNo = settleOrderNo;
     }
 
+    @Column(name = "smkFaceToken")
     public String getSmkFaceToken() {
         return smkFaceToken;
     }
