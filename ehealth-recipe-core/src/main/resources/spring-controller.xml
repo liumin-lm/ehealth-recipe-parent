@@ -5,7 +5,7 @@
        			http://www.ngarihealth.com/schema/ssdev http://www.ngarihealth.com/schema/ssdev/ssdev.xsd">
 
     <!-- service register center -->
-    <ssdev:applicationDomain name="eh" registryAddress="${zookeeper://zk.ngarihealth.com:8899}" serverId="recipe" region="gmw-local"/>
+    <ssdev:applicationDomain name="eh" registryAddress="${zk}" serverId="recipe"/>
     <ssdev:connector url="${url}">
         <ssdev:filter id="json"/>
         <ssdev:filter id="urt"/>
@@ -20,7 +20,6 @@
         <ssdev:serverNodePerfLogExDataBuilder id="datasourcePerfLogExData"/>
     </ssdev:logger>
 
-    <ssdev:mvcServer port="8899"/>
     <!-- remote loader -->
     <ssdev:reference interface="ctd.controller.ConfigurableLoader" id="eh.userRemoteLoader"/>
     <ssdev:reference interface="ctd.controller.ConfigurableLoader" id="eh.roleRemoteLoader"/>
