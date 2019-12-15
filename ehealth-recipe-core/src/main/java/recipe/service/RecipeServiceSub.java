@@ -1190,14 +1190,24 @@ public class RecipeServiceSub {
                 //互联网按钮信息（特殊化）
                 if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
                     PayModeShowButtonBean payModeShowButtonBean = new PayModeShowButtonBean();
-                    RecipeListService recipeListService = new RecipeListService();
-                    recipeListService.initInternetModel(null, payModeShowButtonBean, recipe);
-
-                    if(null != payModeShowButtonBean.getSupportToHos() && !payModeShowButtonBean.getSupportToHos()){
-                        map.put("supportToHos", 0);
+                    if(map.get("supportOnline") != null && 1 == (Integer) map.get("supportOnline")){
+                        payModeShowButtonBean.setSupportOnline(true);
                     }
-                    if(null != payModeShowButtonBean.getSupportOnline() && !payModeShowButtonBean.getSupportOnline()){
-                        map.put("supportOnline", 0);
+                    if(map.get("supportToHos") != null && 1 == (Integer) map.get("supportToHos")){
+                        payModeShowButtonBean.setSupportToHos(true);
+                    }
+
+                    //如果运营平台没设置按钮，那底下也不用走了
+                    if(payModeShowButtonBean.getSupportOnline() || payModeShowButtonBean.getSupportToHos()){
+                        RecipeListService recipeListService = new RecipeListService();
+                        recipeListService.initInternetModel(null, payModeShowButtonBean, recipe);
+
+                        if(null != payModeShowButtonBean.getSupportToHos() && !payModeShowButtonBean.getSupportToHos()){
+                            map.put("supportToHos", 0);
+                        }
+                        if(null != payModeShowButtonBean.getSupportOnline() && !payModeShowButtonBean.getSupportOnline()){
+                            map.put("supportOnline", 0);
+                        }
                     }
                 }
             }

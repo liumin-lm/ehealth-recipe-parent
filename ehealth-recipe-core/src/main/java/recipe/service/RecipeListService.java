@@ -988,33 +988,27 @@ public class RecipeListService extends RecipeBaseService{
      */
     public void initInternetModel(PatientTabStatusRecipeDTO record, PayModeShowButtonBean payModeShowButtonBean, Recipe recipe) {
 
-        //互联网购药方式的配置
 
-        boolean hosFlag = true;
-        if(1 == recipe.getDistributionFlag()){
-            hosFlag = false;
-        }
-
-        payModeShowButtonBean.setSupportToHos(hosFlag);
 
         RecipeExtendDAO RecipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = RecipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         if(null != recipeExtend.getGiveModeFormHis()){
             if("1".equals(recipeExtend.getGiveModeFormHis())){
                 //只支持配送到家
-                payModeShowButtonBean.setSupportOnline(true);
                 payModeShowButtonBean.setSupportToHos(false);
             } else if ("2".equals(recipeExtend.getGiveModeFormHis())){
                 //只支持到院取药
                 payModeShowButtonBean.setSupportOnline(false);
-                payModeShowButtonBean.setSupportToHos(true);
             } else if ("3".equals(recipeExtend.getGiveModeFormHis())){
-                payModeShowButtonBean.setSupportOnline(true);
-                payModeShowButtonBean.setSupportToHos(true);
                 //都支持
             } else{
                 //都不支持
                 payModeShowButtonBean.setSupportOnline(false);
+                payModeShowButtonBean.setSupportToHos(false);
+            }
+        } else {
+            //省平台互联网购药方式的配置
+            if(1 == recipe.getDistributionFlag()){
                 payModeShowButtonBean.setSupportToHos(false);
             }
         }
