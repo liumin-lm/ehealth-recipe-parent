@@ -1020,7 +1020,6 @@ public class RecipeListService extends RecipeBaseService{
         }
 
 
-        payModeShowButtonBean.setSupportToHos(hosFlag);
     }
 
     /**
