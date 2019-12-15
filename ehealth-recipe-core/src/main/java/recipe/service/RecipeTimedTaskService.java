@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.hisprescription.model.HosRecipeResult;
 import com.ngari.recipe.hisprescription.model.HospitalStatusUpdateDTO;
@@ -21,6 +22,7 @@ import recipe.ApplicationUtils;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.RecipeSystemConstant;
+import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.service.hospitalrecipe.PrescribeService;
@@ -128,7 +130,7 @@ public class RecipeTimedTaskService {
     }
 
     /**
-     * 定时任务 his回调失败(医院确认中)5分钟后确保流程继续(更新为待审核状态)
+     * 定时任务 his回调失败(医院确认中)5分钟后确保流程继续(更新为待审核状态) but 杭州互联网模式不包含在内
      * 每5分钟执行一次
      */
     @RpcService
@@ -150,17 +152,28 @@ public class RecipeTimedTaskService {
             OrganService organService = BasicAPI.getService(OrganService.class);
             Map<String, String> otherInfo = Maps.newHashMap();
             for (Recipe recipe : recipeList) {
-                //处方流转模式是否是互联网模式
-                if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
+                //处方流转模式是否是互联网模式并且不是杭州互联网模式
+                if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())&&(isNotHZInternet(recipe.getClinicOrgan()))){
                     HospitalStatusUpdateDTO hospitalStatusUpdateDTO = new HospitalStatusUpdateDTO();
                     hospitalStatusUpdateDTO.setOrganId(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
                     hospitalStatusUpdateDTO.setRecipeCode(recipe.getRecipeCode());
                     hospitalStatusUpdateDTO.setStatus(LocalStringUtil.toString(RecipeStatusConstant.CHECK_PASS));
+                    otherInfo.put("distributionFlag", "1");
                     HosRecipeResult result = prescribeService.updateRecipeStatus(hospitalStatusUpdateDTO, otherInfo);
-                    recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("distributionFlag", 1));
                     LOGGER.info("updateRecipeStatus,recipeId={} result={}",recipe.getRecipeId(), JSONUtils.toString(result));
                 }
             }
         }
+    }
+
+    private boolean isNotHZInternet(Integer clinicOrgan) {
+        OrganAndDrugsepRelationDAO dao = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+        List<DrugsEnterprise> enterprises = dao.findDrugsEnterpriseByOrganIdAndStatus(clinicOrgan, 1);
+        if (CollectionUtils.isNotEmpty(enterprises)){
+            if ("hzInternet".equals(enterprises.get(0).getCallSys())){
+                return false;
+            }
+        }
+        return true;
     }
 }
