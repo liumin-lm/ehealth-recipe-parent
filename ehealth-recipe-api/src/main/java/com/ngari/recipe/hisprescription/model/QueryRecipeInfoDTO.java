@@ -46,6 +46,8 @@ public class QueryRecipeInfoDTO implements Serializable {
     private String deliveryType;
     @ItemProperty(alias="平台处方号")
     private String recipeID;
+    @ItemProperty(alias="平台处方id")
+    private String platRecipeID;
     @ItemProperty(alias="医院诊断内码")
     private String icdRdn;
     @ItemProperty(alias="ICD诊断码")
@@ -54,6 +56,10 @@ public class QueryRecipeInfoDTO implements Serializable {
     private String icdName;
     @ItemProperty(alias="简要病史(病史摘要)")
     private String diseasesHistory;
+    @ItemProperty(alias="本处方收费类型 1市医保 2省医保 3自费")
+    private String medicalPayFlag;
+    @ItemProperty(alias="处方总金额")
+    private String recipeFee;
     @ItemProperty(alias="处方列表数据")
     private List<OrderItemDTO> orderList;
 
@@ -266,5 +272,29 @@ public class QueryRecipeInfoDTO implements Serializable {
 
     public void setOrderList(List<OrderItemDTO> orderList) {
         this.orderList = orderList;
+    }
+
+    public String getPlatRecipeID() {
+        return platRecipeID;
+    }
+
+    public void setPlatRecipeID(String platRecipeID) {
+        this.platRecipeID = platRecipeID;
+    }
+
+    public String getMedicalPayFlag() {
+        return medicalPayFlag;
+    }
+
+    public void setMedicalPayFlag(String medicalPayFlag) {
+        this.medicalPayFlag = medicalPayFlag;
+    }
+
+    public String getRecipeFee() {
+        return recipeFee;
+    }
+
+    public void setRecipeFee(String recipeFee) {
+        this.recipeFee = recipeFee;
     }
 }

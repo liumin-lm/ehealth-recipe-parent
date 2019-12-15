@@ -1875,4 +1875,20 @@ public class RecipeServiceSub {
 
 
     }
+
+    /**
+     * 杭州市互联网获取是否是医保病人
+     * @param mpiid
+     * @param clinicOrgan
+     * @return
+     */
+    public static Boolean isMedicalPatient(String mpiid, Integer clinicOrgan) {
+        HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
+        //医保卡id
+        String medicareCardId = healthCardService.getMedicareCardId(mpiid, clinicOrgan);
+        if (StringUtils.isNotEmpty(medicareCardId)){
+            return true;
+        }
+        return false;
+    }
 }
