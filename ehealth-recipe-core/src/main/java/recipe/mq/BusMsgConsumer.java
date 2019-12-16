@@ -63,11 +63,9 @@ public class BusMsgConsumer {
         subscriber.attach(OnsConfig.dbModifyTopic, "base_druglist||base_organdruglist",
                 new DrugSyncObserver());
 
-        /**
-         * 接收HIS消息处理
-         */
+        /*
         subscriber.attach(OnsConfig.hisCdrinfo, "recipeMedicalInfoFromHis",
-                new RecipeMedicalInfoFromHisObserver());
+                new RecipeMedicalInfoFromHisObserver());*/
 
     }
 

@@ -29,7 +29,7 @@ public class AuditPreMode extends AbstractAuidtMode {
     public void afterHisCallBackChange(Integer status,Recipe recipe,String memo) {
         if (status == RecipeStatusConstant.CHECK_PASS){
             //todo 判断是否是杭州市医保患者，医保患者得医保信息回传后才能设置待审核
-            if (isMedicalPatient(recipe.getMpiid(),recipe.getClinicOrgan())){
+            if (RecipeServiceSub.isMedicalPatient(recipe.getMpiid(),recipe.getClinicOrgan())){
                 //医保上传确认中----三天后没回传就设置成已取消
                 status = RecipeStatusConstant.CHECKING_MEDICAL_INSURANCE;
             }else {
@@ -45,16 +45,6 @@ public class AuditPreMode extends AbstractAuidtMode {
         }
         //}
         super.saveStatusAndSendMsg(status,recipe,memo);
-    }
-
-    private boolean isMedicalPatient(String mpiid, Integer clinicOrgan) {
-        HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
-        //医保卡id
-        String medicareCardId = healthCardService.getMedicareCardId(mpiid, clinicOrgan);
-        if (StringUtils.isNotEmpty(medicareCardId)){
-            return true;
-        }
-        return false;
     }
 
     @Override

@@ -25,6 +25,8 @@ public class OrderItemDTO implements Serializable {
     private String packUnit;
     @ItemProperty(alias="药品产地名称")
     private String drugManf;
+    @ItemProperty(alias="药品产地编码")
+    private String drugManfCode;
     @ItemProperty(alias="药品用法")
     private String admission;
     @ItemProperty(alias="用品使用频度")
@@ -44,6 +46,9 @@ public class OrderItemDTO implements Serializable {
     private String totalDose;
     @ItemProperty(alias="药品单位")
     private String unit;
+    @ItemProperty(alias="药品单价")
+    private String price;
+
 
     public OrderItemDTO(){}
 
@@ -165,5 +170,21 @@ public class OrderItemDTO implements Serializable {
 
     public void setUseDays(String useDays) {
         this.useDays = useDays;
+    }
+
+    public String getPrice() {
+        return price;
+    }
+
+    public void setPrice(String price) {
+        this.price = price;
+    }
+
+    public String getDrugManfCode() {
+        return drugManfCode;
+    }
+
+    public void setDrugManfCode(String drugManfCode) {
+        this.drugManfCode = drugManfCode;
     }
 }

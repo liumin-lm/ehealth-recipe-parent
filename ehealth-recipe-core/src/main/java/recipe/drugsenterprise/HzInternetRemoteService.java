@@ -11,6 +11,7 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
+import com.ngari.his.recipe.mode.MedicalPreSettleReqTO;
 import com.ngari.his.recipe.mode.UpdateTakeDrugWayReqTO;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
@@ -159,8 +160,44 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
         return result;
     }
 
-    public DrugEnterpriseResult scanStock111(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        return DrugEnterpriseResult.getSuccess();
+    /*
+     * @description 处方预结算
+     * @author gaomw
+     * @date 2019/12/13
+     * @param [recipeId]
+     * @return recipe.bean.DrugEnterpriseResult
+     */
+    @RpcService
+    public DrugEnterpriseResult recipeMedicalPreSettle(Integer recipeId) {
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        MedicalPreSettleReqTO medicalPreSettleReqTO = new MedicalPreSettleReqTO();
+        medicalPreSettleReqTO.setClinicOrgan(recipe.getClinicOrgan());
+
+        //封装医保信息
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        if(recipeExtend != null && recipeExtend.getMedicalSettleData() != null){
+            medicalPreSettleReqTO.setHospOrgCode(recipeExtend.getHospOrgCodeFromMedical());
+            medicalPreSettleReqTO.setInsuredArea(recipeExtend.getInsuredArea());
+            medicalPreSettleReqTO.setMedicalSettleData(recipeExtend.getMedicalSettleData());
+        } else {
+            LOGGER.info("杭州互联网虚拟药企-未获取处方医保结算请求串-recipeId={}", JSONUtils.toString(recipe.getRecipeId()));
+            result.setMsg("未获取处方医保结算请求串");
+            result.setCode(DrugEnterpriseResult.FAIL);
+        }
+
+        RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+        HisResponseTO hisResult = service.recipeMedicalPreSettle(medicalPreSettleReqTO);
+        if("0".equals(hisResult.getMsgCode())){
+            LOGGER.info("杭州互联网虚拟药企-处方预结算成功-his. param={},result={}", JSONUtils.toString(medicalPreSettleReqTO), JSONUtils.toString(hisResult));
+            result.setCode(DrugEnterpriseResult.SUCCESS);
+        }else{
+            LOGGER.error("杭州互联网虚拟药企-处方预结算失败-his. param={},result={}", JSONUtils.toString(medicalPreSettleReqTO), JSONUtils.toString(hisResult));
+            result.setMsg(hisResult.getMsg());
+            result.setCode(DrugEnterpriseResult.FAIL);
+        }
+        return result;
     }
 
     @Override

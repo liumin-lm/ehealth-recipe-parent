@@ -204,6 +204,12 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "运费细则图片ID")
     private String transFeeDetail;
 
+    @ItemProperty(alias = "医保结算订单号")
+    private String settleOrderNo;
+
+    @ItemProperty(alias = "医保结算人脸识别token")
+    private String smkFaceToken;
+
     public RecipeOrderBean() {
         initData();
     }
@@ -695,5 +701,21 @@ public class RecipeOrderBean implements Serializable {
 
     public void setTransFeeDetail(String transFeeDetail) {
         this.transFeeDetail = transFeeDetail;
+    }
+
+    public String getSettleOrderNo() {
+        return settleOrderNo;
+    }
+
+    public void setSettleOrderNo(String settleOrderNo) {
+        this.settleOrderNo = settleOrderNo;
+    }
+
+    public String getSmkFaceToken() {
+        return smkFaceToken;
+    }
+
+    public void setSmkFaceToken(String smkFaceToken) {
+        this.smkFaceToken = smkFaceToken;
     }
 }

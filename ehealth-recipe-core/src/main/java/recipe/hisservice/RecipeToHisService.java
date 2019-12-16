@@ -459,4 +459,13 @@ public class RecipeToHisService {
         }
         return hosPatientRecipeDTO;
     }
+
+
+    /**
+     * 处方预结算
+     */
+    public HisResponseTO recipeMedicalPreSettle(MedicalPreSettleReqTO request) {
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        return hisService.recipeMedicalPreSettle(request);
+    }
 }

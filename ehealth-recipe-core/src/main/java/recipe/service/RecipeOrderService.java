@@ -1904,4 +1904,18 @@ public class RecipeOrderService extends RecipeBaseService {
         return false;
     }
 
+    /*
+     * @description 订单人脸识别faceToken存储
+     * @author gaomw
+     * @date 2019/12/13
+     * @param [recipeId]
+     * @return recipe.bean.DrugEnterpriseResult
+     */
+    @RpcService
+    public RecipeResultBean saveSmkFaceToken(String orderCode, String smkFaceToken) {
+
+        RecipeResultBean result = this.updateOrderInfo(orderCode, ImmutableMap.of("smkFaceToken", smkFaceToken), null);
+        return result;
+    }
+
 }

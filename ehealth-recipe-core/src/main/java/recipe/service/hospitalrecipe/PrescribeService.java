@@ -320,6 +320,9 @@ public class PrescribeService {
             Integer clinicOrgan = null;
             Recipe dbRecipe;
             //是否更新处方号 此时必须要有平台处方id
+            if (request.getUpdateRecipeCodeFlag() == null){
+                request.setUpdateRecipeCodeFlag(false);
+            }
             if (request.getUpdateRecipeCodeFlag()){
                 if (StringUtils.isEmpty(request.getPlatRecipeID())){
                     result.setMsg("平台处方Id为空");
