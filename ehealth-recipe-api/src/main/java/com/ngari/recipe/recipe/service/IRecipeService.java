@@ -302,4 +302,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     Map<String,Object> noticePlatRecipeFlowInfo(NoticePlatRecipeFlowInfoDTO req);
+
+    @RpcService
+    void noticePlatRecipeMedicalInsuranceInfo(NoticePlatRecipeMedicalInfoDTO req);
 }
