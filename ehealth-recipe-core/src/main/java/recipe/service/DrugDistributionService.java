@@ -223,7 +223,7 @@ public class DrugDistributionService {
             deliveryType = "0";
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(request.getRecipeId());
-            if (!("HdVirtualdyf".equals(drugsEnterprise.getAccount()) &&
+            if (!("HdVirtualdyf".equals(drugsEnterprise.getAccount()) ||
                     "hzInternet".equals(drugsEnterprise.getAccount()))){
                 if (recipeExtend == null
                         || StringUtils.isEmpty(recipeExtend.getCardTypeName())
@@ -234,8 +234,8 @@ public class DrugDistributionService {
             }
             //说明处方没有其他途径购买的情况
             if (1 == recipe.getChooseFlag() && RecipeBussConstant.GIVEMODE_TO_HOS == recipe.getGiveMode()) {
-                if (!("HdVirtualdyf".equals(drugsEnterprise.getAccount()) &&
-                        "hzInternet".equals(drugsEnterprise.getAccount()))){
+                if ("HdVirtualdyf".equals(drugsEnterprise.getAccount()) ||
+                        "hzInternet".equals(drugsEnterprise.getAccount())){
                     getMedicalMsg(response, recipe);
                 } else {
                     response.setMsg("请携带就诊卡 " + recipeExtend.getCardNo());
@@ -270,7 +270,7 @@ public class DrugDistributionService {
                         return response;
                     }
                 }else{
-                    if (!("HdVirtualdyf".equals(drugsEnterprise.getAccount()) &&
+                    if (!("HdVirtualdyf".equals(drugsEnterprise.getAccount()) ||
                             "hzInternet".equals(drugsEnterprise.getAccount()))){
                         //该处方未推送到药企，可以到院取药
                         response.setMsg("请携带就诊卡 " + recipeExtend.getCardNo());
