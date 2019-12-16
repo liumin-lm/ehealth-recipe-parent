@@ -111,44 +111,42 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
             result.setMsg("未获取his返回的配送药");
             result.setCode(DrugEnterpriseResult.FAIL);
         }
-        if (recipe.getPayFlag() ==1){
-            if (StringUtils.isNotEmpty(recipe.getOrderCode())){
-                RecipeOrderDAO dao = DAOFactory.getDAO(RecipeOrderDAO.class);
-                RecipeOrder order = dao.getByOrderCode(recipe.getOrderCode());
-                if (order!=null){
-                    //收货人
-                    updateTakeDrugWayReqTO.setConsignee(order.getReceiver());
-                    //联系电话
-                    updateTakeDrugWayReqTO.setContactTel(order.getRecTel());
-                    //详细收货地址
-                    CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
-                    updateTakeDrugWayReqTO.setAddress(commonRemoteService.getCompleteAddress(order));
+        if (StringUtils.isNotEmpty(recipe.getOrderCode())){
+            RecipeOrderDAO dao = DAOFactory.getDAO(RecipeOrderDAO.class);
+            RecipeOrder order = dao.getByOrderCode(recipe.getOrderCode());
+            if (order!=null){
+                //收货人
+                updateTakeDrugWayReqTO.setConsignee(order.getReceiver());
+                //联系电话
+                updateTakeDrugWayReqTO.setContactTel(order.getRecTel());
+                //详细收货地址
+                CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
+                updateTakeDrugWayReqTO.setAddress(commonRemoteService.getCompleteAddress(order));
 
-                    //收货地址代码
-                    updateTakeDrugWayReqTO.setReceiveAddrCode(order.getAddress3());
-                    String address3 = null;
-                    try {
-                        address3 = DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(order.getAddress3());
-                    } catch (ControllerException e) {
-                        LOGGER.warn("杭州互联网虚拟药企-未获取收货地址名称-add={}", JSONUtils.toString(order.getAddress3()));
+                //收货地址代码
+                updateTakeDrugWayReqTO.setReceiveAddrCode(order.getAddress3());
+                String address3 = null;
+                try {
+                    address3 = DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(order.getAddress3());
+                } catch (ControllerException e) {
+                    LOGGER.warn("杭州互联网虚拟药企-未获取收货地址名称-add={}", JSONUtils.toString(order.getAddress3()));
 
-                    }
-                    //收货地址名称
-                    updateTakeDrugWayReqTO.setReceiveAddress(address3);
-                    //期望配送日期
-                    updateTakeDrugWayReqTO.setConsignee(order.getExpectSendDate());
-                    //期望配送时间
-                    updateTakeDrugWayReqTO.setContactTel(order.getExpectSendTime());
                 }
+                //收货地址名称
+                updateTakeDrugWayReqTO.setReceiveAddress(address3);
+                //期望配送日期
+                updateTakeDrugWayReqTO.setConsignee(order.getExpectSendDate());
+                //期望配送时间
+                updateTakeDrugWayReqTO.setContactTel(order.getExpectSendTime());
+            }else{
+                LOGGER.info("杭州互联网虚拟药企-未获取有效订单-recipeId={}", JSONUtils.toString(recipe.getRecipeId()));
+                result.setMsg("未获取有效订单");
+                result.setCode(DrugEnterpriseResult.FAIL);
             }
-        } else{
-            LOGGER.info("杭州互联网虚拟药企-未获取有效订单-recipeId={}", JSONUtils.toString(recipe.getRecipeId()));
-            result.setMsg("未获取有效订单");
-            result.setCode(DrugEnterpriseResult.FAIL);
         }
 
         HisResponseTO hisResult = service.updateTakeDrugWay(updateTakeDrugWayReqTO);
-        if("0".equals(hisResult.getMsgCode())){
+        if("200".equals(hisResult.getMsgCode())){
             LOGGER.info("杭州互联网虚拟药企-更新取药信息成功-his. param={},result={}", JSONUtils.toString(updateTakeDrugWayReqTO), JSONUtils.toString(hisResult));
             result.setCode(DrugEnterpriseResult.SUCCESS);
         }else{
@@ -189,12 +187,14 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
 
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
         HisResponseTO hisResult = service.recipeMedicalPreSettle(medicalPreSettleReqTO);
-        if("0".equals(hisResult.getMsgCode())){
+        if(hisResult != null && "200".equals(hisResult.getMsgCode())){
             LOGGER.info("杭州互联网虚拟药企-处方预结算成功-his. param={},result={}", JSONUtils.toString(medicalPreSettleReqTO), JSONUtils.toString(hisResult));
             result.setCode(DrugEnterpriseResult.SUCCESS);
         }else{
             LOGGER.error("杭州互联网虚拟药企-处方预结算失败-his. param={},result={}", JSONUtils.toString(medicalPreSettleReqTO), JSONUtils.toString(hisResult));
-            result.setMsg(hisResult.getMsg());
+            if(hisResult != null){
+                result.setMsg(hisResult.getMsg());
+            }
             result.setCode(DrugEnterpriseResult.FAIL);
         }
         return result;
