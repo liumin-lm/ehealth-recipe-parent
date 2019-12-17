@@ -828,11 +828,11 @@ public class RecipeHisService extends RecipeBaseService {
                 String deliveryName = map.get("deliveryName");
                 if (StringUtils.isNotEmpty(giveMode)){
                     RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-                    RecipeExtend extend = new RecipeExtend();
-                    extend.setGiveModeFormHis(giveMode);
-                    extend.setDeliveryCode(deliveryCode);
-                    extend.setDeliveryName(deliveryName);
-                    recipeExtendDAO.saveRecipeExtend(extend);
+                    Map<String,String> updateMap = Maps.newHashMap();
+                    updateMap.put("giveMode",giveMode);
+                    updateMap.put("deliveryCode",deliveryCode);
+                    updateMap.put("deliveryName",deliveryName);
+                    recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(),updateMap);
                 }
                 return "1".equals(map.get("checkResult"));
 

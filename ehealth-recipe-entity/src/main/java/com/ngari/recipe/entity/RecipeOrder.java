@@ -206,6 +206,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "期望配送时间")
     private String expectSendTime;
 
+    @ItemProperty(alias = "运费细则图片ID")
+    private String transFeeDetail;
+
     @ItemProperty(alias = "医保结算订单号")
     private String settleOrderNo;
 
@@ -783,5 +786,14 @@ public class RecipeOrder implements Serializable {
 
     public void setSmkFaceToken(String smkFaceToken) {
         this.smkFaceToken = smkFaceToken;
+    }
+
+    @Column(name = "transFeeDetail")
+    public String getTransFeeDetail() {
+        return transFeeDetail;
+    }
+
+    public void setTransFeeDetail(String transFeeDetail) {
+        this.transFeeDetail = transFeeDetail;
     }
 }

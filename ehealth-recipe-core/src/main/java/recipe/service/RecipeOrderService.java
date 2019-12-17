@@ -216,6 +216,17 @@ public class RecipeOrderService extends RecipeBaseService {
         //指定了药企的话需要传该字段
         Integer depId = MapValueUtil.getInteger(extInfo, "depId");
         order.setEnterpriseId(depId);
+
+        //设置药企运费细则
+        if (order.getEnterpriseId() != null) {
+            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+            if(drugsEnterprise != null){
+                order.setEnterpriseName(drugsEnterprise.getName());
+                order.setTransFeeDetail(drugsEnterprise.getTransFeeDetail());
+            }
+        }
+
         order.setRecipeMode(recipeList.get(0).getRecipeMode());
         order.setGiveMode(recipeList.get(0).getGiveMode());
         payModeSupport = setPayModeSupport(order, payMode);
