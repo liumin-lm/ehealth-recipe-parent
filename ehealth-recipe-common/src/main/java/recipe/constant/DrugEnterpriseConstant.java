@@ -72,4 +72,9 @@ public class DrugEnterpriseConstant {
      * 公共自建药企
      */
     public static final String COMPANY_COMMON_SELF = "commonSelf";
+
+    /**
+     * 以大药企
+     */
+    public static final String COMPANY_YD = "yd";
 }
