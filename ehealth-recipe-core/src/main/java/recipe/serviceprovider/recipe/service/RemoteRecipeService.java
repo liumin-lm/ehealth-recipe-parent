@@ -399,6 +399,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                     status = RecipeStatusConstant.READY_CHECK_YS;
                     memo = "His医保信息上传成功";
                 }
+                //保存医保返回数据
+                saveMedicalInfoForRecipe(req,dbRecipe.getRecipeId());
             }else {
                 //上传失败
                 //失败原因
@@ -409,9 +411,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), status, null);
             //日志记录
             RecipeLogService.saveRecipeLog(dbRecipe.getRecipeId(), dbRecipe.getStatus(), status, memo);
-
-            //保存医保返回数据
-            saveMedicalInfoForRecipe(req,dbRecipe.getRecipeId());
         }
     }
     private void saveMedicalInfoForRecipe(NoticePlatRecipeMedicalInfoDTO req, Integer recipeId) {
