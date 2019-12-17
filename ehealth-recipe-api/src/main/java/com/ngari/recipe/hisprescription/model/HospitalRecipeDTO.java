@@ -166,6 +166,8 @@ public class HospitalRecipeDTO implements Serializable {
     //reqType 请求类型（1：二维码扫码推送详情 2：自动推送详情链接跳转请求 ）
     private Integer reqType;
 
+    private Boolean saveRecipeFlag;
+
     @Verify(desc = "药品详情")
     private List<HospitalDrugDTO> drugList;
 
@@ -551,6 +553,14 @@ public class HospitalRecipeDTO implements Serializable {
 
     public void setReqType(Integer reqType) {
         this.reqType = reqType;
+    }
+
+    public Boolean getSaveRecipeFlag() {
+        return saveRecipeFlag;
+    }
+
+    public void setSaveRecipeFlag(Boolean saveRecipeFlag) {
+        this.saveRecipeFlag = saveRecipeFlag;
     }
 
     public static HospitalRecipeDTO getTestObject(){
