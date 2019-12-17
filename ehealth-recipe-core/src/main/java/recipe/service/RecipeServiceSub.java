@@ -1081,6 +1081,8 @@ public class RecipeServiceSub {
                         && recipe.getStatus() != RecipeStatusConstant.NO_DRUG
                         && recipe.getStatus() != RecipeStatusConstant.NO_PAY
                         && recipe.getStatus() != RecipeStatusConstant.NO_OPERATOR
+                        && recipe.getStatus() != RecipeStatusConstant.RECIPE_MEDICAL_FAIL
+                        && recipe.getStatus() != RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN
                         && !Integer.valueOf(1).equals(recipe.getChooseFlag())) {
                     cancelFlag = true;
                 }
