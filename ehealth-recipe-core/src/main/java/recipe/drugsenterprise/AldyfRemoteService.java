@@ -15,6 +15,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.taobao.api.FileItem;
 import com.taobao.api.request.AlibabaAlihealthRxPrescriptionAddRequest;
 import com.taobao.api.request.AlibabaAlihealthRxPrescriptionGetRequest;
@@ -319,6 +320,11 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
         }
 
         return result;
+    }
+
+    @Override
+    public DrugEnterpriseResult pushRecipeInfo(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override

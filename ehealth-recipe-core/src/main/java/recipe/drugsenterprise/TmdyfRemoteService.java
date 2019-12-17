@@ -10,6 +10,7 @@ import com.ngari.base.organ.service.IOrganService;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.qimencloud.api.sceneqimen.request.AlibabaAlihealthPrescriptionStatusSyncRequest;
 import com.qimencloud.api.sceneqimen.response.AlibabaAlihealthPrescriptionStatusSyncResponse;
 import com.taobao.api.ApiException;
@@ -150,6 +151,11 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         return null;
+    }
+
+    @Override
+    public DrugEnterpriseResult pushRecipeInfo(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
+        return DrugEnterpriseResult.getSuccess();
     }
 
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, Integer depId) {
