@@ -901,6 +901,14 @@ public class RecipeServiceSub {
                 tips = "已取消";
                 cancelReason = "由于患者未及时处理，该处方已取消。";
                 break;
+            case RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN:
+                tips = "已取消";
+                cancelReason = "处方超时医保上传失败，处方单已取消！";
+                break;
+            case RecipeStatusConstant.RECIPE_MEDICAL_FAIL:
+                tips = "已取消";
+                cancelReason = "医保上传失败，处方单已取消！";
+                break;
             case RecipeStatusConstant.CHECK_NOT_PASS_YS:
                 //这里逻辑修改：原先处方取消后，保留处方的状态
                 //现在初始化成待处理的状态
@@ -920,9 +928,6 @@ public class RecipeServiceSub {
             //天猫特殊状态
             case RecipeStatusConstant.USING:
                 tips = "处理中";
-                break;
-            case RecipeStatusConstant.RECIPE_MEDICAL_FAIL:
-                tips = "医保上传失败";
                 break;
             case RecipeStatusConstant.CHECKING_MEDICAL_INSURANCE:
                 tips = "医保上传确认中";
