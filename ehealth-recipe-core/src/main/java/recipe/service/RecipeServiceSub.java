@@ -1895,11 +1895,17 @@ public class RecipeServiceSub {
      */
     public static Boolean isMedicalPatient(String mpiid, Integer clinicOrgan) {
         HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
-        //医保卡id
-        String medicareCardId = healthCardService.getMedicareCardId(mpiid, clinicOrgan);
-        if (StringUtils.isNotEmpty(medicareCardId)){
-            return true;
+        OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+        //杭州市互联网医院监管中心 管理单元eh3301
+        OrganDTO organDTO = organService.getByManageUnit("eh3301");
+        if (organDTO!=null){
+            //医保卡id ----
+            String medicareCardId = healthCardService.getMedicareCardId(mpiid, organDTO.getOrganId());
+            if (StringUtils.isNotEmpty(medicareCardId)){
+                return true;
+            }
         }
+
         return false;
     }
 }
