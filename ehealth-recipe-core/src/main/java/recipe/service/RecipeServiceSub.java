@@ -1915,4 +1915,20 @@ public class RecipeServiceSub {
 
         return false;
     }
+
+    /**
+     * 是否配置了杭州市互联网
+     * @param clinicOrgan
+     * @return
+     */
+    public static boolean isNotHZInternet(Integer clinicOrgan) {
+        OrganAndDrugsepRelationDAO dao = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+        List<DrugsEnterprise> enterprises = dao.findDrugsEnterpriseByOrganIdAndStatus(clinicOrgan, 1);
+        if (CollectionUtils.isNotEmpty(enterprises)){
+            if ("hzInternet".equals(enterprises.get(0).getCallSys())){
+                return false;
+            }
+        }
+        return true;
+    }
 }

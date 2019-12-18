@@ -415,14 +415,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
     private void saveMedicalInfoForRecipe(NoticePlatRecipeMedicalInfoDTO req, Integer recipeId) {
         //医院机构编码
-        String hospOrgCode = req.getHospOrgCode();
+        String hospOrgCodeFromMedical = req.getHospOrgCode();
         //参保地统筹区
         String insuredArea = req.getInsuredArea();
         //医保结算请求串
         String medicalSettleData = req.getMedicalSettleData();
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         Map<String,String> updateMap = Maps.newHashMap();
-        updateMap.put("hospOrgCode",hospOrgCode);
+        updateMap.put("hospOrgCodeFromMedical",hospOrgCodeFromMedical);
         updateMap.put("insuredArea",insuredArea);
         updateMap.put("medicalSettleData",medicalSettleData);
         recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeId,updateMap);
