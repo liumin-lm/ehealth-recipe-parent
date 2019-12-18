@@ -15,6 +15,7 @@ import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -953,7 +954,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                             backMsg.setMsg(appid+"://?module=orderList");
                         }else {
                             //微信跳转
-                            IWXServiceInterface wxService = ApplicationUtils.getService(IWXServiceInterface.class, "wxService");
+                            IWXServiceInterface wxService = AppContextHolder.getBean("wx.wxService", IWXServiceInterface.class);
                             Map<String, String> paramsMap = Maps.newHashMap();
                             paramsMap.put("module", "orderList");
 //                            paramsMap.put("cid", order.getOrderId().toString());

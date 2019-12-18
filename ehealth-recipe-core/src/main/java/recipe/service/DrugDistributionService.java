@@ -165,7 +165,7 @@ public class DrugDistributionService {
                 response.setMsg("用户需要鉴权");
                 try {
                     ISysParamterService iSysParamterService = ApplicationUtils.getBaseService(ISysParamterService.class);
-                    IWXServiceInterface wxService = ApplicationUtils.getService(IWXServiceInterface.class, "wxService");
+                    IWXServiceInterface wxService = AppContextHolder.getBean("wx.wxService", IWXServiceInterface.class);
 
                     //配置回调地址
                     String param = iSysParamterService.getParam(ParameterConstant.KEY_TAOBAO_AUTHORIZATION_ADDR, null);
