@@ -495,8 +495,16 @@ public class RecipeSignService {
      */
     @RpcService
     public Map<String, Object> continueSignAfterCheckFailed (RecipeBean recipeBean, List<RecipeDetailBean> details) {
+
         Map<String, Object> rMap = Maps.newHashMap();
         Integer recipeId = recipeBean.getRecipeId();
+        if (!RecipeServiceSub.isNotHZInternet(recipeBean.getClinicOrgan())){
+            rMap.put("signResult", false);
+            rMap.put("recipeId", recipeId);
+            rMap.put("errorFlag", true);
+            rMap.put("errorMsg", "预校验失败,无法继续签名");
+            return rMap;
+        }
         RecipeDAO dao = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = dao.getByRecipeId(recipeId);
         RecipeBean recipeBeanDb = ObjectCopyUtils.convert(recipe, RecipeBean.class);
