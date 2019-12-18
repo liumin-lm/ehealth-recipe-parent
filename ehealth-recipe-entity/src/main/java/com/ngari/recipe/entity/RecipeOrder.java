@@ -200,6 +200,21 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "药企名称")
     private String enterpriseName;
 
+    @ItemProperty(alias = "期望配送日期")
+    private String expectSendDate;
+
+    @ItemProperty(alias = "期望配送时间")
+    private String expectSendTime;
+
+    @ItemProperty(alias = "运费细则图片ID")
+    private String transFeeDetail;
+
+    @ItemProperty(alias = "医保结算订单号")
+    private String settleOrderNo;
+
+    @ItemProperty(alias = "医保结算人脸识别token")
+    private String smkFaceToken;
+
     @Column(name = "cancelReason")
     public String getCancelReason() {
         return cancelReason;
@@ -674,6 +689,24 @@ public class RecipeOrder implements Serializable {
         this.decoctionFee = decoctionFee;
     }
 
+    @Column(name = "ExpectSendDate")
+    public String getExpectSendDate() {
+        return expectSendDate;
+    }
+
+    public void setExpectSendDate(String expectSendDate) {
+        this.expectSendDate = expectSendDate;
+    }
+
+    @Column(name = "ExpectSendTime")
+    public String getExpectSendTime() {
+        return expectSendTime;
+    }
+
+    public void setExpectSendTime(String expectSendTime) {
+        this.expectSendTime = expectSendTime;
+    }
+
     @Transient
     public BigDecimal getDecoctionUnitPrice() {
         return decoctionUnitPrice;
@@ -735,5 +768,32 @@ public class RecipeOrder implements Serializable {
 
     public void setEnterpriseName(String enterpriseName) {
         this.enterpriseName = enterpriseName;
+    }
+
+    @Column(name = "settleOrderNo")
+    public String getSettleOrderNo() {
+        return settleOrderNo;
+    }
+
+    public void setSettleOrderNo(String settleOrderNo) {
+        this.settleOrderNo = settleOrderNo;
+    }
+
+    @Column(name = "smkFaceToken")
+    public String getSmkFaceToken() {
+        return smkFaceToken;
+    }
+
+    public void setSmkFaceToken(String smkFaceToken) {
+        this.smkFaceToken = smkFaceToken;
+    }
+
+    @Column(name = "transFeeDetail")
+    public String getTransFeeDetail() {
+        return transFeeDetail;
+    }
+
+    public void setTransFeeDetail(String transFeeDetail) {
+        this.transFeeDetail = transFeeDetail;
     }
 }

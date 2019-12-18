@@ -3,10 +3,12 @@ package recipe.serviceprovider.recipe.service;
 
 import com.google.common.collect.Maps;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.NoticePlatRecipeMedicalInfoReq;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
@@ -22,14 +24,13 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.RecipeBussConstant;
+import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.drugsenterprise.TmdyfRemoteService;
 import recipe.hisservice.RecipeToHisCallbackService;
-import recipe.service.RecipeCheckService;
-import recipe.service.RecipeListService;
-import recipe.service.RecipeMsgService;
-import recipe.service.RecipeService;
+import recipe.service.*;
 import recipe.serviceprovider.BaseService;
 import recipe.util.MapValueUtil;
 
@@ -319,6 +320,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @Override
+    public RecipeExtendBean findRecipeExtendByRecipeId(Integer recipeId) {
+        RecipeExtendDAO RecipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = RecipeExtendDAO.getByRecipeId(recipeId);
+        return ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
+    }
+
+    @Override
     public List<Integer> findReadyAuditRecipeIdsByOrganIds(List<Integer> organIds) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         return recipeDAO.findReadyAuditRecipeIdsByOrganIds(organIds);
@@ -367,5 +375,56 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         return map;
 
+    }
+
+    @Override
+    @RpcService
+    public void noticePlatRecipeMedicalInsuranceInfo(NoticePlatRecipeMedicalInfoDTO req) {
+        LOGGER.info("noticePlatRecipeMedicalInsuranceInfo req={}",JSONUtils.toString(req));
+        if (null == req) {
+            return;
+        }
+        //上传状态
+        String uploadStatus = req.getUploadStatus();
+
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe dbRecipe = recipeDAO.getByRecipeCode(req.getRecipeCode());
+        if (null != dbRecipe) {
+            //默认 医保上传确认中
+            Integer status = RecipeStatusConstant.CHECKING_MEDICAL_INSURANCE;
+            String memo = "";
+            if ("1".equals(uploadStatus)){
+                //上传成功
+                if (RecipeStatusConstant.READY_CHECK_YS != dbRecipe.getStatus()){
+                    status = RecipeStatusConstant.READY_CHECK_YS;
+                    memo = "His医保信息上传成功";
+                }
+                //保存医保返回数据
+                saveMedicalInfoForRecipe(req,dbRecipe.getRecipeId());
+            }else {
+                //上传失败
+                //失败原因
+                String failureInfo = req.getFailureInfo();
+                status = RecipeStatusConstant.RECIPE_MEDICAL_FAIL;
+                memo = StringUtils.isEmpty(failureInfo)?"His医保信息上传失败":"His医保信息上传失败,原因:"+failureInfo;
+            }
+            recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), status, null);
+            //日志记录
+            RecipeLogService.saveRecipeLog(dbRecipe.getRecipeId(), dbRecipe.getStatus(), status, memo);
+        }
+    }
+    private void saveMedicalInfoForRecipe(NoticePlatRecipeMedicalInfoDTO req, Integer recipeId) {
+        //医院机构编码
+        String hospOrgCodeFromMedical = req.getHospOrgCode();
+        //参保地统筹区
+        String insuredArea = req.getInsuredArea();
+        //医保结算请求串
+        String medicalSettleData = req.getMedicalSettleData();
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        Map<String,String> updateMap = Maps.newHashMap();
+        updateMap.put("hospOrgCodeFromMedical",hospOrgCodeFromMedical);
+        updateMap.put("insuredArea",insuredArea);
+        updateMap.put("medicalSettleData",medicalSettleData);
+        recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeId,updateMap);
     }
 }

@@ -55,7 +55,10 @@ public class RecipeToHisService {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Integer recipeId = Integer.valueOf(request.getRecipeID());
         LOGGER.info("recipeSend recipeId={}, request={}", recipeId, JSONUtils.toString(request));
-        recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, null);
+
+        //放在异步发送前就更新状态
+//        recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, null);
+
         try {
             hisService.recipeSend(request);
             LOGGER.info("recipeSend 调用前置机处方写入服务成功! recipeId=" + request.getRecipeID());
@@ -455,5 +458,14 @@ public class RecipeToHisService {
             LOGGER.error("queryHisPatientRecipeInfo error ", e);
         }
         return hosPatientRecipeDTO;
+    }
+
+
+    /**
+     * 处方预结算
+     */
+    public HisResponseTO recipeMedicalPreSettle(MedicalPreSettleReqTO request) {
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        return hisService.recipeMedicalPreSettle(request);
     }
 }

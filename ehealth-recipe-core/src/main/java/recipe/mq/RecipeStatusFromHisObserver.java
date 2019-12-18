@@ -42,6 +42,8 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
         hospitalStatusUpdateDTO.setRecipeCode(notice.getRecipeID());
 //        hospitalStatusUpdateDTO.setClinicOrgan(LocalStringUtil.toString(notice.getOrganId()));
         hospitalStatusUpdateDTO.setOrganId(notice.getOrganizeCode());
+        hospitalStatusUpdateDTO.setPlatRecipeID(notice.getPlatRecipeID());
+        hospitalStatusUpdateDTO.setUpdateRecipeCodeFlag(notice.getUpdateRecipeCodeFlag());
         String recipeStatus = notice.getRecipeStatus();
         Map<String, String> otherInfo = Maps.newHashMap();
         boolean pass = true;

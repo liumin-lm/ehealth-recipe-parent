@@ -901,6 +901,14 @@ public class RecipeServiceSub {
                 tips = "已取消";
                 cancelReason = "由于患者未及时处理，该处方已取消。";
                 break;
+            case RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN:
+                tips = "已取消";
+                cancelReason = "处方超时医保上传失败，处方单已取消！";
+                break;
+            case RecipeStatusConstant.RECIPE_MEDICAL_FAIL:
+                tips = "已取消";
+                cancelReason = "医保上传失败，处方单已取消！";
+                break;
             case RecipeStatusConstant.CHECK_NOT_PASS_YS:
                 //这里逻辑修改：原先处方取消后，保留处方的状态
                 //现在初始化成待处理的状态
@@ -920,6 +928,9 @@ public class RecipeServiceSub {
             //天猫特殊状态
             case RecipeStatusConstant.USING:
                 tips = "处理中";
+                break;
+            case RecipeStatusConstant.CHECKING_MEDICAL_INSURANCE:
+                tips = "医保上传确认中";
                 break;
             default:
                 tips = "未知状态" + status;
@@ -1070,6 +1081,8 @@ public class RecipeServiceSub {
                         && recipe.getStatus() != RecipeStatusConstant.NO_DRUG
                         && recipe.getStatus() != RecipeStatusConstant.NO_PAY
                         && recipe.getStatus() != RecipeStatusConstant.NO_OPERATOR
+                        && recipe.getStatus() != RecipeStatusConstant.RECIPE_MEDICAL_FAIL
+                        && recipe.getStatus() != RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN
                         && !Integer.valueOf(1).equals(recipe.getChooseFlag())) {
                     cancelFlag = true;
                 }
@@ -1165,24 +1178,10 @@ public class RecipeServiceSub {
                 recipe.setTotalMoney(null);
             }
 
-            if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
-                //设置购药方式哪些可用
-                //配送到家默认可用
-                //Date:20190905
-                //Explain:将互联网的按钮和平台的按钮合并
-                map.put("supportOnline", 1);
-                //到店取药默认不可用（20190926小版本改为默认可用）
-                map.put("supportTFDS", 1);
-                //医院取药需要看数据
-                int hosFlag = 1;
-                if(1 == recipe.getDistributionFlag()){
-                    hosFlag = 0;
-                }
-                map.put("supportToHos", hosFlag);
-            }
             //Date:20190904
             //Explain:添加患者点击按钮信息
-            if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())){
+            if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode()) ||
+                RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
                 //获取配置项
                 IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
                 //添加按钮配置项key
@@ -1194,7 +1193,32 @@ public class RecipeServiceSub {
                         map.put(configuration, 1);
                     }
                 }
+
+                //互联网按钮信息（特殊化）
+                if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
+                    PayModeShowButtonBean payModeShowButtonBean = new PayModeShowButtonBean();
+                    if(map.get("supportOnline") != null && 1 == (Integer) map.get("supportOnline")){
+                        payModeShowButtonBean.setSupportOnline(true);
+                    }
+                    if(map.get("supportToHos") != null && 1 == (Integer) map.get("supportToHos")){
+                        payModeShowButtonBean.setSupportToHos(true);
+                    }
+
+                    //如果运营平台没设置按钮，那底下也不用走了
+                    if(payModeShowButtonBean.getSupportOnline() || payModeShowButtonBean.getSupportToHos()){
+                        RecipeListService recipeListService = new RecipeListService();
+                        recipeListService.initInternetModel(null, payModeShowButtonBean, recipe);
+
+                        if(null != payModeShowButtonBean.getSupportToHos() && !payModeShowButtonBean.getSupportToHos()){
+                            map.put("supportToHos", 0);
+                        }
+                        if(null != payModeShowButtonBean.getSupportOnline() && !payModeShowButtonBean.getSupportOnline()){
+                            map.put("supportOnline", 0);
+                        }
+                    }
+                }
             }
+
             //Date:20190904
             //Explain:审核是否通过
             boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() &&
@@ -1868,5 +1892,43 @@ public class RecipeServiceSub {
         }
 
 
+    }
+
+    /**
+     * 杭州市互联网获取是否是医保病人
+     * @param mpiid
+     * @param clinicOrgan
+     * @return
+     */
+    public static Boolean isMedicalPatient(String mpiid, Integer clinicOrgan) {
+        HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
+        OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+        //杭州市互联网医院监管中心 管理单元eh3301
+        OrganDTO organDTO = organService.getByManageUnit("eh3301");
+        if (organDTO!=null){
+            //医保卡id ----
+            String medicareCardId = healthCardService.getMedicareCardId(mpiid, organDTO.getOrganId());
+            if (StringUtils.isNotEmpty(medicareCardId)){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * 是否配置了杭州市互联网
+     * @param clinicOrgan
+     * @return
+     */
+    public static boolean isNotHZInternet(Integer clinicOrgan) {
+        OrganAndDrugsepRelationDAO dao = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+        List<DrugsEnterprise> enterprises = dao.findDrugsEnterpriseByOrganIdAndStatus(clinicOrgan, 1);
+        if (CollectionUtils.isNotEmpty(enterprises)){
+            if ("hzInternet".equals(enterprises.get(0).getCallSys())){
+                return false;
+            }
+        }
+        return true;
     }
 }

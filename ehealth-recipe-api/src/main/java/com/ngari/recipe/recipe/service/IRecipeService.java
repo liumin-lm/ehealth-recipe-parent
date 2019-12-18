@@ -4,10 +4,7 @@ import com.ngari.recipe.IBaseService;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
-import com.ngari.recipe.recipe.model.NoticePlatRecipeFlowInfoDTO;
-import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipe.model.RecipeRollingInfoBean;
+import com.ngari.recipe.recipe.model.*;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
 
@@ -285,6 +282,9 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     List<RecipeDetailBean> findRecipeDetailsByRecipeId(Integer recipeId);
 
     @RpcService
+    RecipeExtendBean findRecipeExtendByRecipeId(Integer recipeId);
+
+    @RpcService
     List<Integer> findReadyAuditRecipeIdsByOrganIds(List<Integer> organIds);
 
     @RpcService
@@ -302,4 +302,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     Map<String,Object> noticePlatRecipeFlowInfo(NoticePlatRecipeFlowInfoDTO req);
+
+    @RpcService
+    void noticePlatRecipeMedicalInsuranceInfo(NoticePlatRecipeMedicalInfoDTO req);
 }

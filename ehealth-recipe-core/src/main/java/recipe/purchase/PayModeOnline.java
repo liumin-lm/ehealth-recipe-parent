@@ -226,6 +226,9 @@ public class PayModeOnline implements IPurchaseService {
             payStatus = OrderStatusConstant.READY_PAY;
         }
 
+        order.setExpectSendDate(MapValueUtil.getString(extInfo, "expectSendDate"));
+        order.setExpectSendTime(MapValueUtil.getString(extInfo, "expectSendTime"));
+        order.setStatus(payStatus);
         order.setStatus(payStatus);
 
         //设置为有效订单

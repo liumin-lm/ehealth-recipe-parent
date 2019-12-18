@@ -49,6 +49,7 @@ import recipe.constant.RecipeSystemConstant;
 import recipe.dao.*;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.RecipeService;
+import recipe.service.RecipeServiceSub;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
@@ -137,6 +138,7 @@ public class QueryRecipeService implements IQueryRecipeService {
         QueryRecipeInfoDTO recipeDTO = new QueryRecipeInfoDTO();
         //拼接处方信息
         recipeDTO.setRecipeID(recipe.getRecipeCode());
+        recipeDTO.setPlatRecipeID(String.valueOf(recipe.getRecipeId()));
         recipeDTO.setDatein(recipe.getSignDate());
         recipeDTO.setIsPay((null != recipe.getPayFlag()) ? Integer.toString(recipe
                 .getPayFlag()) : null);
@@ -168,6 +170,10 @@ public class QueryRecipeService implements IQueryRecipeService {
         }else {
             recipeDTO.setAuditDoctor(recipeDTO.getDoctorID());
         }
+        //本处方收费类型 1市医保 2省医保 3自费---杭州市互联网-市医保
+        recipeDTO.setMedicalPayFlag(getMedicalType(recipe.getMpiid(),recipe.getClinicOrgan()));
+        //处方金额
+        recipeDTO.setRecipeFee(String.valueOf(recipe.getActualPrice()));
         //主诉等等四个字段
         Integer recipeId = recipe.getRecipeId();
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
@@ -256,9 +262,17 @@ public class QueryRecipeService implements IQueryRecipeService {
                 orderItem.setDosage((null != detail.getUseDose()) ? Double
                         .toString(detail.getUseDose()) : null);
                 orderItem.setDrunit(detail.getUseDoseUnit());
-                //设置药品产地名称
+
                 OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCode(recipe.getClinicOrgan(), detail.getOrganDrugCode());
-                orderItem.setDrugManf(null != organDrugList ? organDrugList.getProducer() : null);
+                if (null != organDrugList){
+                    //药品产地名称
+                    orderItem.setDrugManf(organDrugList.getProducer());
+                    //药品产地编码
+                    orderItem.setDrugManfCode(organDrugList.getProducerCode());
+                    //药品单价
+                    orderItem.setPrice(String.valueOf(organDrugList.getSalePrice()));
+                }
+
 
                 /*
                  * //每日剂量 转换成两位小数 DecimalFormat df = new DecimalFormat("0.00");
@@ -286,6 +300,14 @@ public class QueryRecipeService implements IQueryRecipeService {
 
         return recipeDTO;
     }
+
+    /**
+     * 获取杭州市互联网的医保类型
+     */
+    private String getMedicalType(String mpiid, Integer clinicOrgan) {
+        return RecipeServiceSub.isMedicalPatient(mpiid, clinicOrgan)?"1":"3";
+    }
+
     //将；用|代替
     private String getCode(String code) {
         return code.replace("；","|");
