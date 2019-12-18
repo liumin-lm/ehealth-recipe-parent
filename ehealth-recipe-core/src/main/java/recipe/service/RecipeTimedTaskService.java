@@ -153,7 +153,7 @@ public class RecipeTimedTaskService {
             Map<String, String> otherInfo = Maps.newHashMap();
             for (Recipe recipe : recipeList) {
                 //处方流转模式是否是互联网模式并且不是杭州互联网模式
-                if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())&&(isNotHZInternet(recipe.getClinicOrgan()))){
+                if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())&&(RecipeServiceSub.isNotHZInternet(recipe.getClinicOrgan()))){
                     HospitalStatusUpdateDTO hospitalStatusUpdateDTO = new HospitalStatusUpdateDTO();
                     hospitalStatusUpdateDTO.setOrganId(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
                     hospitalStatusUpdateDTO.setRecipeCode(recipe.getRecipeCode());
@@ -164,16 +164,5 @@ public class RecipeTimedTaskService {
                 }
             }
         }
-    }
-
-    private boolean isNotHZInternet(Integer clinicOrgan) {
-        OrganAndDrugsepRelationDAO dao = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-        List<DrugsEnterprise> enterprises = dao.findDrugsEnterpriseByOrganIdAndStatus(clinicOrgan, 1);
-        if (CollectionUtils.isNotEmpty(enterprises)){
-            if ("hzInternet".equals(enterprises.get(0).getCallSys())){
-                return false;
-            }
-        }
-        return true;
     }
 }

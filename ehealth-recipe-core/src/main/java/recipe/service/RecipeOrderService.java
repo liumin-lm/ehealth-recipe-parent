@@ -1185,19 +1185,16 @@ public class RecipeOrderService extends RecipeBaseService {
                     }
                 }
             }
-            String transFeeDetail = null;
+
+            RecipeOrderBean orderBean = ObjectCopyUtils.convert(order, RecipeOrderBean.class);
             if (order.getEnterpriseId() != null) {
                 DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-//                if("hzInternet".equals(drugsEnterprise.getAccount())){
-//
-//                }
-                order.setEnterpriseName(drugsEnterprise.getName());
-                transFeeDetail = drugsEnterprise.getTransFeeDetail();
+                if(drugsEnterprise != null){
+                    orderBean.setTransFeeDetail(drugsEnterprise.getTransFeeDetail());
+                }
             }
-            RecipeOrderBean orderBean = ObjectCopyUtils.convert(order, RecipeOrderBean.class);
             orderBean.setList(patientRecipeBeanList);
-            orderBean.setTransFeeDetail(transFeeDetail);
             result.setObject(orderBean);
             // 支付完成后跳转到订单详情页需要加挂号费服务费可配置
             result.setExt(RecipeUtil.getParamFromOgainConfig(order));
