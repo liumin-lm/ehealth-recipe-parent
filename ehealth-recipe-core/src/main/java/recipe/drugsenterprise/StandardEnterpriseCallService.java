@@ -9,11 +9,13 @@ import com.google.common.collect.Multimap;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
+import com.ngari.his.recipe.mode.RecipeStatusUpdateReqTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.utils.VerifyUtils;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.logistics.model.RecipeLogisticsBean;
 import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -27,6 +29,7 @@ import recipe.ApplicationUtils;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
+import recipe.hisservice.RecipeToHisService;
 import recipe.purchase.CommonOrder;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeLogService;
@@ -769,6 +772,23 @@ public class StandardEnterpriseCallService {
         }
         LOGGER.info("StandardEnterpriseCallService-readjustDrugPrice standardResultDTOS:{}.", JSONUtils.toString(standardResultDTOS));
         return standardResultDTOS;
+    }
+
+    @RpcService
+    public StandardResultDTO recipeStatusupdate(RecipeStatusUpdateReqTO request) {
+        RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+        StandardResultDTO result = new StandardResultDTO();
+        request.setOrganID("");  //固定写死
+        request.setOuthospno("");
+        request.setExplain("");
+        request.setRecipeRecordStatus(2);
+        Boolean flag = service.recipeUpdate(request);
+        if (flag) {
+            result.setCode(StandardResultDTO.SUCCESS);
+        } else {
+            result.setCode(StandardResultDTO.FAIL);
+        }
+        return result;
     }
 
 }
