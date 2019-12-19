@@ -14,6 +14,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.taobao.api.response.AlibabaAlihealthRxPrescriptionGetResponse;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -352,6 +353,11 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
         }
 
         return result;
+    }
+
+    @Override
+    public DrugEnterpriseResult pushRecipeInfo(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override

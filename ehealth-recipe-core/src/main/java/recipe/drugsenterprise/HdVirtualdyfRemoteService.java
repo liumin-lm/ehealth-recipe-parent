@@ -14,6 +14,7 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -116,6 +117,11 @@ public class HdVirtualdyfRemoteService extends AccessDrugEnterpriseService {
         updateTakeDrugWayReqTO.setDeliveryType("1");
         HisResponseTO hisResult = service.updateTakeDrugWay(updateTakeDrugWayReqTO);
         LOGGER.info("华东虚拟药企-取药方式更新通知his. param={},result={}", JSONUtils.toString(updateTakeDrugWayReqTO), JSONUtils.toString(hisResult));
+        return DrugEnterpriseResult.getSuccess();
+    }
+
+    @Override
+    public DrugEnterpriseResult pushRecipeInfo(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
         return DrugEnterpriseResult.getSuccess();
     }
 

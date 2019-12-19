@@ -2,6 +2,8 @@ package recipe.drugsenterprise;
 
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.bean.DrugEnterpriseResult;
@@ -31,6 +33,11 @@ public class TestRemoteService extends AccessDrugEnterpriseService {
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         LOGGER.info("TestRemoteService pushRecipeInfo not implement.");
+        return DrugEnterpriseResult.getSuccess();
+    }
+
+    @Override
+    public DrugEnterpriseResult pushRecipeInfo(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
         return DrugEnterpriseResult.getSuccess();
     }
 

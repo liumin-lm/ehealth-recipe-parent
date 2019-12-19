@@ -66,6 +66,9 @@ public class HospitalDrugDTO implements Serializable {
     @Verify(isNotNull = false, desc = "药品使用备注", maxLength = 50)
     private String memo;
 
+    @Verify(desc = "处方明细编码")
+    private String recipedtlno;
+
     public String getDrugCode() {
         return drugCode;
     }
@@ -200,5 +203,13 @@ public class HospitalDrugDTO implements Serializable {
 
     public void setUseDoseUnit(String useDoseUnit) {
         this.useDoseUnit = useDoseUnit;
+    }
+
+    public String getRecipedtlno() {
+        return recipedtlno;
+    }
+
+    public void setRecipedtlno(String recipedtlno) {
+        this.recipedtlno = recipedtlno;
     }
 }

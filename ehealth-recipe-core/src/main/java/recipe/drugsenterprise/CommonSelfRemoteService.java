@@ -6,6 +6,7 @@ import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Pharmacy;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.SaleDrugList;
+import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -52,6 +53,11 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
         //date 2019/12/4
         //添加自建药企推送处方时推送消息给药企
         pushMessageToEnterprise(recipeIds);
+        return DrugEnterpriseResult.getSuccess();
+    }
+
+    @Override
+    public DrugEnterpriseResult pushRecipeInfo(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
         return DrugEnterpriseResult.getSuccess();
     }
 

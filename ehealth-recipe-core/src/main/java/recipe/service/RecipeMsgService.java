@@ -448,4 +448,12 @@ public class RecipeMsgService {
         Integer organId = MapValueUtil.getInteger(param, "organId");
         sendMsgInfo(0,"medicationGuidePush",organId,JSONUtils.toString(param));
     }
+
+    /**
+     * 发送第三方链接的模板消息
+     */
+    public static void sendRecipeThirdMsg(Map<String, Object> param){
+        Integer organId = MapValueUtil.getInteger(param, "organId");
+        sendMsgInfo(0,"recipeThirdPush",organId,JSONUtils.toString(param));
+    }
 }

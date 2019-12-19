@@ -1,7 +1,6 @@
 package recipe.service.hospitalrecipe;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.ngari.base.BaseAPI;
@@ -9,7 +8,10 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientExtendService;
+import com.ngari.base.push.model.SmsInfoBean;
+import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.patient.dto.EmploymentDTO;
+import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.service.PatientService;
@@ -21,7 +23,6 @@ import com.ngari.recipe.hisprescription.model.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.wxpay.service.INgariRefundService;
-import com.sun.javafx.scene.control.skin.ListCellSkin;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -43,6 +44,7 @@ import recipe.service.*;
 import recipe.service.hospitalrecipe.dataprocess.PrescribeProcess;
 import recipe.util.RedisClient;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -88,201 +90,270 @@ public class PrescribeService {
         //重置为默认失败
         result.setCode(HosRecipeResult.FAIL);
         if (null != hospitalRecipeDTO) {
-            //校验模块通过@Verify注解来处理
-            try {
-                Multimap<String, String> verifyMap = VerifyUtils.verify(hospitalRecipeDTO);
-                if (!verifyMap.keySet().isEmpty()) {
-                    result.setMsg(verifyMap.toString());
-                    return result;
-                }
-            } catch (Exception e) {
-                LOG.warn("createPrescription 参数对象异常数据，hospitalRecipeDTO={}", JSONUtils.toString(hospitalRecipeDTO), e);
-                result.setMsg("参数对象异常数据");
-                return result;
-            }
-
-            //详情校验
-            List<HospitalDrugDTO> hosDetailList = hospitalRecipeDTO.getDrugList();
-            if (CollectionUtils.isEmpty(hosDetailList)) {
-                result.setMsg("drugList详情为空");
-                return result;
-            }
-            Multimap<String, String> detailVerifyMap;
-            for (HospitalDrugDTO hospitalDrugDTO : hosDetailList) {
+            if (hospitalRecipeDTO.getNoSaveRecipeFlag()) {
+                //保存数据
+                saveHospitalRecipe(hospitalRecipeDTO);
+                RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+                //说明不需要保存处方到平台可以直接传给药企
+                //转换组织结构编码
+                Integer clinicOrgan = null;
+                OrganBean organ = null;
                 try {
-                    detailVerifyMap = VerifyUtils.verify(hospitalDrugDTO);
-                    if (!detailVerifyMap.keySet().isEmpty()) {
-                        result.setMsg(detailVerifyMap.toString());
+                    organ = getOrganByOrganId(hospitalRecipeDTO.getOrganId());
+                    if (null != organ) {
+                        clinicOrgan = organ.getOrganId();
+                    }
+                } catch (Exception e) {
+                    LOG.warn("createPrescription 查询机构异常，organId={}", hospitalRecipeDTO.getOrganId(), e);
+                } finally {
+                    if (null == clinicOrgan) {
+                        LOG.warn("createPrescription 平台未匹配到该组织机构编码，organId={}", hospitalRecipeDTO.getOrganId());
+                        result.setMsg("平台未匹配到该组织机构编码");
+                        return result;
+                    }
+                }
+                //查询当前医院关联的药企
+                OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+                List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(clinicOrgan, 1);
+                if (CollectionUtils.isNotEmpty(drugsEnterprises)) {
+                    DrugsEnterprise drugsEnterprise = drugsEnterprises.get(0);
+                    DrugEnterpriseResult enterpriseResult = service.pushSingleRecipeInfo(hospitalRecipeDTO, drugsEnterprise);
+                    if (enterpriseResult.getCode() == 1) {
+                        //表示推送药企成功,需要查询患者是否已经在平台注册
+                        PatientService patientService = BasicAPI.getService(PatientService.class);
+                        PatientDTO patientDTO = patientService.getByIdCard(hospitalRecipeDTO.getCertificate());
+                        if (patientDTO != null) {
+                            Recipe simpleRecipe = saveRecipeByHospitalRecipeDTO(hospitalRecipeDTO, patientDTO, organ);
+                            if (simpleRecipe != null) {
+                                //推送模板消息
+                                Map<String, Object> map = new HashMap<>();
+                                map.put("doctorName",hospitalRecipeDTO.getDoctorName());
+                                map.put("recipeType", "西药");
+                                map.put("organId", organ.getOrganId());
+                                map.put("idCard", hospitalRecipeDTO.getCertificate());
+                                map.put("patientName",hospitalRecipeDTO.getPatientName());
+                                map.put("signTime",hospitalRecipeDTO.getCreateDate());
+                                map.put("appId",null);
+                                map.put("openId",null);
+                                RecipeMsgService.sendRecipeThirdMsg(map);
+                            }
+                        } else {
+                            //用户没有注册,需要给用户发送短信
+                            if (StringUtils.isNotEmpty(hospitalRecipeDTO.getPatientTel())) {
+                                SmsInfoBean smsInfo=new SmsInfoBean();
+                                smsInfo.setBusType("RecipeHisCreate");
+                                smsInfo.setSmsType("RecipeHisCreate");
+                                smsInfo.setOrganId(0);
+
+                                Map<String,Object> smsMap = Maps.newHashMap();
+                                smsMap.put("mobile", hospitalRecipeDTO.getPatientTel());
+
+                                smsInfo.setExtendValue(JSONUtils.toString(smsMap));
+                                ISmsPushService smsPushService = ApplicationUtils.getBaseService(ISmsPushService.class);
+                                smsPushService.pushMsgData2OnsExtendValue(smsInfo);
+                            } else {
+                                LOG.info("PrescribeService-createPrescription 手机号为空无法发送短信, 姓名:{}, 身份证号:{}.", hospitalRecipeDTO.getPatientName(), hospitalRecipeDTO.getCertificate());
+                            }
+                        }
+                    }
+                }
+            } else {
+                //校验模块通过@Verify注解来处理
+                try {
+                    Multimap<String, String> verifyMap = VerifyUtils.verify(hospitalRecipeDTO);
+                    if (!verifyMap.keySet().isEmpty()) {
+                        result.setMsg(verifyMap.toString());
                         return result;
                     }
                 } catch (Exception e) {
-                    LOG.warn("createPrescription 详情参数对象异常数据，HospitalDrugDTO={}", JSONUtils.toString(hospitalDrugDTO), e);
-                    result.setMsg("详情参数对象异常数据");
+                    LOG.warn("createPrescription 参数对象异常数据，hospitalRecipeDTO={}", JSONUtils.toString(hospitalRecipeDTO), e);
+                    result.setMsg("参数对象异常数据");
                     return result;
                 }
-            }
 
-            RecipeBean recipe = new RecipeBean();
-
-            //转换组织结构编码
-            Integer clinicOrgan = null;
-            try {
-                OrganBean organ = getOrganByOrganId(hospitalRecipeDTO.getOrganId());
-                if (null != organ) {
-                    clinicOrgan = organ.getOrganId();
-                    //后面处理会用到
-                    hospitalRecipeDTO.setClinicOrgan(clinicOrgan.toString());
-                    recipe.setClinicOrgan(clinicOrgan);
-                    recipe.setOrganName(organ.getShortName());
-                }
-            } catch (Exception e) {
-                LOG.warn("createPrescription 查询机构异常，organId={}", hospitalRecipeDTO.getOrganId(), e);
-            } finally {
-                if (null == clinicOrgan) {
-                    LOG.warn("createPrescription 平台未匹配到该组织机构编码，organId={}", hospitalRecipeDTO.getOrganId());
-                    result.setMsg("平台未匹配到该组织机构编码");
+                //详情校验
+                List<HospitalDrugDTO> hosDetailList = hospitalRecipeDTO.getDrugList();
+                if (CollectionUtils.isEmpty(hosDetailList)) {
+                    result.setMsg("drugList详情为空");
                     return result;
                 }
-            }
+                Multimap<String, String> detailVerifyMap;
+                for (HospitalDrugDTO hospitalDrugDTO : hosDetailList) {
+                    try {
+                        detailVerifyMap = VerifyUtils.verify(hospitalDrugDTO);
+                        if (!detailVerifyMap.keySet().isEmpty()) {
+                            result.setMsg(detailVerifyMap.toString());
+                            return result;
+                        }
+                    } catch (Exception e) {
+                        LOG.warn("createPrescription 详情参数对象异常数据，HospitalDrugDTO={}", JSONUtils.toString(hospitalDrugDTO), e);
+                        result.setMsg("详情参数对象异常数据");
+                        return result;
+                    }
+                }
 
-            String recipeCode = hospitalRecipeDTO.getRecipeCode();
-            Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(recipeCode, clinicOrgan);
-            //TODO 暂时不能更新处方
-            //当前处理为存在处方则返回，不做更新处理
-            if (null != dbRecipe) {
-                result.setCode(HosRecipeResult.DUPLICATION);
-                result.setMsg("处方已存在");
-                return result;
-            }
+                RecipeBean recipe = new RecipeBean();
 
-            //设置医生信息
-            EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
-            EmploymentDTO employment = null;
-            try {
-                employment = employmentService.getByJobNumberAndOrganId(
-                        hospitalRecipeDTO.getDoctorNumber(), clinicOrgan);
+                //转换组织结构编码
+                Integer clinicOrgan = null;
+                try {
+                    OrganBean organ = getOrganByOrganId(hospitalRecipeDTO.getOrganId());
+                    if (null != organ) {
+                        clinicOrgan = organ.getOrganId();
+                        //后面处理会用到
+                        hospitalRecipeDTO.setClinicOrgan(clinicOrgan.toString());
+                        recipe.setClinicOrgan(clinicOrgan);
+                        recipe.setOrganName(organ.getShortName());
+                    }
+                } catch (Exception e) {
+                    LOG.warn("createPrescription 查询机构异常，organId={}", hospitalRecipeDTO.getOrganId(), e);
+                } finally {
+                    if (null == clinicOrgan) {
+                        LOG.warn("createPrescription 平台未匹配到该组织机构编码，organId={}", hospitalRecipeDTO.getOrganId());
+                        result.setMsg("平台未匹配到该组织机构编码");
+                        return result;
+                    }
+                }
 
-            } catch (Exception e) {
-                LOG.warn("createPrescription 查询医生执业点异常，doctorNumber={}, clinicOrgan={}",
-                        hospitalRecipeDTO.getDoctorNumber(), clinicOrgan, e);
-            } finally {
-                if (null != employment) {
-                    recipe.setDoctor(employment.getDoctorId());
-                    recipe.setDepart(employment.getDepartment());
+                String recipeCode = hospitalRecipeDTO.getRecipeCode();
+                Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(recipeCode, clinicOrgan);
+                //TODO 暂时不能更新处方
+                //当前处理为存在处方则返回，不做更新处理
+                if (null != dbRecipe) {
+                    result.setCode(HosRecipeResult.DUPLICATION);
+                    result.setMsg("处方已存在");
+                    return result;
+                }
 
-                    //审核医生信息处理
-                    String checkerNumber = hospitalRecipeDTO.getCheckerNumber();
-                    if (StringUtils.isNotEmpty(checkerNumber)) {
-                        EmploymentDTO checkEmployment = employmentService.getByJobNumberAndOrganId(
-                                checkerNumber, Integer.valueOf(hospitalRecipeDTO.getCheckOrgan()));
-                        if (null != checkEmployment) {
-                            recipe.setChecker(checkEmployment.getDoctorId());
+                //设置医生信息
+                EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
+                EmploymentDTO employment = null;
+                try {
+                    employment = employmentService.getByJobNumberAndOrganId(
+                            hospitalRecipeDTO.getDoctorNumber(), clinicOrgan);
+
+                } catch (Exception e) {
+                    LOG.warn("createPrescription 查询医生执业点异常，doctorNumber={}, clinicOrgan={}",
+                            hospitalRecipeDTO.getDoctorNumber(), clinicOrgan, e);
+                } finally {
+                    if (null != employment) {
+                        recipe.setDoctor(employment.getDoctorId());
+                        recipe.setDepart(employment.getDepartment());
+
+                        //审核医生信息处理
+                        String checkerNumber = hospitalRecipeDTO.getCheckerNumber();
+                        if (StringUtils.isNotEmpty(checkerNumber)) {
+                            EmploymentDTO checkEmployment = employmentService.getByJobNumberAndOrganId(
+                                    checkerNumber, Integer.valueOf(hospitalRecipeDTO.getCheckOrgan()));
+                            if (null != checkEmployment) {
+                                recipe.setChecker(checkEmployment.getDoctorId());
+                            } else {
+                                LOG.warn("createPrescription 审核医生[{}]在平台没有执业点", checkerNumber);
+                            }
                         } else {
-                            LOG.warn("createPrescription 审核医生[{}]在平台没有执业点", checkerNumber);
+                            LOG.info("createPrescription 审核医生工号(checkerNumber)为空");
                         }
                     } else {
-                        LOG.info("createPrescription 审核医生工号(checkerNumber)为空");
+                        LOG.warn("createPrescription 平台未找到该医生执业点，doctorNumber={}, clinicOrgan={}",
+                                hospitalRecipeDTO.getDoctorNumber(), clinicOrgan);
+                        result.setMsg("平台未找到该医生执业点");
+                        return result;
                     }
-                } else {
-                    LOG.warn("createPrescription 平台未找到该医生执业点，doctorNumber={}, clinicOrgan={}",
-                            hospitalRecipeDTO.getDoctorNumber(), clinicOrgan);
-                    result.setMsg("平台未找到该医生执业点");
-                    return result;
                 }
-            }
 
-            //处理患者
-            //先查询就诊人是否存在
-            PatientBean patient = null;
-            try {
-                IPatientExtendService patientExtendService = BaseAPI.getService(IPatientExtendService.class);
-                List<PatientBean> patList = patientExtendService.findPatient4Doctor(recipe.getDoctor(),
-                        hospitalRecipeDTO.getCertificate());
-                if (CollectionUtils.isEmpty(patList)) {
-                    patient = new PatientBean();
-                    patient.setPatientName(hospitalRecipeDTO.getPatientName());
-                    patient.setPatientSex(hospitalRecipeDTO.getPatientSex());
-                    patient.setCertificateType(Integer.valueOf(hospitalRecipeDTO.getCertificateType()));
-                    patient.setCertificate(hospitalRecipeDTO.getCertificate());
-                    patient.setAddress(hospitalRecipeDTO.getPatientAddress());
-                    patient.setMobile(hospitalRecipeDTO.getPatientTel());
-                    //创建就诊人
-                    patient = patientExtendService.addPatient4DoctorApp(patient, 0, recipe.getDoctor());
-                } else {
-                    patient = patList.get(0);
+                //处理患者
+                //先查询就诊人是否存在
+                PatientBean patient = null;
+                try {
+                    IPatientExtendService patientExtendService = BaseAPI.getService(IPatientExtendService.class);
+                    List<PatientBean> patList = patientExtendService.findPatient4Doctor(recipe.getDoctor(),
+                            hospitalRecipeDTO.getCertificate());
+                    if (CollectionUtils.isEmpty(patList)) {
+                        patient = new PatientBean();
+                        patient.setPatientName(hospitalRecipeDTO.getPatientName());
+                        patient.setPatientSex(hospitalRecipeDTO.getPatientSex());
+                        patient.setCertificateType(Integer.valueOf(hospitalRecipeDTO.getCertificateType()));
+                        patient.setCertificate(hospitalRecipeDTO.getCertificate());
+                        patient.setAddress(hospitalRecipeDTO.getPatientAddress());
+                        patient.setMobile(hospitalRecipeDTO.getPatientTel());
+                        //创建就诊人
+                        patient = patientExtendService.addPatient4DoctorApp(patient, 0, recipe.getDoctor());
+                    } else {
+                        patient = patList.get(0);
+                    }
+                } catch (Exception e) {
+                    LOG.warn("createPrescription 处理就诊人异常，doctorNumber={}, clinicOrgan={}",
+                            hospitalRecipeDTO.getDoctorNumber(), clinicOrgan, e);
+                } finally {
+                    if (null == patient || StringUtils.isEmpty(patient.getMpiId())) {
+                        LOG.warn("createPrescription 患者创建失败，doctorNumber={}, clinicOrgan={}",
+                                hospitalRecipeDTO.getDoctorNumber(), clinicOrgan);
+                        result.setMsg("患者创建失败");
+                        return result;
+                    } else {
+                        recipe.setPatientName(patient.getPatientName());
+                        recipe.setPatientStatus(1); //有效
+                        recipe.setMpiid(patient.getMpiId());
+                    }
                 }
-            } catch (Exception e) {
-                LOG.warn("createPrescription 处理就诊人异常，doctorNumber={}, clinicOrgan={}",
-                        hospitalRecipeDTO.getDoctorNumber(), clinicOrgan, e);
-            } finally {
-                if (null == patient || StringUtils.isEmpty(patient.getMpiId())) {
-                    LOG.warn("createPrescription 患者创建失败，doctorNumber={}, clinicOrgan={}",
-                            hospitalRecipeDTO.getDoctorNumber(), clinicOrgan);
-                    result.setMsg("患者创建失败");
-                    return result;
-                } else {
-                    recipe.setPatientName(patient.getPatientName());
-                    recipe.setPatientStatus(1); //有效
-                    recipe.setMpiid(patient.getMpiId());
-                }
-            }
-            //设置其他参数
-            PrescribeProcess.convertNgariRecipe(recipe, hospitalRecipeDTO);
+                //设置其他参数
+                PrescribeProcess.convertNgariRecipe(recipe, hospitalRecipeDTO);
 
-            //设置为医院HIS获取的处方，不会在医生端列表展示数据
-            //0:表示HIS处方，不会在任何地方展示
-            //1:平台开具处方，平台处理业务都会展示
-            //2:HIS处方，只在药师审核处展示
-            recipe.setFromflag(RecipeBussConstant.FROMFLAG_HIS_USE);
+                //设置为医院HIS获取的处方，不会在医生端列表展示数据
+                //0:表示HIS处方，不会在任何地方展示
+                //1:平台开具处方，平台处理业务都会展示
+                //2:HIS处方，只在药师审核处展示
+                recipe.setFromflag(RecipeBussConstant.FROMFLAG_HIS_USE);
 
-            //创建详情数据
-            List<RecipeDetailBean> details;
-            //武昌机构集合
-            Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_WUCHANG_ORGAN_LIST);
-            try {
-                if ((CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(recipe.getClinicOrgan().toString()))){
-                    details = PrescribeProcess.convertNgariDetailForWuChang(hospitalRecipeDTO);
-                }else {
-                    details= PrescribeProcess.convertNgariDetail(hospitalRecipeDTO);
-                }
-            } catch (Exception e) {
-                LOG.warn("createPrescription 药品详情转换异常, hospitalRecipeDTO={},{}", JSONUtils.toString(hospitalRecipeDTO),e);
-                result.setMsg("药品详情转换异常,请检查药品数据是否正确");
-                return result;
-            }
-
-            if (CollectionUtils.isEmpty(details)) {
-                LOG.warn("createPrescription 药品详情转换错误, hospitalRecipeDTO={}", JSONUtils.toString(hospitalRecipeDTO));
-                result.setMsg("药品详情转换错误");
-                return result;
-            }
-
-            //写入DB
-            try {
-                Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(
-                        ObjectCopyUtils.convert(recipe, Recipe.class),
-                        ObjectCopyUtils.convert(details, Recipedetail.class), false);
-                LOG.info("createPrescription 写入DB成功. recipeId={}", recipeId);
-                recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "医院处方接收成功");
-                recipe.setRecipeId(recipeId);
-                result.setData(recipe);
-                result.setCode(HosRecipeResult.SUCCESS);
-                //挂号序号/门诊号设置
-                if (StringUtils.isNotEmpty(hospitalRecipeDTO.getRegisterId())){
-                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-                    if (recipeExtend == null){
-                        recipeExtend = new RecipeExtend();
-                        recipeExtend.setRecipeId(recipeId);
-                        recipeExtend.setRegisterID(hospitalRecipeDTO.getRegisterId());
-                        recipeExtendDAO.saveRecipeExtend(recipeExtend);
+                //创建详情数据
+                List<RecipeDetailBean> details;
+                //武昌机构集合
+                Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_WUCHANG_ORGAN_LIST);
+                try {
+                    if ((CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(recipe.getClinicOrgan().toString()))){
+                        details = PrescribeProcess.convertNgariDetailForWuChang(hospitalRecipeDTO);
                     }else {
-                        recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("registerID", hospitalRecipeDTO.getRegisterId()));
+                        details= PrescribeProcess.convertNgariDetail(hospitalRecipeDTO);
                     }
+                } catch (Exception e) {
+                    LOG.warn("createPrescription 药品详情转换异常, hospitalRecipeDTO={},{}", JSONUtils.toString(hospitalRecipeDTO),e);
+                    result.setMsg("药品详情转换异常,请检查药品数据是否正确");
+                    return result;
                 }
-            } catch (Exception e) {
-                LOG.error("createPrescription 写入DB失败. recipe={}, detail={}", JSONUtils.toString(recipe),
-                        JSONUtils.toString(details), e);
-                result.setMsg("写入DB失败");
+
+                if (CollectionUtils.isEmpty(details)) {
+                    LOG.warn("createPrescription 药品详情转换错误, hospitalRecipeDTO={}", JSONUtils.toString(hospitalRecipeDTO));
+                    result.setMsg("药品详情转换错误");
+                    return result;
+                }
+
+                //写入DB
+                try {
+                    Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(
+                            ObjectCopyUtils.convert(recipe, Recipe.class),
+                            ObjectCopyUtils.convert(details, Recipedetail.class), false);
+                    LOG.info("createPrescription 写入DB成功. recipeId={}", recipeId);
+                    recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "医院处方接收成功");
+                    recipe.setRecipeId(recipeId);
+                    result.setData(recipe);
+                    result.setCode(HosRecipeResult.SUCCESS);
+                    //挂号序号/门诊号设置
+                    if (StringUtils.isNotEmpty(hospitalRecipeDTO.getRegisterId())){
+                        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+                        if (recipeExtend == null){
+                            recipeExtend = new RecipeExtend();
+                            recipeExtend.setRecipeId(recipeId);
+                            recipeExtend.setRegisterID(hospitalRecipeDTO.getRegisterId());
+                            recipeExtendDAO.saveRecipeExtend(recipeExtend);
+                        }else {
+                            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("registerID", hospitalRecipeDTO.getRegisterId()));
+                        }
+                    }
+                } catch (Exception e) {
+                    LOG.error("createPrescription 写入DB失败. recipe={}, detail={}", JSONUtils.toString(recipe),
+                            JSONUtils.toString(details), e);
+                    result.setMsg("写入DB失败");
+                }
             }
         } else {
             LOG.warn("createPrescription recipe is empty.");
@@ -290,6 +361,63 @@ public class PrescribeService {
         }
 
         return result;
+    }
+
+    private void saveHospitalRecipe(HospitalRecipeDTO hospitalRecipeDTO) {
+        HospitalRecipeDAO hospitalRecipeDAO = DAOFactory.getDAO(HospitalRecipeDAO.class);
+        HospitalRecipe hospitalRecipe = new HospitalRecipe();
+        hospitalRecipe.setRecipeCode(hospitalRecipeDTO.getRecipeCode());
+        hospitalRecipe.setClinicId(hospitalRecipeDTO.getClinicId());
+        hospitalRecipe.setPatientId(hospitalRecipeDTO.getMpiId());
+        hospitalRecipe.setCertificate(hospitalRecipeDTO.getCertificate());
+        hospitalRecipe.setPatientName(hospitalRecipeDTO.getPatientName());
+        hospitalRecipe.setPatientTel(hospitalRecipeDTO.getPatientTel());
+        hospitalRecipe.setPatientNumber(hospitalRecipeDTO.getPatientNumber());
+        hospitalRecipe.setRegisterId(hospitalRecipeDTO.getRegisterId());
+        hospitalRecipe.setPatientSex(hospitalRecipeDTO.getPatientSex());
+        hospitalRecipe.setClinicOrgan(hospitalRecipeDTO.getClinicOrgan());
+        hospitalRecipe.setOrganId(hospitalRecipeDTO.getOrganId());
+        hospitalRecipe.setDoctorNumber(hospitalRecipeDTO.getDoctorNumber());
+        hospitalRecipe.setDoctorName(hospitalRecipeDTO.getDoctorName());
+        hospitalRecipe.setCreateDate(hospitalRecipeDTO.getCreateDate());
+        hospitalRecipeDAO.save(hospitalRecipe);
+    }
+
+    private Recipe saveRecipeByHospitalRecipeDTO(HospitalRecipeDTO hospitalRecipeDTO, PatientDTO patientDTO, OrganBean organ) {
+        //设置医生信息
+        EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
+        EmploymentDTO employment = null;
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = new Recipe();
+        try {
+            employment = employmentService.getByJobNumberAndOrganId(
+                    hospitalRecipeDTO.getDoctorNumber(), organ.getOrganId());
+
+        } catch (Exception e) {
+            LOG.warn("createPrescription 查询医生执业点异常，doctorNumber={}, clinicOrgan={}",
+                    hospitalRecipeDTO.getDoctorNumber(), organ.getOrganId(), e);
+        } finally {
+            if (null != employment) {
+                recipe.setMpiid(patientDTO.getMpiId());
+                recipe.setPatientName(patientDTO.getPatientName());
+                recipe.setClinicOrgan(organ.getOrganId());
+                recipe.setOrganName(organ.getName());
+                recipe.setRecipeType(1);
+                recipe.setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);
+                recipe.setDoctor(employment.getDoctorId());
+                recipe.setDoctorName(hospitalRecipeDTO.getDoctorName());
+                recipe.setPayFlag(0);
+                recipe.setGiveFlag(0);
+                recipe.setStatus(2);
+                recipe.setFromflag(0);
+                recipe.setChooseFlag(0);
+                recipe.setRemindFlag(0);
+                recipe.setPushFlag(1);
+                recipe.setTakeMedicine(1);
+                return recipeDAO.saveRecipe(recipe);
+            }
+        }
+        return null;
     }
 
     /**

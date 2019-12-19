@@ -141,6 +141,9 @@ public class Recipedetail implements java.io.Serializable {
     @ItemProperty(alias="医院给患者开票日期")
     private Date patientInvoiceDate;
 
+	@ItemProperty(alias="处方明细单号")
+	private String recipedtlno;
+
 	public Recipedetail() {
 	}
 
@@ -540,4 +543,13 @@ public class Recipedetail implements java.io.Serializable {
     public void setPatientInvoiceDate(Date patientInvoiceDate) {
         this.patientInvoiceDate = patientInvoiceDate;
     }
+
+	@Column(name = "recipedtlno")
+	public String getRecipedtlno() {
+		return recipedtlno;
+	}
+
+	public void setRecipedtlno(String recipedtlno) {
+		this.recipedtlno = recipedtlno;
+	}
 }
