@@ -16,6 +16,7 @@ import com.ngari.his.recipe.mode.UpdateTakeDrugWayReqTO;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.qimencloud.api.sceneqimen.request.AlibabaAlihealthPrescriptionStatusSyncRequest;
 import com.qimencloud.api.sceneqimen.response.AlibabaAlihealthPrescriptionStatusSyncResponse;
 import com.taobao.api.ApiException;
@@ -156,6 +157,11 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
             result.setCode(DrugEnterpriseResult.FAIL);
         }
         return result;
+    }
+
+    @Override
+    public DrugEnterpriseResult pushRecipeInfo(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
+        return DrugEnterpriseResult.getSuccess();
     }
 
     /*
