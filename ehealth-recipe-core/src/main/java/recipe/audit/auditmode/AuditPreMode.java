@@ -1,12 +1,14 @@
 package recipe.audit.auditmode;
 
+import com.ngari.patient.service.HealthCardService;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.DAOFactory;
-import eh.cdr.constant.RecipeStatusConstant;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.RecipeBussConstant;
+import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDetailDAO;
 import recipe.hisservice.syncdata.SyncExecutorService;
@@ -26,7 +28,13 @@ public class AuditPreMode extends AbstractAuidtMode {
     @Override
     public void afterHisCallBackChange(Integer status,Recipe recipe,String memo) {
         if (status == RecipeStatusConstant.CHECK_PASS){
-            status = RecipeStatusConstant.READY_CHECK_YS;
+            //todo 判断是否是杭州市医保患者，医保患者得医保信息回传后才能设置待审核
+            if (RecipeServiceSub.isMedicalPatient(recipe.getMpiid(),recipe.getClinicOrgan())){
+                //医保上传确认中----三天后没回传就设置成已取消
+                status = RecipeStatusConstant.CHECKING_MEDICAL_INSURANCE;
+            }else {
+                status = RecipeStatusConstant.READY_CHECK_YS;
+            }
         }
         // 平台模式前置需要发送卡片
         //if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())){

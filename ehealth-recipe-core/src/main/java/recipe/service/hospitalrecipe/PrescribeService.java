@@ -316,24 +316,37 @@ public class PrescribeService {
                 return result;
             }
 
-            //转换组织结构编码
+
             Integer clinicOrgan = null;
-            try {
-                OrganBean organ = getOrganByOrganId(request.getOrganId());
-                if (null != organ) {
-                    clinicOrgan = organ.getOrganId();
-                }
-            } catch (Exception e) {
-                LOG.warn("updateRecipeStatus 查询机构异常，organId={}", request.getOrganId(), e);
-            } finally {
-                if (null == clinicOrgan) {
-                    LOG.warn("updateRecipeStatus 平台未匹配到该组织机构编码，organId={}", request.getOrganId());
-                    result.setMsg("平台未匹配到该组织机构编码");
+            Recipe dbRecipe;
+            //是否更新处方号 此时必须要有平台处方id
+            if (request.getUpdateRecipeCodeFlag() == null){
+                request.setUpdateRecipeCodeFlag(false);
+            }
+            if (request.getUpdateRecipeCodeFlag()){
+                if (StringUtils.isEmpty(request.getPlatRecipeID())){
+                    result.setMsg("平台处方Id为空");
                     return result;
                 }
+                dbRecipe = recipeDAO.getByRecipeId(Integer.valueOf(request.getPlatRecipeID()));
+            }else {
+                //转换组织结构编码
+                try {
+                    OrganBean organ = getOrganByOrganId(request.getOrganId());
+                    if (null != organ) {
+                        clinicOrgan = organ.getOrganId();
+                    }
+                } catch (Exception e) {
+                    LOG.warn("updateRecipeStatus 查询机构异常，organId={}", request.getOrganId(), e);
+                } finally {
+                    if (null == clinicOrgan) {
+                        LOG.warn("updateRecipeStatus 平台未匹配到该组织机构编码，organId={}", request.getOrganId());
+                        result.setMsg("平台未匹配到该组织机构编码");
+                        return result;
+                    }
+                }
+                dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(request.getRecipeCode(), clinicOrgan);
             }
-
-            Recipe dbRecipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(request.getRecipeCode(), clinicOrgan);
             //数据对比
             if (null == dbRecipe) {
                 result.setMsg("不存在该处方");
@@ -382,7 +395,6 @@ public class PrescribeService {
                     if (StringUtils.isNotEmpty(otherInfo.get("distributionFlag"))
                             && "1".equals(otherInfo.get("distributionFlag"))){
                         recipeDAO.updateRecipeInfoByRecipeId(recipeId,ImmutableMap.of("distributionFlag", 1));
-
                     }else {
                         String cardTypeName = otherInfo.get("cardTypeName");
                         String cardNo = otherInfo.get("cardNo");
@@ -391,6 +403,10 @@ public class PrescribeService {
                     }
                     RecipeCheckPassResult recipeCheckPassResult = new RecipeCheckPassResult();
                     recipeCheckPassResult.setRecipeId(recipeId);
+                    if (request.getUpdateRecipeCodeFlag()){
+                        //设置处方号，后续会更新该处方号
+                        recipeCheckPassResult.setRecipeCode(request.getRecipeCode());
+                    }
                     HisCallBackService.checkPassSuccess(recipeCheckPassResult, true);
                     result.setCode(HosRecipeResult.SUCCESS);
 

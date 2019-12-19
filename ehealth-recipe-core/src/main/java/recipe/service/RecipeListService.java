@@ -15,6 +15,7 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.*;
@@ -38,6 +39,7 @@ import recipe.ApplicationUtils;
 import recipe.constant.*;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.dao.bean.RecipeRollingInfo;
@@ -930,8 +932,9 @@ public class RecipeListService extends RecipeBaseService{
         }
         //获取配置项
         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-        if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(record.getRecipeMode())){
 
+        if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(record.getRecipeMode())
+            || RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(record.getRecipeMode())){
 
             //添加按钮配置项key
             Object payModeDeploy = configService.getConfiguration(record.getOrganId(), "payModeDeploy");
@@ -953,12 +956,12 @@ public class RecipeListService extends RecipeBaseService{
                     (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus())));
             payModeShowButtonBean.setOptional(isOptional);
 
-        }else if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(record.getRecipeMode())){
-            //初始化互联网按钮信息
-            initInternetModel(record, payModeShowButtonBean, recipe);
-
-        }else{
-            LOGGER.warn("processTabListDate: recipeId:{}recipeMode:{},对应处方流转方式无法识别", record.getRecipeId(), record.getRecipeMode());
+            //初始化互联网按钮信息（特殊化）
+            if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(record.getRecipeMode())){
+                initInternetModel(record, payModeShowButtonBean, recipe);
+            }
+        } else{
+            LOGGER.warn("processTabListDate: recipeId:{}  recipeMode:{},对应处方流转方式无法识别", record.getRecipeId(), record.getRecipeMode());
             payModeShowButtonBean.noUserButtons();
             return payModeShowButtonBean;
         }
@@ -988,22 +991,34 @@ public class RecipeListService extends RecipeBaseService{
      * @param recipe 处方信息
      * @return void
      */
-    private void initInternetModel(PatientTabStatusRecipeDTO record, PayModeShowButtonBean payModeShowButtonBean, Recipe recipe) {
+    public void initInternetModel(PatientTabStatusRecipeDTO record, PayModeShowButtonBean payModeShowButtonBean, Recipe recipe) {
 
-        //互联网购药方式的配置
-        if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(record.getRecipeMode())){
-            //设置购药方式哪些可用
-            //配送到家默认可用
-            payModeShowButtonBean.setSupportOnline(true);
-            //到店取药默认不可用(20190926修改成可用了)
-            payModeShowButtonBean.setSupportTFDS(true);
-            //医院取药需要看数据
-            boolean hosFlag = true;
-            if(1 == recipe.getDistributionFlag()){
-                hosFlag = false;
+
+
+        RecipeExtendDAO RecipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = RecipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        if(null != recipeExtend.getGiveModeFormHis()){
+            if("1".equals(recipeExtend.getGiveModeFormHis())){
+                //只支持配送到家
+                payModeShowButtonBean.setSupportToHos(false);
+            } else if ("2".equals(recipeExtend.getGiveModeFormHis())){
+                //只支持到院取药
+                payModeShowButtonBean.setSupportOnline(false);
+            } else if ("3".equals(recipeExtend.getGiveModeFormHis())){
+                //都支持
+            } else{
+                //都不支持
+                payModeShowButtonBean.setSupportOnline(false);
+                payModeShowButtonBean.setSupportToHos(false);
             }
-            payModeShowButtonBean.setSupportToHos(hosFlag);
+        } else {
+            //省平台互联网购药方式的配置
+            if(1 == recipe.getDistributionFlag()){
+                payModeShowButtonBean.setSupportToHos(false);
+            }
         }
+
+
     }
 
     /**

@@ -59,6 +59,24 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "天猫返回处方编号")
     private String  rxNo;
 
+    @ItemProperty(alias = "his返回的取药方式1配送到家 2医院取药 3两者都支持")
+    private String giveModeFormHis;
+
+    @ItemProperty(alias = "his返回的配送药企代码")
+    private String deliveryCode;
+
+    @ItemProperty(alias = "his返回的配送药企名称")
+    private String deliveryName;
+
+    @ItemProperty(alias = "医保返回的医院机构编码")
+    private String hospOrgCodeFromMedical;
+
+    @ItemProperty(alias = "参保地统筹区")
+    private String insuredArea;
+
+    @ItemProperty(alias = "医保结算请求串")
+    private String medicalSettleData;
+
     public RecipeExtend() {
     }
 
@@ -189,4 +207,57 @@ public class RecipeExtend implements Serializable {
         this.rxNo = rxNo;
     }
 
+    @Column(name = "giveModeFormHis")
+    public String getGiveModeFormHis() {
+        return giveModeFormHis;
+    }
+
+    public void setGiveModeFormHis(String giveModeFormHis) {
+        this.giveModeFormHis = giveModeFormHis;
+    }
+
+    @Column(name = "deliveryCode")
+    public String getDeliveryCode() {
+        return deliveryCode;
+    }
+
+    public void setDeliveryCode(String deliveryCode) {
+        this.deliveryCode = deliveryCode;
+    }
+
+    @Column(name = "deliveryName")
+    public String getDeliveryName() {
+        return deliveryName;
+    }
+
+    public void setDeliveryName(String deliveryName) {
+        this.deliveryName = deliveryName;
+    }
+
+    @Column(name = "insuredArea")
+    public String getInsuredArea() {
+        return insuredArea;
+    }
+
+    public void setInsuredArea(String insuredArea) {
+        this.insuredArea = insuredArea;
+    }
+
+    @Column(name = "medicalSettleData")
+    public String getMedicalSettleData() {
+        return medicalSettleData;
+    }
+
+    public void setMedicalSettleData(String medicalSettleData) {
+        this.medicalSettleData = medicalSettleData;
+    }
+
+    @Column(name = "hospOrgCodeFromMedical")
+    public String getHospOrgCodeFromMedical() {
+        return hospOrgCodeFromMedical;
+    }
+
+    public void setHospOrgCodeFromMedical(String hospOrgCodeFromMedical) {
+        this.hospOrgCodeFromMedical = hospOrgCodeFromMedical;
+    }
 }
