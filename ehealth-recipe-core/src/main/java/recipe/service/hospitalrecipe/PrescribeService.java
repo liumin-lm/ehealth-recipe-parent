@@ -44,6 +44,7 @@ import recipe.service.*;
 import recipe.service.hospitalrecipe.dataprocess.PrescribeProcess;
 import recipe.util.RedisClient;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -90,6 +91,8 @@ public class PrescribeService {
         result.setCode(HosRecipeResult.FAIL);
         if (null != hospitalRecipeDTO) {
             if (hospitalRecipeDTO.getNoSaveRecipeFlag()) {
+                //保存数据
+                saveHospitalRecipe(hospitalRecipeDTO);
                 RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
                 //说明不需要保存处方到平台可以直接传给药企
                 //转换组织结构编码
@@ -123,7 +126,16 @@ public class PrescribeService {
                             Recipe simpleRecipe = saveRecipeByHospitalRecipeDTO(hospitalRecipeDTO, patientDTO, organ);
                             if (simpleRecipe != null) {
                                 //推送模板消息
-                                RecipeMsgService.batchSendMsg(simpleRecipe, RecipeStatusConstant.CHECK_PASS);
+                                Map<String, Object> map = new HashMap<>();
+                                map.put("doctorName",hospitalRecipeDTO.getDoctorName());
+                                map.put("recipeType", "西药");
+                                map.put("organId", organ.getOrganId());
+                                map.put("idCard", hospitalRecipeDTO.getCertificate());
+                                map.put("patientName",hospitalRecipeDTO.getPatientName());
+                                map.put("signTime",hospitalRecipeDTO.getCreateDate());
+                                map.put("appId",null);
+                                map.put("openId",null);
+                                RecipeMsgService.sendRecipeThirdMsg(map);
                             }
                         } else {
                             //用户没有注册,需要给用户发送短信
@@ -349,6 +361,26 @@ public class PrescribeService {
         }
 
         return result;
+    }
+
+    private void saveHospitalRecipe(HospitalRecipeDTO hospitalRecipeDTO) {
+        HospitalRecipeDAO hospitalRecipeDAO = DAOFactory.getDAO(HospitalRecipeDAO.class);
+        HospitalRecipe hospitalRecipe = new HospitalRecipe();
+        hospitalRecipe.setRecipeCode(hospitalRecipeDTO.getRecipeCode());
+        hospitalRecipe.setClinicId(hospitalRecipeDTO.getClinicId());
+        hospitalRecipe.setPatientId(hospitalRecipeDTO.getMpiId());
+        hospitalRecipe.setCertificate(hospitalRecipeDTO.getCertificate());
+        hospitalRecipe.setPatientName(hospitalRecipeDTO.getPatientName());
+        hospitalRecipe.setPatientTel(hospitalRecipeDTO.getPatientTel());
+        hospitalRecipe.setPatientNumber(hospitalRecipeDTO.getPatientNumber());
+        hospitalRecipe.setRegisterId(hospitalRecipeDTO.getRegisterId());
+        hospitalRecipe.setPatientSex(hospitalRecipeDTO.getPatientSex());
+        hospitalRecipe.setClinicOrgan(hospitalRecipeDTO.getClinicOrgan());
+        hospitalRecipe.setOrganId(hospitalRecipeDTO.getOrganId());
+        hospitalRecipe.setDoctorNumber(hospitalRecipeDTO.getDoctorNumber());
+        hospitalRecipe.setDoctorName(hospitalRecipeDTO.getDoctorName());
+        hospitalRecipe.setCreateDate(hospitalRecipeDTO.getCreateDate());
+        hospitalRecipeDAO.save(hospitalRecipe);
     }
 
     private Recipe saveRecipeByHospitalRecipeDTO(HospitalRecipeDTO hospitalRecipeDTO, PatientDTO patientDTO, OrganBean organ) {

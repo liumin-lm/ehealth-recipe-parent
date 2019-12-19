@@ -29,15 +29,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.bussutil.RecipeUtil;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
-import recipe.util.DateConversion;
-import recipe.util.RSAEncryptUtils;
+import recipe.drugsenterprise.bean.yd.httpclient.HttpsClientUtils;
+import recipe.drugsenterprise.bean.yd.model.*;
+import recipe.drugsenterprise.bean.yd.utils.StdInputGenerator;
 
 import javax.annotation.Resource;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 
 /**
@@ -50,6 +50,9 @@ public class YdRemoteService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(YdRemoteService.class);
 
+    private static final String public_key1_path = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCrfoEAF7+NkAfTqOrakgfH3u9xsaEZxJ/3QB/m3iGSDuolmSaajsBBH1AD4Op9yOhN1mE92Fx6sosBy33XGd2YVfWxSXDFTR3vPPbDJZpJgMYeZw4tz1xn6sVP/dUg28A3w4rVQ4FuYLJ2WvdfOjiiZtWghpIBynQxcHgBW61xHQIDAQAB";
+    private static final String private_key2_path = "MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBALGcz+NKE50fJDY0D8i4ysApvv/4/wwihFvSAZzWXnUBGkLSx/mTIeV/QSHUutcmtuoZhACruKI3VB2RBXpjjvXeZF9P4FuUmuuB91A4fOW66+EpxRPq1OoZaB5B9O60Y8AZh+V+nDK+udgI4Thl77vC6dwaZvjeEp44LdQFxBzZAgMBAAECgYAF4YVYp0lC+JcAXHTxVn0QI9G5NAtt4W60g52eDdMO2Lx/3e7VKrQCn1YOwrZ1DUkdMz8VrpnsdRyJ5hViWg2PtGstI956jcXESppeCWDP+peoG/2RBjC7wK3LAVb5qwTukxDzNJfcUVtdJBUirEcJb1PyGS03HJtGEUAMdD1KAQJBAOELWz3Nwa/Bn1Dz+zHn1gmyM8llBTkbw5AWrzTngKorVREFpGPzsXSkg8vKsNtjoRWaeCOgqTm4VQj+Gkul2uECQQDKCzTJrr8kwIQRFTA/lKpOaE+/f8pMiBSshwfPPLxfzCrbQ3YCd1IxWMAhcyql83tfDK+R3w0gagPBOPZUsTj5AkAzznh3ttlCy7EQYspOB8/nNYXkdAQKzJBtqDs3U5/0DLutin34oI4WixToIkYqizn3DjNgCElMx1mUE2McTRchAkEAtS3BY44pZ/qfM3ZtssZMxkzyHoao0WJCL8hSr3sGbV13nPHs1B9N/GRavmQ4/WHO4xhMJKIBcmy++zlqY94ceQJBALZdU+2lYEROKZ7B8C5SPHYVQzAgIwgKkbxdUT1Ztv+xMIUJRa8iAjZUGIxKk53dHMfU58kP5/ah/M2TmeAlfbc=";
+
     @Resource
     private RecipeDAO recipeDAO;
 
@@ -61,10 +64,53 @@ public class YdRemoteService extends AccessDrugEnterpriseService {
         LOGGER.info("YdRemoteService tokenUpdateImpl not implement.");
     }
 
+    private StdInputVo stdInputVo(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) throws Exception {
+        RecipeVo recipeVo = YdRecipeVO.getRecipeVo(hospitalRecipeDTO);
+        String params = recipeVo.toJSONString();
+        //设置RSA校验
+        StdInputVo inputVo = StdInputGenerator.toStdInputVo(enterprise.getUserId(), enterprise.getPassword(), params, EncryptMode.RSA, public_key1_path);
+
+        System.out.print("上传数据参数："+inputVo.toJSONString());
+
+        return inputVo;
+    }
+
     @RpcService
     public void test() {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(3050);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(220);
+        HospitalRecipeDTO hospitalRecipeDTO = new HospitalRecipeDTO();
+        hospitalRecipeDTO.setOrganId("470003265");
+        hospitalRecipeDTO.setRecipeCode("Rx-20191218");
+        hospitalRecipeDTO.setPatientNumber("4590121");
+        hospitalRecipeDTO.setPatientName("姜润康");
+        hospitalRecipeDTO.setCertificate("330781198509076796");
+        hospitalRecipeDTO.setPatientTel("18844145458");
+        hospitalRecipeDTO.setRegisterId("1231221");
+        hospitalRecipeDTO.setPatientSex("男");
+        hospitalRecipeDTO.setCreateDate("2019-12-18 15:25:10");
+        hospitalRecipeDTO.setDepartId("1");
+        hospitalRecipeDTO.setDoctorNumber("1231212");
+        hospitalRecipeDTO.setDoctorName("崔小可");
+        hospitalRecipeDTO.setOrganDiseaseId("ZBF070");
+        hospitalRecipeDTO.setOrganDiseaseName("风寒感冒");
+        List<HospitalDrugDTO> hospitalDrugDTOS = new ArrayList<>();
+        HospitalDrugDTO hospitalDrugDTO = new HospitalDrugDTO();
+        hospitalDrugDTO.setDrugCode("1231221");
+        hospitalDrugDTO.setDrugCode("122111");
+        hospitalDrugDTO.setDrugName("硝苯地平控释片");
+        hospitalDrugDTO.setProducer("北京拜耳");
+        hospitalDrugDTO.setSpecification("30mg*7片");
+        hospitalDrugDTO.setUsingRate("qd");
+        hospitalDrugDTO.setUsePathways("po");
+        hospitalDrugDTO.setUesDays("3");
+        hospitalDrugDTO.setUseDose("30");
+        hospitalDrugDTO.setUseDoseUnit("mg");
+        hospitalDrugDTO.setDrugFee("20");
+
+        hospitalDrugDTOS.add(hospitalDrugDTO);
+        hospitalRecipeDTO.setDrugList(hospitalDrugDTOS);
+        pushRecipeInfo(hospitalRecipeDTO, drugsEnterprise);
 
     }
 
@@ -78,126 +124,32 @@ public class YdRemoteService extends AccessDrugEnterpriseService {
         LOGGER.info("YdRemoteService-pushRecipeInfo hospitalRecipeDTO:{}.", JSONUtils.toString(hospitalRecipeDTO));
         DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
 
-        Integer depId = enterprise.getId();
-
-        YdRecipeInfoRequest recipeInfoRequest = new YdRecipeInfoRequest();
         if (!ObjectUtils.isEmpty(hospitalRecipeDTO)) {
-            DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
-            IOrganService organService = BaseAPI.getService(IOrganService.class);
-            OrganBean organ = null;
-            List<OrganBean> organList = organService.findByOrganizeCode(hospitalRecipeDTO.getOrganId());
-            if (CollectionUtils.isNotEmpty(organList)) {
-                organ = organList.get(0);
-            }
-            if (organ == null) {
-                return getDrugEnterpriseResult(result, "机构信息为空");
-            }
-            recipeInfoRequest.setRecipeno(hospitalRecipeDTO.getRecipeCode());
-
-            recipeInfoRequest.setHospitalid(organ.getOrganizeCode());
-            recipeInfoRequest.setCaseno(hospitalRecipeDTO.getPatientNumber()); //病历号
-            //TODO 诊疗卡号
-            recipeInfoRequest.setHiscardno(""); //诊疗卡号
-            recipeInfoRequest.setPatientname(hospitalRecipeDTO.getPatientName());
-            recipeInfoRequest.setIdnumber(hospitalRecipeDTO.getCertificate());
-            recipeInfoRequest.setMobile(hospitalRecipeDTO.getPatientTel());
-            recipeInfoRequest.setOuthospno(hospitalRecipeDTO.getRegisterId());
-
-            recipeInfoRequest.setEmpsex(hospitalRecipeDTO.getPatientSex());
             try{
-                String certificate = ChinaIDNumberUtil.convert15To18(hospitalRecipeDTO.getCertificate());
-                Integer age = ChinaIDNumberUtil.getAgeFromIDNumber(certificate);
-                Date birthday = ChinaIDNumberUtil.getBirthFromIDNumber(certificate);
-                recipeInfoRequest.setBirthdate(DateConversion.formatDate(birthday));
-                recipeInfoRequest.setAge(age+"");
+                StdInputVo inputVo = stdInputVo(hospitalRecipeDTO, enterprise);
+                String outputJson = HttpsClientUtils.doPost(enterprise.getBusinessUrl() + "/api/std/recipe/upload",inputVo.toJSONString());
+                LOGGER.info("YdRemoteService-pushRecipeInfo 接口返回值:{}.", outputJson);
+                if(outputJson != null){
+                    StdOutputVo outputVo = StdOutputVo.fromJson(outputJson);
+                    String data = outputVo.decodeStdOutput(EncryptMode.RSA,private_key2_path);
+                    LOGGER.info("YdRemoteService-pushRecipeInfo 返回参数解析:{}.", data);
+                    YdResponse ydResponse = JSONUtils.parse(data, YdResponse.class);
+                    if ("true".equals(ydResponse.getSuccess())) {
+                        result.setCode(DrugEnterpriseResult.SUCCESS);
+                    } else {
+                        result.setCode(DrugEnterpriseResult.FAIL);
+                    }
+                }
             }catch(Exception e){
-                LOGGER.info("YdRemoteService-pushRecipeInfo");
+                LOGGER.info("YdRemoteService-pushRecipeInfo error:{}.", e.getMessage(), e);
             }
-            recipeInfoRequest.setVisitdate(hospitalRecipeDTO.getCreateDate());
-            recipeInfoRequest.setPatienttypename("门诊");
-            recipeInfoRequest.setMedicarecategname("");
-            recipeInfoRequest.setSignalsourcetypename("");
-            DepartmentDTO departmentDTO = departmentService.get(Integer.parseInt(hospitalRecipeDTO.getDepartId()));
-            if (departmentDTO == null) {
-                return getDrugEnterpriseResult(result, "科室信息为空");
-            }
-            recipeInfoRequest.setRegistdeptcode(departmentDTO.getProfessionCode());
-            recipeInfoRequest.setRegistdeptname(departmentDTO.getName());
-            recipeInfoRequest.setRecipestatus("1");
-            recipeInfoRequest.setHospital(organ.getName());
-            recipeInfoRequest.setRegistdrcode(hospitalRecipeDTO.getDoctorNumber());
-            recipeInfoRequest.setRegistdrname(hospitalRecipeDTO.getDoctorName());
-            recipeInfoRequest.setDiagcode(hospitalRecipeDTO.getOrganDiseaseId());
-            recipeInfoRequest.setDiagname(hospitalRecipeDTO.getOrganDiseaseName());
-            List<HospitalDrugDTO> hospitalDrugDTOS = hospitalRecipeDTO.getDrugList();
-            List<RecipeDtlVo> recipeDtlVos = new ArrayList<>();
-            for (HospitalDrugDTO hospitalDrugDTO : hospitalDrugDTOS) {
-                //处方明细
-                RecipeDtlVo recipeDtlVo = new RecipeDtlVo();
-                recipeDtlVo.setRecipedtlno(hospitalDrugDTO.getRecipedtlno());
-                //TODO 药品剂型代码
-                recipeDtlVo.setClasstypeno("");
-                //TODO 药品剂型名称
-                recipeDtlVo.setClasstypename("");
-                recipeDtlVo.setDrugcode(hospitalDrugDTO.getDrugCode());
-                recipeDtlVo.setDrugname(hospitalDrugDTO.getDrugName());
-                recipeDtlVo.setProdarea("无");
-                recipeDtlVo.setFactoryname(hospitalDrugDTO.getProducer());
-                recipeDtlVo.setDrugspec(hospitalDrugDTO.getSpecification());
-                String usingRate ;
-                String usePathways ;
-                try {
-                    usingRate = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(hospitalDrugDTO.getUsingRate());
-                    usePathways = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(hospitalDrugDTO.getUsePathways());
-                } catch (ControllerException e) {
-                    return getDrugEnterpriseResult(result, "药物使用频率使用途径获取失败" + e.getMessage());
-                }
-                recipeDtlVo.setFreqname(usingRate);
-                recipeDtlVo.setSustaineddays(Integer.parseInt(hospitalDrugDTO.getUesDays()));
-                recipeDtlVo.setQuantity(Double.parseDouble(hospitalDrugDTO.getUseDose()));
-                recipeDtlVo.setDrugunit(hospitalDrugDTO.getUseDoseUnit());
-                recipeDtlVo.setUnitprice(Double.parseDouble(hospitalDrugDTO.getDrugFee()));
-                recipeDtlVo.setMeasurement("");
-                recipeDtlVo.setMeasurementunit(hospitalDrugDTO.getUseDoseUnit());
-                recipeDtlVo.setUsagename(usePathways);
-                recipeDtlVo.setDosage(usingRate);
-                recipeDtlVo.setDosageunit(hospitalDrugDTO.getUseDoseUnit());
-                recipeDtlVos.add(recipeDtlVo);
-            }
-            recipeInfoRequest.setDetaillist(recipeDtlVos);
-
-        }
-        String parame = JSONUtils.toString(recipeInfoRequest);
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-        HttpPost httpPost = new HttpPost(enterprise.getBusinessUrl());
-        httpPost.setHeader("Content-Type", "application/json;charset=utf8");
-        StringEntity requestEntry = new StringEntity(getStringEntity(enterprise, parame), ContentType.APPLICATION_JSON);
-        httpPost.setEntity(requestEntry);
-        try{
-            //获取响应消息
-            CloseableHttpResponse response = httpClient.execute(httpPost);
-            HttpEntity httpEntity = response.getEntity();
-            String responseStr = EntityUtils.toString(httpEntity);
-
-            String decryptResponse = getDecryptResponse(responseStr);
-            LOGGER.info("[{}][{}] pushRecipeInfo 返回:{}", depId, enterprise.getName(), decryptResponse);
-            if (StringUtils.isNotEmpty(decryptResponse)) {
-                YdResponse ydResponse = JSONUtils.parse(decryptResponse, YdResponse.class);
-                if ("true".equals(ydResponse.getSuccess())) {
-                    result.setCode(DrugEnterpriseResult.SUCCESS);
-                } else {
-                    result.setCode(DrugEnterpriseResult.FAIL);
-                }
-            }
-        }catch(Exception e){
-            LOGGER.info("YdRemoteService-pushRecipeInfo 获取响应失败.");
         }
         return result;
     }
 
     @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
@@ -231,62 +183,5 @@ public class YdRemoteService extends AccessDrugEnterpriseService {
         LOGGER.info(msg);
         result.setCode(DrugEnterpriseResult.FAIL);
         return result;
-    }
-
-    /**
-     * 获取Cipher
-     * @param drugsEnterprise  药企
-     * @param param            请求参数
-     * @return                 cipher
-     */
-    private YdCipher getCipher(DrugsEnterprise drugsEnterprise, String param){
-        YdCipher cipher = new YdCipher();
-        cipher.setAppid(drugsEnterprise.getUserId());
-        cipher.setAppkey(drugsEnterprise.getPassword());
-        cipher.setParam(param);
-        cipher.setParamLength(param.length()+"");
-        cipher.setTimestamp(System.currentTimeMillis()+"");
-        cipher.setRandom(generateCode() + "");
-        return cipher;
-    }
-
-    private String getStringEntity(DrugsEnterprise drugsEnterprise, String param){
-        YdRequest request =  new YdRequest();
-        request.setAppid(drugsEnterprise.getUserId());
-        String encryptCipher = "";
-        try {
-            RSAPublicKey publicKey = RSAEncryptUtils.loadPublicKeyByFile();
-            byte[] cipher = RSAEncryptUtils.encrypt(publicKey, param.getBytes());
-            encryptCipher = new String(cipher, "utf-8");
-        }catch (Exception e){
-            LOGGER.info("YdRemoteService-getStringEntity 公钥加密失败.");
-        }
-
-        request.setCipher(encryptCipher);
-        request.setSignature(getCipher(drugsEnterprise, param).toMD5String());
-        request.setEncryptMode("RSA");
-        return JSONUtils.toString(request);
-    }
-
-    private String getDecryptResponse(String response){
-        try{
-            RSAPrivateKey privateKey = RSAEncryptUtils.loadPrivateKeyByFile();
-            byte[] decodeStr = RSAEncryptUtils.decrypt(privateKey,response.getBytes());
-            return new String(decodeStr, "utf-8");
-        }catch (Exception e){
-            LOGGER.info("YdRemoteService-getStringEntity 公钥加密失败.");
-        }
-        return "";
-    }
-
-    /**
-     * 生成8位随机数
-     * @return 8位随机数
-     */
-    private static synchronized int generateCode() {
-        int min = 10000000;
-        int max = 99999999;
-        Random random = new Random();
-        return random.nextInt(max)%(max-min+1) + min;
     }
 }

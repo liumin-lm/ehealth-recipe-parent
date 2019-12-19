@@ -1,21 +1,12 @@
-package recipe.drugsenterprise.bean;
+package recipe.drugsenterprise.bean.yd.model;
 
-import recipe.drugsenterprise.bean.yd.model.RecipeDtlVo;
+import recipe.drugsenterprise.bean.yd.utils.GsonUtils;
 
-import java.io.Serializable;
-import java.util.Date;
 import java.util.List;
 
-/**
- * 以大处方参数
- * @author yinsheng
- * @date 2019\12\13 0013 13:47
- */
-public class YdRecipeInfoRequest implements Serializable{
-    private static final long serialVersionUID = -2622463284164459587L;
+public class RecipeVo implements JsonAware {
 
     private String recipeno;
-    private String hospitalid;
     private String caseno;
     private String hiscardno;
     private String patientname;
@@ -49,8 +40,79 @@ public class YdRecipeInfoRequest implements Serializable{
     private String storeno;
     private String diagcode;
     private String diagname;
-    private String recipestatus;
     private List<RecipeDtlVo> detaillist;
+
+    //17:5253
+//星期二
+//2019年9月24日  新增
+    private String recipe_source_flag;    //处方来源类型 1：住院, 2：门诊
+    private String leave_hospital_date;   //出院时间
+    private String hospitalization_department;//患者住院科室名称
+    private String hospitalization_no;//住院号
+    private String hospitalization_bedno;//住院床号
+    private String consignorNo;
+
+    private String doctorName;
+
+
+//end
+
+
+    public String getDoctorName() {
+        return doctorName;
+    }
+
+    public void setDoctorName(String doctorName) {
+        this.doctorName = doctorName;
+    }
+
+    public String getConsignorNo() {
+        return consignorNo;
+    }
+
+    public void setConsignorNo(String consignorNo) {
+        this.consignorNo = consignorNo;
+    }
+
+    public String getRecipe_source_flag() {
+        return recipe_source_flag;
+    }
+
+    public void setRecipe_source_flag(String recipe_source_flag) {
+        this.recipe_source_flag = recipe_source_flag;
+    }
+
+    public String getLeave_hospital_date() {
+        return leave_hospital_date;
+    }
+
+    public void setLeave_hospital_date(String leave_hospital_date) {
+        this.leave_hospital_date = leave_hospital_date;
+    }
+
+    public String getHospitalization_department() {
+        return hospitalization_department;
+    }
+
+    public void setHospitalization_department(String hospitalization_department) {
+        this.hospitalization_department = hospitalization_department;
+    }
+
+    public String getHospitalization_no() {
+        return hospitalization_no;
+    }
+
+    public void setHospitalization_no(String hospitalization_no) {
+        this.hospitalization_no = hospitalization_no;
+    }
+
+    public String getHospitalization_bedno() {
+        return hospitalization_bedno;
+    }
+
+    public void setHospitalization_bedno(String hospitalization_bedno) {
+        this.hospitalization_bedno = hospitalization_bedno;
+    }
 
     public String getRecipeno() {
         return recipeno;
@@ -58,14 +120,6 @@ public class YdRecipeInfoRequest implements Serializable{
 
     public void setRecipeno(String recipeno) {
         this.recipeno = recipeno;
-    }
-
-    public String getHospitalid() {
-        return hospitalid;
-    }
-
-    public void setHospitalid(String hospitalid) {
-        this.hospitalid = hospitalid;
     }
 
     public String getCaseno() {
@@ -188,14 +242,6 @@ public class YdRecipeInfoRequest implements Serializable{
         this.registdeptname = registdeptname;
     }
 
-    public String getRecipestatus() {
-        return recipestatus;
-    }
-
-    public void setRecipestatus(String recipestatus) {
-        this.recipestatus = recipestatus;
-    }
-
     public String getHospital() {
         return hospital;
     }
@@ -284,6 +330,14 @@ public class YdRecipeInfoRequest implements Serializable{
         this.city = city;
     }
 
+    public String getDisrict() {
+        return disrict;
+    }
+
+    public void setDisrict(String disrict) {
+        this.disrict = disrict;
+    }
+
     public String getAddress() {
         return address;
     }
@@ -338,5 +392,9 @@ public class YdRecipeInfoRequest implements Serializable{
 
     public void setDetaillist(List<RecipeDtlVo> detaillist) {
         this.detaillist = detaillist;
+    }
+
+    public String toJSONString() {
+        return GsonUtils.toJson(this);
     }
 }

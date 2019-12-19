@@ -192,7 +192,8 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
         }
 
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-        HisResponseTO hisResult = service.recipeMedicalPreSettle(medicalPreSettleReqTO);
+        //HisResponseTO hisResult = service.recipeMedicalPreSettle(medicalPreSettleReqTO);
+        HisResponseTO hisResult = null;
         if(hisResult != null && "200".equals(hisResult.getMsgCode())){
             LOGGER.info("杭州互联网虚拟药企-处方预结算成功-his. param={},result={}", JSONUtils.toString(medicalPreSettleReqTO), JSONUtils.toString(hisResult));
             result.setCode(DrugEnterpriseResult.SUCCESS);
