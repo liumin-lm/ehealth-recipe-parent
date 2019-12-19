@@ -26,6 +26,12 @@ public class HospitalStatusUpdateDTO implements Serializable {
     @Verify(desc = "处方状态", isInt = true)
     private String status;
 
+    @Verify(isNotNull = false,desc = "平台处方ID")
+    private String platRecipeID;
+
+    @Verify(isNotNull = false,desc = "是否更新掉his返回的处方号")
+    private Boolean updateRecipeCodeFlag;
+
     public String getRecipeCode() {
         return recipeCode;
     }
@@ -56,5 +62,21 @@ public class HospitalStatusUpdateDTO implements Serializable {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getPlatRecipeID() {
+        return platRecipeID;
+    }
+
+    public void setPlatRecipeID(String platRecipeID) {
+        this.platRecipeID = platRecipeID;
+    }
+
+    public Boolean getUpdateRecipeCodeFlag() {
+        return updateRecipeCodeFlag;
+    }
+
+    public void setUpdateRecipeCodeFlag(Boolean updateRecipeCodeFlag) {
+        this.updateRecipeCodeFlag = updateRecipeCodeFlag;
     }
 }

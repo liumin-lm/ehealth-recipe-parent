@@ -130,9 +130,10 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         return result;
     }
 
-    private Integer updateEnterpriseInventory(Integer recipeId, DrugsEnterprise drugsEnterprise) {
+    private void updateEnterpriseInventory(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
+
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         //岳阳钥匙圈的需要对库存进行操作
         if ("岳阳-钥世圈".equals(drugsEnterprise.getName())) {
@@ -141,10 +142,9 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 Double useTotalDose = recipedetail.getUseTotalDose();
                 BigDecimal totalDose = new BigDecimal(useTotalDose);
                 LOGGER.info("YsqRemoteService-updateEnterpriseInventory 更新库存成功,更新药品:{},更新数量:{},处方单号：{}.", drugId, totalDose, recipeId);
-                return saleDrugListDAO.updateInventoryByOrganIdAndDrugId(drugsEnterprise.getId(), drugId, totalDose);
+                saleDrugListDAO.updateInventoryByOrganIdAndDrugId(drugsEnterprise.getId(), drugId, totalDose);
             }
         }
-        return -1;
     }
 
     @Override

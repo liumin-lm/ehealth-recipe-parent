@@ -86,6 +86,9 @@ public class DrugsEnterprise implements java.io.Serializable {
     @Dictionary(id = "eh.cdr.dictionary.DepType")
     private Integer createType;
 
+    @ItemProperty(alias = "运费细则图片ID")
+    private String transFeeDetail;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -265,6 +268,15 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setCreateType(Integer createType) {
         this.createType = createType;
+    }
+
+    @Column(name = "TransFeeDetail")
+    public String getTransFeeDetail() {
+        return transFeeDetail;
+    }
+
+    public void setTransFeeDetail(String transFeeDetail) {
+        this.transFeeDetail = transFeeDetail;
     }
 
     @Override

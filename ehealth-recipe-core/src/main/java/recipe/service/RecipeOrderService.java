@@ -216,6 +216,17 @@ public class RecipeOrderService extends RecipeBaseService {
         //指定了药企的话需要传该字段
         Integer depId = MapValueUtil.getInteger(extInfo, "depId");
         order.setEnterpriseId(depId);
+
+        //设置药企运费细则
+        if (order.getEnterpriseId() != null) {
+            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+            if(drugsEnterprise != null){
+                order.setEnterpriseName(drugsEnterprise.getName());
+                order.setTransFeeDetail(drugsEnterprise.getTransFeeDetail());
+            }
+        }
+
         order.setRecipeMode(recipeList.get(0).getRecipeMode());
         order.setGiveMode(recipeList.get(0).getGiveMode());
         payModeSupport = setPayModeSupport(order, payMode);
@@ -257,7 +268,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setRecipeFee(BigDecimal.ZERO);
                 order.setCouponFee(BigDecimal.ZERO);
                 order.setRegisterFee(BigDecimal.ZERO);
-                order.setExpressFee(BigDecimal.ZERO);
+//                order.setExpressFee(new BigDecimal("-1"));
                 order.setTotalFee(BigDecimal.ZERO);
                 order.setActualPrice(BigDecimal.ZERO.doubleValue());
                 double auditFee = getFee(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_AUDITFEE));
@@ -546,7 +557,7 @@ public class RecipeOrderService extends RecipeBaseService {
         //药店取药不需要地址信息
         if (payModeSupport.isSupportTFDS() || payModeSupport.isSupportDownload() || payModeSupport.isSupportToHos()) {
             order.setAddressCanSend(true);
-            order.setExpressFee(BigDecimal.ZERO);
+//            order.setExpressFee(new BigDecimal("-1"));
         } else {
             //设置运费
             IAddressService addressService = ApplicationUtils.getBaseService(IAddressService.class);
@@ -559,14 +570,14 @@ public class RecipeOrderService extends RecipeBaseService {
             }
             //此字段前端已不使用
             order.setAddressCanSend(false);
-            order.setExpressFee(BigDecimal.ZERO);
+//            order.setExpressFee(new BigDecimal("-1"));
             if (null != address) {
                 //可以在参数里传递快递费
                 String paramExpressFee = MapValueUtil.getString(extInfo, "expressFee");
                 //保存地址,费用信息
                 BigDecimal expressFee = null;
                 if (payModeSupport.isSupportMedicalInsureance()) {
-                    expressFee = BigDecimal.ZERO;
+//                    expressFee = new BigDecimal("-1");
                 } else {
                     if (StringUtils.isNotEmpty(paramExpressFee)) {
                         expressFee = new BigDecimal(paramExpressFee);
@@ -1174,12 +1185,15 @@ public class RecipeOrderService extends RecipeBaseService {
                     }
                 }
             }
+
+            RecipeOrderBean orderBean = ObjectCopyUtils.convert(order, RecipeOrderBean.class);
             if (order.getEnterpriseId() != null) {
                 DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-                order.setEnterpriseName(drugsEnterprise.getName());
+                if(drugsEnterprise != null){
+                    orderBean.setTransFeeDetail(drugsEnterprise.getTransFeeDetail());
+                }
             }
-            RecipeOrderBean orderBean = ObjectCopyUtils.convert(order, RecipeOrderBean.class);
             orderBean.setList(patientRecipeBeanList);
             result.setObject(orderBean);
             // 支付完成后跳转到订单详情页需要加挂号费服务费可配置
@@ -1347,7 +1361,7 @@ public class RecipeOrderService extends RecipeBaseService {
      */
     private BigDecimal getExpressFee(Integer enterpriseId, String address) {
         if (null == enterpriseId || StringUtils.isEmpty(address)) {
-            return BigDecimal.ZERO;
+            return null;
         }
         DrugDistributionPriceService priceService = ApplicationUtils.getRecipeService(DrugDistributionPriceService.class);
         DrugDistributionPriceBean expressFee = priceService.getDistributionPriceByEnterpriseIdAndAddrArea(enterpriseId, address);
@@ -1355,7 +1369,7 @@ public class RecipeOrderService extends RecipeBaseService {
             return expressFee.getDistributionPrice();
         }
 
-        return BigDecimal.ZERO;
+        return null;
     }
 
     /**
@@ -1896,6 +1910,20 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         return false;
+    }
+
+    /*
+     * @description 订单人脸识别faceToken存储
+     * @author gaomw
+     * @date 2019/12/13
+     * @param [recipeId]
+     * @return recipe.bean.DrugEnterpriseResult
+     */
+    @RpcService
+    public RecipeResultBean saveSmkFaceToken(String orderCode, String smkFaceToken) {
+
+        RecipeResultBean result = this.updateOrderInfo(orderCode, ImmutableMap.of("smkFaceToken", smkFaceToken), null);
+        return result;
     }
 
 }

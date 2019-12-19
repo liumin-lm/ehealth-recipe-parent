@@ -73,6 +73,9 @@ public class DrugsEnterpriseBean implements Serializable {
     @Dictionary(id = "eh.cdr.dictionary.DepType")
     private Integer createType;
 
+    @ItemProperty(alias = "运费细则图片ID")
+    private String transFeeDetail;
+
     public DrugsEnterpriseBean() {
     }
 
@@ -215,5 +218,13 @@ public class DrugsEnterpriseBean implements Serializable {
     @Override
     public String toString() {
         return JSONUtils.toString(this);
+    }
+
+    public String getTransFeeDetail() {
+        return transFeeDetail;
+    }
+
+    public void setTransFeeDetail(String transFeeDetail) {
+        this.transFeeDetail = transFeeDetail;
     }
 }
