@@ -2,6 +2,7 @@ package recipe.drugsenterprise.bean;
 
 import recipe.util.Md5Utils;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -10,7 +11,8 @@ import java.util.List;
  * @author yinsheng
  * @date 2019\12\16 0016 16:31
  */
-public class YdCipher {
+public class YdCipher implements Serializable{
+    private static final long serialVersionUID = -8003078090739520011L;
     private String appid;
     private String appkey;
     private String param;

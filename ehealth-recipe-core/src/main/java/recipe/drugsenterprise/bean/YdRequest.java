@@ -1,10 +1,13 @@
 package recipe.drugsenterprise.bean;
 
+import java.io.Serializable;
+
 /**
  * @author yinsheng
  * @date 2019\12\16 0016 16:28
  */
-public class YdRequest {
+public class YdRequest implements Serializable{
+    private static final long serialVersionUID = 4387221816991801450L;
     private String appid;
     private String cipher;
     private String signature;
