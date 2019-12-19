@@ -783,6 +783,7 @@ public class StandardEnterpriseCallService {
         request.setExplain("");
         request.setRecipeRecordStatus(2);
         Boolean flag = service.recipeUpdate(request);
+        LOGGER.info("distributionService-recipeStatusupdate request:{}.", JSONUtils.toString(request));
         if (flag) {
             result.setCode(StandardResultDTO.SUCCESS);
         } else {
