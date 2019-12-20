@@ -40,6 +40,7 @@ public class RecipeVo implements JsonAware {
     private String storeno;
     private String diagcode;
     private String diagname;
+    private String patientno;
     private List<RecipeDtlVo> detaillist;
 
     //17:5253
@@ -384,6 +385,14 @@ public class RecipeVo implements JsonAware {
 
     public void setDiagname(String diagname) {
         this.diagname = diagname;
+    }
+
+    public String getPatientno() {
+        return patientno;
+    }
+
+    public void setPatientno(String patientno) {
+        this.patientno = patientno;
     }
 
     public List<RecipeDtlVo> getDetaillist() {
