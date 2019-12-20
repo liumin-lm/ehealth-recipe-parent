@@ -2524,14 +2524,14 @@ public class RecipeService extends RecipeBaseService{
 
             String patient = JSONUtils.toString(ydUrlPatients);
             StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append("&q=").append(patient);
-            stringBuilder.append("&h=").append("");
             try{
-                url = URLEncoder.encode(stringBuilder.toString(), "UTF-8");
+                patient = URLEncoder.encode(patient, "UTF-8");
             }catch(Exception e){
                 LOGGER.error("recipeService-getThirdRecipeUrl url:{}.", JSONUtils.toString(stringBuilder), e);
             }
-            url = pre_url + url;
+            stringBuilder.append("&q=").append(patient);
+            stringBuilder.append("&h=").append("");
+            url = pre_url + stringBuilder.toString();
             LOGGER.info("recipeService-getThirdRecipeUrl url:{}.", JSONUtils.toString(url));
         }
 
