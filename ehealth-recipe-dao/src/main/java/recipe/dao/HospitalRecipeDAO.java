@@ -34,7 +34,7 @@ public abstract class HospitalRecipeDAO extends HibernateSupportDelegateDAO<Hosp
 
     public HospitalRecipeDAO() {
         super();
-        this.setEntityName(AuditDrugList.class.getName());
+        this.setEntityName(HospitalRecipe.class.getName());
         this.setKeyField("hospitalRecipeID");
     }
 
