@@ -30,7 +30,7 @@ public class YdRecipeVO {
         RecipeVo recipeVo = new RecipeVo();
         recipeVo.setRecipeno(hospitalRecipeDTO.getRecipeCode());
         recipeVo.setCaseno(hospitalRecipeDTO.getPatientNumber());
-        recipeVo.setHiscardno("");
+        recipeVo.setHiscardno(hospitalRecipeDTO.getClinicId());
         recipeVo.setPatientname(hospitalRecipeDTO.getPatientName());
         recipeVo.setIdnumber(hospitalRecipeDTO.getCertificate());
         recipeVo.setMobile(hospitalRecipeDTO.getPatientTel());
