@@ -38,5 +38,4 @@ public abstract class HospitalRecipeDAO extends HibernateSupportDelegateDAO<Hosp
         this.setKeyField("hospitalRecipeID");
     }
 
-
 }

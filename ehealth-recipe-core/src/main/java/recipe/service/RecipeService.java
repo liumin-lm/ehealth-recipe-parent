@@ -13,7 +13,6 @@ import com.ngari.base.patient.model.DocIndexBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.payment.service.IPaymentService;
-import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.ConsultSetDTO;
@@ -63,6 +62,7 @@ import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.drugsenterprise.bean.YdUrlPatient;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.purchase.PurchaseService;
@@ -75,7 +75,7 @@ import recipe.util.RedisClient;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -2500,11 +2500,39 @@ public class RecipeService extends RecipeBaseService{
     @RpcService
     public String getThirdRecipeUrl(String mpiId){
         String url = "";
+        RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         PatientBean patientBean = iPatientService.getByMpiId(mpiId);
-        LOGGER.info("recipeService-getThirdRecipeUrl patientBean:{}.", JSONUtils.toString(patientBean));
+        Integer urt = patientBean.getUrt();
+        PatientService patientService = BasicAPI.getService(PatientService.class);
+        List<PatientDTO>  patientDTOList = patientService.findPatientByUrt(urt);
+        LOGGER.info("recipeService-getThirdRecipeUrl patientBean:{}.", JSONUtils.toString(patientDTOList));
+        String pre_url = parameterDao.getByName("yd_thirdurl");
 
+        List<YdUrlPatient> ydUrlPatients = new ArrayList<>();
+        for (PatientDTO patientDTO : patientDTOList) {
+            YdUrlPatient ydUrlPatient = new YdUrlPatient();
+            String idnum = patientDTO.getIdcard();
+            String mobile = patientDTO.getMobile();
+            String pname = patientDTO.getPatientName();
+            ydUrlPatient.setMobile(mobile);
+            ydUrlPatient.setIdnum(idnum);
+            ydUrlPatient.setPname(pname);
+            ydUrlPatient.setHisno("");
+            ydUrlPatients.add(ydUrlPatient);
+        }
+
+        String patient = JSONUtils.toString(ydUrlPatients);
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("&q=").append(patient);
+        stringBuilder.append("&h=").append("");
+        try{
+            url = URLEncoder.encode(stringBuilder.toString(), "UTF-8");
+        }catch(Exception e){
+            LOGGER.error("recipeService-getThirdRecipeUrl url:{}.", JSONUtils.toString(stringBuilder), e);
+        }
+        url = pre_url + url;
+        LOGGER.info("recipeService-getThirdRecipeUrl url:{}.", JSONUtils.toString(url));
         return url;
     }
-
 
 }
