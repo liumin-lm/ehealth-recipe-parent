@@ -67,10 +67,11 @@ public class YdRemoteService extends AccessDrugEnterpriseService {
     private StdInputVo stdInputVo(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) throws Exception {
         RecipeVo recipeVo = YdRecipeVO.getRecipeVo(hospitalRecipeDTO);
         String params = recipeVo.toJSONString();
+        LOGGER.info("YdRemoteService-stdInputVo params:{}.", params);
         //设置RSA校验
         StdInputVo inputVo = StdInputGenerator.toStdInputVo(enterprise.getUserId(), enterprise.getPassword(), params, EncryptMode.RSA, public_key1_path);
 
-        System.out.print("上传数据参数："+inputVo.toJSONString());
+        LOGGER.info("YdRemoteService-stdInputVo 上传数据参数："+inputVo.toJSONString());
 
         return inputVo;
     }
@@ -122,7 +123,7 @@ public class YdRemoteService extends AccessDrugEnterpriseService {
     @Override
     public DrugEnterpriseResult pushRecipeInfo(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
         LOGGER.info("YdRemoteService-pushRecipeInfo hospitalRecipeDTO:{}.", JSONUtils.toString(hospitalRecipeDTO));
-        DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
 
         if (!ObjectUtils.isEmpty(hospitalRecipeDTO)) {
             try{

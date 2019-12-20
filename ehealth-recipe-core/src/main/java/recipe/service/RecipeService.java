@@ -10,6 +10,7 @@ import com.ngari.base.esign.service.IESignBaseService;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.model.DocIndexBean;
+import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.consult.common.service.IConsultService;
@@ -2494,6 +2495,15 @@ public class RecipeService extends RecipeBaseService{
             return false;
         }
         return true;
+    }
+
+    @RpcService
+    public String getThirdRecipeUrl(String mpiId){
+        String url = "";
+        PatientBean patientBean = iPatientService.getByMpiId(mpiId);
+        LOGGER.info("recipeService-getThirdRecipeUrl patientBean:{}.", JSONUtils.toString(patientBean));
+
+        return url;
     }
 
 

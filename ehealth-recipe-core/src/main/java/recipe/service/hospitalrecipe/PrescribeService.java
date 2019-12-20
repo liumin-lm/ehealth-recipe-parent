@@ -123,20 +123,19 @@ public class PrescribeService {
                         PatientService patientService = BasicAPI.getService(PatientService.class);
                         PatientDTO patientDTO = patientService.getByIdCard(hospitalRecipeDTO.getCertificate());
                         if (patientDTO != null) {
-                            Recipe simpleRecipe = saveRecipeByHospitalRecipeDTO(hospitalRecipeDTO, patientDTO, organ);
-                            if (simpleRecipe != null) {
-                                //推送模板消息
-                                Map<String, Object> map = new HashMap<>();
-                                map.put("doctorName",hospitalRecipeDTO.getDoctorName());
-                                map.put("recipeType", "西药");
-                                map.put("organId", organ.getOrganId());
-                                map.put("idCard", hospitalRecipeDTO.getCertificate());
-                                map.put("patientName",hospitalRecipeDTO.getPatientName());
-                                map.put("signTime",hospitalRecipeDTO.getCreateDate());
-                                map.put("appId",null);
-                                map.put("openId",null);
-                                RecipeMsgService.sendRecipeThirdMsg(map);
-                            }
+                            saveRecipeByHospitalRecipeDTO(hospitalRecipeDTO, patientDTO, organ);
+
+                            //推送模板消息
+                            Map<String, Object> map = new HashMap<>();
+                            map.put("doctorName",hospitalRecipeDTO.getDoctorName());
+                            map.put("recipeType", "西药");
+                            map.put("organId", organ.getOrganId());
+                            map.put("idCard", hospitalRecipeDTO.getCertificate());
+                            map.put("patientName",hospitalRecipeDTO.getPatientName());
+                            map.put("signTime",hospitalRecipeDTO.getCreateDate());
+                            map.put("appId",null);
+                            map.put("openId",null);
+                            RecipeMsgService.sendRecipeThirdMsg(map);
                         } else {
                             //用户没有注册,需要给用户发送短信
                             if (StringUtils.isNotEmpty(hospitalRecipeDTO.getPatientTel())) {

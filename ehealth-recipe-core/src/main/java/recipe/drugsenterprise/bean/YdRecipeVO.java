@@ -100,7 +100,8 @@ public class YdRecipeVO {
             recipeDtlVo.setQuantity(new BigDecimal(hospitalDrugDTO.getUseDose()));
             recipeDtlVo.setMinunit("口服");
             recipeDtlVo.setUsagename(usePathways);
-            recipeDtlVo.setDosage(usingRate);
+            recipeDtlVo.setUnitprice(new BigDecimal(hospitalDrugDTO.getDrugFee()));
+            recipeDtlVo.setDosage(hospitalDrugDTO.getUseDose());
             recipeDtlVo.setDosageunit(hospitalDrugDTO.getUseDoseUnit());
             List<RecipeDtlVo> recipeDtlVos = new ArrayList<RecipeDtlVo>();
             recipeDtlVos.add(recipeDtlVo);
