@@ -2501,37 +2501,40 @@ public class RecipeService extends RecipeBaseService{
     public String getThirdRecipeUrl(String mpiId){
         String url = "";
         RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-        PatientBean patientBean = iPatientService.getByMpiId(mpiId);
-        Integer urt = patientBean.getUrt();
-        PatientService patientService = BasicAPI.getService(PatientService.class);
-        List<PatientDTO>  patientDTOList = patientService.findPatientByUrt(urt);
-        LOGGER.info("recipeService-getThirdRecipeUrl patientBean:{}.", JSONUtils.toString(patientDTOList));
-        String pre_url = parameterDao.getByName("yd_thirdurl");
+        List<PatientBean> patientBeans = iPatientService.findByMpiIdIn(Arrays.asList(mpiId));
+        if (CollectionUtils.isNotEmpty(patientBeans)) {
+            Integer urt = patientBeans.get(0).getUrt();
+            PatientService patientService = BasicAPI.getService(PatientService.class);
+            List<PatientDTO>  patientDTOList = patientService.findPatientByUrt(urt);
+            LOGGER.info("recipeService-getThirdRecipeUrl patientBean:{}.", JSONUtils.toString(patientDTOList));
+            String pre_url = parameterDao.getByName("yd_thirdurl");
 
-        List<YdUrlPatient> ydUrlPatients = new ArrayList<>();
-        for (PatientDTO patientDTO : patientDTOList) {
-            YdUrlPatient ydUrlPatient = new YdUrlPatient();
-            String idnum = patientDTO.getIdcard();
-            String mobile = patientDTO.getMobile();
-            String pname = patientDTO.getPatientName();
-            ydUrlPatient.setMobile(mobile);
-            ydUrlPatient.setIdnum(idnum);
-            ydUrlPatient.setPname(pname);
-            ydUrlPatient.setHisno("");
-            ydUrlPatients.add(ydUrlPatient);
+            List<YdUrlPatient> ydUrlPatients = new ArrayList<>();
+            for (PatientDTO patientDTO : patientDTOList) {
+                YdUrlPatient ydUrlPatient = new YdUrlPatient();
+                String idnum = patientDTO.getIdcard();
+                String mobile = patientDTO.getMobile();
+                String pname = patientDTO.getPatientName();
+                ydUrlPatient.setMobile(mobile);
+                ydUrlPatient.setIdnum(idnum);
+                ydUrlPatient.setPname(pname);
+                ydUrlPatient.setHisno("");
+                ydUrlPatients.add(ydUrlPatient);
+            }
+
+            String patient = JSONUtils.toString(ydUrlPatients);
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("&q=").append(patient);
+            stringBuilder.append("&h=").append("");
+            try{
+                url = URLEncoder.encode(stringBuilder.toString(), "UTF-8");
+            }catch(Exception e){
+                LOGGER.error("recipeService-getThirdRecipeUrl url:{}.", JSONUtils.toString(stringBuilder), e);
+            }
+            url = pre_url + url;
+            LOGGER.info("recipeService-getThirdRecipeUrl url:{}.", JSONUtils.toString(url));
         }
 
-        String patient = JSONUtils.toString(ydUrlPatients);
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("&q=").append(patient);
-        stringBuilder.append("&h=").append("");
-        try{
-            url = URLEncoder.encode(stringBuilder.toString(), "UTF-8");
-        }catch(Exception e){
-            LOGGER.error("recipeService-getThirdRecipeUrl url:{}.", JSONUtils.toString(stringBuilder), e);
-        }
-        url = pre_url + url;
-        LOGGER.info("recipeService-getThirdRecipeUrl url:{}.", JSONUtils.toString(url));
         return url;
     }
 
