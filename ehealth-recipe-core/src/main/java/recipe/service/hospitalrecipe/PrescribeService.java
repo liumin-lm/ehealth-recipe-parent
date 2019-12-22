@@ -8,6 +8,7 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientExtendService;
+import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.patient.dto.EmploymentDTO;
@@ -44,10 +45,7 @@ import recipe.service.*;
 import recipe.service.hospitalrecipe.dataprocess.PrescribeProcess;
 import recipe.util.RedisClient;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author： 0184/yu_yun
@@ -124,7 +122,7 @@ public class PrescribeService {
                         PatientDTO patientDTO = patientService.getByIdCard(hospitalRecipeDTO.getCertificate());
                         if (patientDTO != null) {
                             saveRecipeByHospitalRecipeDTO(hospitalRecipeDTO, patientDTO, organ);
-
+                            String thirdUrl = getYdPushUrl(patientDTO, hospitalRecipeDTO.getRecipeCode());
                             //推送模板消息
                             Map<String, Object> map = new HashMap<>();
                             map.put("doctorName",hospitalRecipeDTO.getDoctorName());
@@ -135,6 +133,7 @@ public class PrescribeService {
                             map.put("signTime",hospitalRecipeDTO.getCreateDate());
                             map.put("appId",null);
                             map.put("openId",null);
+                            map.put("url", thirdUrl);
                             RecipeMsgService.sendRecipeThirdMsg(map);
                         } else {
                             //用户没有注册,需要给用户发送短信
@@ -360,6 +359,13 @@ public class PrescribeService {
         }
 
         return result;
+    }
+
+    private String getYdPushUrl(PatientDTO patientDTO, String recipeNo) {
+        IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+        List<PatientBean> patientBeans = iPatientService.findByMpiIdIn(Arrays.asList(patientDTO.getMpiId()));
+        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+        return recipeService.getThirdUrlString(patientBeans, recipeNo);
     }
 
     private void saveHospitalRecipe(HospitalRecipeDTO hospitalRecipeDTO) {

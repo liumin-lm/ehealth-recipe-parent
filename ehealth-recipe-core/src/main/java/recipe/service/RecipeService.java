@@ -2499,16 +2499,20 @@ public class RecipeService extends RecipeBaseService{
 
     @RpcService
     public String getThirdRecipeUrl(String mpiId){
+        List<PatientBean> patientBeans = iPatientService.findByMpiIdIn(Arrays.asList(mpiId));
+        return getThirdUrlString(patientBeans, "");
+    }
+
+    public String getThirdUrlString(List<PatientBean> patientBeans, String recipeNo) {
         String url = "";
         RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-        List<PatientBean> patientBeans = iPatientService.findByMpiIdIn(Arrays.asList(mpiId));
         if (CollectionUtils.isNotEmpty(patientBeans)) {
             Integer urt = patientBeans.get(0).getUrt();
             PatientService patientService = BasicAPI.getService(PatientService.class);
             List<PatientDTO>  patientDTOList = patientService.findPatientByUrt(urt);
             LOGGER.info("recipeService-getThirdRecipeUrl patientBean:{}.", JSONUtils.toString(patientDTOList));
             String pre_url = parameterDao.getByName("yd_thirdurl");
-
+            String yd_hospital_code = parameterDao.getByName("yd_hospital_code");
             List<YdUrlPatient> ydUrlPatients = new ArrayList<>();
             for (PatientDTO patientDTO : patientDTOList) {
                 YdUrlPatient ydUrlPatient = new YdUrlPatient();
@@ -2530,11 +2534,13 @@ public class RecipeService extends RecipeBaseService{
                 LOGGER.error("recipeService-getThirdRecipeUrl url:{}.", JSONUtils.toString(stringBuilder), e);
             }
             stringBuilder.append("&q=").append(patient);
-            stringBuilder.append("&h=").append("");
+            stringBuilder.append("&h=").append(yd_hospital_code);
+            if (StringUtils.isNotEmpty(recipeNo)) {
+                stringBuilder.append("&r=").append(recipeNo);
+            }
             url = pre_url + stringBuilder.toString();
             LOGGER.info("recipeService-getThirdRecipeUrl url:{}.", JSONUtils.toString(url));
         }
-
         return url;
     }
 
