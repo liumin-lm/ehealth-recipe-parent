@@ -223,7 +223,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
     }
 
     private void pushWechatTplForYd(HospitalRecipeDTO hospitalRecipeDTO, OrganBean organ, PatientDTO patientDTO) {
-        String thirdUrl = getYdPushUrl(patientDTO, hospitalRecipeDTO.getRecipeCode());
+        String thirdUrl = getYdPushUrl(patientDTO, hospitalRecipeDTO.getRecipeCode(), hospitalRecipeDTO.getPatientId());
         //推送模板消息
         Map<String, Object> map = new HashMap<>();
         map.put("doctorName", hospitalRecipeDTO.getDoctorName());
@@ -253,11 +253,11 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         return organ;
     }
 
-    private String getYdPushUrl(PatientDTO patientDTO, String recipeNo) {
+    private String getYdPushUrl(PatientDTO patientDTO, String recipeNo, String patientId) {
         IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
         List<PatientBean> patientBeans = iPatientService.findByMpiIdIn(Arrays.asList(patientDTO.getMpiId()));
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-        return recipeService.getThirdUrlString(patientBeans, recipeNo);
+        return recipeService.getThirdUrlString(patientBeans, recipeNo, patientId);
     }
 
     private void saveHospitalRecipe(HospitalRecipeDTO hospitalRecipeDTO) {

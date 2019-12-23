@@ -5,6 +5,7 @@ import ctd.schema.annotation.Schema;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Date;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -49,6 +50,8 @@ public class HospitalRecipe implements Serializable{
     private String doctorName;
     @ItemProperty(alias="开方时间")
     private String createDate;
+    @ItemProperty(alias="创建时间")
+    private Date createTime;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -185,5 +188,14 @@ public class HospitalRecipe implements Serializable{
 
     public void setCreateDate(String createDate) {
         this.createDate = createDate;
+    }
+
+    @Column(name = "createTime")
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
     }
 }
