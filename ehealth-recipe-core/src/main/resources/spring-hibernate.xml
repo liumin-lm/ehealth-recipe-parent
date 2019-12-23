@@ -40,7 +40,6 @@
                 <value>com.ngari.patient.dto</value>
                 <value>com.ngari.consult</value>
                 <value>com.ngari.patient.ds</value>
-				<value>com.ngari.recipe.recipe.model</value>
 			</array>
 		</property>
 		<property name="hibernateProperties">
