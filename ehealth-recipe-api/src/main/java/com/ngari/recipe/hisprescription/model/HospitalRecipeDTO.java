@@ -31,6 +31,9 @@ public class HospitalRecipeDTO implements Serializable {
     @Verify(isNotNull = false, desc = "患者id")
     private String mpiId;
 
+    @Verify(isNotNull = false, desc = "医院患者编号")
+    private String patientId;
+
     @Verify(isNotNull = false,desc = "患者证件类型")
     private String certificateType;
 
@@ -188,6 +191,14 @@ public class HospitalRecipeDTO implements Serializable {
 
     public void setMpiId(String mpiId) {
         this.mpiId = mpiId;
+    }
+
+    public String getPatientId() {
+        return patientId;
+    }
+
+    public void setPatientId(String patientId) {
+        this.patientId = patientId;
     }
 
     public String getCertificateType() {

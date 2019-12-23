@@ -80,7 +80,7 @@ public class YdRecipeVO {
         recipeVo.setPaydate("");
         recipeVo.setPaystatus("1");
         recipeVo.setStoreno("");
-        recipeVo.setPatientno(hospitalRecipeDTO.getMpiId());
+        recipeVo.setPatientno(hospitalRecipeDTO.getPatientId());
         recipeVo.setDiagcode(hospitalRecipeDTO.getOrganDiseaseId());
         recipeVo.setDiagname(hospitalRecipeDTO.getOrganDiseaseName());
         List<RecipeDtlVo> recipeDtlVos = new ArrayList<RecipeDtlVo>();
