@@ -28,7 +28,6 @@ import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.utils.DateConversion;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -90,6 +89,7 @@ public class PrescribeService {
         result.setCode(HosRecipeResult.FAIL);
         if (null != hospitalRecipeDTO) {
             if (hospitalRecipeDTO.getNoSaveRecipeFlag()) {
+                LOG.info("PrescribeService-createPrescription hospitalRecipeDTO:{}.", JSONUtils.toString(hospitalRecipeDTO));
                 //保存数据
                 saveHospitalRecipe(hospitalRecipeDTO);
                 RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
@@ -122,7 +122,6 @@ public class PrescribeService {
                         PatientService patientService = BasicAPI.getService(PatientService.class);
                         PatientDTO patientDTO = patientService.getByIdCard(hospitalRecipeDTO.getCertificate());
                         if (patientDTO != null) {
-                            saveRecipeByHospitalRecipeDTO(hospitalRecipeDTO, patientDTO, organ);
                             String thirdUrl = getYdPushUrl(patientDTO, hospitalRecipeDTO.getRecipeCode());
                             //推送模板消息
                             Map<String, Object> map = new HashMap<>();
@@ -391,43 +390,6 @@ public class PrescribeService {
         hospitalRecipe.setDoctorName(hospitalRecipeDTO.getDoctorName());
         hospitalRecipe.setCreateDate(hospitalRecipeDTO.getCreateDate());
         hospitalRecipeDAO.save(hospitalRecipe);
-    }
-
-    private Recipe saveRecipeByHospitalRecipeDTO(HospitalRecipeDTO hospitalRecipeDTO, PatientDTO patientDTO, OrganBean organ) {
-        //设置医生信息
-        EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
-        EmploymentDTO employment = null;
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe recipe = new Recipe();
-        try {
-            employment = employmentService.getByJobNumberAndOrganId(
-                    hospitalRecipeDTO.getDoctorNumber(), organ.getOrganId());
-
-        } catch (Exception e) {
-            LOG.warn("createPrescription 查询医生执业点异常，doctorNumber={}, clinicOrgan={}",
-                    hospitalRecipeDTO.getDoctorNumber(), organ.getOrganId(), e);
-        } finally {
-            if (null != employment) {
-                recipe.setMpiid(patientDTO.getMpiId());
-                recipe.setPatientName(patientDTO.getPatientName());
-                recipe.setClinicOrgan(organ.getOrganId());
-                recipe.setOrganName(organ.getName());
-                recipe.setRecipeType(1);
-                recipe.setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);
-                recipe.setDoctor(employment.getDoctorId());
-                recipe.setDoctorName(hospitalRecipeDTO.getDoctorName());
-                recipe.setPayFlag(0);
-                recipe.setGiveFlag(0);
-                recipe.setStatus(2);
-                recipe.setFromflag(0);
-                recipe.setChooseFlag(0);
-                recipe.setRemindFlag(0);
-                recipe.setPushFlag(1);
-                recipe.setTakeMedicine(1);
-                return recipeDAO.saveRecipe(recipe);
-            }
-        }
-        return null;
     }
 
     /**
