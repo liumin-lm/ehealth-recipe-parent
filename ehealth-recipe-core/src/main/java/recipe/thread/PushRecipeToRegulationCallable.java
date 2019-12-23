@@ -8,6 +8,7 @@ import ctd.persistence.DAOFactory;
 import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,7 +80,10 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
             // TODO: 2019/10/22 这里考虑做个优化 各个状态都推送给前置机 由前置机判断什么状态的处方推哪个监管平台
             if (CollectionUtils.isNotEmpty(list) && regulationOrgan.get(recipe.getClinicOrgan()) != null){
                 String domainId = regulationOrgan.get(recipe.getClinicOrgan());
-                if (REGULATION_JS.equals(domainId)){
+                if (StringUtils.isEmpty(domainId)){
+                    return null;
+                }
+                if (domainId.startsWith(REGULATION_JS)){
                     //江苏省推送处方规则：（1）如果没有审核直接推送处方数据、（2）status=2表示审核了，则推送处方审核后的数据，（3）审核数据推送成功后再推送处方流转数据
                     if (status == 2) {
                         response = service.uploadRecipeAuditIndicators(Arrays.asList(recipe));
@@ -92,7 +96,7 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
                     } else {
                         response = service.uploadRecipeIndicators(Arrays.asList(recipe));
                     }
-                }else if (REGULATION_ZJ.equals(domainId)){
+                }else if (domainId.startsWith(REGULATION_ZJ)){
                     //浙江省推送处方规则：（1）将status=2 处方审核后的数据推送给监管平台，不会推送审核中、流传的数据
                     //审核后推送
                     if (status == 2 && RecipeStatusConstant.CHECK_PASS_YS==recipe.getStatus()) {
