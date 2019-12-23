@@ -10,6 +10,8 @@ import com.ngari.base.BaseAPI;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.his.recipe.mode.RecipeStatusUpdateReqTO;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.utils.VerifyUtils;
 import com.ngari.recipe.entity.*;
@@ -776,14 +778,22 @@ public class StandardEnterpriseCallService {
 
     @RpcService
     public StandardResultDTO recipeStatusupdate(RecipeStatusUpdateReqTO request) {
+        LOGGER.info("distributionService-recipeStatusupdate request:{}.", JSONUtils.toString(request));
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
         StandardResultDTO result = new StandardResultDTO();
-        request.setOrganID("");  //固定写死
+        OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+        OrganDTO organDTO = organService.getOrganByOrganizeCode(request.getOrganizeCode());
+        if (organDTO == null) {
+            result.setCode(StandardResultDTO.FAIL);
+            result.setMsg("机构不存在");
+            return result;
+        }
+        request.setOrganID(organDTO.getOrganId().toString());  //固定写死
+        request.setOrganizeCode(organDTO.getOrganizeCode());
         request.setOuthospno("");
-        request.setExplain("");
+        request.setExplain("无");
         request.setRecipeRecordStatus(2);
         Boolean flag = service.recipeUpdate(request);
-        LOGGER.info("distributionService-recipeStatusupdate request:{}.", JSONUtils.toString(request));
         if (flag) {
             result.setCode(StandardResultDTO.SUCCESS);
         } else {
