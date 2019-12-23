@@ -56,6 +56,7 @@ public class SyncExecutorService {
      *
      * @param recipe
      */
+    @Deprecated
     public void uploadRecipeIndicators(Recipe recipe) {
         CommonSyncSupervisionForIHosService iHosService =
                 ApplicationUtils.getRecipeService(CommonSyncSupervisionForIHosService.class);
@@ -131,41 +132,7 @@ public class SyncExecutorService {
             LOGGER.warn("uploadRecipeVerificationIndicators recipe is null. recipeId={}", recipeId);
             return;
         }
-
-        CommonSyncSupervisionForIHosService iHosService =
-                ApplicationUtils.getRecipeService(CommonSyncSupervisionForIHosService.class);
         CommonResponse response = null;
-        try {
-            //RPC调用上传
-            response = iHosService.uploadRecipeVerificationIndicators(Arrays.asList(recipe));
-            if (CommonConstant.SUCCESS.equals(response.getCode())){
-                LOGGER.info("uploadRecipeVerificationIndicators rpc execute success. recipeId={}", recipe.getRecipeId());
-            } else{
-                LOGGER.warn("uploadRecipeVerificationIndicators rpc execute error. recipe={}", JSONUtils.toString(recipe));
-            }
-        } catch (Exception e) {
-            LOGGER.warn("uploadRecipeVerificationIndicators rpc exception recipe={}", JSONUtils.toString(recipe), e);
-        }
-
-        //上传openApi的
-      /*  CommonSyncSupervisionService service = ApplicationUtils.getRecipeService(CommonSyncSupervisionService.class);
-        try {
-            response = null;
-            response = service.uploadRecipeVerificationIndicators(Arrays.asList(recipe));
-            if (CommonConstant.SUCCESS.equals(response.getCode())){
-                //记录日志
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
-                        recipe.getStatus(), "监管平台上传核销信息成功");
-                LOGGER.info("uploadRecipeVerificationIndicators openapi execute success. recipeId={}", recipe.getRecipeId());
-            } else{
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
-                        recipe.getStatus(), "监管平台上传核销信息失败,"+response.getMsg());
-                LOGGER.warn("uploadRecipeVerificationIndicators openapi execute error. recipe={}", JSONUtils.toString(recipe));
-            }
-        } catch (Exception e) {
-            LOGGER.warn("uploadRecipeVerificationIndicators openapi exception recipe={}", JSONUtils.toString(recipe), e);
-        }*/
-        //上传hisApi方式
         HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
         try {
             response = hisSyncService.uploadRecipeVerificationIndicators(Arrays.asList(recipe));
