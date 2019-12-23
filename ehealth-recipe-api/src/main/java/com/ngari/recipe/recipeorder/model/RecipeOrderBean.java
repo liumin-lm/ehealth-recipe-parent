@@ -1,6 +1,7 @@
 package com.ngari.recipe.recipeorder.model;
 
 import ctd.schema.annotation.Dictionary;
+import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
@@ -202,6 +203,7 @@ public class RecipeOrderBean implements Serializable {
     private String expectSendTime;
 
     @ItemProperty(alias = "运费细则图片ID")
+    @FileToken(expires = 3600)
     private String transFeeDetail;
 
     @ItemProperty(alias = "医保结算订单号")

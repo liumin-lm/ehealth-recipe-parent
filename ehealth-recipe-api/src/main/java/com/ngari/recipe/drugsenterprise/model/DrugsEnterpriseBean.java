@@ -1,6 +1,7 @@
 package com.ngari.recipe.drugsenterprise.model;
 
 import ctd.schema.annotation.Dictionary;
+import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 import ctd.util.JSONUtils;
@@ -74,6 +75,7 @@ public class DrugsEnterpriseBean implements Serializable {
     private Integer createType;
 
     @ItemProperty(alias = "运费细则图片ID")
+    @FileToken(expires = 3600)
     private String transFeeDetail;
 
     public DrugsEnterpriseBean() {

@@ -1,6 +1,7 @@
 package com.ngari.recipe.recipe.model;
 
 import ctd.schema.annotation.Dictionary;
+import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 import org.apache.commons.lang3.StringUtils;
@@ -135,9 +136,11 @@ public class RecipeBean implements Serializable {
     private String giveUser;
 
     @ItemProperty(alias = "签名的处方PDF")
+    @FileToken(expires = 3600)
     private String signFile;
 
     @ItemProperty(alias = "药师签名的处方PDF")
+    @FileToken(expires = 3600)
     private String chemistSignFile;
 
     @ItemProperty(alias = "收货人")
