@@ -212,7 +212,9 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         SmsInfoBean smsInfo = new SmsInfoBean();
         smsInfo.setBusType("RecipeHisCreate");
         smsInfo.setSmsType("RecipeHisCreate");
-        smsInfo.setOrganId(0);
+        OrganBean organBean = getOrganByOrganId(hospitalRecipeDTO.getOrganId());
+        smsInfo.setOrganId(organBean.getOrganId());
+        smsInfo.setBusId(0);
 
         Map<String, Object> smsMap = Maps.newHashMap();
         smsMap.put("mobile", hospitalRecipeDTO.getPatientTel());
@@ -242,7 +244,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         RecipeMsgService.sendRecipeThirdMsg(map);
     }
 
-    public OrganBean getOrganByOrganId(String organId) throws Exception {
+    public OrganBean getOrganByOrganId(String organId){
         IOrganService organService = BaseAPI.getService(IOrganService.class);
         OrganBean organ = null;
         List<OrganBean> organList = organService.findByOrganizeCode(organId);
