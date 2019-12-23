@@ -131,7 +131,8 @@ public class RecipeTimedTaskService {
 
     /**
      * 定时任务 his回调失败(医院确认中)5分钟后确保流程继续(更新为待审核状态) but 杭州互联网模式不包含在内
-     * 每5分钟执行一次
+     * 每5分钟执行一次 优化成每一分钟执行一次
+     * 优化：需将5分钟优化为1.5分钟 --20191223---//最快1分钟 最慢2分钟  平均一下1.5分钟
      */
     @RpcService
     public void updateRecipeStatus(){
@@ -139,7 +140,7 @@ public class RecipeTimedTaskService {
         //获取五分钟前的时间
         Calendar now = Calendar.getInstance();
         now.setTime(new Date());
-        now.add(Calendar.MINUTE, -5);
+        now.add(Calendar.MINUTE, 1);
         Date time = now.getTime();
         //设置查询时间段
         String endDt = DateConversion.getDateFormatter(time, DateConversion.DEFAULT_DATE_TIME);

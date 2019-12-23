@@ -3,14 +3,15 @@ package recipe.drugsenterprise.bean;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
-import com.ngari.patient.dto.DepartmentDTO;
+import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.DepartmentService;
+import com.ngari.patient.service.EmploymentService;
 import com.ngari.recipe.hisprescription.model.HospitalDrugDTO;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import eh.utils.ChinaIDNumberUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.drugsenterprise.bean.yd.model.RecipeDtlVo;
@@ -45,21 +46,55 @@ public class YdRecipeVO {
         }catch(Exception e){
             LOGGER.info("YdRecipeVO  获取身份信息出错");
         }
-        DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
+        /*DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
         IOrganService organService = BaseAPI.getService(IOrganService.class);
         OrganBean organ = null;
         List<OrganBean> organList = organService.findByOrganizeCode(hospitalRecipeDTO.getOrganId());
         if (organList != null) {
             organ = organList.get(0);
+        }*/
+
+        //转换组织结构编码
+        Integer clinicOrgan = null;
+        OrganBean organ = null;
+        try {
+            organ = getOrganByOrganId(hospitalRecipeDTO.getOrganId());
+            if (null != organ) {
+                clinicOrgan = organ.getOrganId();
+            }
+        } catch (Exception e) {
+            LOGGER.warn("createPrescription 查询机构异常，organId={}", hospitalRecipeDTO.getOrganId(), e);
+        } finally {
+            if (null == clinicOrgan) {
+                LOGGER.warn("createPrescription 平台未匹配到该组织机构编码，organId={}", hospitalRecipeDTO.getOrganId());
+            }
         }
-        DepartmentDTO departmentDTO = departmentService.get(Integer.parseInt(hospitalRecipeDTO.getDepartId()));
+
+        //设置医生信息
+        EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
+        EmploymentDTO employment = null;
+        try {
+            employment = employmentService.getByJobNumberAndOrganId(
+                    hospitalRecipeDTO.getDoctorNumber(), clinicOrgan);
+
+        } catch (Exception e) {
+            LOGGER.warn("createPrescription 查询医生执业点异常，doctorNumber={}, clinicOrgan={}",
+                    hospitalRecipeDTO.getDoctorNumber(), clinicOrgan, e);
+        } finally {
+            if (null != employment) {
+                recipeVo.setRegistdeptname(employment.getDeptName());
+            } else {
+                LOGGER.warn("createPrescription 平台未找到该医生执业点，doctorNumber={}, clinicOrgan={}",
+                        hospitalRecipeDTO.getDoctorNumber(), clinicOrgan);
+            }
+        }
+
         recipeVo.setVisitdate(hospitalRecipeDTO.getCreateDate());
         recipeVo.setPatienttypename("/");
         recipeVo.setMedicarecategname("/");
         recipeVo.setSignalsourcetypename("/");
-        recipeVo.setRegistdeptcode(departmentDTO.getProfessionCode());
-        recipeVo.setRegistdeptname(departmentDTO.getName());
         recipeVo.setHospital(organ.getName());
+        recipeVo.setRegistdeptcode(hospitalRecipeDTO.getDepartId());
         recipeVo.setRegistdrcode(hospitalRecipeDTO.getDoctorNumber());
         recipeVo.setRegistdrname(hospitalRecipeDTO.getDoctorName());
         recipeVo.setRecipebegindate("");
@@ -110,6 +145,17 @@ public class YdRecipeVO {
         }
 
         return recipeVo;
+    }
+
+    private static OrganBean getOrganByOrganId(String organId) throws Exception {
+        IOrganService organService = BaseAPI.getService(IOrganService.class);
+        OrganBean organ = null;
+        List<OrganBean> organList = organService.findByOrganizeCode(organId);
+        if (CollectionUtils.isNotEmpty(organList)) {
+            organ = organList.get(0);
+        }
+
+        return organ;
     }
 
 }
