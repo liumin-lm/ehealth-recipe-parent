@@ -2543,7 +2543,7 @@ public class RecipeService extends RecipeBaseService{
             }catch(Exception e){
                 LOGGER.error("recipeService-getThirdRecipeUrl url:{}.", JSONUtils.toString(stringBuilder), e);
             }
-            stringBuilder.append("&q=").append(patient);
+            stringBuilder.append("?q=").append(patient);
             stringBuilder.append("&h=").append(yd_hospital_code);
             if (StringUtils.isNotEmpty(recipeNo)) {
                 stringBuilder.append("&r=").append(recipeNo);
