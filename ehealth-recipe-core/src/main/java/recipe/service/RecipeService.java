@@ -2524,6 +2524,13 @@ public class RecipeService extends RecipeBaseService{
                 ydUrlPatient.setPname(pname);
                 if (StringUtils.isNotEmpty(patientId)) {
                     ydUrlPatient.setPno(patientId);
+                } else {
+                    //查询该用户最新的一条处方记录
+                    HospitalRecipeDAO hospitalRecipeDAO = DAOFactory.getDAO(HospitalRecipeDAO.class);
+                    List<HospitalRecipe> hospitalRecipes = hospitalRecipeDAO.findByCertificate(patientDTO.getIdcard());
+                    if (hospitalRecipes != null) {
+                        ydUrlPatient.setPno(hospitalRecipes.get(0).getPatientId());
+                    }
                 }
                 ydUrlPatient.setHisno("");
                 ydUrlPatients.add(ydUrlPatient);
