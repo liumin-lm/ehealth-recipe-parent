@@ -3,13 +3,8 @@ package recipe.drugsenterprise.bean;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
-import com.ngari.patient.dto.EmploymentDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.EmploymentService;
 import com.ngari.recipe.hisprescription.model.HospitalDrugDTO;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import ctd.controller.exception.ControllerException;
-import ctd.dictionary.DictionaryController;
 import eh.utils.ChinaIDNumberUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -36,7 +31,7 @@ public class YdRecipeVO {
         recipeVo.setIdnumber(hospitalRecipeDTO.getCertificate());
         recipeVo.setMobile(hospitalRecipeDTO.getPatientTel());
         recipeVo.setOuthospno(hospitalRecipeDTO.getRegisterId());
-        recipeVo.setEmpsex(hospitalRecipeDTO.getPatientSex());
+        recipeVo.setEmpsex("1".equals(hospitalRecipeDTO.getPatientSex())?"男":"女");
         try{
             String certificate = ChinaIDNumberUtil.convert15To18(hospitalRecipeDTO.getCertificate());
             Integer age = ChinaIDNumberUtil.getAgeFromIDNumber(certificate);
@@ -46,13 +41,6 @@ public class YdRecipeVO {
         }catch(Exception e){
             LOGGER.info("YdRecipeVO  获取身份信息出错");
         }
-        /*DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
-        IOrganService organService = BaseAPI.getService(IOrganService.class);
-        OrganBean organ = null;
-        List<OrganBean> organList = organService.findByOrganizeCode(hospitalRecipeDTO.getOrganId());
-        if (organList != null) {
-            organ = organList.get(0);
-        }*/
 
         //转换组织结构编码
         Integer clinicOrgan = null;
@@ -70,31 +58,13 @@ public class YdRecipeVO {
             }
         }
 
-        //设置医生信息
-        EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
-        EmploymentDTO employment = null;
-        try {
-            employment = employmentService.getByJobNumberAndOrganId(
-                    hospitalRecipeDTO.getDoctorNumber(), clinicOrgan);
-
-        } catch (Exception e) {
-            LOGGER.warn("createPrescription 查询医生执业点异常，doctorNumber={}, clinicOrgan={}",
-                    hospitalRecipeDTO.getDoctorNumber(), clinicOrgan, e);
-        } finally {
-            if (null != employment) {
-                recipeVo.setRegistdeptname(employment.getDeptName());
-            } else {
-                LOGGER.warn("createPrescription 平台未找到该医生执业点，doctorNumber={}, clinicOrgan={}",
-                        hospitalRecipeDTO.getDoctorNumber(), clinicOrgan);
-            }
-        }
-
         recipeVo.setVisitdate(hospitalRecipeDTO.getCreateDate());
         recipeVo.setPatienttypename("/");
         recipeVo.setMedicarecategname("/");
         recipeVo.setSignalsourcetypename("/");
         recipeVo.setHospital(organ.getName());
         recipeVo.setRegistdeptcode(hospitalRecipeDTO.getDepartId());
+        recipeVo.setRegistdeptname(hospitalRecipeDTO.getDepartName());
         recipeVo.setRegistdrcode(hospitalRecipeDTO.getDoctorNumber());
         recipeVo.setRegistdrname(hospitalRecipeDTO.getDoctorName());
         recipeVo.setRecipebegindate("");
@@ -121,21 +91,14 @@ public class YdRecipeVO {
             recipeDtlVo.setProdarea("");
             recipeDtlVo.setFactoryname(hospitalDrugDTO.getProducer());
             recipeDtlVo.setDrugspec(hospitalDrugDTO.getSpecification());
-            String usingRate = "";
-            String usePathways = "";
-            try {
-                usingRate = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(hospitalDrugDTO.getUsingRate());
-                usePathways = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(hospitalDrugDTO.getUsePathways());
-            } catch (ControllerException e) {
-                LOGGER.info("YdRecipeVO  药物使用频率使用途径获取失败 error:{}.", e.getMessage());
-            }
-            recipeDtlVo.setFreqname(usingRate);
+            //TODO 设置用药频率和频次
+            recipeDtlVo.setFreqname(hospitalDrugDTO.getUsingRate());
             recipeDtlVo.setSustaineddays(hospitalDrugDTO.getUesDays());
             recipeDtlVo.setClasstypeno("/");
             recipeDtlVo.setClasstypename("");
             recipeDtlVo.setQuantity(new BigDecimal(hospitalDrugDTO.getUseDose()));
-            recipeDtlVo.setMinunit("口服");
-            recipeDtlVo.setUsagename(usePathways);
+            recipeDtlVo.setMinunit("");
+            recipeDtlVo.setUsagename(hospitalDrugDTO.getUsePathways());
             recipeDtlVo.setUnitprice(new BigDecimal(hospitalDrugDTO.getDrugFee()));
             recipeDtlVo.setDosage(hospitalDrugDTO.getUseDose());
             recipeDtlVo.setDosageunit(hospitalDrugDTO.getUseDoseUnit());
