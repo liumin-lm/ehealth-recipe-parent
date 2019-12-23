@@ -2500,10 +2500,10 @@ public class RecipeService extends RecipeBaseService{
     @RpcService
     public String getThirdRecipeUrl(String mpiId){
         List<PatientBean> patientBeans = iPatientService.findByMpiIdIn(Arrays.asList(mpiId));
-        return getThirdUrlString(patientBeans, "");
+        return getThirdUrlString(patientBeans, "", "");
     }
 
-    public String getThirdUrlString(List<PatientBean> patientBeans, String recipeNo) {
+    public String getThirdUrlString(List<PatientBean> patientBeans, String recipeNo, String patientId) {
         String url = "";
         RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         if (CollectionUtils.isNotEmpty(patientBeans)) {
@@ -2522,6 +2522,9 @@ public class RecipeService extends RecipeBaseService{
                 ydUrlPatient.setMobile(mobile);
                 ydUrlPatient.setIdnum(idnum);
                 ydUrlPatient.setPname(pname);
+                if (StringUtils.isNotEmpty(patientId)) {
+                    ydUrlPatient.setPno(patientId);
+                }
                 ydUrlPatient.setHisno("");
                 ydUrlPatients.add(ydUrlPatient);
             }

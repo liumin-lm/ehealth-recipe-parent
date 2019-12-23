@@ -8,6 +8,7 @@ public class YdUrlPatient {
     private String mobile;
     private String idnum;
     private String pname;
+    private String pno;
     private String hisno;
 
     public String getMobile() {
@@ -32,6 +33,14 @@ public class YdUrlPatient {
 
     public void setPname(String pname) {
         this.pname = pname;
+    }
+
+    public String getPno() {
+        return pno;
+    }
+
+    public void setPno(String pno) {
+        this.pno = pno;
     }
 
     public String getHisno() {
