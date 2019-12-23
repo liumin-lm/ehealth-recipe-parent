@@ -67,6 +67,7 @@ public class YdRecipeVO {
         recipeVo.setRegistdeptname(hospitalRecipeDTO.getDepartName());
         recipeVo.setRegistdrcode(hospitalRecipeDTO.getDoctorNumber());
         recipeVo.setRegistdrname(hospitalRecipeDTO.getDoctorName());
+        recipeVo.setDoctorName(hospitalRecipeDTO.getDoctorName());
         recipeVo.setRecipebegindate("");
         recipeVo.setRecipeenddate("");
         recipeVo.setContactname(hospitalRecipeDTO.getPatientName());
@@ -82,7 +83,7 @@ public class YdRecipeVO {
         recipeVo.setPatientno(hospitalRecipeDTO.getMpiId());
         recipeVo.setDiagcode(hospitalRecipeDTO.getOrganDiseaseId());
         recipeVo.setDiagname(hospitalRecipeDTO.getOrganDiseaseName());
-
+        List<RecipeDtlVo> recipeDtlVos = new ArrayList<RecipeDtlVo>();
         for (HospitalDrugDTO hospitalDrugDTO : hospitalRecipeDTO.getDrugList()) {
             RecipeDtlVo recipeDtlVo = new RecipeDtlVo();
             recipeDtlVo.setRecipedtlno(hospitalDrugDTO.getRecipedtlno());
@@ -91,7 +92,6 @@ public class YdRecipeVO {
             recipeDtlVo.setProdarea("");
             recipeDtlVo.setFactoryname(hospitalDrugDTO.getProducer());
             recipeDtlVo.setDrugspec(hospitalDrugDTO.getSpecification());
-            //TODO 设置用药频率和频次
             recipeDtlVo.setFreqname(hospitalDrugDTO.getUsingRate());
             recipeDtlVo.setSustaineddays(hospitalDrugDTO.getUesDays());
             recipeDtlVo.setClasstypeno("/");
@@ -102,11 +102,9 @@ public class YdRecipeVO {
             recipeDtlVo.setUnitprice(new BigDecimal(hospitalDrugDTO.getDrugFee()));
             recipeDtlVo.setDosage(hospitalDrugDTO.getUseDose());
             recipeDtlVo.setDosageunit(hospitalDrugDTO.getUseDoseUnit());
-            List<RecipeDtlVo> recipeDtlVos = new ArrayList<RecipeDtlVo>();
             recipeDtlVos.add(recipeDtlVo);
-            recipeVo.setDetaillist(recipeDtlVos);
         }
-
+        recipeVo.setDetaillist(recipeDtlVos);
         return recipeVo;
     }
 
