@@ -106,6 +106,9 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "是否基药")
     private Integer baseDrug;
 
+    @ItemProperty(alias = "批准文号")
+    private String licenseNumber;
+
     public OrganDrugList() {
     }
 
@@ -365,5 +368,14 @@ public class OrganDrugList implements java.io.Serializable {
 
     public void setBaseDrug(Integer baseDrug) {
         this.baseDrug = baseDrug;
+    }
+
+    @Column(name = "licenseNumber")
+    public String getLicenseNumber() {
+        return licenseNumber;
+    }
+
+    public void setLicenseNumber(String licenseNumber) {
+        this.licenseNumber = licenseNumber;
     }
 }

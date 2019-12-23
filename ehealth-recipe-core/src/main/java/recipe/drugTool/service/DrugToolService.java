@@ -731,6 +731,7 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setDrugForm(drugListMatch.getDrugForm());
                         organDrugList.setBaseDrug(drugListMatch.getBaseDrug());
                         organDrugList.setRegulationDrugCode(drugListMatch.getRegulationDrugCode());
+                        organDrugList.setLicenseNumber(drugListMatch.getLicenseNumber());
                         organDrugList.setTakeMedicine(0);
                         organDrugList.setStatus(1);
                         organDrugList.setProducerCode("");
