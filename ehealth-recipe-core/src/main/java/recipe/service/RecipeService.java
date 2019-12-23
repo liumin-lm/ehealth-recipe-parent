@@ -2528,7 +2528,7 @@ public class RecipeService extends RecipeBaseService{
                     //查询该用户最新的一条处方记录
                     HospitalRecipeDAO hospitalRecipeDAO = DAOFactory.getDAO(HospitalRecipeDAO.class);
                     List<HospitalRecipe> hospitalRecipes = hospitalRecipeDAO.findByCertificate(patientDTO.getIdcard());
-                    if (hospitalRecipes != null) {
+                    if (CollectionUtils.isNotEmpty(hospitalRecipes)) {
                         ydUrlPatient.setPno(hospitalRecipes.get(0).getPatientId());
                     }
                 }
