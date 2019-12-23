@@ -15,6 +15,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ import recipe.constant.RecipeSystemConstant;
 import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
+import recipe.service.common.RecipeCacheService;
 import recipe.service.hospitalrecipe.PrescribeService;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.DateConversion;
@@ -137,10 +139,12 @@ public class RecipeTimedTaskService {
     @RpcService
     public void updateRecipeStatus(){
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        //获取五分钟前的时间
+        RecipeCacheService recipeService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
+        String updateRecipeStatusTime = recipeService.getRecipeParam("updateRecipeStatusTime", "1");
+        //获取参数表设置的几分钟前的时间
         Calendar now = Calendar.getInstance();
         now.setTime(new Date());
-        now.add(Calendar.MINUTE, 1);
+        now.add(Calendar.MINUTE, Integer.valueOf(updateRecipeStatusTime));
         Date time = now.getTime();
         //设置查询时间段
         String endDt = DateConversion.getDateFormatter(time, DateConversion.DEFAULT_DATE_TIME);
