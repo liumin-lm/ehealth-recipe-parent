@@ -176,9 +176,6 @@ public class SyncExecutorService {
                 if (StringUtils.isNotEmpty(serviceConfigResponseTO.getRegulationAppDomainId()) && serviceConfigResponseTO.getRegulationAppDomainId().startsWith(REGULATION_GD)){
                     organs.add(serviceConfigResponseTO.getOrganid());
                 }
-                /*if (REGULATION_GD.equals(serviceConfigResponseTO.getRegulationAppDomainId())){
-                    organs.add(serviceConfigResponseTO.getOrganid());
-                }*/
             }
             List<Recipe> recipeList = recipeDAO.findRecipeListForDate(organs, startDt, endDt);
             LOGGER.info("uploadRecipeIndicatorsTimeTask size="+recipeList.size());
@@ -187,6 +184,10 @@ public class SyncExecutorService {
             try {
                 for (Recipe recipe : recipeList){
                     if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus()
+                            && recipe.getSyncFlag() == 1){
+                        continue;
+                    }
+                    if (RecipeStatusConstant.CHECK_PASS_YS == recipe.getStatus()
                             && recipe.getSyncFlag() == 1){
                         continue;
                     }

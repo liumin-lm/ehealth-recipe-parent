@@ -103,13 +103,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
      * @param request
      */
     public void splicingBackRecipeData(List<Recipe> recipeList,List<RegulationRecipeIndicatorsReq> request) {
-        IHisServiceConfigService configService = AppDomainContext.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
-        //获取所有监管平台机构列表
-        List<ServiceConfigResponseTO> list = configService.findAllRegulationOrgan();
-        if (CollectionUtils.isEmpty(list)) {
-            LOGGER.warn("uploadRecipeIndicators provUploadOrgan list is null.");
-            return;
-        }
+
         AuditMedicinesDAO auditMedicinesDAO = DAOFactory.getDAO(AuditMedicinesDAO.class);
         DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
         EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
@@ -162,15 +156,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 LOGGER.warn("uploadRecipeIndicators organ is null. recipe.clinicOrgan={}", recipe.getClinicOrgan());
                 continue;
             }
-            for (ServiceConfigResponseTO uploadOrgan : list) {
-                if (uploadOrgan.getOrganid().equals(organDTO.getOrganId())) {
-                    req.setOrganID(LocalStringUtil.toString(organDTO.getOrganId()));
-                    //组织机构编码
-                    req.setOrganizeCode(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
-                    req.setOrganName(organDTO.getName());
-                    break;
-                }
-            }
+            req.setOrganID(LocalStringUtil.toString(organDTO.getOrganId()));
+            //组织机构编码
+            req.setOrganizeCode(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
+            req.setOrganName(organDTO.getName());
 
             //科室处理
             departmentDTO = departMap.get(recipe.getDepart());
@@ -337,6 +326,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             if (recipeExtend != null){
                 req.setPatientNumber(recipeExtend.getRegisterID());
             }
+            //处方状态
+            req.setRecipeStatus(recipe.getStatus());
 
             //撤销标记
             req.setCancelFlag(getVerificationRevokeStatus(recipe));
