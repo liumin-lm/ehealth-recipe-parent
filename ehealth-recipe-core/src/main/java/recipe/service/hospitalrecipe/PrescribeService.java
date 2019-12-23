@@ -28,6 +28,7 @@ import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.utils.DateConversion;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -126,7 +127,11 @@ public class PrescribeService {
                             //推送模板消息
                             Map<String, Object> map = new HashMap<>();
                             map.put("doctorName",hospitalRecipeDTO.getDoctorName());
-                            map.put("recipeType", "西药");
+                            StringBuilder recipeType = new StringBuilder("西药");
+                            recipeType.append("\n");
+                            recipeType.append("开方时间：").append(hospitalRecipeDTO.getCreateDate()).append("\n");
+                            recipeType.append("开方医生：").append(hospitalRecipeDTO.getDoctorName());
+                            map.put("recipeType", recipeType);
                             map.put("organId", organ.getOrganId());
                             map.put("idCard", hospitalRecipeDTO.getCertificate());
                             map.put("patientName",hospitalRecipeDTO.getPatientName());
