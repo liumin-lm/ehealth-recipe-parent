@@ -265,7 +265,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         HospitalRecipe hospitalRecipe = new HospitalRecipe();
         hospitalRecipe.setRecipeCode(hospitalRecipeDTO.getRecipeCode());
         hospitalRecipe.setClinicId(hospitalRecipeDTO.getClinicId());
-        hospitalRecipe.setPatientId(hospitalRecipeDTO.getMpiId());
+        hospitalRecipe.setPatientId(hospitalRecipeDTO.getPatientId());
         hospitalRecipe.setCertificate(hospitalRecipeDTO.getCertificate());
         hospitalRecipe.setPatientName(hospitalRecipeDTO.getPatientName());
         hospitalRecipe.setPatientTel(hospitalRecipeDTO.getPatientTel());
