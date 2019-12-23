@@ -778,7 +778,8 @@ public class StandardEnterpriseCallService {
     public StandardResultDTO recipeStatusupdate(RecipeStatusUpdateReqTO request) {
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
         StandardResultDTO result = new StandardResultDTO();
-        request.setOrganID("");  //固定写死
+        request.setOrganID("1001022");  //固定写死
+        request.setOrganizeCode("12441403456767381W");
         request.setOuthospno("");
         request.setExplain("");
         request.setRecipeRecordStatus(2);
