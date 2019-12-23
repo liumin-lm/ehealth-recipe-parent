@@ -472,7 +472,6 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
         String time = getTime(new Date());
 
         String signStr = userName + DigestUtil.md5For32(password) + path + queryString + body + time;
-        System.out.println(userName + "/" + DigestUtil.md5For32(signStr) + "/" + time);
         return userName + "/" + DigestUtil.md5For32(signStr) + "/" + time;
     }
 
