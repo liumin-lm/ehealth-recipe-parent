@@ -1191,7 +1191,15 @@ public class RecipeOrderService extends RecipeBaseService {
                 DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
                 if(drugsEnterprise != null){
+                    order.setEnterpriseName(drugsEnterprise.getName());
                     orderBean.setTransFeeDetail(drugsEnterprise.getTransFeeDetail());
+                }
+
+                //如果扩展表指定了配送商名称，那就用扩展表的为主替换掉药企表的（杭州互联网新加逻辑）
+                RecipeExtendDAO RecipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+                RecipeExtend recipeExtend = RecipeExtendDAO.getByRecipeId(recipeList.get(0).getRecipeId());
+                if(recipeExtend != null && recipeExtend.getDeliveryName() != null){
+                    order.setEnterpriseName(drugsEnterprise.getName());
                 }
             }
             orderBean.setList(patientRecipeBeanList);
