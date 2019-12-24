@@ -58,7 +58,7 @@ public class YdRemoteService extends AccessDrugEnterpriseService {
     @Override
     public DrugEnterpriseResult pushRecipeInfo(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
         LOGGER.info("YdRemoteService-pushRecipeInfo hospitalRecipeDTO:{}.", JSONUtils.toString(hospitalRecipeDTO));
-        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
 
         if (!ObjectUtils.isEmpty(hospitalRecipeDTO)) {
             try{
