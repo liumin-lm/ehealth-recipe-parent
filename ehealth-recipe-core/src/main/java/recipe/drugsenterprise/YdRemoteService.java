@@ -1,35 +1,14 @@
 package recipe.drugsenterprise;
 
-import com.ngari.base.BaseAPI;
-import com.ngari.base.organ.model.OrganBean;
-import com.ngari.base.organ.service.IOrganService;
-import com.ngari.patient.dto.DepartmentDTO;
-import com.ngari.patient.service.*;
 import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.hisprescription.model.HospitalDrugDTO;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import ctd.controller.exception.ControllerException;
-import ctd.dictionary.DictionaryController;
-import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.utils.ChinaIDNumberUtil;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
 import recipe.bean.DrugEnterpriseResult;
-import recipe.bussutil.RecipeUtil;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
@@ -76,50 +55,12 @@ public class YdRemoteService extends AccessDrugEnterpriseService {
         return inputVo;
     }
 
-    @RpcService
-    public void test() {
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(220);
-        HospitalRecipeDTO hospitalRecipeDTO = new HospitalRecipeDTO();
-        hospitalRecipeDTO.setOrganId("470003265");
-        hospitalRecipeDTO.setRecipeCode("Rx-20191218");
-        hospitalRecipeDTO.setPatientNumber("4590121");
-        hospitalRecipeDTO.setPatientName("姜润康");
-        hospitalRecipeDTO.setCertificate("330781198509076796");
-        hospitalRecipeDTO.setPatientTel("18844145458");
-        hospitalRecipeDTO.setRegisterId("1231221");
-        hospitalRecipeDTO.setPatientSex("男");
-        hospitalRecipeDTO.setCreateDate("2019-12-18 15:25:10");
-        hospitalRecipeDTO.setDepartId("1");
-        hospitalRecipeDTO.setDoctorNumber("1231212");
-        hospitalRecipeDTO.setDoctorName("崔小可");
-        hospitalRecipeDTO.setOrganDiseaseId("ZBF070");
-        hospitalRecipeDTO.setOrganDiseaseName("风寒感冒");
-        List<HospitalDrugDTO> hospitalDrugDTOS = new ArrayList<>();
-        HospitalDrugDTO hospitalDrugDTO = new HospitalDrugDTO();
-        hospitalDrugDTO.setDrugCode("1231221");
-        hospitalDrugDTO.setDrugCode("122111");
-        hospitalDrugDTO.setDrugName("硝苯地平控释片");
-        hospitalDrugDTO.setProducer("北京拜耳");
-        hospitalDrugDTO.setSpecification("30mg*7片");
-        hospitalDrugDTO.setUsingRate("qd");
-        hospitalDrugDTO.setUsePathways("po");
-        hospitalDrugDTO.setUesDays("3");
-        hospitalDrugDTO.setUseDose("30");
-        hospitalDrugDTO.setUseDoseUnit("mg");
-        hospitalDrugDTO.setDrugFee("20");
-
-        hospitalDrugDTOS.add(hospitalDrugDTO);
-        hospitalRecipeDTO.setDrugList(hospitalDrugDTOS);
-        pushRecipeInfo(hospitalRecipeDTO, drugsEnterprise);
-
-    }
-
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         return DrugEnterpriseResult.getSuccess();
     }
 
+    @RpcService
     @Override
     public DrugEnterpriseResult pushRecipeInfo(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
         LOGGER.info("YdRemoteService-pushRecipeInfo hospitalRecipeDTO:{}.", JSONUtils.toString(hospitalRecipeDTO));
