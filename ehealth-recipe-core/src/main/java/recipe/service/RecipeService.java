@@ -2545,8 +2545,9 @@ public class RecipeService extends RecipeBaseService{
             }
             stringBuilder.append("?q=").append(patient);
             stringBuilder.append("&h=").append(yd_hospital_code);
+            stringBuilder.append("&r=");
             if (StringUtils.isNotEmpty(recipeNo)) {
-                stringBuilder.append("&r=").append(recipeNo);
+                stringBuilder.append(recipeNo);
             }
             url = pre_url + stringBuilder.toString();
             LOGGER.info("recipeService-getThirdRecipeUrl url:{}.", JSONUtils.toString(url));
