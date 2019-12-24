@@ -1199,7 +1199,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 RecipeExtendDAO RecipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
                 RecipeExtend recipeExtend = RecipeExtendDAO.getByRecipeId(recipeList.get(0).getRecipeId());
                 if(recipeExtend != null && recipeExtend.getDeliveryName() != null){
-                    order.setEnterpriseName(drugsEnterprise.getName());
+                    order.setEnterpriseName(recipeExtend.getDeliveryName());
                 }
             }
             orderBean.setList(patientRecipeBeanList);
