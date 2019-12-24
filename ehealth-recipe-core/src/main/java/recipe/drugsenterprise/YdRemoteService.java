@@ -32,12 +32,6 @@ public class YdRemoteService extends AccessDrugEnterpriseService {
     private static final String public_key1_path = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCrfoEAF7+NkAfTqOrakgfH3u9xsaEZxJ/3QB/m3iGSDuolmSaajsBBH1AD4Op9yOhN1mE92Fx6sosBy33XGd2YVfWxSXDFTR3vPPbDJZpJgMYeZw4tz1xn6sVP/dUg28A3w4rVQ4FuYLJ2WvdfOjiiZtWghpIBynQxcHgBW61xHQIDAQAB";
     private static final String private_key2_path = "MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBALGcz+NKE50fJDY0D8i4ysApvv/4/wwihFvSAZzWXnUBGkLSx/mTIeV/QSHUutcmtuoZhACruKI3VB2RBXpjjvXeZF9P4FuUmuuB91A4fOW66+EpxRPq1OoZaB5B9O60Y8AZh+V+nDK+udgI4Thl77vC6dwaZvjeEp44LdQFxBzZAgMBAAECgYAF4YVYp0lC+JcAXHTxVn0QI9G5NAtt4W60g52eDdMO2Lx/3e7VKrQCn1YOwrZ1DUkdMz8VrpnsdRyJ5hViWg2PtGstI956jcXESppeCWDP+peoG/2RBjC7wK3LAVb5qwTukxDzNJfcUVtdJBUirEcJb1PyGS03HJtGEUAMdD1KAQJBAOELWz3Nwa/Bn1Dz+zHn1gmyM8llBTkbw5AWrzTngKorVREFpGPzsXSkg8vKsNtjoRWaeCOgqTm4VQj+Gkul2uECQQDKCzTJrr8kwIQRFTA/lKpOaE+/f8pMiBSshwfPPLxfzCrbQ3YCd1IxWMAhcyql83tfDK+R3w0gagPBOPZUsTj5AkAzznh3ttlCy7EQYspOB8/nNYXkdAQKzJBtqDs3U5/0DLutin34oI4WixToIkYqizn3DjNgCElMx1mUE2McTRchAkEAtS3BY44pZ/qfM3ZtssZMxkzyHoao0WJCL8hSr3sGbV13nPHs1B9N/GRavmQ4/WHO4xhMJKIBcmy++zlqY94ceQJBALZdU+2lYEROKZ7B8C5SPHYVQzAgIwgKkbxdUT1Ztv+xMIUJRa8iAjZUGIxKk53dHMfU58kP5/ah/M2TmeAlfbc=";
 
-    @Resource
-    private RecipeDAO recipeDAO;
-
-    @Resource
-    private RecipeDetailDAO recipeDetailDAO;
-
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
         LOGGER.info("YdRemoteService tokenUpdateImpl not implement.");
