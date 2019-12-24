@@ -144,7 +144,7 @@ public class RecipeTimedTaskService {
         //获取参数表设置的几分钟前的时间
         Calendar now = Calendar.getInstance();
         now.setTime(new Date());
-        now.add(Calendar.MINUTE, Integer.valueOf(updateRecipeStatusTime));
+        now.add(Calendar.MINUTE, -(Integer.valueOf(updateRecipeStatusTime)));
         Date time = now.getTime();
         //设置查询时间段
         String endDt = DateConversion.getDateFormatter(time, DateConversion.DEFAULT_DATE_TIME);
