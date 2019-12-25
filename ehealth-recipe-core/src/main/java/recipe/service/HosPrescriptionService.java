@@ -2,6 +2,9 @@ package recipe.service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.BaseAPI;
+import com.ngari.base.clientconfig.service.IClientConfigService;
+import com.ngari.base.clientconfig.to.ClientConfigBean;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.qrinfo.model.BusQrInfoBean;
 import com.ngari.base.qrinfo.model.QRInfoBean;
@@ -222,11 +225,11 @@ public class HosPrescriptionService implements IHosPrescriptionService {
     }
 
     private ClientConfigDTO getClientConfig(String appId, Integer organId, String clientType) {
-        ClientConfigService ccService = BasicAPI.getService(ClientConfigService.class);
+        IClientConfigService ccService = BaseAPI.getService(IClientConfigService.class);
         OrganConfigService organConfigService=BasicAPI.getService(OrganConfigService.class);
         IConfigurationCenterUtilsService configurationCenterUtils = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         //根据前置机传的appId获取指定的端
-        ClientConfigDTO clientConfigDTO = ccService.getClientConfigByAppKey(appId);
+        ClientConfigBean clientConfigDTO = ccService.getByAppKey(appId);
         //前置机未指定公众号，则取运营平台默认的医生二维码指定的支付宝，或者微信
         if(clientConfigDTO==null){
             //医生默认微信二维码
@@ -237,10 +240,10 @@ public class HosPrescriptionService implements IHosPrescriptionService {
             }else if(ClientConfigConstant.APP_CLIENTTYPE_ALILIFE.equals(clientType)){
                 //医生默认支付宝二维码
                 String qrCodeAppId  = (String) configurationCenterUtils.getConfiguration(organId,"Qraliapp");
-                clientConfigDTO =ccService.getClientConfigByAppKey(qrCodeAppId);
+                clientConfigDTO =ccService.getByAppKey(qrCodeAppId);
             }
         }
-        return clientConfigDTO;
+        return ObjectCopyUtils.convert(clientConfigDTO,ClientConfigDTO.class);
     }
 
     private void verifyParam(RecipeQrCodeReqDTO req) {
