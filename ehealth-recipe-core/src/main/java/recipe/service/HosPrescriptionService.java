@@ -313,7 +313,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         LOG.info("getQrUrlForRecipeRemind reqParam={}",JSONUtils.toString(req));
         verifyParam(req);
         HosRecipeResult result = new HosRecipeResult();
-        String qrUrl;
+        Map<String,String> qrUrl;
         try {
             //根据前置机传的appId获取指定的端
             ClientConfigDTO clientConfig = getClientConfig(req.getAppId(), req.getOrganId(), req.getClientType());
@@ -336,7 +336,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         return result;
     }
 
-    private String getQrUrl(ClientConfigDTO clientConfig, String clientType, Integer organId, String qrcodeInfo) {
+    private Map<String,String> getQrUrl(ClientConfigDTO clientConfig, String clientType, Integer organId, String qrcodeInfo) {
         INgariQrInfoService ngariQrInfoService = AppContextHolder.getBean("eh.ngariQrInfoService", INgariQrInfoService.class);
         String sceneStr=new StringBuffer().append(QRInfoConstant.QRTYPE_RECIPE_REMIND).append("_")
                 .append(organId).append("_")
@@ -359,7 +359,11 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         IUrlResourceService urlResourceService =
                 AppDomainContext.getBean("eh.urlResourceService", IUrlResourceService.class);
         String uploadUrl = urlResourceService.getUrlByParam("imgUrl");
-        return new StringBuffer(uploadUrl).append(fileid).toString();
+        //既返回二维码图片地址 又返回原始二维码url
+        Map<String,String> result = new HashMap<>(2);
+        result.put("qrImgUrl",new StringBuffer(uploadUrl).append(fileid).toString());
+        result.put("qrUrl",qrInfo.getQrUrl());
+        return result;
     }
 
     private ClientConfigDTO getClientConfig(String appId, Integer organId, String clientType) {
