@@ -630,17 +630,17 @@ public class RecipeListService extends RecipeBaseService{
      * @param start
      * @return
      */
-    @RpcService
-    public List<PatientDTO> findHistoryPatientsFromRecipeByDoctor(Integer doctorId, int start, int limit) {
-        checkUserHasPermissionByDoctorId(doctorId);
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        final List<String> mpiList = recipeDAO.findHistoryMpiIdsByDoctorId(doctorId, start, limit);
-        if (mpiList.size() == 0) {
-            return new ArrayList<>();
-        }
-        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
-        return patientService.getPatients(mpiList, doctorId);
-    }
+//    @RpcService
+//    public List<PatientDTO> findHistoryPatientsFromRecipeByDoctor(Integer doctorId, int start, int limit) {
+//        checkUserHasPermissionByDoctorId(doctorId);
+//        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+//        final List<String> mpiList = recipeDAO.findHistoryMpiIdsByDoctorId(doctorId, start, limit);
+//        if (mpiList.size() == 0) {
+//            return new ArrayList<>();
+//        }
+//        PatientService patientService = ApplicationUtils.getBasicService(pa.class);
+//        return patientService.getPatients(mpiList, doctorId);
+//    }
 
     /**
      * 获取患者的所有处方单-web福建省立
