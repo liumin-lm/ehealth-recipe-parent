@@ -1,10 +1,7 @@
 package recipe.drugsenterprise;
 
 import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.hisprescription.model.HosInvalidRecipeDTO;
-import com.ngari.recipe.hisprescription.model.HosRecipeResult;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -13,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
-import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
 import recipe.drugsenterprise.bean.yd.httpclient.HttpsClientUtils;
 import recipe.drugsenterprise.bean.yd.model.*;
@@ -64,7 +60,7 @@ public class YdRemoteService extends AccessDrugEnterpriseService {
     @Override
     public DrugEnterpriseResult pushRecipeInfo(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
         LOGGER.info("YdRemoteService-pushRecipeInfo hospitalRecipeDTO:{}.", JSONUtils.toString(hospitalRecipeDTO));
-        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
 
         if (!ObjectUtils.isEmpty(hospitalRecipeDTO)) {
             try{
@@ -112,33 +108,6 @@ public class YdRemoteService extends AccessDrugEnterpriseService {
     @Override
     public String getDrugEnterpriseCallSys() {
         return DrugEnterpriseConstant.COMPANY_YD;
-    }
-
-    public HosRecipeResult invalidRecipe(HosInvalidRecipeDTO invalidRecipeDTO) {
-        HosRecipeResult result = new HosRecipeResult();
-        String params = JSONUtils.toString(invalidRecipeDTO);
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAccount("yd");
-        try{
-            StdInputVo inputVo  = getStdInputVo(drugsEnterprise, params);
-            String outputJson = HttpsClientUtils.doPost(drugsEnterprise.getBusinessUrl() + "/api/std/recipe/invalid",inputVo.toJSONString());
-            LOGGER.info("YdRemoteService-invalidRecipe 接口返回值:{}.", outputJson);
-            if(outputJson != null){
-                StdOutputVo outputVo = StdOutputVo.fromJson(outputJson);
-                String data = outputVo.decodeStdOutput(EncryptMode.RSA,private_key2_path);
-                LOGGER.info("YdRemoteService-invalidRecipe 返回参数解析:{}.", data);
-                YdResponse ydResponse = JSONUtils.parse(data, YdResponse.class);
-                if ("true".equals(ydResponse.getSuccess())) {
-                    result.setCode(HosRecipeResult.SUCCESS);
-                } else {
-                    result.setCode(HosRecipeResult.FAIL);
-                }
-            }
-        }catch(Exception e){
-            LOGGER.info("YdRemoteService-invalidRecipe error:{}.", e.getMessage(), e);
-        }
-
-        return result;
     }
 
     /**

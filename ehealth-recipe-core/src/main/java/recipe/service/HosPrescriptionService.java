@@ -47,7 +47,6 @@ import recipe.constant.RecipeBussConstant;
 import recipe.dao.HospitalRecipeDAO;
 import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.drugsenterprise.YdRemoteService;
 import recipe.medicationguide.service.MedicationGuideService;
 import recipe.service.hospitalrecipe.PrescribeService;
 
@@ -326,12 +325,6 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         //二维码数据
         result.setData(qrUrl);
         return result;
-    }
-
-    @Override
-    public HosRecipeResult invalidRecipe(HosInvalidRecipeDTO invalidRecipeDTO) {
-        YdRemoteService ydRemoteService = ApplicationUtils.getRecipeService(YdRemoteService.class);
-        return ydRemoteService.invalidRecipe(invalidRecipeDTO);
     }
 
     private Map<String,String> getQrUrl(ClientConfigDTO clientConfig, String clientType, Integer organId, String qrcodeInfo) {

@@ -34,6 +34,4 @@ public interface IHosPrescriptionService {
     @RpcService
     HosRecipeResult getQrUrlForRecipeRemind(RecipeQrCodeReqDTO recipeQrCodeReqDTO);
 
-    @RpcService
-    HosRecipeResult invalidRecipe(HosInvalidRecipeDTO invalidRecipeDTO);
 }
