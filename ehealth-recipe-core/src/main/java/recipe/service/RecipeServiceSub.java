@@ -1302,7 +1302,41 @@ public class RecipeServiceSub {
         if (doctorDTO != null){
             map.put("doctorSignImg",doctorDTO.getSignImage());
         }
+
+        //Date:2019/12/16
+        //Explain:添加判断展示处方参考价格
+        //获取处方下的药品，判断是否有药品对应的医院药品金额为空，有的话不展示参考价格
+        boolean flag = getShowReferencePriceFlag(recipe, recipedetails);
+        map.put("showReferencePrice", flag);
         return map;
+    }
+
+    /**
+     * @method  getShowReferencePriceFlag
+     * @description 获取是否要展示参考价格
+     * @date: 2019/12/17
+     * @author: JRK
+     * @param recipe 查询的处方
+     * @param recipedetails 处方对应的药品详情
+     * @return boolean 是否展示参考价格
+     */
+    private static boolean getShowReferencePriceFlag(Recipe recipe, List<Recipedetail> recipedetails) {
+        OrganDrugListDAO drugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
+        boolean flag = true;
+        OrganDrugList organDrug;
+        if(null == recipedetails || 0 >= recipedetails.size()){
+            flag = false;
+        }else{
+            //只要有一个药品的价格为空或0都不展示参考价格
+            for(Recipedetail recipedetail : recipedetails){
+                organDrug = drugDao.getByOrganIdAndOrganDrugCode(recipe.getClinicOrgan(), recipedetail.getOrganDrugCode());
+                if (null == organDrug.getSalePrice() || 0 <= BigDecimal.ZERO.compareTo(organDrug.getSalePrice())) {
+                    flag = false;
+                    break;
+                }
+            }
+        }
+        return flag;
     }
 
     /**
