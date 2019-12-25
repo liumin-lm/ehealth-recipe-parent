@@ -792,7 +792,8 @@ public class StandardEnterpriseCallService {
         request.setOrganizeCode(organDTO.getOrganizeCode());
         request.setOuthospno("");
         request.setExplain("无");
-        request.setRecipeRecordStatus(1);
+        request.setRecipeRecordStatus(2);
+        request.setRecipeStatus("1");
         Boolean flag = service.recipeUpdate(request);
         if (flag) {
             result.setCode(StandardResultDTO.SUCCESS);
