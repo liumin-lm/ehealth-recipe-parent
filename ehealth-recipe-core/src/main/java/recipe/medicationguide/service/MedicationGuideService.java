@@ -126,7 +126,9 @@ public class MedicationGuideService {
                 detailBean = new RecipeDetailBean();
                 detailBean.setUsingRate(drugDTO.getUsingRate());
                 detailBean.setUsePathways(drugDTO.getUsePathWays());
-                detailBean.setUseDose(Double.valueOf(drugDTO.getUseDose()));
+                if (StringUtils.isNotEmpty(drugDTO.getUseDose())){
+                    detailBean.setUseDose(Double.valueOf(drugDTO.getUseDose()));
+                }
                 detailBean.setUseDoseUnit(drugDTO.getUseDoseUnit());
                 detailBean.setDrugName(drugDTO.getDrugName());
                 detailBean.setOrganDrugCode(drugDTO.getDrugCode());
