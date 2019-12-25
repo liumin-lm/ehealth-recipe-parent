@@ -23,7 +23,6 @@
     <!-- 首页待办事件处理-->
     <reference id="eh.remoteAsynDoBussService" interface="com.ngari.home.asyn.service.IAsynDoBussService" />
 
-    <reference interface="com.ngari.base.address.service.IAddressService" id="eh.remoteAddressService"/>
     <reference interface="com.ngari.base.hisconfig.service.IHisConfigService" id="eh.remoteHisConfigService"/>
     <reference interface="com.ngari.base.operationrecords.service.IOperationRecordsService"
                id="eh.remoteOperationRecordsService"/>

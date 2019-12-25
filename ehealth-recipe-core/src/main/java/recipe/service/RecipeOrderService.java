@@ -5,8 +5,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ngari.base.address.model.AddressBean;
-import com.ngari.base.address.service.IAddressService;
 import com.ngari.base.hisconfig.model.HisServiceConfigBean;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.model.OrganConfigBean;
