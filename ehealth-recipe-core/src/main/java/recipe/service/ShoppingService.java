@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import com.ngari.base.address.model.AddressBean;
 import com.ngari.base.address.service.IAddressService;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.AddressService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeBussResTO;
@@ -15,6 +16,7 @@ import com.ngari.recipe.shoppingorder.model.ShoppingOrderDTO;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -81,7 +83,7 @@ public class ShoppingService {
 
     private RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
-    private IAddressService iAddressService = ApplicationUtils.getBaseService(IAddressService.class);
+    private AddressService iAddressService = ApplicationUtils.getBasicService(AddressService.class);
 
     /**
      * 获取患者信息
@@ -98,7 +100,9 @@ public class ShoppingService {
             res.setCode(0);
             res.setMsg("患者不存在");
         } else {
-            List<AddressBean> addressList = iAddressService.findByMpiId(mpiId);
+            //date 2019/12/25
+            //调整处方方法调basic
+            List<AddressBean> addressList = ObjectCopyUtils.convert(iAddressService.findByMpiId(mpiId), AddressBean.class);
             Map<String, Object> user = Maps.newHashMap();
             user.put("name", patient.getPatientName());
             user.put("address", addressList);
@@ -466,7 +470,9 @@ public class ShoppingService {
         ShoppingOrderDAO orderDAO = DAOFactory.getDAO(ShoppingOrderDAO.class);
         ShoppingOrder byMpiIdAndOrderCode = orderDAO.getByMpiIdAndOrderCode(mpiId, orderCode);
         //获得收获人信息
-        List<AddressBean> addressList = iAddressService.findByMpiId(mpiId);
+        //date 2019/12/25
+        //调整处方方法调basic
+        List<AddressBean> addressList = ObjectCopyUtils.convert(iAddressService.findByMpiId(mpiId), AddressBean.class);
         //获得药品详情
         List<ShoppingDrugDTO> drugsByOrderCode = this.findDrugsByOrderCode(orderCode);
         map.put("shoppingOrder", ObjectCopyUtils.convert(byMpiIdAndOrderCode, ShoppingOrderDTO.class));

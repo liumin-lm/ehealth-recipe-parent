@@ -18,8 +18,10 @@ import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.bus.coupon.model.CouponBean;
 import com.ngari.bus.coupon.service.ICouponService;
+import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.AddressService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
@@ -560,9 +562,11 @@ public class RecipeOrderService extends RecipeBaseService {
 //            order.setExpressFee(new BigDecimal("-1"));
         } else {
             //设置运费
-            IAddressService addressService = ApplicationUtils.getBaseService(IAddressService.class);
+            //date 2019/12/25
+            //调整处方方法调basic
+            AddressService addressService = ApplicationUtils.getBasicService(AddressService.class);
             String operAddressId = MapValueUtil.getString(extInfo, "addressId");
-            AddressBean address = null;
+            AddressDTO address = null;
             if (StringUtils.isNotEmpty(operAddressId)) {
                 address = addressService.get(Integer.parseInt(operAddressId));
             } else {
