@@ -1,6 +1,5 @@
 package recipe.service;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.organ.model.OrganBean;
@@ -17,20 +16,16 @@ import com.ngari.patient.dto.ClientConfigDTO;
 import com.ngari.patient.dto.OrganConfigDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
-import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.HospitalRecipe;
-import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.hisprescription.model.*;
 import com.ngari.recipe.hisprescription.service.IHosPrescriptionService;
 import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.upload.service.IUrlResourceService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
-import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -41,7 +36,6 @@ import eh.base.constant.ErrorCode;
 import eh.qrcode.constant.QRInfoConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.formula.constant.ErrorConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,14 +44,12 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeMsgEnum;
 import recipe.dao.HospitalRecipeDAO;
 import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.medicationguide.bean.PatientInfoDTO;
+import recipe.drugsenterprise.YdRemoteService;
 import recipe.medicationguide.service.MedicationGuideService;
 import recipe.service.hospitalrecipe.PrescribeService;
-import recipe.util.ChinaIDNumberUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -338,7 +330,8 @@ public class HosPrescriptionService implements IHosPrescriptionService {
 
     @Override
     public HosRecipeResult invalidRecipe(HosInvalidRecipeDTO invalidRecipeDTO) {
-        return null;
+        YdRemoteService ydRemoteService = ApplicationUtils.getRecipeService(YdRemoteService.class);
+        return ydRemoteService.invalidRecipe(invalidRecipeDTO);
     }
 
     private Map<String,String> getQrUrl(ClientConfigDTO clientConfig, String clientType, Integer organId, String qrcodeInfo) {
