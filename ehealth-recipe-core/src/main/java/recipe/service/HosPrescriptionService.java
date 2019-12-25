@@ -336,6 +336,11 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         return result;
     }
 
+    @Override
+    public HosRecipeResult invalidRecipe(HosInvalidRecipeDTO invalidRecipeDTO) {
+        return null;
+    }
+
     private Map<String,String> getQrUrl(ClientConfigDTO clientConfig, String clientType, Integer organId, String qrcodeInfo) {
         INgariQrInfoService ngariQrInfoService = AppContextHolder.getBean("eh.ngariQrInfoService", INgariQrInfoService.class);
         String sceneStr=new StringBuffer().append(QRInfoConstant.QRTYPE_RECIPE_REMIND).append("_")
