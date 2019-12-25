@@ -201,12 +201,6 @@ public class MedicationGuideService {
                 if (StringUtils.isEmpty(drugDTO.getDrugName())){
                     throw new DAOException(DAOException.VALUE_NEEDED, "drugName is required!");
                 }
-                if (StringUtils.isEmpty(drugDTO.getUsingRate())){
-                    throw new DAOException(DAOException.VALUE_NEEDED, "usingRate is required!");
-                }
-                if (StringUtils.isEmpty(drugDTO.getUsePathWays())){
-                    throw new DAOException(DAOException.VALUE_NEEDED, "usePathWays is required!");
-                }
             }
         }
     }
