@@ -1,6 +1,5 @@
 package recipe.service;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.organ.model.OrganBean;
@@ -17,20 +16,16 @@ import com.ngari.patient.dto.ClientConfigDTO;
 import com.ngari.patient.dto.OrganConfigDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
-import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.HospitalRecipe;
-import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.hisprescription.model.*;
 import com.ngari.recipe.hisprescription.service.IHosPrescriptionService;
 import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.upload.service.IUrlResourceService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
-import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -41,7 +36,6 @@ import eh.base.constant.ErrorCode;
 import eh.qrcode.constant.QRInfoConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.formula.constant.ErrorConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,14 +44,12 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeMsgEnum;
 import recipe.dao.HospitalRecipeDAO;
 import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.medicationguide.bean.PatientInfoDTO;
+import recipe.drugsenterprise.YdRemoteService;
 import recipe.medicationguide.service.MedicationGuideService;
 import recipe.service.hospitalrecipe.PrescribeService;
-import recipe.util.ChinaIDNumberUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -313,7 +305,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         LOG.info("getQrUrlForRecipeRemind reqParam={}",JSONUtils.toString(req));
         verifyParam(req);
         HosRecipeResult result = new HosRecipeResult();
-        String qrUrl;
+        Map<String,String> qrUrl;
         try {
             //根据前置机传的appId获取指定的端
             ClientConfigDTO clientConfig = getClientConfig(req.getAppId(), req.getOrganId(), req.getClientType());
@@ -336,7 +328,13 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         return result;
     }
 
-    private String getQrUrl(ClientConfigDTO clientConfig, String clientType, Integer organId, String qrcodeInfo) {
+    @Override
+    public HosRecipeResult invalidRecipe(HosInvalidRecipeDTO invalidRecipeDTO) {
+        YdRemoteService ydRemoteService = ApplicationUtils.getRecipeService(YdRemoteService.class);
+        return ydRemoteService.invalidRecipe(invalidRecipeDTO);
+    }
+
+    private Map<String,String> getQrUrl(ClientConfigDTO clientConfig, String clientType, Integer organId, String qrcodeInfo) {
         INgariQrInfoService ngariQrInfoService = AppContextHolder.getBean("eh.ngariQrInfoService", INgariQrInfoService.class);
         String sceneStr=new StringBuffer().append(QRInfoConstant.QRTYPE_RECIPE_REMIND).append("_")
                 .append(organId).append("_")
@@ -359,7 +357,11 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         IUrlResourceService urlResourceService =
                 AppDomainContext.getBean("eh.urlResourceService", IUrlResourceService.class);
         String uploadUrl = urlResourceService.getUrlByParam("imgUrl");
-        return new StringBuffer(uploadUrl).append(fileid).toString();
+        //既返回二维码图片地址 又返回原始二维码url
+        Map<String,String> result = new HashMap<>(2);
+        result.put("qrImgUrl",new StringBuffer(uploadUrl).append(fileid).toString());
+        result.put("qrUrl",qrInfo.getQrUrl());
+        return result;
     }
 
     private ClientConfigDTO getClientConfig(String appId, Integer organId, String clientType) {
