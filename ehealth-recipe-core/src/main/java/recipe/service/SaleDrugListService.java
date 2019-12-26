@@ -1,6 +1,9 @@
 package recipe.service;
 
 import com.google.common.collect.Lists;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.DrugListAndSaleDrugListDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
@@ -14,10 +17,12 @@ import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 import recipe.constant.ErrorCode;
 import recipe.dao.DrugListDAO;
 import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.dao.bean.DrugListAndSaleDrugList;
 
@@ -149,14 +154,22 @@ public class SaleDrugListService {
     }
 
     @RpcService
-    public boolean checkDrugIntroduce(Integer drugId, Integer useTotalDose){
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+    public boolean checkDrugIntroduce(Integer drugId, Integer useTotalDose, Integer organId){
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        List<DrugsEnterprise> enterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName("岳阳-钥世圈");
-        if (enterprises != null && enterprises.size() > 0) {
-            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, enterprises.get(0).getId());
-            if (saleDrugList != null && saleDrugList.getInventory() != null && saleDrugList.getInventory().intValue() >= useTotalDose) {
-                return true;
+        OrganService organService = BasicAPI.getService(OrganService.class);
+        OrganDTO organDTO = organService.getByOrganId(organId);
+        if (organDTO == null) {
+            logger.info("机构不存在, organ:" + organId);
+            return true;
+        }
+        OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+        List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
+        if (CollectionUtils.isNotEmpty(drugsEnterprises)) {
+            for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
+                if (saleDrugList != null && saleDrugList.getInventory() != null && saleDrugList.getInventory().intValue() >= useTotalDose) {
+                    return true;
+                }
             }
         }
         return false;

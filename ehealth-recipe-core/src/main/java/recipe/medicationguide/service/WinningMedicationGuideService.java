@@ -62,7 +62,11 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
         List<DrugUseDTO> drugUseList = requestParam.getDrugUseList();
         StringBuilder drugInfo = new StringBuilder();
         for (DrugUseDTO drugUseDTO : drugUseList) {
-            drugInfo.append(drugUseDTO.getDrugName()).append("\n").append("用法:").append(drugUseDTO.getDrugUsed()).append("\n");
+            if (StringUtils.isEmpty(drugUseDTO.getDrugUsed())){
+                drugInfo.append(drugUseDTO.getDrugName()).append("\n");
+            }else {
+                drugInfo.append(drugUseDTO.getDrugName()).append("\n").append("用法:").append(drugUseDTO.getDrugUsed()).append("\n");
+            }
         }
         result.put("drugInfo",drugInfo);
         return result;
@@ -95,7 +99,11 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
                     detail.setUsePathways(usePathwaysDic.getText(detail.getUsePathways()));
                     detail.setUsingRate(usingRateDic.getText(detail.getUsingRate()));
                 }
-                drugUseDTO.setDrugUsed(detail.getUsePathways() + "/每次" + detail.getUseDose() + detail.getUseDoseUnit() + "/" + detail.getUsingRate());
+                if (StringUtils.isEmpty(detail.getUsePathways())||StringUtils.isEmpty(detail.getUsingRate())||detail.getUseDose()==null||StringUtils.isEmpty(detail.getUseDoseUnit())){
+                    drugUseDTO.setDrugUsed("");
+                }else {
+                    drugUseDTO.setDrugUsed(detail.getUsePathways() + "/每次" + detail.getUseDose() + detail.getUseDoseUnit() + "/" + detail.getUsingRate());
+                }
                 drugUseParam.add(drugUseDTO);
             }
 
