@@ -59,6 +59,7 @@ public class YdRecipeVO {
         }
 
         recipeVo.setVisitdate(hospitalRecipeDTO.getCreateDate());
+        recipeVo.setRecipebegindate(hospitalRecipeDTO.getCreateDate());
         recipeVo.setPatienttypename("/");
         recipeVo.setMedicarecategname("/");
         recipeVo.setSignalsourcetypename("/");
