@@ -69,7 +69,6 @@ public class YdRecipeVO {
         recipeVo.setRegistdrcode(hospitalRecipeDTO.getDoctorNumber());
         recipeVo.setRegistdrname(hospitalRecipeDTO.getDoctorName());
         recipeVo.setDoctorName(hospitalRecipeDTO.getDoctorName());
-        recipeVo.setRecipebegindate("");
         recipeVo.setRecipeenddate("");
         recipeVo.setContactname(hospitalRecipeDTO.getPatientName());
         recipeVo.setContactaddr(hospitalRecipeDTO.getPatientAddress());
