@@ -1330,7 +1330,13 @@ public class RecipeServiceSub {
             //只要有一个药品的价格为空或0都不展示参考价格
             for(Recipedetail recipedetail : recipedetails){
                 organDrug = drugDao.getByOrganIdAndOrganDrugCode(recipe.getClinicOrgan(), recipedetail.getOrganDrugCode());
+                if(null == organDrug){
+                    LOGGER.warn("当前机构{}下药品code{}的药品为空", recipe.getClinicOrgan(), recipedetail.getOrganDrugCode());
+                    flag = false;
+                    break;
+                }
                 if (null == organDrug.getSalePrice() || 0 <= BigDecimal.ZERO.compareTo(organDrug.getSalePrice())) {
+                    LOGGER.info("当前机构药品{}的金额为空", organDrug.getOrganDrugId());
                     flag = false;
                     break;
                 }
