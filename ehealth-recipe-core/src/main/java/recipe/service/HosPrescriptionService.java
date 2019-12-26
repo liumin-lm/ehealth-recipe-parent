@@ -185,7 +185,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
                 PatientService patientService = BasicAPI.getService(PatientService.class);
                 PatientDTO patientDTO = patientService.getByIdCard(hospitalRecipeDTO.getCertificate());
                 if (patientDTO == null) {
-                    List<PatientDTO> patientDTOList =  patientService.getByMobile(hospitalRecipeDTO.getPatientTel());
+                    List<PatientDTO> patientDTOList =  patientService.findByMobileOrNameOrIdCard(hospitalRecipeDTO.getPatientTel(),"","");
                     if (CollectionUtils.isNotEmpty(patientDTOList)) {
                         patientDTO = patientDTOList.get(0);
                     }
