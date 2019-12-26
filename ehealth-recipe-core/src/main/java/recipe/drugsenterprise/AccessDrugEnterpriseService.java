@@ -7,6 +7,7 @@ import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Pharmacy;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -147,6 +148,16 @@ public abstract class AccessDrugEnterpriseService {
      * @return
      */
     public abstract DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise);
+
+    /**
+     * 通过前置机直接推送处方
+     *
+     * @param hospitalRecipeDTO  前置机传入的处方信息
+     * @param enterprise         药企
+     * @return                   推送结果
+     */
+    public abstract DrugEnterpriseResult pushRecipeInfo(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise);
+
 
     /**
      * 库存检验

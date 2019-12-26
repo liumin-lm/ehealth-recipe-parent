@@ -31,6 +31,9 @@ public class HospitalRecipeDTO implements Serializable {
     @Verify(isNotNull = false, desc = "患者id")
     private String mpiId;
 
+    @Verify(isNotNull = false, desc = "医院患者编号")
+    private String patientId;
+
     @Verify(isNotNull = false,desc = "患者证件类型")
     private String certificateType;
 
@@ -66,6 +69,9 @@ public class HospitalRecipeDTO implements Serializable {
 
     @Verify(desc = "处方类型", isInt = true)
     private String recipeType;
+
+    @Verify(desc = "科室名称")
+    private String departName;
 
     @Verify(desc = "开方科室")
     private String departId;
@@ -166,6 +172,8 @@ public class HospitalRecipeDTO implements Serializable {
     //reqType 请求类型（1：二维码扫码推送详情 2：自动推送详情链接跳转请求 ）
     private Integer reqType;
 
+    private Boolean noSaveRecipeFlag;  //此标记位是否是第三方跳转链接
+
     @Verify(desc = "药品详情")
     private List<HospitalDrugDTO> drugList;
 
@@ -183,6 +191,14 @@ public class HospitalRecipeDTO implements Serializable {
 
     public void setMpiId(String mpiId) {
         this.mpiId = mpiId;
+    }
+
+    public String getPatientId() {
+        return patientId;
+    }
+
+    public void setPatientId(String patientId) {
+        this.patientId = patientId;
     }
 
     public String getCertificateType() {
@@ -271,6 +287,14 @@ public class HospitalRecipeDTO implements Serializable {
 
     public void setRecipeType(String recipeType) {
         this.recipeType = recipeType;
+    }
+
+    public String getDepartName() {
+        return departName;
+    }
+
+    public void setDepartName(String departName) {
+        this.departName = departName;
     }
 
     public String getDepartId() {
@@ -551,6 +575,14 @@ public class HospitalRecipeDTO implements Serializable {
 
     public void setReqType(Integer reqType) {
         this.reqType = reqType;
+    }
+
+    public Boolean getNoSaveRecipeFlag() {
+        return noSaveRecipeFlag;
+    }
+
+    public void setNoSaveRecipeFlag(Boolean noSaveRecipeFlag) {
+        this.noSaveRecipeFlag = noSaveRecipeFlag;
     }
 
     public static HospitalRecipeDTO getTestObject(){

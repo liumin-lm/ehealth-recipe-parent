@@ -4,6 +4,7 @@ import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -58,6 +59,26 @@ public class RemoteDrugEnterpriseService {
             }
         }
         LOGGER.info("pushSingleRecipeInfo recipeId:{}, result:{}", recipeId, JSONUtils.toString(result));
+        return result;
+    }
+
+    /**
+     * 根据药企推送处方
+     *
+     * @param drugsEnterprise 药企
+     * @return
+     */
+    @RpcService
+    public DrugEnterpriseResult pushSingleRecipeInfo(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise drugsEnterprise) {
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        result.setAccessDrugEnterpriseService(this.getServiceByDep(drugsEnterprise));
+        if (DrugEnterpriseResult.SUCCESS.equals(result.getCode()) && null != result.getAccessDrugEnterpriseService()) {
+            result = result.getAccessDrugEnterpriseService().pushRecipeInfo(hospitalRecipeDTO, drugsEnterprise);
+            if (DrugEnterpriseResult.SUCCESS.equals(result.getCode())) {
+                result.setDrugsEnterprise(drugsEnterprise);
+            }
+        }
+        LOGGER.info("pushSingleRecipeInfo drugsEnterpriseName:{}, result:{}", drugsEnterprise.getName(), JSONUtils.toString(result));
         return result;
     }
 

@@ -7,6 +7,7 @@ import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -316,6 +317,11 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
         return result;
     }
 
+    @Override
+    public DrugEnterpriseResult pushRecipeInfo(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
+        return DrugEnterpriseResult.getSuccess();
+    }
+
     @RpcService
     @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
@@ -466,7 +472,6 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
         String time = getTime(new Date());
 
         String signStr = userName + DigestUtil.md5For32(password) + path + queryString + body + time;
-        System.out.println(userName + "/" + DigestUtil.md5For32(signStr) + "/" + time);
         return userName + "/" + DigestUtil.md5For32(signStr) + "/" + time;
     }
 

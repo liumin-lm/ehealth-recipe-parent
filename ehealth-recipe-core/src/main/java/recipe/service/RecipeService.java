@@ -10,9 +10,9 @@ import com.ngari.base.esign.service.IESignBaseService;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.model.DocIndexBean;
+import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.payment.service.IPaymentService;
-import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.ConsultSetDTO;
@@ -62,6 +62,7 @@ import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.drugsenterprise.bean.YdUrlPatient;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.purchase.PurchaseService;
@@ -74,7 +75,7 @@ import recipe.util.RedisClient;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -2496,5 +2497,62 @@ public class RecipeService extends RecipeBaseService{
         return true;
     }
 
+    @RpcService
+    public String getThirdRecipeUrl(String mpiId){
+        List<PatientBean> patientBeans = iPatientService.findByMpiIdIn(Arrays.asList(mpiId));
+        return getThirdUrlString(patientBeans, "", "");
+    }
+
+    public String getThirdUrlString(List<PatientBean> patientBeans, String recipeNo, String patientId) {
+        String url = "";
+        RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        if (CollectionUtils.isNotEmpty(patientBeans)) {
+            Integer urt = patientBeans.get(0).getUrt();
+            PatientService patientService = BasicAPI.getService(PatientService.class);
+            List<PatientDTO>  patientDTOList = patientService.findPatientByUrt(urt);
+            LOGGER.info("recipeService-getThirdRecipeUrl patientBean:{}.", JSONUtils.toString(patientDTOList));
+            String pre_url = parameterDao.getByName("yd_thirdurl");
+            String yd_hospital_code = parameterDao.getByName("yd_hospital_code");
+            List<YdUrlPatient> ydUrlPatients = new ArrayList<>();
+            for (PatientDTO patientDTO : patientDTOList) {
+                YdUrlPatient ydUrlPatient = new YdUrlPatient();
+                String idnum = patientDTO.getIdcard();
+                String mobile = patientDTO.getMobile();
+                String pname = patientDTO.getPatientName();
+                ydUrlPatient.setMobile(mobile);
+                ydUrlPatient.setIdnum(idnum);
+                ydUrlPatient.setPname(pname);
+                if (StringUtils.isNotEmpty(patientId)) {
+                    ydUrlPatient.setPno(patientId);
+                } else {
+                    //查询该用户最新的一条处方记录
+                    HospitalRecipeDAO hospitalRecipeDAO = DAOFactory.getDAO(HospitalRecipeDAO.class);
+                    List<HospitalRecipe> hospitalRecipes = hospitalRecipeDAO.findByCertificate(patientDTO.getIdcard());
+                    if (CollectionUtils.isNotEmpty(hospitalRecipes)) {
+                        ydUrlPatient.setPno(hospitalRecipes.get(0).getPatientId());
+                    }
+                }
+                ydUrlPatient.setHisno("");
+                ydUrlPatients.add(ydUrlPatient);
+            }
+
+            String patient = JSONUtils.toString(ydUrlPatients);
+            StringBuilder stringBuilder = new StringBuilder();
+            try{
+                patient = URLEncoder.encode(patient, "UTF-8");
+            }catch(Exception e){
+                LOGGER.error("recipeService-getThirdRecipeUrl url:{}.", JSONUtils.toString(stringBuilder), e);
+            }
+            stringBuilder.append("?q=").append(patient);
+            stringBuilder.append("&h=").append(yd_hospital_code);
+            stringBuilder.append("&r=");
+            if (StringUtils.isNotEmpty(recipeNo)) {
+                stringBuilder.append(recipeNo);
+            }
+            url = pre_url + stringBuilder.toString();
+            LOGGER.info("recipeService-getThirdRecipeUrl url:{}.", JSONUtils.toString(url));
+        }
+        return url;
+    }
 
 }

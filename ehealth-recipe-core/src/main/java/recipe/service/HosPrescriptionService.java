@@ -1,26 +1,31 @@
 package recipe.service;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.BaseAPI;
+import com.ngari.base.organ.model.OrganBean;
+import com.ngari.base.organ.service.IOrganService;
+import com.ngari.base.patient.model.PatientBean;
+import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.base.push.model.SmsInfoBean;
+import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.base.qrinfo.model.BusQrInfoBean;
 import com.ngari.base.qrinfo.model.QRInfoBean;
 import com.ngari.base.qrinfo.service.INgariQrInfoService;
 import com.ngari.patient.dto.ClientConfigDTO;
 import com.ngari.patient.dto.OrganConfigDTO;
+import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
-import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.HospitalRecipe;
 import com.ngari.recipe.hisprescription.model.*;
 import com.ngari.recipe.hisprescription.service.IHosPrescriptionService;
 import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.upload.service.IUrlResourceService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
-import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -29,25 +34,24 @@ import ctd.util.annotation.RpcService;
 import eh.base.constant.ClientConfigConstant;
 import eh.base.constant.ErrorCode;
 import eh.qrcode.constant.QRInfoConstant;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.formula.constant.ErrorConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import recipe.ApplicationUtils;
+import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeMsgEnum;
-import recipe.medicationguide.bean.PatientInfoDTO;
+import recipe.dao.HospitalRecipeDAO;
+import recipe.dao.OrganAndDrugsepRelationDAO;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.medicationguide.service.MedicationGuideService;
 import recipe.service.hospitalrecipe.PrescribeService;
-import recipe.util.ChinaIDNumberUtil;
 
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 对接第三方医院服务
@@ -120,25 +124,153 @@ public class HosPrescriptionService implements IHosPrescriptionService {
     @Override
     @RpcService
     public HosRecipeResult createTransferPrescription(HospitalRecipeDTO hospitalRecipeDTO) {
-        HosRecipeResult<RecipeBean> result = prescribeService.createPrescription(hospitalRecipeDTO);
-        Integer recipeId = null;
-        if (HosRecipeResult.SUCCESS.equals(result.getCode())) {
-            RecipeBean recipe = result.getData();
-            recipeId = recipe.getRecipeId();
-            //将流转处方推送给药企
-            drugsEnterpriseService.pushHosInteriorSupport(recipe.getRecipeId(),recipe.getClinicOrgan());
-            String memo = "医院流转处方推送药企成功";
-            //日志记录
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
+        if (hospitalRecipeDTO.getNoSaveRecipeFlag()) {
+            ydRecipePushInfo(hospitalRecipeDTO);
+        } else {
+            HosRecipeResult<RecipeBean> result = prescribeService.createPrescription(hospitalRecipeDTO);
+            Integer recipeId = null;
+            if (HosRecipeResult.SUCCESS.equals(result.getCode())) {
+                RecipeBean recipe = result.getData();
+                recipeId = recipe.getRecipeId();
+                //将流转处方推送给药企
+                drugsEnterpriseService.pushHosInteriorSupport(recipe.getRecipeId(), recipe.getClinicOrgan());
+                String memo = "医院流转处方推送药企成功";
+                //日志记录
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
+            }
+
+            if (HosRecipeResult.DUPLICATION.equals(result.getCode())) {
+                result.setCode(HosRecipeResult.SUCCESS);
+            }
+            RecipeBean backNew = new RecipeBean();
+            backNew.setRecipeId(recipeId);
+            result.setData(backNew);
+            return result;
+        }
+        return null;
+    }
+
+    private HosRecipeResult ydRecipePushInfo(HospitalRecipeDTO hospitalRecipeDTO) {
+        HosRecipeResult<RecipeBean> result = new HosRecipeResult();
+        LOG.info("PrescribeService-createPrescription hospitalRecipeDTO:{}.", JSONUtils.toString(hospitalRecipeDTO));
+        //保存数据
+        saveHospitalRecipe(hospitalRecipeDTO);
+        RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        //说明不需要保存处方到平台可以直接传给药企
+        //转换组织结构编码
+        Integer clinicOrgan = null;
+        OrganBean organ = null;
+        try {
+            organ = getOrganByOrganId(hospitalRecipeDTO.getOrganId());
+            if (null != organ) {
+                clinicOrgan = organ.getOrganId();
+            }
+        } catch (Exception e) {
+            LOG.warn("createPrescription 查询机构异常，organId={}", hospitalRecipeDTO.getOrganId(), e);
+        } finally {
+            if (null == clinicOrgan) {
+                LOG.warn("createPrescription 平台未匹配到该组织机构编码，organId={}", hospitalRecipeDTO.getOrganId());
+                result.setMsg("平台未匹配到该组织机构编码");
+                return result;
+            }
+        }
+        //查询当前医院关联的药企
+        OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+        List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(clinicOrgan, 1);
+        if (CollectionUtils.isNotEmpty(drugsEnterprises)) {
+            DrugsEnterprise drugsEnterprise = drugsEnterprises.get(0);
+            DrugEnterpriseResult enterpriseResult = service.pushSingleRecipeInfo(hospitalRecipeDTO, drugsEnterprise);
+            if (enterpriseResult.getCode() == 1) {
+                //表示推送药企成功,需要查询患者是否已经在平台注册
+                PatientService patientService = BasicAPI.getService(PatientService.class);
+                PatientDTO patientDTO = patientService.getByIdCard(hospitalRecipeDTO.getCertificate());
+                if (patientDTO != null) {
+                    pushWechatTplForYd(hospitalRecipeDTO, organ, patientDTO);
+                } else {
+                    //用户没有注册,需要给用户发送短信
+                    if (StringUtils.isNotEmpty(hospitalRecipeDTO.getPatientTel())) {
+                        pushDyInfoForYd(hospitalRecipeDTO);
+                    } else {
+                        LOG.info("PrescribeService-createPrescription 手机号为空无法发送短信, 姓名:{}, 身份证号:{}.", hospitalRecipeDTO.getPatientName(), hospitalRecipeDTO.getCertificate());
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    private void pushDyInfoForYd(HospitalRecipeDTO hospitalRecipeDTO) {
+        SmsInfoBean smsInfo = new SmsInfoBean();
+        smsInfo.setBusType("RecipeHisCreate");
+        smsInfo.setSmsType("RecipeHisCreate");
+        OrganBean organBean = getOrganByOrganId(hospitalRecipeDTO.getOrganId());
+        smsInfo.setOrganId(organBean.getOrganId());
+        smsInfo.setBusId(0);
+
+        Map<String, Object> smsMap = Maps.newHashMap();
+        smsMap.put("mobile", hospitalRecipeDTO.getPatientTel());
+
+        smsInfo.setExtendValue(JSONUtils.toString(smsMap));
+        ISmsPushService smsPushService = ApplicationUtils.getBaseService(ISmsPushService.class);
+        smsPushService.pushMsgData2OnsExtendValue(smsInfo);
+    }
+
+    private void pushWechatTplForYd(HospitalRecipeDTO hospitalRecipeDTO, OrganBean organ, PatientDTO patientDTO) {
+        String thirdUrl = getYdPushUrl(patientDTO, hospitalRecipeDTO.getRecipeCode(), hospitalRecipeDTO.getPatientId());
+        //推送模板消息
+        Map<String, Object> map = new HashMap<>();
+        map.put("doctorName", hospitalRecipeDTO.getDoctorName());
+        StringBuilder recipeType = new StringBuilder("西药");
+        recipeType.append("\n");
+        recipeType.append("开方时间：").append(hospitalRecipeDTO.getCreateDate()).append("\n");
+        recipeType.append("开方医生：").append(hospitalRecipeDTO.getDoctorName());
+        map.put("recipeType", recipeType);
+        map.put("organId", organ.getOrganId());
+        map.put("idCard", hospitalRecipeDTO.getCertificate());
+        map.put("patientName", hospitalRecipeDTO.getPatientName());
+        map.put("signTime", hospitalRecipeDTO.getCreateDate());
+        map.put("appId", null);
+        map.put("openId", null);
+        map.put("url", thirdUrl);
+        RecipeMsgService.sendRecipeThirdMsg(map);
+    }
+
+    public OrganBean getOrganByOrganId(String organId){
+        IOrganService organService = BaseAPI.getService(IOrganService.class);
+        OrganBean organ = null;
+        List<OrganBean> organList = organService.findByOrganizeCode(organId);
+        if (CollectionUtils.isNotEmpty(organList)) {
+            organ = organList.get(0);
         }
 
-        if (HosRecipeResult.DUPLICATION.equals(result.getCode())) {
-            result.setCode(HosRecipeResult.SUCCESS);
-        }
-        RecipeBean backNew = new RecipeBean();
-        backNew.setRecipeId(recipeId);
-        result.setData(backNew);
-        return result;
+        return organ;
+    }
+
+    private String getYdPushUrl(PatientDTO patientDTO, String recipeNo, String patientId) {
+        IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+        List<PatientBean> patientBeans = iPatientService.findByMpiIdIn(Arrays.asList(patientDTO.getMpiId()));
+        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+        return recipeService.getThirdUrlString(patientBeans, recipeNo, patientId);
+    }
+
+    private void saveHospitalRecipe(HospitalRecipeDTO hospitalRecipeDTO) {
+        HospitalRecipeDAO hospitalRecipeDAO = DAOFactory.getDAO(HospitalRecipeDAO.class);
+        HospitalRecipe hospitalRecipe = new HospitalRecipe();
+        hospitalRecipe.setRecipeCode(hospitalRecipeDTO.getRecipeCode());
+        hospitalRecipe.setClinicId(hospitalRecipeDTO.getClinicId());
+        hospitalRecipe.setPatientId(hospitalRecipeDTO.getPatientId());
+        hospitalRecipe.setCertificate(hospitalRecipeDTO.getCertificate());
+        hospitalRecipe.setPatientName(hospitalRecipeDTO.getPatientName());
+        hospitalRecipe.setPatientTel(hospitalRecipeDTO.getPatientTel());
+        hospitalRecipe.setPatientNumber(hospitalRecipeDTO.getPatientNumber());
+        hospitalRecipe.setRegisterId(hospitalRecipeDTO.getRegisterId());
+        hospitalRecipe.setPatientSex(hospitalRecipeDTO.getPatientSex());
+        hospitalRecipe.setClinicOrgan(hospitalRecipeDTO.getClinicOrgan());
+        hospitalRecipe.setOrganId(hospitalRecipeDTO.getOrganId());
+        hospitalRecipe.setDoctorNumber(hospitalRecipeDTO.getDoctorNumber());
+        hospitalRecipe.setDoctorName(hospitalRecipeDTO.getDoctorName());
+        hospitalRecipe.setCreateDate(hospitalRecipeDTO.getCreateDate());
+        hospitalRecipeDAO.save(hospitalRecipe);
     }
 
     /**
@@ -172,7 +304,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         LOG.info("getQrUrlForRecipeRemind reqParam={}",JSONUtils.toString(req));
         verifyParam(req);
         HosRecipeResult result = new HosRecipeResult();
-        String qrUrl;
+        Map<String,String> qrUrl;
         try {
             //根据前置机传的appId获取指定的端
             ClientConfigDTO clientConfig = getClientConfig(req.getAppId(), req.getOrganId(), req.getClientType());
@@ -195,7 +327,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         return result;
     }
 
-    private String getQrUrl(ClientConfigDTO clientConfig, String clientType, Integer organId, String qrcodeInfo) {
+    private Map<String,String> getQrUrl(ClientConfigDTO clientConfig, String clientType, Integer organId, String qrcodeInfo) {
         INgariQrInfoService ngariQrInfoService = AppContextHolder.getBean("eh.ngariQrInfoService", INgariQrInfoService.class);
         String sceneStr=new StringBuffer().append(QRInfoConstant.QRTYPE_RECIPE_REMIND).append("_")
                 .append(organId).append("_")
@@ -218,7 +350,11 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         IUrlResourceService urlResourceService =
                 AppDomainContext.getBean("eh.urlResourceService", IUrlResourceService.class);
         String uploadUrl = urlResourceService.getUrlByParam("imgUrl");
-        return new StringBuffer(uploadUrl).append(fileid).toString();
+        //既返回二维码图片地址 又返回原始二维码url
+        Map<String,String> result = new HashMap<>(2);
+        result.put("qrImgUrl",new StringBuffer(uploadUrl).append(fileid).toString());
+        result.put("qrUrl",qrInfo.getQrUrl());
+        return result;
     }
 
     private ClientConfigDTO getClientConfig(String appId, Integer organId, String clientType) {

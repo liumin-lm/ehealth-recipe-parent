@@ -9,11 +9,15 @@ import com.google.common.collect.Multimap;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
+import com.ngari.his.recipe.mode.RecipeStatusUpdateReqTO;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.utils.VerifyUtils;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.logistics.model.RecipeLogisticsBean;
 import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -27,6 +31,7 @@ import recipe.ApplicationUtils;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
+import recipe.hisservice.RecipeToHisService;
 import recipe.purchase.CommonOrder;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeLogService;
@@ -769,6 +774,33 @@ public class StandardEnterpriseCallService {
         }
         LOGGER.info("StandardEnterpriseCallService-readjustDrugPrice standardResultDTOS:{}.", JSONUtils.toString(standardResultDTOS));
         return standardResultDTOS;
+    }
+
+    @RpcService
+    public StandardResultDTO recipeStatusupdate(RecipeStatusUpdateReqTO request) {
+        LOGGER.info("distributionService-recipeStatusupdate request:{}.", JSONUtils.toString(request));
+        RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+        StandardResultDTO result = new StandardResultDTO();
+        OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+        OrganDTO organDTO = organService.getOrganByOrganizeCode(request.getOrganizeCode());
+        if (organDTO == null) {
+            result.setCode(StandardResultDTO.FAIL);
+            result.setMsg("机构不存在");
+            return result;
+        }
+        request.setOrganID(organDTO.getOrganId().toString());  //固定写死
+        request.setOrganizeCode(organDTO.getOrganizeCode());
+        request.setOuthospno("");
+        request.setExplain("无");
+        request.setRecipeRecordStatus(2);
+        request.setRecipeStatus("1");
+        Boolean flag = service.recipeUpdate(request);
+        if (flag) {
+            result.setCode(StandardResultDTO.SUCCESS);
+        } else {
+            result.setCode(StandardResultDTO.FAIL);
+        }
+        return result;
     }
 
 }

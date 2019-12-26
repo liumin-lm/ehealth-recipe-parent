@@ -1,9 +1,6 @@
 package com.ngari.recipe.hisprescription.service;
 
-import com.ngari.recipe.hisprescription.model.HosPatientRecipeDTO;
-import com.ngari.recipe.hisprescription.model.HosRecipeResult;
-import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import com.ngari.recipe.hisprescription.model.RecipeQrCodeReqDTO;
+import com.ngari.recipe.hisprescription.model.*;
 import ctd.util.annotation.RpcService;
 
 /**
@@ -36,4 +33,5 @@ public interface IHosPrescriptionService {
      */
     @RpcService
     HosRecipeResult getQrUrlForRecipeRemind(RecipeQrCodeReqDTO recipeQrCodeReqDTO);
+
 }
