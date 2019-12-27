@@ -104,6 +104,7 @@ public class YdRecipeVO {
             recipeDtlVo.setDosageunit(hospitalDrugDTO.getUseDoseUnit());
             recipeDtlVo.setMeasurement(hospitalDrugDTO.getUseDose());
             recipeDtlVo.setMeasurementunit(hospitalDrugDTO.getUseDoseUnit());
+            recipeDtlVo.setDrugunit(hospitalDrugDTO.getDrugUnit());
             recipeDtlVos.add(recipeDtlVo);
         }
         recipeVo.setDetaillist(recipeDtlVos);
