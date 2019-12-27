@@ -22,6 +22,8 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import org.apache.axis.Constants;
 import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
@@ -53,6 +55,7 @@ import java.util.*;
  * @author: 0184/yu_yun
  * @date:2017/3/7.
  */
+@RpcBean("ysqRemoteService")
 public class YsqRemoteService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(YsqRemoteService.class);
@@ -277,9 +280,20 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         return result;
     }
 
+    /**
+     * 更新库存接口
+     * @return  更新结果
+     */
+    @RpcService
+    public DrugEnterpriseResult updateDrugInventory(){
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        return result;
+    }
+
     @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
         LOGGER.info("YsqRemoteService syncDrugTask not implement.");
+
         return DrugEnterpriseResult.getSuccess();
     }
 
