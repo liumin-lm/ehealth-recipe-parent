@@ -36,17 +36,18 @@ import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
-import recipe.constant.DrugEnterpriseConstant;
-import recipe.constant.ParameterConstant;
-import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
+import recipe.constant.*;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.drugsenterprise.bean.StandardResultDTO;
 import recipe.drugsenterprise.bean.StandardStateDTO;
+import recipe.hisservice.HisMqRequestInit;
+import recipe.hisservice.RecipeToHisMqService;
 import recipe.service.common.RecipeCacheService;
+import recipe.thread.RecipeBusiThreadPool;
+
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -557,7 +558,6 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
 
         StandardEnterpriseCallService distributionService = getBean("distributionService", StandardEnterpriseCallService.class);
         StandardResultDTO resulta = distributionService.changeState(Collections.singletonList(state));
-
         if(StandardResultDTO.SUCCESS == resulta.getCode()){
             resultDo.setSuccess(true);
         } else {
@@ -565,7 +565,10 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             resultDo.setErrorMessage(resulta.getMsg());
             resultDo.setErrorCode("500");
         }
-
+        if (RecipeStatusConstant.FINISH == Integer.valueOf(state.getStatus())){
+            RecipeToHisMqService hisMqService = ApplicationUtils.getRecipeService(RecipeToHisMqService.class);
+            hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipe, HisBussConstant.TOHIS_RECIPE_STATUS_FINISH,"O2O平台处方配送"));
+        }
         LOGGER.info("天猫更新处方请求执行结束");
         response.setResult(resultDo);
         return JSON.toJSONString(response);
