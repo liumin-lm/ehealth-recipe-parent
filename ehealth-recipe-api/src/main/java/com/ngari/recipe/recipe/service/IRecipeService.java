@@ -315,5 +315,6 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @param fileName
      * @return
      */
+     @RpcService
      Map<String, Object> createRecipeParamMapForPDF(Integer paramMapType, RecipeBean recipe, List<RecipeDetailBean> details, String fileName);
 }
