@@ -279,17 +279,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         sendAndDealResult(drugsEnterprise, methodName, sendInfoStr, result);
         return result;
     }
-
-    /**
-     * 更新库存接口
-     * @return  更新结果
-     */
-    @RpcService
-    public DrugEnterpriseResult updateDrugInventory(){
-        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-        return result;
-    }
-
+    
     @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
         LOGGER.info("YsqRemoteService syncDrugTask not implement.");
