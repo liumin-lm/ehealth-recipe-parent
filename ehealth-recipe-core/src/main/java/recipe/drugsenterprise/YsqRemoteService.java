@@ -279,7 +279,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         sendAndDealResult(drugsEnterprise, methodName, sendInfoStr, result);
         return result;
     }
-    
+
     @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
         LOGGER.info("YsqRemoteService syncDrugTask not implement.");
