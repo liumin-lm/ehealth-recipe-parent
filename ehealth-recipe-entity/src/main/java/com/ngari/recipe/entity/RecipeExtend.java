@@ -54,6 +54,12 @@ public class RecipeExtend implements Serializable {
 
     @ItemProperty(alias = "HIS处方关联的卡号")
     private String  cardNo;
+
+    @ItemProperty(alias = "医保备案号")
+    private String putOnRecordID;
+
+    @ItemProperty(alias = "患者类型 自费 0 省医保33 杭州市医保3301 衢州市医保3308 衢化医保3308A")
+    private String patientType;
     /**互联网医院字段*/
 
     @ItemProperty(alias = "天猫返回处方编号")
@@ -259,5 +265,23 @@ public class RecipeExtend implements Serializable {
 
     public void setHospOrgCodeFromMedical(String hospOrgCodeFromMedical) {
         this.hospOrgCodeFromMedical = hospOrgCodeFromMedical;
+    }
+
+    @Column(name = "putOnRecordID")
+    public String getPutOnRecordID() {
+        return putOnRecordID;
+    }
+
+    public void setPutOnRecordID(String putOnRecordID) {
+        this.putOnRecordID = putOnRecordID;
+    }
+
+    @Column(name = "patientType")
+    public String getPatientType() {
+        return patientType;
+    }
+
+    public void setPatientType(String patientType) {
+        this.patientType = patientType;
     }
 }
