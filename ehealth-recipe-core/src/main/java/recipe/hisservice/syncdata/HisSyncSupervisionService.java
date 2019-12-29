@@ -254,7 +254,15 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 req.setAuditDoctor(doctorDTO.getName());
                 req.setAuditDoctorId(recipe.getChecker().toString());
             }
-
+            //设置药师电子签名
+            if (doctorDTO.getESignId() != null){
+                try {
+                    caSignature = redisClient.get(doctorDTO.getESignId()+"_signature");
+                }catch (Exception e){
+                    LOGGER.error("get caSignature error. doctorId={}",doctorDTO.getDoctorId(), e);
+                }
+                req.setAuditDoctorSign(StringUtils.isNotEmpty(caSignature)?caSignature:"");
+            }
 
             //患者处理
             patientDTO = patientService.get(recipe.getMpiid());
@@ -331,6 +339,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             if (recipeExtend != null){
                 req.setPatientNumber(recipeExtend.getRegisterID());
             }
+            //处方状态
+            req.setRecipeStatus(recipe.getStatus());
 
             //撤销标记
             req.setCancelFlag(getVerificationRevokeStatus(recipe));
@@ -474,7 +484,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
      * @param recipeList
      * @return
      */
-
+    @Deprecated
     public CommonResponse uploadRecipeAuditIndicators(List<Recipe> recipeList){
         LOGGER.info("uploadRecipeAuditIndicators recipeList length={}", recipeList.size());
         CommonResponse commonResponse = ResponseUtils.getFailResponse(CommonResponse.class, "");
@@ -558,6 +568,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
      * @param recipeList
      * @return
      */
+    @Deprecated
     public CommonResponse uploadRecipeCirculationIndicators(List<Recipe> recipeList){
         LOGGER.info("uploadRecipeCirculationIndicators recipeList length={}", recipeList.size());
         CommonResponse commonResponse = ResponseUtils.getFailResponse(CommonResponse.class, "");
