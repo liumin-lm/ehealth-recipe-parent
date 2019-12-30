@@ -446,7 +446,7 @@ public class RecipeCheckService {
                     }
                 } else {
                     RecipeCheck recipeCheck = recipeCheckList.get(0);
-                    if (1 == recipeCheck.getCheckStatus()) {
+                    if (RecipecCheckStatusConstant.First_Check_No_Pass == recipeCheck.getCheckStatus()) {
                         checkResult = 1;
                     } else {
                         checkResult = 2;
@@ -484,7 +484,7 @@ public class RecipeCheckService {
                 //有审核记录就展示
                 if(CollectionUtils.isNotEmpty(recipeCheckList)){
                     RecipeCheck recipeCheck = recipeCheckList.get(0);
-                    if (1 == recipeCheck.getCheckStatus()) {
+                    if (RecipecCheckStatusConstant.First_Check_No_Pass == recipeCheck.getCheckStatus()) {
                         checkResult = RecipePharmacistCheckConstant.Check_Pass;
                     } else {
                         checkResult = RecipePharmacistCheckConstant.Check_No_Pass;

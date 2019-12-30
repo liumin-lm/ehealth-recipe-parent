@@ -92,7 +92,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         ThirdResultBean backMsg = ThirdResultBean.getFail();
         Recipe recipe = getRecipe(paramMap);
         int code ;
-        if (recipe.getReviewType() == 2) {
+        if (recipe.getReviewType() == ReviewTypeConstant.Postposition_Check) {
             //为审方后置
             code = validateRecipe(paramMap, backMsg, RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.WAIT_SEND, CHECK_RECIPE);
         } else {
