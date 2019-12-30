@@ -453,6 +453,8 @@ public class RecipeServiceSub {
             String organ = DictionaryController.instance().get("eh.base.dictionary.Organ").getText(recipe.getClinicOrgan());
             String depart = DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart());
             paramMap.put("organInfo", organ);
+            // 添加机构id
+            paramMap.put("organId", recipe.getClinicOrgan());
             paramMap.put("departInfo", depart);
             paramMap.put("disease", recipe.getOrganDiseaseName());
             paramMap.put("cDate", DateConversion.getDateFormatter(recipe.getSignDate(), "yyyy-MM-dd HH:mm"));
@@ -539,6 +541,8 @@ public class RecipeServiceSub {
             String organ = DictionaryController.instance().get("eh.base.dictionary.Organ").getText(recipe.getClinicOrgan());
             String depart = DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart());
             paramMap.put("organInfo", organ);
+            // 添加机构id
+            paramMap.put("organId", recipe.getClinicOrgan());
             paramMap.put("departInfo", depart);
             paramMap.put("disease", recipe.getOrganDiseaseName());
             paramMap.put("cDate", DateConversion.getDateFormatter(recipe.getSignDate(), "yyyy-MM-dd HH:mm"));
