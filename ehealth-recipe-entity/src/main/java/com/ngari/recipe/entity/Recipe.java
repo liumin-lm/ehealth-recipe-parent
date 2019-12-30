@@ -2,6 +2,7 @@ package com.ngari.recipe.entity;
 
 import ctd.account.session.ClientSession;
 import ctd.schema.annotation.Dictionary;
+import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
@@ -141,9 +142,11 @@ public class Recipe implements Serializable {
     private String giveUser;
 
     @ItemProperty(alias = "签名的处方PDF")
+    @FileToken(expires = 3600)
     private String signFile;
 
     @ItemProperty(alias = "药师签名的处方PDF")
+    @FileToken(expires = 3600)
     private String chemistSignFile;
 
     @ItemProperty(alias = "收货人")
@@ -305,6 +308,7 @@ public class Recipe implements Serializable {
     private Integer syncFlag;
 
     @ItemProperty(alias = "签名的处方img")
+    @FileToken(expires = 3600)
     private String signImg;
     /**
      * 添加属性 2019/08/29

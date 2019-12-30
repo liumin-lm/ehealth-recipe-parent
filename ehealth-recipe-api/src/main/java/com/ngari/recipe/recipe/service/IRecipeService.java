@@ -305,4 +305,21 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     void noticePlatRecipeMedicalInsuranceInfo(NoticePlatRecipeMedicalInfoDTO req);
+
+    /**
+     * 获取处方类型的参数接口对像
+     *  区别 中药、西药、膏方
+     * @param paramMapType
+     * @param recipe
+     * @param details
+     * @param fileName
+     * @return
+     */
+     @RpcService
+     Map<String, Object> createRecipeParamMapForPDF(Integer paramMapType, RecipeBean recipe, List<RecipeDetailBean> details, String fileName);
+
+     @RpcService
+     Boolean updateRecipeInfoByRecipeId(int recipeId, final Map<String, Object> changeAttr);
+
+
 }

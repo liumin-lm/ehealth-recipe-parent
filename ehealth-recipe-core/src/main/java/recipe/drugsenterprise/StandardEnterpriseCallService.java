@@ -31,12 +31,15 @@ import recipe.ApplicationUtils;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
+import recipe.hisservice.HisMqRequestInit;
+import recipe.hisservice.RecipeToHisMqService;
 import recipe.hisservice.RecipeToHisService;
 import recipe.purchase.CommonOrder;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeOrderService;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
 
 import javax.annotation.Nullable;
@@ -260,15 +263,14 @@ public class StandardEnterpriseCallService {
                 case RecipeStatusConstant.USING:
                 case RecipeStatusConstant.FINISH:
                     recipeAttrMap.put("chooseFlag", 1);
-                    Boolean rsTao = recipeDAO.updateRecipeInfoByRecipeId(recipeId,
+                    Boolean rsTao2 = recipeDAO.updateRecipeInfoByRecipeId(recipeId,
                         status, recipeAttrMap);
-                    if (!rsTao){
+                    if (!rsTao2){
                         result.setMsg("[" + recipeCode + "]处方单更新失败");
                         LOGGER.warn("changeState HOS处方单状态变更失败，recipeCode={}, status={}", recipeCode, status);
                         return result;
                     }
                     break;
-
                 default:
                     result.setMsg("[" + stateDTO.getRecipeCode() + "]不支持变更的状态");
                     return result;

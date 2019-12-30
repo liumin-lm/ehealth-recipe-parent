@@ -72,15 +72,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             commonResponse.setMsg("处方列表为空");
             return commonResponse;
         }
-
-       /* ProvUploadOrganService provUploadOrganService =
-                AppDomainContext.getBean("basic.provUploadOrganService", ProvUploadOrganService.class);
-        List<ProvUploadOrganDTO> provUploadOrganList = provUploadOrganService.findByStatus(1);
-        if (CollectionUtils.isEmpty(provUploadOrganList)) {
-            LOGGER.warn("uploadRecipeIndicators provUploadOrgan list is null.");
-            commonResponse.setMsg("需要同步机构列表为空");
-            return commonResponse;
-        }*/
         List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
         splicingBackRecipeData(recipeList,request);
 
@@ -112,28 +103,20 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
      * @param request
      */
     public void splicingBackRecipeData(List<Recipe> recipeList,List<RegulationRecipeIndicatorsReq> request) {
-        IHisServiceConfigService configService = AppDomainContext.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
-        //获取所有监管平台机构列表
-        List<ServiceConfigResponseTO> list = configService.findAllRegulationOrgan();
-        if (CollectionUtils.isEmpty(list)) {
-            LOGGER.warn("uploadRecipeIndicators provUploadOrgan list is null.");
-            return;
-        }
+
+        AuditMedicinesDAO auditMedicinesDAO = DAOFactory.getDAO(AuditMedicinesDAO.class);
         DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
         EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
-        /* AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);*/
         DoctorService doctorService = BasicAPI.getService(DoctorService.class);
         PatientService patientService = BasicAPI.getService(PatientService.class);
         SubCodeService subCodeService = BasicAPI.getService(SubCodeService.class);
         OrganService organService = BasicAPI.getService(OrganService.class);
         IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
 
         Map<Integer, OrganDTO> organMap = new HashMap<>(20);
         Map<Integer, DepartmentDTO> departMap = new HashMap<>(20);
-        /*Map<Integer, AppointDepartDTO> appointDepartMap = new HashMap<>(20);*/
         Map<Integer, DoctorDTO> doctorMap = new HashMap<>(20);
 
         Dictionary usingRateDic = null;
@@ -155,7 +138,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         PatientDTO patientDTO;
         SubCodeDTO subCodeDTO;
         List<Recipedetail> detailList;
-        /*AppointDepartDTO appointDepart;*/
+        List<AuditMedicines> medicineList;
+        AuditMedicines medicine;
         RecipeExtend recipeExtend;
         RedisClient redisClient = RedisClient.instance();
         String caSignature = null;
@@ -172,21 +156,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 LOGGER.warn("uploadRecipeIndicators organ is null. recipe.clinicOrgan={}", recipe.getClinicOrgan());
                 continue;
             }
-            for (ServiceConfigResponseTO uploadOrgan : list) {
-                if (uploadOrgan.getOrganid().equals(organDTO.getOrganId())) {
-                    req.setOrganID(LocalStringUtil.toString(organDTO.getOrganId()));
-                    //组织机构编码
-                    req.setOrganizeCode(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
-                    req.setOrganName(organDTO.getName());
-                    break;
-                }
-            }
-
-            /*if (StringUtils.isEmpty(req.getUnitID())) {
-                LOGGER.warn("uploadRecipeIndicators minkeUnitID is not in minkeOrganList. organ.organId={}",
-                        organDTO.getOrganId());
-                continue;
-            }*/
+            req.setOrganID(LocalStringUtil.toString(organDTO.getOrganId()));
+            //组织机构编码
+            req.setOrganizeCode(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
+            req.setOrganName(organDTO.getName());
 
             //科室处理
             departmentDTO = departMap.get(recipe.getDepart());
@@ -228,6 +201,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
             req.setDoctorCertID(doctorDTO.getIdNumber());
             req.setDoctorName(doctorDTO.getName());
+            //医生签名---互联网医院用到
+            req.setCAInfo(doctorDTO.getName());
             //设置医生工号
             req.setDoctorNo(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
             //设置医生电子签名
@@ -286,7 +261,27 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //处方唯一编号
             req.setRecipeUniqueID(recipe.getRecipeCode());
             //互联网医院处方都是经过合理用药审查
-            req.setRationalFlag("0");
+            req.setRationalFlag("1");
+            medicineList = auditMedicinesDAO.findMedicinesByRecipeId(recipe.getRecipeId());
+            if (CollectionUtils.isEmpty(medicineList)) {
+                req.setRationalFlag("0");
+            } else if (1 == medicineList.size()) {
+                medicine = medicineList.get(0);
+                //问题药品编码为空，可能是没问题，可能是审核出错
+                if (StringUtils.isEmpty(medicine.getCode())) {
+                    //TODO 此处由于无法判断审核是否完成，只能通过该关键字判断
+                    if (-1 != "无预审结果".indexOf(medicine.getRemark())) {
+                        req.setRationalFlag("0");
+                    } else {
+                        //其他情况为 系统预审未发现处方问题
+                        req.setRationalDrug("系统预审未发现处方问题");
+                    }
+                } else {
+                    req.setRationalDrug(setRationalDrug(recipe.getRecipeId()));
+                }
+            } else {
+                req.setRationalDrug(setRationalDrug(recipe.getRecipeId()));
+            }
 
             req.setIcdCode(recipe.getOrganDiseaseId().replaceAll("；", "|"));
             req.setIcdName(organDiseaseName);
@@ -394,7 +389,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
         for (Recipe recipe : recipeList) {
             RegulationRecipeVerificationIndicatorsReq req = new RegulationRecipeVerificationIndicatorsReq();
-            req.setBussID(recipe.getRecipeId().toString());
+            //12.23由原来的recipeId修改成clinicId
+            req.setBussID(LocalStringUtil.toString(recipe.getClinicId()));
             req.setRecipeID(recipe.getRecipeId().toString());
             req.setRecipeUniqueID(recipe.getRecipeCode());
 
@@ -426,10 +422,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 }
             }
 
-            if (StringUtils.isEmpty(req.getUnitID())) {
+            /*if (StringUtils.isEmpty(req.getUnitID())) {
                 LOGGER.warn("uploadRecipeVerificationIndicators minkeUnitID is not in minkeOrganList. organ.organId={}",
                         organDTO.getOrganId());
-            }
+            }*/
             if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())) {
                 req.setDeliveryType("1");
                 req.setDeliverySTDate(recipe.getStartSendDate());
@@ -735,5 +731,21 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         }
 
         return "0";
+    }
+
+    /**
+     * 设置合理用药审核结果
+     *
+     * @param recipeId
+     */
+    private String setRationalDrug(Integer recipeId) {
+        AuditMedicineIssueDAO issueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
+        List<AuditMedicineIssue> issueList = issueDAO.findIssueByRecipeId(recipeId);
+        StringBuilder sb = new StringBuilder();
+        for (AuditMedicineIssue issue : issueList) {
+            sb.append(issue.getDetail());
+        }
+
+        return sb.toString();
     }
 }

@@ -601,7 +601,7 @@ public class RecipeCheckService {
                 }
             }
         });
-        //推送处方到监管平台(江苏)
+        //推送处方到监管平台(审核后数据)
         RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(),2));
         return resMap;
     }

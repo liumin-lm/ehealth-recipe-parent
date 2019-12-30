@@ -1,6 +1,7 @@
 package com.ngari.recipe.entity;
 
 import ctd.schema.annotation.Dictionary;
+import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
@@ -87,6 +88,7 @@ public class DrugsEnterprise implements java.io.Serializable {
     private Integer createType;
 
     @ItemProperty(alias = "运费细则图片ID")
+    @FileToken(expires = 3600)
     private String transFeeDetail;
 
     @Id

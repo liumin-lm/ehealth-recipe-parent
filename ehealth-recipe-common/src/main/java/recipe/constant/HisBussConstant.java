@@ -23,6 +23,11 @@ public class HisBussConstant {
      */
     public static final String TOHIS_RECIPE_STATUS_REFUND  = "3";
 
+    /**
+     * 发送医院HIS处方状态-处方核销完成
+     */
+    public static final String TOHIS_RECIPE_STATUS_FINISH  = "4";
+
 
     /**
      * 接收医院HIS处方状态-新增成功

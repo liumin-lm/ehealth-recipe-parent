@@ -22,6 +22,8 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import org.apache.axis.Constants;
 import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
@@ -280,6 +282,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
     @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
         LOGGER.info("YsqRemoteService syncDrugTask not implement.");
+
         return DrugEnterpriseResult.getSuccess();
     }
 
