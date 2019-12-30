@@ -1394,6 +1394,7 @@ public class RecipeService extends RecipeBaseService{
                                     nowOrganDrug.setSalePrice(drugPrice);
                                     organDrugListDAO.update(nowOrganDrug);
                                     updateNum++;
+                                    LOGGER.info("drugInfoSynTask organId=[{}] drugCode=[{}] 药品信息价格更新成[{}]结束.", oid, drug.getDrcode(), drugPrice);
                                 }
                             }
                         }
@@ -1403,10 +1404,9 @@ public class RecipeService extends RecipeBaseService{
 //                            organDrugListDAO.updateStatusByOrganDrugCode(unuseDrugs, 0);
 //                        }
                         startIndex += 1;
-                        LOGGER.info("drugInfoSynTask organId=[{}] 同步完成. 关闭药品数量[{}], drugCode={}", oid, unuseDrugs.size(), JSONUtils.toString(unuseDrugs));
+                        //LOGGER.info("drugInfoSynTask organId=[{}] 同步完成. 关闭药品数量[{}], drugCode={}", oid, unuseDrugs.size(), JSONUtils.toString(unuseDrugs));
                     } else {
-                        LOGGER.info("drugInfoSynTask organId=[{}] total=[{}] 药品信息更新结束.", oid, updateNum);
-                        LOGGER.info("drugInfoSynTask organId=[{}] total=[{}] 药品金额更新完成.", oid, updateNum);
+                        LOGGER.info("drugInfoSynTask organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，药品信息更新结束.", oid, startIndex , updateNum);
                         finishFlag = false;
                     }
                 } while (finishFlag);
