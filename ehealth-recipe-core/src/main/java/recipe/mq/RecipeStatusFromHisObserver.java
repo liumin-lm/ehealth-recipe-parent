@@ -53,6 +53,7 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
                 otherInfo.put("cardTypeName", getCardTypeName(notice.getCardTypeName()));
                 otherInfo.put("cardNo", notice.getCardNo());
                 otherInfo.put("patientType", notice.getPatientType());
+                //医保备案号
                 otherInfo.put("putOnRecordID", notice.getPutOnRecordID());
                 hospitalStatusUpdateDTO.setStatus(LocalStringUtil.toString(RecipeStatusConstant.CHECK_PASS));
                 if (StringUtils.isEmpty(notice.getCardNo())){
