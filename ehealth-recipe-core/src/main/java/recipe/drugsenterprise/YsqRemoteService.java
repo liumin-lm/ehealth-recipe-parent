@@ -55,7 +55,6 @@ import java.util.*;
  * @author: 0184/yu_yun
  * @date:2017/3/7.
  */
-@RpcBean("ysqRemoteService")
 public class YsqRemoteService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(YsqRemoteService.class);
