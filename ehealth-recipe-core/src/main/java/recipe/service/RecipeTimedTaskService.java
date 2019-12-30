@@ -83,6 +83,7 @@ public class RecipeTimedTaskService {
 
     /**
      * 定时任务 每天12:10点定时将redis里的处方和处方详情保存到数据库
+     * 保存邵逸夫his传过来的处方数据
      */
     @RpcService
     public void autoSaveRecipeByRedis() {
