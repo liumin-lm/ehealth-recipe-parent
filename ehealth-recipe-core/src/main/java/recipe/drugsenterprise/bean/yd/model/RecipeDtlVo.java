@@ -22,6 +22,7 @@ public class RecipeDtlVo {
     private BigDecimal unitprice;
     private String measurement;
     private String measurementunit;
+    private String drugunit;
 
     private String doctor_note;
 
@@ -178,4 +179,11 @@ public class RecipeDtlVo {
         this.dosageunit = dosageunit;
     }
 
+    public String getDrugunit() {
+        return drugunit;
+    }
+
+    public void setDrugunit(String drugunit) {
+        this.drugunit = drugunit;
+    }
 }

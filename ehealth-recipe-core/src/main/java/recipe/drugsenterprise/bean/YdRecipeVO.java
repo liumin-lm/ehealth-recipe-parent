@@ -96,12 +96,15 @@ public class YdRecipeVO {
             recipeDtlVo.setSustaineddays(hospitalDrugDTO.getUesDays());
             recipeDtlVo.setClasstypeno("/");
             recipeDtlVo.setClasstypename("");
-            recipeDtlVo.setQuantity(new BigDecimal(hospitalDrugDTO.getUseDose()));
+            recipeDtlVo.setQuantity(new BigDecimal(hospitalDrugDTO.getTotal()));
             recipeDtlVo.setMinunit("");
             recipeDtlVo.setUsagename(hospitalDrugDTO.getUsePathways());
             recipeDtlVo.setUnitprice(new BigDecimal(hospitalDrugDTO.getDrugFee()));
             recipeDtlVo.setDosage(hospitalDrugDTO.getUseDose());
             recipeDtlVo.setDosageunit(hospitalDrugDTO.getUseDoseUnit());
+            recipeDtlVo.setMeasurement(hospitalDrugDTO.getUseDose());
+            recipeDtlVo.setMeasurementunit(hospitalDrugDTO.getUseDoseUnit());
+            recipeDtlVo.setDrugunit(hospitalDrugDTO.getDrugUnit());
             recipeDtlVos.add(recipeDtlVo);
         }
         recipeVo.setDetaillist(recipeDtlVos);
