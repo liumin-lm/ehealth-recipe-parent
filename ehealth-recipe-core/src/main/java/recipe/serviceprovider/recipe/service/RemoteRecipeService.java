@@ -26,6 +26,7 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
+import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -237,6 +238,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         if (StringUtils.isEmpty(recipeBean.getRecipeMode())){
             recipeBean.setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);
+        }
+        if (recipeBean.getReviewType()==null){
+            recipeBean.setReviewType(ReviewTypeConstant.Postposition_Check);
         }
         recipeDAO.updateOrSaveRecipeAndDetail(getBean(recipeBean,Recipe.class),recipedetails,false);
     }
