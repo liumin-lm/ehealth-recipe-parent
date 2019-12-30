@@ -675,7 +675,11 @@ public class RecipeService extends RecipeBaseService{
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMap);
             memo = "签名上传文件成功, fileId=" + recipeFileId;
             LOGGER.info("generateRecipePdfAndSign 签名成功. fileId={}, recipeId={}", recipeFileId, recipe.getRecipeId());
-        } else {
+        } else if(Integer.valueOf(2).equals(code)) {
+            memo = "签名成功,非默认易签宝CA方式";
+            LOGGER.info("generateRecipePdfAndSign 签名成功. 非易签宝CA模式, recipeId={}", recipe.getRecipeId());
+        }
+        else {
             memo = "签名上传文件失败！原因：" + MapValueUtil.getString(backMap, "msg");
             LOGGER.error("generateRecipePdfAndSign 签名上传文件失败. recipeId={}, result={}", recipe.getRecipeId(), JSONUtils.toString(backMap));
         }

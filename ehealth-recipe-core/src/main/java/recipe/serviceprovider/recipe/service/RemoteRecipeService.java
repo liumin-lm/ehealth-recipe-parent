@@ -4,7 +4,6 @@ package recipe.serviceprovider.recipe.service;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.platform.recipe.mode.NoticePlatRecipeMedicalInfoReq;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
@@ -461,5 +460,18 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
         }
         return map;
+    }
+
+    @RpcService
+    @Override
+    public Boolean updateRecipeInfoByRecipeId(int recipeId, final Map<String,Object> changeAttr){
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        try {
+            recipeDAO.updateRecipeInfoByRecipeId(recipeId, changeAttr);
+            return true;
+        }catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
     }
 }
