@@ -52,7 +52,12 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
             case HisBussConstant.FROMHIS_RECIPE_STATUS_ADD:
                 otherInfo.put("cardTypeName", getCardTypeName(notice.getCardTypeName()));
                 otherInfo.put("cardNo", notice.getCardNo());
+                //自费 0 商保 1 省医保33 杭州市医保3301 衢州市医保3308 巨化医保3308A
                 otherInfo.put("patientType", notice.getPatientType());
+                //医院所属区域代码(结算发生地区域代码)
+                otherInfo.put("areaCode", notice.getAreaCode());
+                //参保地统筹区
+                otherInfo.put("insuredArea", notice.getInsuredArea());
                 //医保备案号
                 otherInfo.put("putOnRecordID", notice.getPutOnRecordID());
                 hospitalStatusUpdateDTO.setStatus(LocalStringUtil.toString(RecipeStatusConstant.CHECK_PASS));
@@ -109,12 +114,18 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
 
     private String getCardTypeName(String cardTypeName) {
         switch (cardTypeName){
+            case "0":
+                return "身份证";
             case "1":
                 return "就诊卡";
             case "2":
                 return "医保卡";
             case "3":
                 return "病历号";
+            case "4":
+                return "医保电子凭证";
+            case "5":
+                return "居民健康卡";
             default:
                 return cardTypeName;
         }

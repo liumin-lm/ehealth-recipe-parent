@@ -540,11 +540,19 @@ public class PrescribeService {
         String cardNo = otherInfo.get("cardNo");
         String patientType = otherInfo.get("patientType");
         String putOnRecordID = otherInfo.get("putOnRecordID");
+        String hospOrgCodeFromMedical = otherInfo.get("areaCode");
+        String insuredArea = otherInfo.get("insuredArea");
         Map<String,String> updateMap = new HashMap<>(4);
         updateMap.put("cardTypeName",cardTypeName);
         updateMap.put("cardNo",cardNo);
         updateMap.put("patientType",patientType);
         updateMap.put("putOnRecordID",putOnRecordID);
+        if (StringUtils.isNotEmpty(hospOrgCodeFromMedical)){
+            updateMap.put("hospOrgCodeFromMedical",hospOrgCodeFromMedical);
+        }
+        if (StringUtils.isNotEmpty(insuredArea)){
+            updateMap.put("insuredArea",insuredArea);
+        }
         recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeId,updateMap);
     }
 
