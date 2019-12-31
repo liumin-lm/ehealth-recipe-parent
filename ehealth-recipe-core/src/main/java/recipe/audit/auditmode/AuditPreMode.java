@@ -22,7 +22,7 @@ import static ctd.persistence.DAOFactory.getDAO;
  * created by shiyuping on 2019/8/15
  * 审方前置
  */
-@AuditMode(1)
+@AuditMode(ReviewTypeConstant.Pre_AuditMode)
 public class AuditPreMode extends AbstractAuidtMode {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuditPreMode.class);
     @Override

@@ -20,4 +20,19 @@ public class ReviewTypeConstant {
      */
     public static final Integer Postposition_Check = 2;
 
+    /**
+     * 不需要审核
+     */
+    public static final int Not_AuditMode = 0;
+
+    /**
+     * 审核前置
+     */
+    public static final int Pre_AuditMode = 1;
+
+    /**
+     * 审核后置
+     */
+    public static final int Post_AuditMode = 2;
+
 }
