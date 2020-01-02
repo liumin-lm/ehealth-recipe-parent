@@ -594,16 +594,22 @@ public class RecipeService extends RecipeBaseService{
             LOGGER.error("reCreatedRecipe 该处方不是审核未通过的处方. recipeId=[{}]", recipeId);
             return Lists.newArrayList();
         }
-        //更新处方一次审核不通过标记
-        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        Map<String, Object> updateMap = new HashMap<>();
-        updateMap.put("checkStatus", RecipecCheckStatusConstant.Check_Normal);
-        recipeDAO.updateRecipeInfoByRecipeId(recipeId, updateMap);
+        //date 2020/1/2
+        //发送二次不通过消息判断是否是二次审核不通过
+        if(!RecipecCheckStatusConstant.Check_Normal.equals(dbRecipe.getCheckStatus())){
+            //添加发送不通过消息
+            RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
+            //更新处方一次审核不通过标记
+            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+            Map<String, Object> updateMap = new HashMap<>();
+            updateMap.put("checkStatus", RecipecCheckStatusConstant.Check_Normal);
+            recipeDAO.updateRecipeInfoByRecipeId(recipeId, updateMap);
+        }
+
         //患者如果使用优惠券将优惠券解锁
         RecipeCouponService recipeCouponService = ApplicationUtils.getRecipeService(RecipeCouponService.class);
         recipeCouponService.unuseCouponByRecipeId(recipeId);
-        //添加发送不通过消息
-        RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
+
         //根据审方模式改变--审核未通过处理
         auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckNotPassYs(dbRecipe);
         List<Recipedetail> detailBeanList = RecipeValidateUtil.validateDrugsImpl(dbRecipe);

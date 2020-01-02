@@ -1173,14 +1173,16 @@ public class RecipeServiceSub {
             }
 
             //药品价格显示处理
-            boolean b1 = RecipeStatusConstant.FINISH == recipe.getStatus() ||
-                    (1 == recipe.getChooseFlag() && !RecipeUtil.isCanncelRecipe(recipe.getStatus()) &&
-                            (RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(recipe.getPayMode())
-                                    || RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode())
-                                    || RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode())));
-            if (!b1) {
-                recipe.setTotalMoney(null);
-            }
+            //date 2020/1/2
+            //展示修改成处方都展示药品金额
+//            boolean b1 = RecipeStatusConstant.FINISH == recipe.getStatus() ||
+//                    (1 == recipe.getChooseFlag() && !RecipeUtil.isCanncelRecipe(recipe.getStatus()) &&
+//                            (RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(recipe.getPayMode())
+//                                    || RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode())
+//                                    || RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode())));
+//            if (!b1) {
+//                recipe.setTotalMoney(null);
+//            }
 
             //Date:20190904
             //Explain:添加患者点击按钮信息
