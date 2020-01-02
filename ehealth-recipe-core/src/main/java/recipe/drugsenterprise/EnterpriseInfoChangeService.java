@@ -31,6 +31,7 @@ import java.util.List;
 
 /**
  * 药企信息变更服务,比如库存变更,价格变动
+ * 此定时更新不再使用
  * @author yinsheng
  * @date 2019\11\13 0013 15:34
  */
@@ -41,7 +42,7 @@ public class EnterpriseInfoChangeService {
 
     @RpcService
     public void updateStoreInventory(){
-        try{
+        /*try{
             RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
             SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
@@ -81,6 +82,6 @@ public class EnterpriseInfoChangeService {
             }
         }catch (Exception e){
             LOGGER.info("EnterpriseInfoChangeService-updateStoreInventory 更新药店药品库存失败.");
-        }
+        }*/
     }
 }
