@@ -29,6 +29,7 @@ import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.AppContextHolder;
+import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
 import networkclinic.api.service.INetworkclinicMsgService;
 import org.apache.commons.collections.CollectionUtils;
@@ -1307,6 +1308,7 @@ public class RecipeServiceSub {
         DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
         if (doctorDTO != null){
             map.put("doctorSignImg",doctorDTO.getSignImage());
+            map.put("doctorSignImgToken", FileAuth.instance().createToken(doctorDTO.getSignImage(), 3600L));
         }
 
         //Date:2019/12/16
