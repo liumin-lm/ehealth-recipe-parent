@@ -11,8 +11,10 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import recipe.ApplicationUtils;
 import recipe.dao.RecipeOrderDAO;
+import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.RecipeOrderService;
 import recipe.serviceprovider.BaseService;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
@@ -49,6 +51,11 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     public void finishOrderPay(String orderCode, int payFlag, Integer payMode) {
         RecipeOrderService service = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         service.finishOrderPay(orderCode, payFlag, payMode);
+        RecipeBusiThreadPool.submit(()->{
+            HisSyncSupervisionService  hisSyncservice = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+            hisSyncservice.uploadRecipePayToRegulation(orderCode,payFlag);
+            return null;
+        });
     }
 
     @RpcService
