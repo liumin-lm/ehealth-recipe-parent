@@ -62,6 +62,14 @@ public class QueryRecipeInfoDTO implements Serializable {
     private String recipeFee;
     @ItemProperty(alias="处方列表数据")
     private List<OrderItemDTO> orderList;
+    @ItemProperty(alias="既往史结构体数据集")
+    private PastHistoryInfoDTO pastHistoryInfo;
+    @ItemProperty(alias="婚育史结构体数据集")
+    private MCHistoryInfoDTO mcHistoryInfo;
+    @ItemProperty(alias="家族史结构体数")
+    private FamilyHistoryInfoDTO familyHistoryInfo;
+    @ItemProperty(alias="月经史结构体数据集")
+    private MenstrualHistoryInfoDTO menstrualHistoryInfo;
 
     @ItemProperty(alias="病⼈主诉")
     private String BRZS;
@@ -296,5 +304,37 @@ public class QueryRecipeInfoDTO implements Serializable {
 
     public void setRecipeFee(String recipeFee) {
         this.recipeFee = recipeFee;
+    }
+
+    public PastHistoryInfoDTO getPastHistoryInfo() {
+        return pastHistoryInfo;
+    }
+
+    public void setPastHistoryInfo(PastHistoryInfoDTO pastHistoryInfo) {
+        this.pastHistoryInfo = pastHistoryInfo;
+    }
+
+    public MCHistoryInfoDTO getMcHistoryInfo() {
+        return mcHistoryInfo;
+    }
+
+    public void setMcHistoryInfo(MCHistoryInfoDTO mcHistoryInfo) {
+        this.mcHistoryInfo = mcHistoryInfo;
+    }
+
+    public FamilyHistoryInfoDTO getFamilyHistoryInfo() {
+        return familyHistoryInfo;
+    }
+
+    public void setFamilyHistoryInfo(FamilyHistoryInfoDTO familyHistoryInfo) {
+        this.familyHistoryInfo = familyHistoryInfo;
+    }
+
+    public MenstrualHistoryInfoDTO getMenstrualHistoryInfo() {
+        return menstrualHistoryInfo;
+    }
+
+    public void setMenstrualHistoryInfo(MenstrualHistoryInfoDTO menstrualHistoryInfo) {
+        this.menstrualHistoryInfo = menstrualHistoryInfo;
     }
 }
