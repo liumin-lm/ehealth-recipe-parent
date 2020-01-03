@@ -141,6 +141,17 @@ public class PurchaseService {
     }
 
     /**
+     * 重新包装一个方法供前端调用----由于原order接口与统一支付接口order方法名相同
+     * @param recipeId
+     * @param extInfo
+     * @return
+     */
+    @RpcService
+    public OrderCreateResult orderForRecipe(Integer recipeId, Map<String, String> extInfo) {
+        return order(recipeId,extInfo);
+    }
+
+    /**
      * @param recipeId
      * @param extInfo  参照RecipeOrderService createOrder定义
      *                 {"operMpiId":"当前操作者编码","addressId":"当前选中地址","payway":"支付方式（payway）","payMode":"处方支付方式",
