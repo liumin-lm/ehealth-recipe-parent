@@ -1,5 +1,7 @@
 package recipe.drugsenterprise;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.base.department.service.IDepartmentService;
@@ -35,6 +37,10 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.drugsenterprise.bean.DrugInventoryBean;
+import recipe.drugsenterprise.bean.InventoryDrug;
+import recipe.drugsenterprise.bean.YsqDrugResponse;
+import recipe.drugsenterprise.bean.yd.httpclient.HttpsClientUtils;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
 import recipe.service.common.RecipeCacheService;
@@ -55,6 +61,7 @@ import java.util.*;
  * @author: 0184/yu_yun
  * @date:2017/3/7.
  */
+@RpcBean("ysqRemoteService")
 public class YsqRemoteService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(YsqRemoteService.class);
@@ -279,11 +286,86 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         return result;
     }
 
+    @RpcService
+    public void test(){
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(202);
+        syncEnterpriseDrug(drugsEnterprise, null);
+    }
+
     @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
-        LOGGER.info("YsqRemoteService syncDrugTask not implement.");
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String url = recipeParameterDao.getByName("yy-url");
+        //对岳阳-钥匙圈专门处理，更新药品库存
+        if ("岳阳-钥世圈".equals(drugsEnterprise.getName())) {
+            String appkey = drugsEnterprise.getUserId();
+            String appsecret = drugsEnterprise.getPassword();
+            //更新药品库存,实行全药品更新
+            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+            List<Integer> saleDrugList = saleDrugListDAO.findSynchroDrug(drugsEnterprise.getId());
+            if (CollectionUtils.isNotEmpty(saleDrugList)) {
+                for (int i = 0; i < saleDrugList.size()/30 + 1; i++) {
+                    List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganId(drugsEnterprise.getId(), i*30, 30);
+                    //开始组装入参
+                    DrugInventoryBean drugInventoryBean = new DrugInventoryBean();
+                    List<InventoryDrug> inventoryDrugs = new ArrayList<>();
+                    drugInventoryBean.setAppkey(appkey);
+                    drugInventoryBean.setAppsecret(appsecret);
+                    for (SaleDrugList saleDrug : saleDrugLists) {
+                        InventoryDrug inventoryDrug = new InventoryDrug();
+                        inventoryDrug.setDRUGCODE(saleDrug.getOrganDrugCode());
+                        inventoryDrug.setDRUGGNAME(saleDrug.getSaleName());
+                        inventoryDrug.setDRUGNAME(saleDrug.getDrugName());
+                        inventoryDrugs.add(inventoryDrug);
+                    }
+                    drugInventoryBean.setDRUGS(inventoryDrugs);
+                    String paramesRequest = JSONUtils.toString(drugInventoryBean);
+                    LOGGER.info("YsqRemoteService-syncEnterpriseDrug paramesRequest:{}.", paramesRequest);
+                    try{
+                        //开始发送请求数据
+                        String outputJson = HttpsClientUtils.doPost(url, paramesRequest);
+                        LOGGER.info("YsqRemoteService-syncEnterpriseDrug outputJson:{}.", outputJson);
+                        if(StringUtils.isNotEmpty(outputJson) && outputJson.contains("true") && outputJson.contains("[")){
+                            outputJson = outputJson.substring(outputJson.lastIndexOf("["), outputJson.lastIndexOf("]")-1);
+                            //获取成功,处理data数据,将其转成标准的JSON
+                            List<YsqDrugResponse> ysqDrugResponses = stringToJson(outputJson);
+                            if (ysqDrugResponses != null) {
+                                for (YsqDrugResponse ysqDrugResponse : ysqDrugResponses) {
+                                    String organDrugCode = ysqDrugResponse.getYygoods();
+                                    String inventory = ysqDrugResponse.getInventorynum();
+                                    double inventoryNum = Double.parseDouble(inventory);
+                                    SaleDrugList saleDrug = saleDrugListDAO.getByOrganIdAndDrugCode(drugsEnterprise.getId(), organDrugCode);
+                                    if (saleDrug != null) {
+                                        if (saleDrug.getInventory() != null && saleDrug.getInventory().doubleValue() != inventoryNum) {
+                                            saleDrug.setInventory(new BigDecimal(inventory));
+                                            saleDrugListDAO.update(saleDrug);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }catch(Exception e){
+                        LOGGER.error("YsqRemoteService-syncEnterpriseDrug error:{}.", e.getMessage(), e);
+                    }
+                }
+            }
 
+        }
         return DrugEnterpriseResult.getSuccess();
+    }
+
+    private List<YsqDrugResponse> stringToJson(String data) {
+        if (StringUtils.isNotEmpty(data)) {
+            data = data.replace("\\","");
+            data = data.replace(";",",");
+            data = data.replace("\"{","{");
+            data = data.replace("}\"","}");
+            data = data + "]";
+            List<YsqDrugResponse> ysqDrugResponses =JSONArray.parseArray(data, YsqDrugResponse.class);
+            return ysqDrugResponses;
+        }
+        return null;
     }
 
     @Override
