@@ -47,6 +47,7 @@ import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
 
@@ -743,6 +744,18 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
             try {
                 if (null != recipe && order != null) {
+                    IHisServiceConfigService configService = AppDomainContext.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
+                    //获取所有监管平台机构列表
+                    List<ServiceConfigResponseTO> serviceConfigResponseTOS = configService.findAllRegulationOrgan();
+                    if (CollectionUtils.isEmpty(serviceConfigResponseTOS)) {
+                        LOGGER.warn("uploadRecipePayToRegulation  regulationOrganList is null.");
+                        return;
+                    }
+                    List<Integer> organList = serviceConfigResponseTOS.stream().map(ServiceConfigResponseTO::getOrganid).collect(Collectors.toList());
+                    if (!organList.contains(recipe.getClinicOrgan())) {
+                        LOGGER.warn("uploadRecipePayToRegulation organId={},没有关联监管平台", recipe.getClinicOrgan());
+                        return;
+                    }
                     RegulationOutpatientPayReq req = new RegulationOutpatientPayReq();
                     PatientService patientService = BasicAPI.getService(PatientService.class);
                     PatientDTO patientDTO = patientService.getByMpiId(recipe.getMpiid());
@@ -791,10 +804,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     /*req.setOriginalAccountNo(outPatient.getRefundNo());*/
                     req.setOrderNo(order.getOutTradeNo());
 
-                    LOGGER.info("调用his接口，上传处方缴费信息，入参 = {}，payFlag = {}", JSONUtils.toString(req), payFlag);
+                    LOGGER.info("调用regulation接口，上传处方缴费信息，req = {}，payFlag = {}", JSONUtils.toString(req), payFlag);
                     IRegulationService regulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
                     HisResponseTO hisResponseTO = regulationService.uploadOutpatientPay(recipe.getClinicOrgan(), req);
-                    LOGGER.info("调用his接口，上传处方缴费信息，出参 = {}，payFlag = {}", JSONUtils.toString(hisResponseTO), payFlag);
+                    LOGGER.info("调用regulation接口，上传处方缴费信息，res = {}，payFlag = {}", JSONUtils.toString(hisResponseTO), payFlag);
                 }
             } catch (Exception e) {
                 LOGGER.error("调用his接口，上传处方缴费信息失败，busId = {}，payFlag = {}", recipe.getRecipeId(), payFlag, e);
