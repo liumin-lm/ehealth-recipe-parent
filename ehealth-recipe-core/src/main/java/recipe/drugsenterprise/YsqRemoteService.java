@@ -25,7 +25,6 @@ import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
-import ctd.util.annotation.RpcService;
 import org.apache.axis.Constants;
 import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
@@ -61,7 +60,6 @@ import java.util.*;
  * @author: 0184/yu_yun
  * @date:2017/3/7.
  */
-@RpcBean("ysqRemoteService")
 public class YsqRemoteService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(YsqRemoteService.class);
@@ -284,13 +282,6 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         //发送药企信息
         sendAndDealResult(drugsEnterprise, methodName, sendInfoStr, result);
         return result;
-    }
-
-    @RpcService
-    public void test(){
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(202);
-        syncEnterpriseDrug(drugsEnterprise, null);
     }
 
     @Override
