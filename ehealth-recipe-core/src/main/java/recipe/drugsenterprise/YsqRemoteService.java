@@ -330,6 +330,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                                     if (saleDrug != null) {
                                         if (saleDrug.getInventory() != null && saleDrug.getInventory().doubleValue() != inventoryNum) {
                                             saleDrug.setInventory(new BigDecimal(inventory));
+                                            saleDrug.setLastModify(new Date());
                                             saleDrugListDAO.update(saleDrug);
                                         }
                                     }
