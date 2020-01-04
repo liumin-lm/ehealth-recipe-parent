@@ -760,6 +760,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     PatientService patientService = BasicAPI.getService(PatientService.class);
                     PatientDTO patientDTO = patientService.getPatientDTOByMpiId(recipe.getMpiid());
                     if (patientDTO != null) {
+                        req.setIdcardTypeCode("01");
                         req.setIdcardNo(patientDTO.getIdcard());
                         req.setName(patientDTO.getPatientName());
                         req.setGenderCode(patientDTO.getPatientSex());
@@ -773,6 +774,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     req.setOrganId(String.valueOf(recipe.getClinicOrgan()));
                     req.setOrgName(recipe.getOrganName());
                     req.setRcdDatetime(new Date());
+                    req.setPayTypeCode("07"); //详见医疗费用分类代码表
 
                     List<RegulationCostDetailReq> items = new ArrayList<>();
                     //取处方单明细
