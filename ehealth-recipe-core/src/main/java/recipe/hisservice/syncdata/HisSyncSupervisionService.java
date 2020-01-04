@@ -758,7 +758,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     }
                     RegulationOutpatientPayReq req = new RegulationOutpatientPayReq();
                     PatientService patientService = BasicAPI.getService(PatientService.class);
-                    PatientDTO patientDTO = patientService.getByMpiId(recipe.getMpiid());
+                    PatientDTO patientDTO = patientService.getPatientDTOByMpiId(recipe.getMpiid());
                     if (patientDTO != null) {
                         req.setIdcardNo(patientDTO.getIdcard());
                         req.setName(patientDTO.getPatientName());
@@ -810,7 +810,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     LOGGER.info("调用regulation接口，上传处方缴费信息，res = {}，payFlag = {}", JSONUtils.toString(hisResponseTO), payFlag);
                 }
             } catch (Exception e) {
-                LOGGER.error("调用his接口，上传处方缴费信息失败，busId = {}，payFlag = {}", recipe.getRecipeId(), payFlag, e);
+                LOGGER.error("调用regulation接口，上传处方缴费信息失败，busId = {}，payFlag = {}", recipe.getRecipeId(), payFlag, e);
             }
         }
     }

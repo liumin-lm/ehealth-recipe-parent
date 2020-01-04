@@ -1445,7 +1445,8 @@ public class RecipeOrderService extends RecipeBaseService {
                         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
                         RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
                         if(null != order){
-                            if(0 == order.getActualPrice()){
+                            //todo--特殊处理---江苏省健康APP----到院取药线上支付药品费用---后续优化
+                            if(0 == order.getActualPrice() && !RecipeServiceSub.isJSOrgan(nowRecipe.getClinicOrgan())){
                                 noPayStatus = getPayStatus(reviewType, giveMode, nowRecipe);
                                 //date 20191017
                                 //添加使用优惠券（不需支付，释放）
@@ -1539,12 +1540,7 @@ public class RecipeOrderService extends RecipeBaseService {
         //支付成功、支付前不需要支付时判断审核方式
         if(ReviewTypeConstant.Postposition_Check == reviewType){
             //后置
-            //todo--特殊处理---江苏省健康APP----到院取药线上支付药品费用---后续优化
-            if (RecipeServiceSub.isJSOrgan(nowRecipe.getClinicOrgan())){
-                payStatus = OrderStatusConstant.READY_PAY;
-            }else {
-                payStatus = OrderStatusConstant.READY_CHECK;
-            }
+            payStatus = OrderStatusConstant.READY_CHECK;
         }else{
             //前置、不需要审核，根据购药方式判断
 //            if(RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) ||
