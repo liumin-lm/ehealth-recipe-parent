@@ -94,7 +94,7 @@ public class PayModeToHos implements IPurchaseService{
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
         //更新处方信息
         //更新处方信息
-        if(0d >= order.getActualPrice() && !RecipeServiceSub.isJSOrgan(dbRecipe.getClinicOrgan())){
+        if(0d >= order.getActualPrice()){
             //如果不需要支付则不走支付,直接掉支付后的逻辑
             orderService.finishOrderPay(order.getOrderCode(), 1, MapValueUtil.getInteger(extInfo, "payMode"));
         }else{
