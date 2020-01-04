@@ -16,6 +16,8 @@ import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
+import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
+import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.bus.coupon.model.CouponBean;
 import com.ngari.bus.coupon.service.ICouponService;
 import com.ngari.patient.dto.OrganDTO;
@@ -66,6 +68,8 @@ import recipe.util.ValidateUtil;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
 
@@ -1450,6 +1454,10 @@ public class RecipeOrderService extends RecipeBaseService {
                             }else{
                                 noPayStatus = OrderStatusConstant.READY_PAY;
                             }
+                            //todo--特殊处理---江苏省健康APP----到院取药线上支付药品费用---后续优化
+                            if (isJSOrgan(nowRecipe.getClinicOrgan())){
+                                noPayStatus = OrderStatusConstant.READY_PAY;
+                            }
                             attrMap.put("effective", 1);
                             attrMap.put("status", noPayStatus);
                         }
@@ -1472,6 +1480,32 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         return result;
+    }
+
+    /**
+     * 是否是配置了江苏监管平台的机构
+     * @param clinicOrgan
+     * @return
+     */
+    private boolean isJSOrgan(Integer clinicOrgan) {
+        try {
+            IHisServiceConfigService configService = AppContextHolder.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
+            List<ServiceConfigResponseTO> serviceConfigResponseTOS = configService.findAllRegulationOrgan();
+            if (CollectionUtils.isEmpty(serviceConfigResponseTOS)) {
+                return false;
+            }
+            //判断机构是否关联了江苏监管平台
+            List<Integer> organList = serviceConfigResponseTOS.stream()
+                    .filter(regulation-> regulation.getRegulationAppDomainId().startsWith("jssjgpt"))
+                    .map(ServiceConfigResponseTO::getOrganid).collect(Collectors.toList());
+            if (organList.contains(clinicOrgan)) {
+                return true;
+            }
+        }catch (Exception e){
+            LOGGER.error("isJSOrgan error",e);
+            return false;
+        }
+        return false;
     }
 
     /**
