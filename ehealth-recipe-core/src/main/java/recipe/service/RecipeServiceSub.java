@@ -12,6 +12,8 @@ import com.ngari.base.operationrecords.service.IOperationRecordsService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
+import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.common.dto.RecipeTagMsgBean;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.service.IConsultService;
@@ -1930,5 +1932,32 @@ public class RecipeServiceSub {
             }
         }
         return true;
+    }
+
+    /**
+     * 是否是配置了江苏监管平台的机构
+     * @param clinicOrgan
+     * @return
+     */
+    public static boolean isJSOrgan(Integer clinicOrgan) {
+        try {
+            IHisServiceConfigService configService = AppContextHolder.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
+            List<ServiceConfigResponseTO> serviceConfigResponseTOS = configService.findAllRegulationOrgan();
+            if (CollectionUtils.isEmpty(serviceConfigResponseTOS)) {
+                return false;
+            }
+            //判断机构是否关联了江苏监管平台
+            List<Integer> organList = serviceConfigResponseTOS.stream()
+                    .filter(regulation-> regulation.getRegulationAppDomainId().startsWith("jssjgpt"))
+                    .map(ServiceConfigResponseTO::getOrganid).collect(Collectors.toList());
+            LOGGER.info("isJSOrgan organId={}",JSONUtils.toString(organList));
+            if (organList.contains(clinicOrgan)) {
+                return true;
+            }
+        }catch (Exception e){
+            LOGGER.error("isJSOrgan error",e);
+            return false;
+        }
+        return false;
     }
 }

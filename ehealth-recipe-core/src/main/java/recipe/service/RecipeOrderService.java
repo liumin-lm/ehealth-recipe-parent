@@ -1478,32 +1478,6 @@ public class RecipeOrderService extends RecipeBaseService {
         return result;
     }
 
-    /**
-     * 是否是配置了江苏监管平台的机构
-     * @param clinicOrgan
-     * @return
-     */
-    private boolean isJSOrgan(Integer clinicOrgan) {
-        try {
-            IHisServiceConfigService configService = AppContextHolder.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
-            List<ServiceConfigResponseTO> serviceConfigResponseTOS = configService.findAllRegulationOrgan();
-            if (CollectionUtils.isEmpty(serviceConfigResponseTOS)) {
-                return false;
-            }
-            //判断机构是否关联了江苏监管平台
-            List<Integer> organList = serviceConfigResponseTOS.stream()
-                    .filter(regulation-> regulation.getRegulationAppDomainId().startsWith("jssjgpt"))
-                    .map(ServiceConfigResponseTO::getOrganid).collect(Collectors.toList());
-            LOGGER.info("isJSOrgan organId={}",JSONUtils.toString(organList));
-            if (organList.contains(clinicOrgan)) {
-                return true;
-            }
-        }catch (Exception e){
-            LOGGER.error("isJSOrgan error",e);
-            return false;
-        }
-        return false;
-    }
 
     /**
      * @method  useCoupon
@@ -1566,7 +1540,7 @@ public class RecipeOrderService extends RecipeBaseService {
         if(ReviewTypeConstant.Postposition_Check == reviewType){
             //后置
             //todo--特殊处理---江苏省健康APP----到院取药线上支付药品费用---后续优化
-            if (isJSOrgan(nowRecipe.getClinicOrgan())){
+            if (RecipeServiceSub.isJSOrgan(nowRecipe.getClinicOrgan())){
                 payStatus = OrderStatusConstant.READY_PAY;
             }else {
                 payStatus = OrderStatusConstant.READY_CHECK;
