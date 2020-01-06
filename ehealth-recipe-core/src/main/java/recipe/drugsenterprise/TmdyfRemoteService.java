@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alijk.bqhospital.alijk.conf.TaobaoConf;
 import com.google.common.collect.ImmutableMap;
 import com.ngari.base.BaseAPI;
+import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
@@ -202,7 +203,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                     //药品详情
                     getDetailInfo(dbRecipe, requestParam,depId);
                 }catch (Exception e){
-                    LOGGER.error("pushRecipeInfo splicingData error{}.", e.getMessage());
+                    LOGGER.error("pushRecipeInfo splicingData error{}.", e);
                     return getDrugEnterpriseResult(result, e.getMessage());
                 }
 
@@ -430,13 +431,16 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         //操作人支付宝user_id
         ICurrentUserInfoService userInfoService = AppContextHolder.getBean(
                 "eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
-        String openId = userInfoService.getSimpleWxAccount().getOpenId();
-        if(null != openId){
-            requestParam.setAlipayUserId(openId);
-        } else {
-            throw new DAOException("操作人支付宝user_id不能为空");
+        SimpleWxAccountBean account = userInfoService.getSimpleWxAccount();
+        /*requestParam.setAlipayUserId("2088622513812239");*/
+        if (account!=null){
+            String openId = account.getOpenId();
+            if(null != openId){
+                requestParam.setAlipayUserId(openId);
+            } else {
+                throw new DAOException("操作人支付宝user_id不能为空");
+            }
         }
-
 
         PatientService patientService = BasicAPI.getService(PatientService.class);
         PatientDTO patient = patientService.get(dbRecipe.getMpiid());
