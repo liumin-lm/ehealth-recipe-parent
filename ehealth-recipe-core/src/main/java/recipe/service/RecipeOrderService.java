@@ -14,6 +14,8 @@ import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
+import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
+import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.bus.coupon.model.CouponBean;
 import com.ngari.bus.coupon.service.ICouponService;
 import com.ngari.patient.dto.AddressDTO;
@@ -66,6 +68,8 @@ import recipe.util.ValidateUtil;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
 
@@ -644,7 +648,7 @@ public class RecipeOrderService extends RecipeBaseService {
             }
         } else {
             Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
-            if (payMode != RecipeBussConstant.PAYMODE_ONLINE) {
+            if (payMode != RecipeBussConstant.PAYMODE_ONLINE && !RecipeServiceSub.isJSOrgan(order.getOrganId())) {
                 //此时的实际费用是不包含药品费用的
                 order.setActualPrice(order.getAuditFee().doubleValue());
             } else {
@@ -1443,7 +1447,8 @@ public class RecipeOrderService extends RecipeBaseService {
                         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
                         RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
                         if(null != order){
-                            if(0 == order.getActualPrice()){
+                            //todo--特殊处理---江苏省健康APP----到院取药线上支付药品费用---后续优化
+                            if(0 == order.getActualPrice() && !RecipeServiceSub.isJSOrgan(nowRecipe.getClinicOrgan())){
                                 noPayStatus = getPayStatus(reviewType, giveMode, nowRecipe);
                                 //date 20191017
                                 //添加使用优惠券（不需支付，释放）
@@ -1475,6 +1480,7 @@ public class RecipeOrderService extends RecipeBaseService {
 
         return result;
     }
+
 
     /**
      * @method  useCoupon
