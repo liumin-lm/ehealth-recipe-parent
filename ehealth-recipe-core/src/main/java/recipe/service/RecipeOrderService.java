@@ -478,10 +478,12 @@ public class RecipeOrderService extends RecipeBaseService {
         String operMpiId = MapValueUtil.getString(extInfo, "operMpiId");
 
         //设置挂号费（之前是区分购药方式的，要去区分购药方式来挂号费，现在不区分根据配置项来）
-        BigDecimal registerFee = organConfig.getPriceForRecipeRegister();
+        /*BigDecimal registerFee = organConfig.getPriceForRecipeRegister();*/
+        BigDecimal registerFee = getPriceForRecipeRegister(order.getOrganId());
         if (null != registerFee) {
             order.setRegisterFee(registerFee);
         } else {
+            //取base_parameter表数据---默认挂号费10元
             order.setRegisterFee(new BigDecimal(cacheService.getParam(ParameterConstant.KEY_RECIPE_REGISTER_FEE, "0")));
         }
 
@@ -655,6 +657,11 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setActualPrice(order.getTotalFee().doubleValue());
             }
         }
+    }
+
+    private BigDecimal getPriceForRecipeRegister(Integer organId) {
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        return (BigDecimal)configurationService.getConfiguration(organId, "priceForRecipeRegister");
     }
 
     public BigDecimal reCalculateRecipeFee(Integer enterpriseId, List<Integer> recipeIds, Map<String, String> extInfo) {
