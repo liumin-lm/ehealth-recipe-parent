@@ -17,9 +17,11 @@ import recipe.common.CommonConstant;
 import recipe.common.response.CommonResponse;
 import recipe.constant.CacheConstant;
 import recipe.constant.RecipeStatusConstant;
+import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.RecipeLogService;
+import recipe.service.RecipeServiceSub;
 import recipe.util.RedisClient;
 
 import java.util.*;
@@ -97,7 +99,8 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
                 }else {
                     //浙江省推送处方规则：（1）将status=2 处方审核后的数据推送给监管平台，不会推送审核中、流传的数据
                     //审核后推送
-                    if (status == 2 && RecipeStatusConstant.CHECK_PASS_YS==recipe.getStatus()) {
+                    //互联网网模式下--审核通过后是待处理状态
+                    if (status == 2 && canUploadByReviewType(recipe)) {
                         response = service.uploadRecipeIndicators(Arrays.asList(recipe));
                         flag = false;
                     }
@@ -126,5 +129,21 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
                     recipe.getStatus(), "监管平台上传失败,"+response.getMsg());
         }
         return null;
+    }
+
+    private boolean canUploadByReviewType(Recipe recipe) {
+        //后置-审核通过7  or  前置/不需要审核-待处理2
+        switch (recipe.getStatus()){
+            case RecipeStatusConstant.CHECK_PASS_YS:
+                if (ReviewTypeConstant.Postposition_Check.equals(recipe.getReviewType())){
+                    return true;
+                }
+            case RecipeStatusConstant.CHECK_PASS:
+                if (!ReviewTypeConstant.Postposition_Check.equals(recipe.getReviewType())){
+                    return true;
+                }
+            default:
+                return false;
+        }
     }
 }
