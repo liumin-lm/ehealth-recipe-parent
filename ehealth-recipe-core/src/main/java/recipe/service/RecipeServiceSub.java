@@ -1338,15 +1338,16 @@ public class RecipeServiceSub {
             flag = false;
         }else{
             //只要有一个药品的价格为空或0都不展示参考价格
+            //date 2019/1/6
+            //修改判断通过处方单详情中药品信息，如果价格有0则不显示价格
             for(Recipedetail recipedetail : recipedetails){
-                organDrug = drugDao.getByOrganIdAndOrganDrugCode(recipe.getClinicOrgan(), recipedetail.getOrganDrugCode());
-                if(null == organDrug){
+                if(null == recipedetail){
                     LOGGER.warn("当前机构{}下药品code{}的药品为空", recipe.getClinicOrgan(), recipedetail.getOrganDrugCode());
                     flag = false;
                     break;
                 }
-                if (null == organDrug.getSalePrice() || 0 <= BigDecimal.ZERO.compareTo(organDrug.getSalePrice())) {
-                    LOGGER.info("当前机构药品{}的金额为空", organDrug.getOrganDrugId());
+                if (null == recipedetail.getDrugCost() || 0 <= BigDecimal.ZERO.compareTo(recipedetail.getDrugCost())) {
+                    LOGGER.info("当前机构药品{}的金额为空", recipedetail.getOrganDrugCode());
                     flag = false;
                     break;
                 }
