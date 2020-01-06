@@ -352,8 +352,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             data = data.replace("\"{","{");
             data = data.replace("}\"","}");
             data = data + "]";
-            List<YsqDrugResponse> ysqDrugResponses =JSONArray.parseArray(data, YsqDrugResponse.class);
-            return ysqDrugResponses;
+            return JSONArray.parseArray(data, YsqDrugResponse.class);
         }
         return null;
     }
