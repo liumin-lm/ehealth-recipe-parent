@@ -29,7 +29,7 @@ public enum TabStatusEnum {
      * date 20191023
      * 结束添加互联网的天猫结束状态:天猫已过期,天猫已退回
      */
-    Isover_Recipe_StatusList("isover", "recipe", new ArrayList<>(Arrays.asList(14, 17, 13, 15, 12, 6, 9, 10, 11, 20, 23)));
+    Isover_Recipe_StatusList("isover", "recipe", new ArrayList<>(Arrays.asList(14, 17, 13, 15, 12, 6, 9, 11, 20, 23)));
 
     private String tabStatus;
 
