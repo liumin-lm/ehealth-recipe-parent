@@ -32,6 +32,7 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.drugsenterprise.TmdyfRemoteService;
 import recipe.hisservice.RecipeToHisCallbackService;
+import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.service.*;
 import recipe.serviceprovider.BaseService;
 import recipe.util.MapValueUtil;
@@ -477,5 +478,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             e.printStackTrace();
             return false;
         }
+    }
+
+    @Override
+    public Map<String, Object> getHtml5LinkInfo(PatientInfoDTO patient, RecipeBean recipeBean, List<RecipeDetailBean> recipeDetails, Integer reqType) {
+        WinningMedicationGuideService winningMedicationGuideService = ApplicationUtils.getRecipeService(WinningMedicationGuideService.class);
+        recipe.medicationguide.bean.PatientInfoDTO patientInfoDTO = ObjectCopyUtils.convert(patient,recipe.medicationguide.bean.PatientInfoDTO.class);
+        Map<String,Object> resultMap = winningMedicationGuideService.getHtml5LinkInfo(patientInfoDTO,recipeBean,recipeDetails,reqType);
+        return resultMap;
     }
 }

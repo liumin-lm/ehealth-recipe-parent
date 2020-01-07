@@ -321,5 +321,6 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      @RpcService
      Boolean updateRecipeInfoByRecipeId(int recipeId, final Map<String, Object> changeAttr);
 
-
+     @RpcService
+     Map<String, Object> getHtml5LinkInfo(PatientInfoDTO patient, RecipeBean recipeBean, List<RecipeDetailBean> recipeDetails, Integer reqType);
 }
