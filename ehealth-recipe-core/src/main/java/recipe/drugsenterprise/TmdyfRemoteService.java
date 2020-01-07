@@ -256,7 +256,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             //医院所属区域代码(结算发生地区域代码)
             requestParam.setInsuranceSettlementRegion(recipeExtend.getHospOrgCodeFromMedical());
             //参保地统筹区
-            requestParam.setPatientInsuredRegion(recipeExtend.getInsuredArea());
+            requestParam.setPatientInsuredRegion(transPatientRegion(recipeExtend.getInsuredArea()));
             //卡类型
             requestParam.setArchivesType(transCardType(recipeExtend.getCardTypeName()));
             //卡号
@@ -288,6 +288,24 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         requestParam.setAttributes(attributesJson);
     }
 
+    private String transPatientRegion(String insuredArea) {
+        switch (insuredArea){
+            case "33":return "浙江省本级";
+            case "3301":return "杭州市本级";
+            case "3302":return "宁波市本级";
+            case "3303":return "温州市本级";
+            case "3304":return "嘉兴市本级";
+            case "3305":return "湖州市本级";
+            case "3306":return "绍兴市本级";
+            case "3307":return "金华市本级";
+            case "3308":return "衢州市本级";
+            case "3309":return "舟山市本级";
+            case "3310":return "台州市本级";
+            case "3325":return "丽水市本级";
+            default:return insuredArea;
+        }
+    }
+
     private String transCardType(String cardTypeName) {
         switch (cardTypeName){
             case "就诊卡":return "VISIT_CARD";
@@ -295,7 +313,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             case "医保卡":return "MEDICAL_INSURANCE";
             case "病历号":return "HOSPITAL_MEDICAL_ID";
             case "医保电子凭证":return "MEDICAL_INSURANCE_ELECTRONIC_VOUCHER";
-            default:return "未知";
+            default:return cardTypeName;
         }
     }
 
@@ -308,7 +326,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             case "3308A":
                 return "CITY_MEDICAL_INSURANCE";
             case "1":return "BUSINESS_INSURANCE";
-            default:return "未知";
+            default:return patientType;
         }
     }
 
