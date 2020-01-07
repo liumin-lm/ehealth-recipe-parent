@@ -39,10 +39,7 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
 import recipe.constant.*;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeExtendDAO;
-import recipe.dao.SaleDrugListDAO;
+import recipe.dao.*;
 import recipe.drugsenterprise.bean.StandardResultDTO;
 import recipe.drugsenterprise.bean.StandardStateDTO;
 import recipe.hisservice.HisMqRequestInit;
@@ -162,42 +159,24 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
     }
 
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, Integer depId) {
-
         LOGGER.info("推送处方至天猫大药房开始，处方ID：{}.", JSONUtils.toString(recipeIds));
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         if (ObjectUtils.isEmpty(recipeIds)) {
             getDrugEnterpriseResult(result, "处方ID参数为空");
         }
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-//        Integer depId = enterprise.getId();
-
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
-
         if (!ObjectUtils.isEmpty(recipeList)) {
-
-//            ICurrentUserInfoService userInfoService = BasicAPI.getService(ICurrentUserInfoService.class);
             for (Recipe dbRecipe : recipeList ) {
-//                String loginId = patientService.getLoginIdByMpiId(dbRecipe.getRequestMpiId());
-//                String accessToken = aldyfRedisService.getTaobaoAccessToken(loginId);
-//                if (ObjectUtils.isEmpty(accessToken)) {
-//                    return getDrugEnterpriseResult(result, EXPIRE_TIP);
-//                }
-//                alihealthHospitalService.setTopSessionKey(accessToken);
-//                LOGGER.info("获取到accessToken:{}, loginId:{}", accessToken, loginId);
-
-
                 AlibabaAlihealthOutflowPrescriptionCreateRequest request = new AlibabaAlihealthOutflowPrescriptionCreateRequest ();
                 AlibabaAlihealthOutflowPrescriptionCreateRequest.PrescriptionOutflowUpdateRequest requestParam = new AlibabaAlihealthOutflowPrescriptionCreateRequest.PrescriptionOutflowUpdateRequest ();
-
                 try{
                     //获取患者信息
                     getPatientInfo(dbRecipe, requestParam);
                     //获取处方信息
                     getRecipeInfo(dbRecipe, requestParam);
-
                     //获取医生信息
                     getDoctorAndDeptInfo(dbRecipe, requestParam);
-
                     //封装诊断信息
                     getDiseaseInfo(dbRecipe, requestParam);
                     //药品详情
@@ -206,11 +185,8 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                     LOGGER.error("pushRecipeInfo splicingData error{}.", e);
                     return getDrugEnterpriseResult(result, e.getMessage());
                 }
-
-
                 LOGGER.info("requestParam 处方信息:{}.", getJsonLog(requestParam));
                 request.setCreateRequest(requestParam);
-
                 try{
                     TaobaoClient client = new DefaultTaobaoClient(this.taobaoConf.getUrl(), this.taobaoConf.getAppkey(), this.taobaoConf.getSecret());
                     AlibabaAlihealthOutflowPrescriptionCreateResponse rsp = client.execute(request);
@@ -231,7 +207,6 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                 }
             }
         }
-
         return result;
     }
 
@@ -261,11 +236,12 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             requestParam.setArchivesType(transCardType(recipeExtend.getCardTypeName()));
             //卡号
             requestParam.setArchivesId(recipeExtend.getCardNo());
+            //费用类型
+            requestParam.setFeeType(transFeeType(recipeExtend.getPatientType()));
         }
         requestParam.setDoctorAdvice(dbRecipe.getMemo());               //医生嘱言
         requestParam.setPlatformCode("ZJSPT");
-        //费用类型
-        requestParam.setFeeType("OWN_EXPENSE");
+
         //来源-固定值INTERNET_HOSPITAL_PRESCRIPTION---互联网医院处方外配
         //DEPART_PRESCRIPTION门诊处方外配、CONSUMABLES_ADVICE耗材医嘱流转
         requestParam.setSource("INTERNET_HOSPITAL_PRESCRIPTION");
@@ -274,8 +250,8 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         //------DOCTOR_ADVICE医嘱单
         requestParam.setTemplate("INTERNET_HOSPITAL_PRESCRIPTION");
 
-        //渠道、医院（要求固定值"JXZYY"）
-        requestParam.setChannelCode("ZJZYYY");
+        //渠道、医院（要求固定值"JXZYY"）浙一医院-ZJZYYY 衢化医院-ZJQHYY
+        requestParam.setChannelCode(transChannelCode(dbRecipe.getClinicOrgan()));
 
         Map<String, String> attributes = new HashMap<String, String>();
         Date expiredTime = DateConversion.getDateAftXDays(dbRecipe.getSignDate(), 3);
@@ -286,6 +262,25 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         attributes.put("prescriptionExpiredTime", expiredTimeString);
         String attributesJson = JSONUtils.toString(attributes);
         requestParam.setAttributes(attributesJson);
+    }
+
+    private String transChannelCode(Integer clinicOrgan) {
+        RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
+        //key = 2000005_ORGAN_CHANNEL_CODE value=ZJZYYY
+        //key = 衢化organId_ORGAN_CHANNEL_CODE value=ZJQHYY
+        return cacheService.getRecipeParam(clinicOrgan+"_"+ParameterConstant.KEY_ORGAN_CHANNEL_CODE, "ZJZYYY");
+
+    }
+
+    private String transFeeType(String patientType) {
+        switch (patientType){
+            case "33":
+            case "3301":
+            case "3308":
+            case "3308A":
+            case "1":return "MEDICAL_INSURANCE";
+            default:return "OWN_EXPENSE";
+        }
     }
 
     private String transPatientRegion(String insuredArea) {
@@ -332,10 +327,12 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
 
     private void getDetailInfo(Recipe dbRecipe, AlibabaAlihealthOutflowPrescriptionCreateRequest.PrescriptionOutflowUpdateRequest requestParam,Integer depId) {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        //OrganDrugListDAO dao = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<Recipedetail> detailList = detailDAO.findByRecipeId(dbRecipe.getRecipeId());
         List<AlibabaAlihealthOutflowPrescriptionCreateRequest.Drugs> drugParams = new ArrayList<>();
         if (!ObjectUtils.isEmpty(detailList)) {
             SaleDrugListDAO saleDrugDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+            //OrganDrugList organDrugList;
             for (int i = 0; i < detailList.size(); i++) {
                 //一张处方单可能包含相同的药品purchaseService
                 SaleDrugList saleDrugList = saleDrugDAO.getByDrugIdAndOrganId(detailList.get(i).getDrugId(), depId);
@@ -369,7 +366,11 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                 } else {
                     throw new DAOException("用量单位不能为空");
                 }
-                drugParam.setDrugId(saleDrugList.getOrganDrugCode());
+                /*//医院药品id
+                organDrugList = dao.getByDrugIdAndOrganId(saleDrugList.getDrugId(), dbRecipe.getClinicOrgan());
+                if (organDrugList!=null){
+                    drugParam.setDrugId(organDrugList.getOrganDrugCode());
+                }*/
                 drugParam.setDay(detailList.get(i).getUseDays() + "");    //天数
                 drugParam.setNote(detailList.get(i).getMemo());    //说明
                 drugParam.setTotalUnit(detailList.get(i).getDrugUnit());      //开具单位(盒)
@@ -383,7 +384,6 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                 } catch (ControllerException e) {
                     throw new DAOException("药物使用频率使用途径获取失败");
                 }
-
                 drugParams.add(drugParam);
             }
             requestParam.setDrugs(drugParams);
@@ -441,7 +441,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
     private void getPatientInfo(Recipe dbRecipe, AlibabaAlihealthOutflowPrescriptionCreateRequest.PrescriptionOutflowUpdateRequest requestParam) {
         //操作人手机号
         PatientDTO patient2 = UserRoleToken.getCurrent().getProperty("patient", PatientDTO.class);
-        if(null != patient2.getMobile()){
+        if(patient2!=null && null != patient2.getMobile()){
             requestParam.setMobilePhone(patient2.getMobile());
         } else {
             throw new DAOException("操作人手机号不能为空");
@@ -483,8 +483,8 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                 throw new DAOException("患者性别不能为空");
             }
             requestParam.setAddress(patient.getAddress());
-
-//                  requestParam.setIdNumber(patient.getIdcard());
+            //患者身份证
+            requestParam.setIdCard(patient.getIdcard());
         } else {
             throw new DAOException("患者不存在");
         }

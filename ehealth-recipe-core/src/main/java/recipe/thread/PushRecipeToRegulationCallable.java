@@ -117,16 +117,18 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
             logger.warn("uploadRecipeIndicators exception recipe={}", JSONUtils.toString(recipe), e);
         }
         logger.info("uploadRecipeIndicators res={}",response);
-        if (CommonConstant.SUCCESS.equals(response.getCode())) {
-            //更新字段
-            recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("syncFlag", 1));
-            //记录日志
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
-                    recipe.getStatus(), "监管平台上传成功");
-        }else{
-            //记录日志
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
-                    recipe.getStatus(), "监管平台上传失败,"+response.getMsg());
+        if (response != null){
+            if (CommonConstant.SUCCESS.equals(response.getCode())) {
+                //更新字段
+                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("syncFlag", 1));
+                //记录日志
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
+                        recipe.getStatus(), "监管平台上传成功");
+            }else{
+                //记录日志
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
+                        recipe.getStatus(), "监管平台上传失败,"+response.getMsg());
+            }
         }
         return null;
     }
