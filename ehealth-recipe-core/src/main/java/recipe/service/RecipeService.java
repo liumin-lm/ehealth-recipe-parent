@@ -547,7 +547,8 @@ public class RecipeService extends RecipeBaseService{
                 }else {
                     dataMap.put("templateType","wm");
                 }
-
+                // 添加机构id
+                dataMap.put("organId", recipe.getClinicOrgan());
                 Map<String, Object> backMap = esignService.signForRecipe(false, checker, dataMap);
                 //0表示成功
                 Integer code = MapValueUtil.getInteger(backMap, "code");
