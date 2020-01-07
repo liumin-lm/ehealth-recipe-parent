@@ -352,7 +352,7 @@ public class QueryRecipeService implements IQueryRecipeService {
      * @param organId
      * @return
      */
-    private static boolean isClinicOrgan(String organId) {
+    private boolean isClinicOrgan(String organId) {
         return RegexUtils.regular(organId, RegexEnum.NUMBER)&&(organId.length()==7);
     }
 }
