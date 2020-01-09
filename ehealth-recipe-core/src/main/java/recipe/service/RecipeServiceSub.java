@@ -1375,13 +1375,19 @@ public class RecipeServiceSub {
         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
         //添加按钮配置项key
         Object downloadPrescription = configService.getConfiguration(recipe.getClinicOrgan(), "downloadPrescription");
-        if(null != downloadPrescription){
-            boolean canDown = 0 != (Integer)downloadPrescription;
-            if(canDown){
-                isDownload = canDown(recipe, order, showRecipeStatus, false);
-            }else{
-                if(RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())){
-                    isDownload = canDown(recipe, order, showDownloadRecipeStatus, true);
+        //date 2020/1/9
+        //逻辑修改成：如果是下载处方购药方式的，无需判断配不配置【患者展示下载处方笺】
+        //非下载处方的购药方式，只有配置了【患者展示下载处方笺】才判断是否展示下载按钮
+        if(RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())){
+            isDownload = canDown(recipe, order, showDownloadRecipeStatus, true);
+        }else{
+            if(null != downloadPrescription){
+                boolean canDown = 0 != (Integer)downloadPrescription;
+                if(canDown){
+                    isDownload = canDown(recipe, order, showRecipeStatus, false);
+                }else{
+                    //没有配置则不会展示下载按钮
+                    isDownload = false;
                 }
             }
         }
