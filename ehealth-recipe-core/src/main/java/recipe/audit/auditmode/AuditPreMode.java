@@ -22,7 +22,7 @@ import static ctd.persistence.DAOFactory.getDAO;
  * created by shiyuping on 2019/8/15
  * 审方前置
  */
-@AuditMode(ReviewTypeConstant.Preposition_Check)
+@AuditMode(ReviewTypeConstant.Pre_AuditMode)
 public class AuditPreMode extends AbstractAuidtMode {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuditPreMode.class);
     @Override
@@ -64,9 +64,9 @@ public class AuditPreMode extends AbstractAuidtMode {
                 RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipeId), null, true);
                 //向患者推送处方消息
                 RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS);
-                //同步到互联网监管平台
+                /*//同步到互联网监管平台
                 SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
-                syncExecutorService.uploadRecipeIndicators(recipe);
+                syncExecutorService.uploadRecipeIndicators(recipe);*/
             }else {
                 //平台前置发送审核通过消息
                 //向患者推送处方消息

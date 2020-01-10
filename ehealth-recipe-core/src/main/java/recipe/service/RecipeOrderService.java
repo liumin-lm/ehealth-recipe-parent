@@ -5,8 +5,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ngari.base.address.model.AddressBean;
-import com.ngari.base.address.service.IAddressService;
 import com.ngari.base.hisconfig.model.HisServiceConfigBean;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.model.OrganConfigBean;
@@ -20,8 +18,10 @@ import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.bus.coupon.model.CouponBean;
 import com.ngari.bus.coupon.service.ICouponService;
+import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.AddressService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
@@ -478,10 +478,12 @@ public class RecipeOrderService extends RecipeBaseService {
         String operMpiId = MapValueUtil.getString(extInfo, "operMpiId");
 
         //设置挂号费（之前是区分购药方式的，要去区分购药方式来挂号费，现在不区分根据配置项来）
-        BigDecimal registerFee = organConfig.getPriceForRecipeRegister();
+        /*BigDecimal registerFee = organConfig.getPriceForRecipeRegister();*/
+        BigDecimal registerFee = getPriceForRecipeRegister(order.getOrganId());
         if (null != registerFee) {
             order.setRegisterFee(registerFee);
         } else {
+            //取base_parameter表数据---默认挂号费10元
             order.setRegisterFee(new BigDecimal(cacheService.getParam(ParameterConstant.KEY_RECIPE_REGISTER_FEE, "0")));
         }
 
@@ -564,9 +566,11 @@ public class RecipeOrderService extends RecipeBaseService {
 //            order.setExpressFee(new BigDecimal("-1"));
         } else {
             //设置运费
-            IAddressService addressService = ApplicationUtils.getBaseService(IAddressService.class);
+            //date 2019/12/25
+            //调整处方方法调basic
+            AddressService addressService = ApplicationUtils.getBasicService(AddressService.class);
             String operAddressId = MapValueUtil.getString(extInfo, "addressId");
-            AddressBean address = null;
+            AddressDTO address = null;
             if (StringUtils.isNotEmpty(operAddressId)) {
                 address = addressService.get(Integer.parseInt(operAddressId));
             } else {
@@ -653,6 +657,11 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setActualPrice(order.getTotalFee().doubleValue());
             }
         }
+    }
+
+    private BigDecimal getPriceForRecipeRegister(Integer organId) {
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        return (BigDecimal)configurationService.getConfiguration(organId, "priceForRecipeRegister");
     }
 
     public BigDecimal reCalculateRecipeFee(Integer enterpriseId, List<Integer> recipeIds, Map<String, String> extInfo) {
@@ -1502,7 +1511,7 @@ public class RecipeOrderService extends RecipeBaseService {
     private void sendTfdsMsg(Recipe nowRecipe, Integer payMode, String orderCode) {
         //药店取药推送
         LOGGER.info("sendTfdsMsg nowRecipeId:{}.", JSONUtils.toString(nowRecipe.getRecipeId()));
-        if (RecipeBussConstant.PAYMODE_TFDS.equals(payMode) && nowRecipe.getReviewType() != 2) {
+        if (RecipeBussConstant.PAYMODE_TFDS.equals(payMode) && nowRecipe.getReviewType() != ReviewTypeConstant.Postposition_Check) {
             RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);

@@ -280,6 +280,10 @@ public class RecipePreserveService {
     public boolean redisAddForHash(String key, String filed, String value) {
         return redisClient.hset(key, filed, value);
     }
+    @RpcService
+    public Long redisDelForHash(String key, String filed) {
+        return redisClient.hdel(key, filed);
+    }
 
     /**
      * Set操作

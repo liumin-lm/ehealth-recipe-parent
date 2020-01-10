@@ -547,7 +547,8 @@ public class RecipeService extends RecipeBaseService{
                 }else {
                     dataMap.put("templateType","wm");
                 }
-
+                // 添加机构id
+                dataMap.put("organId", recipe.getClinicOrgan());
                 Map<String, Object> backMap = esignService.signForRecipe(false, checker, dataMap);
                 //0表示成功
                 Integer code = MapValueUtil.getInteger(backMap, "code");
@@ -594,16 +595,22 @@ public class RecipeService extends RecipeBaseService{
             LOGGER.error("reCreatedRecipe 该处方不是审核未通过的处方. recipeId=[{}]", recipeId);
             return Lists.newArrayList();
         }
-        //更新处方一次审核不通过标记
-        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        Map<String, Object> updateMap = new HashMap<>();
-        updateMap.put("checkStatus", RecipecCheckStatusConstant.Check_Normal);
-        recipeDAO.updateRecipeInfoByRecipeId(recipeId, updateMap);
+        //date 2020/1/2
+        //发送二次不通过消息判断是否是二次审核不通过
+        if(!RecipecCheckStatusConstant.Check_Normal.equals(dbRecipe.getCheckStatus())){
+            //添加发送不通过消息
+            RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
+            //更新处方一次审核不通过标记
+            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+            Map<String, Object> updateMap = new HashMap<>();
+            updateMap.put("checkStatus", RecipecCheckStatusConstant.Check_Normal);
+            recipeDAO.updateRecipeInfoByRecipeId(recipeId, updateMap);
+        }
+
         //患者如果使用优惠券将优惠券解锁
         RecipeCouponService recipeCouponService = ApplicationUtils.getRecipeService(RecipeCouponService.class);
         recipeCouponService.unuseCouponByRecipeId(recipeId);
-        //添加发送不通过消息
-        RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
+
         //根据审方模式改变--审核未通过处理
         auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckNotPassYs(dbRecipe);
         List<Recipedetail> detailBeanList = RecipeValidateUtil.validateDrugsImpl(dbRecipe);
@@ -675,7 +682,11 @@ public class RecipeService extends RecipeBaseService{
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMap);
             memo = "签名上传文件成功, fileId=" + recipeFileId;
             LOGGER.info("generateRecipePdfAndSign 签名成功. fileId={}, recipeId={}", recipeFileId, recipe.getRecipeId());
-        } else {
+        } else if(Integer.valueOf(2).equals(code)) {
+            memo = "签名成功,非默认易签宝CA方式";
+            LOGGER.info("generateRecipePdfAndSign 签名成功. 非易签宝CA模式, recipeId={}", recipe.getRecipeId());
+        }
+        else {
             memo = "签名上传文件失败！原因：" + MapValueUtil.getString(backMap, "msg");
             LOGGER.error("generateRecipePdfAndSign 签名上传文件失败. recipeId={}, result={}", recipe.getRecipeId(), JSONUtils.toString(backMap));
         }
@@ -1394,6 +1405,7 @@ public class RecipeService extends RecipeBaseService{
                                     nowOrganDrug.setSalePrice(drugPrice);
                                     organDrugListDAO.update(nowOrganDrug);
                                     updateNum++;
+                                    LOGGER.info("drugInfoSynTask organId=[{}] drugCode=[{}] 药品信息价格更新成[{}]结束.", oid, drug.getDrcode(), drugPrice);
                                 }
                             }
                         }
@@ -1403,10 +1415,9 @@ public class RecipeService extends RecipeBaseService{
 //                            organDrugListDAO.updateStatusByOrganDrugCode(unuseDrugs, 0);
 //                        }
                         startIndex += 1;
-                        LOGGER.info("drugInfoSynTask organId=[{}] 同步完成. 关闭药品数量[{}], drugCode={}", oid, unuseDrugs.size(), JSONUtils.toString(unuseDrugs));
+                        //LOGGER.info("drugInfoSynTask organId=[{}] 同步完成. 关闭药品数量[{}], drugCode={}", oid, unuseDrugs.size(), JSONUtils.toString(unuseDrugs));
                     } else {
-                        LOGGER.info("drugInfoSynTask organId=[{}] total=[{}] 药品信息更新结束.", oid, updateNum);
-                        LOGGER.info("drugInfoSynTask organId=[{}] total=[{}] 药品金额更新完成.", oid, updateNum);
+                        LOGGER.info("drugInfoSynTask organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，药品信息更新结束.", oid, startIndex , updateNum);
                         finishFlag = false;
                     }
                 } while (finishFlag);

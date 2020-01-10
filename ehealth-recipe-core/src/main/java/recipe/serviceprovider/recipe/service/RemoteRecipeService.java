@@ -1,9 +1,9 @@
 package recipe.serviceprovider.recipe.service;
 
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.platform.recipe.mode.NoticePlatRecipeMedicalInfoReq;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
@@ -23,13 +23,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.bussutil.RecipeUtil;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
+import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.drugsenterprise.TmdyfRemoteService;
 import recipe.hisservice.RecipeToHisCallbackService;
+import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.service.*;
 import recipe.serviceprovider.BaseService;
 import recipe.util.MapValueUtil;
@@ -237,6 +240,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         if (StringUtils.isEmpty(recipeBean.getRecipeMode())){
             recipeBean.setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);
         }
+        if (recipeBean.getReviewType()==null){
+            recipeBean.setReviewType(ReviewTypeConstant.Postposition_Check);
+        }
         recipeDAO.updateOrSaveRecipeAndDetail(getBean(recipeBean,Recipe.class),recipedetails,false);
     }
 
@@ -426,5 +432,59 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         updateMap.put("insuredArea",insuredArea);
         updateMap.put("medicalSettleData",medicalSettleData);
         recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeId,updateMap);
+    }
+
+
+    /**
+     * 获取处方类型的参数接口对像
+     *  区别 中药、西药、膏方
+     * @param paramMapType
+     * @param recipe
+     * @param details
+     * @param fileName
+     * @return
+     */
+    @Override
+    @RpcService
+    public Map<String, Object> createRecipeParamMapForPDF(Integer paramMapType, RecipeBean recipe, List<RecipeDetailBean> details, String fileName){
+        LOGGER.info("createParamMapForChineseMedicine start in  paramMapType={} recipe={} details={} fileName={}"
+                ,paramMapType,JSONObject.toJSONString(recipe),JSONObject.toJSONString(details),fileName);
+
+        Map<String, Object> map;
+        List<Recipedetail> recipeDetails = new ArrayList<>();
+        for (RecipeDetailBean recipeDetailBean : details){
+            recipeDetails.add(getBean(recipeDetailBean,Recipedetail.class));
+        }
+        //根据处方类型选择生成参数
+        if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
+            //处方类型-中药 或 膏方
+            map = RecipeServiceSub.createParamMapForChineseMedicine(getBean(recipe, Recipe.class), recipeDetails, fileName);
+        } else {
+            //处方类型-其他类型
+            map = RecipeServiceSub.createParamMap(getBean(recipe, Recipe.class), recipeDetails, fileName);
+
+        }
+        return map;
+    }
+
+    @RpcService
+    @Override
+    public Boolean updateRecipeInfoByRecipeId(int recipeId, final Map<String,Object> changeAttr){
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        try {
+            recipeDAO.updateRecipeInfoByRecipeId(recipeId, changeAttr);
+            return true;
+        }catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    public Map<String, Object> getHtml5LinkInfo(PatientInfoDTO patient, RecipeBean recipeBean, List<RecipeDetailBean> recipeDetails, Integer reqType) {
+        WinningMedicationGuideService winningMedicationGuideService = ApplicationUtils.getRecipeService(WinningMedicationGuideService.class);
+        recipe.medicationguide.bean.PatientInfoDTO patientInfoDTO = ObjectCopyUtils.convert(patient,recipe.medicationguide.bean.PatientInfoDTO.class);
+        Map<String,Object> resultMap = winningMedicationGuideService.getHtml5LinkInfo(patientInfoDTO,recipeBean,recipeDetails,reqType);
+        return resultMap;
     }
 }

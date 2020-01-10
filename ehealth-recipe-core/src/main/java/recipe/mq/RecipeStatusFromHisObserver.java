@@ -50,8 +50,16 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
         //处方状态 1 处方保存 2 处方收费 3 处方发药 4处方退费 5处方退药 6处方拒绝接收 7已申请配送 8已配送
         switch (recipeStatus) {
             case HisBussConstant.FROMHIS_RECIPE_STATUS_ADD:
-                otherInfo.put("cardTypeName", notice.getCardTypeName());
+                otherInfo.put("cardTypeName", getCardTypeName(notice.getCardTypeName()));
                 otherInfo.put("cardNo", notice.getCardNo());
+                //自费 0 商保 1 省医保33 杭州市医保3301 衢州市医保3308 巨化医保3308A
+                otherInfo.put("patientType", notice.getPatientType());
+                //医院所属区域代码(结算发生地区域代码)
+                otherInfo.put("areaCode", notice.getAreaCode());
+                //参保地统筹区
+                otherInfo.put("insuredArea", notice.getInsuredArea());
+                //医保备案号
+                otherInfo.put("putOnRecordID", notice.getPutOnRecordID());
                 hospitalStatusUpdateDTO.setStatus(LocalStringUtil.toString(RecipeStatusConstant.CHECK_PASS));
                 if (StringUtils.isEmpty(notice.getCardNo())){
                     otherInfo.put("distributionFlag", "1");
@@ -101,6 +109,25 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
                     PrescribeService.class, "remotePrescribeService");
             HosRecipeResult result = prescribeService.updateRecipeStatus(hospitalStatusUpdateDTO, otherInfo);
             LOGGER.info("tag={}, result={}", MqConstant.HIS_CDRINFO_TAG_TO_PLATFORM, JSONUtils.toString(result));
+        }
+    }
+
+    private String getCardTypeName(String cardTypeName) {
+        switch (cardTypeName){
+            case "0":
+                return "身份证";
+            case "1":
+                return "就诊卡";
+            case "2":
+                return "医保卡";
+            case "3":
+                return "病历号";
+            case "4":
+                return "医保电子凭证";
+            case "5":
+                return "居民健康卡";
+            default:
+                return cardTypeName;
         }
     }
 }

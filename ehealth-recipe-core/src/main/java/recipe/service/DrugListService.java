@@ -200,9 +200,9 @@ public class DrugListService extends BaseService<DrugListBean> {
             throw new DAOException(DAOException.ENTITIY_NOT_FOUND, "Can't found drugList");
         } else {
             drugList.setLastModify(new Date());
-            BeanUtils.map(drugList, target);
-            target = dao.update(target);
-
+            DrugList drugList1 = ObjectCopyUtils.convert(drugListBean, DrugList.class);
+           /*BeanUtils.map(drugList, target);*/
+            target = dao.update(drugList1);
             if(null != drugListBean.getDispensatory()) {
                 DispensatoryDAO dispensatoryDAO = DAOFactory.getDAO(DispensatoryDAO.class);
                 Dispensatory dispensatory = dispensatoryDAO.getByDrugId(target.getDrugId());

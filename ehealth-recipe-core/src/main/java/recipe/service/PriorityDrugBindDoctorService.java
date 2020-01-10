@@ -72,41 +72,42 @@ public class PriorityDrugBindDoctorService
         return result;
     }
 
-    /**
-     * 获取重点药品的开药医生列表
-     * @param getPriorityDrugsTO
-     * @return
-     */
-    @Deprecated
-    @RpcService
-    public List<Map<String, Object>> getDoctorsForDishingOutDrug(GetPriorityDrugsTO getPriorityDrugsTO) {
-        PriortyDrugsBindDoctorDao priortyDrugsBindDoctorDao = DAOFactory.getDAO(PriortyDrugsBindDoctorDao.class);
-        IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
-        IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
-        List<Map<String, Object>> result = Lists.newArrayList();
-
-        LOGGER.info("Enter PriorityDrugBindDoctorService.getDoctorsForDishingOutDrug " +
-            "GetPriorityDrugsTO = " + getPriorityDrugsTO);
-
-        if (null == getPriorityDrugsTO || null == getPriorityDrugsTO.getDrugId()){
-            return result;
-        }
-        Integer drugId = getPriorityDrugsTO.getDrugId();
-        List<Integer> doctorIds =
-            priortyDrugsBindDoctorDao.findPriortyDrugBindDoctors(drugId);
-
-        if (CollectionUtils.isEmpty(doctorIds)) {
-            return null;
-        }
-        List<DoctorBean> doctors =
-            iDoctorService.findDoctorsByConditions(getPriorityDrugsTO,
-                doctorIds);
-
-        for (DoctorBean doctor : doctors) {
-            getResult(result, iEmploymentService, doctor);
-        }
-        return result;
-    }
+//    2019/12/16去除废弃接口
+//     /**
+//     * 获取重点药品的开药医生列表
+//     * @param getPriorityDrugsTO
+//     * @return
+//     */
+//    @Deprecated
+//    @RpcService
+//    public List<Map<String, Object>> getDoctorsForDishingOutDrug(GetPriorityDrugsTO getPriorityDrugsTO) {
+//        PriortyDrugsBindDoctorDao priortyDrugsBindDoctorDao = DAOFactory.getDAO(PriortyDrugsBindDoctorDao.class);
+//        IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
+//        IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
+//        List<Map<String, Object>> result = Lists.newArrayList();
+//
+//        LOGGER.info("Enter PriorityDrugBindDoctorService.getDoctorsForDishingOutDrug " +
+//            "GetPriorityDrugsTO = " + getPriorityDrugsTO);
+//
+//        if (null == getPriorityDrugsTO || null == getPriorityDrugsTO.getDrugId()){
+//            return result;
+//        }
+//        Integer drugId = getPriorityDrugsTO.getDrugId();
+//        List<Integer> doctorIds =
+//            priortyDrugsBindDoctorDao.findPriortyDrugBindDoctors(drugId);
+//
+//        if (CollectionUtils.isEmpty(doctorIds)) {
+//            return null;
+//        }
+//        List<DoctorBean> doctors =
+//            iDoctorService.findDoctorsByConditions(getPriorityDrugsTO,
+//                doctorIds);
+//
+//        for (DoctorBean doctor : doctors) {
+//            getResult(result, iEmploymentService, doctor);
+//        }
+//        return result;
+//    }
 
     /**
      * 配置重点药品

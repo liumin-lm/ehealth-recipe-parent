@@ -521,7 +521,16 @@ public class RecipeHisService extends RecipeBaseService {
                         BeanUtils.copyProperties(drugInfoHisBean, drugInfoTO);
                         requestList.add(drugInfoTO);
                     }
-                    backList = service.queryDrugInfo(requestList, organId);
+                    List<DrugInfoTO> drugInfoTOs = service.queryDrugInfo(requestList, organId);
+                    List<String> drugCodes = Lists.transform(requestList, new Function<DrugInfoTO, String>() {
+                        @Override
+                        public String apply(DrugInfoTO drugInfoTO) {
+
+                            return drugInfoTO.getDrcode();
+                        }
+                    });
+                    if(null == drugInfoTOs) LOGGER.warn("queryDrugInfo 药品code集合{}未查询到医院药品数据", drugCodes );
+                    backList = null == drugInfoTOs ? new ArrayList<DrugInfoTO>() : drugInfoTOs;
                 }
             }
 

@@ -1,61 +1,53 @@
 package recipe.hisservice;
 
-import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.cdr.service.IDiseaseService;
-import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
-import com.ngari.consult.ConsultBean;
-import com.ngari.consult.common.model.QuestionnaireBean;
-import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.DepartmentDTO;
-import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.dto.OrganDTO;
-import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.dto.zjs.SubCodeDTO;
-import com.ngari.patient.service.*;
-import com.ngari.patient.service.zjs.SubCodeService;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.DepartmentService;
+import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.OrganDrugList;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
+import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.hisprescription.model.*;
 import com.ngari.recipe.hisprescription.service.IQueryRecipeService;
-import ctd.controller.exception.ControllerException;
-import ctd.dictionary.Dictionary;
-import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import es.vo.DiseaseVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
-import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
-import recipe.constant.RecipeStatusConstant;
-import recipe.constant.RecipeSystemConstant;
-import recipe.dao.*;
+import recipe.constant.RegexEnum;
+import recipe.dao.OrganDrugListDAO;
+import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
-import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
-import recipe.util.RedisClient;
+import recipe.util.RegexUtils;
 
-import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * 浙江互联网医院处方查询接口
@@ -341,6 +333,9 @@ public class QueryRecipeService implements IQueryRecipeService {
         //需要转换组织机构编码
         Integer clinicOrgan = null;
         try {
+            if (isClinicOrgan(organId)){
+                return Integer.valueOf(organId);
+            }
             IOrganService organService = BaseAPI.getService(IOrganService.class);
             List<OrganBean> organList = organService.findByOrganizeCode(organId);
             if (CollectionUtils.isNotEmpty(organList)) {
@@ -350,5 +345,14 @@ public class QueryRecipeService implements IQueryRecipeService {
             LOGGER.warn("queryRecipeInfo 平台未匹配到该组织机构编码. organId={}", organId, e);
         }
         return clinicOrgan;
+    }
+
+    /**
+     * 判断是否是平台机构id规则----长度为7的纯数字
+     * @param organId
+     * @return
+     */
+    private boolean isClinicOrgan(String organId) {
+        return RegexUtils.regular(organId, RegexEnum.NUMBER)&&(organId.length()==7);
     }
 }

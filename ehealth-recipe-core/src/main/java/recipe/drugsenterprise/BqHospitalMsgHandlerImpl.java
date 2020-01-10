@@ -18,9 +18,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.constant.AlDyfRecipeStatusConstant;
+import recipe.constant.HisBussConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
+import recipe.hisservice.HisMqRequestInit;
+import recipe.hisservice.RecipeToHisMqService;
 import recipe.hisservice.RecipeToHisService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.service.RecipeHisService;
@@ -88,10 +91,12 @@ public class BqHospitalMsgHandlerImpl implements BqHospitalMsgHandler {
             //更新处方信息
             Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), RecipeStatusConstant.FINISH, attrMap);
             if (rs) {
-                RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+                /*RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);*/
                 //HIS消息发送
                 LOGGER.info("HIS消息发送{}.", recipe.getRecipeId());
-                hisService.recipeFinish(recipe.getRecipeId());
+                /*hisService.recipeFinish(recipe.getRecipeId());*/
+                RecipeToHisMqService hisMqService = ApplicationUtils.getRecipeService(RecipeToHisMqService.class);
+                hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipe, HisBussConstant.TOHIS_RECIPE_STATUS_FINISH,"阿里健康平台处方配送"));
                 //配送到家
                 LOGGER.info("配送到家消息发送{}.",recipe.getRecipeId());
                 RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.PATIENT_REACHPAY_FINISH);

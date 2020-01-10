@@ -1,12 +1,15 @@
 package recipe.service.common;
 
 import com.ngari.base.BaseAPI;
+import com.ngari.base.clientconfig.service.IClientConfigService;
+import com.ngari.base.clientconfig.to.ClientConfigBean;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.patient.dto.ClientConfigDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.ClientConfigService;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.base.constant.ClientConfigConstant;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,14 +52,20 @@ public class RecipeConfigService {
         if(StringUtils.isEmpty(val)){
             val = RecipeBussConstant.RECIPEMODE_NGARIHEALTH;
             try {
-                ClientConfigService ccService = BasicAPI.getService(ClientConfigService.class);
-                ClientConfigDTO clientConfigDTO = ccService.getClientConfigByAppKey(appKey);
+                IClientConfigService ccService = BaseAPI.getService(IClientConfigService.class);
+                ClientConfigBean clientConfigDTO = ccService.getByAppKey(appKey);
                 if(null == clientConfigDTO){
                     LOG.warn("getRecipeMode clientConfigDTO is null. appKey={}", appKey);
                     return val;
                 }
                 IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-                Object obj = configService.getPropertyOfKey(clientConfigDTO.getId(), "recipeCirculationMode", 2);
+                Object obj;
+                if("PC".equals(clientConfigDTO.getType())){
+                    //5---pc端配置  2----app端配置
+                    obj = configService.getPropertyOfKey(clientConfigDTO.getId(), "recipeCirculationModeForPC", 5);
+                }else {
+                    obj = configService.getPropertyOfKey(clientConfigDTO.getId(), "recipeCirculationMode", 2);
+                }
                 if (null != obj) {
                     val = LocalStringUtil.toString(obj);
                     redisClient.setEX(CacheConstant.KEY_RECIPEMODE + appKey, 24 * 3600L, val);

@@ -10,6 +10,7 @@ import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
@@ -357,7 +358,9 @@ public class RecipeListService extends RecipeBaseService{
      */
     public List<RecipeRollingInfoBean> findLastesRecipeList(List<Integer> organIds, int start, int limit) {
         IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
-        IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
+        //date  2019/12/16
+        //修改findTestDoctors接口从basic查询
+        DoctorService iDoctorService = ApplicationUtils.getBasicService(DoctorService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
         List<Integer> testDocIds = iDoctorService.findTestDoctors(organIds);
@@ -408,7 +411,9 @@ public class RecipeListService extends RecipeBaseService{
     @RpcService
     public List<Integer> findDoctorIdSortByCount(int start, int limit, List<Integer> organIds) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
+        //date  2019/12/16
+        //修改findTestDoctors接口从basic查询
+        DoctorService iDoctorService = ApplicationUtils.getBasicService(DoctorService.class);
 
         List<Integer> testDocIds = iDoctorService.findTestDoctors(organIds);
         String endDt = DateTime.now().toString(DateConversion.DEFAULT_DATE_TIME);
@@ -625,17 +630,17 @@ public class RecipeListService extends RecipeBaseService{
      * @param start
      * @return
      */
-    @RpcService
-    public List<PatientDTO> findHistoryPatientsFromRecipeByDoctor(Integer doctorId, int start, int limit) {
-        checkUserHasPermissionByDoctorId(doctorId);
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        final List<String> mpiList = recipeDAO.findHistoryMpiIdsByDoctorId(doctorId, start, limit);
-        if (mpiList.size() == 0) {
-            return new ArrayList<>();
-        }
-        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
-        return patientService.getPatients(mpiList, doctorId);
-    }
+//    @RpcService
+//    public List<PatientDTO> findHistoryPatientsFromRecipeByDoctor(Integer doctorId, int start, int limit) {
+//        checkUserHasPermissionByDoctorId(doctorId);
+//        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+//        final List<String> mpiList = recipeDAO.findHistoryMpiIdsByDoctorId(doctorId, start, limit);
+//        if (mpiList.size() == 0) {
+//            return new ArrayList<>();
+//        }
+//        PatientService patientService = ApplicationUtils.getBasicService(pa.class);
+//        return patientService.getPatients(mpiList, doctorId);
+//    }
 
     /**
      * 获取患者的所有处方单-web福建省立

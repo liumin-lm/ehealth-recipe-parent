@@ -167,9 +167,9 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
             throw new DAOException(DAOException.ENTITIY_NOT_FOUND, "Can't found drugList");
         } else {
             d.setLastModify(new Date());
-            BeanUtils.map(d, target);
-            target = dao.update(target);
-
+            DrugList drugList1 = ObjectCopyUtils.convert(d, DrugList.class);
+            /*BeanUtils.map(drugList, target);*/
+            target = dao.update(drugList1);
             if(null != d.getDispensatory()) {
                 DispensatoryDAO dispensatoryDAO = DAOFactory.getDAO(DispensatoryDAO.class);
                 Dispensatory dispensatory = dispensatoryDAO.getByDrugId(target.getDrugId());

@@ -61,7 +61,8 @@ public class PayModeTFDS implements IPurchaseService{
         String range = MapValueUtil.getString(extInfo, "range");
         String longitude = MapValueUtil.getString(extInfo, "longitude");
         String latitude = MapValueUtil.getString(extInfo, "latitude");
-        String md5Key = longitude + "-" + latitude + "-" + range;
+        String sort = MapValueUtil.getString(extInfo, "sort");
+        String md5Key = longitude + "-" + latitude + "-" + range + "-" + sort;
         String key = recipeId + "-" + DigestUtils.md5DigestAsHex(md5Key.getBytes());
 
         List<DepDetailBean> depDetailBeans = redisClient.get(key);
@@ -141,7 +142,6 @@ public class PayModeTFDS implements IPurchaseService{
         }
 
         //对药店列表进行排序
-        String sort = MapValueUtil.getString(extInfo, "sort");
         Collections.sort(depDetailList, new DepDetailBeanComparator(sort));
         if (CollectionUtils.isNotEmpty(depDetailList)) {
             redisClient.setEX(key, Long.parseLong(EXPIRE_SECOND), depDetailList);

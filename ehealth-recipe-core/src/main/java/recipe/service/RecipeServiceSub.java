@@ -31,6 +31,7 @@ import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.AppContextHolder;
+import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
 import networkclinic.api.service.INetworkclinicMsgService;
 import org.apache.commons.collections.CollectionUtils;
@@ -455,6 +456,8 @@ public class RecipeServiceSub {
             String organ = DictionaryController.instance().get("eh.base.dictionary.Organ").getText(recipe.getClinicOrgan());
             String depart = DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart());
             paramMap.put("organInfo", organ);
+            // 添加机构id
+            paramMap.put("organId", recipe.getClinicOrgan());
             paramMap.put("departInfo", depart);
             paramMap.put("disease", recipe.getOrganDiseaseName());
             paramMap.put("cDate", DateConversion.getDateFormatter(recipe.getSignDate(), "yyyy-MM-dd HH:mm"));
@@ -541,6 +544,8 @@ public class RecipeServiceSub {
             String organ = DictionaryController.instance().get("eh.base.dictionary.Organ").getText(recipe.getClinicOrgan());
             String depart = DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart());
             paramMap.put("organInfo", organ);
+            // 添加机构id
+            paramMap.put("organId", recipe.getClinicOrgan());
             paramMap.put("departInfo", depart);
             paramMap.put("disease", recipe.getOrganDiseaseName());
             paramMap.put("cDate", DateConversion.getDateFormatter(recipe.getSignDate(), "yyyy-MM-dd HH:mm"));
@@ -1171,14 +1176,16 @@ public class RecipeServiceSub {
             }
 
             //药品价格显示处理
-            boolean b1 = RecipeStatusConstant.FINISH == recipe.getStatus() ||
-                    (1 == recipe.getChooseFlag() && !RecipeUtil.isCanncelRecipe(recipe.getStatus()) &&
-                            (RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(recipe.getPayMode())
-                                    || RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode())
-                                    || RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode())));
-            if (!b1) {
-                recipe.setTotalMoney(null);
-            }
+            //date 2020/1/2
+            //展示修改成处方都展示药品金额
+//            boolean b1 = RecipeStatusConstant.FINISH == recipe.getStatus() ||
+//                    (1 == recipe.getChooseFlag() && !RecipeUtil.isCanncelRecipe(recipe.getStatus()) &&
+//                            (RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(recipe.getPayMode())
+//                                    || RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode())
+//                                    || RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode())));
+//            if (!b1) {
+//                recipe.setTotalMoney(null);
+//            }
 
             //Date:20190904
             //Explain:添加患者点击按钮信息
@@ -1303,8 +1310,50 @@ public class RecipeServiceSub {
         DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
         if (doctorDTO != null){
             map.put("doctorSignImg",doctorDTO.getSignImage());
+            map.put("doctorSignImgToken", FileAuth.instance().createToken(doctorDTO.getSignImage(), 3600L));
         }
+
+        //Date:2019/12/16
+        //Explain:添加判断展示处方参考价格
+        //获取处方下的药品，判断是否有药品对应的医院药品金额为空，有的话不展示参考价格
+        boolean flag = getShowReferencePriceFlag(recipe, recipedetails);
+        map.put("showReferencePrice", flag);
         return map;
+    }
+
+    /**
+     * @method  getShowReferencePriceFlag
+     * @description 获取是否要展示参考价格
+     * @date: 2019/12/17
+     * @author: JRK
+     * @param recipe 查询的处方
+     * @param recipedetails 处方对应的药品详情
+     * @return boolean 是否展示参考价格
+     */
+    private static boolean getShowReferencePriceFlag(Recipe recipe, List<Recipedetail> recipedetails) {
+        OrganDrugListDAO drugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
+        boolean flag = true;
+        OrganDrugList organDrug;
+        if(null == recipedetails || 0 >= recipedetails.size()){
+            flag = false;
+        }else{
+            //只要有一个药品的价格为空或0都不展示参考价格
+            //date 2019/1/6
+            //修改判断通过处方单详情中药品信息，如果价格有0则不显示价格
+            for(Recipedetail recipedetail : recipedetails){
+                if(null == recipedetail){
+                    LOGGER.warn("当前机构{}下药品code{}的药品为空", recipe.getClinicOrgan(), recipedetail.getOrganDrugCode());
+                    flag = false;
+                    break;
+                }
+                if (null == recipedetail.getDrugCost() || 0 <= BigDecimal.ZERO.compareTo(recipedetail.getDrugCost())) {
+                    LOGGER.info("当前机构药品{}的金额为空", recipedetail.getOrganDrugCode());
+                    flag = false;
+                    break;
+                }
+            }
+        }
+        return flag;
     }
 
     /**
@@ -1326,13 +1375,19 @@ public class RecipeServiceSub {
         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
         //添加按钮配置项key
         Object downloadPrescription = configService.getConfiguration(recipe.getClinicOrgan(), "downloadPrescription");
-        if(null != downloadPrescription){
-            boolean canDown = 0 != (Integer)downloadPrescription;
-            if(canDown){
-                isDownload = canDown(recipe, order, showRecipeStatus, false);
-            }else{
-                if(RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())){
-                    isDownload = canDown(recipe, order, showDownloadRecipeStatus, true);
+        //date 2020/1/9
+        //逻辑修改成：如果是下载处方购药方式的，无需判断配不配置【患者展示下载处方笺】
+        //非下载处方的购药方式，只有配置了【患者展示下载处方笺】才判断是否展示下载按钮
+        if(RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())){
+            isDownload = canDown(recipe, order, showDownloadRecipeStatus, true);
+        }else{
+            if(null != downloadPrescription){
+                boolean canDown = 0 != (Integer)downloadPrescription;
+                if(canDown){
+                    isDownload = canDown(recipe, order, showRecipeStatus, false);
+                }else{
+                    //没有配置则不会展示下载按钮
+                    isDownload = false;
                 }
             }
         }

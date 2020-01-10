@@ -28,8 +28,10 @@ public enum TabStatusEnum {
      * 已结束处方的状态(未处理，失败，未支付，审核不通过, 已完成, 已撤销，已删除，推his失败)
      * date 20191023
      * 结束添加互联网的天猫结束状态:天猫已过期,天猫已退回
+     * date 2020/1/6
+     * 不展示已删除的处方
      */
-    Isover_Recipe_StatusList("isover", "recipe", new ArrayList<>(Arrays.asList(14, 17, 13, 15, 12, 6, 9, 10, 11, 20, 23)));
+    Isover_Recipe_StatusList("isover", "recipe", new ArrayList<>(Arrays.asList(14, 17, 13, 15, 12, 6, 9, 11, 20, 23)));
 
     private String tabStatus;
 
