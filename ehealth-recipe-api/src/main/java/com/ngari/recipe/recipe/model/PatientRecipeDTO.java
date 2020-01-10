@@ -68,6 +68,8 @@ public class PatientRecipeDTO implements Serializable {
 
     private Integer giveMode;
 
+    private String signFile;
+
     private List<RecipeDetailBean> recipeDetail;
 
     /**
@@ -297,5 +299,13 @@ public class PatientRecipeDTO implements Serializable {
 
     public void setGiveMode(Integer giveMode) {
         this.giveMode = giveMode;
+    }
+
+    public String getSignFile() {
+        return signFile;
+    }
+
+    public void setSignFile(String signFile) {
+        this.signFile = signFile;
     }
 }
