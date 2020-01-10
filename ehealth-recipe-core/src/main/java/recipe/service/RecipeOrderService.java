@@ -1167,6 +1167,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     prb.setRecipeType(recipe.getRecipeType());
                     prb.setRecipeMode(recipe.getRecipeMode());
                     prb.setChemistSignFile(recipe.getChemistSignFile());
+                    prb.setSignFile(recipe.getSignFile());
                     //药品详情
                     recipedetails = detailDAO.findByRecipeId(recipe.getRecipeId());
                     prb.setRecipeDetail(ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class));
