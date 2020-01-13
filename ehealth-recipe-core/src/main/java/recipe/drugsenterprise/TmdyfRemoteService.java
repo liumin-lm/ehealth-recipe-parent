@@ -97,14 +97,15 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             return ;
         }
 
-        // 查看取药信息url
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        if(null == recipeExtend.getRxNo()){
+            LOGGER.warn("无法获取天猫对应处方编码");
+            response.setMsg("无法获取天猫对应处方编码");
+            return ;
+        }
+
+        // 使用中或者已完成状态下的处方单----查看取药信息url
         if(RecipeStatusConstant.USING == recipe.getStatus() || RecipeStatusConstant.FINISH == recipe.getStatus()){
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-            if(null == recipeExtend.getRxNo()){
-                LOGGER.warn("无法获取天猫对应处方编码");
-                response.setMsg("无法获取天猫对应处方编码");
-                return ;
-            }
             url = url + "rxNo=" + recipeExtend.getRxNo() +"&action=getDrugInfo";
             response.setCode(PurchaseResponse.JUMP);
         } else {
@@ -120,25 +121,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             }
 
             //获取医院城市编码（6位）
-            OrganService organService = BasicAPI.getService(OrganService.class);
-            OrganDTO organCode = organService.getByOrganId(recipe.getClinicOrgan());
-            String cityCode = null;
-            if(organCode.getAddrArea().length() >= 4){
-                cityCode = organCode.getAddrArea().substring(0,4) + "00";
-            } else {
-                cityCode = organCode.getAddrArea() + "00";
-                for(int i = cityCode.length(); i<6; i++){
-                    cityCode = cityCode + "0";
-                }
-            }
-
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-            if(null == recipeExtend.getRxNo()){
-                LOGGER.warn("无法获取天猫对应处方编码");
-                response.setMsg("无法获取天猫对应处方编码");
-                return ;
-            }
-
+            String cityCode = getHosCityCode(recipe.getClinicOrgan());
             /*if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME == recipe.getGiveMode()){
                 //配送到家URL
                 url = url + "rxNo=" + recipeExtend.getRxNo() +"&action=o2o&cityCode=" + cityCode;
@@ -146,32 +129,19 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                 //药店取药取药URL
                 url = url + "rxNo=" + recipeExtend.getRxNo() +"&action=offline&cityCode=" + cityCode;
             }*/
-
-            if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME == recipe.getGiveMode()){
-                Map<String,String> params = Maps.newHashMap();
+            //获取阿里健康跳转地址
+            if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())){
                 String channelCode = transChannelCode(recipe.getClinicOrgan());
-                switch(channelCode){
-                    case "ZJQHYY":
-                        params.put("outerRxNo",recipe.getRecipeCode());
-                        params.put("channelCode",channelCode);
-                        params.put("targetPage","2");
-                        params.put("cityCode",cityCode);
-                        params.put("hospitalId","100023");
-                        break;
-                    case "ZJZYYY":
-                        params.put("outerRxNo",recipe.getRecipeCode());
-                        params.put("channelCode",channelCode);
-                        params.put("targetPage","3");
-                        params.put("cityCode",cityCode);
-                        params.put("hospitalId","ZJZYYY");
-                        break;
-                    default:
-                        LOGGER.warn("not find effective channelCode ={}",channelCode);
-                        response.setMsg("not find effective channelCode");
-                        return ;
+                if (StringUtils.isEmpty(channelCode)){
+                    LOGGER.warn("not find effective channelCode ={}",channelCode);
+                    response.setMsg("not find effective channelCode");
+                    return;
                 }
+                //拼接url模板占位符需要的参数
+                Map<String, String> params = ChannelCodeEnum.getProcessTemplateParams(channelCode,recipe.getRecipeCode(),cityCode);
                 //配送到家URL
                 url = cacheService.getRecipeParam(ParameterConstant.KEY_ALI_O2O_SEND_TO_HOME_ADDR, null);
+                //替换占位符
                 url = processTemplate(url,params);
             } else {
                 //药店取药取药URL
@@ -182,6 +152,21 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         }
 
         response.setOrderUrl(url);
+    }
+
+    private String getHosCityCode(Integer clinicOrgan) {
+        OrganService organService = BasicAPI.getService(OrganService.class);
+        OrganDTO organCode = organService.getByOrganId(clinicOrgan);
+        String cityCode;
+        if(organCode.getAddrArea().length() >= 4){
+            cityCode = organCode.getAddrArea().substring(0,4) + "00";
+        } else {
+            cityCode = organCode.getAddrArea() + "00";
+            for(int i = cityCode.length(); i<6; i++){
+                cityCode = cityCode + "0";
+            }
+        }
+        return cityCode;
     }
 
     private String processTemplate(String tpl, Map params){
