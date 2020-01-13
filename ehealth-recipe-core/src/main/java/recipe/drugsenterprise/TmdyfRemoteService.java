@@ -3,6 +3,7 @@ package recipe.drugsenterprise;
 import com.alibaba.fastjson.JSON;
 import com.alijk.bqhospital.alijk.conf.TaobaoConf;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
@@ -63,6 +64,9 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
     private static final Logger LOGGER = LoggerFactory.getLogger(TmdyfRemoteService.class);
 
     private static final String EXPIRE_TIP = "请重新授权";
+
+    private static final String LEFT = "${";
+    private static final String RIGHT = "}";
 
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
@@ -135,17 +139,60 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                 return ;
             }
 
-            if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME == recipe.getGiveMode()){
+            /*if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME == recipe.getGiveMode()){
                 //配送到家URL
                 url = url + "rxNo=" + recipeExtend.getRxNo() +"&action=o2o&cityCode=" + cityCode;
             } else {
                 //药店取药取药URL
                 url = url + "rxNo=" + recipeExtend.getRxNo() +"&action=offline&cityCode=" + cityCode;
+            }*/
+
+            if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME == recipe.getGiveMode()){
+                Map<String,String> params = Maps.newHashMap();
+                String channelCode = transChannelCode(recipe.getClinicOrgan());
+                switch(channelCode){
+                    case "ZJQHYY":
+                        params.put("outerRxNo",recipe.getRecipeCode());
+                        params.put("channelCode",channelCode);
+                        params.put("targetPage","2");
+                        params.put("cityCode",cityCode);
+                        params.put("hospitalId","100023");
+                        break;
+                    case "ZJZYYY":
+                        params.put("outerRxNo",recipe.getRecipeCode());
+                        params.put("channelCode",channelCode);
+                        params.put("targetPage","3");
+                        params.put("cityCode",cityCode);
+                        params.put("hospitalId","ZJZYYY");
+                        break;
+                    default:
+                        LOGGER.warn("not find effective channelCode ={}",channelCode);
+                        response.setMsg("not find effective channelCode");
+                        return ;
+                }
+                //配送到家URL
+                url = cacheService.getRecipeParam(ParameterConstant.KEY_ALI_O2O_SEND_TO_HOME_ADDR, null);
+                url = processTemplate(url,params);
+            } else {
+                //药店取药取药URL
+                url = url + "rxNo=" + recipeExtend.getRxNo() +"&action=offline&cityCode=" + cityCode;
             }
+            LOGGER.info("获取跳转地址开始，处方ID：{}.", recipe.getRecipeId());
             response.setCode(PurchaseResponse.ORDER);
         }
 
         response.setOrderUrl(url);
+    }
+
+    private String processTemplate(String tpl, Map params){
+        Iterator<Map.Entry> it = params.entrySet().iterator();
+        while(it.hasNext()){
+            Map.Entry entry = it.next();
+            Object v = entry.getValue();
+            String val = v == null ? "" : v.toString();
+            tpl = tpl.replace(StringUtils.join(LEFT, entry.getKey().toString(), RIGHT), val);
+        }
+        return tpl;
     }
 
     @Override
