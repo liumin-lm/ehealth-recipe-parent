@@ -97,16 +97,38 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             return ;
         }
 
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        if(null == recipeExtend.getRxNo()){
-            LOGGER.warn("无法获取天猫对应处方编码");
-            response.setMsg("无法获取天猫对应处方编码");
-            return ;
+        //获取医院城市编码（6位）
+        String cityCode = getHosCityCode(recipe.getClinicOrgan());
+        //获取医院渠道编码
+        String channelCode = transChannelCode(recipe.getClinicOrgan());
+        if (StringUtils.isEmpty(channelCode)){
+            LOGGER.warn("not find effective channelCode ={}",channelCode);
+            response.setMsg("not find effective channelCode");
+            return;
         }
+        //拼接url模板占位符需要的参数
+        Map<String, String> params = ChannelCodeEnum.getProcessTemplateParams(channelCode,recipe.getRecipeCode(),cityCode);
 
         // 使用中或者已完成状态下的处方单----查看取药信息url
         if(RecipeStatusConstant.USING == recipe.getStatus() || RecipeStatusConstant.FINISH == recipe.getStatus()){
-            url = url + "rxNo=" + recipeExtend.getRxNo() +"&action=getDrugInfo";
+            try{
+                //查看处方详情单URL--先用配送到家的地址 targetPage不同 targetPage=1
+                url = cacheService.getRecipeParam(ParameterConstant.KEY_ALI_O2O_NEW_ADDR, null);
+                params.put("targetPage","1");
+                //替换占位符
+                url = processTemplate(url,params);
+            }catch (Exception e){
+                LOGGER.error("查看处方详情 get jump url error",e);
+                //报错使用原来的地址
+                String urlAddr = cacheService.getRecipeParam(ParameterConstant.KEY_ALI_O2O_ADDR, null);
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                if(null == recipeExtend.getRxNo()){
+                    LOGGER.warn("无法获取天猫对应处方编码");
+                    response.setMsg("无法获取天猫对应处方编码");
+                    return ;
+                }
+                url = urlAddr + "rxNo=" + recipeExtend.getRxNo() +"&action=getDrugInfo";
+            }
             response.setCode(PurchaseResponse.JUMP);
         } else {
             if (0 == recipe.getPushFlag()) {
@@ -119,9 +141,6 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                     return;
                 }
             }
-
-            //获取医院城市编码（6位）
-            String cityCode = getHosCityCode(recipe.getClinicOrgan());
             /*if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME == recipe.getGiveMode()){
                 //配送到家URL
                 url = url + "rxNo=" + recipeExtend.getRxNo() +"&action=o2o&cityCode=" + cityCode;
@@ -129,35 +148,44 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                 //药店取药取药URL
                 url = url + "rxNo=" + recipeExtend.getRxNo() +"&action=offline&cityCode=" + cityCode;
             }*/
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if(null == recipeExtend.getRxNo()){
+                LOGGER.warn("无法获取天猫对应处方编码");
+                response.setMsg("无法获取天猫对应处方编码");
+                return ;
+            }
+
             //获取阿里健康跳转地址
             if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())){
                 try {
-                    String channelCode = transChannelCode(recipe.getClinicOrgan());
-                    if (StringUtils.isEmpty(channelCode)){
-                        LOGGER.warn("not find effective channelCode ={}",channelCode);
-                        response.setMsg("not find effective channelCode");
-                        return;
-                    }
-                    //拼接url模板占位符需要的参数
-                    Map<String, String> params = ChannelCodeEnum.getProcessTemplateParams(channelCode,recipe.getRecipeCode(),cityCode);
                     //配送到家URL
-                    url = cacheService.getRecipeParam(ParameterConstant.KEY_ALI_O2O_SEND_TO_HOME_ADDR, null);
+                    url = cacheService.getRecipeParam(ParameterConstant.KEY_ALI_O2O_NEW_ADDR, null);
                     //替换占位符
                     url = processTemplate(url,params);
                 }catch (Exception e){
-                    LOGGER.error("get jump url error",e);
+                    LOGGER.error("配送到家 get jump url error",e);
                     //报错使用原来的地址
                     String urlAddr = cacheService.getRecipeParam(ParameterConstant.KEY_ALI_O2O_ADDR, null);
                     url = urlAddr + "rxNo=" + recipeExtend.getRxNo() +"&action=o2o&cityCode=" + cityCode;
                 }
             } else {
-                //药店取药取药URL
-                url = url + "rxNo=" + recipeExtend.getRxNo() +"&action=offline&cityCode=" + cityCode;
+                try {
+                    //药店取药URL--- targetPage不同 targetPage=4
+                    url = cacheService.getRecipeParam(ParameterConstant.KEY_ALI_O2O_NEW_ADDR, null);
+                    params.put("targetPage","4");
+                    //替换占位符
+                    url = processTemplate(url,params);
+                }catch (Exception e){
+                    LOGGER.error("药店取药 get jump url error",e);
+                    //报错使用原来的地址
+                    String urlAddr = cacheService.getRecipeParam(ParameterConstant.KEY_ALI_O2O_ADDR, null);
+                    //药店取药取药URL
+                    url = urlAddr + "rxNo=" + recipeExtend.getRxNo() +"&action=offline&cityCode=" + cityCode;
+                }
             }
-            LOGGER.info("获取跳转地址开始，处方ID：{}.", recipe.getRecipeId());
             response.setCode(PurchaseResponse.ORDER);
         }
-
+        LOGGER.info("获取跳转地址结束,处方ID:{},url:{}", recipe.getRecipeId(),url);
         response.setOrderUrl(url);
     }
 
