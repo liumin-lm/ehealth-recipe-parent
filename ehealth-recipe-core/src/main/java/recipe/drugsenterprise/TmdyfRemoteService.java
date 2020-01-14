@@ -131,18 +131,25 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             }*/
             //获取阿里健康跳转地址
             if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())){
-                String channelCode = transChannelCode(recipe.getClinicOrgan());
-                if (StringUtils.isEmpty(channelCode)){
-                    LOGGER.warn("not find effective channelCode ={}",channelCode);
-                    response.setMsg("not find effective channelCode");
-                    return;
+                try {
+                    String channelCode = transChannelCode(recipe.getClinicOrgan());
+                    if (StringUtils.isEmpty(channelCode)){
+                        LOGGER.warn("not find effective channelCode ={}",channelCode);
+                        response.setMsg("not find effective channelCode");
+                        return;
+                    }
+                    //拼接url模板占位符需要的参数
+                    Map<String, String> params = ChannelCodeEnum.getProcessTemplateParams(channelCode,recipe.getRecipeCode(),cityCode);
+                    //配送到家URL
+                    url = cacheService.getRecipeParam(ParameterConstant.KEY_ALI_O2O_SEND_TO_HOME_ADDR, null);
+                    //替换占位符
+                    url = processTemplate(url,params);
+                }catch (Exception e){
+                    LOGGER.error("get jump url error",e);
+                    //报错使用原来的地址
+                    String urlAddr = cacheService.getRecipeParam(ParameterConstant.KEY_ALI_O2O_ADDR, null);
+                    url = urlAddr + "rxNo=" + recipeExtend.getRxNo() +"&action=o2o&cityCode=" + cityCode;
                 }
-                //拼接url模板占位符需要的参数
-                Map<String, String> params = ChannelCodeEnum.getProcessTemplateParams(channelCode,recipe.getRecipeCode(),cityCode);
-                //配送到家URL
-                url = cacheService.getRecipeParam(ParameterConstant.KEY_ALI_O2O_SEND_TO_HOME_ADDR, null);
-                //替换占位符
-                url = processTemplate(url,params);
             } else {
                 //药店取药取药URL
                 url = url + "rxNo=" + recipeExtend.getRxNo() +"&action=offline&cityCode=" + cityCode;
@@ -305,6 +312,9 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
     }
 
     private String transFeeType(String patientType) {
+        if (StringUtils.isEmpty(patientType)){
+            return "OWN_EXPENSE";
+        }
         switch (patientType){
             case "33":
             case "3301":
@@ -316,6 +326,9 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
     }
 
     private String transPatientRegion(String insuredArea) {
+        if (StringUtils.isEmpty(insuredArea)){
+            return "";
+        }
         switch (insuredArea){
             case "33":return "浙江省本级";
             case "3301":return "杭州市本级";
@@ -334,6 +347,9 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
     }
 
     private String transCardType(String cardTypeName) {
+        if (StringUtils.isEmpty(cardTypeName)){
+            return "";
+        }
         switch (cardTypeName){
             case "就诊卡":return "VISIT_CARD";
             case "身份证":return "ID_CARD";
@@ -345,6 +361,9 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
     }
 
     private String transPatientType(String patientType) {
+        if (StringUtils.isEmpty(patientType)){
+            return "OWN_EXPENSE";
+        }
         switch (patientType){
             case "0":return "OWN_EXPENSE";
             case "33":return "PROVINCE_MEDICAL_INSURANCE";
