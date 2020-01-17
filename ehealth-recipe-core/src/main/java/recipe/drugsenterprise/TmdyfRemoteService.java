@@ -48,6 +48,7 @@ import recipe.hisservice.RecipeToHisMqService;
 import recipe.service.common.RecipeCacheService;
 import recipe.thread.RecipeBusiThreadPool;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -454,7 +455,9 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                 drugParam.setDay(detailList.get(i).getUseDays() + "");    //天数
                 drugParam.setNote(detailList.get(i).getMemo());    //说明
                 drugParam.setTotalUnit(detailList.get(i).getDrugUnit());      //开具单位(盒)
-                drugParam.setPrice(detailList.get(i).getSalePrice() + "");      //单价
+                if (!new BigDecimal(0).equals(detailList.get(i).getSalePrice())){
+                    drugParam.setPrice(detailList.get(i).getSalePrice() + "");      //单价
+                }
                 drugParam.setSpuid(saleDrugList.getOrganDrugCode());
                 try {
                     //频次
