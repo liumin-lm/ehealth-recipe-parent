@@ -49,11 +49,12 @@ public enum ChannelCodeEnum {
         this.hospitalId = hospitalId;
     }
 
-    public static Map<String,String> getProcessTemplateParams(String channelCode,String outerRxNo,String cityCode) {
+    public static Map<String,String> getProcessTemplateParams(String channelCode, String outerRxNo, String jkRxNo,String cityCode) {
         Map<String, String> params = Maps.newHashMap();
         for (ChannelCodeEnum e : ChannelCodeEnum.values()) {
             if (e.name().equalsIgnoreCase(channelCode)) {
                 params.put("outerRxNo",outerRxNo);
+                params.put("jkRxNo",jkRxNo);
                 params.put("cityCode",cityCode);
                 params.put("targetPage",e.getTargetPage());
                 params.put("hospitalId",e.hospitalId);
