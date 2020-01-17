@@ -48,6 +48,7 @@ import recipe.hisservice.RecipeToHisMqService;
 import recipe.service.common.RecipeCacheService;
 import recipe.thread.RecipeBusiThreadPool;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -106,11 +107,18 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             response.setMsg("not find effective channelCode");
             return;
         }
-        //拼接url模板占位符需要的参数
-        Map<String, String> params = ChannelCodeEnum.getProcessTemplateParams(channelCode,recipe.getRecipeCode(),cityCode);
+
 
         // 使用中或者已完成状态下的处方单----查看取药信息url
         if(RecipeStatusConstant.USING == recipe.getStatus() || RecipeStatusConstant.FINISH == recipe.getStatus()){
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if(null == recipeExtend.getRxNo()){
+                LOGGER.warn("无法获取天猫对应处方编码");
+                response.setMsg("无法获取天猫对应处方编码");
+                return ;
+            }
+            //拼接url模板占位符需要的参数
+            Map<String, String> params = ChannelCodeEnum.getProcessTemplateParams(channelCode,recipe.getRecipeCode(),recipeExtend.getRxNo(),cityCode);
             try{
                 //查看处方详情单URL--先用配送到家的地址 targetPage不同 targetPage=1
                 url = cacheService.getRecipeParam(ParameterConstant.KEY_ALI_O2O_NEW_ADDR, null);
@@ -121,12 +129,6 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                 LOGGER.error("查看处方详情 get jump url error",e);
                 //报错使用原来的地址
                 String urlAddr = cacheService.getRecipeParam(ParameterConstant.KEY_ALI_O2O_ADDR, null);
-                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                if(null == recipeExtend.getRxNo()){
-                    LOGGER.warn("无法获取天猫对应处方编码");
-                    response.setMsg("无法获取天猫对应处方编码");
-                    return ;
-                }
                 url = urlAddr + "rxNo=" + recipeExtend.getRxNo() +"&action=getDrugInfo";
             }
             response.setCode(PurchaseResponse.JUMP);
@@ -154,7 +156,8 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                 response.setMsg("无法获取天猫对应处方编码");
                 return ;
             }
-
+            //拼接url模板占位符需要的参数
+            Map<String, String> params = ChannelCodeEnum.getProcessTemplateParams(channelCode,recipe.getRecipeCode(),recipeExtend.getRxNo(),cityCode);
             //获取阿里健康跳转地址
             if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())){
                 try {
@@ -185,7 +188,6 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             }
             response.setCode(PurchaseResponse.ORDER);
         }
-        LOGGER.info("获取跳转地址结束,处方ID:{},url:{}", recipe.getRecipeId(),url);
         response.setOrderUrl(url);
     }
 
@@ -453,7 +455,9 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                 drugParam.setDay(detailList.get(i).getUseDays() + "");    //天数
                 drugParam.setNote(detailList.get(i).getMemo());    //说明
                 drugParam.setTotalUnit(detailList.get(i).getDrugUnit());      //开具单位(盒)
-                drugParam.setPrice(detailList.get(i).getSalePrice() + "");      //单价
+                if (!new BigDecimal(0).equals(detailList.get(i).getSalePrice())){
+                    drugParam.setPrice(detailList.get(i).getSalePrice() + "");      //单价
+                }
                 drugParam.setSpuid(saleDrugList.getOrganDrugCode());
                 try {
                     //频次
