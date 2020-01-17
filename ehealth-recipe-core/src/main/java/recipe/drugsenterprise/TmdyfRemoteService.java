@@ -455,7 +455,8 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                 drugParam.setDay(detailList.get(i).getUseDays() + "");    //天数
                 drugParam.setNote(detailList.get(i).getMemo());    //说明
                 drugParam.setTotalUnit(detailList.get(i).getDrugUnit());      //开具单位(盒)
-                if (!new BigDecimal(0).equals(detailList.get(i).getSalePrice())){
+                //价格大于0才显示字段
+                if (detailList.get(i).getSalePrice() !=null && detailList.get(i).getSalePrice().intValue()>0){
                     drugParam.setPrice(detailList.get(i).getSalePrice() + "");      //单价
                 }
                 drugParam.setSpuid(saleDrugList.getOrganDrugCode());
@@ -471,6 +472,9 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
             }
             requestParam.setDrugs(drugParams);
         }
+    }
+    public static void main(String[] args){
+
     }
 
     private void getDiseaseInfo(Recipe dbRecipe, AlibabaAlihealthOutflowPrescriptionCreateRequest.PrescriptionOutflowUpdateRequest requestParam) {
