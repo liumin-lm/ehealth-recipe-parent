@@ -118,7 +118,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                 return ;
             }
             //拼接url模板占位符需要的参数
-            Map<String, String> params = ChannelCodeEnum.getProcessTemplateParams(channelCode,recipe.getRecipeCode(),recipeExtend.getRxNo(),cityCode);
+            Map<String, String> params = getProcessTemplateParams(channelCode,recipe.getRecipeCode(),recipeExtend.getRxNo(),cityCode,response);
             try{
                 //查看处方详情单URL--先用配送到家的地址 targetPage不同 targetPage=1
                 url = cacheService.getRecipeParam(ParameterConstant.KEY_ALI_O2O_NEW_ADDR, null);
@@ -157,7 +157,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                 return ;
             }
             //拼接url模板占位符需要的参数
-            Map<String, String> params = ChannelCodeEnum.getProcessTemplateParams(channelCode,recipe.getRecipeCode(),recipeExtend.getRxNo(),cityCode);
+            Map<String, String> params = getProcessTemplateParams(channelCode,recipe.getRecipeCode(),recipeExtend.getRxNo(),cityCode,response);
             //获取阿里健康跳转地址
             if(RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())){
                 try {
@@ -338,6 +338,24 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         //key = 2000005_ORGAN_CHANNEL_CODE value=ZJZYYY
         //key = 衢化organId_ORGAN_CHANNEL_CODE value=ZJQHYY
         return cacheService.getRecipeParam(clinicOrgan+"_"+ParameterConstant.KEY_ORGAN_CHANNEL_CODE, "ZJZYYY");
+
+    }
+
+    private Map<String,String> getProcessTemplateParams(String channelCode, String outerRxNo, String jkRxNo,String cityCode, PurchaseResponse response) {
+        String[] channel = channelCode.split("_");
+        if(channel == null || channel.length < 3 ){
+            LOGGER.warn("not find effective channelCode ={}",channelCode);
+            response.setMsg("not find effective channelCode");
+            return null;
+        }
+        Map<String, String> params = Maps.newHashMap();
+        params.put("outerRxNo",outerRxNo);
+        params.put("jkRxNo",jkRxNo);
+        params.put("cityCode",cityCode);
+        params.put("channelCode",channel[0]);
+        params.put("targetPage",channel[1]);
+        params.put("hospitalId",channel[2]);
+        return params;
 
     }
 
