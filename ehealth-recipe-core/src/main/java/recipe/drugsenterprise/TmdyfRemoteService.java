@@ -320,7 +320,15 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         requestParam.setTemplate("INTERNET_HOSPITAL_PRESCRIPTION");
 
         //渠道、医院（要求固定值"JXZYY"）浙一医院-ZJZYYY 衢化医院-ZJQHYY
-        requestParam.setChannelCode(transChannelCode(dbRecipe.getClinicOrgan()));
+
+        //获取医院渠道编码
+        String channelCodeArr = transChannelCode(dbRecipe.getClinicOrgan());
+        if (null != channelCodeArr){
+            String [] channelCode =channelCodeArr.split("_");
+            requestParam.setChannelCode(channelCode[0]);
+        } else {
+            LOGGER.warn("获取医院渠道编码为null channelCode ={}",channelCodeArr);
+        }
 
         Map<String, String> attributes = new HashMap<String, String>();
         Date expiredTime = DateConversion.getDateAftXDays(dbRecipe.getSignDate(), 3);
