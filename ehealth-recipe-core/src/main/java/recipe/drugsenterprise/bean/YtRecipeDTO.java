@@ -169,6 +169,9 @@ public class YtRecipeDTO implements Serializable{
      * 默认4
      */
     private Integer source;
+
+    //处方单id
+    private Integer recipeId;
     /**
      * 商品明细
      */
@@ -396,6 +399,14 @@ public class YtRecipeDTO implements Serializable{
 
     public void setSource(Integer source) {
         this.source = source;
+    }
+
+    public Integer getRecipeId() {
+        return recipeId;
+    }
+
+    public void setRecipeId(Integer recipeId) {
+        this.recipeId = recipeId;
     }
 
     public List<YtDrugDTO> getItemList() {

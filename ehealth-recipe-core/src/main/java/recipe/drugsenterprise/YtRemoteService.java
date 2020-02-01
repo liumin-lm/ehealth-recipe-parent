@@ -193,6 +193,14 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         return true;
     }
 
+    @RpcService
+    public void test(Integer recipeId){
+        List<Integer> recipeIds = Arrays.asList(recipeId);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(206);
+        pushRecipeInfo(recipeIds, enterprise);
+    }
+
     @Override
     @RpcService
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
@@ -396,6 +404,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         sendYtRecipe.setTransFee(ytTransFee);
         sendYtRecipe.setIfPay(ytIfPay);
         sendYtRecipe.setSource(ytSource);
+        sendYtRecipe.setRecipeId(nowRecipe.getRecipeId());
     }
 
     /**
@@ -510,7 +519,12 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             getFailResult(result, "处方绑定订单不存在");
             return result;
         }
-        sendYtRecipe.setOrgCode(order.getDrugStoreCode());
+        if (nowRecipe.getGiveMode() == 1) {
+            //表示配送到家
+            sendYtRecipe.setOrgCode("YMO0111470");
+        } else {
+            sendYtRecipe.setOrgCode(order.getDrugStoreCode());
+        }
         return null;
     }
 
@@ -603,6 +617,13 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
     private void getFailResult(DrugEnterpriseResult result, String msg) {
         result.setMsg(msg);
         result.setCode(DrugEnterpriseResult.FAIL);
+    }
+
+    @RpcService
+    public void testScanStock(Integer recipeId){
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(206);
+        scanStock(recipeId, enterprise);
     }
 
     @Override
