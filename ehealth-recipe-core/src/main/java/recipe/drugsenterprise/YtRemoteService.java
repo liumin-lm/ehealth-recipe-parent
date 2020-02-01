@@ -513,7 +513,9 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         }
         if (nowRecipe.getGiveMode() == 1) {
             //表示配送到家
-            sendYtRecipe.setOrgCode("YMO0111470");
+            RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+            String storeCode = recipeParameterDao.getByName("yt_store_code");
+            sendYtRecipe.setOrgCode(storeCode);
         } else {
             sendYtRecipe.setOrgCode(order.getDrugStoreCode());
         }
@@ -791,9 +793,6 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             return result;
         }
         Map<Integer, DetailDrugGroup> drugGroup = getDetailGroup(detailList);
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        Integer depId = enterprise.getId();
-        String depName = enterprise.getName();
         Map<Integer, BigDecimal> feeSumByPharmacyIdMap = new HashMap<>();
         //删除库存不够的药店
         removeNoStockPhamacy(enterprise, result, pharmacyList, drugGroup, feeSumByPharmacyIdMap);
