@@ -229,7 +229,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("YtRemoteService.pushRecipeInfo:[{}][{}]更新token异常：{}", depId, depName, e.getMessage());
+                LOGGER.error("YtRemoteService.pushRecipeInfo:[{}][{}]推送处方异常：{}", depId, depName, e.getMessage());
             } finally {
                 try {
                     httpClient.close();
@@ -271,17 +271,17 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]推送处方请求，请求内容：{}", enterprise.getId(), enterprise.getName(), requestStr);
         StringEntity requestEntry = new StringEntity(requestStr, ContentType.APPLICATION_JSON);
         httpPost.setEntity(requestEntry);
-
         //获取响应消息
         CloseableHttpResponse response = httpClient.execute(httpPost);
+        LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]推送处方请求，获取响应消息：{}", enterprise.getId(), enterprise.getName(), JSONUtils.toString(response));
         HttpEntity httpEntity = response.getEntity();
         //date 20191129
         //添加推送处方结果展示
-        String responseStr =  EntityUtils.toString(httpEntity);
+        //String responseStr =  EntityUtils.toString(httpEntity);
         if(requestPushSuccessCode == response.getStatusLine().getStatusCode()){
-            LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送成功，请求返回:{}", enterprise.getId(), enterprise.getName(), responseStr);
+            LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送成功.", enterprise.getId(), enterprise.getName());
         }else{
-            LOGGER.warn("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送失败,请求返回:{}", enterprise.getId(), enterprise.getName(), responseStr);
+            LOGGER.warn("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送失败.", enterprise.getId(), enterprise.getName());
             getFailResult(result, "处方推送失败");
         }
         //关闭 HttpEntity 输入流
@@ -396,6 +396,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         sendYtRecipe.setTransFee(ytTransFee);
         sendYtRecipe.setIfPay(ytIfPay);
         sendYtRecipe.setSource(ytSource);
+        sendYtRecipe.setRecipeId(nowRecipe.getRecipeId());
     }
 
     /**
@@ -510,7 +511,14 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             getFailResult(result, "处方绑定订单不存在");
             return result;
         }
-        sendYtRecipe.setOrgCode(order.getDrugStoreCode());
+        if (nowRecipe.getGiveMode() == 1) {
+            //表示配送到家
+            RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+            String storeCode = recipeParameterDao.getByName("yt_store_code");
+            sendYtRecipe.setOrgCode(storeCode);
+        } else {
+            sendYtRecipe.setOrgCode(order.getDrugStoreCode());
+        }
         return null;
     }
 
@@ -610,8 +618,6 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
 
-        Integer depId = drugsEnterprise.getId();
-        String depName = drugsEnterprise.getName();
         //查询当前处方信息
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe nowRecipe = recipeDAO.get(recipeId);
@@ -787,9 +793,6 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             return result;
         }
         Map<Integer, DetailDrugGroup> drugGroup = getDetailGroup(detailList);
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        Integer depId = enterprise.getId();
-        String depName = enterprise.getName();
         Map<Integer, BigDecimal> feeSumByPharmacyIdMap = new HashMap<>();
         //删除库存不够的药店
         removeNoStockPhamacy(enterprise, result, pharmacyList, drugGroup, feeSumByPharmacyIdMap);
