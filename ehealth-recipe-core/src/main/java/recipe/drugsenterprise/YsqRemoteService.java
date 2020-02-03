@@ -520,15 +520,17 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     continue;
                 }
 
-                if (StringUtils.isEmpty(recipe.getOrderCode())) {
-                    LOGGER.error("getYsqRecipeInfo recipeId={}, 不存在订单编号.", recipeId);
-                    continue;
-                }
+                if (sendRecipe) {
+                    if (StringUtils.isEmpty(recipe.getOrderCode())) {
+                        LOGGER.error("getYsqRecipeInfo recipeId={}, 不存在订单编号.", recipeId);
+                        continue;
+                    }
 
-                order = orderDAO.getByOrderCode(recipe.getOrderCode());
-                if (null == order) {
-                    LOGGER.error("getYsqRecipeInfo code为" + recipe.getOrderCode() + "的订单不存在");
-                    continue;
+                    order = orderDAO.getByOrderCode(recipe.getOrderCode());
+                    if (null == order) {
+                        LOGGER.error("getYsqRecipeInfo code为" + recipe.getOrderCode() + "的订单不存在");
+                        continue;
+                    }
                 }
                 try {
                     patient = iPatientService.get(recipe.getMpiid());
@@ -565,6 +567,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     recipeMap.put("METHOD", "");
                 }
                 if (RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode())) {
+                    order = orderDAO.getByOrderCode(recipe.getOrderCode());
                     //配送到家的方式
                     recipeMap.put("METHOD", "0");
                     RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
