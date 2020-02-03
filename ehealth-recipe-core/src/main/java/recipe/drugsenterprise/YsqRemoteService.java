@@ -493,6 +493,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
     }
 
     private List<Map<String, Object>> getYsqRecipeInfo(List<Integer> recipeIds, boolean sendRecipe, DrugsEnterprise drugsEnterprise) {
+        LOGGER.error("getYsqRecipeInfo 组装参数");
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
@@ -583,6 +584,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 recipeMap.put("ACCAMOUNT", order.getRecipeFee().toString());
             } else {
                 recipeMap.put("METHOD", "1");
+                recipeMap.put("PATIENTSENDADDR", "");
             }
 
             if (!sendRecipe && drugsEnterprise.getHosInteriorSupport() == 1) {
@@ -641,16 +643,10 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             recipeMap.put("IDENTIFICATION", "");
             recipeMap.put("TELPHONE", patient.getMobile());
             if (sendRecipe) {
-                RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-                String store_code = recipeParameterDao.getByName("ysq_store_code");
-                recipeMap.put("PATIENTSENDADDR", getCompleteAddress(order));
-                recipeMap.put("STORECODE", store_code);
-                recipeMap.put("SENDNAME", order.getReceiver());
                 recipeMap.put("RECEIVENAME", order.getReceiver());
                 recipeMap.put("RECEIVETEL", order.getRecMobile());
                 recipeMap.put("ACCAMOUNT", order.getRecipeFee().toString());
             } else {
-                recipeMap.put("PATIENTSENDADDR", "");
                 recipeMap.put("RECEIVENAME", patient.getPatientName());
                 recipeMap.put("RECEIVETEL", patient.getMobile());
                 recipeMap.put("ACCAMOUNT", recipe.getTotalMoney().toString());
