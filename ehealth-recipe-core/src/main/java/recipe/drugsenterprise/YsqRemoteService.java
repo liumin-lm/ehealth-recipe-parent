@@ -591,6 +591,10 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     recipeMap.put("PATIENTSENDADDR", "");
                 }
 
+                if (RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
+                    recipeMap.put("ISPAYMENT", "0");
+                }
+
                 if (!sendRecipe && drugsEnterprise.getHosInteriorSupport() == 1) {
                     recipeMap.put("HOSCODE", organ.getOrganizeCode());
                 } else {
