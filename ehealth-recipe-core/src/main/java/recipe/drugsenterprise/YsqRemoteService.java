@@ -579,6 +579,11 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                         recipeMap.put("RECEIVENAME", order.getReceiver());
                         recipeMap.put("RECEIVETEL", order.getRecMobile());
                         recipeMap.put("ACCAMOUNT", order.getRecipeFee().toString());
+                        if (order.getPayFlag() != null && 1 == order.getPayFlag()) {
+                            recipeMap.put("ISPAYMENT", "1");
+                        } else if (order.getPayFlag() != null && 0 == order.getPayFlag()){
+                            recipeMap.put("ISPAYMENT", "0");
+                        }
                     }
 
                 } else {
