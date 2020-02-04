@@ -1639,12 +1639,14 @@ public class RecipeServiceSub {
 
         if (RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
             supportMode.add(RecipeBussConstant.DEP_SUPPORT_ONLINE);
+            supportMode.add(RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS);
         } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode)) {
             supportMode.add(RecipeBussConstant.DEP_SUPPORT_COD);
             supportMode.add(RecipeBussConstant.DEP_SUPPORT_COD_TFDS);
         } else if (RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
             supportMode.add(RecipeBussConstant.DEP_SUPPORT_TFDS);
             supportMode.add(RecipeBussConstant.DEP_SUPPORT_COD_TFDS);
+            supportMode.add(RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS);
         } else if (RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(payMode)) {
             //医保选用线上支付配送方式
             supportMode.add(RecipeBussConstant.DEP_SUPPORT_ONLINE);

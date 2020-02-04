@@ -79,6 +79,11 @@ public class RecipeBussConstant {
     public static Integer DEP_SUPPORT_TFDS = 3;
 
     /**
+     * 药企配送模式-配送到家+药店取药
+     */
+    public static Integer DEP_SUPPORT_ONLINE_TFDS = 7;
+
+    /**
      * 药企配送模式-货到付款+药店取药
      */
     public static Integer DEP_SUPPORT_COD_TFDS = 8;
