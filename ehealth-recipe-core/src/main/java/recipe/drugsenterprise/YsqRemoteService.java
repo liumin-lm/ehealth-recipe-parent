@@ -566,7 +566,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 } else {
                     recipeMap.put("METHOD", "");
                 }
-                if (RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode())) {
+                if (RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
                     order = orderDAO.getByOrderCode(recipe.getOrderCode());
                     if (order != null ) {
                         //配送到家的方式
