@@ -1132,6 +1132,8 @@ public class RecipeServiceSub {
                 map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId));
             }
         } else {
+            //处方详情单底部文案提示说明---机构配置
+            map.put("bottomText", getBottomTextForPatient(recipe.getClinicOrgan()));
             RecipeOrder order = orderDAO.getOrderByRecipeId(recipeId);
             if (recipe.getRecipeMode() == RecipeBussConstant.RECIPEMODE_ZJJGPT) {
                 map.put("tips", getTipsByStatusForPatient(recipe, order));
@@ -1319,6 +1321,16 @@ public class RecipeServiceSub {
         boolean flag = getShowReferencePriceFlag(recipe, recipedetails);
         map.put("showReferencePrice", flag);
         return map;
+    }
+
+    private static Object getBottomTextForPatient(Integer clinicOrgan) {
+        try {
+            IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            return configurationCenterUtilsService.getConfiguration(clinicOrgan, "RecipeInfoBottomText");
+        }catch (Exception e){
+            LOGGER.error("getBottomTextForPatient error",e);
+        }
+        return null;
     }
 
     /**
