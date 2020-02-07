@@ -572,15 +572,19 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             getFailResult(result, "处方绑定患者不存在");
             return result;
         }
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(nowRecipe.getOrderCode());
         sendYtRecipe.setPatientName(patient.getPatientName());
         sendYtRecipe.setSex(Integer.parseInt(patient.getPatientSex()));
         sendYtRecipe.setAge(patient.getAge());
-        sendYtRecipe.setPhone("");
-        sendYtRecipe.setAddress("");
+        sendYtRecipe.setPhone(patient.getMobile());
         sendYtRecipe.setSymptom(patient.getLastSummary());
-        sendYtRecipe.setRecipientName("");
-        sendYtRecipe.setRecipientAdd("");
-        sendYtRecipe.setRecipientTel("");
+        sendYtRecipe.setRecipientName(patient.getPatientName());
+        if (nowRecipe.getGiveMode() == 1) {
+            sendYtRecipe.setRecipientAdd(getCompleteAddress(order));
+            sendYtRecipe.setAddress(getCompleteAddress(order));
+        }
+        sendYtRecipe.setRecipientTel(patient.getMobile());
         sendYtRecipe.setZipCode("");
         return result;
     }
