@@ -255,6 +255,13 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         request.setGrantType(GRANTTYPE);
         return true;
     }
+    @RpcService
+    public void tests(Integer recipeId){
+        List<Integer> recipeIds = Arrays.asList(recipeId);
+        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(224);
+        pushRecipeInfo(recipeIds, drugsEnterprise);
+    }
 
     @Override
     @RpcService
@@ -516,7 +523,12 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         sendHdRecipe.setOrganDiseaseName(nowRecipe.getOrganDiseaseName());
         sendHdRecipe.setMedicalPay(null == nowRecipe.getMedicalPayFlag() ? medicalPayDefault : nowRecipe.getMedicalPayFlag().toString());
         sendHdRecipe.setOrganDiseaseId(nowRecipe.getOrganDiseaseId());
-        sendHdRecipe.setAudiDate(getNewTime(nowRecipe.getCheckDateYs(), hdTimeCheck));
+        if (nowRecipe.getCheckDateYs() != null) {
+            sendHdRecipe.setAudiDate(getNewTime(nowRecipe.getCheckDateYs(), hdTimeCheck));
+        } else {
+            sendHdRecipe.setAudiDate(getNewTime(new Date(), hdTimeCheck));
+        }
+
         sendHdRecipe.setCreateDate(getNewTime(nowRecipe.getCreateDate(), hdTimeCheck));
         sendHdRecipe.setTcmUsePathways(nowRecipe.getTcmUsePathways());
         sendHdRecipe.setTcmUsingRate(nowRecipe.getTcmUsingRate());
