@@ -532,7 +532,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         sendHdRecipe.setCreateDate(getNewTime(nowRecipe.getCreateDate(), hdTimeCheck));
         sendHdRecipe.setTcmUsePathways(nowRecipe.getTcmUsePathways());
         sendHdRecipe.setTcmUsingRate(nowRecipe.getTcmUsingRate());
-        sendHdRecipe.setDistributionFlag(null == nowRecipe.getDistributionFlag() ? distributionFlagDefault : nowRecipe.getDistributionFlag().toString());
+
         sendHdRecipe.setGiveMode(null == nowRecipe.getGiveMode() ? giveModeDefault : nowRecipe.getGiveMode().toString());
         sendHdRecipe.setGiveUser(nowRecipe.getGiveUser());
         sendHdRecipe.setPayFlag(null == nowRecipe.getPayFlag() ? payFlagDefault : nowRecipe.getPayFlag().toString());
@@ -544,6 +544,9 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         RecipeOrder order = recipeOrderDAO.getByOrderCode(nowRecipe.getOrderCode());
         if (nowRecipe.getGiveMode() == 1) {
             sendHdRecipe.setPatientAddress(getCompleteAddress(order));
+            sendHdRecipe.setDistributionFlag("1");
+        } else {
+            sendHdRecipe.setDistributionFlag(distributionFlagDefault);
         }
     }
 
