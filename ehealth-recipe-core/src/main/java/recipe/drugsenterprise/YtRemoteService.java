@@ -514,7 +514,10 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         if (nowRecipe.getGiveMode() == 1) {
             //表示配送到家
             RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-            String storeCode = recipeParameterDao.getByName("yt_store_code");
+            //根据机构_yt_store_code获取配送药店
+            Integer organId = nowRecipe.getClinicOrgan();
+            String store_code = organId + "_" + "yt_store_code";
+            String storeCode = recipeParameterDao.getByName(store_code);
             sendYtRecipe.setOrgCode(storeCode);
         } else {
             sendYtRecipe.setOrgCode(order.getDrugStoreCode());
