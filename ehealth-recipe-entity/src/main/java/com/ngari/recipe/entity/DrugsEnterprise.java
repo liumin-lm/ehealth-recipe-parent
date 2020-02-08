@@ -32,9 +32,6 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "药企名称")
     private String name;
 
-    @ItemProperty(alias = "药企固定编码")
-    private String enterpriseCode;
-
     @ItemProperty(alias = "药企在平台的账户")
     private String account;
 
@@ -112,15 +109,6 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    @Column(name = "enterpriseCode")
-    public String getEnterpriseCode() {
-        return enterpriseCode;
-    }
-
-    public void setEnterpriseCode(String enterpriseCode) {
-        this.enterpriseCode = enterpriseCode;
     }
 
     @Column(name = "Account", length = 20)
