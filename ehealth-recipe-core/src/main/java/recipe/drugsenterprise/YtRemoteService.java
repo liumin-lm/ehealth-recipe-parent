@@ -514,7 +514,10 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         if (nowRecipe.getGiveMode() == 1) {
             //表示配送到家
             RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-            String storeCode = recipeParameterDao.getByName("yt_store_code");
+            //根据机构_yt_store_code获取配送药店
+            Integer organId = nowRecipe.getClinicOrgan();
+            String store_code = organId + "_" + "yt_store_code";
+            String storeCode = recipeParameterDao.getByName(store_code);
             sendYtRecipe.setOrgCode(storeCode);
         } else {
             sendYtRecipe.setOrgCode(order.getDrugStoreCode());
@@ -572,15 +575,19 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             getFailResult(result, "处方绑定患者不存在");
             return result;
         }
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(nowRecipe.getOrderCode());
         sendYtRecipe.setPatientName(patient.getPatientName());
         sendYtRecipe.setSex(Integer.parseInt(patient.getPatientSex()));
         sendYtRecipe.setAge(patient.getAge());
-        sendYtRecipe.setPhone("");
-        sendYtRecipe.setAddress("");
+        sendYtRecipe.setPhone(patient.getMobile());
         sendYtRecipe.setSymptom(patient.getLastSummary());
-        sendYtRecipe.setRecipientName("");
-        sendYtRecipe.setRecipientAdd("");
-        sendYtRecipe.setRecipientTel("");
+        sendYtRecipe.setRecipientName(patient.getPatientName());
+        if (nowRecipe.getGiveMode() == 1) {
+            sendYtRecipe.setRecipientAdd(getCompleteAddress(order));
+            sendYtRecipe.setAddress(getCompleteAddress(order));
+        }
+        sendYtRecipe.setRecipientTel(patient.getMobile());
         sendYtRecipe.setZipCode("");
         return result;
     }
