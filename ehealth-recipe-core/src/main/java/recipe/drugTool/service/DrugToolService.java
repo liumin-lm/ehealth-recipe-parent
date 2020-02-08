@@ -889,6 +889,7 @@ public class DrugToolService implements IDrugToolService {
                 drugList.setProducer(drugListMatch.getProducer());
                 //其他
                 drugList.setDrugClass("1901");
+                drugList.setAllPyCode("");
                 drugList.setStatus(1);
                 //来源机构
                 if (isHaveOrganId) {
