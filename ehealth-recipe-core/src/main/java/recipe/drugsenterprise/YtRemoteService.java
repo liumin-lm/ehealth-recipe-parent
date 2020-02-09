@@ -392,8 +392,23 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         sendYtRecipe.setValidDay(ytValidDay);
         sendYtRecipe.setCostType(ytCostType);
         sendYtRecipe.setRecordNo(nowRecipe.getPatientID());
-        sendYtRecipe.setTotalAmount(nowRecipe.getTotalMoney().doubleValue());
-        sendYtRecipe.setTransFee(ytTransFee);
+
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        if (StringUtils.isNotEmpty(nowRecipe.getOrderCode())) {
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(nowRecipe.getOrderCode());
+            if (recipeOrder != null) {
+                sendYtRecipe.setTransFee(recipeOrder.getExpressFee().doubleValue());
+                sendYtRecipe.setServiceFree(recipeOrder.getRegisterFee().doubleValue());
+                sendYtRecipe.setPrescriptionChecking(recipeOrder.getAuditFee().doubleValue());
+                sendYtRecipe.setTotalAmount(recipeOrder.getTotalFee().doubleValue());
+                if (1 == nowRecipe.getGiveMode()) {
+                    sendYtRecipe.setGiveModel(1);
+                } else if (3 == nowRecipe.getGiveMode()) {
+                    sendYtRecipe.setGiveModel(0);
+                }
+            }
+        }
+
         sendYtRecipe.setIfPay(ytIfPay);
         sendYtRecipe.setSource(ytSource);
         sendYtRecipe.setRecipeId(nowRecipe.getRecipeId());
@@ -583,7 +598,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         sendYtRecipe.setPhone(patient.getMobile());
         sendYtRecipe.setSymptom(patient.getLastSummary());
         sendYtRecipe.setRecipientName(patient.getPatientName());
-        if (nowRecipe.getGiveMode() == 1) {
+        if (nowRecipe.getGiveMode() == 1 && order != null) {
             sendYtRecipe.setRecipientAdd(getCompleteAddress(order));
             sendYtRecipe.setAddress(getCompleteAddress(order));
         }

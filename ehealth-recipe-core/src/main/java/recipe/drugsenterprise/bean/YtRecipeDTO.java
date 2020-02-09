@@ -124,6 +124,14 @@ public class YtRecipeDTO implements Serializable{
      * 非必填
      */
     private Double transFee;
+
+    //药事服务费
+    private Double serviceFree;
+
+    //审方费
+    private Double prescriptionChecking;
+
+    private int giveModel;
     /**
      * 是否支付
      * 1是2否
@@ -417,6 +425,30 @@ public class YtRecipeDTO implements Serializable{
         this.itemList = itemList;
     }
 
+    public Double getServiceFree() {
+        return serviceFree;
+    }
+
+    public void setServiceFree(Double serviceFree) {
+        this.serviceFree = serviceFree;
+    }
+
+    public Double getPrescriptionChecking() {
+        return prescriptionChecking;
+    }
+
+    public void setPrescriptionChecking(Double prescriptionChecking) {
+        this.prescriptionChecking = prescriptionChecking;
+    }
+
+    public int getGiveModel() {
+        return giveModel;
+    }
+
+    public void setGiveModel(int giveModel) {
+        this.giveModel = giveModel;
+    }
+
     @Override
     public String toString() {
         return "YtRecipeDTO{" +
@@ -441,6 +473,9 @@ public class YtRecipeDTO implements Serializable{
                 ", category='" + category + '\'' +
                 ", totalAmount=" + totalAmount +
                 ", transFee=" + transFee +
+                ", giveModel=" + giveModel +
+                ", serviceFree=" + serviceFree +
+                ", prescriptionChecking=" + prescriptionChecking +
                 ", ifPay=" + ifPay +
                 ", payMode=" + payMode +
                 ", recipientName='" + recipientName + '\'' +
