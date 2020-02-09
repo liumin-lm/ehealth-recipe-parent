@@ -485,18 +485,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @Override
-    public String getEnterpriseCodeByRecipeId(Integer recipeId) {
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        if (recipe != null && StringUtils.isNotEmpty(recipe.getOrderCode())) {
-            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-            Integer depId = recipeOrder.getEnterpriseId();
-            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-            if (depId != null) {
-                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
-                return drugsEnterprise.getEnterpriseCode();
-            }
+    public String getEnterpriseCodeByRecipeId(Integer orderId) {
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrder recipeOrder = recipeOrderDAO.get(orderId);
+        Integer depId = recipeOrder.getEnterpriseId();
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        if (depId != null) {
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+            return drugsEnterprise.getEnterpriseCode();
         }
         return null;
     }
