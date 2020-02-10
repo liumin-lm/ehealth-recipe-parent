@@ -11,7 +11,9 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
+import com.ngari.his.recipe.mode.MedicalPreSettleReqNTO;
 import com.ngari.his.recipe.mode.MedicalPreSettleReqTO;
+import com.ngari.his.recipe.mode.RecipeMedicalPreSettleInfo;
 import com.ngari.his.recipe.mode.UpdateTakeDrugWayReqTO;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
@@ -172,7 +174,7 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
      * @return recipe.bean.DrugEnterpriseResult
      */
     @RpcService
-    public DrugEnterpriseResult recipeMedicalPreSettle(Integer recipeId) {
+    public DrugEnterpriseResult recipeMedicalPreSettleO(Integer recipeId) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
@@ -199,6 +201,51 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
             result.setCode(DrugEnterpriseResult.SUCCESS);
         }else{
             LOGGER.error("杭州互联网虚拟药企-处方预结算失败-his. param={},result={}", JSONUtils.toString(medicalPreSettleReqTO), JSONUtils.toString(hisResult));
+            if(hisResult != null){
+                result.setMsg(hisResult.getMsg());
+            }
+            result.setCode(DrugEnterpriseResult.FAIL);
+        }
+        return result;
+    }
+
+
+    /*
+     * @description 处方预结算(新)
+     * @author gaomw
+     * @date 2019/12/13
+     * @param [recipeId]
+     * @return recipe.bean.DrugEnterpriseResult
+     */
+    @RpcService
+    public DrugEnterpriseResult recipeMedicalPreSettle(Integer recipeId) {
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+
+        PatientService patientService = BasicAPI.getService(PatientService.class);
+        PatientDTO patientBean = patientService.get(recipe.getMpiid());
+
+        MedicalPreSettleReqNTO request = new MedicalPreSettleReqNTO();
+        request.setClinicOrgan(recipe.getClinicOrgan());
+        request.setPatientName(patientBean.getPatientName());
+        request.setSex(patientBean.getPatientSex());
+        request.setIdcard(patientBean.getIdcard());
+        request.setBirthday(patientBean.getBirthday());
+        request.setAddress(patientBean.getAddress());
+        request.setMobile(patientBean.getMobile());
+        request.setGuardianName(patientBean.getGuardianName());
+        request.setGuardianTel(patientBean.getLinkTel());
+        request.setGuardianCertificate(patientBean.getGuardianCertificate());
+        request.setRecipeId(recipeId + "");
+
+        RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+        HisResponseTO<RecipeMedicalPreSettleInfo> hisResult = service.recipeMedicalPreSettleN(request);
+        if(hisResult != null && "200".equals(hisResult.getMsgCode())){
+            LOGGER.info("杭州互联网虚拟药企-处方预结算成功-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
+            result.setCode(DrugEnterpriseResult.SUCCESS);
+        }else{
+            LOGGER.error("杭州互联网虚拟药企-处方预结算失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
             if(hisResult != null){
                 result.setMsg(hisResult.getMsg());
             }
@@ -244,101 +291,6 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
     @Override
     public DrugEnterpriseResult updatePrescriptionStatus(String rxId, int status) {
         LOGGER.info("更新处方状态");
-        DrugEnterpriseResult drugEnterpriseResult = new DrugEnterpriseResult(DrugEnterpriseResult.SUCCESS);
-
-        return drugEnterpriseResult;
-    }
-
-    /*
-     * @description 淘宝处方状态变更
-     * @author gmw
-     * @date 2019/9/19
-     * @param requestParam
-     * @return java.lang.String
-     */
-    @RpcService
-    public String changeState(String requestParam) {
-
-        LOGGER.info("收到天猫更新处方请求，开始--{}" + requestParam);
-        //获取入参
-        AlibabaAlihealthPrescriptionStatusSyncRequest aRequest = JSON.parseObject(
-            requestParam, AlibabaAlihealthPrescriptionStatusSyncRequest.class);
-        //出参对象
-        AlibabaAlihealthPrescriptionStatusSyncResponse response = new AlibabaAlihealthPrescriptionStatusSyncResponse();
-        AlibabaAlihealthPrescriptionStatusSyncResponse.ResultDo resultDo = new AlibabaAlihealthPrescriptionStatusSyncResponse.ResultDo();
-
-        //业务逻辑
-        StandardStateDTO state = new StandardStateDTO ();
-
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        if(null == aRequest.getRxNo()){
-            resultDo.setSuccess(false);
-            resultDo.setErrorMessage("rnNO can not be null");
-            resultDo.setErrorCode("500");
-            response.setResult(resultDo);
-            LOGGER.warn("参数异常--{}",JSON.toJSONString(response));
-            return JSON.toJSONString(response);
-        }
-        List<Integer> recipeIds = recipeExtendDAO.findRecipeIdsByRxNo(aRequest.getRxNo());
-        Recipe recipe = null;
-        if(null != recipeIds && recipeIds.size() != 0){
-            recipe = recipeDAO.getByRecipeId(recipeIds.get(0));
-            state.setRecipeCode(recipe.getRecipeCode());
-            //天猫的机构编码和纳里不一致,直接用纳里的机构编码
-            state.setClinicOrgan(null == recipe.getClinicOrgan() ? null : recipe.getClinicOrgan() +"");
-        } else {
-            resultDo.setSuccess(true);
-            resultDo.setErrorMessage("invalid rnNO: "+aRequest.getRxNo()+"，can not get recipeInfo");
-            resultDo.setErrorCode("500");
-            response.setResult(resultDo);
-            LOGGER.warn("参数异常--{}",JSON.toJSONString(response));
-            return JSON.toJSONString(response);
-        }
-
-        if(null != aRequest.getStatus()){
-            state.setStatus(RecipeStatusEnum.getKey(aRequest.getStatus()));
-        } else {
-            resultDo.setSuccess(false);
-            resultDo.setErrorMessage("status can not be null");
-            resultDo.setErrorCode("500");
-            response.setResult(resultDo);
-            LOGGER.warn("参数异常--{}",JSON.toJSONString(response));
-            return JSON.toJSONString(response);
-        }
-
-        //没有业务含义，仅满足校验用
-        state.setOrganId(aRequest.getHospitalId());
-        state.setAccount("tmdyf");
-
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-        state.setDate(simpleDateFormat.format(new Date()));
-
-
-        StandardEnterpriseCallService distributionService = getBean("distributionService", StandardEnterpriseCallService.class);
-        StandardResultDTO resulta = distributionService.changeState(Collections.singletonList(state));
-
-        if(StandardResultDTO.SUCCESS == resulta.getCode()){
-            resultDo.setSuccess(true);
-        } else {
-            resultDo.setSuccess(true);
-            resultDo.setErrorMessage(resulta.getMsg());
-            resultDo.setErrorCode("500");
-        }
-
-        LOGGER.info("天猫更新处方请求执行结束");
-        response.setResult(resultDo);
-        return JSON.toJSONString(response);
-    }
-
-    /**
-     * 更新处方医保备案号
-     * @param recipeCode 处方号
-     * @param medicalInsuranceRecord 医保备案号
-     * @return
-     */
-    @RpcService
-    public DrugEnterpriseResult updateMedicalInsuranceRecord(String recipeCode, String medicalInsuranceRecord) {
-        LOGGER.info("更新处方医保备案号 start");
         DrugEnterpriseResult drugEnterpriseResult = new DrugEnterpriseResult(DrugEnterpriseResult.SUCCESS);
 
         return drugEnterpriseResult;

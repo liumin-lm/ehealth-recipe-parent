@@ -67,6 +67,12 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "医保结算请求串")
     private String medicalSettleData;
 
+    @ItemProperty(alias = "门诊挂号序号（医保）")
+    private String registerNo;
+
+    @ItemProperty(alias = "HIS收据号（医保）")
+    private String hisSettlementNo;
+
     public RecipeExtendBean() {
     }
 
@@ -213,5 +219,21 @@ public class RecipeExtendBean implements Serializable {
 
     public void setMedicalSettleData(String medicalSettleData) {
         this.medicalSettleData = medicalSettleData;
+    }
+
+    public String getRegisterNo() {
+        return registerNo;
+    }
+
+    public void setRegisterNo(String registerNo) {
+        this.registerNo = registerNo;
+    }
+
+    public String getHisSettlementNo() {
+        return hisSettlementNo;
+    }
+
+    public void setHisSettlementNo(String hisSettlementNo) {
+        this.hisSettlementNo = hisSettlementNo;
     }
 }
