@@ -20,7 +20,7 @@ public interface IQueryRecipeService {
     QueryRecipeResultDTO queryRecipeInfo(QueryRecipeReqDTO queryRecipeReqDTO);
 
     @RpcService
-    QueryRecipeListResultDTO queryPlatRecipeByPatientNameAndDate(QueryPlatRecipeInfoByDateDTO req);
+    QueryRecipeResultDTO queryPlatRecipeByRecipeId(QueryPlatRecipeInfoByDateDTO req);
 
     /**
      * 监管平台处方反查接口

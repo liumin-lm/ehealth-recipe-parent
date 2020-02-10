@@ -14,6 +14,11 @@ public class QueryPlatRecipeInfoByDateDTO implements Serializable {
      * 平台机构id
      */
     private Integer organId;
+
+    /**
+     * 平台处方id
+     */
+    private String recipeId;
     /**
      * 患者姓名
      */
@@ -127,5 +132,13 @@ public class QueryPlatRecipeInfoByDateDTO implements Serializable {
 
     public void setCardNo(String cardNo) {
         this.cardNo = cardNo;
+    }
+
+    public String getRecipeId() {
+        return recipeId;
+    }
+
+    public void setRecipeId(String recipeId) {
+        this.recipeId = recipeId;
     }
 }

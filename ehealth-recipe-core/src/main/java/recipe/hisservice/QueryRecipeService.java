@@ -100,39 +100,31 @@ public class QueryRecipeService implements IQueryRecipeService {
 
     @Override
     @RpcService
-    public QueryRecipeListResultDTO queryPlatRecipeByPatientNameAndDate(QueryPlatRecipeInfoByDateDTO req){
+    public QueryRecipeResultDTO queryPlatRecipeByRecipeId(QueryPlatRecipeInfoByDateDTO req){
         LOGGER.info("queryPlatRecipeByPatientNameAndDate req={}",JSONUtils.toString(req));
-        QueryRecipeListResultDTO resultDTO = new QueryRecipeListResultDTO();
-        if (StringUtils.isEmpty(req.getPatientName())){
+        QueryRecipeResultDTO resultDTO = new QueryRecipeResultDTO();
+        if (StringUtils.isEmpty(req.getRecipeId())){
             resultDTO.setMsgCode(-1);
-            resultDTO.setMsg("患者姓名为空");
-            return resultDTO;
-        }
-        if (req.getStartDate()==null && req.getEndDate()==null){
-            resultDTO.setMsgCode(-1);
-            resultDTO.setMsg("查询数据为空");
+            resultDTO.setMsg("处方序号不能为空");
             return resultDTO;
         }
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
-        //根据患者姓名和时间查询未支付处方
-        List<Recipe> recipes = recipeDAO.findNoPayRecipeListByPatientNameAndDate(req.getPatientName(), req.getOrganId(), req.getStartDate(), req.getEndDate());
-        List<QueryRecipeInfoDTO> recipeInfolist = Lists.newArrayList();
-        if (CollectionUtils.isNotEmpty(recipes)){
-            List<Recipedetail> details;
-            PatientBean patientBean;
-            QueryRecipeInfoDTO infoDTO;
-            for (Recipe recipe : recipes){
-                details = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
-                patientBean = iPatientService.get(recipe.getMpiid());
-                //拼接返回数据
-                infoDTO = splicingBackData(details, recipe, patientBean, null);
-                recipeInfolist.add(infoDTO);
-            }
+        /*//根据患者姓名和时间查询未支付处方
+        List<Recipe> recipes = recipeDAO.findNoPayRecipeListByPatientNameAndDate(req.getPatientName(), req.getOrganId(), req.getStartDate(), req.getEndDate());*/
+        Recipe recipe = recipeDAO.getByRecipeId(Integer.valueOf(req.getRecipeId()));
+        if (null == recipe) {
+            resultDTO.setMsgCode(-1);
+            resultDTO.setMsg("找不到处方");
+            return resultDTO;
         }
+        List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+        PatientBean patientBean = iPatientService.get(recipe.getMpiid());
+        //拼接返回数据
+        QueryRecipeInfoDTO infoDTO = splicingBackData(details, recipe, patientBean, null);
         resultDTO.setMsgCode(0);
-        resultDTO.setData(recipeInfolist);
+        resultDTO.setData(infoDTO);
         LOGGER.info("queryPlatRecipeByPatientNameAndDate res={}", JSONUtils.toString(resultDTO));
         return resultDTO;
     }
@@ -172,8 +164,8 @@ public class QueryRecipeService implements IQueryRecipeService {
             recipeDTO.setRecipeID(recipe.getRecipeCode());
             //处方id
             recipeDTO.setPlatRecipeID(String.valueOf(recipe.getRecipeId()));
-            //挂号序号 todo----待做
-            recipeDTO.setRegisterId("");
+            //挂号序号
+            recipeDTO.setRegisterId(String.valueOf(recipe.getClinicId()));
             //签名日期
             recipeDTO.setDatein(recipe.getSignDate());
             //是否支付
@@ -196,6 +188,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                     .getRecipeType().toString() : null);
             //获取医院诊断内码
             recipeDTO.setIcdRdn(getIcdRdn(recipe.getClinicOrgan(),recipe.getOrganDiseaseId(),recipe.getOrganDiseaseName()));
+            //复诊id
             recipeDTO.setClinicID((null != recipe.getClinicId()) ? Integer.toString(recipe
                     .getClinicId()) : null);
             //转换平台医生id为工号返回his
@@ -221,8 +214,8 @@ public class QueryRecipeService implements IQueryRecipeService {
             recipeDTO.setMedicalPayFlag(getMedicalType(recipe.getMpiid(),recipe.getClinicOrgan()));
             //处方金额
             recipeDTO.setRecipeFee(String.valueOf(recipe.getActualPrice()));
-            //自付比例--医保时需要--todo----待做
-            recipeDTO.setPayScale("");
+            //自付比例
+            /*recipeDTO.setPayScale("");*/
             //主诉等等四个字段
             Integer recipeId = recipe.getRecipeId();
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
@@ -291,76 +284,80 @@ public class QueryRecipeService implements IQueryRecipeService {
                 }
             }
 
-            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-            //拼接处方明细
-            if (null != details && !details.isEmpty()) {
-                List<OrderItemDTO> orderList = new ArrayList<>();
-                for (Recipedetail detail : details) {
-                    OrderItemDTO orderItem = new OrderItemDTO();
-                    //处方明细id
-                    orderItem.setOrderID(Integer.toString(detail
-                            .getRecipeDetailId()));
-                    //医院药品代码
-                    orderItem.setDrcode(detail.getOrganDrugCode());
-                    //医院药品名
-                    orderItem.setDrname(detail.getDrugName());
-                    //药品规格
-                    orderItem.setDrmodel(detail.getDrugSpec());
-                    //包装单位
-                    orderItem.setPackUnit(detail.getDrugUnit());
-                    //用药天数
-                    orderItem.setUseDays(Integer.toString(detail.getUseDays()));
-                    //用法
-                    orderItem.setAdmission(UsePathwaysFilter.filterNgari(recipe.getClinicOrgan(),detail.getUsePathways()));
-                    //频次
-                    orderItem.setFrequency(UsingRateFilter.filterNgari(recipe.getClinicOrgan(),detail.getUsingRate()));
-                    //单次剂量
-                    orderItem.setDosage((null != detail.getUseDose()) ? Double
-                            .toString(detail.getUseDose()) : null);
-                    //剂量单位
-                    orderItem.setDrunit(detail.getUseDoseUnit());
-
-                    OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCode(recipe.getClinicOrgan(), detail.getOrganDrugCode());
-                    if (null != organDrugList){
-                        //药品产地名称
-                        orderItem.setDrugManf(organDrugList.getProducer());
-                        //药品产地编码
-                        orderItem.setDrugManfCode(organDrugList.getProducerCode());
-                        //药品单价
-                        orderItem.setPrice(String.valueOf(organDrugList.getSalePrice()));
-                        //剂型代码 --todo--待做
-                        orderItem.setDrugFormCode("");
-                        //剂型名称
-                        orderItem.setDrugFormName(organDrugList.getDrugForm());
-                    }
-                    /*
-                     * //每日剂量 转换成两位小数 DecimalFormat df = new DecimalFormat("0.00");
-                     * String dosageDay =
-                     * df.format(getFrequency(detail.getUsingRate(
-                     * ))*detail.getUseDose());
-                     */
-                    // 开药数量
-                    orderItem.setTotalDose((null != detail.getUseTotalDose()) ? Double
-                            .toString(detail.getUseTotalDose()) : null);
-                    //备注
-                    orderItem.setRemark(detail.getMemo());
-                    //药品包装
-                    orderItem.setPack(detail.getPack());
-                    //药品单位
-                    orderItem.setUnit(detail.getDrugUnit());
-
-                    orderList.add(orderItem);
-                }
-
-                recipeDTO.setOrderList(orderList);
-            } else {
-                recipeDTO.setOrderList(null);
-            }
+            splicingBackDataForRecipeDetails(recipe.getClinicOrgan(),details,recipeDTO);
         } catch (Exception e) {
             LOGGER.error("queryRecipe splicingBackData error",e);
         }
 
         return recipeDTO;
+    }
+
+    private void splicingBackDataForRecipeDetails(Integer clinicOrgan, List<Recipedetail> details, QueryRecipeInfoDTO recipeDTO) {
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        //拼接处方明细
+        if (null != details && !details.isEmpty()) {
+            List<OrderItemDTO> orderList = new ArrayList<>();
+            for (Recipedetail detail : details) {
+                OrderItemDTO orderItem = new OrderItemDTO();
+                //处方明细id
+                orderItem.setOrderID(Integer.toString(detail
+                        .getRecipeDetailId()));
+                //医院药品代码
+                orderItem.setDrcode(detail.getOrganDrugCode());
+                //医保对应代码---todo 待做
+                orderItem.setMedicalDrcode("");
+                //医院药品名
+                orderItem.setDrname(detail.getDrugName());
+                //药品规格
+                orderItem.setDrmodel(detail.getDrugSpec());
+                //包装单位
+                orderItem.setPackUnit(detail.getDrugUnit());
+                //用药天数
+                orderItem.setUseDays(Integer.toString(detail.getUseDays()));
+                //用法
+                orderItem.setAdmission(UsePathwaysFilter.filterNgari(clinicOrgan,detail.getUsePathways()));
+                //频次
+                orderItem.setFrequency(UsingRateFilter.filterNgari(clinicOrgan,detail.getUsingRate()));
+                //单次剂量
+                orderItem.setDosage((null != detail.getUseDose()) ? Double
+                        .toString(detail.getUseDose()) : null);
+                //剂量单位
+                orderItem.setDrunit(detail.getUseDoseUnit());
+
+                OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCode(clinicOrgan, detail.getOrganDrugCode());
+                if (null != organDrugList){
+                    //药品产地名称
+                    orderItem.setDrugManf(organDrugList.getProducer());
+                    //药品产地编码
+                    orderItem.setDrugManfCode(organDrugList.getProducerCode());
+                    //药品单价
+                    orderItem.setPrice(String.valueOf(organDrugList.getSalePrice()));
+                    //剂型代码 --todo--待做
+                    orderItem.setDrugFormCode("");
+                    //剂型名称
+                    orderItem.setDrugFormName(organDrugList.getDrugForm());
+                }
+                /*
+                 * //每日剂量 转换成两位小数 DecimalFormat df = new DecimalFormat("0.00");
+                 * String dosageDay =
+                 * df.format(getFrequency(detail.getUsingRate(
+                 * ))*detail.getUseDose());
+                 */
+                // 开药数量
+                orderItem.setTotalDose((null != detail.getUseTotalDose()) ? Double
+                        .toString(detail.getUseTotalDose()) : null);
+                //备注
+                orderItem.setRemark(detail.getMemo());
+                //药品包装
+                orderItem.setPack(detail.getPack());
+                //药品单位
+                orderItem.setUnit(detail.getDrugUnit());
+                orderList.add(orderItem);
+            }
+            recipeDTO.setOrderList(orderList);
+        } else {
+            recipeDTO.setOrderList(null);
+        }
     }
 
     /**
