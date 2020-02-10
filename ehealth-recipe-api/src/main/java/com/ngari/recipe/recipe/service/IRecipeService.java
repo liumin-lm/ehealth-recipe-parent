@@ -4,6 +4,7 @@ import com.ngari.recipe.IBaseService;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
+import com.ngari.recipe.hisprescription.model.QueryRecipeResultDTO;
 import com.ngari.recipe.recipe.model.*;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
@@ -303,6 +304,10 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     Map<String,Object> noticePlatRecipeFlowInfo(NoticePlatRecipeFlowInfoDTO req);
 
+    /**
+     * 前置机通知平台医保上传信息---杭州市互联网--暂时没用到
+     * @param req
+     */
     @RpcService
     void noticePlatRecipeMedicalInsuranceInfo(NoticePlatRecipeMedicalInfoDTO req);
 

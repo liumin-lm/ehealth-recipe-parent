@@ -41,13 +41,11 @@ import recipe.dao.RecipeExtendDAO;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.RecipeServiceSub;
 import recipe.util.DateConversion;
-import recipe.util.LocalStringUtil;
 import recipe.util.RegexUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * 浙江互联网医院处方查询接口
@@ -98,6 +96,15 @@ public class QueryRecipeService implements IQueryRecipeService {
         resultDTO.setData(infoDTO);
         LOGGER.info("queryRecipeInfo res={}", JSONUtils.toString(resultDTO));
         return resultDTO;
+    }
+
+    @Override
+    @RpcService
+    public QueryRecipeListResultDTO queryPlatRecipeByPatientNameAndDate(QueryPlatRecipeInfoByDateDTO req){
+        LOGGER.info("queryPlatRecipeByPatientNameAndDate req={}",JSONUtils.toString(req));
+        if (StringUtils.isEmpty(req.getPatientName())){
+
+        }
     }
 
     @Override

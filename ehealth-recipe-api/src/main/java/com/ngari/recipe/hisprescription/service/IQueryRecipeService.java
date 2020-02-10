@@ -1,8 +1,6 @@
 package com.ngari.recipe.hisprescription.service;
 
-import com.ngari.recipe.hisprescription.model.QueryRecipeReqDTO;
-import com.ngari.recipe.hisprescription.model.QueryRecipeResultDTO;
-import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
+import com.ngari.recipe.hisprescription.model.*;
 import ctd.util.annotation.RpcService;
 
 import java.util.Date;
@@ -20,6 +18,9 @@ public interface IQueryRecipeService {
      */
     @RpcService
     QueryRecipeResultDTO queryRecipeInfo(QueryRecipeReqDTO queryRecipeReqDTO);
+
+    @RpcService
+    QueryRecipeListResultDTO queryPlatRecipeByPatientNameAndDate(QueryPlatRecipeInfoByDateDTO req);
 
     /**
      * 监管平台处方反查接口
