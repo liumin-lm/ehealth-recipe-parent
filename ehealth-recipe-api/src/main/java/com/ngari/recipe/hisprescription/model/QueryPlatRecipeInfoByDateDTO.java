@@ -9,10 +9,31 @@ import java.util.Map;
  */
 public class QueryPlatRecipeInfoByDateDTO implements Serializable {
     private static final long serialVersionUID = -7552686754198494904L;
+
+    /**
+     * 平台机构id
+     */
+    private Integer organId;
     /**
      * 患者姓名
      */
     private String patientName;
+    /**
+     * 证件类型
+     */
+    private String certificateType;
+    /**
+     * 证件号
+     */
+    private String certificate;
+    /**
+     * 卡类型
+     */
+    private String cardType;
+    /**
+     * 卡号
+     */
+    private String cardNo;
     /**
      * 查询开始时间
      */
@@ -66,5 +87,45 @@ public class QueryPlatRecipeInfoByDateDTO implements Serializable {
 
     public void setParams(Map<String, Object> params) {
         this.params = params;
+    }
+
+    public Integer getOrganId() {
+        return organId;
+    }
+
+    public void setOrganId(Integer organId) {
+        this.organId = organId;
+    }
+
+    public String getCertificateType() {
+        return certificateType;
+    }
+
+    public void setCertificateType(String certificateType) {
+        this.certificateType = certificateType;
+    }
+
+    public String getCertificate() {
+        return certificate;
+    }
+
+    public void setCertificate(String certificate) {
+        this.certificate = certificate;
+    }
+
+    public String getCardType() {
+        return cardType;
+    }
+
+    public void setCardType(String cardType) {
+        this.cardType = cardType;
+    }
+
+    public String getCardNo() {
+        return cardNo;
+    }
+
+    public void setCardNo(String cardNo) {
+        this.cardNo = cardNo;
     }
 }

@@ -34,8 +34,12 @@ public class QueryRecipeInfoDTO implements Serializable {
     private String registerId;
     @ItemProperty(alias="处方医生工号")
     private String doctorID;
+    @ItemProperty(alias="处方医生姓名")
+    private String doctorName;
     @ItemProperty(alias="开单科室")
     private String deptID;
+    @ItemProperty(alias="开单科室名称")
+    private String deptName;
     @ItemProperty(alias="处方审核医生")
     private String auditDoctor;
     @ItemProperty(alias="处方类型 1 西药 2 成药 3 草药")
@@ -368,5 +372,21 @@ public class QueryRecipeInfoDTO implements Serializable {
 
     public void setPayScale(String payScale) {
         this.payScale = payScale;
+    }
+
+    public String getDoctorName() {
+        return doctorName;
+    }
+
+    public void setDoctorName(String doctorName) {
+        this.doctorName = doctorName;
+    }
+
+    public String getDeptName() {
+        return deptName;
+    }
+
+    public void setDeptName(String deptName) {
+        this.deptName = deptName;
     }
 }
