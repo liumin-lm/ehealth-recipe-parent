@@ -304,8 +304,6 @@ public class QueryRecipeService implements IQueryRecipeService {
                         .getRecipeDetailId()));
                 //医院药品代码
                 orderItem.setDrcode(detail.getOrganDrugCode());
-                //医保对应代码---todo 待做
-                orderItem.setMedicalDrcode("");
                 //医院药品名
                 orderItem.setDrname(detail.getDrugName());
                 //药品规格
@@ -334,10 +332,12 @@ public class QueryRecipeService implements IQueryRecipeService {
                     orderItem.setDrugManfCode(organDrugList.getProducerCode());
                     //药品单价
                     orderItem.setPrice(String.valueOf(organDrugList.getSalePrice()));
-                    //剂型代码 --todo--待做
-                    orderItem.setDrugFormCode("");
-                    //医保剂型代码--todo--待做
-                    orderItem.setMedicalDrugFormCode("");
+                    //医保对应代码
+                    orderItem.setMedicalDrcode(organDrugList.getMedicalDrugCode());
+                    //剂型代码 --
+                    orderItem.setDrugFormCode(organDrugList.getDrugFormCode());
+                    //医保剂型代码--
+                    orderItem.setMedicalDrugFormCode(organDrugList.getMedicalDrugFormCode());
                     //剂型名称
                     orderItem.setDrugFormName(organDrugList.getDrugForm());
                 }
