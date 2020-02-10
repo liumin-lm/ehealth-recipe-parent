@@ -318,6 +318,8 @@ public class QueryRecipeService implements IQueryRecipeService {
                 orderItem.setAdmission(UsePathwaysFilter.filterNgari(clinicOrgan,detail.getUsePathways()));
                 //频次
                 orderItem.setFrequency(UsingRateFilter.filterNgari(clinicOrgan,detail.getUsingRate()));
+                //医保频次
+                orderItem.setMedicalFrequency(UsingRateFilter.filterNgariByMedical(clinicOrgan,detail.getUsingRate()));
                 //单次剂量
                 orderItem.setDosage((null != detail.getUseDose()) ? Double
                         .toString(detail.getUseDose()) : null);
@@ -334,6 +336,8 @@ public class QueryRecipeService implements IQueryRecipeService {
                     orderItem.setPrice(String.valueOf(organDrugList.getSalePrice()));
                     //剂型代码 --todo--待做
                     orderItem.setDrugFormCode("");
+                    //医保剂型代码--todo--待做
+                    orderItem.setMedicalDrugFormCode("");
                     //剂型名称
                     orderItem.setDrugFormName(organDrugList.getDrugForm());
                 }
@@ -341,7 +345,10 @@ public class QueryRecipeService implements IQueryRecipeService {
                  * //每日剂量 转换成两位小数 DecimalFormat df = new DecimalFormat("0.00");
                  * String dosageDay =
                  * df.format(getFrequency(detail.getUsingRate(
-                 * ))*detail.getUseDose());
+                 * ))*detail.getUseDose()
+                 *
+                 *
+                 * );
                  */
                 // 开药数量
                 orderItem.setTotalDose((null != detail.getUseTotalDose()) ? Double

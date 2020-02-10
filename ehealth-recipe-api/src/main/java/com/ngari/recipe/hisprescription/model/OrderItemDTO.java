@@ -37,6 +37,8 @@ public class OrderItemDTO implements Serializable {
     private String frequency;
     @ItemProperty(alias="用品使用频度名称")
     private String frequencyName;
+    @ItemProperty(alias="医保频次编码")
+    private String medicalFrequency;
     @ItemProperty(alias="每次剂量")
     private String dosage;
     @ItemProperty(alias="剂量单位")
@@ -57,6 +59,8 @@ public class OrderItemDTO implements Serializable {
 
     @ItemProperty(alias="剂型代码")
     private String drugFormCode;
+    @ItemProperty(alias="医保剂型代码")
+    private String medicalDrugFormCode;
     @ItemProperty(alias="剂型名称")
     private String drugFormName;
 
@@ -237,5 +241,21 @@ public class OrderItemDTO implements Serializable {
 
     public void setDrugFormName(String drugFormName) {
         this.drugFormName = drugFormName;
+    }
+
+    public String getMedicalFrequency() {
+        return medicalFrequency;
+    }
+
+    public void setMedicalFrequency(String medicalFrequency) {
+        this.medicalFrequency = medicalFrequency;
+    }
+
+    public String getMedicalDrugFormCode() {
+        return medicalDrugFormCode;
+    }
+
+    public void setMedicalDrugFormCode(String medicalDrugFormCode) {
+        this.medicalDrugFormCode = medicalDrugFormCode;
     }
 }
