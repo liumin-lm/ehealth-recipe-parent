@@ -102,9 +102,11 @@ public class QueryRecipeService implements IQueryRecipeService {
     @RpcService
     public QueryRecipeListResultDTO queryPlatRecipeByPatientNameAndDate(QueryPlatRecipeInfoByDateDTO req){
         LOGGER.info("queryPlatRecipeByPatientNameAndDate req={}",JSONUtils.toString(req));
+        QueryRecipeListResultDTO result = new QueryRecipeListResultDTO();
         if (StringUtils.isEmpty(req.getPatientName())){
 
         }
+        return result;
     }
 
     @Override
