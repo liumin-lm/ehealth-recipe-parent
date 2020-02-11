@@ -2566,4 +2566,10 @@ public class RecipeService extends RecipeBaseService{
         return url;
     }
 
+    //根据recipeId 判断有没有关联的订单，有订单返回相关的订单id
+    @RpcService
+    public void getOrderIdByRecipe(){
+
+    }
+
 }
