@@ -21,6 +21,8 @@ import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.hisprescription.model.*;
 import com.ngari.recipe.hisprescription.service.IQueryRecipeService;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -292,7 +294,7 @@ public class QueryRecipeService implements IQueryRecipeService {
         return recipeDTO;
     }
 
-    private void splicingBackDataForRecipeDetails(Integer clinicOrgan, List<Recipedetail> details, QueryRecipeInfoDTO recipeDTO) {
+    private void splicingBackDataForRecipeDetails(Integer clinicOrgan, List<Recipedetail> details, QueryRecipeInfoDTO recipeDTO) throws ControllerException {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         //拼接处方明细
         if (null != details && !details.isEmpty()) {
@@ -359,6 +361,11 @@ public class QueryRecipeService implements IQueryRecipeService {
                 orderItem.setPack(detail.getPack());
                 //药品单位
                 orderItem.setUnit(detail.getDrugUnit());
+                //放最后
+                //用法名称
+                orderItem.setAdmissionName(DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detail.getUsingRate()));
+                //频次名称
+                orderItem.setFrequencyName(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detail.getUsePathways()));
                 orderList.add(orderItem);
             }
             recipeDTO.setOrderList(orderList);
