@@ -666,6 +666,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 getFailResult(result, "当前药企下没有药店的药品库存足够");
             }
         }catch (Exception e){
+            getFailResult(result, "当前药企下没有药店的药品库存足够");
             LOGGER.info("YtRemoteService.scanStock:处方ID为{},{}.", recipeId, e.getMessage());
         }
         return result;
