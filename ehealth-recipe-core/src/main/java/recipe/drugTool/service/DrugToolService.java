@@ -100,6 +100,9 @@ public class DrugToolService implements IDrugToolService {
     private DrugListDAO drugListDAO;
 
     @Resource
+    private SaleDrugListDAO saleDrugListDAO;
+
+    @Resource
     private OrganDrugListDAO organDrugListDAO;
 
     @Resource
@@ -850,6 +853,42 @@ public class DrugToolService implements IDrugToolService {
         for (Map.Entry<String, String> entry : map.entrySet()) {
             organDrugListDAO.updateOrganDrugById(Integer.valueOf(entry.getKey()), ImmutableMap.of("organDrugCode", entry.getValue()));
         }
+    }
+
+    /**
+     *
+     * @param organId 机构id
+     * @param depId 药企id
+     * @param flag 是否用机构药品的编码作为药企编码，否就用平台的id作为药企编码
+     */
+    @RpcService
+    public void addOrganDrugDataToSaleDrugList(Integer organId, Integer depId,Boolean flag) {
+        List<OrganDrugList> drugs = organDrugListDAO.findOrganDrugByOrganId(organId);
+        SaleDrugList saleDrugList;
+        for (OrganDrugList organDrugList : drugs){
+            saleDrugList = new SaleDrugList();
+            SaleDrugList sales = saleDrugListDAO.getByDrugIdAndOrganId(organDrugList.getDrugId(),depId);
+            if (sales == null){
+                saleDrugList.setDrugId(organDrugList.getDrugId());
+                saleDrugList.setDrugName(organDrugList.getDrugName());
+                saleDrugList.setDrugSpec(organDrugList.getDrugSpec());
+                saleDrugList.setOrganId(depId);
+                saleDrugList.setStatus(1);
+                saleDrugList.setPrice(organDrugList.getSalePrice());
+                if (flag){
+                    saleDrugList.setOrganDrugCode(organDrugList.getOrganDrugCode());
+                }else {
+                    saleDrugList.setOrganDrugCode(String.valueOf(organDrugList.getDrugId()));
+                }
+                saleDrugList.setInventory(new BigDecimal(100));
+                saleDrugList.setCreateDt(new Date());
+                saleDrugList.setLastModify(new Date());
+                saleDrugListDAO.save(saleDrugList);
+            }
+
+        }
+
+
     }
 
     /**

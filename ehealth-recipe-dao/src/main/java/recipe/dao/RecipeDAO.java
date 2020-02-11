@@ -1886,4 +1886,27 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         return action.getResult();
     }
 
+    public List<Recipe> findNoPayRecipeListByPatientNameAndDate(String patientName, Integer organId, Date startDate, Date endDate){
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("from Recipe where patientName =:patientName and SignDate between :startDate and :endDate ");
+                if (organId != null) {
+                    hql.append(" and ClinicOrgan =:organId");
+                }
+                hql.append(" and PayFlag = 0 order by recipeId desc");
+                Query query = ss.createQuery(hql.toString());
+                if (organId != null) {
+                    query.setParameter("organId",organId);
+                }
+                query.setParameter("patientName",patientName);
+                query.setParameter("startDate",startDate);
+                query.setParameter("endDate",endDate);
+                setResult(query.list());
+            }
+        };
+
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }

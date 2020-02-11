@@ -28,13 +28,15 @@ public class AuditPreMode extends AbstractAuidtMode {
     @Override
     public void afterHisCallBackChange(Integer status,Recipe recipe,String memo) {
         if (status == RecipeStatusConstant.CHECK_PASS){
-            //todo 判断是否是杭州市医保患者，医保患者得医保信息回传后才能设置待审核
+            //暂时去掉，没有用到
+            /*//todo 判断是否是杭州市医保患者，医保患者得医保信息回传后才能设置待审核
             if (RecipeServiceSub.isMedicalPatient(recipe.getMpiid(),recipe.getClinicOrgan())){
                 //医保上传确认中----三天后没回传就设置成已取消
                 status = RecipeStatusConstant.CHECKING_MEDICAL_INSURANCE;
             }else {
                 status = RecipeStatusConstant.READY_CHECK_YS;
-            }
+            }*/
+            status = RecipeStatusConstant.READY_CHECK_YS;
         }
         // 平台模式前置需要发送卡片
         //if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())){

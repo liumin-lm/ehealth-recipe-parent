@@ -13,6 +13,7 @@ public class QueryRecipeReqDTO implements Serializable {
     private String organId;//组织机构编码
     private String clinicID;//复诊ID
     private String recipeID;//平台处方号
+    private String platRecipeId;//平台处方id
 
     public String getOrganId() {
         return organId;
@@ -36,5 +37,13 @@ public class QueryRecipeReqDTO implements Serializable {
 
     public void setRecipeID(String recipeID) {
         this.recipeID = recipeID;
+    }
+
+    public String getPlatRecipeId() {
+        return platRecipeId;
+    }
+
+    public void setPlatRecipeId(String platRecipeId) {
+        this.platRecipeId = platRecipeId;
     }
 }

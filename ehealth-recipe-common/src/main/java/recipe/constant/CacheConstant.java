@@ -82,6 +82,11 @@ public class CacheConstant {
     public static final String KEY_NGARI_USINGRATE = "RCP_NGARI_USINGRATE_";
 
     /**
+     * 平台医保用药频次前缀，缓存中key实际为 RCP_MEDICAL_NGARI_USINGRATE_100100
+     */
+    public static final String KEY_MEDICAL_NGARI_USINGRATE = "RCP_MEDICAL_NGARI_USINGRATE_";
+
+    /**
      * 平台用药方式前缀，缓存中key实际为 RCP_NGARI_USEPATHWAYS_100100
      */
     public static final String KEY_NGARI_USEPATHWAYS = "RCP_NGARI_USEPATHWAYS_";

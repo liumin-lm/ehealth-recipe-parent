@@ -820,7 +820,7 @@ public class RecipeService extends RecipeBaseService{
                 rMap.put("recipeId", recipeId);
                 rMap.put("msg", scanResult.getError());
                 if (EXTEND_VALUE_FLAG.equals(scanResult.getExtendValue())) {
-                    //这个字段为true，前端展示框内容为msg，走二次确认配送流程
+                    //这个字段为true，前端展示框内容为msg，走二次确认配送流程调用sendDistributionRecipe
                     rMap.put("scanDrugStock", true);
                 }
                 return rMap;
