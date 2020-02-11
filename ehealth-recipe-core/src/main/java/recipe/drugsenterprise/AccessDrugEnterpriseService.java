@@ -156,7 +156,7 @@ public abstract class AccessDrugEnterpriseService {
      * @param enterprise         药企
      * @return                   推送结果
      */
-    public abstract DrugEnterpriseResult pushRecipeInfo(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise);
+    public abstract DrugEnterpriseResult pushRecipe(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise);
 
 
     /**

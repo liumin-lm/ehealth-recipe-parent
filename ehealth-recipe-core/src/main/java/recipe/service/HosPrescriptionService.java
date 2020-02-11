@@ -182,7 +182,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(clinicOrgan, 1);
         if (CollectionUtils.isNotEmpty(drugsEnterprises)) {
             DrugsEnterprise drugsEnterprise = drugsEnterprises.get(0);
-            DrugEnterpriseResult enterpriseResult = service.pushSingleRecipeInfo(hospitalRecipeDTO, drugsEnterprise);
+            DrugEnterpriseResult enterpriseResult = service.pushSingleRecipe(hospitalRecipeDTO, drugsEnterprise);
             if (enterpriseResult.getCode() == 1) {
                 //表示推送药企成功,需要查询患者是否已经在平台注册
                 PatientService patientService = BasicAPI.getService(PatientService.class);
