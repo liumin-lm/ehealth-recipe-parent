@@ -123,6 +123,7 @@ public class RemoteDrugEnterpriseService {
      */
     @RpcService
     public boolean scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
+        LOGGER.info("scanStock recipeId:{}, drugsEnterprise:{}", recipeId, JSONUtils.toString(drugsEnterprise));
         DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
         AccessDrugEnterpriseService drugEnterpriseService = null;
         if (null == drugsEnterprise) {
