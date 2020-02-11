@@ -638,31 +638,35 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
     @Override
     @RpcService
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
+        LOGGER.info("YtRemoteService.scanStock:处方ID为{}.", recipeId);
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-
-        //查询当前处方信息
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe nowRecipe = recipeDAO.get(recipeId);
-        //查询当前处方下详情信息
-        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        List<Recipedetail> detailList = detailDAO.findByRecipeId(nowRecipe.getRecipeId());
-        Map<Integer, DetailDrugGroup> drugGroup = getDetailGroup(detailList);
-        //获取药企下所有的药店
-        PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
-        List<Pharmacy> pharmacyList = pharmacyDAO.findByDrugsenterpriseIdAndStatus(drugsEnterprise.getId(), 1);
-        SaleDrugList saleDrug = null;
-        //遍历药店，判断当有一个药店的所有的药品的库存量都够的话判断为库存足够
-        boolean checkScan = false;
-        for (Pharmacy pharmacy : pharmacyList) {
-            GroupSumResult groupSumResult = checkDrugListByDeil(drugGroup, drugsEnterprise, saleDrug, result, pharmacy, false);
-            //只有当某一家药店有所有处方详情下的药品并且库存不超过，查询库存的结果设为成功
-            if(groupSumResult.getComplacentNum() >= drugGroup.size()){
-                checkScan = true;
-                break;
+        try{
+            //查询当前处方信息
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe nowRecipe = recipeDAO.get(recipeId);
+            //查询当前处方下详情信息
+            RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            List<Recipedetail> detailList = detailDAO.findByRecipeId(nowRecipe.getRecipeId());
+            Map<Integer, DetailDrugGroup> drugGroup = getDetailGroup(detailList);
+            //获取药企下所有的药店
+            PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
+            List<Pharmacy> pharmacyList = pharmacyDAO.findByDrugsenterpriseIdAndStatus(drugsEnterprise.getId(), 1);
+            SaleDrugList saleDrug = null;
+            //遍历药店，判断当有一个药店的所有的药品的库存量都够的话判断为库存足够
+            boolean checkScan = false;
+            for (Pharmacy pharmacy : pharmacyList) {
+                GroupSumResult groupSumResult = checkDrugListByDeil(drugGroup, drugsEnterprise, saleDrug, result, pharmacy, false);
+                //只有当某一家药店有所有处方详情下的药品并且库存不超过，查询库存的结果设为成功
+                if(groupSumResult.getComplacentNum() >= drugGroup.size()){
+                    checkScan = true;
+                    break;
+                }
             }
-        }
-        if(!checkScan){
-            getFailResult(result, "当前药企下没有药店的药品库存足够");
+            if(!checkScan){
+                getFailResult(result, "当前药企下没有药店的药品库存足够");
+            }
+        }catch (Exception e){
+            LOGGER.info("YtRemoteService.scanStock:处方ID为{},{}.", recipeId, e.getMessage());
         }
         return result;
     }
