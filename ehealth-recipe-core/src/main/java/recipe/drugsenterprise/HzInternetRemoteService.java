@@ -242,8 +242,13 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
         request.setDoctorName(recipe.getDoctorName());
         request.setDepartId(recipe.getDepart() + "");
         HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
-        String bxh = healthCardService.getMedicareCardId(recipe.getMpiid(), recipe.getClinicOrgan());
-        request.setBxh(bxh);
+        //杭州市互联网医院监管中心 管理单元eh3301
+        OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+        OrganDTO organDTO = organService.getByManageUnit("eh3301");
+        if (organDTO!=null) {
+            String bxh = healthCardService.getMedicareCardId(recipe.getMpiid(), organDTO.getOrganId());
+            request.setBxh(bxh);
+        }
         try {
             request.setSex(DictionaryController.instance().get("eh.base.dictionary.Gender").getText(patientBean.getPatientSex()));
             request.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
