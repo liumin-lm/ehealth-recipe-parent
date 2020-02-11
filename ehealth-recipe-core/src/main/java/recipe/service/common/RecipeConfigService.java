@@ -45,6 +45,7 @@ public class RecipeConfigService {
         //配置key:recipeCirculationMode
         String val = RecipeBussConstant.RECIPEMODE_NGARIHEALTH;
         if(StringUtils.isEmpty(appKey)){
+            LOG.info("getRecipeMode appKey is null, recipeMode={}", val);
             return val;
         }
         RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
