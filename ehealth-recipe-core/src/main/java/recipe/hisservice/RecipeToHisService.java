@@ -343,7 +343,9 @@ public class RecipeToHisService {
         DrugInfoResponseTO response = null;
         LOGGER.info("scanDrugStock request={}", JSONUtils.toString(request));
         try {
-            response = hisService.scanDrugStock(request);
+            //response = hisService.scanDrugStock(request);
+            response = new DrugInfoResponseTO();
+            response.setMsg("-1");
             LOGGER.info("scanDrugStock response={}", JSONUtils.toString(response));
         } catch (Exception e) {
             LOGGER.error("scanDrugStock error ", e);
