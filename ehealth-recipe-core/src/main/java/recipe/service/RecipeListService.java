@@ -1000,7 +1000,7 @@ public class RecipeListService extends RecipeBaseService{
 
         RecipeExtendDAO RecipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = RecipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        if(null != recipeExtend.getGiveModeFormHis()){
+        if(null != recipeExtend && null != recipeExtend.getGiveModeFormHis()){
             if("1".equals(recipeExtend.getGiveModeFormHis())){
                 //只支持配送到家
                 payModeShowButtonBean.setSupportToHos(false);
