@@ -764,7 +764,10 @@ public class RecipeListService extends RecipeBaseService{
             List<PatientRecipeBean> backList = recipeDAO.findTabStatusRecipesForPatient(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), specialStatusList, tabStatus);
             return processTabListDate(backList, allMpiIds);
         }catch(Exception e){
-            LOGGER.error("findRecipesForPatientAndTabStatus error :{}.", e.getMessage());
+            LOGGER.error("findRecipesForPatientAndTabStatus error1 :{}.", e.getMessage());
+            LOGGER.error("findRecipesForPatientAndTabStatus error2 :{}.", JSON.toJSONString(e));
+            e.printStackTrace();
+
         }
         return null;
     }
