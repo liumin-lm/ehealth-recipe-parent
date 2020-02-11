@@ -66,7 +66,7 @@ public class YdRemoteService extends AccessDrugEnterpriseService {
 
     @RpcService
     @Override
-    public DrugEnterpriseResult pushRecipeInfo(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
+    public DrugEnterpriseResult pushRecipe(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
         LOGGER.info("YdRemoteService-pushRecipeInfo hospitalRecipeDTO:{}.", JSONUtils.toString(hospitalRecipeDTO));
         DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
 

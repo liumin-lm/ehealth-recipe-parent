@@ -69,11 +69,11 @@ public class RemoteDrugEnterpriseService {
      * @return
      */
     @RpcService
-    public DrugEnterpriseResult pushSingleRecipeInfo(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise drugsEnterprise) {
+    public DrugEnterpriseResult pushSingleRecipe(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise drugsEnterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         result.setAccessDrugEnterpriseService(this.getServiceByDep(drugsEnterprise));
         if (DrugEnterpriseResult.SUCCESS.equals(result.getCode()) && null != result.getAccessDrugEnterpriseService()) {
-            result = result.getAccessDrugEnterpriseService().pushRecipeInfo(hospitalRecipeDTO, drugsEnterprise);
+            result = result.getAccessDrugEnterpriseService().pushRecipe(hospitalRecipeDTO, drugsEnterprise);
             if (DrugEnterpriseResult.SUCCESS.equals(result.getCode())) {
                 result.setDrugsEnterprise(drugsEnterprise);
             }
