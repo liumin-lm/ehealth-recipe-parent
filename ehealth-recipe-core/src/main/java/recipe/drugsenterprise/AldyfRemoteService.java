@@ -298,7 +298,7 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                             return getDrugEnterpriseResult(result, "药物使用频率使用途径获取失败");
                         }
                         drugParam.setNum((new Double(detailList.get(i).getUseTotalDose())).longValue());  //药品数量
-
+                        drugParam.setSpuId(saleDrugList.getOrganDrugCode());
                         drugParams.add(drugParam);
                         prescriptionAddRequest.setDrugList(drugParams);
                     }

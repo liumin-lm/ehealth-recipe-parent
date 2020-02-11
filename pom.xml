@@ -317,7 +317,7 @@
             <dependency>
                 <groupId>com.alihealth</groupId>
                 <artifactId>top-api-sdk-dev</artifactId>
-                <version>20190301</version>
+                <version>20200211</version>
             </dependency>
             <dependency>
                 <groupId>org.reflections</groupId>
