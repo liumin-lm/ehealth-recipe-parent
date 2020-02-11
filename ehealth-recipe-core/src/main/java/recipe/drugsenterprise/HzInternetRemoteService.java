@@ -254,17 +254,18 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
         HisResponseTO<RecipeMedicalPreSettleInfo> hisResult = service.recipeMedicalPreSettleN(request);
         if(hisResult != null && "200".equals(hisResult.getMsgCode())){
             LOGGER.info("杭州互联网虚拟药企-处方预结算成功-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
-
-            RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-            if(ext != null){
-                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("registerNo", hisResult.getData().getGhxh()));
-                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("hisSettlementNo", hisResult.getData().getSjh()));
-            } else {
-                ext = new RecipeExtend();
-                ext.setRecipeId(recipe.getRecipeId());
-                ext.setRegisterNo(hisResult.getData().getGhxh());
-                ext.setHisSettlementNo(hisResult.getData().getSjh());
-                recipeExtendDAO.save(ext);
+            if(hisResult.getData() != null){
+                RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                if(ext != null){
+                    recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("registerNo", hisResult.getData().getGhxh()));
+                    recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("hisSettlementNo", hisResult.getData().getSjh()));
+                } else {
+                    ext = new RecipeExtend();
+                    ext.setRecipeId(recipe.getRecipeId());
+                    ext.setRegisterNo(hisResult.getData().getGhxh());
+                    ext.setHisSettlementNo(hisResult.getData().getSjh());
+                    recipeExtendDAO.save(ext);
+                }
             }
             result.setCode(DrugEnterpriseResult.SUCCESS);
         }else{
