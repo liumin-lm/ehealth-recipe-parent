@@ -229,7 +229,6 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
         MedicalPreSettleReqNTO request = new MedicalPreSettleReqNTO();
         request.setClinicOrgan(recipe.getClinicOrgan());
         request.setPatientName(patientBean.getPatientName());
-        request.setSex(patientBean.getPatientSex());
         request.setIdcard(patientBean.getIdcard());
         request.setBirthday(patientBean.getBirthday());
         request.setAddress(patientBean.getAddress());
@@ -239,10 +238,34 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
         request.setGuardianCertificate(patientBean.getGuardianCertificate());
         request.setRecipeId(recipeId + "");
 
+        request.setDoctorId(recipe.getDoctor() + "");
+        request.setDoctorName(recipe.getDoctorName());
+        request.setDepartId(recipe.getDepart() + "");
+        HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
+        String bxh = healthCardService.getMedicareCardId(recipe.getMpiid(), recipe.getClinicOrgan());
+        request.setBxh(bxh);
+        try {
+            request.setSex(DictionaryController.instance().get("eh.base.dictionary.Gender").getText(patientBean.getPatientSex()));
+            request.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
+            } catch (ControllerException e) {
+            LOGGER.error("DictionaryController 字典转化异常,{}",e);
+        }
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
         HisResponseTO<RecipeMedicalPreSettleInfo> hisResult = service.recipeMedicalPreSettleN(request);
         if(hisResult != null && "200".equals(hisResult.getMsgCode())){
             LOGGER.info("杭州互联网虚拟药企-处方预结算成功-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
+
+            RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if(ext != null){
+                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("registerNo", hisResult.getData().getGhxh()));
+                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("hisSettlementNo", hisResult.getData().getSjh()));
+            } else {
+                ext = new RecipeExtend();
+                ext.setRecipeId(recipe.getRecipeId());
+                ext.setRegisterNo(hisResult.getData().getGhxh());
+                ext.setHisSettlementNo(hisResult.getData().getSjh());
+                recipeExtendDAO.save(ext);
+            }
             result.setCode(DrugEnterpriseResult.SUCCESS);
         }else{
             LOGGER.error("杭州互联网虚拟药企-处方预结算失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
