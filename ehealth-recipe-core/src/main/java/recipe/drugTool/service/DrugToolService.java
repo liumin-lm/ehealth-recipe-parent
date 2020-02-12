@@ -43,6 +43,7 @@ import recipe.bean.OrganToolBean;
 import recipe.constant.DrugMatchConstant;
 import recipe.dao.*;
 import recipe.service.OrganDrugListService;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DrugMatchUtil;
 import recipe.util.RedisClient;
 
@@ -742,6 +743,11 @@ public class DrugToolService implements IDrugToolService {
                         Boolean isSuccess = organDrugListDAO.updateData(organDrugList);
                         if (!isSuccess) {
                             organDrugListDAO.save(organDrugList);
+                            //同步药品到监管备案
+                            RecipeBusiThreadPool.submit(()->{
+                                organDrugListService.uploadDrugToRegulation(organDrugList);
+                                return null;
+                            });
                             num = num + 1;
                         }
                     }
