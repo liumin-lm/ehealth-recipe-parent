@@ -242,6 +242,7 @@ public class PurchaseService {
             IPurchaseService purchaseService = getService(payMode);
             result = purchaseService.order(dbRecipe, extInfo);
         } catch (Exception e) {
+            LOG.error("order error",e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         } finally {
             //订单创建完解锁
