@@ -153,6 +153,7 @@ public class PayModeOnline implements IPurchaseService {
 
     @Override
     public OrderCreateResult order(Recipe dbRecipe, Map<String, String> extInfo) {
+        LOG.info("PayModeOnline order recipeId={}",dbRecipe.getRecipeId());
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
         RecipeOrder order = new RecipeOrder();
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
