@@ -234,8 +234,6 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
         }
         //有市名卡才走预结算
         if (StringUtils.isNotEmpty(bxh)){
-            LOGGER.info("患者医保卡号为null");
-        } else{
             PatientService patientService = BasicAPI.getService(PatientService.class);
             PatientDTO patientBean = patientService.get(recipe.getMpiid());
 
@@ -260,7 +258,7 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
             try {
                 request.setSex(DictionaryController.instance().get("eh.base.dictionary.Gender").getText(patientBean.getPatientSex()));
                 request.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
-                } catch (ControllerException e) {
+            } catch (ControllerException e) {
                 LOGGER.error("DictionaryController 字典转化异常,{}",e);
             }
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
@@ -288,6 +286,9 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
                 }
                 result.setCode(DrugEnterpriseResult.FAIL);
             }
+
+        } else{
+            LOGGER.info("患者医保卡号为null,患者：{}",recipe.getPatientName());
         }
         return result;
     }
