@@ -233,7 +233,7 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
 
         }
         //有市名卡才走预结算
-        if(bxh == null) {
+        if (StringUtils.isNotEmpty(bxh)){
             LOGGER.info("患者医保卡号为null");
         } else{
             PatientService patientService = BasicAPI.getService(PatientService.class);
