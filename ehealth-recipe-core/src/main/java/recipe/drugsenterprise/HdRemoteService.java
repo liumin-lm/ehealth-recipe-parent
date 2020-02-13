@@ -807,7 +807,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         boolean flag = sendScanStock(recipeId, drugsEnterprise, result);
         if ( DrugEnterpriseResult.SUCCESS.equals(result.getCode()) || flag) {
             result.setCode(DrugEnterpriseResult.SUCCESS);
-            result.setMsg("调用[" + drugsEnterprise.getName() + "][ scanStock ]结果返回成功,处方单ID:"+recipeId+".");
+            result.setMsg("调用[" + drugsEnterprise.getName() + "][ scanStock ]结果返回成功,有库存,处方单ID:"+recipeId+".");
         }
         return result;
     }
