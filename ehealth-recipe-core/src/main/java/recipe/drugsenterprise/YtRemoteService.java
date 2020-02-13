@@ -665,6 +665,8 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             }
             if(!checkScan){
                 getFailResult(result, "当前药企下没有药店的药品库存足够");
+            } else {
+                result.setMsg("调用[" + drugsEnterprise.getName() + "][ scanStock ]结果返回成功,处方单ID:"+recipeId+".");
             }
         }catch (Exception e){
             getFailResult(result, "当前药企下没有药店的药品库存足够");

@@ -194,6 +194,14 @@ public class RecipeCheckService {
                 if (null != signDate) {
                     dateString = DateConversion.getDateFormatter(signDate, "yyyy-MM-dd HH:mm");
                 }
+                //拿到当前药品详情的药品ID
+                Integer drugId = detail.getDrugId();
+                Integer organId = recipe.getClinicOrgan();
+                OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+                OrganDrugList organDrugList = organDrugListDAO.getByDrugIdAndOrganId(drugId, organId);
+                if (organDrugList != null) {
+                    detail.setDrugForm(organDrugList.getDrugForm());
+                }
                 map.put("dateString", dateString);
                 map.put("recipe", ObjectCopyUtils.convert(recipe, RecipeBean.class));
                 map.put("patient", patient);
@@ -219,6 +227,7 @@ public class RecipeCheckService {
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
 
         //取recipe需要的字段
         Recipe recipe = rDao.getByRecipeId(recipeId);
@@ -315,6 +324,14 @@ public class RecipeCheckService {
         map.put("checkStatus", checkResult);
 
         List<Recipedetail> details = detailDAO.findByRecipeId(recipeId);
+        Integer organId = recipe.getClinicOrgan();
+        for (Recipedetail recipedetail : details) {
+            Integer drugId = recipedetail.getDrugId();
+            OrganDrugList organDrugList = organDrugListDAO.getByDrugIdAndOrganId(drugId, organId);
+            if (organDrugList != null) {
+                recipedetail.setDrugForm(organDrugList.getDrugForm());
+            }
+        }
         //获取审核不通过详情
         List<Map<String, Object>> mapList = getCheckNotPassDetail(recipeId);
         map.put("reasonAndDetails", mapList);
@@ -761,6 +778,13 @@ public class RecipeCheckService {
                 Recipedetail detail = null;
                 if (null != details && details.size() > 0) {
                     detail = details.get(0);
+                }
+                //拿到当前药品详情的药品ID
+                Integer drugId = detail.getDrugId();
+                OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+                OrganDrugList organDrugList = organDrugListDAO.getByDrugIdAndOrganId(drugId, organId);
+                if (organDrugList != null) {
+                    detail.setDrugForm(organDrugList.getDrugForm());
                 }
                 //checkResult 0:未审核 1:通过 2:不通过
                 Integer checkResult = getCheckResult(r);
