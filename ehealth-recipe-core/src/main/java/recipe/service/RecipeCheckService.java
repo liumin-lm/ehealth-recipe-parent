@@ -204,11 +204,22 @@ public class RecipeCheckService {
                         detail.setDrugForm(organDrugLists.get(0).getDrugForm());
                     }
                 } else {
-                    DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-                    DrugList drugList = drugListDAO.getById(drugId);
-                    if (drugList != null) {
-                        detail.setDrugForm(drugList.getDrugForm());
+                    Integer recipeId = recipe.getRecipeId();
+                    RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+                    Recipe recipe1 = recipeDAO.getByRecipeId(recipeId);
+                    if (recipe1 != null) {
+                        List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, recipe1.getClinicOrgan());
+                        if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                            detail.setDrugForm(organDrugLists.get(0).getDrugForm());
+                        }
+                    }else {
+                        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+                        DrugList drugList = drugListDAO.getById(drugId);
+                        if (drugList != null) {
+                            detail.setDrugForm(drugList.getDrugForm());
+                        }
                     }
+
                 }
 
                 map.put("dateString", dateString);
