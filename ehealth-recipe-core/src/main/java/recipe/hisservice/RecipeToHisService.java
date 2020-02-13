@@ -80,7 +80,11 @@ public class RecipeToHisService {
             RecipeListQueryResTO response = hisService.listQuery(request);
             LOGGER.info("listSingleQuery response={}", JSONUtils.toString(response));
             Integer busStatus = null;
-            if (null == response || null == response.getMsgCode()) {
+            //有可能前置机没实现这个接口 返回null 保证流程走通
+            if (null == response){
+                return RecipeStatusConstant.CHECK_PASS;
+            }
+            if (null == response.getMsgCode()) {
                 return busStatus;
             }
 
