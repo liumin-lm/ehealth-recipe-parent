@@ -198,10 +198,19 @@ public class RecipeCheckService {
                 Integer drugId = detail.getDrugId();
                 Integer organId = recipe.getClinicOrgan();
                 OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-                List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
-                if (CollectionUtils.isNotEmpty(organDrugLists)) {
-                    detail.setDrugForm(organDrugLists.get(0).getDrugForm());
+                if (organId != null){
+                    List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
+                    if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                        detail.setDrugForm(organDrugLists.get(0).getDrugForm());
+                    }
+                } else {
+                    DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+                    DrugList drugList = drugListDAO.getById(drugId);
+                    if (drugList != null) {
+                        detail.setDrugForm(drugList.getDrugForm());
+                    }
                 }
+
                 map.put("dateString", dateString);
                 map.put("recipe", ObjectCopyUtils.convert(recipe, RecipeBean.class));
                 map.put("patient", patient);
