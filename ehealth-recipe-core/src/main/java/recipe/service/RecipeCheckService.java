@@ -198,9 +198,9 @@ public class RecipeCheckService {
                 Integer drugId = detail.getDrugId();
                 Integer organId = recipe.getClinicOrgan();
                 OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-                OrganDrugList organDrugList = organDrugListDAO.getByDrugIdAndOrganId(drugId, organId);
-                if (organDrugList != null) {
-                    detail.setDrugForm(organDrugList.getDrugForm());
+                List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
+                if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                    detail.setDrugForm(organDrugLists.get(0).getDrugForm());
                 }
                 map.put("dateString", dateString);
                 map.put("recipe", ObjectCopyUtils.convert(recipe, RecipeBean.class));
@@ -327,9 +327,9 @@ public class RecipeCheckService {
         Integer organId = recipe.getClinicOrgan();
         for (Recipedetail recipedetail : details) {
             Integer drugId = recipedetail.getDrugId();
-            OrganDrugList organDrugList = organDrugListDAO.getByDrugIdAndOrganId(drugId, organId);
-            if (organDrugList != null) {
-                recipedetail.setDrugForm(organDrugList.getDrugForm());
+            List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
+            if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                recipedetail.setDrugForm(organDrugLists.get(0).getDrugForm());
             }
         }
         //获取审核不通过详情
@@ -782,9 +782,11 @@ public class RecipeCheckService {
                 //拿到当前药品详情的药品ID
                 Integer drugId = detail.getDrugId();
                 OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-                OrganDrugList organDrugList = organDrugListDAO.getByDrugIdAndOrganId(drugId, organId);
-                if (organDrugList != null) {
-                    detail.setDrugForm(organDrugList.getDrugForm());
+                if (organId != null) {
+                    List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
+                    if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                        detail.setDrugForm(organDrugLists.get(0).getDrugForm());
+                    }
                 }
                 //checkResult 0:未审核 1:通过 2:不通过
                 Integer checkResult = getCheckResult(r);
