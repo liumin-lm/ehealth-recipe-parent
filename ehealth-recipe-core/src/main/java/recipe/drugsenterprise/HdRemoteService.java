@@ -787,30 +787,29 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
     @RpcService
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-
-        //根据处方信息发送药企库存查询请求，判断有药店是否满足库存
-        HdPharmacyAndStockResponse response = getHdStockResponse(recipeId, drugsEnterprise, result);
-        if(response != null) {
-            //判断有没有符合药品量的药店
-            if(null == response.getData() || (null != response.getData() && 0 >= response.getData().size())){
-                getFailResult(result, "当前药企下没有药店的药品库存足够");
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String hdStoreFlag = recipeParameterDao.getByName("hdStoreFlag");
+        if ("1".equals(hdStoreFlag)) {
+            //根据处方信息发送药企库存查询请求，判断有药店是否满足库存
+            HdPharmacyAndStockResponse response = getHdStockResponse(recipeId, drugsEnterprise, result);
+            if(response != null) {
+                //判断有没有符合药品量的药店
+                if(null == response.getData() || (null != response.getData() && 0 >= response.getData().size())){
+                    getFailResult(result, "当前药企下没有药店的药品库存足够");
+                }
             }
-        }
 
-        LOGGER.info("HdRemoteService-scanStock 药店取药药品库存:{}.", JSONUtils.toString(response));
+            LOGGER.info("HdRemoteService-scanStock 药店取药药品库存:{}.", JSONUtils.toString(response));
+        } else {
+            result = DrugEnterpriseResult.getFail();
+        }
         //处方配送到家的库存校验
         boolean flag = sendScanStock(recipeId, drugsEnterprise, result);
-        if (result.getCode() == DrugEnterpriseResult.SUCCESS || flag) {
+        if ( DrugEnterpriseResult.SUCCESS.equals(result.getCode()) || flag) {
             result.setCode(DrugEnterpriseResult.SUCCESS);
+            result.setMsg("调用[" + drugsEnterprise.getName() + "][ scanStock ]结果返回成功,有库存,处方单ID:"+recipeId+".");
         }
         return result;
-    }
-
-    @RpcService
-    public void test(Integer recipeId){
-        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(224);
-        scanStock(recipeId, drugsEnterprise);
     }
 
     private boolean sendScanStock(Integer recipeId, DrugsEnterprise drugsEnterprise, DrugEnterpriseResult result) {
@@ -843,7 +842,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 //当相应状态为200时返回json
                 HttpEntity httpEntity = response.getEntity();
                 String responseStr = EntityUtils.toString(httpEntity);
-                LOGGER.info("sendScanStock responseStr:{}.", responseStr);
+                LOGGER.info("HdRemoteService-scanStock sendScanStock responseStr:{}.", responseStr);
                 JSONObject jsonObject = JSONObject.parseObject(responseStr);
                 List drugList = (List)jsonObject.get("drugList");
                 if (drugList != null && drugList.size() > 0) {
