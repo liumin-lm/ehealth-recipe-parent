@@ -455,6 +455,7 @@ public class HisRequestInit {
                 } else {
                     requestTO.setPayType("E");
                 }
+                requestTO.setRecipeNo(recipe.getRecipeId() + "");
                 requestTO.setRecipeCode(recipe.getRecipeCode());
                 requestTO.setOrganName(recipe.getOrganName());
                 RecipeExtendDAO extendDAO = getDAO(RecipeExtendDAO.class);
