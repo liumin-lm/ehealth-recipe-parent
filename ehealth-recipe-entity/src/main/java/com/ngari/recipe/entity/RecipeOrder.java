@@ -802,7 +802,7 @@ public class RecipeOrder implements Serializable {
         this.transFeeDetail = transFeeDetail;
     }
 
-    @Column(name = "DrugStoreAddr")
+    @Column(name = "orderType")
     public Integer getOrderType() {
         return orderType;
     }
