@@ -90,7 +90,7 @@ public class RecipeExtend implements Serializable {
     private String hisSettlementNo;
 
     @ItemProperty(alias = "处方预结算返回支付总金额")
-    private String preSettletotalAmount;
+    private String preSettleTotalAmount;
 
     @ItemProperty(alias = "处方预结算返回医保支付金额")
     private String fundAmount;
@@ -319,13 +319,13 @@ public class RecipeExtend implements Serializable {
         this.hisSettlementNo = hisSettlementNo;
     }
 
-    @Column(name = "preSettletotalAmount")
+    @Column(name = "preSettleTotalAmount")
     public String getPreSettletotalAmount() {
-        return preSettletotalAmount;
+        return preSettleTotalAmount;
     }
 
-    public void setPreSettletotalAmount(String preSettletotalAmount) {
-        this.preSettletotalAmount = preSettletotalAmount;
+    public void setPreSettletotalAmount(String preSettleTotalAmount) {
+        this.preSettleTotalAmount = preSettleTotalAmount;
     }
 
     @Column(name = "fundAmount")

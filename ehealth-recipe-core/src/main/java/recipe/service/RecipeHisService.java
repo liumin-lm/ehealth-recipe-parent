@@ -3,6 +3,7 @@ package recipe.service;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
@@ -40,6 +41,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
+import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipeCheckPassResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.UsePathwaysFilter;
@@ -540,6 +542,82 @@ public class RecipeHisService extends RecipeBaseService {
         }
 
         return null;
+    }
+
+    /**
+     * 处方省医保预结算接口
+     * @param recipeId
+     * @return
+     */
+    public Map<String,Object> provincialMedicalPreSettle(Integer recipeId){
+        Map<String,Object> result = Maps.newHashMap();
+        result.put("code","-1");
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (recipe == null){
+            result.put("msg","查不到该处方");
+            return result;
+        }
+        try{
+            MedicalPreSettleReqNTO request = new MedicalPreSettleReqNTO();
+            request.setClinicOrgan(recipe.getClinicOrgan());
+            request.setRecipeId(String.valueOf(recipeId));
+            request.setHisRecipeNo(recipe.getRecipeCode());
+            //患者信息
+            PatientService patientService = BasicAPI.getService(PatientService.class);
+            PatientDTO patientBean = patientService.get(recipe.getMpiid());
+            request.setPatientName(patientBean.getPatientName());
+            request.setIdcard(patientBean.getIdcard());
+            RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+            LOGGER.info("provincialMedicalPreSettle req={}", JSONUtils.toString(request));
+            HisResponseTO<RecipeMedicalPreSettleInfo> hisResult = service.recipeMedicalPreSettleN(request);
+            if(hisResult != null && "200".equals(hisResult.getMsgCode())){
+                LOGGER.info("provincialMedicalPreSettle-true. result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
+                if(hisResult.getData() != null){
+                    //自费金额
+                    String cashAmount = hisResult.getData().getZfje();
+                    //医保支付金额
+                    String fundAmount = hisResult.getData().getYbzf();
+                    //总金额
+                    String totalAmount = hisResult.getData().getZje();
+                    if (StringUtils.isNotEmpty(cashAmount)&&StringUtils.isNotEmpty(fundAmount)&&StringUtils.isNotEmpty(totalAmount)){
+                        RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                        if(ext != null){
+                            ImmutableMap<String, String> map = ImmutableMap.of("preSettleTotalAmount", totalAmount, "fundAmount",fundAmount, "cashAmount", totalAmount);
+                            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(),map);
+                        } else {
+                            ext = new RecipeExtend();
+                            ext.setRecipeId(recipe.getRecipeId());
+                            ext.setPreSettletotalAmount(totalAmount);
+                            ext.setCashAmount(cashAmount);
+                            ext.setFundAmount(fundAmount);
+                            recipeExtendDAO.save(ext);
+                        }
+                    }
+                    result.put("totalAmount",totalAmount);
+                    result.put("fundAmount",fundAmount);
+                    result.put("cashAmount",cashAmount);
+                }
+                result.put("code","200");
+                //日志记录
+                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(),
+                        recipe.getStatus(), "处方省医保预结算成功");
+            }else{
+                LOGGER.error("provincialMedicalPreSettle-fail. result={}", JSONUtils.toString(hisResult));
+                if(hisResult != null){
+                    result.put("msg",hisResult.getMsg());
+                }else {
+                    result.put("msg","平台前置机未实现预结算接口");
+                }
+                //日志记录
+                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(),
+                        recipe.getStatus(), "处方省医保预结算失败");
+            }
+        }catch (Exception e){
+            LOGGER.error("provincialMedicalPreSettle error",e);
+        }
+       return result;
     }
 
     @RpcService
