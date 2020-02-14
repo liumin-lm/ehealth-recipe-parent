@@ -162,6 +162,7 @@ public class PurchaseService {
      *                 ps: decoctionFlag是中药处方时设置为1，gfFeeFlag是膏方时设置为1
      *                 gysCode, sendMethod, payMethod 字段为钥世圈字段，会在findSupportDepList接口中给出
      *                 payMode 如果钥世圈有供应商是多种方式支持，就传0
+     *                 orderType, 1表示省医保
      * @return
      */
     @RpcService

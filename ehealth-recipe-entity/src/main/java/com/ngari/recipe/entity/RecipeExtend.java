@@ -89,6 +89,15 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "HIS收据号（医保）")
     private String hisSettlementNo;
 
+    @ItemProperty(alias = "处方预结算返回支付总金额")
+    private String preSettletotalAmount;
+
+    @ItemProperty(alias = "处方预结算返回医保支付金额")
+    private String fundAmount;
+
+    @ItemProperty(alias = "处方预结算返回自费金额")
+    private String cashAmount;
+
     public RecipeExtend() {
     }
 
@@ -201,6 +210,7 @@ public class RecipeExtend implements Serializable {
         this.cardNo = cardNo;
     }
 
+
     @Column(name = "registerID")
     public String getRegisterID() {
         return registerID;
@@ -307,5 +317,32 @@ public class RecipeExtend implements Serializable {
 
     public void setHisSettlementNo(String hisSettlementNo) {
         this.hisSettlementNo = hisSettlementNo;
+    }
+
+    @Column(name = "preSettletotalAmount")
+    public String getPreSettletotalAmount() {
+        return preSettletotalAmount;
+    }
+
+    public void setPreSettletotalAmount(String preSettletotalAmount) {
+        this.preSettletotalAmount = preSettletotalAmount;
+    }
+
+    @Column(name = "fundAmount")
+    public String getFundAmount() {
+        return fundAmount;
+    }
+
+    public void setFundAmount(String fundAmount) {
+        this.fundAmount = fundAmount;
+    }
+
+    @Column(name = "cashAmount")
+    public String getCashAmount() {
+        return cashAmount;
+    }
+
+    public void setCashAmount(String cashAmount) {
+        this.cashAmount = cashAmount;
     }
 }
