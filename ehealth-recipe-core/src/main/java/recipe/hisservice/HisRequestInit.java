@@ -450,6 +450,11 @@ public class HisRequestInit {
             //省医保订单新增逻辑
             if(order != null && order.getOrderType() != null && order.getOrderType() == 1){
                 requestTO.setIsMedicalSettle("1");
+                if("40".equals(order.getWxPayWay())){
+                    requestTO.setPayType("C");
+                } else {
+                    requestTO.setPayType("E");
+                }
                 requestTO.setRecipeCode(recipe.getRecipeCode());
                 requestTO.setOrganName(recipe.getOrganName());
                 RecipeExtendDAO extendDAO = getDAO(RecipeExtendDAO.class);
