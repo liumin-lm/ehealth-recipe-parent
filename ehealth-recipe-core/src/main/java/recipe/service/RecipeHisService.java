@@ -359,14 +359,14 @@ public class RecipeHisService extends RecipeBaseService {
             if (RecipeResultBean.SUCCESS.equals(result.getCode()) && RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) && 1 == payFlag) {
                 PayNotifyReqTO payNotifyReq = HisRequestInit.initPayNotifyReqTO(recipe, patientBean, cardBean);
                 PayNotifyResTO response = service.payNotify(payNotifyReq);
-                if (null == response || null == response.getMsgCode() || response.getMsgCode() != 0 || response.getData() != null) {
+                if (null == response || null == response.getMsgCode() || response.getMsgCode() != 0 || response.getData() == null) {
                     result.setCode(RecipeResultBean.FAIL);
-                    HisCallBackService.havePayFail(recipe.getRecipeId());
                     if(response.getMsg() != null){
                         result.setError(response.getMsg());
                     } else{
                         result.setError("由于医院接口异常，支付失败，建议您稍后重新支付。");
                     }
+                    HisCallBackService.havePayFail(recipe.getRecipeId());
                 } else {
                     Recipedetail detail = new Recipedetail();
                     detail.setPatientInvoiceNo(response.getData().getInvoiceNo());
