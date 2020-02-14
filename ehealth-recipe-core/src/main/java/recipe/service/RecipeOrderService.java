@@ -655,6 +655,16 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setActualPrice(order.getAuditFee().doubleValue());
             } else {
                 order.setActualPrice(order.getTotalFee().doubleValue());
+                //判断是否医保支付
+                RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(firstRecipe.getRecipeId());
+                if (recipeExtend!=null){
+                    //医保金额
+                    String fundAmount = recipeExtend.getFundAmount();
+                    if (order.getOrderType() != null && order.getOrderType()==1 &&StringUtils.isNotEmpty(fundAmount)){
+                        order.setActualPrice(order.getTotalFee().subtract(new BigDecimal(fundAmount)).stripTrailingZeros().doubleValue());
+                    }
+                }
             }
         }
     }
