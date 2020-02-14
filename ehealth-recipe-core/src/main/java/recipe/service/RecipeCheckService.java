@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.organ.model.OrganBean;
@@ -194,6 +195,38 @@ public class RecipeCheckService {
                 if (null != signDate) {
                     dateString = DateConversion.getDateFormatter(signDate, "yyyy-MM-dd HH:mm");
                 }
+                //拿到当前药品详情的药品ID
+                try{
+                    Integer drugId = detail.getDrugId();
+                    Integer organId = recipe.getClinicOrgan();
+                    OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+                    if (organId != null){
+                        List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
+                        if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                            detail.setDrugForm(organDrugLists.get(0).getDrugForm());
+                        }
+                    } else {
+                        Integer recipeId = recipe.getRecipeId();
+                        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+                        Recipe recipe1 = recipeDAO.getByRecipeId(recipeId);
+                        if (recipe1 != null) {
+                            List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, recipe1.getClinicOrgan());
+                            if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                                detail.setDrugForm(organDrugLists.get(0).getDrugForm());
+                            }
+                        }else {
+                            DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+                            DrugList drugList = drugListDAO.getById(drugId);
+                            if (drugList != null) {
+                                detail.setDrugForm(drugList.getDrugForm());
+                            }
+                        }
+
+                    }
+                }catch(Exception e){
+                    LOGGER.info("covertRecipeListPageInfo recipeId:{},error:{}.", JSONUtils.toString(recipe), e.getMessage());
+                }
+
                 map.put("dateString", dateString);
                 map.put("recipe", ObjectCopyUtils.convert(recipe, RecipeBean.class));
                 map.put("patient", patient);
@@ -219,6 +252,7 @@ public class RecipeCheckService {
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
 
         //取recipe需要的字段
         Recipe recipe = rDao.getByRecipeId(recipeId);
@@ -315,6 +349,19 @@ public class RecipeCheckService {
         map.put("checkStatus", checkResult);
 
         List<Recipedetail> details = detailDAO.findByRecipeId(recipeId);
+        try{
+            Integer organId = recipe.getClinicOrgan();
+            for (Recipedetail recipedetail : details) {
+                Integer drugId = recipedetail.getDrugId();
+                List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
+                if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                    recipedetail.setDrugForm(organDrugLists.get(0).getDrugForm());
+                }
+            }
+        }catch (Exception e){
+            LOGGER.info("findRecipeAndDetailsAndCheckById recipe:{},{}.", JSONUtils.toString(recipe), e.getMessage());
+        }
+
         //获取审核不通过详情
         List<Map<String, Object>> mapList = getCheckNotPassDetail(recipeId);
         map.put("reasonAndDetails", mapList);
@@ -762,6 +809,20 @@ public class RecipeCheckService {
                 if (null != details && details.size() > 0) {
                     detail = details.get(0);
                 }
+                //拿到当前药品详情的药品ID
+                try{
+                    Integer drugId = detail.getDrugId();
+                    OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+                    if (organId != null) {
+                        List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
+                        if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                            detail.setDrugForm(organDrugLists.get(0).getDrugForm());
+                        }
+                    }
+                }catch(Exception e){
+                    LOGGER.info("searchRecipeForChecker recipe:{},error:{}.", JSONUtils.toString(recipe), e.getMessage());
+                }
+
                 //checkResult 0:未审核 1:通过 2:不通过
                 Integer checkResult = getCheckResult(r);
 

@@ -144,6 +144,9 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias="处方明细单号")
 	private String recipedtlno;
 
+	@ItemProperty(alias = "剂型")
+	private String drugForm;
+
 	public Recipedetail() {
 	}
 
@@ -551,5 +554,14 @@ public class Recipedetail implements java.io.Serializable {
 
 	public void setRecipedtlno(String recipedtlno) {
 		this.recipedtlno = recipedtlno;
+	}
+
+	@Transient
+	public String getDrugForm() {
+		return drugForm;
+	}
+
+	public void setDrugForm(String drugForm) {
+		this.drugForm = drugForm;
 	}
 }
