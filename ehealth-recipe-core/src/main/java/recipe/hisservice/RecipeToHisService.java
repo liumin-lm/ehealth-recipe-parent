@@ -219,19 +219,13 @@ public class RecipeToHisService {
         return response;
     }
 
-    public Recipedetail payNotify(PayNotifyReqTO request) {
+    public PayNotifyResTO payNotify(PayNotifyReqTO request) {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("payNotify request={}", JSONUtils.toString(request));
         try {
             PayNotifyResTO response = hisService.payNotify(request);
             LOGGER.info("payNotify response={}", JSONUtils.toString(response));
-            if (null == response || null == response.getMsgCode()) {
-                return null;
-            }
-            Recipedetail detail = new Recipedetail();
-            detail.setPatientInvoiceNo(response.getData().getInvoiceNo());
-            detail.setPharmNo(response.getData().getWindows());
-            return detail;
+            return response;
         } catch (Exception e) {
             LOGGER.error("payNotify error ", e);
         }

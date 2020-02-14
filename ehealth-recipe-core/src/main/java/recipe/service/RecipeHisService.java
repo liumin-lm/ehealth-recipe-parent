@@ -355,35 +355,44 @@ public class RecipeHisService extends RecipeBaseService {
             HealthCardBean cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
             DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, details, patientBean, cardBean);
 
-            Boolean success = service.drugTakeChange(request);
-            if (success) {
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "HIS更新购药方式返回：写入his成功");
-            } else {
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "HIS更新购药方式返回：写入his失败");
-                if (!RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
-                    LOGGER.error("HIS drugTake synchronize error. recipeId=" + recipeId);
-                    //配送到家同步失败则返回异常,医院取药不需要管，医院处方默认是医院取药
-//                        HisCallBackService.havePayFail(_dbRecipe.getRecipeId());
-                    result.setCode(RecipeResultBean.FAIL);
-                    result.setError("由于医院接口异常，购药方式修改失败。");
-                }
-            }
-
-
-            //线上支付完成需要发送消息
+            //线上支付完成需要发送消息（省医保则是医保结算）
             if (RecipeResultBean.SUCCESS.equals(result.getCode()) && RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) && 1 == payFlag) {
                 PayNotifyReqTO payNotifyReq = HisRequestInit.initPayNotifyReqTO(recipe, patientBean, cardBean);
-                Recipedetail recipedetail = service.payNotify(payNotifyReq);
-                if (null != recipedetail) {
-                    HisCallBackService.havePaySuccess(recipe.getRecipeId(), recipedetail);
+                PayNotifyResTO response = service.payNotify(payNotifyReq);
+                if (null == response || null == response.getMsgCode() || response.getMsgCode() != 0 || response.getData() == null) {
+                    result.setCode(RecipeResultBean.FAIL);
+                    if(response.getMsg() != null){
+                        result.setError(response.getMsg());
+                    } else{
+                        result.setError("由于医院接口异常，支付失败，建议您稍后重新支付。");
+                    }
+                    HisCallBackService.havePayFail(recipe.getRecipeId());
+                } else {
+                    Recipedetail detail = new Recipedetail();
+                    detail.setPatientInvoiceNo(response.getData().getInvoiceNo());
+                    detail.setPharmNo(response.getData().getWindows());
+                    HisCallBackService.havePaySuccess(recipe.getRecipeId(), detail);
                     //支付完成后调用更新取药方式-配送信息
                     updateGoodsReceivingInfo(recipe);
-                } else {
-                    HisCallBackService.havePayFail(recipe.getRecipeId());
-                    result.setCode(RecipeResultBean.FAIL);
-                    result.setError("由于医院接口异常，支付失败，建议您稍后重新支付。");
                 }
             }
+
+            if (RecipeResultBean.SUCCESS.equals(result.getCode())){
+                Boolean success = service.drugTakeChange(request);
+                if (success) {
+                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "HIS更新购药方式返回：写入his成功");
+                } else {
+                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "HIS更新购药方式返回：写入his失败");
+                    if (!RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
+                        LOGGER.error("HIS drugTake synchronize error. recipeId=" + recipeId);
+                        //配送到家同步失败则返回异常,医院取药不需要管，医院处方默认是医院取药
+//                        HisCallBackService.havePayFail(_dbRecipe.getRecipeId());
+                        result.setCode(RecipeResultBean.FAIL);
+                        result.setError("由于医院接口异常，购药方式修改失败。");
+                    }
+                }
+            }
+
         } else {
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "recipeDrugTake[DrugTakeUpdateService] HIS未启用");
             LOGGER.error("recipeDrugTake 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipe.getRecipeId() + "]");
@@ -692,7 +701,7 @@ public class RecipeHisService extends RecipeBaseService {
             }else{
                 LOGGER.error("provincialMedicalPreSettle-fail. result={}", JSONUtils.toString(hisResult));
                 if(hisResult != null){
-                    result.put("msg",hisResult.getMsg());
+                    result.put("msg","his返回:"+hisResult.getMsg());
                 }else {
                     result.put("msg","平台前置机未实现预结算接口");
                 }

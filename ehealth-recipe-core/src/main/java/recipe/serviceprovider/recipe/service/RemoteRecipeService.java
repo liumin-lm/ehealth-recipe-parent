@@ -487,15 +487,21 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @Override
-    public String getEnterpriseCodeByRecipeId(Integer orderId) {
+    public Map<String, String> getEnterpriseCodeByRecipeId(Integer orderId) {
+        Map<String, String> map = new HashMap<String, String>();
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder recipeOrder = recipeOrderDAO.get(orderId);
+        if(recipeOrder != null){
+            map.put("orderType", recipeOrder.getOrderType() == null ? null :recipeOrder.getOrderType() + "");
+        } else {
+            LOGGER.info("getEnterpriseCodeByRecipeId 获取订单为null orderId = {}",orderId);
+        }
         Integer depId = recipeOrder.getEnterpriseId();
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         if (depId != null) {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
-            return drugsEnterprise.getEnterpriseCode();
+            map.put("enterpriseCode", drugsEnterprise.getEnterpriseCode());
         }
-        return null;
+        return map;
     }
 }
