@@ -2566,4 +2566,21 @@ public class RecipeService extends RecipeBaseService{
         return url;
     }
 
+
+    //根据recipeId 判断有没有关联的订单，有订单返回相关的订单id
+    //2020春节代码添加
+    @RpcService
+    public Integer getOrderIdByRecipe(Integer recipeId){
+        LOGGER.info("getOrderIdByRecipe查询处方关联订单，处方id:{}", recipeId);
+        //根据recipeId将对应的订单获得，有就返回订单id没有就不返回
+        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrder order = orderDAO.getRelationOrderByRecipeId(recipeId);
+        if(null != order){
+            LOGGER.info("getOrderIdByRecipe当前处方关联上订单");
+            return order.getOrderId();
+        }
+        LOGGER.info("getOrderIdByRecipe当前处方没有关联上订单");
+        return null;
+    }
+
 }
