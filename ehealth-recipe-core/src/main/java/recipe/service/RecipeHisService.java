@@ -701,7 +701,7 @@ public class RecipeHisService extends RecipeBaseService {
             }else{
                 LOGGER.error("provincialMedicalPreSettle-fail. result={}", JSONUtils.toString(hisResult));
                 if(hisResult != null){
-                    result.put("msg",hisResult.getMsg());
+                    result.put("msg","his返回:"+hisResult.getMsg());
                 }else {
                     result.put("msg","平台前置机未实现预结算接口");
                 }
