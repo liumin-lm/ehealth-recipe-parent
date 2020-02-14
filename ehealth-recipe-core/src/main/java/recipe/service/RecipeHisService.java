@@ -549,6 +549,7 @@ public class RecipeHisService extends RecipeBaseService {
      * @param recipeId
      * @return
      */
+    @RpcService
     public Map<String,Object> provincialMedicalPreSettle(Integer recipeId){
         Map<String,Object> result = Maps.newHashMap();
         result.put("code","-1");
