@@ -73,6 +73,15 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "HIS收据号（医保）")
     private String hisSettlementNo;
 
+    @ItemProperty(alias = "处方预结算返回支付总金额")
+    private String preSettleTotalAmount;
+
+    @ItemProperty(alias = "处方预结算返回医保支付金额")
+    private String fundAmount;
+
+    @ItemProperty(alias = "处方预结算返回自费金额")
+    private String cashAmount;
+
     public RecipeExtendBean() {
     }
 
@@ -235,5 +244,29 @@ public class RecipeExtendBean implements Serializable {
 
     public void setHisSettlementNo(String hisSettlementNo) {
         this.hisSettlementNo = hisSettlementNo;
+    }
+
+    public String getPreSettleTotalAmount() {
+        return preSettleTotalAmount;
+    }
+
+    public void setPreSettleTotalAmount(String preSettleTotalAmount) {
+        this.preSettleTotalAmount = preSettleTotalAmount;
+    }
+
+    public String getFundAmount() {
+        return fundAmount;
+    }
+
+    public void setFundAmount(String fundAmount) {
+        this.fundAmount = fundAmount;
+    }
+
+    public String getCashAmount() {
+        return cashAmount;
+    }
+
+    public void setCashAmount(String cashAmount) {
+        this.cashAmount = cashAmount;
     }
 }
