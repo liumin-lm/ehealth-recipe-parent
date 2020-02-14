@@ -3,9 +3,11 @@ package recipe.service;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
+import com.ngari.base.employment.model.EmploymentBean;
 import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.patient.model.HealthCardBean;
@@ -15,8 +17,10 @@ import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.DepartmentDTO;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -26,10 +30,12 @@ import com.ngari.recipe.recipe.model.HisSendResTO;
 import com.ngari.recipe.recipe.model.OrderRepTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.base.constant.ErrorCode;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +46,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
+import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipeCheckPassResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.UsePathwaysFilter;
@@ -50,6 +57,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.dao.bean.DrugInfoHisBean;
+import recipe.drugsenterprise.CommonRemoteService;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.RecipeToHisService;
@@ -361,12 +369,15 @@ public class RecipeHisService extends RecipeBaseService {
                 }
             }
 
+
             //线上支付完成需要发送消息
             if (RecipeResultBean.SUCCESS.equals(result.getCode()) && RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) && 1 == payFlag) {
                 PayNotifyReqTO payNotifyReq = HisRequestInit.initPayNotifyReqTO(recipe, patientBean, cardBean);
                 Recipedetail recipedetail = service.payNotify(payNotifyReq);
                 if (null != recipedetail) {
                     HisCallBackService.havePaySuccess(recipe.getRecipeId(), recipedetail);
+                    //支付完成后调用更新取药方式-配送信息
+                    updateGoodsReceivingInfo(recipe);
                 } else {
                     HisCallBackService.havePayFail(recipe.getRecipeId());
                     result.setCode(RecipeResultBean.FAIL);
@@ -381,6 +392,82 @@ public class RecipeHisService extends RecipeBaseService {
         }
 
         return result;
+    }
+
+    private void updateGoodsReceivingInfo(Recipe recipe) {
+        try{
+            //杭州市三除外
+            if (StringUtils.isNotEmpty(recipe.getOrganName())&&recipe.getOrganName().contains("杭州市第三人民医院")){
+                return;
+            }
+            DoctorService doctorService = BasicAPI.getService(DoctorService.class);
+            PatientService patientService = BasicAPI.getService(PatientService.class);
+            PatientDTO patient = patientService.get(recipe.getMpiid());
+            if (patient == null){
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "平台查询不到患者信息");
+            }
+            //患者信息
+            PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
+            patientBaseInfo.setCertificateType(patient.getCertificateType());
+            patientBaseInfo.setCertificate(patient.getCertificate());
+            patientBaseInfo.setPatientName(patient.getPatientName());
+            patientBaseInfo.setPatientID(recipe.getPatientID());
+
+            UpdateTakeDrugWayReqTO updateTakeDrugWayReqTO = new UpdateTakeDrugWayReqTO();
+            updateTakeDrugWayReqTO.setPatientBaseInfo(patientBaseInfo);
+            updateTakeDrugWayReqTO.setClinicOrgan(recipe.getClinicOrgan());
+            //医院处方号
+            updateTakeDrugWayReqTO.setRecipeID(recipe.getRecipeCode());
+            //审方药师工号和姓名
+            if (recipe.getChecker()!=null){
+                IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
+                EmploymentBean primaryEmp = iEmploymentService.getPrimaryEmpByDoctorId(recipe.getChecker());
+                if (primaryEmp != null){
+                    updateTakeDrugWayReqTO.setCheckerId(primaryEmp.getJobNumber());
+                }
+                DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getChecker());
+                if (doctorDTO!=null){
+                    updateTakeDrugWayReqTO.setCheckerName(doctorDTO.getName());
+                }
+            }
+            //处方总金额
+            updateTakeDrugWayReqTO.setPayment(recipe.getActualPrice());
+            //支付状态
+            updateTakeDrugWayReqTO.setPayFlag(recipe.getPayFlag());
+            //支付方式
+            updateTakeDrugWayReqTO.setPayMode("1");
+            if (recipe.getPayFlag() ==1){
+                //第三方支付交易流水号
+                updateTakeDrugWayReqTO.setTradeNo(recipe.getTradeNo());
+                //商户订单号
+                updateTakeDrugWayReqTO.setOutTradeNo(recipe.getOutTradeNo());
+                if (StringUtils.isNotEmpty(recipe.getOrderCode())){
+                    RecipeOrderDAO dao = DAOFactory.getDAO(RecipeOrderDAO.class);
+                    RecipeOrder order = dao.getByOrderCode(recipe.getOrderCode());
+                    if (order!=null){
+                        //收货人
+                        updateTakeDrugWayReqTO.setConsignee(order.getReceiver());
+                        //联系电话
+                        updateTakeDrugWayReqTO.setContactTel(order.getRecTel());
+                        //收货地址
+                        CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
+                        updateTakeDrugWayReqTO.setAddress(commonRemoteService.getCompleteAddress(order));
+                    }
+                }
+            }
+            if (recipe.getClinicId() != null) {
+                updateTakeDrugWayReqTO.setClinicID(recipe.getClinicId().toString());
+            }
+            //流转到这里来的属于物流配送
+            updateTakeDrugWayReqTO.setDeliveryType("1");
+            RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+            LOGGER.info("收货信息更新通知his. req={}", JSONUtils.toString(updateTakeDrugWayReqTO));
+            HisResponseTO hisResult = service.updateTakeDrugWay(updateTakeDrugWayReqTO);
+            LOGGER.info("收货信息更新通知his. res={}", JSONUtils.toString(hisResult));
+        }catch (Exception e){
+            LOGGER.error("updateGoodsReceivingInfo. error", e);
+        }
+
     }
 
     /**
@@ -540,6 +627,83 @@ public class RecipeHisService extends RecipeBaseService {
         }
 
         return null;
+    }
+
+    /**
+     * 处方省医保预结算接口
+     * @param recipeId
+     * @return
+     */
+   @RpcService
+    public Map<String,Object> provincialMedicalPreSettle(Integer recipeId){
+        Map<String,Object> result = Maps.newHashMap();
+        result.put("code","-1");
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (recipe == null){
+            result.put("msg","查不到该处方");
+            return result;
+        }
+        try{
+            MedicalPreSettleReqNTO request = new MedicalPreSettleReqNTO();
+            request.setClinicOrgan(recipe.getClinicOrgan());
+            request.setRecipeId(String.valueOf(recipeId));
+            request.setHisRecipeNo(recipe.getRecipeCode());
+            //患者信息
+            PatientService patientService = BasicAPI.getService(PatientService.class);
+            PatientDTO patientBean = patientService.get(recipe.getMpiid());
+            request.setPatientName(patientBean.getPatientName());
+            request.setIdcard(patientBean.getIdcard());
+            RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+            LOGGER.info("provincialMedicalPreSettle req={}", JSONUtils.toString(request));
+            HisResponseTO<RecipeMedicalPreSettleInfo> hisResult = service.recipeMedicalPreSettleN(request);
+            if(hisResult != null && "200".equals(hisResult.getMsgCode())){
+                LOGGER.info("provincialMedicalPreSettle-true. result={}", JSONUtils.toString(hisResult));
+                if(hisResult.getData() != null){
+                    //自费金额
+                    String cashAmount = hisResult.getData().getZfje();
+                    //医保支付金额
+                    String fundAmount = hisResult.getData().getYbzf();
+                    //总金额
+                    String totalAmount = hisResult.getData().getZje();
+                    if (StringUtils.isNotEmpty(cashAmount)&&StringUtils.isNotEmpty(fundAmount)&&StringUtils.isNotEmpty(totalAmount)){
+                        RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                        if(ext != null){
+                            ImmutableMap<String, String> map = ImmutableMap.of("preSettleTotalAmount", totalAmount, "fundAmount",fundAmount, "cashAmount", totalAmount);
+                            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(),map);
+                        } else {
+                            ext = new RecipeExtend();
+                            ext.setRecipeId(recipe.getRecipeId());
+                            ext.setPreSettletotalAmount(totalAmount);
+                            ext.setCashAmount(cashAmount);
+                            ext.setFundAmount(fundAmount);
+                            recipeExtendDAO.save(ext);
+                        }
+                    }
+                    result.put("totalAmount",totalAmount);
+                    result.put("fundAmount",fundAmount);
+                    result.put("cashAmount",cashAmount);
+                }
+                result.put("code","200");
+                //日志记录
+                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(),
+                        recipe.getStatus(), "处方省医保预结算成功");
+            }else{
+                LOGGER.error("provincialMedicalPreSettle-fail. result={}", JSONUtils.toString(hisResult));
+                if(hisResult != null){
+                    result.put("msg",hisResult.getMsg());
+                }else {
+                    result.put("msg","平台前置机未实现预结算接口");
+                }
+                //日志记录
+                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(),
+                        recipe.getStatus(), "处方省医保预结算失败");
+            }
+        }catch (Exception e){
+            LOGGER.error("provincialMedicalPreSettle error",e);
+        }
+       return result;
     }
 
     @RpcService

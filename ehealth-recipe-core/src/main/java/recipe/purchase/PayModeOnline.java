@@ -167,6 +167,8 @@ public class PayModeOnline implements IPurchaseService {
         RecipePayModeSupportBean payModeSupport = orderService.setPayModeSupport(order, payMode);
         Integer depId = MapValueUtil.getInteger(extInfo, "depId");
         String payway = MapValueUtil.getString(extInfo, "payway");
+        //订单类型-1省医保
+        Integer orderType = MapValueUtil.getInteger(extInfo, "orderType");
 
         if (StringUtils.isEmpty(payway)) {
             result.setCode(RecipeResultBean.FAIL);
@@ -174,6 +176,7 @@ public class PayModeOnline implements IPurchaseService {
             return result;
         }
         order.setWxPayWay(payway);
+        order.setOrderType(orderType);
         //处理详情
         List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
         List<Integer> drugIds = FluentIterable.from(detailList).transform(new Function<Recipedetail, Integer>() {
