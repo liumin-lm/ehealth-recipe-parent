@@ -36,15 +36,14 @@ import recipe.constant.BusTypeEnum;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.RecipeSystemConstant;
-import recipe.dao.DrugListDAO;
-import recipe.dao.OrganDrugListDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeExtendDAO;
+import recipe.dao.*;
 import recipe.service.RecipeCheckService;
 import recipe.util.DateConversion;
 
 import java.math.BigDecimal;
 import java.util.*;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * company: ngarihealth
@@ -443,6 +442,28 @@ public class HisRequestInit {
         }
 
         requestTO.setAmount(recipe.getTotalMoney().toString());
+
+        requestTO.setIsMedicalSettle("0");
+        if(recipe.getOrderCode() != null){
+            RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
+            RecipeOrder order = orderDAO.getByOrderCode(recipe.getOrderCode());
+            //省医保订单新增逻辑
+            if(order != null && order.getOrderType() != null && order.getOrderType() == 1){
+                requestTO.setIsMedicalSettle("1");
+                requestTO.setRecipeCode(recipe.getRecipeCode());
+                requestTO.setOrganName(recipe.getOrganName());
+                RecipeExtendDAO extendDAO = getDAO(RecipeExtendDAO.class);
+                RecipeExtend extend = extendDAO.getByRecipeId(recipe.getRecipeId());
+                if(extend != null && extend.getCashAmount() != null){
+                    requestTO.setCashAmount(extend.getCashAmount());
+                } else {
+                    LOGGER.info("无法获取处方的预结算返回的自费金额，处方={}",recipe.getRecipeId());
+                }
+                requestTO.setTradeNo(order.getTradeNo());
+                requestTO.setOutTradeNo(order.getOutTradeNo());
+            }
+        }
+
 
         return requestTO;
     }
