@@ -661,7 +661,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 if (recipeExtend!=null){
                     //医保金额
                     String fundAmount = recipeExtend.getFundAmount();
-                    if (order.getOrderType() != null && order.getOrderType()==1 &&StringUtils.isNotEmpty(fundAmount)){
+                    if (StringUtils.isNotEmpty(fundAmount)){
                         order.setActualPrice(order.getTotalFee().subtract(new BigDecimal(fundAmount)).stripTrailingZeros().doubleValue());
                     }
                 }
