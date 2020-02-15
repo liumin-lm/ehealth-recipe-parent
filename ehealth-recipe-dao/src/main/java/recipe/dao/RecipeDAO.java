@@ -991,7 +991,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     public QueryResult<Map> findRecipesByInfo(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType,
                                               final Integer depart, final int start, final int limit, List<Integer> organIds, Integer giveMode, Integer fromflag, Integer recipeId) {
         this.validateOptionForStatistics(status, doctor, patientName, bDate, eDate, dateType, start, limit);
-        final StringBuilder preparedHql = this.generateHQLforStatistics(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, fromflag, recipeId);
+        final StringBuilder preparedHql = this.generateRecipeOderHQLforStatistics(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, fromflag, recipeId);
         final PatientService patientService = BasicAPI.getService(PatientService.class);
         HibernateStatelessResultAction<QueryResult<Map>> action =
                 new AbstractHibernateStatelessResultAction<QueryResult<Map>>() {
@@ -1054,7 +1054,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     public List<Map> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType,
                                                final Integer depart, List<Integer> organIds, Integer giveMode, Integer fromflag, Integer recipeId) {
         this.validateOptionForStatistics(status, doctor, patientName, bDate, eDate, dateType, 0, Integer.MAX_VALUE);
-        final StringBuilder preparedHql = this.generateHQLforStatistics(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, fromflag, recipeId);
+        final StringBuilder preparedHql = this.generateRecipeOderHQLforStatistics(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, fromflag, recipeId);
         final PatientService patientService = BasicAPI.getService(PatientService.class);
         final DoctorService doctorService = BasicAPI.getService(DoctorService.class);
         HibernateStatelessResultAction<List<Map>> action =
@@ -1164,6 +1164,71 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                                    Integer status, Integer doctor, String patientName, Integer dateType,
                                                    Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer fromflag, Integer recipeId) {
         StringBuilder hql = new StringBuilder(" from Recipe r,RecipeOrder o  where 1=1 and r.orderCode=o.orderCode ");
+
+        //默认查询所有
+        if (CollectionUtils.isNotEmpty(requestOrgans)) {
+            // 添加申请机构条件
+            boolean flag = true;
+            for (Integer i : requestOrgans) {
+                if (i != null) {
+                    if (flag) {
+                        hql.append(" and r.clinicOrgan in(");
+                        flag = false;
+                    }
+                    hql.append(i + ",");
+                }
+            }
+            if (!flag) {
+                hql = new StringBuilder(hql.substring(0,
+                        hql.length() - 1) + ") ");
+            }
+        }
+        if (organId != null) {
+            hql.append(" and r.clinicOrgan =" + organId);
+        }
+        switch (dateType) {
+            case 0:
+                //开方时间
+                hql.append(" and DATE(r.createDate)>=DATE(:startTime)"
+                        + " and DATE(r.createDate)<=DATE(:endTime) ");
+                break;
+            case 1:
+                //审核时间
+                hql.append(" and DATE(r.checkDate)>=DATE(:startTime)"
+                        + " and DATE(r.checkDate)<=DATE(:endTime) ");
+                break;
+            default:
+                break;
+        }
+        if (status != null) {
+            hql.append(" and r.status =").append(status);
+        }
+        if (doctor != null) {
+            hql.append(" and r.doctor=").append(doctor);
+        }
+        //根据患者姓名  精确查询
+        if (patientName != null && !StringUtils.isEmpty(patientName.trim())) {
+            hql.append(" and r.patientName='").append(patientName).append("'");
+        }
+        if (depart != null) {
+            hql.append(" and r.depart=").append(depart);
+        }
+        if (giveMode != null) {
+            hql.append(" and r.giveMode=").append(giveMode);
+        }
+        if (fromflag != null) {
+            hql.append(" and r.fromflag=").append(fromflag);
+        }
+        if (recipeId != null) {
+            hql.append(" and r.recipeId=").append(recipeId);
+        }
+        return hql;
+    }
+
+    private StringBuilder generateRecipeOderHQLforStatistics(Integer organId,
+                                                   Integer status, Integer doctor, String patientName, Integer dateType,
+                                                   Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer fromflag, Integer recipeId) {
+        StringBuilder hql = new StringBuilder(" from Recipe r where 1=1");
 
         //默认查询所有
         if (CollectionUtils.isNotEmpty(requestOrgans)) {
