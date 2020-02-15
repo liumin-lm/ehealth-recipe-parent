@@ -270,6 +270,24 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     List<Map> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType,
                                                final Integer depart, List<Integer> organIds, Integer giveMode,Integer fromflag,Integer recipeId);
 
+    /**
+     *处方订单导出Excel
+     * @param organId
+     * @param status
+     * @param doctor
+     * @param patientName
+     * @param bDate
+     * @param eDate
+     * @param dateType
+     * @param depart
+     * @param giveMode
+     * @param fromflag
+     * @return
+     */
+    @RpcService(timeout = 600000)
+    List<Map> findRecipeOrdersByInfoForExcel(Integer organId, List<Integer> organIds, Integer status, Integer doctor, String patientName, Date bDate, Date eDate, Integer dateType,
+                                        Integer depart, Integer giveMode,Integer fromflag,Integer recipeId);
+
     @RpcService
     HashMap<Integer, Long> getCountGroupByOrgan();
 
