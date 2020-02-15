@@ -252,7 +252,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 LOGGER.warn("uploadRecipeIndicators patient is null. recipe.patient={}", recipe.getMpiid());
                 continue;
             }
-
+            req.setMpiId(patientDTO.getMpiId());
             organDiseaseName = recipe.getOrganDiseaseName().replaceAll("；", "|");
             req.setOriginalDiagnosis(organDiseaseName);
             req.setPatientCardType(LocalStringUtil.toString(patientDTO.getCertificateType()));
