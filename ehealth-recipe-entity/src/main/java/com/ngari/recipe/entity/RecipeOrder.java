@@ -218,6 +218,7 @@ public class RecipeOrder implements Serializable {
     private String smkFaceToken;
 
     @ItemProperty(alias = "订单类型，暂定1表示省医保")
+    @Dictionary(id = "eh.cdr.dictionary.RecipeOrderOrderType")
     private Integer orderType;
 
     @Column(name = "cancelReason")

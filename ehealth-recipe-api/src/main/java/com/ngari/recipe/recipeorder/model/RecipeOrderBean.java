@@ -5,7 +5,6 @@ import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
-import javax.persistence.Transient;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Calendar;
@@ -213,6 +212,7 @@ public class RecipeOrderBean implements Serializable {
     private String smkFaceToken;
 
     @ItemProperty(alias = "订单类型，暂定1表示省医保")
+    @Dictionary(id = "eh.cdr.dictionary.RecipeOrderOrderType")
     private Integer orderType;
 
     public RecipeOrderBean() {

@@ -8,7 +8,6 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
-import com.ngari.recipe.entity.DrugListMatch;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
@@ -1164,7 +1163,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     private StringBuilder generateHQLforStatistics(Integer organId,
                                                    Integer status, Integer doctor, String patientName, Integer dateType,
                                                    Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer fromflag, Integer recipeId) {
-        StringBuilder hql = new StringBuilder(" from Recipe where 1=1 ");
+        StringBuilder hql = new StringBuilder(" from Recipe r,RecipeOrder o  where 1=1 and r.orderCode=o.orderCode ");
 
         //默认查询所有
         if (CollectionUtils.isNotEmpty(requestOrgans)) {
@@ -1173,7 +1172,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             for (Integer i : requestOrgans) {
                 if (i != null) {
                     if (flag) {
-                        hql.append(" and clinicOrgan in(");
+                        hql.append(" and r.clinicOrgan in(");
                         flag = false;
                     }
                     hql.append(i + ",");
@@ -1185,43 +1184,43 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             }
         }
         if (organId != null) {
-            hql.append(" and clinicOrgan =" + organId);
+            hql.append(" and r.clinicOrgan =" + organId);
         }
         switch (dateType) {
             case 0:
                 //开方时间
-                hql.append(" and DATE(createDate)>=DATE(:startTime)"
-                        + " and DATE(createDate)<=DATE(:endTime) ");
+                hql.append(" and DATE(r.createDate)>=DATE(:startTime)"
+                        + " and DATE(r.createDate)<=DATE(:endTime) ");
                 break;
             case 1:
                 //审核时间
-                hql.append(" and DATE(checkDate)>=DATE(:startTime)"
-                        + " and DATE(checkDate)<=DATE(:endTime) ");
+                hql.append(" and DATE(r.checkDate)>=DATE(:startTime)"
+                        + " and DATE(r.checkDate)<=DATE(:endTime) ");
                 break;
             default:
                 break;
         }
         if (status != null) {
-            hql.append(" and status =").append(status);
+            hql.append(" and r.status =").append(status);
         }
         if (doctor != null) {
-            hql.append(" and doctor=").append(doctor);
+            hql.append(" and r.doctor=").append(doctor);
         }
         //根据患者姓名  精确查询
         if (patientName != null && !StringUtils.isEmpty(patientName.trim())) {
-            hql.append(" and patientName='").append(patientName).append("'");
+            hql.append(" and r.patientName='").append(patientName).append("'");
         }
         if (depart != null) {
-            hql.append(" and depart=").append(depart);
+            hql.append(" and r.depart=").append(depart);
         }
         if (giveMode != null) {
-            hql.append(" and giveMode=").append(giveMode);
+            hql.append(" and r.giveMode=").append(giveMode);
         }
         if (fromflag != null) {
-            hql.append(" and fromflag=").append(fromflag);
+            hql.append(" and r.fromflag=").append(fromflag);
         }
         if (recipeId != null) {
-            hql.append(" and recipeId=").append(recipeId);
+            hql.append(" and r.recipeId=").append(recipeId);
         }
         return hql;
     }
