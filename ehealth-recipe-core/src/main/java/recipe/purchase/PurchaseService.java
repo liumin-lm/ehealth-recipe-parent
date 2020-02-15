@@ -175,15 +175,20 @@ public class PurchaseService {
         //预结算
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise dep = drugsEnterpriseDAO.get(MapValueUtil.getInteger(extInfo, "depId"));
-        if(dep != null && dep.getIsHosDep() != null && dep.getIsHosDep() == 1){
-            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-            Map<String,Object> scanResult = hisService.provincialCashPreSettle(recipeId);
-            if(!("200".equals(scanResult.get("code")))){
-                result.setCode(RecipeResultBean.FAIL);
-                if(scanResult.get("msg") != null){
-                    result.setMsg(scanResult.get("msg").toString());
+        //订单类型-1省医保
+        Integer orderType = MapValueUtil.getInteger(extInfo, "orderType");
+        //非省医保才走自费结算
+        if(!(orderType != null && orderType == 1)) {
+            if (dep != null && dep.getIsHosDep() != null && dep.getIsHosDep() == 1) {
+                RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+                Map<String, Object> scanResult = hisService.provincialCashPreSettle(recipeId);
+                if (!("200".equals(scanResult.get("code")))) {
+                    result.setCode(RecipeResultBean.FAIL);
+                    if (scanResult.get("msg") != null) {
+                        result.setMsg(scanResult.get("msg").toString());
+                    }
+                    return result;
                 }
-                return result;
             }
         }
 
