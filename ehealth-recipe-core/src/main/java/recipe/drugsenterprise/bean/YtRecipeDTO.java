@@ -180,6 +180,10 @@ public class YtRecipeDTO implements Serializable{
 
     //处方单id
     private Integer recipeId;
+
+    //诊断名称
+    private String diagnose;
+
     /**
      * 商品明细
      */
@@ -449,6 +453,14 @@ public class YtRecipeDTO implements Serializable{
         this.giveModel = giveModel;
     }
 
+    public String getDiagnose() {
+        return diagnose;
+    }
+
+    public void setDiagnose(String diagnose) {
+        this.diagnose = diagnose;
+    }
+
     @Override
     public String toString() {
         return "YtRecipeDTO{" +
@@ -473,6 +485,8 @@ public class YtRecipeDTO implements Serializable{
                 ", category='" + category + '\'' +
                 ", totalAmount=" + totalAmount +
                 ", transFee=" + transFee +
+                ", giveModel=" + giveModel +
+                ", diagnose=" + diagnose +
                 ", giveModel=" + giveModel +
                 ", serviceFree=" + serviceFree +
                 ", prescriptionChecking=" + prescriptionChecking +

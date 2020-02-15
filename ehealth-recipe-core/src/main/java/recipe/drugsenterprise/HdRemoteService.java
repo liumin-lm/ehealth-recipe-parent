@@ -32,6 +32,7 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
+import recipe.service.RecipeLogService;
 import recipe.service.common.RecipeCacheService;
 import recipe.third.IFileDownloadService;
 import recipe.util.DistanceUtil;
@@ -816,17 +817,33 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         Map<String, List> map = new HashMap<>();
         String methodName = "sendScanStock";
         List<Map<String, String>> hdDrugCodes = new ArrayList<>();
         Map<String, BigDecimal> drugCodes = new HashMap<>();
-        for (Recipedetail recipedetail : detailList) {
-            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
-            Map<String, String> drug = new HashMap<>();
-            drug.put("drugCode", saleDrugList.getOrganDrugCode());
-            hdDrugCodes.add(drug);
-            drugCodes.put(saleDrugList.getOrganDrugCode(), BigDecimal.valueOf(recipedetail.getUseTotalDose()));
+        StringBuilder msg = new StringBuilder("药企名称:" + drugsEnterprise.getName() + ",");
+        try{
+            for (Recipedetail recipedetail : detailList) {
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
+                Map<String, String> drug = new HashMap<>();
+                drug.put("drugCode", saleDrugList.getOrganDrugCode());
+                hdDrugCodes.add(drug);
+                drugCodes.put(saleDrugList.getOrganDrugCode(), BigDecimal.valueOf(recipedetail.getUseTotalDose()));
+
+                if (recipe != null && recipe.getStatus() == 0) {
+                    msg.append(" 药企药品编码:" + saleDrugList.getOrganDrugCode());
+                    msg.append(",药品名称:" + recipedetail.getDrugName() + ",药品编码:"+ recipedetail.getDrugId());
+                }
+            }
+            msg.append(",处方单号:" + recipeId);
+            LOGGER.info("HdRemoteService.scanStock:{}", msg.toString());
+            RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), msg.toString());
+        }catch(Exception e){
+            LOGGER.error("HdRemoteService.checkDrugListByDeil error:{},{}.", recipeId, e.getMessage());
         }
+
         map.put("drugList", hdDrugCodes);
         String requestStr = JSONUtils.toString(map);
         //访问库存足够的药店列表以及药店下的药品的信息
@@ -852,6 +869,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                         String drugCode = (String)drugMap.get("drugCode");
                         BigDecimal availableSumQty = (BigDecimal)drugMap.get("availableSumQty");
                         LOGGER.info(drugCode + ":" + availableSumQty);
+                        RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "药企药品编码:"+drugCode + ",库存:" + availableSumQty);
                         BigDecimal num = drugCodes.get(drugCode);
                         if (num.compareTo(availableSumQty) == 1) {
                             //库存不足
