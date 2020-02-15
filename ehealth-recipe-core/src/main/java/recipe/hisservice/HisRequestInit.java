@@ -450,7 +450,7 @@ public class HisRequestInit {
 
             if (order != null ) {
                 //省医保订单新增逻辑
-                if (order.getOrderType() == 1) {
+                if (order.getOrderType() != null) {
                     requestTO.setIsMedicalSettle("1");
                 } else {
                     requestTO.setIsMedicalSettle("0");
