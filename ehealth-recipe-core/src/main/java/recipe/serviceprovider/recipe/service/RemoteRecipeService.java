@@ -491,11 +491,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         Map<String, String> map = new HashMap<String, String>();
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder recipeOrder = recipeOrderDAO.get(orderId);
-        if(recipeOrder != null){
-            map.put("orderType", recipeOrder.getOrderType() == null ? null :recipeOrder.getOrderType() + "");
-        } else {
-            LOGGER.info("getEnterpriseCodeByRecipeId 获取订单为null orderId = {}",orderId);
-        }
+        //规则改变了，不用传入改值
+//        if(recipeOrder != null){
+//            map.put("orderType", recipeOrder.getOrderType() == null ? null :recipeOrder.getOrderType() + "");
+//        } else {
+//            LOGGER.info("getEnterpriseCodeByRecipeId 获取订单为null orderId = {}",orderId);
+//        }
         Integer depId = recipeOrder.getEnterpriseId();
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         if (depId != null) {
