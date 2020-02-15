@@ -278,14 +278,17 @@ public class PayModeOnline implements IPurchaseService {
         }
         //选择配送到家后调用更新取药方式-配送信息
         RecipeBusiThreadPool.submit(()->{
-            updateGoodsReceivingInfo(dbRecipe);
+            updateGoodsReceivingInfo(dbRecipe.getRecipeId());
             return null;
         });
         return result;
     }
 
-    private void updateGoodsReceivingInfo(Recipe recipe) {
+    private void updateGoodsReceivingInfo(Integer recipeId) {
         try{
+
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             //杭州市三除外
             if (StringUtils.isNotEmpty(recipe.getOrganName())&&recipe.getOrganName().contains("杭州市第三人民医院")){
                 return;
@@ -326,25 +329,19 @@ public class PayModeOnline implements IPurchaseService {
             updateTakeDrugWayReqTO.setPayFlag(recipe.getPayFlag());
             //支付方式
             updateTakeDrugWayReqTO.setPayMode("1");
-            if (recipe.getPayFlag() ==1){
-                //第三方支付交易流水号
-                updateTakeDrugWayReqTO.setTradeNo(recipe.getTradeNo());
-                //商户订单号
-                updateTakeDrugWayReqTO.setOutTradeNo(recipe.getOutTradeNo());
-                if (StringUtils.isNotEmpty(recipe.getOrderCode())){
+            if (StringUtils.isNotEmpty(recipe.getOrderCode())){
                     RecipeOrderDAO dao = DAOFactory.getDAO(RecipeOrderDAO.class);
                     RecipeOrder order = dao.getByOrderCode(recipe.getOrderCode());
                     if (order!=null){
                         //收货人
                         updateTakeDrugWayReqTO.setConsignee(order.getReceiver());
                         //联系电话
-                        updateTakeDrugWayReqTO.setContactTel(order.getRecTel());
+                        updateTakeDrugWayReqTO.setContactTel(order.getRecMobile());
                         //收货地址
                         CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
                         updateTakeDrugWayReqTO.setAddress(commonRemoteService.getCompleteAddress(order));
                     }
                 }
-            }
             if (recipe.getClinicId() != null) {
                 updateTakeDrugWayReqTO.setClinicID(recipe.getClinicId().toString());
             }
