@@ -94,6 +94,9 @@ public class DrugsEnterprise implements java.io.Serializable {
     @FileToken(expires = 3600)
     private String transFeeDetail;
 
+    @ItemProperty(alias = "是否医院类型药企：1医院结算药企，0普通药企")
+    private Integer isHosDep;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -291,6 +294,15 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setTransFeeDetail(String transFeeDetail) {
         this.transFeeDetail = transFeeDetail;
+    }
+
+    @Column(name = "isHosDep")
+    public Integer getIsHosDep() {
+        return isHosDep;
+    }
+
+    public void setIsHosDep(Integer isHosDep) {
+        this.isHosDep = isHosDep;
     }
 
     @Override
