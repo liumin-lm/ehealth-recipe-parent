@@ -260,7 +260,7 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                 prescriptionParam.setOssKey(ossKey);
                 prescriptionParam.setOutHospitalId(organizeCode);
                 prescriptionParam.setCreateTime(dbRecipe.getSignDate());
-                prescriptionParam.setAttribute("{\"hospitalId\":\""+organizeCode+"\"} ");
+                prescriptionParam.setAttribute("{\"hospitalId\":\""+organizeCode+"\"}");
                 LOGGER.info("prescriptionParam 处方信息:{}.", getJsonLog(prescriptionParam));
                 prescriptionAddRequest.setPrescriptionParam(prescriptionParam);
 
