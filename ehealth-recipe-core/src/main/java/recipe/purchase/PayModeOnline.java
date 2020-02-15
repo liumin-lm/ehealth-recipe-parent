@@ -329,12 +329,7 @@ public class PayModeOnline implements IPurchaseService {
             updateTakeDrugWayReqTO.setPayFlag(recipe.getPayFlag());
             //支付方式
             updateTakeDrugWayReqTO.setPayMode("1");
-            if (recipe.getPayFlag() ==1){
-                //第三方支付交易流水号
-                updateTakeDrugWayReqTO.setTradeNo(recipe.getTradeNo());
-                //商户订单号
-                updateTakeDrugWayReqTO.setOutTradeNo(recipe.getOutTradeNo());
-                if (StringUtils.isNotEmpty(recipe.getOrderCode())){
+            if (StringUtils.isNotEmpty(recipe.getOrderCode())){
                     RecipeOrderDAO dao = DAOFactory.getDAO(RecipeOrderDAO.class);
                     RecipeOrder order = dao.getByOrderCode(recipe.getOrderCode());
                     if (order!=null){
@@ -347,7 +342,6 @@ public class PayModeOnline implements IPurchaseService {
                         updateTakeDrugWayReqTO.setAddress(commonRemoteService.getCompleteAddress(order));
                     }
                 }
-            }
             if (recipe.getClinicId() != null) {
                 updateTakeDrugWayReqTO.setClinicID(recipe.getClinicId().toString());
             }
