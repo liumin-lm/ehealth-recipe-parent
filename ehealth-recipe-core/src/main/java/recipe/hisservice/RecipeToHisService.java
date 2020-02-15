@@ -479,7 +479,7 @@ public class RecipeToHisService {
     /**
      * 处方自费预结算
      */
-    public HisResponseTO<RecipeCashPreSettleReqTO> recipeCashPreSettleHis(RecipeCashPreSettleReqTO request) {
+    public HisResponseTO<RecipeCashPreSettleInfo> recipeCashPreSettleHis(RecipeCashPreSettleReqTO request) {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.recipeCashPreSettle(request);
     }

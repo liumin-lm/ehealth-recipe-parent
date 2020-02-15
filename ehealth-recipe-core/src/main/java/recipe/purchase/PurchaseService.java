@@ -7,6 +7,7 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
@@ -27,9 +28,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.PltPurchaseResponse;
 import recipe.constant.*;
+import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.service.RecipeHisService;
 import recipe.service.RecipeListService;
 import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
@@ -168,8 +171,23 @@ public class PurchaseService {
     @RpcService
     public OrderCreateResult order(Integer recipeId, Map<String, String> extInfo) {
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
+        //预结算
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise dep = drugsEnterpriseDAO.get(depId);
+        if(dep != null && dep.getIsHosDep() != null && dep.getIsHosDep() == 1){
+            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+            Map<String,Object> scanResult = hisService.provincialCashPreSettle(recipeId);
+            if(!("200".equals(scanResult.get("code")))){
+                result.setCode(RecipeResultBean.FAIL);
+                if(scanResult.get("msg") != null){
+                    result.setMsg(scanResult.get("msg").toString());
+                }
+                return result;
+            }
+        }
+
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe dbRecipe = recipeDAO.get(recipeId);
         if (null == dbRecipe) {
             result.setCode(RecipeResultBean.FAIL);

@@ -658,38 +658,39 @@ public class RecipeHisService extends RecipeBaseService {
             request.setIdcard(patientBean.getIdcard());
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
             LOGGER.info("provincialCashPreSettle req={}", JSONUtils.toString(request));
-            HisResponseTO<RecipeCashPreSettleReqTO> hisResult = service.recipeCashPreSettleHis(request);
+            HisResponseTO<RecipeCashPreSettleInfo> hisResult = service.recipeCashPreSettleHis(request);
             if(hisResult != null && "200".equals(hisResult.getMsgCode())){
                 LOGGER.info("provincialCashPreSettle-true. result={}", JSONUtils.toString(hisResult));
                 if(hisResult.getData() != null){
-//                    //自费金额
-//                    String cashAmount = hisResult.getData().getZfje();
-//                    //医保支付金额
-//                    String fundAmount = hisResult.getData().getYbzf();
-//                    //总金额
-//                    String totalAmount = hisResult.getData().getZje();
-//                    if (StringUtils.isNotEmpty(cashAmount)&&StringUtils.isNotEmpty(fundAmount)&&StringUtils.isNotEmpty(totalAmount)){
-//                        RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-//                        if(ext != null){
-//                            ImmutableMap<String, String> map = ImmutableMap.of("preSettleTotalAmount", totalAmount, "fundAmount",fundAmount, "cashAmount", cashAmount);
-//                            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(),map);
-//                        } else {
-//                            ext = new RecipeExtend();
-//                            ext.setRecipeId(recipe.getRecipeId());
-//                            ext.setPreSettletotalAmount(totalAmount);
-//                            ext.setCashAmount(cashAmount);
-//                            ext.setFundAmount(fundAmount);
-//                            recipeExtendDAO.save(ext);
-//                        }
-//                    }
-//                    result.put("totalAmount",totalAmount);
-//                    result.put("fundAmount",fundAmount);
-//                    result.put("cashAmount",cashAmount);
+                    //自费金额
+                    String cashAmount = hisResult.getData().getZfje();
+
+                    String totalAmount = hisResult.getData().getZje();
+                    if (StringUtils.isNotEmpty(cashAmount)&&StringUtils.isNotEmpty(totalAmount)){
+                        RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                        if(ext != null){
+                            ImmutableMap<String, String> map = ImmutableMap.of("preSettleTotalAmount", totalAmount,"cashAmount", cashAmount);
+                            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(),map);
+                        } else {
+                            ext = new RecipeExtend();
+                            ext.setRecipeId(recipe.getRecipeId());
+                            ext.setPreSettletotalAmount(totalAmount);
+                            ext.setCashAmount(cashAmount);
+                            recipeExtendDAO.save(ext);
+                        }
+                    }
+                    result.put("totalAmount",totalAmount);
+                    result.put("cashAmount",cashAmount);
                 }
                 result.put("code","200");
                 //日志记录
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(),
                         recipe.getStatus(), "处方自费预结算成功");
+            } else if(hisResult != null && "0".equals(hisResult.getMsgCode())){
+                result.put("code","200");
+                //日志记录
+                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(),
+                        recipe.getStatus(), "处方自费预结算成功，无返回值");
             }else{
                 LOGGER.error("provincialCashPreSettle-fail. result={}", JSONUtils.toString(hisResult));
                 if(hisResult != null){
