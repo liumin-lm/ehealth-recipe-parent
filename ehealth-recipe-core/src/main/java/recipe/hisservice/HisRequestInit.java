@@ -448,7 +448,7 @@ public class HisRequestInit {
             RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
             RecipeOrder order = orderDAO.getByOrderCode(recipe.getOrderCode());
             //省医保订单新增逻辑
-            if(order != null && order.getOrderType() == 1){
+            if(order != null && order.getOrderType() == null && order.getOrderType() == 1){
                 requestTO.setIsMedicalSettle("1");
                 if("40".equals(order.getWxPayWay())){
                     requestTO.setPayType("C");
