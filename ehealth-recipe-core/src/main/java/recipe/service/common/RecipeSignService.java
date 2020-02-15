@@ -326,6 +326,7 @@ public class RecipeSignService {
      */
     @RpcService
     public void canOpenRecipeDrugs(Integer recipeId,List<Integer> drugIds,Integer giveMode){
+        LOG.info("RecipeSignService.canOpenRecipeDrugs recipeId:{},drugIds:{},giveMode:{}.", recipeId, JSONUtils.toString(drugIds), giveMode);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (recipe == null){
             throw new DAOException(ErrorCode.SERVICE_ERROR,"该处方不存在");
