@@ -10,6 +10,8 @@ import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -585,10 +587,19 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             nowHdDrugDTO.setSpecification(nowDetail.getDrugSpec());
             nowHdDrugDTO.setTotal(null == nowDetail.getUseTotalDose() ? useTotalDoseDefault : nowDetail.getUseTotalDose().toString());
             nowHdDrugDTO.setUsingDays(null == nowDetail.getUseDays() ? useMsgDefault : nowDetail.getUseDays().toString());
-            nowHdDrugDTO.setUsingRate(null == nowDetail.getUsingRate() ? useMsgDefault : nowDetail.getUsingRate().toString());
+            //nowHdDrugDTO.setUsingRate(null == nowDetail.getUsingRate() ? useMsgDefault : nowDetail.getUsingRate().toString());
             nowHdDrugDTO.setUsePathways(null == nowDetail.getUsePathways() ? useMsgDefault : nowDetail.getUsePathways().toString());
             nowHdDrugDTO.setMemo(nowDetail.getMemo());
             nowHdDrugDTO.setUseDose(nowDetail.getUseDose() + nowDetail.getUseDoseUnit());
+
+            try {
+                String usingRate = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(nowDetail.getUsingRate());
+                nowHdDrugDTO.setUsingRate(usingRate);
+            } catch (ControllerException e) {
+                LOGGER.warn("HdRemoteService.pushRecipeInfo:处方细节ID为{}.", nowDetail.getRecipeDetailId());
+                getFailResult(result, "药品频率出错");
+                return result;
+            }
 
             if(null == nowDetail.getRecipeDetailId()){
                 LOGGER.warn("HdRemoteService.pushRecipeInfo:当前处方细节id不存在");
@@ -752,6 +763,22 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         sendHdRecipe.setPatientTelpatient(patient.getMobile());
         sendHdRecipe.setCertificate(patient.getCertificate());
         sendHdRecipe.setCertificateType(null == patient.getCertificateType() ? certificateTypeDefault : patient.getCertificateType().toString());
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        try{
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(nowRecipe.getOrderCode());
+            if (recipeOrder != null) {
+                String province = getAddressDic(recipeOrder.getAddress1());
+                String city = getAddressDic(recipeOrder.getAddress2());
+                String district = getAddressDic(recipeOrder.getAddress3());
+                String street = recipeOrder.getAddress4();
+                sendHdRecipe.setProvince(province);
+                sendHdRecipe.setCity(city);
+                sendHdRecipe.setDistrict(district);
+                sendHdRecipe.setStreet(street);
+            }
+        }catch(Exception e){
+            LOGGER.info("HdRemoteService.assemblePatientMsg error:{}.", e.getMessage());
+        }
 
         return result;
     }
@@ -1328,6 +1355,22 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             pharmacyDetailPage.add(newDepDetailBean);
         }
         return pharmacyDetailPage;
+    }
+
+    /**
+     * 获取区域文本
+     * @param area 区域
+     * @return     区域文本
+     */
+    private String getAddressDic(String area) {
+        if (StringUtils.isNotEmpty(area)) {
+            try {
+                return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
+            } catch (ControllerException e) {
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area);
+            }
+        }
+        return "";
     }
 
     public String getDrugEnterpriseCallSys() {
