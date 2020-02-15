@@ -217,6 +217,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "医保结算人脸识别token")
     private String smkFaceToken;
 
+    @ItemProperty(alias = "订单类型，暂定1表示省医保")
+    private Integer orderType;
+
     @Column(name = "cancelReason")
     public String getCancelReason() {
         return cancelReason;
@@ -797,5 +800,14 @@ public class RecipeOrder implements Serializable {
 
     public void setTransFeeDetail(String transFeeDetail) {
         this.transFeeDetail = transFeeDetail;
+    }
+
+    @Column(name = "orderType")
+    public Integer getOrderType() {
+        return orderType;
+    }
+
+    public void setOrderType(Integer orderType) {
+        this.orderType = orderType;
     }
 }

@@ -212,6 +212,9 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "医保结算人脸识别token")
     private String smkFaceToken;
 
+    @ItemProperty(alias = "订单类型，暂定1表示省医保")
+    private Integer orderType;
+
     public RecipeOrderBean() {
         initData();
     }
@@ -231,6 +234,14 @@ public class RecipeOrderBean implements Serializable {
         this.setCreateTime(now);
         this.setAuditFee(zero);
         this.setOtherFee(zero);
+    }
+
+    public Integer getOrderType() {
+        return orderType;
+    }
+
+    public void setOrderType(Integer orderType) {
+        this.orderType = orderType;
     }
 
     public String getCouponDesc() {
