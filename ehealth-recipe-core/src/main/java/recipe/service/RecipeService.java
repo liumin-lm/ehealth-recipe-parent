@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -2586,6 +2587,7 @@ public class RecipeService extends RecipeBaseService{
     //2020春节代码添加
     @RpcService
     public Boolean recipeCanDelivery(RecipeBean recipe, List<RecipeDetailBean> details){
+        LOGGER.error("recipeCanDelivery 查询处方是否可配送入参：{},{}.", JSON.toJSONString(recipe), JSON.toJSONString(details));
         boolean flag = false;
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
@@ -2633,32 +2635,34 @@ public class RecipeService extends RecipeBaseService{
             if (CollectionUtils.isEmpty(payModeSupport)) {
                 LOGGER.error("recipeCanDelivery 处方[{}]的开方机构{}没有配置配送药企.", recipeId, recipe.getClinicOrgan());
                 return false;
+            }else{
+                LOGGER.error("recipeCanDelivery 处方[{}]的开方机构{}获取到配置配送药企：{}.", recipeId, recipe.getClinicOrgan(), JSON.toJSONString(drugsEnterprises));
             }
             RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
             YtRemoteService ytRemoteService;
             HdRemoteService hdRemoteService;
             for(DrugsEnterprise drugsEnterprise : drugsEnterprises){
                 AccessDrugEnterpriseService enterpriseService = service.getServiceByDep(drugsEnterprise);
-                if(null != enterpriseService){
+                if(null == enterpriseService){
                     LOGGER.error("recipeCanDelivery 当前药企没有对接{}.", enterpriseService);
                     continue;
                 }
                 if(DrugEnterpriseConstant.COMPANY_YT.equals(drugsEnterprise.getCallSys())){
                     ytRemoteService = (YtRemoteService) enterpriseService;
-                    LOGGER.error("recipeCanDelivery 处方[{}]请求药企{}库存", recipeId, drugsEnterprise);
+                    LOGGER.error("recipeCanDelivery 处方[{}]请求药企{}库存", recipeId, drugsEnterprise.getCallSys());
                     if(ytRemoteService.scanStockSend(recipeId, drugsEnterprise)){
                         return true;
                     }
 
                 }else if (DrugEnterpriseConstant.COMPANY_HDDYF.equals(drugsEnterprise.getCallSys())){
                     hdRemoteService = (HdRemoteService) enterpriseService;
-                    LOGGER.error("recipeCanDelivery 处方[{}]请求药企{}库存", recipeId, drugsEnterprise);
+                    LOGGER.error("recipeCanDelivery 处方[{}]请求药企{}库存", recipeId, drugsEnterprise.getCallSys());
                     if(hdRemoteService.sendScanStock(recipeId, drugsEnterprise, DrugEnterpriseResult.getFail())){
                         return true;
                     }
 
                 }else{
-                    LOGGER.error("recipeCanDelivery 处方[{}]请求药企{}库存", recipeId, drugsEnterprise);
+                    LOGGER.error("recipeCanDelivery 处方[{}]请求药企{}库存", recipeId, drugsEnterprise.getCallSys());
                     if(service.scanStock(recipeId, drugsEnterprise)){
                         return true;
                     }

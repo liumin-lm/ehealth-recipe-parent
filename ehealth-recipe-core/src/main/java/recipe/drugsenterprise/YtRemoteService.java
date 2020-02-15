@@ -937,7 +937,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
     }
 
     public boolean scanStockSend(Integer recipeId, DrugsEnterprise drugsEnterprise){
-
+        LOGGER.warn("scanStockSend校验英特库存处方{}请求中", recipeId);
         boolean checkScan =false;
 
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -961,7 +961,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         String store_code = organId + "_" + "yt_store_code";
         String storeCode = recipeParameterDao.getByName(store_code);
         if(StringUtils.isNotEmpty(storeCode)){
-            LOGGER.info("scanStockSend校验英特库存：当前医院配置配送药企code{}", storeCode);
+            LOGGER.info("scanStockSend校验英特库存：当前医院配置配送药企code{}，处方id{}", storeCode, recipeId);
             Pharmacy pharmacy = new Pharmacy();
             pharmacy.setPharmacyCode(storeCode);
             GroupSumResult groupSumResult = checkDrugListByDeil(drugGroup, drugsEnterprise, null, DrugEnterpriseResult.getSuccess(), pharmacy, false);
