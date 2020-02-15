@@ -738,6 +738,7 @@ public class RecipeListService extends RecipeBaseService{
 
     @RpcService
     public List<PatientTabStatusRecipeDTO> findRecipesForPatientAndTabStatus(String tabStatus, String mpiId, Integer index, Integer limit) {
+        LOGGER.info("findRecipesForPatientAndTabStatus tabStatus:{} mpiId:{} ", tabStatus, mpiId);
         List<PatientTabStatusRecipeDTO> recipeList = new ArrayList<>();
         Assert.hasLength(mpiId, "findRecipesForPatientAndTabStatus 用户id为空!");
         checkUserHasPermissionByMpiId(mpiId);

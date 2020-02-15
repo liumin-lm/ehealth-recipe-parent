@@ -660,6 +660,9 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 //只有当某一家药店有所有处方详情下的药品并且库存不超过，查询库存的结果设为成功
                 if(groupSumResult.getComplacentNum() >= drugGroup.size()){
                     checkScan = true;
+                    //添加库存足够的药企信息和对应的药店信息
+                    result.setDrugsEnterprise(drugsEnterprise);
+                    result.setObject(pharmacy.getPharmacyId());
                     break;
                 }
             }
@@ -931,5 +934,44 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
 
     public String getDrugEnterpriseCallSys() {
         return DrugEnterpriseConstant.COMPANY_YT;
+    }
+
+    public boolean scanStockSend(Integer recipeId, DrugsEnterprise drugsEnterprise){
+
+        boolean checkScan =false;
+
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe nowRecipe = recipeDAO.get(recipeId);
+        if(null == nowRecipe){
+            LOGGER.warn("scanStockSend校验英特库存：当前处方不存在{}", recipeId);
+            return checkScan;
+        }
+
+        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        List<Recipedetail> detailList = detailDAO.findByRecipeId(nowRecipe.getRecipeId());
+        Map<Integer, DetailDrugGroup> drugGroup = getDetailGroup(detailList);
+        if(null == drugGroup || 0 >= drugGroup.size()){
+            LOGGER.warn("scanStockSend校验英特库存：当前处方药品信息不存在{}", recipeId);
+            return checkScan;
+        }
+
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        //根据机构_yt_store_code获取配送药店
+        Integer organId = nowRecipe.getClinicOrgan();
+        String store_code = organId + "_" + "yt_store_code";
+        String storeCode = recipeParameterDao.getByName(store_code);
+        if(StringUtils.isNotEmpty(storeCode)){
+            LOGGER.info("scanStockSend校验英特库存：当前医院配置配送药企code{}", storeCode);
+            Pharmacy pharmacy = new Pharmacy();
+            pharmacy.setPharmacyCode(storeCode);
+            GroupSumResult groupSumResult = checkDrugListByDeil(drugGroup, drugsEnterprise, null, DrugEnterpriseResult.getSuccess(), pharmacy, false);
+            //只有当某一家药店有所有处方详情下的药品并且库存不超过，查询库存的结果设为成功
+            if(groupSumResult.getComplacentNum() >= drugGroup.size()){
+                checkScan = true;
+            }
+        }else{
+            LOGGER.info("scanStockSend校验英特库存：当前医院没有配置配送药企{}", organId);
+        }
+        return checkScan;
     }
 }
