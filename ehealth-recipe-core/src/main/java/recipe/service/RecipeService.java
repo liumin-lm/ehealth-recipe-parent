@@ -908,6 +908,7 @@ public class RecipeService extends RecipeBaseService{
             throw new DAOException(ErrorCode.SERVICE_ERROR, "药品详情数据有误");
         }
         //将原先处方单详情的记录都置为无效 status=0
+
         recipeDetailDAO.updateDetailInvalidByRecipeId(recipeId);
         Integer dbRecipeId = recipeDAO.updateOrSaveRecipeAndDetail(dbRecipe, recipedetails, true);
 
@@ -2581,6 +2582,16 @@ public class RecipeService extends RecipeBaseService{
         }
         LOGGER.info("getOrderIdByRecipe当前处方没有关联上订单");
         return null;
+    }
+
+    //根据recipeId 判断有没有关联处方是否支持配送
+    //2020春节代码添加
+    @RpcService
+    public Boolean recipeCanDelivery(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList){
+        if(Math.random()*10 > 5){
+            return false;
+        }
+        return true;
     }
 
 }
