@@ -278,14 +278,17 @@ public class PayModeOnline implements IPurchaseService {
         }
         //选择配送到家后调用更新取药方式-配送信息
         RecipeBusiThreadPool.submit(()->{
-            updateGoodsReceivingInfo(dbRecipe);
+            updateGoodsReceivingInfo(dbRecipe.getRecipeId());
             return null;
         });
         return result;
     }
 
-    private void updateGoodsReceivingInfo(Recipe recipe) {
+    private void updateGoodsReceivingInfo(Integer recipeId) {
         try{
+
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             //杭州市三除外
             if (StringUtils.isNotEmpty(recipe.getOrganName())&&recipe.getOrganName().contains("杭州市第三人民医院")){
                 return;
