@@ -174,7 +174,7 @@ public class PurchaseService {
 
         //预结算
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise dep = drugsEnterpriseDAO.get(depId);
+        DrugsEnterprise dep = drugsEnterpriseDAO.get(MapValueUtil.getInteger(extInfo, "depId"));
         if(dep != null && dep.getIsHosDep() != null && dep.getIsHosDep() == 1){
             RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
             Map<String,Object> scanResult = hisService.provincialCashPreSettle(recipeId);
