@@ -336,7 +336,7 @@ public class PayModeOnline implements IPurchaseService {
                         //收货人
                         updateTakeDrugWayReqTO.setConsignee(order.getReceiver());
                         //联系电话
-                        updateTakeDrugWayReqTO.setContactTel(order.getRecTel());
+                        updateTakeDrugWayReqTO.setContactTel(order.getRecMobile());
                         //收货地址
                         CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
                         updateTakeDrugWayReqTO.setAddress(commonRemoteService.getCompleteAddress(order));
