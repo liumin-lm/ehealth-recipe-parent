@@ -127,5 +127,13 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
     @DAOMethod(sql = "select recipeId from RecipeExtend where rxNo=:rxNo")
     public abstract List<Integer> findRecipeIdsByRxNo(@DAOParam("rxNo") String rxNo);
 
+    /**
+     * 根据处方id更新医保金额为空
+     *
+     * @param recipeId
+     */
+    @DAOMethod(sql = "update RecipeExtend set preSettleTotalAmount=null ,fundAmount= null, cashAmount = null where recipeId=:recipeId")
+    public abstract void updatefundAmountToNullByRecipeId(@DAOParam("recipeId") int recipeId);
+
 
 }

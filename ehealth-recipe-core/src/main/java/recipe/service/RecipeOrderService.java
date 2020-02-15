@@ -1110,6 +1110,10 @@ public class RecipeOrderService extends RecipeBaseService {
                     //更新处方的orderCode
                     RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
                     recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode());
+                    //清除医保金额
+                    RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
+                    List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+                    recipeExtendDAO.updatefundAmountToNullByRecipeId(recipeIdList.get(0));
                 }
             }
         }
