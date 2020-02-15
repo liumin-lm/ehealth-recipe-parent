@@ -8,11 +8,9 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.EmploymentDTO;
-import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.platform.recipe.mode.HospitalRecipeBean;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
@@ -31,10 +29,8 @@ import recipe.dao.RecipeDAO;
 import recipe.service.HisCallBackService;
 import recipe.service.RecipeCheckService;
 import recipe.service.RecipeLogService;
-import recipe.service.RecipeService;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -223,7 +219,12 @@ public class RecipeToHisService {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("payNotify request={}", JSONUtils.toString(request));
         try {
-            PayNotifyResTO response = hisService.payNotify(request);
+            PayNotifyResTO response = null;
+            if("1".equals(request.getIsMedicalSettle())){
+                response = hisService.recipeMedicalSettle(request);
+            } else{
+                response = hisService.payNotify(request);
+            }
             LOGGER.info("payNotify response={}", JSONUtils.toString(response));
             return response;
         } catch (Exception e) {
@@ -474,4 +475,13 @@ public class RecipeToHisService {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.recipeMedicalPreSettleN(request);
     }
+
+    /**
+     * 处方自费预结算
+     */
+    public HisResponseTO<RecipeCashPreSettleReqTO> recipeCashPreSettleHis(RecipeCashPreSettleReqTO request) {
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        return hisService.recipeCashPreSettle(request);
+    }
+
 }
