@@ -417,6 +417,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         sendYtRecipe.setSource(ytSource);
         sendYtRecipe.setRecipeId(nowRecipe.getRecipeId());
         sendYtRecipe.setDiagnose(nowRecipe.getOrganDiseaseName());
+        sendYtRecipe.setRecipeType(nowRecipe.getRecipeType());
     }
 
     /**
