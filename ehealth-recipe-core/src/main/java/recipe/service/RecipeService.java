@@ -2609,19 +2609,20 @@ public class RecipeService extends RecipeBaseService{
 
         recipe.setStatus(RecipeStatusConstant.UNSIGN);
         recipe.setSignDate(DateTime.now().toDate());
-        Integer recipeId = recipe.getRecipeId();
+        recipe.setChooseFlag(0);
+        recipe.setRemindFlag(0);
+        recipe.setPushFlag(0);
+        recipe.setTakeMedicine(0);
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
-        if (null != recipeId && recipeId > 0) {
-            Integer status = recipeDAO.getStatusByRecipeId(recipeId);
-            if (null == status || status > RecipeStatusConstant.UNSIGN) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "处方单已处理,不能重复签名");
-            }
-
-            updateRecipeAndDetail(recipe, details);
-        } else {
-            recipeId = saveRecipeData(recipe, details);
-            recipe.setRecipeId(recipeId);
+        if(null == recipe || null == details || 0 == details.size()){
+            LOGGER.error("recipeCanDelivery 当前处方或者药品信息不全：{},{}.", JSON.toJSONString(recipe), JSON.toJSONString(details));
+            return false;
         }
+        for (RecipeDetailBean recipedetail :details){
+            recipedetail.setDrugUnit(null == recipedetail.getDrugUnit() ? "" : recipedetail.getDrugUnit());
+            recipedetail.setStatus(1);
+        }
+        Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(ObjectCopyUtils.convert(recipe, Recipe.class), ObjectCopyUtils.convert(details, Recipedetail.class), false);
 
         boolean checkEnterprise = drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan());
         if (checkEnterprise) {
