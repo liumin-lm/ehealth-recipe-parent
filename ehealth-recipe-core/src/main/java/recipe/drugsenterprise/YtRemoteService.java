@@ -989,7 +989,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             LOGGER.info("scanStockSend校验英特库存：当前医院配置配送药企code{}，处方id{}", storeCode, recipeId);
             Pharmacy pharmacy = new Pharmacy();
             pharmacy.setPharmacyCode(storeCode);
-            GroupSumResult groupSumResult = checkDrugListByDeil(drugGroup, drugsEnterprise, null, DrugEnterpriseResult.getSuccess(), pharmacy, false);
+            GroupSumResult groupSumResult = checkDrugListByDeil(drugGroup, drugsEnterprise, null, DrugEnterpriseResult.getSuccess(), pharmacy, false, recipeId);
             //只有当某一家药店有所有处方详情下的药品并且库存不超过，查询库存的结果设为成功
             if(groupSumResult.getComplacentNum() >= drugGroup.size()){
                 checkScan = true;
