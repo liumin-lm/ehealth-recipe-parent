@@ -6,7 +6,7 @@
     <parent>
         <artifactId>ehealth-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>1.17.0.master-SNAPSHOT</version>
+        <version>1.17.1.hotfix-20200212-SNAPSHOT</version>
     </parent>
 
     <packaging>jar</packaging>

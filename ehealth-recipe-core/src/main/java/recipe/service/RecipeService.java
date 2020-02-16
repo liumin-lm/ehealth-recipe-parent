@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -59,9 +60,7 @@ import recipe.bussutil.RecipeValidateUtil;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
-import recipe.drugsenterprise.AccessDrugEnterpriseService;
-import recipe.drugsenterprise.CommonRemoteService;
-import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.SyncExecutorService;
@@ -908,6 +907,7 @@ public class RecipeService extends RecipeBaseService{
             throw new DAOException(ErrorCode.SERVICE_ERROR, "药品详情数据有误");
         }
         //将原先处方单详情的记录都置为无效 status=0
+
         recipeDetailDAO.updateDetailInvalidByRecipeId(recipeId);
         Integer dbRecipeId = recipeDAO.updateOrSaveRecipeAndDetail(dbRecipe, recipedetails, true);
 
@@ -2580,6 +2580,116 @@ public class RecipeService extends RecipeBaseService{
         }
         LOGGER.info("getOrderIdByRecipe当前处方没有关联上订单");
         return null;
+    }
+
+
+    //根据recipeId 判断有没有关联的订单，有订单返回相关的订单id
+    //2020春节代码添加
+    @RpcService
+    public Integer getOrderIdByRecipe(Integer recipeId){
+        LOGGER.info("getOrderIdByRecipe查询处方关联订单，处方id:{}", recipeId);
+        //根据recipeId将对应的订单获得，有就返回订单id没有就不返回
+        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrder order = orderDAO.getRelationOrderByRecipeId(recipeId);
+        if(null != order){
+            LOGGER.info("getOrderIdByRecipe当前处方关联上订单");
+            return order.getOrderId();
+        }
+        LOGGER.info("getOrderIdByRecipe当前处方没有关联上订单");
+        return null;
+    }
+
+    //根据recipeId 判断有没有关联处方是否支持配送
+    //2020春节代码添加
+    @RpcService
+    public Boolean recipeCanDelivery(RecipeBean recipe, List<RecipeDetailBean> details){
+        LOGGER.error("recipeCanDelivery 查询处方是否可配送入参：{},{}.", JSON.toJSONString(recipe), JSON.toJSONString(details));
+        boolean flag = false;
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
+
+        Map<String, Object> rMap = Maps.newHashMap();
+        PatientDTO patient = patientService.get(recipe.getMpiid());
+        //解决旧版本因为wx2.6患者身份证为null，而业务申请不成功
+        if (patient == null || StringUtils.isEmpty(patient.getCertificate())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "该患者还未填写身份证信息，不能开处方");
+        }
+        // 就诊人改造：为了确保删除就诊人后历史处方不会丢失，加入主账号用户id
+        PatientDTO requestPatient = patientService.getOwnPatientForOtherProject(patient.getLoginId());
+        if (null != requestPatient && null != requestPatient.getMpiId()) {
+            recipe.setRequestMpiId(requestPatient.getMpiId());
+            // urt用于系统消息推送
+            recipe.setRequestUrt(requestPatient.getUrt());
+        }
+
+        recipe.setStatus(RecipeStatusConstant.UNSIGN);
+        recipe.setSignDate(DateTime.now().toDate());
+        Integer recipeId = recipe.getRecipeId();
+        //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
+        if (null != recipeId && recipeId > 0) {
+            Integer status = recipeDAO.getStatusByRecipeId(recipeId);
+            if (null == status || status > RecipeStatusConstant.UNSIGN) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "处方单已处理,不能重复签名");
+            }
+
+            updateRecipeAndDetail(recipe, details);
+        } else {
+            recipeId = saveRecipeData(recipe, details);
+            recipe.setRecipeId(recipeId);
+        }
+
+        boolean checkEnterprise = drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan());
+        if (checkEnterprise) {
+            //药企库存实时查询
+            //首先获取机构匹配支持配送的药企列表
+            List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_ONLINE);
+            payModeSupport.addAll(RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_ONLINE));
+
+            DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
+            //筛选出来的数据已经去掉不支持任何方式配送的药企
+            List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(recipe.getClinicOrgan(), payModeSupport);
+            if (CollectionUtils.isEmpty(payModeSupport)) {
+                LOGGER.error("recipeCanDelivery 处方[{}]的开方机构{}没有配置配送药企.", recipeId, recipe.getClinicOrgan());
+                return false;
+            }else{
+                LOGGER.error("recipeCanDelivery 处方[{}]的开方机构{}获取到配置配送药企：{}.", recipeId, recipe.getClinicOrgan(), JSON.toJSONString(drugsEnterprises));
+            }
+            RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+            YtRemoteService ytRemoteService;
+            HdRemoteService hdRemoteService;
+            for(DrugsEnterprise drugsEnterprise : drugsEnterprises){
+                AccessDrugEnterpriseService enterpriseService = service.getServiceByDep(drugsEnterprise);
+                if(null == enterpriseService){
+                    LOGGER.error("recipeCanDelivery 当前药企没有对接{}.", enterpriseService);
+                    continue;
+                }
+                if(DrugEnterpriseConstant.COMPANY_YT.equals(drugsEnterprise.getCallSys())){
+                    ytRemoteService = (YtRemoteService) enterpriseService;
+                    LOGGER.error("recipeCanDelivery 处方[{}]请求药企{}库存", recipeId, drugsEnterprise.getCallSys());
+                    if(ytRemoteService.scanStockSend(recipeId, drugsEnterprise)){
+                        return true;
+                    }
+
+                }else if (DrugEnterpriseConstant.COMPANY_HDDYF.equals(drugsEnterprise.getCallSys())){
+                    hdRemoteService = (HdRemoteService) enterpriseService;
+                    LOGGER.error("recipeCanDelivery 处方[{}]请求药企{}库存", recipeId, drugsEnterprise.getCallSys());
+                    if(hdRemoteService.sendScanStock(recipeId, drugsEnterprise, DrugEnterpriseResult.getFail())){
+                        return true;
+                    }
+
+                }else{
+                    LOGGER.error("recipeCanDelivery 处方[{}]请求药企{}库存", recipeId, drugsEnterprise.getCallSys());
+                    if(service.scanStock(recipeId, drugsEnterprise)){
+                        return true;
+                    }
+                }
+
+            }
+
+
+
+        }
+        return false;
     }
 
 }
