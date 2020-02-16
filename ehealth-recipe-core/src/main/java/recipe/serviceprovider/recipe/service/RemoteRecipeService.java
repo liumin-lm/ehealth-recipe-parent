@@ -392,16 +392,19 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                                 recipeMsgMap.put("detailDrugPrice", organDrugList.getSalePrice());
                                 if(null != order){
                                     LOGGER.info("findRecipeOrdersByInfoForExcel查询处方配送药品信息:DrugId{},OrganId{}", recipeDetailBean.getDrugId(), order.getEnterpriseId());
-                                    saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), order.getEnterpriseId());
-                                    LOGGER.info("findRecipeOrdersByInfoForExcel查询处方配送药品信息,{}", JSONUtils.toString(saleDrugList));
-                                    if(null != saleDrugList && null != saleDrugList.getPrice()){
-                                        //价格
-                                        //有订单，判断订单对应的药品是否是药企的药品价格
-                                        recipeMsgMap.put("detailDrugPrice", saleDrugList.getPrice());
-                                    }
-                                    if(null != saleDrugList){
-                                        //药企药品编码
-                                        recipeMsgMap.put("saleDrugCode", saleDrugList.getOrganDrugCode());
+                                    if(null != order.getEnterpriseId()){
+
+                                        saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), order.getEnterpriseId());
+                                        LOGGER.info("findRecipeOrdersByInfoForExcel查询处方配送药品信息,{}", JSONUtils.toString(saleDrugList));
+                                        if(null != saleDrugList && null != saleDrugList.getPrice()){
+                                            //价格
+                                            //有订单，判断订单对应的药品是否是药企的药品价格
+                                            recipeMsgMap.put("detailDrugPrice", saleDrugList.getPrice());
+                                        }
+                                        if(null != saleDrugList){
+                                            //药企药品编码
+                                            recipeMsgMap.put("saleDrugCode", saleDrugList.getOrganDrugCode());
+                                        }
                                     }
                                 }
                             }
