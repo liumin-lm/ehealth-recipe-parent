@@ -218,13 +218,13 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
      * @return recipe.bean.DrugEnterpriseResult
      */
     @RpcService
-    public DrugEnterpriseResult recipeMedicalPreSettle(Integer recipeId) {
+    public DrugEnterpriseResult recipeMedicalPreSettle(Integer recipeId, Integer depId) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
 
         DrugsEnterpriseDAO drugEnterpriseDao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugEnterprise = drugEnterpriseDao.get(recipe.getEnterpriseId());
+        DrugsEnterprise drugEnterprise = drugEnterpriseDao.get(depId);
         if(drugEnterprise != null && "hzInternet".equals(drugEnterprise.getAccount())){
             HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
             //杭州市互联网医院监管中心 管理单元eh3301
@@ -300,7 +300,7 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
                 LOGGER.error("患者医保卡号为null,患者：{}",recipe.getPatientName());
             }
         }  else{
-            LOGGER.info("非杭州互联网药企不走杭州医保预结算,药企：{}",recipe.getEnterpriseId());
+            LOGGER.info("非杭州互联网药企不走杭州医保预结算,药企ID：{}",depId);
         }
 
         return result;
