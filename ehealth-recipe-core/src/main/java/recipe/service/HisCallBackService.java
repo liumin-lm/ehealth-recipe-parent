@@ -121,11 +121,13 @@ public class HisCallBackService {
                 if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
                     status = RecipeStatusConstant.CHECK_PASS_YS;
                     memo = "HIS审核返回：写入his成功，药师审核通过";
-                } else {
+                }
+
+               /* else {
                     //可以进行医保支付，先去药师进行审核
                     status = RecipeStatusConstant.READY_CHECK_YS;
                     memo = "HIS审核返回：写入his成功，待药师审核";
-                }
+                }*/
                 attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_SEND_TO_HOME);
             }
 
