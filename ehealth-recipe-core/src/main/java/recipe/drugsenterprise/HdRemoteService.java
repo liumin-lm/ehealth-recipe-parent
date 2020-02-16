@@ -886,6 +886,11 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 //当相应状态为200时返回json
                 HttpEntity httpEntity = response.getEntity();
                 String responseStr = EntityUtils.toString(httpEntity);
+                if (StringUtils.isNotEmpty(requestStr) && responseStr.contains("401") && responseStr.contains("false")) {
+                    LOGGER.info("HdRemoteService-scanStock 重新获取token .");
+                    tokenUpdateImpl(drugsEnterprise);
+                    sendScanStock(recipeId,drugsEnterprise,result);
+                }
                 LOGGER.info("HdRemoteService-scanStock sendScanStock responseStr:{}.", responseStr);
                 JSONObject jsonObject = JSONObject.parseObject(responseStr);
                 List drugList = (List)jsonObject.get("drugList");
