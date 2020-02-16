@@ -940,11 +940,34 @@ public class DrugToolService implements IDrugToolService {
                 if (isHaveOrganId) {
                     drugList.setSourceOrgan(organId);
                 }
-                drugListDAO.save(drugList);
+                DrugList save = drugListDAO.save(drugList);
+                if (save != null){
+                    //更新为已匹配，将已标记上传的药品自动关联上
+                    //判断更新成已匹配还是匹配中
+                    Integer status;
+                    if (isHaveReulationId(organId)&&StringUtils.isEmpty(drugListMatch.getRegulationDrugCode())){
+                        //匹配中
+                        status = 4;
+                    }else {
+                        //已匹配
+                        status = 1;
+                    }
+                    drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(),ImmutableMap.of("status", status,"matchDrugId",save.getDrugId()));
+                }
             }
             return data.size();
         }
         return 0;
+    }
+
+    private boolean isHaveReulationId(Integer organId) {
+        String addrArea = checkOrganAddrArea(organId);
+        Long provinceDrugNum = provinceDrugListDAO.getCountByProvinceIdAndStatus(addrArea, 1);
+        //更新药品状态成匹配中
+        if(0L < provinceDrugNum){
+            return true;
+        }
+        return false;
     }
 
     /**
