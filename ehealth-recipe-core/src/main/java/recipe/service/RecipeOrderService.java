@@ -661,7 +661,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 if (recipeExtend!=null){
                     //医保金额
                     String fundAmount = recipeExtend.getFundAmount();
-                    if (order.getOrderType() != null && order.getOrderType()==1 &&StringUtils.isNotEmpty(fundAmount)){
+                    if (StringUtils.isNotEmpty(fundAmount)){
                         order.setActualPrice(order.getTotalFee().subtract(new BigDecimal(fundAmount)).stripTrailingZeros().doubleValue());
                     }
                 }
@@ -1110,6 +1110,10 @@ public class RecipeOrderService extends RecipeBaseService {
                     //更新处方的orderCode
                     RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
                     recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode());
+                    //清除医保金额
+                    RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
+                    List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+                    recipeExtendDAO.updatefundAmountToNullByRecipeId(recipeIdList.get(0));
                 }
             }
         }

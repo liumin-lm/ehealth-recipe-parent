@@ -329,7 +329,20 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
                 detailInfo.put("qty", detail.getUseTotalDose());
                 detailInfoList.add(detailInfo);
             }
-
+            //记录国药药品日志
+            try{
+                if (recipe.getStatus() == 0) {
+                    StringBuilder msg = new StringBuilder("药企名称:" + drugEpName + ",");
+                    for (Recipedetail recipedetail : detailList) {
+                        msg.append(" 药品名称:" + recipedetail.getDrugName() + ",药品编码:"+ recipedetail.getDrugId());
+                    }
+                    msg.append(",处方单号:" + recipeId);
+                    LOGGER.info("CommonRemoteService.scanStock:{}", msg.toString());
+                    RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), msg.toString());
+                }
+            }catch(Exception e){
+                LOGGER.error("CommonRemoteService.checkDrugListByDeil error:{},{}.", recipeId, e.getMessage());
+            }
             sendMap.put("access_token", drugsEnterprise.getToken());
             sendMap.put("action", method);
             sendMap.put("data", recipeInfo);

@@ -447,9 +447,14 @@ public class HisRequestInit {
         if(recipe.getOrderCode() != null){
             RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
             RecipeOrder order = orderDAO.getByOrderCode(recipe.getOrderCode());
-            //省医保订单新增逻辑
-            if(order != null && order.getOrderType() != null && order.getOrderType() == 1){
-                requestTO.setIsMedicalSettle("1");
+
+            if (order != null ) {
+                //省医保订单新增逻辑
+                if (order.getOrderType() != null) {
+                    requestTO.setIsMedicalSettle("1");
+                } else {
+                    requestTO.setIsMedicalSettle("0");
+                }
                 if("40".equals(order.getWxPayWay())){
                     requestTO.setPayType("C");
                 } else {

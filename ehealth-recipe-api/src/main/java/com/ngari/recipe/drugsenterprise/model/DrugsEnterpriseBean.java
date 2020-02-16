@@ -78,6 +78,9 @@ public class DrugsEnterpriseBean implements Serializable {
     @FileToken(expires = 3600)
     private String transFeeDetail;
 
+    @ItemProperty(alias = "是否医院类型药企：1医院结算药企，0普通药企")
+    private Integer isHosDep;
+
     public DrugsEnterpriseBean() {
     }
 
@@ -229,4 +232,13 @@ public class DrugsEnterpriseBean implements Serializable {
     public void setTransFeeDetail(String transFeeDetail) {
         this.transFeeDetail = transFeeDetail;
     }
+
+    public Integer getIsHosDep() {
+        return isHosDep;
+    }
+
+    public void setIsHosDep(Integer isHosDep) {
+        this.isHosDep = isHosDep;
+    }
+
 }

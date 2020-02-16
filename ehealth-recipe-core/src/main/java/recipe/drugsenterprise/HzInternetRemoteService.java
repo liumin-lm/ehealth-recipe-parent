@@ -273,11 +273,17 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
                         if(ext != null){
                             recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("registerNo", hisResult.getData().getGhxh()));
                             recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("hisSettlementNo", hisResult.getData().getSjh()));
+                            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("preSettleTotalAmount", hisResult.getData().getZje()));
+                            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("fundAmount", hisResult.getData().getYbzf()));
+                            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("cashAmount", hisResult.getData().getYfje()));
                         } else {
                             ext = new RecipeExtend();
                             ext.setRecipeId(recipe.getRecipeId());
                             ext.setRegisterNo(hisResult.getData().getGhxh());
                             ext.setHisSettlementNo(hisResult.getData().getSjh());
+                            ext.setPreSettletotalAmount(hisResult.getData().getZje());
+                            ext.setFundAmount(hisResult.getData().getYbzf());
+                            ext.setCashAmount(hisResult.getData().getYfje());
                             recipeExtendDAO.save(ext);
                         }
                     }

@@ -9,6 +9,8 @@ import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -33,6 +35,7 @@ import recipe.common.CommonConstant;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
+import recipe.service.RecipeLogService;
 import recipe.service.common.RecipeCacheService;
 import recipe.third.IFileDownloadService;
 import recipe.util.DistanceUtil;
@@ -413,6 +416,8 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         sendYtRecipe.setIfPay(ytIfPay);
         sendYtRecipe.setSource(ytSource);
         sendYtRecipe.setRecipeId(nowRecipe.getRecipeId());
+        sendYtRecipe.setDiagnose(nowRecipe.getOrganDiseaseName());
+        sendYtRecipe.setRecipeType(nowRecipe.getRecipeType());
     }
 
     /**
@@ -473,6 +478,16 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             nowYtDrugDTO.setAmount(price * quantity);
             nowYtDrugDTO.setUsage(nowDetail.getUsingRate());
             nowYtDrugDTO.setDosage(nowDetail.getUseDose() + nowDetail.getUseDoseUnit());
+            String usepathWays = nowDetail.getUsePathways();
+            try {
+                String peroral = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(nowDetail.getUsePathways());
+                usepathWays+="("+peroral+")";
+            } catch (ControllerException e) {
+                LOGGER.warn("YtRemoteService.pushRecipeInfo:处方细节ID为{},药品的单价为空", nowDetail.getRecipeDetailId());
+                getFailResult(result, "药品用法出错");
+                return result;
+            }
+            nowYtDrugDTO.setPeroral(usepathWays);
         }
         return null;
     }
@@ -656,7 +671,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             //遍历药店，判断当有一个药店的所有的药品的库存量都够的话判断为库存足够
             boolean checkScan = false;
             for (Pharmacy pharmacy : pharmacyList) {
-                GroupSumResult groupSumResult = checkDrugListByDeil(drugGroup, drugsEnterprise, saleDrug, result, pharmacy, false);
+                GroupSumResult groupSumResult = checkDrugListByDeil(drugGroup, drugsEnterprise, saleDrug, result, pharmacy, false, recipeId);
                 //只有当某一家药店有所有处方详情下的药品并且库存不超过，查询库存的结果设为成功
                 if(groupSumResult.getComplacentNum() >= drugGroup.size()){
                     checkScan = true;
@@ -691,9 +706,10 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
        * @param sumFlag 库存检查结果
      * @return GroupSumResult 放回的药店下药品检查结果
     */
-    private GroupSumResult checkDrugListByDeil(Map<Integer, DetailDrugGroup> drugGroup, DrugsEnterprise drugsEnterprise, SaleDrugList saleDrug, DrugEnterpriseResult result, Pharmacy pharmacy, boolean sumFlag) {
+    private GroupSumResult checkDrugListByDeil(Map<Integer, DetailDrugGroup> drugGroup, DrugsEnterprise drugsEnterprise, SaleDrugList saleDrug, DrugEnterpriseResult result, Pharmacy pharmacy, boolean sumFlag, Integer recipeId) {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         GroupSumResult groupSumResult = new GroupSumResult();
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         for (Map.Entry<Integer, DetailDrugGroup> entry : drugGroup.entrySet()) {
             //发送请求访问药品的库存
             CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -713,6 +729,15 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                     if(CommonConstant.requestSuccessCode == response.getStatusLine().getStatusCode()){
                         YtStockResponse stockResponse = JSONUtils.parse(responseStr, YtStockResponse.class);
                         LOGGER.info("YtRemoteService.scanStock:[{}]门店该[{}]药品查询库存，请求返回:{}", pharmacy.getPharmacyCode(), saleDrug.getOrganDrugCode(), responseStr);
+                        //增加英特药企库存日志记录
+                        try{
+                            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+                            String msg = "药企:"+drugsEnterprise.getName()+",药品名称:" + saleDrug.getDrugName() + ",药品库存:" + stockResponse.getStock() + ",平台药品编码:"+saleDrug.getDrugId() + ",药店编码:"+stockResponse.getCode()+",处方单号:"+recipeId;
+                            LOGGER.info("YtRemoteService.scanStock:{}", msg);
+                            RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), msg);
+                        }catch(Exception e){
+                            LOGGER.error("YtRemoteService.checkDrugListByDeil error:{},{}.", recipeId, e.getMessage());
+                        }
                         if(entry.getValue().getSumUsage() <= stockResponse.getStock()){
                             groupSumResult.setComplacentNum(groupSumResult.getComplacentNum() + 1);
                             if(sumFlag){
@@ -828,7 +853,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         Map<Integer, DetailDrugGroup> drugGroup = getDetailGroup(detailList);
         Map<Integer, BigDecimal> feeSumByPharmacyIdMap = new HashMap<>();
         //删除库存不够的药店
-        removeNoStockPhamacy(enterprise, result, pharmacyList, drugGroup, feeSumByPharmacyIdMap);
+        removeNoStockPhamacy(enterprise, result, pharmacyList, drugGroup, feeSumByPharmacyIdMap, recipeIds.get(0));
 
         //数据封装成页面展示数据
         List<DepDetailBean> pharmacyDetailPage = assemblePharmacyPageMsg(ext, enterprise, pharmacyList, feeSumByPharmacyIdMap);
@@ -848,14 +873,14 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
      * @param feeSumByPharmacyIdMap 符合库存的药店下对应处方药品下的总价
      * @return void
      */
-    private void removeNoStockPhamacy(DrugsEnterprise enterprise, DrugEnterpriseResult result, List<Pharmacy> pharmacyList, Map<Integer, DetailDrugGroup> drugGroup, Map<Integer, BigDecimal> feeSumByPharmacyIdMap) {
+    private void removeNoStockPhamacy(DrugsEnterprise enterprise, DrugEnterpriseResult result, List<Pharmacy> pharmacyList, Map<Integer, DetailDrugGroup> drugGroup, Map<Integer, BigDecimal> feeSumByPharmacyIdMap, Integer recipeId) {
         Iterator<Pharmacy> iterator = pharmacyList.iterator();
         Pharmacy next;
         SaleDrugList saleDrug = null;
         while (iterator.hasNext()) {
             next = iterator.next();
             //判断药店库存
-            GroupSumResult groupSumResult = checkDrugListByDeil(drugGroup, enterprise, saleDrug, result, next, true);
+            GroupSumResult groupSumResult = checkDrugListByDeil(drugGroup, enterprise, saleDrug, result, next, true, recipeId);
             //不够的移除
             if(groupSumResult.getComplacentNum() < drugGroup.size()){
                 iterator.remove();
