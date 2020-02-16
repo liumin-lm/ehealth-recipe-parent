@@ -593,7 +593,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             nowHdDrugDTO.setUseDose(nowDetail.getUseDose() + nowDetail.getUseDoseUnit());
 
             try {
-                String usingRate = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(nowDetail.getUsingRate());
+                String usingRate = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(nowDetail.getUsingRate());
                 nowHdDrugDTO.setUsingRate(usingRate);
             } catch (ControllerException e) {
                 LOGGER.warn("HdRemoteService.pushRecipeInfo:处方细节ID为{}.", nowDetail.getRecipeDetailId());
@@ -774,7 +774,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 sendHdRecipe.setProvince(province);
                 sendHdRecipe.setCity(city);
                 sendHdRecipe.setDistrict(district);
-                sendHdRecipe.setStreet(street);
+                sendHdRecipe.setAddress(street);
             }
         }catch(Exception e){
             LOGGER.info("HdRemoteService.assemblePatientMsg error:{}.", e.getMessage());
