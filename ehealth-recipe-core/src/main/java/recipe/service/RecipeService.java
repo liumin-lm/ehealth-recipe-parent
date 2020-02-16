@@ -2589,6 +2589,8 @@ public class RecipeService extends RecipeBaseService{
         LOGGER.error("recipeCanDelivery 查询处方是否可配送入参：{},{}.", JSON.toJSONString(recipe), JSON.toJSONString(details));
         boolean flag = false;
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
+        RecipeExtendDAO recipeExtendDAO=getDAO(RecipeExtendDAO.class);
         DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
 
         Map<String, Object> rMap = Maps.newHashMap();
@@ -2650,20 +2652,23 @@ public class RecipeService extends RecipeBaseService{
                     ytRemoteService = (YtRemoteService) enterpriseService;
                     LOGGER.error("recipeCanDelivery 处方[{}]请求药企{}库存", recipeId, drugsEnterprise.getCallSys());
                     if(ytRemoteService.scanStockSend(recipeId, drugsEnterprise)){
-                        return true;
+                        flag = true;
+                        break;
                     }
 
                 }else if (DrugEnterpriseConstant.COMPANY_HDDYF.equals(drugsEnterprise.getCallSys())){
                     hdRemoteService = (HdRemoteService) enterpriseService;
                     LOGGER.error("recipeCanDelivery 处方[{}]请求药企{}库存", recipeId, drugsEnterprise.getCallSys());
                     if(hdRemoteService.sendScanStock(recipeId, drugsEnterprise, DrugEnterpriseResult.getFail())){
-                        return true;
+                        flag = true;
+                        break;
                     }
 
                 }else{
                     LOGGER.error("recipeCanDelivery 处方[{}]请求药企{}库存", recipeId, drugsEnterprise.getCallSys());
                     if(service.scanStock(recipeId, drugsEnterprise)){
-                        return true;
+                        flag = true;
+                        break;
                     }
                 }
 
@@ -2672,7 +2677,14 @@ public class RecipeService extends RecipeBaseService{
 
 
         }
-        return false;
+        if(null != recipeId){
+            LOGGER.info("recipeCanDelivery 处方[{}],删除无用数据中", recipeId);
+            recipeDAO.remove(recipeId);
+            recipeDetailDAO.deleteByRecipeId(recipeId);
+            recipeExtendDAO.remove(recipeId);
+        }
+        LOGGER.info("recipeCanDelivery 处方[{}],是否支持配送：{}", recipeId, flag);
+        return flag;
     }
 
 }
