@@ -1031,6 +1031,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                     order=new RecipeOrder();
                                     order.setOrderType(0);
                                 }
+                                if(order.getOrderType()==null){
+                                    order.setOrderType(0);
+                                }
                                 map.put("recipeOrder", order);
 
                                 Integer enterpriseId = recipe.getEnterpriseId();
