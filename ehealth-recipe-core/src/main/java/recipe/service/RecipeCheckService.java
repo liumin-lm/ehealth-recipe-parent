@@ -677,6 +677,12 @@ public class RecipeCheckService {
             recipeCouponService.unuseCouponByRecipeId(recipe.getRecipeId());
             //TODO 根据审方模式改变
             auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckNotPassYs(recipe);
+            //HIS消息发送
+            //审核不通过 往his更新状态（已取消）
+            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+            hisService.recipeStatusUpdate(recipe.getRecipeId());
+            //记录日志
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核不通过处理完成");
         }else{
             //需要二次审核，这里是一次审核不通过的流程
             //需要将处方的审核状态设置成一次审核不通过的状态
@@ -687,12 +693,6 @@ public class RecipeCheckService {
         }
         //由于支持二次签名的机构第一次审方不通过时医生收不到消息。所以将审核不通过推送消息放这里处理
         sendCheckNotPassYsMsg(recipe);
-        //HIS消息发送
-        //审核不通过 往his更新状态（已取消）
-        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-        hisService.recipeStatusUpdate(recipe.getRecipeId());
-        //记录日志
-        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核不通过处理完成");
     }
 
     private void sendCheckNotPassYsMsg(Recipe recipe) {

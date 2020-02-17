@@ -345,7 +345,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             return result;
         }
         //检验并组装处方对应的门店信息
-        assembleStoreMsg(result, sendYtRecipe, nowRecipe);
+        assembleStoreMsg(result, sendYtRecipe, nowRecipe, enterprise);
         if(result.FAIL == result.getCode()){
             return result;
         }
@@ -529,7 +529,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
      * @param nowRecipe 当前处方
      * @return recipe.bean.DrugEnterpriseResult 操作结果集
      */
-    private DrugEnterpriseResult assembleStoreMsg(DrugEnterpriseResult result, YtRecipeDTO sendYtRecipe, Recipe nowRecipe) {
+    private DrugEnterpriseResult assembleStoreMsg(DrugEnterpriseResult result, YtRecipeDTO sendYtRecipe, Recipe nowRecipe, DrugsEnterprise enterprise) {
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         if(null == nowRecipe.getOrderCode()){
             LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{},绑定订单code为空.", nowRecipe.getRecipeId());
@@ -547,9 +547,15 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
             //根据机构_yt_store_code获取配送药店
             Integer organId = nowRecipe.getClinicOrgan();
-            String store_code = organId + "_" + "yt_store_code";
-            String storeCode = recipeParameterDao.getByName(store_code);
-            sendYtRecipe.setOrgCode(storeCode);
+            if (StringUtils.equalsIgnoreCase("yt_sy", enterprise.getAccount())) {
+                String store_code = organId + "_" + "yt_sy_store_code";
+                String storeCode = recipeParameterDao.getByName(store_code);
+                sendYtRecipe.setOrgCode(storeCode);
+            } else {
+                String store_code = organId + "_" + "yt_store_code";
+                String storeCode = recipeParameterDao.getByName(store_code);
+                sendYtRecipe.setOrgCode(storeCode);
+            }
         } else {
             sendYtRecipe.setOrgCode(order.getDrugStoreCode());
         }
