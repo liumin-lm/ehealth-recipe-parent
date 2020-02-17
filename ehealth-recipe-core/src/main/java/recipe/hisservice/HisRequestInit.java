@@ -450,10 +450,10 @@ public class HisRequestInit {
 
             if (order != null ) {
                 //省医保订单新增逻辑
-                if (order.getOrderType() != null) {
-                    requestTO.setIsMedicalSettle("1");
-                } else {
-                    requestTO.setIsMedicalSettle("0");
+                switch (order.getOrderType()){
+                    case 0:requestTO.setIsMedicalSettle("0");break;
+                    case 1:requestTO.setIsMedicalSettle("1");break;
+                    default:requestTO.setIsMedicalSettle("0");
                 }
                 if("40".equals(order.getWxPayWay())){
                     requestTO.setPayType("C");
