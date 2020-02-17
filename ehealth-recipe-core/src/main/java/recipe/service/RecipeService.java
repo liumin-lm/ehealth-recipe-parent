@@ -2613,6 +2613,9 @@ public class RecipeService extends RecipeBaseService{
         recipe.setRemindFlag(0);
         recipe.setPushFlag(0);
         recipe.setTakeMedicine(0);
+        recipe.setRecipeMode(null == recipe.getRecipeMode() ? "" : recipe.getRecipeMode());
+        recipe.setGiveFlag(null == recipe.getGiveFlag() ? 0 : recipe.getGiveFlag());
+        recipe.setPayFlag(null == recipe.getPayFlag() ? 0 : recipe.getPayFlag());
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
         if(null == recipe || null == details || 0 == details.size()){
             LOGGER.error("recipeCanDelivery 当前处方或者药品信息不全：{},{}.", JSON.toJSONString(recipe), JSON.toJSONString(details));
@@ -2621,6 +2624,7 @@ public class RecipeService extends RecipeBaseService{
         for (RecipeDetailBean recipedetail :details){
             recipedetail.setDrugUnit(null == recipedetail.getDrugUnit() ? "" : recipedetail.getDrugUnit());
             recipedetail.setStatus(1);
+            recipedetail.setPack(null == recipedetail.getPack() ? 0 : recipedetail.getPack());
         }
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(ObjectCopyUtils.convert(recipe, Recipe.class), ObjectCopyUtils.convert(details, Recipedetail.class), false);
 
