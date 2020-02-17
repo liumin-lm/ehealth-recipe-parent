@@ -891,6 +891,9 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 List drugList = (List)jsonObject.get("drugList");
                 if (drugList != null && drugList.size() > 0) {
                     boolean scanStock = true;
+                    if (drugList.size() != hdDrugCodes.size()) {
+                        return false;
+                    }
                     for (Object drug : drugList) {
                         Map<String, Object> drugMap = (Map<String, Object>) drug;
                         String drugCode = (String)drugMap.get("drugCode");
