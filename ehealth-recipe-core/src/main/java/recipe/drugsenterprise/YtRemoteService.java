@@ -195,13 +195,6 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         request.setOrganization(ORGANIZATION);
         return true;
     }
-    @RpcService
-    public void test(Integer recipeId){
-        List<Integer> recipeIds = Arrays.asList(recipeId);
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(227);
-        pushRecipeInfo(recipeIds, drugsEnterprise);
-    }
 
     @Override
     @RpcService
@@ -555,7 +548,6 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             //根据机构_yt_store_code获取配送药店
             Integer organId = nowRecipe.getClinicOrgan();
             if (StringUtils.equalsIgnoreCase("yt_sy", enterprise.getAccount())) {
-                LOGGER.info("assembleStoreMsg 商业推送.");
                 String store_code = organId + "_" + "yt_sy_store_code";
                 String storeCode = recipeParameterDao.getByName(store_code);
                 LOGGER.info("assembleStoreMsg 商业推送:{}.", storeCode);
