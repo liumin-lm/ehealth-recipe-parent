@@ -200,18 +200,114 @@ public class DrugListService extends BaseService<DrugListBean> {
             throw new DAOException(DAOException.ENTITIY_NOT_FOUND, "Can't found drugList");
         } else {
             drugList.setLastModify(new Date());
-            DrugList drugList1 = ObjectCopyUtils.convert(drugListBean, DrugList.class);
+            if(null == drugList.getAllPyCode()){
+                drugList.setAllPyCode(target.getAllPyCode());
+            }
+            if(null == drugList.getApprovalNumber()){
+                drugList.setApprovalNumber(target.getApprovalNumber());
+            }
+            if(null == drugList.getBaseDrug()){
+                drugList.setBaseDrug(target.getBaseDrug());
+            }
+            if(null == drugList.getCreateDt()){
+                drugList.setCreateDt(target.getCreateDt());
+            }
+            if(null == drugList.getDrugClass()){
+                drugList.setDrugClass(target.getDrugClass());
+            }
+            if(null == drugList.getDrugForm()){
+                drugList.setDrugForm(target.getDrugForm());
+            }
+            if(null == drugList.getDrugId()){
+                drugList.setDrugId(target.getDrugId());
+            }
+            if(null == drugList.getDrugName()){
+                drugList.setDrugName(target.getDrugName());
+            }
+            if(null == drugList.getDrugPic()){
+                drugList.setDrugPic(target.getDrugPic());
+            }
+            if(null == drugList.getDrugSpec()){
+                drugList.setDrugSpec(target.getDrugSpec());
+            }
+            if(null == drugList.getDrugType()){
+                drugList.setDrugType(target.getDrugType());
+            }
+            if(null == drugList.getHighlightedField()){
+                drugList.setHighlightedField(target.getHighlightedField());
+            }
+            if(null == drugList.getHighlightedFieldForIos()){
+                drugList.setHighlightedFieldForIos(target.getHighlightedFieldForIos());
+            }
+            if(null == drugList.getHospitalPrice()){
+                drugList.setHospitalPrice(target.getHospitalPrice());
+            }
+            if(null == drugList.getIndications()){
+                drugList.setIndications(target.getIndications());
+            }
+            if(null == drugList.getLastModify()){
+                drugList.setLastModify(target.getLastModify());
+            }
+            if(null == drugList.getOrganDrugCode()){
+                drugList.setOrganDrugCode(target.getOrganDrugCode());
+            }
+            if(null == drugList.getPack()){
+                drugList.setPack(target.getPack());
+            }
+            if(null == drugList.getPrice1()){
+                drugList.setPrice1(target.getPrice1());
+            }
+            if(null == drugList.getPrice2()){
+                drugList.setPrice2(target.getPrice2());
+            }
+            if(null == drugList.getPyCode()){
+                drugList.setPyCode(target.getPyCode());
+            }
+            if(null == drugList.getSaleName()){
+                drugList.setSaleName(target.getSaleName());
+            }
+            if(null == drugList.getSourceOrgan()){
+                drugList.setSourceOrgan(target.getSourceOrgan());
+            }
+            if(null == drugList.getStandardCode()){
+                drugList.setStandardCode(target.getStandardCode());
+            }
+            if(null == drugList.getStatus()){
+                drugList.setStatus(target.getStatus());
+            }
+            if(null == drugList.getUnit()){
+                drugList.setUnit(target.getUnit());
+            }
+            if(null == drugList.getUseDose()){
+                drugList.setUseDose(target.getUseDose());
+            }
+            if(null == drugList.getUseDoseUnit()){
+                drugList.setUseDoseUnit(target.getUseDoseUnit());
+            }
+            if(null == drugList.getUsePathways()){
+                drugList.setUsePathways(target.getUsePathways());
+            }
+            if(null == drugList.getUsingRate()){
+                drugList.setUsingRate(target.getUsingRate());
+            }
+            if(null == drugList.getProducer()){
+                drugList.setProducer(target.getProducer());
+            }
+            if(null == drugList.getInstructions()){
+                drugList.setInstructions(target.getInstructions());
+            }
+
            /*BeanUtils.map(drugList, target);*/
-            target = dao.update(drugList1);
+            drugList = dao.update(drugList);
             if(null != drugListBean.getDispensatory()) {
                 DispensatoryDAO dispensatoryDAO = DAOFactory.getDAO(DispensatoryDAO.class);
-                Dispensatory dispensatory = dispensatoryDAO.getByDrugId(target.getDrugId());
+                Dispensatory dispensatory = dispensatoryDAO.getByDrugId(drugList.getDrugId());
                 dispensatory.setLastModifyTime(new Date());
                 BeanUtils.map(drugListBean.getDispensatory(), dispensatory);
                 dispensatoryDAO.update(dispensatory);
             }
         }
-        return getBean(target, DrugListBean.class);
+        return getBean(drugList, DrugListBean.class);
     }
 
     /**
