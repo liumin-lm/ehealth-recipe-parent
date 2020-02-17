@@ -558,6 +558,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 LOGGER.info("assembleStoreMsg 商业推送.");
                 String store_code = organId + "_" + "yt_sy_store_code";
                 String storeCode = recipeParameterDao.getByName(store_code);
+                LOGGER.info("assembleStoreMsg 商业推送:{}.", storeCode);
                 sendYtRecipe.setOrgCode(storeCode);
             } else {
                 String store_code = organId + "_" + "yt_store_code";
