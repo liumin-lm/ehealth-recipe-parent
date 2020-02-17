@@ -353,12 +353,14 @@ public class RecipeHisService extends RecipeBaseService {
                 PayNotifyResTO response = service.payNotify(payNotifyReq);
                 if (null == response || null == response.getMsgCode() || response.getMsgCode() != 0 || response.getData() == null) {
                     result.setCode(RecipeResultBean.FAIL);
-                    if(response != null && response.getMsg() != null){
-                        result.setError(response.getMsg());
-                    } else{
-                        result.setError("由于医院接口异常，支付失败，建议您稍后重新支付。");
+                    if(response != null){
+                        if(response.getMsg() != null){
+                            result.setError(response.getMsg());
+                        } else{
+                            result.setError("由于医院接口异常，支付失败，建议您稍后重新支付。");
+                        }
+                        HisCallBackService.havePayFail(recipe.getRecipeId());
                     }
-                    HisCallBackService.havePayFail(recipe.getRecipeId());
                 } else {
                     Recipedetail detail = new Recipedetail();
                     detail.setPatientInvoiceNo(response.getData().getInvoiceNo());
