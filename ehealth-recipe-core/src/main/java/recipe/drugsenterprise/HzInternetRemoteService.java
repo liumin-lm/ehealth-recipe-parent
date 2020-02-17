@@ -276,11 +276,13 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
                         if(hisResult.getData() != null){
                             RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                             if(ext != null){
-                                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("registerNo", hisResult.getData().getGhxh()));
-                                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("hisSettlementNo", hisResult.getData().getSjh()));
-                                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("preSettleTotalAmount", hisResult.getData().getZje()));
-                                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("fundAmount", hisResult.getData().getYbzf()));
-                                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("cashAmount", hisResult.getData().getYfje()));
+                                Map<String, String> map = new HashMap<String, String>();
+                                map.put("registerNo", hisResult.getData().getGhxh());
+                                map.put("hisSettlementNo", hisResult.getData().getSjh());
+                                map.put("preSettleTotalAmount", hisResult.getData().getZje());
+                                map.put("fundAmount", hisResult.getData().getYbzf());
+                                map.put("cashAmount", hisResult.getData().getYfje());
+                                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), map);
                             } else {
                                 ext = new RecipeExtend();
                                 ext.setRecipeId(recipe.getRecipeId());

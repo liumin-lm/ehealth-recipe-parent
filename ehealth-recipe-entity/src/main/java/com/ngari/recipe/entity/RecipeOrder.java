@@ -221,6 +221,15 @@ public class RecipeOrder implements Serializable {
     @Dictionary(id = "eh.cdr.dictionary.RecipeOrderOrderType")
     private Integer orderType;
 
+    @ItemProperty(alias = "处方预结算返回支付总金额")
+    private Double preSettleTotalAmount;
+
+    @ItemProperty(alias = "处方预结算返回医保支付金额")
+    private Double fundAmount;
+
+    @ItemProperty(alias = "处方预结算返回自费金额")
+    private Double cashAmount;
+
     @Column(name = "cancelReason")
     public String getCancelReason() {
         return cancelReason;
@@ -810,5 +819,32 @@ public class RecipeOrder implements Serializable {
 
     public void setOrderType(Integer orderType) {
         this.orderType = orderType;
+    }
+
+    @Column(name = "preSettleTotalAmount")
+    public Double getPreSettletotalAmount() {
+        return preSettleTotalAmount;
+    }
+
+    public void setPreSettletotalAmount(Double preSettleTotalAmount) {
+        this.preSettleTotalAmount = preSettleTotalAmount;
+    }
+
+    @Column(name = "fundAmount")
+    public Double getFundAmount() {
+        return fundAmount;
+    }
+
+    public void setFundAmount(Double fundAmount) {
+        this.fundAmount = fundAmount;
+    }
+
+    @Column(name = "cashAmount")
+    public Double getCashAmount() {
+        return cashAmount;
+    }
+
+    public void setCashAmount(Double cashAmount) {
+        this.cashAmount = cashAmount;
     }
 }

@@ -215,6 +215,15 @@ public class RecipeOrderBean implements Serializable {
     @Dictionary(id = "eh.cdr.dictionary.RecipeOrderOrderType")
     private Integer orderType;
 
+    @ItemProperty(alias = "处方预结算返回支付总金额")
+    private Double preSettleTotalAmount;
+
+    @ItemProperty(alias = "处方预结算返回医保支付金额")
+    private Double fundAmount;
+
+    @ItemProperty(alias = "处方预结算返回自费金额")
+    private Double cashAmount;
+
     public RecipeOrderBean() {
         initData();
     }
@@ -730,5 +739,29 @@ public class RecipeOrderBean implements Serializable {
 
     public void setSmkFaceToken(String smkFaceToken) {
         this.smkFaceToken = smkFaceToken;
+    }
+
+    public Double getPreSettletotalAmount() {
+        return preSettleTotalAmount;
+    }
+
+    public void setPreSettletotalAmount(Double preSettleTotalAmount) {
+        this.preSettleTotalAmount = preSettleTotalAmount;
+    }
+
+    public Double getFundAmount() {
+        return fundAmount;
+    }
+
+    public void setFundAmount(Double fundAmount) {
+        this.fundAmount = fundAmount;
+    }
+
+    public Double getCashAmount() {
+        return cashAmount;
+    }
+
+    public void setCashAmount(Double cashAmount) {
+        this.cashAmount = cashAmount;
     }
 }
