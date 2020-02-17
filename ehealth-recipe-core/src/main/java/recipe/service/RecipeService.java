@@ -604,6 +604,13 @@ public class RecipeService extends RecipeBaseService{
             Map<String, Object> updateMap = new HashMap<>();
             updateMap.put("checkStatus", RecipecCheckStatusConstant.Check_Normal);
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, updateMap);
+            //HIS消息发送
+            //审核不通过 往his更新状态（已取消）
+            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+            hisService.recipeStatusUpdate(recipe.getRecipeId());
+            //记录日志
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核不通过处理完成");
         }
 
         //患者如果使用优惠券将优惠券解锁
