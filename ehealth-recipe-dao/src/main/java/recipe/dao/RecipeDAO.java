@@ -10,6 +10,7 @@ import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -1023,6 +1024,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                     patientBean = new PatientDTO();
                                 }
                                 map.put("patient", patientBean);
+
+                                RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+                                RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipe.getRecipeId());
+                                if(order==null){
+                                    order=new RecipeOrder();
+                                    order.setOrderType(0);
+                                }
+                                map.put("recipeOrder", order);
+
                                 Integer enterpriseId = recipe.getEnterpriseId();
                                 if (enterpriseId != null) {
                                     DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(enterpriseId);
