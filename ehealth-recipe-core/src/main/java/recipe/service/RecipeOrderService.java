@@ -659,10 +659,17 @@ public class RecipeOrderService extends RecipeBaseService {
                 RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(firstRecipe.getRecipeId());
                 if (recipeExtend!=null){
+                    //预结算总金额
+                    if (StringUtils.isNotEmpty(recipeExtend.getPreSettletotalAmount())){
+                        order.setPreSettletotalAmount(new Double(recipeExtend.getPreSettletotalAmount()));
+                    }
                     //医保金额
-                    String fundAmount = recipeExtend.getFundAmount();
-                    if (StringUtils.isNotEmpty(fundAmount)){
-                        order.setActualPrice(order.getTotalFee().subtract(new BigDecimal(fundAmount)).stripTrailingZeros().doubleValue());
+                    if (StringUtils.isNotEmpty(recipeExtend.getFundAmount())){
+                        order.setFundAmount(new Double(recipeExtend.getFundAmount()));
+                    }
+                    //自费金额
+                    if (StringUtils.isNotEmpty(recipeExtend.getCashAmount())){
+                        order.setCashAmount(new Double(recipeExtend.getCashAmount()));
                     }
                 }
             }
