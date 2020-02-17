@@ -72,6 +72,7 @@ public class HdVirtualdyfRemoteService extends AccessDrugEnterpriseService {
         updateTakeDrugWayReqTO.setClinicOrgan(recipe.getClinicOrgan());
         //医院处方号
         updateTakeDrugWayReqTO.setRecipeID(recipe.getRecipeCode());
+        updateTakeDrugWayReqTO.setNgarRecipeId(String.valueOf(recipe.getRecipeId()));
         updateTakeDrugWayReqTO.setOrganID(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
         //审方药师工号和姓名
         if (recipe.getChecker()!=null){
