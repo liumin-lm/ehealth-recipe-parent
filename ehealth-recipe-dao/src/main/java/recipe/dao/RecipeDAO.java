@@ -1110,7 +1110,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                 DoctorDTO doctor = doctorBeanMap.get(doctorId);
                                 Map<String, Object> map = Maps.newHashMap();
                                 BeanUtils.map(recipe, map);
-                                map.put("detailCount", recipeDetailDAO.getCountByRecipeId(recipe.getRecipeId()));
+                                List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+                                Double detailCount = 0.0;
+                                for(Recipedetail recipedetail : recipedetails){
+                                    detailCount += (null == recipedetail.getUseTotalDose() ?  0.0 : recipedetail.getUseTotalDose());
+                                }
+
+                                map.put("detailCount", detailCount);
                                 if (patient != null) {
                                     map.put("patientName", patient.getPatientName());
                                     map.put("patientMobile", patient.getMobile());
