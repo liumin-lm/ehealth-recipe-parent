@@ -1,6 +1,5 @@
 package recipe.service;
 
-import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.organ.model.OrganBean;
@@ -388,6 +387,21 @@ public class RecipeCheckService {
         if (!StringUtils.isEmpty(orderCode)) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
             order = ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class);
+            if(order==null){
+                order=new RecipeOrderBean();
+                //跟前端约定好这个字段一定会给的，所以定义了-1作为无支付类型
+                order.setOrderType(-1);
+            }
+
+            Integer effective=order.getEffective()==null?Integer.valueOf(1):order.getEffective();
+            Integer orderType=order.getOrderType()==null?Integer.valueOf(0):order.getOrderType();
+            //老数据处理
+            if(Integer.valueOf(0).equals(effective)){
+                order.setOrderType(-1);
+            }else {
+                order.setOrderType(orderType);
+            }
+
         }
 
         //获取该医生所在科室，判断是否为儿科科室
