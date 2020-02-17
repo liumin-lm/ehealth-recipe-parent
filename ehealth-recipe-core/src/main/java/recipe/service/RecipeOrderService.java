@@ -876,6 +876,10 @@ public class RecipeOrderService extends RecipeBaseService {
         }).toList();
         boolean saveFlag = true;
         try {
+            //订单类型设置默认值
+            if (order.getOrderType() ==null){
+                order.setOrderType(0);
+            }
             createOrderToDB(order, recipeIds, orderDAO, recipeDAO);
         } catch (DAOException e) {
             LOGGER.warn("createOrder orderCode={}, error={}. ", order.getOrderCode(), e.getMessage());
