@@ -854,11 +854,13 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         try{
             for (Recipedetail recipedetail : detailList) {
                 SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
+                LOGGER.info("HdRemoteService.sendScanStock.saleDrugList:{}.", JSONUtils.toString(saleDrugList));
                 Map<String, String> drug = new HashMap<>();
                 drug.put("drugCode", saleDrugList.getOrganDrugCode());
+                LOGGER.info("HdRemoteService.sendScanStock.drug:{}.", JSONUtils.toString(drug));
                 hdDrugCodes.add(drug);
                 drugCodes.put(saleDrugList.getOrganDrugCode(), BigDecimal.valueOf(recipedetail.getUseTotalDose()));
-
+                LOGGER.info("HdRemoteService.sendScanStock.drugCodes:{}.", JSONUtils.toString(drugCodes));
                 if (recipe != null && recipe.getStatus() == 0) {
                     msg.append(" 药企药品编码:" + saleDrugList.getOrganDrugCode());
                     msg.append(",药品名称:" + recipedetail.getDrugName() + ",药品编码:"+ recipedetail.getDrugId());
