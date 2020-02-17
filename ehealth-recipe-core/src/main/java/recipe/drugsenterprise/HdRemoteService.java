@@ -854,6 +854,10 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         try{
             for (Recipedetail recipedetail : detailList) {
                 SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
+                if (saleDrugList == null) {
+                    LOGGER.error("HdRemoteService.sendScanStock {}药品不在华东配送药品目录，recipeId:{}.", recipedetail.getDrugId(), recipe.getRecipeId());
+                    return false;
+                }
                 LOGGER.info("HdRemoteService.sendScanStock.saleDrugList:{}.", JSONUtils.toString(saleDrugList));
                 Map<String, String> drug = new HashMap<>();
                 drug.put("drugCode", saleDrugList.getOrganDrugCode());
@@ -871,6 +875,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), msg.toString());
         }catch(Exception e){
             LOGGER.error("HdRemoteService.checkDrugListByDeil error:{},{}.", recipeId, e.getMessage());
+            return false;
         }
 
         map.put("drugList", hdDrugCodes);
@@ -904,13 +909,21 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                     for (Object drug : drugList) {
                         Map<String, Object> drugMap = (Map<String, Object>) drug;
                         String drugCode = (String)drugMap.get("drugCode");
-                        BigDecimal availableSumQty = (BigDecimal)drugMap.get("availableSumQty");
-                        LOGGER.info(drugCode + ":" + availableSumQty);
-                        RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "药企药品编码:"+drugCode + ",库存:" + availableSumQty);
-                        BigDecimal num = drugCodes.get(drugCode);
-                        if (num.compareTo(availableSumQty) == 1) {
-                            //库存不足
-                            scanStock = false;
+                        try{
+                            BigDecimal availableSumQty = (BigDecimal)drugMap.get("availableSumQty");
+                            LOGGER.info(drugCode + ":" + availableSumQty);
+                            RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "药企药品编码:"+drugCode + ",库存:" + availableSumQty);
+                            BigDecimal num = drugCodes.get(drugCode);
+                            if (num.compareTo(availableSumQty) == 1) {
+                                LOGGER.info("HdRemoteService-scanStock sendScanStock drugCode:{} 库存不足.", drugCode);
+                                //库存不足
+                                return false;
+                            }
+                        }catch (Exception e){
+                            Integer availableSumQty = (Integer)drugMap.get("availableSumQty");
+                            LOGGER.info(drugCode + ":" + availableSumQty);
+                            LOGGER.info("HdRemoteService-scanStock sendScanStock drugCode:{} 库存为0.", drugCode);
+                            return false;
                         }
                     }
                     return scanStock;
