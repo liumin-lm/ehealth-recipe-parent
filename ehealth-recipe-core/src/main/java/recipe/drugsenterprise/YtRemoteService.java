@@ -277,15 +277,30 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         httpPost.setEntity(requestEntry);
         //获取响应消息
         CloseableHttpResponse response = httpClient.execute(httpPost);
-        LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]推送处方请求，获取响应消息：{}", enterprise.getId(), enterprise.getName(), JSONUtils.toString(response));
+        LOGGER.info("YtRemoteService.pushRecipeInfo:处方单号：[{}] 药企：[{}] 推送处方请求，获取响应消息：{}", enterprise.getId(), enterprise.getName(), JSONUtils.toString(response));
         HttpEntity httpEntity = response.getEntity();
         //date 20191129
         //添加推送处方结果展示
         //String responseStr =  EntityUtils.toString(httpEntity);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = null;
+        if (sendYtRecipe != null && sendYtRecipe.getRecipeId() != null) {
+            recipe = recipeDAO.getByRecipeId(sendYtRecipe.getRecipeId());
+        }
         if(requestPushSuccessCode == response.getStatusLine().getStatusCode()){
-            LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送成功.", enterprise.getId(), enterprise.getName());
+            if (recipe != null) {
+                LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}][{}]处方推送成功.", recipe.getRecipeId() ,enterprise.getId(), enterprise.getName());
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给"+enterprise.getName()+"推送处方成功");
+            } else {
+                LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送成功.",enterprise.getId(), enterprise.getName());
+            }
         }else{
-            LOGGER.warn("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送失败.", enterprise.getId(), enterprise.getName());
+            if (recipe != null) {
+                LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}][{}]处方推送失败.", recipe.getRecipeId() ,enterprise.getId(), enterprise.getName());
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给"+enterprise.getName()+"推送处方失败");
+            } else {
+                LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送失败.",enterprise.getId(), enterprise.getName());
+            }
             getFailResult(result, "处方推送失败");
         }
         //关闭 HttpEntity 输入流
