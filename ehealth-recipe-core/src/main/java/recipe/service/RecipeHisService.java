@@ -698,14 +698,16 @@ public class RecipeHisService extends RecipeBaseService {
                         recipe.getStatus(), "处方自费预结算成功，无返回值");
             }else{
                 LOGGER.error("provincialCashPreSettle-fail.recipeId={} result={}",recipeId, JSONUtils.toString(hisResult));
+                String msg;
                 if(hisResult != null){
-                    result.put("msg","his返回:"+hisResult.getMsg());
+                    msg = "his返回:"+hisResult.getMsg();
                 }else {
-                    result.put("msg","平台前置机未实现自费预结算接口");
+                    msg="平台前置机未实现自费预结算接口";
                 }
+                result.put("msg",msg);
                 //日志记录
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(),
-                        recipe.getStatus(), "处方自费预结算失败");
+                        recipe.getStatus(), "处方自费预结算失败,原因:"+msg);
             }
         }catch (Exception e){
             LOGGER.error("provincialCashPreSettle recipeId={} error",recipeId,e);
