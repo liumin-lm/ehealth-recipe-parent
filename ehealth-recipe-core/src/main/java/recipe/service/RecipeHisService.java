@@ -583,10 +583,10 @@ public class RecipeHisService extends RecipeBaseService {
             request.setPatientName(patientBean.getPatientName());
             request.setIdcard(patientBean.getIdcard());
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-            LOGGER.info("provincialMedicalPreSettle req={}", JSONUtils.toString(request));
+            LOGGER.info("provincialMedicalPreSettle recipeId={} req={}", recipeId,JSONUtils.toString(request));
             HisResponseTO<RecipeMedicalPreSettleInfo> hisResult = service.recipeMedicalPreSettleN(request);
             if(hisResult != null && "200".equals(hisResult.getMsgCode())){
-                LOGGER.info("provincialMedicalPreSettle-true. result={}", JSONUtils.toString(hisResult));
+                LOGGER.info("provincialMedicalPreSettle-true. recipeId={} result={}",recipeId, JSONUtils.toString(hisResult));
                 if(hisResult.getData() != null){
                     //自费金额
                     String cashAmount = hisResult.getData().getZfje();
@@ -617,7 +617,7 @@ public class RecipeHisService extends RecipeBaseService {
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(),
                         recipe.getStatus(), "处方省医保预结算成功");
             }else{
-                LOGGER.error("provincialMedicalPreSettle-fail. result={}", JSONUtils.toString(hisResult));
+                LOGGER.error("provincialMedicalPreSettle-fail. recipeId={} result={}", recipeId,JSONUtils.toString(hisResult));
                 String msg;
                 if(hisResult != null){
                     msg = "his返回:"+hisResult.getMsg();
@@ -630,7 +630,7 @@ public class RecipeHisService extends RecipeBaseService {
                         recipe.getStatus(), "处方省医保预结算失败-原因:"+msg);
             }
         }catch (Exception e){
-            LOGGER.error("provincialMedicalPreSettle error",e);
+            LOGGER.error("provincialMedicalPreSettle recipeId={} error",recipeId,e);
         }
        return result;
     }
@@ -662,10 +662,10 @@ public class RecipeHisService extends RecipeBaseService {
             request.setPatientName(patientBean.getPatientName());
             request.setIdcard(patientBean.getIdcard());
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-            LOGGER.info("provincialCashPreSettle req={}", JSONUtils.toString(request));
+            LOGGER.info("provincialCashPreSettle recipeId={} req={}",recipeId, JSONUtils.toString(request));
             HisResponseTO<RecipeCashPreSettleInfo> hisResult = service.recipeCashPreSettleHis(request);
             if(hisResult != null && "200".equals(hisResult.getMsgCode())){
-                LOGGER.info("provincialCashPreSettle-true. result={}", JSONUtils.toString(hisResult));
+                LOGGER.info("provincialCashPreSettle-true.recipeId={} result={}",recipeId, JSONUtils.toString(hisResult));
                 if(hisResult.getData() != null){
                     //自费金额
                     String cashAmount = hisResult.getData().getZfje();
@@ -697,7 +697,7 @@ public class RecipeHisService extends RecipeBaseService {
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(),
                         recipe.getStatus(), "处方自费预结算成功，无返回值");
             }else{
-                LOGGER.error("provincialCashPreSettle-fail. result={}", JSONUtils.toString(hisResult));
+                LOGGER.error("provincialCashPreSettle-fail.recipeId={} result={}",recipeId, JSONUtils.toString(hisResult));
                 if(hisResult != null){
                     result.put("msg","his返回:"+hisResult.getMsg());
                 }else {
@@ -708,7 +708,7 @@ public class RecipeHisService extends RecipeBaseService {
                         recipe.getStatus(), "处方自费预结算失败");
             }
         }catch (Exception e){
-            LOGGER.error("provincialCashPreSettle error",e);
+            LOGGER.error("provincialCashPreSettle recipeId={} error",recipeId,e);
         }
         return result;
     }
