@@ -377,6 +377,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                             recipeMsgMap.put("detailDrugSpec", recipeDetailBean.getDrugSpec());
                             //单位
                             recipeMsgMap.put("detailDrugUnit", recipeDetailBean.getDrugUnit());
+                            //价格
+                            recipeMsgMap.put("detailDrugPrice", recipeDetailBean.getSalePrice());
                             //处方的药品关联信息
                             LOGGER.info("findRecipeOrdersByInfoForExcel查询处方机构药品信息:DrugId{},OrganId{},OrganDrugCode{}", recipeDetailBean.getDrugId(), clinicOrganId, recipeDetailBean.getOrganDrugCode());
                             organDrugLists = organDrugListDAO.findByOrganIdAndDrugIdAndOrganDrugCode(clinicOrganId, recipeDetailBean.getDrugId(), recipeDetailBean.getOrganDrugCode());
@@ -391,8 +393,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                                 recipeMsgMap.put("detailDruglicenseNumber", organDrugList.getLicenseNumber());
                                 //生产厂家
                                 recipeMsgMap.put("detailDrugProducer", organDrugList.getProducer());
-                                //价格
-                                recipeMsgMap.put("detailDrugPrice", organDrugList.getSalePrice());
                                 if(null != order){
                                     LOGGER.info("findRecipeOrdersByInfoForExcel查询处方配送药品信息:DrugId{},OrganId{}", recipeDetailBean.getDrugId(), order.getEnterpriseId());
                                     if(null != order.getEnterpriseId()){
