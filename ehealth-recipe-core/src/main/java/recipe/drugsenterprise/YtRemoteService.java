@@ -635,12 +635,12 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         sendYtRecipe.setAge(patient.getAge());
         sendYtRecipe.setPhone(patient.getMobile());
         sendYtRecipe.setSymptom(patient.getLastSummary());
-        sendYtRecipe.setRecipientName(patient.getPatientName());
+        sendYtRecipe.setRecipientName(order.getReceiver());
         if (nowRecipe.getGiveMode() == 1 && order != null) {
             sendYtRecipe.setRecipientAdd(getCompleteAddress(order));
-            sendYtRecipe.setAddress(getCompleteAddress(order));
+            sendYtRecipe.setAddress(patient.getAddress());
         }
-        sendYtRecipe.setRecipientTel(patient.getMobile());
+        sendYtRecipe.setRecipientTel(order.getRecMobile());
         sendYtRecipe.setZipCode("");
         return result;
     }
