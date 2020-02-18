@@ -54,6 +54,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.bean.StandardResultDTO;
 import recipe.drugsenterprise.bean.StandardStateDTO;
 import recipe.hisservice.RecipeToHisService;
+import recipe.service.RecipeLogService;
 import recipe.service.common.RecipeCacheService;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -270,9 +271,10 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
                         LOGGER.error("DictionaryController 字典转化异常,{}",e);
                     }
                     RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+                    LOGGER.info("recipeMedicalPreSettle. recipeId={},req={}", recipeId, JSONUtils.toString(request));
                     HisResponseTO<RecipeMedicalPreSettleInfo> hisResult = service.recipeMedicalPreSettleN(request);
                     if(hisResult != null && "200".equals(hisResult.getMsgCode())){
-                        LOGGER.info("杭州互联网虚拟药企-处方预结算成功-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
+                        LOGGER.info("recipeMedicalPreSettle-success. recipeId={},result={}", recipeId, JSONUtils.toString(hisResult));
                         if(hisResult.getData() != null){
                             RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                             if(ext != null){
@@ -295,19 +297,25 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
                             }
                         }
                         result.setCode(DrugEnterpriseResult.SUCCESS);
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "杭州市医保预结算成功");
                     }else{
-                        LOGGER.error("杭州互联网虚拟药企-处方预结算失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
+                        LOGGER.error("recipeMedicalPreSettle fail. recipeId={},result={}", recipeId, JSONUtils.toString(hisResult));
+                        String msg;
                         if(hisResult != null){
-                            result.setMsg(hisResult.getMsg());
+                            msg = hisResult.getMsg();
+                        }else {
+                            msg = "前置机返回结果null";
                         }
                         result.setCode(DrugEnterpriseResult.FAIL);
+                        result.setMsg(msg);
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "杭州市医保预结算失败，原因："+msg);
                     }
-
                 } else{
-                    LOGGER.error("recipeMedicalPreSettle-患者医保卡号为null,处方：，患者：{}", recipe.getRecipeId(), recipe.getPatientName());
+                    LOGGER.error("recipeMedicalPreSettle-患者医保卡号为null,recipeId{}，患者：{}", recipe.getRecipeId(), recipe.getPatientName());
+                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "由于获取不到杭州市医保卡,无法进行预结算");
                 }
             }  else{
-                LOGGER.info("recipeMedicalPreSettle-非杭州互联网药企不走杭州医保预结算,药企ID：{}",depId);
+                LOGGER.info("recipeMedicalPreSettle-非杭州互联网药企不走杭州医保预结算,recipeId={} 药企ID：{}",recipeId,depId);
             }
         }
 

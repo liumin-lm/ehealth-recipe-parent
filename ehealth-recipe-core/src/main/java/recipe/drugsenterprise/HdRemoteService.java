@@ -369,6 +369,11 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         HdPushRecipeResponse pushRecipeResponse = null;
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HdHttpUrlEnum httpUrl;
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = null;
+        if (sendHdRecipe != null && sendHdRecipe.getRecipeId() != null) {
+            recipe = recipeDAO.getByRecipeId(Integer.parseInt(sendHdRecipe.getRecipeId()));
+        }
         try {
             if (enterprise.getBusinessUrl().contains("http:")) {
 
@@ -390,11 +395,21 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                     getFailResult(result, "处方推送没有响应");
                 }
                 if(pushRecipeResponse.getSuccess()) {
-                    LOGGER.info("HdRemoteService.pushRecipeInfo:[{}][{}]处方推送成功，请求返回:{}", enterprise.getId(), enterprise.getName());
+                    if (recipe != null) {
+                        LOGGER.info("HdRemoteService.pushRecipeInfo:[{}][{}][{}]处方推送成功，请求返回:{}", sendHdRecipe.getRecipeId(),enterprise.getId(), enterprise.getName());
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给"+enterprise.getName()+"推送处方成功");
+                    } else {
+                        LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送成功.",enterprise.getId(), enterprise.getName());
+                    }
                 }else if(HdPushRecipeStatusEnum.TOKEN_EXPIRE.equals(HdPushRecipeStatusEnum.fromCode(pushRecipeResponse.getCode()))){
                     LOGGER.info("HdRemoteService.pushRecipeInfo:处方推送请求鉴权失败需要重新获取token");
                 }else{
-                    LOGGER.warn("HdRemoteService.pushRecipeInfo:[{}][{}]处方推送失败, 失败原因: {}", enterprise.getId(), enterprise.getName(), pushRecipeResponse.getMessage());
+                    if (recipe != null) {
+                        LOGGER.warn("HdRemoteService.pushRecipeInfo:[{}][{}][{}]处方推送失败, 失败原因: {}", sendHdRecipe.getRecipeId(),enterprise.getId(), enterprise.getName(), pushRecipeResponse.getMessage());
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给"+enterprise.getName()+"推送处方失败,失败信息："+pushRecipeResponse.getMessage());
+                    } else {
+                        LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送失败.",enterprise.getId(), enterprise.getName());
+                    }
                     getFailResult(result, HdFindSupportDepStatusEnum.fromCode(pushRecipeResponse.getCode()).getMean());
                 }
                 //关闭 HttpEntity 输入流
