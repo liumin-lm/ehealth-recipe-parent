@@ -201,6 +201,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             //当更新请求返回的新token不为空的时候进行更新token的操作
             if(null != tokenResponse && null != newToken){
                 drugsEnterpriseDAO.updateTokenById(drugsEnterprise.getId(), newToken);
+                drugsEnterprise.setToken(newToken);
                 LOGGER.info("HdRemoteService.tokenUpdateImpl:[{}][{}]token更新成功:{}", drugsEnterprise.getId(), drugsEnterprise.getName(), newToken);
             }else{
                 LOGGER.warn("HdRemoteService.tokenUpdateImpl:[{}][{}]token更新token请求失败", drugsEnterprise.getId(), drugsEnterprise.getName());
