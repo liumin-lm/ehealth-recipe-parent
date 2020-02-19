@@ -866,6 +866,8 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         String methodName = "sendScanStock";
         List<Map<String, String>> hdDrugCodes = new ArrayList<>();
         Map<String, BigDecimal> drugCodes = new HashMap<>();
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        drugsEnterprise = drugsEnterpriseDAO.getById(drugsEnterprise.getId());
         StringBuilder msg = new StringBuilder("药企名称:" + drugsEnterprise.getName() + ",");
         try{
             for (Recipedetail recipedetail : detailList) {
