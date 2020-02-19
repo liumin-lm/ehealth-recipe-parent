@@ -718,7 +718,8 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         sendHdRecipe.setOrderTotalFee(null == order.getCouponFee() ?  feeDefault : order.getCouponFee().toString());
         sendHdRecipe.setExpressFee(null == order.getExpressFee() ?  feeDefault : order.getExpressFee().toString());
         sendHdRecipe.setDecoctionFee(null == order.getDecoctionFee() ?  feeDefault : order.getDecoctionFee().toString());
-
+        sendHdRecipe.setRecipientName(order.getReceiver());
+        sendHdRecipe.setRecipientTel(order.getRecMobile());
         sendHdRecipe.setPharmacyId(order.getDrugStoreCode());
         return null;
     }
