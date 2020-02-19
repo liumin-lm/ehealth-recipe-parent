@@ -68,6 +68,12 @@ public class HdRecipeDTO implements Serializable{
      * 非必填
      */
     private String patientAddress;
+
+    //收件人姓名
+    private String recipientName;
+
+    //收件人电话
+    private String recipientTel;
     /**
      * 患者医院病历号
      * 非必填
@@ -679,6 +685,22 @@ public class HdRecipeDTO implements Serializable{
 
     public void setImage(String image) {
         this.image = image;
+    }
+
+    public String getRecipientName() {
+        return recipientName;
+    }
+
+    public void setRecipientName(String recipientName) {
+        this.recipientName = recipientName;
+    }
+
+    public String getRecipientTel() {
+        return recipientTel;
+    }
+
+    public void setRecipientTel(String recipientTel) {
+        this.recipientTel = recipientTel;
     }
 
     public List<HdDrugDTO> getDrugList() {
