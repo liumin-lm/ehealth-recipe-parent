@@ -201,7 +201,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             //当更新请求返回的新token不为空的时候进行更新token的操作
             if(null != tokenResponse && null != newToken){
                 drugsEnterpriseDAO.updateTokenById(drugsEnterprise.getId(), newToken);
-                drugsEnterprise.setToken(newToken);
                 LOGGER.info("HdRemoteService.tokenUpdateImpl:[{}][{}]token更新成功:{}", drugsEnterprise.getId(), drugsEnterprise.getName(), newToken);
             }else{
                 LOGGER.warn("HdRemoteService.tokenUpdateImpl:[{}][{}]token更新token请求失败", drugsEnterprise.getId(), drugsEnterprise.getName());
@@ -867,6 +866,8 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         String methodName = "sendScanStock";
         List<Map<String, String>> hdDrugCodes = new ArrayList<>();
         Map<String, BigDecimal> drugCodes = new HashMap<>();
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        drugsEnterprise = drugsEnterpriseDAO.getById(drugsEnterprise.getId());
         StringBuilder msg = new StringBuilder("药企名称:" + drugsEnterprise.getName() + ",");
         try{
             for (Recipedetail recipedetail : detailList) {
