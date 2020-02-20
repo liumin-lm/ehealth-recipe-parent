@@ -201,6 +201,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "药企名称")
     private String enterpriseName;
 
+    @ItemProperty(alias = "药企电话")
+    private String tel;
+
     @ItemProperty(alias = "期望配送日期")
     private String expectSendDate;
 
@@ -783,6 +786,15 @@ public class RecipeOrder implements Serializable {
 
     public void setEnterpriseName(String enterpriseName) {
         this.enterpriseName = enterpriseName;
+    }
+
+    @Transient
+    public String getTel() {
+        return tel;
+    }
+
+    public void setTel(String tel) {
+        this.tel = tel;
     }
 
     @Column(name = "settleOrderNo")
