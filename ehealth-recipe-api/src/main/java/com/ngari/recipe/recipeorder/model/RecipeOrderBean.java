@@ -187,6 +187,9 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "药企名称")
     private String enterpriseName;
 
+    @ItemProperty(alias = "药企电话")
+    private String tel;
+
     //date 2019/10/18
     //添加优惠卷信息
     @ItemProperty(alias = "优惠券描述")
@@ -691,6 +694,14 @@ public class RecipeOrderBean implements Serializable {
 
     public void setEnterpriseName(String enterpriseName) {
         this.enterpriseName = enterpriseName;
+    }
+
+    public String getTel() {
+        return tel;
+    }
+
+    public void setTel(String tel) {
+        this.tel = tel;
     }
 
     public String getCancelReason() {

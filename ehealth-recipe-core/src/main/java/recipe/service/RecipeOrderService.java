@@ -1232,6 +1232,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 if(drugsEnterprise != null){
                     orderBean.setEnterpriseName(drugsEnterprise.getName());
                     orderBean.setTransFeeDetail(drugsEnterprise.getTransFeeDetail());
+                    orderBean.setTel(drugsEnterprise.getTel());
                 }
 
                 //如果扩展表指定了配送商名称，那就用扩展表的为主替换掉药企表的（杭州互联网新加逻辑）
