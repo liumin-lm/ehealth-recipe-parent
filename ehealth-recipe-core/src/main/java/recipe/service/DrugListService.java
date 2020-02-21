@@ -200,7 +200,7 @@ public class DrugListService extends BaseService<DrugListBean> {
                 return 0;
             }
             logger.info("DrugListSerevice.isExistDrugId tagersaleDrugList:{"+JSONUtils.toString(tagersaleDrugList)+"},organDrugId:{"+organDrugId+"}.");
-            if (tagersaleDrugList.getOrganDrugId() == organDrugId) {
+            if (tagersaleDrugList.getOrganDrugId().equals(organDrugId)) {
                 return 0;
             } else {
                 return 2;
