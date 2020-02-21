@@ -189,20 +189,22 @@ public class DrugListService extends BaseService<DrugListBean> {
         }
         DrugListDAO dao = getDAO(DrugListDAO.class);
         DrugList drugList = dao.getById(drugId);
+
         if (drugList == null) {
             return 1;
         } else {
             SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-            SaleDrugList saleDrugList = saleDrugListDAO.get(organDrugId);
-            if (saleDrugList.getDrugId() != drugId) {
-                //说明用户修改药品ID
-                SaleDrugList tagersaleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, depId);
-                if (tagersaleDrugList != null) {
-                    return 2;
-                }
+            //说明用户修改药品ID
+            SaleDrugList tagersaleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, depId);
+            if (tagersaleDrugList == null) {
+                return 0;
+            }
+            if (tagersaleDrugList.getOrganDrugId() == organDrugId) {
+                return 0;
+            } else {
+                return 2;
             }
         }
-        return 0;
     }
 
     /**
