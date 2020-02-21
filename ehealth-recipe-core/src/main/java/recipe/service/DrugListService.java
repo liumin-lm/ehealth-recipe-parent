@@ -194,7 +194,7 @@ public class DrugListService extends BaseService<DrugListBean> {
         } else {
             SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, depId);
-            if (saleDrugList == null) {
+            if (saleDrugList != null) {
                 return 2;
             }
         }
