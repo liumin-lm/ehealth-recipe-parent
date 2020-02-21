@@ -1314,7 +1314,14 @@ public class RecipeServiceSub {
             map.put("doctorSignImg",doctorDTO.getSignImage());
             map.put("doctorSignImgToken", FileAuth.instance().createToken(doctorDTO.getSignImage(), 3600L));
         }
-
+        //设置药师手签图片id
+        if (recipe.getChecker()!=null){
+            DoctorDTO auditDTO = doctorService.getByDoctorId(recipe.getChecker());
+            if (doctorDTO != null){
+                map.put("checkerSignImg",auditDTO.getSignImage());
+                map.put("checkerSignImgToken", FileAuth.instance().createToken(auditDTO.getSignImage(), 3600L));
+            }
+        }
         //Date:2019/12/16
         //Explain:添加判断展示处方参考价格
         //获取处方下的药品，判断是否有药品对应的医院药品金额为空，有的话不展示参考价格
