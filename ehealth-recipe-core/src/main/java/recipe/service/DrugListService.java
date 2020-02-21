@@ -180,6 +180,20 @@ public class DrugListService extends BaseService<DrugListBean> {
         }
     }
 
+    @RpcService
+    public boolean isExistDrugId(Integer drugId){
+        if (drugId == null) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "drugId is required");
+        }
+        DrugListDAO dao = getDAO(DrugListDAO.class);
+        DrugList drugList = dao.getById(drugId);
+        if (drugList == null) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     /**
      * 更新药品信息
      *
