@@ -399,17 +399,11 @@ public class RecipeSignService {
         String recipeCodeStr = "ngari" + DigestUtil.md5For16(recipeBean.getClinicOrgan() +
                 recipeBean.getMpiid() + Calendar.getInstance().getTimeInMillis());
         recipeBean.setRecipeCode(recipeCodeStr);
-        //11月大版本改造 咨询id由前端传入
-       /* //根据申请人mpiid，requestMode 获取当前咨询单consultId
-        IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-        List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipeBean.getRequestMpiId(),
-                recipeBean.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
-        Integer consultId = null;
-        if (CollectionUtils.isNotEmpty(consultIds)) {
-            consultId = consultIds.get(0);
-            recipeBean.setClinicId(consultId);
-            rMap.put("consultId", consultId);
-        }*/
+        //如果前端没有传入咨询id则从进行中的复诊或者咨询里取
+        //获取咨询单id,有进行中的复诊则优先取复诊，若没有则取进行中的图文咨询
+        if (recipeBean.getClinicId()==null){
+            recipeService.getConsultIdForRecipeSource(recipeBean);
+        }
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
         if (null != recipeId && recipeId > 0) {
             Integer status = recipeDAO.getStatusByRecipeId(recipeId);
