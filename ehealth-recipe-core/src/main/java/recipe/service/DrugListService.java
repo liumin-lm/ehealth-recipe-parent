@@ -9,6 +9,7 @@ import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.Dispensatory;
 import com.ngari.recipe.entity.DrugList;
+import com.ngari.recipe.entity.SaleDrugList;
 import ctd.dictionary.DictionaryItem;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
@@ -25,6 +26,7 @@ import recipe.ApplicationUtils;
 import recipe.bussutil.RecipeUtil;
 import recipe.dao.DispensatoryDAO;
 import recipe.dao.DrugListDAO;
+import recipe.dao.SaleDrugListDAO;
 import recipe.serviceprovider.BaseService;
 
 import java.util.*;
@@ -181,17 +183,22 @@ public class DrugListService extends BaseService<DrugListBean> {
     }
 
     @RpcService
-    public boolean isExistDrugId(Integer drugId){
+    public int isExistDrugId(Integer depId,Integer drugId){
         if (drugId == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugId is required");
         }
         DrugListDAO dao = getDAO(DrugListDAO.class);
         DrugList drugList = dao.getById(drugId);
-        if (drugList == null) {
-            return false;
+        if (drugList != null) {
+            return 1;
         } else {
-            return true;
+            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, depId);
+            if (saleDrugList == null) {
+                return 2;
+            }
         }
+        return 0;
     }
 
     /**
