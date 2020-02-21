@@ -991,6 +991,7 @@ public class RecipeService extends RecipeBaseService{
             }
         } catch (Exception e) {
             LOGGER.error("doSignRecipeExt error",e);
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR,e.getMessage());
         }
         LOGGER.info("doSignRecipeExt execute ok! rMap:" + JSONUtils.toString(rMap));
         return rMap;
@@ -2002,8 +2003,8 @@ public class RecipeService extends RecipeBaseService{
                 }
 
                 if (!succFlag) {
-                    LOGGER.error("findSupportDepList 存在不支持配送药品. 处方ID=[{}], 药企ID=[{}], 药企名称=[{}], drugIds={}",
-                            recipeId, depId, dep.getName(), JSONUtils.toString(drugIds));
+                    LOGGER.error("findSupportDepList 药企名称=[{}]存在不支持配送药品. 处方ID=[{}], 药企ID=[{}], drugIds={}",
+                            dep.getName(),recipeId, depId, JSONUtils.toString(drugIds));
                     continue;
                 } else {
                     //通过查询该药企库存，最终确定能否配送
@@ -2014,15 +2015,17 @@ public class RecipeService extends RecipeBaseService{
                         if (sigle) {
                             break;
                         }
+                        LOGGER.info("findSupportDepList 药企名称=[{}]支持配送该处方所有药品. 处方ID=[{}], 药企ID=[{}], drugIds={}",
+                                dep.getName(),recipeId, depId, JSONUtils.toString(drugIds));
                     } else {
-                        LOGGER.error("findSupportDepList 药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}], 药企名称=[{}]",
-                                recipeId, depId, dep.getName());
+                        LOGGER.error("findSupportDepList  药企名称=[{}]药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}]",
+                                dep.getName(), recipeId, depId );
                     }
                 }
             }
 
             if (CollectionUtils.isEmpty(subDepList)) {
-                LOGGER.error("findSupportDepList 该处方无法配送. recipeId=[{}]", recipeId);
+                LOGGER.error("findSupportDepList 该处方获取不到支持的药企无法配送. recipeId=[{}]", recipeId);
                 backList.clear();
                 break;
             } else {

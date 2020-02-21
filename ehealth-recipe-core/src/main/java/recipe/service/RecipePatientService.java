@@ -129,6 +129,7 @@ public class RecipePatientService extends RecipeBaseService {
             if (0 == findDetail && depList.size() > 1) {
                 depListBean.setSigle(false);
                 resultBean.setObject(depListBean);
+                //开处方阶段---判断药企库存这里就返回了
                 return resultBean;
             }
 
