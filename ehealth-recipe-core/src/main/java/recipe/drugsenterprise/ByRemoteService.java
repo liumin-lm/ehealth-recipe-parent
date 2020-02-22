@@ -110,47 +110,168 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
 //        return result;
 //    }
     /**
-     * @method  corresPondingHospDrugHttpRequest
+     * @method  corresPondingHospDrugByOrganIdHttpRequest
      * @description 同步药品http请求
      * @date: 2019/7/10
      * @author: JRK
-     * @param getHospDrugDto 药企
+     * @param organId
      * @param getHospDrugDto 同步药品信息
      * @param httpClient 请求服务
      * @return void
      */
-    private DrugEnterpriseResult corresPondingHospDrugHttpRequest(DrugEnterpriseResult result,DrugsEnterprise drugsEnterprise, YfzCorressPonHospDrugDto getHospDrugDto) throws IOException {
-        YfzEncryptDto encryptDto=new YfzEncryptDto();
-        encryptDto.setKey(drugsEnterprise.getToken());
-        encryptDto.setOriginaldata("projectCode="+projectCode+"&timespan="+ DateConversion.formatDateTime(DateConversion.getFormatDate(new Date(),DateConversion.PRESCRITION_DATE_TIME)));
-        String originaldata1=encrypt(encryptDto,drugsEnterprise);
-        encryptDto.setOriginaldata(JSONUtils.toString(getHospDrugDto));
-        String originaldata2=encrypt(encryptDto,drugsEnterprise);
-        System.out.println("originaldata1==============:"+originaldata1);
-        System.out.println("originaldata2==============:"+originaldata2);
-        String requestStr = JSONUtils.toString(originaldata2);
-        Map<String,String> extendHeaders=new HashMap<String,String>();
-        extendHeaders.put("Content-Type",requestHeadJsonValue);
-        extendHeaders.put("projectCode",projectCode);
-        extendHeaders.put("encryptData",originaldata1);
+    @RpcService
+    private DrugEnterpriseResult corresPondingHospDrugByOrganIdHttpRequest(Integer organId) throws IOException {
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(226);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
 
-        LOGGER.info("ByRemoteService.corresPondingHospDrug:[{}][{}]同步药品请求，请求内容：{}", "id", "name", requestStr);
-        String outputData = HttpsClientUtils.doPost(httpUrl+correspondingHospDrugHttpUrl, requestStr,extendHeaders);
-        //获取响应消息
-        LOGGER.info("ByRemoteService.corresPondingHospDrug:[{}][{}]同步药品请求，获取响应消息：{}", "id", "name", JSONUtils.toString(outputData));
-        YfzDecryptDto decryptDto=new YfzDecryptDto();
-        decryptDto.setKey(drugsEnterprise.getToken());
-        decryptDto.setEncryptdata(outputData);
-        Map resultMap = JSONUtils.parse(decrypt(decryptDto,drugsEnterprise), Map.class);
-        int resCode = MapValueUtil.getInteger(resultMap, "code");
-        String message = MapValueUtil.getString(resultMap, "message");
-        String responseData = MapValueUtil.getString(resultMap, "responseData");
-        if (RESULT_SUCCESS.equals(resCode)) {
-            result.setCode(resCode);
-            result.setMsg(message + responseData);
-        }else{
-            result.setCode(resCode);
-            getFailResult(result, message + responseData);
+        List<OrganDrugList> orgDrugList=organDrugListDAO.findOrganDrugByOrganId(organId);
+        YfzCorressPonHospDrugDto getHospDrugDto=new YfzCorressPonHospDrugDto();
+        if(null != enterprise){
+            if (CollectionUtils.isNotEmpty(orgDrugList)) {
+                getHospDrugDto.setAccess_token(enterprise.getToken());
+                List<YfzHospDrugDto> hospDrugList=new ArrayList<YfzHospDrugDto>();
+                for (OrganDrugList organDrug : orgDrugList) {
+                    YfzHospDrugDto dto=new YfzHospDrugDto();
+                    dto.setHospDrugId(organDrug.getDrugId().toString());
+                    dto.setHospDrugPrice(String.valueOf(organDrug.getSalePrice()));
+                    dto.setHospDrugGenericName(organDrug.getDrugName());
+                    dto.setHospDrugTradeName(organDrug.getSaleName());
+                    dto.setHospDrugSpec(organDrug.getDrugSpec());
+                    dto.setHospDrugCompanyName(organDrug.getProducer());
+                    dto.setHospDrugApproveNumber(organDrug.getLicenseNumber());
+                    hospDrugList.add(dto);
+                }
+                getHospDrugDto.setHospDrugList(hospDrugList);
+                //发送请求，获得推送的结果
+                CloseableHttpClient httpClient = HttpClients.createDefault();
+                try {
+                    YfzEncryptDto encryptDto=new YfzEncryptDto();
+                    encryptDto.setKey(enterprise.getToken());
+                    encryptDto.setOriginaldata("projectCode="+projectCode+"&timespan="+ DateConversion.formatDateTime(DateConversion.getFormatDate(new Date(),DateConversion.PRESCRITION_DATE_TIME)));
+                    String originaldata1=encrypt(encryptDto,enterprise);
+                    encryptDto.setOriginaldata(JSONUtils.toString(getHospDrugDto));
+                    String originaldata2=encrypt(encryptDto,enterprise);
+                    System.out.println("originaldata1==============:"+originaldata1);
+                    System.out.println("originaldata2==============:"+originaldata2);
+                    String requestStr = JSONUtils.toString(originaldata2);
+                    Map<String,String> extendHeaders=new HashMap<String,String>();
+                    extendHeaders.put("Content-Type",requestHeadJsonValue);
+                    extendHeaders.put("projectCode",projectCode);
+                    extendHeaders.put("encryptData",originaldata1);
+
+                    LOGGER.info("ByRemoteService.corresPondingHospDrug:[{}][{}]同步药品请求，请求内容：{}", "id", "name", requestStr);
+                    String outputData = HttpsClientUtils.doPost(httpUrl+correspondingHospDrugHttpUrl, requestStr,extendHeaders);
+                    //获取响应消息
+                    LOGGER.info("ByRemoteService.corresPondingHospDrug:[{}][{}]同步药品请求，获取响应消息：{}", "id", "name", JSONUtils.toString(outputData));
+                    YfzDecryptDto decryptDto=new YfzDecryptDto();
+                    decryptDto.setKey(enterprise.getToken());
+                    decryptDto.setEncryptdata(outputData);
+                    Map resultMap = JSONUtils.parse(decrypt(decryptDto,enterprise), Map.class);
+                    int resCode = MapValueUtil.getInteger(resultMap, "code");
+                    String message = MapValueUtil.getString(resultMap, "message");
+                    String responseData = MapValueUtil.getString(resultMap, "responseData");
+                    if (RESULT_SUCCESS.equals(resCode)) {
+                        result.setCode(resCode);
+                        result.setMsg(message + responseData);
+                    }else{
+                        result.setCode(resCode);
+                        getFailResult(result, message + responseData);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    LOGGER.error("ByRemoteService.syncEnterpriseDrug:[{}][{}]同步药品异常：{}",enterprise.getId(), enterprise.getName(), e.getMessage());
+                } finally {
+                    try {
+                        httpClient.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        LOGGER.error("ByRemoteService.syncEnterpriseDrug:http请求资源关闭异常: {}！", e.getMessage());
+                    }
+                }
+
+            }else {
+                LOGGER.warn("syncDrugTask 药企[{}]无可同步药品.", enterprise.getName());
+            }
+        }
+        return result;
+    }
+    /**
+     * @method  corresPondingHospDrugByOrganDrugListHttpRequest
+     * @description 同步药品http请求
+     * @date: 2019/7/10
+     * @author: JRK
+     * @param organDrug
+     * @param getHospDrugDto 同步药品信息
+     * @param httpClient 请求服务
+     * @return void
+     */
+    @RpcService
+    private DrugEnterpriseResult corresPondingHospDrugByOrganDrugListHttpRequest(OrganDrugList organDrug) throws IOException {
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(226);
+        YfzCorressPonHospDrugDto getHospDrugDto=new YfzCorressPonHospDrugDto();
+        if(null != enterprise){
+            List<YfzHospDrugDto> hospDrugList=new ArrayList<YfzHospDrugDto>();
+                getHospDrugDto.setAccess_token(enterprise.getToken());
+                    YfzHospDrugDto dto=new YfzHospDrugDto();
+                    dto.setHospDrugId(organDrug.getDrugId().toString());
+                    dto.setHospDrugPrice(String.valueOf(organDrug.getSalePrice()));
+                    dto.setHospDrugGenericName(organDrug.getDrugName());
+                    dto.setHospDrugTradeName(organDrug.getSaleName());
+                    dto.setHospDrugSpec(organDrug.getDrugSpec());
+                    dto.setHospDrugCompanyName(organDrug.getProducer());
+                    dto.setHospDrugApproveNumber(organDrug.getLicenseNumber());
+            hospDrugList.add(dto);
+            getHospDrugDto.setHospDrugList(hospDrugList);
+                //发送请求，获得推送的结果
+                CloseableHttpClient httpClient = HttpClients.createDefault();
+                try {
+                    YfzEncryptDto encryptDto=new YfzEncryptDto();
+                    encryptDto.setKey(enterprise.getToken());
+                    encryptDto.setOriginaldata("projectCode="+projectCode+"&timespan="+ DateConversion.formatDateTime(DateConversion.getFormatDate(new Date(),DateConversion.PRESCRITION_DATE_TIME)));
+                    String originaldata1=encrypt(encryptDto,enterprise);
+                    encryptDto.setOriginaldata(JSONUtils.toString(getHospDrugDto));
+                    String originaldata2=encrypt(encryptDto,enterprise);
+                    System.out.println("originaldata1==============:"+originaldata1);
+                    System.out.println("originaldata2==============:"+originaldata2);
+                    String requestStr = JSONUtils.toString(originaldata2);
+                    Map<String,String> extendHeaders=new HashMap<String,String>();
+                    extendHeaders.put("Content-Type",requestHeadJsonValue);
+                    extendHeaders.put("projectCode",projectCode);
+                    extendHeaders.put("encryptData",originaldata1);
+
+                    LOGGER.info("ByRemoteService.corresPondingHospDrug:[{}][{}]同步药品请求，请求内容：{}", "id", "name", requestStr);
+                    String outputData = HttpsClientUtils.doPost(httpUrl+correspondingHospDrugHttpUrl, requestStr,extendHeaders);
+                    //获取响应消息
+                    LOGGER.info("ByRemoteService.corresPondingHospDrug:[{}][{}]同步药品请求，获取响应消息：{}", "id", "name", JSONUtils.toString(outputData));
+                    YfzDecryptDto decryptDto=new YfzDecryptDto();
+                    decryptDto.setKey(enterprise.getToken());
+                    decryptDto.setEncryptdata(outputData);
+                    Map resultMap = JSONUtils.parse(decrypt(decryptDto,enterprise), Map.class);
+                    int resCode = MapValueUtil.getInteger(resultMap, "code");
+                    String message = MapValueUtil.getString(resultMap, "message");
+                    String responseData = MapValueUtil.getString(resultMap, "responseData");
+                    if (RESULT_SUCCESS.equals(resCode)) {
+                        result.setCode(resCode);
+                        result.setMsg(message + responseData);
+                    }else{
+                        result.setCode(resCode);
+                        getFailResult(result, message + responseData);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    LOGGER.error("ByRemoteService.syncEnterpriseDrug:[{}][{}]同步药品异常：{}",enterprise.getId(), enterprise.getName(), e.getMessage());
+                } finally {
+                    try {
+                        httpClient.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        LOGGER.error("ByRemoteService.syncEnterpriseDrug:http请求资源关闭异常: {}！", e.getMessage());
+                    }
+                }
         }
         return result;
     }
@@ -571,49 +692,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
-        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(drugsEnterprise.getId());
-        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        List<OrganDrugList> orgDrugList=organDrugListDAO.findOrganDrugByOrganId(drugsEnterprise.getId());
-        YfzCorressPonHospDrugDto getHospDrugDto=new YfzCorressPonHospDrugDto();
-        if(null != enterprise){
-            if (CollectionUtils.isNotEmpty(orgDrugList)) {
-                getHospDrugDto.setAccess_token(enterprise.getToken());
-                List<YfzHospDrugDto> hospDrugList=new ArrayList<YfzHospDrugDto>();
-                for (OrganDrugList organDrug : orgDrugList) {
-                    YfzHospDrugDto dto=new YfzHospDrugDto();
-                    dto.setHospDrugId(organDrug.getDrugId().toString());
-                    dto.setHospDrugPrice(String.valueOf(organDrug.getSalePrice()));
-                    dto.setHospDrugGenericName(organDrug.getDrugName());
-                    dto.setHospDrugTradeName(organDrug.getSaleName());
-                    dto.setHospDrugSpec(organDrug.getDrugSpec());
-                    dto.setHospDrugCompanyName(organDrug.getProducer());
-                    dto.setHospDrugApproveNumber(organDrug.getLicenseNumber());
-                    hospDrugList.add(dto);
-                }
-                getHospDrugDto.setHospDrugList(hospDrugList);
-                //发送请求，获得推送的结果
-                CloseableHttpClient httpClient = HttpClients.createDefault();
-                try {
-                    result=corresPondingHospDrugHttpRequest(result,drugsEnterprise,getHospDrugDto);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    LOGGER.error("ByRemoteService.syncEnterpriseDrug:[{}][{}]同步药品异常：{}",enterprise.getId(), enterprise.getName(), e.getMessage());
-                } finally {
-                    try {
-                        httpClient.close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        LOGGER.error("ByRemoteService.syncEnterpriseDrug:http请求资源关闭异常: {}！", e.getMessage());
-                    }
-                }
-
-            }else {
-                LOGGER.warn("syncDrugTask 药企[{}]无可同步药品.", enterprise.getName());
-            }
-        }
-        return result;
+        return null;
     }
 
     @Override
