@@ -123,7 +123,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                     //获取响应消息
                     LOGGER.info("ByRemoteService.corresPondingHospDrugByOrganIdHttpRequest:[{}][{}]同步药品请求，获取响应消息：{}", enterprise.getId(), enterprise.getName(), JSONUtils.toString(outputData));
                     YfzDecryptDto decryptDto=new YfzDecryptDto();
-                    decryptDto.setKey(enterprise.getToken());
+                    decryptDto.setKey(encryptKey);
                     decryptDto.setEncryptdata(outputData);
                     Map resultMap = JSONUtils.parse(decrypt(decryptDto,enterprise), Map.class);
                     int resCode = MapValueUtil.getInteger(resultMap, "code");
@@ -188,7 +188,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                 CloseableHttpClient httpClient = HttpClients.createDefault();
                 try {
                     YfzEncryptDto encryptDto=new YfzEncryptDto();
-                    encryptDto.setKey(enterprise.getToken());
+                    encryptDto.setKey(encryptKey);
                     encryptDto.setOriginaldata("projectCode="+projectCode+"&timespan="+ DateConversion.formatDateTime(DateConversion.getFormatDate(new Date(),DateConversion.PRESCRITION_DATE_TIME)));
                     String originaldata1=encrypt(encryptDto,enterprise);
                     encryptDto.setOriginaldata(JSONUtils.toString(getHospDrugDto));
@@ -204,7 +204,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                     //获取响应消息
                     LOGGER.info("ByRemoteService.corresPondingHospDrug:[{}][{}]同步药品请求，获取响应消息：{}", enterprise.getId(), enterprise.getName(), JSONUtils.toString(outputData));
                     YfzDecryptDto decryptDto=new YfzDecryptDto();
-                    decryptDto.setKey(enterprise.getToken());
+                    decryptDto.setKey(encryptKey);
                     decryptDto.setEncryptdata(outputData);
                     Map resultMap = JSONUtils.parse(decrypt(decryptDto,enterprise), Map.class);
                     int resCode = MapValueUtil.getInteger(resultMap, "code");
