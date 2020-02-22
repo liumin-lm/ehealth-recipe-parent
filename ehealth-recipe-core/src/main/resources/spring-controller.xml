@@ -5,9 +5,7 @@
        			http://www.ngarihealth.com/schema/ssdev http://www.ngarihealth.com/schema/ssdev/ssdev.xsd">
 
     <!-- service register center -->
-
-    <ssdev:applicationDomain name="eh" registryAddress="zookeeper://zk.ngarihealth.com:9999" serverId="recipe" region="yinsheng-local"/>
-    <ssdev:mvcServer port="8899"/>
+    <ssdev:applicationDomain name="eh" registryAddress="${zk}" serverId="recipe"/>
     <ssdev:connector url="${url}">
         <ssdev:filter id="json"/>
         <ssdev:filter id="urt"/>
