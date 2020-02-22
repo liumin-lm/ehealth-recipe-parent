@@ -470,6 +470,7 @@ public class PayModeOnline implements IPurchaseService {
     }
 
     private void checkStoreForSendToHom(Recipe dbRecipe, List<DepDetailBean> depDetailList) {
+        LOG.info("PayModeOnline.checkStoreForSendToHom:{}.", JSONUtils.toString(depDetailList));
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByOrganId(dbRecipe.getClinicOrgan());
         for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
