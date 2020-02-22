@@ -255,6 +255,7 @@ public class OrganDrugListService {
                         String organCode = recipeParameterDao.getByName("sh_baiyang_druglist");
                         if (StringUtils.isNotEmpty(organCode)) {
                             if (organCode.equals(organDrugList.getOrganId())) {
+                                logger.info("同步药品数据到百洋药企：" + JSONUtils.toString(organDrugList));
                                 //表示是上海六院的新增药品，需要同步到百洋药企
                                 ByRemoteService byRemoteService = ApplicationUtils.getRecipeService(ByRemoteService.class);
                                 byRemoteService.corresPondingHospDrugByOrganDrugListHttpRequest(organDrugList);
