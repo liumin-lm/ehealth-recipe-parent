@@ -13,6 +13,11 @@ import java.util.Date;
 @Schema
 public class YfzTBPrescriptionExtendDto implements Serializable {
     /**
+     * 电子处方 ID
+     */
+   private String prescriptionNo;
+    /**
+
      * 支付方式，默认值线上支付
      */
     private String costCategory;
@@ -64,7 +69,13 @@ public class YfzTBPrescriptionExtendDto implements Serializable {
      * 订单备注
      */
     private String memo;
+    public String getPrescriptionNo() {
+        return prescriptionNo;
+    }
 
+    public void setPrescriptionNo(String prescriptionNo) {
+        this.prescriptionNo = prescriptionNo;
+    }
     public String getCostCategory() {
         return costCategory;
     }

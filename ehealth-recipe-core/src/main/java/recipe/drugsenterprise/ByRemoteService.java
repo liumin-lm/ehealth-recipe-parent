@@ -35,7 +35,7 @@ import java.math.BigDecimal;
 import java.util.*;
 
 /**
-* @Description: ShlyRemoteService 类（或接口）是 对接上海六院易复诊药企服务接口
+* @Description: ByRemoteService 类（或接口）是 对接上海六院易复诊药企服务接口
 * @Author: HDC
 * @Date: 2020/2/19
 */
@@ -49,13 +49,13 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
     //HttpUrl
     private static final String httpUrl = "http://test-yfz.baipaas.com/shanghaisix-api/";
     //加密解密HttpUrl
-    private static final String encryptHttpUrl = "http://test-yfz.baipaas.com/yfz-cipher/AES/";
+    private static final String encryptHttpUrl = "http://test-yfz.baipaas.com/AES/";
     //开处方
-    private static final String addHospitalPrescriptionHttpUrl = "prescription/addHospitalPrescription";
+    private static final String addHospitalPrescriptionHttpUrl = "shanghaisix-api/prescription/addHospitalPrescription";
     //同步药品接口
-    private static final String correspondingHospDrugHttpUrl = "systemCorresponding/correspondingHospDrug";
+    private static final String correspondingHospDrugHttpUrl = "shanghaisix-api/systemCorresponding/correspondingHospDrug";
     //查询处方药品库存接口
-    private static final String checkPrescriptionDrugStockHttpUrl = "prescription/checkPrescriptionDrugStock";
+    private static final String checkPrescriptionDrugStockHttpUrl = "shanghaisix-api/prescription/checkPrescriptionDrugStock";
 
     private static final String projectCode = "SHSDLRMYY";
 
@@ -75,40 +75,40 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
         RecipeCacheService recipeService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
         ORGANIZATION = recipeService.getRecipeParam("organization", "");
     }
-    /**
-     * @method  corresPondingHospDrug
-     * @description 发送http请求同步药品信息,并更新
-     * @date: 2020/02/20
-     * @author: JRK
-     * @param getHospDrugDto
-     * @param request 易复诊请求对象
-     * @param httpclient http请求服务
-     * @return void
-     */
-    @RpcService
-    public DrugEnterpriseResult corresPondingHospDrug(YfzCorressPonHospDrugDto getHospDrugDto)throws IOException {
-        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-
-        LOGGER.info("ShlyRemoteService.corresPondingHospDrug:[{}][{}]获得新的处方药品信息", "id", "name");
-        //发送请求，获得推送的结果
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-        try {
-//            if (enterprise.getBusinessUrl().contains("http:")) {
-                corresPondingHospDrugHttpRequest(result,getHospDrugDto);
+//    /**
+//     * @method  corresPondingHospDrug
+//     * @description 发送http请求同步药品信息,并更新
+//     * @date: 2020/02/20
+//     * @author: JRK
+//     * @param getHospDrugDto
+//     * @param request 易复诊请求对象
+//     * @param httpclient http请求服务
+//     * @return void
+//     */
+//    @RpcService
+//    public DrugEnterpriseResult corresPondingHospDrug(YfzCorressPonHospDrugDto getHospDrugDto)throws IOException {
+//        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+//
+//        LOGGER.info("ByRemoteService.corresPondingHospDrug:[{}][{}]获得新的处方药品信息", "id", "name");
+//        //发送请求，获得推送的结果
+//        CloseableHttpClient httpClient = HttpClients.createDefault();
+//        try {
+////            if (enterprise.getBusinessUrl().contains("http:")) {
+////                corresPondingHospDrugHttpRequest(result,getHospDrugDto);
+////            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            LOGGER.error("ByRemoteService.corresPondingHospDrug:[{}][{}]同步药品异常：{}","id", "name", e.getMessage());
+//        } finally {
+//            try {
+//                httpClient.close();
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//                LOGGER.error("ByRemoteService.corresPondingHospDrug:http请求资源关闭异常: {}！", e.getMessage());
 //            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            LOGGER.error("ShlyRemoteService.corresPondingHospDrug:[{}][{}]同步药品异常：{}","id", "name", e.getMessage());
-        } finally {
-            try {
-                httpClient.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-                LOGGER.error("ShlyRemoteService.corresPondingHospDrug:http请求资源关闭异常: {}！", e.getMessage());
-            }
-        }
-        return result;
-    }
+//        }
+//        return result;
+//    }
     /**
      * @method  corresPondingHospDrugHttpRequest
      * @description 同步药品http请求
@@ -119,13 +119,13 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
      * @param httpClient 请求服务
      * @return void
      */
-    private DrugEnterpriseResult corresPondingHospDrugHttpRequest(DrugEnterpriseResult result, YfzCorressPonHospDrugDto getHospDrugDto) throws IOException {
+    private DrugEnterpriseResult corresPondingHospDrugHttpRequest(DrugEnterpriseResult result,DrugsEnterprise drugsEnterprise, YfzCorressPonHospDrugDto getHospDrugDto) throws IOException {
         YfzEncryptDto encryptDto=new YfzEncryptDto();
-        encryptDto.setKey(encryptKey);
+        encryptDto.setKey(drugsEnterprise.getToken());
         encryptDto.setOriginaldata("projectCode="+projectCode+"&timespan="+ DateConversion.formatDateTime(DateConversion.getFormatDate(new Date(),DateConversion.PRESCRITION_DATE_TIME)));
-        String originaldata1=encrypt(encryptDto);
+        String originaldata1=encrypt(encryptDto,drugsEnterprise);
         encryptDto.setOriginaldata(JSONUtils.toString(getHospDrugDto));
-        String originaldata2=encrypt(encryptDto);
+        String originaldata2=encrypt(encryptDto,drugsEnterprise);
         System.out.println("originaldata1==============:"+originaldata1);
         System.out.println("originaldata2==============:"+originaldata2);
         String requestStr = JSONUtils.toString(originaldata2);
@@ -134,14 +134,14 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
         extendHeaders.put("projectCode",projectCode);
         extendHeaders.put("encryptData",originaldata1);
 
-        LOGGER.info("ShlyRemoteService.corresPondingHospDrug:[{}][{}]同步药品请求，请求内容：{}", "id", "name", requestStr);
+        LOGGER.info("ByRemoteService.corresPondingHospDrug:[{}][{}]同步药品请求，请求内容：{}", "id", "name", requestStr);
         String outputData = HttpsClientUtils.doPost(httpUrl+correspondingHospDrugHttpUrl, requestStr,extendHeaders);
         //获取响应消息
-        LOGGER.info("ShlyRemoteService.corresPondingHospDrug:[{}][{}]同步药品请求，获取响应消息：{}", "id", "name", JSONUtils.toString(outputData));
+        LOGGER.info("ByRemoteService.corresPondingHospDrug:[{}][{}]同步药品请求，获取响应消息：{}", "id", "name", JSONUtils.toString(outputData));
         YfzDecryptDto decryptDto=new YfzDecryptDto();
-        decryptDto.setKey(encryptKey);
+        decryptDto.setKey(drugsEnterprise.getToken());
         decryptDto.setEncryptdata(outputData);
-        Map resultMap = JSONUtils.parse(decrypt(decryptDto), Map.class);
+        Map resultMap = JSONUtils.parse(decrypt(decryptDto,drugsEnterprise), Map.class);
         int resCode = MapValueUtil.getInteger(resultMap, "code");
         String message = MapValueUtil.getString(resultMap, "message");
         String responseData = MapValueUtil.getString(resultMap, "responseData");
@@ -164,30 +164,30 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
      * @param httpclient http请求服务
      * @return void
      */
-    @RpcService
-    public DrugEnterpriseResult checkPrescriptionDrugStock(YfzCheckPrescriptionDrugStockDto yfzAddHospitalPrescriptionDto)throws IOException {
-        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-
-        LOGGER.info("ShlyRemoteService.corresPondingHospDrug:[{}][{}]获得新的处方药品信息", "id", "name");
-        //发送请求，获得推送的结果
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-        try {
-//            if (enterprise.getBusinessUrl().contains("http:")) {
-            checkPrescriptionDrugStockHttpRequest(result,yfzAddHospitalPrescriptionDto);
+//    @RpcService
+//    public DrugEnterpriseResult checkPrescriptionDrugStock(YfzCheckPrescriptionDrugStockDto yfzAddHospitalPrescriptionDto)throws IOException {
+//        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+//
+//        LOGGER.info("ByRemoteService.corresPondingHospDrug:[{}][{}]获得新的处方药品信息", "id", "name");
+//        //发送请求，获得推送的结果
+//        CloseableHttpClient httpClient = HttpClients.createDefault();
+//        try {
+////            if (enterprise.getBusinessUrl().contains("http:")) {
+//            checkPrescriptionDrugStockHttpRequest(result,yfzAddHospitalPrescriptionDto);
+////            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            LOGGER.error("ByRemoteService.corresPondingHospDrug:[{}][{}]同步药品异常：{}","id", "name", e.getMessage());
+//        } finally {
+//            try {
+//                httpClient.close();
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//                LOGGER.error("ByRemoteService.corresPondingHospDrug:http请求资源关闭异常: {}！", e.getMessage());
 //            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            LOGGER.error("ShlyRemoteService.corresPondingHospDrug:[{}][{}]同步药品异常：{}","id", "name", e.getMessage());
-        } finally {
-            try {
-                httpClient.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-                LOGGER.error("ShlyRemoteService.corresPondingHospDrug:http请求资源关闭异常: {}！", e.getMessage());
-            }
-        }
-        return result;
-    }
+//        }
+//        return result;
+//    }
     /**
      * @method  checkPrescriptionDrugStockHttpRequest
      * @description 查询处方库存http请求
@@ -198,28 +198,30 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
      * @param httpClient 请求服务
      * @return void
      */
-    public DrugEnterpriseResult checkPrescriptionDrugStockHttpRequest(DrugEnterpriseResult result, YfzCheckPrescriptionDrugStockDto yfzAddHospitalPrescriptionDto) throws IOException {
+    public DrugEnterpriseResult checkPrescriptionDrugStockHttpRequest(DrugEnterpriseResult result,DrugsEnterprise drugsEnterprise, YfzCheckPrescriptionDrugStockDto yfzAddHospitalPrescriptionDto) throws IOException {
         YfzEncryptDto encryptDto=new YfzEncryptDto();
         encryptDto.setKey(encryptKey);
         encryptDto.setOriginaldata("projectCode="+projectCode+"&timespan="+ DateConversion.formatDateTime(DateConversion.getFormatDate(new Date(),DateConversion.PRESCRITION_DATE_TIME)));
-        String originaldata1=encrypt(encryptDto);
+        String originaldata1=encrypt(encryptDto,drugsEnterprise);
         encryptDto.setOriginaldata(JSONUtils.toString(yfzAddHospitalPrescriptionDto));
-        String originaldata2=encrypt(encryptDto);
+        String originaldata2=encrypt(encryptDto,drugsEnterprise);
 
         String requestStr = JSONUtils.toString(originaldata2);
         Map<String,String> extendHeaders=new HashMap<String,String>();
         extendHeaders.put("Content-Type","application/json");
         extendHeaders.put("projectCode",projectCode);
         extendHeaders.put("encryptData",originaldata1);
-        LOGGER.info("ShlyRemoteService.checkPrescriptionDrugStockHttpRequest:[{}][{}]查询库存请求，请求内容：{}", "id", "name", requestStr);
-        String outputData = HttpsClientUtils.doPost(httpUrl+checkPrescriptionDrugStockHttpUrl, requestStr,extendHeaders);
+        System.out.println("extendHeaders=============="+extendHeaders);
+        System.out.println("originaldata1=============="+originaldata1);
+        LOGGER.info("ByRemoteService.checkPrescriptionDrugStockHttpRequest:[{}][{}]查询库存请求，请求内容：{}", "id", "name", requestStr);
+        System.out.println("url===="+drugsEnterprise.getBusinessUrl()+checkPrescriptionDrugStockHttpUrl);
+        String outputData = HttpsClientUtils.doPost(drugsEnterprise.getBusinessUrl()+checkPrescriptionDrugStockHttpUrl, requestStr,extendHeaders);
         //获取响应消息
-        LOGGER.info("ShlyRemoteService.checkPrescriptionDrugStockHttpRequest:[{}][{}]查询库存请求，获取响应消息：{}", "id", "name", JSONUtils.toString(outputData));
+        LOGGER.info("ByRemoteService.checkPrescriptionDrugStockHttpRequest:[{}][{}]查询库存请求，获取响应消息：{}", "id", "name", JSONUtils.toString(outputData));
         YfzDecryptDto decryptDto=new YfzDecryptDto();
         decryptDto.setKey(encryptKey);
         decryptDto.setEncryptdata(outputData);
-        System.out.println(JSONUtils.toString(decrypt(decryptDto)));
-        Map resultMap = JSONUtils.parse(decrypt(decryptDto), Map.class);
+        Map resultMap = JSONUtils.parse(decrypt(decryptDto,drugsEnterprise), Map.class);
         String resCode = MapValueUtil.getString(resultMap, "code");
         String message = MapValueUtil.getString(resultMap, "message");
         if (RESULT_SUCCESS.equals(resCode)) {
@@ -240,12 +242,13 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                 position.setLongitude(0.00);
                 detailBean.setPosition(position);
                 detailList.add(detailBean);
-                result.setObject(detailList);
             }
+            result.setObject(detailList);
         }else{
            String responseData= MapValueUtil.getString(resultMap, "responseData");
             result.setCode(Integer.valueOf(resCode));
-            getFailResult(result, message + responseData);
+            result.setMsg(message + responseData);
+//            getFailResult(result, message + responseData);
         }
         return result;
     }
@@ -263,7 +266,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
     public DrugEnterpriseResult addHospitalPrescription(YfzAddHospitalPrescriptionDto yfzAddHospitalPrescriptionDto)throws IOException {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
 
-        LOGGER.info("ShlyRemoteService.corresPondingHospDrug:[{}][{}]获得新的处方药品信息", "id", "name");
+        LOGGER.info("ByRemoteService.corresPondingHospDrug:[{}][{}]获得新的处方药品信息", "id", "name");
         //发送请求，获得推送的结果
         CloseableHttpClient httpClient = HttpClients.createDefault();
         try {
@@ -273,13 +276,13 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
 //            }
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.error("ShlyRemoteService.corresPondingHospDrug:[{}][{}]同步药品异常：{}","id", "name", e.getMessage());
+            LOGGER.error("ByRemoteService.corresPondingHospDrug:[{}][{}]同步药品异常：{}","id", "name", e.getMessage());
         } finally {
             try {
                 httpClient.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("ShlyRemoteService.corresPondingHospDrug:http请求资源关闭异常: {}！", e.getMessage());
+                LOGGER.error("ByRemoteService.corresPondingHospDrug:http请求资源关闭异常: {}！", e.getMessage());
             }
         }
         return result;
@@ -294,27 +297,27 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
      * @param httpClient 请求服务
      * @return void
      */
-    private DrugEnterpriseResult addHospitalPrescriptionHttpRequest(DrugEnterpriseResult result, YfzAddHospitalPrescriptionDto yfzAddHospitalPrescriptionDto) throws IOException {
+    private DrugEnterpriseResult addHospitalPrescriptionHttpRequest(DrugEnterpriseResult result, DrugsEnterprise drugsEnterprise,YfzAddHospitalPrescriptionDto yfzAddHospitalPrescriptionDto) throws IOException {
         YfzEncryptDto encryptDto=new YfzEncryptDto();
-        encryptDto.setKey(encryptKey);
+        encryptDto.setKey(drugsEnterprise.getToken());
         encryptDto.setOriginaldata("projectCode="+projectCode+"&timespan="+ DateConversion.formatDateTime(DateConversion.getFormatDate(new Date(),DateConversion.PRESCRITION_DATE_TIME)));
-        String originaldata1=encrypt(encryptDto);
+        String originaldata1=encrypt(encryptDto,drugsEnterprise);
         encryptDto.setOriginaldata(JSONUtils.toString(yfzAddHospitalPrescriptionDto));
-        String originaldata2=encrypt(encryptDto);
+        String originaldata2=encrypt(encryptDto,drugsEnterprise);
 
         String requestStr = JSONUtils.toString(originaldata2);
         Map<String,String> extendHeaders=new HashMap<String,String>();
         extendHeaders.put("Content-Type","application/json");
         extendHeaders.put("projectCode",projectCode);
         extendHeaders.put("encryptData",originaldata1);
-        LOGGER.info("ShlyRemoteService.checkPrescriptionDrugStockHttpRequest:[{}][{}]查询库存请求，请求内容：{}", "id", "name", requestStr);
+        LOGGER.info("ByRemoteService.checkPrescriptionDrugStockHttpRequest:[{}][{}]查询库存请求，请求内容：{}", "id", "name", requestStr);
         String outputData = HttpsClientUtils.doPost(httpUrl+addHospitalPrescriptionHttpUrl, requestStr,extendHeaders);
         //获取响应消息
-        LOGGER.info("ShlyRemoteService.checkPrescriptionDrugStockHttpRequest:[{}][{}]查询库存请求，获取响应消息：{}", "id", "name", JSONUtils.toString(outputData));
+        LOGGER.info("ByRemoteService.checkPrescriptionDrugStockHttpRequest:[{}][{}]查询库存请求，获取响应消息：{}", "id", "name", JSONUtils.toString(outputData));
         YfzDecryptDto decryptDto=new YfzDecryptDto();
-        decryptDto.setKey(encryptKey);
+        decryptDto.setKey(drugsEnterprise.getToken());
         decryptDto.setEncryptdata(outputData);
-        Map resultMap = JSONUtils.parse(decrypt(decryptDto), Map.class);
+        Map resultMap = JSONUtils.parse(decrypt(decryptDto,drugsEnterprise), Map.class);
         int resCode = MapValueUtil.getInteger(resultMap, "code");
         String message = MapValueUtil.getString(resultMap, "message");
         String responseData = MapValueUtil.getString(resultMap, "responseData");
@@ -331,18 +334,18 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
      * 易复诊数据加密
      * @return
      */
-    public String encrypt(Object encryptDto){
-        LOGGER.info("ShlyRemoteService-encrypt encryptDto:{}.", encryptDto);
+    public String encrypt(Object encryptDto,DrugsEnterprise drugsEnterprise){
+        LOGGER.info("ByRemoteService-encrypt encryptDto:{}.", encryptDto);
         String encryptData="";
         try{
             //开始发送请求数据
             String paramesRequest = JSONUtils.toString(encryptDto);
-            LOGGER.info("ShlyRemoteService.encrypt paramesRequest:{}.", paramesRequest);
+            LOGGER.info("ByRemoteService.encrypt paramesRequest:{}.", paramesRequest);
             //开始发送请求数据
-            encryptData = HttpsClientUtils.doPost(encryptHttpUrl+"encrypt", paramesRequest);
-            LOGGER.info("ShlyRemoteService.encrypt encryptData:{}.", encryptData);
+            encryptData = HttpsClientUtils.doPost(drugsEnterprise.getBusinessUrl()+"yfz-cipher/AES/encrypt", paramesRequest);
+            LOGGER.info("ByRemoteService.encrypt encryptData:{}.", encryptData);
         }catch(Exception e){
-            LOGGER.error("ShlyRemoteService-encrypt error:{}.", e.getMessage(), e);
+            LOGGER.error("ByRemoteService-encrypt error:{}.", e.getMessage(), e);
         }
         return encryptData;
     }
@@ -350,18 +353,18 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
      * 易复诊数据解密
      * @return
      */
-    public String decrypt(Object encryptDto){
-        LOGGER.info("ShlyRemoteService-decrypt decryptDto:{}.", encryptDto);
+    public String decrypt(Object encryptDto,DrugsEnterprise drugsEnterprise){
+        LOGGER.info("ByRemoteService-decrypt decryptDto:{}.", encryptDto);
         String decryptData="";
         try{
             //开始发送请求数据
             String paramesRequest = JSONUtils.toString(encryptDto);
-            LOGGER.info("ShlyRemoteService.encrypt paramesRequest:{}.", paramesRequest);
+            LOGGER.info("ByRemoteService.encrypt paramesRequest:{}.", paramesRequest);
             //开始发送请求数据
-            decryptData = HttpsClientUtils.doPost(encryptHttpUrl+"decrypt", paramesRequest);
-            LOGGER.info("ShlyRemoteService.decrypt decryptData:{}.", decryptData);
+            decryptData = HttpsClientUtils.doPost(drugsEnterprise.getBusinessUrl()+"yfz-cipher/AES/decrypt", paramesRequest);
+            LOGGER.info("ByRemoteService.decrypt decryptData:{}.", decryptData);
         }catch(Exception e){
-            LOGGER.error("ShlyRemoteService-decrypt error:{}.", e.getMessage(), e);
+            LOGGER.error("ByRemoteService-decrypt error:{}.", e.getMessage(), e);
         }
         return decryptData;
     }
@@ -389,8 +392,9 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
         List<Integer> recipeIds = Arrays.asList(recipeId);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(226);
-        pushRecipeInfo(recipeIds, enterprise);
+//        pushRecipeInfo(recipeIds, enterprise);
 //        scanStock(recipeId, enterprise);
+        findSupportDep(recipeIds,null,enterprise);
     }
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
@@ -424,9 +428,9 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                 getFailResult(result, "处方绑定医生不存在");
                 return result;
             }
-
+            yfzAddHospitalPrescriptionDto.setAccess_token(enterprise.getToken());
             yfzAddHospitalPrescriptionDto.setHisprescriptionId(nowRecipe.getRecipeId().toString());
-            yfzAddHospitalPrescriptionDto.setEmployeeCardNo(doctor.getOrderNum().toString());
+            yfzAddHospitalPrescriptionDto.setEmployeeCardNo(doctor.getLoginId().toString());
             yfzAddHospitalPrescriptionDto.setDoctorName(doctor.getName());
             yfzAddHospitalPrescriptionDto.setPrescriptionType("39");
             yfzAddHospitalPrescriptionDto.setDiagnoseName(nowRecipe.getMemo());
@@ -476,6 +480,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
             }else{
                 tbpDto.setCostCategory(nowRecipe.getGiveMode().toString());
             }
+            tbpDto.setPrescriptionNo(nowRecipe.getRecipeId().toString());
             tbpDto.setReceiverName(recipeOrder.getReceiver());
             tbpDto.setReceiverMobile(recipeOrder.getRecMobile());
             tbpDto.setReceiverAddress(getCompleteAddress(recipeOrder));
@@ -489,33 +494,31 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
             tbpDto.setOrderSource("1");
             tbpDto.setMemo(nowRecipe.getMemo());
             yfzAddHospitalPrescriptionDto.setTbPrescriptionExtend(tbpDto);
-
-            YfzTADrugStoreDto yfzTADrugStoreDto=new YfzTADrugStoreDto();
-            yfzTADrugStoreDto.setId(enterprise.getId().toString());
-            yfzTADrugStoreDto.setAddress("");
-            yfzTADrugStoreDto.setName(enterprise.getName());
             //发送请求，获得推送的结果
             CloseableHttpClient httpClient = HttpClients.createDefault();
-
             try {
                 DrugEnterpriseResult result2=scanStock(nowRecipe.getRecipeId(),enterprise);
             if (result2.getCode().equals(200)) {
-                addHospitalPrescriptionHttpRequest(result, yfzAddHospitalPrescriptionDto);
+                YfzTADrugStoreDto yfzTADrugStoreDto=new YfzTADrugStoreDto();
+                yfzTADrugStoreDto.setId(recipeOrder.getDrugStoreCode());
+                yfzTADrugStoreDto.setAddress(recipeOrder.getDrugStoreAddr());
+                yfzTADrugStoreDto.setName(recipeOrder.getDrugStoreName());
+                addHospitalPrescriptionHttpRequest(result,enterprise, yfzAddHospitalPrescriptionDto);
             }
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("ShlyRemoteService.corresPondingHospDrug:[{}][{}]推送处方异常：{}",nowRecipe.getDepart(), "name", e.getMessage());
+                LOGGER.error("ByRemoteService.corresPondingHospDrug:[{}][{}]推送处方异常：{}",nowRecipe.getDepart(), "name", e.getMessage());
             } finally {
                 try {
                     httpClient.close();
                 } catch (Exception e) {
                     e.printStackTrace();
-                    LOGGER.error("ShlyRemoteService.corresPondingHospDrug:http请求资源关闭异常: {}！", e.getMessage());
+                    LOGGER.error("ByRemoteService.corresPondingHospDrug:http请求资源关闭异常: {}！", e.getMessage());
                 }
             }
 
         }else{
-            LOGGER.warn("ShlyRemoteService.pushRecipeInfo:未查询到匹配的处方列表");
+            LOGGER.warn("ByRemoteService.pushRecipeInfo:未查询到匹配的处方列表");
             getFailResult(result, "未查询到匹配的处方列表");
             return result;
         }
@@ -549,18 +552,18 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
         //发送请求，获得推送的结果
         CloseableHttpClient httpClient = HttpClients.createDefault();
         try {
-//            if (enterprise.getBusinessUrl().contains("http:")) {
-            result=checkPrescriptionDrugStockHttpRequest(result,yfzAddHospitalPrescriptionDto);
-//            }
+            if (drugsEnterprise.getBusinessUrl().contains("http:")) {
+            result=checkPrescriptionDrugStockHttpRequest(result,drugsEnterprise,yfzAddHospitalPrescriptionDto);
+            }
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.error("ShlyRemoteService.checkPrescriptionDrugStockHttpRequest:[{}][{}]同步药品异常：{}",recipe.getDepart(), recipe.getDoctor(), e.getMessage());
+            LOGGER.error("ByRemoteService.checkPrescriptionDrugStockHttpRequest:[{}][{}]同步药品异常：{}",recipe.getDepart(), recipe.getDoctor(), e.getMessage());
         } finally {
             try {
                 httpClient.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("ShlyRemoteService.checkPrescriptionDrugStockHttpRequest:http请求资源关闭异常: {}！", e.getMessage());
+                LOGGER.error("ByRemoteService.checkPrescriptionDrugStockHttpRequest:http请求资源关闭异常: {}！", e.getMessage());
             }
         }
         return result;
@@ -593,16 +596,16 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                 //发送请求，获得推送的结果
                 CloseableHttpClient httpClient = HttpClients.createDefault();
                 try {
-                    result=corresPondingHospDrugHttpRequest(result,getHospDrugDto);
+                    result=corresPondingHospDrugHttpRequest(result,drugsEnterprise,getHospDrugDto);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    LOGGER.error("ShlyRemoteService.syncEnterpriseDrug:[{}][{}]同步药品异常：{}",enterprise.getId(), enterprise.getName(), e.getMessage());
+                    LOGGER.error("ByRemoteService.syncEnterpriseDrug:[{}][{}]同步药品异常：{}",enterprise.getId(), enterprise.getName(), e.getMessage());
                 } finally {
                     try {
                         httpClient.close();
                     } catch (Exception e) {
                         e.printStackTrace();
-                        LOGGER.error("ShlyRemoteService.syncEnterpriseDrug:http请求资源关闭异常: {}！", e.getMessage());
+                        LOGGER.error("ByRemoteService.syncEnterpriseDrug:http请求资源关闭异常: {}！", e.getMessage());
                     }
                 }
 
@@ -620,7 +623,19 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise) {
-        return null;
+        DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
+        if (CollectionUtils.isNotEmpty(recipeList)) {
+            Recipe nowRecipe = recipeList.get(0);
+            result=scanStock(nowRecipe.getRecipeId(),enterprise);
+        }else{
+            LOGGER.warn("ByRemoteService.findSupportDep:未查询到匹配的处方列表");
+            getFailResult(result, "未查询到匹配的处方列表");
+            return result;
+        }
+
+        return result;
     }
 
     @Override
