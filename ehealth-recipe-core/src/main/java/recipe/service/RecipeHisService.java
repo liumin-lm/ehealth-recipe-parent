@@ -102,87 +102,94 @@ public class RecipeHisService extends RecipeBaseService {
 
         Integer sendOrganId = (null == otherOrganId) ? recipe.getClinicOrgan() : otherOrganId;
         if (isHisEnable(sendOrganId)) {
-            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-            OrganDrugListDAO drugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
-            RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-            EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
-
-            List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
-            PatientBean patientBean = iPatientService.get(recipe.getMpiid());
-            HealthCardBean cardBean = null;
-            try {
-                cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
-
-            }catch (Exception e){
-                LOGGER.error("开处方获取医保卡异常",e);
-            }
-            //创建请求体
-            RecipeSendRequestTO request = HisRequestInit.initRecipeSendRequestTO(recipe, details, patientBean, cardBean);
-            //是否是武昌机构，替换请求体
-            Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_WUCHANG_ORGAN_LIST);
-            if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(sendOrganId.toString())) {
-                request = HisRequestInit.initRecipeSendRequestTOForWuChang(recipe, details, patientBean, cardBean);
-                //发送电子病历
-                DocIndexToHisReqTO docIndexToHisReqTO = HisRequestInit.initDocIndexToHisReqTO(recipe);
-                HisResponseTO<DocIndexToHisResTO> hisResponseTO = service.docIndexToHis(docIndexToHisReqTO);
-                if (hisResponseTO != null){
-                    if ("200".equals(hisResponseTO.getMsgCode())){
-                        //电子病历接口返回挂号序号
-                        if (hisResponseTO.getData()!=null){
-                            request.setRegisteredId(hisResponseTO.getData().getRegisterId());
-                            request.setRegisterNo(hisResponseTO.getData().getRegisterNo());
-                            request.setPatientId(hisResponseTO.getData().getPatientId());
-                        }
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "推送电子病历成功");
-                    }else {
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "推送电子病历失败。原因："+hisResponseTO.getMsg());
-                    }
-                }
-            }
-            //设置医生工号
-            request.setDoctorID(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), sendOrganId, recipe.getDepart()));
-            //查询生产厂家
-            List<OrderItemTO> orderItemList = request.getOrderList();
-            if (CollectionUtils.isNotEmpty(orderItemList)) {
-                List<Integer> drugIdList = FluentIterable.from(orderItemList).transform(new Function<OrderItemTO, Integer>() {
-                    @Override
-                    public Integer apply(OrderItemTO input) {
-                        return input.getDrugId();
-                    }
-                }).toList();
-
-                List<OrganDrugList> organDrugList = drugDao.findByOrganIdAndDrugIds(sendOrganId, drugIdList);
-                Map<String, OrganDrugList> drugIdAndProduce = Maps.uniqueIndex(organDrugList, new Function<OrganDrugList, String>() {
-                    @Override
-                    public String apply(OrganDrugList input) {
-                        return input.getOrganDrugCode();
-                    }
-                });
-
-                OrganDrugList organDrug;
-                for (OrderItemTO item : orderItemList) {
-                    organDrug = drugIdAndProduce.get(item.getDrcode());
-                    if (null != organDrug) {
-                        //生产厂家
-                        item.setManfcode(organDrug.getProducerCode());
-                        //药房名称
-                        item.setPharmacy(organDrug.getPharmacyName());
-                        //单价
-                        item.setItemPrice(organDrug.getSalePrice());
-                        //产地名称
-                        item.setDrugManf(organDrug.getProducer());
-                    }
-                }
-
-            }
-            request.setOrganID(sendOrganId.toString());
-            // 处方独立出来后,his根据域名来判断回调模块
-            service.recipeSend(request);
+            //推送处方
+            sendRecipe(recipeId,sendOrganId);
         } else {
             result = false;
             LOGGER.error("recipeSendHis 医院HIS未启用[organId:" + sendOrganId + ",recipeId:" + recipeId + "]");
         }
         return result;
+    }
+
+    public void sendRecipe(Integer recipeId, Integer sendOrganId) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        OrganDrugListDAO drugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
+        RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+        EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
+
+        List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
+        PatientBean patientBean = iPatientService.get(recipe.getMpiid());
+        HealthCardBean cardBean = null;
+        try {
+            cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
+
+        }catch (Exception e){
+            LOGGER.error("开处方获取医保卡异常",e);
+        }
+        //创建请求体
+        RecipeSendRequestTO request = HisRequestInit.initRecipeSendRequestTO(recipe, details, patientBean, cardBean);
+        //是否是武昌机构，替换请求体
+        Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_WUCHANG_ORGAN_LIST);
+        if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(sendOrganId.toString())) {
+            request = HisRequestInit.initRecipeSendRequestTOForWuChang(recipe, details, patientBean, cardBean);
+            //发送电子病历
+            DocIndexToHisReqTO docIndexToHisReqTO = HisRequestInit.initDocIndexToHisReqTO(recipe);
+            HisResponseTO<DocIndexToHisResTO> hisResponseTO = service.docIndexToHis(docIndexToHisReqTO);
+            if (hisResponseTO != null){
+                if ("200".equals(hisResponseTO.getMsgCode())){
+                    //电子病历接口返回挂号序号
+                    if (hisResponseTO.getData()!=null){
+                        request.setRegisteredId(hisResponseTO.getData().getRegisterId());
+                        request.setRegisterNo(hisResponseTO.getData().getRegisterNo());
+                        request.setPatientId(hisResponseTO.getData().getPatientId());
+                    }
+                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "推送电子病历成功");
+                }else {
+                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "推送电子病历失败。原因："+hisResponseTO.getMsg());
+                }
+            }
+        }
+        //设置医生工号
+        request.setDoctorID(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), sendOrganId, recipe.getDepart()));
+        //查询生产厂家
+        List<OrderItemTO> orderItemList = request.getOrderList();
+        if (CollectionUtils.isNotEmpty(orderItemList)) {
+            List<Integer> drugIdList = FluentIterable.from(orderItemList).transform(new Function<OrderItemTO, Integer>() {
+                @Override
+                public Integer apply(OrderItemTO input) {
+                    return input.getDrugId();
+                }
+            }).toList();
+
+            List<OrganDrugList> organDrugList = drugDao.findByOrganIdAndDrugIds(sendOrganId, drugIdList);
+            Map<String, OrganDrugList> drugIdAndProduce = Maps.uniqueIndex(organDrugList, new Function<OrganDrugList, String>() {
+                @Override
+                public String apply(OrganDrugList input) {
+                    return input.getOrganDrugCode();
+                }
+            });
+
+            OrganDrugList organDrug;
+            for (OrderItemTO item : orderItemList) {
+                organDrug = drugIdAndProduce.get(item.getDrcode());
+                if (null != organDrug) {
+                    //生产厂家
+                    item.setManfcode(organDrug.getProducerCode());
+                    //药房名称
+                    item.setPharmacy(organDrug.getPharmacyName());
+                    //单价
+                    item.setItemPrice(organDrug.getSalePrice());
+                    //产地名称
+                    item.setDrugManf(organDrug.getProducer());
+                }
+            }
+
+        }
+        request.setOrganID(sendOrganId.toString());
+        // 处方独立出来后,his根据域名来判断回调模块
+        service.recipeSend(request);
     }
 
     private void doHisReturnSuccess(Recipe recipe) {
@@ -869,6 +876,10 @@ public class RecipeHisService extends RecipeBaseService {
             if (!RecipeUtil.isTcmType(recipe.getRecipeType())) {
                 return false;
             }
+        }
+        //todo---写死上海六院---在患者选完取药方式之后推送处方
+        if (recipe.getClinicOrgan() == 1000899){
+            return true;
         }
         return true;
     }

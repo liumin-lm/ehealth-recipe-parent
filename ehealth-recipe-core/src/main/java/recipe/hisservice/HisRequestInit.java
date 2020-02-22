@@ -317,7 +317,15 @@ public class HisRequestInit {
         if (Integer.valueOf(1).equals(recipe.getDistributionFlag())) {
             requestTO.setDeliveryType("1");
         } else {
-            requestTO.setDeliveryType("0");
+            switch (recipe.getGiveMode()){
+                //配送到家
+                case 1:requestTO.setDeliveryType("1");break;
+                //到院取药
+                case 2:requestTO.setDeliveryType("0");break;
+                //药店取药
+                case 3:requestTO.setDeliveryType("2");break;
+                default:requestTO.setDeliveryType("0");
+            }
         }
         requestTO.setTakeMedicine(recipe.getTakeMedicine());
         // 设置结束日期
