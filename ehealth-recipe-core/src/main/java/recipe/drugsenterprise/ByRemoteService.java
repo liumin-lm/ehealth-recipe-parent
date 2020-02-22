@@ -353,10 +353,10 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
         extendHeaders.put("Content-Type","application/json");
         extendHeaders.put("projectCode",projectCode);
         extendHeaders.put("encryptData",originaldata1);
-        LOGGER.info("ByRemoteService.addHospitalPrescriptionHttpRequest:[{}][{}]开处方请求，请求内容：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), requestStr);
+        LOGGER.info("ByRemoteService.pushRecipeInfo:[{}][{}]开处方请求，请求内容：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), requestStr);
         String outputData = HttpsClientUtils.doPost(drugsEnterprise.getBusinessUrl()+addHospitalPrescriptionHttpUrl, requestStr,extendHeaders);
         //获取响应消息
-        LOGGER.info("ByRemoteService.addHospitalPrescriptionHttpRequest:[{}][{}]开处方请求，获取响应消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), JSONUtils.toString(outputData));
+        LOGGER.info("ByRemoteService.pushRecipeInfo:[{}][{}]开处方请求，获取响应消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), JSONUtils.toString(outputData));
         YfzDecryptDto decryptDto=new YfzDecryptDto();
         decryptDto.setKey(drugsEnterprise.getToken());
         decryptDto.setEncryptdata(outputData);
@@ -441,6 +441,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
     }
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
+        LOGGER.info("ByRemoteService.pushRecipeInfo 百洋药企:{}.", JSONUtils.toString(recipeIds));
         DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
         PatientService patientService = BasicAPI.getService(PatientService.class);
         DoctorService doctorService = BasicAPI.getService(DoctorService.class);
@@ -538,7 +539,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
             //发送请求，获得推送的结果
             CloseableHttpClient httpClient = HttpClients.createDefault();
             try {
-                DrugEnterpriseResult result2=scanStock(nowRecipe.getRecipeId(),enterprise);
+                DrugEnterpriseResult result2 = scanStock(nowRecipe.getRecipeId(),enterprise);
             if (result2.getCode().equals(200)) {
                 YfzTADrugStoreDto yfzTADrugStoreDto=new YfzTADrugStoreDto();
                 yfzTADrugStoreDto.setId(recipeOrder.getDrugStoreCode());
