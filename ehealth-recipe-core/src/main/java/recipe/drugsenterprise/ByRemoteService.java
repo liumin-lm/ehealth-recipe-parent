@@ -266,7 +266,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
         String message = MapValueUtil.getString(resultMap, "message");
         if (RESULT_SUCCESS.equals(resCode)) {
             List<Map<String,Object>> yfzStoreBeans = MapValueUtil.getList(resultMap, "responseData");
-            result.setCode(Integer.valueOf(resCode));
+            result.setCode(DrugEnterpriseResult.SUCCESS);
             List<DepDetailBean> detailList = new ArrayList<>();
             DepDetailBean detailBean;
             for (Map<String,Object> yfzStoreBean : yfzStoreBeans) {
@@ -286,7 +286,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
             result.setObject(detailList);
         }else{
            String responseData= MapValueUtil.getString(resultMap, "responseData");
-            result.setCode(Integer.valueOf(resCode));
+            result.setCode(DrugEnterpriseResult.FAIL);
             result.setMsg(message + responseData);
 //            getFailResult(result, message + responseData);
         }
