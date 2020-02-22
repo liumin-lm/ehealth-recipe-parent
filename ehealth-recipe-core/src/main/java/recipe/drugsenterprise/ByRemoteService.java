@@ -575,12 +575,15 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         //药品详情封装
         YfzCheckPrescriptionDrugStockDto yfzAddHospitalPrescriptionDto=new YfzCheckPrescriptionDrugStockDto();
         yfzAddHospitalPrescriptionDto.setAccess_token(drugsEnterprise.getToken());
         List<YfzMesDrugDetailDto> mesDrugDetailList=new ArrayList<YfzMesDrugDetailDto>();
         for(Recipedetail recipedetail:recipedetails){
             YfzMesDrugDetailDto yfzMesDrugDetailDto=new YfzMesDrugDetailDto();
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
+            yfzMesDrugDetailDto.setDrugId(saleDrugList.getOrganDrugCode());
             yfzMesDrugDetailDto.setDrugId(recipedetail.getDrugId().toString());
             yfzMesDrugDetailDto.setAmount(String.valueOf(recipedetail.getUseTotalDose()));
             mesDrugDetailList.add(yfzMesDrugDetailDto);
