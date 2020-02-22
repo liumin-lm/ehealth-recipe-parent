@@ -418,7 +418,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
             //医生信息
             DoctorDTO doctor = doctorService.get(nowRecipe.getDoctor());
             //患者信息
-            PatientDTO patientDTO = patientService.getByMpiId(nowRecipe.getMpiid());
+            PatientDTO patientDTO = patientService.get(nowRecipe.getMpiid());
             if(null == doctor){
                 LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{},绑定医生不存在.", nowRecipe.getRecipeId());
                 getFailResult(result, "处方绑定医生不存在");
