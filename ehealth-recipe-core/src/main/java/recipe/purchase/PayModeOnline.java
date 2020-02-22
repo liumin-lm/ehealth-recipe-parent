@@ -480,7 +480,8 @@ public class PayModeOnline implements IPurchaseService {
                 BigDecimal recipeFree = BigDecimal.ZERO;
                 for (DepDetailBean depDetailBean : depDetailList) {
                     LOG.info("PayModeOnline.checkStoreForSendToHom depDetailBean:{}.", JSONUtils.toString(depDetailBean));
-                    if (depDetailBean.getDepId() == drugsEnterprise.getId()) {
+                    if (drugsEnterprise.getId().equals(depDetailBean.getDepId())) {
+                        LOG.info("PayModeOnline.checkStoreForSendToHom go here.");
                         recipeFree = depDetailBean.getRecipeFee();
                         depDetailList.remove(depDetailBean);
                         break;
