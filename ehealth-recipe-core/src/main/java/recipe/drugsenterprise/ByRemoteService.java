@@ -110,7 +110,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                 CloseableHttpClient httpClient = HttpClients.createDefault();
                 try {
                     YfzEncryptDto encryptDto=new YfzEncryptDto();
-                    encryptDto.setKey(enterprise.getToken());
+                    encryptDto.setKey(encryptKey);
                     encryptDto.setOriginaldata("projectCode="+projectCode+"&timespan="+ DateConversion.formatDateTime(DateConversion.getFormatDate(new Date(), DateConversion.PRESCRITION_DATE_TIME)));
                     String originaldata1=encrypt(encryptDto,enterprise);
                     encryptDto.setOriginaldata(JSONUtils.toString(getHospDrugDto));
@@ -342,7 +342,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
      */
     private DrugEnterpriseResult addHospitalPrescriptionHttpRequest(DrugEnterpriseResult result, DrugsEnterprise drugsEnterprise, YfzAddHospitalPrescriptionDto yfzAddHospitalPrescriptionDto) throws IOException {
         YfzEncryptDto encryptDto=new YfzEncryptDto();
-        encryptDto.setKey(drugsEnterprise.getToken());
+        encryptDto.setKey(encryptKey);
         encryptDto.setOriginaldata("projectCode="+projectCode+"&timespan="+ DateConversion.formatDateTime(DateConversion.getFormatDate(new Date(), DateConversion.PRESCRITION_DATE_TIME)));
         String originaldata1=encrypt(encryptDto,drugsEnterprise);
         encryptDto.setOriginaldata(JSONUtils.toString(yfzAddHospitalPrescriptionDto));
@@ -358,7 +358,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
         //获取响应消息
         LOGGER.info("ByRemoteService.pushRecipeInfo:[{}][{}]开处方请求，获取响应消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), JSONUtils.toString(outputData));
         YfzDecryptDto decryptDto=new YfzDecryptDto();
-        decryptDto.setKey(drugsEnterprise.getToken());
+        decryptDto.setKey(encryptKey);
         decryptDto.setEncryptdata(outputData);
         Map resultMap = JSONUtils.parse(decrypt(decryptDto,drugsEnterprise), Map.class);
         int resCode = MapValueUtil.getInteger(resultMap, "code");
@@ -509,7 +509,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                 dto.setDrugId(drugId.toString());
                 dto.setSpec(drugSpec);
                 dto.setForm(usePathways+usingRate);
-                dto.setAmount(String.valueOf(useTotalDose));
+                dto.setAmount(String.valueOf(useTotalDose.intValue()));
                 dto.setHospDrugPrice(String.valueOf(totalPrice));
                 dto.setDrugMark(memo);
                 mesDrugDetailList.add(dto);
@@ -588,7 +588,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
             YfzMesDrugDetailDto yfzMesDrugDetailDto=new YfzMesDrugDetailDto();
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
             yfzMesDrugDetailDto.setDrugId(saleDrugList.getOrganDrugCode());
-            yfzMesDrugDetailDto.setAmount(String.valueOf(recipedetail.getUseTotalDose()));
+            yfzMesDrugDetailDto.setAmount(String.valueOf(recipedetail.getUseTotalDose().intValue()));
             mesDrugDetailList.add(yfzMesDrugDetailDto);
         }
         yfzAddHospitalPrescriptionDto.setMesDrugDetailList(mesDrugDetailList);
