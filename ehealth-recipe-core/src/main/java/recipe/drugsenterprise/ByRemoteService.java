@@ -435,9 +435,9 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
         List<Integer> recipeIds = Arrays.asList(recipeId);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(226);
-//        pushRecipeInfo(recipeIds, enterprise);
+        pushRecipeInfo(recipeIds, enterprise);
 //        scanStock(recipeId, enterprise);
-        findSupportDep(recipeIds,null,enterprise);
+        //findSupportDep(recipeIds,null,enterprise);
     }
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
@@ -540,7 +540,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
             CloseableHttpClient httpClient = HttpClients.createDefault();
             try {
                 DrugEnterpriseResult result2 = scanStock(nowRecipe.getRecipeId(),enterprise);
-            if (result2.getCode().equals(200)) {
+            if (result2.getCode().equals(DrugEnterpriseResult.SUCCESS)) {
                 YfzTADrugStoreDto yfzTADrugStoreDto=new YfzTADrugStoreDto();
                 yfzTADrugStoreDto.setId(recipeOrder.getDrugStoreCode());
                 yfzTADrugStoreDto.setAddress(recipeOrder.getDrugStoreAddr());
