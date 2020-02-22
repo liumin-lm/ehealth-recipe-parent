@@ -29,12 +29,11 @@ import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
-import recipe.dao.CompareDrugDAO;
-import recipe.dao.DrugListDAO;
-import recipe.dao.DrugProducerDAO;
-import recipe.dao.OrganDrugListDAO;
+import recipe.dao.*;
 import recipe.dao.bean.DrugListAndOrganDrugList;
+import recipe.drugsenterprise.ByRemoteService;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -213,6 +212,7 @@ public class OrganDrugListService {
             organDrugList.setProducer(drugList.getProducer());
             organDrugList.setProducerCode("");
             OrganDrugList saveOrganDrugList = organDrugListDAO.save(organDrugList);
+            addOrganDrugListToBy(saveOrganDrugList);
             uploadOrganDrugListToJg(saveOrganDrugList);
             return ObjectCopyUtils.convert(saveOrganDrugList, OrganDrugListDTO.class);
         } else {
@@ -240,6 +240,32 @@ public class OrganDrugListService {
                 uploadOrganDrugListToJg(target);
             }
             return ObjectCopyUtils.convert(target, OrganDrugListDTO.class);
+        }
+    }
+
+    //上海六院的新增药品信息同步到百洋
+    private void addOrganDrugListToBy(OrganDrugList organDrugList){
+        try{
+            if (organDrugList != null) {
+                //(异步的过程，不影响主流程)
+                GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+                        String organCode = recipeParameterDao.getByName("sh_baiyang_druglist");
+                        if (StringUtils.isNotEmpty(organCode)) {
+                            if (Integer.parseInt(organCode) == organDrugList.getOrganId()) {
+                                logger.info("同步药品数据到百洋药企：" + JSONUtils.toString(organDrugList));
+                                //表示是上海六院的新增药品，需要同步到百洋药企
+                                ByRemoteService byRemoteService = ApplicationUtils.getRecipeService(ByRemoteService.class);
+                                byRemoteService.corresPondingHospDrugByOrganDrugListHttpRequest(organDrugList);
+                            }
+                        }
+                    }
+                });
+            }
+        }catch(Exception e){
+            logger.info("addOrganDrugListToBy 同步到百洋药企药品数据出错："+ e.getMessage());
         }
     }
 
