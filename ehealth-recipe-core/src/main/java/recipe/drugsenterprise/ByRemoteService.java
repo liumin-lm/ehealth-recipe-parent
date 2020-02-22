@@ -497,11 +497,13 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
             mesPatient.setCertificateId(patientDTO.getIdcard());
             mesPatient.setAreaCode("+86");
             yfzAddHospitalPrescriptionDto.setMesPatient(mesPatient);
+            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
             //设置处方单详细信息
             List<YfzMesDrugDetailDto> mesDrugDetailList=new ArrayList<YfzMesDrugDetailDto>();
             for (Recipedetail recipedetail : recipedetails) {
                 YfzMesDrugDetailDto dto=new YfzMesDrugDetailDto();
                 Integer drugId = recipedetail.getDrugId();
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, enterprise.getId());
                 String drugSpec = recipedetail.getDrugSpec();
                 Double useTotalDose = recipedetail.getUseTotalDose();
                 BigDecimal totalPrice=recipedetail.getSalePrice();
@@ -515,7 +517,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                 } catch (ControllerException e) {
                     return getDrugEnterpriseResult(result, "药物使用频率使用途径获取失败");
                 }
-                dto.setDrugId(drugId.toString());
+                dto.setDrugId(saleDrugList.getOrganDrugCode());
                 dto.setSpec(drugSpec);
                 dto.setForm(usePathways+usingRate);
                 dto.setAmount(String.valueOf(useTotalDose.intValue()));
