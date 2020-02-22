@@ -245,6 +245,7 @@ public class OrganDrugListService {
 
     //上海六院的新增药品信息同步到百洋
     private void addOrganDrugListToBy(OrganDrugList organDrugList){
+        logger.info("同步药品数据到百洋药企：" + JSONUtils.toString(organDrugList));
         try{
             if (organDrugList != null) {
                 //(异步的过程，不影响主流程)
@@ -253,6 +254,7 @@ public class OrganDrugListService {
                     public void run() {
                         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
                         String organCode = recipeParameterDao.getByName("sh_baiyang_druglist");
+                        logger.info("数据库机构编码：" + organCode);
                         if (StringUtils.isNotEmpty(organCode)) {
                             if (Integer.parseInt(organCode) == organDrugList.getOrganId()) {
                                 logger.info("同步药品数据到百洋药企：" + JSONUtils.toString(organDrugList));
