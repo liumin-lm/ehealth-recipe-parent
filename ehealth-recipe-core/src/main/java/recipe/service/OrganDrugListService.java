@@ -212,8 +212,8 @@ public class OrganDrugListService {
             organDrugList.setProducer(drugList.getProducer());
             organDrugList.setProducerCode("");
             OrganDrugList saveOrganDrugList = organDrugListDAO.save(organDrugList);
-            uploadOrganDrugListToJg(saveOrganDrugList);
             addOrganDrugListToBy(saveOrganDrugList);
+            uploadOrganDrugListToJg(saveOrganDrugList);
             return ObjectCopyUtils.convert(saveOrganDrugList, OrganDrugListDTO.class);
         } else {
             logger.info("修改机构药品服务[updateOrganDrugList]:" + JSONUtils.toString(organDrugList));
@@ -254,7 +254,8 @@ public class OrganDrugListService {
                         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
                         String organCode = recipeParameterDao.getByName("sh_baiyang_druglist");
                         if (StringUtils.isNotEmpty(organCode)) {
-                            if (organCode.equals(organDrugList.getOrganId())) {
+                            if (Integer.parseInt(organCode) == organDrugList.getOrganId()) {
+                                logger.info("同步药品数据到百洋药企：" + JSONUtils.toString(organDrugList));
                                 //表示是上海六院的新增药品，需要同步到百洋药企
                                 ByRemoteService byRemoteService = ApplicationUtils.getRecipeService(ByRemoteService.class);
                                 byRemoteService.corresPondingHospDrugByOrganDrugListHttpRequest(organDrugList);

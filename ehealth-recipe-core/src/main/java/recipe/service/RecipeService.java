@@ -2244,7 +2244,16 @@ public class RecipeService extends RecipeBaseService{
                 RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
                 //HIS调用失败不应该导致业务失败
                 hisService.recipeDrugTake(recipeId, payFlag, null);
+                //todo---写死上海六院---在患者选完取药方式之后推送处方
+                if (dbRecipe.getClinicOrgan() == 1000899){
+                    //推送处方给his---recipesend
+                    RecipeBusiThreadPool.submit(()->{
+                        hisService.sendRecipe(recipeId, dbRecipe.getClinicOrgan());
+                        return null;
+                    });
+                }
             }
+
         }
         return result;
     }
