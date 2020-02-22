@@ -372,10 +372,10 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
             String message = MapValueUtil.getString(resultMap, "message");
             String responseData = MapValueUtil.getString(resultMap, "responseData");
             if (RESULT_SUCCESS.equals(resCode)) {
-                result.setCode(resCode);
+                result.setCode(DrugEnterpriseResult.SUCCESS);
                 result.setMsg(message + responseData);
             }else{
-                result.setCode(resCode);
+                result.setCode(DrugEnterpriseResult.FAIL);
                 getFailResult(result, message + responseData);
             }
         }
@@ -481,7 +481,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
             }
             yfzAddHospitalPrescriptionDto.setAccess_token(enterprise.getToken());
             yfzAddHospitalPrescriptionDto.setHisprescriptionId(nowRecipe.getRecipeCode().toString());
-            yfzAddHospitalPrescriptionDto.setEmployeeCardNo(doctor.getLoginId().toString());
+            yfzAddHospitalPrescriptionDto.setEmployeeCardNo(doctor.getDoctorId().toString());
             yfzAddHospitalPrescriptionDto.setDoctorName(doctor.getName());
             yfzAddHospitalPrescriptionDto.setPrescriptionType("39");
             yfzAddHospitalPrescriptionDto.setDiagnoseName(nowRecipe.getMemo());
@@ -580,7 +580,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugEnterpriseResult pushRecipe(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
@@ -626,12 +626,12 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
     public DrugEnterpriseResult pushCheckResult(Integer recipeId, Integer checkFlag, DrugsEnterprise enterprise) {
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
