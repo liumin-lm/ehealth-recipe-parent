@@ -96,7 +96,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                 List<YfzHospDrugDto> hospDrugList=new ArrayList<YfzHospDrugDto>();
                 for (OrganDrugList organDrug : orgDrugList) {
                     YfzHospDrugDto dto=new YfzHospDrugDto();
-                    dto.setHospDrugId(organDrug.getDrugId().toString());
+                    dto.setHospDrugId(String.valueOf(organDrug.getDrugId()));
                     dto.setHospDrugPrice(String.valueOf(organDrug.getSalePrice()));
                     dto.setHospDrugGenericName(organDrug.getDrugName());
                     dto.setHospDrugTradeName(organDrug.getSaleName());
@@ -129,15 +129,17 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                     decryptDto.setKey(encryptKey);
                     decryptDto.setEncryptdata(outputData);
                     Map resultMap = JSONUtils.parse(decrypt(decryptDto,enterprise), Map.class);
-                    int resCode = MapValueUtil.getInteger(resultMap, "code");
-                    String message = MapValueUtil.getString(resultMap, "message");
-                    String responseData = MapValueUtil.getString(resultMap, "responseData");
-                    if (RESULT_SUCCESS.equals(resCode)) {
-                        result.setCode(resCode);
-                        result.setMsg(message + responseData);
-                    }else{
-                        result.setCode(resCode);
-                        getFailResult(result, message + responseData);
+                    if(resultMap!=null) {
+                        int resCode = MapValueUtil.getInteger(resultMap, "code");
+                        String message = MapValueUtil.getString(resultMap, "message");
+                        String responseData = MapValueUtil.getString(resultMap, "responseData");
+                        if (RESULT_SUCCESS.equals(resCode)) {
+                            result.setCode(resCode);
+                            result.setMsg(message + responseData);
+                        } else {
+                            result.setCode(resCode);
+                            getFailResult(result, message + responseData);
+                        }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -190,36 +192,38 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                 //发送请求，获得推送的结果
                 CloseableHttpClient httpClient = HttpClients.createDefault();
                 try {
-                    YfzEncryptDto encryptDto=new YfzEncryptDto();
+                    YfzEncryptDto encryptDto = new YfzEncryptDto();
                     encryptDto.setKey(encryptKey);
-                    encryptDto.setOriginaldata("projectCode="+projectCode+"&timespan="+ DateConversion.formatDateTime(DateConversion.getFormatDate(new Date(), DateConversion.PRESCRITION_DATE_TIME)));
-                    String originaldata1=encrypt(encryptDto,enterprise);
+                    encryptDto.setOriginaldata("projectCode=" + projectCode + "&timespan=" + DateConversion.formatDateTime(DateConversion.getFormatDate(new Date(), DateConversion.PRESCRITION_DATE_TIME)));
+                    String originaldata1 = encrypt(encryptDto, enterprise);
                     encryptDto.setOriginaldata(JSONUtils.toString(getHospDrugDto));
-                    String originaldata2=encrypt(encryptDto,enterprise);
+                    String originaldata2 = encrypt(encryptDto, enterprise);
                     String requestStr = JSONUtils.toString(originaldata2);
-                    Map<String,String> extendHeaders=new HashMap<String,String>();
-                    extendHeaders.put("Content-Type",requestHeadJsonValue);
-                    extendHeaders.put("projectCode",projectCode);
-                    extendHeaders.put("encryptData",originaldata1);
+                    Map<String, String> extendHeaders = new HashMap<String, String>();
+                    extendHeaders.put("Content-Type", requestHeadJsonValue);
+                    extendHeaders.put("projectCode", projectCode);
+                    extendHeaders.put("encryptData", originaldata1);
 
                     LOGGER.info("ByRemoteService.corresPondingHospDrug:[{}][{}]同步药品请求，请求内容：{}", enterprise.getId(), enterprise.getName(), requestStr);
-                    String outputData = HttpsClientUtils.doPost(enterprise.getBusinessUrl()+correspondingHospDrugHttpUrl, requestStr,extendHeaders);
+                    String outputData = HttpsClientUtils.doPost(enterprise.getBusinessUrl() + correspondingHospDrugHttpUrl, requestStr, extendHeaders);
                     //获取响应消息
                     LOGGER.info("ByRemoteService.corresPondingHospDrug:[{}][{}]同步药品请求，获取响应消息：{}", enterprise.getId(), enterprise.getName(), JSONUtils.toString(outputData));
-                    YfzDecryptDto decryptDto=new YfzDecryptDto();
+                    YfzDecryptDto decryptDto = new YfzDecryptDto();
                     decryptDto.setKey(encryptKey);
                     decryptDto.setEncryptdata(outputData);
-                    Map resultMap = JSONUtils.parse(decrypt(decryptDto,enterprise), Map.class);
+                    Map resultMap = JSONUtils.parse(decrypt(decryptDto, enterprise), Map.class);
+                    if(resultMap!=null){
                     int resCode = MapValueUtil.getInteger(resultMap, "code");
                     String message = MapValueUtil.getString(resultMap, "message");
                     String responseData = MapValueUtil.getString(resultMap, "responseData");
                     if (RESULT_SUCCESS.equals(resCode)) {
                         result.setCode(resCode);
                         result.setMsg(message + responseData);
-                    }else{
+                    } else {
                         result.setCode(resCode);
                         getFailResult(result, message + responseData);
                     }
+                }
                 } catch (Exception e) {
                     e.printStackTrace();
                     LOGGER.error("ByRemoteService.syncEnterpriseDrug:[{}][{}]同步药品异常：{}",enterprise.getId(), enterprise.getName(), e.getMessage());
@@ -245,34 +249,35 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
      * @return void
      */
     public DrugEnterpriseResult checkPrescriptionDrugStockHttpRequest(DrugEnterpriseResult result, DrugsEnterprise drugsEnterprise, YfzCheckPrescriptionDrugStockDto yfzAddHospitalPrescriptionDto) throws IOException {
-        YfzEncryptDto encryptDto=new YfzEncryptDto();
+        YfzEncryptDto encryptDto = new YfzEncryptDto();
         encryptDto.setKey(encryptKey);
-        encryptDto.setOriginaldata("projectCode="+projectCode+"&timespan="+ DateConversion.formatDateTime(DateConversion.getFormatDate(new Date(), DateConversion.PRESCRITION_DATE_TIME)));
-        String originaldata1=encrypt(encryptDto,drugsEnterprise);
+        encryptDto.setOriginaldata("projectCode=" + projectCode + "&timespan=" + DateConversion.formatDateTime(DateConversion.getFormatDate(new Date(), DateConversion.PRESCRITION_DATE_TIME)));
+        String originaldata1 = encrypt(encryptDto, drugsEnterprise);
         encryptDto.setOriginaldata(JSONUtils.toString(yfzAddHospitalPrescriptionDto));
-        String originaldata2=encrypt(encryptDto,drugsEnterprise);
+        String originaldata2 = encrypt(encryptDto, drugsEnterprise);
 
         String requestStr = JSONUtils.toString(originaldata2);
-        Map<String,String> extendHeaders=new HashMap<String,String>();
-        extendHeaders.put("Content-Type","application/json");
-        extendHeaders.put("projectCode",projectCode);
-        extendHeaders.put("encryptData",originaldata1);
+        Map<String, String> extendHeaders = new HashMap<String, String>();
+        extendHeaders.put("Content-Type", "application/json");
+        extendHeaders.put("projectCode", projectCode);
+        extendHeaders.put("encryptData", originaldata1);
         LOGGER.info("ByRemoteService.checkPrescriptionDrugStockHttpRequest:[{}][{}]查询库存请求，请求内容：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), requestStr);
-        String outputData = HttpsClientUtils.doPost(drugsEnterprise.getBusinessUrl()+checkPrescriptionDrugStockHttpUrl, requestStr,extendHeaders);
+        String outputData = HttpsClientUtils.doPost(drugsEnterprise.getBusinessUrl() + checkPrescriptionDrugStockHttpUrl, requestStr, extendHeaders);
         //获取响应消息
-        LOGGER.info("ByRemoteService.checkPrescriptionDrugStockHttpRequest:[{}][{}]查询库存请求，获取响应消息：{}",drugsEnterprise.getId(), drugsEnterprise.getName(), JSONUtils.toString(outputData));
-        YfzDecryptDto decryptDto=new YfzDecryptDto();
+        LOGGER.info("ByRemoteService.checkPrescriptionDrugStockHttpRequest:[{}][{}]查询库存请求，获取响应消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), JSONUtils.toString(outputData));
+        YfzDecryptDto decryptDto = new YfzDecryptDto();
         decryptDto.setKey(encryptKey);
         decryptDto.setEncryptdata(outputData);
-        Map resultMap = JSONUtils.parse(decrypt(decryptDto,drugsEnterprise), Map.class);
+        Map resultMap = JSONUtils.parse(decrypt(decryptDto, drugsEnterprise), Map.class);
+        if(resultMap!=null){
         String resCode = MapValueUtil.getString(resultMap, "code");
         String message = MapValueUtil.getString(resultMap, "message");
         if (RESULT_SUCCESS.equals(resCode)) {
-            List<Map<String,Object>> yfzStoreBeans = MapValueUtil.getList(resultMap, "responseData");
+            List<Map<String, Object>> yfzStoreBeans = MapValueUtil.getList(resultMap, "responseData");
             result.setCode(DrugEnterpriseResult.SUCCESS);
             List<DepDetailBean> detailList = new ArrayList<>();
             DepDetailBean detailBean;
-            for (Map<String,Object> yfzStoreBean : yfzStoreBeans) {
+            for (Map<String, Object> yfzStoreBean : yfzStoreBeans) {
                 detailBean = new DepDetailBean();
                 detailBean.setDepName(MapValueUtil.getString(yfzStoreBean, "name"));
                 detailBean.setRecipeFee(BigDecimal.ZERO);
@@ -287,12 +292,13 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                 detailList.add(detailBean);
             }
             result.setObject(detailList);
-        }else{
-           String responseData= MapValueUtil.getString(resultMap, "responseData");
+        } else {
+            String responseData = MapValueUtil.getString(resultMap, "responseData");
             result.setCode(DrugEnterpriseResult.FAIL);
             result.setMsg(message + responseData);
 //            getFailResult(result, message + responseData);
         }
+    }
         return result;
     }
     /**
@@ -361,16 +367,19 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
         decryptDto.setKey(encryptKey);
         decryptDto.setEncryptdata(outputData);
         Map resultMap = JSONUtils.parse(decrypt(decryptDto,drugsEnterprise), Map.class);
-        int resCode = MapValueUtil.getInteger(resultMap, "code");
-        String message = MapValueUtil.getString(resultMap, "message");
-        String responseData = MapValueUtil.getString(resultMap, "responseData");
-        if (RESULT_SUCCESS.equals(resCode)) {
-            result.setCode(resCode);
-            result.setMsg(message + responseData);
-        }else{
-            result.setCode(resCode);
-            getFailResult(result, message + responseData);
+        if(resultMap!=null){
+            int resCode = MapValueUtil.getInteger(resultMap, "code");
+            String message = MapValueUtil.getString(resultMap, "message");
+            String responseData = MapValueUtil.getString(resultMap, "responseData");
+            if (RESULT_SUCCESS.equals(resCode)) {
+                result.setCode(resCode);
+                result.setMsg(message + responseData);
+            }else{
+                result.setCode(resCode);
+                getFailResult(result, message + responseData);
+            }
         }
+
         return result;
     }
     /**
@@ -471,7 +480,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                 return result;
             }
             yfzAddHospitalPrescriptionDto.setAccess_token(enterprise.getToken());
-            yfzAddHospitalPrescriptionDto.setHisprescriptionId(nowRecipe.getRecipeId().toString());
+            yfzAddHospitalPrescriptionDto.setHisprescriptionId(nowRecipe.getRecipeCode().toString());
             yfzAddHospitalPrescriptionDto.setEmployeeCardNo(doctor.getLoginId().toString());
             yfzAddHospitalPrescriptionDto.setDoctorName(doctor.getName());
             yfzAddHospitalPrescriptionDto.setPrescriptionType("39");
@@ -495,7 +504,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                 Integer drugId = recipedetail.getDrugId();
                 String drugSpec = recipedetail.getDrugSpec();
                 Double useTotalDose = recipedetail.getUseTotalDose();
-                BigDecimal totalPrice=recipedetail.getTotalPrice();
+                BigDecimal totalPrice=recipedetail.getSalePrice();
                 String memo=recipedetail.getMemo();
                 BigDecimal totalDose = new BigDecimal(useTotalDose);
                 String usingRate ;
@@ -511,30 +520,31 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                 dto.setForm(usePathways+usingRate);
                 dto.setAmount(String.valueOf(useTotalDose.intValue()));
                 dto.setHospDrugPrice(String.valueOf(totalPrice));
+
                 dto.setDrugMark(memo);
                 mesDrugDetailList.add(dto);
             }
             yfzAddHospitalPrescriptionDto.setMesDrugDetailList(mesDrugDetailList);
             //设置订单信息
             YfzTBPrescriptionExtendDto tbpDto=new YfzTBPrescriptionExtendDto();
-            if(nowRecipe.getGiveMode().equals("1")){
-                tbpDto.setCostCategory("1");
-            }else{
-                tbpDto.setCostCategory(nowRecipe.getGiveMode().toString());
-            }
+//            if(nowRecipe.getGiveMode().equals("1")){
+//                tbpDto.setCostCategory("1");
+//            }else{
+//                tbpDto.setCostCategory(nowRecipe.getGiveMode().toString());
+//            }
             tbpDto.setPrescriptionNo(nowRecipe.getRecipeId().toString());
-            tbpDto.setReceiverName(recipeOrder.getReceiver());
-            tbpDto.setReceiverMobile(recipeOrder.getRecMobile());
-            tbpDto.setReceiverAddress(getCompleteAddress(recipeOrder));
-            tbpDto.setPayDatetime(DateConversion.getFormatDate(recipeOrder.getPayTime(), DateConversion.YYYY_MM_DD));
-            tbpDto.setOrderType("1");
-            tbpDto.setOrderCreateDate(DateConversion.getDateFormatter(recipeOrder.getCreateTime(), DateConversion.DEFAULT_DATE_TIME));
-            tbpDto.setOrderPayDate(DateConversion.getDateFormatter(recipeOrder.getPayTime(), DateConversion.DEFAULT_DATE_TIME));
-            tbpDto.setDeliverypPrice(String.valueOf(recipeOrder.getExpressFee()));
-            tbpDto.setOrderDrugPrice(String.valueOf(recipeOrder.getTotalFee()));
-            tbpDto.setOrderStatus("9");
-            tbpDto.setOrderSource("1");
-            tbpDto.setMemo(nowRecipe.getMemo());
+//            tbpDto.setReceiverName(recipeOrder.getReceiver());
+//            tbpDto.setReceiverMobile(recipeOrder.getRecMobile());
+//            tbpDto.setReceiverAddress(getCompleteAddress(recipeOrder));
+//            tbpDto.setPayDatetime(DateConversion.getFormatDate(recipeOrder.getPayTime(), DateConversion.YYYY_MM_DD));
+//            tbpDto.setOrderType("1");
+//            tbpDto.setOrderCreateDate(DateConversion.getDateFormatter(recipeOrder.getCreateTime(), DateConversion.DEFAULT_DATE_TIME));
+//            tbpDto.setOrderPayDate(DateConversion.getDateFormatter(recipeOrder.getPayTime(), DateConversion.DEFAULT_DATE_TIME));
+//            tbpDto.setDeliverypPrice(String.valueOf(recipeOrder.getExpressFee()));
+//            tbpDto.setOrderDrugPrice(String.valueOf(recipeOrder.getTotalFee()));
+//            tbpDto.setOrderStatus("9");
+//            tbpDto.setOrderSource("1");
+//            tbpDto.setMemo(nowRecipe.getMemo());
             yfzAddHospitalPrescriptionDto.setTbPrescriptionExtend(tbpDto);
             //发送请求，获得推送的结果
             CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -543,8 +553,9 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
             if (result2.getCode().equals(DrugEnterpriseResult.SUCCESS)) {
                 YfzTADrugStoreDto yfzTADrugStoreDto=new YfzTADrugStoreDto();
                 yfzTADrugStoreDto.setId(recipeOrder.getDrugStoreCode());
-                yfzTADrugStoreDto.setAddress(recipeOrder.getDrugStoreAddr());
-                yfzTADrugStoreDto.setName(recipeOrder.getDrugStoreName());
+//                yfzTADrugStoreDto.setAddress(recipeOrder.getDrugStoreAddr());
+//                yfzTADrugStoreDto.setName(recipeOrder.getDrugStoreName());
+                yfzAddHospitalPrescriptionDto.setTaDrugStore(yfzTADrugStoreDto);
                 addHospitalPrescriptionHttpRequest(result,enterprise, yfzAddHospitalPrescriptionDto);
             }
             } catch (Exception e) {
