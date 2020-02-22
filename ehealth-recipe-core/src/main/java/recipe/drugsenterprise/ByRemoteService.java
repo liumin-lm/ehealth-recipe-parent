@@ -584,7 +584,6 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
             YfzMesDrugDetailDto yfzMesDrugDetailDto=new YfzMesDrugDetailDto();
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
             yfzMesDrugDetailDto.setDrugId(saleDrugList.getOrganDrugCode());
-            yfzMesDrugDetailDto.setDrugId(recipedetail.getDrugId().toString());
             yfzMesDrugDetailDto.setAmount(String.valueOf(recipedetail.getUseTotalDose()));
             mesDrugDetailList.add(yfzMesDrugDetailDto);
         }
