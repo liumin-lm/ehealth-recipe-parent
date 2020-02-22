@@ -88,7 +88,7 @@ public class RecipePatientService extends RecipeBaseService {
     /**
      * 获取供应商列表
      *
-     * @param findDetail 1:表示获取详情，0：表示判断是否需要展示供应商具体列表
+     * @param findDetail 1:表示获取详情，0：表示判断是否需要展示供应商具体列表-开处方时查询库存
      * @param recipeIds
      */
     @RpcService

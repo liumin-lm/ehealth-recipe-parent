@@ -832,6 +832,7 @@ public class RecipeService extends RecipeBaseService{
         if (checkEnterprise) {
             //药企库存实时查询
             RecipePatientService recipePatientService = ApplicationUtils.getRecipeService(RecipePatientService.class);
+            //判断药企库存
             RecipeResultBean recipeResultBean = recipePatientService.findSupportDepList(0, Arrays.asList(recipeId));
             if (RecipeResultBean.FAIL.equals(recipeResultBean.getCode())) {
                 LOGGER.error("doSignRecipe scanStock enterprise error. result={} ", JSONUtils.toString(recipeResultBean));
@@ -2008,6 +2009,7 @@ public class RecipeService extends RecipeBaseService{
                     continue;
                 } else {
                     //通过查询该药企库存，最终确定能否配送
+                    //todo--返回具体的没库存的药--新写个接口
                     succFlag = remoteDrugService.scanStock(recipeId, dep);
                     if (succFlag || dep.getCheckInventoryFlag() == 2) {
                         subDepList.add(dep);
