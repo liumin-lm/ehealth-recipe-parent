@@ -473,11 +473,13 @@ public class PayModeOnline implements IPurchaseService {
         LOG.info("PayModeOnline.checkStoreForSendToHom:{}.", JSONUtils.toString(depDetailList));
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByOrganId(dbRecipe.getClinicOrgan());
+        LOG.info("PayModeOnline.checkStoreForSendToHom drugsEnterprises:{}.", JSONUtils.toString(drugsEnterprises));
         for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
             if (DrugEnterpriseConstant.COMPANY_HR.equals(drugsEnterprise.getCallSys()) || DrugEnterpriseConstant.COMPANY_BY.equals(drugsEnterprise.getCallSys())) {
                 //将药店配送的药企移除
                 BigDecimal recipeFree = BigDecimal.ZERO;
                 for (DepDetailBean depDetailBean : depDetailList) {
+                    LOG.info("PayModeOnline.checkStoreForSendToHom depDetailBean:{}.", JSONUtils.toString(depDetailBean));
                     if (depDetailBean.getDepId() == drugsEnterprise.getId()) {
                         recipeFree = depDetailBean.getRecipeFee();
                         depDetailList.remove(depDetailBean);
