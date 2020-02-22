@@ -166,6 +166,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
      */
     @RpcService
     public DrugEnterpriseResult corresPondingHospDrugByOrganDrugListHttpRequest(OrganDrugList organDrug) {
+        LOGGER.info("ByRemoteService.corresPondingHospDrugByOrganDrugListHttpRequest:[{}]", JSONUtils.toString(organDrug));
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise enterprise = drugsEnterpriseDAO.getByAccount("by");
