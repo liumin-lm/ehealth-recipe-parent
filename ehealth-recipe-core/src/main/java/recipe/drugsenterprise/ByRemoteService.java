@@ -58,10 +58,6 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
     //查询处方药品库存接口
     private static final String checkPrescriptionDrugStockHttpUrl = "shanghaisix-api/prescription/checkPrescriptionDrugStock";
 
-    private static final String projectCode = "SHSDLRMYY";
-
-    private static final String encryptKey = "EEB00CBDEA0241F7A30C8057D1D89165";
-
     private static final String requestHeadJsonValue = "application/json";
 
     private static String RESULT_SUCCESS = "200";
@@ -109,6 +105,9 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                 //发送请求，获得推送的结果
                 CloseableHttpClient httpClient = HttpClients.createDefault();
                 try {
+                    RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+                    String encryptKey=recipeParameterDao.getByName("by-secertkey");
+                    String projectCode=recipeParameterDao.getByName("by-projectcode");
                     YfzEncryptDto encryptDto=new YfzEncryptDto();
                     encryptDto.setKey(encryptKey);
                     encryptDto.setOriginaldata("projectCode="+projectCode+"&timespan="+ DateConversion.formatDateTime(DateConversion.getFormatDate(new Date(), DateConversion.PRESCRITION_DATE_TIME)));
@@ -129,6 +128,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                     decryptDto.setKey(encryptKey);
                     decryptDto.setEncryptdata(outputData);
                     Map resultMap = JSONUtils.parse(decrypt(decryptDto,enterprise), Map.class);
+                    LOGGER.info("ByRemoteService.corresPondingHospDrugByOrganIdHttpRequest:[{}][{}]同步药品请求，获取解密后响应消息：{}", enterprise.getId(), enterprise.getName(), JSONUtils.toString(resultMap));
                     if(resultMap!=null) {
                         int resCode = MapValueUtil.getInteger(resultMap, "code");
                         String message = MapValueUtil.getString(resultMap, "message");
@@ -192,6 +192,9 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
             //发送请求，获得推送的结果
             CloseableHttpClient httpClient = HttpClients.createDefault();
             try {
+                RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+                String encryptKey=recipeParameterDao.getByName("by-secertkey");
+                String projectCode=recipeParameterDao.getByName("by-projectcode");
                 YfzEncryptDto encryptDto = new YfzEncryptDto();
                 encryptDto.setKey(encryptKey);
                 encryptDto.setOriginaldata("projectCode=" + projectCode + "&timespan=" + DateConversion.formatDateTime(DateConversion.getFormatDate(new Date(), DateConversion.PRESCRITION_DATE_TIME)));
@@ -212,6 +215,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                 decryptDto.setKey(encryptKey);
                 decryptDto.setEncryptdata(outputData);
                 Map resultMap = JSONUtils.parse(decrypt(decryptDto, enterprise), Map.class);
+                LOGGER.info("ByRemoteService.corresPondingHospDrugByOrganIdHttpRequest:[{}][{}]同步药品请求，获取解密后响应消息：{}", enterprise.getId(), enterprise.getName(), JSONUtils.toString(resultMap));
                 if(resultMap!=null){
                     int resCode = MapValueUtil.getInteger(resultMap, "code");
                     String message = MapValueUtil.getString(resultMap, "message");
@@ -249,6 +253,9 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
      * @return void
      */
     public DrugEnterpriseResult checkPrescriptionDrugStockHttpRequest(DrugEnterpriseResult result, DrugsEnterprise drugsEnterprise, YfzCheckPrescriptionDrugStockDto yfzAddHospitalPrescriptionDto) throws IOException {
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String encryptKey=recipeParameterDao.getByName("by-secertkey");
+        String projectCode=recipeParameterDao.getByName("by-projectcode");
         YfzEncryptDto encryptDto = new YfzEncryptDto();
         encryptDto.setKey(encryptKey);
         encryptDto.setOriginaldata("projectCode=" + projectCode + "&timespan=" + DateConversion.formatDateTime(DateConversion.getFormatDate(new Date(), DateConversion.PRESCRITION_DATE_TIME)));
@@ -347,6 +354,9 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
      * @return void
      */
     private DrugEnterpriseResult addHospitalPrescriptionHttpRequest(DrugEnterpriseResult result, DrugsEnterprise drugsEnterprise, YfzAddHospitalPrescriptionDto yfzAddHospitalPrescriptionDto) throws IOException {
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String encryptKey=recipeParameterDao.getByName("by-secertkey");
+        String projectCode=recipeParameterDao.getByName("by-projectcode");
         YfzEncryptDto encryptDto=new YfzEncryptDto();
         encryptDto.setKey(encryptKey);
         encryptDto.setOriginaldata("projectCode="+projectCode+"&timespan="+ DateConversion.formatDateTime(DateConversion.getFormatDate(new Date(), DateConversion.PRESCRITION_DATE_TIME)));
@@ -367,6 +377,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
         decryptDto.setKey(encryptKey);
         decryptDto.setEncryptdata(outputData);
         Map resultMap = JSONUtils.parse(decrypt(decryptDto,drugsEnterprise), Map.class);
+        LOGGER.info("ByRemoteService.corresPondingHospDrugByOrganIdHttpRequest:[{}][{}]同步药品请求，获取解密后响应消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), JSONUtils.toString(resultMap));
         if(resultMap!=null){
             int resCode = MapValueUtil.getInteger(resultMap, "code");
             String message = MapValueUtil.getString(resultMap, "message");
