@@ -980,10 +980,28 @@ public class RecipeHisService extends RecipeBaseService {
                 item.setPackUnit(detail.getDrugUnit());
                 //备注
                 item.setRemark(detail.getMemo());
+                //date 20200222 杭州市互联网添加字段
+                item.setDrugID(detail.getDrugId());
                 list.add(item);
             }
             hisCheckRecipeReqTO.setOrderList(list);
         }
+        //date 20200222杭州市互联网(添加诊断)
+        List<DiseaseInfo> diseaseInfos = new ArrayList<>();
+        DiseaseInfo diseaseInfo;
+        if(StringUtils.isNotEmpty(recipeBean.getOrganDiseaseId()) && StringUtils.isNotEmpty(recipeBean.getOrganDiseaseName())){
+            String [] diseaseIds = recipeBean.getOrganDiseaseId().split(",");
+            String [] diseaseNames = recipeBean.getOrganDiseaseName().split(",");
+            for (int i = 0; i < diseaseIds.length; i++){
+                diseaseInfo = new DiseaseInfo();
+                diseaseInfo.setDiseaseCode(diseaseIds[i]);
+                diseaseInfo.setDiseaseName(diseaseNames[i]);
+                diseaseInfos.add(diseaseInfo);
+            }
+            hisCheckRecipeReqTO.setDiseaseInfo(diseaseInfos);
+
+        }
+
 
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
         LOGGER.info("hisRecipeCheck req={}", JSONUtils.toString(hisCheckRecipeReqTO));

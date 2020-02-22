@@ -92,6 +92,28 @@ public class QueryRecipeInfoDTO implements Serializable {
     @ItemProperty(alias="自付比例")
     private String payScale;
 
+    //date 20200222杭州市互联网 诊断信息
+    private List<DiseaseInfo> diseaseInfo;
+
+    //date 20200222杭州市互联网 配送信息
+    private List<DeliveryInfo> deliveryInfo;
+
+    public List<DiseaseInfo> getDiseaseInfo() {
+        return diseaseInfo;
+    }
+
+    public void setDiseaseInfo(List<DiseaseInfo> diseaseInfo) {
+        this.diseaseInfo = diseaseInfo;
+    }
+
+    public List<DeliveryInfo> getDeliveryInfo() {
+        return deliveryInfo;
+    }
+
+    public void setDeliveryInfo(List<DeliveryInfo> deliveryInfo) {
+        this.deliveryInfo = deliveryInfo;
+    }
+
     public QueryRecipeInfoDTO() {}
 
     public String getBRZS() {

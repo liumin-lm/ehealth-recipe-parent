@@ -61,6 +61,7 @@ public class QueryRecipeService implements IQueryRecipeService {
     @Override
     @RpcService
     public QueryRecipeResultDTO queryRecipeInfo(QueryRecipeReqDTO queryRecipeReqDTO){
+        LOGGER.info("queryRecipeInfo入參：{}", JSONUtils.toString(queryRecipeReqDTO));
         QueryRecipeResultDTO resultDTO = new QueryRecipeResultDTO();
         if (StringUtils.isEmpty(queryRecipeReqDTO.getOrganId())) {
             resultDTO.setMsgCode(-1);
@@ -94,6 +95,21 @@ public class QueryRecipeService implements IQueryRecipeService {
         HealthCardBean cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
         //拼接返回数据
         QueryRecipeInfoDTO infoDTO = splicingBackData(details, recipe, patientBean, cardBean);
+        //date 20200222杭州市互联网(添加诊断)
+        List<DiseaseInfo> diseaseInfos = new ArrayList<>();
+        DiseaseInfo diseaseInfo;
+        if(StringUtils.isNotEmpty(recipe.getOrganDiseaseId()) && StringUtils.isNotEmpty(recipe.getOrganDiseaseName())){
+            String [] diseaseIds = recipe.getOrganDiseaseId().split(",");
+            String [] diseaseNames = recipe.getOrganDiseaseName().split(",");
+            for (int i = 0; i < diseaseIds.length; i++){
+                diseaseInfo = new DiseaseInfo();
+                diseaseInfo.setDiseaseCode(diseaseIds[i]);
+                diseaseInfo.setDiseaseName(diseaseNames[i]);
+                diseaseInfos.add(diseaseInfo);
+            }
+            infoDTO.setDiseaseInfo(diseaseInfos);
+
+        }
         resultDTO.setMsgCode(0);
         resultDTO.setData(infoDTO);
         LOGGER.info("queryRecipeInfo res={}", JSONUtils.toString(resultDTO));
