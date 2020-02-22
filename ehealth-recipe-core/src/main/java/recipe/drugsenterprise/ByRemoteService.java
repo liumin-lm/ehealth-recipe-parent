@@ -47,9 +47,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
 
     private String ORGANIZATION;
     //HttpUrl
-    private static final String httpUrl = "http://test-yfz.baipaas.com/shanghaisix-api/";
-    //加密解密HttpUrl
-    private static final String encryptHttpUrl = "http://test-yfz.baipaas.com/AES/";
+    private static final String httpUrl = "";
     //开处方
     private static final String addHospitalPrescriptionHttpUrl = "shanghaisix-api/prescription/addHospitalPrescription";
     //同步药品接口
@@ -61,15 +59,9 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
 
     private static final String encryptKey = "EEB00CBDEA0241F7A30C8057D1D89165";
 
-    private static final String requestHeadJsonKey = "Content-Type";
-
     private static final String requestHeadJsonValue = "application/json";
 
-    private static final String requestHeadPowerKey = "Authorization";
-
     private static String RESULT_SUCCESS = "200";
-
-    private static final String imgHead = "data:image/jpeg;base64,";
 
     public ByRemoteService() {
         RecipeCacheService recipeService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
@@ -120,10 +112,10 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
      * @return void
      */
     @RpcService
-    private DrugEnterpriseResult corresPondingHospDrugByOrganIdHttpRequest(Integer organId) throws IOException {
+    public DrugEnterpriseResult corresPondingHospDrugByOrganIdHttpRequest(Integer organId) throws IOException {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(226);
+        DrugsEnterprise enterprise = drugsEnterpriseDAO.getByAccount("by");
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
 
         List<OrganDrugList> orgDrugList=organDrugListDAO.findOrganDrugByOrganId(organId);
@@ -153,8 +145,6 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                     String originaldata1=encrypt(encryptDto,enterprise);
                     encryptDto.setOriginaldata(JSONUtils.toString(getHospDrugDto));
                     String originaldata2=encrypt(encryptDto,enterprise);
-                    System.out.println("originaldata1==============:"+originaldata1);
-                    System.out.println("originaldata2==============:"+originaldata2);
                     String requestStr = JSONUtils.toString(originaldata2);
                     Map<String,String> extendHeaders=new HashMap<String,String>();
                     extendHeaders.put("Content-Type",requestHeadJsonValue);
@@ -208,24 +198,24 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
      * @return void
      */
     @RpcService
-    private DrugEnterpriseResult corresPondingHospDrugByOrganDrugListHttpRequest(OrganDrugList organDrug) throws IOException {
+    public DrugEnterpriseResult corresPondingHospDrugByOrganDrugListHttpRequest(OrganDrugList organDrug) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(226);
+        DrugsEnterprise enterprise = drugsEnterpriseDAO.getByAccount("by");
         YfzCorressPonHospDrugDto getHospDrugDto=new YfzCorressPonHospDrugDto();
         if(null != enterprise){
             List<YfzHospDrugDto> hospDrugList=new ArrayList<YfzHospDrugDto>();
                 getHospDrugDto.setAccess_token(enterprise.getToken());
-                    YfzHospDrugDto dto=new YfzHospDrugDto();
-                    dto.setHospDrugId(organDrug.getDrugId().toString());
-                    dto.setHospDrugPrice(String.valueOf(organDrug.getSalePrice()));
-                    dto.setHospDrugGenericName(organDrug.getDrugName());
-                    dto.setHospDrugTradeName(organDrug.getSaleName());
-                    dto.setHospDrugSpec(organDrug.getDrugSpec());
-                    dto.setHospDrugCompanyName(organDrug.getProducer());
-                    dto.setHospDrugApproveNumber(organDrug.getLicenseNumber());
-            hospDrugList.add(dto);
-            getHospDrugDto.setHospDrugList(hospDrugList);
+                YfzHospDrugDto dto=new YfzHospDrugDto();
+                dto.setHospDrugId(organDrug.getDrugId().toString());
+                dto.setHospDrugPrice(String.valueOf(organDrug.getSalePrice()));
+                dto.setHospDrugGenericName(organDrug.getDrugName());
+                dto.setHospDrugTradeName(organDrug.getSaleName());
+                dto.setHospDrugSpec(organDrug.getDrugSpec());
+                dto.setHospDrugCompanyName(organDrug.getProducer());
+                dto.setHospDrugApproveNumber(organDrug.getLicenseNumber());
+                hospDrugList.add(dto);
+                getHospDrugDto.setHospDrugList(hospDrugList);
                 //发送请求，获得推送的结果
                 CloseableHttpClient httpClient = HttpClients.createDefault();
                 try {
@@ -235,8 +225,6 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                     String originaldata1=encrypt(encryptDto,enterprise);
                     encryptDto.setOriginaldata(JSONUtils.toString(getHospDrugDto));
                     String originaldata2=encrypt(encryptDto,enterprise);
-                    System.out.println("originaldata1==============:"+originaldata1);
-                    System.out.println("originaldata2==============:"+originaldata2);
                     String requestStr = JSONUtils.toString(originaldata2);
                     Map<String,String> extendHeaders=new HashMap<String,String>();
                     extendHeaders.put("Content-Type",requestHeadJsonValue);
@@ -275,40 +263,6 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
         }
         return result;
     }
-    /**
-     * @method  checkPrescriptionDrugStock
-     * @description 发送http请求查询处方库存
-     * @date: 2020/02/20
-     * @author: JRK
-     * @param yfzAddHospitalPrescriptionDto
-     * @param request 易复诊请求对象
-     * @param httpclient http请求服务
-     * @return void
-     */
-//    @RpcService
-//    public DrugEnterpriseResult checkPrescriptionDrugStock(YfzCheckPrescriptionDrugStockDto yfzAddHospitalPrescriptionDto)throws IOException {
-//        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-//
-//        LOGGER.info("ByRemoteService.corresPondingHospDrug:[{}][{}]获得新的处方药品信息", "id", "name");
-//        //发送请求，获得推送的结果
-//        CloseableHttpClient httpClient = HttpClients.createDefault();
-//        try {
-////            if (enterprise.getBusinessUrl().contains("http:")) {
-//            checkPrescriptionDrugStockHttpRequest(result,yfzAddHospitalPrescriptionDto);
-////            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            LOGGER.error("ByRemoteService.corresPondingHospDrug:[{}][{}]同步药品异常：{}","id", "name", e.getMessage());
-//        } finally {
-//            try {
-//                httpClient.close();
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//                LOGGER.error("ByRemoteService.corresPondingHospDrug:http请求资源关闭异常: {}！", e.getMessage());
-//            }
-//        }
-//        return result;
-//    }
     /**
      * @method  checkPrescriptionDrugStockHttpRequest
      * @description 查询处方库存http请求
@@ -522,8 +476,6 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
         DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
         PatientService patientService = BasicAPI.getService(PatientService.class);
         DoctorService doctorService = BasicAPI.getService(DoctorService.class);
-        EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
-        OrganService organService = BasicAPI.getService(OrganService.class);
         DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
