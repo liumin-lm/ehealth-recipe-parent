@@ -93,6 +93,12 @@ public class HisCallBackService {
             LOGGER.error("checkPassSuccess 处方对象不存在");
             return;
         }
+        //todo---写死上海六院---在患者选完取药方式之后推送处方 第二次调用无需任何处理
+        if (recipe.getClinicOrgan() == 1000899 && new Integer(1).equals(recipe.getChooseFlag())){
+            //日志记录
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "患者选择完购药方式之后推送处方成功");
+            return;
+        }
         if (StringUtils.isNotEmpty(result.getRecipeCode())) {
             attrMap.put("recipeCode", result.getRecipeCode());
         }

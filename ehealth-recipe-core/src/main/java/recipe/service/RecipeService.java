@@ -2303,7 +2303,8 @@ public class RecipeService extends RecipeBaseService{
     @RpcService
     public Map<String,Object> getHosRecipeList(Integer consultId,Integer organId,String mpiId) {
         RecipePreserveService preserveService = ApplicationUtils.getRecipeService(RecipePreserveService.class);
-        return preserveService.getHosRecipeList(consultId,organId,mpiId);
+        //查询3个月以前的历史处方数据
+        return preserveService.getHosRecipeList(consultId,organId,mpiId,180);
     }
 
     /*@RpcService
