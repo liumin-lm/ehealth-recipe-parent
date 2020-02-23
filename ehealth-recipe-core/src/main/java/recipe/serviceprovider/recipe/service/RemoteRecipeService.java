@@ -702,6 +702,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         //设置查询时间段
         String endDt = DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME);
         String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(3),DateConversion.DEFAULT_DATE_TIME);
+        //前置没考虑
         List<Recipe> recipeList = recipeDAO.findRecipeListByDeptAndPatient(depId, mpiId, startDt,endDt);
         if (CollectionUtils.isEmpty(recipeList)){
             //再查3天内线上未缴费的处方-到院取药推送的处方-his

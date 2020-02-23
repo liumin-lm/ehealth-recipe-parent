@@ -1944,7 +1944,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 String hql = "from Recipe where mpiid=:mpiid and Depart=:Depart and SignDate between :startDate and :endDate" +
-                        " and PayFlag = 0 and status = 2 order by createDate desc";
+                        " and PayFlag = 0 and status in (2,8) order by createDate desc";
                 Query query = ss.createQuery(hql);
                 query.setParameter("Depart", depId);
                 query.setParameter("mpiid", mpiId);
