@@ -265,7 +265,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 position.put("LATITUDE", ext.get("latitude"));
                 map.put("POSITION", position);
             } else {
-                map.put("RANGE", 900);
+                map.put("RANGE", 2000);
                 Map<String, Object> position = new HashMap<>();
                 position.put("LONGITUDE", "120.201685");
                 position.put("LATITUDE", "30.255732");
