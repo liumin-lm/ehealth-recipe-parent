@@ -327,6 +327,16 @@ public class HisRequestInit {
                 default:requestTO.setDeliveryType("0");
             }
         }
+        if (StringUtils.isNotEmpty(recipe.getOrderCode())){
+            RecipeOrderDAO dao = getDAO(RecipeOrderDAO.class);
+            RecipeOrder order = dao.getByOrderCode(recipe.getOrderCode());
+            if (order!=null){
+                //第三方支付交易流水号（支付机构
+                requestTO.setTradeNo(order.getTradeNo());
+                //商户订单号（平台）
+                requestTO.setOutTradeNo(order.getOutTradeNo());
+            }
+        }
         requestTO.setTakeMedicine(recipe.getTakeMedicine());
         // 设置结束日期
         Calendar c = Calendar.getInstance();

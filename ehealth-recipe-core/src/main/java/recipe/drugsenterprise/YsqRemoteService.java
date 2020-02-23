@@ -160,7 +160,8 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        return DrugEnterpriseResult.getSuccess();
+        List<Integer> recipeIds = Arrays.asList(recipeId);
+        return findSupportDep(recipeIds, null, drugsEnterprise);
     }
 
     @Override
@@ -264,7 +265,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 position.put("LATITUDE", ext.get("latitude"));
                 map.put("POSITION", position);
             } else {
-                map.put("RANGE", 90);
+                map.put("RANGE", 2000);
                 Map<String, Object> position = new HashMap<>();
                 position.put("LONGITUDE", "120.201685");
                 position.put("LATITUDE", "30.255732");
@@ -385,11 +386,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 call.setReturnType(Constants.XSD_STRING);
                 Object resultObj;
                 if ("PrescriptionGYSLists".equals(method)) {
-                    String isGys = "0";
-                    if ("psysq".equals(drugsEnterprise.getAccount())) {
-                        isGys = "1";
-                    }
-                    Object[] param = {drugsEnterprise.getUserId(), drugsEnterprise.getPassword(), sendInfoStr, isGys};
+                    Object[] param = {drugsEnterprise.getUserId(), drugsEnterprise.getPassword(), sendInfoStr, "0"};
                     resultObj = call.invoke(param);
                 } else {
                     Object[] param = {drugsEnterprise.getUserId(), drugsEnterprise.getPassword(), sendInfoStr};
@@ -482,6 +479,9 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                         styleBean.setPsdjColor(MapValueUtil.getString(resultMap, "PSDJ_Color"));
                         styleBean.setPsdjFont(MapValueUtil.getString(resultMap, "PSDJ_Font"));
                         result.setStyle(styleBean);
+                    } else {
+                        result.setMsg(drugEpName + "接口调用返回可用药店列表为空");
+                        result.setCode(DrugEnterpriseResult.FAIL);
                     }
                 } else {
                     result.setMsg("调用[" + drugEpName + "][" + method + "]成功");
@@ -497,258 +497,265 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
     }
 
     private List<Map<String, Object>> getYsqRecipeInfo(List<Integer> recipeIds, boolean sendRecipe, DrugsEnterprise drugsEnterprise) {
-            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-            RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-            RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
-            IDepartmentService iDepartmentService = ApplicationUtils.getBaseService(IDepartmentService.class);
-            IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
-            IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
-            IOrganService iOrganService = ApplicationUtils.getBaseService(IOrganService.class);
-            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-            Recipe recipe;
-            RecipeOrder order = null;
-            PatientBean patient;
-            OrganBean organ;
-            //药品信息MAP，减少DB查询
-            Map<Integer, DrugList> drugListMap = new HashMap<>(10);
-            List<Map<String, Object>> recipeInfoList = new ArrayList<>(recipeIds.size());
-            //每个处方的json数据
-            Map<String, Object> recipeMap;
-            for (Integer recipeId : recipeIds) {
-                recipe = recipeDAO.getByRecipeId(recipeId);
-                if (null == recipe) {
-                    LOGGER.error("getYsqRecipeInfo ID为" + recipeId + "的处方不存在");
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
+        IDepartmentService iDepartmentService = ApplicationUtils.getBaseService(IDepartmentService.class);
+        IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+        IDoctorService iDoctorService = ApplicationUtils.getBaseService(IDoctorService.class);
+        IOrganService iOrganService = ApplicationUtils.getBaseService(IOrganService.class);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        Recipe recipe;
+        RecipeOrder order = null;
+        PatientBean patient;
+        OrganBean organ;
+        //药品信息MAP，减少DB查询
+        Map<Integer, DrugList> drugListMap = new HashMap<>(10);
+        List<Map<String, Object>> recipeInfoList = new ArrayList<>(recipeIds.size());
+        //每个处方的json数据
+        Map<String, Object> recipeMap;
+        for (Integer recipeId : recipeIds) {
+            recipe = recipeDAO.getByRecipeId(recipeId);
+            if (null == recipe) {
+                LOGGER.error("getYsqRecipeInfo ID为" + recipeId + "的处方不存在");
+                continue;
+            }
+
+            if (sendRecipe) {
+                if (StringUtils.isEmpty(recipe.getOrderCode())) {
+                    LOGGER.error("getYsqRecipeInfo recipeId={}, 不存在订单编号.", recipeId);
                     continue;
                 }
 
-                if (sendRecipe) {
-                    if (StringUtils.isEmpty(recipe.getOrderCode())) {
-                        LOGGER.error("getYsqRecipeInfo recipeId={}, 不存在订单编号.", recipeId);
-                        continue;
-                    }
-
-                    order = orderDAO.getByOrderCode(recipe.getOrderCode());
-                    if (null == order) {
-                        LOGGER.error("getYsqRecipeInfo code为" + recipe.getOrderCode() + "的订单不存在");
-                        continue;
-                    }
-                }
-                try {
-                    patient = iPatientService.get(recipe.getMpiid());
-                } catch (Exception e) {
-                    LOGGER.error("getYsqRecipeInfo patient :" + e.getMessage());
-                    patient = null;
-                }
-                if (null == patient) {
-                    LOGGER.error("getYsqRecipeInfo ID为" + recipe.getMpiid() + "的患者不存在");
+                order = orderDAO.getByOrderCode(recipe.getOrderCode());
+                if (null == order) {
+                    LOGGER.error("getYsqRecipeInfo code为" + recipe.getOrderCode() + "的订单不存在");
                     continue;
                 }
-                try {
-                    organ = iOrganService.get(recipe.getClinicOrgan());
-                } catch (Exception e) {
-                    organ = null;
-                }
-                if (null == organ) {
-                    LOGGER.error("getYsqRecipeInfo ID为" + recipe.getClinicOrgan() + "的机构不存在");
-                    continue;
-                }
-                recipeMap = Maps.newHashMap();
-                if (sendRecipe) {
-                    //取药方式
-                    if (RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
-                        //1：自提；0：送货上门
-                        recipeMap.put("METHOD", "0");
-                    } else if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
-                        recipeMap.put("METHOD", "1");
-                    } else {
-                        //支持所有方式
-                        recipeMap.put("METHOD", "");
-                    }
+            }
+            try {
+                patient = iPatientService.get(recipe.getMpiid());
+            } catch (Exception e) {
+                LOGGER.error("getYsqRecipeInfo patient :" + e.getMessage());
+                patient = null;
+            }
+            if (null == patient) {
+                LOGGER.error("getYsqRecipeInfo ID为" + recipe.getMpiid() + "的患者不存在");
+                continue;
+            }
+            try {
+                organ = iOrganService.get(recipe.getClinicOrgan());
+            } catch (Exception e) {
+                organ = null;
+            }
+            if (null == organ) {
+                LOGGER.error("getYsqRecipeInfo ID为" + recipe.getClinicOrgan() + "的机构不存在");
+                continue;
+            }
+            recipeMap = Maps.newHashMap();
+            if (sendRecipe) {
+                //取药方式
+                if (RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
+                    //1：自提；0：送货上门
+                    recipeMap.put("METHOD", "0");
+                } else if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
+                    recipeMap.put("METHOD", "1");
                 } else {
+                    //支持所有方式
                     recipeMap.put("METHOD", "");
                 }
-                if (RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
-                    order = orderDAO.getByOrderCode(recipe.getOrderCode());
-                    if (order != null ) {
-                        //配送到家的方式
-                        recipeMap.put("METHOD", "0");
-                        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-                        String store_code = recipeParameterDao.getByName("ysq_store_code");
-                        recipeMap.put("PATIENTSENDADDR", getCompleteAddress(order));
-                        recipeMap.put("STORECODE", store_code);
-                        recipeMap.put("SENDNAME", order.getReceiver());
-                        recipeMap.put("RECEIVENAME", order.getReceiver());
-                        recipeMap.put("RECEIVETEL", order.getRecMobile());
-                        recipeMap.put("ACCAMOUNT", order.getRecipeFee().toString());
-                        if (order.getPayFlag() != null && 1 == order.getPayFlag()) {
-                            recipeMap.put("ISPAYMENT", "1");
-                        } else if (order.getPayFlag() != null && 0 == order.getPayFlag()){
-                            recipeMap.put("ISPAYMENT", "0");
-                        }
-                    }
+            } else {
+                recipeMap.put("METHOD", "");
+            }
+            if (RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
+                order = orderDAO.getByOrderCode(recipe.getOrderCode());
+                if (order != null ) {
+                    //配送到家的方式
+                    recipeMap.put("METHOD", "0");
+                    RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+                    String store_code = recipeParameterDao.getByName("ysq_store_code");
+                    String ysq_store_code = recipe.getClinicOrgan() + "_" + store_code;
 
+                    recipeMap.put("PATIENTSENDADDR", getCompleteAddress(order));
+                    recipeMap.put("STORECODE", ysq_store_code);
+                    recipeMap.put("SENDNAME", order.getReceiver());
+                    recipeMap.put("RECEIVENAME", order.getReceiver());
+                    recipeMap.put("RECEIVETEL", order.getRecMobile());
+                    recipeMap.put("ACCAMOUNT", order.getRecipeFee().toString());
+                    if (order.getPayFlag() != null && 1 == order.getPayFlag()) {
+                        recipeMap.put("ISPAYMENT", "1");
+                    } else if (order.getPayFlag() != null && 0 == order.getPayFlag()){
+                        recipeMap.put("ISPAYMENT", "0");
+                    }
+                }
+
+            } else {
+                if ("psysq".equals(drugsEnterprise.getAccount())) {
+                    recipeMap.put("METHOD", "0");
+                    recipeMap.put("PATIENTSENDADDR", "");
                 } else {
                     recipeMap.put("METHOD", "1");
                     recipeMap.put("PATIENTSENDADDR", "");
                 }
-
-                if (RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
-                    recipeMap.put("ISPAYMENT", "0");
-                }
-
-                if (!sendRecipe && drugsEnterprise.getHosInteriorSupport() == 1) {
-                    recipeMap.put("HOSCODE", organ.getOrganizeCode());
-                } else {
-                    recipeMap.put("HOSCODE", organ.getOrganId().toString());
-                }
-                recipeMap.put("HOSNAME", organ.getName());
-                recipeMap.put("PRESCRIPTDATE", DateConversion.getDateFormatter(recipe.getSignDate(), DateConversion.DEFAULT_DATE_TIME));
-                //医院处方号  医院机构?处方编号
-                if (StringUtils.isNotEmpty(recipe.getRecipeCode())) {
-                    recipeMap.put("INBILLNO", recipe.getClinicOrgan() + YSQ_SPLIT + recipe.getRecipeCode());
-                } else {
-                    recipeMap.put("INBILLNO", recipe.getClinicOrgan() + YSQ_SPLIT + recipe.getRecipeId() + "ngari999");
-                }
-                recipeMap.put("PATNAME", patient.getPatientName());
-                //性别处理
-                String sex = patient.getPatientSex();
-                if (StringUtils.isNotEmpty(sex)) {
-                    try {
-                        recipeMap.put("SEX", DictionaryController.instance().get("eh.base.dictionary.Gender").getText(sex));
-                    } catch (ControllerException e) {
-                        LOGGER.error("getYsqRecipeInfo 获取性别类型失败*****sex:" + sex);
-                        recipeMap.put("SEX", "男");
-                    }
-                } else {
-                    LOGGER.error("getYsqRecipeInfo sex为空");
-                    recipeMap.put("SEX", "男");
-                }
-                //获取患者就诊卡号
-                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-                if (recipeExtend != null) {
-                    String cardNo = recipeExtend.getCardNo();
-                    if (StringUtils.isNotEmpty(cardNo)) {
-                        recipeMap.put("ONECARDSOLUTION", cardNo);
-                    } else {
-                        HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
-                        List<HealthCardDTO> healthCardDTOS = healthCardService.findByMpiId(recipe.getMpiid());
-                        if (CollectionUtils.isNotEmpty(healthCardDTOS)) {
-                            recipeMap.put("ONECARDSOLUTION", healthCardDTOS.get(0).getCardId());
-                        }
-                    }
-                }
-                //周岁处理
-                Date birthday = patient.getBirthday();
-                if (null != birthday) {
-                    recipeMap.put("AGE", Integer.toString(DateConversion.getAge(birthday)));
-                } else {
-                    //有些医院不提供身份证号,年龄提供默认值
-                    recipeMap.put("AGE", 25);
-                }
-                //身份信息使用原始身份证号，暂定空
-                recipeMap.put("IDENTIFICATION", "");
-                recipeMap.put("TELPHONE", patient.getMobile());
-                if (sendRecipe) {
-                    recipeMap.put("RECEIVENAME", order.getReceiver());
-                    recipeMap.put("RECEIVETEL", order.getRecMobile());
-                    recipeMap.put("ACCAMOUNT", order.getRecipeFee().toString());
-                } else {
-                    recipeMap.put("RECEIVENAME", patient.getPatientName());
-                    recipeMap.put("RECEIVETEL", patient.getMobile());
-                    recipeMap.put("ACCAMOUNT", recipe.getTotalMoney().toString());
-                }
-                recipeMap.put("ALLERGY", "");
-                recipeMap.put("REMARK", StringUtils.defaultString(recipe.getMemo(), ""));
-                recipeMap.put("DEPT", iDepartmentService.getNameById(recipe.getDepart()));
-                recipeMap.put("DOCTORCODE", recipe.getDoctor().toString());
-                recipeMap.put("DOCTOR", iDoctorService.getNameById(recipe.getDoctor()));
-                //放置药店编码和名称
-                if (order != null && StringUtils.isNotEmpty(order.getDrugStoreCode())) {
-                    recipeMap.put("GYSCODE", order.getDrugStoreCode());
-                    recipeMap.put("GYSNAME", order.getDrugStoreName());
-                }
-                //处理过期时间
-                String validateDays = cacheService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS, "14");
-                Date validate = DateConversion.getDateAftXDays(recipe.getSignDate(), Integer.parseInt(validateDays));
-                recipeMap.put("VALIDDATE", DateConversion.getDateFormatter(validate, DateConversion.DEFAULT_DATE_TIME));
-                recipeMap.put("DIAGNOSIS", recipe.getOrganDiseaseName());
-                //医保处方 0：是；1：否
-                recipeMap.put("YIBAOBILL", "1");
-
-                List<Map<String, String>> recipeDetailList = new ArrayList<>();
-                recipeMap.put("DETAILS", recipeDetailList);
-                //处方详情数据
-                List<Recipedetail> recipedetail = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
-                if (CollectionUtils.isNotEmpty(recipedetail)) {
-                    Map<String, String> detailMap;
-                    DrugList drug;
-                    for (Recipedetail detail : recipedetail) {
-                        detailMap = Maps.newHashMap();
-                        Integer drugId = detail.getDrugId();
-                        drug = drugListMap.get(drugId);
-                        if (null == drug) {
-                            drug = drugListDAO.get(drugId);
-                            drugListMap.put(drugId, drug);
-                        }
-
-                        if (!sendRecipe && drugsEnterprise.getHosInteriorSupport() == 1) {
-                            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
-                            LOGGER.info("YsqRemoteService-saleDrugList:[{}] [{}].", drugId, drugsEnterprise.getId());
-                            if (saleDrugList != null) {
-                                detailMap.put("GOODS", saleDrugList.getOrganDrugCode());
-                            }
-                        } else {
-                            detailMap.put("GOODS", drugId.toString());
-                        }
-                        detailMap.put("NAME", drug.getSaleName());
-                        detailMap.put("GNAME", drug.getDrugName());
-                        detailMap.put("SPEC", drug.getDrugSpec());
-                        detailMap.put("PRODUCER", drug.getProducer());
-                        detailMap.put("MSUNITNO", drug.getUnit());
-                        detailMap.put("BILLQTY", getFormatDouble(detail.getUseTotalDose()));
-                        detailMap.put("PRC", detail.getSalePrice().toString());
-                        //医保药 0：是；1：否
-                        detailMap.put("YIBAO", "1");
-
-                        //药品使用
-                        detailMap.put("DOSAGE", "");
-                        detailMap.put("DOSAGENAME", getFormatDouble(detail.getUseDose()) + detail.getUseDoseUnit());
-                        String userRate = detail.getUsingRate();
-                        detailMap.put("DISEASE", userRate);
-                        if (StringUtils.isNotEmpty(userRate)) {
-                            try {
-                                detailMap.put("DISEASENAME", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(userRate));
-                            } catch (ControllerException e) {
-                                LOGGER.error("getYsqRecipeInfo 获取用药频次类型失败*****usingRate:" + userRate);
-                                detailMap.put("DISEASENAME", "每日三次");
-                            }
-                        } else {
-                            LOGGER.error("getYsqRecipeInfo usingRate为null");
-                            detailMap.put("DISEASENAME", "每日三次");
-                        }
-                        String usePathways = detail.getUsePathways();
-                        detailMap.put("DISEASE1", usePathways);
-                        if (StringUtils.isNotEmpty(usePathways)) {
-                            try {
-                                detailMap.put("DISEASENAME1", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(usePathways));
-                            } catch (ControllerException e) {
-                                LOGGER.error("getYsqRecipeInfo 获取用药途径类型失败*****usePathways:" + usePathways);
-                                detailMap.put("DISEASENAME1", "口服");
-                            }
-                        } else {
-                            LOGGER.error("getYsqRecipeInfo usePathways为null");
-                            detailMap.put("DISEASENAME1", "口服");
-                        }
-                        recipeDetailList.add(detailMap);
-                    }
-                }
-                recipeInfoList.add(recipeMap);
             }
 
-            return recipeInfoList;
+            if (RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
+                recipeMap.put("ISPAYMENT", "0");
+            }
+
+            if (!sendRecipe && drugsEnterprise.getHosInteriorSupport() == 1) {
+                recipeMap.put("HOSCODE", organ.getOrganizeCode());
+            } else {
+                recipeMap.put("HOSCODE", organ.getOrganId().toString());
+            }
+            recipeMap.put("HOSNAME", organ.getName());
+            recipeMap.put("PRESCRIPTDATE", DateConversion.getDateFormatter(recipe.getSignDate(), DateConversion.DEFAULT_DATE_TIME));
+            //医院处方号  医院机构?处方编号
+            if (StringUtils.isNotEmpty(recipe.getRecipeCode())) {
+                recipeMap.put("INBILLNO", recipe.getClinicOrgan() + YSQ_SPLIT + recipe.getRecipeCode());
+            } else {
+                recipeMap.put("INBILLNO", recipe.getClinicOrgan() + YSQ_SPLIT + recipe.getRecipeId() + "ngari999");
+            }
+            recipeMap.put("PATNAME", patient.getPatientName());
+            //性别处理
+            String sex = patient.getPatientSex();
+            if (StringUtils.isNotEmpty(sex)) {
+                try {
+                    recipeMap.put("SEX", DictionaryController.instance().get("eh.base.dictionary.Gender").getText(sex));
+                } catch (ControllerException e) {
+                    LOGGER.error("getYsqRecipeInfo 获取性别类型失败*****sex:" + sex);
+                    recipeMap.put("SEX", "男");
+                }
+            } else {
+                LOGGER.error("getYsqRecipeInfo sex为空");
+                recipeMap.put("SEX", "男");
+            }
+            //获取患者就诊卡号
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            if (recipeExtend != null) {
+                String cardNo = recipeExtend.getCardNo();
+                if (StringUtils.isNotEmpty(cardNo)) {
+                    recipeMap.put("ONECARDSOLUTION", cardNo);
+                } else {
+                    HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
+                    List<HealthCardDTO> healthCardDTOS = healthCardService.findByMpiId(recipe.getMpiid());
+                    if (CollectionUtils.isNotEmpty(healthCardDTOS)) {
+                        recipeMap.put("ONECARDSOLUTION", healthCardDTOS.get(0).getCardId());
+                    }
+                }
+            }
+            //周岁处理
+            Date birthday = patient.getBirthday();
+            if (null != birthday) {
+                recipeMap.put("AGE", Integer.toString(DateConversion.getAge(birthday)));
+            } else {
+                //有些医院不提供身份证号,年龄提供默认值
+                recipeMap.put("AGE", 25);
+            }
+            //身份信息使用原始身份证号，暂定空
+            recipeMap.put("IDENTIFICATION", "");
+            recipeMap.put("TELPHONE", patient.getMobile());
+            if (sendRecipe) {
+                recipeMap.put("RECEIVENAME", order.getReceiver());
+                recipeMap.put("RECEIVETEL", order.getRecMobile());
+                recipeMap.put("ACCAMOUNT", order.getRecipeFee().toString());
+            } else {
+                recipeMap.put("RECEIVENAME", patient.getPatientName());
+                recipeMap.put("RECEIVETEL", patient.getMobile());
+                recipeMap.put("ACCAMOUNT", recipe.getTotalMoney().toString());
+            }
+            recipeMap.put("ALLERGY", "");
+            recipeMap.put("REMARK", StringUtils.defaultString(recipe.getMemo(), ""));
+            recipeMap.put("DEPT", iDepartmentService.getNameById(recipe.getDepart()));
+            recipeMap.put("DOCTORCODE", recipe.getDoctor().toString());
+            recipeMap.put("DOCTOR", iDoctorService.getNameById(recipe.getDoctor()));
+            //放置药店编码和名称
+            if (order != null && StringUtils.isNotEmpty(order.getDrugStoreCode())) {
+                recipeMap.put("GYSCODE", order.getDrugStoreCode());
+                recipeMap.put("GYSNAME", order.getDrugStoreName());
+            }
+            //处理过期时间
+            String validateDays = cacheService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS, "14");
+            Date validate = DateConversion.getDateAftXDays(recipe.getSignDate(), Integer.parseInt(validateDays));
+            recipeMap.put("VALIDDATE", DateConversion.getDateFormatter(validate, DateConversion.DEFAULT_DATE_TIME));
+            recipeMap.put("DIAGNOSIS", recipe.getOrganDiseaseName());
+            //医保处方 0：是；1：否
+            recipeMap.put("YIBAOBILL", "1");
+
+            List<Map<String, String>> recipeDetailList = new ArrayList<>();
+            recipeMap.put("DETAILS", recipeDetailList);
+            //处方详情数据
+            List<Recipedetail> recipedetail = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+            if (CollectionUtils.isNotEmpty(recipedetail)) {
+                Map<String, String> detailMap;
+                DrugList drug;
+                for (Recipedetail detail : recipedetail) {
+                    detailMap = Maps.newHashMap();
+                    Integer drugId = detail.getDrugId();
+                    drug = drugListMap.get(drugId);
+                    if (null == drug) {
+                        drug = drugListDAO.get(drugId);
+                        drugListMap.put(drugId, drug);
+                    }
+
+                    if (!sendRecipe && drugsEnterprise.getHosInteriorSupport() == 1) {
+                        SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
+                        LOGGER.info("YsqRemoteService-saleDrugList:[{}] [{}].", drugId, drugsEnterprise.getId());
+                        if (saleDrugList != null) {
+                            detailMap.put("GOODS", saleDrugList.getOrganDrugCode());
+                        }
+                    } else {
+                        detailMap.put("GOODS", drugId.toString());
+                    }
+                    detailMap.put("NAME", drug.getSaleName());
+                    detailMap.put("GNAME", drug.getDrugName());
+                    detailMap.put("SPEC", drug.getDrugSpec());
+                    detailMap.put("PRODUCER", drug.getProducer());
+                    detailMap.put("MSUNITNO", drug.getUnit());
+                    detailMap.put("BILLQTY", getFormatDouble(detail.getUseTotalDose()));
+                    detailMap.put("PRC", detail.getSalePrice().toString());
+                    //医保药 0：是；1：否
+                    detailMap.put("YIBAO", "1");
+
+                    //药品使用
+                    detailMap.put("DOSAGE", "");
+                    detailMap.put("DOSAGENAME", getFormatDouble(detail.getUseDose()) + detail.getUseDoseUnit());
+                    String userRate = detail.getUsingRate();
+                    detailMap.put("DISEASE", userRate);
+                    if (StringUtils.isNotEmpty(userRate)) {
+                        try {
+                            detailMap.put("DISEASENAME", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(userRate));
+                        } catch (ControllerException e) {
+                            LOGGER.error("getYsqRecipeInfo 获取用药频次类型失败*****usingRate:" + userRate);
+                            detailMap.put("DISEASENAME", "每日三次");
+                        }
+                    } else {
+                        LOGGER.error("getYsqRecipeInfo usingRate为null");
+                        detailMap.put("DISEASENAME", "每日三次");
+                    }
+                    String usePathways = detail.getUsePathways();
+                    detailMap.put("DISEASE1", usePathways);
+                    if (StringUtils.isNotEmpty(usePathways)) {
+                        try {
+                            detailMap.put("DISEASENAME1", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(usePathways));
+                        } catch (ControllerException e) {
+                            LOGGER.error("getYsqRecipeInfo 获取用药途径类型失败*****usePathways:" + usePathways);
+                            detailMap.put("DISEASENAME1", "口服");
+                        }
+                    } else {
+                        LOGGER.error("getYsqRecipeInfo usePathways为null");
+                        detailMap.put("DISEASENAME1", "口服");
+                    }
+                    recipeDetailList.add(detailMap);
+                }
+            }
+            recipeInfoList.add(recipeMap);
+        }
+
+        return recipeInfoList;
     }
 
     /**

@@ -62,6 +62,7 @@ import recipe.util.RedisClient;
 import java.math.BigDecimal;
 import java.util.*;
 
+import static ctd.persistence.DAOFactory.getDAO;
 import static recipe.service.RecipeServiceSub.convertPatientForRAP;
 
 
@@ -92,10 +93,28 @@ public class RecipePreserveService {
         recipeService.manualRefundForRecipe(recipeId, operName, reason);
     }
 
+    /**
+     * 手动推送处方单到药企
+     * @param recipeId
+     * @return
+     */
     @RpcService
     public DrugEnterpriseResult pushSingleRecipeInfo(Integer recipeId) {
         RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         return service.pushSingleRecipeInfo(recipeId);
+    }
+
+    /**
+     * 手动推送处方单到his
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    public void pushSingleRecipeInfoToHis(Integer recipeId) {
+        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
+        hisService.sendRecipe(recipeId, dbRecipe.getClinicOrgan());
     }
 
     @RpcService

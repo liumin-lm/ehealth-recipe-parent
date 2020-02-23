@@ -111,6 +111,7 @@ public class RecipeHisService extends RecipeBaseService {
         return result;
     }
 
+    @RpcService
     public void sendRecipe(Integer recipeId, Integer sendOrganId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
@@ -863,6 +864,10 @@ public class RecipeHisService extends RecipeBaseService {
      * @return
      */
     private boolean skipHis(Recipe recipe) {
+        //todo---写死上海六院---在患者选完取药方式之后推送处方
+        if (recipe.getClinicOrgan() == 1000899){
+            return true;
+        }
         try {
             IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
             String[] recipeTypes = (String[])configurationCenterUtilsService.getConfiguration(recipe.getClinicOrgan(), "getRecipeTypeToHis");
@@ -876,10 +881,6 @@ public class RecipeHisService extends RecipeBaseService {
             if (!RecipeUtil.isTcmType(recipe.getRecipeType())) {
                 return false;
             }
-        }
-        //todo---写死上海六院---在患者选完取药方式之后推送处方
-        if (recipe.getClinicOrgan() == 1000899){
-            return true;
         }
         return true;
     }

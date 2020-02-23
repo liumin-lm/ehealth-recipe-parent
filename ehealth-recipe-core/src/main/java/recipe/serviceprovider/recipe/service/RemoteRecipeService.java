@@ -16,8 +16,11 @@ import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.hisprescription.model.QueryPlatRecipeInfoByDateDTO;
+import com.ngari.recipe.hisprescription.model.QueryRecipeResultDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
+import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -702,6 +705,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         //设置查询时间段
         String endDt = DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME);
         String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(3),DateConversion.DEFAULT_DATE_TIME);
+        //前置没考虑
         List<Recipe> recipeList = recipeDAO.findRecipeListByDeptAndPatient(depId, mpiId, startDt,endDt);
         if (CollectionUtils.isEmpty(recipeList)){
             //再查3天内线上未缴费的处方-到院取药推送的处方-his
