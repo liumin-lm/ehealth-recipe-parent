@@ -61,16 +61,6 @@ public class PayModeToHos implements IPurchaseService{
             }
         }
         resultBean.setMsg(sb.toString());
-        //todo---写死上海六院---在患者选完取药方式之后推送处方
-        if (dbRecipe.getClinicOrgan() == 1000899){
-            //推送处方给his---recipesend
-            RecipeBusiThreadPool.submit(()->{
-                RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-                hisService.sendRecipe(recipeId, dbRecipe.getClinicOrgan());
-                return null;
-            });
-            recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("chooseFlag", 1));
-        }
         return resultBean;
     }
 
