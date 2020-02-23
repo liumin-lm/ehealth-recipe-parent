@@ -23,6 +23,7 @@ public class DateConversion
 {
 
     public static final String YYYY_MM_DD = "yyyy-MM-dd";
+    public static final String YYYY = "yyyy";
     public static final String YYYY__MM__DD = "yyyy/MM/dd";
 
     public static final String DEFAULT_DATE_TIME = "yyyy-MM-dd HH:mm:ss";

@@ -253,6 +253,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
      * @return void
      */
     public DrugEnterpriseResult checkPrescriptionDrugStockHttpRequest(DrugEnterpriseResult result, DrugsEnterprise drugsEnterprise, YfzCheckPrescriptionDrugStockDto yfzAddHospitalPrescriptionDto) throws IOException {
+        LOGGER.info("ByRemoteService.checkPrescriptionDrugStockHttpRequest:[{}]", JSONUtils.toString(yfzAddHospitalPrescriptionDto));
         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         String encryptKey=recipeParameterDao.getByName("by-secertkey");
         String projectCode=recipeParameterDao.getByName("by-projectcode");
@@ -308,41 +309,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
         }
         return result;
     }
-    /**
-     * @method  addHospitalPrescription
-     * @description 发送http请求开处方
-     * @date: 2020/02/20
-     * @author: JRK
-     * @param yfzAddHospitalPrescriptionDto
-     * @param request 易复诊请求对象
-     * @param httpclient http请求服务
-     * @return void
-     */
-    @RpcService
-    public DrugEnterpriseResult addHospitalPrescription(YfzAddHospitalPrescriptionDto yfzAddHospitalPrescriptionDto)throws IOException {
-        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
 
-        LOGGER.info("ByRemoteService.corresPondingHospDrug:[{}][{}]获得新的处方药品信息", "id", "name");
-        //发送请求，获得推送的结果
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-        try {
-//            DrugEnterpriseResult result1=checkPrescriptionDrugStockHttpRequest(result,yfzAddHospitalPrescriptionDto);
-//            if (result1.getCode().toString().equals(RESULT_SUCCESS)) {
-//                addHospitalPrescriptionHttpRequest(result,yfzAddHospitalPrescriptionDto);
-//            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            LOGGER.error("ByRemoteService.addHospitalPrescription:推送处方异常：{}","", "", e.getMessage());
-        } finally {
-            try {
-                httpClient.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-                LOGGER.error("ByRemoteService.addHospitalPrescription:http请求资源关闭异常: {}！", e.getMessage());
-            }
-        }
-        return result;
-    }
     /**
      * @method  addHospitalPrescriptionHttpRequest
      * @description 开处方http请求
@@ -354,6 +321,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
      * @return void
      */
     private DrugEnterpriseResult addHospitalPrescriptionHttpRequest(DrugEnterpriseResult result, DrugsEnterprise drugsEnterprise, YfzAddHospitalPrescriptionDto yfzAddHospitalPrescriptionDto) throws IOException {
+        LOGGER.info("ByRemoteService.addHospitalPrescriptionHttpRequest:[{}]", JSONUtils.toString(yfzAddHospitalPrescriptionDto));
         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         String encryptKey=recipeParameterDao.getByName("by-secertkey");
         String projectCode=recipeParameterDao.getByName("by-projectcode");
@@ -491,7 +459,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                 return result;
             }
             yfzAddHospitalPrescriptionDto.setAccess_token(enterprise.getToken());
-            yfzAddHospitalPrescriptionDto.setHisprescriptionId(nowRecipe.getRecipeId().toString());
+            yfzAddHospitalPrescriptionDto.setHisprescriptionId(nowRecipe.getRecipeCode().toString());
             yfzAddHospitalPrescriptionDto.setEmployeeCardNo(doctor.getDoctorId().toString());
             yfzAddHospitalPrescriptionDto.setDoctorName(doctor.getName());
             yfzAddHospitalPrescriptionDto.setPrescriptionType("39");
@@ -500,6 +468,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
             yfzAddHospitalPrescriptionDto.setDepartmentId(department.getDeptId().toString());
             yfzAddHospitalPrescriptionDto.setDepartmentName(department.getName());
             yfzAddHospitalPrescriptionDto.setHisPatientId(nowRecipe.getRecipeCode());
+
             //设置患者信息
             YfzMesPatientDto mesPatient=new YfzMesPatientDto();
             mesPatient.setPatientSex(patientDTO.getPatientSex());
@@ -541,24 +510,25 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
             yfzAddHospitalPrescriptionDto.setMesDrugDetailList(mesDrugDetailList);
             //设置订单信息
             YfzTBPrescriptionExtendDto tbpDto=new YfzTBPrescriptionExtendDto();
-//            if(nowRecipe.getGiveMode().equals("1")){
-//                tbpDto.setCostCategory("1");
-//            }else{
-//                tbpDto.setCostCategory(nowRecipe.getGiveMode().toString());
-//            }
+            if(nowRecipe.getGiveMode().equals("1")){
+                tbpDto.setCostCategory("1");
+            }else{
+                tbpDto.setCostCategory(nowRecipe.getGiveMode().toString());
+            }
             tbpDto.setPrescriptionNo(nowRecipe.getRecipeId().toString());
-//            tbpDto.setReceiverName(recipeOrder.getReceiver());
-//            tbpDto.setReceiverMobile(recipeOrder.getRecMobile());
-//            tbpDto.setReceiverAddress(getCompleteAddress(recipeOrder));
-//            tbpDto.setPayDatetime(DateConversion.getFormatDate(recipeOrder.getPayTime(), DateConversion.YYYY_MM_DD));
-//            tbpDto.setOrderType("1");
-//            tbpDto.setOrderCreateDate(DateConversion.getDateFormatter(recipeOrder.getCreateTime(), DateConversion.DEFAULT_DATE_TIME));
-//            tbpDto.setOrderPayDate(DateConversion.getDateFormatter(recipeOrder.getPayTime(), DateConversion.DEFAULT_DATE_TIME));
-//            tbpDto.setDeliverypPrice(String.valueOf(recipeOrder.getExpressFee()));
-//            tbpDto.setOrderDrugPrice(String.valueOf(recipeOrder.getTotalFee()));
-//            tbpDto.setOrderStatus("9");
-//            tbpDto.setOrderSource("1");
-//            tbpDto.setMemo(nowRecipe.getMemo());
+            tbpDto.setReceiverName(recipeOrder.getReceiver());
+            tbpDto.setReceiverMobile(recipeOrder.getRecMobile());
+            tbpDto.setReceiverAddress(getCompleteAddress(recipeOrder));
+            tbpDto.setPayDatetime(DateConversion.getFormatDate(recipeOrder.getPayTime(), DateConversion.YYYY));
+            tbpDto.setOrderType("1");
+            tbpDto.setOrderCreateDate(DateConversion.getDateFormatter(recipeOrder.getCreateTime(), DateConversion.DEFAULT_DATE_TIME));
+            tbpDto.setOrderPayDate(DateConversion.getDateFormatter(recipeOrder.getPayTime(), DateConversion.DEFAULT_DATE_TIME));
+            tbpDto.setDeliverypPrice(String.valueOf(recipeOrder.getExpressFee()));
+            tbpDto.setOrderDrugPrice(String.valueOf(recipeOrder.getTotalFee()));
+            tbpDto.setOrderStatus("9");
+            tbpDto.setOrderSource("1");
+            tbpDto.setMemo(nowRecipe.getMemo());
+            tbpDto.setOrderNo(nowRecipe.getOrderCode());
             yfzAddHospitalPrescriptionDto.setTbPrescriptionExtend(tbpDto);
             //发送请求，获得推送的结果
             CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -567,8 +537,8 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                 if (result2.getCode().equals(DrugEnterpriseResult.SUCCESS)) {
                     YfzTADrugStoreDto yfzTADrugStoreDto=new YfzTADrugStoreDto();
                     yfzTADrugStoreDto.setId(recipeOrder.getDrugStoreCode());
-//                yfzTADrugStoreDto.setAddress(recipeOrder.getDrugStoreAddr());
-//                yfzTADrugStoreDto.setName(recipeOrder.getDrugStoreName());
+                    yfzTADrugStoreDto.setAddress(recipeOrder.getDrugStoreAddr()==null?"0":recipeOrder.getDrugStoreAddr());
+                    yfzTADrugStoreDto.setName(recipeOrder.getDrugStoreName());
                     yfzAddHospitalPrescriptionDto.setTaDrugStore(yfzTADrugStoreDto);
                     addHospitalPrescriptionHttpRequest(result,enterprise, yfzAddHospitalPrescriptionDto);
                 }
@@ -599,7 +569,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        LOGGER.info("ByRemoteService.scanStock recipeId:{}.", recipeId);
+        LOGGER.info("ByRemoteService.scanStock:[{}]", JSONUtils.toString(recipeId));
         DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
@@ -622,7 +592,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
         //发送请求，获得推送的结果
         CloseableHttpClient httpClient = HttpClients.createDefault();
         try {
-            if (drugsEnterprise.getBusinessUrl().contains("http:") || drugsEnterprise.getBusinessUrl().contains("https:")) {
+            if (drugsEnterprise.getBusinessUrl().contains("http:")||drugsEnterprise.getBusinessUrl().contains("https:")) {
                 result=checkPrescriptionDrugStockHttpRequest(result,drugsEnterprise,yfzAddHospitalPrescriptionDto);
             }
         } catch (Exception e) {
@@ -651,6 +621,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise) {
+        LOGGER.info("ByRemoteService.findSupportDep:[{}]", JSONUtils.toString(recipeIds));
         DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
