@@ -2245,7 +2245,7 @@ public class RecipeService extends RecipeBaseService{
                 //HIS调用失败不应该导致业务失败
                 hisService.recipeDrugTake(recipeId, payFlag, null);
                 //todo---写死上海六院---在患者选完取药方式之后推送处方
-                if (dbRecipe.getClinicOrgan() == 1000899){
+                if (payFlag==1 && dbRecipe.getClinicOrgan() == 1000899){
                     if (!new Integer(1).equals(dbRecipe.getChooseFlag())){
                         recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("chooseFlag", 1));
                     }
