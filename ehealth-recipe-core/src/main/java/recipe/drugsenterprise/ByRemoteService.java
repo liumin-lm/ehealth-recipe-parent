@@ -599,6 +599,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
+        LOGGER.info("ByRemoteService.scanStock recipeId:{}.", recipeId);
         DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
@@ -621,7 +622,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
         //发送请求，获得推送的结果
         CloseableHttpClient httpClient = HttpClients.createDefault();
         try {
-            if (drugsEnterprise.getBusinessUrl().contains("http:")) {
+            if (drugsEnterprise.getBusinessUrl().contains("http:") || drugsEnterprise.getBusinessUrl().contains("https:")) {
                 result=checkPrescriptionDrugStockHttpRequest(result,drugsEnterprise,yfzAddHospitalPrescriptionDto);
             }
         } catch (Exception e) {
