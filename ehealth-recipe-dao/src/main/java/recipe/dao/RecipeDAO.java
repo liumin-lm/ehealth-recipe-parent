@@ -1929,6 +1929,38 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         return recipes;
     }
 
+    /**
+     * 查找指定科室和患者间开的处方单列表
+     *
+     * @param depId
+     * @param mpiId
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    public List<Recipe> findRecipeListByDeptAndPatient(final Integer depId, final String mpiId,
+                                                       final String startDate,final String endDate) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String hql = "from Recipe where mpiid=:mpiid and Depart=:Depart and SignDate between :startDate and :endDate" +
+                        " and PayFlag = 0 and ChooseFlag =0  order by createDate desc";
+                Query query = ss.createQuery(hql);
+                query.setParameter("Depart", depId);
+                query.setParameter("mpiid", mpiId);
+                if (null != startDate && null != endDate) {
+                    query.setParameter("startDate", startDate);
+                    query.setParameter("endDate", endDate);
+                }
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+
+        List<Recipe> recipes = action.getResult();
+        return recipes;
+    }
+
 
     public List<Recipe> findDowloadedRecipeToFinishList(final String startDate,final String endDate) {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {

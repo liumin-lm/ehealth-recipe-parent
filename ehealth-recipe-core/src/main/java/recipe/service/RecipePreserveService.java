@@ -123,7 +123,7 @@ public class RecipePreserveService {
     }
 
     @RpcService
-    public Map<String,Object> getHosRecipeList(Integer consultId, Integer organId,String mpiId){
+    public Map<String,Object> getHosRecipeList(Integer consultId, Integer organId,String mpiId,Integer daysAgo){
         LOGGER.info("getHosRecipeList consultId={}, organId={},mpiId={}", consultId, organId,mpiId);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         Map<String,Object> result = Maps.newHashMap();
@@ -156,7 +156,7 @@ public class RecipePreserveService {
         }
 
         Date endDate = DateTime.now().toDate();
-        Date startDate = DateConversion.getDateTimeDaysAgo(180);
+        Date startDate = DateConversion.getDateTimeDaysAgo(daysAgo);
 
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         QueryRecipeRequestTO request = new QueryRecipeRequestTO();
@@ -180,7 +180,7 @@ public class RecipePreserveService {
         if(null == response){
             return result;
         }
-        LOGGER.info("getHosRecipeList msgCode={}, msg={},data={}", response.getMsgCode(), response.getMsg(),response.getData());
+        LOGGER.info("getHosRecipeList res={}", JSONUtils.toString(response));
         List<RecipeInfoTO> data = response.getData();
         //转换平台字段
         if (CollectionUtils.isEmpty(data)){

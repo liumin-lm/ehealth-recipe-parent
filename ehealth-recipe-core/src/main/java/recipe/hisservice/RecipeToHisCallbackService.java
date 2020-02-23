@@ -41,6 +41,10 @@ public class RecipeToHisCallbackService {
 
     @Autowired
     private DrugsEnterpriseService drugsEnterpriseService;
+    /**
+     * 上海六院的模式是在患者选择完购药方式后推送处方，所以这里有调用两次
+     * 一次是跳过前置机后调用保证流程正常下去，二次是真正推送处方给his之后，如果成功则不需要处理，失败需要标记
+     */
 
     /**
      * @param response
