@@ -130,14 +130,6 @@ public class PurchaseService {
             resultBean.setMsg("参数错误");
             return resultBean;
         }
-        //todo---写死上海六院---点击一次购药方式后不能再选择其他
-        if (dbRecipe.getClinicOrgan() == 1000899){
-            if (new Integer(1).equals(dbRecipe.getChooseFlag())){
-                resultBean.setCode(RecipeResultBean.FAIL);
-                resultBean.setMsg("您已经选择过购药方式,不能重新选择");
-                return resultBean;
-            }
-        }
         //处方单状态不是待处理 or 处方单已被处理
         boolean dealFlag = checkRecipeIsUser(dbRecipe, resultBean);
         if(dealFlag){
