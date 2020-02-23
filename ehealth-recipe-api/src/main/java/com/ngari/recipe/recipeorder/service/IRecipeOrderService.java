@@ -8,6 +8,7 @@ import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.util.annotation.RpcService;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -106,4 +107,12 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
      */
     @RpcService
     RecipeOrderBean getRelationOrderByRecipeId(int recipeId);
+
+    /**
+     * 根据日期获取一天的订单支付信息
+     *
+     * @param time 日期
+     * @return RecipeOrderBean
+     */
+    public RecipeOrderBean getRecipePayInfoByDate(Date time);
 }

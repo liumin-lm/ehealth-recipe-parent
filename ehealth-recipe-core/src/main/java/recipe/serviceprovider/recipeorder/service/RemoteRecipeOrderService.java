@@ -18,6 +18,8 @@ import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -116,6 +118,14 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder order = recipeOrderDAO.getRelationOrderByRecipeId(recipeId);
         return getBean(order, RecipeOrderBean.class);
+    }
+
+    @Override
+    public RecipeOrderBean getRecipePayInfoByDate(Date time) {
+        RecipeOrderBean map = new RecipeOrderBean();
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrder order = recipeOrderDAO.getPayInfoByTime(time);
+        return map;
     }
 
 }

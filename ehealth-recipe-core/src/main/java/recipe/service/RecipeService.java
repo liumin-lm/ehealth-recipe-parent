@@ -2107,6 +2107,7 @@ public class RecipeService extends RecipeBaseService{
             //处理处方单
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, null);
         }
+//        orderService.updateOrderInfo(order.getOrderCode(), ImmutableMap.of("refundFlag", flag, "refundTime", new Date()), null);
 
         try {
             //退款

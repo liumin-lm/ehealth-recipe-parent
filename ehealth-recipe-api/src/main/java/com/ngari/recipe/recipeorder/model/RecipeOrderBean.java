@@ -227,6 +227,12 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "处方预结算返回自费金额")
     private Double cashAmount;
 
+    @ItemProperty(alias = "订单退款标识")
+    private Integer refundFlag;
+
+    @ItemProperty(alias = "订单退款时间")
+    private Date refundTime;
+
     public RecipeOrderBean() {
         initData();
     }
@@ -774,5 +780,21 @@ public class RecipeOrderBean implements Serializable {
 
     public void setCashAmount(Double cashAmount) {
         this.cashAmount = cashAmount;
+    }
+
+    public Integer getRefundFlag() {
+        return refundFlag;
+    }
+
+    public void setRefundFlag(Integer refundFlag) {
+        this.refundFlag = refundFlag;
+    }
+
+    public Date getRefundTime() {
+        return refundTime;
+    }
+
+    public void setRefundTime(Date refundTime) {
+        this.refundTime = refundTime;
     }
 }
