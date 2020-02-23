@@ -290,6 +290,10 @@ public class RecipeCheckService {
         r.setGiveMode(recipe.getGiveMode());
         //支付状态
         r.setPayFlag(recipe.getPayFlag());
+        //医生签名文件
+        r.setSignFile(recipe.getSignFile());
+        //医生+药师签名文件
+        r.setChemistSignFile(recipe.getChemistSignFile());
         try {
             String showTip = DictionaryController.instance().get("eh.cdr.dictionary.RecipeStatus").getText(recipe.getStatus());
             r.setShowTip(showTip);
