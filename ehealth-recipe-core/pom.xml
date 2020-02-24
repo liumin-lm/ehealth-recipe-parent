@@ -183,6 +183,10 @@
             <groupId>ngari</groupId>
             <artifactId>ehealth-networkclinic-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>ehealth-bill-api</artifactId>
+        </dependency>
     </dependencies>
     <profiles>
         <profile>

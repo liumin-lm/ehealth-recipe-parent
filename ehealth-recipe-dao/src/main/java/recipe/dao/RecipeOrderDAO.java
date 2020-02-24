@@ -8,11 +8,15 @@ import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResu
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
+import eh.billcheck.vo.BillRecipeDetailVo;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import recipe.constant.RecipeBussConstant;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -201,4 +205,85 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      */
     @DAOMethod(sql = "from RecipeOrder where LogisticsCompany = 1 and  trackingNumber =: trackingNumber")
     public abstract RecipeOrder getByTrackingNumber(@DAOParam("trackingNumber") String trackingNumber);
+
+    /**
+     * 根据日期查询订单支付和退款信息
+     *
+     * @param startTime
+     * @param endTime
+     * @param start
+     * @param pageSize
+     * @return
+     */
+    public List<BillRecipeDetailVo> getPayAndRefundInfoByTime(Date startTime, Date endTime, int start, int pageSize){
+        HibernateStatelessResultAction<List<BillRecipeDetailVo>> action = new AbstractHibernateStatelessResultAction<List<BillRecipeDetailVo>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("select * from ( ");
+                hql.append("select r.recipeId, r.doctor, o.MpiId, o.PayTime, o.OrganId, o.EnterpriseId, o.OutTradeNo, ");
+                hql.append("o.OrderType, r.GiveMode, o.PayFlag, o.RegisterFee, o.ExpressFee, o.DecoctionFee, o.AuditFee, ");
+                hql.append("o.OtherFee, o.RecipeFee, o.CouponFee, o.TotalFee, o.FundAmount, d.name, 0 as billType from ");
+                hql.append("cdr_recipe r INNER JOIN cdr_recipeorder o on r.OrderCode = o.OrderCode LEFT JOIN cdr_drugsenterprise d on d.id = o.EnterpriseId ");
+                hql.append("where o.payFlag = 1 and o.payTime between :startTime and :endTime and o.Effective = 1 ");
+                hql.append("UNION ALL ");
+                hql.append("select r.recipeId, r.doctor, o.MpiId, o.refundTime as PayTime, o.OrganId, o.EnterpriseId, o.OutTradeNo, ");
+                hql.append("o.OrderType, r.GiveMode, o.PayFlag, o.RegisterFee, o.ExpressFee, o.DecoctionFee, o.AuditFee, ");
+                hql.append("o.OtherFee, o.RecipeFee, o.CouponFee, o.TotalFee, o.FundAmount, d.name, 1 as billType from ");
+                hql.append("cdr_recipe r INNER JOIN cdr_recipeorder o on r.OrderCode = o.OrderCode LEFT JOIN cdr_drugsenterprise d on d.id = o.EnterpriseId ");
+                hql.append("where (o.refundFlag is Not Null and o.refundFlag <> 0) and o.refundTime between :startTime and :endTime ");
+                hql.append("UNION ALL ");
+                hql.append("select r.recipeId, r.doctor, o.MpiId, o.PayTime, o.OrganId, o.EnterpriseId, o.OutTradeNo, ");
+                hql.append("o.OrderType, r.GiveMode, o.PayFlag, o.RegisterFee, o.ExpressFee, o.DecoctionFee, o.AuditFee, ");
+                hql.append("o.OtherFee, o.RecipeFee, o.CouponFee, o.TotalFee, o.FundAmount, d.name, 0 as billType from  ");
+                hql.append("cdr_recipe r INNER JOIN cdr_recipeorder o on r.OrderCode = o.OrderCode LEFT JOIN cdr_drugsenterprise d on d.id = o.EnterpriseId ");
+                hql.append("where (o.refundFlag is Not Null and o.refundFlag <> 0) and o.payFlag <>1 and o.payTime between :startTime and :endTime ");
+                hql.append(" ) a order by a.recipeId, a.payTime");
+
+                Query q = ss.createSQLQuery(hql.toString());
+                q.setParameter("startTime", startTime);
+                q.setParameter("endTime", endTime);
+                q.setFirstResult(start);
+                q.setMaxResults(pageSize);
+                List<Object[]> result = q.list();
+                List<BillRecipeDetailVo> backList = new ArrayList<>(pageSize);
+                if (CollectionUtils.isNotEmpty(result)){
+                    BillRecipeDetailVo vo;
+                    for (Object[] objs : result) {
+                        vo = new BillRecipeDetailVo();
+                        vo.setRecipeId(objs[2] == null ? null : (Integer)objs[0]);
+                        vo.setMpiId(objs[2] == null ? null : objs[2] + "");
+                        vo.setDoctorId(objs[1] == null ? null : (Integer)objs[1]);
+                        vo.setRecipeTime(objs[3] == null ? null : (Date)objs[3]);
+                        vo.setOrganId(objs[4] == null ? null : (Integer)objs[4]);
+                        vo.setDeptId(objs[5] == null ? null : (Integer)objs[5]);
+                        vo.setOutTradeNo(objs[6] == null ? null : objs[6] + "");
+                        vo.setSettleType(objs[7] == null ? null : Integer.parseInt(objs[7] + ""));
+                        vo.setDeliveryMethod(objs[8] == null ? null : Integer.parseInt(objs[7] + ""));
+                        vo.setDrugCompany(objs[5] == null ? null : (Integer)objs[5]);
+                        vo.setDrugCompanyName(objs[19] == null ? null : objs[19] + "");
+                        vo.setPayFlag(objs[9] == null ? null : Integer.parseInt(objs[9] + ""));
+                        vo.setAppointFee(objs[10] == null ? null : Double.valueOf(objs[10] + ""));
+                        vo.setDeliveryFee(objs[11] == null ? null :Double.valueOf(objs[11] + ""));
+                        vo.setDaiJianFee(objs[12] == null ? null : Double.valueOf(objs[12] + ""));
+                        vo.setReviewFee(objs[13] == null ? null : Double.valueOf(objs[13] + ""));
+                        vo.setOtherFee(objs[14] == null ? null : Double.valueOf(objs[14] + ""));
+                        vo.setDrugFee(objs[15] == null ? null : Double.valueOf(objs[15] + ""));
+                        vo.setDicountedFee(objs[16] == null ? null : Double.valueOf(objs[16] + ""));
+                        vo.setTotalFee(objs[17] == null ? null : Double.valueOf(objs[17] + ""));
+                        vo.setMedicarePay(objs[18] == null ? null : Double.valueOf(objs[18] + ""));
+                        vo.setBillType(objs[20] == null ? null : Integer.parseInt(objs[20] + ""));
+                        vo.setSelfPay(objs[17] == null ? 0.0 : new BigDecimal(objs[17] + "").subtract(new BigDecimal(objs[18] == null ? "0.0" : objs[18] + "")).doubleValue());
+
+                        backList.add(vo);
+                    }
+                }
+
+                setResult(backList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
 }

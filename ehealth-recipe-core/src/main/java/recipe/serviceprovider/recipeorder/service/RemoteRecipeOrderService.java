@@ -9,6 +9,9 @@ import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.billcheck.vo.RecipeBillRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.dao.RecipeOrderDAO;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
@@ -16,10 +19,10 @@ import recipe.service.RecipeOrderService;
 import recipe.serviceprovider.BaseService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
-
+import eh.billcheck.vo.BillRecipeDetailVo;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,6 +35,7 @@ import java.util.Map;
 @RpcBean("remoteRecipeOrderService")
 public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> implements IRecipeOrderService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecipeOrderService.class);
     @RpcService
     @Override
     public RecipeOrderBean get(Object id) {
@@ -121,11 +125,50 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     }
 
     @Override
-    public RecipeOrderBean getRecipePayInfoByDate(Date time) {
-        RecipeOrderBean map = new RecipeOrderBean();
+    public List<BillRecipeDetailVo> getRecipePayInfoByDate(RecipeBillRequest request) {
+//        List<BillRecipeDetailVo> list = new ArrayList<BillRecipeDetailVo>();
+        if(request == null){
+            LOGGER.error("参数不能为空");
+            return null;
+        }
+        if(request.getStartTime() == null){
+            LOGGER.error("开始时间不能为空");
+            return null;
+        }
+        if(request.getEndTime() == null){
+            LOGGER.error("结束时间不能为空");
+            return null;
+        }
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        RecipeOrder order = recipeOrderDAO.getPayInfoByTime(time);
-        return map;
+        List<BillRecipeDetailVo> list = recipeOrderDAO.getPayAndRefundInfoByTime(request.getStartTime(), request.getEndTime(),request.getStart(),request.getPageSize());
+//        for(int i= 0; i<list.size(); i++){
+//            BillRecipeDetailVo vo = new BillRecipeDetailVo();
+//            RecipeOrder order = list.get(i);
+//            vo.setBillType(1);
+//            vo.setOutTradeNo(order.getOutTradeNo();
+//            vo.setRecipeId(order.getrec);
+//            vo.setMpiId(order.getMpiId());
+//            vo.setDoctorId(order.getdoc);
+//            vo.setRecipeTime(order.getPayTime());
+//            vo.setOrganId(order.getOrganId());
+//            vo.setDeptId(order.getEnterpriseId());
+//            vo.setSettleType(order.getOrderType());
+//            vo.setDeliveryMethod(order.getGiveMode());
+//            vo.setDrugCompany(order.getEnterpriseId());
+//            vo.setDrugCompanyName(order.getEnterpriseName());
+//            vo.setPayFlag(order.getPayFlag());
+//            vo.setAppointFee(order.getRegisterFee().doubleValue());
+//            vo.setDeliveryFee(order.getExpressFee().doubleValue());
+//            vo.setDaiJianFee(order.getDecoctionFee().doubleValue());
+//            vo.setReviewFee(order.getAuditFee().doubleValue());
+//            vo.setOtherFee(order.getOtherFee().doubleValue());
+//            vo.setDrugFee(order.getRecipeFee().doubleValue());
+//            vo.setDicountedFee(order.getCouponFee().doubleValue());
+//            vo.setTotalFee(order.getTotalFee().doubleValue());
+//            vo.setMedicarePay(order.getFundAmount());
+//            vo.setSelfPay(order.getTotalFee().subtract(new BigDecimal(order.getFundAmount())).doubleValue());
+//     }
+        return list;
     }
 
 }

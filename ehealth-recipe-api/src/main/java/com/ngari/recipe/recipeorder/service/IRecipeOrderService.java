@@ -6,6 +6,8 @@ import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.util.annotation.RpcService;
+import eh.billcheck.vo.BillRecipeDetailVo;
+import eh.billcheck.vo.RecipeBillRequest;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -111,8 +113,9 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
     /**
      * 根据日期获取一天的订单支付信息
      *
-     * @param time 日期
+     * @param request 日期
      * @return RecipeOrderBean
      */
-    public RecipeOrderBean getRecipePayInfoByDate(Date time);
+    @RpcService
+    public List<BillRecipeDetailVo> getRecipePayInfoByDate(RecipeBillRequest request);
 }
