@@ -97,6 +97,9 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "是否医院类型药企：1医院结算药企，0普通药企")
     private Integer isHosDep;
 
+    @ItemProperty(alias = "药企备注")
+    private String memo;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -303,6 +306,15 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setIsHosDep(Integer isHosDep) {
         this.isHosDep = isHosDep;
+    }
+
+    @Column(name = "memo")
+    public String getMemo() {
+        return memo;
+    }
+
+    public void setMemo(String memo) {
+        this.memo = memo;
     }
 
     @Override
