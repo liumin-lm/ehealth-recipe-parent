@@ -241,11 +241,18 @@ public class DrugListExtService extends BaseService<DrugListBean> {
 
         //从机构药品目录查询改药品剂型
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         for (SearchDrugDetailDTO detailDTO : dList) {
-            List<OrganDrugList> drugList = organDrugListDAO.findByDrugIdAndOrganId(detailDTO.getDrugId(), organId);
-            if (CollectionUtils.isNotEmpty(drugList)) {
-                detailDTO.setDrugForm(drugList.get(0).getDrugForm());
+            if (organId == null) {
+                DrugList drugList = drugListDAO.getById(detailDTO.getDrugId());
+                detailDTO.setDrugForm(drugList.getDrugForm());
+            } else {
+                List<OrganDrugList> drugList = organDrugListDAO.findByDrugIdAndOrganId(detailDTO.getDrugId(), organId);
+                if (CollectionUtils.isNotEmpty(drugList)) {
+                    detailDTO.setDrugForm(drugList.get(0).getDrugForm());
+                }
             }
+
         }
         return dList;
     }
