@@ -465,7 +465,14 @@ public class DrugListService extends BaseService<DrugListBean> {
         saveSearchContendForDrug(drugName, mpiId);
         DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
         //因为 梅州药品的原因 患者端 写死查询邵逸夫的药品
-        return drugListExtService.searchDrugListWithES(null, null, drugName, start, limit);
+        List<SearchDrugDetailDTO> searchDrugDetailDTOS = drugListExtService.searchDrugListWithES(null, null, drugName, start, limit);
+        //因为organId是空的，那只能从drugList查
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        for (SearchDrugDetailDTO detailDTO : searchDrugDetailDTOS) {
+            DrugList drugList = drugListDAO.getById(detailDTO.getDrugId());
+            detailDTO.setDrugForm(drugList.getDrugForm());
+        }
+        return searchDrugDetailDTOS;
     }
 
     /**
