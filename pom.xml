@@ -329,6 +329,11 @@
                 <artifactId>itextpdf</artifactId>
                 <version>5.5.13</version>
             </dependency>
+            <dependency>
+                <groupId>${project.parent.groupId}</groupId>
+                <artifactId>ehealth-bill-api</artifactId>
+                <version>${ngari.bill.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <build>

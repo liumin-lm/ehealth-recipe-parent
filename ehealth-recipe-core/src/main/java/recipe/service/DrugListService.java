@@ -563,4 +563,11 @@ public class DrugListService extends BaseService<DrugListBean> {
         }
         return getList(dList, DrugListBean.class);
     }
+
+    @RpcService
+    public Map<String, Object> getDrugInventory(Integer depId, Integer drugId){
+        Map<String, Object> map = new HashMap<>();
+        map.put("inventory", 200);
+        return map;
+    }
 }
