@@ -14,10 +14,7 @@ import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.controller.exception.ControllerException;
@@ -37,10 +34,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
 import recipe.constant.*;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeExtendDAO;
-import recipe.dao.RecipeOrderDAO;
+import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.dao.bean.RecipeRollingInfo;
 import recipe.service.common.RecipeCacheService;
@@ -821,6 +815,16 @@ public class RecipeListService extends RecipeBaseService{
                     }
                     //药品详情
                     List<Recipedetail> recipedetailList = detailDAO.findByRecipeId(record.getRecordId());
+                    OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+                    RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+
+                    for (Recipedetail recipedetail : recipedetailList) {
+                        Recipe recipe = recipeDAO.getByRecipeId(recipedetail.getRecipeId());
+                        List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipe.getClinicOrgan());
+                        if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                            recipedetail.setDrugForm(organDrugLists.get(0).getDrugForm());
+                        }
+                    }
                     record.setRecipeDetail(ObjectCopyUtils.convert(recipedetailList, RecipeDetailBean.class));
                 } else if (LIST_TYPE_ORDER.equals(record.getRecordType())) {
                     RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
