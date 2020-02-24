@@ -13,6 +13,7 @@ import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import recipe.constant.RecipeBussConstant;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -183,5 +184,21 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     @DAOMethod(sql = "select order from RecipeOrder order, Recipe recipe where order.orderCode=recipe.orderCode and recipe.recipeId=:recipeId")
     public abstract RecipeOrder getRelationOrderByRecipeId(@DAOParam("recipeId") Integer recipeId);
 
+    /**
+     * 根据日期查询已支付或退款订单信息
+     *
+     * @param time
+     * @return
+     */
+    @DAOMethod(sql = "from RecipeOrder where (refundFlag isNotNull or refundFlag <> 0) and to_days(refundTime) = to_days(:time)")
+    public abstract RecipeOrder getPayInfoByTime(@DAOParam("time") Date time);
 
+    /**
+     * 根据物流单号查询手机号
+     *
+     * @param trackingNumber  顺丰物流单号
+     * @return 订单信息
+     */
+    @DAOMethod(sql = "from RecipeOrder where LogisticsCompany = 1 and  trackingNumber =: trackingNumber")
+    public abstract RecipeOrder getByTrackingNumber(@DAOParam("trackingNumber") String trackingNumber);
 }

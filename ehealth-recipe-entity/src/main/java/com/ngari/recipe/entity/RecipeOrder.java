@@ -233,6 +233,12 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "处方预结算返回自费金额")
     private Double cashAmount;
 
+    @ItemProperty(alias = "订单退款标识")
+    private Integer refundFlag;
+
+    @ItemProperty(alias = "订单退款时间")
+    private Date refundTime;
+
     @Column(name = "cancelReason")
     public String getCancelReason() {
         return cancelReason;
@@ -858,5 +864,23 @@ public class RecipeOrder implements Serializable {
 
     public void setCashAmount(Double cashAmount) {
         this.cashAmount = cashAmount;
+    }
+
+    @Column(name = "refundFlag")
+    public Integer getRefundFlag() {
+        return refundFlag;
+    }
+
+    public void setRefundFlag(Integer refundFlag) {
+        this.refundFlag = refundFlag;
+    }
+
+    @Column(name = "refundTime")
+    public Date getRefundTime() {
+        return refundTime;
+    }
+
+    public void setRefundTime(Date refundTime) {
+        this.refundTime = refundTime;
     }
 }

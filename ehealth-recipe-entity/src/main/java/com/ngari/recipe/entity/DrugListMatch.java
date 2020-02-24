@@ -144,6 +144,18 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "监管平台药品编码")
     private String regulationDrugCode;
 
+    @ItemProperty(alias = "药品产地名称编码")
+    private String drugManfCode;
+
+    @ItemProperty(alias = "医保药品编码")
+    private String medicalDrugCode;
+
+    @ItemProperty(alias = "医保剂型代码")
+    private String medicalDrugFormCode;
+
+    @ItemProperty(alias = "HIS剂型代码")
+    private String hisFormCode;
+
     @Column(name = "retrievalCode ")
     public String getRetrievalCode() {
         return retrievalCode;
@@ -409,5 +421,41 @@ public class DrugListMatch implements java.io.Serializable {
 
     public void setRegulationDrugCode(String regulationDrugCode) {
         this.regulationDrugCode = regulationDrugCode;
+    }
+
+    @Column(name = "drugManfCode", length = 30)
+    public String getDrugManfCode() {
+        return drugManfCode;
+    }
+
+    public void setDrugManfCode(String drugManfCode) {
+        this.drugManfCode = drugManfCode;
+    }
+
+    @Column(name = "medicalDrugCode", length = 100)
+    public String getMedicalDrugCode() {
+        return medicalDrugCode;
+    }
+
+    public void setMedicalDrugCode(String medicalDrugCode) {
+        this.medicalDrugCode = medicalDrugCode;
+    }
+
+    @Column(name = "medicalDrugFormCode", length = 11)
+    public String getMedicalDrugFormCode() {
+        return medicalDrugFormCode;
+    }
+
+    public void setMedicalDrugFormCode(String medicalDrugFormCode) {
+        this.medicalDrugFormCode = medicalDrugFormCode;
+    }
+
+    @Column(name = "hisFormCode", length = 11)
+    public String getHisFormCode() {
+        return hisFormCode;
+    }
+
+    public void setHisFormCode(String hisFormCode) {
+        this.hisFormCode = hisFormCode;
     }
 }

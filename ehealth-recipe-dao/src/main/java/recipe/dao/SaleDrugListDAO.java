@@ -2,6 +2,7 @@ package recipe.dao;
 
 import com.google.common.collect.Maps;
 import com.ngari.recipe.entity.DrugList;
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.SaleDrugList;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -129,17 +130,19 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
      * 获取药品与配送药企关系
      *
      * @param drugIds
+     * @param depIds
      * @return
      */
-    public Map<Integer, List<String>> findDrugDepRelation(final List<Integer> drugIds) {
+    public Map<Integer, List<String>> findDrugDepRelation(final List<Integer> drugIds, List<Integer> depIds) {
         HibernateStatelessResultAction<List<Object[]>> action =
                 new AbstractHibernateStatelessResultAction<List<Object[]>>() {
                     @Override
                     public void execute(StatelessSession ss) throws DAOException {
                         StringBuilder hql = new StringBuilder("select DrugId, GROUP_CONCAT(OrganID) from base_saledruglist " +
-                                "where DrugId in :drugIds and Status=1 GROUP BY DrugId");
+                                "where DrugId in :drugIds and OrganID in :depIds and Status=1 GROUP BY DrugId");
                         Query q = ss.createSQLQuery(hql.toString());
                         q.setParameterList("drugIds", drugIds);
+                        q.setParameterList("depIds", depIds);
                         setResult(q.list());
                     }
                 };

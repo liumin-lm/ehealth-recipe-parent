@@ -7,6 +7,7 @@ import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.SaleDrugList;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -23,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.dao.DrugListDAO;
 import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.OrganDrugListDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.serviceprovider.BaseService;
 
@@ -79,6 +81,13 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             getHospitalPrice(organId, dList);
         }
         List<DrugListBean> drugListBeans = getList(dList, DrugListBean.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        for (DrugListBean drugListBean : drugListBeans) {
+            List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugListBean.getDrugId(), organId);
+            if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                drugListBean.setDrugForm(organDrugLists.get(0).getDrugForm());
+            }
+        }
         //设置岳阳市人民医院药品库存
         setStoreIntroduce(organId, drugListBeans);
         return drugListBeans;
@@ -230,6 +239,21 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             LOGGER.info("searchDrugListWithES result isEmpty! drugName = " + drugName);
         }
 
+        //从机构药品目录查询改药品剂型
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        for (SearchDrugDetailDTO detailDTO : dList) {
+            if (organId == null) {
+                DrugList drugList = drugListDAO.getById(detailDTO.getDrugId());
+                detailDTO.setDrugForm(drugList.getDrugForm());
+            } else {
+                List<OrganDrugList> drugList = organDrugListDAO.findByDrugIdAndOrganId(detailDTO.getDrugId(), organId);
+                if (CollectionUtils.isNotEmpty(drugList)) {
+                    detailDTO.setDrugForm(drugList.get(0).getDrugForm());
+                }
+            }
+
+        }
         return dList;
     }
 
@@ -263,7 +287,12 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         } else {
             LOGGER.info("searchDrugListWithESForPatient result isEmpty! drugName={} ", drugName);
         }
-
+        //因为organId是空的，那只能从drugList查
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        for (SearchDrugDetailDTO detailDTO : dList) {
+            DrugList drugList = drugListDAO.getById(detailDTO.getDrugId());
+            detailDTO.setDrugForm(drugList.getDrugForm());
+        }
         return dList;
     }
 
