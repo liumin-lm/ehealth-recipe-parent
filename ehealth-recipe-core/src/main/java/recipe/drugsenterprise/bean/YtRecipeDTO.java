@@ -187,6 +187,8 @@ public class YtRecipeDTO implements Serializable{
     //处方类型
     private int recipeType;
 
+    private String orderNo;
+
     /**
      * 商品明细
      */
@@ -470,6 +472,14 @@ public class YtRecipeDTO implements Serializable{
 
     public void setRecipeType(int recipeType) {
         this.recipeType = recipeType;
+    }
+
+    public String getOrderNo() {
+        return orderNo;
+    }
+
+    public void setOrderNo(String orderNo) {
+        this.orderNo = orderNo;
     }
 
     @Override
