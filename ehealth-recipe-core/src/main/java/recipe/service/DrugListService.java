@@ -183,22 +183,29 @@ public class DrugListService extends BaseService<DrugListBean> {
     }
 
     @RpcService
-    public int isExistDrugId(Integer depId,Integer drugId){
+    public int isExistDrugId(Integer depId,Integer drugId, Integer organDrugId){
         if (drugId == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugId is required");
         }
         DrugListDAO dao = getDAO(DrugListDAO.class);
         DrugList drugList = dao.getById(drugId);
+
         if (drugList == null) {
             return 1;
         } else {
             SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, depId);
-            if (saleDrugList != null) {
+            //说明用户修改药品ID
+            SaleDrugList tagersaleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, depId);
+            if (tagersaleDrugList == null) {
+                return 0;
+            }
+            logger.info("DrugListSerevice.isExistDrugId tagersaleDrugList:{"+JSONUtils.toString(tagersaleDrugList)+"},organDrugId:{"+organDrugId+"}.");
+            if (tagersaleDrugList.getOrganDrugId().equals(organDrugId)) {
+                return 0;
+            } else {
                 return 2;
             }
         }
-        return 0;
     }
 
     /**
