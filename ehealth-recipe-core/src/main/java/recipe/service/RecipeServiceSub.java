@@ -1053,7 +1053,14 @@ public class RecipeServiceSub {
             }
         }
         List<Recipedetail> recipedetails = detailDAO.findByRecipeId(recipeId);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
 
+        for (Recipedetail recipedetail : recipedetails) {
+            List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipe.getClinicOrgan());
+            if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                recipedetail.setDrugForm(organDrugLists.get(0).getDrugForm());
+            }
+        }
 
         //中药处方处理
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
