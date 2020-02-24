@@ -94,8 +94,8 @@ public class AuditPostMode extends AbstractAuidtMode {
                     //货到付款添加支付成功后修改状态
                     if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
                         status = RecipeStatusConstant.READY_CHECK_YS;
+                        memo = "配送到家-货到付款成功";
                     }
-                    memo = "配送到家-货到付款成功";
                 }
             } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)) {
                 //医院取药-线上支付，这块其实已经用不到了
@@ -105,8 +105,8 @@ public class AuditPostMode extends AbstractAuidtMode {
                 //添加支付成功后修改状态
                 if(PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag){
                     status = RecipeStatusConstant.READY_CHECK_YS;
+                    memo = "医院取药-线上支付部分费用(除药品费)成功";
                 }
-                memo = "医院取药-线上支付成功";
             } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode)) {
                 //收到userConfirm通知
 //                status = RecipeStatusConstant.READY_CHECK_YS;
@@ -115,8 +115,9 @@ public class AuditPostMode extends AbstractAuidtMode {
                 //添加支付成功后修改状态
                 if(PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag){
                     status = RecipeStatusConstant.READY_CHECK_YS;
+                    memo = "药店取药-线上支付部分费用(除药品费)成功";
                 }
-                memo = "药店取药-到店取药成功";
+
             }else if (RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(giveMode)){
                 if(PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag){
                     status = RecipeStatusConstant.READY_CHECK_YS;

@@ -3,7 +3,13 @@ package recipe.serviceprovider.recipe.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
-import com.ngari.base.organ.service.IOrganOPService;
+import com.ngari.his.base.PatientBaseInfo;
+import com.ngari.his.recipe.mode.QueryRecipeRequestTO;
+import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
+import com.ngari.his.recipe.mode.RecipeInfoTO;
+import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussReqTO;
@@ -20,13 +26,14 @@ import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -42,9 +49,9 @@ import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.service.*;
 import recipe.serviceprovider.BaseService;
+import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
-import java.math.BigDecimal;
 import java.util.*;
 
 /**
@@ -688,5 +695,51 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             map.put("enterpriseCode", drugsEnterprise.getEnterpriseCode());
         }
         return map;
+    }
+
+    @Override
+    public Boolean canRequestConsultForRecipe(String mpiId, Integer depId, Integer organId) {
+        LOGGER.info("canRequestConsultForRecipe organId={},mpiId={},depId={}",organId,mpiId,depId);
+        //先查3天内未处理的线上处方-平台
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        //设置查询时间段
+        String endDt = DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME);
+        String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(3),DateConversion.DEFAULT_DATE_TIME);
+        //前置没考虑
+        List<Recipe> recipeList = recipeDAO.findRecipeListByDeptAndPatient(depId, mpiId, startDt,endDt);
+        if (CollectionUtils.isEmpty(recipeList)){
+            //再查3天内线上未缴费的处方-到院取药推送的处方-his
+            PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+            PatientDTO patientDTO = patientService.get(mpiId);
+            IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+            QueryRecipeRequestTO request = new QueryRecipeRequestTO();
+            PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
+            patientBaseInfo.setPatientName(patientDTO.getPatientName());
+            patientBaseInfo.setCertificate(patientDTO.getCertificate());
+            patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
+            request.setPatientInfo(patientBaseInfo);
+            request.setStartDate(DateConversion.getDateTimeDaysAgo(3));
+            request.setEndDate(DateTime.now().toDate());
+            request.setOrgan(organId);
+            LOGGER.info("canRequestConsultForRecipe-getHosRecipeList req={}", JSONUtils.toString(request));
+            QueryRecipeResponseTO response = null;
+            try {
+                response = hisService.queryRecipeListInfo(request);
+            } catch (Exception e) {
+                LOGGER.warn("canRequestConsultForRecipe-getHosRecipeList his error. ", e);
+            }
+            LOGGER.info("canRequestConsultForRecipe-getHosRecipeList res={}", JSONUtils.toString(response));
+            if(null == response){
+                return true;
+            }
+            List<RecipeInfoTO> data = response.getData();
+            if (CollectionUtils.isEmpty(data)){
+                return true;
+            }else {
+                return false;
+            }
+        }else {
+            return false;
+        }
     }
 }

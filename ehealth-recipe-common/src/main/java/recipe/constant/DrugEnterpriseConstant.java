@@ -82,4 +82,8 @@ public class DrugEnterpriseConstant {
      * 杭州互联网处方流转平台
      */
     public static final String COMPANY_HZ = "hzInternet";
+    /**
+     * 百洋集团
+     */
+    public static final String COMPANY_BY = "by";
 }
