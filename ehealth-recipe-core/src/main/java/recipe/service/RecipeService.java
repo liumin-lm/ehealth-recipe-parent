@@ -2,6 +2,7 @@ package recipe.service;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -80,6 +81,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
 
@@ -833,7 +835,9 @@ public class RecipeService extends RecipeBaseService{
             //药企库存实时查询
             RecipePatientService recipePatientService = ApplicationUtils.getRecipeService(RecipePatientService.class);
             //判断药企库存
+            //todo 返回具体某个药没库存--新写接口
             RecipeResultBean recipeResultBean = recipePatientService.findSupportDepList(0, Arrays.asList(recipeId));
+            /*RecipeResultBean recipeResultBean = scanStockForOpenRecipe(recipeId);*/
             if (RecipeResultBean.FAIL.equals(recipeResultBean.getCode())) {
                 LOGGER.error("doSignRecipe scanStock enterprise error. result={} ", JSONUtils.toString(recipeResultBean));
 //            throw new DAOException(ErrorCode.SERVICE_ERROR, "很抱歉，当前库存不足无法开处方，请联系客服：" +
@@ -860,6 +864,73 @@ public class RecipeService extends RecipeBaseService{
         LOGGER.info("doSignRecipe execute ok! rMap:" + JSONUtils.toString(rMap));
         return rMap;
     }
+
+    /*private RecipeResultBean scanStockForOpenRecipe(Integer recipeId) {
+        RecipeResultBean result = RecipeResultBean.getFail();
+        DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        SaleDrugListDAO saleDrugListDAO = getDAO(SaleDrugListDAO.class);
+        RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
+        RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findByOrganId(recipe.getClinicOrgan());
+        List<Integer> drugIds = recipeDetailDAO.findDrugIdByRecipeId(recipeId);
+        if (CollectionUtils.isEmpty(drugIds)) {
+            LOGGER.error("scanStockForOpenRecipe 处方[{}]没有任何药品！", recipeId);
+            result.setMsg("处方没有任何药品");
+            return result;
+        }
+        Map<String,List<String>> depAndDrugs = Maps.newHashMap();
+        for (DrugsEnterprise dep : drugsEnterpriseList) {
+            //根据药企是否能满足所有配送的药品优先
+            Integer depId = dep.getId();
+            //不支持在线支付跳过该药企
+            if (Integer.valueOf(1).equals(dep.getPayModeSupport())) {
+                continue;
+            }
+            //药品匹配成功标识
+            boolean succFlag = false;
+            Long count = saleDrugListDAO.getCountByOrganIdAndDrugIds(depId, drugIds);
+            if (null != count && count > 0) {
+                if (count == drugIds.size()) {
+                    succFlag = true;
+                }
+            }
+            if (!succFlag) {
+                LOGGER.error("scanStockForOpenRecipe 药企名称=[{}]存在不支持配送药品. 处方ID=[{}], 药企ID=[{}], drugIds={}",
+                        dep.getName(),recipeId, depId, JSONUtils.toString(drugIds));
+                continue;
+            } else {
+                //通过查询该药企库存，最终确定能否配送
+                //返回没库存
+                List<String> noStockDrugs = remoteDrugService.scanStockForOpenRecipe(recipeId, dep);
+                if (CollectionUtils.isEmpty(noStockDrugs)) {
+                    LOGGER.info("scanStockForOpenRecipe 药企名称=[{}]支持配送该处方所有药品. 处方ID=[{}], 药企ID=[{}], drugIds={}",
+                            dep.getName(),recipeId, depId, JSONUtils.toString(drugIds));
+                    //只要有一个药企满足就是可配送
+                    return RecipeResultBean.getSuccess();
+                } else {
+                    depAndDrugs.put(dep.getName(),noStockDrugs);
+                    LOGGER.error("scanStockForOpenRecipe  药企名称=[{}]药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}]",
+                            dep.getName(), recipeId, depId );
+                }
+            }
+        }
+        if (!depAndDrugs.isEmpty()){
+            result.setMsg("处方没有任何药品");
+            StringBuilder msg = new StringBuilder();
+            for (Map.Entry<String, List<String>> entry : depAndDrugs.entrySet()){
+                String depName = entry.getKey();
+                List<String> drugLists = entry.getValue();
+                msg.append(Joiner.on(",").join(drugLists));
+                msg.append("在"+depName);
+                msg.append("没有库存");
+                msg.append("\n");
+            }
+            result.setMsg(msg.toString());
+        }
+        return result;
+    }*/
 
     @RpcService
     public void getConsultIdForRecipeSource(RecipeBean recipe) {
