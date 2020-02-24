@@ -124,6 +124,7 @@ public class PayModeOnline implements IPurchaseService {
             depDetailBean.setRecipeFee(dbRecipe.getTotalMoney());
             depDetailBean.setBelongDepName(dep.getName());
             depDetailBean.setOrderType(dep.getOrderType());
+            depDetailBean.setMemo(dep.getMemo());
             if (RecipeBussConstant.PAYMODE_ONLINE.equals(dep.getPayModeSupport()) || RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS.equals(dep.getPayModeSupport())) {
                 depDetailBean.setPayModeText("在线支付");
                 depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_ONLINE);
