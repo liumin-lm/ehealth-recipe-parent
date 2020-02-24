@@ -193,4 +193,12 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     @DAOMethod(sql = "from RecipeOrder where (refundFlag isNotNull or refundFlag <> 0) and to_days(refundTime) = to_days(:time)")
     public abstract RecipeOrder getPayInfoByTime(@DAOParam("time") Date time);
 
+    /**
+     * 根据物流单号查询手机号
+     *
+     * @param trackingNumber  顺丰物流单号
+     * @return 订单信息
+     */
+    @DAOMethod(sql = "from RecipeOrder where LogisticsCompany = 1 and  trackingNumber =: trackingNumber")
+    public abstract RecipeOrder getByTrackingNumber(@DAOParam("trackingNumber") String trackingNumber);
 }
