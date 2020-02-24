@@ -1,5 +1,6 @@
 package recipe.purchase;
 
+import com.google.common.collect.ImmutableMap;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
@@ -36,6 +37,8 @@ import recipe.service.RecipeHisService;
 import recipe.service.RecipeListService;
 import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
+import recipe.thread.PushRecipeToHisCallable;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 
@@ -127,7 +130,6 @@ public class PurchaseService {
             resultBean.setMsg("参数错误");
             return resultBean;
         }
-
         //处方单状态不是待处理 or 处方单已被处理
         boolean dealFlag = checkRecipeIsUser(dbRecipe, resultBean);
         if(dealFlag){
@@ -139,7 +141,6 @@ public class PurchaseService {
             //如果涉及到多种购药方式合并成一个列表，此处需要进行合并
             resultBean = purchaseService.findSupportDepList(dbRecipe, extInfo);
         }
-
         return resultBean;
     }
 

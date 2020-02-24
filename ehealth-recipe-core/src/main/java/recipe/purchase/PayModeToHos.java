@@ -2,6 +2,7 @@ package recipe.purchase;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableMap;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeResultBean;
@@ -21,8 +22,10 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.service.RecipeHisService;
 import recipe.service.RecipeOrderService;
 import recipe.service.RecipeServiceSub;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
@@ -49,7 +52,6 @@ public class PayModeToHos implements IPurchaseService{
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
         StringBuilder sb = new StringBuilder();
-
         if(CollectionUtils.isNotEmpty(detailList)){
             String pharmNo = detailList.get(0).getPharmNo();
             if(StringUtils.isNotEmpty(pharmNo)){

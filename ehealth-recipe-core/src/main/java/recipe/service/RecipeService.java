@@ -2272,7 +2272,19 @@ public class RecipeService extends RecipeBaseService{
                 RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
                 //HIS调用失败不应该导致业务失败
                 hisService.recipeDrugTake(recipeId, payFlag, null);
+                //todo---写死上海六院---在患者选完取药方式之后推送处方
+                if (payFlag==1 && dbRecipe.getClinicOrgan() == 1000899){
+                    if (!new Integer(1).equals(dbRecipe.getChooseFlag())){
+                        recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("chooseFlag", 1));
+                    }
+                    //推送处方给his---recipesend
+                    RecipeBusiThreadPool.submit(()->{
+                        hisService.sendRecipe(recipeId, dbRecipe.getClinicOrgan());
+                        return null;
+                    });
+                }
             }
+
         }
         return result;
     }
@@ -2322,7 +2334,8 @@ public class RecipeService extends RecipeBaseService{
     @RpcService
     public Map<String,Object> getHosRecipeList(Integer consultId,Integer organId,String mpiId) {
         RecipePreserveService preserveService = ApplicationUtils.getRecipeService(RecipePreserveService.class);
-        return preserveService.getHosRecipeList(consultId,organId,mpiId);
+        //查询3个月以前的历史处方数据
+        return preserveService.getHosRecipeList(consultId,organId,mpiId,180);
     }
 
     /*@RpcService

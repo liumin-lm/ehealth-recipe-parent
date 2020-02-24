@@ -79,6 +79,9 @@
 	<!--以大药企-->
 	<bean id="ydRemoteService" class="recipe.drugsenterprise.YdRemoteService"/>
 
+	<!--易复诊药企-->
+	<bean id="byRemoteService" class="recipe.drugsenterprise.ByRemoteService"/>
+
 	<bean id="busTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" destroy-method="shutdown">
 		<!-- 线程池活跃的线程数 -->
 		<property name="corePoolSize" value="5" />

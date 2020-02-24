@@ -349,4 +349,16 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     Map<String, String> getEnterpriseCodeByRecipeId(Integer recipeId);
+
+    /**
+     * 判断能否发起复诊申请-3天内有无待处理处方
+     *  先查3天内未处理的线上处方-平台
+     *  再查3天内线上未缴费的处方-到院取药推送的处方-his
+     * @param mpiId
+     * @param depId
+     * @param organId
+     * @return
+     */
+    @RpcService
+    Boolean canRequestConsultForRecipe(String mpiId,Integer depId,Integer organId);
 }
