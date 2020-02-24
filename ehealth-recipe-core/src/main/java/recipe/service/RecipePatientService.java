@@ -270,6 +270,7 @@ public class RecipePatientService extends RecipeBaseService {
         //配送模式支持 0:不支持 1:线上付款 2:货到付款 3:药店取药 8:货到付款和药店取药 9:都支持
         if (RecipeBussConstant.DEP_SUPPORT_ONLINE.equals(supportMode)) {
             payModeList.add(RecipeBussConstant.PAYMODE_ONLINE);
+            payModeList.add(RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS);
             giveModeText = "配送到家";
             //无法配送时间文案提示
             depDetailBean.setUnSendTitle(cacheService.getParam(ParameterConstant.KEY_RECIPE_UNSEND_TIP));
@@ -278,6 +279,7 @@ public class RecipePatientService extends RecipeBaseService {
             giveModeText = "配送到家";
         } else if (RecipeBussConstant.DEP_SUPPORT_TFDS.equals(supportMode)) {
             payModeList.add(RecipeBussConstant.PAYMODE_TFDS);
+            payModeList.add(RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS);
         } else if (RecipeBussConstant.DEP_SUPPORT_COD_TFDS.equals(supportMode)) {
             payModeList.add(RecipeBussConstant.PAYMODE_COD);
             payModeList.add(RecipeBussConstant.PAYMODE_TFDS);
@@ -285,6 +287,7 @@ public class RecipePatientService extends RecipeBaseService {
             payModeList.add(RecipeBussConstant.PAYMODE_ONLINE);
             payModeList.add(RecipeBussConstant.PAYMODE_COD);
             payModeList.add(RecipeBussConstant.PAYMODE_TFDS);
+            payModeList.add(RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS);
             //无法配送时间文案提示
             depDetailBean.setUnSendTitle(cacheService.getParam(ParameterConstant.KEY_RECIPE_UNSEND_TIP));
         }
