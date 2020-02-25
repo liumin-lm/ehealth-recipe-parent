@@ -43,6 +43,11 @@ public class YdRemoteService extends AccessDrugEnterpriseService {
         LOGGER.info("YdRemoteService tokenUpdateImpl not implement.");
     }
 
+    @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+        return "暂不支持库存查询";
+    }
+
     private StdInputVo stdInputVo(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) throws Exception {
         RecipeVo recipeVo = YdRecipeVO.getRecipeVo(hospitalRecipeDTO);
         String params = recipeVo.toJSONString();

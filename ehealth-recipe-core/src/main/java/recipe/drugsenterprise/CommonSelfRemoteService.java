@@ -152,4 +152,9 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
         result.setMsg(msg);
         result.setCode(DrugEnterpriseResult.FAIL);
     }
+
+    @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+        return "暂不支持库存查询";
+    }
 }

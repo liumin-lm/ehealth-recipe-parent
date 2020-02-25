@@ -115,6 +115,11 @@ public class JztdyfRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+        return "暂不支持库存查询";
+    }
+
+    @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         if (StringUtils.isEmpty(enterprise.getBusinessUrl())) {

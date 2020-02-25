@@ -620,6 +620,11 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+        return "暂不支持库存查询";
+    }
+
+    @Override
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise) {
         LOGGER.info("ByRemoteService.findSupportDep:[{}]", JSONUtils.toString(recipeIds));
         DrugEnterpriseResult result = DrugEnterpriseResult.getFail();

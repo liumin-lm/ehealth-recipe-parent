@@ -80,6 +80,11 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+        return "暂不支持库存查询";
+    }
+
+    @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise drugsEnterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         if (CollectionUtils.isEmpty(recipeIds)) {
