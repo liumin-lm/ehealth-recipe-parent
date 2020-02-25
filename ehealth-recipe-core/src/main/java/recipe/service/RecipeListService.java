@@ -95,6 +95,7 @@ public class RecipeListService extends RecipeBaseService{
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
 
         List<Recipe> recipeList = recipeDAO.findRecipesForDoctor(doctorId, recipeId, 0, limit);
         LOGGER.info("findRecipesForDoctor recipeList size={}", recipeList.size());
@@ -106,7 +107,20 @@ public class RecipeListService extends RecipeBaseService{
                     patientIds.add(recipe.getMpiid());
                 }
                 //设置处方具体药品名称
-                recipe.setRecipeDrugName(recipeDetailDAO.getDrugNamesByRecipeId(recipe.getRecipeId()));
+                List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
+                StringBuilder stringBuilder = new StringBuilder();
+
+                for (Recipedetail recipedetail : recipedetails) {
+                    List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipe.getClinicOrgan());
+                    if (organDrugLists != null) {
+                        stringBuilder.append(organDrugLists.get(0).getSaleName()).append(organDrugLists.get(0).getDrugForm());
+                    } else {
+                        stringBuilder.append(recipedetail.getDrugName());
+                    }
+                    stringBuilder.append(" ").append(recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit());
+
+                }
+                recipe.setRecipeDrugName(stringBuilder.toString());
                 //前台页面展示的时间源不同
                 recipe.setRecipeShowTime(recipe.getCreateDate());
                 boolean effective = false;
