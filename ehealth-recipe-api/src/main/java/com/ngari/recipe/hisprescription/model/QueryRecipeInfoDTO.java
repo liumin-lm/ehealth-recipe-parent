@@ -98,6 +98,18 @@ public class QueryRecipeInfoDTO implements Serializable {
     //date 20200222杭州市互联网 配送信息
     private List<DeliveryInfo> deliveryInfo;
 
+    //date 20200222杭州市互联网 审方时间
+    @ItemProperty(alias="审方时间")
+    private Date checkDate;
+
+    public Date getCheckDate() {
+        return checkDate;
+    }
+
+    public void setCheckDate(Date checkDate) {
+        this.checkDate = checkDate;
+    }
+
     public List<DiseaseInfo> getDiseaseInfo() {
         return diseaseInfo;
     }

@@ -224,9 +224,13 @@ public class QueryRecipeService implements IQueryRecipeService {
                 recipeDTO.setAuditDoctor(jobNumberChecker);
                 //审核状态
                 recipeDTO.setAuditCheckStatus("1");
+                //date 20200225 审方时间
+                recipeDTO.setCheckDate(recipe.getCheckDate());
             }else {
                 recipeDTO.setAuditDoctor(recipeDTO.getDoctorID());
                 recipeDTO.setAuditCheckStatus("0");
+                //date 20200225 审方时间
+                recipeDTO.setCheckDate(new Date());
             }
             //本处方收费类型 1市医保 2省医保 3自费---杭州市互联网-市医保
             recipeDTO.setMedicalPayFlag(getMedicalType(recipe.getMpiid(),recipe.getClinicOrgan()));
