@@ -99,8 +99,8 @@ public class QueryRecipeService implements IQueryRecipeService {
         List<DiseaseInfo> diseaseInfos = new ArrayList<>();
         DiseaseInfo diseaseInfo;
         if(StringUtils.isNotEmpty(recipe.getOrganDiseaseId()) && StringUtils.isNotEmpty(recipe.getOrganDiseaseName())){
-            String [] diseaseIds = recipe.getOrganDiseaseId().split(",");
-            String [] diseaseNames = recipe.getOrganDiseaseName().split(",");
+            String [] diseaseIds = recipe.getOrganDiseaseId().split("；");
+            String [] diseaseNames = recipe.getOrganDiseaseName().split("；");
             for (int i = 0; i < diseaseIds.length; i++){
                 diseaseInfo = new DiseaseInfo();
                 diseaseInfo.setDiseaseCode(diseaseIds[i]);
