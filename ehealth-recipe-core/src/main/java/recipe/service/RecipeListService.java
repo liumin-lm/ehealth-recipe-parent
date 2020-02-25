@@ -107,7 +107,7 @@ public class RecipeListService extends RecipeBaseService{
                     patientIds.add(recipe.getMpiid());
                 }
                 //设置处方具体药品名称
-                List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
+                List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
                 StringBuilder stringBuilder = new StringBuilder();
 
                 for (Recipedetail recipedetail : recipedetails) {
@@ -117,9 +117,9 @@ public class RecipeListService extends RecipeBaseService{
                     } else {
                         stringBuilder.append(recipedetail.getDrugName());
                     }
-                    stringBuilder.append(" ").append(recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit());
-
+                    stringBuilder.append(" ").append(recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit()).append("、");
                 }
+                stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
                 recipe.setRecipeDrugName(stringBuilder.toString());
                 //前台页面展示的时间源不同
                 recipe.setRecipeShowTime(recipe.getCreateDate());
