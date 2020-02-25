@@ -409,7 +409,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         sendYtRecipe.setHzMedicalFlag(ytHzMedicalFlag);
         sendYtRecipe.setpTime(getNewTime(nowRecipe.getSignDate(), ytpTimeCheck));
         sendYtRecipe.setValidDay(ytValidDay);
-        sendYtRecipe.setCostType(ytCostType);
+
         sendYtRecipe.setRecordNo(nowRecipe.getPatientID());
 
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -420,6 +420,12 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 sendYtRecipe.setServiceFree(recipeOrder.getRegisterFee().doubleValue());
                 sendYtRecipe.setPrescriptionChecking(recipeOrder.getAuditFee().doubleValue());
                 sendYtRecipe.setTotalAmount(recipeOrder.getTotalFee().doubleValue());
+                sendYtRecipe.setOrderNo(recipeOrder.getOutTradeNo());
+                if (recipeOrder.getOrderType() != null && recipeOrder.getOrderType() == 1) {
+                    sendYtRecipe.setCostType(2);
+                } else {
+                    sendYtRecipe.setCostType(1);
+                }
                 if (1 == nowRecipe.getGiveMode()) {
                     sendYtRecipe.setGiveModel(1);
                 } else if (3 == nowRecipe.getGiveMode()) {

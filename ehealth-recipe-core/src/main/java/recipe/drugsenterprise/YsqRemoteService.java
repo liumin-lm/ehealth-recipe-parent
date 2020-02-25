@@ -576,11 +576,11 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     //配送到家的方式
                     recipeMap.put("METHOD", "0");
                     RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-                    String store_code = recipeParameterDao.getByName("ysq_store_code");
-                    String ysq_store_code = recipe.getClinicOrgan() + "_" + store_code;
+                    String ysq_store_code = recipe.getClinicOrgan() + "_" + "ysq_store_code";
+                    String store_code = recipeParameterDao.getByName(ysq_store_code);
 
                     recipeMap.put("PATIENTSENDADDR", getCompleteAddress(order));
-                    recipeMap.put("STORECODE", ysq_store_code);
+                    recipeMap.put("STORECODE", store_code);
                     recipeMap.put("SENDNAME", order.getReceiver());
                     recipeMap.put("RECEIVENAME", order.getReceiver());
                     recipeMap.put("RECEIVETEL", order.getRecMobile());
@@ -599,6 +599,12 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 } else {
                     recipeMap.put("METHOD", "1");
                     recipeMap.put("PATIENTSENDADDR", "");
+                }
+            }
+            if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
+                order = orderDAO.getByOrderCode(recipe.getOrderCode());
+                if (order != null ) {
+                    recipeMap.put("STORECODE", order.getDrugStoreCode());
                 }
             }
 
