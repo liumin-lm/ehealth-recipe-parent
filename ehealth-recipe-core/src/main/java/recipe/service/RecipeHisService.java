@@ -804,6 +804,7 @@ public class RecipeHisService extends RecipeBaseService {
                     result.setCode(RecipeResultBean.FAIL);
                     result.setError(showMsg.toString());
                     result.setExtendValue("1");
+                    result.setObject(nameList);
                     LOGGER.error("scanDrugStock 存在无库存药品. response={} ", JSONUtils.toString(response));
                 }
             }

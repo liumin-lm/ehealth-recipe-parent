@@ -2,6 +2,7 @@ package recipe.service;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -824,10 +825,20 @@ public class RecipeService extends RecipeBaseService{
             if (RecipeResultBean.FAIL.equals(scanResult.getCode())) {
                 rMap.put("signResult", false);
                 rMap.put("recipeId", recipeId);
+                //上海六院无库存不允许开，直接弹出提示
+                if (recipe.getClinicOrgan()==1000899){
+                    rMap.put("scanDrugStock", true);
+                    //错误信息弹出框，只有 确定  按钮
+                    rMap.put("errorFlag", true);
+                    List<String> nameList = (List<String>)scanResult.getObject();
+                    rMap.put("msg", "【库存不足】由于"+ Joiner.on(",").join(nameList)+"门诊药房库存不足，请更换其他药品后再试。");
+                    return rMap;
+                }
                 rMap.put("msg", scanResult.getError());
                 if (EXTEND_VALUE_FLAG.equals(scanResult.getExtendValue())) {
                     //这个字段为true，前端展示框内容为msg，走二次确认配送流程调用sendDistributionRecipe
                     rMap.put("scanDrugStock", true);
+
                 }
                 return rMap;
             }
