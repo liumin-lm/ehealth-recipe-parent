@@ -896,6 +896,7 @@ public class RecipeHisService extends RecipeBaseService {
         return iHisConfigService.isHisEnable(sendOrganId);
     }
 
+    @RpcService
     public boolean hisRecipeCheck(Map<String, Object> rMap, RecipeBean recipeBean) {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> details = detailDAO.findByRecipeId(recipeBean.getRecipeId());

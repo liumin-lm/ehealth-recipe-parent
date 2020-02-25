@@ -343,6 +343,12 @@ public class RecipeServiceSub {
                             detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
                         }
 
+                        //添加机构药品信息
+                        //date 20200225
+                        detail.setProducer(organDrug.getProducer());
+                        detail.setProducerCode(organDrug.getProducerCode());
+                        detail.setLicenseNumber(organDrug.getLicenseNumber());
+
                         //设置药品价格
                         BigDecimal price = organDrug.getSalePrice();
                         if (null == price) {
