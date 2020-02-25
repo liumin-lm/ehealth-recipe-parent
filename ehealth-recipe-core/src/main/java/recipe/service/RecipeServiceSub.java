@@ -1055,11 +1055,15 @@ public class RecipeServiceSub {
         List<Recipedetail> recipedetails = detailDAO.findByRecipeId(recipeId);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
 
-        for (Recipedetail recipedetail : recipedetails) {
-            List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipe.getClinicOrgan());
-            if (CollectionUtils.isNotEmpty(organDrugLists)) {
-                recipedetail.setDrugForm(organDrugLists.get(0).getDrugForm());
+        try{
+            for (Recipedetail recipedetail : recipedetails) {
+                List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipe.getClinicOrgan());
+                if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                    recipedetail.setDrugForm(organDrugLists.get(0).getDrugForm());
+                }
             }
+        }catch(Exception e){
+            LOGGER.info("RecipeServiceSub.getRecipeAndDetailByIdImpl 查询剂型出错, recipeId:{},{}.", recipeId, e.getMessage());
         }
 
         //中药处方处理
