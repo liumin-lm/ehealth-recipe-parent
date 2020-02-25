@@ -10,6 +10,7 @@ import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.billcheck.vo.RecipeBillRequest;
+import eh.billcheck.vo.RecipeBillResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -125,8 +126,9 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     }
 
     @Override
-    public List<BillRecipeDetailVo> getRecipePayInfoByDate(RecipeBillRequest request) {
+    public RecipeBillResponse<BillRecipeDetailVo> getRecipePayInfoByDate(RecipeBillRequest request) {
 //        List<BillRecipeDetailVo> list = new ArrayList<BillRecipeDetailVo>();
+        RecipeBillResponse<BillRecipeDetailVo> rep = new RecipeBillResponse<BillRecipeDetailVo>();
         if(request == null){
             LOGGER.error("参数不能为空");
             return null;
@@ -139,8 +141,14 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
             LOGGER.error("结束时间不能为空");
             return null;
         }
+
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         List<BillRecipeDetailVo> list = recipeOrderDAO.getPayAndRefundInfoByTime(request.getStartTime(), request.getEndTime(),request.getStart(),request.getPageSize());
+
+        rep.setStart(request.getStart());
+        rep.setPageSize(request.getPageSize());
+        rep.setTotal(list.size());
+        rep.setData(list);
 //        for(int i= 0; i<list.size(); i++){
 //            BillRecipeDetailVo vo = new BillRecipeDetailVo();
 //            RecipeOrder order = list.get(i);
@@ -168,7 +176,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
 //            vo.setMedicarePay(order.getFundAmount());
 //            vo.setSelfPay(order.getTotalFee().subtract(new BigDecimal(order.getFundAmount())).doubleValue());
 //     }
-        return list;
+        return rep;
     }
 
 }
