@@ -180,6 +180,14 @@
             <artifactId>itextpdf</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.sf-express</groupId>
+            <artifactId>staxon</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.sf-express</groupId>
+            <artifactId>csim</artifactId>
+        </dependency>
+        <dependency>
             <groupId>ngari</groupId>
             <artifactId>ehealth-networkclinic-api</artifactId>
         </dependency>
