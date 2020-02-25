@@ -203,7 +203,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @param trackingNumber  顺丰物流单号
      * @return 订单信息
      */
-    @DAOMethod(sql = "from RecipeOrder where LogisticsCompany = 1 and  trackingNumber =: trackingNumber")
+    @DAOMethod(sql = "from RecipeOrder where LogisticsCompany = 1 and  trackingNumber =:trackingNumber")
     public abstract RecipeOrder getByTrackingNumber(@DAOParam("trackingNumber") String trackingNumber);
 
     /**
