@@ -8,6 +8,7 @@ import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.util.annotation.RpcService;
 import eh.billcheck.vo.BillRecipeDetailVo;
 import eh.billcheck.vo.RecipeBillRequest;
+import eh.billcheck.vo.RecipeBillResponse;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -117,5 +118,5 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
      * @return RecipeOrderBean
      */
     @RpcService
-    public List<BillRecipeDetailVo> getRecipePayInfoByDate(RecipeBillRequest request);
+    public RecipeBillResponse<BillRecipeDetailVo> getRecipePayInfoByDate(RecipeBillRequest request);
 }
