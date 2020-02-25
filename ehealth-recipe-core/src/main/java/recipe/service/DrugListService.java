@@ -27,6 +27,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.dao.DispensatoryDAO;
 import recipe.dao.DrugListDAO;
 import recipe.dao.SaleDrugListDAO;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.serviceprovider.BaseService;
 
 import java.util.*;
@@ -567,7 +568,10 @@ public class DrugListService extends BaseService<DrugListBean> {
     @RpcService
     public Map<String, Object> getDrugInventory(Integer depId, Integer drugId){
         Map<String, Object> map = new HashMap<>();
-        map.put("inventory", 200);
+        RemoteDrugEnterpriseService enterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        String inventory = enterpriseService.getDrugInventory(depId, drugId);
+        //根据药企ID查询该药企该药品的库存数量
+        map.put("inventory", inventory);
         return map;
     }
 }

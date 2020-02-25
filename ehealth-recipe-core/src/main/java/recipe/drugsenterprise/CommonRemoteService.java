@@ -292,6 +292,61 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String number = recipeParameterDao.getByName("gy_drug_inventory");
+        String method = "scanStock";
+        Map<String, Object> recipeInfo = Maps.newHashMap();
+        Map<String, Object> sendMap = Maps.newHashMap();
+        Map<String, Object> detailInfo;
+        Map<Integer, String> drugInfo = Maps.newHashMap();
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        DrugList drugList = drugListDAO.getById(drugId);
+        List<Map<String, Object>> detailInfoList = new ArrayList<>(10);
+        recipeInfo.put("dtl", detailInfoList);
+        drugInfo.put(drugList.getDrugId(), drugList.getDrugName());
+        detailInfo = Maps.newHashMap();
+        detailInfo.put("dtlid", 1);
+        detailInfo.put("goodsid", drugList.getDrugId());
+        detailInfo.put("qty", number);
+        detailInfoList.add(detailInfo);
+        sendMap.put("access_token", drugsEnterprise.getToken());
+        sendMap.put("action", method);
+        sendMap.put("data", recipeInfo);
+
+        String sendInfoStr = JSONUtils.toString(sendMap);
+        LOGGER.info("发送[{}][{}]内容：{}", drugsEnterprise.getName(), method, sendInfoStr);
+
+        String backMsg = null;
+        try {
+            backMsg = HttpHelper.doPost(drugsEnterprise.getBusinessUrl(), sendInfoStr);
+            if (StringUtils.isEmpty(backMsg)) {
+                return "暂无库存";
+            }
+        } catch (Exception e) {
+            return "暂无库存";
+        }
+
+        if (StringUtils.isNotEmpty(backMsg)) {
+            Map backMap = null;
+            try {
+                backMap = JSONUtils.parse(backMsg, Map.class);
+            } catch (Exception e) {
+                return "暂无库存";
+            }
+            Integer code = MapValueUtil.getInteger(backMap, "code");
+            // code 1成功
+            if (RESULT_SUCCESS.equals(code)) {
+                return "有库存";
+            } else {
+                return "暂无库存";
+            }
+        } else {
+            return "暂无库存";
+        }
+    }
+
+    @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         if (null == recipeId) {

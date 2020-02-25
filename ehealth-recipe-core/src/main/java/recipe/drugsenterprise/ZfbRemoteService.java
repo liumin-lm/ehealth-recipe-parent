@@ -125,6 +125,11 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+        return "暂不支持库存查询";
+    }
+
+    @Override
     public void getJumpUrl(PurchaseResponse response, Recipe recipe, DrugsEnterprise drugsEnterprise) {
         tmdyfRemoteService.getJumpUrl(response, recipe, drugsEnterprise);
     }

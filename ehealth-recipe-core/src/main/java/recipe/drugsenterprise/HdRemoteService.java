@@ -1417,4 +1417,60 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
     public String getDrugEnterpriseCallSys() {
         return DrugEnterpriseConstant.COMPANY_HDDYF;
     }
+
+    @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
+        String methodName = "sendScanStock";
+        String hdDrugCodes = "{\"drugList\":[{\"drugCode\":\""+saleDrugList.getOrganDrugCode()+"\"}]}";
+        //访问库存足够的药店列表以及药店下的药品的信息
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        HdHttpUrlEnum httpUrl;
+        try {
+            httpUrl = HdHttpUrlEnum.fromMethodName(methodName);
+            CloseableHttpResponse response = sendHttpRequest(httpClient, hdDrugCodes, httpUrl, drugsEnterprise);
+            //当相应状态为200时返回json
+            HttpEntity httpEntity = response.getEntity();
+            String responseStr = EntityUtils.toString(httpEntity);
+            JSONObject jsonObject = JSONObject.parseObject(responseStr);
+            List drugList = (List)jsonObject.get("drugList");
+
+            if (drugList != null && drugList.size() > 0) {
+                for (Object drug : drugList) {
+                    Map<String, Object> drugMap = (Map<String, Object>) drug;
+                    try{
+                        BigDecimal availableSumQty = (BigDecimal)drugMap.get("availableSumQty");
+                        return availableSumQty.intValue() + "";
+                    }catch(Exception e){
+                        Integer availableSumQty = (Integer)drugMap.get("availableSumQty");
+                        return availableSumQty.toString();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                httpClient.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+
+            }
+        }
+        return "暂不支持库存查询";
+    }
+
+    private static CloseableHttpResponse sendHttpRequest(CloseableHttpClient httpClient, String requestStr, HdHttpUrlEnum httpUrl, DrugsEnterprise drugsEnterprise) throws IOException {
+        HttpPost httpPost = new HttpPost(drugsEnterprise.getBusinessUrl() + httpUrl.getUrl());
+        //组装请求参数(组装权限验证部分)
+        httpPost.setHeader(requestHeadJsonKey, requestHeadJsonValue);
+        httpPost.setHeader(requestHeadAuthorizationKey, requestAuthorizationValueHead + drugsEnterprise.getToken());
+
+        StringEntity requestEntry = new StringEntity(requestStr, ContentType.APPLICATION_JSON);
+        httpPost.setEntity(requestEntry);
+        //获取响应消息
+        return httpClient.execute(httpPost);
+    }
+
 }

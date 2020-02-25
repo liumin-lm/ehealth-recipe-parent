@@ -129,6 +129,34 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         }
 
     }
+
+    @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        SaleDrugList saleDrug = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
+        Pharmacy pharmacy = new Pharmacy();
+        if ("yt".equals(drugsEnterprise.getAccount())) {
+            pharmacy.setPharmacyCode("YMO0111470");
+        }
+        if ("yt_sy".equals(drugsEnterprise.getAccount())) {
+            pharmacy.setPharmacyCode("YK45286");
+        }
+        try{
+            CloseableHttpClient httpClient = HttpClients.createDefault();
+            CloseableHttpResponse response = sendStockHttpRequest(drugsEnterprise, saleDrug, pharmacy, httpClient);
+            HttpEntity httpEntity = response.getEntity();
+            String responseStr = EntityUtils.toString(httpEntity);
+            if(CommonConstant.requestSuccessCode == response.getStatusLine().getStatusCode()) {
+                YtStockResponse stockResponse = JSONUtils.parse(responseStr, YtStockResponse.class);
+                LOGGER.info("YtRemoteService.getDrugInventory:[{}]门店该[{}]药品查询库存，请求返回:{}", pharmacy.getPharmacyCode(), saleDrug.getOrganDrugCode(), responseStr);
+                return stockResponse.getStock().toString();
+            }
+        }catch (Exception e){
+            LOGGER.info("YtRemoteService.getDrugInventory:运营平台查询药品库存失败, {},{},{}", drugId, drugsEnterprise.getName(), e.getMessage());
+        }
+        return "暂不支持库存查询";
+    }
+
     /**
      * @method  sendTokenAndUpdateHttpRequest
      * @description 发送http请求获得新的token信息,并更新

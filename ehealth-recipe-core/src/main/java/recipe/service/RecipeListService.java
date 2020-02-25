@@ -95,6 +95,7 @@ public class RecipeListService extends RecipeBaseService{
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
 
         List<Recipe> recipeList = recipeDAO.findRecipesForDoctor(doctorId, recipeId, 0, limit);
         LOGGER.info("findRecipesForDoctor recipeList size={}", recipeList.size());
@@ -106,7 +107,23 @@ public class RecipeListService extends RecipeBaseService{
                     patientIds.add(recipe.getMpiid());
                 }
                 //设置处方具体药品名称
-                recipe.setRecipeDrugName(recipeDetailDAO.getDrugNamesByRecipeId(recipe.getRecipeId()));
+                List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+                StringBuilder stringBuilder = new StringBuilder();
+
+                for (Recipedetail recipedetail : recipedetails) {
+                    List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipe.getClinicOrgan());
+                    if (organDrugLists != null) {
+                        stringBuilder.append(organDrugLists.get(0).getSaleName());
+                        if (StringUtils.isNotEmpty(organDrugLists.get(0).getDrugForm())) {
+                            stringBuilder.append(organDrugLists.get(0).getDrugForm());
+                        }
+                    } else {
+                        stringBuilder.append(recipedetail.getDrugName());
+                    }
+                    stringBuilder.append(" ").append(recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit()).append("、");
+                }
+                stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
+                recipe.setRecipeDrugName(stringBuilder.toString());
                 //前台页面展示的时间源不同
                 recipe.setRecipeShowTime(recipe.getCreateDate());
                 boolean effective = false;
@@ -586,7 +603,7 @@ public class RecipeListService extends RecipeBaseService{
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
-
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<Map<String, Object>> list = new ArrayList<>();
         //List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId, mpiId, start, limit);
         //修改逻辑历史处方中获取的处方列表：只显示未处理、未支付、审核不通过、失败、已完成状态的
@@ -595,7 +612,24 @@ public class RecipeListService extends RecipeBaseService{
         if (CollectionUtils.isNotEmpty(recipes)) {
             for (Recipe recipe : recipes) {
                 Map<String, Object> map = Maps.newHashMap();
-                recipe.setRecipeDrugName(recipeDetailDAO.getDrugNamesByRecipeId(recipe.getRecipeId()));
+                //设置处方具体药品名称
+                List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+                StringBuilder stringBuilder = new StringBuilder();
+
+                for (Recipedetail recipedetail : recipedetails) {
+                    List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipe.getClinicOrgan());
+                    if (organDrugLists != null) {
+                        stringBuilder.append(organDrugLists.get(0).getSaleName());
+                        if (StringUtils.isNotEmpty(organDrugLists.get(0).getDrugForm())) {
+                            stringBuilder.append(organDrugLists.get(0).getDrugForm());
+                        }
+                    } else {
+                        stringBuilder.append(recipedetail.getDrugName());
+                    }
+                    stringBuilder.append(" ").append(recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit()).append("、");
+                }
+                stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
+                recipe.setRecipeDrugName(stringBuilder.toString());
                 recipe.setRecipeShowTime(recipe.getCreateDate());
                 boolean effective = false;
                 //只有审核未通过的情况需要看订单状态

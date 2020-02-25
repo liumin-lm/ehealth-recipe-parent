@@ -48,6 +48,11 @@ public class HdVirtualdyfRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+        return "暂不支持库存查询";
+    }
+
+    @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         //0医院取药 1物流配送 2药店取药 3未知
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);

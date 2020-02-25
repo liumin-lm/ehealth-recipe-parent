@@ -329,6 +329,11 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
     }
 
     @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+        return "暂不支持库存查询";
+    }
+
+    @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         return DrugEnterpriseResult.getSuccess();
     }
