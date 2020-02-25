@@ -124,6 +124,15 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             getHospitalPrice(organId, dList);
         }
         List<DrugListBean> drugListBeans = getList(dList, DrugListBean.class);
+        try{
+            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+            for (DrugListBean drugListBean : drugListBeans) {
+                List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugListBean.getDrugId(), organId);
+                drugListBean.setDrugForm(organDrugLists.get(0).getDrugForm());
+            }
+        }catch(Exception e){
+            LOGGER.info("DrugListService.findCommonDrugLists 查询机构药品出错, 机构ID:{},{}", organId, e.getMessage());
+        }
         //设置岳阳市人民医院药品库存
         setStoreIntroduce(organId, drugListBeans);
         return drugListBeans;
