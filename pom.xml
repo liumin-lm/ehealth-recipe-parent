@@ -330,6 +330,16 @@
                 <version>5.5.13</version>
             </dependency>
             <dependency>
+                <groupId>com.sf-express</groupId>
+                <artifactId>staxon</artifactId>
+                <version>1.3</version>
+            </dependency>
+            <dependency>
+                <groupId>com.sf-express</groupId>
+                <artifactId>csim</artifactId>
+                <version>1.6</version>
+            </dependency>
+            <dependency>
                 <groupId>${project.parent.groupId}</groupId>
                 <artifactId>ehealth-bill-api</artifactId>
                 <version>${ngari.bill.version}</version>

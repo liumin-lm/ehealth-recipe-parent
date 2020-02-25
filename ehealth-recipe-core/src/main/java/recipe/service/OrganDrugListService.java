@@ -335,7 +335,7 @@ public class OrganDrugListService {
         } else {
             drugCategoryReq.setHospDrugCode(organDrugList.getOrganDrugId().toString());
         }
-
+        drugCategoryReq.setDrugPrice(organDrugList.getSalePrice());
         drugCategoryReq.setHospDrugName(organDrugList.getDrugName());
         drugCategoryReq.setHospTradeName(organDrugList.getSaleName());
         if (StringUtils.isNotEmpty(organDrugList.getDrugSpec())) {
