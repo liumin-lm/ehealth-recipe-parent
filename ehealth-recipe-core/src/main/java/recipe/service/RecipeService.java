@@ -827,7 +827,6 @@ public class RecipeService extends RecipeBaseService{
                 rMap.put("recipeId", recipeId);
                 //上海六院无库存不允许开，直接弹出提示
                 if (recipe.getClinicOrgan()==1000899){
-                    rMap.put("scanDrugStock", true);
                     //错误信息弹出框，只有 确定  按钮
                     rMap.put("errorFlag", true);
                     List<String> nameList = (List<String>)scanResult.getObject();
