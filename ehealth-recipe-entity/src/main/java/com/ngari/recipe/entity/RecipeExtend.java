@@ -98,6 +98,11 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "处方预结算返回自费金额")
     private String cashAmount;
 
+    @ItemProperty(alias = "处方预结算返回应付金额")
+    private String payAmount;
+
+
+
     public RecipeExtend() {
     }
 
@@ -344,5 +349,14 @@ public class RecipeExtend implements Serializable {
 
     public void setCashAmount(String cashAmount) {
         this.cashAmount = cashAmount;
+    }
+
+    @Column(name = "payAmount")
+    public String getPayAmount() {
+        return payAmount;
+    }
+
+    public void setPayAmount(String payAmount) {
+        this.payAmount = payAmount;
     }
 }

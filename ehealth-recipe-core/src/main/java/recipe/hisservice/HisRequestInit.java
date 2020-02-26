@@ -486,6 +486,8 @@ public class HisRequestInit {
                 if(extend != null && extend.getCashAmount() != null){
                     //自负金额
                     requestTO.setCashAmount(extend.getCashAmount());
+                    //应付金额
+                    requestTO.setPayAmount(extend.getPayAmount());
                     //总金额
                     requestTO.setPreSettleTotalAmount(extend.getPreSettletotalAmount());
                     //his收据号
