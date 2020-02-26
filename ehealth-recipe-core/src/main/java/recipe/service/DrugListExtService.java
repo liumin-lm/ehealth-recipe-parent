@@ -120,10 +120,15 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         List<OrganDrugList> dList = drugListDAO.findCommonDrugListsWithPage(doctor, organId, drugType, 0, 20);
         // 添加医院价格
-       /* if (CollectionUtils.isNotEmpty(dList)) {
+       /*if (CollectionUtils.isNotEmpty(dList)) {
             getHospitalPrice(organId, dList);
         }*/
         List<DrugListBean> drugListBeans = getList(dList, DrugListBean.class);
+        if (CollectionUtils.isNotEmpty(drugListBeans)) {
+            for (DrugListBean drugListBean : drugListBeans) {
+                drugListBean.setHospitalPrice(drugListBean.getSalePrice());
+            }
+        }
         /*try{
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             for (DrugListBean drugListBean : drugListBeans) {

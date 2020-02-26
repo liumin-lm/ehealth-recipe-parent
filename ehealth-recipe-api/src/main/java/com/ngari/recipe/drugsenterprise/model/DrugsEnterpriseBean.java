@@ -28,6 +28,9 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "药企名称")
     private String name;
 
+    @ItemProperty(alias = "药企固定编码")
+    private String enterpriseCode;
+
     @ItemProperty(alias = "药企在平台的账户")
     private String account;
 
@@ -250,5 +253,13 @@ public class DrugsEnterpriseBean implements Serializable {
 
     public void setMemo(String memo) {
         this.memo = memo;
+    }
+
+    public String getEnterpriseCode() {
+        return enterpriseCode;
+    }
+
+    public void setEnterpriseCode(String enterpriseCode) {
+        this.enterpriseCode = enterpriseCode;
     }
 }
