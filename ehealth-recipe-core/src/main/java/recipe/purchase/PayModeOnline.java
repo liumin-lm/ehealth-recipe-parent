@@ -7,6 +7,8 @@ import com.ngari.base.employment.model.EmploymentBean;
 import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
+import com.ngari.his.patient.mode.PatientQueryRequestTO;
+import com.ngari.his.patient.service.IPatientHisService;
 import com.ngari.his.recipe.mode.UpdateTakeDrugWayReqTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -64,7 +66,12 @@ public class PayModeOnline implements IPurchaseService {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-
+        //todo---暂时写死上海六院---配送到家判断是否是医保患者
+        if (dbRecipe.getClinicOrgan() == 1000899 && isMedicarePatient(dbRecipe.getClinicOrgan(),dbRecipe.getMpiid())){
+            resultBean.setCode(RecipeResultBean.FAIL);
+            resultBean.setMsg("医保患者不支持线上配送，请选择其他取药方式");
+            return resultBean;
+        }
         Integer recipeId = dbRecipe.getRecipeId();
 
         //药企列表
@@ -537,5 +544,37 @@ public class PayModeOnline implements IPurchaseService {
         }catch (Exception e){
             LOG.info("PayModeOnline.checkStoreForSendToHom:{},{}.", JSONUtils.toString(dbRecipe), e.getMessage());
         }
+    }
+    /**
+     * 配送到家判断是否是医保患者
+     *
+     * @return
+     */
+    private Boolean isMedicarePatient(Integer organId, String mpiId) {
+        //获取his患者信息判断是否医保患者
+        IPatientHisService iPatientHisService = AppContextHolder.getBean("his.iPatientHisService", IPatientHisService.class);
+        PatientService patientService = BasicAPI.getService(PatientService.class);
+        PatientDTO patient = patientService.get(mpiId);
+        if (patient == null) {
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "平台查询不到患者信息");
+        }
+        PatientQueryRequestTO req = new PatientQueryRequestTO();
+        req.setOrgan(organId);
+        req.setPatientName(patient.getPatientName());
+        req.setCertificateType(patient.getCertificateType());
+        req.setCertificate(patient.getCertificate());
+        try {
+            HisResponseTO<PatientQueryRequestTO> response = iPatientHisService.queryPatient(req);
+            LOG.info("isMedicarePatient response={}", JSONUtils.toString(response));
+            if (response != null) {
+                PatientQueryRequestTO data = response.getData();
+                if (data != null && "2".equals(data.getPatientType())) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("isMedicarePatient error" + e);
+        }
+        return false;
     }
 }

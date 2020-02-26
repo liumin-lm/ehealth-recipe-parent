@@ -147,6 +147,24 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias = "剂型")
 	private String drugForm;
 
+	//date 20200225
+	//同步机构药品信息新添字段
+	@ItemProperty(alias = "生产厂家")
+	private String producer;
+
+	//date 20200225
+	//同步机构药品信息新添字段
+	@ItemProperty(alias = "批准文号")
+	private String licenseNumber;
+
+	//date 20200225
+	//同步机构药品信息新添字段
+	@ItemProperty(alias = "生产厂家代码")
+	private String producerCode;
+
+
+
+
 	public Recipedetail() {
 	}
 
@@ -193,6 +211,33 @@ public class Recipedetail implements java.io.Serializable {
 		this.price = price;
 		this.rate = rate;
 		this.ratePrice = ratePrice;
+	}
+
+	@Column(name = "licenseNumber")
+	public String getLicenseNumber() {
+		return licenseNumber;
+	}
+
+	public void setLicenseNumber(String licenseNumber) {
+		this.licenseNumber = licenseNumber;
+	}
+
+	@Column(name = "ProducerCode", length = 20)
+	public String getProducerCode() {
+		return producerCode;
+	}
+
+	public void setProducerCode(String producerCode) {
+		this.producerCode = producerCode;
+	}
+
+	@Column(name = "producer")
+	public String getProducer() {
+		return producer;
+	}
+
+	public void setProducer(String producer) {
+		this.producer = producer;
 	}
 
 	@Id

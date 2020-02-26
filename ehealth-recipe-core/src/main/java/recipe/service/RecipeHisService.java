@@ -90,7 +90,7 @@ public class RecipeHisService extends RecipeBaseService {
             return false;
         }
         //中药处方由于不需要跟HIS交互，故读写分离后有可能查询不到数据
-        if (skipHis(recipe)) {
+        if (skipHis(recipe)||isAfterPatientChoose(recipe.getClinicOrgan())) {
             LOGGER.info("skip his!!! recipeId={}",recipeId);
            /* RecipeCheckPassResult recipeCheckPassResult = new RecipeCheckPassResult();
             recipeCheckPassResult.setRecipeId(recipeId);
@@ -109,6 +109,14 @@ public class RecipeHisService extends RecipeBaseService {
             LOGGER.error("recipeSendHis 医院HIS未启用[organId:" + sendOrganId + ",recipeId:" + recipeId + "]");
         }
         return result;
+    }
+
+    private boolean isAfterPatientChoose(Integer clinicOrgan) {
+        //todo---暂时写死上海六院---在患者选完取药方式之后推送处方
+        if (clinicOrgan == 1000899){
+            return true;
+        }
+        return false;
     }
 
     @RpcService
@@ -796,6 +804,7 @@ public class RecipeHisService extends RecipeBaseService {
                     result.setCode(RecipeResultBean.FAIL);
                     result.setError(showMsg.toString());
                     result.setExtendValue("1");
+                    result.setObject(nameList);
                     LOGGER.error("scanDrugStock 存在无库存药品. response={} ", JSONUtils.toString(response));
                 }
             }
@@ -864,10 +873,6 @@ public class RecipeHisService extends RecipeBaseService {
      * @return
      */
     private boolean skipHis(Recipe recipe) {
-        //todo---写死上海六院---在患者选完取药方式之后推送处方
-        if (recipe.getClinicOrgan() == 1000899){
-            return true;
-        }
         try {
             IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
             String[] recipeTypes = (String[])configurationCenterUtilsService.getConfiguration(recipe.getClinicOrgan(), "getRecipeTypeToHis");
@@ -896,6 +901,7 @@ public class RecipeHisService extends RecipeBaseService {
         return iHisConfigService.isHisEnable(sendOrganId);
     }
 
+    @RpcService
     public boolean hisRecipeCheck(Map<String, Object> rMap, RecipeBean recipeBean) {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> details = detailDAO.findByRecipeId(recipeBean.getRecipeId());
