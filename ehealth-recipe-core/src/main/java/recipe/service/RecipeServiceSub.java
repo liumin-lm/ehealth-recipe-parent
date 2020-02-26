@@ -1339,7 +1339,40 @@ public class RecipeServiceSub {
         //获取处方下的药品，判断是否有药品对应的医院药品金额为空，有的话不展示参考价格
         boolean flag = getShowReferencePriceFlag(recipe, recipedetails);
         map.put("showReferencePrice", flag);
+
+        //Date:20200226
+        //添加展示药师签名判断
+        //1.不设置二次审核，审核通过展示；
+        //2.设置二次审核，一次通过展示（没有审核不通过日志的且审核通过的）
+        //总结的来说就是只要审核通过的并且没有不通过记录就展示
+        boolean showChecker = isShowChecker(recipeId, recipe);
+
+        map.put("showChecker", showChecker);
+
         return map;
+    }
+
+    private static boolean isShowChecker(int recipeId, Recipe recipe) {
+        boolean showChecker = false;
+        RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
+        RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+        List<RecipeCheck> recipeCheckList = recipeCheckDAO.findByRecipeId(recipe.getRecipeId());
+        if(CollectionUtils.isNotEmpty(recipeCheckList)){
+            LOGGER.info("当前处方已有审核记录{}", recipeId);
+            //取最新的审核记录
+            RecipeCheck recipeCheck = recipeCheckList.get(0);
+            //判断是否是通过的
+            if(null != recipeCheck.getCheckStatus() && 1 == recipeCheck.getCheckStatus()){
+                LOGGER.info("当前处方已有审核通过记录{}", recipeId);
+                //判断有没有不通过的记录，没有就说明是直接审核通过的
+                List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipeId, RecipeStatusConstant.CHECK_NOT_PASS_YS);
+                if(CollectionUtils.isEmpty(recipeLogs)){
+                    LOGGER.info("当前处方已有审核通过中无审核不通过记录{}", recipeId);
+                    showChecker = true;
+                }
+            }
+        }
+        return showChecker;
     }
 
     private static Object getBottomTextForPatient(Integer clinicOrgan) {

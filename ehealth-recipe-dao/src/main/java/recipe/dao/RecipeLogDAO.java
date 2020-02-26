@@ -57,4 +57,13 @@ public abstract class RecipeLogDAO extends HibernateSupportDelegateDAO<RecipeLog
     @DAOMethod(orderBy = " id asc")
     public abstract List<RecipeLog> findByRecipeId(Integer recipeId);
 
+    /**
+     * 根据处方id和后状态查询
+     *
+     * @param recipeId
+     * @return
+     */
+    @DAOMethod(orderBy = " id asc")
+    public abstract List<RecipeLog> findByRecipeIdAndAfterStatus(Integer recipeId, Integer afterStatus);
+
 }
