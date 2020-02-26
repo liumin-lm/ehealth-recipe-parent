@@ -1788,25 +1788,30 @@ public class RecipeServiceSub {
                 drugIds.add(r.getDrugId());
             }
             List<DrugList> drugLists = drugListDAO.findByDrugIds(drugIds);
-            for (DrugList drugList : drugLists) {
-                //判断非空
-                String drugName = StringUtils.isEmpty(drugList.getDrugName()) ? "" : drugList.getDrugName();
-                String saleName = StringUtils.isEmpty(drugList.getSaleName()) ? "" : drugList.getSaleName();
-                String drugSpec = StringUtils.isEmpty(drugList.getDrugSpec()) ? "" : drugList.getDrugSpec();
-
-                //数据库中saleName字段可能包含与drugName相同的字符串,增加判断条件，将这些相同的名字过滤掉
-                StringBuilder drugAndSale = new StringBuilder("");
-                if (StringUtils.isNotEmpty(saleName)) {
-                    String[] strArray = saleName.split("\\s+");
-                    for (String saleName1 : strArray) {
-                        if (!saleName1.equals(drugName)) {
-                            drugAndSale.append(saleName1 + " ");
+            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+            for (Recipedetail recipedetail : details) {
+                List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipe.getClinicOrgan());
+                if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                    //判断非空
+                    String drugName = StringUtils.isEmpty(organDrugLists.get(0).getDrugName()) ? "" : organDrugLists.get(0).getDrugName();
+                    String saleName = StringUtils.isEmpty(organDrugLists.get(0).getSaleName()) ? "" : organDrugLists.get(0).getSaleName();
+                    String drugSpec = StringUtils.isEmpty(organDrugLists.get(0).getDrugSpec()) ? "" : organDrugLists.get(0).getDrugSpec();
+                    String drugForm = StringUtils.isEmpty(organDrugLists.get(0).getDrugForm()) ? "" : organDrugLists.get(0).getDrugForm();
+                    String drugUnit = StringUtils.isEmpty(organDrugLists.get(0).getUnit()) ? "" : organDrugLists.get(0).getUnit();
+                    //数据库中saleName字段可能包含与drugName相同的字符串,增加判断条件，将这些相同的名字过滤掉
+                    StringBuilder drugAndSale = new StringBuilder("");
+                    if (StringUtils.isNotEmpty(saleName)) {
+                        String[] strArray = saleName.split("\\s+");
+                        for (String saleName1 : strArray) {
+                            if (!saleName1.equals(drugName)) {
+                                drugAndSale.append(saleName1 + " ");
+                            }
                         }
                     }
+                    drugAndSale.append(drugName + " ");
+                    //拼装
+                    drugNames.add(drugAndSale + drugForm + drugSpec);
                 }
-                drugAndSale.append(drugName + " ");
-                //拼装
-                drugNames.add(drugAndSale + drugSpec);
             }
         }
 
