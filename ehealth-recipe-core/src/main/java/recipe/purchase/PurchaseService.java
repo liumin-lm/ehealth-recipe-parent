@@ -490,4 +490,38 @@ public class PurchaseService {
         return redisClient.setex(CacheConstant.KEY_RCP_BUSS_PURCHASE_LOCK + recipeId, 1L);
     }
 
+    /**
+     * 配送到家判断是否是医保患者
+     *
+     * @return
+     */
+    public Boolean isMedicarePatient(Integer organId, String mpiId) {
+        //获取his患者信息判断是否医保患者
+        IPatientHisService iPatientHisService = AppContextHolder.getBean("his.iPatientHisService", IPatientHisService.class);
+        PatientService patientService = BasicAPI.getService(PatientService.class);
+        PatientDTO patient = patientService.get(mpiId);
+        if (patient == null) {
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "平台查询不到患者信息");
+        }
+        PatientQueryRequestTO req = new PatientQueryRequestTO();
+        req.setOrgan(organId);
+        req.setPatientName(patient.getPatientName());
+        req.setCertificateType(patient.getCertificateType());
+        req.setCertificate(patient.getCertificate());
+        try {
+            HisResponseTO<PatientQueryRequestTO> response = iPatientHisService.queryPatient(req);
+            LOG.info("isMedicarePatient response={}", JSONUtils.toString(response));
+            if (response != null) {
+                PatientQueryRequestTO data = response.getData();
+                if (data != null && "2".equals(data.getPatientType())) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            LOG.error("isMedicarePatient error" + e);
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "查询患者信息异常，请稍后重试");
+        }
+        return false;
+    }
+
 }
