@@ -386,41 +386,59 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                             recipeMsgMap.put("detailDrugUnit", recipeDetailBean.getDrugUnit());
                             //价格
                             recipeMsgMap.put("detailDrugPrice", recipeDetailBean.getSalePrice());
-                            //处方的药品关联信息
-                            if (null != recipeDetailBean.getDrugId() && null != clinicOrganId && null != recipeDetailBean.getOrganDrugCode()){
+                            //date 20200225 修改药品查询信息
+                            //判断处方详情中药品信息存在去新的值(如果为空说明)
+                            if(null != recipeDetailBean.getProducer()){
+                                LOGGER.info("findRecipeOrdersByInfoForExcel当前处方关联的药品数据是新数据{}", nowRecipeId);
+                                //说明是新签名后添加的数据
+                                //批号
+                                recipeMsgMap.put("detailDruglicenseNumber", recipeDetailBean.getLicenseNumber());
+                                //生产厂家
+                                recipeMsgMap.put("detailDrugProducer", recipeDetailBean.getProducer());
+                            }else{
+                                //说明是老数据
+                                LOGGER.info("findRecipeOrdersByInfoForExcel当前处方关联的药品数据是旧数据{}", nowRecipeId);
+                                //处方的药品关联信息
+                                if (null != recipeDetailBean.getDrugId() && null != clinicOrganId && null != recipeDetailBean.getOrganDrugCode()){
 
-                                LOGGER.info("findRecipeOrdersByInfoForExcel查询处方机构药品信息:DrugId{},OrganId{},OrganDrugCode{}", recipeDetailBean.getDrugId(), clinicOrganId, recipeDetailBean.getOrganDrugCode());
-                                organDrugLists = organDrugListDAO.findByOrganIdAndDrugIdAndOrganDrugCode(clinicOrganId, recipeDetailBean.getDrugId(), recipeDetailBean.getOrganDrugCode());
-                                LOGGER.info("findRecipeOrdersByInfoForExcel查询处方机构药品信息,{},长度:{}", JSONUtils.toString(organDrugLists));
-                                if(null == organDrugLists || 0 == organDrugLists.size()){
-                                    LOGGER.warn("当前处方药品详情关联的机构药品信息不存在DrugId:{},OrganId:{}", recipeDetailBean.getDrugId(), clinicOrganId);
-                                }else{
-                                    organDrugList = organDrugLists.get(0);
-                                    LOGGER.info("findRecipeOrdersByInfoForExcel查询处方机构药品单个信息:DrugId{},OrganId{},OrganDrugCode{}", JSONUtils.toString(organDrugList));
-                                    //机构药品信息存在
-                                    //批号
-                                    recipeMsgMap.put("detailDruglicenseNumber", organDrugList.getLicenseNumber());
-                                    //生产厂家
-                                    recipeMsgMap.put("detailDrugProducer", organDrugList.getProducer());
-                                    if(null != order){
-                                        LOGGER.info("findRecipeOrdersByInfoForExcel查询处方配送药品信息:DrugId{},OrganId{}", recipeDetailBean.getDrugId(), order.getEnterpriseId());
-                                        if(null != order.getEnterpriseId()){
+                                    LOGGER.info("findRecipeOrdersByInfoForExcel查询处方机构药品信息:DrugId{},OrganId{},OrganDrugCode{}", recipeDetailBean.getDrugId(), clinicOrganId, recipeDetailBean.getOrganDrugCode());
+                                    organDrugLists = organDrugListDAO.findByOrganIdAndDrugIdAndOrganDrugCode(clinicOrganId, recipeDetailBean.getDrugId(), recipeDetailBean.getOrganDrugCode());
+                                    LOGGER.info("findRecipeOrdersByInfoForExcel查询处方机构药品信息,{},长度:{}", JSONUtils.toString(organDrugLists));
+                                    if(null == organDrugLists || 0 == organDrugLists.size()){
+                                        LOGGER.warn("当前处方药品详情关联的机构药品信息不存在DrugId:{},OrganId:{}", recipeDetailBean.getDrugId(), clinicOrganId);
+                                    }else{
+                                        organDrugList = organDrugLists.get(0);
+                                        LOGGER.info("findRecipeOrdersByInfoForExcel查询处方机构药品单个信息:DrugId{},OrganId{},OrganDrugCode{}", JSONUtils.toString(organDrugList));
+                                        //机构药品信息存在
+                                        //批号
+                                        recipeMsgMap.put("detailDruglicenseNumber", organDrugList.getLicenseNumber());
+                                        //生产厂家
+                                        recipeMsgMap.put("detailDrugProducer", organDrugList.getProducer());
 
-                                            saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), order.getEnterpriseId());
-                                            LOGGER.info("findRecipeOrdersByInfoForExcel查询处方配送药品信息,{}", JSONUtils.toString(saleDrugList));
-                                            if(null != saleDrugList && null != saleDrugList.getPrice()){
-                                                //价格
-                                                //有订单，判断订单对应的药品是否是药企的药品价格
-                                                recipeMsgMap.put("detailDrugPrice", saleDrugList.getPrice());
-                                            }
-                                            if(null != saleDrugList){
-                                                //药企药品编码
-                                                recipeMsgMap.put("saleDrugCode", saleDrugList.getOrganDrugCode());
-                                            }
-                                        }
+                                    }
+                                }
+
+                            }
+                            //将药企药品价格更新上去以及药企的药品code
+                            if(null != order){
+                                LOGGER.info("findRecipeOrdersByInfoForExcel查询处方配送药品信息:DrugId{},OrganId{}", recipeDetailBean.getDrugId(), order.getEnterpriseId());
+                                if(null != order.getEnterpriseId()){
+
+                                    saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), order.getEnterpriseId());
+                                    LOGGER.info("findRecipeOrdersByInfoForExcel查询处方配送药品信息,{}", JSONUtils.toString(saleDrugList));
+                                    if(null != saleDrugList && null != saleDrugList.getPrice()){
+                                        //价格
+                                        //有订单，判断订单对应的药品是否是药企的药品价格
+                                        recipeMsgMap.put("detailDrugPrice", saleDrugList.getPrice());
+                                    }
+                                    if(null != saleDrugList){
+                                        //药企药品编码
+                                        recipeMsgMap.put("saleDrugCode", saleDrugList.getOrganDrugCode());
                                     }
                                 }
                             }
+
+
                             //每次剂量
                             recipeMsgMap.put("detailUseDose", recipeDetailBean.getUseDose());
                             //剂量单位

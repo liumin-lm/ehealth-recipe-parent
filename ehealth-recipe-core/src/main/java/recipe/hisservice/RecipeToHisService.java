@@ -331,6 +331,7 @@ public class RecipeToHisService {
             drugInfo = new DrugInfoTO(detail.getOrganDrugCode());
             drugInfo.setPack(detail.getPack().toString());
             drugInfo.setPackUnit(detail.getDrugUnit());
+            drugInfo.setUseTotalDose(detail.getUseTotalDose());
             organDrug = drugIdAndProduce.get(detail.getOrganDrugCode());
             if (null != organDrug) {
                 drugInfo.setManfcode(organDrug.getProducerCode());
