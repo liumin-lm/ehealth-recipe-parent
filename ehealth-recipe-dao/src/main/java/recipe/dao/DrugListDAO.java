@@ -246,13 +246,13 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
      * zhongzx 加 organId,drugType
      * @author luf
      */
-    public List<DrugList> findCommonDrugListsWithPage(final int doctor, final int organId, final int drugType,
+    public List<OrganDrugList> findCommonDrugListsWithPage(final int doctor, final int organId, final int drugType,
                                                       final int start, final int limit) {
-        HibernateStatelessResultAction<List<DrugList>> action = new AbstractHibernateStatelessResultAction<List<DrugList>>() {
+        HibernateStatelessResultAction<List<OrganDrugList>> action = new AbstractHibernateStatelessResultAction<List<OrganDrugList>>() {
             @SuppressWarnings("unchecked")
             @Override
             public void execute(StatelessSession ss) throws DAOException {
-                String hql = "select a From DrugList a, Recipe b,Recipedetail c, OrganDrugList o where "
+                String hql = "select o From DrugList a, Recipe b,Recipedetail c, OrganDrugList o where "
                         + "b.doctor=:doctor and a.status=1 and a.drugId=c.drugId and b.clinicOrgan=:organId "
                         + "and a.drugType=:drugType and b.createDate>=:halfYear and o.drugId=a.drugId and o.organId=:organId and o.status=1 "
                         + "and b.recipeId=c.recipeId group by c.drugId order by count(*) desc";
@@ -263,10 +263,10 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 q.setParameter("halfYear", DateConversion.getMonthsAgo(6));
                 q.setFirstResult(start);
                 q.setMaxResults(limit);
-                List<DrugList> drugListList = q.list();
-                for (DrugList drug : drugListList) {
+                List<OrganDrugList> drugListList = q.list();
+                /*for (DrugList drug : drugListList) {
                     setDrugDefaultInfo(drug);
-                }
+                }*/
                 setResult(drugListList);
             }
         };
