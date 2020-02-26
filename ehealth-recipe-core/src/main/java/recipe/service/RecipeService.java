@@ -2735,6 +2735,8 @@ public class RecipeService extends RecipeBaseService{
         recipe.setRecipeMode(null == recipe.getRecipeMode() ? "" : recipe.getRecipeMode());
         recipe.setGiveFlag(null == recipe.getGiveFlag() ? 0 : recipe.getGiveFlag());
         recipe.setPayFlag(null == recipe.getPayFlag() ? 0 : recipe.getPayFlag());
+        //date 20200226 添加默认值
+        recipe.setTotalMoney(null == recipe.getTotalMoney() ? BigDecimal.ZERO : recipe.getTotalMoney());
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
         if(null == recipe || null == details || 0 == details.size()){
             LOGGER.error("recipeCanDelivery 当前处方或者药品信息不全：{},{}.", JSON.toJSONString(recipe), JSON.toJSONString(details));
@@ -2744,6 +2746,8 @@ public class RecipeService extends RecipeBaseService{
             recipedetail.setDrugUnit(null == recipedetail.getDrugUnit() ? "" : recipedetail.getDrugUnit());
             recipedetail.setStatus(1);
             recipedetail.setPack(null == recipedetail.getPack() ? 0 : recipedetail.getPack());
+            //date 20200226 添加默认值
+            recipedetail.setSalePrice(null == recipedetail.getSalePrice() ? BigDecimal.ZERO  : recipedetail.getSalePrice());
         }
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(ObjectCopyUtils.convert(recipe, Recipe.class), ObjectCopyUtils.convert(details, Recipedetail.class), false);
 
@@ -2752,7 +2756,7 @@ public class RecipeService extends RecipeBaseService{
             //药企库存实时查询
             //首先获取机构匹配支持配送的药企列表
             List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_ONLINE);
-            payModeSupport.addAll(RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_ONLINE));
+            payModeSupport.addAll(RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_COD));
 
             DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
             //筛选出来的数据已经去掉不支持任何方式配送的药企
