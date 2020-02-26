@@ -185,11 +185,26 @@ public class PurchaseService {
         DrugsEnterprise dep = drugsEnterpriseDAO.get(MapValueUtil.getInteger(extInfo, "depId"));
         //订单类型-1省医保
         Integer orderType = MapValueUtil.getInteger(extInfo, "orderType");
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe dbRecipe = recipeDAO.get(recipeId);
+        if (null == dbRecipe) {
+            result.setCode(RecipeResultBean.FAIL);
+            result.setMsg("处方不存在");
+            return result;
+        }
+        Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
+        if (null == payMode) {
+            result.setCode(RecipeResultBean.FAIL);
+            result.setMsg("缺少购药方式");
+            return result;
+        }
         //非省医保才走自费结算
         if(!(orderType != null && orderType == 1)) {
-            if (dep != null && dep.getIsHosDep() != null && dep.getIsHosDep() == 1) {
+            //目前省中和上海六院走自费预结算
+            if ((dep != null && new Integer(1).equals(dep.getIsHosDep()))
+                    ||(dbRecipe.getClinicOrgan()==1000899)) {
                 RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-                Map<String, Object> scanResult = hisService.provincialCashPreSettle(recipeId);
+                Map<String, Object> scanResult = hisService.provincialCashPreSettle(recipeId,payMode);
                 if (!("200".equals(scanResult.get("code")))) {
                     result.setCode(RecipeResultBean.FAIL);
                     if (scanResult.get("msg") != null) {
@@ -198,21 +213,6 @@ public class PurchaseService {
                     return result;
                 }
             }
-        }
-
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe dbRecipe = recipeDAO.get(recipeId);
-        if (null == dbRecipe) {
-            result.setCode(RecipeResultBean.FAIL);
-            result.setMsg("处方不存在");
-            return result;
-        }
-
-        Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
-        if (null == payMode) {
-            result.setCode(RecipeResultBean.FAIL);
-            result.setMsg("缺少购药方式");
-            return result;
         }
 
         //处方单状态不是待处理 or 处方单已被处理

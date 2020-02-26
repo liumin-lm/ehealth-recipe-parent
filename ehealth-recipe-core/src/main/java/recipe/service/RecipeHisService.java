@@ -54,6 +54,7 @@ import recipe.dao.bean.DrugInfoHisBean;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.RecipeToHisService;
+import recipe.purchase.PurchaseEnum;
 import recipe.util.DateConversion;
 import recipe.util.DigestUtil;
 import recipe.util.RedisClient;
@@ -90,7 +91,7 @@ public class RecipeHisService extends RecipeBaseService {
             return false;
         }
         //中药处方由于不需要跟HIS交互，故读写分离后有可能查询不到数据
-        if (skipHis(recipe)||isAfterPatientChoose(recipe.getClinicOrgan())) {
+        if (skipHis(recipe)) {
             LOGGER.info("skip his!!! recipeId={}",recipeId);
            /* RecipeCheckPassResult recipeCheckPassResult = new RecipeCheckPassResult();
             recipeCheckPassResult.setRecipeId(recipeId);
@@ -111,13 +112,13 @@ public class RecipeHisService extends RecipeBaseService {
         return result;
     }
 
-    private boolean isAfterPatientChoose(Integer clinicOrgan) {
-        //todo---暂时写死上海六院---在患者选完取药方式之后推送处方
+   /* private boolean isAfterPatientChoose(Integer clinicOrgan) {
+        //
         if (clinicOrgan == 1000899){
             return true;
         }
         return false;
-    }
+    }*/
 
     @RpcService
     public void sendRecipe(Integer recipeId, Integer sendOrganId) {
@@ -654,10 +655,11 @@ public class RecipeHisService extends RecipeBaseService {
     /**
      * 处方自费预结算接口
      * @param recipeId
+     * @param payMode
      * @return
      */
     @RpcService
-    public Map<String,Object> provincialCashPreSettle(Integer recipeId){
+    public Map<String,Object> provincialCashPreSettle(Integer recipeId, Integer payMode){
         Map<String,Object> result = Maps.newHashMap();
         result.put("code","-1");
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -669,6 +671,14 @@ public class RecipeHisService extends RecipeBaseService {
         }
         try{
             RecipeCashPreSettleReqTO request = new RecipeCashPreSettleReqTO();
+            //购药方式
+            if (PurchaseEnum.PAYMODE_ONLINE.getPayMode().equals(payMode)){
+                //配送到家
+                request.setDeliveryType("1");
+            }else if (PurchaseEnum.PAYMODE_TO_HOS.getPayMode().equals(payMode)){
+                //到院取药
+                request.setDeliveryType("0");
+            }
             request.setClinicOrgan(recipe.getClinicOrgan());
             request.setRecipeId(String.valueOf(recipeId));
             request.setHisRecipeNo(recipe.getRecipeCode());
@@ -685,18 +695,26 @@ public class RecipeHisService extends RecipeBaseService {
                 if(hisResult.getData() != null){
                     //自费金额
                     String cashAmount = hisResult.getData().getZfje();
-
+                    //总金额
                     String totalAmount = hisResult.getData().getZje();
+                    //his收据号
+                    String hisSettlementNo = hisResult.getData().getSjh();
                     if (StringUtils.isNotEmpty(cashAmount)&&StringUtils.isNotEmpty(totalAmount)){
                         RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                         if(ext != null){
-                            ImmutableMap<String, String> map = ImmutableMap.of("preSettleTotalAmount", totalAmount,"cashAmount", cashAmount);
+                            ImmutableMap<String, String> map;
+                            if (StringUtils.isNotEmpty(hisSettlementNo)){
+                                map = ImmutableMap.of("preSettleTotalAmount", totalAmount,"cashAmount", cashAmount,"hisSettlementNo",hisSettlementNo);
+                            }else {
+                                map = ImmutableMap.of("preSettleTotalAmount", totalAmount,"cashAmount", cashAmount);
+                            }
                             recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(),map);
                         } else {
                             ext = new RecipeExtend();
                             ext.setRecipeId(recipe.getRecipeId());
                             ext.setPreSettletotalAmount(totalAmount);
                             ext.setCashAmount(cashAmount);
+                            ext.setHisSettlementNo(hisSettlementNo);
                             recipeExtendDAO.save(ext);
                         }
                     }
