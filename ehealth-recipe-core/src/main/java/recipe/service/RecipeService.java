@@ -1174,6 +1174,11 @@ public class RecipeService extends RecipeBaseService{
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), afterStatus,
                 updateMap);
         afterCheckPassYs(dbRecipe);
+        //date20200227 判断前置的时候二次签名成功，发对应的消息
+        if(ReviewTypeConstant.Preposition_Check == dbRecipe.getReviewType()){
+            auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckPassYs(dbRecipe);
+        }
+
         try {
             //生成pdf并签名
             recipeService.generateRecipePdfAndSign(recipe.getRecipeId());
