@@ -146,9 +146,9 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             CloseableHttpResponse response = sendStockHttpRequest(drugsEnterprise, saleDrug, pharmacy, httpClient);
             HttpEntity httpEntity = response.getEntity();
             String responseStr = EntityUtils.toString(httpEntity);
+            LOGGER.info("YtRemoteService.getDrugInventory:[{}]门店该[{}]药品查询库存，请求返回:{}", pharmacy.getPharmacyCode(), saleDrug.getOrganDrugCode(), responseStr);
             if(CommonConstant.requestSuccessCode == response.getStatusLine().getStatusCode()) {
                 YtStockResponse stockResponse = JSONUtils.parse(responseStr, YtStockResponse.class);
-                LOGGER.info("YtRemoteService.getDrugInventory:[{}]门店该[{}]药品查询库存，请求返回:{}", pharmacy.getPharmacyCode(), saleDrug.getOrganDrugCode(), responseStr);
                 return stockResponse.getStock().toString();
             }
         }catch (Exception e){
