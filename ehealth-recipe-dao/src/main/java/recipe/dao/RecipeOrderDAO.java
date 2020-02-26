@@ -259,7 +259,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         vo.setDeptId(objs[5] == null ? null : (Integer)objs[5]);
                         vo.setOutTradeNo(objs[6] == null ? null : objs[6] + "");
                         vo.setSettleType(objs[7] == null ? null : Integer.parseInt(objs[7] + ""));
-                        vo.setDeliveryMethod(objs[8] == null ? null : Integer.parseInt(objs[7] + ""));
+                        vo.setDeliveryMethod(objs[8] == null ? null : Integer.parseInt(objs[8] + ""));
                         vo.setDrugCompany(objs[5] == null ? null : (Integer)objs[5]);
                         vo.setDrugCompanyName(objs[19] == null ? null : objs[19] + "");
                         vo.setPayFlag(objs[9] == null ? null : Integer.parseInt(objs[9] + ""));
