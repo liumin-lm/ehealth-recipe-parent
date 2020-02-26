@@ -118,13 +118,13 @@ public class DrugListExtService extends BaseService<DrugListBean> {
     @RpcService
     public List<DrugListBean> findCommonDrugLists(int doctor, int organId, int drugType) {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-        List<DrugList> dList = drugListDAO.findCommonDrugListsWithPage(doctor, organId, drugType, 0, 20);
+        List<OrganDrugList> dList = drugListDAO.findCommonDrugListsWithPage(doctor, organId, drugType, 0, 20);
         // 添加医院价格
-        if (CollectionUtils.isNotEmpty(dList)) {
+       /* if (CollectionUtils.isNotEmpty(dList)) {
             getHospitalPrice(organId, dList);
-        }
+        }*/
         List<DrugListBean> drugListBeans = getList(dList, DrugListBean.class);
-        try{
+        /*try{
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             for (DrugListBean drugListBean : drugListBeans) {
                 List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugListBean.getDrugId(), organId);
@@ -132,7 +132,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             }
         }catch(Exception e){
             LOGGER.info("DrugListService.findCommonDrugLists 查询机构药品出错, 机构ID:{},{}", organId, e.getMessage());
-        }
+        }*/
         //设置岳阳市人民医院药品库存
         setStoreIntroduce(organId, drugListBeans);
         return drugListBeans;
