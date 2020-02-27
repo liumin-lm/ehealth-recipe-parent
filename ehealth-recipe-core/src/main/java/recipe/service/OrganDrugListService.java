@@ -210,7 +210,9 @@ public class OrganDrugListService {
             DrugList drugList = drugListDAO.getById(organDrugList.getDrugId());
             organDrugList.setOrganDrugId(null);
             organDrugList.setProducer(drugList.getProducer());
-            organDrugList.setProducerCode("");
+            if (StringUtils.isEmpty(organDrugList.getProducerCode())){
+                organDrugList.setProducerCode("");
+            }
             OrganDrugList saveOrganDrugList = organDrugListDAO.save(organDrugList);
             addOrganDrugListToBy(saveOrganDrugList);
             uploadOrganDrugListToJg(saveOrganDrugList);

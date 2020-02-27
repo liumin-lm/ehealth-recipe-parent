@@ -231,6 +231,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                         commonRecipeDrug.setDrugStatus(organDrug.getStatus());
                         commonRecipeDrug.setSalePrice(organDrug.getSalePrice());
                         commonRecipeDrug.setPrice1(organDrug.getSalePrice().doubleValue());
+                        commonRecipeDrug.setDrugForm(organDrug.getDrugForm());
                         //添加平台药品ID
                         if (null != commonRecipeDrug.getUseTotalDose()) {
                             commonRecipeDrug.setDrugCost(organDrug.getSalePrice().multiply(
@@ -251,6 +252,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                         commonRecipeDrug.setDrugStatus(organDrug.getStatus());
                         commonRecipeDrug.setSalePrice(organDrug.getSalePrice());
                         commonRecipeDrug.setPrice1(organDrug.getSalePrice().doubleValue());
+                        commonRecipeDrug.setDrugForm(organDrug.getDrugForm());
                         //添加平台药品ID
                         //平台药品商品名
                         if (drug!=null){
