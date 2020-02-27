@@ -81,6 +81,8 @@
 
 	<!--易复诊药企-->
 	<bean id="byRemoteService" class="recipe.drugsenterprise.ByRemoteService"/>
+	<!--武汉六院英克药企-->
+	<bean id="ykRemoteService" class="recipe.drugsenterprise.YkRemoteService"/>
 
 	<bean id="busTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" destroy-method="shutdown">
 		<!-- 线程池活跃的线程数 -->

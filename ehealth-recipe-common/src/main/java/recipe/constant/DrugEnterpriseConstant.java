@@ -86,4 +86,9 @@ public class DrugEnterpriseConstant {
      * 百洋集团
      */
     public static final String COMPANY_BY = "by";
+
+    /**
+     * 英特药企
+     */
+    public static final String COMPANY_YK = "yk";
 }
