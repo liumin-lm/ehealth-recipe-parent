@@ -236,6 +236,9 @@ public class OrganDrugListService {
                 if (organDrugList.getUseDose() == null) {
                     target.setUseDose(null);
                 }
+                if (organDrugList.getRecommendedUseDose() == null) {
+                    target.setRecommendedUseDose(null);
+                }
                 target.setLastModify(new Date());
                 validateOrganDrugList(target);
                 target = organDrugListDAO.update(target);
