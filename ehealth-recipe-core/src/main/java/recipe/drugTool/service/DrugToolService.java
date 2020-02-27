@@ -744,8 +744,9 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setStatus(1);
                         organDrugList.setProducerCode("");
                         organDrugList.setLastModify(new Date());
-
-                        organDrugList.setProducerCode(drugListMatch.getDrugManfCode());
+                        if(StringUtils.isNotEmpty(drugListMatch.getDrugManfCode())) {
+                            organDrugList.setProducerCode(drugListMatch.getDrugManfCode());
+                        }
                         organDrugList.setMedicalDrugCode(drugListMatch.getMedicalDrugCode());
                         organDrugList.setMedicalDrugFormCode(drugListMatch.getMedicalDrugFormCode());
                         organDrugList.setDrugFormCode(drugListMatch.getHisFormCode());
