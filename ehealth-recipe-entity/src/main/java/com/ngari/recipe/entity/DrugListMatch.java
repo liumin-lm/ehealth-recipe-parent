@@ -441,7 +441,7 @@ public class DrugListMatch implements java.io.Serializable {
         this.medicalDrugCode = medicalDrugCode;
     }
 
-    @Column(name = "medicalDrugFormCode", length = 11)
+    @Column(name = "medicalDrugFormCode", length = 30)
     public String getMedicalDrugFormCode() {
         return medicalDrugFormCode;
     }
@@ -450,7 +450,7 @@ public class DrugListMatch implements java.io.Serializable {
         this.medicalDrugFormCode = medicalDrugFormCode;
     }
 
-    @Column(name = "hisFormCode", length = 11)
+    @Column(name = "hisFormCode", length = 30)
     public String getHisFormCode() {
         return hisFormCode;
     }

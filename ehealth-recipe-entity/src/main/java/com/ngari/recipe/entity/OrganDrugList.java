@@ -209,7 +209,7 @@ public class OrganDrugList implements java.io.Serializable {
         this.salePrice = salePrice;
     }
 
-    @Column(name = "ProducerCode", length = 20)
+    @Column(name = "ProducerCode", length = 30)
     public String getProducerCode() {
         return producerCode;
     }
