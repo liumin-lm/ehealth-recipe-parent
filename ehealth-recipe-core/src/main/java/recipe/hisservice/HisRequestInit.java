@@ -484,7 +484,14 @@ public class HisRequestInit {
                 RecipeExtendDAO extendDAO = getDAO(RecipeExtendDAO.class);
                 RecipeExtend extend = extendDAO.getByRecipeId(recipe.getRecipeId());
                 if(extend != null && extend.getCashAmount() != null){
+                    //自负金额
                     requestTO.setCashAmount(extend.getCashAmount());
+                    //应付金额
+                    requestTO.setPayAmount(extend.getPayAmount());
+                    //总金额
+                    requestTO.setPreSettleTotalAmount(extend.getPreSettletotalAmount());
+                    //his收据号
+                    requestTO.setHisSettlementNo(extend.getHisSettlementNo());
                 } else {
                     LOGGER.info("无法获取处方的预结算返回的自费金额，处方={}",recipe.getRecipeId());
                 }

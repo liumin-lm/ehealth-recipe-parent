@@ -655,10 +655,15 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setActualPrice(order.getAuditFee().doubleValue());
             } else {
                 order.setActualPrice(order.getTotalFee().doubleValue());
-                //判断是否医保支付
                 RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(firstRecipe.getRecipeId());
                 if (recipeExtend!=null){
+                    //上海六院使用预结算返回的应付金额
+                    if (firstRecipe.getClinicOrgan() == 1000899){
+                        if (StringUtils.isNotEmpty(recipeExtend.getPayAmount())){
+                            order.setActualPrice(new BigDecimal(recipeExtend.getPayAmount()).doubleValue());
+                        }
+                    }
                     //预结算总金额
                     if (StringUtils.isNotEmpty(recipeExtend.getPreSettletotalAmount())){
                         order.setPreSettletotalAmount(new Double(recipeExtend.getPreSettletotalAmount()));

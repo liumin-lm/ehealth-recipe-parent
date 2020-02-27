@@ -52,6 +52,13 @@ public class PayModeToHos implements IPurchaseService{
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
         StringBuilder sb = new StringBuilder();
+        PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+        //todo---暂时写死上海六院---配送到家判断是否是自费患者
+        if (dbRecipe.getClinicOrgan() == 1000899 && !purchaseService.isMedicarePatient(1000899,dbRecipe.getMpiid())){
+            resultBean.setCode(RecipeResultBean.FAIL);
+            resultBean.setMsg("自费患者不支持到院取药，请选择其他取药方式");
+            return resultBean;
+        }
         if(CollectionUtils.isNotEmpty(detailList)){
             String pharmNo = detailList.get(0).getPharmNo();
             if(StringUtils.isNotEmpty(pharmNo)){
