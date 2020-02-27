@@ -251,7 +251,7 @@ public class DrugToolService implements IDrugToolService {
             if (rowIndex == 0) {
                 String drugCode = getStrFromCell(row.getCell(0));
                 String drugName = getStrFromCell(row.getCell(1));
-                String retrievalCode = getStrFromCell(row.getCell(18));
+                String retrievalCode = getStrFromCell(row.getCell(19));
                 if ("药品编号".equals(drugCode) && "药品通用名".equals(drugName) && "院内检索码".equals(retrievalCode)) {
                     continue;
                 } else {
@@ -352,18 +352,18 @@ public class DrugToolService implements IDrugToolService {
                 }
 
                 try {
-                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(10)))) {
+                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(11)))) {
                         errMsg.append("生产厂家不能为空").append(";");
                     }
-                    drug.setProducer(getStrFromCell(row.getCell(10)));
+                    drug.setProducer(getStrFromCell(row.getCell(11)));
                 } catch (Exception e) {
                     errMsg.append("生产厂家有误").append(";");
                 }
 
                 try {
-                    if (("是").equals(getStrFromCell(row.getCell(17)))) {
+                    if (("是").equals(getStrFromCell(row.getCell(18)))) {
                         drug.setBaseDrug(1);
-                    } else if (("否").equals(getStrFromCell(row.getCell(17)))) {
+                    } else if (("否").equals(getStrFromCell(row.getCell(18)))) {
                         drug.setBaseDrug(0);
                     }else {
                         errMsg.append("是否基药格式不正确").append(";");
@@ -382,13 +382,13 @@ public class DrugToolService implements IDrugToolService {
             }
 
             try {
-                drug.setRetrievalCode(getStrFromCell(row.getCell(18)));
+                drug.setRetrievalCode(getStrFromCell(row.getCell(19)));
             } catch (Exception e) {
                 errMsg.append("院内检索码有误").append(";");
             }
 
             try {
-                String priceCell = getStrFromCell(row.getCell(11));
+                String priceCell = getStrFromCell(row.getCell(12));
                 if (StringUtils.isEmpty(priceCell)) {
                     drug.setPrice(new BigDecimal(0));
                 } else {
@@ -398,12 +398,16 @@ public class DrugToolService implements IDrugToolService {
                 errMsg.append("药品单价有误").append(";");
             }
             //设置无需判断的数据
-            drug.setLicenseNumber(getStrFromCell(row.getCell(12)));
-            drug.setStandardCode(getStrFromCell(row.getCell(13)));
-            drug.setIndications(getStrFromCell(row.getCell(14)));
-            drug.setDrugForm(getStrFromCell(row.getCell(15)));
-            drug.setPackingMaterials(getStrFromCell(row.getCell(16)));
-            drug.setRegulationDrugCode(getStrFromCell(row.getCell(19)));
+            drug.setDrugManfCode(getStrFromCell(row.getCell(10)));
+            drug.setLicenseNumber(getStrFromCell(row.getCell(13)));
+            drug.setStandardCode(getStrFromCell(row.getCell(14)));
+            drug.setIndications(getStrFromCell(row.getCell(15)));
+            drug.setDrugForm(getStrFromCell(row.getCell(16)));
+            drug.setPackingMaterials(getStrFromCell(row.getCell(17)));
+            //drug.setRegulationDrugCode(getStrFromCell(row.getCell(20)));
+            drug.setMedicalDrugCode(getStrFromCell(row.getCell(20)));
+            drug.setMedicalDrugFormCode(getStrFromCell(row.getCell(21)));
+            drug.setHisFormCode(getStrFromCell(row.getCell(22)));
             drug.setSourceOrgan(organId);
             drug.setStatus(0);
             drug.setOperator(operator);
