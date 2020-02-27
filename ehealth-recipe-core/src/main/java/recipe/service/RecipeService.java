@@ -641,18 +641,6 @@ public class RecipeService extends RecipeBaseService{
             return Lists.newArrayList();
         }
         List<Recipedetail> detailBeanList = RecipeValidateUtil.validateDrugsImpl(dbRecipe);
-        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        try{
-            for (Recipedetail recipedetail : detailBeanList) {
-                List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), dbRecipe.getClinicOrgan());
-                if (CollectionUtils.isNotEmpty(organDrugLists)) {
-                    recipedetail.setDrugForm(organDrugLists.get(0).getDrugForm());
-                }
-            }
-        }catch (Exception e){
-            LOGGER.error("validateDrugs 获取机构剂型失败{}", e.getMessage());
-        }
-
         return ObjectCopyUtils.convert(detailBeanList, RecipeDetailBean.class);
     }
 
