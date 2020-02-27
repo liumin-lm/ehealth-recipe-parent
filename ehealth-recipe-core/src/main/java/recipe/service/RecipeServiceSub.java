@@ -1841,7 +1841,7 @@ public class RecipeServiceSub {
                         String[] strArray = saleName.split("\\s+");
                         for (String saleName1 : strArray) {
                             if (!saleName1.equals(drugName)) {
-                                drugAndSale.append(saleName1 + " ");
+                                drugAndSale.append(saleName1);
                             }
                         }
                     }
