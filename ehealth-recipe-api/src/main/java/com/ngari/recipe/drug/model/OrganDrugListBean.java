@@ -104,6 +104,9 @@ public class OrganDrugListBean implements java.io.Serializable {
     @ItemProperty(alias = "批准文号")
     private String licenseNumber;
 
+    @ItemProperty(alias = "包装材料")
+    private String packingMaterials;
+
     @ItemProperty(alias = "医保药品编码")
     private String medicalDrugCode;
     @ItemProperty(alias = "医院剂型编码")
@@ -373,5 +376,13 @@ public class OrganDrugListBean implements java.io.Serializable {
 
     public void setMedicalDrugFormCode(String medicalDrugFormCode) {
         this.medicalDrugFormCode = medicalDrugFormCode;
+    }
+
+    public String getPackingMaterials() {
+        return packingMaterials;
+    }
+
+    public void setPackingMaterials(String packingMaterials) {
+        this.packingMaterials = packingMaterials;
     }
 }
