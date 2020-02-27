@@ -127,6 +127,11 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         if (CollectionUtils.isNotEmpty(drugListBeans)) {
             for (DrugListBean drugListBean : drugListBeans) {
                 drugListBean.setHospitalPrice(drugListBean.getSalePrice());
+                DrugList drugList = drugListDAO.getById(drugListBean.getDrugId());
+                if (drugList != null) {
+                    drugListBean.setPrice1(drugList.getPrice1());
+                    drugListBean.setPrice2(drugList.getPrice2());
+                }
             }
         }
         /*try{
