@@ -114,7 +114,7 @@ public class OrganDrugList implements java.io.Serializable {
 
     @ItemProperty(alias = "医保药品编码")
     private String medicalDrugCode;
-    @ItemProperty(alias = "医院剂型编码")
+    @ItemProperty(alias = "HIS剂型编码")
     private String drugFormCode;
     @ItemProperty(alias = "医保剂型编码")
     private String medicalDrugFormCode;
