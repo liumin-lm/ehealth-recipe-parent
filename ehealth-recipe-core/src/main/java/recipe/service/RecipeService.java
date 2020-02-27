@@ -952,12 +952,14 @@ public class RecipeService extends RecipeBaseService{
         Integer consultId = null;
         if (CollectionUtils.isNotEmpty(consultIds)) {
             consultId = consultIds.get(0);
+            recipe.setBussSource(2);
         }else {
             //图文咨询
             consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
                     recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_GRAPHIC);
             if (CollectionUtils.isNotEmpty(consultIds)){
                 consultId = consultIds.get(0);
+                recipe.setBussSource(1);
             }
         }
         recipe.setClinicId(consultId);
