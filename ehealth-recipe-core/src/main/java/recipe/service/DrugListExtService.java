@@ -286,7 +286,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
     public List<SearchDrugDetailDTO> searchDrugListWithESForPatient(Integer organId, Integer drugType, String drugName,
                                                    Integer start, Integer limit) {
         DrugSearchService searchService = AppContextHolder.getBean("es.drugSearchService", DrugSearchService.class);
-
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         DrugSearchTO searchTO = new DrugSearchTO();
         searchTO.setDrugName(StringUtils.isEmpty(drugName) ? "" : drugName.toLowerCase());
         searchTO.setOrgan(null == organId ? null : String.valueOf(organId));
@@ -303,6 +303,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             for (String s : drugInfo) {
                 try {
                     drugList = JSONUtils.parse(s, SearchDrugDetailDTO.class);
+                    List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugList.getDrugId(), organId);
+                    drugList.setHospitalPrice(organDrugLists.get(0).getSalePrice());
                 } catch (Exception e) {
                     LOGGER.error("searchDrugListWithESForPatient parse error. drugInfo={}", s);
                 }

@@ -274,9 +274,9 @@ public class YkRemoteService extends AccessDrugEnterpriseService {
             Map resultMap = JSONUtils.parse(resultJson, Map.class);
             String resCode = MapValueUtil.getString(resultMap, "CODE");
             if (RESULT_SUCCESS.equals(resCode)) {
-
+                LOGGER.info("YkRemoteService.sendAndDealResult 处方推送成功，{}");
             } else {
-                result.setMsg("调用[" + drugEpName + "][" + method + "]失败.error:" + MapValueUtil.getString(resultMap, "MSG"));
+                result.setMsg("调用[" + drugEpName + "][" + method + "]失败.error:" + MapValueUtil.getString(resultMap, "message"));
                 result.setCode(DrugEnterpriseResult.FAIL);
             }
         } else {
