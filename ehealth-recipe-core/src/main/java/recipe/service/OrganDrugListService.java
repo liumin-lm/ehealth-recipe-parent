@@ -219,9 +219,6 @@ public class OrganDrugListService {
             return ObjectCopyUtils.convert(saveOrganDrugList, OrganDrugListDTO.class);
         } else {
             logger.info("修改机构药品服务[updateOrganDrugList]:" + JSONUtils.toString(organDrugList));
-            if (organDrugList.getRecommendedUseDose() == null){
-                organDrugList.setRecommendedUseDose(new Double(null));
-            }
             OrganDrugList target = organDrugListDAO.get(organDrugList.getOrganDrugId());
             if (null == target) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "此药在该医院药品列表中不存在");
@@ -238,6 +235,9 @@ public class OrganDrugListService {
                 BeanUtils.map(organDrugList, target);
                 if (organDrugList.getUseDose() == null) {
                     target.setUseDose(null);
+                }
+                if (organDrugList.getRecommendedUseDose() == null) {
+                    target.setRecommendedUseDose(null);
                 }
                 target.setLastModify(new Date());
                 validateOrganDrugList(target);
