@@ -290,8 +290,12 @@ public class RecipePatientService extends RecipeBaseService {
             payModeList.add(RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS);
             //无法配送时间文案提示
             depDetailBean.setUnSendTitle(cacheService.getParam(ParameterConstant.KEY_RECIPE_UNSEND_TIP));
+        }else if (RecipeBussConstant.DEP_SUPPORT_UNKNOW.equals(supportMode)){
+            payModeList.add(RecipeBussConstant.DEP_SUPPORT_UNKNOW);
         }
-        depDetailBean.setPayMode(payModeList.get(0));
+        if (CollectionUtils.isNotEmpty(payModeList)){
+            depDetailBean.setPayMode(payModeList.get(0));
+        }
         depDetailBean.setGiveModeText(giveModeText);
         depDetailList.add(depDetailBean);
     }
