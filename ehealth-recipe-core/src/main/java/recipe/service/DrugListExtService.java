@@ -267,6 +267,10 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 List<OrganDrugList> drugList = organDrugListDAO.findByDrugIdAndOrganId(detailDTO.getDrugId(), organId);
                 if (CollectionUtils.isNotEmpty(drugList)) {
                     detailDTO.setDrugForm(drugList.get(0).getDrugForm());
+                    detailDTO.setHospitalPrice(dList.get(0).getSalePrice());
+                    detailDTO.setDrugName(dList.get(0).getDrugName());
+                    detailDTO.setSaleName(dList.get(0).getSaleName());
+                    detailDTO.setDrugSpec(dList.get(0).getDrugSpec());
                 }
                 drugListNow = drugListDAO.getById(detailDTO.getDrugId());
                 //添加es价格空填值逻辑
@@ -274,7 +278,6 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     detailDTO.setPrice1(null == detailDTO.getPrice1() ? drugListNow.getPrice1() : detailDTO.getPrice1());
                     detailDTO.setPrice2(null == detailDTO.getPrice2() ? drugListNow.getPrice2() : detailDTO.getPrice2());
                 }
-
             }
         }
         return dList;
