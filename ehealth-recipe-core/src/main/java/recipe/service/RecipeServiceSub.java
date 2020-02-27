@@ -1853,7 +1853,7 @@ public class RecipeServiceSub {
                     }
                     drugAndSale.append(drugName + " ");
                     //拼装
-                    drugNames.add(drugAndSale + drugForm + drugSpec);
+                    drugNames.add(drugAndSale + drugForm + " "  + drugSpec + "/" + drugUnit);
                 }
             }
         }
