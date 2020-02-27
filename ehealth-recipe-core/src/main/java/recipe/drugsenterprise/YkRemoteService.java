@@ -4,10 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -24,10 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
-import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeOrderDAO;
+import recipe.dao.*;
 import recipe.drugsenterprise.bean.YkDrugDto;
 import recipe.drugsenterprise.bean.YkRecipeInfoDto;
 import recipe.drugsenterprise.bean.YkRecipeListInfoDto;
@@ -155,9 +149,11 @@ public class YkRemoteService extends AccessDrugEnterpriseService {
 
             ykRecipeInfoDto.setUsestates("1");
             List<YkDrugDto> ykDrugDtoList = new ArrayList<YkDrugDto>();
+            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
             for(Recipedetail recipedetail:recipedetails){
                 YkDrugDto ykDrugDto=new YkDrugDto();
-                ykDrugDto.setGoods_id(recipedetail.getDrugId());
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), enterprise.getId());
+                ykDrugDto.setGoods_id(Integer.parseInt(saleDrugList.getOrganDrugCode()));
                 ykDrugDto.setGoods_num(recipedetail.getUseTotalDose().intValue());
                 ykDrugDto.setPrescriptiondtlid(recipedetail.getRecipeDetailId());
                 ykDrugDto.setPrescriptiontype(2);
