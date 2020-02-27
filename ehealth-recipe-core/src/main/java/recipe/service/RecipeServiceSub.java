@@ -1851,7 +1851,8 @@ public class RecipeServiceSub {
                             }
                         }
                     }
-                    drugAndSale.append(drugName + " ");
+                    drugAndSale.append(drugName);
+
                     //拼装
                     drugNames.add(drugAndSale + drugForm + " "  + drugSpec + "/" + drugUnit);
                 }
