@@ -417,8 +417,10 @@ public class RecipeServiceSub {
                 firstDrugDepIds.retainAll(depIds);
             }
         }
-        List<String> drugNames = drugList.stream().map(e->e.getDrugName()).collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(noFilterDrugName)) {
+        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        List<Recipedetail> recipedetails = detailDAO.findByRecipeId(recipeId);
+        List<String> drugNames = recipedetails.stream().map(e->e.getDrugName()).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(noFilterDrugName) && CollectionUtils.isNotEmpty(drugNames)) {
             LOGGER.error("setDetailsInfo 存在无法一起配送的药品. recipeId=[{}], drugIds={}, noFilterDrugName={}",
                     recipeId, JSONUtils.toString(drugIds), JSONUtils.toString(noFilterDrugName));
             //一张处方单上的药品不能同时支持同一家药企配送
