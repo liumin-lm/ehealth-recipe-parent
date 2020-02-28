@@ -21,6 +21,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.HisSendResTO;
 import com.ngari.recipe.recipe.model.OrderRepTO;
@@ -36,9 +37,12 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
+import recipe.bean.OrganDrugChangeBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
@@ -46,10 +50,7 @@ import recipe.constant.BusTypeEnum;
 import recipe.constant.CacheConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.dao.OrganDrugListDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeExtendDAO;
+import recipe.dao.*;
 import recipe.dao.bean.DrugInfoHisBean;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
@@ -1087,5 +1088,243 @@ public class RecipeHisService extends RecipeBaseService {
             request.setDrugList(drugListTO);
             service.syncDrugListToHis(request);
         }
+    }
+
+    public static String[] getNullPropertyNames (Object source) {
+        final BeanWrapper src = new BeanWrapperImpl(source);
+        java.beans.PropertyDescriptor[] pds = src.getPropertyDescriptors();
+
+        Set<String> emptyNames = new HashSet<String>();
+        for(java.beans.PropertyDescriptor pd : pds) {
+            Object srcValue = src.getPropertyValue(pd.getName());
+            if (srcValue == null) emptyNames.add(pd.getName());
+        }
+        String[] result = new String[emptyNames.size()];
+        return emptyNames.toArray(result);
+    }
+
+    //杭州市互联网医院可外配药品更新上传接口
+    @RpcService
+    public RecipeResultBean updateOrSaveOrganDrug(OrganDrugChangeBean organDrugChangeBean){
+        LOGGER.info("updateOrSaveOrganDrug 更新药品信息入参{}", JSONUtils.toString(organDrugChangeBean));
+        RecipeResultBean result = RecipeResultBean.getFail();
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        SaleDrugList saleDrugList = DAOFactory.getDAO(SaleDrugList.class);
+        //根据你操作的方式，判断药品修改的方式（机构药品目录）
+        //根据省监管药品代码，关联到对应的organDrugList,saleDrugList
+        Integer operationCode = organDrugChangeBean.getOperationCode();
+        //1新增 2修改 3停用
+        OrganDrugList organDrugList = new OrganDrugList();
+        BeanUtils.copyProperties(organDrugChangeBean, organDrugList);
+
+        if(!validDrugMsg(organDrugChangeBean, result)){
+            return result;
+        }
+        OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+        List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organDrugChangeBean.getOrganId(), 1);
+        if(CollectionUtils.isEmpty(drugsEnterprises)){
+            result.setMsg("当前医院"+ organDrugChangeBean.getOrganId() +"没有关联药企，无法操作关联的配送药品！");
+            return result;
+        }
+        Integer drugsEnterpriseId = drugsEnterprises.get(0).getId();
+
+        switch(operationCode){
+            //新增
+            case 1:
+                //校验是否可以新增
+                if(!validDrugAdd(organDrugChangeBean, result)){
+                    return result;
+                }
+                //新增1条organDrugList
+                //新增1条saleDrugList
+                List<OrganDrugList> organDrugsNo = organDrugListDAO.findByOrganIdAndDrugIdAndOrganDrugCodeAndStatus
+                        (organDrugChangeBean.getOrganId(), organDrugChangeBean.getDrugId(),
+                                organDrugChangeBean.getOrganDrugCode(), 0);
+                //判断有没有失效的
+                if(CollectionUtils.isNotEmpty(organDrugsNo)){
+                    //查询对应的配送药品设置为启用
+                    List<SaleDrugList> saleDrugLists = saleDrugListDAO.
+                            findByDrugIdAndOrganIdAndOrganDrugCodeAndStatus(drugsEnterpriseId, organDrugsNo.get(0).getDrugId(), organDrugChangeBean.getCloudPharmDrugCode(), 0);
+                    if(CollectionUtils.isEmpty(saleDrugLists)){
+                        result.setMsg("当前没有停用配送药品");
+                        return result;
+                    }
+
+                    //将设置为启用
+                    OrganDrugList organDrugListAdd = organDrugsNo.get(0);
+                    BeanUtils.copyProperties(organDrugList, organDrugListAdd, getNullPropertyNames(organDrugList));
+                    organDrugListAdd.setStatus(1);
+                    LOGGER.info("updateOrSaveOrganDrug 更新机构药品信息{}", JSONUtils.toString(organDrugListAdd));
+                    OrganDrugList nowOrganDrugList = organDrugListDAO.update(organDrugListAdd);
+
+                    SaleDrugList nowSaleDrugList = saleDrugLists.get(0);
+                    nowSaleDrugList.setStatus(1);
+                    nowSaleDrugList.setDrugId(organDrugChangeBean.getDrugId());
+                    nowSaleDrugList.setOrganDrugCode(organDrugChangeBean.getCloudPharmDrugCode());
+                    nowSaleDrugList.setOrganId(drugsEnterpriseId);
+                    nowSaleDrugList.setPrice(organDrugChangeBean.getSalePrice());
+                    LOGGER.info("updateOrSaveOrganDrug 更新配送药品信息{}", JSONUtils.toString(nowSaleDrugList));
+                    saleDrugListDAO.update(nowSaleDrugList);
+
+                }else{
+                    //没有失效的新增
+                    organDrugList.setStatus(1);
+                    LOGGER.info("updateOrSaveOrganDrug 添加机构药品信息{}", JSONUtils.toString(organDrugList));
+                    OrganDrugList nowOrganDrugList = organDrugListDAO.save(organDrugList);
+
+                    //填充配送药品信息
+                    SaleDrugList newSaleDrugList = new SaleDrugList();
+                    newSaleDrugList.setDrugId(organDrugChangeBean.getDrugId());
+                    newSaleDrugList.setOrganDrugCode(organDrugChangeBean.getCloudPharmDrugCode());
+                    newSaleDrugList.setOrganId(drugsEnterpriseId);
+                    newSaleDrugList.setPrice(organDrugChangeBean.getSalePrice());
+                    newSaleDrugList.setStatus(1);
+                    LOGGER.info("updateOrSaveOrganDrug 添加配送药品信息{}", JSONUtils.toString(newSaleDrugList));
+                    saleDrugListDAO.save(newSaleDrugList);
+
+                }
+
+                result = RecipeResultBean.getSuccess();
+                break;
+            //修改
+            case 2:
+                //校验是否可以修改
+                if(!validDrugChange(organDrugChangeBean, result)){
+                    return result;
+                }
+                //修改1条organDrugList
+                //修改1条saleDrugList
+                List<OrganDrugList> organDrugs = organDrugListDAO.findByOrganIdAndDrugIdAndOrganDrugCodeAndStatus
+                        (organDrugChangeBean.getOrganId(), organDrugChangeBean.getDrugId(),
+                                organDrugChangeBean.getOrganDrugCode(), 1);
+                List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByDrugIdAndOrganIdAndOrganDrugCodeAndStatus
+                        ( drugsEnterpriseId, organDrugs.get(0).getDrugId(), organDrugChangeBean.getCloudPharmDrugCode(), 1);
+                if(CollectionUtils.isEmpty(saleDrugLists)){
+                    result.setMsg("当前没有启用配送药品");
+                    return result;
+                }
+                //将设置为启用
+
+                OrganDrugList organDrugListChange = organDrugs.get(0);
+                BeanUtils.copyProperties(organDrugList, organDrugListChange, getNullPropertyNames(organDrugList));
+                organDrugListChange.setStatus(1);
+                LOGGER.info("updateOrSaveOrganDrug 更新机构药品信息{}", JSONUtils.toString(organDrugListChange));
+                OrganDrugList nowOrganDrugList = organDrugListDAO.update(organDrugListChange);
+
+                SaleDrugList nowSaleDrugList = saleDrugLists.get(0);
+                nowSaleDrugList.setStatus(1);
+                nowSaleDrugList.setDrugId(organDrugChangeBean.getDrugId());
+                nowSaleDrugList.setOrganDrugCode(organDrugChangeBean.getCloudPharmDrugCode());
+                nowSaleDrugList.setOrganId(drugsEnterpriseId);
+                nowSaleDrugList.setPrice(organDrugChangeBean.getSalePrice());
+                LOGGER.info("updateOrSaveOrganDrug 更新配送药品信息{}", JSONUtils.toString(nowSaleDrugList));
+                saleDrugListDAO.update(nowSaleDrugList);
+
+                result = RecipeResultBean.getSuccess();
+                break;
+            //停用
+            case 3:
+                //校验是否可以停用
+                if(!validDrugDown(organDrugChangeBean, result)){
+                    return result;
+                }
+                //停用1条organDrugList
+                //停用1条saleDrugList
+                List<OrganDrugList> organDrugsDown = organDrugListDAO.findByOrganIdAndDrugIdAndOrganDrugCodeAndStatus
+                        (organDrugChangeBean.getOrganId(), organDrugChangeBean.getDrugId(),
+                                organDrugChangeBean.getOrganDrugCode(), 1);
+                List<SaleDrugList> saleDrugListsDown = saleDrugListDAO.findByDrugIdAndOrganIdAndOrganDrugCodeAndStatus
+                        (drugsEnterpriseId, organDrugsDown.get(0).getDrugId(), organDrugChangeBean.getCloudPharmDrugCode(), 1);
+                if(CollectionUtils.isEmpty(saleDrugListsDown)){
+                    result.setMsg("当前没有启用配送药品");
+                    return result;
+                }
+
+                OrganDrugList organDrugListDown = organDrugsDown.get(0);
+                organDrugListDown.setStatus(0);
+                LOGGER.info("updateOrSaveOrganDrug 停用机构药品信息{}", JSONUtils.toString(organDrugListDown));
+                organDrugListDAO.update(organDrugListDown);
+
+                SaleDrugList saleDrugListDown = saleDrugListsDown.get(0);
+                saleDrugListDown.setStatus(0);
+                LOGGER.info("updateOrSaveOrganDrug 停用配送药品信息{}", JSONUtils.toString(saleDrugListDown));
+                saleDrugListDAO.update(saleDrugListDown);
+
+                result = RecipeResultBean.getSuccess();
+
+                break;
+            default:
+        }
+        return result;
+
+
+    }
+
+    private boolean validDrugMsg(OrganDrugChangeBean organDrugChangeBean, RecipeResultBean result) {
+        if(null == organDrugChangeBean.getDrugId() || null == organDrugChangeBean.getOrganId() ||
+                null == organDrugChangeBean.getOrganDrugCode() || null == organDrugChangeBean.getCloudPharmDrugCode()){
+            result.setMsg("当前新增药品信息，信息缺失,无法操作！");
+            return false;
+        }
+
+        return true;
+    }
+
+
+    private boolean validDrugAdd(OrganDrugChangeBean organDrugChangeBean, RecipeResultBean result) {
+
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        //判断当前机构药品是否已经存在
+        List<OrganDrugList> organDrugs = organDrugListDAO.findByOrganIdAndDrugIdAndOrganDrugCodeAndStatus
+                (organDrugChangeBean.getOrganId(), organDrugChangeBean.getDrugId(),
+                        organDrugChangeBean.getOrganDrugCode(), 1);
+        //如果已经有了启用的
+        if(CollectionUtils.isNotEmpty(organDrugs)){
+            result.setMsg("当前药品信息系统已存在，无法重复新增！");
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean validDrugChange(OrganDrugChangeBean organDrugChangeBean, RecipeResultBean result) {
+
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        //判断当前机构药品是否已经存在
+        List<OrganDrugList> organDrugs = organDrugListDAO.findByOrganIdAndDrugIdAndOrganDrugCodeAndStatus
+                (organDrugChangeBean.getOrganId(), organDrugChangeBean.getDrugId(),
+                        organDrugChangeBean.getOrganDrugCode(), 1);
+        //如果没有启用的
+        if(CollectionUtils.isEmpty(organDrugs)){
+            result.setMsg("当前药品信息系统没有启用的,无法修改药品信息！");
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean validDrugDown(OrganDrugChangeBean organDrugChangeBean, RecipeResultBean result) {
+
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        //判断当前机构药品是否已经存在
+        List<OrganDrugList> organDrugs = organDrugListDAO.findByOrganIdAndDrugIdAndOrganDrugCodeAndStatus
+                (organDrugChangeBean.getOrganId(), organDrugChangeBean.getDrugId(),
+                        organDrugChangeBean.getOrganDrugCode(), 1);
+        //如果没有启用的
+        if(CollectionUtils.isEmpty(organDrugs)){
+            result.setMsg("当前药品信息系统没有启用的,无法停用药品信息！");
+            return false;
+        }
+        return true;
+    }
+
+    //杭州市互联网医院查询基础药品目录
+    @RpcService
+    public List<DrugList> getDrugList(String organId, String organName, Integer start, Integer limit){
+
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        return drugListDAO.findAllForPage(start, limit);
+
     }
 }
