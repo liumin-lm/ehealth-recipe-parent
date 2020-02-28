@@ -1,4 +1,4 @@
-package recipe.bean;
+package com.ngari.recipe.common;
 
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
