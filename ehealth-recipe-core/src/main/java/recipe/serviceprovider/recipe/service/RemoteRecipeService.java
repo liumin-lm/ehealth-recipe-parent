@@ -776,7 +776,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             return;
         }
         try {
-            RecipeOrderService recipeOrderService = RecipeAPI.getService(RecipeOrderService.class);
+            RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
             recipeOrderService.recipeMedicInsurSettleSaveOrder(request);
         } catch (Exception e) {
             LOGGER.info("recipeMedicInsurSettleSaveOrder error", e);
