@@ -2001,6 +2001,11 @@ public class RecipeOrderService extends RecipeBaseService {
         recipeOrder.setFundAmount(Optional.ofNullable(request.getFundAmount()).orElse(0.00));
         recipeOrder.setCashAmount(Optional.ofNullable(request.getCashAmount()).orElse(0.00));
         recipeOrder.setTradeNo(request.getInsuTSN());
+        recipeOrder.setRegisterFee(BigDecimal.ZERO);
+        recipeOrder.setCouponFee(BigDecimal.ZERO);
+        recipeOrder.setDivisionFlag(0);
+        recipeOrder.setEffective(1);
+        recipeOrder.setStatus(3);
         recipeOrder.setSettleOrderNo(request.getPayOrderNo());
         recipeOrder.setOrderType(1);
         recipeOrder.setPayTime(request.getSettlingTime()); //医保结算时间
