@@ -70,6 +70,11 @@ public class PatientTabStatusRecipeDTO implements Serializable {
 
     private Integer giveMode;
 
+    /**
+     * 处方单特殊来源标识：1省中，邵逸夫医保小程序; 默认null
+     */
+    private Integer recipeSource;
+
     private List<RecipeDetailBean> recipeDetail;
 
     /**
@@ -351,5 +356,13 @@ public class PatientTabStatusRecipeDTO implements Serializable {
 
     public void setClinicOrgan(Integer clinicOrgan) {
         this.clinicOrgan = clinicOrgan;
+    }
+
+    public Integer getRecipeSource() {
+        return recipeSource;
+    }
+
+    public void setRecipeSource(Integer recipeSource) {
+        this.recipeSource = recipeSource;
     }
 }
