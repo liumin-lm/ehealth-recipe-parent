@@ -6,6 +6,9 @@ import com.google.common.collect.Maps;
 import com.ngari.base.employment.model.EmploymentBean;
 import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.consult.ConsultAPI;
+import com.ngari.consult.ConsultBean;
+import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.his.patient.service.IPatientHisService;
@@ -262,6 +265,14 @@ public class PayModeOnline implements IPurchaseService {
 
         //设置为有效订单
         order.setEffective(1);
+
+        // 根据咨询单来源来获取处方单来源
+        IConsultService consultService = ConsultAPI.getService(IConsultService.class);
+        ConsultBean consultBean = consultService.getById(dbRecipe.getClinicId());
+        if (consultBean.getConsultSource().equals(1) && dbRecipe.getRecipeSource().equals(1)) {
+            order.setOrderType(3);
+        }
+
         boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
         if (!saveFlag) {
             result.setCode(RecipeResultBean.FAIL);

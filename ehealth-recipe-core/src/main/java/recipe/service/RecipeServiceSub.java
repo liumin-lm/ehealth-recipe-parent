@@ -15,6 +15,7 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.common.dto.RecipeTagMsgBean;
+import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.message.service.IConsultMessageService;
@@ -196,6 +197,11 @@ public class RecipeServiceSub {
             recipe.setRecipeCode(recipeCodeStr);
             recipeBean.setRecipeCode(recipeCodeStr);
         }
+
+        // 根据咨询单来源来获取处方单来源
+        IConsultService consultService = ConsultAPI.getService(IConsultService.class);
+        ConsultBean consultBean = consultService.getById(recipeBean.getClinicId());
+        recipe.setRecipeSource(consultBean.getConsultSource());
 
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
         recipe.setRecipeId(recipeId);
