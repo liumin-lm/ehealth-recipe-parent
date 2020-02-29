@@ -1994,8 +1994,10 @@ public class RecipeOrderService extends RecipeBaseService {
         recipeOrder.setRecipeIdList("["+request.getRecipeId()+"]");
         recipeOrder.setOrderCode(request.getRecipeCode());
         recipeOrder.setPayFlag(1);
+        recipeOrder.setRecipeFee(recipe.getTotalMoney());
 //        recipeOrder //his发票号
         recipeOrder.setTotalFee(Optional.ofNullable(new BigDecimal(request.getTotalAmount())).orElse(BigDecimal.ZERO));
+        recipeOrder.setActualPrice(recipeOrder.getTotalFee().doubleValue());
         recipeOrder.setFundAmount(Optional.ofNullable(request.getFundAmount()).orElse(0.00));
         recipeOrder.setCashAmount(Optional.ofNullable(request.getCashAmount()).orElse(0.00));
         recipeOrder.setTradeNo(request.getInsuTSN());
