@@ -485,4 +485,9 @@ public class RecipeToHisService {
         return hisService.recipeCashPreSettle(request);
     }
 
+    public HisResponseTO<MedicInsurSettleApplyResTO>  recipeMedicInsurPreSettle(MedicInsurSettleApplyReqTO reqTO){
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        return hisService.recipeMedicInsurPreSettle(reqTO);
+    }
+
 }

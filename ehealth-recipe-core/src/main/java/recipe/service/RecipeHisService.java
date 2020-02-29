@@ -26,6 +26,7 @@ import com.ngari.recipe.recipe.model.HisSendResTO;
 import com.ngari.recipe.recipe.model.OrderRepTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -1107,5 +1108,16 @@ public class RecipeHisService extends RecipeBaseService {
             request.setDrugList(drugListTO);
             service.syncDrugListToHis(request);
         }
+    }
+
+    public MedicInsurSettleApplyResTO recipeMedicInsurPreSettle(MedicInsurSettleApplyReqTO reqTO){
+        RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+        LOGGER.info("调用his接口recipeMedicInsurPreSettle，入参：{}",JSONUtils.toString(reqTO));
+        HisResponseTO<MedicInsurSettleApplyResTO> hisResponseTO = service.recipeMedicInsurPreSettle(reqTO);
+        LOGGER.info("调用his接口recipeMedicInsurPreSettle，出参：{},idCard = {}",JSONUtils.toString(hisResponseTO),reqTO.getCertId());
+        if(null == hisResponseTO || !"200".equals(hisResponseTO.getMsgCode())){
+            throw new DAOException("his recipeMedicInsurPreSettle error");
+        }
+        return hisResponseTO.getData();
     }
 }

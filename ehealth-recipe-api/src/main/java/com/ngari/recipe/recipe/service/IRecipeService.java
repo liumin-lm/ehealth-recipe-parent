@@ -361,4 +361,12 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     Boolean canRequestConsultForRecipe(String mpiId,Integer depId,Integer organId);
+
+    /**
+     * 医保结算成功通知平台（结算数据回填到平台数据库）
+     * @param request
+     * @return
+     */
+    @RpcService
+    void recipeMedicInsurSettle(MedicInsurSettleSuccNoticNgariReqDTO request);
 }
