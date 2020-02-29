@@ -1,7 +1,10 @@
 package recipe.purchase;
 
 import com.google.common.collect.ImmutableMap;
+import com.ngari.base.BaseAPI;
 import com.ngari.base.hisconfig.service.IHisConfigService;
+import com.ngari.bus.hosrelation.model.HosrelationBean;
+import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
@@ -559,6 +562,11 @@ public class PurchaseService {
             if (null == dbRecipe) {
                 throw new DAOException("未查询到处方记录");
             }
+            if(null == dbRecipe.getClinicId()){
+                throw new DAOException("未查询到复诊记录");
+            }
+            IHosrelationService iHosrelationService = BaseAPI.getService(IHosrelationService.class);
+            HosrelationBean hosrelationBean = iHosrelationService.getByBusIdAndBusType(dbRecipe.getClinicId(),3);
             RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
             MedicInsurSettleApplyReqTO reqTO = new MedicInsurSettleApplyReqTO();
             reqTO.setOrganId(organId);
@@ -568,6 +576,7 @@ public class PurchaseService {
             reqTO.setRecipeId(recipeId.toString());
             reqTO.setRecipeCode(dbRecipe.getRecipeCode());
             reqTO.setClinicId(Optional.ofNullable(dbRecipe.getClinicId().toString()).orElse(""));
+            reqTO.setRegisterId(Optional.ofNullable(hosrelationBean.getRegisterId()).orElse(""));
             MedicInsurSettleApplyResTO medicInsurSettleApplyResTO = hisService.recipeMedicInsurPreSettle(reqTO);
             return medicInsurSettleApplyResTO;
         } catch (Exception e) {
