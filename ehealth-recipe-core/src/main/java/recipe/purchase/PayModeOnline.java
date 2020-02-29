@@ -10,8 +10,6 @@ import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.base.PatientBaseInfo;
-import com.ngari.his.patient.mode.PatientQueryRequestTO;
-import com.ngari.his.patient.service.IPatientHisService;
 import com.ngari.his.recipe.mode.UpdateTakeDrugWayReqTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -27,7 +25,6 @@ import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
-import ctd.util.annotation.RpcService;
 import eh.base.constant.ErrorCode;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -266,11 +263,13 @@ public class PayModeOnline implements IPurchaseService {
         //设置为有效订单
         order.setEffective(1);
 
-        // 根据咨询单来源来获取处方单来源
+        // 根据咨询单特殊来源标识和处方单特殊来源标识设置处方订单orderType为省中，邵逸夫医保小程序
         IConsultService consultService = ConsultAPI.getService(IConsultService.class);
         ConsultBean consultBean = consultService.getById(dbRecipe.getClinicId());
-        if (consultBean.getConsultSource().equals(1) && dbRecipe.getRecipeSource().equals(1)) {
-            order.setOrderType(3);
+        if (null != consultBean) {
+            if (Integer.valueOf(1).equals(consultBean.getConsultSource()) && (Integer.valueOf(1).equals(dbRecipe.getRecipeSource()))) {
+                order.setOrderType(3);
+            }
         }
 
         boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
