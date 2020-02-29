@@ -760,4 +760,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             return false;
         }
     }
+
+    @RpcService
+    @Override
+    public void recipeMedicInsurSettle(MedicInsurSettleSuccNoticNgariReqDTO request) {
+        return;
+    }
 }
