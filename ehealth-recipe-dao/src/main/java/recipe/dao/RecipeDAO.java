@@ -1882,6 +1882,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                         if (null != objs[13]) {
                             patientRecipeBean.setGiveMode(Integer.parseInt(objs[13].toString()));
                         }
+                        if (null != objs[14]) {
+                            patientRecipeBean.setRecipeSource(Integer.parseInt(objs[14].toString()));
+                        }
                         backList.add(patientRecipeBean);
                     }
                 }
