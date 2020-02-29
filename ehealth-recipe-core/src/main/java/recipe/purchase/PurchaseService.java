@@ -562,11 +562,11 @@ public class PurchaseService {
             if (null == dbRecipe) {
                 throw new DAOException("未查询到处方记录");
             }
-            if(null == dbRecipe.getClinicId()){
+            if (null == dbRecipe.getClinicId()) {
                 throw new DAOException("未查询到复诊记录");
             }
             IHosrelationService iHosrelationService = BaseAPI.getService(IHosrelationService.class);
-            HosrelationBean hosrelationBean = iHosrelationService.getByBusIdAndBusType(dbRecipe.getClinicId(),3);
+            HosrelationBean hosrelationBean = iHosrelationService.getByBusIdAndBusType(dbRecipe.getClinicId(), 3);
             RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
             MedicInsurSettleApplyReqTO reqTO = new MedicInsurSettleApplyReqTO();
             reqTO.setOrganId(organId);
@@ -576,7 +576,7 @@ public class PurchaseService {
             reqTO.setRecipeId(recipeId.toString());
             reqTO.setRecipeCode(dbRecipe.getRecipeCode());
             reqTO.setClinicId(Optional.ofNullable(dbRecipe.getClinicId().toString()).orElse(""));
-            reqTO.setRegisterId(Optional.ofNullable(hosrelationBean.getRegisterId()).orElse(""));
+            reqTO.setRegisterId(null == hosrelationBean ? "" : hosrelationBean.getRegisterId());
 //            MedicInsurSettleApplyResTO medicInsurSettleApplyResTO = hisService.recipeMedicInsurPreSettle(reqTO);
             MedicInsurSettleApplyResTO medicInsurSettleApplyResTO = new MedicInsurSettleApplyResTO();
             medicInsurSettleApplyResTO.setVisitNo("72787424.34115312");
