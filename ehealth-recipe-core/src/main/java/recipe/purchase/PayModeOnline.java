@@ -505,6 +505,20 @@ public class PayModeOnline implements IPurchaseService {
                 drugIds.add(detail.getDrugId());
                 drugIdCountMap.put(detail.getDrugId(), detail.getUseTotalDose());
             }
+            // 处方单特殊来源标识：1省中，邵逸夫医保小程序
+            // 如果标识是1，则需要支持省直医保；drugsEnterprises 必须和 depDetailList取交集
+            if (Integer.valueOf(1).equals(dbRecipe.getRecipeSource())) {
+                List<DrugsEnterprise> drugsEnterprisesFilter = new ArrayList<>();
+                for (DepDetailBean depDetailBean : depDetailList) {
+                    for (DrugsEnterprise drugsEnterpris : drugsEnterprises) {
+                        if (depDetailBean.getDepId().equals(drugsEnterpris.getId())) {
+                            drugsEnterprisesFilter.add(drugsEnterpris);
+                            continue;
+                        }
+                    }
+                }
+                drugsEnterprises = drugsEnterprisesFilter;
+            }
             for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
                 if (DrugEnterpriseConstant.COMPANY_HR.equals(drugsEnterprise.getCallSys()) || DrugEnterpriseConstant.COMPANY_BY.equals(drugsEnterprise.getCallSys())
                         || DrugEnterpriseConstant.COMPANY_YSQ.equals(drugsEnterprise.getCallSys())) {
