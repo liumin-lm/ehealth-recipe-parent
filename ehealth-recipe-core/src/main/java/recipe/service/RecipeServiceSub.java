@@ -15,6 +15,8 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.common.dto.RecipeTagMsgBean;
+import com.ngari.consult.ConsultAPI;
+import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.message.service.IConsultMessageService;
 import com.ngari.patient.dto.*;
@@ -131,6 +133,13 @@ public class RecipeServiceSub {
 
         //武昌机构recipeCode平台生成
         getRecipeCodeForWuChang(recipeBean,patient,recipe);
+
+        // 根据咨询单特殊来源标识设置处方单特殊来源标识
+        IConsultService consultService = ConsultAPI.getService(IConsultService.class);
+        ConsultBean consultBean = consultService.getById(recipeBean.getClinicId());
+        if ((null != consultBean) && (Integer.valueOf(1).equals(consultBean.getConsultSource()))) {
+            recipe.setRecipeSource(consultBean.getConsultSource());
+        }
 
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
         recipe.setRecipeId(recipeId);

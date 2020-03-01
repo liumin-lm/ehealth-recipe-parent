@@ -103,6 +103,13 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         }
         //支付状态
         hisRequest.setPayFlag(MapValueUtil.getInteger(map,"payFlag"));
+        hisRequest.setOrganName(MapValueUtil.getString(map,"organName"));
+        // 复诊就诊类型
+        hisRequest.setRegType(MapValueUtil.getInteger(map,"regType"));
+        hisRequest.setFundAmount(MapValueUtil.getBigDecimal(map,"fundAmount"));
+        hisRequest.setCashAmount(MapValueUtil.getBigDecimal(map,"cashAmount"));
+        hisRequest.setMedicalPayFlag(MapValueUtil.getInteger(map,"medicalPayFlag"));
+
         LOGGER.info("visitRegist request={}", JSONUtils.toString(hisRequest));
         HisResponseTO<VisitRegistResponseTO> hisResponse = null;
         try {

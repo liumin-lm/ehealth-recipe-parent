@@ -60,6 +60,10 @@ public class PatientRecipeBean {
     private String recipeMode;
 
     private Integer giveMode;
+    /**
+     * 处方单特殊来源标识：1省中，邵逸夫医保小程序; 默认null
+     */
+    private Integer recipeSource;
 
     public PatientRecipeBean() {
     }
@@ -254,5 +258,13 @@ public class PatientRecipeBean {
 
     public void setGiveMode(Integer giveMode) {
         this.giveMode = giveMode;
+    }
+
+    public Integer getRecipeSource() {
+        return recipeSource;
+    }
+
+    public void setRecipeSource(Integer recipeSource) {
+        this.recipeSource = recipeSource;
     }
 }
