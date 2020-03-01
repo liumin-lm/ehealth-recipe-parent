@@ -117,6 +117,28 @@ public class DrugListBean implements Serializable {
     @ItemProperty(alias = "是否是匹配的药品(药品工具返回前端用)")
     private boolean isMatched = false;
 
+    @ItemProperty(alias = "剂型")
+    private String drugForm;
+
+    @ItemProperty(alias = "基药标识")
+    private Integer baseDrug;
+
+    public String getDrugForm() {
+        return drugForm;
+    }
+
+    public void setDrugForm(String drugForm) {
+        this.drugForm = drugForm;
+    }
+
+    public Integer getBaseDrug() {
+        return baseDrug;
+    }
+
+    public void setBaseDrug(Integer baseDrug) {
+        this.baseDrug = baseDrug;
+    }
+
     public boolean getIsMatched() {
         return isMatched;
     }
