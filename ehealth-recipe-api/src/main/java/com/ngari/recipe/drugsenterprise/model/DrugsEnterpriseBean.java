@@ -81,7 +81,7 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "是否医院类型药企：1医院结算药企，0普通药企")
     private Integer isHosDep;
 
-    @ItemProperty(alias = "是否支持省直医保：1不支持，0支持 默认0")
+    @ItemProperty(alias = "是否支持省直医保：1支持，0不支持 默认0")
     private Integer medicalInsuranceSupport;
 
     public DrugsEnterpriseBean() {
