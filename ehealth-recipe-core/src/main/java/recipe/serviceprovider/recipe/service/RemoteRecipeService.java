@@ -52,6 +52,7 @@ import recipe.serviceprovider.BaseService;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 /**
@@ -771,7 +772,15 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public void recipeMedicInsurSettle(MedicInsurSettleSuccNoticNgariReqDTO request) {
         LOGGER.info("省医保结算成功通知平台,param = {}", JSONUtils.toString(request));
-        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        if (null == request.getRecipeId()) {
+            return;
+        }
+        try {
+            RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+            recipeOrderService.recipeMedicInsurSettleSaveOrder(request);
+        } catch (Exception e) {
+            LOGGER.info("recipeMedicInsurSettleSaveOrder error", e);
+        }
         return;
     }
 }
