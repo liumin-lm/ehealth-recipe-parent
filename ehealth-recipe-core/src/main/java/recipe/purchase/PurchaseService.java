@@ -577,9 +577,9 @@ public class PurchaseService {
             reqTO.setRecipeCode(dbRecipe.getRecipeCode());
             reqTO.setClinicId(Optional.ofNullable(dbRecipe.getClinicId().toString()).orElse(""));
             reqTO.setRegisterId(null == hosrelationBean ? "" : hosrelationBean.getRegisterId());
-            MedicInsurSettleApplyResTO medicInsurSettleApplyResTO = hisService.recipeMedicInsurPreSettle(reqTO);
-//            MedicInsurSettleApplyResTO medicInsurSettleApplyResTO = new MedicInsurSettleApplyResTO();
-//            medicInsurSettleApplyResTO.setVisitNo("72787424.34115312");
+//            MedicInsurSettleApplyResTO medicInsurSettleApplyResTO = hisService.recipeMedicInsurPreSettle(reqTO);
+            MedicInsurSettleApplyResTO medicInsurSettleApplyResTO = new MedicInsurSettleApplyResTO();
+            medicInsurSettleApplyResTO.setVisitNo("72787424.34115312");
             return medicInsurSettleApplyResTO;
         } catch (Exception e) {
             LOG.error("recipeMedicInsurPreSettle error,param = {}", JSONUtils.toString(map
