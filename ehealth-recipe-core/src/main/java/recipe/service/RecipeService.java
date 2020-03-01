@@ -952,6 +952,8 @@ public class RecipeService extends RecipeBaseService{
      */
     @RpcService
     public Map<String, Object> doSignRecipeExt(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
+        LOGGER.info("doSignRecipeExt param: recipeBean={} detailBean={}",JSONUtils.toString(recipeBean),JSONUtils.toString(detailBeanList));
+
         Map<String, Object> rMap = doSignRecipe(recipeBean, detailBeanList);
         //获取处方签名结果
         Boolean result = Boolean.parseBoolean(rMap.get("signResult").toString());
