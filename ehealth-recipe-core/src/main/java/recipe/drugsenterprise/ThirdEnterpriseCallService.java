@@ -1462,6 +1462,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         List<RecipeOrder> recipeOrders = new ArrayList<>();
         try{
             recipeOrders = recipeOrderDAO.findRecipeOrderByDepIdAndPayTime(drugsEnterprise.getId(), lastUpdateTime);
+            LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipeOrders:{}.", JSONUtils.toString(recipeOrders));
         }catch (Exception e){
             e.printStackTrace();
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipeOrders:{} error : {}.", JSONUtils.toString(recipeOrders), e.getMessage());
