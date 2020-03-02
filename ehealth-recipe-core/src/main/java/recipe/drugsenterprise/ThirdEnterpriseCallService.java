@@ -1476,6 +1476,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
             String orderCode = recipeOrder.getOrderCode();
             List<Recipe> recipes = recipeDAO.findRecipeListByOrderCode(orderCode);
+            LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipes:{} .", JSONUtils.toString(recipes));
             Recipe recipe = recipes.get(0);
             //设置医院信息
             OrganDTO organ = organService.getByOrganId(recipe.getClinicOrgan());
