@@ -987,8 +987,8 @@ public class RecipeHisService extends RecipeBaseService {
         List<DiseaseInfo> diseaseInfos = new ArrayList<>();
         DiseaseInfo diseaseInfo;
         if(StringUtils.isNotEmpty(recipeBean.getOrganDiseaseId()) && StringUtils.isNotEmpty(recipeBean.getOrganDiseaseName())){
-            String [] diseaseIds = recipeBean.getOrganDiseaseId().split(",");
-            String [] diseaseNames = recipeBean.getOrganDiseaseName().split(",");
+            String [] diseaseIds = recipeBean.getOrganDiseaseId().split("；");
+            String [] diseaseNames = recipeBean.getOrganDiseaseName().split("；");
             for (int i = 0; i < diseaseIds.length; i++){
                 diseaseInfo = new DiseaseInfo();
                 diseaseInfo.setDiseaseCode(diseaseIds[i]);
