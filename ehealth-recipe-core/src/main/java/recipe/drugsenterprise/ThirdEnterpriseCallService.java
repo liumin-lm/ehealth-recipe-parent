@@ -1443,15 +1443,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         String depId = (String)parames.get("depId");
         String lastUpdateTime = (String)parames.get("lastUpdateTime");
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes drugsEnterprise here");
-        DrugsEnterprise drugsEnterprise = new DrugsEnterprise();
-        try{
-            drugsEnterprise = drugsEnterpriseDAO.getByAccount(depId);
-        }catch(Exception e){
-            e.printStackTrace();
-            LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes error:{}.", e.getMessage());
-        }
-
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(Integer.parseInt(depId));
         LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes drugsEnterprise:{}.", JSONUtils.toString(drugsEnterprise));
         if (drugsEnterprise == null) {
             standardResult.setCode(StandardResultDTO.FAIL);
@@ -1471,7 +1463,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         //查找指定药企已支付完成的处方单
         List<RecipeOrder> recipeOrders = new ArrayList<>();
         try{
-            recipeOrders = recipeOrderDAO.findRecipeOrderByDepIdAndPayTime(218, lastUpdateTime);
+            recipeOrders = recipeOrderDAO.findRecipeOrderByDepIdAndPayTime(drugsEnterprise.getId(), lastUpdateTime);
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipeOrders:{}.", JSONUtils.toString(recipeOrders));
         }catch (Exception e){
             e.printStackTrace();
@@ -1573,7 +1565,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
             for (Recipedetail recipedetail : recipedetails) {
                 DrugListForThreeBean drugList = new DrugListForThreeBean();
-                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), 218);
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
                 drugList.setDrugCode(saleDrugList.getOrganDrugCode());
                 drugList.setDrugName(recipedetail.getDrugName());
                 drugList.setSpecification(recipedetail.getDrugSpec());
