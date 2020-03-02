@@ -1444,7 +1444,14 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         String lastUpdateTime = (String)parames.get("lastUpdateTime");
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes drugsEnterprise here");
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(Integer.parseInt(depId));
+        DrugsEnterprise drugsEnterprise = null;
+        try{
+            drugsEnterprise = drugsEnterpriseDAO.getById(Integer.parseInt(depId));
+        }catch(Exception e){
+            e.printStackTrace();
+            LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes error:{}.", e.getMessage());
+        }
+
         LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes drugsEnterprise:{}.", JSONUtils.toString(drugsEnterprise));
         if (drugsEnterprise == null) {
             standardResult.setCode(StandardResultDTO.FAIL);
