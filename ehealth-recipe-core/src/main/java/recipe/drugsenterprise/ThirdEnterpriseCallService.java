@@ -1444,7 +1444,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         String lastUpdateTime = (String)parames.get("lastUpdateTime");
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes drugsEnterprise here");
-        DrugsEnterprise drugsEnterprise = null;
+        DrugsEnterprise drugsEnterprise = new DrugsEnterprise();
         try{
             drugsEnterprise = drugsEnterpriseDAO.getByAccount(depId);
         }catch(Exception e){
@@ -1471,7 +1471,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         //查找指定药企已支付完成的处方单
         List<RecipeOrder> recipeOrders = new ArrayList<>();
         try{
-            recipeOrders = recipeOrderDAO.findRecipeOrderByDepIdAndPayTime(drugsEnterprise.getId(), lastUpdateTime);
+            recipeOrders = recipeOrderDAO.findRecipeOrderByDepIdAndPayTime(218, lastUpdateTime);
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipeOrders:{}.", JSONUtils.toString(recipeOrders));
         }catch (Exception e){
             e.printStackTrace();
@@ -1573,7 +1573,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
             for (Recipedetail recipedetail : recipedetails) {
                 DrugListForThreeBean drugList = new DrugListForThreeBean();
-                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), 218);
                 drugList.setDrugCode(saleDrugList.getOrganDrugCode());
                 drugList.setDrugName(recipedetail.getDrugName());
                 drugList.setSpecification(recipedetail.getDrugSpec());
