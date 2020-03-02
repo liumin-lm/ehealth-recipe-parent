@@ -450,12 +450,12 @@ public class RecipePreserveService {
     }
 
     /**
-     * 手动推送处方审核数据到监管平台（江苏）
+     * 手动推送处方审核数据到监管平台
      * @param recipeId
      */
     @RpcService
     public void uploadRegulationAuditData(Integer recipeId){
-        //手动推送处方到监管平台（江苏）
+        //手动推送处方到监管平台
         RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipeId,2));
     }
 
