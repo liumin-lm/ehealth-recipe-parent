@@ -1653,7 +1653,7 @@ public class RecipeService extends RecipeBaseService{
                         RecipeCouponService recipeCouponService = ApplicationUtils.getRecipeService(RecipeCouponService.class);
                         recipeCouponService.unuseCouponByRecipeId(recipeId);
                     }
-                    //推送处方到监管平台(江苏)
+                    //推送处方到监管平台
                     RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(),1));
                     //HIS消息发送
                     boolean succFlag = hisService.recipeStatusUpdate(recipeId);
