@@ -1480,21 +1480,25 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             Recipe recipe = recipes.get(0);
             //设置医院信息
             OrganDTO organ = organService.getByOrganId(recipe.getClinicOrgan());
+            LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes organ:{} .", JSONUtils.toString(organ));
             orderDetailBean.setClinicOrgan(convertParame(organ.getOrganId().toString()));
             orderDetailBean.setOrganId(organ.getOrganizeCode());
             orderDetailBean.setOrganName(organ.getName());
             //设置医生信息
             DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
+            LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes doctorDTO:{} .", JSONUtils.toString(doctorDTO));
             orderDetailBean.setDoctorNumber(doctorDTO.getIdNumber());
             orderDetailBean.setDoctorName(doctorDTO.getName());
 
             //设置科室信息
             DepartmentDTO department = departmentService.get(recipe.getDepart());
+            LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes department:{} .", JSONUtils.toString(department));
             orderDetailBean.setDepartId(convertParame(department.getDeptId()));
             orderDetailBean.setDepartName(department.getName());
 
             //设置患者信息
             PatientDTO patient = patientService.get(recipe.getMpiid());
+            LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes patient:{} .", JSONUtils.toString(patient));
             orderDetailBean.setCertificateType("1");
             orderDetailBean.setCertificate(patient.getCertificate());
             orderDetailBean.setPatientName(patient.getPatientName());
@@ -1563,7 +1567,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
             List<DrugListForThreeBean> drugLists = new ArrayList<>();
             //设置药品信息
+            LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipedetails.");
             List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+            LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipedetails:{} .", JSONUtils.toString(recipedetails));
             for (Recipedetail recipedetail : recipedetails) {
                 DrugListForThreeBean drugList = new DrugListForThreeBean();
                 SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
