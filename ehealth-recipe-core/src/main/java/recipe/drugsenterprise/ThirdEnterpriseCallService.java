@@ -1479,11 +1479,11 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipes:{} .", JSONUtils.toString(recipes));
             Recipe recipe = recipes.get(0);
             //设置医院信息
-            OrganDTO organ = organService.getByOrganId(recipe.getClinicOrgan());
+            /*OrganDTO organ = organService.getByOrganId(recipe.getClinicOrgan());
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes organ:{} .", JSONUtils.toString(organ));
             orderDetailBean.setClinicOrgan(convertParame(organ.getOrganId().toString()));
             orderDetailBean.setOrganId(organ.getOrganizeCode());
-            orderDetailBean.setOrganName(organ.getName());
+            orderDetailBean.setOrganName(organ.getName());*/
             //设置医生信息
             DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes doctorDTO:{} .", JSONUtils.toString(doctorDTO));
