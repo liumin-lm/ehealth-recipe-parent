@@ -1446,7 +1446,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes drugsEnterprise here");
         DrugsEnterprise drugsEnterprise = null;
         try{
-            drugsEnterprise = drugsEnterpriseDAO.getById(Integer.parseInt(depId));
+            drugsEnterprise = drugsEnterpriseDAO.getByAccount(depId);
         }catch(Exception e){
             e.printStackTrace();
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes error:{}.", e.getMessage());
