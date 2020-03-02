@@ -1440,10 +1440,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             return standardResult;
         }
         String appKey = (String)parames.get("appKey");
-        String depId = (String)parames.get("depId");
         String lastUpdateTime = (String)parames.get("lastUpdateTime");
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(Integer.parseInt(depId));
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(218);
         LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes drugsEnterprise:{}.", JSONUtils.toString(drugsEnterprise));
         if (drugsEnterprise == null) {
             standardResult.setCode(StandardResultDTO.FAIL);
@@ -1479,11 +1478,11 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipes:{} .", JSONUtils.toString(recipes));
             Recipe recipe = recipes.get(0);
             //设置医院信息
-            /*OrganDTO organ = organService.getByOrganId(recipe.getClinicOrgan());
+            OrganDTO organ = organService.getByOrganId(recipe.getClinicOrgan());
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes organ:{} .", JSONUtils.toString(organ));
             orderDetailBean.setClinicOrgan(convertParame(organ.getOrganId().toString()));
             orderDetailBean.setOrganId(organ.getOrganizeCode());
-            orderDetailBean.setOrganName(organ.getName());*/
+            orderDetailBean.setOrganName(organ.getName());
             //设置医生信息
             DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes doctorDTO:{} .", JSONUtils.toString(doctorDTO));
