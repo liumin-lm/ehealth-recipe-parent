@@ -286,4 +286,26 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         return action.getResult();
     }
 
+    /**
+     * 根据药企编号和支付时间查询订单
+     * @param enterpriseId    药企编号
+     * @param payTime         支付时间
+     * @return                订单列表
+     */
+    public List<RecipeOrder> findRecipeOrderByDepIdAndPayTime(Integer enterpriseId, String payTime){
+        HibernateStatelessResultAction<List<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrder>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String sql = "select a from RecipeOrder a,Recipe b where a.orderCode = b.orderCode and a.payFlag = 1 and a.effective = 1 and a.status = 3" +
+                        " and a.outTradeNo is not null and a.enterpriseId =:enterpriseId and a.payTime >= '"+payTime+"'";
+
+                Query q = ss.createQuery(sql);
+                q.setParameter("enterpriseId", enterpriseId);
+                setResult(q.list());
+            }
+        };
+
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }

@@ -2,14 +2,19 @@ package recipe.drugsenterprise;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.ngari.patient.dto.DepartmentDTO;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.OrganDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.OrganService;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.*;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.AuditDrugListBean;
 import com.ngari.recipe.drug.model.UpDownDrugBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.DrugListForThreeBean;
+import com.ngari.recipe.recipe.model.RecipeAndOrderDetailBean;
+import com.ngari.recipe.recipe.model.SynchronizeDrugBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -36,6 +41,7 @@ import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.purchase.CommonOrder;
 import recipe.service.*;
 import recipe.serviceprovider.BaseService;
+import recipe.third.IFileDownloadService;
 import recipe.third.IWXServiceInterface;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
@@ -1420,5 +1426,224 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             return result;
         }
         return result;
+    }
+
+    @RpcService
+    public StandardResultDTO downLoadRecipes(Map<String,Object> parames){
+        StandardResultDTO standardResult = new StandardResultDTO();
+        standardResult.setCode(StandardResultDTO.SUCCESS);
+        String imgHead = "data:image/jpeg;base64,";
+        LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes parames:{}.", JSONUtils.toString(parames));
+        if (parames == null) {
+            standardResult.setCode(StandardResultDTO.FAIL);
+            standardResult.setMsg("参数不能为空");
+            return standardResult;
+        }
+        String appKey = (String)parames.get("appKey");
+        String lastUpdateTime = (String)parames.get("lastUpdateTime");
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(218);
+        if (drugsEnterprise == null) {
+            standardResult.setCode(StandardResultDTO.FAIL);
+            standardResult.setMsg("无法匹配到药企");
+            return standardResult;
+        }
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        OrganService organService = BasicAPI.getService(OrganService.class);
+        DoctorService doctorService = BasicAPI.getService(DoctorService.class);
+        DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
+        PatientService patientService = BasicAPI.getService(PatientService.class);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+
+        //查找指定药企已支付完成的处方单
+        List<RecipeOrder> recipeOrders = recipeOrderDAO.findRecipeOrderByDepIdAndPayTime(drugsEnterprise.getId(), lastUpdateTime);
+        List<RecipeAndOrderDetailBean> result = new ArrayList<>();
+        for (RecipeOrder recipeOrder : recipeOrders) {
+            RecipeAndOrderDetailBean orderDetailBean = new RecipeAndOrderDetailBean();
+
+            String orderCode = recipeOrder.getOrderCode();
+            List<Recipe> recipes = recipeDAO.findRecipeListByOrderCode(orderCode);
+            Recipe recipe = recipes.get(0);
+            //设置医院信息
+            OrganDTO organ = organService.getByOrganId(recipe.getClinicOrgan());
+            orderDetailBean.setClinicOrgan(convertParame(organ.getOrganId().toString()));
+            orderDetailBean.setOrganId(organ.getOrganizeCode());
+            orderDetailBean.setOrganName(organ.getName());
+            //设置医生信息
+            DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
+            orderDetailBean.setDoctorNumber(doctorDTO.getIdNumber());
+            orderDetailBean.setDoctorName(doctorDTO.getName());
+
+            //设置科室信息
+            DepartmentDTO department = departmentService.get(recipe.getDepart());
+            orderDetailBean.setDepartId(convertParame(department.getDeptId()));
+            orderDetailBean.setDepartName(department.getName());
+
+            //设置患者信息
+            PatientDTO patient = patientService.get(recipe.getMpiid());
+            orderDetailBean.setCertificateType("1");
+            orderDetailBean.setCertificate(patient.getCertificate());
+            orderDetailBean.setPatientName(patient.getPatientName());
+            orderDetailBean.setPatientTel(patient.getMobile());
+            orderDetailBean.setPatientAddress(patient.getFullHomeArea());
+            orderDetailBean.setPatientNumber(recipe.getPatientID());
+
+            //设置处方信息
+            orderDetailBean.setRecipeId(convertParame(recipe.getRecipeId()));
+            orderDetailBean.setRecipeType(convertParame(recipe.getRecipeType()));
+            orderDetailBean.setRecipeCode(recipe.getRecipeCode());
+            orderDetailBean.setCreateDate(recipe.getCreateDate().toString());
+            orderDetailBean.setOrganDiseaseId(recipe.getOrganDiseaseId());
+            orderDetailBean.setOrganDiseaseName(recipe.getOrganDiseaseName());
+            orderDetailBean.setRecipeMemo(recipe.getRecipeMemo());
+            orderDetailBean.setTcmUsePathways(recipe.getTcmUsePathways());
+            orderDetailBean.setTcmUsingRate(recipe.getTcmUsingRate());
+            orderDetailBean.setPharmacyCode(recipeOrder.getDrugStoreCode());
+            orderDetailBean.setPharmacyName(recipeOrder.getDrugStoreName());
+
+            //设置处方笺base
+            String ossId = recipe.getSignImg();
+            if(null != ossId){
+                try {
+                    IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+                    String imgStr = imgHead + fileDownloadService.downloadImg(ossId);
+                    if(org.springframework.util.ObjectUtils.isEmpty(imgStr)){
+                        LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{}的ossid为{}处方笺不存在", recipe.getRecipeId(), ossId);
+                    }
+                    LOGGER.warn("YtRemoteService.pushRecipeInfo:{}处方，下载处方笺服务成功", recipe.getRecipeId());
+                    //orderDetailBean.setRecipeSignImg(imgStr);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    LOGGER.warn("YtRemoteService.pushRecipeInfo:{}处方，下载处方笺服务异常：{}.", recipe.getRecipeId(), e.getMessage() );
+                }
+
+            }
+
+            //设置订单信息
+            orderDetailBean.setRecipeFee(convertParame(recipeOrder.getRecipeFee()));
+            orderDetailBean.setActualFee(convertParame(recipeOrder.getAuditFee()));
+            orderDetailBean.setCouponFee(convertParame(recipeOrder.getCouponFee()));
+            orderDetailBean.setDecoctionFee(convertParame(recipeOrder.getDecoctionFee()));
+            orderDetailBean.setAuditFee(convertParame(recipeOrder.getAuditFee()));
+            orderDetailBean.setRegisterFee(convertParame(recipeOrder.getRegisterFee()));
+            orderDetailBean.setActualPrice(convertParame(recipeOrder.getActualPrice()));
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (recipeExtend != null) {
+                orderDetailBean.setMedicalFee(recipeExtend.getFundAmount());
+            }
+            orderDetailBean.setOrderTotalFee(convertParame(recipeOrder.getTotalFee()));
+            orderDetailBean.setExpressFee(convertParame(recipeOrder.getExpressFee()));
+            String province = getAddressDic(recipeOrder.getAddress1());
+            String city = getAddressDic(recipeOrder.getAddress2());
+            String district = getAddressDic(recipeOrder.getAddress3());
+            orderDetailBean.setProvince(province);
+            orderDetailBean.setCity(city);
+            orderDetailBean.setDistrict(district);
+            orderDetailBean.setRecAddress(getCompleteAddress(recipeOrder));
+            orderDetailBean.setOutTradeNo(recipeOrder.getOutTradeNo());
+            orderDetailBean.setTradeNo(recipeOrder.getTradeNo());
+            orderDetailBean.setPayMode(convertParame(recipe.getPayMode()));
+            orderDetailBean.setPayFlag(convertParame(recipeOrder.getPayFlag()));
+            orderDetailBean.setGiveMode(convertParame(recipe.getGiveMode()));
+            orderDetailBean.setMedicalPayFlag(convertParame(recipeOrder.getOrderType()));
+
+            List<DrugListForThreeBean> drugLists = new ArrayList<>();
+            //设置药品信息
+            List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+            for (Recipedetail recipedetail : recipedetails) {
+                DrugListForThreeBean drugList = new DrugListForThreeBean();
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
+                drugList.setDrugCode(saleDrugList.getOrganDrugCode());
+                drugList.setDrugName(recipedetail.getDrugName());
+                drugList.setSpecification(recipedetail.getDrugSpec());
+                drugList.setProducer(recipedetail.getProducer());
+                drugList.setTotal(convertParame(recipedetail.getUseTotalDose()));
+                drugList.setUseDose(convertParame(recipedetail.getUseDose()));
+                drugList.setDrugFee(convertParame(saleDrugList.getPrice()));
+                drugList.setUesDays(convertParame(recipedetail.getUseDays()));
+                drugList.setUsingRate(recipedetail.getUsingRate());
+                drugList.setUsePathways(recipedetail.getUsePathways());
+                drugList.setDrugUnit(recipedetail.getDrugUnit());
+                drugList.setPack(convertParame(recipedetail.getPack()));
+                try {
+                    String usingRate = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(recipedetail.getUsingRate());
+                    String usingPathways = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipedetail.getUsePathways());
+                    drugList.setUsingRateText(usingRate);
+                    drugList.setUsePathwaysText(usingPathways);
+                } catch (ControllerException e) {
+                    LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:处方细节ID为{}.", recipedetail.getRecipeDetailId());
+                }
+                drugList.setMemo(recipedetail.getMemo());
+                drugLists.add(drugList);
+            }
+            orderDetailBean.setDrugList(drugLists);
+            result.add(orderDetailBean);
+        }
+        standardResult.setData(result);
+        return standardResult;
+    }
+
+    @RpcService
+    public StandardResultDTO  synchronizeInventory(Map<String, Object> parames){
+        StandardResultDTO standardResult = new StandardResultDTO();
+        String appKey = (String)parames.get("appKey");
+        String hospitalCode = (String)parames.get("hospitalCode");
+        List<SynchronizeDrugBean> synchronizeDrugBeans = (List)parames.get("drugList");
+        LOGGER.info("appKey:{},hospitalCode:{},synchronizeDrugBeans:{}", appKey, hospitalCode, JSONUtils.toString(synchronizeDrugBeans));
+        return standardResult;
+    }
+
+    private String convertParame(Object o){
+        if (o == null) {
+            return "";
+        } else {
+            return o.toString();
+        }
+    }
+
+    /**
+     * 获取区域文本
+     * @param area 区域
+     * @return     区域文本
+     */
+    private String getAddressDic(String area) {
+        if (StringUtils.isNotEmpty(area)) {
+            try {
+                return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
+            } catch (ControllerException e) {
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area);
+            }
+        }
+        return "";
+    }
+
+    /**
+     * 生成完整地址
+     *
+     * @param order 订单
+     * @return
+     */
+    public String getCompleteAddress(RecipeOrder order) {
+        StringBuilder address = new StringBuilder();
+        if (null != order) {
+            this.getAddressDic(address, order.getAddress1());
+            this.getAddressDic(address, order.getAddress2());
+            this.getAddressDic(address, order.getAddress3());
+            address.append(StringUtils.isEmpty(order.getAddress4()) ? "" : order.getAddress4());
+        }
+        return address.toString();
+    }
+
+    public void getAddressDic(StringBuilder address, String area) {
+        if (StringUtils.isNotEmpty(area)) {
+            try {
+                address.append(DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area));
+            } catch (ControllerException e) {
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area);
+            }
+        }
     }
 }
