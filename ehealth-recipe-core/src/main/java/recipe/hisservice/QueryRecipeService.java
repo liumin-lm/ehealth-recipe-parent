@@ -29,6 +29,7 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -495,6 +496,7 @@ public class QueryRecipeService implements IQueryRecipeService {
             return result;
         }
         Integer drugsEnterpriseId = drugsEnterprises.get(0).getId();
+        Date now = DateTime.now().toDate();
 
         switch(operationCode){
             //新增
@@ -522,6 +524,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                     OrganDrugList organDrugListAdd = organDrugsNo.get(0);
                     BeanUtils.copyProperties(organDrugList, organDrugListAdd, getNullPropertyNames(organDrugList));
                     organDrugListAdd.setStatus(1);
+                    organDrugListAdd.setLastModify(now);
                     LOGGER.info("updateOrSaveOrganDrug 更新机构药品信息{}", JSONUtils.toString(organDrugListAdd));
                     OrganDrugList nowOrganDrugList = organDrugListDAO.update(organDrugListAdd);
 
@@ -531,12 +534,14 @@ public class QueryRecipeService implements IQueryRecipeService {
                     nowSaleDrugList.setOrganDrugCode(organDrugChangeBean.getCloudPharmDrugCode());
                     nowSaleDrugList.setOrganId(drugsEnterpriseId);
                     nowSaleDrugList.setPrice(organDrugChangeBean.getSalePrice());
+                    nowSaleDrugList.setLastModify(now);
                     LOGGER.info("updateOrSaveOrganDrug 更新配送药品信息{}", JSONUtils.toString(nowSaleDrugList));
                     saleDrugListDAO.update(nowSaleDrugList);
 
                 }else{
                     //没有失效的新增
                     organDrugList.setStatus(1);
+                    organDrugList.setCreateDt(now);
                     LOGGER.info("updateOrSaveOrganDrug 添加机构药品信息{}", JSONUtils.toString(organDrugList));
                     OrganDrugList nowOrganDrugList = organDrugListDAO.save(organDrugList);
 
@@ -547,6 +552,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                     newSaleDrugList.setOrganId(drugsEnterpriseId);
                     newSaleDrugList.setPrice(organDrugChangeBean.getSalePrice());
                     newSaleDrugList.setStatus(1);
+                    newSaleDrugList.setCreateDt(now);
                     LOGGER.info("updateOrSaveOrganDrug 添加配送药品信息{}", JSONUtils.toString(newSaleDrugList));
                     saleDrugListDAO.save(newSaleDrugList);
 
@@ -576,6 +582,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                 OrganDrugList organDrugListChange = organDrugs.get(0);
                 BeanUtils.copyProperties(organDrugList, organDrugListChange, getNullPropertyNames(organDrugList));
                 organDrugListChange.setStatus(1);
+                organDrugListChange.setLastModify(now);
                 LOGGER.info("updateOrSaveOrganDrug 更新机构药品信息{}", JSONUtils.toString(organDrugListChange));
                 OrganDrugList nowOrganDrugList = organDrugListDAO.update(organDrugListChange);
 
@@ -585,6 +592,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                 nowSaleDrugList.setOrganDrugCode(organDrugChangeBean.getCloudPharmDrugCode());
                 nowSaleDrugList.setOrganId(drugsEnterpriseId);
                 nowSaleDrugList.setPrice(organDrugChangeBean.getSalePrice());
+                nowSaleDrugList.setLastModify(now);
                 LOGGER.info("updateOrSaveOrganDrug 更新配送药品信息{}", JSONUtils.toString(nowSaleDrugList));
                 saleDrugListDAO.update(nowSaleDrugList);
 
@@ -610,10 +618,12 @@ public class QueryRecipeService implements IQueryRecipeService {
 
                 OrganDrugList organDrugListDown = organDrugsDown.get(0);
                 organDrugListDown.setStatus(0);
+                organDrugListDown.setLastModify(now);
                 LOGGER.info("updateOrSaveOrganDrug 停用机构药品信息{}", JSONUtils.toString(organDrugListDown));
                 organDrugListDAO.update(organDrugListDown);
 
                 SaleDrugList saleDrugListDown = saleDrugListsDown.get(0);
+                saleDrugListDown.setLastModify(now);
                 saleDrugListDown.setStatus(0);
                 LOGGER.info("updateOrSaveOrganDrug 停用配送药品信息{}", JSONUtils.toString(saleDrugListDown));
                 saleDrugListDAO.update(saleDrugListDown);
@@ -690,12 +700,13 @@ public class QueryRecipeService implements IQueryRecipeService {
     @Override
     @RpcService
     public List<DrugListBean> getDrugList(String organId, String organName, Integer start, Integer limit){
-
+        LOGGER.info("当前请求参数：{},{},{},{}", organId, organName, start, limit);
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         List<DrugList> drugList = drugListDAO.findAllForPage(start, limit);
         if(CollectionUtils.isEmpty(drugList)){
             return new ArrayList<DrugListBean>();
         }
+        LOGGER.info("当前返回结果", JSONUtils.toString(drugList));
         return ObjectCopyUtils.convert(drugList, DrugListBean.class);
 
     }
