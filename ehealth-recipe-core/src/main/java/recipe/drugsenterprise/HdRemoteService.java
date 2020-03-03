@@ -890,7 +890,9 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             }
             msg.append(",处方单号:" + recipeId);
             LOGGER.info("HdRemoteService.scanStock:{}", msg.toString());
-            RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), msg.toString());
+            if (recipe != null && recipe.getStatus() == 0) {
+                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), msg.toString());
+            }
         }catch(Exception e){
             LOGGER.error("HdRemoteService.checkDrugListByDeil error:{},{}.", recipeId, e.getMessage());
             return false;
