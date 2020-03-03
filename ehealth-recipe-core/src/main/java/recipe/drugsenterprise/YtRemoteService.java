@@ -790,7 +790,9 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
                             String msg = "药企:"+drugsEnterprise.getName()+",药品名称:" + saleDrug.getDrugName() + ",药品库存:" + stockResponse.getStock() + ",平台药品编码:"+saleDrug.getDrugId() + ",药店编码:"+stockResponse.getCode()+",处方单号:"+recipeId;
                             LOGGER.info("YtRemoteService.scanStock:{}", msg);
-                            RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), msg);
+                            if (recipe != null && recipe.getStatus() == 0) {
+                                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), msg);
+                            }
                         }catch(Exception e){
                             LOGGER.error("YtRemoteService.checkDrugListByDeil error:{},{}.", recipeId, e.getMessage());
                         }
