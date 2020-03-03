@@ -269,11 +269,13 @@ public class PayModeOnline implements IPurchaseService {
         order.setEffective(1);
 
         // 根据咨询单特殊来源标识和处方单特殊来源标识设置处方订单orderType为省中，邵逸夫医保小程序
-        IConsultService consultService = ConsultAPI.getService(IConsultService.class);
-        ConsultBean consultBean = consultService.getById(dbRecipe.getClinicId());
-        if (null != consultBean) {
-            if (Integer.valueOf(1).equals(consultBean.getConsultSource()) && (Integer.valueOf(1).equals(dbRecipe.getRecipeSource()))) {
-                order.setOrderType(3);
+        if (null != dbRecipe.getClinicId()) {
+            IConsultService consultService = ConsultAPI.getService(IConsultService.class);
+            ConsultBean consultBean = consultService.getById(dbRecipe.getClinicId());
+            if (null != consultBean) {
+                if (Integer.valueOf(1).equals(consultBean.getConsultSource()) && (Integer.valueOf(1).equals(dbRecipe.getRecipeSource()))) {
+                    order.setOrderType(3);
+                }
             }
         }
 
