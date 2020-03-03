@@ -199,10 +199,12 @@ public class RecipeServiceSub {
         }
 
         // 根据咨询单特殊来源标识设置处方单特殊来源标识
-        IConsultService consultService = ConsultAPI.getService(IConsultService.class);
-        ConsultBean consultBean = consultService.getById(recipeBean.getClinicId());
-        if ((null != consultBean) && (Integer.valueOf(1).equals(consultBean.getConsultSource()))) {
-            recipe.setRecipeSource(consultBean.getConsultSource());
+        if (null != recipeBean.getClinicId()) {
+            IConsultService consultService = ConsultAPI.getService(IConsultService.class);
+            ConsultBean consultBean = consultService.getById(recipeBean.getClinicId());
+            if ((null != consultBean) && (Integer.valueOf(1).equals(consultBean.getConsultSource()))) {
+                recipe.setRecipeSource(consultBean.getConsultSource());
+            }
         }
 
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
