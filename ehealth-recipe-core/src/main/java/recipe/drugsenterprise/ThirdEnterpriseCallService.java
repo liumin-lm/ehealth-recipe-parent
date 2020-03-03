@@ -1431,6 +1431,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     @RpcService
     public StandardResultDTO  recipeDownloadConfirmation(String appKey, List<Integer> recipeIds){
         StandardResultDTO result = new StandardResultDTO();
+        result.setCode(StandardResultDTO.SUCCESS);
         LOGGER.info("appKey:{},hospitalCode:{}", appKey, JSONUtils.toString(recipeIds));
         return result;
     }
