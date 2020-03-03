@@ -1348,7 +1348,7 @@ public class RecipeServiceSub {
         //设置药师手签图片id
         if (recipe.getChecker()!=null){
             DoctorDTO auditDTO = doctorService.getByDoctorId(recipe.getChecker());
-            if (doctorDTO != null){
+            if (auditDTO != null){
                 map.put("checkerSignImg",auditDTO.getSignImage());
                 map.put("checkerSignImgToken", FileAuth.instance().createToken(auditDTO.getSignImage(), 3600L));
             }
