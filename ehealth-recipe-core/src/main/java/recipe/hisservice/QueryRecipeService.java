@@ -95,20 +95,20 @@ public class QueryRecipeService implements IQueryRecipeService {
         //拼接返回数据
         QueryRecipeInfoDTO infoDTO = splicingBackData(details, recipe, patientBean, cardBean);
         //date 20200222杭州市互联网(添加诊断)
-        List<DiseaseInfo> diseaseInfos = new ArrayList<>();
-        DiseaseInfo diseaseInfo;
-        if(StringUtils.isNotEmpty(recipe.getOrganDiseaseId()) && StringUtils.isNotEmpty(recipe.getOrganDiseaseName())){
-            String [] diseaseIds = recipe.getOrganDiseaseId().split("；");
-            String [] diseaseNames = recipe.getOrganDiseaseName().split("；");
-            for (int i = 0; i < diseaseIds.length; i++){
-                diseaseInfo = new DiseaseInfo();
-                diseaseInfo.setDiseaseCode(diseaseIds[i]);
-                diseaseInfo.setDiseaseName(diseaseNames[i]);
-                diseaseInfos.add(diseaseInfo);
-            }
-            infoDTO.setDiseaseInfo(diseaseInfos);
-
-        }
+//        List<DiseaseInfo> diseaseInfos = new ArrayList<>();
+//        DiseaseInfo diseaseInfo;
+//        if(StringUtils.isNotEmpty(recipe.getOrganDiseaseId()) && StringUtils.isNotEmpty(recipe.getOrganDiseaseName())){
+//            String [] diseaseIds = recipe.getOrganDiseaseId().split("；");
+//            String [] diseaseNames = recipe.getOrganDiseaseName().split("；");
+//            for (int i = 0; i < diseaseIds.length; i++){
+//                diseaseInfo = new DiseaseInfo();
+//                diseaseInfo.setDiseaseCode(diseaseIds[i]);
+//                diseaseInfo.setDiseaseName(diseaseNames[i]);
+//                diseaseInfos.add(diseaseInfo);
+//            }
+//            infoDTO.setDiseaseInfo(diseaseInfos);
+//
+//        }
         resultDTO.setMsgCode(0);
         resultDTO.setData(infoDTO);
         LOGGER.info("queryRecipeInfo res={}", JSONUtils.toString(resultDTO));

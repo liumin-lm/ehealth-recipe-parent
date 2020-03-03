@@ -90,42 +90,20 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         Map<String, Object> map = request.getConditions();
         VisitRegistRequestTO hisRequest = new VisitRegistRequestTO();
         hisRequest.setOrganId(Integer.valueOf(map.get("organId").toString()));
-        //date 20200221 在线复诊记录提交HIS接口
-        Integer organId = Integer.valueOf(map.get("organId").toString());
-        OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
-        OrganDTO organDTO = organService.get(organId);
-        if(null == organDTO){
-            LOGGER.error("visitRegist当前机构id对应的机构不存在{}", organId);
-        }else{
-            hisRequest.setOrganName(organDTO.getName());
-        }
-
         hisRequest.setCertificate(map.get("certificate").toString());
         hisRequest.setCertificateType(Integer.valueOf(map.get("certificateType").toString()));
         hisRequest.setMpi(map.get("mpi").toString());
         hisRequest.setPatientName(map.get("patientName").toString());
         hisRequest.setMobile(map.get("mobile").toString());
-        //date 20200221 在线复诊记录提交HIS接口
-        hisRequest.setPatientTel(map.get("mobile").toString());
         hisRequest.setJobNumber(map.get("jobNumber").toString());
-        //date 20200221 在线复诊记录提交HIS接口
-        hisRequest.setDoctorNumber(map.get("jobNumber").toString());
         hisRequest.setWorkDate(DateConversion.parseDate(map.get("workDate").toString(), DateConversion.YYYY_MM_DD));
-        //date 20200221 在线复诊记录提交HIS接口
-        hisRequest.setRegisterdate(DateConversion.parseDate(map.get("workDate").toString(), DateConversion.YYYY_MM_DD));
         hisRequest.setUrt(Integer.valueOf(map.get("urt").toString()));
         hisRequest.setCardType(MapValueUtil.getString(map, "cardType"));
         hisRequest.setCardID(MapValueUtil.getString(map, "cardID"));
-        //date 20200221 在线复诊记录提交HIS接口
-        hisRequest.setCardNo(MapValueUtil.getString(map, "cardID"));
         //平台复诊id
         hisRequest.setPlatRegisterId(String.valueOf(MapValueUtil.getInteger(map,"consultId")));
-        //date 20200221 在线复诊记录提交HIS接口
-        hisRequest.setClinicId(String.valueOf(MapValueUtil.getInteger(map,"consultId")));
         //科室代码
         hisRequest.setDeptCode(MapValueUtil.getString(map,"deptCode"));
-        //date 20200221 在线复诊记录提交HIS接口
-        hisRequest.setDepartId(MapValueUtil.getString(map,"deptCode"));
         hisRequest.setRegType("2");
         Integer consultId = MapValueUtil.getInteger(map, "consultId");
         if(null != consultId){
@@ -323,18 +301,6 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         cancelRequest.setCardID(hosrelationBean.getCardId());
         cancelRequest.setExtendsParam(hosrelationBean.getExtendsParam());
         cancelRequest.setCancelReason("系统取消");
-        //date 20200221 在线复诊记录提交HIS接口
-       if(null != hosrelationBean.getOrganId()){
-           OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
-           OrganDTO organDTO = organService.get(hosrelationBean.getOrganId());
-           if(null == organDTO){
-               LOGGER.error("cancelVisitImpl当前机构id对应的机构不存在{}", hosrelationBean.getOrganId());
-           }else{
-               cancelRequest.setOrganName(organDTO.getName());
-           }
-       }else{
-           LOGGER.error("cancelVisitImpl当前入参没有机构id信息", hosrelationBean.getOrganId());
-       }
         LOGGER.info("cancelVisit request={}", JSONUtils.toString(cancelRequest));
         HisResponseTO cancelResponse = null;
         try {
