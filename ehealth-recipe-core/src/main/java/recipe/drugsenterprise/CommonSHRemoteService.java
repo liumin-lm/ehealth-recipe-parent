@@ -300,12 +300,14 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
 
     /**
      * 获取当前所有药品库存
-     * @param enterprise
+     * @param depId
      * @return
      */
-    public DrugEnterpriseResult scanStockAll(DrugsEnterprise enterprise) {
+    @RpcService
+    public DrugEnterpriseResult scanStockAll(Integer depId) {
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(depId);
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         String depName = enterprise.getName();
         try{
 
