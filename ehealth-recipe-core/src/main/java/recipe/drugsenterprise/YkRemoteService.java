@@ -129,7 +129,7 @@ public class YkRemoteService extends AccessDrugEnterpriseService {
             ykRecipeInfoDto.setPrescriptionid(nowRecipe.getRecipeId());
             ykRecipeInfoDto.setConsigpcity(getCompleteAddress(recipeOrder));
             ykRecipeInfoDto.setContraindication("");
-            ykRecipeInfoDto.setCredata(DateConversion.getDateFormatter(patientDTO.getCreateDate(),DateConversion.DEFAULT_DATE_TIME));
+            ykRecipeInfoDto.setCredata(DateConversion.getDateFormatter(nowRecipe.getCreateDate(),DateConversion.DEFAULT_DATE_TIME));
             ykRecipeInfoDto.setDiagnosis(nowRecipe.getMemo());
             ykRecipeInfoDto.setDiseaseid(100);
             ykRecipeInfoDto.setId_card(patientDTO.getIdcard());

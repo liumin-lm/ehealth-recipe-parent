@@ -172,6 +172,7 @@ public class RecipeValidateUtil {
         for (OrganDrugList organDrug : organDrugList) {
             mapDetail = drugIdAndDetailMap.get(organDrug.getDrugId());
             if (null != mapDetail) {
+                mapDetail.setDrugForm(organDrug.getDrugForm());
                 backDetailList.add(mapDetail);
             }
         }

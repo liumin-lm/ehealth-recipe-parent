@@ -17,13 +17,13 @@ public class DrugListForThreeBean implements Serializable{
     private String useDose;
     private String drugFee;
     private String medicalFee;
-    private String drugTotalFee;
     private String uesDays;
     private String pharmNo;
     private String usingRate;
     private String usePathways;
     private String usingRateText;
     private String usePathwaysText;
+    private String drugTotalFee;
     private String memo;
 
     public String getDrugCode() {
@@ -185,4 +185,6 @@ public class DrugListForThreeBean implements Serializable{
     public void setMemo(String memo) {
         this.memo = memo;
     }
+
+
 }

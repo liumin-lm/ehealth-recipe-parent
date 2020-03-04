@@ -641,18 +641,6 @@ public class RecipeService extends RecipeBaseService{
             return Lists.newArrayList();
         }
         List<Recipedetail> detailBeanList = RecipeValidateUtil.validateDrugsImpl(dbRecipe);
-        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        try{
-            for (Recipedetail recipedetail : detailBeanList) {
-                List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), dbRecipe.getClinicOrgan());
-                if (CollectionUtils.isNotEmpty(organDrugLists)) {
-                    recipedetail.setDrugForm(organDrugLists.get(0).getDrugForm());
-                }
-            }
-        }catch (Exception e){
-            LOGGER.error("validateDrugs 获取机构剂型失败{}", e.getMessage());
-        }
-
         return ObjectCopyUtils.convert(detailBeanList, RecipeDetailBean.class);
     }
 
@@ -964,12 +952,14 @@ public class RecipeService extends RecipeBaseService{
         Integer consultId = null;
         if (CollectionUtils.isNotEmpty(consultIds)) {
             consultId = consultIds.get(0);
+            recipe.setBussSource(2);
         }else {
             //图文咨询
             consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
                     recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_GRAPHIC);
             if (CollectionUtils.isNotEmpty(consultIds)){
                 consultId = consultIds.get(0);
+                recipe.setBussSource(1);
             }
         }
         recipe.setClinicId(consultId);
@@ -1663,7 +1653,7 @@ public class RecipeService extends RecipeBaseService{
                         RecipeCouponService recipeCouponService = ApplicationUtils.getRecipeService(RecipeCouponService.class);
                         recipeCouponService.unuseCouponByRecipeId(recipeId);
                     }
-                    //推送处方到监管平台(江苏)
+                    //推送处方到监管平台
                     RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(),1));
                     //HIS消息发送
                     boolean succFlag = hisService.recipeStatusUpdate(recipeId);

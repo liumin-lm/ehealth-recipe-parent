@@ -15,6 +15,8 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.common.dto.RecipeTagMsgBean;
+import com.ngari.consult.ConsultAPI;
+import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.message.service.IConsultMessageService;
 import com.ngari.patient.dto.*;
@@ -131,6 +133,15 @@ public class RecipeServiceSub {
 
         //武昌机构recipeCode平台生成
         getRecipeCodeForWuChang(recipeBean,patient,recipe);
+
+        // 根据咨询单特殊来源标识设置处方单特殊来源标识
+        if (null != recipeBean.getClinicId()) {
+            IConsultService consultService = ConsultAPI.getService(IConsultService.class);
+            ConsultBean consultBean = consultService.getById(recipeBean.getClinicId());
+            if ((null != consultBean) && (Integer.valueOf(1).equals(consultBean.getConsultSource()))) {
+                recipe.setRecipeSource(consultBean.getConsultSource());
+            }
+        }
 
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
         recipe.setRecipeId(recipeId);
@@ -1339,7 +1350,7 @@ public class RecipeServiceSub {
         //设置药师手签图片id
         if (recipe.getChecker()!=null){
             DoctorDTO auditDTO = doctorService.getByDoctorId(recipe.getChecker());
-            if (doctorDTO != null){
+            if (auditDTO != null){
                 map.put("checkerSignImg",auditDTO.getSignImage());
                 map.put("checkerSignImgToken", FileAuth.instance().createToken(auditDTO.getSignImage(), 3600L));
             }
@@ -1981,7 +1992,7 @@ public class RecipeServiceSub {
                 }
                 //处方撤销后将状态设为已撤销，供记录日志使用
                 recipe.setStatus(RecipeStatusConstant.REVOKE);
-                //推送处方到监管平台(江苏)
+                //推送处方到监管平台
                 RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(),1));
             } else {
                 msg = "未知原因，处方撤销失败";

@@ -29,7 +29,7 @@ public abstract class DrugDistributionPriceDAO extends HibernateSupportDelegateD
      * @param enterpriseId
      * @return
      */
-    @DAOMethod(sql = " from DrugDistributionPrice where enterpriseId =:enterpriseId order by addrArea desc")
+    @DAOMethod(sql = " from DrugDistributionPrice where enterpriseId =:enterpriseId order by addrArea desc", limit=0)
     public abstract List<DrugDistributionPrice> findByEnterpriseId(@DAOParam("enterpriseId") Integer enterpriseId);
 
     /**

@@ -64,6 +64,16 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
     public abstract List<DrugsEnterprise> findByOrganIdAndPayModeSupport(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") List<Integer> payModeSupport);
 
     /**
+     * 根据机构id，配送模式支持，省直医保支持获取
+     * @param organId
+     * @param payModeSupport
+     * @return
+     */
+    @DAOMethod(sql = "select t from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 and t.medicalInsuranceSupport=1 " +
+            "and s.organId=:organId and t.payModeSupport in :payModeSupport order by t.sort, t.id")
+    public abstract List<DrugsEnterprise> findByOrganIdAndOther(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") List<Integer> payModeSupport);
+
+    /**
      * 根据机构ID获取存在补充库存的药企机构
      * @param organId
      * @return
@@ -178,4 +188,12 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      */
     @DAOMethod(sql = "from DrugsEnterprise where status=1 and account=:account", limit = 1)
     public abstract DrugsEnterprise getByAccount(@DAOParam("account") String account);
+
+    /**
+     * 根据appKey获取药企
+     * @param appKey
+     * @return
+     */
+    @DAOMethod(sql = "from DrugsEnterprise where status=1 and appKey=:appKey", limit = 1)
+    public abstract DrugsEnterprise getByAppKey(@DAOParam("appKey") String appKey);
 }

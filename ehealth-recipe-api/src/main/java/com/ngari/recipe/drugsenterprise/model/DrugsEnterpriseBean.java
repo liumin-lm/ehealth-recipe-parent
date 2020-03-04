@@ -31,6 +31,9 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "药企固定编码")
     private String enterpriseCode;
 
+    @ItemProperty(alias = "药企分配appKey从开放平台获取")
+    private String appKey;
+
     @ItemProperty(alias = "药企在平台的账户")
     private String account;
 
@@ -87,6 +90,9 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "药企备注")
     private String memo;
 
+    @ItemProperty(alias = "是否支持省直医保：1不支持，0支持 默认0")
+    private Integer medicalInsuranceSupport;
+
     public DrugsEnterpriseBean() {
     }
 
@@ -112,6 +118,14 @@ public class DrugsEnterpriseBean implements Serializable {
 
     public void setAccount(String account) {
         this.account = account;
+    }
+
+    public String getAppKey() {
+        return appKey;
+    }
+
+    public void setAppKey(String appKey) {
+        this.appKey = appKey;
     }
 
     public String getUserId() {
@@ -261,5 +275,12 @@ public class DrugsEnterpriseBean implements Serializable {
 
     public void setEnterpriseCode(String enterpriseCode) {
         this.enterpriseCode = enterpriseCode;
+    }
+    public Integer getMedicalInsuranceSupport() {
+        return medicalInsuranceSupport;
+    }
+
+    public void setMedicalInsuranceSupport(Integer medicalInsuranceSupport) {
+        this.medicalInsuranceSupport = medicalInsuranceSupport;
     }
 }

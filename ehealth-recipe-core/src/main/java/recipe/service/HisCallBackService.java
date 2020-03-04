@@ -203,11 +203,16 @@ public class HisCallBackService {
         if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
             //配送处方标记 1:只能配送 更改处方取药方式
             if (Integer.valueOf(1).equals(recipe.getDistributionFlag())) {
-                RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-                RecipeResultBean result1 = hisService.recipeDrugTake(recipe.getRecipeId(), PayConstant.PAY_FLAG_NOT_PAY, null);
-                if (RecipeResultBean.FAIL.equals(result1.getCode())) {
-                    LOGGER.warn("checkPassSuccess recipeId=[{}]更改取药方式失败，error=[{}]", recipe.getRecipeId(), result1.getError());
-                    throw new DAOException(ErrorCode.SERVICE_ERROR, "更改取药方式失败，错误:" + result1.getError());
+                try {
+                    RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+                    RecipeResultBean result1 = hisService.recipeDrugTake(recipe.getRecipeId(), PayConstant.PAY_FLAG_NOT_PAY, null);
+                    if (RecipeResultBean.FAIL.equals(result1.getCode())) {
+                        LOGGER.warn("checkPassSuccess recipeId=[{}]更改取药方式失败，error=[{}]", recipe.getRecipeId(), result1.getError());
+                        //不能影响流程去掉异常
+                        /*throw new DAOException(ErrorCode.SERVICE_ERROR, "更改取药方式失败，错误:" + result1.getError());*/
+                    }
+                }catch (Exception e){
+                    LOGGER.warn("checkPassSuccess recipeId=[{}]更改取药方式异常", recipe.getRecipeId(), e);
                 }
             }
         }
@@ -232,7 +237,7 @@ public class HisCallBackService {
 
             }
         }
-        //推送处方到监管平台（江苏）
+        //推送处方到监管平台
         RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(),1));
     }
 

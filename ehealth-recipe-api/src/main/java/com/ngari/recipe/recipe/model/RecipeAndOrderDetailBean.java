@@ -34,12 +34,12 @@ public class RecipeAndOrderDetailBean implements Serializable{
     private String province;
     private String city;
     private String district;
+    private String street;
     private String expressFee;
     private String receiver;
     private String recMobile;
     private String recAddress;
     private String orderTotalFee;
-    private String actualPrice;
     private String outTradeNo;
     private String tradeNo;
     private String organDiseaseName;
@@ -260,14 +260,6 @@ public class RecipeAndOrderDetailBean implements Serializable{
         this.medicalFee = medicalFee;
     }
 
-    public String getActualPrice() {
-        return actualPrice;
-    }
-
-    public void setActualPrice(String actualPrice) {
-        this.actualPrice = actualPrice;
-    }
-
     public String getProvince() {
         return province;
     }
@@ -290,6 +282,14 @@ public class RecipeAndOrderDetailBean implements Serializable{
 
     public void setDistrict(String district) {
         this.district = district;
+    }
+
+    public String getStreet() {
+        return street;
+    }
+
+    public void setStreet(String street) {
+        this.street = street;
     }
 
     public String getExpressFee() {
