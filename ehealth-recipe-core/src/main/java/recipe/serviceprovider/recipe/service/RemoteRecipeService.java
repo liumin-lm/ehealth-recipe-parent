@@ -52,10 +52,12 @@ import recipe.serviceprovider.BaseService;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 /**
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * @date:2017/7/31.
  */
@@ -177,9 +179,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public QueryResult<Map> findRecipesByInfo(Integer organId, Integer status,
                                               Integer doctor, String patientName, Date bDate, Date eDate, Integer dateType,
-                                              Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode,Integer fromflag,Integer recipeId) {
+                                              Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode, Integer fromflag, Integer recipeId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        return recipeDAO.findRecipesByInfo(organId, status, doctor, patientName, bDate, eDate, dateType, depart, start, limit, organIds, giveMode,fromflag,recipeId);
+        return recipeDAO.findRecipesByInfo(organId, status, doctor, patientName, bDate, eDate, dateType, depart, start, limit, organIds, giveMode, fromflag, recipeId);
     }
 
     @RpcService
@@ -187,9 +189,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public Map<String, Integer> getStatisticsByStatus(Integer organId,
                                                       Integer status, Integer doctor, String mpiid,
                                                       Date bDate, Date eDate, Integer dateType,
-                                                      Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode,Integer fromflag,Integer recipeId) {
+                                                      Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode, Integer fromflag, Integer recipeId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        return recipeDAO.getStatisticsByStatus(organId, status, doctor, mpiid, bDate, eDate, dateType, depart, start, limit, organIds, giveMode,fromflag,recipeId);
+        return recipeDAO.getStatisticsByStatus(organId, status, doctor, mpiid, bDate, eDate, dateType, depart, start, limit, organIds, giveMode, fromflag, recipeId);
     }
 
     @RpcService
@@ -201,7 +203,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @RpcService
     @Override
-    public List<Map> queryRecipesByMobile(List<String> mpis){
+    public List<Map> queryRecipesByMobile(List<String> mpis) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         return recipeDAO.queryRecipesByMobile(mpis);
     }
@@ -215,7 +217,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @RpcService
     @Override
-    public List<String> findPatientMpiIdForOp(List<String> mpiIds, List<Integer> organIds){
+    public List<String> findPatientMpiIdForOp(List<String> mpiIds, List<Integer> organIds) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         return recipeDAO.findPatientMpiIdForOp(mpiIds, organIds);
     }
@@ -231,7 +233,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public List<String> findHistoryMpiIdsByDoctorId(int doctorId, Integer start, Integer limit) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        return recipeDAO.findHistoryMpiIdsByDoctorId(doctorId, start,limit);
+        return recipeDAO.findHistoryMpiIdsByDoctorId(doctorId, start, limit);
     }
 
     @RpcService
@@ -249,21 +251,22 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         List<Recipedetail> recipedetails = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(recipeDetailBeans)) {
             for (RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
-                recipedetails.add(getBean(recipeDetailBean,Recipedetail.class));
+                recipedetails.add(getBean(recipeDetailBean, Recipedetail.class));
             }
         }
-        if (StringUtils.isEmpty(recipeBean.getRecipeMode())){
+        if (StringUtils.isEmpty(recipeBean.getRecipeMode())) {
             recipeBean.setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);
         }
-        if (recipeBean.getReviewType()==null){
+        if (recipeBean.getReviewType() == null) {
             recipeBean.setReviewType(ReviewTypeConstant.Postposition_Check);
         }
-        recipeDAO.updateOrSaveRecipeAndDetail(getBean(recipeBean,Recipe.class),recipedetails,false);
+        recipeDAO.updateOrSaveRecipeAndDetail(getBean(recipeBean, Recipe.class), recipedetails, false);
     }
 
 
     /**
      * 根据日期范围，机构归类的业务量(天，月)
+     *
      * @param startDate
      * @param endDate
      * @return
@@ -274,21 +277,22 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         return recipeDAO.getCountByDateAreaGroupByOrgan(startDate, endDate);
     }
+
     /**
      * 根据日期范围，机构归类的业务量(小时)
+     *
      * @param startDate
      * @param endDate
      * @return
      */
     @RpcService
     @Override
-    public HashMap<Object,Integer> getCountByHourAreaGroupByOrgan(final Date startDate, final Date endDate) {
+    public HashMap<Object, Integer> getCountByHourAreaGroupByOrgan(final Date startDate, final Date endDate) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         return recipeDAO.getCountByHourAreaGroupByOrgan(startDate, endDate);
     }
 
     /**
-     *
      * @param organId
      * @param status
      * @param doctor
@@ -305,15 +309,16 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public List<Map> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate,
-                                        final Date eDate, final Integer dateType, final Integer depart, List<Integer> organIds, Integer giveMode,
-                                        Integer fromflag,Integer recipeId){
+                                               final Date eDate, final Integer dateType, final Integer depart, List<Integer> organIds, Integer giveMode,
+                                               Integer fromflag, Integer recipeId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        return recipeDAO.findRecipesByInfoForExcel(organId,status,doctor,patientName,bDate,eDate,dateType,depart,organIds,giveMode,fromflag,recipeId);
+        return recipeDAO.findRecipesByInfoForExcel(organId, status, doctor, patientName, bDate, eDate, dateType, depart, organIds, giveMode, fromflag, recipeId);
     }
 
     /**
      * 春节2月17版本 JRK
      * 查询
+     *
      * @param organId
      * @param status
      * @param doctor
@@ -329,9 +334,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService(timeout = 600000)
     @Override
     public List<Map> findRecipeOrdersByInfoForExcel(Integer organId, List<Integer> organIds, Integer status, Integer doctor, String patientName, Date bDate,
-                                               Date eDate, Integer dateType, Integer depart, Integer giveMode,
-                                               Integer fromflag,Integer recipeId){
-        LOGGER.info("findRecipeOrdersByInfoForExcel查询处方订单导出信息入参:{},{},{},{},{},{},{},{},{},{},{},{}",organId, organIds, status, doctor, patientName, bDate, eDate, dateType, depart, giveMode, fromflag, recipeId);
+                                                    Date eDate, Integer dateType, Integer depart, Integer giveMode,
+                                                    Integer fromflag, Integer recipeId) {
+        LOGGER.info("findRecipeOrdersByInfoForExcel查询处方订单导出信息入参:{},{},{},{},{},{},{},{},{},{},{},{}", organId, organIds, status, doctor, patientName, bDate, eDate, dateType, depart, giveMode, fromflag, recipeId);
         IRecipeService recipeService = RecipeAPI.getService(IRecipeService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         List<Map> recipeMap = recipeDAO.findRecipesByInfoForExcel(organId, status, doctor, patientName, bDate, eDate, dateType, depart, organIds, giveMode, fromflag, recipeId);
@@ -358,11 +363,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
         //组装处方相关联的数据
 
-        for(Map<String, Object> recipeMsg: recipeMap){
+        for (Map<String, Object> recipeMsg : recipeMap) {
             nowRecipeId = recipeMsg.get("recipeId");
             clinicOrgan = recipeMsg.get("clinicOrgan");
 
-            if(null != nowRecipeId){
+            if (null != nowRecipeId) {
                 try {
                     nowRecipedId = Integer.parseInt(nowRecipeId.toString());
                     clinicOrganId = Integer.parseInt(clinicOrgan.toString());
@@ -372,9 +377,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                     LOGGER.info("findRecipeOrdersByInfoForExcel查询订单信息,{}", JSONUtils.toString(order));
                     //处方对应药品详情信息
                     recipeDetails = recipeService.findRecipeDetailsByRecipeId(nowRecipedId);
-                    if(null != recipeDetails && 0 < recipeDetails.size()){
+                    if (null != recipeDetails && 0 < recipeDetails.size()) {
                         //details = new ArrayList<>();
-                        for (RecipeDetailBean recipeDetailBean : recipeDetails){
+                        for (RecipeDetailBean recipeDetailBean : recipeDetails) {
                             //recipeDetailMap = new HashMap();
                             //药品名称
                             recipeMsgMap = new HashMap();
@@ -388,25 +393,25 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                             recipeMsgMap.put("detailDrugPrice", recipeDetailBean.getSalePrice());
                             //date 20200225 修改药品查询信息
                             //判断处方详情中药品信息存在去新的值(如果为空说明)
-                            if(null != recipeDetailBean.getProducer()){
+                            if (null != recipeDetailBean.getProducer()) {
                                 LOGGER.info("findRecipeOrdersByInfoForExcel当前处方关联的药品数据是新数据{}", nowRecipeId);
                                 //说明是新签名后添加的数据
                                 //批号
                                 recipeMsgMap.put("detailDruglicenseNumber", recipeDetailBean.getLicenseNumber());
                                 //生产厂家
                                 recipeMsgMap.put("detailDrugProducer", recipeDetailBean.getProducer());
-                            }else{
+                            } else {
                                 //说明是老数据
                                 LOGGER.info("findRecipeOrdersByInfoForExcel当前处方关联的药品数据是旧数据{}", nowRecipeId);
                                 //处方的药品关联信息
-                                if (null != recipeDetailBean.getDrugId() && null != clinicOrganId && null != recipeDetailBean.getOrganDrugCode()){
+                                if (null != recipeDetailBean.getDrugId() && null != clinicOrganId && null != recipeDetailBean.getOrganDrugCode()) {
 
                                     LOGGER.info("findRecipeOrdersByInfoForExcel查询处方机构药品信息:DrugId{},OrganId{},OrganDrugCode{}", recipeDetailBean.getDrugId(), clinicOrganId, recipeDetailBean.getOrganDrugCode());
                                     organDrugLists = organDrugListDAO.findByOrganIdAndDrugIdAndOrganDrugCode(clinicOrganId, recipeDetailBean.getDrugId(), recipeDetailBean.getOrganDrugCode());
                                     LOGGER.info("findRecipeOrdersByInfoForExcel查询处方机构药品信息,{},长度:{}", JSONUtils.toString(organDrugLists));
-                                    if(null == organDrugLists || 0 == organDrugLists.size()){
+                                    if (null == organDrugLists || 0 == organDrugLists.size()) {
                                         LOGGER.warn("当前处方药品详情关联的机构药品信息不存在DrugId:{},OrganId:{}", recipeDetailBean.getDrugId(), clinicOrganId);
-                                    }else{
+                                    } else {
                                         organDrugList = organDrugLists.get(0);
                                         LOGGER.info("findRecipeOrdersByInfoForExcel查询处方机构药品单个信息:DrugId{},OrganId{},OrganDrugCode{}", JSONUtils.toString(organDrugList));
                                         //机构药品信息存在
@@ -420,18 +425,18 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
                             }
                             //将药企药品价格更新上去以及药企的药品code
-                            if(null != order){
+                            if (null != order) {
                                 LOGGER.info("findRecipeOrdersByInfoForExcel查询处方配送药品信息:DrugId{},OrganId{}", recipeDetailBean.getDrugId(), order.getEnterpriseId());
-                                if(null != order.getEnterpriseId()){
+                                if (null != order.getEnterpriseId()) {
 
                                     saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), order.getEnterpriseId());
                                     LOGGER.info("findRecipeOrdersByInfoForExcel查询处方配送药品信息,{}", JSONUtils.toString(saleDrugList));
-                                    if(null != saleDrugList && null != saleDrugList.getPrice()){
+                                    if (null != saleDrugList && null != saleDrugList.getPrice()) {
                                         //价格
                                         //有订单，判断订单对应的药品是否是药企的药品价格
                                         recipeMsgMap.put("detailDrugPrice", saleDrugList.getPrice());
                                     }
-                                    if(null != saleDrugList){
+                                    if (null != saleDrugList) {
                                         //药企药品编码
                                         recipeMsgMap.put("saleDrugCode", saleDrugList.getOrganDrugCode());
                                     }
@@ -444,11 +449,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                             //剂量单位
                             recipeMsgMap.put("detailUseDoseUnit", recipeDetailBean.getUseDoseUnit());
                             //用法
-                            if(StringUtils.isNotEmpty(recipeDetailBean.getUsePathways())){
+                            if (StringUtils.isNotEmpty(recipeDetailBean.getUsePathways())) {
                                 recipeMsgMap.put("detailUsePathways", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipeDetailBean.getUsePathways()));
                             }
                             //用药频度
-                            if(StringUtils.isNotEmpty(recipeDetailBean.getUsingRate())){
+                            if (StringUtils.isNotEmpty(recipeDetailBean.getUsingRate())) {
                                 recipeMsgMap.put("detailUsingRate", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(recipeDetailBean.getUsingRate()));
                             }
                             //数量
@@ -460,7 +465,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                             newRecipeMap.add(recipeMsgMap);
                         }
                         //recipeMsg.put("details", details);
-                    }else{
+                    } else {
                         recipeMsgMap = new HashMap();
                         recipeMsgMap.putAll(recipeMsg);
                         recipeAndOrderMsg(address4, order, commonRemoteService, recipeMsgMap);
@@ -488,7 +493,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         } else {
             recipeMsg.put("completeAddress", commonRemoteService.getCompleteAddress(order));
         }
-        if(null != order){
+        if (null != order) {
             //下单时间
             recipeMsg.put("orderTime", order.getCreateTime());
             //配送费
@@ -496,7 +501,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             //订单号
             recipeMsg.put("orderCode", order.getOrderCode());
             //订单状态
-            if(null != order.getStatus()) {
+            if (null != order.getStatus()) {
                 recipeMsg.put("orderStatus", DictionaryController.instance().get("eh.cdr.dictionary.RecipeOrderStatus").getText(order.getStatus()));
             }
             //支付金额
@@ -526,7 +531,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @RpcService
     @Override
-    public HashMap<Integer, Long> getCountGroupByOrgan(){
+    public HashMap<Integer, Long> getCountGroupByOrgan() {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         return recipeDAO.getCountGroupByOrgan();
     }
@@ -534,7 +539,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @RpcService
     @Override
-    public HashMap<Integer, Long> getRecipeRequestCountGroupByDoctor(){
+    public HashMap<Integer, Long> getRecipeRequestCountGroupByDoctor() {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         return recipeDAO.getRecipeRequestCountGroupByDoctor();
     }
@@ -582,7 +587,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public RecipeBean getRecipeByOrderCode(String orderCode) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         List<Recipe> recipes = recipeDAO.findRecipeListByOrderCode(orderCode);
-        if (recipes != null && recipes.size() > 0 ){
+        if (recipes != null && recipes.size() > 0) {
             Recipe recipe = recipes.get(0);
             return ObjectCopyUtils.convert(recipe, RecipeBean.class);
         }
@@ -591,20 +596,20 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     @RpcService
-    public Map<String,Object> noticePlatRecipeFlowInfo(NoticePlatRecipeFlowInfoDTO req) {
+    public Map<String, Object> noticePlatRecipeFlowInfo(NoticePlatRecipeFlowInfoDTO req) {
         TmdyfRemoteService service = ApplicationUtils.getRecipeService(TmdyfRemoteService.class);
-        LOGGER.info("noticePlatRecipeFlowInfo req={}",JSONUtils.toString(req));
-        Map<String,Object> map = Maps.newHashMap();
-        if (req != null && StringUtils.isNotEmpty(req.getPutOnRecordID())&& StringUtils.isNotEmpty(req.getRecipeID())){
+        LOGGER.info("noticePlatRecipeFlowInfo req={}", JSONUtils.toString(req));
+        Map<String, Object> map = Maps.newHashMap();
+        if (req != null && StringUtils.isNotEmpty(req.getPutOnRecordID()) && StringUtils.isNotEmpty(req.getRecipeID())) {
             try {
                 DrugEnterpriseResult result = service.updateMedicalInsuranceRecord(req.getRecipeID(), req.getPutOnRecordID());
-                if (StringUtils.isNotEmpty(result.getMsg())){
-                    map.put("msg",result.getMsg());
+                if (StringUtils.isNotEmpty(result.getMsg())) {
+                    map.put("msg", result.getMsg());
                 }
-                LOGGER.info("noticePlatRecipeFlowInfo res={}",JSONUtils.toString(result));
-            }catch (Exception e){
-                LOGGER.error("noticePlatRecipeFlowInfo error.",e);
-                map.put("msg","处理异常");
+                LOGGER.info("noticePlatRecipeFlowInfo res={}", JSONUtils.toString(result));
+            } catch (Exception e) {
+                LOGGER.error("noticePlatRecipeFlowInfo error.", e);
+                map.put("msg", "处理异常");
             }
         }
         return map;
@@ -614,7 +619,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     @RpcService
     public void noticePlatRecipeMedicalInsuranceInfo(NoticePlatRecipeMedicalInfoDTO req) {
-        LOGGER.info("noticePlatRecipeMedicalInsuranceInfo req={}",JSONUtils.toString(req));
+        LOGGER.info("noticePlatRecipeMedicalInsuranceInfo req={}", JSONUtils.toString(req));
         if (null == req) {
             return;
         }
@@ -627,26 +632,27 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             //默认 医保上传确认中
             Integer status = RecipeStatusConstant.CHECKING_MEDICAL_INSURANCE;
             String memo = "";
-            if ("1".equals(uploadStatus)){
+            if ("1".equals(uploadStatus)) {
                 //上传成功
-                if (RecipeStatusConstant.READY_CHECK_YS != dbRecipe.getStatus()){
+                if (RecipeStatusConstant.READY_CHECK_YS != dbRecipe.getStatus()) {
                     status = RecipeStatusConstant.READY_CHECK_YS;
                     memo = "His医保信息上传成功";
                 }
                 //保存医保返回数据
-                saveMedicalInfoForRecipe(req,dbRecipe.getRecipeId());
-            }else {
+                saveMedicalInfoForRecipe(req, dbRecipe.getRecipeId());
+            } else {
                 //上传失败
                 //失败原因
                 String failureInfo = req.getFailureInfo();
                 status = RecipeStatusConstant.RECIPE_MEDICAL_FAIL;
-                memo = StringUtils.isEmpty(failureInfo)?"His医保信息上传失败":"His医保信息上传失败,原因:"+failureInfo;
+                memo = StringUtils.isEmpty(failureInfo) ? "His医保信息上传失败" : "His医保信息上传失败,原因:" + failureInfo;
             }
             recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), status, null);
             //日志记录
             RecipeLogService.saveRecipeLog(dbRecipe.getRecipeId(), dbRecipe.getStatus(), status, memo);
         }
     }
+
     private void saveMedicalInfoForRecipe(NoticePlatRecipeMedicalInfoDTO req, Integer recipeId) {
         //医院机构编码
         String hospOrgCodeFromMedical = req.getHospOrgCode();
@@ -655,17 +661,18 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         //医保结算请求串
         String medicalSettleData = req.getMedicalSettleData();
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        Map<String,String> updateMap = Maps.newHashMap();
-        updateMap.put("hospOrgCodeFromMedical",hospOrgCodeFromMedical);
-        updateMap.put("insuredArea",insuredArea);
-        updateMap.put("medicalSettleData",medicalSettleData);
-        recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeId,updateMap);
+        Map<String, String> updateMap = Maps.newHashMap();
+        updateMap.put("hospOrgCodeFromMedical", hospOrgCodeFromMedical);
+        updateMap.put("insuredArea", insuredArea);
+        updateMap.put("medicalSettleData", medicalSettleData);
+        recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeId, updateMap);
     }
 
 
     /**
      * 获取处方类型的参数接口对像
-     *  区别 中药、西药、膏方
+     * 区别 中药、西药、膏方
+     *
      * @param paramMapType
      * @param recipe
      * @param details
@@ -674,14 +681,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      */
     @Override
     @RpcService
-    public Map<String, Object> createRecipeParamMapForPDF(Integer paramMapType, RecipeBean recipe, List<RecipeDetailBean> details, String fileName){
+    public Map<String, Object> createRecipeParamMapForPDF(Integer paramMapType, RecipeBean recipe, List<RecipeDetailBean> details, String fileName) {
         LOGGER.info("createParamMapForChineseMedicine start in  paramMapType={} recipe={} details={} fileName={}"
-                ,paramMapType,JSONObject.toJSONString(recipe),JSONObject.toJSONString(details),fileName);
+                , paramMapType, JSONObject.toJSONString(recipe), JSONObject.toJSONString(details), fileName);
 
         Map<String, Object> map;
         List<Recipedetail> recipeDetails = new ArrayList<>();
-        for (RecipeDetailBean recipeDetailBean : details){
-            recipeDetails.add(getBean(recipeDetailBean,Recipedetail.class));
+        for (RecipeDetailBean recipeDetailBean : details) {
+            recipeDetails.add(getBean(recipeDetailBean, Recipedetail.class));
         }
         //根据处方类型选择生成参数
         if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
@@ -697,12 +704,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @RpcService
     @Override
-    public Boolean updateRecipeInfoByRecipeId(int recipeId, final Map<String,Object> changeAttr){
+    public Boolean updateRecipeInfoByRecipeId(int recipeId, final Map<String, Object> changeAttr) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         try {
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, changeAttr);
             return true;
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
@@ -711,8 +718,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public Map<String, Object> getHtml5LinkInfo(PatientInfoDTO patient, RecipeBean recipeBean, List<RecipeDetailBean> recipeDetails, Integer reqType) {
         WinningMedicationGuideService winningMedicationGuideService = ApplicationUtils.getRecipeService(WinningMedicationGuideService.class);
-        recipe.medicationguide.bean.PatientInfoDTO patientInfoDTO = ObjectCopyUtils.convert(patient,recipe.medicationguide.bean.PatientInfoDTO.class);
-        Map<String,Object> resultMap = winningMedicationGuideService.getHtml5LinkInfo(patientInfoDTO,recipeBean,recipeDetails,reqType);
+        recipe.medicationguide.bean.PatientInfoDTO patientInfoDTO = ObjectCopyUtils.convert(patient, recipe.medicationguide.bean.PatientInfoDTO.class);
+        Map<String, Object> resultMap = winningMedicationGuideService.getHtml5LinkInfo(patientInfoDTO, recipeBean, recipeDetails, reqType);
         return resultMap;
     }
 
@@ -721,10 +728,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         Map<String, String> map = new HashMap<String, String>();
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder recipeOrder = recipeOrderDAO.get(orderId);
-        if(recipeOrder != null){
-            map.put("orderType", recipeOrder.getOrderType() == null ? null :recipeOrder.getOrderType() + "");
+        if (recipeOrder != null) {
+            map.put("orderType", recipeOrder.getOrderType() == null ? null : recipeOrder.getOrderType() + "");
         } else {
-            LOGGER.info("getEnterpriseCodeByRecipeId 获取订单为null orderId = {}",orderId);
+            LOGGER.info("getEnterpriseCodeByRecipeId 获取订单为null orderId = {}", orderId);
         }
         Integer depId = recipeOrder.getEnterpriseId();
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
@@ -737,15 +744,15 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public Boolean canRequestConsultForRecipe(String mpiId, Integer depId, Integer organId) {
-        LOGGER.info("canRequestConsultForRecipe organId={},mpiId={},depId={}",organId,mpiId,depId);
+        LOGGER.info("canRequestConsultForRecipe organId={},mpiId={},depId={}", organId, mpiId, depId);
         //先查3天内未处理的线上处方-平台
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         //设置查询时间段
         String endDt = DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME);
-        String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(3),DateConversion.DEFAULT_DATE_TIME);
+        String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(3), DateConversion.DEFAULT_DATE_TIME);
         //前置没考虑
-        List<Recipe> recipeList = recipeDAO.findRecipeListByDeptAndPatient(depId, mpiId, startDt,endDt);
-        if (CollectionUtils.isEmpty(recipeList)){
+        List<Recipe> recipeList = recipeDAO.findRecipeListByDeptAndPatient(depId, mpiId, startDt, endDt);
+        if (CollectionUtils.isEmpty(recipeList)) {
             //再查3天内线上未缴费的处方-到院取药推送的处方-his
             PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
             PatientDTO patientDTO = patientService.get(mpiId);
@@ -767,17 +774,33 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 LOGGER.warn("canRequestConsultForRecipe-getHosRecipeList his error. ", e);
             }
             LOGGER.info("canRequestConsultForRecipe-getHosRecipeList res={}", JSONUtils.toString(response));
-            if(null == response){
+            if (null == response) {
                 return true;
             }
             List<RecipeInfoTO> data = response.getData();
-            if (CollectionUtils.isEmpty(data)){
+            if (CollectionUtils.isEmpty(data)) {
                 return true;
-            }else {
+            } else {
                 return false;
             }
-        }else {
+        } else {
             return false;
         }
+    }
+
+    @RpcService
+    @Override
+    public void recipeMedicInsurSettle(MedicInsurSettleSuccNoticNgariReqDTO request) {
+        LOGGER.info("省医保结算成功通知平台,param = {}", JSONUtils.toString(request));
+        if (null == request.getRecipeId()) {
+            return;
+        }
+        try {
+            RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+            recipeOrderService.recipeMedicInsurSettleSaveOrder(request);
+        } catch (Exception e) {
+            LOGGER.info("recipeMedicInsurSettleSaveOrder error", e);
+        }
+        return;
     }
 }

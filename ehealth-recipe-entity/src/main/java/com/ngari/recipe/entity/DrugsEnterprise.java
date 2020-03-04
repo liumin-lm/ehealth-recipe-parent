@@ -103,6 +103,9 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "药企备注")
     private String memo;
 
+    @ItemProperty(alias = "是否支持省直医保：1不支持，0支持 默认0")
+    private Integer medicalInsuranceSupport;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -327,6 +330,15 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setMemo(String memo) {
         this.memo = memo;
+    }
+
+    @Column(name = "MedicalInsuranceSupport")
+    public Integer getMedicalInsuranceSupport() {
+        return medicalInsuranceSupport;
+    }
+
+    public void setMedicalInsuranceSupport(Integer medicalInsuranceSupport) {
+        this.medicalInsuranceSupport = medicalInsuranceSupport;
     }
 
     @Override

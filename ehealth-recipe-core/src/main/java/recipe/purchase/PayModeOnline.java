@@ -6,9 +6,10 @@ import com.google.common.collect.Maps;
 import com.ngari.base.employment.model.EmploymentBean;
 import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.consult.ConsultAPI;
+import com.ngari.consult.ConsultBean;
+import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.base.PatientBaseInfo;
-import com.ngari.his.patient.mode.PatientQueryRequestTO;
-import com.ngari.his.patient.service.IPatientHisService;
 import com.ngari.his.recipe.mode.UpdateTakeDrugWayReqTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -24,7 +25,6 @@ import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
-import ctd.util.annotation.RpcService;
 import eh.base.constant.ErrorCode;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -90,8 +90,12 @@ public class PayModeOnline implements IPurchaseService {
         }
         LOG.info("drugsEnterpriseList organId:{}, payModeSupport:{}", dbRecipe.getClinicOrgan(), payModeSupport);
         //筛选出来的数据已经去掉不支持任何方式配送的药企
-        List<DrugsEnterprise> drugsEnterpriseList =
-                drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(dbRecipe.getClinicOrgan(), payModeSupport);
+        List<DrugsEnterprise> drugsEnterpriseList;
+        if (Integer.valueOf(1).equals(dbRecipe.getRecipeSource())) {
+            drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndOther(dbRecipe.getClinicOrgan(), payModeSupport);
+        } else {
+            drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(dbRecipe.getClinicOrgan(), payModeSupport);
+        }
         if (CollectionUtils.isEmpty(drugsEnterpriseList)) {
             LOG.warn("findSupportDepList 处方[{}]没有任何药企可以进行配送！", recipeId);
             resultBean.setCode(5);
@@ -263,6 +267,18 @@ public class PayModeOnline implements IPurchaseService {
 
         //设置为有效订单
         order.setEffective(1);
+
+        // 根据咨询单特殊来源标识和处方单特殊来源标识设置处方订单orderType为省中，邵逸夫医保小程序
+        if (null != dbRecipe.getClinicId()) {
+            IConsultService consultService = ConsultAPI.getService(IConsultService.class);
+            ConsultBean consultBean = consultService.getById(dbRecipe.getClinicId());
+            if (null != consultBean) {
+                if (Integer.valueOf(1).equals(consultBean.getConsultSource()) && (Integer.valueOf(1).equals(dbRecipe.getRecipeSource()))) {
+                    order.setOrderType(3);
+                }
+            }
+        }
+
         boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
         if (!saveFlag) {
             result.setCode(RecipeResultBean.FAIL);
@@ -492,8 +508,23 @@ public class PayModeOnline implements IPurchaseService {
                 drugIds.add(detail.getDrugId());
                 drugIdCountMap.put(detail.getDrugId(), detail.getUseTotalDose());
             }
+            // 处方单特殊来源标识：1省中，邵逸夫医保小程序
+            // 如果标识是1，则需要支持省直医保；drugsEnterprises 必须和 depDetailList取交集
+            if (Integer.valueOf(1).equals(dbRecipe.getRecipeSource())) {
+                List<DrugsEnterprise> drugsEnterprisesFilter = new ArrayList<>();
+                for (DepDetailBean depDetailBean : depDetailList) {
+                    for (DrugsEnterprise drugsEnterpris : drugsEnterprises) {
+                        if (depDetailBean.getDepId().equals(drugsEnterpris.getId())) {
+                            drugsEnterprisesFilter.add(drugsEnterpris);
+                            continue;
+                        }
+                    }
+                }
+                drugsEnterprises = drugsEnterprisesFilter;
+            }
             for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
-                if (DrugEnterpriseConstant.COMPANY_HR.equals(drugsEnterprise.getCallSys()) || DrugEnterpriseConstant.COMPANY_BY.equals(drugsEnterprise.getCallSys())) {
+                if (DrugEnterpriseConstant.COMPANY_HR.equals(drugsEnterprise.getCallSys()) || DrugEnterpriseConstant.COMPANY_BY.equals(drugsEnterprise.getCallSys())
+                        || DrugEnterpriseConstant.COMPANY_YSQ.equals(drugsEnterprise.getCallSys())) {
                     //将药店配送的药企移除
                     for (DepDetailBean depDetailBean : depDetailList) {
                         if (drugsEnterprise.getId().equals(depDetailBean.getDepId())) {
