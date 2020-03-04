@@ -35,6 +35,9 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "药企固定编码")
     private String enterpriseCode;
 
+    @ItemProperty(alias = "药企分配appKey从开放平台获取")
+    private String appKey;
+
     @ItemProperty(alias = "药企在平台的账户")
     private String account;
 
@@ -127,6 +130,15 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setEnterpriseCode(String enterpriseCode) {
         this.enterpriseCode = enterpriseCode;
+    }
+
+    @Column(name = "appKey")
+    public String getAppKey() {
+        return appKey;
+    }
+
+    public void setAppKey(String appKey) {
+        this.appKey = appKey;
     }
 
     @Column(name = "Account", length = 20)
