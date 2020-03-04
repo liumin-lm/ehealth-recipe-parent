@@ -86,6 +86,8 @@
 
 	<bean id="commonSHRemoteService" class="recipe.drugsenterprise.CommonSHRemoteService"/>
 
+	<bean id="shyyRemoteService" class="recipe.drugsenterprise.ShyyRemoteService"/>
+
 	<bean id="busTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" destroy-method="shutdown">
 		<!-- 线程池活跃的线程数 -->
 		<property name="corePoolSize" value="5" />
