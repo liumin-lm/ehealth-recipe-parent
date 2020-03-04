@@ -251,7 +251,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
             Map<String, Object> res= new HashMap<>(1);
             res.put("master",commonSHScanStockReqDto);
             sendInfo.put("Content", res);
-            sendInfo.put("MsgType","QZ002");
+            sendInfo.put("MsgType","QZ004");
             sendInfo.put("DataType","Json");
             Date date = new Date(System.currentTimeMillis());
             sendInfo.put("CreateTime",DateConversion.getDateFormatter(date,DateConversion.DEFAULT_DATE_TIME));
