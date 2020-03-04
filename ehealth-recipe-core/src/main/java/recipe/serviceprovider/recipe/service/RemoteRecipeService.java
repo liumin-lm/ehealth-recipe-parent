@@ -482,6 +482,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private void recipeAndOrderMsg(Object address4, RecipeOrder order, CommonRemoteService commonRemoteService, Map<String, Object> recipeMsg) throws ControllerException {
         //地址 加非空校验
         address4 = recipeMsg.get("address4");
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         if (null != address4 && StringUtils.isNotEmpty(address4.toString())) {
             recipeMsg.put("completeAddress", address4.toString());
         } else {
@@ -501,6 +502,25 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             //支付金额
             recipeMsg.put("payMoney", order.getActualPrice());
             recipeMsg.put("totalMoney", order.getTotalFee());
+            //date 20200303
+            //添加药企信息和期望配送时间
+            if(null != order.getEnterpriseId()){
+                //匹配上药企，获取药企名
+                DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+                if(null != enterprise && null != enterprise.getName()){
+                    LOGGER.info("findRecipeOrdersByInfoForExcel 当前处方{}关联上药企:{}", order.getRecipeIdList(), JSONUtils.toString(enterprise));
+                    recipeMsg.put("enterpriseName", enterprise.getName());
+                }else{
+                    LOGGER.warn("findRecipeOrdersByInfoForExcel 当前处方{}关联的药企id:{}信息不全", order.getRecipeIdList(), order.getEnterpriseId());
+                }
+
+            }
+            //date 20200303
+            //添加期望配送时间
+            if(null != order.getExpectSendDate()){
+                recipeMsg.put("expectSendDate", order.getExpectSendDate());
+            }
+
         }
     }
 
