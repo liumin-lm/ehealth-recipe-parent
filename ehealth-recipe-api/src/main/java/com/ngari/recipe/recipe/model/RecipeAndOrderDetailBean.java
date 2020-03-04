@@ -40,7 +40,6 @@ public class RecipeAndOrderDetailBean implements Serializable{
     private String recMobile;
     private String recAddress;
     private String orderTotalFee;
-    private String actualPrice;
     private String outTradeNo;
     private String tradeNo;
     private String organDiseaseName;
@@ -259,14 +258,6 @@ public class RecipeAndOrderDetailBean implements Serializable{
 
     public void setMedicalFee(String medicalFee) {
         this.medicalFee = medicalFee;
-    }
-
-    public String getActualPrice() {
-        return actualPrice;
-    }
-
-    public void setActualPrice(String actualPrice) {
-        this.actualPrice = actualPrice;
     }
 
     public String getProvince() {
