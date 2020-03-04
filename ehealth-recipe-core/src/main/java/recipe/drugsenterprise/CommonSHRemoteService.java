@@ -299,6 +299,81 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
     }
 
     /**
+     * 获取当前所有药品库存
+     * @param enterprise
+     * @return
+     */
+    public DrugEnterpriseResult scanStockAll(DrugsEnterprise enterprise) {
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        String depName = enterprise.getName();
+        try{
+
+            boolean checkScan = true;
+
+            //最终发给药企的json数据
+            Map<String, Object> sendInfo = new HashMap<>(1);
+            List<CommonSHScanStockReqDto> commonSHScanStockReqDto = new  ArrayList<CommonSHScanStockReqDto>();
+            CommonSHScanStockReqDto commonSHScanStockReq = new CommonSHScanStockReqDto();
+            commonSHScanStockReq.setGoods("");
+            commonSHScanStockReq.setPageIndex(1);
+            commonSHScanStockReq.setPageSize(200);
+            commonSHScanStockReqDto.add(commonSHScanStockReq);
+            Map<String, Object> res= new HashMap<>(1);
+            res.put("master",commonSHScanStockReqDto);
+            sendInfo.put("Content", res);
+            sendInfo.put("MsgType","QZ004");
+            sendInfo.put("DataType","Json");
+            Date date = new Date(System.currentTimeMillis());
+            sendInfo.put("CreateTime",DateConversion.getDateFormatter(date,DateConversion.DEFAULT_DATE_TIME));
+            String sendInfoStr = JSON.toJSONString(sendInfo, new SerializerFeature[]
+                    { SerializerFeature.WriteMapNullValue, SerializerFeature.WriteNullStringAsEmpty });
+            String methodName = "TransData";
+            LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
+
+            //发送药企信息
+            String appId = enterprise.getUserId();
+            String tocken = enterprise.getToken();
+            String resultJson = sendAndDealResult(enterprise, methodName, sendInfoStr, result, appId, tocken);
+            JSONObject jsonObject = JSONObject.parseObject(resultJson);
+            String transId = jsonObject.getString("transId");
+            if(StringUtils.isEmpty(resultJson))
+            {
+                result.setMsg("库存信息下载失败");
+            }else if(StringUtils.equals(jsonObject.getString("Success"),"false")){
+                result.setMsg("库存信息下载失败");
+            }
+            else {
+                jsonObject = JSONObject.parseObject(jsonObject.getString("Content"));
+                JSONArray jsonArray = (JSONArray)JSONArray.parse(jsonObject.getString("master"));
+                for(int i = 0;i < jsonArray.size();i++){
+                    jsonObject = (JSONObject) jsonArray.get(i);
+                    String isstock = jsonObject.getString("isstock");
+                    if(StringUtils.equals(isstock,"0"))
+                    {
+                        checkScan = false;
+                    }
+                    DrugEnterpriseResult confirmResult = getScanStockConfirm(transId,"",enterprise);
+                    if(StringUtils.equals(confirmResult.getMsg(),"fail"))
+                    {
+                        result.setCode(DrugEnterpriseResult.FAIL);
+                        result.setMsg("库存下载确认反馈失败");
+                        break;
+                    }
+                }
+                if(!checkScan){
+                    getFailResult(result, "当前药企下无药品库存");
+                } else {
+                    result.setMsg("调用[" + enterprise.getName() + "][ scanStockAll ]结果返回成功,有库存");
+                }
+            }
+        }catch (Exception e){
+            getFailResult(result, "当前药企下没有药品库存");
+        }
+        return result;
+    }
+
+    /**
      * @method  getDetailGroup
      * @description 将处方详情中的根据药品分组，叠加需求量
      * @date: 2019/7/10
