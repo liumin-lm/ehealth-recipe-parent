@@ -199,12 +199,19 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
     }
     @Override
     public DrugEnterpriseResult pushRecipe(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
-        return "";
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
+        if (saleDrugList.getInventory().intValue() == 1) {
+            return "有库存";
+        } else {
+            return "无库存";
+        }
+
     }
 
     @Override
@@ -212,7 +219,18 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
         LOGGER.info("CommonSHRemoteService.scanStock:处方ID为{}.", recipeId);
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        String depName = enterprise.getName();
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
+        for (Recipedetail recipeDetail : recipedetails) {
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetail.getDrugId(), enterprise.getId());
+            if (saleDrugList.getInventory().intValue() == 0) {
+                result.setCode(DrugEnterpriseResult.FAIL);
+                return result;
+            }
+        }
+        return result;
+
+        /*String depName = enterprise.getName();
         try{
             //查询当前处方信息
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -294,8 +312,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
         }catch (Exception e){
             getFailResult(result, "当前药企下没有药店的药品库存足够");
             LOGGER.info("CommonSHRemoteService.scanStock:处方ID为{},{}.", recipeId, e.getMessage());
-        }
-        return result;
+        }*/
     }
 
     /**
