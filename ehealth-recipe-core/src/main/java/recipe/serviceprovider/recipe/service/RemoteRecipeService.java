@@ -522,8 +522,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             }
             //date 20200303
             //添加期望配送时间
-            if(null != order.getExpectSendDate()){
-                recipeMsg.put("expectSendDate", order.getExpectSendDate());
+            if(StringUtils.isNotEmpty(order.getExpectSendDate()) && StringUtils.isNotEmpty(order.getExpectSendTime())){
+                recipeMsg.put("expectSendDate", order.getExpectSendDate() + " " + order.getExpectSendTime());
             }
 
         }
