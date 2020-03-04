@@ -337,6 +337,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
             String appId = enterprise.getUserId();
             String tocken = enterprise.getToken();
             String resultJson = sendAndDealResult(enterprise, methodName, sendInfoStr, result, appId, tocken);
+            LOGGER.info("scanStockAll resultJson:{}.", resultJson);
             JSONObject jsonObject = JSONObject.parseObject(resultJson);
             String transId = jsonObject.getString("transId");
             if(StringUtils.isEmpty(resultJson))
