@@ -1551,7 +1551,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                         LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{}的ossid为{}处方笺不存在", recipe.getRecipeId(), ossId);
                     }
                     LOGGER.warn("YtRemoteService.pushRecipeInfo:{}处方，下载处方笺服务成功", recipe.getRecipeId());
-                    //orderDetailBean.setRecipeSignImg(imgStr);
+                    orderDetailBean.setRecipeSignImg(imgStr);
                 } catch (Exception e) {
                     e.printStackTrace();
                     LOGGER.warn("YtRemoteService.pushRecipeInfo:{}处方，下载处方笺服务异常：{}.", recipe.getRecipeId(), e.getMessage() );
@@ -1561,12 +1561,11 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
             //设置订单信息
             orderDetailBean.setRecipeFee(convertParame(recipeOrder.getRecipeFee()));
-            orderDetailBean.setActualFee(convertParame(recipeOrder.getAuditFee()));
+            orderDetailBean.setActualFee(convertParame(recipeOrder.getActualPrice()));
             orderDetailBean.setCouponFee(convertParame(recipeOrder.getCouponFee()));
             orderDetailBean.setDecoctionFee(convertParame(recipeOrder.getDecoctionFee()));
             orderDetailBean.setAuditFee(convertParame(recipeOrder.getAuditFee()));
             orderDetailBean.setRegisterFee(convertParame(recipeOrder.getRegisterFee()));
-            orderDetailBean.setActualPrice(convertParame(recipeOrder.getActualPrice()));
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (recipeExtend != null) {
                 orderDetailBean.setMedicalFee(recipeExtend.getFundAmount());
