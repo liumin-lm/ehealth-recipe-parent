@@ -35,6 +35,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONArray;
 
 import javax.xml.namespace.QName;
+import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.util.*;
@@ -424,8 +425,105 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
-        return DrugEnterpriseResult.getSuccess();
+    public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise enterprise, List<Integer> drugIdList) {
+        LOGGER.info("CommonSHRemoteService.syncEnterpriseDrug:药企ID为{}.", enterprise.getId());
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        String depName = enterprise.getName();
+        SaleDrugList saleDrug = null;
+        try{
+            //最终发给药企的json数据
+            Map<String, Object> sendInfo = new HashMap<>(1);
+            List<CommonSHScanStockReqDto> commonSHScanStockReqDto = new  ArrayList<CommonSHScanStockReqDto>();
+            int pageIndex = 1;
+            while (true){
+                CommonSHScanStockReqDto commonSHScanStockReq = new CommonSHScanStockReqDto();
+                commonSHScanStockReq.setGoods(saleDrug.getOrganDrugCode());
+                commonSHScanStockReq.setPageIndex(pageIndex);
+                commonSHScanStockReq.setPageSize(200);
+                commonSHScanStockReqDto.add(commonSHScanStockReq);
+                Map<String, Object> res= new HashMap<>(1);
+                res.put("master",commonSHScanStockReqDto);
+                sendInfo.put("Content", res);
+                sendInfo.put("MsgType","QZ004");
+                sendInfo.put("DataType","Json");
+                Date date = new Date(System.currentTimeMillis());
+                sendInfo.put("CreateTime",DateConversion.getDateFormatter(date,DateConversion.DEFAULT_DATE_TIME));
+                String sendInfoStr = JSON.toJSONString(sendInfo, new SerializerFeature[]
+                        { SerializerFeature.WriteMapNullValue, SerializerFeature.WriteNullStringAsEmpty });
+                String methodName = "TransData";
+                LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
+
+                //发送药企信息
+                String appId = enterprise.getUserId();
+                String tocken = enterprise.getToken();
+                String resultJson = sendAndDealResult(enterprise, methodName, sendInfoStr, result, appId, tocken);
+                JSONObject jsonObject = JSONObject.parseObject(resultJson);
+                String transId = jsonObject.getString("transId");
+                if(StringUtils.isEmpty(resultJson))
+                {
+                    result.setMsg("库存信息下载失败");
+                }else if(StringUtils.equals(jsonObject.getString("Success"),"false")){
+                    result.setMsg("库存信息下载失败");
+                }
+                else {
+                    jsonObject = JSONObject.parseObject(jsonObject.getString("Content"));
+                    pageIndex = jsonObject.getInteger("nextpage");
+                    jsonObject = JSONObject.parseObject(jsonObject.getString("data"));
+                    JSONArray jsonArray = (JSONArray)JSONArray.parse(jsonObject.getString("master"));
+                    for(int i = 0;i < jsonArray.size();i++){
+                        jsonObject = (JSONObject) jsonArray.get(i);
+                        String isstock = jsonObject.getString("isstock");
+                        saleDrug = saleDrugListDAO.getByOrganIdAndDrugCode(enterprise.getId(), jsonObject.getString("goods"));
+                        if(saleDrug == null)
+                        {
+                            saleDrug.setOrganDrugCode(jsonObject.getString("goods"));
+                            saleDrug.setDrugSpec(jsonObject.getString("spec"));
+                            saleDrug.setDrugName(jsonObject.getString("goodsname"));
+                            saleDrug.setSaleName(jsonObject.getString("gname"));
+                            saleDrug.setPrice(new BigDecimal(jsonObject.getString("LPRC")));
+                            if(StringUtils.equals(jsonObject.getString("isstock"),"0"))
+                            {
+                                saleDrug.setInventory(new BigDecimal("0"));
+                            }else {
+                                saleDrug.setInventory(new BigDecimal("1"));
+                            }
+                            saleDrug.setOrganId(enterprise.getId());
+                            saleDrug.setStatus(1);
+                            saleDrug.setCreateDt(DateConversion.getFormatDate(date,DateConversion.DEFAULT_DATE_TIME));
+                            saleDrug.setLastModify(DateConversion.getFormatDate(date,DateConversion.DEFAULT_DATE_TIME));
+                            saleDrugListDAO.save(saleDrug);
+                            result.setMsg("调用[" + enterprise.getName() + "][ syncEnterpriseDrug ]结果返回成功,数据插入成功,药品ID:"+jsonObject.getString("goods")+".");
+                        }else {
+                            saleDrug.setOrganDrugCode(jsonObject.getString("goods"));
+                            saleDrug.setDrugSpec(jsonObject.getString("spec"));
+                            saleDrug.setDrugName(jsonObject.getString("goodsname"));
+                            saleDrug.setSaleName(jsonObject.getString("gname"));
+                            saleDrug.setPrice(new BigDecimal(jsonObject.getString("LPRC")));
+                            if(StringUtils.equals(jsonObject.getString("isstock"),"0"))
+                            {
+                                saleDrug.setInventory(new BigDecimal("0"));
+                            }else {
+                                saleDrug.setInventory(new BigDecimal("1"));
+                            }
+                            saleDrug.setOrganId(enterprise.getId());
+                            saleDrug.setStatus(1);
+                            saleDrug.setLastModify(DateConversion.getFormatDate(date,DateConversion.DEFAULT_DATE_TIME));
+                            saleDrugListDAO.update(saleDrug);
+                            result.setMsg("调用[" + enterprise.getName() + "][ syncEnterpriseDrug ]结果返回成功,数据更新成功,药品ID:"+jsonObject.getString("goods")+".");
+                        }
+                    }
+                    if(pageIndex == 0)
+                    {
+                        break;
+                    }
+                }
+            }
+        }catch (Exception e){
+            getFailResult(result, "当前药企下药品库存不够");
+            LOGGER.info("CommonSHRemoteService.syncEnterpriseDrug:药企ID为{},{}.", enterprise.getId(), e.getMessage());
+        }
+        return result;
     }
 
     @Override
