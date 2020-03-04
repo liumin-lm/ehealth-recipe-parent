@@ -282,6 +282,8 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
                         result.setMsg("库存下载确认反馈失败");
                         break;
                     }
+                    result.setCode(DrugEnterpriseResult.SUCCESS);
+                    result.setMsg("库存充足");
                 }
                 if(!checkScan){
                     getFailResult(result, "当前药企下药品库存不够");
