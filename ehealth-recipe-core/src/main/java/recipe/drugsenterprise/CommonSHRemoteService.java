@@ -431,6 +431,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         String depName = enterprise.getName();
         SaleDrugList saleDrug = null;
+        String transId = "";
         try{
             //最终发给药企的json数据
             Map<String, Object> sendInfo = new HashMap<>(1);
@@ -459,7 +460,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
                 String tocken = enterprise.getToken();
                 String resultJson = sendAndDealResult(enterprise, methodName, sendInfoStr, result, appId, tocken);
                 JSONObject jsonObject = JSONObject.parseObject(resultJson);
-                String transId = jsonObject.getString("transId");
+                transId = jsonObject.getString("transId");
                 if(StringUtils.isEmpty(resultJson))
                 {
                     result.setMsg("库存信息下载失败");
@@ -519,6 +520,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
                     }
                 }
             }
+            getScanStockConfirm(transId,"",enterprise);
         }catch (Exception e){
             getFailResult(result, "当前药企下药品库存不够");
             LOGGER.info("CommonSHRemoteService.syncEnterpriseDrug:药企ID为{},{}.", enterprise.getId(), e.getMessage());
