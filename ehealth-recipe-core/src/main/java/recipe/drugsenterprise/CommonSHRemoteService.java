@@ -439,7 +439,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
             int pageIndex = 1;
             while (true){
                 CommonSHScanStockReqDto commonSHScanStockReq = new CommonSHScanStockReqDto();
-                commonSHScanStockReq.setGoods(saleDrug.getOrganDrugCode());
+                commonSHScanStockReq.setGoods("");
                 commonSHScanStockReq.setPageIndex(pageIndex);
                 commonSHScanStockReq.setPageSize(200);
                 commonSHScanStockReqDto.add(commonSHScanStockReq);
@@ -514,13 +514,14 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
                             result.setMsg("调用[" + enterprise.getName() + "][ syncEnterpriseDrug ]结果返回成功,数据更新成功,药品ID:"+jsonObject.getString("goods")+".");
                         }
                     }
+                    getScanStockConfirm(transId,"",enterprise);
                     if(pageIndex == 0)
                     {
                         break;
                     }
                 }
             }
-            getScanStockConfirm(transId,"",enterprise);
+
         }catch (Exception e){
             getFailResult(result, "当前药企下药品库存不够");
             LOGGER.info("CommonSHRemoteService.syncEnterpriseDrug:药企ID为{},{}.", enterprise.getId(), e.getMessage());
