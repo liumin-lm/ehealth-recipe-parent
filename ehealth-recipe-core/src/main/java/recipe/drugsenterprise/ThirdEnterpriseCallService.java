@@ -1595,6 +1595,11 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             for (Recipedetail recipedetail : recipedetails) {
                 DrugListForThreeBean drugList = new DrugListForThreeBean();
                 SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
+                if (saleDrugList == null) {
+                    standardResult.setCode(StandardResultDTO.FAIL);
+                    standardResult.setMsg("配送药品目录为空");
+                    return standardResult;
+                }
                 drugList.setDrugCode(saleDrugList.getOrganDrugCode());
                 drugList.setDrugName(recipedetail.getDrugName());
                 drugList.setSpecification(recipedetail.getDrugSpec());
