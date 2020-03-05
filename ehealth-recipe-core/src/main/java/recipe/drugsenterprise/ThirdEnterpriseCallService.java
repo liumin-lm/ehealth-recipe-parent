@@ -1442,6 +1442,16 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             return result;
         }
         recipeDAO.updateRecipeByDepIdAndRecipes(drugsEnterprise.getId(), recipeIds);
+        //添加回写日志
+        List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
+        for (Recipe recipe : recipes) {
+            if (recipe.getPushFlag() == 1) {
+                //说明已经下载成功
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), drugsEnterprise.getName()+"获取处方成功");
+            } else {
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), drugsEnterprise.getName()+"未获取到处方");
+            }
+        }
         return result;
     }
 
