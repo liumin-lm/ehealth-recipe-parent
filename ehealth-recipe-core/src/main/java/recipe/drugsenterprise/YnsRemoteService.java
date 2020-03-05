@@ -172,6 +172,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
                 List<DepDetailBean> list=new ArrayList<>();
                 DepDetailBean detailBean;
                 for (Map<String, Object> ynsStoreBean : ynsStoreBeans) {
+                    LOGGER.info("YnsRemoteService.findSupportDep ynsStoreBean:{}.", JSONUtils.toString(ynsStoreBean));
                     detailBean=new DepDetailBean();
                     detailBean.setPharmacyCode(MapValueUtil.getString(ynsStoreBean, "pharmacyCode"));
                     detailBean.setDepName(MapValueUtil.getString(ynsStoreBean, "pharmacyName"));
