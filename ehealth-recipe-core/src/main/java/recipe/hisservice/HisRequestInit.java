@@ -272,10 +272,10 @@ public class HisRequestInit {
             if (hosrelation != null && StringUtils.isNotEmpty(hosrelation.getRegisterId())){
                 requestTO.setRegisteredId(hosrelation.getRegisterId());
             }else {
-                RecipeExtendDAO dao = DAOFactory.getDAO(RecipeExtendDAO.class);
-                RecipeExtend recipeExtend = dao.getByRecipeId(recipe.getRecipeId());
-                if (recipeExtend!=null){
-                    requestTO.setRegisteredId(recipeExtend.getRegisterID());
+                IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
+                ConsultExDTO consultExDTO = exService.getByConsultId(recipe.getClinicId());
+                if (consultExDTO!=null){
+                    requestTO.setRegisteredId(consultExDTO.getRegisterNo());
                 }
             }
         }
