@@ -178,6 +178,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
                     detailBean.setDepName(MapValueUtil.getString(ynsStoreBean, "pharmacyName"));
                     detailBean.setAddress(MapValueUtil.getString(ynsStoreBean, "address"));
                     detailBean.setDistance(Double.parseDouble(MapValueUtil.getString(ynsStoreBean, "distance")));
+                    LOGGER.info("YnsRemoteService.findSupportDep pharmacyCode:{}.",MapValueUtil.getString(ynsStoreBean, "pharmacyCode") );
                     String position=  MapValueUtil.getString(ynsStoreBean, "position");
                     LOGGER.info("YnsRemoteService.findSupportDep position:{}.", position);
                     Map mp = JSONUtils.parse(position, Map.class);
