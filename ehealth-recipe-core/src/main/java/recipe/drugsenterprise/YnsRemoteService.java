@@ -179,13 +179,13 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
                     detailBean.setAddress(MapValueUtil.getString(ynsStoreBean, "address"));
                     detailBean.setDistance(Double.parseDouble(MapValueUtil.getString(ynsStoreBean, "distance")));
                     LOGGER.info("YnsRemoteService.findSupportDep pharmacyCode:{}.",MapValueUtil.getString(ynsStoreBean, "pharmacyCode") );
-                    String position=  MapValueUtil.getString(ynsStoreBean, "position");
+                    Map position=  (Map)MapValueUtil.getObject(ynsStoreBean, "position");
                     LOGGER.info("YnsRemoteService.findSupportDep position:{}.", position);
-                    Map mp = JSONUtils.parse(position, Map.class);
-                    LOGGER.info("YnsRemoteService.findSupportDep mp:{}.", JSONUtils.toString(mp));
+                    //Map mp = JSONUtils.parse(position, Map.class);
+                    LOGGER.info("YnsRemoteService.findSupportDep mp:{}.", JSONUtils.toString(position));
                     Position postion=new Position();
-                    postion.setLatitude(Double.parseDouble(MapValueUtil.getString(mp, "latitude")));
-                    postion.setLongitude(Double.parseDouble(MapValueUtil.getString(mp, "longitude")));
+                    postion.setLatitude(Double.parseDouble(MapValueUtil.getString(position, "latitude")));
+                    postion.setLongitude(Double.parseDouble(MapValueUtil.getString(position, "longitude")));
                     detailBean.setPosition(postion);
                     list.add(detailBean);
                 }
