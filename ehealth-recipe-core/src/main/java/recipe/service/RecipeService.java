@@ -15,7 +15,10 @@ import com.ngari.base.patient.model.DocIndexBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.payment.service.IPaymentService;
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.common.service.IConsultService;
+import com.ngari.his.ca.model.*;
+import com.ngari.his.ca.service.ICaHisService;
 import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.ConsultSetDTO;
@@ -29,11 +32,14 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderInfoBean;
 import com.ngari.wxpay.service.INgariRefundService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
+import ctd.mvc.upload.FileMetaRecord;
+import ctd.mvc.upload.FileService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -73,15 +79,19 @@ import recipe.util.DateConversion;
 import recipe.util.DigestUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
+import sun.misc.BASE64Decoder;
 
 import javax.annotation.Resource;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
 
@@ -692,10 +702,26 @@ public class RecipeService extends RecipeBaseService{
             memo = "签名上传文件成功, fileId=" + recipeFileId;
             LOGGER.info("generateRecipePdfAndSign 签名成功. fileId={}, recipeId={}", recipeFileId, recipe.getRecipeId());
         } else if(Integer.valueOf(2).equals(code)) {
-            memo = "签名成功,非默认易签宝CA方式";
-            LOGGER.info("generateRecipePdfAndSign 签名成功. 非易签宝CA模式, recipeId={}", recipe.getRecipeId());
-        }
-        else {
+            memo = "签名成功,高州CA方式";
+            LOGGER.info("generateRecipePdfAndSign 签名成功. 高州CA模式, recipeId={}", recipe.getRecipeId());
+        } else if(Integer.valueOf(100).equals(code)){
+
+            memo = "签名成功,标准对接CA方式";
+            LOGGER.info("generateRecipePdfAndSign 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
+            String loginId = MapValueUtil.getString(backMap, "loginId");
+            Integer organId = MapValueUtil.getInteger(paramMap, "organId");
+            boolean isdoctor = MapValueUtil.getBoolean(paramMap, "isdoctor");
+            //签名时的密码从redis中获取
+            String caPassword = redisClient.get("caPassword");
+            //标准化CA进行签名、签章==========================start=====
+            try {
+                RecipeServiceEsignExt.commonCASignAndSeal(recipe.getDoctor(), organId, recipeId, loginId,isdoctor,caPassword);
+            } catch (Exception e){
+                LOGGER.error("generateRecipePdfAndSign 标准化CA签章报错 recipeId={} ,loginId={} organId={},doctor={} ,e={}============="
+                        , recipeId,loginId,organId,recipe.getDoctor(), e);
+            }
+            //标准化CA进行签名、签章==========================end=====
+        } else {
             memo = "签名上传文件失败！原因：" + MapValueUtil.getString(backMap, "msg");
             LOGGER.error("generateRecipePdfAndSign 签名上传文件失败. recipeId={}, result={}", recipe.getRecipeId(), JSONUtils.toString(backMap));
         }
@@ -1043,6 +1069,8 @@ public class RecipeService extends RecipeBaseService{
     @RpcService
     public Map<String, Object> doSignRecipeExt(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
         LOGGER.info("doSignRecipeExt param: recipeBean={} detailBean={}",JSONUtils.toString(recipeBean),JSONUtils.toString(detailBeanList));
+        //将密码放到redis中
+        redisClient.set("userCAPassword",recipeBean.getCaPassword());
         Map<String, Object> rMap = null;
         try {
             rMap = doSignRecipe(recipeBean, detailBeanList);
@@ -2817,9 +2845,6 @@ public class RecipeService extends RecipeBaseService{
                 }
 
             }
-
-
-
         }
         if(null != recipeId){
             LOGGER.info("recipeCanDelivery 处方[{}],删除无用数据中", recipeId);

@@ -313,6 +313,10 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "处方单特殊来源标识：1省中，邵逸夫医保小程序; 默认null")
     private Integer recipeSource;
 
+    @ItemProperty(alias = "CA密码")
+    private String caPassword;
+
+
     public RecipeBean() {
     }
 
@@ -1148,5 +1152,13 @@ public class RecipeBean implements Serializable {
 
     public void setRecipeSource(Integer recipeSource) {
         this.recipeSource = recipeSource;
+    }
+
+    public String getCaPassword() {
+        return caPassword;
+    }
+
+    public void setCaPassword(String caPassword) {
+        this.caPassword = caPassword;
     }
 }
