@@ -371,5 +371,6 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     void recipeMedicInsurSettle(MedicInsurSettleSuccNoticNgariReqDTO request);
 
+    @RpcService
     String getRecipeOrderCompleteAddress(RecipeOrderBean orderBean);
 }

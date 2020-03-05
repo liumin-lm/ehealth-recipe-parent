@@ -806,6 +806,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @Override
+    @RpcService
     public String getRecipeOrderCompleteAddress(RecipeOrderBean orderBean) {
         CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
         return commonRemoteService.getCompleteAddress(getBean(orderBean,RecipeOrder.class));
