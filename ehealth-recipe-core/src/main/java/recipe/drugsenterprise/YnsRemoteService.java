@@ -159,7 +159,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
         try {
             Client client = new Client(enterprise.getBusinessUrl()+pharmacy,appKey,enterprise.getToken(),encodingAesKey);
             //调用相应的接口请求
-            LOGGER.info("YnsRemoteService.findSupportDep:[{}][{}]获取药店列表请求，请求内容：{}", enterprise.getId(), enterprise.getName(), ext);
+            LOGGER.info("YnsRemoteService.findSupportDep:[{}][{}]获取药店列表请求，请求内容：{}", enterprise.getId(), enterprise.getName(), JSONUtils.toString(ext));
             Response response = client.execute(findSupportDepBussReq(result,recipeIds,ext,enterprise));
             LOGGER.info("YnsRemoteService.findSupportDep:[{}][{}]获取药店列表请求，获取响应getBody消息：{}", enterprise.getId(), enterprise.getName(), response.getBody());
             Map resultMap = JSONUtils.parse(response.getBody(), Map.class);
@@ -241,7 +241,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
             List<HdDrugRequestData> drugRequestList = getDrugRequestList(resultMap, detailList, enterprise, result);
             if(DrugEnterpriseResult.FAIL == result.getCode()) return null;
             hdPharmacyAndStockRequest.setDrugList(drugRequestList);
-            hdPharmacyAndStockRequest.setRange(MapValueUtil.getString(ext, searchMapRANGE));
+            hdPharmacyAndStockRequest.setRange("20");
             hdPharmacyAndStockRequest.setPosition(new HdPosition(MapValueUtil.getString(ext, searchMapLongitude), MapValueUtil.getString(ext, searchMapLatitude)));
 
         }else{
@@ -289,6 +289,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
                 result.put(saleDrug.getOrganDrugCode(), newHdDrugRequestData1);
                 newHdDrugRequestData1.setDrugCode(saleDrug.getOrganDrugCode());
                 newHdDrugRequestData1.setTotal(null == recipedetail.getUseTotalDose() ? drugRecipeTotal : String.valueOf(new Double(recipedetail.getUseTotalDose()).intValue()));
+                newHdDrugRequestData1.setUnit(recipedetail.getDrugUnit());
             }else{
                 //叠加需求量
                 sum = Double.parseDouble(hdDrugRequestData.getTotal()) + recipedetail.getUseTotalDose();
