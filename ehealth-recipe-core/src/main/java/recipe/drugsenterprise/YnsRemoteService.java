@@ -179,7 +179,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
                     detailBean.setDistance(Double.parseDouble(MapValueUtil.getString(ynsStoreBean, "distance")));
                     String position=  MapValueUtil.getString(ynsStoreBean, "position");
                     Map mp = JSONUtils.parse(position, Map.class);
-
+                    LOGGER.info("YnsRemoteService.findSupportDep mp:{}.", JSONUtils.toString(mp));
                     Position postion=new Position();
                     postion.setLatitude(Double.parseDouble(MapValueUtil.getString(mp, "latitude")));
                     postion.setLongitude(Double.parseDouble(MapValueUtil.getString(mp, "longitude")));
@@ -192,7 +192,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
                 String responseData = MapValueUtil.getString(resultMap, "msg");
                 result.setCode(DrugEnterpriseResult.FAIL);
                 result.setMsg(responseData);
-                LOGGER.error("YnsRemoteService.findSupportDep:[{}][{}]获取药店列表异常：{}",enterprise.getId(), enterprise.getName(), responseData);
+                LOGGER.error("YnsRemoteService.findSupportDep: msg [{}][{}]获取药店列表异常：{}",enterprise.getId(), enterprise.getName(), responseData);
                 getFailResult(result, responseData);
                 return null;
             }
