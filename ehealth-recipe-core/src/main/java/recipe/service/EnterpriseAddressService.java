@@ -9,6 +9,7 @@ import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.utils.ValidateUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -165,6 +166,17 @@ public class EnterpriseAddressService extends BaseService<EnterpriseAddressDTO> 
         EnterpriseAddressDAO addressDAO = DAOFactory.getDAO(EnterpriseAddressDAO.class);
         EnterpriseAddress address = addressDAO.addEnterpriseAddress(enterpriseAddress);
         return getBean(address, EnterpriseAddressDTO.class);
+    }
+
+    @RpcService
+    public void addEnterpriseAddressList(List<EnterpriseAddress> enterpriseAddressList) {
+        EnterpriseAddressDAO addressDAO = DAOFactory.getDAO(EnterpriseAddressDAO.class);
+        if(ValidateUtil.notBlankList(enterpriseAddressList)) {
+            addressDAO.deleteEnterpriseAddress(enterpriseAddressList.get(0).getEnterpriseId());
+            for (EnterpriseAddress enterpriseAddress : enterpriseAddressList) {
+                EnterpriseAddress address = addressDAO.addEnterpriseAddress(enterpriseAddress);
+            }
+        }
     }
 
 
