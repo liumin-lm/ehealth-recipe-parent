@@ -246,7 +246,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
             List<HdDrugRequestData> drugRequestList = getDrugRequestList(resultMap, detailList, enterprise, result);
             if(DrugEnterpriseResult.FAIL == result.getCode()) return null;
             hdPharmacyAndStockRequest.setDrugList(drugRequestList);
-            hdPharmacyAndStockRequest.setRange("20");
+            hdPharmacyAndStockRequest.setRange("50");
             hdPharmacyAndStockRequest.setPosition(new HdPosition(MapValueUtil.getString(ext, searchMapLongitude), MapValueUtil.getString(ext, searchMapLatitude)));
 
         }else{
