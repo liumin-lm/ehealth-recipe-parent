@@ -6,6 +6,7 @@ import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
 import com.ngari.recipe.hisprescription.model.QueryRecipeResultDTO;
 import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
 
@@ -369,4 +370,6 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     void recipeMedicInsurSettle(MedicInsurSettleSuccNoticNgariReqDTO request);
+
+    String getRecipeOrderCompleteAddress(RecipeOrderBean orderBean);
 }
