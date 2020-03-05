@@ -120,7 +120,7 @@
             <dependency>
                 <groupId>ngari</groupId>
                 <artifactId>ehealth-networkclinic-api</artifactId>
-                <version>${ngari.meetclinic.version}</version>
+                <version>${ngari.networkclinic.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>ssdev</groupId>
