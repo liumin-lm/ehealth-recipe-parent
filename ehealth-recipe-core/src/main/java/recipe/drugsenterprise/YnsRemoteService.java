@@ -19,6 +19,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
 import recipe.util.MapValueUtil;
@@ -49,12 +50,12 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
     public DrugEnterpriseResult pushRecipe(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
@@ -140,12 +141,12 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
     }
     @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
     public DrugEnterpriseResult pushCheckResult(Integer recipeId, Integer checkFlag, DrugsEnterprise enterprise) {
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
@@ -314,7 +315,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
     }
     @Override
     public String getDrugEnterpriseCallSys() {
-        return null;
+        return DrugEnterpriseConstant.COMPANY_YNS;
     }
 
 }
