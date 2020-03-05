@@ -668,6 +668,13 @@ public class HisRequestInit {
         RecipeAuditReqTO request = new RecipeAuditReqTO();
         request.setOrganId(recipe.getClinicOrgan());
         request.setRecipeCode(recipe.getRecipeCode());
+        request.setPatientName(recipe.getPatientName());
+        request.setPatientId(recipe.getPatientID());
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        if (recipeExtend!=null){
+            request.setRegisterId(recipeExtend.getRegisterID());
+        }
         request.setResult(resutlBean.getCheckResult().toString());
         request.setCheckMark(resutlBean.getCheckFailMemo());
         List<RecipeAuditDetailReqTO> detailList = Lists.newArrayList();
