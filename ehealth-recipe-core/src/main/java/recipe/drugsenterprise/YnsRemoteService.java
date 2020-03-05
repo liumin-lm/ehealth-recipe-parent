@@ -3,6 +3,8 @@ package recipe.drugsenterprise;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
+import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
+import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
@@ -167,20 +169,20 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
                 //接口返回的结果
                 List<Map<String, Object>> ynsStoreBeans = MapValueUtil.getList(resultMap, "list");
                 //数据封装成页面展示数据
-                List<YnsDepDetailBean> list=new ArrayList<>();
-                YnsDepDetailBean detailBean;
+                List<DepDetailBean> list=new ArrayList<>();
+                DepDetailBean detailBean;
                 for (Map<String, Object> ynsStoreBean : ynsStoreBeans) {
-                    detailBean=new YnsDepDetailBean();
+                    detailBean=new DepDetailBean();
                     detailBean.setPharmacyCode(MapValueUtil.getString(ynsStoreBean, "pharmacyCode"));
-                    detailBean.setPharmacyName(MapValueUtil.getString(ynsStoreBean, "pharmacyName"));
+                    detailBean.setDepName(MapValueUtil.getString(ynsStoreBean, "pharmacyName"));
                     detailBean.setAddress(MapValueUtil.getString(ynsStoreBean, "address"));
-                    detailBean.setDistance(MapValueUtil.getString(ynsStoreBean, "distance"));
+                    detailBean.setDistance(Double.parseDouble(MapValueUtil.getString(ynsStoreBean, "distance")));
                     String position=  MapValueUtil.getString(ynsStoreBean, "position");
                     Map mp = JSONUtils.parse(position, Map.class);
 
-                    YnsPosition postion=new YnsPosition();
-                    postion.setLatitude(MapValueUtil.getString(mp, "latitude"));
-                    postion.setLongitude(MapValueUtil.getString(mp, "longitude"));
+                    Position postion=new Position();
+                    postion.setLatitude(Double.parseDouble(MapValueUtil.getString(mp, "latitude")));
+                    postion.setLongitude(Double.parseDouble(MapValueUtil.getString(mp, "longitude")));
                     detailBean.setPosition(postion);
                     list.add(detailBean);
                 }
