@@ -18,6 +18,7 @@ import com.ngari.recipe.common.RecipeListResTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.QueryPlatRecipeInfoByDateDTO;
 import com.ngari.recipe.hisprescription.model.QueryRecipeResultDTO;
+import com.ngari.recipe.recipe.constant.RecipePayTextEnum;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import ctd.account.UserRoleToken;
@@ -520,7 +521,19 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             if(StringUtils.isNotEmpty(order.getExpectSendDate()) && StringUtils.isNotEmpty(order.getExpectSendTime())){
                 recipeMsg.put("expectSendDate", order.getExpectSendDate() + " " + order.getExpectSendTime());
             }
+            //date 20200305
+            //添加支付状态
+            if(null != order.getPayFlag()){
+                LOGGER.info("findRecipeOrdersByInfoForExcel 当前处方{}的订单支付状态{}", order.getRecipeIdList(), order.getPayFlag());
+                recipeMsg.put("payStatusText", RecipePayTextEnum.getByPayFlag(order.getPayFlag()).getPayText());
+            }else{
+                recipeMsg.put("payStatusText", RecipePayTextEnum.Default.getPayText());
+            }
 
+
+        }else{
+            //没有订单说明没有支付
+            recipeMsg.put("payStatusText", RecipePayTextEnum.Default.getPayText());
         }
     }
 
