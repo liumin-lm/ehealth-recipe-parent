@@ -3,6 +3,7 @@ package recipe.purchase;
 import com.google.common.collect.ImmutableMap;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.hisconfig.service.IHisConfigService;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.common.mode.HisResponseTO;
@@ -189,9 +190,9 @@ public class PurchaseService {
      */
     @RpcService
     public OrderCreateResult order(Integer recipeId, Map<String, String> extInfo) {
+        LOG.info("order param: recipeId={},extInfo={}",recipeId,JSONUtils.toString(extInfo));
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
 
-        //预结算
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise dep = drugsEnterpriseDAO.get(MapValueUtil.getInteger(extInfo, "depId"));
         //订单类型-1省医保
@@ -209,21 +210,26 @@ public class PurchaseService {
             result.setMsg("缺少购药方式");
             return result;
         }
+        //预结算
         //非省医保才走自费结算
         if (!(orderType != null && orderType == 1)) {
-            //目前省中和上海六院走自费预结算
-            if ((dep != null && new Integer(1).equals(dep.getIsHosDep()))
-                    || (dbRecipe.getClinicOrgan() == 1000899)) {
-                RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-                Map<String, Object> scanResult = hisService.provincialCashPreSettle(recipeId, payMode);
-                if (!("200".equals(scanResult.get("code")))) {
-                    result.setCode(RecipeResultBean.FAIL);
-                    if (scanResult.get("msg") != null) {
-                        result.setMsg(scanResult.get("msg").toString());
+            //目前省中和上海六院走自费预结算---上海六院改成机构配置--获取配送到家支付机构配置-平台付才走
+            //首先配的不是卫宁付
+            if (!getPayOnlineConfig(dbRecipe.getClinicOrgan())){
+                if ((dep != null && new Integer(1).equals(dep.getIsHosDep()))
+                        || (dbRecipe.getClinicOrgan()==1000899)) {
+                    RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+                    Map<String, Object> scanResult = hisService.provincialCashPreSettle(recipeId, payMode);
+                    if (!("200".equals(scanResult.get("code")))) {
+                        result.setCode(RecipeResultBean.FAIL);
+                        if (scanResult.get("msg") != null) {
+                            result.setMsg(scanResult.get("msg").toString());
+                        }
+                        return result;
                     }
-                    return result;
                 }
             }
+
         }
 
         //处方单状态不是待处理 or 处方单已被处理
@@ -293,6 +299,38 @@ public class PurchaseService {
         }
 
         return result;
+    }
+
+    public boolean getPayOnlineConfig(Integer clinicOrgan) {
+            Integer payModeOnlinePayConfig;
+            try {
+                IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+                payModeOnlinePayConfig = (Integer)configurationService.getConfiguration(clinicOrgan, "payModeOnlinePayConfig");
+            }catch (Exception e){
+                LOG.error("获取运营平台处方支付配置异常",e);
+                return false;
+            }
+            //1平台付 2卫宁付
+            if (new Integer(2).equals(payModeOnlinePayConfig)){
+                return true;
+            }
+        return false;
+    }
+
+    public boolean getToHosPayConfig(Integer clinicOrgan) {
+        Integer payModeToHosOnlinePayConfig;
+        try {
+            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            payModeToHosOnlinePayConfig = (Integer)configurationService.getConfiguration(clinicOrgan, "payModeToHosOnlinePayConfig");
+        }catch (Exception e){
+            LOG.error("获取运营平台处方支付配置异常",e);
+            return false;
+        }
+        //1平台付 2卫宁付
+        if (new Integer(2).equals(payModeToHosOnlinePayConfig)){
+            return true;
+        }
+        return false;
     }
 
     public IPurchaseService getService(Integer payMode) {

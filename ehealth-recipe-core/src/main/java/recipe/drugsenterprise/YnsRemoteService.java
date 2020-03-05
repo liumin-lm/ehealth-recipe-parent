@@ -3,6 +3,8 @@ package recipe.drugsenterprise;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
+import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
+import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
@@ -19,6 +21,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
 import recipe.util.MapValueUtil;
@@ -49,12 +52,12 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
     public DrugEnterpriseResult pushRecipe(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
@@ -140,12 +143,12 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
     }
     @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
     public DrugEnterpriseResult pushCheckResult(Integer recipeId, Integer checkFlag, DrugsEnterprise enterprise) {
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
@@ -158,7 +161,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
         try {
             Client client = new Client(enterprise.getBusinessUrl()+pharmacy,appKey,enterprise.getToken(),encodingAesKey);
             //调用相应的接口请求
-            LOGGER.info("YnsRemoteService.findSupportDep:[{}][{}]获取药店列表请求，请求内容：{}", enterprise.getId(), enterprise.getName(), ext);
+            LOGGER.info("YnsRemoteService.findSupportDep:[{}][{}]获取药店列表请求，请求内容：{}", enterprise.getId(), enterprise.getName(), JSONUtils.toString(ext));
             Response response = client.execute(findSupportDepBussReq(result,recipeIds,ext,enterprise));
             LOGGER.info("YnsRemoteService.findSupportDep:[{}][{}]获取药店列表请求，获取响应getBody消息：{}", enterprise.getId(), enterprise.getName(), response.getBody());
             Map resultMap = JSONUtils.parse(response.getBody(), Map.class);
@@ -166,20 +169,23 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
                 //接口返回的结果
                 List<Map<String, Object>> ynsStoreBeans = MapValueUtil.getList(resultMap, "list");
                 //数据封装成页面展示数据
-                List<YnsDepDetailBean> list=new ArrayList<>();
-                YnsDepDetailBean detailBean;
+                List<DepDetailBean> list=new ArrayList<>();
+                DepDetailBean detailBean;
                 for (Map<String, Object> ynsStoreBean : ynsStoreBeans) {
-                    detailBean=new YnsDepDetailBean();
+                    LOGGER.info("YnsRemoteService.findSupportDep ynsStoreBean:{}.", JSONUtils.toString(ynsStoreBean));
+                    detailBean=new DepDetailBean();
                     detailBean.setPharmacyCode(MapValueUtil.getString(ynsStoreBean, "pharmacyCode"));
-                    detailBean.setPharmacyName(MapValueUtil.getString(ynsStoreBean, "pharmacyName"));
+                    detailBean.setDepName(MapValueUtil.getString(ynsStoreBean, "pharmacyName"));
                     detailBean.setAddress(MapValueUtil.getString(ynsStoreBean, "address"));
-                    detailBean.setDistance(MapValueUtil.getString(ynsStoreBean, "distance"));
-                    String position=  MapValueUtil.getString(ynsStoreBean, "position");
-                    Map mp = JSONUtils.parse(position, Map.class);
-
-                    YnsPosition postion=new YnsPosition();
-                    postion.setLatitude(MapValueUtil.getString(mp, "latitude"));
-                    postion.setLongitude(MapValueUtil.getString(mp, "longitude"));
+                    detailBean.setDistance(Double.parseDouble(MapValueUtil.getString(ynsStoreBean, "distance")));
+                    LOGGER.info("YnsRemoteService.findSupportDep pharmacyCode:{}.",MapValueUtil.getString(ynsStoreBean, "pharmacyCode") );
+                    Map position=  (Map)MapValueUtil.getObject(ynsStoreBean, "position");
+                    LOGGER.info("YnsRemoteService.findSupportDep position:{}.", position);
+                    //Map mp = JSONUtils.parse(position, Map.class);
+                    LOGGER.info("YnsRemoteService.findSupportDep mp:{}.", JSONUtils.toString(position));
+                    Position postion=new Position();
+                    postion.setLatitude(Double.parseDouble(MapValueUtil.getString(position, "latitude")));
+                    postion.setLongitude(Double.parseDouble(MapValueUtil.getString(position, "longitude")));
                     detailBean.setPosition(postion);
                     list.add(detailBean);
                 }
@@ -189,7 +195,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
                 String responseData = MapValueUtil.getString(resultMap, "msg");
                 result.setCode(DrugEnterpriseResult.FAIL);
                 result.setMsg(responseData);
-                LOGGER.error("YnsRemoteService.findSupportDep:[{}][{}]获取药店列表异常：{}",enterprise.getId(), enterprise.getName(), responseData);
+                LOGGER.error("YnsRemoteService.findSupportDep: msg [{}][{}]获取药店列表异常：{}",enterprise.getId(), enterprise.getName(), responseData);
                 getFailResult(result, responseData);
                 return null;
             }
@@ -240,7 +246,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
             List<HdDrugRequestData> drugRequestList = getDrugRequestList(resultMap, detailList, enterprise, result);
             if(DrugEnterpriseResult.FAIL == result.getCode()) return null;
             hdPharmacyAndStockRequest.setDrugList(drugRequestList);
-            hdPharmacyAndStockRequest.setRange(MapValueUtil.getString(ext, searchMapRANGE));
+            hdPharmacyAndStockRequest.setRange("20");
             hdPharmacyAndStockRequest.setPosition(new HdPosition(MapValueUtil.getString(ext, searchMapLongitude), MapValueUtil.getString(ext, searchMapLatitude)));
 
         }else{
@@ -288,6 +294,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
                 result.put(saleDrug.getOrganDrugCode(), newHdDrugRequestData1);
                 newHdDrugRequestData1.setDrugCode(saleDrug.getOrganDrugCode());
                 newHdDrugRequestData1.setTotal(null == recipedetail.getUseTotalDose() ? drugRecipeTotal : String.valueOf(new Double(recipedetail.getUseTotalDose()).intValue()));
+                newHdDrugRequestData1.setUnit(recipedetail.getDrugUnit());
             }else{
                 //叠加需求量
                 sum = Double.parseDouble(hdDrugRequestData.getTotal()) + recipedetail.getUseTotalDose();
@@ -314,7 +321,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
     }
     @Override
     public String getDrugEnterpriseCallSys() {
-        return null;
+        return DrugEnterpriseConstant.COMPANY_YNS;
     }
 
 }

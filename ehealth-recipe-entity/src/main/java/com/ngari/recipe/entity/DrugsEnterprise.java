@@ -106,6 +106,9 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "是否支持省直医保：1不支持，0支持 默认0")
     private Integer medicalInsuranceSupport;
 
+    @ItemProperty(alias = "0:不支付药品费用，1:全部支付")
+    private Integer storePayFlag;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -339,6 +342,15 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setMedicalInsuranceSupport(Integer medicalInsuranceSupport) {
         this.medicalInsuranceSupport = medicalInsuranceSupport;
+    }
+
+    @Column(name = "storePayFlag")
+    public Integer getStorePayFlag() {
+        return storePayFlag;
+    }
+
+    public void setStorePayFlag(Integer storePayFlag) {
+        this.storePayFlag = storePayFlag;
     }
 
     @Override

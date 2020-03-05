@@ -20,6 +20,7 @@ import com.ngari.recipe.hisprescription.model.QueryPlatRecipeInfoByDateDTO;
 import com.ngari.recipe.hisprescription.model.QueryRecipeResultDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
+import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -802,5 +803,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             LOGGER.info("recipeMedicInsurSettleSaveOrder error", e);
         }
         return;
+    }
+
+    @Override
+    @RpcService
+    public String getRecipeOrderCompleteAddress(RecipeOrderBean orderBean) {
+        CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
+        return commonRemoteService.getCompleteAddress(getBean(orderBean,RecipeOrder.class));
     }
 }

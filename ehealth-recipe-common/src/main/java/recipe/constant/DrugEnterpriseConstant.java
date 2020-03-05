@@ -101,4 +101,9 @@ public class DrugEnterpriseConstant {
      * 上海益友
      */
     public static final String COMPANY_SHYY = "shyy";
+
+    /**
+     * 云南医药
+     */
+    public static final String COMPANY_YNS = "yns";
 }

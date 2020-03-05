@@ -271,6 +271,12 @@ public class HisRequestInit {
             HosrelationBean hosrelation = hosrelationService.getByBusIdAndBusType(recipe.getClinicId(), BusTypeEnum.CONSULT.getId());
             if (hosrelation != null && StringUtils.isNotEmpty(hosrelation.getRegisterId())){
                 requestTO.setRegisteredId(hosrelation.getRegisterId());
+            }else {
+                IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
+                ConsultExDTO consultExDTO = exService.getByConsultId(recipe.getClinicId());
+                if (consultExDTO!=null){
+                    requestTO.setRegisteredId(consultExDTO.getRegisterNo());
+                }
             }
         }
         //科室代码
