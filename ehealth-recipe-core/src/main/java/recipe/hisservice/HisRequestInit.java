@@ -271,6 +271,10 @@ public class HisRequestInit {
             HosrelationBean hosrelation = hosrelationService.getByBusIdAndBusType(recipe.getClinicId(), BusTypeEnum.CONSULT.getId());
             if (hosrelation != null && StringUtils.isNotEmpty(hosrelation.getRegisterId())){
                 requestTO.setRegisteredId(hosrelation.getRegisterId());
+            }else {
+                RecipeExtendDAO dao = DAOFactory.getDAO(RecipeExtendDAO.class);
+                RecipeExtend recipeExtend = dao.getByRecipeId(recipe.getRecipeId());
+                requestTO.setRegisteredId(recipeExtend.getRegisterID());
             }
         }
         //科室代码

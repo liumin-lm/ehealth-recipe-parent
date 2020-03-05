@@ -439,7 +439,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
             int pageIndex = 1;
             while (true){
                 CommonSHScanStockReqDto commonSHScanStockReq = new CommonSHScanStockReqDto();
-                commonSHScanStockReq.setGoods(saleDrug.getOrganDrugCode());
+                commonSHScanStockReq.setGoods("");
                 commonSHScanStockReq.setPageIndex(pageIndex);
                 commonSHScanStockReq.setPageSize(200);
                 commonSHScanStockReqDto.add(commonSHScanStockReq);

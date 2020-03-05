@@ -3,6 +3,8 @@ package recipe.service;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.consult.ConsultAPI;
+import com.ngari.consult.common.model.ConsultExDTO;
+import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.home.asyn.model.BussCreateEvent;
@@ -56,6 +58,7 @@ import java.util.Map;
 /**
  * HIS系统业务回调方法
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * @date: 2016/5/31.
  */
@@ -67,8 +70,9 @@ public class HisCallBackService {
     @Autowired
     private AuditModeContext auditMode;
     private static AuditModeContext auditModeContext;
+
     @PostConstruct
-    public void  init(){
+    public void init() {
         auditModeContext = auditMode;
     }
 
@@ -94,7 +98,7 @@ public class HisCallBackService {
             return;
         }
         //todo---写死上海六院---在患者选完取药方式之后推送处方 第二次调用无需任何处理
-        if (recipe.getClinicOrgan() == 1000899 && new Integer(1).equals(recipe.getChooseFlag())){
+        if (recipe.getClinicOrgan() == 1000899 && new Integer(1).equals(recipe.getChooseFlag())) {
             //日志记录
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "患者选择完购药方式之后推送处方成功");
             return;
@@ -148,14 +152,25 @@ public class HisCallBackService {
         }
 
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap);
-        if (StringUtils.isNotEmpty(result.getRegisterID())){
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-            if (recipeExtend == null){
-                recipeExtend = new RecipeExtend();
-                recipeExtend.setRecipeId(recipe.getRecipeId());
-                recipeExtend.setRegisterID(result.getRegisterID());
+
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        if (recipeExtend == null) {
+            recipeExtend = new RecipeExtend();
+            recipeExtend.setRecipeId(recipe.getRecipeId());
+            recipeExtend.setRegisterID(result.getRegisterID());
+            //更新复诊挂号序号如果有
+            if (null != recipe.getClinicId()) {
+                IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
+                ConsultExDTO consultExDTO = exService.getByConsultId(recipe.getClinicId());
+                if (null != consultExDTO && StringUtils.isNotEmpty(consultExDTO.getRegisterNo())) {
+                    recipeExtend.setRegisterID(consultExDTO.getRegisterNo());
+                }
+            }
+            if (StringUtils.isNotEmpty(recipeExtend.getRegisterID())){
                 recipeExtendDAO.saveRecipeExtend(recipeExtend);
-            }else {
+            }
+        } else {
+            if (StringUtils.isEmpty(recipeExtend.getRegisterID())) {
                 recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("registerID", result.getRegisterID()));
             }
         }
@@ -194,13 +209,13 @@ public class HisCallBackService {
             recipeService.generateRecipePdfAndSign(recipe.getRecipeId());
 
             //TODO 根据审方模式改变状态
-            auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(status,recipe,memo);
+            auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(status, recipe, memo);
 
         } catch (Exception e) {
             LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. ", e);
         }
 
-        if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
+        if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
             //配送处方标记 1:只能配送 更改处方取药方式
             if (Integer.valueOf(1).equals(recipe.getDistributionFlag())) {
                 try {
@@ -211,13 +226,13 @@ public class HisCallBackService {
                         //不能影响流程去掉异常
                         /*throw new DAOException(ErrorCode.SERVICE_ERROR, "更改取药方式失败，错误:" + result1.getError());*/
                     }
-                }catch (Exception e){
+                } catch (Exception e) {
                     LOGGER.warn("checkPassSuccess recipeId=[{}]更改取药方式异常", recipe.getRecipeId(), e);
                 }
             }
         }
         //2019/5/16 互联网模式--- 医生开完处方之后聊天界面系统消息提示
-        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)){
+        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
             /*//根据申请人mpiid，requestMode 获取当前咨询单consultId
             IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
             List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
@@ -227,18 +242,18 @@ public class HisCallBackService {
                 consultId = consultIds.get(0);
             }*/
             Integer consultId = recipe.getClinicId();
-            if(null != consultId){
+            if (null != consultId) {
                 try {
                     IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
-                    recipeOnLineConsultService.sendRecipeMsg(consultId,3);
+                    recipeOnLineConsultService.sendRecipeMsg(consultId, 3);
                 } catch (Exception e) {
-                    LOGGER.error("checkPassSuccess sendRecipeMsg error, type:3, consultId:{}, error:{}", consultId,e);
+                    LOGGER.error("checkPassSuccess sendRecipeMsg error, type:3, consultId:{}, error:{}", consultId, e);
                 }
 
             }
         }
         //推送处方到监管平台
-        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(),1));
+        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
     }
 
     /**
@@ -322,8 +337,7 @@ public class HisCallBackService {
         //日志记录
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder order = orderDAO.getOrderByRecipeId(recipeId);
-        RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(),
-                RecipeStatusConstant.CHECK_PASS, "HIS线上支付返回：写入his失败，订单号:" + order.getOutTradeNo() + "，流水号:" + order.getTradeNo());
+        RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.CHECK_PASS, "HIS线上支付返回：写入his失败，订单号:" + order.getOutTradeNo() + "，流水号:" + order.getTradeNo());
 
         //微信退款
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
