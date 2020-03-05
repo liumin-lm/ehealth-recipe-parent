@@ -274,7 +274,9 @@ public class HisRequestInit {
             }else {
                 RecipeExtendDAO dao = DAOFactory.getDAO(RecipeExtendDAO.class);
                 RecipeExtend recipeExtend = dao.getByRecipeId(recipe.getRecipeId());
-                requestTO.setRegisteredId(recipeExtend.getRegisterID());
+                if (recipeExtend!=null){
+                    requestTO.setRegisteredId(recipeExtend.getRegisterID());
+                }
             }
         }
         //科室代码
