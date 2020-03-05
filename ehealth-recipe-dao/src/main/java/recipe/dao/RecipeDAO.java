@@ -1160,8 +1160,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             public void execute(StatelessSession ss) throws Exception {
                 long total = 0;
                 StringBuilder hql = preparedHql;
-                hql.append(" group by status ");
-                Query query = ss.createQuery("select status, count(recipeId) as count " + hql.toString());
+                hql.append(" group by r.status ");
+                Query query = ss.createQuery("select r.status, count(r.recipeId) as count " + hql.toString());
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 query.setTimestamp("startTime", sdf.parse(sdf.format(bDate)));
                 query.setTimestamp("endTime", sdf.parse(sdf.format(eDate)));
