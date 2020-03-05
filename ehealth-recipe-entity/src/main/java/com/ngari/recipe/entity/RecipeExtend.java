@@ -98,6 +98,9 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "处方预结算返回自费金额")
     private String cashAmount;
 
+    @ItemProperty(alias = "his返回的处方总金额")
+    private String cashRecipeFee;
+
     public RecipeExtend() {
     }
 

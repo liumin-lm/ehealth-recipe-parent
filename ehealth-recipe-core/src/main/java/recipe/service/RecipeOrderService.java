@@ -509,6 +509,12 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             }
         }
+        //date 20200305
+        //添加处方金额，使用his返回数据
+        if(){
+
+        }
+
         //药企是需要自己结算费用的，需要重新设置
         //在线支付才需要重新计算
         //药店取药，货到付款也需要重新计算药品金额

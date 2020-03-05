@@ -1011,18 +1011,39 @@ public class RecipeHisService extends RecipeBaseService {
             return false;
         }
         if ("200".equals(hisResult.getMsgCode())){
-            Map<String,String> map = (Map<String,String>)hisResult.getData();
+            Map<String,Object> map = (Map<String, Object>)hisResult.getData();
             if ("0".equals(map.get("checkResult"))){
                 rMap.put("signResult", false);
                 rMap.put("errorFlag",true);
                 rMap.put("errorMsg", map.get("resultMark"));
             }else {
-                //预校验返回 取药方式1配送到家 2医院取药 3两者都支持
-                String giveMode = map.get("giveMode");
-                //配送药企代码
-                String deliveryCode = map.get("deliveryCode");
-                //配送药企名称
-                String deliveryName = map.get("deliveryName");
+//                //预校验返回 取药方式1配送到家 2医院取药 3两者都支持
+//                String giveMode = map.get("giveMode");
+//                //配送药企代码
+//                String deliveryCode = map.get("deliveryCode");
+//                //配送药企名称
+//                String deliveryName = map.get("deliveryName");
+//                if (StringUtils.isNotEmpty(giveMode)){
+//                    RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+//                    Map<String,String> updateMap = Maps.newHashMap();
+//                    updateMap.put("giveMode",giveMode);
+//                    updateMap.put("deliveryCode",deliveryCode);
+//                    updateMap.put("deliveryName",deliveryName);
+//                    recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(),updateMap);
+//                }
+//                return "1".equals(map.get("checkResult"));
+                //date 20200305
+                //当前处方信息获取物流配送信息
+                //预校验返回 取药方式 0医院取药 1物流配送 2药店取药 4都支持 3其他
+                Object deliveryList = map.get("deliveryList");
+                Object giveMode = map.get("giveMode");
+                if(null != deliveryList && null != giveMode){
+                    ObjectCopyUtils.convert(deliveryList, );
+
+                }else{
+                    LOGGER.warn("hisRecipeCheck 当前处方预校验，取药方式信息不全！");
+                }
+
                 if (StringUtils.isNotEmpty(giveMode)){
                     RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
                     Map<String,String> updateMap = Maps.newHashMap();
@@ -1032,6 +1053,7 @@ public class RecipeHisService extends RecipeBaseService {
                     recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(),updateMap);
                 }
                 return "1".equals(map.get("checkResult"));
+
 
             }
         }else {
