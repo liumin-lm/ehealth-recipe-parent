@@ -661,8 +661,22 @@ public class RecipeOrderService extends RecipeBaseService {
                         order.setActualPrice(order.getTotalFee().doubleValue());
                     }
                 }else {
-                    //此时的实际费用是不包含药品费用的
-                    order.setActualPrice(order.getAuditFee().doubleValue());
+                    if (RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
+                        //药店取药的
+                        Integer depId = order.getEnterpriseId();
+                        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+                        if (drugsEnterprise != null && drugsEnterprise.getStorePayFlag() == 1) {
+                            //storePayFlag = 1 表示线上支付但到店取药
+                            order.setActualPrice(order.getTotalFee().doubleValue());
+                        } else {
+                            //此时的实际费用是不包含药品费用的
+                            order.setActualPrice(order.getAuditFee().doubleValue());
+                        }
+                    } else {
+                        //此时的实际费用是不包含药品费用的
+                        order.setActualPrice(order.getAuditFee().doubleValue());
+                    }
                 }
             } else {
                 order.setActualPrice(order.getTotalFee().doubleValue());

@@ -93,6 +93,9 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "是否支持省直医保：1不支持，0支持 默认0")
     private Integer medicalInsuranceSupport;
 
+    @ItemProperty(alias = "0:不支付药品费用，1:全部支付")
+    private Integer storePayFlag;
+
     public DrugsEnterpriseBean() {
     }
 
@@ -282,5 +285,13 @@ public class DrugsEnterpriseBean implements Serializable {
 
     public void setMedicalInsuranceSupport(Integer medicalInsuranceSupport) {
         this.medicalInsuranceSupport = medicalInsuranceSupport;
+    }
+
+    public Integer getStorePayFlag() {
+        return storePayFlag;
+    }
+
+    public void setStorePayFlag(Integer storePayFlag) {
+        this.storePayFlag = storePayFlag;
     }
 }
