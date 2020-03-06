@@ -71,6 +71,7 @@ public class ShyyRemoteService  extends AccessDrugEnterpriseService {
 
     @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
+        LOGGER.info("ShyyRemoteService.scanStock recipeId:{}.", recipeId);
         DrugEnterpriseResult drugEnterpriseResult = DrugEnterpriseResult.getSuccess();
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
