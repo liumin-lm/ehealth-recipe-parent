@@ -61,6 +61,7 @@ import recipe.common.ResponseUtils;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
+import recipe.purchase.IPurchaseService;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.MapValueUtil;
@@ -652,8 +653,31 @@ public class RecipeOrderService extends RecipeBaseService {
         } else {
             Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
             if (payMode != RecipeBussConstant.PAYMODE_ONLINE && !RecipeServiceSub.isJSOrgan(order.getOrganId())) {
-                //此时的实际费用是不包含药品费用的
-                order.setActualPrice(order.getAuditFee().doubleValue());
+
+                if (RecipeBussConstant.PAYMODE_TO_HOS.equals(payMode)){
+                    PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+                    //卫宁付
+                    if (purchaseService.getToHosPayConfig(firstRecipe.getClinicOrgan())){
+                        order.setActualPrice(order.getTotalFee().doubleValue());
+                    }
+                }else {
+                    if (RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
+                        //药店取药的
+                        Integer depId = order.getEnterpriseId();
+                        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+                        if (drugsEnterprise != null && drugsEnterprise.getStorePayFlag() == 1) {
+                            //storePayFlag = 1 表示线上支付但到店取药
+                            order.setActualPrice(order.getTotalFee().doubleValue());
+                        } else {
+                            //此时的实际费用是不包含药品费用的
+                            order.setActualPrice(order.getAuditFee().doubleValue());
+                        }
+                    } else {
+                        //此时的实际费用是不包含药品费用的
+                        order.setActualPrice(order.getAuditFee().doubleValue());
+                    }
+                }
             } else {
                 order.setActualPrice(order.getTotalFee().doubleValue());
                 RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);

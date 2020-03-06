@@ -271,6 +271,12 @@ public class HisRequestInit {
             HosrelationBean hosrelation = hosrelationService.getByBusIdAndBusType(recipe.getClinicId(), BusTypeEnum.CONSULT.getId());
             if (hosrelation != null && StringUtils.isNotEmpty(hosrelation.getRegisterId())){
                 requestTO.setRegisteredId(hosrelation.getRegisterId());
+            }else {
+                IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
+                ConsultExDTO consultExDTO = exService.getByConsultId(recipe.getClinicId());
+                if (consultExDTO!=null){
+                    requestTO.setRegisteredId(consultExDTO.getRegisterNo());
+                }
             }
         }
         //科室代码
@@ -662,6 +668,13 @@ public class HisRequestInit {
         RecipeAuditReqTO request = new RecipeAuditReqTO();
         request.setOrganId(recipe.getClinicOrgan());
         request.setRecipeCode(recipe.getRecipeCode());
+        request.setPatientName(recipe.getPatientName());
+        request.setPatientId(recipe.getPatientID());
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        if (recipeExtend!=null){
+            request.setRegisterId(recipeExtend.getRegisterID());
+        }
         request.setResult(resutlBean.getCheckResult().toString());
         request.setCheckMark(resutlBean.getCheckFailMemo());
         List<RecipeAuditDetailReqTO> detailList = Lists.newArrayList();
