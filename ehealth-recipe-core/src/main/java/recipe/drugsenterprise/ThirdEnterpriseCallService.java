@@ -1579,6 +1579,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (recipeExtend != null) {
                 orderDetailBean.setMedicalFee(recipeExtend.getFundAmount());
+            } else {
+                orderDetailBean.setMedicalFee("0.0");
             }
             orderDetailBean.setOrderTotalFee(convertParame(recipeOrder.getTotalFee()));
             orderDetailBean.setExpressFee(convertParame(recipeOrder.getExpressFee()));
