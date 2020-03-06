@@ -1605,6 +1605,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setGiveMode(convertParame(recipe.getGiveMode()));
             orderDetailBean.setMedicalPayFlag(convertParame(recipeOrder.getOrderType()));
             orderDetailBean.setMemo(convertParame(recipe.getMemo()));
+            orderDetailBean.setStatus(convertParame(recipe.getStatus()));
 
             List<DrugListForThreeBean> drugLists = new ArrayList<>();
             //设置药品信息
