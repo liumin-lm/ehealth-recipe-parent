@@ -43,7 +43,7 @@ public class RemoteEnterpriseAddressService extends BaseService<EnterpriseAddres
     public void addEnterpriseAddressList(List<EnterpriseAddressDTO> enterpriseAddressDTOList) {
         EnterpriseAddressDAO addressDAO = DAOFactory.getDAO(EnterpriseAddressDAO.class);
         if(ValidateUtil.notBlankList(enterpriseAddressDTOList)) {
-            addressDAO.deleteEnterpriseAddress(enterpriseAddressDTOList.get(0).getEnterpriseId());
+            addressDAO.deleteByEnterpriseId(enterpriseAddressDTOList.get(0).getEnterpriseId());
             for (EnterpriseAddressDTO enterpriseAddressDTO : enterpriseAddressDTOList) {
                 EnterpriseAddress enterpriseAddress = getBean(enterpriseAddressDTO, EnterpriseAddress.class);
                 EnterpriseAddress address = addressDAO.addEnterpriseAddress(enterpriseAddress);
