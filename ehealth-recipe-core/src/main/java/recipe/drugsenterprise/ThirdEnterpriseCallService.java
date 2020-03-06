@@ -1579,11 +1579,14 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (recipeExtend != null) {
                 if (recipeExtend.getFundAmount() != null) {
+                    LOGGER.info("YtRemoteService.pushRecipeInfo FundAmount1:{}.", recipeExtend.getFundAmount());
                     orderDetailBean.setMedicalFee(convertParame(recipeExtend.getFundAmount()));
                 } else {
+                    LOGGER.info("YtRemoteService.pushRecipeInfo FundAmount2:{}.", recipeExtend.getFundAmount());
                     orderDetailBean.setMedicalFee("0");
                 }
             } else {
+                LOGGER.info("YtRemoteService.pushRecipeInfo FundAmount3:{}.", recipeExtend.getFundAmount());
                 orderDetailBean.setMedicalFee("0");
             }
             orderDetailBean.setOrderTotalFee(convertParame(recipeOrder.getTotalFee()));
