@@ -1038,20 +1038,23 @@ public class RecipeHisService extends RecipeBaseService {
                 Object deliveryList = map.get("deliveryList");
                 Object giveMode = map.get("giveMode");
                 if(null != deliveryList && null != giveMode){
-                    ObjectCopyUtils.convert(deliveryList, );
+
+                    List<DeliveryList> deliveryLists = (List<DeliveryList>)deliveryList;
+                    DeliveryList nowDeliveryList = deliveryLists.get(0);
+                    if (null != nowDeliveryList){
+                        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+                        Map<String,String> updateMap = Maps.newHashMap();
+                        updateMap.put("giveMode",giveMode);
+                        updateMap.put("deliveryCode",nowDeliveryList.getDeliveryCode());
+                        updateMap.put("deliveryName",nowDeliveryList.getDeliveryName());
+                        recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(),updateMap);
+                    }
 
                 }else{
                     LOGGER.warn("hisRecipeCheck 当前处方预校验，取药方式信息不全！");
                 }
 
-                if (StringUtils.isNotEmpty(giveMode)){
-                    RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-                    Map<String,String> updateMap = Maps.newHashMap();
-                    updateMap.put("giveMode",giveMode);
-                    updateMap.put("deliveryCode",deliveryCode);
-                    updateMap.put("deliveryName",deliveryName);
-                    recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(),updateMap);
-                }
+
                 return "1".equals(map.get("checkResult"));
 
 

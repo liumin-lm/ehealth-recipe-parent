@@ -511,8 +511,14 @@ public class RecipeOrderService extends RecipeBaseService {
         }
         //date 20200305
         //添加处方金额，使用his返回数据
-        if(){
-
+        RecipeExtendDAO extendDAO = getDAO(RecipeExtendDAO.class);
+        RecipeExtend extend = extendDAO.getByRecipeId(firstRecipe.getRecipeId());
+        if(null != extend){
+            if(StringUtils.isNotEmpty(extend.getCashRecipeFee())){
+                recipeFee = new BigDecimal(extend.getCashRecipeFee());
+            }
+        }else{
+            //没有值，则按原先的逻辑更新数据
         }
 
         //药企是需要自己结算费用的，需要重新设置

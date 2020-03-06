@@ -13,13 +13,19 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
+import com.ngari.platform.recipe.mode.QueryRecipeReqHisDTO;
+import com.ngari.platform.recipe.mode.QueryRecipeResultHisDTO;
+import com.ngari.platform.recipe.service.IRecipePlatformServiceNew;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.hisprescription.model.QueryRecipeReqDTO;
+import com.ngari.recipe.hisprescription.model.QueryRecipeResultDTO;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcService;
@@ -35,6 +41,7 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.hisservice.QueryRecipeService;
 import recipe.hisservice.RecipeToHisService;
 import recipe.service.RecipeOrderService;
 import recipe.service.RecipeServiceSub;
@@ -347,7 +354,16 @@ public class PayModeOnline implements IPurchaseService {
             }
             //流转到这里来的属于物流配送
             updateTakeDrugWayReqTO.setDeliveryType("1");
+
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+
+            //date 20200305
+            IRecipePlatformServiceNew platformService = AppDomainContext.getBean("his.recipePlatformService",IRecipePlatformServiceNew.class);
+            QueryRecipeReqHisDTO queryRecipeReqDTO = new QueryRecipeReqHisDTO();
+            queryRecipeReqDTO.setOrganId(null != recipe.getClinicOrgan() ? recipe.getClinicOrgan().toString() :  "");
+            queryRecipeReqDTO.setRecipeID(recipeId.toString());
+            QueryRecipeResultHisDTO queryRecipeResultHisDTO = platformService.queryRecipeInfo(queryRecipeReqDTO);
+            updateTakeDrugWayReqTO.setQueryRecipeResultHisDTO(queryRecipeResultHisDTO);
             LOG.info("收货信息更新通知his. req={}", JSONUtils.toString(updateTakeDrugWayReqTO));
             HisResponseTO hisResult = service.updateTakeDrugWay(updateTakeDrugWayReqTO);
             LOG.info("收货信息更新通知his. res={}", JSONUtils.toString(hisResult));

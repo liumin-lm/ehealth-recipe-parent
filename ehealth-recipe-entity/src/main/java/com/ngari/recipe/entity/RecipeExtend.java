@@ -101,6 +101,22 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "his返回的处方总金额")
     private String cashRecipeFee;
 
+    public String getPreSettleTotalAmount() {
+        return preSettleTotalAmount;
+    }
+
+    public void setPreSettleTotalAmount(String preSettleTotalAmount) {
+        this.preSettleTotalAmount = preSettleTotalAmount;
+    }
+
+    public String getCashRecipeFee() {
+        return cashRecipeFee;
+    }
+
+    public void setCashRecipeFee(String cashRecipeFee) {
+        this.cashRecipeFee = cashRecipeFee;
+    }
+
     public RecipeExtend() {
     }
 
