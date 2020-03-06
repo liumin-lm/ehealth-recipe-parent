@@ -487,7 +487,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
         Map<String, Object> attrMap = Maps.newHashMap();
         attrMap.put("giveDate", StringUtils.isEmpty(sendDateStr) ? DateTime.now().toDate() :
-            DateConversion.parseDate(sendDateStr, DateConversion.DEFAULT_DATE_TIME));
+                DateConversion.parseDate(sendDateStr, DateConversion.DEFAULT_DATE_TIME));
         attrMap.put("giveFlag", 1);
         attrMap.put("giveUser", sender);
         //如果是货到付款还要更新付款时间和付款状态
@@ -1558,13 +1558,13 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                     IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
                     String imgStr = imgHead + fileDownloadService.downloadImg(ossId);
                     if(org.springframework.util.ObjectUtils.isEmpty(imgStr)){
-                        LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{}的ossid为{}处方笺不存在", recipe.getRecipeId(), ossId);
+                        LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:处方ID为{}的ossid为{}处方笺不存在", recipe.getRecipeId(), ossId);
                     }
-                    LOGGER.warn("YtRemoteService.pushRecipeInfo:{}处方，下载处方笺服务成功", recipe.getRecipeId());
+                    LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:{}处方，下载处方笺服务成功", recipe.getRecipeId());
                     orderDetailBean.setRecipeSignImg(imgStr);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    LOGGER.warn("YtRemoteService.pushRecipeInfo:{}处方，下载处方笺服务异常：{}.", recipe.getRecipeId(), e.getMessage() );
+                    LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:{}处方，下载处方笺服务异常：{}.", recipe.getRecipeId(), e.getMessage() );
                 }
 
             }
@@ -1578,9 +1578,13 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setRegisterFee(convertParame(recipeOrder.getRegisterFee()));
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (recipeExtend != null) {
-                orderDetailBean.setMedicalFee(recipeExtend.getFundAmount());
+                if (recipeExtend.getFundAmount() != null) {
+                    orderDetailBean.setMedicalFee(convertParame(recipeExtend.getFundAmount()));
+                } else {
+                    orderDetailBean.setMedicalFee("0");
+                }
             } else {
-                orderDetailBean.setMedicalFee("0.0");
+                orderDetailBean.setMedicalFee("0");
             }
             orderDetailBean.setOrderTotalFee(convertParame(recipeOrder.getTotalFee()));
             orderDetailBean.setExpressFee(convertParame(recipeOrder.getExpressFee()));
