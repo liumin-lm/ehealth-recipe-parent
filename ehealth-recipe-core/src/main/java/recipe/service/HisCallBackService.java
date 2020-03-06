@@ -170,7 +170,7 @@ public class HisCallBackService {
                 recipeExtendDAO.saveRecipeExtend(recipeExtend);
             }
         } else {
-            if (StringUtils.isEmpty(recipeExtend.getRegisterID())) {
+            if (StringUtils.isNotEmpty(recipeExtend.getRegisterID())) {
                 recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("registerID", result.getRegisterID()));
             }
         }
