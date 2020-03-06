@@ -38,10 +38,6 @@ public class RecipeServiceEsignExt {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeServiceEsignExt.class);
     /**
-     * 成功返回标识码
-     */
-    private static final String  HIS_MSG_COD = "200";
-    /**
      * 中药和西药的标识
      */
     private static final String TCM_TEMPLATETYPE = "tcm";
@@ -49,77 +45,6 @@ public class RecipeServiceEsignExt {
     private static IRecipeService recipeService = AppContextHolder.getBean("eh.remoteRecipeService", IRecipeService.class);
 
     private static IESignBaseService esignService = ApplicationUtils.getBaseService(IESignBaseService.class);
-    /**
-     *  标准化CA签名及签章接口
-     * @param doctorId
-     * @param organId
-     */
-    public static void  commonCASignAndSeal(Integer doctorId, Integer organId, Integer recipeId, String loginId,Boolean isDoctor,String caPassword){
-        LOGGER.info("recipe服务 commonCASignAndSeal start doctorId={},recipeId={},organId={},isDoctor={},caPassword={}", doctorId,recipeId, organId,isDoctor,caPassword);
-        //前置机对接接口
-        ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService",ICaHisService.class);
-        CaSignRequestTO requestSignTO = new CaSignRequestTO();
-        CaSignDateRequestTO requestSignDateTO = new CaSignDateRequestTO();
-        //获取唯一标识身份证
-        DoctorService doctorService = BaseAPI.getService(DoctorService.class);
-        DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
-        //签名时间戳
-        String signCADate = "";
-        //签名值
-        String signRecipeText = "";
-
-        //电子签名业务
-        try {
-            HisResponseTO<CaSignResponseTO> responseSignTO = iCaHisService.caSignBusiness(requestSignTO);
-            LOGGER.info("recipe服务 caSignBusiness  responseTO={}", JSONUtils.toString(responseSignTO));
-            // 返回值为200时成功
-            if (HIS_MSG_COD.equals(responseSignTO.getMsgCode())) {
-                signRecipeText = responseSignTO.getData().getSignValue();
-            }
-        } catch (Exception e){
-            LOGGER.error("recipe服务 调用前置机caSignBusiness电子签名业务失败 requestTO={}",JSONUtils.toString(requestSignTO));
-            e.printStackTrace();
-        }
-
-        //获取可信时间戳
-        try {
-            HisResponseTO<CaSignDateResponseTO> responseSealTO = iCaHisService.caSignDateBusiness(requestSignDateTO);
-            LOGGER.info("recipe服务 caSignDateBusiness  responseSealTO={}", responseSealTO.toString());
-            // 返回值为200时成功
-            if (HIS_MSG_COD.equals(responseSealTO.getMsgCode())) {
-                signCADate = responseSealTO.getData().getSignDate();
-            }
-        } catch (Exception e){
-            LOGGER.error("recipe服务 caSignDateBusiness 调用前置机失败 requestTO={}");
-            e.printStackTrace();
-        }
-
-        //获取处方pdf数据
-        CaSealRequestTO requestSealTO  = signCreateRecipePDF(recipeId,isDoctor);
-
-        requestSealTO.setOrganId(organId);
-        requestSealTO.setCertMsg(null);
-        requestSealTO.setUserAccount(doctorDTO.getIdNumber());
-        requestSealTO.setRightX(1);
-        requestSealTO.setRightY(1);
-        requestSealTO.setKeyWord("");
-        requestSealTO.setSzIndexes(0);
-        // 签名时的密码从redis中获取
-        requestSealTO.setUserPin(caPassword);
-
-        //电子签章业务
-        try {
-            LOGGER.info("recip服务 caSealBusiness start requestSealTO={}", requestSealTO.toString());
-            HisResponseTO<CaSealResponseTO> responseSealTO = iCaHisService.caSealBusiness(requestSealTO);
-            LOGGER.info("base服务 caSealBusiness  responseSealTO={}", responseSealTO.toString());
-            //保存pdf文件到文件服务器上，并保存处方和文件对应关系
-            saveSignRecipePDF(responseSealTO.getData().getPdfBase64File(),recipeId,loginId,signCADate,signRecipeText,isDoctor);
-        } catch (Exception e){
-            LOGGER.error("base服务 caSealBusiness 调用前置机失败 requestTO={}", requestSealTO.toString());
-            e.printStackTrace();
-        }
-
-    }
 
 
     /**
