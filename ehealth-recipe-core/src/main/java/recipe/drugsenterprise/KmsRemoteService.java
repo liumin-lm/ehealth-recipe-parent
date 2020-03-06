@@ -191,7 +191,7 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
                 List<HdDrugRequestData> drugRequestList = getDrugRequestList(drugResultMap, detailList, enterprise, result);
                 if (DrugEnterpriseResult.FAIL == result.getCode()) return null;
                 hdPharmacyAndStockRequest.setDrugList(drugRequestList);
-                hdPharmacyAndStockRequest.setRange(MapValueUtil.getString(ext, searchMapRANGE));
+                hdPharmacyAndStockRequest.setRange("20");
                 hdPharmacyAndStockRequest.setPosition(new HdPosition(MapValueUtil.getString(ext, searchMapLongitude), MapValueUtil.getString(ext, searchMapLatitude)));
 
             } else {
@@ -314,7 +314,7 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public String getDrugEnterpriseCallSys() {
-        return DrugEnterpriseConstant.COMPANY_YNS;
+        return DrugEnterpriseConstant.COMPANY_KMS;
     }
 
 }

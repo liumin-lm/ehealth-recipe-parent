@@ -89,6 +89,7 @@
 	<bean id="ynsRemoteService" class="recipe.drugsenterprise.YnsRemoteService"/>
 
 	<bean id="shyyRemoteService" class="recipe.drugsenterprise.ShyyRemoteService"/>
+
 	<!--昆明市第一人民医院-->
 	<bean id="kmsRemoteService" class="recipe.drugsenterprise.KmsRemoteService"/>
 
