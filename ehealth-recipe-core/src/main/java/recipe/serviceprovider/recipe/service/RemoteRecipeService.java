@@ -510,7 +510,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             //添加药企信息和期望配送时间
             if(null != order.getEnterpriseId()){
                 //匹配上药企，获取药企名
-                DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                //DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                 DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
                 if(null != enterprise && null != enterprise.getName()){
                     LOGGER.info("findRecipeOrdersByInfoForExcel 当前处方{}关联上药企:{}", order.getRecipeIdList(), JSONUtils.toString(enterprise));
