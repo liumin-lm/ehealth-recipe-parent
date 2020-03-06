@@ -1621,8 +1621,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 }
                 drugList.setDrugCode(saleDrugList.getOrganDrugCode());
                 drugList.setDrugName(recipedetail.getDrugName());
-                drugList.setSpecification(recipedetail.getDrugSpec());
-                drugList.setProducer(recipedetail.getProducer());
+                drugList.setSpecification(convertParame(recipedetail.getDrugSpec()));
+                drugList.setProducer(convertParame(recipedetail.getProducer()));
                 drugList.setTotal(convertParame(recipedetail.getUseTotalDose()));
                 drugList.setUseDose(convertParame(recipedetail.getUseDose()));
                 drugList.setDrugFee(convertParame(saleDrugList.getPrice()));
