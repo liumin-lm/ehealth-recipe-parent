@@ -1550,6 +1550,12 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setTcmUsingRate(convertParame(recipe.getTcmUsingRate()));
             orderDetailBean.setPharmacyCode(convertParame(recipeOrder.getDrugStoreCode()));
             orderDetailBean.setPharmacyName(convertParame(recipeOrder.getDrugStoreName()));
+            orderDetailBean.setTcmNum("");
+            if (recipe.getPayMode() == 1) {
+                orderDetailBean.setDistributionFlag("1");
+            } else {
+                orderDetailBean.setDistributionFlag("0");
+            }
 
             //设置处方笺base
             String ossId = recipe.getSignImg();
@@ -1604,6 +1610,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setPayFlag(convertParame(recipeOrder.getPayFlag()));
             orderDetailBean.setGiveMode(convertParame(recipe.getGiveMode()));
             orderDetailBean.setMedicalPayFlag(convertParame(recipeOrder.getOrderType()));
+            orderDetailBean.setMemo(convertParame(recipe.getMemo()));
+            orderDetailBean.setStatus(convertParame(recipe.getStatus()));
 
             List<DrugListForThreeBean> drugLists = new ArrayList<>();
             //设置药品信息
@@ -1620,8 +1628,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 }
                 drugList.setDrugCode(saleDrugList.getOrganDrugCode());
                 drugList.setDrugName(recipedetail.getDrugName());
-                drugList.setSpecification(recipedetail.getDrugSpec());
-                drugList.setProducer(recipedetail.getProducer());
+                drugList.setSpecification(convertParame(recipedetail.getDrugSpec()));
+                drugList.setProducer(convertParame(recipedetail.getProducer()));
                 drugList.setTotal(convertParame(recipedetail.getUseTotalDose()));
                 drugList.setUseDose(convertParame(recipedetail.getUseDose()));
                 drugList.setDrugFee(convertParame(saleDrugList.getPrice()));
@@ -1630,6 +1638,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 drugList.setUsePathways(convertParame(recipedetail.getUsePathways()));
                 drugList.setDrugUnit(convertParame(recipedetail.getDrugUnit()));
                 drugList.setPack(convertParame(recipedetail.getPack()));
+                drugList.setLicenseNumber(convertParame(recipedetail.getLicenseNumber()));
+                drugList.setStandardCode("");
                 if (saleDrugList.getPrice() != null && recipedetail.getUseTotalDose() != null) {
                     drugList.setDrugTotalFee(convertParame(saleDrugList.getPrice().multiply(new BigDecimal(recipedetail.getUseTotalDose()))));
                 }
@@ -1641,7 +1651,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 } catch (ControllerException e) {
                     LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:处方细节ID为{}.", recipedetail.getRecipeDetailId());
                 }
-                drugList.setMemo(recipedetail.getMemo());
+                drugList.setMemo(convertParame(recipedetail.getMemo()));
                 drugLists.add(drugList);
             }
             orderDetailBean.setDrugList(drugLists);
