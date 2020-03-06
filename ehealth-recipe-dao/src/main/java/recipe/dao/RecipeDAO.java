@@ -31,7 +31,9 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Query;
+import org.hibernate.SQLQuery;
 import org.hibernate.StatelessSession;
+import org.hibernate.type.LongType;
 import recipe.constant.ConditionOperator;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
@@ -1000,6 +1002,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                     public void execute(StatelessSession ss) throws Exception {
                         StringBuilder sbHql = preparedHql;
                         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        SQLQuery sqlQuery = ss.createSQLQuery("SELECT count(*) AS count FROM (" + sbHql + ") k").addScalar("count", LongType.INSTANCE);
+                        sqlQuery.setParameter("startTime", sdf.format(bDate));
+                        sqlQuery.setParameter("endTime", sdf.format(eDate));
+                        Long total = (Long) sqlQuery.uniqueResult();
 
                         Query query = ss.createSQLQuery(sbHql.append(" order by recipeId DESC").toString()).addEntity(Recipe.class);
                         query.setParameter("startTime", sdf.format(bDate));
@@ -1007,11 +1013,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                         query.setFirstResult(start);
                         query.setMaxResults(limit);
                         List<Recipe> recipeList = query.list();
-                        Long total = 0L;
-                        if(null != recipeList){
 
-                            total = (long)recipeList.size();
-                        }
                         List<Map> maps = new ArrayList<Map>();
                         if (recipeList != null) {
 
@@ -1049,9 +1051,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                     }
                                 }
                                 if(null != order){
-                                    map.put("payTime", order.getPayTime());
+                                    map.put("payDate", order.getPayTime());
                                 }else{
-                                    map.put("payTime", null);
+                                    map.put("payDate", null);
                                 }
                                 maps.add(map);
                             }
