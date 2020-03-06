@@ -533,7 +533,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             }else{
                 recipeMsg.put("payStatusText", RecipePayTextEnum.Default.getPayText());
             }
-
+            recipeMsg.put("payTime", order.getPayTime());
+            recipeMsg.put("tradeNo", order.getTradeNo());
 
         }else{
             //没有订单说明没有支付

@@ -999,17 +999,19 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 new AbstractHibernateStatelessResultAction<QueryResult<Map>>() {
                     public void execute(StatelessSession ss) throws Exception {
                         StringBuilder sbHql = preparedHql;
-                        Query countQuery = ss.createQuery("select count(*) " + sbHql.toString());
                         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                        countQuery.setTimestamp("startTime", sdf.parse(sdf.format(bDate)));
-                        countQuery.setTimestamp("endTime", sdf.parse(sdf.format(eDate)));
-                        Long total = (Long) countQuery.uniqueResult();
-                        Query query = ss.createQuery(sbHql.append(" order by recipeId DESC").toString());
-                        query.setTimestamp("startTime", sdf.parse(sdf.format(bDate)));
-                        query.setTimestamp("endTime", sdf.parse(sdf.format(eDate)));
+
+                        Query query = ss.createSQLQuery(sbHql.append(" order by recipeId DESC").toString()).addEntity(Recipe.class);
+                        query.setParameter("startTime", sdf.format(bDate));
+                        query.setParameter("endTime", sdf.format(eDate));
                         query.setFirstResult(start);
                         query.setMaxResults(limit);
                         List<Recipe> recipeList = query.list();
+                        Long total = 0L;
+                        if(null != recipeList){
+
+                            total = (long)recipeList.size();
+                        }
                         List<Map> maps = new ArrayList<Map>();
                         if (recipeList != null) {
 
@@ -1046,6 +1048,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                         map.put("drugsEnterprise", drugsEnterprise.getName());
                                     }
                                 }
+                                if(null != order){
+                                    map.put("payTime", order.getPayTime());
+                                }else{
+                                    map.put("payTime", null);
+                                }
                                 maps.add(map);
                             }
                         }
@@ -1077,11 +1084,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 new AbstractHibernateStatelessResultAction<List<Map>>() {
                     public void execute(StatelessSession ss) throws Exception {
                         StringBuilder sbHql = preparedHql;
-                        Query query = ss.createQuery(sbHql.append(" order by recipeId DESC").toString());
+                        System.out.println(preparedHql);
+                        Query query = ss.createSQLQuery(sbHql.append(" order by r.recipeId DESC").toString()).addEntity(Recipe.class);
                         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                        query.setTimestamp("startTime", sdf.parse(sdf.format(bDate)));
-                        query.setTimestamp("endTime", sdf.parse(sdf.format(eDate)));
+                        query.setParameter("startTime", sdf.format(bDate));
+                        query.setParameter("endTime", sdf.format(eDate));
                         List<Recipe> recipeList = query.list();
+
                         Set<String> mpiIds = Sets.newHashSet();
                         Set<Integer> doctorIds = Sets.newHashSet();
                         Map<String, PatientDTO> patientBeanMap = Maps.newHashMap();
@@ -1126,6 +1135,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                 }
                                 if (doctor != null) {
                                     map.put("doctorMobile", doctor.getMobile());
+                                }
+                                RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+                                RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipe.getRecipeId());
+                                if(null != order){
+                                    map.put("payTime", order.getPayTime());
+                                }else{
+                                    map.put("payTime", null);
                                 }
                                 maps.add(map);
                             }
@@ -1262,7 +1278,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     private StringBuilder generateRecipeOderHQLforStatistics(Integer organId,
                                                    Integer status, Integer doctor, String patientName, Integer dateType,
                                                    Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer fromflag, Integer recipeId) {
-        StringBuilder hql = new StringBuilder(" from Recipe r where 1=1");
+        StringBuilder hql = new StringBuilder("select r.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode where 1=1");
 
         //默认查询所有
         if (CollectionUtils.isNotEmpty(requestOrgans)) {
@@ -1305,6 +1321,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 //审核时间
                 hql.append(" and r.checkDate >= :startTime"
                         + " and r.checkDate <= :endTime ");
+                break;
+            case 2:
+                //审核时间
+                hql.append(" and o.payTime >= :startTime"
+                        + " and o.payTime <= :endTime ");
                 break;
             default:
                 break;
