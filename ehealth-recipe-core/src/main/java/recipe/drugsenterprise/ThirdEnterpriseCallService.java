@@ -487,7 +487,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
         Map<String, Object> attrMap = Maps.newHashMap();
         attrMap.put("giveDate", StringUtils.isEmpty(sendDateStr) ? DateTime.now().toDate() :
-            DateConversion.parseDate(sendDateStr, DateConversion.DEFAULT_DATE_TIME));
+                DateConversion.parseDate(sendDateStr, DateConversion.DEFAULT_DATE_TIME));
         attrMap.put("giveFlag", 1);
         attrMap.put("giveUser", sender);
         //如果是货到付款还要更新付款时间和付款状态
@@ -1590,7 +1590,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                     orderDetailBean.setMedicalFee("0");
                 }
             } else {
-                    orderDetailBean.setMedicalFee("0");
+                orderDetailBean.setMedicalFee("0");
             }
             orderDetailBean.setOrderTotalFee(convertParame(recipeOrder.getTotalFee()));
             if (recipeOrder.getExpressFee() == null) {
@@ -1608,8 +1608,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setStreet(convertParame(recipeOrder.getAddress4()));
             orderDetailBean.setReceiver(convertParame(recipeOrder.getReceiver()));
             orderDetailBean.setRecMobile(convertParame(recipeOrder.getRecMobile()));
-            orderDetailBean.setRecAddress(getCompleteAddress(recipeOrder));
-            orderDetailBean.setOutTradeNo(recipeOrder.getOutTradeNo());
+            orderDetailBean.setRecAddress(convertParame(getCompleteAddress(recipeOrder)));
+            orderDetailBean.setOutTradeNo(convertParame(recipeOrder.getOutTradeNo()));
             orderDetailBean.setTradeNo(convertParame(recipeOrder.getTradeNo()));
             orderDetailBean.setPayMode(convertParame(convertParame(recipe.getPayMode())));
             orderDetailBean.setPayFlag(convertParame(recipeOrder.getPayFlag()));
