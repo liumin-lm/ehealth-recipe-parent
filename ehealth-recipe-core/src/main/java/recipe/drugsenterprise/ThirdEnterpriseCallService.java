@@ -1596,7 +1596,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setDistrict(convertParame(district));
             orderDetailBean.setStreet(convertParame(recipeOrder.getAddress4()));
             orderDetailBean.setReceiver(convertParame(recipeOrder.getReceiver()));
-            orderDetailBean.setRecMobile(convertParame(recipeOrder.getRecipeMode()));
+            orderDetailBean.setRecMobile(convertParame(recipeOrder.getRecMobile()));
             orderDetailBean.setRecAddress(getCompleteAddress(recipeOrder));
             orderDetailBean.setOutTradeNo(recipeOrder.getOutTradeNo());
             orderDetailBean.setTradeNo(convertParame(recipeOrder.getTradeNo()));
