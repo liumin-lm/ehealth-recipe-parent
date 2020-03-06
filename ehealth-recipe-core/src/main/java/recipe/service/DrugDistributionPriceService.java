@@ -163,6 +163,7 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
     }
 
     @RpcService
+    @Override
     public DrugDistributionPriceBean getDistributionPriceByEnterpriseIdAndAddrArea(Integer enterpriseId, String addrArea) {
         if (enterpriseId == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "enterpriseId is enterpriseId");

@@ -22,4 +22,7 @@ public interface IDrugDistributionPriceService {
     @RpcService
     void savePriceList(List<DrugDistributionPriceBean> priceList);
 
+    @RpcService
+    DrugDistributionPriceBean getDistributionPriceByEnterpriseIdAndAddrArea(Integer enterpriseId, String addrArea);
+
 }
