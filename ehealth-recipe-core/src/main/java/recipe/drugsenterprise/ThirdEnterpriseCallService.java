@@ -1519,37 +1519,37 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             //设置医生信息
             DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes doctorDTO:{} .", JSONUtils.toString(doctorDTO));
-            orderDetailBean.setDoctorNumber(doctorDTO.getIdNumber());
-            orderDetailBean.setDoctorName(doctorDTO.getName());
+            orderDetailBean.setDoctorNumber(convertParame(doctorDTO.getIdNumber()));
+            orderDetailBean.setDoctorName(convertParame(doctorDTO.getName()));
 
             //设置科室信息
             DepartmentDTO department = departmentService.get(recipe.getDepart());
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes department:{} .", JSONUtils.toString(department));
             orderDetailBean.setDepartId(convertParame(department.getDeptId()));
-            orderDetailBean.setDepartName(department.getName());
+            orderDetailBean.setDepartName(convertParame(department.getName()));
 
             //设置患者信息
             PatientDTO patient = patientService.get(recipe.getMpiid());
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes patient:{} .", JSONUtils.toString(patient));
             orderDetailBean.setCertificateType("1");
-            orderDetailBean.setCertificate(patient.getCertificate());
-            orderDetailBean.setPatientName(patient.getPatientName());
-            orderDetailBean.setPatientTel(patient.getMobile());
-            orderDetailBean.setPatientAddress(patient.getFullHomeArea());
-            orderDetailBean.setPatientNumber(recipe.getPatientID());
+            orderDetailBean.setCertificate(convertParame(patient.getCertificate()));
+            orderDetailBean.setPatientName(convertParame(patient.getPatientName()));
+            orderDetailBean.setPatientTel(convertParame(patient.getMobile()));
+            orderDetailBean.setPatientAddress(convertParame(patient.getFullHomeArea()));
+            orderDetailBean.setPatientNumber(convertParame(recipe.getPatientID()));
 
             //设置处方信息
             orderDetailBean.setRecipeId(convertParame(recipe.getRecipeId()));
             orderDetailBean.setRecipeType(convertParame(recipe.getRecipeType()));
             orderDetailBean.setRecipeCode(recipe.getRecipeCode());
-            orderDetailBean.setCreateDate(recipe.getCreateDate().toString());
-            orderDetailBean.setOrganDiseaseId(recipe.getOrganDiseaseId());
-            orderDetailBean.setOrganDiseaseName(recipe.getOrganDiseaseName());
-            orderDetailBean.setRecipeMemo(recipe.getRecipeMemo());
-            orderDetailBean.setTcmUsePathways(recipe.getTcmUsePathways());
-            orderDetailBean.setTcmUsingRate(recipe.getTcmUsingRate());
-            orderDetailBean.setPharmacyCode(recipeOrder.getDrugStoreCode());
-            orderDetailBean.setPharmacyName(recipeOrder.getDrugStoreName());
+            orderDetailBean.setCreateDate(convertParame(recipe.getCreateDate()));
+            orderDetailBean.setOrganDiseaseId(convertParame(recipe.getOrganDiseaseId()));
+            orderDetailBean.setOrganDiseaseName(convertParame(recipe.getOrganDiseaseName()));
+            orderDetailBean.setRecipeMemo(convertParame(recipe.getRecipeMemo()));
+            orderDetailBean.setTcmUsePathways(convertParame(recipe.getTcmUsePathways()));
+            orderDetailBean.setTcmUsingRate(convertParame(recipe.getTcmUsingRate()));
+            orderDetailBean.setPharmacyCode(convertParame(recipeOrder.getDrugStoreCode()));
+            orderDetailBean.setPharmacyName(convertParame(recipeOrder.getDrugStoreName()));
 
             //设置处方笺base
             String ossId = recipe.getSignImg();
@@ -1591,8 +1591,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setStreet(convertParame(recipeOrder.getAddress4()));
             orderDetailBean.setRecAddress(getCompleteAddress(recipeOrder));
             orderDetailBean.setOutTradeNo(recipeOrder.getOutTradeNo());
-            orderDetailBean.setTradeNo(recipeOrder.getTradeNo());
-            orderDetailBean.setPayMode(convertParame(recipe.getPayMode()));
+            orderDetailBean.setTradeNo(convertParame(recipeOrder.getTradeNo()));
+            orderDetailBean.setPayMode(convertParame(convertParame(recipe.getPayMode())));
             orderDetailBean.setPayFlag(convertParame(recipeOrder.getPayFlag()));
             orderDetailBean.setGiveMode(convertParame(recipe.getGiveMode()));
             orderDetailBean.setMedicalPayFlag(convertParame(recipeOrder.getOrderType()));
@@ -1618,9 +1618,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 drugList.setUseDose(convertParame(recipedetail.getUseDose()));
                 drugList.setDrugFee(convertParame(saleDrugList.getPrice()));
                 drugList.setUesDays(convertParame(recipedetail.getUseDays()));
-                drugList.setUsingRate(recipedetail.getUsingRate());
-                drugList.setUsePathways(recipedetail.getUsePathways());
-                drugList.setDrugUnit(recipedetail.getDrugUnit());
+                drugList.setUsingRate(convertParame(recipedetail.getUsingRate()));
+                drugList.setUsePathways(convertParame(recipedetail.getUsePathways()));
+                drugList.setDrugUnit(convertParame(recipedetail.getDrugUnit()));
                 drugList.setPack(convertParame(recipedetail.getPack()));
                 if (saleDrugList.getPrice() != null && recipedetail.getUseTotalDose() != null) {
                     drugList.setDrugTotalFee(convertParame(saleDrugList.getPrice().multiply(new BigDecimal(recipedetail.getUseTotalDose()))));
