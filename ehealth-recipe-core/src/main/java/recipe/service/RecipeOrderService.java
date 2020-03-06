@@ -659,6 +659,9 @@ public class RecipeOrderService extends RecipeBaseService {
                     //卫宁付
                     if (purchaseService.getToHosPayConfig(firstRecipe.getClinicOrgan())){
                         order.setActualPrice(order.getTotalFee().doubleValue());
+                    }else {
+                        //此时的实际费用是不包含药品费用的
+                        order.setActualPrice(order.getAuditFee().doubleValue());
                     }
                 }else {
                     if (RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
