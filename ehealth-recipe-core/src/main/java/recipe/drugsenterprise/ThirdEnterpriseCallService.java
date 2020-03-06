@@ -1593,6 +1593,11 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 orderDetailBean.setMedicalFee("0");
             }
             orderDetailBean.setOrderTotalFee(convertParame(recipeOrder.getTotalFee()));
+            if (recipeOrder.getExpressFee() == null) {
+                orderDetailBean.setExpressFee("0");
+            } else {
+                orderDetailBean.setExpressFee(convertParame(recipeOrder.getExpressFee()));
+            }
             orderDetailBean.setExpressFee(convertParame(recipeOrder.getExpressFee()));
             String province = getAddressDic(recipeOrder.getAddress1());
             String city = getAddressDic(recipeOrder.getAddress2());
