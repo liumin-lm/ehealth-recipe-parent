@@ -42,6 +42,7 @@ import recipe.util.DateConversion;
 import recipe.util.SqlOperInfo;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -996,18 +997,21 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         final PatientService patientService = BasicAPI.getService(PatientService.class);
         HibernateStatelessResultAction<QueryResult<Map>> action =
                 new AbstractHibernateStatelessResultAction<QueryResult<Map>>() {
-                    public void execute(StatelessSession ss) throws DAOException {
+                    public void execute(StatelessSession ss) throws Exception {
                         StringBuilder sbHql = preparedHql;
-                        Query countQuery = ss.createQuery("select count(*) " + sbHql.toString());
-                        countQuery.setDate("startTime", bDate);
-                        countQuery.setDate("endTime", eDate);
-                        Long total = (Long) countQuery.uniqueResult();
-                        Query query = ss.createQuery(sbHql.append(" order by recipeId DESC").toString());
-                        query.setDate("startTime", bDate);
-                        query.setDate("endTime", eDate);
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+                        Query query = ss.createSQLQuery(sbHql.append(" order by recipeId DESC").toString()).addEntity(Recipe.class);
+                        query.setParameter("startTime", sdf.format(bDate));
+                        query.setParameter("endTime", sdf.format(eDate));
                         query.setFirstResult(start);
                         query.setMaxResults(limit);
                         List<Recipe> recipeList = query.list();
+                        Long total = 0L;
+                        if(null != recipeList){
+
+                            total = (long)recipeList.size();
+                        }
                         List<Map> maps = new ArrayList<Map>();
                         if (recipeList != null) {
 
@@ -1044,6 +1048,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                         map.put("drugsEnterprise", drugsEnterprise.getName());
                                     }
                                 }
+                                if(null != order){
+                                    map.put("payTime", order.getPayTime());
+                                }else{
+                                    map.put("payTime", null);
+                                }
                                 maps.add(map);
                             }
                         }
@@ -1073,12 +1082,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         final DoctorService doctorService = BasicAPI.getService(DoctorService.class);
         HibernateStatelessResultAction<List<Map>> action =
                 new AbstractHibernateStatelessResultAction<List<Map>>() {
-                    public void execute(StatelessSession ss) throws DAOException {
+                    public void execute(StatelessSession ss) throws Exception {
                         StringBuilder sbHql = preparedHql;
-                        Query query = ss.createQuery(sbHql.append(" order by recipeId DESC").toString());
-                        query.setDate("startTime", bDate);
-                        query.setDate("endTime", eDate);
+                        System.out.println(preparedHql);
+                        Query query = ss.createSQLQuery(sbHql.append(" order by r.recipeId DESC").toString()).addEntity(Recipe.class);
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        query.setParameter("startTime", sdf.format(bDate));
+                        query.setParameter("endTime", sdf.format(eDate));
                         List<Recipe> recipeList = query.list();
+
                         Set<String> mpiIds = Sets.newHashSet();
                         Set<Integer> doctorIds = Sets.newHashSet();
                         Map<String, PatientDTO> patientBeanMap = Maps.newHashMap();
@@ -1124,6 +1136,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                 if (doctor != null) {
                                     map.put("doctorMobile", doctor.getMobile());
                                 }
+                                RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+                                RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipe.getRecipeId());
+                                if(null != order){
+                                    map.put("payTime", order.getPayTime());
+                                }else{
+                                    map.put("payTime", null);
+                                }
                                 maps.add(map);
                             }
                         }
@@ -1157,10 +1176,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             public void execute(StatelessSession ss) throws Exception {
                 long total = 0;
                 StringBuilder hql = preparedHql;
-                hql.append(" group by status ");
-                Query query = ss.createQuery("select status, count(recipeId) as count " + hql.toString());
-                query.setDate("startTime", bDate);
-                query.setDate("endTime", eDate);
+                hql.append(" group by r.status ");
+                Query query = ss.createQuery("select r.status, count(r.recipeId) as count " + hql.toString());
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                query.setTimestamp("startTime", sdf.parse(sdf.format(bDate)));
+                query.setTimestamp("endTime", sdf.parse(sdf.format(eDate)));
                 List<Object[]> tfList = query.list();
                 HashMap<String, Integer> mapStatistics = Maps.newHashMap();
                 if (tfList.size() > 0) {
@@ -1207,15 +1227,25 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             hql.append(" and r.clinicOrgan =" + organId);
         }
         switch (dateType) {
+//            case 0:
+//                //开方时间
+//                hql.append(" and DATE_FORMAT(r.createDate,'yyyy-MM-dd HH:mm:ss') >= DATE_FORMAT(:startTime,'yyyy-MM-dd HH:mm:ss')"
+//                        + " and DATE_FORMAT(r.createDate,'yyyy-MM-dd HH:mm:ss') <= DATE_FORMAT(:endTime,'yyyy-MM-dd HH:mm:ss') ");
+//                break;
+//            case 1:
+//                //审核时间
+//                hql.append(" and DATE_FORMAT(r.checkDate,'yyyy-MM-dd HH:mm:ss') >= DATE_FORMAT(:startTime,'yyyy-MM-dd HH:mm:ss')"
+//                        + " and DATE_FORMAT(r.checkDate,'yyyy-MM-dd HH:mm:ss') <= DATE_FORMAT(:endTime,'yyyy-MM-dd HH:mm:ss') ");
+//                break;
             case 0:
                 //开方时间
-                hql.append(" and DATE(r.createDate)>=DATE(:startTime)"
-                        + " and DATE(r.createDate)<=DATE(:endTime) ");
+                hql.append(" and r.createDate >= :startTime"
+                        + " and r.createDate <= :endTime ");
                 break;
             case 1:
                 //审核时间
-                hql.append(" and DATE(r.checkDate)>=DATE(:startTime)"
-                        + " and DATE(r.checkDate)<=DATE(:endTime) ");
+                hql.append(" and r.checkDate >= :startTime"
+                        + " and r.checkDate <= :endTime ");
                 break;
             default:
                 break;
@@ -1248,7 +1278,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     private StringBuilder generateRecipeOderHQLforStatistics(Integer organId,
                                                    Integer status, Integer doctor, String patientName, Integer dateType,
                                                    Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer fromflag, Integer recipeId) {
-        StringBuilder hql = new StringBuilder(" from Recipe r where 1=1");
+        StringBuilder hql = new StringBuilder("select r.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode where 1=1");
 
         //默认查询所有
         if (CollectionUtils.isNotEmpty(requestOrgans)) {
@@ -1272,15 +1302,30 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             hql.append(" and r.clinicOrgan =" + organId);
         }
         switch (dateType) {
+//            case 0:
+//                //开方时间
+//                hql.append(" and DATE_FORMAT(r.createDate,'yyyy-MM-dd HH:mm:ss') >= DATE_FORMAT(:startTime,'yyyy-MM-dd HH:mm:ss')"
+//                        + " and DATE_FORMAT(r.createDate,'yyyy-MM-dd HH:mm:ss') <= DATE_FORMAT(:endTime,'yyyy-MM-dd HH:mm:ss') ");
+//                break;
+//            case 1:
+//                //审核时间
+//                hql.append(" and DATE_FORMAT(r.checkDate,'yyyy-MM-dd HH:mm:ss') >= DATE_FORMAT(:startTime,'yyyy-MM-dd HH:mm:ss')"
+//                        + " and DATE_FORMAT(r.checkDate,'yyyy-MM-dd HH:mm:ss') <= DATE_FORMAT(:endTime,'yyyy-MM-dd HH:mm:ss') ");
+//                break;
             case 0:
                 //开方时间
-                hql.append(" and DATE(r.createDate)>=DATE(:startTime)"
-                        + " and DATE(r.createDate)<=DATE(:endTime) ");
+                hql.append(" and r.createDate >= :startTime"
+                        + " and r.createDate <= :endTime ");
                 break;
             case 1:
                 //审核时间
-                hql.append(" and DATE(r.checkDate)>=DATE(:startTime)"
-                        + " and DATE(r.checkDate)<=DATE(:endTime) ");
+                hql.append(" and r.checkDate >= :startTime"
+                        + " and r.checkDate <= :endTime ");
+                break;
+            case 2:
+                //审核时间
+                hql.append(" and o.payTime >= :startTime"
+                        + " and o.payTime <= :endTime ");
                 break;
             default:
                 break;

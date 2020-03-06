@@ -487,7 +487,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
         Map<String, Object> attrMap = Maps.newHashMap();
         attrMap.put("giveDate", StringUtils.isEmpty(sendDateStr) ? DateTime.now().toDate() :
-            DateConversion.parseDate(sendDateStr, DateConversion.DEFAULT_DATE_TIME));
+                DateConversion.parseDate(sendDateStr, DateConversion.DEFAULT_DATE_TIME));
         attrMap.put("giveFlag", 1);
         attrMap.put("giveUser", sender);
         //如果是货到付款还要更新付款时间和付款状态
@@ -1519,37 +1519,43 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             //设置医生信息
             DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes doctorDTO:{} .", JSONUtils.toString(doctorDTO));
-            orderDetailBean.setDoctorNumber(doctorDTO.getIdNumber());
-            orderDetailBean.setDoctorName(doctorDTO.getName());
+            orderDetailBean.setDoctorNumber(convertParame(doctorDTO.getIdNumber()));
+            orderDetailBean.setDoctorName(convertParame(doctorDTO.getName()));
 
             //设置科室信息
             DepartmentDTO department = departmentService.get(recipe.getDepart());
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes department:{} .", JSONUtils.toString(department));
             orderDetailBean.setDepartId(convertParame(department.getDeptId()));
-            orderDetailBean.setDepartName(department.getName());
+            orderDetailBean.setDepartName(convertParame(department.getName()));
 
             //设置患者信息
             PatientDTO patient = patientService.get(recipe.getMpiid());
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes patient:{} .", JSONUtils.toString(patient));
             orderDetailBean.setCertificateType("1");
-            orderDetailBean.setCertificate(patient.getCertificate());
-            orderDetailBean.setPatientName(patient.getPatientName());
-            orderDetailBean.setPatientTel(patient.getMobile());
-            orderDetailBean.setPatientAddress(patient.getFullHomeArea());
-            orderDetailBean.setPatientNumber(recipe.getPatientID());
+            orderDetailBean.setCertificate(convertParame(patient.getCertificate()));
+            orderDetailBean.setPatientName(convertParame(patient.getPatientName()));
+            orderDetailBean.setPatientTel(convertParame(patient.getMobile()));
+            orderDetailBean.setPatientAddress(convertParame(patient.getFullHomeArea()));
+            orderDetailBean.setPatientNumber(convertParame(recipe.getPatientID()));
 
             //设置处方信息
             orderDetailBean.setRecipeId(convertParame(recipe.getRecipeId()));
             orderDetailBean.setRecipeType(convertParame(recipe.getRecipeType()));
             orderDetailBean.setRecipeCode(recipe.getRecipeCode());
-            orderDetailBean.setCreateDate(recipe.getCreateDate().toString());
-            orderDetailBean.setOrganDiseaseId(recipe.getOrganDiseaseId());
-            orderDetailBean.setOrganDiseaseName(recipe.getOrganDiseaseName());
-            orderDetailBean.setRecipeMemo(recipe.getRecipeMemo());
-            orderDetailBean.setTcmUsePathways(recipe.getTcmUsePathways());
-            orderDetailBean.setTcmUsingRate(recipe.getTcmUsingRate());
-            orderDetailBean.setPharmacyCode(recipeOrder.getDrugStoreCode());
-            orderDetailBean.setPharmacyName(recipeOrder.getDrugStoreName());
+            orderDetailBean.setCreateDate(convertParame(recipe.getCreateDate()));
+            orderDetailBean.setOrganDiseaseId(convertParame(recipe.getOrganDiseaseId()));
+            orderDetailBean.setOrganDiseaseName(convertParame(recipe.getOrganDiseaseName()));
+            orderDetailBean.setRecipeMemo(convertParame(recipe.getRecipeMemo()));
+            orderDetailBean.setTcmUsePathways(convertParame(recipe.getTcmUsePathways()));
+            orderDetailBean.setTcmUsingRate(convertParame(recipe.getTcmUsingRate()));
+            orderDetailBean.setPharmacyCode(convertParame(recipeOrder.getDrugStoreCode()));
+            orderDetailBean.setPharmacyName(convertParame(recipeOrder.getDrugStoreName()));
+            orderDetailBean.setTcmNum("");
+            if (recipe.getPayMode() == 1) {
+                orderDetailBean.setDistributionFlag("1");
+            } else {
+                orderDetailBean.setDistributionFlag("0");
+            }
 
             //设置处方笺base
             String ossId = recipe.getSignImg();
@@ -1558,13 +1564,13 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                     IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
                     String imgStr = imgHead + fileDownloadService.downloadImg(ossId);
                     if(org.springframework.util.ObjectUtils.isEmpty(imgStr)){
-                        LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{}的ossid为{}处方笺不存在", recipe.getRecipeId(), ossId);
+                        LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:处方ID为{}的ossid为{}处方笺不存在", recipe.getRecipeId(), ossId);
                     }
-                    LOGGER.warn("YtRemoteService.pushRecipeInfo:{}处方，下载处方笺服务成功", recipe.getRecipeId());
+                    LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:{}处方，下载处方笺服务成功", recipe.getRecipeId());
                     orderDetailBean.setRecipeSignImg(imgStr);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    LOGGER.warn("YtRemoteService.pushRecipeInfo:{}处方，下载处方笺服务异常：{}.", recipe.getRecipeId(), e.getMessage() );
+                    LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:{}处方，下载处方笺服务异常：{}.", recipe.getRecipeId(), e.getMessage() );
                 }
 
             }
@@ -1578,24 +1584,39 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setRegisterFee(convertParame(recipeOrder.getRegisterFee()));
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (recipeExtend != null) {
-                orderDetailBean.setMedicalFee(recipeExtend.getFundAmount());
+                if (recipeExtend.getFundAmount() != null) {
+                    orderDetailBean.setMedicalFee(convertParame(recipeExtend.getFundAmount()));
+                } else {
+                    orderDetailBean.setMedicalFee("0");
+                }
+            } else {
+                orderDetailBean.setMedicalFee("0");
             }
             orderDetailBean.setOrderTotalFee(convertParame(recipeOrder.getTotalFee()));
+            if (recipeOrder.getExpressFee() == null) {
+                orderDetailBean.setExpressFee("0");
+            } else {
+                orderDetailBean.setExpressFee(convertParame(recipeOrder.getExpressFee()));
+            }
             orderDetailBean.setExpressFee(convertParame(recipeOrder.getExpressFee()));
             String province = getAddressDic(recipeOrder.getAddress1());
             String city = getAddressDic(recipeOrder.getAddress2());
             String district = getAddressDic(recipeOrder.getAddress3());
-            orderDetailBean.setProvince(province);
-            orderDetailBean.setCity(city);
-            orderDetailBean.setDistrict(district);
+            orderDetailBean.setProvince(convertParame(province));
+            orderDetailBean.setCity(convertParame(city));
+            orderDetailBean.setDistrict(convertParame(district));
             orderDetailBean.setStreet(convertParame(recipeOrder.getAddress4()));
-            orderDetailBean.setRecAddress(getCompleteAddress(recipeOrder));
-            orderDetailBean.setOutTradeNo(recipeOrder.getOutTradeNo());
-            orderDetailBean.setTradeNo(recipeOrder.getTradeNo());
-            orderDetailBean.setPayMode(convertParame(recipe.getPayMode()));
+            orderDetailBean.setReceiver(convertParame(recipeOrder.getReceiver()));
+            orderDetailBean.setRecMobile(convertParame(recipeOrder.getRecMobile()));
+            orderDetailBean.setRecAddress(convertParame(getCompleteAddress(recipeOrder)));
+            orderDetailBean.setOutTradeNo(convertParame(recipeOrder.getOutTradeNo()));
+            orderDetailBean.setTradeNo(convertParame(recipeOrder.getTradeNo()));
+            orderDetailBean.setPayMode(convertParame(convertParame(recipe.getPayMode())));
             orderDetailBean.setPayFlag(convertParame(recipeOrder.getPayFlag()));
             orderDetailBean.setGiveMode(convertParame(recipe.getGiveMode()));
             orderDetailBean.setMedicalPayFlag(convertParame(recipeOrder.getOrderType()));
+            orderDetailBean.setMemo(convertParame(recipe.getMemo()));
+            orderDetailBean.setStatus(convertParame(recipe.getStatus()));
 
             List<DrugListForThreeBean> drugLists = new ArrayList<>();
             //设置药品信息
@@ -1612,16 +1633,18 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 }
                 drugList.setDrugCode(saleDrugList.getOrganDrugCode());
                 drugList.setDrugName(recipedetail.getDrugName());
-                drugList.setSpecification(recipedetail.getDrugSpec());
-                drugList.setProducer(recipedetail.getProducer());
+                drugList.setSpecification(convertParame(recipedetail.getDrugSpec()));
+                drugList.setProducer(convertParame(recipedetail.getProducer()));
                 drugList.setTotal(convertParame(recipedetail.getUseTotalDose()));
                 drugList.setUseDose(convertParame(recipedetail.getUseDose()));
                 drugList.setDrugFee(convertParame(saleDrugList.getPrice()));
                 drugList.setUesDays(convertParame(recipedetail.getUseDays()));
-                drugList.setUsingRate(recipedetail.getUsingRate());
-                drugList.setUsePathways(recipedetail.getUsePathways());
-                drugList.setDrugUnit(recipedetail.getDrugUnit());
+                drugList.setUsingRate(convertParame(recipedetail.getUsingRate()));
+                drugList.setUsePathways(convertParame(recipedetail.getUsePathways()));
+                drugList.setDrugUnit(convertParame(recipedetail.getDrugUnit()));
                 drugList.setPack(convertParame(recipedetail.getPack()));
+                drugList.setLicenseNumber(convertParame(recipedetail.getLicenseNumber()));
+                drugList.setStandardCode("");
                 if (saleDrugList.getPrice() != null && recipedetail.getUseTotalDose() != null) {
                     drugList.setDrugTotalFee(convertParame(saleDrugList.getPrice().multiply(new BigDecimal(recipedetail.getUseTotalDose()))));
                 }
@@ -1633,7 +1656,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 } catch (ControllerException e) {
                     LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:处方细节ID为{}.", recipedetail.getRecipeDetailId());
                 }
-                drugList.setMemo(recipedetail.getMemo());
+                drugList.setMemo(convertParame(recipedetail.getMemo()));
                 drugLists.add(drugList);
             }
             orderDetailBean.setDrugList(drugLists);
@@ -1648,7 +1671,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         StandardResultDTO standardResult = new StandardResultDTO();
         String appKey = (String)parames.get("appKey");
         String hospitalCode = (String)parames.get("hospitalCode");
-        List<SynchronizeDrugBean> synchronizeDrugBeans = (List)parames.get("drugList");
+        List<Map<String,Object>> synchronizeDrugBeans = (List)parames.get("drugList");
         LOGGER.info("ThirdEnterpriseCallService.synchronizeInventory appKey:{},hospitalCode:{},synchronizeDrugBeans:{}", appKey, hospitalCode, JSONUtils.toString(synchronizeDrugBeans));
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAppKey(appKey);
@@ -1659,9 +1682,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         }
         standardResult.setCode(StandardResultDTO.SUCCESS);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        for (SynchronizeDrugBean synchronizeDrugBean : synchronizeDrugBeans) {
-            String drugCode = synchronizeDrugBean.getDrugCode();
-            int inventory = synchronizeDrugBean.getInventory();
+        for (Map<String,Object> synchronizeDrugBean : synchronizeDrugBeans) {
+            String drugCode = (String)synchronizeDrugBean.get("drugCode");
+            int inventory = (Integer)synchronizeDrugBean.get("inventory");
             SaleDrugList saleDrugList = saleDrugListDAO.getByOrganIdAndDrugCode(drugsEnterprise.getId(), drugCode);
             if (saleDrugList != null) {
                 saleDrugListDAO.updateDrugInventory(saleDrugList.getDrugId(), drugsEnterprise.getId(), new BigDecimal(inventory));
