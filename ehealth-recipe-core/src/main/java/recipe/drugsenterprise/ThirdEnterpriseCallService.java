@@ -1671,7 +1671,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         StandardResultDTO standardResult = new StandardResultDTO();
         String appKey = (String)parames.get("appKey");
         String hospitalCode = (String)parames.get("hospitalCode");
-        List<SynchronizeDrugBean> synchronizeDrugBeans = (List)parames.get("drugList");
+        List<Map<String,Object>> synchronizeDrugBeans = (List)parames.get("drugList");
         LOGGER.info("ThirdEnterpriseCallService.synchronizeInventory appKey:{},hospitalCode:{},synchronizeDrugBeans:{}", appKey, hospitalCode, JSONUtils.toString(synchronizeDrugBeans));
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAppKey(appKey);
@@ -1682,9 +1682,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         }
         standardResult.setCode(StandardResultDTO.SUCCESS);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        for (SynchronizeDrugBean synchronizeDrugBean : synchronizeDrugBeans) {
-            String drugCode = synchronizeDrugBean.getDrugCode();
-            int inventory = synchronizeDrugBean.getInventory();
+        for (Map<String,Object> synchronizeDrugBean : synchronizeDrugBeans) {
+            String drugCode = (String)synchronizeDrugBean.get("drugCode");
+            int inventory = (Integer)synchronizeDrugBean.get("inventory");
             SaleDrugList saleDrugList = saleDrugListDAO.getByOrganIdAndDrugCode(drugsEnterprise.getId(), drugCode);
             if (saleDrugList != null) {
                 saleDrugListDAO.updateDrugInventory(saleDrugList.getDrugId(), drugsEnterprise.getId(), new BigDecimal(inventory));
