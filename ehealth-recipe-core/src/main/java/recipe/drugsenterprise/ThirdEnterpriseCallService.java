@@ -1558,13 +1558,13 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                     IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
                     String imgStr = imgHead + fileDownloadService.downloadImg(ossId);
                     if(org.springframework.util.ObjectUtils.isEmpty(imgStr)){
-                        LOGGER.warn("YtRemoteService.pushRecipeInfo:处方ID为{}的ossid为{}处方笺不存在", recipe.getRecipeId(), ossId);
+                        LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:处方ID为{}的ossid为{}处方笺不存在", recipe.getRecipeId(), ossId);
                     }
-                    LOGGER.warn("YtRemoteService.pushRecipeInfo:{}处方，下载处方笺服务成功", recipe.getRecipeId());
+                    LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:{}处方，下载处方笺服务成功", recipe.getRecipeId());
                     orderDetailBean.setRecipeSignImg(imgStr);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    LOGGER.warn("YtRemoteService.pushRecipeInfo:{}处方，下载处方笺服务异常：{}.", recipe.getRecipeId(), e.getMessage() );
+                    LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:{}处方，下载处方笺服务异常：{}.", recipe.getRecipeId(), e.getMessage() );
                 }
 
             }
@@ -1579,15 +1579,12 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (recipeExtend != null) {
                 if (recipeExtend.getFundAmount() != null) {
-                    LOGGER.info("YtRemoteService.pushRecipeInfo FundAmount1:{}.", recipeExtend.getFundAmount());
                     orderDetailBean.setMedicalFee(convertParame(recipeExtend.getFundAmount()));
                 } else {
-                    LOGGER.info("YtRemoteService.pushRecipeInfo FundAmount2:{}.", recipeExtend.getFundAmount());
                     orderDetailBean.setMedicalFee("0");
                 }
             } else {
-                LOGGER.info("YtRemoteService.pushRecipeInfo FundAmount3:{}.", recipeExtend.getFundAmount());
-                orderDetailBean.setMedicalFee("0");
+                    orderDetailBean.setMedicalFee("0");
             }
             orderDetailBean.setOrderTotalFee(convertParame(recipeOrder.getTotalFee()));
             orderDetailBean.setExpressFee(convertParame(recipeOrder.getExpressFee()));
