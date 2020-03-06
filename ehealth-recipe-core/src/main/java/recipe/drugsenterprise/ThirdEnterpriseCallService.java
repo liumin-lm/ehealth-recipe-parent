@@ -1580,7 +1580,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             if (recipeExtend != null) {
                 orderDetailBean.setMedicalFee(recipeExtend.getFundAmount());
             } else {
-                orderDetailBean.setMedicalFee("0.0");
+                orderDetailBean.setMedicalFee("");
             }
             orderDetailBean.setOrderTotalFee(convertParame(recipeOrder.getTotalFee()));
             orderDetailBean.setExpressFee(convertParame(recipeOrder.getExpressFee()));
