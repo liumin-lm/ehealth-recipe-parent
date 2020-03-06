@@ -1604,6 +1604,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setPayFlag(convertParame(recipeOrder.getPayFlag()));
             orderDetailBean.setGiveMode(convertParame(recipe.getGiveMode()));
             orderDetailBean.setMedicalPayFlag(convertParame(recipeOrder.getOrderType()));
+            orderDetailBean.setMemo(convertParame(recipe.getMemo()));
 
             List<DrugListForThreeBean> drugLists = new ArrayList<>();
             //设置药品信息
@@ -1641,7 +1642,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 } catch (ControllerException e) {
                     LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:处方细节ID为{}.", recipedetail.getRecipeDetailId());
                 }
-                drugList.setMemo(recipedetail.getMemo());
+                drugList.setMemo(convertParame(recipedetail.getMemo()));
                 drugLists.add(drugList);
             }
             orderDetailBean.setDrugList(drugLists);
