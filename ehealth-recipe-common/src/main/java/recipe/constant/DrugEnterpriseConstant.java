@@ -91,4 +91,19 @@ public class DrugEnterpriseConstant {
      * 英特药企
      */
     public static final String COMPANY_YK = "yk";
+
+    /**
+     * 上海国药
+     */
+    public static final String COMPANY_COMMON_SH = "commonSH";
+
+    /**
+     * 上海益友
+     */
+    public static final String COMPANY_SHYY = "shyy";
+
+    /**
+     * 云南医药
+     */
+    public static final String COMPANY_YNS = "yns";
 }

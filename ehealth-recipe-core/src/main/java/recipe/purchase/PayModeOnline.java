@@ -68,10 +68,13 @@ public class PayModeOnline implements IPurchaseService {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
         //todo---暂时写死上海六院---配送到家判断是否是医保患者
-        if (dbRecipe.getClinicOrgan() == 1000899 && purchaseService.isMedicarePatient(dbRecipe.getClinicOrgan(),dbRecipe.getMpiid())){
-            resultBean.setCode(RecipeResultBean.FAIL);
-            resultBean.setMsg("医保患者不支持线上配送，请选择其他取药方式");
-            return resultBean;
+        //非卫宁付
+        if (!purchaseService.getPayOnlineConfig(dbRecipe.getClinicOrgan())){
+            if (dbRecipe.getClinicOrgan() == 1000899 && purchaseService.isMedicarePatient(dbRecipe.getClinicOrgan(),dbRecipe.getMpiid())){
+                resultBean.setCode(RecipeResultBean.FAIL);
+                resultBean.setMsg("医保患者不支持线上配送，请选择其他取药方式");
+                return resultBean;
+            }
         }
         Integer recipeId = dbRecipe.getRecipeId();
 
