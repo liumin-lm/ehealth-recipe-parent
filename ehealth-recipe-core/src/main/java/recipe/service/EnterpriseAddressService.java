@@ -168,18 +168,6 @@ public class EnterpriseAddressService extends BaseService<EnterpriseAddressDTO> 
         return getBean(address, EnterpriseAddressDTO.class);
     }
 
-    @RpcService
-    public void addEnterpriseAddressList(List<EnterpriseAddress> enterpriseAddressList) {
-        EnterpriseAddressDAO addressDAO = DAOFactory.getDAO(EnterpriseAddressDAO.class);
-        if(ValidateUtil.notBlankList(enterpriseAddressList)) {
-            addressDAO.deleteEnterpriseAddress(enterpriseAddressList.get(0).getEnterpriseId());
-            for (EnterpriseAddress enterpriseAddress : enterpriseAddressList) {
-                EnterpriseAddress address = addressDAO.addEnterpriseAddress(enterpriseAddress);
-            }
-        }
-    }
-
-
     /**
      * 更新药企配送地址
      *

@@ -22,4 +22,7 @@ public interface IEnterpriseAddressService extends IBaseService<EnterpriseAddres
 
     @RpcService
     void deleteEnterpriseAddressById(List<Integer> ids);
+
+    @RpcService
+    void addEnterpriseAddressList(List<EnterpriseAddressDTO> enterpriseAddressDTOList);
 }

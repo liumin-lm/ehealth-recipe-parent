@@ -101,7 +101,7 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
         return price;
     }
 
-//    @Override
+    @Override
     public void savePriceList(List<DrugDistributionPriceBean> priceList){
         LOGGER.info("savePriceList input： [{}]", JSONUtils.toString(priceList));
         if(ValidateUtil.notBlankList(priceList)) {
