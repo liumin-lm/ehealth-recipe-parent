@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ca.CAInterface;
 import recipe.ca.ICommonCAServcie;
 import recipe.ca.vo.CaSignResultVo;
+import recipe.util.RedisClient;
 
 /**
  * CA标准化对接文档
@@ -25,6 +26,8 @@ import recipe.ca.vo.CaSignResultVo;
 public class ShanxiCAImpl implements CAInterface {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShanxiCAImpl.class);
 
+    @Autowired
+    private RedisClient redisClient;
     @Autowired
     private ICommonCAServcie iCommonCAServcie;
     /**
@@ -68,7 +71,19 @@ public class ShanxiCAImpl implements CAInterface {
 
     @RpcService
     public boolean caPasswordBusiness(CaPasswordRequestTO requestTO) {
-        return iCommonCAServcie.caPasswordBusiness(requestTO);
+        boolean isSuccess= false;
+        //用户操作类型 * 1.设置密码 * 2.修改密码 * 3.找回密码，4.查询是否设置密码，5.验证密码是否正确
+        if (4 == requestTO.getBusType()) {
+            if (redisClient.get("password_"+requestTO.getUserAccount()) != null) {
+                return true;
+            }
+        } else {
+            isSuccess = iCommonCAServcie.caPasswordBusiness(requestTO);
+            if (isSuccess) {
+                redisClient.set("password_"+requestTO.getUserAccount(),"yes");
+            }
+        }
+        return isSuccess;
     }
 
     /**
