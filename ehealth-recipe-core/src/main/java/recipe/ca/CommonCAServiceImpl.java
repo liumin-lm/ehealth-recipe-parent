@@ -7,7 +7,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-@RpcBean
+@RpcBean("iCommonCAServcie")
 public class CommonCAServiceImpl implements ICommonCAServcie {
 
     private static Logger LOGGER = LoggerFactory.getLogger(CommonCAServiceImpl.class);
