@@ -16,6 +16,7 @@ import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.consult.common.service.IConsultService;
+import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.ConsultSetDTO;
@@ -59,6 +60,9 @@ import recipe.bean.CheckYsInfoBean;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
+import recipe.ca.CAInterface;
+import recipe.ca.factory.CommonCAFactory;
+import recipe.ca.vo.CaSignResultVo;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
@@ -692,10 +696,35 @@ public class RecipeService extends RecipeBaseService{
             memo = "签名上传文件成功, fileId=" + recipeFileId;
             LOGGER.info("generateRecipePdfAndSign 签名成功. fileId={}, recipeId={}", recipeFileId, recipe.getRecipeId());
         } else if(Integer.valueOf(2).equals(code)) {
-            memo = "签名成功,非默认易签宝CA方式";
-            LOGGER.info("generateRecipePdfAndSign 签名成功. 非易签宝CA模式, recipeId={}", recipe.getRecipeId());
-        }
-        else {
+            memo = "签名成功,高州CA方式";
+            LOGGER.info("generateRecipePdfAndSign 签名成功. 高州CA模式, recipeId={}", recipe.getRecipeId());
+        } else if(Integer.valueOf(100).equals(code)){
+            memo = "签名成功,标准对接CA方式";
+            LOGGER.info("generateRecipePdfAndSign 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
+            String loginId = MapValueUtil.getString(backMap, "loginId");
+            Integer organId = MapValueUtil.getInteger(paramMap, "organId");
+            boolean isdoctor = (boolean) paramMap.get("isdoctor");
+            DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
+            String userAccount = doctorDTO.getIdNumber();
+            //签名时的密码从redis中获取
+            String caPassword = redisClient.get("caPassword");
+            //标准化CA进行签名、签章==========================start=====
+            try {
+                //获取签章pdf数据。签名原文
+                CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId,isdoctor);
+                CommonCAFactory caFactory = new CommonCAFactory();
+                //通过工厂获取对应的实现CA类
+                CAInterface caInterface = caFactory.useCAFunction(organId);
+                CaSignResultVo resultVo =  caInterface.commonCASignAndSeal(requestSealTO,recipe, organId, userAccount, caPassword);
+                //保存签名值、时间戳、电子签章文件
+                RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId,resultVo.getSignCADate(),
+                        resultVo.getSignRecipeCode(), isdoctor);
+            } catch (Exception e){
+                LOGGER.error("generateRecipePdfAndSign 标准化CA签章报错 recipeId={} ,loginId={} organId={},doctor={} ,e={}============="
+                        , recipeId,loginId,organId,recipe.getDoctor(), e);
+            }
+            //标准化CA进行签名、签章==========================end=====
+        } else {
             memo = "签名上传文件失败！原因：" + MapValueUtil.getString(backMap, "msg");
             LOGGER.error("generateRecipePdfAndSign 签名上传文件失败. recipeId={}, result={}", recipe.getRecipeId(), JSONUtils.toString(backMap));
         }
