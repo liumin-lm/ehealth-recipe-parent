@@ -15,6 +15,11 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
 
     private static ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService",ICaHisService.class);
 
+    /**
+     * CA用户接口
+     * @param requestTO
+     * @return
+     */
     @Override
     public boolean caUserBusiness(CaAccountRequestTO requestTO) {
         try {
@@ -30,7 +35,11 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
         }
         return false;
     }
-
+    /**
+     * CA证书接口
+     * @param requestTO
+     * @return
+     */
     @Override
     public boolean caCertificateBusiness(CaCertificateRequestTO requestTO) {
         try {
@@ -88,6 +97,11 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
         return false;
     }
 
+    /**
+     * CA电子签名接口
+     * @param requestTO
+     * @return
+     */
     public CaSignResponseTO caSignBusiness(CaSignRequestTO requestTO) {
         CaSignResponseTO responseRs = new CaSignResponseTO();
         try {
@@ -105,6 +119,11 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
         return responseRs;
     }
 
+    /**
+     * CA电子签章接口
+     * @param requestTO
+     * @return
+     */
     public CaSealResponseTO caSealBusiness(CaSealRequestTO requestTO) {
         CaSealResponseTO responseRs = new CaSealResponseTO();
         try {
@@ -121,7 +140,11 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
         }
         return responseRs;
     }
-
+    /**
+     * CA时间戳获取接口
+     * @param requestTO
+     * @return
+     */
     public CaSignDateResponseTO caSignDateBusiness(CaSignDateRequestTO requestTO) {
         CaSignDateResponseTO responseRs = new CaSignDateResponseTO();
         try {

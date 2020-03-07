@@ -2,6 +2,7 @@
 package recipe.ca.impl;
 
 import com.ngari.his.ca.model.CaAccountRequestTO;
+import com.ngari.his.ca.model.CaPasswordRequestTO;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.ca.model.CaSealResponseTO;
 import com.ngari.patient.dto.DoctorDTO;
@@ -66,6 +67,15 @@ public class ShanxiCAImpl implements CAInterface {
         }
         return false;
     }
+    /**
+     * CA密码接口
+     * @param requestTO
+     * @return
+     */
+    @RpcService
+    public boolean caPasswordBusiness(CaPasswordRequestTO requestTO) {
+        return iCommonCAServcie.caPasswordBusiness(requestTO);
+    }
 
     /**
      * 标准化CA签名及签章接口
@@ -81,13 +91,13 @@ public class ShanxiCAImpl implements CAInterface {
         //获取处方pdf数据
         requestSealTO.setOrganId(organId);
         requestSealTO.setUserAccount(userAccount);
+        requestSealTO.setUserPin(caPassword);
         requestSealTO.setCertMsg(null);
         requestSealTO.setRightX(1);
         requestSealTO.setRightY(1);
         requestSealTO.setKeyWord("");
         requestSealTO.setSzIndexes(0);
-        //签名时的密码从redis中获取
-        requestSealTO.setUserPin(caPassword);
+
         //电子签名
         signResultVo.setSignRecipeCode(null);
         //上传手签图片

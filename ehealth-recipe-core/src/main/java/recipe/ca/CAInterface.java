@@ -1,5 +1,6 @@
 package recipe.ca;
 
+import com.ngari.his.ca.model.CaPasswordRequestTO;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import ctd.util.annotation.RpcService;
 import recipe.ca.vo.CaSignResultVo;
@@ -13,6 +14,14 @@ public interface CAInterface {
      */
     @RpcService
     boolean caUserLoginAndGetCertificate(Integer doctorId);
+
+    /**
+     * CA密码接口
+     * @param requestTO
+     * @return
+     */
+    @RpcService
+    boolean caPasswordBusiness(CaPasswordRequestTO requestTO);
 
     /**
      * 标准化CA签名及签章接口

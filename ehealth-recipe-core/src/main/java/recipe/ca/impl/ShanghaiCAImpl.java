@@ -1,16 +1,12 @@
 
 package recipe.ca.impl;
 
-import com.ngari.his.ca.model.CaAccountRequestTO;
+import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.ca.model.CaPasswordRequestTO;
 import com.ngari.his.ca.model.CaSealRequestTO;
-import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.DoctorService;
-import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.base.constant.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,37 +30,17 @@ public class ShanghaiCAImpl implements CAInterface {
      */
     @RpcService
     public boolean caUserLoginAndGetCertificate(Integer doctorId){
-        LOGGER.info("base服务 caUserLoginAndGetCertificate start in doctorId={}", doctorId);
-        //根据doctorId获取医生信息
-        DoctorService doctorDAO = BasicAPI.getService(DoctorService.class);
-        DoctorDTO doctor = doctorDAO.getByDoctorId(doctorId);
-        if (null == doctor) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "doctorId 找不到改医生");
-        }
-        CaAccountRequestTO requestTO = new CaAccountRequestTO();
-        requestTO.setIdCard(doctor.getIdNumber());
-        requestTO.setMobile(doctor.getMobile());
-        requestTO.setOrganId(doctor.getOrgan());
-        requestTO.setUserAccount(doctor.getIdNumber());
-        requestTO.setUserEmail(doctor.getEmail());
-        requestTO.setUserName(doctor.getName());
-        requestTO.setIdNoType("1");
-        try {
-            //用户操作类型 * 1.用户注册 * 2.用户修改 * 3.用户查询
-            requestTO.setBusType(3);
-            boolean isSuccess = iCommonCAServcie.caUserBusiness(requestTO);
-            if (!isSuccess) {
+       return true;
+    }
 
-                requestTO.setBusType(1);
-                isSuccess = iCommonCAServcie.caUserBusiness(requestTO);
-                LOGGER.info("base服务 caUserLoginAndGetCertificate end isSuccess={}", isSuccess);
-                return isSuccess;
-            }
-        } catch (Exception e){
-            LOGGER.error("base服务 caUserLoginAndGetCertificate 调用前置机失败 requestTO={}", JSONUtils.toString(requestTO));
-            e.printStackTrace();
-        }
-        return false;
+    /**
+     * CA密码接口
+     * @param requestTO
+     * @return
+     */
+    @RpcService
+    public boolean caPasswordBusiness(CaPasswordRequestTO requestTO) {
+        return iCommonCAServcie.caPasswordBusiness(requestTO);
     }
 
     /**
