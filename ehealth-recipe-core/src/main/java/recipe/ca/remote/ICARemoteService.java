@@ -14,11 +14,14 @@ public interface ICARemoteService {
     boolean caUserLoginAndGetCertificate(Integer doctorId);
 
     /**
-     * CA密码接口
-     * @param requestTO
+     *  CA密码接口
+     * @param doctorId
+     * @param password
+     * @param newPassword
+     * @param busType
      * @return
      */
     @RpcService
-    boolean caPasswordBusiness(CaPasswordRequestTO requestTO);
+    boolean caPasswordBusiness(Integer doctorId,String password,String newPassword,int busType);
 
 }

@@ -31,14 +31,20 @@ public class CARemoteServiceImpl implements ICARemoteService {
 
     /**
      * CA密码接口
-     * @param requestTO
      * @return
      */
     @Override
     @RpcService
-    public boolean caPasswordBusiness(CaPasswordRequestTO requestTO) {
+    public boolean caPasswordBusiness(Integer doctorId,String password,String newPassword,int busType) {
+        DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
+        CaPasswordRequestTO requestTO = new CaPasswordRequestTO();
+        requestTO.setBusType(busType);
+        requestTO.setNewPassword(newPassword);
+        requestTO.setOrganId(doctorDTO.getOrgan());
+        requestTO.setUserAccount(doctorDTO.getIdNumber());
+        requestTO.setPassword(password);
         CommonCAFactory caFactory = new CommonCAFactory();
-        CAInterface caInterface = caFactory.useCAFunction(requestTO.getOrganId());
+        CAInterface caInterface = caFactory.useCAFunction(doctorDTO.getOrgan());
         return caInterface.caPasswordBusiness(requestTO);
     }
 

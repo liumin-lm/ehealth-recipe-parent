@@ -40,7 +40,7 @@ public class ShanghaiCAImpl implements CAInterface {
      */
     @RpcService
     public boolean caPasswordBusiness(CaPasswordRequestTO requestTO) {
-        return iCommonCAServcie.caPasswordBusiness(requestTO);
+        return true;
     }
 
     /**

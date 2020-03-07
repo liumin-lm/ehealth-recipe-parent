@@ -67,11 +67,7 @@ public class ShanxiCAImpl implements CAInterface {
         }
         return false;
     }
-    /**
-     * CA密码接口
-     * @param requestTO
-     * @return
-     */
+
     @RpcService
     public boolean caPasswordBusiness(CaPasswordRequestTO requestTO) {
         return iCommonCAServcie.caPasswordBusiness(requestTO);
