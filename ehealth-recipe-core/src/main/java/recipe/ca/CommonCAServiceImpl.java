@@ -4,9 +4,10 @@ import com.ngari.his.ca.model.*;
 import com.ngari.his.ca.service.ICaHisService;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+@RpcBean
 public class CommonCAServiceImpl implements ICommonCAServcie {
 
     private static Logger LOGGER = LoggerFactory.getLogger(CommonCAServiceImpl.class);
