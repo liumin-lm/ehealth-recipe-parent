@@ -17,7 +17,7 @@ import recipe.ca.vo.CaSignResultVo;
 /**
  * CA标准化对接文档
  */
-@RpcBean
+@RpcBean("shanghaiCA")
 public class ShanghaiCAImpl implements CAInterface {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShanghaiCAImpl.class);
 

@@ -23,7 +23,7 @@ import recipe.ca.vo.CaSignResultVo;
 /**
  * CA标准化对接文档
  */
-@RpcBean
+@RpcBean("shanxiCA")
 public class ShanxiCAImpl implements CAInterface {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShanxiCAImpl.class);
 
