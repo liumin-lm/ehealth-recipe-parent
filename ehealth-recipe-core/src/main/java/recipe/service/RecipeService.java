@@ -724,7 +724,7 @@ public class RecipeService extends RecipeBaseService{
                 CommonCAFactory caFactory = new CommonCAFactory();
                 //通过工厂获取对应的实现CA类
                 CAInterface caInterface = caFactory.useCAFunction(organId);
-                CaSignResultVo resultVo =  caInterface.commonCASignAndSeal(requestSealTO, organId, userAccount, caPassword);
+                CaSignResultVo resultVo =  caInterface.commonCASignAndSeal(requestSealTO,recipe, organId, userAccount, caPassword);
                //保存签名值、时间戳、电子签章文件
                 RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId,resultVo.getSignCADate(),
                         resultVo.getSignRecipeCode(), isdoctor);

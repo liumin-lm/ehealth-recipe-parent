@@ -1,6 +1,5 @@
 package recipe.ca.remote;
 
-import com.ngari.his.ca.model.CaPasswordRequestTO;
 import ctd.util.annotation.RpcService;
 
 public interface ICARemoteService {

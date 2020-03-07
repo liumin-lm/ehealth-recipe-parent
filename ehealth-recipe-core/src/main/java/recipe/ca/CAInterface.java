@@ -2,6 +2,7 @@ package recipe.ca;
 
 import com.ngari.his.ca.model.CaPasswordRequestTO;
 import com.ngari.his.ca.model.CaSealRequestTO;
+import com.ngari.recipe.entity.Recipe;
 import ctd.util.annotation.RpcService;
 import recipe.ca.vo.CaSignResultVo;
 
@@ -31,5 +32,5 @@ public interface CAInterface {
      * @param caPassword
      */
     @RpcService
-    CaSignResultVo commonCASignAndSeal(CaSealRequestTO requestSealTO, Integer organId, String userAccount, String caPassword);
+    CaSignResultVo commonCASignAndSeal(CaSealRequestTO requestSealTO, Recipe recipe, Integer organId, String userAccount, String caPassword);
 }

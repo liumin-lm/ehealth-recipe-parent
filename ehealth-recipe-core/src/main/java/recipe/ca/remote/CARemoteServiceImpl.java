@@ -26,7 +26,10 @@ public class CARemoteServiceImpl implements ICARemoteService {
         CommonCAFactory caFactory = new CommonCAFactory();
         //通过工厂获取对应的实现CA类
         CAInterface caInterface = caFactory.useCAFunction(doctorDTO.getOrgan());
-        return caInterface.caUserLoginAndGetCertificate(doctorId);
+        if (caInterface != null) {
+            return caInterface.caUserLoginAndGetCertificate(doctorId);
+        }
+        return false;
     }
 
     /**
@@ -45,7 +48,11 @@ public class CARemoteServiceImpl implements ICARemoteService {
         requestTO.setPassword(password);
         CommonCAFactory caFactory = new CommonCAFactory();
         CAInterface caInterface = caFactory.useCAFunction(doctorDTO.getOrgan());
-        return caInterface.caPasswordBusiness(requestTO);
+        if (caInterface != null) {
+            return caInterface.caPasswordBusiness(requestTO);
+        }
+        return false;
+
     }
 
 }

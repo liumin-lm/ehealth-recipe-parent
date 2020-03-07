@@ -1,13 +1,11 @@
 
 package recipe.ca.impl;
 
-import com.ngari.his.ca.model.CaAccountRequestTO;
-import com.ngari.his.ca.model.CaPasswordRequestTO;
-import com.ngari.his.ca.model.CaSealRequestTO;
-import com.ngari.his.ca.model.CaSealResponseTO;
+import com.ngari.his.ca.model.*;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
+import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -81,35 +79,51 @@ public class ShanxiCAImpl implements CAInterface {
      * @param caPassword
      */
     @RpcService
-    public CaSignResultVo commonCASignAndSeal(CaSealRequestTO requestSealTO, Integer organId, String userAccount, String caPassword) {
+    public CaSignResultVo commonCASignAndSeal(CaSealRequestTO requestSealTO, Recipe recipe,Integer organId, String userAccount, String caPassword) {
         LOGGER.info("recipe服务 commonCASignAndSeal start requestSealTO={},organId={},userAccount={},caPassword={}", JSONUtils.toString(requestSealTO), organId, userAccount, caPassword);
         CaSignResultVo signResultVo = new CaSignResultVo();
-        //获取处方pdf数据
-        requestSealTO.setOrganId(organId);
-        requestSealTO.setUserAccount(userAccount);
-        requestSealTO.setUserPin(caPassword);
-        requestSealTO.setCertMsg(null);
-        requestSealTO.setRightX(1);
-        requestSealTO.setRightY(1);
-        requestSealTO.setKeyWord("");
-        requestSealTO.setSzIndexes(0);
 
-        //电子签名
-        signResultVo.setSignRecipeCode(null);
-        //上传手签图片
-        try{
-//            iCommonCAServcie.caPictureBusiness();
-        } catch (Exception e){
-            LOGGER.error("esign 服务 caPictureBusiness 调用前置机失败 requestTO={}", requestSealTO.toString());
-            e.printStackTrace();
-        }
-        //获取时间戳数据
-        String signCADate=null;
-        signResultVo.setSignCADate(signCADate);
-        //电子签章业务
         try {
+            //电子签名（暂不实现）
+
+            //上传手签图片
+            CaPictureRequestTO pictureRequestTO = new CaPictureRequestTO();
+            pictureRequestTO.setOrganId(organId);
+            pictureRequestTO.setUserAccount(userAccount);
+            // 用户操作类型 * 1.上传图片 * 2.修改图片 * 3.查询图片 * 4.注销图片
+            pictureRequestTO.setBusType(3);
+            boolean isSuccess = iCommonCAServcie.caPictureBusiness(pictureRequestTO);
+            if (!isSuccess) {
+                 //上传图片
+                 pictureRequestTO.setBusType(1);
+                 isSuccess = iCommonCAServcie.caPictureBusiness(pictureRequestTO);
+                 if(!isSuccess){
+                     LOGGER.info("caPictureBusiness 上传图片失败 ");
+                     return null;
+                 }
+            }
+
+            //获取时间戳数据
+            CaSignDateRequestTO caSignDateRequestTO = new CaSignDateRequestTO();
+            caSignDateRequestTO.setOrganId(organId);
+            caSignDateRequestTO.setSignMsg(JSONUtils.toString(recipe));
+            caSignDateRequestTO.setUserAccount(userAccount);
+            CaSignDateResponseTO responseDateTO = iCommonCAServcie.caSignDateBusiness(caSignDateRequestTO);
+            if (responseDateTO != null) {
+                signResultVo.setSignCADate(responseDateTO.getSignDate());
+            }
+
+            //电子签章业务
+            requestSealTO.setOrganId(organId);
+            requestSealTO.setUserAccount(userAccount);
+            requestSealTO.setUserPin(caPassword);
+            requestSealTO.setCertMsg(null);
+            requestSealTO.setRightX(1);
+            requestSealTO.setRightY(1);
+            requestSealTO.setKeyWord("");
+            requestSealTO.setSzIndexes(0);
             CaSealResponseTO responseSealTO = iCommonCAServcie.caSealBusiness(requestSealTO);
-            LOGGER.info("esign 服务 commonCASignAndSeal  responseSealTO={}", JSONUtils.toString(responseSealTO).substring(0,100));
+
             if (responseSealTO != null){
                 signResultVo.setPdfBase64(responseSealTO.getPdfBase64File());
             }
