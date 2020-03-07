@@ -211,8 +211,9 @@ public class PurchaseService {
             return result;
         }
         //预结算
-        //非省医保才走自费结算
-        if (!(orderType != null && orderType == 1)) {
+        //非省直医保才走自费结算
+        //省医保不走自费结算
+        if (!(orderType != null && (orderType == 1 || orderType == 3))) {
             //目前省中和上海六院走自费预结算---上海六院改成机构配置--获取配送到家支付机构配置-平台付才走
             //首先配的不是卫宁付
             if (!getPayOnlineConfig(dbRecipe.getClinicOrgan())){
