@@ -9,7 +9,7 @@ import recipe.ApplicationUtils;
 import recipe.ca.CAInterface;
 import recipe.ca.factory.CommonCAFactory;
 
-@RpcBean("iCARemoteService")
+@RpcBean(value="iCARemoteService", mvc_authentication = false)
 public class CARemoteServiceImpl implements ICARemoteService {
 
     private DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
