@@ -58,9 +58,12 @@ public class ShanghaiCAImpl implements CAInterface {
             //电子签名
             CaSignRequestTO caSignRequestTO = new CaSignRequestTO();
             caSignRequestTO.setCretMsg(null);
-            caSignRequestTO.setOrganId(organId);
-            caSignRequestTO.setUserAccount(userAccount);
-            caSignRequestTO.setSignMsg(JSONUtils.toString(recipe));
+            //caSignRequestTO.setOrganId(organId);
+            //caSignRequestTO.setSignMsg(JSONUtils.toString(recipe));
+            //caSignRequestTO.setUserAccount(userAccount);
+            caSignRequestTO.setOrganId(1000899);
+            caSignRequestTO.setUserAccount("310103196505301000");
+            caSignRequestTO.setSignMsg("dsfsdfdsfsdadfsdaafsfasdfsdafafdsfasdfffffw3eefsdfdcxbhhkjhdfdasdadfsg");
             CaSignResponseTO responseTO = iCommonCAServcie.caSignBusiness(caSignRequestTO);
             if (responseTO != null) {
                 signResultVo.setSignRecipeCode(responseTO.getSignValue());
@@ -69,9 +72,12 @@ public class ShanghaiCAImpl implements CAInterface {
 
             //获取时间戳数据
             CaSignDateRequestTO caSignDateRequestTO = new CaSignDateRequestTO();
-            caSignDateRequestTO.setOrganId(organId);
-            caSignDateRequestTO.setSignMsg(JSONUtils.toString(recipe));
-            caSignDateRequestTO.setUserAccount(userAccount);
+            //caSignDateRequestTO.setOrganId(organId);
+            //caSignDateRequestTO.setUserAccount(userAccount);
+            //caSignDateRequestTO.setSignMsg(JSONUtils.toString(recipe));
+            caSignRequestTO.setOrganId(1000899);
+            caSignRequestTO.setUserAccount("310103196505301000");
+            caSignRequestTO.setSignMsg("dsfsdfdsfsdadfsdaafsfasdfsdafafdsfasdfffffw3eefsdfdcxbhhkjhdfdasdadfsg");
             CaSignDateResponseTO responseDateTO = iCommonCAServcie.caSignDateBusiness(caSignDateRequestTO);
             if (responseDateTO != null) {
                 signResultVo.setSignCADate(responseDateTO.getSignDate());
