@@ -595,14 +595,6 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     } else if (order.getPayFlag() != null && 0 == order.getPayFlag()){
                         recipeMap.put("ISPAYMENT", "0");
                     }
-                    //追加运费相关
-                    if (order.getExpressFee() != null && order.getExpressFee().compareTo(BigDecimal.ZERO) == 1) {
-                        recipeMap.put("DELIVERYCASH", order.getExpressFee());
-                        recipeMap.put("DELIVERYFLAG", 1);
-                    } else {
-                        recipeMap.put("DELIVERYCASH", 0);
-                        recipeMap.put("DELIVERYFLAG", 0);
-                    }
                 }
 
             } else {
