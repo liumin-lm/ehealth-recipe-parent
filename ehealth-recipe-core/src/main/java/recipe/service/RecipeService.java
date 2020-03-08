@@ -15,16 +15,11 @@ import com.ngari.base.patient.model.DocIndexBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.payment.service.IPaymentService;
-import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.common.service.IConsultService;
-import com.ngari.his.ca.model.*;
-import com.ngari.his.ca.service.ICaHisService;
+import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.patient.ds.PatientDS;
-import com.ngari.patient.dto.ConsultSetDTO;
-import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.dto.EmploymentDTO;
-import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
@@ -32,14 +27,11 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.*;
-import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderInfoBean;
 import com.ngari.wxpay.service.INgariRefundService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
-import ctd.mvc.upload.FileMetaRecord;
-import ctd.mvc.upload.FileService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -82,19 +74,15 @@ import recipe.util.DateConversion;
 import recipe.util.DigestUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
-import sun.misc.BASE64Decoder;
 
 import javax.annotation.Resource;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
 
@@ -712,8 +700,9 @@ public class RecipeService extends RecipeBaseService{
             LOGGER.info("generateRecipePdfAndSign 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
             String loginId = MapValueUtil.getString(backMap, "loginId");
             Integer organId = MapValueUtil.getInteger(paramMap, "organId");
-            boolean isdoctor = MapValueUtil.getBoolean(paramMap, "isdoctor");
+            boolean isdoctor = (boolean) paramMap.get("isdoctor");
             DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
+
             String userAccount = doctorDTO.getIdNumber();
             //签名时的密码从redis中获取
             String caPassword = redisClient.get("caPassword");
@@ -721,11 +710,16 @@ public class RecipeService extends RecipeBaseService{
             try {
                 //获取签章pdf数据。签名原文
                 CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId,isdoctor);
+                //获取签章图片
+                DoctorExtendService doctorExtendService = BaseAPI.getService(DoctorExtendService.class);
+                DoctorExtendDTO  doctorExtendDTO= doctorExtendService.getByDoctorId(recipe.getDoctor());
+                requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
+
                 CommonCAFactory caFactory = new CommonCAFactory();
                 //通过工厂获取对应的实现CA类
                 CAInterface caInterface = caFactory.useCAFunction(organId);
                 CaSignResultVo resultVo =  caInterface.commonCASignAndSeal(requestSealTO,recipe, organId, userAccount, caPassword);
-               //保存签名值、时间戳、电子签章文件
+                //保存签名值、时间戳、电子签章文件
                 RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId,resultVo.getSignCADate(),
                         resultVo.getSignRecipeCode(), isdoctor);
             } catch (Exception e){
@@ -2857,6 +2851,9 @@ public class RecipeService extends RecipeBaseService{
                 }
 
             }
+
+
+
         }
         if(null != recipeId){
             LOGGER.info("recipeCanDelivery 处方[{}],删除无用数据中", recipeId);

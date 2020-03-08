@@ -59,8 +59,8 @@ public class ShanghaiCAImpl implements CAInterface {
             CaSignRequestTO caSignRequestTO = new CaSignRequestTO();
             caSignRequestTO.setCretMsg(null);
             caSignRequestTO.setOrganId(organId);
-            caSignRequestTO.setUserAccount(userAccount);
             caSignRequestTO.setSignMsg(JSONUtils.toString(recipe));
+            caSignRequestTO.setUserAccount(userAccount);
             CaSignResponseTO responseTO = iCommonCAServcie.caSignBusiness(caSignRequestTO);
             if (responseTO != null) {
                 signResultVo.setSignRecipeCode(responseTO.getSignValue());
@@ -70,14 +70,15 @@ public class ShanghaiCAImpl implements CAInterface {
             //获取时间戳数据
             CaSignDateRequestTO caSignDateRequestTO = new CaSignDateRequestTO();
             caSignDateRequestTO.setOrganId(organId);
-            caSignDateRequestTO.setSignMsg(JSONUtils.toString(recipe));
             caSignDateRequestTO.setUserAccount(userAccount);
+            caSignDateRequestTO.setSignMsg(JSONUtils.toString(recipe));
+
             CaSignDateResponseTO responseDateTO = iCommonCAServcie.caSignDateBusiness(caSignDateRequestTO);
             if (responseDateTO != null) {
                 signResultVo.setSignCADate(responseDateTO.getSignDate());
             }
-            //电子签章（暂不实现）
 
+            //电子签章（暂不实现）
         } catch (Exception e){
             LOGGER.error("recipe 服务 commonCASignAndSeal 调用前置机失败 requestSealTO={},organId={},userAccount={},caPassword={}",
                     JSONUtils.toString(requestSealTO), organId, userAccount, caPassword );

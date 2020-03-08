@@ -210,17 +210,4 @@ public class MapValueUtil {
         return localhostIP;
     }
 
-    public static boolean getBoolean(Map<String, ? extends Object> map, String key) {
-        Object obj = getObject(map, key);
-        if (null == obj) {
-            return false;
-        }
-
-        if (obj instanceof Boolean) {
-            return ((Boolean) obj).booleanValue();
-        }
-
-        return false;
-    }
-
 }

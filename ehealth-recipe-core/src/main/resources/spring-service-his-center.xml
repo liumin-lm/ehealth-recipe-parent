@@ -13,4 +13,6 @@
     <reference id="his.hisServiceConfig" interface="com.ngari.base.serviceconfig.service.IHisServiceConfigService" />
     <reference id="his.iPatientHisService" interface="com.ngari.his.patient.service.IPatientHisService" />
     <reference id="his.iCaHisService" interface="com.ngari.his.ca.service.ICaHisService" />
+
+
 </s:beans>

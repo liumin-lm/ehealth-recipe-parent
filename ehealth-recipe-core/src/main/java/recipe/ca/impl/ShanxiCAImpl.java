@@ -28,7 +28,6 @@ public class ShanxiCAImpl implements CAInterface {
 
     @Autowired
     private RedisClient redisClient;
-
     @Autowired
     private ICommonCAServcie iCommonCAServcie;
     /**
@@ -106,6 +105,8 @@ public class ShanxiCAImpl implements CAInterface {
             CaPictureRequestTO pictureRequestTO = new CaPictureRequestTO();
             pictureRequestTO.setOrganId(organId);
             pictureRequestTO.setUserAccount(userAccount);
+            //获取手签图片
+            pictureRequestTO.setSealPicture(requestSealTO.getSealBase64Str());
             // 用户操作类型 * 1.上传图片 * 2.修改图片 * 3.查询图片 * 4.注销图片
             pictureRequestTO.setBusType(3);
             boolean isSuccess = iCommonCAServcie.caPictureBusiness(pictureRequestTO);
