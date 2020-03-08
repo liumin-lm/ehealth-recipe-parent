@@ -99,7 +99,18 @@ public class RecipeExtend implements Serializable {
     private String cashAmount;
 
     @ItemProperty(alias = "his返回的处方总金额")
-    private String cashRecipeFee;
+    private String deliveryRecipeFee;
+
+    @ItemProperty(alias = "处方创建状态  0：未进行，1：已生成订单 ，2.已创建处方，3. 已预支付处方")
+    private String orderMakeStatus;
+
+    public String getOrderMakeStatus() {
+        return orderMakeStatus;
+    }
+
+    public void setOrderMakeStatus(String orderMakeStatus) {
+        this.orderMakeStatus = orderMakeStatus;
+    }
 
     public String getPreSettleTotalAmount() {
         return preSettleTotalAmount;
@@ -109,12 +120,12 @@ public class RecipeExtend implements Serializable {
         this.preSettleTotalAmount = preSettleTotalAmount;
     }
 
-    public String getCashRecipeFee() {
-        return cashRecipeFee;
+    public String getDeliveryRecipeFee() {
+        return deliveryRecipeFee;
     }
 
-    public void setCashRecipeFee(String cashRecipeFee) {
-        this.cashRecipeFee = cashRecipeFee;
+    public void setDeliveryRecipeFee(String deliveryRecipeFee) {
+        this.deliveryRecipeFee = deliveryRecipeFee;
     }
 
     public RecipeExtend() {

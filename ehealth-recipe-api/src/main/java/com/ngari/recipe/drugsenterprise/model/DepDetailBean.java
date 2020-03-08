@@ -100,6 +100,17 @@ public class DepDetailBean {
     //是否跳转第三方
     private Integer orderType;
 
+    //是否是还是返回的药企
+    private Boolean hisDep;
+
+    public Boolean getHisDep() {
+        return hisDep;
+    }
+
+    public void setHisDep(Boolean hisDep) {
+        this.hisDep = hisDep;
+    }
+
     public Integer getDepId() {
         return depId;
     }

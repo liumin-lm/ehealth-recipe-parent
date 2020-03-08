@@ -1,7 +1,9 @@
 package recipe.purchase;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.base.employment.model.EmploymentBean;
 import com.ngari.base.employment.service.IEmploymentService;
@@ -31,6 +33,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcService;
 import eh.base.constant.ErrorCode;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +46,7 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.QueryRecipeService;
 import recipe.hisservice.RecipeToHisService;
+import recipe.service.RecipeHisService;
 import recipe.service.RecipeOrderService;
 import recipe.service.RecipeServiceSub;
 import recipe.thread.RecipeBusiThreadPool;
@@ -76,6 +80,40 @@ public class PayModeOnline implements IPurchaseService {
 
         //药企列表
         List<DepDetailBean> depDetailList = new ArrayList<>();
+
+        //date 20200308
+        //获取ext表里存的药企信息以及药企费用，使用此药企展示信息
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipeId);
+        if(null != extend){
+            String deliveryRecipeFee = extend.getDeliveryRecipeFee();
+            String deliveryCode = extend.getDeliveryCode();
+            String deliveryName = extend.getDeliveryName();
+            DepDetailBean depDetailBean;
+            if(StringUtils.isNotEmpty(deliveryRecipeFee) &&
+                    StringUtils.isNotEmpty(deliveryCode) && StringUtils.isNotEmpty(deliveryName)){
+                LOG.info("findSupportDepList 当前处方{}的药企信息为his预校验返回信息：{}", recipeId, JSONUtils.toString(extend));
+                depDetailBean = new DepDetailBean();
+                //标识选择的药企是his推过来的
+                depDetailBean.setDepId(-1);
+                depDetailBean.setDepName(deliveryName);
+                depDetailBean.setRecipeFee(new BigDecimal(deliveryRecipeFee));
+                depDetailBean.setBelongDepName(deliveryName);
+                depDetailBean.setOrderType(1);
+                depDetailBean.setPayModeText("在线支付");
+                depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_ONLINE);
+                //预留字段标识是医院推送给过来的
+                depDetailBean.setHisDep(true);
+
+                depDetailList.add(depDetailBean);
+                depListBean.setSigle(true);
+                depListBean.setList(depDetailList);
+                resultBean.setObject(depListBean);
+                LOG.info("findSupportDepList 当前处方{}查询his药企列表展示信息：{}", recipeId, JSONUtils.toString(resultBean));
+                return resultBean;
+            }
+
+        }
 
         //获取购药方式查询列表
         List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(getPayMode());
@@ -172,6 +210,7 @@ public class PayModeOnline implements IPurchaseService {
 
         depListBean.setList(depDetailList);
         resultBean.setObject(depListBean);
+        LOG.info("findSupportDepList 当前处方{}查询药企列表信息：{}", recipeId, JSONUtils.toString(resultBean));
         return resultBean;
     }
 
@@ -179,6 +218,100 @@ public class PayModeOnline implements IPurchaseService {
     public OrderCreateResult order(Recipe dbRecipe, Map<String, String> extInfo) {
         LOG.info("PayModeOnline order recipeId={}",dbRecipe.getRecipeId());
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        if(null != dbRecipe.getRecipeId()){
+            RecipeExtend extend = recipeExtendDAO.getByRecipeId(dbRecipe.getRecipeId());
+            if(null != extend && StringUtils.isNotEmpty(extend.getDeliveryRecipeFee())){
+                LOG.info("order 当前处方{}是杭州市互联网处方走新流程", dbRecipe.getRecipeId());
+                result = getOrderCreateResultNew(dbRecipe, extInfo, result, recipeDAO, recipeExtendDAO, extend);
+
+            }else{
+                LOG.info("order 当前处方{}不是杭州市互联网处方走老流程", dbRecipe.getRecipeId());
+                result = getOrderCreateResult(dbRecipe, extInfo, result);
+            }
+        }else{
+            result.setCode(RecipeResultBean.FAIL);
+            result.setMsg("order 当前处方信息不全！");
+        }
+        return result;
+
+    }
+
+    private synchronized OrderCreateResult getOrderCreateResultNew(Recipe dbRecipe, Map<String, String> extInfo, OrderCreateResult result, RecipeDAO recipeDAO, RecipeExtendDAO recipeExtendDAO, RecipeExtend extend) {
+        String orderMakeStatus = extend.getOrderMakeStatus();
+        if(StringUtils.isNotEmpty(orderMakeStatus)){
+            switch (orderMakeStatus){
+                case "0":
+                    result = getOrderCreateResult(dbRecipe, extInfo, result);
+                    if(RecipeResultBean.SUCCESS.equals(result.getCode())){
+                        recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(),
+                                ImmutableMap.of("orderMakeStatus", "1"));
+                        LOG.info("order 当前处方{}确认订单流程：{}->{}",
+                                dbRecipe.getRecipeId(), orderMakeStatus, "1");
+                    }else{
+                        break;
+                    }
+                case "1":
+
+                    HisResponseTO resultSave = updateGoodsReceivingInfo(dbRecipe.getRecipeId());
+
+                    if(null != resultSave && resultSave.isSuccess() && null != resultSave.getData()){
+                        Map<String, Object> data =(Map<String, Object>)resultSave.getData();
+
+                        if(null != data.get("recipeCode")){
+                            //新增成功更新his处方code
+                            recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(),
+                                    ImmutableMap.of("recipeCode", data.get("recipeCode").toString()));
+                            recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(),
+                                    ImmutableMap.of("orderMakeStatus", "2"));
+                            LOG.info("order 当前处方{}确认订单流程：{}->{}",
+                                    dbRecipe.getRecipeId(), orderMakeStatus, "2");
+                        }else{
+                            result.setCode(RecipeResultBean.FAIL);
+                            result.setMsg("order 当前处方确认订单的新增处方流程，没有返回his处方code");
+                            LOG.info("order 当前处方确认订单的新增处方流程，没有返回his处方code：{}" , JSONUtils.toString(resultSave));
+                            break;
+                        }
+                    }else{
+                        result.setCode(RecipeResultBean.FAIL);
+                        result.setMsg("order 当前处方确认订单的新增处方流程，未新增成功");
+                        LOG.info("order 当前处方确认订单的新增处方流程未新增成功，返回：{}" , JSONUtils.toString(resultSave));
+                        break;
+                    }
+
+                case "2":
+                    RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+                    Map<String, Object> resultMap = hisService.provincialMedicalPreSettle(dbRecipe.getRecipeId());
+                    if(null != resultMap && "200".equals(resultMap.get("code"))){
+                        recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(),
+                                ImmutableMap.of("orderMakeStatus", "3"));
+                        LOG.info("order 当前处方{}确认订单流程：{}->{}",
+                                dbRecipe.getRecipeId(), orderMakeStatus, "3");
+                    }else{
+                        result.setCode(RecipeResultBean.FAIL);
+                        result.setMsg("order 当前处方确认订单的预结算处方流程，未预结算成功");
+                        LOG.info("order 当前处方确认订单的预结算处方流程未成功，返回：{}" , JSONUtils.toString(resultMap));
+                        break;
+                    }
+                case "3":
+                    break;
+                default:
+                    result.setCode(RecipeResultBean.FAIL);
+                    result.setMsg("order 当前处方确认订单流程节点状态无法识别：" + orderMakeStatus);
+                    LOG.info("order 当前处方确认订单流程节点状态无法识别：：{}" , orderMakeStatus);
+                    break;
+            }
+        }else{
+            LOG.info("order 当前处方{}确认订单的流程信息为空!", dbRecipe.getRecipeId());
+            result.setCode(RecipeResultBean.FAIL);
+            result.setMsg("order 当前处方确认订单的流程信息为空！");
+        }
+        return result;
+    }
+
+    //确认订单流程
+    private OrderCreateResult getOrderCreateResult(Recipe dbRecipe, Map<String, String> extInfo, OrderCreateResult result) {
         RecipeOrder order = new RecipeOrder();
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
@@ -210,15 +343,35 @@ public class PayModeOnline implements IPurchaseService {
             }
         }).toList();
 
-        DrugsEnterprise dep = drugsEnterpriseDAO.get(depId);
-        boolean stockFlag = scanStock(dbRecipe, dep, drugIds);
-        if (!stockFlag) {
-            //无法配送
-            result.setCode(RecipeResultBean.FAIL);
-            result.setMsg("药企无法配送");
-            return result;
-        } else {
-            order.setEnterpriseId(depId);
+        //date 20200309
+        //当前处方为杭州市互联网处方 通过ext校验库存
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipeId);
+        if(null != extend && StringUtils.isNotEmpty(extend.getDeliveryRecipeFee())){
+            if(StringUtils.isNotEmpty(extend.getDeliveryCode())
+                    && StringUtils.isNotEmpty(extend.getDeliveryName())){
+                LOG.info("当前处方{}有his回传的药企信息，his药品库存足够！", recipeId);
+                order.setEnterpriseId(depId);
+
+            }else{
+                LOG.info("当前处方{}有his无回传的药企信息，his药品库存不够！", recipeId);
+                //无法配送
+                result.setCode(RecipeResultBean.FAIL);
+                result.setMsg("药企无法配送");
+                return result;
+            }
+        }else{
+
+            DrugsEnterprise dep = drugsEnterpriseDAO.get(depId);
+            boolean stockFlag = scanStock(dbRecipe, dep, drugIds);
+            if (!stockFlag) {
+                //无法配送
+                result.setCode(RecipeResultBean.FAIL);
+                result.setMsg("药企无法配送");
+                return result;
+            } else {
+                order.setEnterpriseId(depId);
+            }
         }
         order.setRecipeIdList(JSONUtils.toString(Arrays.asList(recipeId)));
 
@@ -283,22 +436,27 @@ public class PayModeOnline implements IPurchaseService {
             nowRecipe.setChooseFlag(1);
             recipeDAO.update(nowRecipe);
         }
-        //选择配送到家后调用更新取药方式-配送信息
-        RecipeBusiThreadPool.submit(()->{
-            updateGoodsReceivingInfo(dbRecipe.getRecipeId());
-            return null;
-        });
+        //date 20200309
+        //当前处方不为杭州市互联网处方
+        if(!(null != extend && StringUtils.isNotEmpty(extend.getDeliveryRecipeFee()))){
+
+            //选择配送到家后调用更新取药方式-配送信息
+            RecipeBusiThreadPool.submit(()->{
+                updateGoodsReceivingInfo(dbRecipe.getRecipeId());
+                return null;
+            });
+        }
         return result;
     }
 
-    private void updateGoodsReceivingInfo(Integer recipeId) {
+    private HisResponseTO updateGoodsReceivingInfo(Integer recipeId) {
         try{
 
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             //杭州市三除外
             if (StringUtils.isNotEmpty(recipe.getOrganName())&&recipe.getOrganName().contains("杭州市第三人民医院")){
-                return;
+                return new HisResponseTO().setSuccess();
             }
             DoctorService doctorService = BasicAPI.getService(DoctorService.class);
             PatientService patientService = BasicAPI.getService(PatientService.class);
@@ -357,18 +515,35 @@ public class PayModeOnline implements IPurchaseService {
 
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
 
-            //date 20200305
-            IRecipePlatformServiceNew platformService = AppDomainContext.getBean("his.recipePlatformService",IRecipePlatformServiceNew.class);
-            QueryRecipeReqHisDTO queryRecipeReqDTO = new QueryRecipeReqHisDTO();
-            queryRecipeReqDTO.setOrganId(null != recipe.getClinicOrgan() ? recipe.getClinicOrgan().toString() :  "");
-            queryRecipeReqDTO.setRecipeID(recipeId.toString());
-            QueryRecipeResultHisDTO queryRecipeResultHisDTO = platformService.queryRecipeInfo(queryRecipeReqDTO);
-            updateTakeDrugWayReqTO.setQueryRecipeResultHisDTO(queryRecipeResultHisDTO);
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend nowRecipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+
+            if(null != nowRecipeExtend){
+                String deliveryRecipeFee = nowRecipeExtend.getDeliveryRecipeFee();
+                if(StringUtils.isNotEmpty(deliveryRecipeFee)){
+
+                    //date 20200305
+                    IRecipePlatformServiceNew platformService = AppDomainContext.getBean("his.recipePlatformService",IRecipePlatformServiceNew.class);
+                    QueryRecipeReqHisDTO queryRecipeReqDTO = new QueryRecipeReqHisDTO();
+                    queryRecipeReqDTO.setOrganId(null != recipe.getClinicOrgan() ? recipe.getClinicOrgan().toString() :  "");
+                    queryRecipeReqDTO.setRecipeID(recipeId.toString());
+                    QueryRecipeResultHisDTO queryRecipeResultHisDTO = platformService.queryRecipeInfo(queryRecipeReqDTO);
+                    updateTakeDrugWayReqTO.setQueryRecipeResultHisDTO(queryRecipeResultHisDTO);
+
+                }
+
+            }else{
+                LOG.info("当前处方{}没有关联的扩展信息", recipeId);
+            }
             LOG.info("收货信息更新通知his. req={}", JSONUtils.toString(updateTakeDrugWayReqTO));
             HisResponseTO hisResult = service.updateTakeDrugWay(updateTakeDrugWayReqTO);
             LOG.info("收货信息更新通知his. res={}", JSONUtils.toString(hisResult));
+            return hisResult;
         }catch (Exception e){
             LOG.error("updateGoodsReceivingInfo. error", e);
+            HisResponseTO hisResponseTO = new HisResponseTO();
+            hisResponseTO.setMsgCode("-1");
+            return hisResponseTO;
         }
 
     }

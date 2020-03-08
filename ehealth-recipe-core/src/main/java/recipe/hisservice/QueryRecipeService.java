@@ -41,11 +41,13 @@ import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
 import recipe.constant.RegexEnum;
 import recipe.dao.*;
+import recipe.drugsenterprise.CommonRemoteService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.RecipeServiceSub;
 import recipe.util.DateConversion;
 import recipe.util.RegexUtils;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -306,11 +308,45 @@ public class QueryRecipeService implements IQueryRecipeService {
             }
 
             splicingBackDataForRecipeDetails(recipe.getClinicOrgan(),details,recipeDTO);
+            //date 20200308
+            //添加 配送信息导出 仅杭州市互联网医院使用
+            splicingBackDataForDeliveryInfos(recipe,recipeDTO);
         } catch (Exception e) {
             LOGGER.error("queryRecipe splicingBackData error",e);
         }
 
         return recipeDTO;
+    }
+    //date 20200308
+    //添加配送信息
+    private void splicingBackDataForDeliveryInfos(Recipe recipe, QueryRecipeInfoDTO recipeDTO) {
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend nowRecipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        if(null != nowRecipeExtend && StringUtils.isNotEmpty(nowRecipeExtend.getDeliveryRecipeFee())){
+            List<DeliveryInfo> deliveryInfos = new ArrayList<>();
+            RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipe.getRecipeId());
+            if(null != order){
+                DeliveryInfo deliveryInfo = new DeliveryInfo();
+                deliveryInfo.setDeliveryCode(nowRecipeExtend.getDeliveryCode());
+                deliveryInfo.setDeliveryName(nowRecipeExtend.getDeliveryName());
+                deliveryInfo.setConsignee(order.getReceiver());
+                deliveryInfo.setConsigneeTel(order.getRecTel());
+                if(null != order && (null != order.getAddress1() && null != order.getAddress2() && null != order.getAddress3())){
+                    CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
+                    deliveryInfo.setReceiveAddress(commonRemoteService.getCompleteAddress(order));
+                    deliveryInfo.setAddress(commonRemoteService.getCompleteAddress(order));
+                }else{
+                    LOGGER.info("当前订单的配送地址信息不全！");
+                }
+                deliveryInfo.setPlanDate(StringUtils.isNotEmpty(order.getExpectSendDate())? DateConversion.getCurrentDate(order.getExpectSendDate(), "yyyy-MM-dd HH:mm") : null);
+                deliveryInfo.setPlanTime(order.getExpectSendTime());
+                deliveryInfos.add(deliveryInfo);
+            }
+        }else{
+            LOGGER.info("当前处方{}不是杭州市互联网处方，无需组装配送信息", recipe.getRecipeId());
+        }
+
     }
 
     private void splicingBackDataForRecipeDetails(Integer clinicOrgan, List<Recipedetail> details, QueryRecipeInfoDTO recipeDTO) throws ControllerException {
@@ -489,13 +525,13 @@ public class QueryRecipeService implements IQueryRecipeService {
         if(!validDrugMsg(organDrugChangeBean, result)){
             return result;
         }
-        OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-        List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organDrugChangeBean.getOrganId(), 1);
-        if(CollectionUtils.isEmpty(drugsEnterprises)){
-            result.setMsg("当前医院"+ organDrugChangeBean.getOrganId() +"没有关联药企，无法操作关联的配送药品！");
-            return result;
-        }
-        Integer drugsEnterpriseId = drugsEnterprises.get(0).getId();
+//        OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+//        List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organDrugChangeBean.getOrganId(), 1);
+//        if(CollectionUtils.isEmpty(drugsEnterprises)){
+//            result.setMsg("当前医院"+ organDrugChangeBean.getOrganId() +"没有关联药企，无法操作关联的配送药品！");
+//            return result;
+//        }
+//        Integer drugsEnterpriseId = drugsEnterprises.get(0).getId();
         Date now = DateTime.now().toDate();
 
         switch(operationCode){
@@ -513,12 +549,12 @@ public class QueryRecipeService implements IQueryRecipeService {
                 //判断有没有失效的
                 if(CollectionUtils.isNotEmpty(organDrugsNo)){
                     //查询对应的配送药品设置为启用
-                    List<SaleDrugList> saleDrugLists = saleDrugListDAO.
-                            findByDrugIdAndOrganIdAndOrganDrugCodeAndStatus(drugsEnterpriseId, organDrugsNo.get(0).getDrugId(), organDrugChangeBean.getCloudPharmDrugCode(), 0);
-                    if(CollectionUtils.isEmpty(saleDrugLists)){
-                        result.setMsg("当前没有停用配送药品");
-                        return result;
-                    }
+//                    List<SaleDrugList> saleDrugLists = saleDrugListDAO.
+//                            findByDrugIdAndOrganIdAndOrganDrugCodeAndStatus(drugsEnterpriseId, organDrugsNo.get(0).getDrugId(), organDrugChangeBean.getCloudPharmDrugCode(), 0);
+//                    if(CollectionUtils.isEmpty(saleDrugLists)){
+//                        result.setMsg("当前没有停用配送药品");
+//                        return result;
+//                    }
 
                     //将设置为启用
                     OrganDrugList organDrugListAdd = organDrugsNo.get(0);
@@ -528,15 +564,15 @@ public class QueryRecipeService implements IQueryRecipeService {
                     LOGGER.info("updateOrSaveOrganDrug 更新机构药品信息{}", JSONUtils.toString(organDrugListAdd));
                     OrganDrugList nowOrganDrugList = organDrugListDAO.update(organDrugListAdd);
 
-                    SaleDrugList nowSaleDrugList = saleDrugLists.get(0);
-                    nowSaleDrugList.setStatus(1);
-                    nowSaleDrugList.setDrugId(organDrugChangeBean.getDrugId());
-                    nowSaleDrugList.setOrganDrugCode(organDrugChangeBean.getCloudPharmDrugCode());
-                    nowSaleDrugList.setOrganId(drugsEnterpriseId);
-                    nowSaleDrugList.setPrice(organDrugChangeBean.getSalePrice());
-                    nowSaleDrugList.setLastModify(now);
-                    LOGGER.info("updateOrSaveOrganDrug 更新配送药品信息{}", JSONUtils.toString(nowSaleDrugList));
-                    saleDrugListDAO.update(nowSaleDrugList);
+//                    SaleDrugList nowSaleDrugList = saleDrugLists.get(0);
+//                    nowSaleDrugList.setStatus(1);
+//                    nowSaleDrugList.setDrugId(organDrugChangeBean.getDrugId());
+//                    nowSaleDrugList.setOrganDrugCode(organDrugChangeBean.getCloudPharmDrugCode());
+//                    nowSaleDrugList.setOrganId(drugsEnterpriseId);
+//                    nowSaleDrugList.setPrice(organDrugChangeBean.getSalePrice());
+//                    nowSaleDrugList.setLastModify(now);
+//                    LOGGER.info("updateOrSaveOrganDrug 更新配送药品信息{}", JSONUtils.toString(nowSaleDrugList));
+//                    saleDrugListDAO.update(nowSaleDrugList);
 
                 }else{
                     //没有失效的新增
@@ -546,15 +582,15 @@ public class QueryRecipeService implements IQueryRecipeService {
                     OrganDrugList nowOrganDrugList = organDrugListDAO.save(organDrugList);
 
                     //填充配送药品信息
-                    SaleDrugList newSaleDrugList = new SaleDrugList();
-                    newSaleDrugList.setDrugId(organDrugChangeBean.getDrugId());
-                    newSaleDrugList.setOrganDrugCode(organDrugChangeBean.getCloudPharmDrugCode());
-                    newSaleDrugList.setOrganId(drugsEnterpriseId);
-                    newSaleDrugList.setPrice(organDrugChangeBean.getSalePrice());
-                    newSaleDrugList.setStatus(1);
-                    newSaleDrugList.setCreateDt(now);
-                    LOGGER.info("updateOrSaveOrganDrug 添加配送药品信息{}", JSONUtils.toString(newSaleDrugList));
-                    saleDrugListDAO.save(newSaleDrugList);
+//                    SaleDrugList newSaleDrugList = new SaleDrugList();
+//                    newSaleDrugList.setDrugId(organDrugChangeBean.getDrugId());
+//                    newSaleDrugList.setOrganDrugCode(organDrugChangeBean.getCloudPharmDrugCode());
+//                    newSaleDrugList.setOrganId(drugsEnterpriseId);
+//                    newSaleDrugList.setPrice(organDrugChangeBean.getSalePrice());
+//                    newSaleDrugList.setStatus(1);
+//                    newSaleDrugList.setCreateDt(now);
+//                    LOGGER.info("updateOrSaveOrganDrug 添加配送药品信息{}", JSONUtils.toString(newSaleDrugList));
+//                    saleDrugListDAO.save(newSaleDrugList);
 
                 }
 
@@ -571,12 +607,12 @@ public class QueryRecipeService implements IQueryRecipeService {
                 List<OrganDrugList> organDrugs = organDrugListDAO.findByOrganIdAndDrugIdAndOrganDrugCodeAndStatus
                         (organDrugChangeBean.getOrganId(), organDrugChangeBean.getDrugId(),
                                 organDrugChangeBean.getOrganDrugCode(), 1);
-                List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByDrugIdAndOrganIdAndOrganDrugCodeAndStatus
-                        ( drugsEnterpriseId, organDrugs.get(0).getDrugId(), organDrugChangeBean.getCloudPharmDrugCode(), 1);
-                if(CollectionUtils.isEmpty(saleDrugLists)){
-                    result.setMsg("当前没有启用配送药品");
-                    return result;
-                }
+//                List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByDrugIdAndOrganIdAndOrganDrugCodeAndStatus
+//                        ( drugsEnterpriseId, organDrugs.get(0).getDrugId(), organDrugChangeBean.getCloudPharmDrugCode(), 1);
+//                if(CollectionUtils.isEmpty(saleDrugLists)){
+//                    result.setMsg("当前没有启用配送药品");
+//                    return result;
+//                }
                 //将设置为启用
 
                 OrganDrugList organDrugListChange = organDrugs.get(0);
@@ -586,15 +622,15 @@ public class QueryRecipeService implements IQueryRecipeService {
                 LOGGER.info("updateOrSaveOrganDrug 更新机构药品信息{}", JSONUtils.toString(organDrugListChange));
                 OrganDrugList nowOrganDrugList = organDrugListDAO.update(organDrugListChange);
 
-                SaleDrugList nowSaleDrugList = saleDrugLists.get(0);
-                nowSaleDrugList.setStatus(1);
-                nowSaleDrugList.setDrugId(organDrugChangeBean.getDrugId());
-                nowSaleDrugList.setOrganDrugCode(organDrugChangeBean.getCloudPharmDrugCode());
-                nowSaleDrugList.setOrganId(drugsEnterpriseId);
-                nowSaleDrugList.setPrice(organDrugChangeBean.getSalePrice());
-                nowSaleDrugList.setLastModify(now);
-                LOGGER.info("updateOrSaveOrganDrug 更新配送药品信息{}", JSONUtils.toString(nowSaleDrugList));
-                saleDrugListDAO.update(nowSaleDrugList);
+//                SaleDrugList nowSaleDrugList = saleDrugLists.get(0);
+//                nowSaleDrugList.setStatus(1);
+//                nowSaleDrugList.setDrugId(organDrugChangeBean.getDrugId());
+//                nowSaleDrugList.setOrganDrugCode(organDrugChangeBean.getCloudPharmDrugCode());
+//                nowSaleDrugList.setOrganId(drugsEnterpriseId);
+//                nowSaleDrugList.setPrice(organDrugChangeBean.getSalePrice());
+//                nowSaleDrugList.setLastModify(now);
+//                LOGGER.info("updateOrSaveOrganDrug 更新配送药品信息{}", JSONUtils.toString(nowSaleDrugList));
+//                saleDrugListDAO.update(nowSaleDrugList);
 
                 result = RecipeResultBean.getSuccess();
                 break;
@@ -609,12 +645,12 @@ public class QueryRecipeService implements IQueryRecipeService {
                 List<OrganDrugList> organDrugsDown = organDrugListDAO.findByOrganIdAndDrugIdAndOrganDrugCodeAndStatus
                         (organDrugChangeBean.getOrganId(), organDrugChangeBean.getDrugId(),
                                 organDrugChangeBean.getOrganDrugCode(), 1);
-                List<SaleDrugList> saleDrugListsDown = saleDrugListDAO.findByDrugIdAndOrganIdAndOrganDrugCodeAndStatus
-                        (drugsEnterpriseId, organDrugsDown.get(0).getDrugId(), organDrugChangeBean.getCloudPharmDrugCode(), 1);
-                if(CollectionUtils.isEmpty(saleDrugListsDown)){
-                    result.setMsg("当前没有启用配送药品");
-                    return result;
-                }
+//                List<SaleDrugList> saleDrugListsDown = saleDrugListDAO.findByDrugIdAndOrganIdAndOrganDrugCodeAndStatus
+//                        (drugsEnterpriseId, organDrugsDown.get(0).getDrugId(), organDrugChangeBean.getCloudPharmDrugCode(), 1);
+//                if(CollectionUtils.isEmpty(saleDrugListsDown)){
+//                    result.setMsg("当前没有启用配送药品");
+//                    return result;
+//                }
 
                 OrganDrugList organDrugListDown = organDrugsDown.get(0);
                 organDrugListDown.setStatus(0);
@@ -622,11 +658,11 @@ public class QueryRecipeService implements IQueryRecipeService {
                 LOGGER.info("updateOrSaveOrganDrug 停用机构药品信息{}", JSONUtils.toString(organDrugListDown));
                 organDrugListDAO.update(organDrugListDown);
 
-                SaleDrugList saleDrugListDown = saleDrugListsDown.get(0);
-                saleDrugListDown.setLastModify(now);
-                saleDrugListDown.setStatus(0);
-                LOGGER.info("updateOrSaveOrganDrug 停用配送药品信息{}", JSONUtils.toString(saleDrugListDown));
-                saleDrugListDAO.update(saleDrugListDown);
+//                SaleDrugList saleDrugListDown = saleDrugListsDown.get(0);
+//                saleDrugListDown.setLastModify(now);
+//                saleDrugListDown.setStatus(0);
+//                LOGGER.info("updateOrSaveOrganDrug 停用配送药品信息{}", JSONUtils.toString(saleDrugListDown));
+//                saleDrugListDAO.update(saleDrugListDown);
 
                 result = RecipeResultBean.getSuccess();
 
