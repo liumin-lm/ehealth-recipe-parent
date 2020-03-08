@@ -558,6 +558,40 @@ public class RecipeService extends RecipeBaseService{
                 if (Integer.valueOf(0).equals(code)) {
                     String recipeFileId = MapValueUtil.getString(backMap, "fileId");
                     bl = recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.<String, Object>of("chemistSignFile", recipeFileId));
+                } else if (Integer.valueOf(2).equals(code)) {
+                    LOGGER.info("generateRecipePdfAndSign 签名成功. 高州CA模式, recipeId={}", recipe.getRecipeId());
+                } else if (Integer.valueOf(100).equals(code)){
+                    LOGGER.info("generateRecipePdfAndSign 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
+                    try {
+                        String loginId = MapValueUtil.getString(backMap, "loginId");
+                        Integer organId = MapValueUtil.getInteger(paramMap, "organId");
+                        DoctorDTO doctorDTOn = doctorService.getByDoctorId(recipe.getDoctor());
+                        String userAccount = doctorDTOn.getIdNumber();
+                        String caPassword= "";
+                        //签名时的密码从redis中获取
+                        if (redisClient.get("caPassword") != null) {
+                            caPassword = redisClient.get("caPassword");
+                        }
+                        //标准化CA进行签名、签章==========================start=====
+                        //获取签章pdf数据。签名原文
+                        CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId,false);
+                        //获取签章图片
+                        DoctorExtendService doctorExtendService = BaseAPI.getService(DoctorExtendService.class);
+                        DoctorExtendDTO  doctorExtendDTO= doctorExtendService.getByDoctorId(recipe.getDoctor());
+                        requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
+
+                        CommonCAFactory caFactory = new CommonCAFactory();
+                        //通过工厂获取对应的实现CA类
+                        CAInterface caInterface = caFactory.useCAFunction(organId);
+                        CaSignResultVo resultVo =  caInterface.commonCASignAndSeal(requestSealTO,recipe, organId, userAccount, caPassword);
+                        //保存签名值、时间戳、电子签章文件
+                        RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId,resultVo.getSignCADate(),
+                                resultVo.getSignRecipeCode(), false);
+                    } catch (Exception e){
+                        LOGGER.error("generateRecipePdfAndSign 标准化CA签章报错 recipeId={} ,doctor={} ,e={}============="
+                                , recipeId,recipe.getDoctor(), e);
+                    }
+                    //标准化CA进行签名、签章==========================end=====
                 } else {
                     LOGGER.error("reviewRecipe signFile error. recipeId={}, result={}", recipeId, JSONUtils.toString(backMap));
                     errorMsg = JSONUtils.toString(backMap);
@@ -698,18 +732,20 @@ public class RecipeService extends RecipeBaseService{
         } else if(Integer.valueOf(100).equals(code)){
             memo = "签名成功,标准对接CA方式";
             LOGGER.info("generateRecipePdfAndSign 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
-            String loginId = MapValueUtil.getString(backMap, "loginId");
-            Integer organId = MapValueUtil.getInteger(paramMap, "organId");
-            boolean isdoctor = (boolean) paramMap.get("isdoctor");
-            DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
-
-            String userAccount = doctorDTO.getIdNumber();
-            //签名时的密码从redis中获取
-            String caPassword = redisClient.get("caPassword");
-            //标准化CA进行签名、签章==========================start=====
             try {
+                String loginId = MapValueUtil.getString(backMap, "loginId");
+                Integer organId = MapValueUtil.getInteger(paramMap, "organId");
+                DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
+                String userAccount = doctorDTO.getIdNumber();
+                String caPassword= "";
+                //签名时的密码从redis中获取
+                if (redisClient.get("caPassword") != null) {
+                     caPassword = redisClient.get("caPassword");
+                }
+                //标准化CA进行签名、签章==========================start=====
+
                 //获取签章pdf数据。签名原文
-                CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId,isdoctor);
+                CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId,true);
                 //获取签章图片
                 DoctorExtendService doctorExtendService = BaseAPI.getService(DoctorExtendService.class);
                 DoctorExtendDTO  doctorExtendDTO= doctorExtendService.getByDoctorId(recipe.getDoctor());
@@ -721,10 +757,10 @@ public class RecipeService extends RecipeBaseService{
                 CaSignResultVo resultVo =  caInterface.commonCASignAndSeal(requestSealTO,recipe, organId, userAccount, caPassword);
                 //保存签名值、时间戳、电子签章文件
                 RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId,resultVo.getSignCADate(),
-                        resultVo.getSignRecipeCode(), isdoctor);
+                        resultVo.getSignRecipeCode(), true);
             } catch (Exception e){
-                LOGGER.error("generateRecipePdfAndSign 标准化CA签章报错 recipeId={} ,loginId={} organId={},doctor={} ,e={}============="
-                        , recipeId,loginId,organId,recipe.getDoctor(), e);
+                LOGGER.error("generateRecipePdfAndSign 标准化CA签章报错 recipeId={} ,doctor={} ,e={}============="
+                        , recipeId,recipe.getDoctor(), e);
             }
             //标准化CA进行签名、签章==========================end=====
         } else {
