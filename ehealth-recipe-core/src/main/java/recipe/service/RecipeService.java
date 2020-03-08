@@ -698,16 +698,19 @@ public class RecipeService extends RecipeBaseService{
         } else if(Integer.valueOf(100).equals(code)){
             memo = "签名成功,标准对接CA方式";
             LOGGER.info("generateRecipePdfAndSign 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
-            String loginId = MapValueUtil.getString(backMap, "loginId");
-            Integer organId = MapValueUtil.getInteger(paramMap, "organId");
-            boolean isdoctor = (boolean) backMap.get("isdoctor");
-            DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
-
-            String userAccount = doctorDTO.getIdNumber();
-            //签名时的密码从redis中获取
-            String caPassword = redisClient.get("caPassword");
-            //标准化CA进行签名、签章==========================start=====
             try {
+                String loginId = MapValueUtil.getString(backMap, "loginId");
+                Integer organId = MapValueUtil.getInteger(paramMap, "organId");
+                boolean isdoctor = (boolean) backMap.get("isDoctor");
+                DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
+                String userAccount = doctorDTO.getIdNumber();
+                String caPassword= "";
+                //签名时的密码从redis中获取
+                if (redisClient.get("caPassword") != null) {
+                     caPassword = redisClient.get("caPassword");
+                }
+                //标准化CA进行签名、签章==========================start=====
+
                 //获取签章pdf数据。签名原文
                 CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId,isdoctor);
                 //获取签章图片
@@ -723,8 +726,8 @@ public class RecipeService extends RecipeBaseService{
                 RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId,resultVo.getSignCADate(),
                         resultVo.getSignRecipeCode(), isdoctor);
             } catch (Exception e){
-                LOGGER.error("generateRecipePdfAndSign 标准化CA签章报错 recipeId={} ,loginId={} organId={},doctor={} ,e={}============="
-                        , recipeId,loginId,organId,recipe.getDoctor(), e);
+                LOGGER.error("generateRecipePdfAndSign 标准化CA签章报错 recipeId={} ,doctor={} ,e={}============="
+                        , recipeId,recipe.getDoctor(), e);
             }
             //标准化CA进行签名、签章==========================end=====
         } else {
