@@ -2031,7 +2031,7 @@ public class RecipeOrderService extends RecipeBaseService {
         recipeOrder.setEffective(1);
         recipeOrder.setStatus(3);
         recipeOrder.setSettleOrderNo(request.getPayOrderNo());
-        recipeOrder.setOrderType(1);
+        recipeOrder.setOrderType(3);
         recipeOrder.setPayTime(request.getSettlingTime()); //医保结算时间
         List<Integer> recipeIds = Arrays.asList(Integer.valueOf(request.getRecipeId()));
         //保存his发票号
