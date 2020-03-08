@@ -3,6 +3,7 @@ package recipe.ca.impl;
 
 import com.ngari.his.ca.model.*;
 import com.ngari.recipe.entity.Recipe;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -20,8 +21,7 @@ import recipe.ca.vo.CaSignResultVo;
 public class ShanghaiCAImpl implements CAInterface {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShanghaiCAImpl.class);
 
-    @Autowired
-    private ICommonCAServcie iCommonCAServcie;
+    private ICommonCAServcie iCommonCAServcie= AppContextHolder.getBean("iCommonCAServcie", ICommonCAServcie.class);
     /**
      * CA用户注册、申请证书接口
      * @param doctorId
