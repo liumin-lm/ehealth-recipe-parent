@@ -700,7 +700,7 @@ public class RecipeService extends RecipeBaseService{
             LOGGER.info("generateRecipePdfAndSign 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
             String loginId = MapValueUtil.getString(backMap, "loginId");
             Integer organId = MapValueUtil.getInteger(paramMap, "organId");
-            boolean isdoctor = (boolean) paramMap.get("isdoctor");
+            boolean isdoctor = (boolean) backMap.get("isdoctor");
             DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
 
             String userAccount = doctorDTO.getIdNumber();
