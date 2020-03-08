@@ -7,6 +7,7 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.exception.DAOException;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -25,11 +26,7 @@ import recipe.util.RedisClient;
 @RpcBean("shanxiCA")
 public class ShanxiCAImpl implements CAInterface {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShanxiCAImpl.class);
-
-    @Autowired
-    private RedisClient redisClient;
-    @Autowired
-    private ICommonCAServcie iCommonCAServcie;
+    private ICommonCAServcie iCommonCAServcie= AppContextHolder.getBean("iCommonCAServcie", ICommonCAServcie.class);
     /**
      * CA用户注册、申请证书接口
      * @param doctorId
@@ -37,8 +34,9 @@ public class ShanxiCAImpl implements CAInterface {
      */
     @RpcService
     public boolean caUserLoginAndGetCertificate(Integer doctorId){
-        LOGGER.info("base服务 caUserLoginAndGetCertificate start in doctorId={}", doctorId);
+        LOGGER.info("ShanxiCAImpl caUserLoginAndGetCertificate start in doctorId={}", doctorId);
         //根据doctorId获取医生信息
+        boolean isSuccess = false;
         DoctorService doctorDAO = BasicAPI.getService(DoctorService.class);
         DoctorDTO doctor = doctorDAO.getByDoctorId(doctorId);
         if (null == doctor) {
@@ -55,26 +53,27 @@ public class ShanxiCAImpl implements CAInterface {
         try {
             //用户操作类型 * 1.用户注册 * 2.用户修改 * 3.用户查询
             requestTO.setBusType(3);
-            boolean isSuccess = iCommonCAServcie.caUserBusiness(requestTO);
+            isSuccess = iCommonCAServcie.caUserBusiness(requestTO);
             if (!isSuccess) {
                 requestTO.setBusType(1);
                 isSuccess = iCommonCAServcie.caUserBusiness(requestTO);
-                LOGGER.info("base服务 caUserLoginAndGetCertificate end isSuccess={}", isSuccess);
-                return isSuccess;
+                LOGGER.info("ShanxiCAImpl caUserLoginAndGetCertificate end isSuccess={}", isSuccess);
+                isSuccess = true;
             }
         } catch (Exception e){
-            LOGGER.error("base服务 caUserLoginAndGetCertificate 调用前置机失败 requestTO={}", JSONUtils.toString(requestTO));
+            LOGGER.error("ShanxiCAImpl caUserLoginAndGetCertificate 调用前置机失败 requestTO={}", JSONUtils.toString(requestTO));
             e.printStackTrace();
         }
-        return false;
+        return isSuccess;
     }
 
     @RpcService
     public boolean caPasswordBusiness(CaPasswordRequestTO requestTO) {
+        RedisClient redisClient = AppContextHolder.getBean("redisClient", RedisClient.class);
         boolean isSuccess= false;
         //用户操作类型 * 1.设置密码 * 2.修改密码 * 3.找回密码，4.查询是否设置密码，5.验证密码是否正确
         if (4 == requestTO.getBusType()) {
-            if (redisClient.get("password_" + requestTO.getUserAccount()) != null) {
+            if (null != redisClient.get("password_" + requestTO.getUserAccount())) {
                 return true;
             }
         } else {
