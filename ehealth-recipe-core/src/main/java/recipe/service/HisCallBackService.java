@@ -87,7 +87,6 @@ public class HisCallBackService {
             return;
         }
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 
@@ -153,27 +152,8 @@ public class HisCallBackService {
 
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap);
 
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        if (recipeExtend == null) {
-            recipeExtend = new RecipeExtend();
-            recipeExtend.setRecipeId(recipe.getRecipeId());
-            recipeExtend.setRegisterID(result.getRegisterID());
-            //更新复诊挂号序号如果有
-            if (null != recipe.getClinicId()) {
-                IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
-                ConsultExDTO consultExDTO = exService.getByConsultId(recipe.getClinicId());
-                if (null != consultExDTO && StringUtils.isNotEmpty(consultExDTO.getRegisterNo())) {
-                    recipeExtend.setRegisterID(consultExDTO.getRegisterNo());
-                }
-            }
-            if (StringUtils.isNotEmpty(recipeExtend.getRegisterID())){
-                recipeExtendDAO.saveRecipeExtend(recipeExtend);
-            }
-        } else {
-            if (StringUtils.isNotEmpty(recipeExtend.getRegisterID())) {
-                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("registerID", result.getRegisterID()));
-            }
-        }
+        //更新复诊挂号序号如果有
+        updateRecipeRegisterID(recipe,result);
 
         List<Recipedetail> recipedetails = result.getDetailList();
         if (CollectionUtils.isNotEmpty(recipedetails)) {
@@ -254,6 +234,31 @@ public class HisCallBackService {
         }
         //推送处方到监管平台
         RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
+    }
+
+    private static void updateRecipeRegisterID(Recipe recipe, RecipeCheckPassResult result) {
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        //更新复诊挂号序号如果有
+        if (null != recipe.getClinicId()) {
+            IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
+            ConsultExDTO consultExDTO = exService.getByConsultId(recipe.getClinicId());
+            if (null != consultExDTO && StringUtils.isNotEmpty(consultExDTO.getRegisterNo())) {
+                result.setRegisterID(consultExDTO.getRegisterNo());
+            }
+        }
+        if (recipeExtend != null) {
+            if (StringUtils.isNotEmpty(result.getRegisterID())) {
+                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("registerID", result.getRegisterID()));
+            }
+        } else {
+            recipeExtend = new RecipeExtend();
+            recipeExtend.setRecipeId(recipe.getRecipeId());
+            recipeExtend.setRegisterID(result.getRegisterID());
+            if (StringUtils.isNotEmpty(recipeExtend.getRegisterID())) {
+                recipeExtendDAO.saveRecipeExtend(recipeExtend);
+            }
+        }
     }
 
     /**
