@@ -630,12 +630,13 @@ public class PurchaseService {
             redisClient.setex(redisKey, 7 * 24 * 60 * 60); //设置超时时间7天
             return medicInsurSettleApplyResTO;
         } catch (Exception e) {
-            if (e instanceof DAOException) {
-                throw new DAOException(e.getMessage());
-            }
             LOG.error("recipeMedicInsurPreSettle error,param = {}", JSONUtils.toString(map
             ), e);
-            return new MedicInsurSettleApplyResTO();
+            if (e instanceof DAOException) {
+                throw new DAOException(e.getMessage());
+            } else {
+                throw new DAOException("医保结算申请失败");
+            }
         }
     }
 
