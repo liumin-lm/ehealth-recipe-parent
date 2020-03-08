@@ -138,6 +138,9 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             result.setCode(DrugEnterpriseResult.FAIL);
         }
 
+        //推送审核结果
+        pushCheckResult(recipeIds.get(0), 1, drugsEnterprise);
+
         return result;
     }
 
@@ -594,6 +597,14 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                         recipeMap.put("ISPAYMENT", "1");
                     } else if (order.getPayFlag() != null && 0 == order.getPayFlag()){
                         recipeMap.put("ISPAYMENT", "0");
+                    }
+                    //追加运费相关
+                    if (order.getExpressFee() != null && order.getExpressFee().compareTo(BigDecimal.ZERO) == 1) {
+                        recipeMap.put("DELIVERYCASH", order.getExpressFee());
+                        recipeMap.put("DELIVERYFLAG", 1);
+                    } else {
+                        recipeMap.put("DELIVERYCASH", 0);
+                        recipeMap.put("DELIVERYFLAG", 0);
                     }
                 }
 
