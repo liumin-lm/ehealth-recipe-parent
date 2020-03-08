@@ -56,7 +56,7 @@ public class ShanghaiCAImpl implements CAInterface {
         CaSignResultVo signResultVo = new CaSignResultVo();
         try {
             //电子签名
-          /*  CaSignRequestTO caSignRequestTO = new CaSignRequestTO();
+            CaSignRequestTO caSignRequestTO = new CaSignRequestTO();
             caSignRequestTO.setCretMsg(null);
             caSignRequestTO.setOrganId(organId);
             caSignRequestTO.setSignMsg(JSONUtils.toString(recipe));
@@ -64,17 +64,14 @@ public class ShanghaiCAImpl implements CAInterface {
             CaSignResponseTO responseTO = iCommonCAServcie.caSignBusiness(caSignRequestTO);
             if (responseTO != null) {
                 signResultVo.setSignRecipeCode(responseTO.getSignValue());
-            }*/
+            }
             //上传手签图片(暂不实现)
 
             //获取时间戳数据
             CaSignDateRequestTO caSignDateRequestTO = new CaSignDateRequestTO();
-//            caSignDateRequestTO.setOrganId(organId);
-//            caSignDateRequestTO.setUserAccount(userAccount);
-//            caSignDateRequestTO.setSignMsg(JSONUtils.toString(recipe));
-            caSignDateRequestTO.setOrganId(1000899);
-            caSignDateRequestTO.setUserAccount("342921199308101118");
-            caSignDateRequestTO.setSignMsg("thisistest");
+            caSignDateRequestTO.setOrganId(organId);
+            caSignDateRequestTO.setUserAccount(userAccount);
+            caSignDateRequestTO.setSignMsg(JSONUtils.toString(recipe));
 
             CaSignDateResponseTO responseDateTO = iCommonCAServcie.caSignDateBusiness(caSignDateRequestTO);
             if (responseDateTO != null) {
