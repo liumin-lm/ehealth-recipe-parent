@@ -595,7 +595,7 @@ public class PurchaseService {
             String redisKey = CacheConstant.KEY_MEDIC_INSURSETTLE_APPlY + recipeId;
             Object object = redisClient.get(redisKey);
             if (null != object) {
-                LOG.info("缓存命中，获取缓存,key = {}",redisKey);
+                LOG.info("缓存命中，获取缓存,key = {}", redisKey);
                 MedicInsurSettleApplyResTO medicInsurSettleApplyResTO = (MedicInsurSettleApplyResTO) object;
                 return medicInsurSettleApplyResTO;
             }
@@ -623,14 +623,16 @@ public class PurchaseService {
             reqTO.setRecipeCode(dbRecipe.getRecipeCode());
             reqTO.setClinicId(Optional.ofNullable(dbRecipe.getClinicId().toString()).orElse(""));
             reqTO.setRegisterId(null == hosrelationBean ? "" : hosrelationBean.getRegisterId());
-//            MedicInsurSettleApplyResTO medicInsurSettleApplyResTO = hisService.recipeMedicInsurPreSettle(reqTO);
-            MedicInsurSettleApplyResTO medicInsurSettleApplyResTO = new MedicInsurSettleApplyResTO();
-            medicInsurSettleApplyResTO.setVisitNo("72787424.34115312");
-
+            MedicInsurSettleApplyResTO medicInsurSettleApplyResTO = hisService.recipeMedicInsurPreSettle(reqTO);
+//            MedicInsurSettleApplyResTO medicInsurSettleApplyResTO = new MedicInsurSettleApplyResTO();
+//            medicInsurSettleApplyResTO.setVisitNo("72787424.34115312");
             redisClient.set(redisKey, medicInsurSettleApplyResTO);
             redisClient.setex(redisKey, 7 * 24 * 60 * 60); //设置超时时间7天
             return medicInsurSettleApplyResTO;
         } catch (Exception e) {
+            if (e instanceof DAOException) {
+                throw new DAOException(e.getMessage());
+            }
             LOG.error("recipeMedicInsurPreSettle error,param = {}", JSONUtils.toString(map
             ), e);
             return new MedicInsurSettleApplyResTO();
