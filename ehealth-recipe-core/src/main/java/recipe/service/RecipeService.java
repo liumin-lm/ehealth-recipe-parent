@@ -576,9 +576,13 @@ public class RecipeService extends RecipeBaseService{
                         //获取签章pdf数据。签名原文
                         CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId,false);
                         //获取签章图片
-                        DoctorExtendService doctorExtendService = BaseAPI.getService(DoctorExtendService.class);
-                        DoctorExtendDTO  doctorExtendDTO= doctorExtendService.getByDoctorId(recipe.getDoctor());
-                        requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
+                        DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
+                        DoctorExtendDTO  doctorExtendDTO = doctorExtendService.getByDoctorId(recipe.getDoctor());
+                        if (doctorExtendDTO != null && doctorExtendDTO.getSealData() != null) {
+                            requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
+                        } else {
+                            requestSealTO.setSealBase64Str("");
+                        }
 
                         CommonCAFactory caFactory = new CommonCAFactory();
                         //通过工厂获取对应的实现CA类
@@ -748,9 +752,13 @@ public class RecipeService extends RecipeBaseService{
                 //获取签章pdf数据。签名原文
                 CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId,true);
                 //获取签章图片
-                DoctorExtendService doctorExtendService = BaseAPI.getService(DoctorExtendService.class);
+                DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
                 DoctorExtendDTO  doctorExtendDTO= doctorExtendService.getByDoctorId(recipe.getDoctor());
-                requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
+                if (doctorExtendDTO != null && doctorExtendDTO.getSealData() != null) {
+                    requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
+                } else {
+                    requestSealTO.setSealBase64Str("");
+                }
 
                 CommonCAFactory caFactory = new CommonCAFactory();
                 //通过工厂获取对应的实现CA类
