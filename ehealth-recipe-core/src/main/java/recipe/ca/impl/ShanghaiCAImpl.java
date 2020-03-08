@@ -56,34 +56,32 @@ public class ShanghaiCAImpl implements CAInterface {
         CaSignResultVo signResultVo = new CaSignResultVo();
         try {
             //电子签名
-            CaSignRequestTO caSignRequestTO = new CaSignRequestTO();
+          /*  CaSignRequestTO caSignRequestTO = new CaSignRequestTO();
             caSignRequestTO.setCretMsg(null);
-            //caSignRequestTO.setOrganId(organId);
-            //caSignRequestTO.setSignMsg(JSONUtils.toString(recipe));
-            //caSignRequestTO.setUserAccount(userAccount);
-            caSignRequestTO.setOrganId(1000899);
-            caSignRequestTO.setUserAccount("310103196505301000");
-            caSignRequestTO.setSignMsg("dsfsdfdsfsdadfsdaafsfasdfsdafafdsfasdfffffw3eefsdfdcxbhhkjhdfdasdadfsg");
+            caSignRequestTO.setOrganId(organId);
+            caSignRequestTO.setSignMsg(JSONUtils.toString(recipe));
+            caSignRequestTO.setUserAccount(userAccount);
             CaSignResponseTO responseTO = iCommonCAServcie.caSignBusiness(caSignRequestTO);
             if (responseTO != null) {
                 signResultVo.setSignRecipeCode(responseTO.getSignValue());
-            }
+            }*/
             //上传手签图片(暂不实现)
 
             //获取时间戳数据
             CaSignDateRequestTO caSignDateRequestTO = new CaSignDateRequestTO();
-            //caSignDateRequestTO.setOrganId(organId);
-            //caSignDateRequestTO.setUserAccount(userAccount);
-            //caSignDateRequestTO.setSignMsg(JSONUtils.toString(recipe));
-            caSignRequestTO.setOrganId(1000899);
-            caSignRequestTO.setUserAccount("310103196505301000");
-            caSignRequestTO.setSignMsg("dsfsdfdsfsdadfsdaafsfasdfsdafafdsfasdfffffw3eefsdfdcxbhhkjhdfdasdadfsg");
+//            caSignDateRequestTO.setOrganId(organId);
+//            caSignDateRequestTO.setUserAccount(userAccount);
+//            caSignDateRequestTO.setSignMsg(JSONUtils.toString(recipe));
+            caSignDateRequestTO.setOrganId(1000899);
+            caSignDateRequestTO.setUserAccount("342921199308101118");
+            caSignDateRequestTO.setSignMsg("thisistest");
+
             CaSignDateResponseTO responseDateTO = iCommonCAServcie.caSignDateBusiness(caSignDateRequestTO);
             if (responseDateTO != null) {
                 signResultVo.setSignCADate(responseDateTO.getSignDate());
             }
-            //电子签章（暂不实现）
 
+            //电子签章（暂不实现）
         } catch (Exception e){
             LOGGER.error("recipe 服务 commonCASignAndSeal 调用前置机失败 requestSealTO={},organId={},userAccount={},caPassword={}",
                     JSONUtils.toString(requestSealTO), organId, userAccount, caPassword );

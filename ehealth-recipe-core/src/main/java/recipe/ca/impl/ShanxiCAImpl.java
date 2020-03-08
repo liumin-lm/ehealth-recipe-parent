@@ -74,13 +74,13 @@ public class ShanxiCAImpl implements CAInterface {
         boolean isSuccess= false;
         //用户操作类型 * 1.设置密码 * 2.修改密码 * 3.找回密码，4.查询是否设置密码，5.验证密码是否正确
         if (4 == requestTO.getBusType()) {
-            if (redisClient.get("password_"+requestTO.getUserAccount()) != null) {
+            if (redisClient.get("password_" + requestTO.getUserAccount()) != null) {
                 return true;
             }
         } else {
             isSuccess = iCommonCAServcie.caPasswordBusiness(requestTO);
             if (isSuccess) {
-                redisClient.set("password_"+requestTO.getUserAccount(),"yes");
+                redisClient.set("password_" + requestTO.getUserAccount(),"yes");
             }
         }
         return isSuccess;
@@ -105,6 +105,8 @@ public class ShanxiCAImpl implements CAInterface {
             CaPictureRequestTO pictureRequestTO = new CaPictureRequestTO();
             pictureRequestTO.setOrganId(organId);
             pictureRequestTO.setUserAccount(userAccount);
+            //获取手签图片
+            pictureRequestTO.setSealPicture(requestSealTO.getSealBase64Str());
             // 用户操作类型 * 1.上传图片 * 2.修改图片 * 3.查询图片 * 4.注销图片
             pictureRequestTO.setBusType(3);
             boolean isSuccess = iCommonCAServcie.caPictureBusiness(pictureRequestTO);

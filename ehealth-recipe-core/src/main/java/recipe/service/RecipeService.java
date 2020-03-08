@@ -19,10 +19,7 @@ import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.patient.ds.PatientDS;
-import com.ngari.patient.dto.ConsultSetDTO;
-import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.dto.EmploymentDTO;
-import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
@@ -705,6 +702,7 @@ public class RecipeService extends RecipeBaseService{
             Integer organId = MapValueUtil.getInteger(paramMap, "organId");
             boolean isdoctor = (boolean) paramMap.get("isdoctor");
             DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
+
             String userAccount = doctorDTO.getIdNumber();
             //签名时的密码从redis中获取
             String caPassword = redisClient.get("caPassword");
@@ -712,6 +710,11 @@ public class RecipeService extends RecipeBaseService{
             try {
                 //获取签章pdf数据。签名原文
                 CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId,isdoctor);
+                //获取签章图片
+                DoctorExtendService doctorExtendService = BaseAPI.getService(DoctorExtendService.class);
+                DoctorExtendDTO  doctorExtendDTO= doctorExtendService.getByDoctorId(recipe.getDoctor());
+                requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
+
                 CommonCAFactory caFactory = new CommonCAFactory();
                 //通过工厂获取对应的实现CA类
                 CAInterface caInterface = caFactory.useCAFunction(organId);
