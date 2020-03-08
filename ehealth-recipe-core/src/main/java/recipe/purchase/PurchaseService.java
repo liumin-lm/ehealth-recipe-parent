@@ -190,7 +190,7 @@ public class PurchaseService {
      */
     @RpcService
     public OrderCreateResult order(Integer recipeId, Map<String, String> extInfo) {
-        LOG.info("order param: recipeId={},extInfo={}",recipeId,JSONUtils.toString(extInfo));
+        LOG.info("order param: recipeId={},extInfo={}", recipeId, JSONUtils.toString(extInfo));
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
 
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
@@ -216,9 +216,9 @@ public class PurchaseService {
         if (!(orderType != null && (orderType == 1 || orderType == 3))) {
             //目前省中和上海六院走自费预结算---上海六院改成机构配置--获取配送到家支付机构配置-平台付才走
             //首先配的不是卫宁付
-            if (!getPayOnlineConfig(dbRecipe.getClinicOrgan())){
+            if (!getPayOnlineConfig(dbRecipe.getClinicOrgan())) {
                 if ((dep != null && new Integer(1).equals(dep.getIsHosDep()))
-                        || (dbRecipe.getClinicOrgan()==1000899)) {
+                        || (dbRecipe.getClinicOrgan() == 1000899)) {
                     RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
                     Map<String, Object> scanResult = hisService.provincialCashPreSettle(recipeId, payMode);
                     if (!("200".equals(scanResult.get("code")))) {
@@ -303,18 +303,18 @@ public class PurchaseService {
     }
 
     public boolean getPayOnlineConfig(Integer clinicOrgan) {
-            Integer payModeOnlinePayConfig;
-            try {
-                IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-                payModeOnlinePayConfig = (Integer)configurationService.getConfiguration(clinicOrgan, "payModeOnlinePayConfig");
-            }catch (Exception e){
-                LOG.error("获取运营平台处方支付配置异常",e);
-                return false;
-            }
-            //1平台付 2卫宁付
-            if (new Integer(2).equals(payModeOnlinePayConfig)){
-                return true;
-            }
+        Integer payModeOnlinePayConfig;
+        try {
+            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            payModeOnlinePayConfig = (Integer) configurationService.getConfiguration(clinicOrgan, "payModeOnlinePayConfig");
+        } catch (Exception e) {
+            LOG.error("获取运营平台处方支付配置异常", e);
+            return false;
+        }
+        //1平台付 2卫宁付
+        if (new Integer(2).equals(payModeOnlinePayConfig)) {
+            return true;
+        }
         return false;
     }
 
@@ -322,13 +322,13 @@ public class PurchaseService {
         Integer payModeToHosOnlinePayConfig;
         try {
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            payModeToHosOnlinePayConfig = (Integer)configurationService.getConfiguration(clinicOrgan, "payModeToHosOnlinePayConfig");
-        }catch (Exception e){
-            LOG.error("获取运营平台处方支付配置异常",e);
+            payModeToHosOnlinePayConfig = (Integer) configurationService.getConfiguration(clinicOrgan, "payModeToHosOnlinePayConfig");
+        } catch (Exception e) {
+            LOG.error("获取运营平台处方支付配置异常", e);
             return false;
         }
         //1平台付 2卫宁付
-        if (new Integer(2).equals(payModeToHosOnlinePayConfig)){
+        if (new Integer(2).equals(payModeToHosOnlinePayConfig)) {
             return true;
         }
         return false;
@@ -592,6 +592,13 @@ public class PurchaseService {
             Args.notBlank(mpiId, "mpiId");
             Args.notNull(organId, "organId");
             Args.notNull(recipeId, "recipeId");
+            String redisKey = CacheConstant.KEY_MEDIC_INSURSETTLE_APPlY + recipeId;
+            Object object = redisClient.get(redisKey);
+            if (null != object) {
+                LOG.info("缓存命中，获取缓存,key = {}", redisKey);
+                MedicInsurSettleApplyResTO medicInsurSettleApplyResTO = (MedicInsurSettleApplyResTO) object;
+                return medicInsurSettleApplyResTO;
+            }
             PatientService patientService = BasicAPI.getService(PatientService.class);
             PatientDTO patient = patientService.get(mpiId);
             OrganService organService = BasicAPI.getService(OrganService.class);
@@ -619,11 +626,17 @@ public class PurchaseService {
             MedicInsurSettleApplyResTO medicInsurSettleApplyResTO = hisService.recipeMedicInsurPreSettle(reqTO);
 //            MedicInsurSettleApplyResTO medicInsurSettleApplyResTO = new MedicInsurSettleApplyResTO();
 //            medicInsurSettleApplyResTO.setVisitNo("72787424.34115312");
+            redisClient.set(redisKey, medicInsurSettleApplyResTO);
+            redisClient.setex(redisKey, 7 * 24 * 60 * 60); //设置超时时间7天
             return medicInsurSettleApplyResTO;
         } catch (Exception e) {
             LOG.error("recipeMedicInsurPreSettle error,param = {}", JSONUtils.toString(map
             ), e);
-            return new MedicInsurSettleApplyResTO();
+            if (e instanceof DAOException) {
+                throw new DAOException(e.getMessage());
+            } else {
+                throw new DAOException("医保结算申请失败");
+            }
         }
     }
 
