@@ -30,7 +30,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.*;
@@ -42,7 +41,6 @@ import recipe.drugsenterprise.bean.yd.httpclient.HttpsClientUtils;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
 import recipe.service.common.RecipeCacheService;
-import recipe.third.IFileDownloadService;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.MapValueUtil;
@@ -143,7 +141,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         }
 
         //推送审核结果
-        //pushCheckResult(recipeIds.get(0), 1, drugsEnterprise);
+        pushCheckResult(recipeIds.get(0), 1, drugsEnterprise);
 
         return result;
     }
@@ -677,29 +675,6 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             recipeMap.put("IDENTIFICATION", "");
             recipeMap.put("USERID", recipe.getPatientID());
             recipeMap.put("TELPHONE", patient.getMobile());
-
-            //设置处方笺base
-            String ossId = recipe.getSignImg();
-
-            if(null != ossId){
-
-                try {
-                    IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
-                    String imgStr = imgHead + fileDownloadService.downloadImg(ossId);
-                    if(ObjectUtils.isEmpty(imgStr)){
-                        LOGGER.warn("YsqRemoteService.pushRecipeInfo:处方ID为{}的ossid为{}处方笺不存在", recipe.getRecipeId(), ossId);
-                    } else {
-                        //添加处方笺图片
-                        recipeMap.put("PDFBYTES",imgStr);
-                    }
-                    LOGGER.warn("YsqRemoteService.pushRecipeInfo:{}处方，下载处方笺服务成功", recipe.getRecipeId());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    LOGGER.warn("YsqRemoteService.pushRecipeInfo:{}处方，下载处方笺服务异常：{}.", recipe.getRecipeId(), e.getMessage() );
-                }
-
-            }
-
             if (sendRecipe) {
                 recipeMap.put("RECEIVENAME", order.getReceiver());
                 recipeMap.put("RECEIVETEL", order.getRecMobile());
