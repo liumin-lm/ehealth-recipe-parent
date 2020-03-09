@@ -5,12 +5,16 @@ import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.service.DoctorService;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.ca.CAInterface;
 import recipe.ca.factory.CommonCAFactory;
 
 @RpcBean(value="iCARemoteService", mvc_authentication = false)
 public class CARemoteServiceImpl implements ICARemoteService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CARemoteServiceImpl.class);
 
     private DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
 
@@ -22,6 +26,7 @@ public class CARemoteServiceImpl implements ICARemoteService {
     @Override
     @RpcService
     public boolean caUserLoginAndGetCertificate(Integer doctorId) {
+        LOGGER.info("CARemoteServiceImpl caUserLoginAndGetCertificate start in doctorId={}", doctorId);
         DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
         CommonCAFactory caFactory = new CommonCAFactory();
         //通过工厂获取对应的实现CA类
@@ -39,6 +44,7 @@ public class CARemoteServiceImpl implements ICARemoteService {
     @Override
     @RpcService
     public boolean caPasswordBusiness(Integer doctorId,String password,String newPassword,int busType) {
+        LOGGER.info("CARemoteServiceImpl caPasswordBusiness start in doctorId={},password={},newPassword={},busType={}", doctorId);
         DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
         CaPasswordRequestTO requestTO = new CaPasswordRequestTO();
         requestTO.setBusType(busType);
