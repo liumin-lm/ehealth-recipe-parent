@@ -731,8 +731,8 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setUsingRate(drugListMatch.getUsingRate());
                         organDrugList.setUsePathways(drugListMatch.getUsePathways());
                         organDrugList.setProducer(drugListMatch.getProducer());
-                        organDrugList.setUseDose(drugListMatch.getDefaultUseDose());
-                        organDrugList.setRecommendedUseDose(drugListMatch.getUseDose());
+                        organDrugList.setUseDose(drugListMatch.getUseDose());
+                        organDrugList.setRecommendedUseDose(drugListMatch.getDefaultUseDose());
                         organDrugList.setPack(drugListMatch.getPack());
                         organDrugList.setUnit(drugListMatch.getUnit());
                         organDrugList.setUseDoseUnit(drugListMatch.getUseDoseUnit());
