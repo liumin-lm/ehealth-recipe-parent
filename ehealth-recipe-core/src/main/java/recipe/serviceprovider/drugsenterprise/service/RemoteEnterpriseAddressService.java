@@ -6,6 +6,7 @@ import com.ngari.recipe.entity.EnterpriseAddress;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.utils.ValidateUtil;
 import recipe.dao.EnterpriseAddressDAO;
 import recipe.serviceprovider.BaseService;
 
@@ -35,6 +36,19 @@ public class RemoteEnterpriseAddressService extends BaseService<EnterpriseAddres
         EnterpriseAddress enterpriseAddress = getBean(edDto, EnterpriseAddress.class);
         EnterpriseAddress address = addressDAO.addEnterpriseAddress(enterpriseAddress);
         return getBean(address, EnterpriseAddressDTO.class);
+    }
+
+    @RpcService
+    @Override
+    public void addEnterpriseAddressList(List<EnterpriseAddressDTO> enterpriseAddressDTOList) {
+        EnterpriseAddressDAO addressDAO = DAOFactory.getDAO(EnterpriseAddressDAO.class);
+        if(ValidateUtil.notBlankList(enterpriseAddressDTOList)) {
+            addressDAO.deleteByEnterpriseId(enterpriseAddressDTOList.get(0).getEnterpriseId());
+            for (EnterpriseAddressDTO enterpriseAddressDTO : enterpriseAddressDTOList) {
+                EnterpriseAddress enterpriseAddress = getBean(enterpriseAddressDTO, EnterpriseAddress.class);
+                EnterpriseAddress address = addressDAO.addEnterpriseAddress(enterpriseAddress);
+            }
+        }
     }
 
     @RpcService

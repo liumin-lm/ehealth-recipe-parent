@@ -24,14 +24,14 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
     @Override
     public boolean caUserBusiness(CaAccountRequestTO requestTO) {
         try {
-            LOGGER.info("esign 服务 caUserBusiness start requestTO={}", JSONUtils.toString(requestTO));
+            LOGGER.info("CommonCAServiceImpl caUserBusiness start requestTO={}", JSONUtils.toString(requestTO));
             HisResponseTO responseTO = iCaHisService.caUserBusiness(requestTO);
-            LOGGER.info("esign 服务 caUserBusiness  responseTO={}", JSONUtils.toString(responseTO));
+            LOGGER.info("CommonCAServiceImpl caUserBusiness  responseTO={}", JSONUtils.toString(responseTO));
             if (CA_RESULT_CODE.equals(responseTO.getMsgCode())) {
                 return true;
             }
         } catch (Exception e){
-            LOGGER.error("esign服务 caUserBusiness 调用前置机失败 requestTO={}", JSONUtils.toString(requestTO));
+            LOGGER.error("CommonCAServiceImpl caUserBusiness 调用前置机失败 requestTO={}", JSONUtils.toString(requestTO));
             e.printStackTrace();
         }
         return false;
@@ -44,14 +44,14 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
     @Override
     public boolean caCertificateBusiness(CaCertificateRequestTO requestTO) {
         try {
-            LOGGER.info("esign 服务 caCertificateBusiness start requestTO={}", JSONUtils.toString(requestTO));
+            LOGGER.info("CommonCAServiceImpl caCertificateBusiness start requestTO={}", JSONUtils.toString(requestTO));
             HisResponseTO responseTO = iCaHisService.caCertificateBusiness(requestTO);
-            LOGGER.info("esign 服务 caCertificateBusiness  responseTO={}", JSONUtils.toString(responseTO));
+            LOGGER.info("CommonCAServiceImpl caCertificateBusiness  responseTO={}", JSONUtils.toString(responseTO));
             if (CA_RESULT_CODE.equals(responseTO.getMsgCode())) {
                 return true;
             }
         } catch (Exception e){
-            LOGGER.error("esign 服务 caCertificateBusiness 调用前置机失败 requestTO={}", JSONUtils.toString(requestTO));
+            LOGGER.error("CommonCAServiceImpl caCertificateBusiness 调用前置机失败 requestTO={}", JSONUtils.toString(requestTO));
             e.printStackTrace();
         }
         return false;
@@ -64,14 +64,14 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
      */
     public boolean caPasswordBusiness(CaPasswordRequestTO requestTO){
         try {
-            LOGGER.info("esign 服务 caPasswordBusiness start requestTO={}", JSONUtils.toString(requestTO));
+            LOGGER.info("CommonCAServiceImpl caPasswordBusiness start requestTO={}", JSONUtils.toString(requestTO));
             HisResponseTO responseTO = iCaHisService.caPasswordBusiness(requestTO);
-            LOGGER.info("esign 服务 caPasswordBusiness  responseTO={}", JSONUtils.toString(responseTO));
+            LOGGER.info("CommonCAServiceImpl caPasswordBusiness  responseTO={}", JSONUtils.toString(responseTO));
             if (CA_RESULT_CODE.equals(responseTO.getMsgCode())) {
                 return true;
             }
         } catch (Exception e){
-            LOGGER.error("esign 服务 caPasswordBusiness 调用前置机失败 requestTO={}", JSONUtils.toString(requestTO));
+            LOGGER.error("CommonCAServiceImpl caPasswordBusiness 调用前置机失败 requestTO={}", JSONUtils.toString(requestTO));
             e.printStackTrace();
         }
         return false;
@@ -85,14 +85,14 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
      */
     public boolean caPictureBusiness(CaPictureRequestTO requestTO){
         try {
-            LOGGER.info("esign 服务 caPictureBusiness start requestTO={}", JSONUtils.toString(requestTO));
+            LOGGER.info("CommonCAServiceImpl caPictureBusiness start requestTO={}", JSONUtils.toString(requestTO));
             HisResponseTO responseTO = iCaHisService.caPictureBusiness(requestTO);
-            LOGGER.info("esign 服务 caPictureBusiness  responseTO={}", JSONUtils.toString(responseTO));
+            LOGGER.info("CommonCAServiceImpl caPictureBusiness  responseTO={}", JSONUtils.toString(responseTO));
             if (CA_RESULT_CODE.equals(responseTO.getMsgCode())) {
                 return true;
             }
         } catch (Exception e){
-            LOGGER.error("esign 服务 caPictureBusiness 调用前置机失败 requestTO={}", JSONUtils.toString(requestTO));
+            LOGGER.error("CommonCAServiceImpl caPictureBusiness 调用前置机失败 requestTO={}", JSONUtils.toString(requestTO));
             e.printStackTrace();
         }
         return false;
@@ -106,15 +106,15 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
     public CaSignResponseTO caSignBusiness(CaSignRequestTO requestTO) {
         CaSignResponseTO responseRs = new CaSignResponseTO();
         try {
-            LOGGER.info("esign 服务 caSignBusiness start requestTO={}", JSONUtils.toString(requestTO));
+            LOGGER.info("CommonCAServiceImpl caSignBusiness start requestTO={}", JSONUtils.toString(requestTO));
             HisResponseTO<CaSignResponseTO> responseTO = iCaHisService.caSignBusiness(requestTO);
-            LOGGER.info("esign 服务 caSignBusiness  responseTO={}", JSONUtils.toString(responseTO));
+            LOGGER.info("CommonCAServiceImpl caSignBusiness  responseTO={}", JSONUtils.toString(responseTO));
             if (CA_RESULT_CODE.equals(responseTO.getMsgCode())) {
                 responseRs.setSignValue(responseTO.getData().getSignValue());
                 responseRs.setUserAccount(responseTO.getData().getUserAccount());
             }
         } catch (Exception e){
-            LOGGER.error("esign 服务 caSignBusiness 调用前置机失败 requestTO={}", JSONUtils.toString(requestTO));
+            LOGGER.error("CommonCAServiceImpl caSignBusiness 调用前置机失败 requestTO={}", JSONUtils.toString(requestTO));
             e.printStackTrace();
         }
         return responseRs;

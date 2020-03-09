@@ -34,7 +34,7 @@ public class ShanxiCAImpl implements CAInterface {
      */
     @RpcService
     public boolean caUserLoginAndGetCertificate(Integer doctorId){
-        LOGGER.info("base服务 caUserLoginAndGetCertificate start in doctorId={}", doctorId);
+        LOGGER.info("ShanxiCAImpl caUserLoginAndGetCertificate start in doctorId={}", doctorId);
         //根据doctorId获取医生信息
         boolean isSuccess = false;
         DoctorService doctorDAO = BasicAPI.getService(DoctorService.class);

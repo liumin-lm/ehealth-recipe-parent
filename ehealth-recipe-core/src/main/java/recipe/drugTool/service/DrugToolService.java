@@ -409,7 +409,7 @@ public class DrugToolService implements IDrugToolService {
             drug.setMedicalDrugFormCode(getStrFromCell(row.getCell(21)));
             drug.setHisFormCode(getStrFromCell(row.getCell(22)));
             drug.setSourceOrgan(organId);
-            drug.setStatus(0);
+            drug.setStatus(DrugMatchConstant.UNMATCH);
             drug.setOperator(operator);
 
             if (errMsg.length() > 1) {
@@ -514,10 +514,10 @@ public class DrugToolService implements IDrugToolService {
         }
         DrugListMatch drugListMatch = drugListMatchDAO.get(drugId);
         //如果是已匹配的取消匹配
-        if (drugListMatch.getStatus().equals(1)) {
-            drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("status", 0, "operator", operator));
+        if (drugListMatch.getStatus().equals(DrugMatchConstant.ALREADY_MATCH)) {
+            drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("status", DrugMatchConstant.UNMATCH, "operator", operator));
         }
-        drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("isNew", 1, "status", 3, "operator", operator));
+        drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("isNew", 1, "status", DrugMatchConstant.MARKED, "operator", operator));
         LOGGER.info("updateNoMatchData 操作人->{}更新无匹配数据,drugId={};status ->before={},after=3", operator, drugId, drugListMatch.getStatus());
     }
 
@@ -530,7 +530,7 @@ public class DrugToolService implements IDrugToolService {
             throw new DAOException(DAOException.VALUE_NEEDED, "operator is required");
         }
         DrugListMatch drugListMatch = drugListMatchDAO.get(drugId);
-        drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("status", 0, "operator", operator));
+        drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("status", DrugMatchConstant.UNMATCH, "operator", operator));
         LOGGER.info("cancelMatchStatus 操作人->{}更新为未匹配状态,drugId={};status ->before={},after=0", operator, drugId, drugListMatch.getStatus());
     }
 
@@ -543,7 +543,7 @@ public class DrugToolService implements IDrugToolService {
             throw new DAOException(DAOException.VALUE_NEEDED, "operator is required");
         }
         DrugListMatch drugListMatch = drugListMatchDAO.get(drugId);
-        drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("status", 1, "matchDrugId", matchDrugId, "operator", operator));
+        drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("status", DrugMatchConstant.ALREADY_MATCH, "matchDrugId", matchDrugId, "operator", operator));
         LOGGER.info("updateMatchStatus 操作人->{}更新已匹配状态,drugId={};status ->before={},after=1", operator, drugId, drugListMatch.getStatus());
     }
 
@@ -678,7 +678,9 @@ public class DrugToolService implements IDrugToolService {
         //已匹配状态返回匹配药品id
         if (CollectionUtils.isNotEmpty(drugLists)) {
             drugListBeans = ObjectCopyUtils.convert(drugLists, DrugListBean.class);
-            if (drugListMatch.getStatus().equals(1) || drugListMatch.getStatus().equals(2) || drugListMatch.getStatus().equals(4)) {
+            if (drugListMatch.getStatus().equals(DrugMatchConstant.ALREADY_MATCH)
+                    || drugListMatch.getStatus().equals(DrugMatchConstant.SUBMITED)
+                    || drugListMatch.getStatus().equals(DrugMatchConstant.MATCHING)) {
                 for (DrugListBean drugListBean : drugListBeans) {
                     if (drugListBean.getDrugId().equals(drugListMatch.getMatchDrugId())) {
                         drugListBean.setIsMatched(true);
@@ -786,7 +788,7 @@ public class DrugToolService implements IDrugToolService {
                 db.setUsingRate(drugListMatch.getUsingRate());
                 db.setUsePathways(drugListMatch.getUsePathways());
                 db.setDefaultUseDose(drugListMatch.getDefaultUseDose());
-                db.setStatus(2);
+                db.setStatus(DrugMatchConstant.SUBMITED);
                 drugListMatchDAO.update(db);
             }
         }
@@ -917,7 +919,7 @@ public class DrugToolService implements IDrugToolService {
      */
     @RpcService
     public Integer uploadNoMatchData(Integer organId, Boolean isHaveOrganId) {
-        List<DrugListMatch> data = drugListMatchDAO.findDataByOrganAndStatus(organId, 3);
+        List<DrugListMatch> data = drugListMatchDAO.findDataByOrganAndStatus(organId, DrugMatchConstant.MARKED);
         if (CollectionUtils.isNotEmpty(data)) {
             for (DrugListMatch drugListMatch : data) {
                 DrugList drugList = new DrugList();
@@ -958,10 +960,10 @@ public class DrugToolService implements IDrugToolService {
                     Integer status;
                     if (isHaveReulationId(organId)&&StringUtils.isEmpty(drugListMatch.getRegulationDrugCode())){
                         //匹配中
-                        status = 4;
+                        status = DrugMatchConstant.MATCHING;
                     }else {
                         //已匹配
-                        status = 1;
+                        status = DrugMatchConstant.ALREADY_MATCH;
                     }
                     drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(),ImmutableMap.of("status", status,"matchDrugId",save.getDrugId()));
                 }

@@ -1120,6 +1120,8 @@ public class RecipeService extends RecipeBaseService{
     @RpcService
     public Map<String, Object> doSignRecipeExt(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
         LOGGER.info("doSignRecipeExt param: recipeBean={} detailBean={}",JSONUtils.toString(recipeBean),JSONUtils.toString(detailBeanList));
+        //将密码放到redis中
+        redisClient.set("caPassword",recipeBean.getCaPassword());
         Map<String, Object> rMap = null;
         try {
             rMap = doSignRecipe(recipeBean, detailBeanList);

@@ -9,6 +9,7 @@ import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.utils.ValidateUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -166,7 +167,6 @@ public class EnterpriseAddressService extends BaseService<EnterpriseAddressDTO> 
         EnterpriseAddress address = addressDAO.addEnterpriseAddress(enterpriseAddress);
         return getBean(address, EnterpriseAddressDTO.class);
     }
-
 
     /**
      * 更新药企配送地址

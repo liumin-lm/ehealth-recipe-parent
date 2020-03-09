@@ -100,6 +100,8 @@ public abstract class EnterpriseAddressDAO extends HibernateSupportDelegateDAO<E
         this.remove(enterpriseId);
     }
 
+    @DAOMethod(sql="delete from EnterpriseAddress  where enterpriseId=:enterpriseId")
+    public abstract void deleteByEnterpriseId(@DAOParam("enterpriseId") Integer enterpriseId);
     /**
      * 删除药企配送区域地址
      *

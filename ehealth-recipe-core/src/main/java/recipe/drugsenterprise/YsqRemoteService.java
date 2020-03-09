@@ -138,6 +138,9 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             result.setCode(DrugEnterpriseResult.FAIL);
         }
 
+        //推送审核结果
+        pushCheckResult(recipeIds.get(0), 1, drugsEnterprise);
+
         return result;
     }
 

@@ -207,7 +207,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     public abstract RecipeOrder getByTrackingNumber(@DAOParam("trackingNumber") String trackingNumber);
 
     /**
-     * 根据日期查询订单支付和退款信息
+     * 根据日期查询订单支付和退款信息(只获取实际支付金额不为0的，调用支付平台的)
      *
      * @param startTime
      * @param endTime
@@ -225,19 +225,19 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 hql.append("o.OrderType, r.GiveMode, o.PayFlag, o.RegisterFee, o.ExpressFee, o.DecoctionFee, o.AuditFee, ");
                 hql.append("o.OtherFee, o.RecipeFee, o.CouponFee, o.TotalFee, o.FundAmount, d.name, 0 as billType, o.EnterpriseId from ");
                 hql.append("cdr_recipe r INNER JOIN cdr_recipeorder o on r.OrderCode = o.OrderCode LEFT JOIN cdr_drugsenterprise d on d.id = o.EnterpriseId ");
-                hql.append("where o.payFlag = 1 and o.payTime between :startTime and :endTime and o.Effective = 1 ");
+                hql.append("where o.payFlag = 1 and o.payTime between :startTime and :endTime and o.Effective = 1 and o.actualPrice <> 0 ");
                 hql.append("UNION ALL ");
                 hql.append("select r.recipeId, r.doctor, o.MpiId, o.refundTime as PayTime, o.OrganId, r.Depart, o.OutTradeNo, ");
                 hql.append("o.OrderType, r.GiveMode, o.PayFlag, o.RegisterFee, o.ExpressFee, o.DecoctionFee, o.AuditFee, ");
                 hql.append("o.OtherFee, o.RecipeFee, o.CouponFee, o.TotalFee, o.FundAmount, d.name, 1 as billType, o.EnterpriseId from ");
                 hql.append("cdr_recipe r INNER JOIN cdr_recipeorder o on r.OrderCode = o.OrderCode LEFT JOIN cdr_drugsenterprise d on d.id = o.EnterpriseId ");
-                hql.append("where (o.refundFlag is Not Null and o.refundFlag <> 0) and o.refundTime between :startTime and :endTime ");
+                hql.append("where (o.refundFlag is Not Null and o.refundFlag <> 0) and o.refundTime between :startTime and :endTime and o.actualPrice <> 0 ");
                 hql.append("UNION ALL ");
                 hql.append("select r.recipeId, r.doctor, o.MpiId, o.PayTime, o.OrganId, r.Depart, o.OutTradeNo, ");
                 hql.append("o.OrderType, r.GiveMode, o.PayFlag, o.RegisterFee, o.ExpressFee, o.DecoctionFee, o.AuditFee, ");
                 hql.append("o.OtherFee, o.RecipeFee, o.CouponFee, o.TotalFee, o.FundAmount, d.name, 0 as billType, o.EnterpriseId from  ");
                 hql.append("cdr_recipe r INNER JOIN cdr_recipeorder o on r.OrderCode = o.OrderCode LEFT JOIN cdr_drugsenterprise d on d.id = o.EnterpriseId ");
-                hql.append("where (o.refundFlag is Not Null and o.refundFlag <> 0) and o.payFlag <>1 and o.payTime between :startTime and :endTime ");
+                hql.append("where (o.refundFlag is Not Null and o.refundFlag <> 0) and o.payFlag <>1 and o.payTime between :startTime and :endTime and o.actualPrice <> 0 ");
                 hql.append(" ) a order by a.recipeId, a.payTime");
 
                 Query q = ss.createSQLQuery(hql.toString());
