@@ -11,8 +11,10 @@ import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.DepartmentDTO;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DepartmentService;
+import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.OrganDrugList;
@@ -164,6 +166,8 @@ public class QueryRecipeService implements IQueryRecipeService {
             //拼接处方信息
             //处方号
             recipeDTO.setRecipeID(recipe.getRecipeCode());
+            //机构id
+            recipeDTO.setOrganId(String.valueOf(recipe.getClinicOrgan()));
             //处方id
             recipeDTO.setPlatRecipeID(String.valueOf(recipe.getRecipeId()));
             //挂号序号
@@ -201,6 +205,12 @@ public class QueryRecipeService implements IQueryRecipeService {
                 recipeDTO.setDoctorID(jobNumber);
                 //医生姓名
                 recipeDTO.setDoctorName(recipe.getDoctorName());
+                //医生身份证
+                DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
+                DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
+                if (doctorDTO!=null){
+                    recipeDTO.setDoctorIDCard(doctorDTO.getIdNumber());
+                }
             }
             //审核医生
             if (recipe.getChecker() != null){
