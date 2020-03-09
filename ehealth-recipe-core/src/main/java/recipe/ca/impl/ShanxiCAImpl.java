@@ -94,7 +94,7 @@ public class ShanxiCAImpl implements CAInterface {
      */
     @RpcService
     public CaSignResultVo commonCASignAndSeal(CaSealRequestTO requestSealTO, Recipe recipe,Integer organId, String userAccount, String caPassword) {
-        LOGGER.info("recipe服务 commonCASignAndSeal start requestSealTO={},organId={},userAccount={},caPassword={}", JSONUtils.toString(requestSealTO), organId, userAccount, caPassword);
+        LOGGER.info("ShanxiCAImpl commonCASignAndSeal start requestSealTO={},organId={},userAccount={},caPassword={}", JSONUtils.toString(requestSealTO), organId, userAccount, caPassword);
         CaSignResultVo signResultVo = new CaSignResultVo();
 
         try {
@@ -144,7 +144,7 @@ public class ShanxiCAImpl implements CAInterface {
                 signResultVo.setPdfBase64(responseSealTO.getPdfBase64File());
             }
         } catch (Exception e){
-            LOGGER.error("esign 服务 commonCASignAndSeal 调用前置机失败 requestTO={}", requestSealTO.toString());
+            LOGGER.error("ShanxiCAImpl commonCASignAndSeal 调用前置机失败 requestTO={}", requestSealTO.toString());
             e.printStackTrace();
         }
         return signResultVo;

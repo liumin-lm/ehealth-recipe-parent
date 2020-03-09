@@ -9,7 +9,6 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ca.CAInterface;
 import recipe.ca.ICommonCAServcie;
 import recipe.ca.vo.CaSignResultVo;
@@ -51,7 +50,7 @@ public class ShanghaiCAImpl implements CAInterface {
      */
     @RpcService
     public CaSignResultVo commonCASignAndSeal(CaSealRequestTO requestSealTO, Recipe recipe, Integer organId, String userAccount, String caPassword) {
-        LOGGER.info("recipe服务 commonCASignAndSeal start requestSealTO={},organId={},userAccount={},caPassword={}",
+        LOGGER.info("shanghaiCA commonCASignAndSeal start requestSealTO={},organId={},userAccount={},caPassword={}",
                 JSONUtils.toString(requestSealTO), organId, userAccount, caPassword);
         CaSignResultVo signResultVo = new CaSignResultVo();
         try {
@@ -80,7 +79,7 @@ public class ShanghaiCAImpl implements CAInterface {
 
             //电子签章（暂不实现）
         } catch (Exception e){
-            LOGGER.error("recipe 服务 commonCASignAndSeal 调用前置机失败 requestSealTO={},organId={},userAccount={},caPassword={}",
+            LOGGER.error("shanghaiCA commonCASignAndSeal 调用前置机失败 requestSealTO={},organId={},userAccount={},caPassword={}",
                     JSONUtils.toString(requestSealTO), organId, userAccount, caPassword );
             e.printStackTrace();
         }

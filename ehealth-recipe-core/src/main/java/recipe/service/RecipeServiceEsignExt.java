@@ -105,29 +105,11 @@ public class RecipeServiceEsignExt {
     @RpcService
     public static String saveSignRecipePDF(String pdfBase64,Integer recipeId, String loginId,String signCADate,
                                     String signRecipeCode,Boolean isDoctor){
-        LOGGER.info("saveSignRecipePDF start in pdfBase64={}, recipeId={}, loginId={}", pdfBase64,recipeId,loginId);
-        //组装生成pdf的参数
-        String fileName = "recipe_" + recipeId + ".pdf";
+        LOGGER.info("saveSignRecipePDF start in pdfBase64={}, recipeId={}, loginId={},signCADate={},signRecipeCode={},isDoctor={}",
+                pdfBase64,recipeId,loginId,signCADate,signRecipeCode,isDoctor);
         String fileId = null;
-        if (null != pdfBase64) {
-            BASE64Decoder d = new BASE64Decoder();
-            byte[] data = new byte[0];
-            try {
-                data = d.decodeBuffer(pdfBase64);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            fileId = uploadRecipeSignFile(data, fileName, loginId);
-            if (null == fileId) {
-                LOGGER.info( "上传文件失败,fileName=" + fileName);
-                return "fail";
-            }
-        }
         Map<String, Object> attrMap = Maps.newHashMap();
-
-        attrMap.put("signFile", fileId);
         attrMap.put("signDate", new Date());
-
         if(isDoctor) {
             //医生签名时间戳
             attrMap.put("signCADate", signCADate);
@@ -139,16 +121,36 @@ public class RecipeServiceEsignExt {
             //药师签名值
             attrMap.put("signPharmacistCode",signRecipeCode);
         }
-
+        //保存签名值
         boolean upResult = recipeService.updateRecipeInfoByRecipeId(recipeId, attrMap);
 
-        LOGGER.info("saveSignRecipePDF upResult={}", upResult);
+        LOGGER.info("saveSignRecipePDF 保存签名  upResult={}", upResult);
+
+        if (null != pdfBase64) {
+            //组装生成pdf的参数
+            String fileName = "recipe_" + recipeId + ".pdf";
+            BASE64Decoder d = new BASE64Decoder();
+            byte[] data = new byte[0];
+            try {
+                data = d.decodeBuffer(pdfBase64);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            fileId = uploadRecipeSignFile(data, fileName, loginId);
+            attrMap.put("signFile", fileId);
+            if (null == fileId) {
+                LOGGER.info( "上传文件失败,fileName=" + fileName);
+                return "fail";
+            }
+             upResult = recipeService.updateRecipeInfoByRecipeId(recipeId, attrMap);
+        }
         if (upResult) {
-            LOGGER.info("saveSignRecipePDF 签名成功. fileId={}, recipeId={}", fileId, recipeId);
+            LOGGER.info("saveSignRecipePDF 保存签名值、时间戳、签章文件成功. fileId={}, recipeId={}", fileId, recipeId);
         } else  {
-            LOGGER.info("saveSignRecipePDF 签名失败. fileId={}, recipeId={}", fileId, recipeId);
+            LOGGER.info("saveSignRecipePDF 保存签名值、时间、签章文件失败. fileId={}, recipeId={}", fileId, recipeId);
             return "fail";
         }
+
         return "success";
     }
 

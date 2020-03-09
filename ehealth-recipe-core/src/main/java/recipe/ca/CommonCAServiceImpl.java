@@ -128,15 +128,15 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
     public CaSealResponseTO caSealBusiness(CaSealRequestTO requestTO) {
         CaSealResponseTO responseRs = new CaSealResponseTO();
         try {
-            LOGGER.info("esign 服务 caSealBusiness start requestTO={}", JSONUtils.toString(requestTO));
+            LOGGER.info("CommonCAServiceImpl caSealBusiness start requestTO={}", JSONUtils.toString(requestTO));
             HisResponseTO<CaSealResponseTO> responseTO = iCaHisService.caSealBusiness(requestTO);
-            LOGGER.info("esign 服务 caSealBusiness  responseTO={}", JSONUtils.toString(responseTO));
+            LOGGER.info("CommonCAServiceImpl caSealBusiness  responseTO={}", JSONUtils.toString(responseTO));
             if (CA_RESULT_CODE.equals(responseTO.getMsgCode())) {
                 responseRs.setPdfBase64File(responseTO.getData().getPdfBase64File());
                 responseRs.setUserAccount(responseTO.getData().getUserAccount());
             }
         } catch (Exception e){
-            LOGGER.error("esign 服务 caSealBusiness 调用前置机失败 requestTO={}", JSONUtils.toString(requestTO));
+            LOGGER.error("CommonCAServiceImpl caSealBusiness 调用前置机失败 requestTO={}", JSONUtils.toString(requestTO));
             e.printStackTrace();
         }
         return responseRs;
@@ -149,15 +149,15 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
     public CaSignDateResponseTO caSignDateBusiness(CaSignDateRequestTO requestTO) {
         CaSignDateResponseTO responseRs = new CaSignDateResponseTO();
         try {
-            LOGGER.info("esign 服务 caSignDateBusiness start requestTO={}", JSONUtils.toString(requestTO));
+            LOGGER.info("CommonCAServiceImpl caSignDateBusiness start requestTO={}", JSONUtils.toString(requestTO));
             HisResponseTO<CaSignDateResponseTO> responseTO = iCaHisService.caSignDateBusiness(requestTO);
-            LOGGER.info("esign 服务 caSignDateBusiness  responseTO={}", JSONUtils.toString(responseTO));
+            LOGGER.info("CommonCAServiceImpl caSignDateBusiness  responseTO={}", JSONUtils.toString(responseTO));
             if (CA_RESULT_CODE.equals(responseTO.getMsgCode())) {
                 responseRs.setSignDate(responseTO.getData().getSignDate());
                 responseRs.setUserAccount(responseTO.getData().getUserAccount());
             }
         } catch (Exception e){
-            LOGGER.error("esign 服务 caSignDateBusiness 调用前置机失败 requestTO={}", JSONUtils.toString(requestTO));
+            LOGGER.error("CommonCAServiceImpl caSignDateBusiness 调用前置机失败 requestTO={}", JSONUtils.toString(requestTO));
             e.printStackTrace();
         }
         return responseRs;

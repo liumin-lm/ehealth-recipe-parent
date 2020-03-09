@@ -569,7 +569,7 @@ public class RecipeService extends RecipeBaseService{
                         String userAccount = doctorDTOn.getIdNumber();
                         String caPassword= "";
                         //签名时的密码从redis中获取
-                        if (redisClient.get("caPassword") != null) {
+                        if (null != redisClient.get("caPassword")) {
                             caPassword = redisClient.get("caPassword");
                         }
                         //标准化CA进行签名、签章==========================start=====
@@ -744,7 +744,7 @@ public class RecipeService extends RecipeBaseService{
                 String userAccount = doctorDTO.getIdNumber();
                 String caPassword= "";
                 //签名时的密码从redis中获取
-                if (redisClient.get("caPassword") != null) {
+                if (null != redisClient.get("caPassword")) {
                      caPassword = redisClient.get("caPassword");
                 }
                 //标准化CA进行签名、签章==========================start=====
