@@ -161,6 +161,12 @@ public class YtRecipeDTO implements Serializable{
      * 非必填
      */
     private String recipientTel;
+
+    private String province;
+
+    private String city;
+
+    private String district;
     /**
      * 邮编
      * 非必填
@@ -482,6 +488,30 @@ public class YtRecipeDTO implements Serializable{
         this.orderNo = orderNo;
     }
 
+    public String getProvince() {
+        return province;
+    }
+
+    public void setProvince(String province) {
+        this.province = province;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getDistrict() {
+        return district;
+    }
+
+    public void setDistrict(String district) {
+        this.district = district;
+    }
+
     @Override
     public String toString() {
         return "YtRecipeDTO{" +
@@ -510,6 +540,9 @@ public class YtRecipeDTO implements Serializable{
                 ", recipeType=" + recipeType +
                 ", diagnose=" + diagnose +
                 ", giveModel=" + giveModel +
+                ", province=" + province +
+                ", city=" + city +
+                ", district=" + district +
                 ", serviceFree=" + serviceFree +
                 ", prescriptionChecking=" + prescriptionChecking +
                 ", ifPay=" + ifPay +

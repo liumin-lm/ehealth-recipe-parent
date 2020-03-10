@@ -459,14 +459,37 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 } else if (3 == nowRecipe.getGiveMode()) {
                     sendYtRecipe.setGiveModel(0);
                 }
+                String province = getAddressDic(recipeOrder.getAddress1());
+                String city = getAddressDic(recipeOrder.getAddress2());
+                String district = getAddressDic(recipeOrder.getAddress3());
+                sendYtRecipe.setProvince(province);
+                sendYtRecipe.setCity(city);
+                sendYtRecipe.setDistrict(district);
             }
         }
 
-        sendYtRecipe.setIfPay(ytIfPay);
+        //如果是药店取药的则没有进行支付
+        if (nowRecipe.getPayMode() == 1) {
+            sendYtRecipe.setIfPay(ytIfPay);
+        } else {
+            sendYtRecipe.setIfPay(0);
+        }
+
         sendYtRecipe.setSource(ytSource);
         sendYtRecipe.setRecipeId(nowRecipe.getRecipeId());
         sendYtRecipe.setDiagnose(nowRecipe.getOrganDiseaseName());
         sendYtRecipe.setRecipeType(nowRecipe.getRecipeType());
+    }
+
+    private String getAddressDic(String area) {
+        if (StringUtils.isNotEmpty(area)) {
+            try {
+                return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
+            } catch (ControllerException e) {
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area);
+            }
+        }
+        return "";
     }
 
     /**
