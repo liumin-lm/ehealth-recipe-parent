@@ -26,21 +26,26 @@ public class CommonCAFactory {
 
     public CAInterface useCAFunction(Integer organId) {
         LOGGER.info("useCAFunction start in organId={}", organId);
-        IConfigurationCenterUtilsService configurationService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-        String thirdCASign = (String) configurationService.getConfiguration(organId, "thirdCASign");
-        LOGGER.info("useCAFunction thirdCASign={}", thirdCASign);
-        //陕西CA
-        if (CA_TYPE_SHANXI.equals(thirdCASign)) {
-            LOGGER.info("useCAFunction organId={}进入的CA是 CA_TYPE_SHANXI={}", organId,CA_TYPE_SHANXI);
-            return new ShanxiCAImpl();
-        //上海CA
-        } else if (CA_TYPE_SHANGHAI.equals(thirdCASign)) {
-            LOGGER.info("useCAFunction organId={}进入的CA是 CA_TYPE_SHANGHAI={}", organId,CA_TYPE_SHANGHAI);
-            return new ShanghaiCAImpl();
-        } else {
-            LOGGER.info("没有找到对应的CA配置，请检查运营平台的配置是否正确thirdCASign=", thirdCASign);
-            return null;
+        try {
+            IConfigurationCenterUtilsService configurationService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+            String thirdCASign = (String) configurationService.getConfiguration(organId, "thirdCASign");
+            LOGGER.info("useCAFunction thirdCASign={}", thirdCASign);
+            //陕西CA
+            if (CA_TYPE_SHANXI.equals(thirdCASign)) {
+                LOGGER.info("useCAFunction organId={}进入的CA是 CA_TYPE_SHANXI={}", organId, CA_TYPE_SHANXI);
+                return new ShanxiCAImpl();
+                //上海CA
+            } else if (CA_TYPE_SHANGHAI.equals(thirdCASign)) {
+                LOGGER.info("useCAFunction organId={}进入的CA是 CA_TYPE_SHANGHAI={}", organId, CA_TYPE_SHANGHAI);
+                return new ShanghaiCAImpl();
+            } else {
+                LOGGER.info("没有找到对应的CA配置，请检查运营平台的配置是否正确thirdCASign=", thirdCASign);
+            }
+        }catch (Exception e){
+            LOGGER.info("CommonCAFactory CA工厂获取实际实现CA异常 e={}",e);
+            e.printStackTrace();
         }
+        return null;
     }
 
 }
