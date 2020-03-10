@@ -666,7 +666,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         Integer depId = order.getEnterpriseId();
                         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
-                        if (drugsEnterprise != null && drugsEnterprise.getStorePayFlag() == 1) {
+                        if (drugsEnterprise != null && drugsEnterprise.getStorePayFlag() != null && drugsEnterprise.getStorePayFlag() == 1) {
                             //storePayFlag = 1 表示线上支付但到店取药
                             order.setActualPrice(order.getTotalFee().doubleValue());
                         } else {

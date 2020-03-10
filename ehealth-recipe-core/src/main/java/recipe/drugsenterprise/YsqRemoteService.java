@@ -74,6 +74,8 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
 
     private static final String KEY_RCP_DRUG_INVENTORY_LOCK = "RCP_DRUG_INVENTORY_";
 
+    private static final String imgHead = "data:image/jpeg;base64,";
+
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
         LOGGER.info("YsqRemoteService tokenUpdateImpl not implement.");

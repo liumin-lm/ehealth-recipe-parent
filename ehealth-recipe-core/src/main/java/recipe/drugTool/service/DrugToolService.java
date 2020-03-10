@@ -731,8 +731,8 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setUsingRate(drugListMatch.getUsingRate());
                         organDrugList.setUsePathways(drugListMatch.getUsePathways());
                         organDrugList.setProducer(drugListMatch.getProducer());
-                        organDrugList.setUseDose(drugListMatch.getDefaultUseDose());
-                        organDrugList.setRecommendedUseDose(drugListMatch.getUseDose());
+                        organDrugList.setUseDose(drugListMatch.getUseDose());
+                        organDrugList.setRecommendedUseDose(drugListMatch.getDefaultUseDose());
                         organDrugList.setPack(drugListMatch.getPack());
                         organDrugList.setUnit(drugListMatch.getUnit());
                         organDrugList.setUseDoseUnit(drugListMatch.getUseDoseUnit());
@@ -813,6 +813,25 @@ public class DrugToolService implements IDrugToolService {
         try {
             usingRateList = DictionaryController.instance().get("eh.cdr.dictionary.UsingRateWithKey").getSlice(null, 0, "");
             usePathwayList = DictionaryController.instance().get("eh.cdr.dictionary.UsePathwaysWithKey").getSlice(null, 0, "");
+        } catch (ControllerException e) {
+            LOGGER.error("getUsingRateAndUsePathway() error : " + e);
+        }
+        result.put("usingRate", usingRateList);
+        result.put("usePathway", usePathwayList);
+        return result;
+    }
+
+    /**
+     * 获取用药频率和用药途径
+     */
+    @RpcService
+    public Map<String, Object> findUsingRateAndUsePathwayWithOutKey() {
+        Map<String, Object> result = Maps.newHashMap();
+        List<DictionaryItem> usingRateList = new ArrayList<DictionaryItem>();
+        List<DictionaryItem> usePathwayList = new ArrayList<DictionaryItem>();
+        try {
+            usingRateList = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getSlice(null, 0, "");
+            usePathwayList = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getSlice(null, 0, "");
         } catch (ControllerException e) {
             LOGGER.error("getUsingRateAndUsePathway() error : " + e);
         }
