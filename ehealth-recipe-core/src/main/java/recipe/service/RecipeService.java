@@ -564,7 +564,7 @@ public class RecipeService extends RecipeBaseService{
                     LOGGER.info("generateRecipePdfAndSign 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
                     try {
                         String loginId = MapValueUtil.getString(backMap, "loginId");
-                        Integer organId = MapValueUtil.getInteger(paramMap, "organId");
+                        Integer organId = recipe.getClinicOrgan();
                         DoctorDTO doctorDTOn = doctorService.getByDoctorId(recipe.getDoctor());
                         String userAccount = doctorDTOn.getIdNumber();
                         String caPassword= "";
