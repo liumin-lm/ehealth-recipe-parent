@@ -177,6 +177,7 @@ public class RecipeCheckService {
                     patient.setPatientName(dbPatient.getPatientName());
                     patient.setPatientSex(dbPatient.getPatientSex());
                     patient.setAge(null == dbPatient.getBirthday() ? 0 : DateConversion.getAge(dbPatient.getBirthday()));
+                    patient.setBirthday(null == patient.getBirthday() ? new Date() : patient.getBirthday());
                 } catch (Exception e) {
                     LOGGER.warn("covertRecipeListPageInfo patient is error. mpiId={}, ", r.getMpiid(), e);
                 }
@@ -321,6 +322,7 @@ public class RecipeCheckService {
                 p.setPatientName(patient.getPatientName());
                 p.setPatientSex(patient.getPatientSex());
                 p.setAge(null == patient.getBirthday() ? 0 : DateConversion.getAge(patient.getBirthday()));
+                p.setBirthday(null == patient.getBirthday() ? new Date() : patient.getBirthday());
                 p.setPatientType(patient.getPatientType());
                 //加上手机号 和 身份证信息（脱敏）
                 p.setMobile(patient.getMobile());
