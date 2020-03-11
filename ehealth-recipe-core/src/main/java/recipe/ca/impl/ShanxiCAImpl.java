@@ -57,13 +57,14 @@ public class ShanxiCAImpl implements CAInterface {
             if (!isSuccess) {
                 requestTO.setBusType(1);
                 isSuccess = iCommonCAServcie.caUserBusiness(requestTO);
-                LOGGER.info("ShanxiCAImpl caUserLoginAndGetCertificate end isSuccess={}", isSuccess);
-                isSuccess = true;
+                return isSuccess;
             }
         } catch (Exception e){
             LOGGER.error("ShanxiCAImpl caUserLoginAndGetCertificate 调用前置机失败 requestTO={}", JSONUtils.toString(requestTO));
             e.printStackTrace();
+            return false;
         }
+        LOGGER.info("ShanxiCAImpl caUserLoginAndGetCertificate end isSuccess={}", isSuccess);
         return isSuccess;
     }
 
