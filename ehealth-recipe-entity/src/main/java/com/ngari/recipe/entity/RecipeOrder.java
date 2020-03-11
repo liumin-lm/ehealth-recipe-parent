@@ -245,7 +245,7 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "医保代码")
     private String medicalSettleCode;
 
-    @ItemProperty(alias = "卫宁付下的支付方式(卫宁的字典) 1支付宝手机支付 7微信公众号支付 随申办支付宝支付126 随申办微信支付127 随申办银联支付128")
+    @ItemProperty(alias = "卫宁付下的支付方式(卫宁的字典)ybpay=全医保支付 1支付宝手机支付 7微信公众号支付 随申办支付宝支付126 随申办微信支付127 随申办银联支付128")
     private String wnPayWay;
 
 
