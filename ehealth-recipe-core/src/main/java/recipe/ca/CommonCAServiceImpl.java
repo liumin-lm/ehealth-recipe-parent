@@ -33,6 +33,7 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
         } catch (Exception e){
             LOGGER.error("CommonCAServiceImpl caUserBusiness 调用前置机失败 userAccount={} ,requestTO={}", requestTO.getUserAccount(),JSONUtils.toString(requestTO));
             e.printStackTrace();
+            return false;
         }
         return false;
     }
@@ -53,6 +54,7 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
         } catch (Exception e){
             LOGGER.error("CommonCAServiceImpl caCertificateBusiness 调用前置机失败 userAccount={},requestTO={}",requestTO.getUserAccount(), JSONUtils.toString(requestTO));
             e.printStackTrace();
+            return false;
         }
         return false;
     }
@@ -73,6 +75,7 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
         } catch (Exception e){
             LOGGER.error("CommonCAServiceImpl caPasswordBusiness 调用前置机失败 userAccount={}, requestTO={}", requestTO.getUserAccount(), JSONUtils.toString(requestTO));
             e.printStackTrace();
+            return false;
         }
         return false;
 
@@ -94,6 +97,7 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
         } catch (Exception e){
             LOGGER.error("CommonCAServiceImpl caPictureBusiness 调用前置机失败 userAccount={}, requestTO={}", requestTO.getUserAccount(),JSONUtils.toString(requestTO));
             e.printStackTrace();
+            return false;
         }
         return false;
     }
@@ -116,6 +120,7 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
         } catch (Exception e){
             LOGGER.error("CommonCAServiceImpl caSignBusiness 调用前置机失败 userAccount={}, requestTO={}", requestTO.getUserAccount(), JSONUtils.toString(requestTO));
             e.printStackTrace();
+            return responseRs;
         }
         return responseRs;
     }
@@ -138,6 +143,7 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
         } catch (Exception e){
             LOGGER.error("CommonCAServiceImpl caSealBusiness 调用前置机失败 userAccount={}, requestTO={}",requestTO.getUserAccount(), JSONUtils.toString(requestTO));
             e.printStackTrace();
+            return responseRs;
         }
         return responseRs;
     }
@@ -159,6 +165,7 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
         } catch (Exception e){
             LOGGER.error("CommonCAServiceImpl caSignDateBusiness 调用前置机失败 userAccount={}, requestTO={}",requestTO.getUserAccount(), JSONUtils.toString(requestTO));
             e.printStackTrace();
+            return responseRs;
         }
         return responseRs;
     }
