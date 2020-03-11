@@ -91,6 +91,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         drugsEnterprise.setOrderType(1);
         drugsEnterprise.setCheckInventoryFlag(1);
         drugsEnterprise.setSettlementMode(0);
+        drugsEnterprise.setStorePayFlag(0);
 
         //存储药企信息
         DrugsEnterprise newDrugsEnterprise = drugsEnterpriseDAO.save(drugsEnterprise);
