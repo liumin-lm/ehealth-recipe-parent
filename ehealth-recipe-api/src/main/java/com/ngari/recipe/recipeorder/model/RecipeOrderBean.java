@@ -233,6 +233,15 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "订单退款时间")
     private Date refundTime;
 
+    @ItemProperty(alias = "医保结算信息串")
+    private String medicalSettleInfo;
+
+    @ItemProperty(alias = "医保代码")
+    private String medicalSettleCode;
+
+    @ItemProperty(alias = "卫宁付下的支付方式")
+    private String wnPayWay;
+
     public RecipeOrderBean() {
         initData();
     }
@@ -796,5 +805,29 @@ public class RecipeOrderBean implements Serializable {
 
     public void setRefundTime(Date refundTime) {
         this.refundTime = refundTime;
+    }
+
+    public String getMedicalSettleInfo() {
+        return medicalSettleInfo;
+    }
+
+    public void setMedicalSettleInfo(String medicalSettleInfo) {
+        this.medicalSettleInfo = medicalSettleInfo;
+    }
+
+    public String getMedicalSettleCode() {
+        return medicalSettleCode;
+    }
+
+    public void setMedicalSettleCode(String medicalSettleCode) {
+        this.medicalSettleCode = medicalSettleCode;
+    }
+
+    public String getWnPayWay() {
+        return wnPayWay;
+    }
+
+    public void setWnPayWay(String wnPayWay) {
+        this.wnPayWay = wnPayWay;
     }
 }

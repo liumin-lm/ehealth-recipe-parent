@@ -239,6 +239,16 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "订单退款时间")
     private Date refundTime;
 
+    @ItemProperty(alias = "医保结算信息串")
+    private String medicalSettleInfo;
+
+    @ItemProperty(alias = "医保代码")
+    private String medicalSettleCode;
+
+    @ItemProperty(alias = "卫宁付下的支付方式")
+    private String wnPayWay;
+
+
     @Column(name = "cancelReason")
     public String getCancelReason() {
         return cancelReason;
@@ -882,5 +892,42 @@ public class RecipeOrder implements Serializable {
 
     public void setRefundTime(Date refundTime) {
         this.refundTime = refundTime;
+    }
+
+    @Column(name = "refundTime")
+    public Double getPreSettleTotalAmount() {
+        return preSettleTotalAmount;
+    }
+
+    public void setPreSettleTotalAmount(Double preSettleTotalAmount) {
+        this.preSettleTotalAmount = preSettleTotalAmount;
+    }
+
+    @Column(name = "medicalSettleInfo")
+    public String getMedicalSettleInfo() {
+        return medicalSettleInfo;
+    }
+
+    public void setMedicalSettleInfo(String medicalSettleInfo) {
+        this.medicalSettleInfo = medicalSettleInfo;
+    }
+
+    @Column(name = "medicalSettleCode")
+    public String getMedicalSettleCode() {
+        return medicalSettleCode;
+    }
+
+    public void setMedicalSettleCode(String medicalSettleCode) {
+        this.medicalSettleCode = medicalSettleCode;
+    }
+
+    @Column(name = "WnPayWay")
+    public String getWnPayWay() {
+        return wnPayWay;
+    }
+
+
+    public void setWnPayWay(String wnPayWay) {
+        this.wnPayWay = wnPayWay;
     }
 }
