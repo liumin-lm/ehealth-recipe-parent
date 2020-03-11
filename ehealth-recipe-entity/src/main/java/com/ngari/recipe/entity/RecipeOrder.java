@@ -894,15 +894,6 @@ public class RecipeOrder implements Serializable {
         this.refundTime = refundTime;
     }
 
-    @Column(name = "refundTime")
-    public Double getPreSettleTotalAmount() {
-        return preSettleTotalAmount;
-    }
-
-    public void setPreSettleTotalAmount(Double preSettleTotalAmount) {
-        this.preSettleTotalAmount = preSettleTotalAmount;
-    }
-
     @Column(name = "medicalSettleInfo")
     public String getMedicalSettleInfo() {
         return medicalSettleInfo;
