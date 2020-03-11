@@ -177,7 +177,7 @@ public class RecipeCheckService {
                     patient.setPatientName(dbPatient.getPatientName());
                     patient.setPatientSex(dbPatient.getPatientSex());
                     patient.setAge(null == dbPatient.getBirthday() ? 0 : DateConversion.getAge(dbPatient.getBirthday()));
-                    patient.setBirthday(null == patient.getBirthday() ? new Date() : patient.getBirthday());
+                    patient.setBirthday(null == dbPatient.getBirthday() ? new Date() : dbPatient.getBirthday());
                 } catch (Exception e) {
                     LOGGER.warn("covertRecipeListPageInfo patient is error. mpiId={}, ", r.getMpiid(), e);
                 }
