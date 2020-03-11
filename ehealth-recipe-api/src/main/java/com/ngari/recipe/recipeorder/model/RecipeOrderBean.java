@@ -214,7 +214,7 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "医保结算人脸识别token")
     private String smkFaceToken;
 
-    @ItemProperty(alias = "订单类型，暂定1表示省医保")
+    @ItemProperty(alias = "订单类型，暂定1表示省医保 2 杭州市医保 3省医保小程序 4上海市医保")
     @Dictionary(id = "eh.cdr.dictionary.RecipeOrderOrderType")
     private Integer orderType;
 
@@ -239,7 +239,7 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "医保代码")
     private String medicalSettleCode;
 
-    @ItemProperty(alias = "卫宁付下的支付方式")
+    @ItemProperty(alias = "卫宁付下的支付方式(卫宁的字典) 1支付宝手机支付 7微信公众号支付 随申办支付宝支付126 随申办微信支付127 随申办银联支付128")
     private String wnPayWay;
 
     public RecipeOrderBean() {
