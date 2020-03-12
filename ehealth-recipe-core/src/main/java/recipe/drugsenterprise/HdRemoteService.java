@@ -720,7 +720,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         sendHdRecipe.setDecoctionFee(null == order.getDecoctionFee() ?  feeDefault : order.getDecoctionFee().toString());
         sendHdRecipe.setRecipientName(order.getReceiver());
         sendHdRecipe.setRecipientTel(order.getRecMobile());
-        sendHdRecipe.setPharmacyId(order.getDrugStoreCode());
+        sendHdRecipe.setPharmacyCode(order.getDrugStoreCode());
         return null;
     }
 
