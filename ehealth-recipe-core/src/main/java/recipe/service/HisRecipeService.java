@@ -2,6 +2,7 @@ package recipe.service;
 
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.HisRecipeDetailVO;
 import com.ngari.recipe.recipe.model.HisRecipeVO;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -49,22 +50,29 @@ public class HisRecipeService {
      * @return
      */
     @RpcService
-    public Map<String, Object>  findHisRecipe(Map<String, Object> request){
+    public List<HisRecipeVO>  findHisRecipe(Map<String, Object> request){
        Integer organId = (Integer) request.get("organId");
        String mpiId = (String) request.get("mpiId");
        Integer timeQuantum = (Integer) request.get("timeQuantum");
-       Integer status = (Integer) request.get("status");
+       String status = (String) request.get("status");
        String cardId = (String) request.get("cardId");
        Integer start = (Integer) request.get("start");
        Integer limit = (Integer) request.get("limit");
-       List<HisRecipe> hisRecipes = hisRecipeDAO.findHisRecipes(organId, mpiId, status);
+       Integer flag = 1;
+       if (!"ongoing".equals(status)) {
+           flag = 2;
+       }
+       List<HisRecipe> hisRecipes = hisRecipeDAO.findHisRecipes(organId, mpiId, flag);
        List<HisRecipeVO> result = new ArrayList<>();
        //根据status状态查询处方列表
-        if (status == 1) {
+        if ("ongoing".equals(status)) {
             //表示想要查询未处理的处方
             // 1 该处方在平台上不存在,只存在HIS中
             for (HisRecipe hisRecipe : hisRecipes) {
                 HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipe, HisRecipeVO.class);
+                List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipe.getHisRecipeID());
+                List<HisRecipeDetailVO> hisRecipeDetailVOS = ObjectCopyUtils.convert(hisRecipeDetails, HisRecipeDetailVO.class);
+                hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
                 Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(hisRecipe.getRecipeCode(), organId);
                 if (recipe == null) {
                     hisRecipeVO.setOrderStatusText("待支付");
@@ -76,12 +84,12 @@ public class HisRecipeService {
                         if (recipeExtend != null && recipeExtend.getFromFlag() == 0) {
                             //表示该处方来源于HIS
                             hisRecipeVO.setOrderStatusText("待支付");
-                            hisRecipeVO.setFromFlag(0);
+                            hisRecipeVO.setFromFlag(1);
                             result.add(hisRecipeVO);
                         } else {
                             //表示该处方来源于平台
                             hisRecipeVO.setOrderStatusText("待支付");
-                            hisRecipeVO.setFromFlag(1);
+                            hisRecipeVO.setFromFlag(0);
                             hisRecipeVO.setHisRecipeID(recipe.getRecipeId());
                             result.add(hisRecipeVO);
                         }
@@ -92,6 +100,9 @@ public class HisRecipeService {
             //表示查询已处理的处方
             for (HisRecipe hisRecipe : hisRecipes) {
                 HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipe, HisRecipeVO.class);
+                List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipe.getHisRecipeID());
+                List<HisRecipeDetailVO> hisRecipeDetailVOS = ObjectCopyUtils.convert(hisRecipeDetails, HisRecipeDetailVO.class);
+                hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
                 Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(hisRecipe.getRecipeCode(), organId);
                 if (recipe == null) {
                     //表示该处方单患者在his线下已完成
@@ -104,11 +115,11 @@ public class HisRecipeService {
                     hisRecipe.setOrderStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
                     if (StringUtils.isEmpty(recipe.getOrderCode())) {
                         if (recipeExtend != null && recipeExtend.getFromFlag() == 0) {
-                            hisRecipeVO.setFromFlag(0);
+                            hisRecipeVO.setFromFlag(1);
                             result.add(hisRecipeVO);
 
                         } else {
-                            hisRecipeVO.setFromFlag(1);
+                            hisRecipeVO.setFromFlag(0);
                             hisRecipeVO.setHisRecipeID(recipe.getRecipeId());
                             result.add(hisRecipeVO);
                         }
@@ -119,10 +130,7 @@ public class HisRecipeService {
                 }
             }
         }
-
-       Map<String, Object> map = new HashMap<>();
-       map.put("hisRecipe", result);
-       return map;
+       return result;
     }
 
     @RpcService
@@ -207,7 +215,7 @@ public class HisRecipeService {
             recipedetail.setRecipeId(recipeId);
             recipedetail.setDrugName(hisRecipeDetail.getDrugName());
             recipedetail.setDrugSpec(hisRecipeDetail.getDrugSpec());
-            recipedetail.setDrugUnit(hisRecipeDetail.getUnit());
+            recipedetail.setDrugUnit(hisRecipeDetail.getDrugUnit());
             recipedetail.setPack(hisRecipeDetail.getPack());
             recipedetail.setOrganDrugCode(hisRecipeDetail.getRecipeDeatilCode());
             if (StringUtils.isNotEmpty(hisRecipeDetail.getUseDose())) {
@@ -215,8 +223,8 @@ public class HisRecipeService {
             }
             recipedetail.setUsingRate(hisRecipeDetail.getUsingRate());
             recipedetail.setUsePathways(hisRecipeDetail.getUsePathways());
-            recipedetail.setUseTotalDose(hisRecipeDetail.getAmount().doubleValue());
-            recipedetail.setUseDays(hisRecipeDetail.getDays());
+            recipedetail.setUseTotalDose(hisRecipeDetail.getUseTotalDose().doubleValue());
+            recipedetail.setUseDays(hisRecipeDetail.getUseDays());
             recipedetail.setStatus(1);
             recipeDetailDAO.save(recipedetail);
         }

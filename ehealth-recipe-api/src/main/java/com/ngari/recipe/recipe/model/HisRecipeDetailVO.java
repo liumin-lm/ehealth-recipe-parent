@@ -1,24 +1,16 @@
-package com.ngari.recipe.entity;
+package com.ngari.recipe.recipe.model;
 
 import ctd.schema.annotation.ItemProperty;
-import ctd.schema.annotation.Schema;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-import static javax.persistence.GenerationType.IDENTITY;
-
 /**
  * @author yinsheng
- * @date 2020\3\10 0010 19:42
+ * @date 2020\3\12 0012 18:23
  */
-@Entity
-@Schema
-@Table(name = "cdr_his_recipedetail")
-@Access(AccessType.PROPERTY)
-public class HisRecipeDetail implements Serializable{
-    private static final long serialVersionUID = 7138123504454560980L;
+public class HisRecipeDetailVO implements Serializable{
+    private static final long serialVersionUID = -7771767746462020320L;
 
     @ItemProperty(alias = "处方详情序号")
     private Integer hisrecipedetailID; // int(11) NOT NULL AUTO_INCREMENT,
@@ -69,9 +61,6 @@ public class HisRecipeDetail implements Serializable{
     @ItemProperty(alias = "使用天数")
     private Integer useDays;
 
-    @Id
-    @GeneratedValue(strategy = IDENTITY)
-    @Column(name = "hisrecipedetailID", unique = true, nullable = false)
     public Integer getHisrecipedetailID() {
         return hisrecipedetailID;
     }
@@ -80,7 +69,6 @@ public class HisRecipeDetail implements Serializable{
         this.hisrecipedetailID = hisrecipedetailID;
     }
 
-    @Column(name = "hisRecipeId")
     public Integer getHisRecipeId() {
         return hisRecipeId;
     }
@@ -89,7 +77,6 @@ public class HisRecipeDetail implements Serializable{
         this.hisRecipeId = hisRecipeId;
     }
 
-    @Column(name = "recipeDeatilCode")
     public String getRecipeDeatilCode() {
         return recipeDeatilCode;
     }
@@ -98,7 +85,6 @@ public class HisRecipeDetail implements Serializable{
         this.recipeDeatilCode = recipeDeatilCode;
     }
 
-    @Column(name = "drugName")
     public String getDrugName() {
         return drugName;
     }
@@ -107,7 +93,6 @@ public class HisRecipeDetail implements Serializable{
         this.drugName = drugName;
     }
 
-    @Column(name = "saleName")
     public String getSaleName() {
         return saleName;
     }
@@ -116,7 +101,6 @@ public class HisRecipeDetail implements Serializable{
         this.saleName = saleName;
     }
 
-    @Column(name = "drugSpec")
     public String getDrugSpec() {
         return drugSpec;
     }
@@ -125,7 +109,6 @@ public class HisRecipeDetail implements Serializable{
         this.drugSpec = drugSpec;
     }
 
-    @Column(name = "licenseNumber")
     public String getLicenseNumber() {
         return licenseNumber;
     }
@@ -134,7 +117,6 @@ public class HisRecipeDetail implements Serializable{
         this.licenseNumber = licenseNumber;
     }
 
-    @Column(name = "standardCode")
     public String getStandardCode() {
         return standardCode;
     }
@@ -143,7 +125,6 @@ public class HisRecipeDetail implements Serializable{
         this.standardCode = standardCode;
     }
 
-    @Column(name = "producer")
     public String getProducer() {
         return producer;
     }
@@ -152,7 +133,6 @@ public class HisRecipeDetail implements Serializable{
         this.producer = producer;
     }
 
-    @Column(name = "producerCode")
     public String getProducerCode() {
         return producerCode;
     }
@@ -161,7 +141,6 @@ public class HisRecipeDetail implements Serializable{
         this.producerCode = producerCode;
     }
 
-    @Column(name = "useTotalDose")
     public BigDecimal getUseTotalDose() {
         return useTotalDose;
     }
@@ -170,7 +149,6 @@ public class HisRecipeDetail implements Serializable{
         this.useTotalDose = useTotalDose;
     }
 
-    @Column(name = "drugUnit")
     public String getDrugUnit() {
         return drugUnit;
     }
@@ -179,7 +157,6 @@ public class HisRecipeDetail implements Serializable{
         this.drugUnit = drugUnit;
     }
 
-    @Column(name = "useDose")
     public String getUseDose() {
         return useDose;
     }
@@ -188,7 +165,6 @@ public class HisRecipeDetail implements Serializable{
         this.useDose = useDose;
     }
 
-    @Column(name = "pack")
     public Integer getPack() {
         return pack;
     }
@@ -197,7 +173,6 @@ public class HisRecipeDetail implements Serializable{
         this.pack = pack;
     }
 
-    @Column(name = "price")
     public BigDecimal getPrice() {
         return price;
     }
@@ -206,7 +181,6 @@ public class HisRecipeDetail implements Serializable{
         this.price = price;
     }
 
-    @Column(name = "totalPrice")
     public BigDecimal getTotalPrice() {
         return totalPrice;
     }
@@ -215,7 +189,6 @@ public class HisRecipeDetail implements Serializable{
         this.totalPrice = totalPrice;
     }
 
-    @Column(name = "usingRate")
     public String getUsingRate() {
         return usingRate;
     }
@@ -224,7 +197,6 @@ public class HisRecipeDetail implements Serializable{
         this.usingRate = usingRate;
     }
 
-    @Column(name = "usePathways")
     public String getUsePathways() {
         return usePathways;
     }
@@ -233,7 +205,6 @@ public class HisRecipeDetail implements Serializable{
         this.usePathways = usePathways;
     }
 
-    @Column(name = "usingRateText")
     public String getUsingRateText() {
         return usingRateText;
     }
@@ -242,7 +213,6 @@ public class HisRecipeDetail implements Serializable{
         this.usingRateText = usingRateText;
     }
 
-    @Column(name = "usePathwaysText")
     public String getUsePathwaysText() {
         return usePathwaysText;
     }
@@ -251,7 +221,6 @@ public class HisRecipeDetail implements Serializable{
         this.usePathwaysText = usePathwaysText;
     }
 
-    @Column(name = "memo")
     public String getMemo() {
         return memo;
     }
@@ -260,7 +229,6 @@ public class HisRecipeDetail implements Serializable{
         this.memo = memo;
     }
 
-    @Column(name = "remark")
     public String getRemark() {
         return remark;
     }
@@ -269,7 +237,6 @@ public class HisRecipeDetail implements Serializable{
         this.remark = remark;
     }
 
-    @Column(name = "status")
     public Integer getStatus() {
         return status;
     }
@@ -278,7 +245,6 @@ public class HisRecipeDetail implements Serializable{
         this.status = status;
     }
 
-    @Column(name = "useDays")
     public Integer getUseDays() {
         return useDays;
     }
