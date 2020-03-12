@@ -322,4 +322,10 @@ public class HisRecipeService {
         }
         return tips;
     }
+
+    @RpcService
+    public Integer getCardType(Integer organId){
+        //卡类型 1 表示身份证  2 表示就诊卡
+        return 1;
+    }
 }
