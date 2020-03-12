@@ -132,6 +132,7 @@ public class HisRecipeService {
                         }
                     } else {
                         hisRecipeVO.setOrderCode(recipe.getOrderCode());
+                        hisRecipeVO.setFromFlag(recipe.getFromflag()==0?1:0);
                         hisRecipeVO.setJumpPageType(1);
                         result.add(hisRecipeVO);
                     }
