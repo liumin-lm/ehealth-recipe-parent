@@ -66,6 +66,8 @@ public class HisRecipeDetail implements Serializable{
     private String remark; // varchar(255) DEFAULT NULL COMMENT '说明',
     @ItemProperty(alias = "状态")
     private Integer status; // tinyint(1) DEFAULT NULL COMMENT '0 不可在互联网流转 1 可以流转',
+    @ItemProperty(alias = "使用天数")
+    private Integer days;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -274,5 +276,14 @@ public class HisRecipeDetail implements Serializable{
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    @Column(name = "days")
+    public Integer getDays() {
+        return days;
+    }
+
+    public void setDays(Integer days) {
+        this.days = days;
     }
 }
