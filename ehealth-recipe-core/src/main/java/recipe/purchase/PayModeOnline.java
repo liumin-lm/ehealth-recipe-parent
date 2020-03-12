@@ -335,6 +335,11 @@ public class PayModeOnline implements IPurchaseService {
             patientBaseInfo.setPatientID(recipe.getPatientID());
 
             UpdateTakeDrugWayReqTO updateTakeDrugWayReqTO = new UpdateTakeDrugWayReqTO();
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (null != recipeExtend){
+                updateTakeDrugWayReqTO.setRegisterId(recipeExtend.getRegisterID());
+            }
             updateTakeDrugWayReqTO.setPatientBaseInfo(patientBaseInfo);
             updateTakeDrugWayReqTO.setClinicOrgan(recipe.getClinicOrgan());
             //医院处方号

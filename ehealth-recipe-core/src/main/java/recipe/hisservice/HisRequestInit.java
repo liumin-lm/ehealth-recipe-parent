@@ -22,6 +22,7 @@ import com.ngari.patient.service.*;
 import com.ngari.recipe.entity.*;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -37,6 +38,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.*;
+import recipe.drugsenterprise.CommonRemoteService;
 import recipe.service.RecipeCheckService;
 import recipe.util.DateConversion;
 
@@ -548,6 +550,19 @@ public class HisRequestInit {
         }else {
             //默认走外配药方式
             requestTO.setTakeDrugsType("2");
+        }
+        if (StringUtils.isNotEmpty(recipe.getOrderCode())){
+            RecipeOrderDAO dao = DAOFactory.getDAO(RecipeOrderDAO.class);
+            RecipeOrder order = dao.getByOrderCode(recipe.getOrderCode());
+            if (order!=null){
+                //收货人
+                requestTO.setConsignee(order.getReceiver());
+                //联系电话
+                requestTO.setContactTel(order.getRecMobile());
+                //收货地址
+                CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
+                requestTO.setAddress(commonRemoteService.getCompleteAddress(order));
+            }
         }
         requestTO.setRecipeNo(recipe.getRecipeCode());
         requestTO.setRecipeType((null != recipe.getRecipeType()) ? Integer

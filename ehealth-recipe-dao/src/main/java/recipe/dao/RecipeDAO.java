@@ -150,6 +150,17 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                                          @DAOParam("clinicOrgan") Integer clinicOrgan);
 
     /**
+     * 根据订单编号及开放机构查询处方
+     *
+     * @param recipeCode
+     * @param clinicOrgan
+     * @return
+     */
+    @DAOMethod(sql = "from Recipe where recipeCode=:recipeCode and clinicOrgan=:clinicOrgan and fromflag in (1,2,0)")
+    public abstract Recipe getByHisRecipeCodeAndClinicOrgan(@DAOParam("recipeCode") String recipeCode,
+                                                         @DAOParam("clinicOrgan") Integer clinicOrgan);
+
+    /**
      * 查询所有处方
      *
      * @param recipeCode

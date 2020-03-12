@@ -88,6 +88,8 @@ public class HisRecipeVO implements Serializable{
     private String orderStatusText;
     @ItemProperty(alias = "处方来源")
     private Integer fromFlag;
+    @ItemProperty(alias = "订单号")
+    private String orderCode;
 
     public Integer getHisRecipeID() {
         return hisRecipeID;
@@ -383,5 +385,13 @@ public class HisRecipeVO implements Serializable{
 
     public void setFromFlag(Integer fromFlag) {
         this.fromFlag = fromFlag;
+    }
+
+    public String getOrderCode() {
+        return orderCode;
+    }
+
+    public void setOrderCode(String orderCode) {
+        this.orderCode = orderCode;
     }
 }

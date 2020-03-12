@@ -686,11 +686,9 @@ public class RecipeOrderService extends RecipeBaseService {
                 RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(firstRecipe.getRecipeId());
                 if (recipeExtend!=null){
-                    //上海六院使用预结算返回的应付金额
-                    if (firstRecipe.getClinicOrgan() == 1000899){
-                        if (StringUtils.isNotEmpty(recipeExtend.getPayAmount())){
-                            order.setActualPrice(new BigDecimal(recipeExtend.getPayAmount()).doubleValue());
-                        }
+                    //如果预结算返回自付金额不为空优先取这个金额做支付，保证能和his对账上
+                    if (StringUtils.isNotEmpty(recipeExtend.getPayAmount())) {
+                        order.setActualPrice(new BigDecimal(recipeExtend.getPayAmount()).doubleValue());
                     }
                     //预结算总金额
                     if (StringUtils.isNotEmpty(recipeExtend.getPreSettletotalAmount())){
