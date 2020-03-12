@@ -77,6 +77,7 @@ public class HisRecipeService {
                 if (recipe == null) {
                     hisRecipeVO.setOrderStatusText("待支付");
                     hisRecipeVO.setFromFlag(0);
+                    hisRecipeVO.setJumpPageType(0);
                     result.add(hisRecipeVO);
                 } else {
                     RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
@@ -85,11 +86,13 @@ public class HisRecipeService {
                             //表示该处方来源于HIS
                             hisRecipeVO.setOrderStatusText("待支付");
                             hisRecipeVO.setFromFlag(1);
+                            hisRecipeVO.setJumpPageType(0);
                             result.add(hisRecipeVO);
                         } else {
                             //表示该处方来源于平台
                             hisRecipeVO.setOrderStatusText("待支付");
                             hisRecipeVO.setFromFlag(0);
+                            hisRecipeVO.setJumpPageType(0);
                             hisRecipeVO.setHisRecipeID(recipe.getRecipeId());
                             result.add(hisRecipeVO);
                         }
@@ -108,6 +111,7 @@ public class HisRecipeService {
                     //表示该处方单患者在his线下已完成
                     hisRecipeVO.setOrderStatusText("已完成");
                     hisRecipeVO.setFromFlag(0);
+                    hisRecipeVO.setJumpPageType(0);
                     result.add(hisRecipeVO);
                 } else {
                     RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
@@ -116,15 +120,18 @@ public class HisRecipeService {
                     if (StringUtils.isEmpty(recipe.getOrderCode())) {
                         if (recipeExtend != null && recipeExtend.getFromFlag() == 0) {
                             hisRecipeVO.setFromFlag(1);
+                            hisRecipeVO.setJumpPageType(0);
                             result.add(hisRecipeVO);
 
                         } else {
                             hisRecipeVO.setFromFlag(0);
                             hisRecipeVO.setHisRecipeID(recipe.getRecipeId());
+                            hisRecipeVO.setJumpPageType(0);
                             result.add(hisRecipeVO);
                         }
                     } else {
                         hisRecipeVO.setOrderCode(recipe.getOrderCode());
+                        hisRecipeVO.setJumpPageType(1);
                         result.add(hisRecipeVO);
                     }
                 }

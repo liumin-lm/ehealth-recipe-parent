@@ -91,6 +91,7 @@ public class HisRecipeVO implements Serializable{
     private Integer fromFlag;
     @ItemProperty(alias = "订单号")
     private String orderCode;
+    private Integer jumpPageType;
     @ItemProperty(alias = "药品详情")
     private List<HisRecipeDetailVO> recipeDetail;
 
@@ -404,5 +405,13 @@ public class HisRecipeVO implements Serializable{
 
     public void setRecipeDetail(List<HisRecipeDetailVO> recipeDetail) {
         this.recipeDetail = recipeDetail;
+    }
+
+    public Integer getJumpPageType() {
+        return jumpPageType;
+    }
+
+    public void setJumpPageType(Integer jumpPageType) {
+        this.jumpPageType = jumpPageType;
     }
 }
