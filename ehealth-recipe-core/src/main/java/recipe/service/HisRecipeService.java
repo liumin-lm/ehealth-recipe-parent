@@ -4,6 +4,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.HisRecipeDetailVO;
 import com.ngari.recipe.recipe.model.HisRecipeVO;
+import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
@@ -214,11 +215,13 @@ public class HisRecipeService {
 
     private void savaRecipeDetail(Integer recipeId, HisRecipe hisRecipe) {
         List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipe.getHisRecipeID());
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
         if (CollectionUtils.isNotEmpty(recipedetails)) {
             return;
         }
         for (HisRecipeDetail hisRecipeDetail : hisRecipeDetails) {
+            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(hisRecipeDetail.getRecipeDeatilCode()));
             Recipedetail recipedetail = new Recipedetail();
             recipedetail.setRecipeId(recipeId);
             recipedetail.setDrugName(hisRecipeDetail.getDrugName());
@@ -228,6 +231,9 @@ public class HisRecipeService {
             recipedetail.setOrganDrugCode(hisRecipeDetail.getRecipeDeatilCode());
             if (StringUtils.isNotEmpty(hisRecipeDetail.getUseDose())) {
                 recipedetail.setUseDose(Double.parseDouble(hisRecipeDetail.getUseDose()));
+            }
+            if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                recipedetail.setDrugId(organDrugLists.get(0).getDrugId());
             }
             recipedetail.setUsingRate(hisRecipeDetail.getUsingRate());
             recipedetail.setUsePathways(hisRecipeDetail.getUsePathways());
