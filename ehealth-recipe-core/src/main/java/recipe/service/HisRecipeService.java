@@ -156,6 +156,7 @@ public class HisRecipeService {
         map.put("hisRecipeDetails", hisRecipeDetails);
         List<HisRecipeExt> hisRecipeExts = hisRecipeExtDAO.findByHisRecipeId(hisRecipeId);
         map.put("hisRecipeExts", hisRecipeExts);
+        map.put("showText", hisRecipe.getShowText());
         return map;
     }
 
