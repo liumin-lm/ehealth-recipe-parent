@@ -1868,7 +1868,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                         "t.MPIID as mpiId,t.OrganDiseaseName as diseaseName,(case when (t.reviewType = 1 and t.checkStatus = 1 and t.status = 15) then 8 else t.Status end) as Status,t.TotalMoney as fee," +
                         "t.SignDate as recordDate,t.RecipeType as recipeType,t.ClinicOrgan as organId,t.recipeMode as recipeMode,t.giveMode as giveMode, t.recipeSource as recipeSource FROM cdr_recipe t " +
                         "left join cdr_recipeorder k on t.OrderCode=k.OrderCode ");
-                hql.append("WHERE t.MPIID IN (:mpiIdList) and (k.Effective is null or k.Effective = 0) ");
+                hql.append("WHERE t.MPIID IN (:mpiIdList) and (k.Effective is null or k.Effective = 0) and t.fromFlag != 0 ");
                 //添加前置的逻辑：前置时，一次审核不通过，处方判定为待审核，需要在待处理列表中，显示状态为待处理
                 if("ongoing".equals(tabStatus)){
                     //进行中：加入前置一次审核不通过的作为待审核的处方
@@ -1893,12 +1893,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                             "t.MPIID as mpiId,t.OrganDiseaseName as diseaseName,t.Status,(case when k.Effective is null then t.TotalMoney else k.ActualPrice end) as fee," +
                             "t.SignDate as recordDate,t.RecipeType as recipeType,t.ClinicOrgan as organId,t.recipeMode as recipeMode,t.giveMode as giveMode, t.recipeSource as recipeSource FROM cdr_recipe t " +
                             "left join cdr_recipeorder k on t.OrderCode=k.OrderCode "+
-                            "WHERE t.MpiId IN (:mpiIdList) and t.Status IN (:specialStatusList)");
+                            "WHERE t.MpiId IN (:mpiIdList) and t.Status IN (:specialStatusList) and t.fromFlag != 0 ");
                 }else{
                     hql.append("SELECT 2 as type,o.CouponId as couponId, 0 as medicalPayFlag, " +
                             "o.OrderCode as recordCode,o.OrderId as recordId,o.MpiId as mpiId,'' as diseaseName," +
                             "o.Status,o.ActualPrice as fee,o.CreateTime as recordDate,0 as recipeType, o.OrganId, 'ngarihealth' as recipeMode,w.GiveMode AS giveMode, w.recipeSource as recipeSource FROM cdr_recipeorder o JOIN cdr_recipe w ON o.OrderCode = w.OrderCode " +
-                            "AND o.MpiId IN (:mpiIdList) and o.Effective = 1 and o.Status IN (:orderStatusList)");
+                            "AND o.MpiId IN (:mpiIdList) and o.Effective = 1 and o.Status IN (:orderStatusList) and w.fromFlag != 0 ");
 
                 }
                 //添加下载处方的状态o
