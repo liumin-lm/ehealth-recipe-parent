@@ -1505,6 +1505,8 @@ public class RecipeOrderService extends RecipeBaseService {
                         attrMap.put("payTime", Calendar.getInstance().getTime());
                         attrMap.put("status", payStatus);
                         attrMap.put("effective", 1);
+                        //退款标记
+                        attrMap.put("refundFlag",0);
                         //date 20191017
                         //添加使用优惠券(支付后释放)
                         useCoupon(nowRecipe, payMode);

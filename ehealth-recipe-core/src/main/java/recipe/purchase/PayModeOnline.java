@@ -407,6 +407,10 @@ public class PayModeOnline implements IPurchaseService {
                     if (orderStatus == OrderStatusConstant.READY_SEND) {
                         tips = "订单已处理，请耐心等待药品配送";
                     }
+                    //退款refundFlag
+                    if (orderStatus == OrderStatusConstant.READY_PAY && new Integer(1).equals(order.getRefundFlag())) {
+                        tips = "订单结算失败，费用已为您原路返回";
+                    }
                 }
                 break;
             case RecipeStatusConstant.WAIT_SEND:
