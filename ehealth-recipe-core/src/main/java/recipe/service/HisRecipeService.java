@@ -218,6 +218,7 @@ public class HisRecipeService {
         recipe.setDoctor(Integer.parseInt(hisRecipe.getDoctorCode()));
         recipe.setDoctorName(hisRecipe.getDoctorName());
         recipe.setCreateDate(hisRecipe.getCreateDate());
+        recipe.setSignDate(hisRecipe.getCreateDate());
         recipe.setOrganDiseaseName(hisRecipe.getDiseaseName());
         recipe.setOrganDiseaseId(hisRecipe.getDisease());
         recipe.setTotalMoney(hisRecipe.getRecipeFee());
