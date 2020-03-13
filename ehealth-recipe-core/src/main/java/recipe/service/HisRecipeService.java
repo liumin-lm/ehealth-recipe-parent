@@ -78,7 +78,7 @@ public class HisRecipeService {
                 Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(hisRecipe.getRecipeCode(), organId);
                 if (recipe == null) {
                     hisRecipeVO.setOrderStatusText("待支付");
-                    hisRecipeVO.setFromFlag(0);
+                    hisRecipeVO.setFromFlag(1);
                     hisRecipeVO.setJumpPageType(0);
                     result.add(hisRecipeVO);
                 } else {
