@@ -28,6 +28,10 @@ public class CommonCAFactory {
         LOGGER.info("useCAFunction start in organId={}", organId);
         IConfigurationCenterUtilsService configurationService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
         String thirdCASign = (String) configurationService.getConfiguration(organId, "thirdCASign");
+        if (1000899 == organId) {
+            LOGGER.info("上海6院特殊处理 useCAFunction organId={}进入的CA是 CA_TYPE_SHANGHAI={}", organId,CA_TYPE_SHANGHAI);
+            return new ShanghaiCAImpl();
+        }
         LOGGER.info("useCAFunction thirdCASign={}", thirdCASign);
         //陕西CA
         if (CA_TYPE_SHANXI.equals(thirdCASign)) {
