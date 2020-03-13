@@ -121,7 +121,7 @@ public class HisRecipeService {
                 } else {
                     RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                     RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-                    hisRecipe.setOrderStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
+                    hisRecipeVO.setOrderStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
                     if (StringUtils.isEmpty(recipe.getOrderCode())) {
                         if (recipeExtend != null && recipeExtend.getFromFlag() == 0) {
                             hisRecipeVO.setFromFlag(1);
