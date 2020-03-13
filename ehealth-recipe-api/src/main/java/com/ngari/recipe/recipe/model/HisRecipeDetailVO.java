@@ -60,6 +60,7 @@ public class HisRecipeDetailVO implements Serializable{
     private Integer status; // tinyint(1) DEFAULT NULL COMMENT '0 不可在互联网流转 1 可以流转',
     @ItemProperty(alias = "使用天数")
     private Integer useDays;
+    private String drugForm;
 
     public Integer getHisrecipedetailID() {
         return hisrecipedetailID;
@@ -251,5 +252,13 @@ public class HisRecipeDetailVO implements Serializable{
 
     public void setUseDays(Integer useDays) {
         this.useDays = useDays;
+    }
+
+    public String getDrugForm() {
+        return drugForm;
+    }
+
+    public void setDrugForm(String drugForm) {
+        this.drugForm = drugForm;
     }
 }

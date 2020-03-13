@@ -18,6 +18,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 /**
@@ -96,6 +97,8 @@ public class HisRecipeService {
                             hisRecipeVO.setFromFlag(0);
                             hisRecipeVO.setJumpPageType(0);
                             hisRecipeVO.setHisRecipeID(recipe.getRecipeId());
+                            List<HisRecipeDetailVO> recipeDetailVOS = getHisRecipeDetailVOS(recipe);
+                            hisRecipeVO.setRecipeDetail(recipeDetailVOS);
                             result.add(hisRecipeVO);
                         }
                     }
@@ -128,12 +131,18 @@ public class HisRecipeService {
                         } else {
                             hisRecipeVO.setFromFlag(0);
                             hisRecipeVO.setHisRecipeID(recipe.getRecipeId());
+                            List<HisRecipeDetailVO> recipeDetailVOS = getHisRecipeDetailVOS(recipe);
+                            hisRecipeVO.setRecipeDetail(recipeDetailVOS);
                             hisRecipeVO.setJumpPageType(0);
                             result.add(hisRecipeVO);
                         }
                     } else {
                         hisRecipeVO.setOrderCode(recipe.getOrderCode());
                         hisRecipeVO.setFromFlag(recipe.getFromflag()==0?1:0);
+                        if (recipe.getFromflag() != 0) {
+                            List<HisRecipeDetailVO> recipeDetailVOS = getHisRecipeDetailVOS(recipe);
+                            hisRecipeVO.setRecipeDetail(recipeDetailVOS);
+                        }
                         hisRecipeVO.setJumpPageType(1);
                         result.add(hisRecipeVO);
                     }
@@ -141,6 +150,22 @@ public class HisRecipeService {
             }
         }
        return result;
+    }
+
+    private List<HisRecipeDetailVO> getHisRecipeDetailVOS(Recipe recipe) {
+        List<HisRecipeDetailVO> recipeDetailVOS = new ArrayList<>();
+        List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+        for (Recipedetail recipedetail : recipedetails) {
+            HisRecipeDetailVO hisRecipeDetailVO = new HisRecipeDetailVO();
+            hisRecipeDetailVO.setDrugName(recipedetail.getDrugName());
+            hisRecipeDetailVO.setDrugSpec(recipedetail.getDrugSpec());
+            hisRecipeDetailVO.setDrugUnit(recipedetail.getDrugUnit());
+            hisRecipeDetailVO.setPack(recipedetail.getPack());
+            hisRecipeDetailVO.setDrugForm(recipedetail.getDrugForm());
+            hisRecipeDetailVO.setUseTotalDose(new BigDecimal(recipedetail.getUseTotalDose()));
+            recipeDetailVOS.add(hisRecipeDetailVO);
+        }
+        return recipeDetailVOS;
     }
 
     @RpcService
