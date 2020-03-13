@@ -8,6 +8,9 @@ import recipe.ca.CAInterface;
 import recipe.ca.impl.ShanghaiCAImpl;
 import recipe.ca.impl.ShanxiCAImpl;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * 根据不同的机构获取机构对应的实现
  * CA工厂类
@@ -15,6 +18,12 @@ import recipe.ca.impl.ShanxiCAImpl;
 public class CommonCAFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonCAFactory.class);
+
+    /**
+     * 运营平台机构CA配置
+     */
+    private static final String THIRD_CA_SIGN = "thirdCASign";
+
     /**
      * 陕西CA
      */
@@ -24,27 +33,30 @@ public class CommonCAFactory {
      */
     private static final String CA_TYPE_SHANGHAI= "shanghaiCA";
 
-    public CAInterface useCAFunction(Integer organId) {
-        LOGGER.info("useCAFunction start in organId={}", organId);
-        IConfigurationCenterUtilsService configurationService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-        String thirdCASign = (String) configurationService.getConfiguration(organId, "thirdCASign");
-        if (1000899 == organId) {
-            LOGGER.info("上海6院特殊处理 useCAFunction organId={}进入的CA是 CA_TYPE_SHANGHAI={}", organId,CA_TYPE_SHANGHAI);
-            return new ShanghaiCAImpl();
-        }
-        LOGGER.info("useCAFunction thirdCASign={}", thirdCASign);
-        //陕西CA
-        if (CA_TYPE_SHANXI.equals(thirdCASign)) {
-            LOGGER.info("useCAFunction organId={}进入的CA是 CA_TYPE_SHANXI={}", organId,CA_TYPE_SHANXI);
-            return new ShanxiCAImpl();
-        //上海CA
-        } else if (CA_TYPE_SHANGHAI.equals(thirdCASign)) {
-            LOGGER.info("useCAFunction organId={}进入的CA是 CA_TYPE_SHANGHAI={}", organId,CA_TYPE_SHANGHAI);
-            return new ShanghaiCAImpl();
-        } else {
-            LOGGER.info("没有找到对应的CA配置，请检查运营平台的配置是否正确thirdCASign=", thirdCASign);
-            return null;
-        }
+    private static final Map<String, CAInterface> map = new HashMap<>();
+
+    static {
+        map.put(CA_TYPE_SHANXI, new ShanxiCAImpl());
+        map.put(CA_TYPE_SHANGHAI, new ShanghaiCAImpl());
     }
+
+   public CAInterface useCAFunction(Integer organId) {
+        try {
+            IConfigurationCenterUtilsService configurationService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+            String thirdCASign = (String) configurationService.getConfiguration(organId, THIRD_CA_SIGN);
+            //上海儿童特殊处理
+            if (1000899 == organId) {
+                thirdCASign = CA_TYPE_SHANGHAI;
+            }
+            LOGGER.info("useCAFunction in organId ={} ,CA 模式 ={}", organId, thirdCASign);
+            return map.get(thirdCASign);
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOGGER.error("useCAFunction in organId ={} ,获取CA机构配置异常",organId);
+
+        }
+        return null;
+    }
+
 
 }
