@@ -79,7 +79,7 @@ public class HisRecipeService {
                 hisRecipeVO.setOrganDiseaseName(hisRecipe.getDiseaseName());
                 Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(hisRecipe.getRecipeCode(), organId);
                 if (recipe == null) {
-                    hisRecipeVO.setStatusText("待支付");
+                    hisRecipeVO.setOrderStatusText("待支付");
                     hisRecipeVO.setFromFlag(1);
                     hisRecipeVO.setJumpPageType(0);
                     result.add(hisRecipeVO);
@@ -88,13 +88,13 @@ public class HisRecipeService {
                     if (StringUtils.isEmpty(recipe.getOrderCode())) {
                         if (recipeExtend != null && recipeExtend.getFromFlag() == 0) {
                             //表示该处方来源于HIS
-                            hisRecipeVO.setStatusText("待支付");
+                            hisRecipeVO.setOrderStatusText("待支付");
                             hisRecipeVO.setFromFlag(1);
                             hisRecipeVO.setJumpPageType(0);
                             result.add(hisRecipeVO);
                         } else {
                             //表示该处方来源于平台
-                            hisRecipeVO.setStatusText("待支付");
+                            hisRecipeVO.setOrderStatusText("待支付");
                             hisRecipeVO.setFromFlag(0);
                             hisRecipeVO.setJumpPageType(0);
                             hisRecipeVO.setOrganDiseaseName(recipe.getOrganDiseaseName());
@@ -117,6 +117,7 @@ public class HisRecipeService {
                 if (recipe == null) {
                     //表示该处方单患者在his线下已完成
                     hisRecipeVO.setStatusText("已完成");
+                    hisRecipeVO.setOrderStatusText("已完成");
                     hisRecipeVO.setFromFlag(0);
                     hisRecipeVO.setJumpPageType(0);
                     result.add(hisRecipeVO);
