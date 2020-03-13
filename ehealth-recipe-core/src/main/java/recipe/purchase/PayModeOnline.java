@@ -304,12 +304,39 @@ public class PayModeOnline implements IPurchaseService {
             nowRecipe.setChooseFlag(1);
             recipeDAO.update(nowRecipe);
         }
+        updateRecipeDetail(recipeId);
         //选择配送到家后调用更新取药方式-配送信息
         RecipeBusiThreadPool.submit(()->{
             updateGoodsReceivingInfo(dbRecipe.getRecipeId());
             return null;
         });
         return result;
+    }
+
+    private void updateRecipeDetail(Integer recipeId) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        if (recipe.getEnterpriseId() != null) {
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
+            for (Recipedetail recipedetail : recipedetails) {
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
+                LOG.info("PayModeOnline.updateRecipeDetail recipeId:{},saleDrugList:{}.", recipeId, JSONUtils.toString(saleDrugList));
+                if (saleDrugList != null) {
+                    recipedetail.setActualSalePrice(saleDrugList.getPrice());
+                    if (StringUtils.isEmpty(saleDrugList.getOrganDrugCode())) {
+                        recipedetail.setSaleDrugCode(saleDrugList.getDrugId()+"");
+                    } else {
+                        recipedetail.setSaleDrugCode(saleDrugList.getOrganDrugCode());
+                    }
+                }
+                recipeDetailDAO.update(recipedetail);
+            }
+        }
+
     }
 
     private void updateGoodsReceivingInfo(Integer recipeId) {
