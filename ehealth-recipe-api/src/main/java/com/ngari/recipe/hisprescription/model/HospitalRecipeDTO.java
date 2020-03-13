@@ -70,7 +70,7 @@ public class HospitalRecipeDTO implements Serializable {
     @Verify(desc = "处方类型", isInt = true)
     private String recipeType;
 
-    @Verify(desc = "科室名称")
+    @Verify(isNotNull = false,desc = "科室名称")
     private String departName;
 
     @Verify(desc = "开方科室")
