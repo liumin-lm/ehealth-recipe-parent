@@ -258,7 +258,7 @@ public class HisRecipe implements Serializable {
         this.doctorName = doctorName;
     }
 
-    @Column(name = "CreateDate")
+    @Column(name = "createDate")
     public Date getCreateDate() {
         return createDate;
     }
