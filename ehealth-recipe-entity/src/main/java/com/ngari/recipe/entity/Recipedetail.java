@@ -162,6 +162,12 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias = "生产厂家代码")
 	private String producerCode;
 
+	@ItemProperty(alias = "实际销售价格")
+	private BigDecimal actualSalePrice;
+
+	@ItemProperty(alias = "药企药品编码")
+	private String saleDrugCode;
+
 
 
 
@@ -608,5 +614,23 @@ public class Recipedetail implements java.io.Serializable {
 
 	public void setDrugForm(String drugForm) {
 		this.drugForm = drugForm;
+	}
+
+	@Column(name = "actualSalePrice")
+	public BigDecimal getActualSalePrice() {
+		return actualSalePrice;
+	}
+
+	public void setActualSalePrice(BigDecimal actualSalePrice) {
+		this.actualSalePrice = actualSalePrice;
+	}
+
+	@Column(name = "saleDrugCode")
+	public String getSaleDrugCode() {
+		return saleDrugCode;
+	}
+
+	public void setSaleDrugCode(String saleDrugCode) {
+		this.saleDrugCode = saleDrugCode;
 	}
 }
