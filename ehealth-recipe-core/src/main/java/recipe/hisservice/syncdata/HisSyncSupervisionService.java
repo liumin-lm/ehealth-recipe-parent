@@ -292,6 +292,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
             req.setIcdCode(recipe.getOrganDiseaseId().replaceAll("；", "|"));
             req.setIcdName(organDiseaseName);
+            //诊断备注
+            req.setMemo(recipe.getMemo());
             req.setRecipeType(recipe.getRecipeType().toString());
             req.setPacketsNum(recipe.getCopyNum());
             req.setDatein(recipe.getSignDate());
