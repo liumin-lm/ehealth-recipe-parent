@@ -44,6 +44,10 @@ public class CommonCAFactory {
         try {
             IConfigurationCenterUtilsService configurationService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
             String thirdCASign = (String) configurationService.getConfiguration(organId, THIRD_CA_SIGN);
+            //上海儿童特殊处理
+            if (1000899 == organId) {
+                thirdCASign = CA_TYPE_SHANGHAI;
+            }
             LOGGER.info("useCAFunction in organId ={} ,CA 模式 ={}", organId, thirdCASign);
             return map.get(thirdCASign);
         } catch (Exception e) {

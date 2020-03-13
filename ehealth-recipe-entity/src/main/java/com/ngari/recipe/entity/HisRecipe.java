@@ -264,7 +264,7 @@ public class HisRecipe implements Serializable {
     }
 
     public void setCreateDate(Date createDate) {
-        createDate = createDate;
+        this.createDate = createDate;
     }
 
     @Column(name = "disease")
@@ -419,4 +419,6 @@ public class HisRecipe implements Serializable {
     public void setFromFlag(Integer fromFlag) {
         this.fromFlag = fromFlag;
     }
+
+
 }
