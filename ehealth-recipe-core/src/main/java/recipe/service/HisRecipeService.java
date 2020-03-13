@@ -222,6 +222,8 @@ public class HisRecipeService {
         recipe.setOrganDiseaseName(hisRecipe.getDiseaseName());
         recipe.setOrganDiseaseId(hisRecipe.getDisease());
         recipe.setTotalMoney(hisRecipe.getRecipeFee());
+        recipe.setActualPrice(hisRecipe.getRecipeFee());
+        recipe.setMemo(hisRecipe.getMemo()==null?"无":hisRecipe.getMemo());
         recipe.setPayFlag(0);
         recipe.setStatus(2);
         recipe.setReviewType(0);
