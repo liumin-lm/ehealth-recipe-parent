@@ -1,32 +1,27 @@
 package recipe.service;
 
 import com.google.common.collect.Maps;
-import com.ngari.base.BaseAPI;
 import com.ngari.base.esign.service.IESignBaseService;
-import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.ca.model.*;
-import com.ngari.his.ca.service.ICaHisService;
-import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.service.DoctorService;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import ctd.mvc.upload.FileMetaRecord;
 import ctd.mvc.upload.FileService;
+import ctd.mvc.upload.exception.FileRegistryException;
+import ctd.mvc.upload.exception.FileRepositoryException;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
-import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcService;
 import eh.base.constant.ErrorCode;
+import org.bouncycastle.util.encoders.Base64;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import sun.misc.BASE64Decoder;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+
+import java.io.*;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -59,34 +54,91 @@ public class RecipeServiceEsignExt {
         if (null == recipeId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeId is null");
         }
-        RecipeBean recipe = recipeService.getByRecipeId(recipeId);
-        List<RecipeDetailBean> details = recipeService.findRecipeDetailsByRecipeId(recipeId);
         //组装生成pdf的参数
-        String fileName = "recipe_" + recipeId + ".pdf";
-        recipe.setSignDate(DateTime.now().toDate());
-        Map<String, Object> paramMap = recipeService.createRecipeParamMapForPDF(recipe.getRecipeType(),recipe,details,fileName);
-        String pdf = esignService.createSignRecipePDF(paramMap);
-        //中药
-        if (TCM_TEMPLATETYPE.equals(recipe.getRecipeType())) {
-            //医生还是药师
-            if (isDoctor) {
+        String fileName;
+        RecipeBean recipe = recipeService.getByRecipeId(recipeId);
+        String pdf;
+        if (isDoctor) {
+            fileName = "recipe_" + recipeId + ".pdf";
+            List<RecipeDetailBean> details = recipeService.findRecipeDetailsByRecipeId(recipeId);
+            recipe.setSignDate(DateTime.now().toDate());
+            Map<String, Object> paramMap = recipeService.createRecipeParamMapForPDF(recipe.getRecipeType(), recipe, details, fileName);
+            pdf = esignService.createSignRecipePDF(paramMap);
+            //中药
+            if (TCM_TEMPLATETYPE.equals(recipe.getRecipeType())) {
                 caBean.setLeftX(55);
                 caBean.setLeftY(370);
+            //西药
             } else {
-                caBean.setLeftX(390);
-                caBean.setLeftY(30);
-            }
-        //西药
-        } else {
-            //医生还是药师
-            if (isDoctor) {
                 caBean.setLeftX(320);
                 caBean.setLeftY(735);
-            } else{
+            }
+        } else {
+            //药师签名
+            //先下载oss服务器上的签名文件
+            InputStream is = null;
+            BufferedInputStream bis = null;
+            ByteArrayOutputStream out = null;
+            byte[] byteData = null;
+            FileService fileService = AppContextHolder.getBean("fileService", FileService.class);
+            try {
+                FileMetaRecord fileMetaRecord = fileService.getRegistry().load(recipe.getSignFile());
+                if (null != fileMetaRecord) {
+                    is = fileService.getRepository().readAsStream(fileMetaRecord);
+                    bis = new BufferedInputStream(is);
+                }
+                if (null != bis) {
+                    byte[] byteArray = new byte[1024];
+                    int len = 0;
+                    out = new ByteArrayOutputStream();
+                    while ((len = bis.read(byteArray)) != -1) {
+                        out.write(byteArray, 0, len);
+                    }
+                    byteData = out.toByteArray();
+                }
+            } catch (FileRegistryException e) {
+                LOGGER.error("RecipeServiceEsignExt download signFile occur FileRegistryException signFileId=" + recipe.getSignFile());
+            } catch (FileRepositoryException e) {
+                LOGGER.error("RecipeServiceEsignExt download signFile occur FileRepositoryException signFileId=" + recipe.getSignFile());
+            } catch (IOException e) {
+                LOGGER.error("RecipeServiceEsignExt download signFile occur IOException signFileId=" + recipe.getSignFile());
+            } finally {
+                if (null != bis) {
+                    try {
+                        bis.close();
+                    } catch (IOException e) {
+                        LOGGER.error("BeansException copyProperties error.", e);
+                    }
+                }
+                if (null != is) {
+                    try {
+                        is.close();
+                    } catch (IOException e) {
+                        LOGGER.error("BeansException copyProperties error.", e);
+                    }
+                }
+                if (null != out) {
+                    try {
+                        out.close();
+                    } catch (IOException e) {
+                        LOGGER.error("BeansException copyProperties error.", e);
+                    }
+                }
+            }
+
+            pdf = new String(Base64.encode(byteData));
+            fileName = "recipecheck_" + recipeId + ".pdf";
+            //中药
+            if (TCM_TEMPLATETYPE.equals(recipe.getRecipeType())) {
+                caBean.setLeftX(390);
+                caBean.setLeftY(30);
+            //西药
+            } else {
                 caBean.setLeftX(500);
                 caBean.setLeftY(90);
             }
         }
+
         caBean.setSealHeight(40);
         caBean.setSealWidth(40);
         caBean.setPage(1);
@@ -106,52 +158,51 @@ public class RecipeServiceEsignExt {
     public static String saveSignRecipePDF(String pdfBase64,Integer recipeId, String loginId,String signCADate,
                                     String signRecipeCode,Boolean isDoctor){
         LOGGER.info("saveSignRecipePDF start in pdfBase64={}, recipeId={}, loginId={},signCADate={},signRecipeCode={},isDoctor={}",
-                pdfBase64,recipeId,loginId,signCADate,signRecipeCode,isDoctor);
+                pdfBase64, recipeId, loginId, signCADate, signRecipeCode, isDoctor);
         String fileId = null;
-        Map<String, Object> attrMap = Maps.newHashMap();
-        attrMap.put("signDate", new Date());
-        if(isDoctor) {
-            //医生签名时间戳
-            attrMap.put("signCADate", signCADate);
-            //医生签名值
-            attrMap.put("signRecipeCode", signRecipeCode);
-        } else {
-            //药师签名时间戳
-            attrMap.put("signPharmacistCADate",signCADate);
-            //药师签名值
-            attrMap.put("signPharmacistCode",signRecipeCode);
-        }
-        //保存签名值
-        boolean upResult = recipeService.updateRecipeInfoByRecipeId(recipeId, attrMap);
+        try {
 
-        LOGGER.info("saveSignRecipePDF 保存签名  upResult={}", upResult);
-
-        if (null != pdfBase64) {
-            //组装生成pdf的参数
-            String fileName = "recipe_" + recipeId + ".pdf";
-            BASE64Decoder d = new BASE64Decoder();
-            byte[] data = new byte[0];
-            try {
-                data = d.decodeBuffer(pdfBase64);
-            } catch (IOException e) {
-                e.printStackTrace();
+            Map<String, Object> attrMap = Maps.newHashMap();
+            attrMap.put("signDate", new Date());
+            if (isDoctor) {
+                //医生签名时间戳
+                attrMap.put("signCADate", signCADate);
+                //医生签名值
+                attrMap.put("signRecipeCode", signRecipeCode);
+            } else {
+                //药师签名时间戳
+                attrMap.put("signPharmacistCADate", signCADate);
+                //药师签名值
+                attrMap.put("signPharmacistCode", signRecipeCode);
             }
-            fileId = uploadRecipeSignFile(data, fileName, loginId);
-            attrMap.put("signFile", fileId);
-            if (null == fileId) {
-                LOGGER.info( "上传文件失败,fileName=" + fileName);
-                return "fail";
+            //保存签名值
+            boolean upResult = recipeService.updateRecipeInfoByRecipeId(recipeId, attrMap);
+            LOGGER.info("saveSignRecipePDF 保存签名  upResult={}", upResult);
+            if (null != pdfBase64) {
+                //组装生成pdf的参数
+                String fileName = "recipe_" + recipeId + ".pdf";
+                BASE64Decoder d = new BASE64Decoder();
+                byte[] data = new byte[0];
+                try {
+                    data = d.decodeBuffer(pdfBase64);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                fileId = uploadRecipeSignFile(data, fileName, loginId);
+                if (null == fileId) {
+                    LOGGER.info("上传文件失败,fileName=" + fileName);
+                }
             }
-             upResult = recipeService.updateRecipeInfoByRecipeId(recipeId, attrMap);
+            if (upResult) {
+                LOGGER.info("saveSignRecipePDF 保存签名值、时间戳、签章文件成功. fileId={}, recipeId={}", fileId, recipeId);
+            } else {
+                LOGGER.info("saveSignRecipePDF 保存签名值、时间、签章文件失败. fileId={}, recipeId={}", fileId, recipeId);
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+            return null;
         }
-        if (upResult) {
-            LOGGER.info("saveSignRecipePDF 保存签名值、时间戳、签章文件成功. fileId={}, recipeId={}", fileId, recipeId);
-        } else  {
-            LOGGER.info("saveSignRecipePDF 保存签名值、时间、签章文件失败. fileId={}, recipeId={}", fileId, recipeId);
-            return "fail";
-        }
-
-        return "success";
+        return fileId;
     }
 
     /**

@@ -559,12 +559,13 @@ public class RecipeService extends RecipeBaseService{
                     String recipeFileId = MapValueUtil.getString(backMap, "fileId");
                     bl = recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.<String, Object>of("chemistSignFile", recipeFileId));
                 } else if (Integer.valueOf(2).equals(code)) {
-                    LOGGER.info("generateRecipePdfAndSign 签名成功. 高州CA模式, recipeId={}", recipe.getRecipeId());
+                    LOGGER.info("reviewRecipe 签名成功. 高州CA模式, recipeId={}", recipe.getRecipeId());
+                    bl = true;
                 } else if (Integer.valueOf(100).equals(code)){
-                    LOGGER.info("generateRecipePdfAndSign 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
+                    LOGGER.info("reviewRecipe 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
                     try {
                         String loginId = MapValueUtil.getString(backMap, "loginId");
-                        Integer organId = MapValueUtil.getInteger(paramMap, "organId");
+                        Integer organId = recipe.getClinicOrgan();
                         DoctorDTO doctorDTOn = doctorService.getByDoctorId(recipe.getDoctor());
                         String userAccount = doctorDTOn.getIdNumber();
                         String caPassword= "";
@@ -583,21 +584,24 @@ public class RecipeService extends RecipeBaseService{
                         } else {
                             requestSealTO.setSealBase64Str("");
                         }
-
                         CommonCAFactory caFactory = new CommonCAFactory();
                         //通过工厂获取对应的实现CA类
                         CAInterface caInterface = caFactory.useCAFunction(organId);
                         CaSignResultVo resultVo =  caInterface.commonCASignAndSeal(requestSealTO,recipe, organId, userAccount, caPassword);
                         //保存签名值、时间戳、电子签章文件
-                        RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId,resultVo.getSignCADate(),
-                                resultVo.getSignRecipeCode(), false);
+                        String recipeFileId = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId,
+                                loginId,resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false);
+                        if (null != recipeFileId) {
+                            bl = recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.<String, Object>of("chemistSignFile", recipeFileId));
+                        } else{
+                            bl = false;
+                        }
                     } catch (Exception e){
-                        LOGGER.error("generateRecipePdfAndSign 标准化CA签章报错 recipeId={} ,doctor={} ,e={}============="
+                        LOGGER.error("reviewRecipe  signFile 标准化CA签章报错 recipeId={} ,doctor={} ,e={}============="
                                 , recipeId,recipe.getDoctor(), e);
                     }
                     //标准化CA进行签名、签章==========================end=====
                 } else {
-
                     LOGGER.error("reviewRecipe signFile error. recipeId={}, result={}", recipeId, JSONUtils.toString(backMap));
                     errorMsg = JSONUtils.toString(backMap);
                     bl = false;
@@ -739,7 +743,7 @@ public class RecipeService extends RecipeBaseService{
             LOGGER.info("generateRecipePdfAndSign 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
             try {
                 String loginId = MapValueUtil.getString(backMap, "loginId");
-                Integer organId = MapValueUtil.getInteger(paramMap, "organId");
+                Integer organId = recipe.getClinicOrgan();
                 DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
                 String userAccount = doctorDTO.getIdNumber();
                 String caPassword= "";
