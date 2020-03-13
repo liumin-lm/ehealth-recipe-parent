@@ -1151,11 +1151,25 @@ public class RecipeOrderService extends RecipeBaseService {
                     //订单手动取消，处方单可以进行重新支付
                     //更新处方的orderCode
                     RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+                    List<Recipe> recipes = recipeDAO.findRecipeListByOrderCode(order.getOrderCode());
                     recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode());
                     //清除医保金额
                     RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
                     List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
                     recipeExtendDAO.updatefundAmountToNullByRecipeId(recipeIdList.get(0));
+                    try{
+                        //对于来源于HIS的处方单更新hisRecipe的状态
+                        if (CollectionUtils.isNotEmpty(recipes)) {
+                            Recipe recipe = recipes.get(0);
+                            HisRecipeDAO hisRecipeDAO = getDAO(HisRecipeDAO.class);
+                            HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
+                            if (hisRecipe != null) {
+                                hisRecipeDAO.updateHisRecieStatus(recipe.getClinicOrgan(), recipe.getRecipeCode(), 1);
+                            }
+                        }
+                    }catch (Exception e){
+                        LOGGER.info("RecipeOrderService.cancelOrder 来源于HIS的处方单更新hisRecipe的状态失败,error:{}.", e.getMessage());
+                    }
                 }
             }
         }

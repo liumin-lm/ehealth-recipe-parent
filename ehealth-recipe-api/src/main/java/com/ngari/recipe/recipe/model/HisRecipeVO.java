@@ -6,6 +6,7 @@ import ctd.schema.annotation.Schema;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author yinsheng
@@ -90,6 +91,9 @@ public class HisRecipeVO implements Serializable{
     private Integer fromFlag;
     @ItemProperty(alias = "订单号")
     private String orderCode;
+    private Integer jumpPageType;
+    @ItemProperty(alias = "药品详情")
+    private List<HisRecipeDetailVO> recipeDetail;
 
     public Integer getHisRecipeID() {
         return hisRecipeID;
@@ -393,5 +397,21 @@ public class HisRecipeVO implements Serializable{
 
     public void setOrderCode(String orderCode) {
         this.orderCode = orderCode;
+    }
+
+    public List<HisRecipeDetailVO> getRecipeDetail() {
+        return recipeDetail;
+    }
+
+    public void setRecipeDetail(List<HisRecipeDetailVO> recipeDetail) {
+        this.recipeDetail = recipeDetail;
+    }
+
+    public Integer getJumpPageType() {
+        return jumpPageType;
+    }
+
+    public void setJumpPageType(Integer jumpPageType) {
+        this.jumpPageType = jumpPageType;
     }
 }
