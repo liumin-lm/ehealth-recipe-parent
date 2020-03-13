@@ -195,6 +195,7 @@ public class HisRecipeService {
         recipe.setCreateDate(hisRecipe.getCreateDate());
         recipe.setOrganDiseaseName(hisRecipe.getDiseaseName());
         recipe.setOrganDiseaseId(hisRecipe.getDisease());
+        recipe.setTotalMoney(hisRecipe.getTotalAmount());
         recipe.setPayFlag(0);
         recipe.setStatus(2);
         recipe.setReviewType(0);
