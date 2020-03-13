@@ -268,17 +268,18 @@ public class HisRequestInit {
                 .getRecipeType().toString() : null);
         //设置挂号序号---如果有
         if (recipe.getClinicId() != null){
+            IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
+            ConsultExDTO consultExDTO = exService.getByConsultId(recipe.getClinicId());
+            if (consultExDTO!=null){
+                requestTO.setRegisteredId(consultExDTO.getRegisterNo());
+                requestTO.setCardType(consultExDTO.getCardType());
+                requestTO.setCardNo(consultExDTO.getCardId());
+            }
             IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
-            //挂号记录
+            //挂号记录-如果有
             HosrelationBean hosrelation = hosrelationService.getByBusIdAndBusType(recipe.getClinicId(), BusTypeEnum.CONSULT.getId());
             if (hosrelation != null && StringUtils.isNotEmpty(hosrelation.getRegisterId())){
                 requestTO.setRegisteredId(hosrelation.getRegisterId());
-            }else {
-                IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
-                ConsultExDTO consultExDTO = exService.getByConsultId(recipe.getClinicId());
-                if (consultExDTO!=null){
-                    requestTO.setRegisteredId(consultExDTO.getRegisterNo());
-                }
             }
         }
         //科室代码
@@ -316,7 +317,7 @@ public class HisRequestInit {
             // 简要病史
             requestTO.setDiseasesHistory(recipe.getOrganDiseaseName());
         }
-        if (null != card) {
+        if (null != card && StringUtils.isEmpty(requestTO.getCardNo())) {
             requestTO.setCardType(card.getCardType());
             requestTO.setCardNo(card.getCardId());
         }
