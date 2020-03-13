@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.HisRecipeDetailVO;
@@ -77,7 +78,7 @@ public class HisRecipeService {
                 Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(hisRecipe.getRecipeCode(), organId);
                 if (recipe == null) {
                     hisRecipeVO.setOrderStatusText("待支付");
-                    hisRecipeVO.setFromFlag(0);
+                    hisRecipeVO.setFromFlag(1);
                     hisRecipeVO.setJumpPageType(0);
                     result.add(hisRecipeVO);
                 } else {
@@ -194,6 +195,7 @@ public class HisRecipeService {
         recipe.setCreateDate(hisRecipe.getCreateDate());
         recipe.setOrganDiseaseName(hisRecipe.getDiseaseName());
         recipe.setOrganDiseaseId(hisRecipe.getDisease());
+        recipe.setTotalMoney(hisRecipe.getTotalAmount());
         recipe.setPayFlag(0);
         recipe.setStatus(2);
         recipe.setReviewType(0);
@@ -349,6 +351,7 @@ public class HisRecipeService {
     @RpcService
     public Integer getCardType(Integer organId){
         //卡类型 1 表示身份证  2 表示就诊卡
-        return 1;
+        IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        return (Integer)configurationCenterUtilsService.getConfiguration(organId, "getCardTypeForHis");
     }
 }
