@@ -1,13 +1,8 @@
 package recipe.service;
 
 import com.google.common.collect.Maps;
-import com.ngari.base.BaseAPI;
 import com.ngari.base.esign.service.IESignBaseService;
-import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.ca.model.*;
-import com.ngari.his.ca.service.ICaHisService;
-import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.service.DoctorService;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.service.IRecipeService;
@@ -17,10 +12,8 @@ import ctd.mvc.upload.exception.FileRegistryException;
 import ctd.mvc.upload.exception.FileRepositoryException;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
-import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcService;
 import eh.base.constant.ErrorCode;
-import eh.utils.MapValueUtil;
 import org.bouncycastle.util.encoders.Base64;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
