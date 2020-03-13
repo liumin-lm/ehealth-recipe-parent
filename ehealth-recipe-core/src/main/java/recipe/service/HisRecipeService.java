@@ -76,6 +76,7 @@ public class HisRecipeService {
                 List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipe.getHisRecipeID());
                 List<HisRecipeDetailVO> hisRecipeDetailVOS = ObjectCopyUtils.convert(hisRecipeDetails, HisRecipeDetailVO.class);
                 hisRecipeVO.setRecipeDetail(hisRecipeDetailVOS);
+                hisRecipeVO.setOrganDiseaseName(hisRecipe.getDiseaseName());
                 Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(hisRecipe.getRecipeCode(), organId);
                 if (recipe == null) {
                     hisRecipeVO.setOrderStatusText("待支付");
@@ -96,6 +97,7 @@ public class HisRecipeService {
                             hisRecipeVO.setOrderStatusText("待支付");
                             hisRecipeVO.setFromFlag(0);
                             hisRecipeVO.setJumpPageType(0);
+                            hisRecipeVO.setOrganDiseaseName(recipe.getOrganDiseaseName());
                             hisRecipeVO.setHisRecipeID(recipe.getRecipeId());
                             List<HisRecipeDetailVO> recipeDetailVOS = getHisRecipeDetailVOS(recipe);
                             hisRecipeVO.setRecipeDetail(recipeDetailVOS);
@@ -114,6 +116,7 @@ public class HisRecipeService {
                 Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(hisRecipe.getRecipeCode(), organId);
                 if (recipe == null) {
                     //表示该处方单患者在his线下已完成
+                    hisRecipeVO.setStatusText("已完成");
                     hisRecipeVO.setOrderStatusText("已完成");
                     hisRecipeVO.setFromFlag(0);
                     hisRecipeVO.setJumpPageType(0);
@@ -121,7 +124,7 @@ public class HisRecipeService {
                 } else {
                     RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                     RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-                    hisRecipeVO.setOrderStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
+                    hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
                     if (StringUtils.isEmpty(recipe.getOrderCode())) {
                         if (recipeExtend != null && recipeExtend.getFromFlag() == 0) {
                             hisRecipeVO.setFromFlag(1);
@@ -130,6 +133,7 @@ public class HisRecipeService {
 
                         } else {
                             hisRecipeVO.setFromFlag(0);
+                            hisRecipeVO.setOrganDiseaseName(recipe.getOrganDiseaseName());
                             hisRecipeVO.setHisRecipeID(recipe.getRecipeId());
                             List<HisRecipeDetailVO> recipeDetailVOS = getHisRecipeDetailVOS(recipe);
                             hisRecipeVO.setRecipeDetail(recipeDetailVOS);
@@ -140,6 +144,7 @@ public class HisRecipeService {
                         hisRecipeVO.setOrderCode(recipe.getOrderCode());
                         hisRecipeVO.setFromFlag(recipe.getFromflag()==0?1:0);
                         if (recipe.getFromflag() != 0) {
+                            hisRecipeVO.setOrganDiseaseName(recipe.getOrganDiseaseName());
                             List<HisRecipeDetailVO> recipeDetailVOS = getHisRecipeDetailVOS(recipe);
                             hisRecipeVO.setRecipeDetail(recipeDetailVOS);
                         }
@@ -291,7 +296,7 @@ public class HisRecipeService {
         String tips = "";
         switch (status) {
             case RecipeStatusConstant.FINISH:
-                tips = "已完成.";
+                tips = "已完成";
                 break;
             case RecipeStatusConstant.HAVE_PAY:
                 if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(giveMode)) {
@@ -307,24 +312,24 @@ public class HisRecipeService {
                 tips = "已失效";
                 break;
             case RecipeStatusConstant.NO_DRUG:
-                tips = "已失效.";
+                tips = "已失效";
                 break;
             case RecipeStatusConstant.CHECK_PASS:
                 if (null == payMode || null == giveMode) {
                     tips = "";
                 } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(payMode) && 0 == payFlag) {
-                    tips = "待取药.";
+                    tips = "待取药";
                 }
 
                 if (StringUtils.isNotEmpty(orderCode) && null != order && 1 == order.getEffective()) {
-                    tips = "待取药.";
+                    tips = "待取药";
                 }
 
                 break;
             case RecipeStatusConstant.READY_CHECK_YS:
                 if (RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
                     //在线支付
-                    tips = "待配送.";
+                    tips = "待配送";
                 } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode) || RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
                     tips = "待审核";
                 }
@@ -333,12 +338,12 @@ public class HisRecipeService {
             case RecipeStatusConstant.CHECK_PASS_YS:
                 if (RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
                     //在线支付
-                    tips = "待配送.";
+                    tips = "待配送";
                 } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode)) {
                     //货到付款
-                    tips = "待配送.";
+                    tips = "待配送";
                 } else if (RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
-                    tips = "待取药.";
+                    tips = "待取药";
                 }
                 break;
             case RecipeStatusConstant.IN_SEND:

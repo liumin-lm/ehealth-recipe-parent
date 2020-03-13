@@ -92,6 +92,10 @@ public class HisRecipeVO implements Serializable{
     @ItemProperty(alias = "订单号")
     private String orderCode;
     private Integer jumpPageType;
+    @ItemProperty(alias = "状态")
+    private String statusText;
+    @ItemProperty(alias = "诊断名称")
+    private String organDiseaseName;
     @ItemProperty(alias = "药品详情")
     private List<HisRecipeDetailVO> recipeDetail;
 
@@ -413,5 +417,21 @@ public class HisRecipeVO implements Serializable{
 
     public void setJumpPageType(Integer jumpPageType) {
         this.jumpPageType = jumpPageType;
+    }
+
+    public String getStatusText() {
+        return statusText;
+    }
+
+    public void setStatusText(String statusText) {
+        this.statusText = statusText;
+    }
+
+    public String getOrganDiseaseName() {
+        return organDiseaseName;
+    }
+
+    public void setOrganDiseaseName(String organDiseaseName) {
+        this.organDiseaseName = organDiseaseName;
     }
 }
