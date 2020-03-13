@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.HisRecipeDetailVO;
@@ -349,6 +350,7 @@ public class HisRecipeService {
     @RpcService
     public Integer getCardType(Integer organId){
         //卡类型 1 表示身份证  2 表示就诊卡
-        return 1;
+        IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        return (Integer)configurationCenterUtilsService.getConfiguration(organId, "getCardTypeForHis");
     }
 }
