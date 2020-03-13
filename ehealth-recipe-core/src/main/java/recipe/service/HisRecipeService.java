@@ -6,7 +6,6 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.HisRecipeDetailVO;
 import com.ngari.recipe.recipe.model.HisRecipeVO;
 import ctd.persistence.DAOFactory;
-import ctd.spring.AppDomainContext;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
