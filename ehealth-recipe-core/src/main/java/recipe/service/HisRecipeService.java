@@ -1,10 +1,12 @@
 package recipe.service;
 
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.HisRecipeDetailVO;
 import com.ngari.recipe.recipe.model.HisRecipeVO;
 import ctd.persistence.DAOFactory;
+import ctd.spring.AppDomainContext;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
@@ -349,6 +351,7 @@ public class HisRecipeService {
     @RpcService
     public Integer getCardType(Integer organId){
         //卡类型 1 表示身份证  2 表示就诊卡
-        return 1;
+        IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        return (Integer)configurationCenterUtilsService.getConfiguration(organId, "getCardTypeForHis");
     }
 }
