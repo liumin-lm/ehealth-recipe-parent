@@ -239,8 +239,6 @@ public class HisRecipeService {
         recipe.setGiveFlag(0);
         recipe.setRecipeMode("ngarihealth");
         recipe.setCopyNum(1);
-        recipe.setTotalMoney(hisRecipe.getTotalAmount());
-        recipe.setMemo(hisRecipe.getMemo());
         recipe.setValueDays(3);
         recipe.setFromflag(0);
         recipe.setRequestMpiId(hisRecipe.getMpiId());
@@ -276,6 +274,7 @@ public class HisRecipeService {
             recipedetail.setUseTotalDose(hisRecipeDetail.getUseTotalDose().doubleValue());
             recipedetail.setUseDays(hisRecipeDetail.getUseDays());
             recipedetail.setStatus(1);
+            recipedetail.setSalePrice(hisRecipeDetail.getPrice());
             recipeDetailDAO.save(recipedetail);
         }
     }
