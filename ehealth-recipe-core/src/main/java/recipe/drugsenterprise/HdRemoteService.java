@@ -576,9 +576,10 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         String hdStores = recipeParameterDao.getByName("hd_store_payonline");
         String storeOrganName = nowRecipe.getClinicOrgan() + "_" + "hd_organ_store";
         String organStore = recipeParameterDao.getByName(storeOrganName);
+        LOGGER.info("HdRemoteService.pushRecipeInfo assembleRecipeMsg:{}{}.", hdStores, organStore);
         if (StringUtils.isNotEmpty(hdStores) && hdStores.contains(nowRecipe.getClinicOrgan().toString())) {
             sendHdRecipe.setGiveMode("4");
-            sendHdRecipe.setPharmacyCode(organStore);
+            sendHdRecipe.setPharmacyCode("B0000100029");
         }
     }
 
