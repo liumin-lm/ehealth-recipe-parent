@@ -749,6 +749,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             SaleDrugList saleDrug = null;
             //遍历药店，判断当有一个药店的所有的药品的库存量都够的话判断为库存足够
             boolean checkScan = false;
+            LOGGER.info("YtRemoteService.scanStock pharmacyList:{}.", JSONUtils.toString(pharmacyList));
             for (Pharmacy pharmacy : pharmacyList) {
                 GroupSumResult groupSumResult = checkDrugListByDeil(drugGroup, drugsEnterprise, saleDrug, result, pharmacy, false, recipeId);
                 //只有当某一家药店有所有处方详情下的药品并且库存不超过，查询库存的结果设为成功
@@ -863,10 +864,12 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
     private CloseableHttpResponse sendStockHttpRequest(DrugsEnterprise drugsEnterprise, SaleDrugList saleDrug, Pharmacy pharmacy, CloseableHttpClient httpClient) throws IOException {
         HttpGet httpGet = new HttpGet(drugsEnterprise.getBusinessUrl() +
                 getStock + "/" + pharmacy.getPharmacyCode() + "/" + saleDrug.getOrganDrugCode());
+        LOGGER.info("YtRemoteService.sendStockHttpRequest url:{}.", drugsEnterprise.getBusinessUrl() +
+                getStock + "/" + pharmacy.getPharmacyCode() + "/" + saleDrug.getOrganDrugCode());
         //组装请求参数(组装权限验证部分)
         httpGet.setHeader(requestHeadJsonKey, requestHeadJsonValue);
         httpGet.setHeader(requestHeadPowerKey, drugsEnterprise.getToken());
-        LOGGER.info("YtRemoteService.scanStock:[{}]门店该[{}]药品发送查询库存请求", pharmacy.getPharmacyCode(), saleDrug.getOrganDrugCode());
+        LOGGER.info("YtRemoteService.sendStockHttpRequest:[{}]门店该[{}]药品发送查询库存请求", pharmacy.getPharmacyCode(), saleDrug.getOrganDrugCode());
 
         //获取响应消息
         return httpClient.execute(httpGet);
