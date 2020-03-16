@@ -551,20 +551,25 @@ public class DrugToolService implements IDrugToolService {
         drugList.setLastModify(new Date());
         //来源机构
         drugList.setSourceOrgan(drugListMatch.getSourceOrgan());
-        DrugList save = drugListDAO.save(drugList);
         Integer status = drugListMatch.getStatus();
-        if (save != null){
-            //更新为已匹配，将已标记上传的药品自动关联上
-            //判断更新成已匹配还是匹配中
-            if (isHaveReulationId(drugListMatch.getSourceOrgan())&&StringUtils.isEmpty(drugListMatch.getRegulationDrugCode())){
-                //匹配中
-                status = DrugMatchConstant.MATCHING;
-            }else {
-                //已匹配
-                status = DrugMatchConstant.ALREADY_MATCH;
+        try{
+            DrugList save = drugListDAO.save(drugList);
+            if (save != null){
+                //更新为已匹配，将已标记上传的药品自动关联上
+                //判断更新成已匹配还是匹配中
+                if (isHaveReulationId(drugListMatch.getSourceOrgan())&&StringUtils.isEmpty(drugListMatch.getRegulationDrugCode())){
+                    //匹配中
+                    status = DrugMatchConstant.MATCHING;
+                }else {
+                    //已匹配
+                    status = DrugMatchConstant.ALREADY_MATCH;
+                }
+                drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(),ImmutableMap.of("status", status,"matchDrugId",save.getDrugId()));
             }
-            drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(),ImmutableMap.of("status", status,"matchDrugId",save.getDrugId()));
+        }catch(Exception e){
+            throw new DAOException(609, "数据自动导入平台药品库失败，异常信息e="+e);
         }
+
         return status;
     }
 
