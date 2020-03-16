@@ -806,6 +806,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                     //当相应状态为200时返回json
                     HttpEntity httpEntity = response.getEntity();
                     String responseStr = EntityUtils.toString(httpEntity);
+                    LOGGER.info("YtRemoteService.scanStock.responseStr:{}", responseStr);
                     if(CommonConstant.requestSuccessCode == response.getStatusLine().getStatusCode()){
                         YtStockResponse stockResponse = JSONUtils.parse(responseStr, YtStockResponse.class);
                         LOGGER.info("YtRemoteService.scanStock:[{}]门店该[{}]药品查询库存，请求返回:{}", pharmacy.getPharmacyCode(), saleDrug.getOrganDrugCode(), responseStr);
