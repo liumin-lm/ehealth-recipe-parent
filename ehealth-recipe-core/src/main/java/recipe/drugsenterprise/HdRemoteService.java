@@ -567,10 +567,17 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         } else {
             sendHdRecipe.setDistributionFlag(distributionFlagDefault);
         }
-        if (order != null && StringUtils.isNotEmpty(order.getDrugStoreCode())) {
+        if (order != null && nowRecipe.getGiveMode() == 3 && StringUtils.isNotEmpty(order.getDrugStoreCode())) {
+            sendHdRecipe.setGiveMode("3");
+        }
+        //对浙四进行个性化处理,推送到指定药店配送
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String hdStores = recipeParameterDao.getByName("hd_store_payonline");
+        String storeOrganName = nowRecipe.getClinicOrgan() + "_" + "hd_organ_store";
+        String organStore = recipeParameterDao.getByName(storeOrganName);
+        if (StringUtils.isNotEmpty(hdStores) && hdStores.contains(nowRecipe.getClinicOrgan().toString())) {
             sendHdRecipe.setGiveMode("4");
-        } else {
-            sendHdRecipe.setGiveMode("1");
+            sendHdRecipe.setPharmacyCode(organStore);
         }
     }
 
@@ -1383,13 +1390,14 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
 
             newDepDetailBean.setSendMethod(hdSendMethod);
             newDepDetailBean.setPayMethod(hdPayMethod);
-            newDepDetailBean.setPharmacyCode(pharmacyMsg.getPharmacyId());
+            newDepDetailBean.setPharmacyCode(pharmacyMsg.getPharmacyCode());
             newDepDetailBean.setAddress(pharmacyMsg.getAddress());
+            LOGGER.info("HdRemoteService.findSupportDep pharmacyMsg:{}.", JSONUtils.toString(pharmacyMsg));
             //设置药店的坐标
             position = new Position();
             if(!HdPosition.checkParameter(pharmacyMsg.getPosition())){
                 LOGGER.warn("HdRemoteService.findSupportDep:当前药店[{}][{}]坐标信息不健全",
-                        pharmacyMsg.getPharmacyId(), pharmacyMsg.getPharmacyName());
+                        pharmacyMsg.getPharmacyCode(), pharmacyMsg.getPharmacyName());
                 continue;
             }
             position.setLatitude(Double.parseDouble(pharmacyMsg.getPosition().getLatitude()));
