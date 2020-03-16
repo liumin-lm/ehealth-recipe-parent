@@ -13,6 +13,7 @@ import ctd.mvc.upload.exception.FileRegistryException;
 import ctd.mvc.upload.exception.FileRepositoryException;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
+import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.base.constant.ErrorCode;
 import org.bouncycastle.util.encoders.Base64;
@@ -33,6 +34,7 @@ import static ctd.persistence.DAOFactory.getDAO;
 /**
  * CA标准化对接文档
  */
+@RpcBean
 public class RecipeServiceEsignExt {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeServiceEsignExt.class);
