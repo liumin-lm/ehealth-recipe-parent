@@ -2061,6 +2061,9 @@ public class RecipeOrderService extends RecipeBaseService {
                 recipeDetailDAO.update(item);
             });
         }
+        //处方推送到药企
+        RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        remoteDrugEnterpriseService.pushSingleRecipeInfo(recipe.getRecipeId());
         return createOrderToDB(recipeOrder,recipeIds,recipeOrderDAO,recipeDAO);
     }
 
