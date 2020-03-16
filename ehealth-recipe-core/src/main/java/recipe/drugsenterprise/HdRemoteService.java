@@ -569,6 +569,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         }
         if (order != null && nowRecipe.getGiveMode() == 3 && StringUtils.isNotEmpty(order.getDrugStoreCode())) {
             sendHdRecipe.setGiveMode("3");
+            sendHdRecipe.setPharmacyCode(order.getDrugStoreCode());
         }
         //对浙四进行个性化处理,推送到指定药店配送
         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
@@ -733,7 +734,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         sendHdRecipe.setDecoctionFee(null == order.getDecoctionFee() ?  feeDefault : order.getDecoctionFee().toString());
         sendHdRecipe.setRecipientName(order.getReceiver());
         sendHdRecipe.setRecipientTel(order.getRecMobile());
-        sendHdRecipe.setPharmacyCode(order.getDrugStoreCode());
         return null;
     }
 
