@@ -547,6 +547,8 @@ public class DrugToolService implements IDrugToolService {
         drugList.setDrugClass("1901");
         drugList.setAllPyCode("");
         drugList.setStatus(1);
+        drugList.setCreateDt(new Date());
+        drugList.setLastModify(new Date());
         //来源机构
         drugList.setSourceOrgan(drugListMatch.getSourceOrgan());
         DrugList save = drugListDAO.save(drugList);
