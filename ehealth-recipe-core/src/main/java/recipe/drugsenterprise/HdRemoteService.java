@@ -572,12 +572,13 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             sendHdRecipe.setPharmacyCode(order.getDrugStoreCode());
         }
         //对浙四进行个性化处理,推送到指定药店配送
-        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        /*RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         String hdStores = recipeParameterDao.getByName("hd_store_payonline");
         String storeOrganName = nowRecipe.getClinicOrgan() + "_" + "hd_organ_store";
-        String organStore = recipeParameterDao.getByName(storeOrganName);
-        LOGGER.info("HdRemoteService.pushRecipeInfo assembleRecipeMsg:{}{}.", hdStores, organStore);
-        if (StringUtils.isNotEmpty(hdStores) && hdStores.contains(nowRecipe.getClinicOrgan().toString())) {
+        String organStore = recipeParameterDao.getByName(storeOrganName);*/
+
+        if (nowRecipe.getClinicOrgan() == 1000053) {
+            LOGGER.info("HdRemoteService.pushRecipeInfo assembleRecipeMsg go here");
             sendHdRecipe.setGiveMode("4");
             sendHdRecipe.setPharmacyCode("B0000100029");
         }
