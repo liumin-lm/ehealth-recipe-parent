@@ -101,25 +101,21 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "his返回的处方总金额")
     private String deliveryRecipeFee;
 
-    @ItemProperty(alias = "处方创建状态  0：未进行，1：已生成订单 ，2.已创建处方，3. 已预支付处方")
-    private String orderMakeStatus;
+//    @ItemProperty(alias = "处方创建状态  0：未进行，1：已生成订单 ，2.已创建处方，3. 已预支付处方")
+//    private String orderMakeStatus;
+//
+//    @ItemProperty(alias = "处方")
+//    private String deliverySendTag;
 
-    public String getOrderMakeStatus() {
-        return orderMakeStatus;
-    }
+//    public String getOrderMakeStatus() {
+//        return orderMakeStatus;
+//    }
+//
+//    public void setOrderMakeStatus(String orderMakeStatus) {
+//        this.orderMakeStatus = orderMakeStatus;
+//    }
 
-    public void setOrderMakeStatus(String orderMakeStatus) {
-        this.orderMakeStatus = orderMakeStatus;
-    }
-
-    public String getPreSettleTotalAmount() {
-        return preSettleTotalAmount;
-    }
-
-    public void setPreSettleTotalAmount(String preSettleTotalAmount) {
-        this.preSettleTotalAmount = preSettleTotalAmount;
-    }
-
+    @Column(name = "deliveryRecipeFee")
     public String getDeliveryRecipeFee() {
         return deliveryRecipeFee;
     }

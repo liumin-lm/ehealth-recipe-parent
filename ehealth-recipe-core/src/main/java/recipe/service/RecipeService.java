@@ -14,7 +14,9 @@ import com.ngari.base.patient.model.DocIndexBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.payment.service.IPaymentService;
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
+import com.ngari.his.recipe.mode.UpdateTakeDrugWayReqTO;
 import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.ConsultSetDTO;
 import com.ngari.patient.dto.DoctorDTO;
@@ -22,6 +24,9 @@ import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.QueryRecipeReqHisDTO;
+import com.ngari.platform.recipe.mode.QueryRecipeResultHisDTO;
+import com.ngari.platform.recipe.service.IRecipePlatformServiceNew;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
@@ -34,6 +39,7 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
@@ -63,6 +69,7 @@ import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
 import recipe.hisservice.RecipeToHisCallbackService;
+import recipe.hisservice.RecipeToHisService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
@@ -2698,5 +2705,68 @@ public class RecipeService extends RecipeBaseService{
         LOGGER.info("recipeCanDelivery 处方[{}],是否支持配送：{}", recipeId, flag);
         return flag;
     }
+
+//    @RpcService
+//    public void synDeliveryRecipeMsgTask(){
+//        //获取处方ext标识的需要同步处方配送信息的处方
+//        //将这些处方以及配送信息同步到his端
+//        //同步成功后将处方ext标识设置成已同步
+//        RecipeExtendDAO extendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+//        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+//
+//        IRecipePlatformServiceNew platformService = AppDomainContext.getBean("his.recipePlatformService",IRecipePlatformServiceNew.class);
+//        RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+//        List<Integer> recipeIds = extendDAO.findRecipeIdsByDeliverySendTag("1");
+//
+//        UpdateTakeDrugWayReqTO updateTakeDrugWayReqTO = new UpdateTakeDrugWayReqTO();
+//        QueryRecipeReqHisDTO queryRecipeReqDTO = new QueryRecipeReqHisDTO();
+//        if(CollectionUtils.isNotEmpty(recipeIds)){
+//            //同步配送信息
+//            //date 20200305
+//            for (Integer recipeId : recipeIds){
+//                Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+//                if(null != recipe){
+//                    updateTakeDrugWayReqTO.setClinicOrgan(recipe.getClinicOrgan());
+//
+//
+//                    queryRecipeReqDTO.setOrganId(null != recipe.getClinicOrgan() ? recipe.getClinicOrgan().toString() :  "");
+//                    queryRecipeReqDTO.setRecipeID(recipeId.toString());
+//                    QueryRecipeResultHisDTO queryRecipeResultHisDTO = platformService.queryRecipeInfo(queryRecipeReqDTO);
+//                    updateTakeDrugWayReqTO.setQueryRecipeResultHisDTO(queryRecipeResultHisDTO);
+//                    LOGGER.info("synDeliveryRecipeMsgsk 收货信息更新通知his. req={}", JSONUtils.toString(updateTakeDrugWayReqTO));
+//                    HisResponseTO hisResult = service.updateTakeDrugWay(updateTakeDrugWayReqTO);
+//                    LOGGER.info("synDeliveryRecipeMsgsk 收货信息更新通知his. res={}", JSONUtils.toString(hisResult));
+//                    //更新处方ext中的配送信息同步标识
+//                    if(null != hisResult){
+//
+//                        if("200".equals(hisResult.getMsgCode())){
+//                            //更新处方同步配送信息标识
+//                            Boolean updateSendMsg = extendDAO.updateRecipeExInfoByRecipeId(recipeId,
+//                                    ImmutableMap.of("deliverySendTag", "2"));
+//                            if(updateSendMsg){
+//
+//                                LOGGER.info("synDeliveryRecipeMsgsk 处方{}配送信息同步his更新成功", recipeId);
+//                            }
+//                        }
+//                    }
+//                }else{
+//                    LOGGER.info("synDeliveryRecipeMsgsk 配送信息更新通知his. 处方{}信息不存在!", recipeId);
+//                }
+//
+//            }
+//
+//        }
+//    }
+//
+//    @RpcService
+//    public Boolean makeOrderRequestType(Integer recipeId){
+//        RecipeExtendDAO extendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+//        RecipeExtend extend = extendDAO.getByRecipeId(recipeId);
+//        if(null != extend
+//                && StringUtils.isNotEmpty(extend.getDeliveryRecipeFee())){
+//            return true;
+//        }
+//        return false;
+//    }
 
 }

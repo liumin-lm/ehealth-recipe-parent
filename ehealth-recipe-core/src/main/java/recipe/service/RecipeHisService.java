@@ -49,6 +49,8 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.dao.bean.DrugInfoHisBean;
+import recipe.drugsenterprise.AccessDrugEnterpriseService;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.RecipeToHisService;
@@ -58,6 +60,8 @@ import recipe.util.RedisClient;
 
 import java.math.BigDecimal;
 import java.util.*;
+
+import static ctd.util.AppContextHolder.getBean;
 
 /**
  * @author yu_yun
@@ -1018,43 +1022,74 @@ public class RecipeHisService extends RecipeBaseService {
                 rMap.put("errorFlag",true);
                 rMap.put("errorMsg", map.get("resultMark"));
             }else {
-                //预校验返回 取药方式1配送到家 2医院取药 3两者都支持
-                String giveMode = null != map.get("giveMode") ? map.get("giveMode").toString() : null;
-                //配送药企代码
-                String deliveryCode = null != map.get("deliveryCode") ? map.get("deliveryCode").toString() : null;
-                //配送药企名称
-                String deliveryName = null != map.get("deliveryName") ? map.get("deliveryName").toString() : null;
-                if (StringUtils.isNotEmpty(giveMode)){
-                    RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-                    Map<String,String> updateMap = Maps.newHashMap();
-                    updateMap.put("giveMode",giveMode);
-                    updateMap.put("deliveryCode",deliveryCode);
-                    updateMap.put("deliveryName",deliveryName);
-                    recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(),updateMap);
+//                //预校验返回 取药方式1配送到家 2医院取药 3两者都支持
+//                String giveMode = null != map.get("giveMode") ? map.get("giveMode").toString() : null;
+//                //配送药企代码
+//                String deliveryCode = null != map.get("deliveryCode") ? map.get("deliveryCode").toString() : null;
+//                //配送药企名称
+//                String deliveryName = null != map.get("deliveryName") ? map.get("deliveryName").toString() : null;
+//                if (StringUtils.isNotEmpty(giveMode)){
+//                    RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+//                    Map<String,String> updateMap = Maps.newHashMap();
+//                    updateMap.put("giveMode",giveMode);
+//                    updateMap.put("deliveryCode",deliveryCode);
+//                    updateMap.put("deliveryName",deliveryName);
+//                    recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(),updateMap);
+//                }
+//                //date 20200305
+//                //当前处方信息获取物流配送信息
+//                //预校验返回 取药方式 0医院取药 1物流配送 2药店取药 4都支持 3其他
+//                Object deliveryList = map.get("deliveryList");
+//                if(null != deliveryList && null != giveMode){
+//
+//                    List<Map> deliveryLists = (List<Map>)deliveryList;
+//                    //暂时按照逻辑只保存展示返回的第一个药企
+//                    DeliveryList nowDeliveryList = JSON.parseObject(JSON.toJSONString(deliveryLists.get(0)), DeliveryList.class);
+//                    RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+//                    if (null != nowDeliveryList){
+//                        Map<String,String> updateMap = Maps.newHashMap();
+//                        updateMap.put("deliveryCode", nowDeliveryList.getDeliveryCode());
+//                        updateMap.put("deliveryName", nowDeliveryList.getDeliveryName());
+//                        //存放处方金额
+//                        updateMap.put("deliveryRecipeFee", null != nowDeliveryList.getRecipeFee() ? nowDeliveryList.getRecipeFee().toString() : null);
+//                        recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(), updateMap);
+//                    }
+//                    //date 20200311
+//                    //将his返回的批量药企信息存储下来，将信息分成|分割
+//                    DeliveryList deliveryListNow;
+//                    Map<String,String> updateMap = Maps.newHashMap();
+//                    StringBuffer deliveryCodes = new StringBuffer().append("|");
+//                    StringBuffer deliveryNames = new StringBuffer().append("|");
+//                    StringBuffer deliveryRecipeFees = new StringBuffer().append("|");
+//                    for(Map<String,String> delivery : deliveryLists){
+//                        deliveryListNow = JSON.parseObject(JSON.toJSONString(delivery), DeliveryList.class);
+//                        deliveryCodes.append(deliveryListNow.getDeliveryCode()).append("|");
+//                        deliveryNames.append(deliveryListNow.getDeliveryName()).append("|");
+//                        deliveryRecipeFees.append(deliveryListNow.getRecipeFee()).append("|");
+//                    }
+//                    updateMap.put("deliveryCode", "|".equals(deliveryCodes) ? null : deliveryCodes.toString());
+//                    updateMap.put("deliveryName", "|".equals(deliveryNames) ? null : deliveryNames.toString());
+//                    //存放处方金额
+//                    updateMap.put("deliveryRecipeFee", "|".equals(deliveryRecipeFees) ? null : deliveryRecipeFees.toString());
+//                    recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(), updateMap);
+//
+//
+//                }else{
+//                    LOGGER.info("hisRecipeCheck 当前处方{}预校验，配送方式没有返回药企信息！", recipeBean.getRecipeId());
+//                }
+                RemoteDrugEnterpriseService remoteDrugEnterpriseService =
+                        ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+
+                OrganAndDrugsepRelationDAO relationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+                List<DrugsEnterprise> enterprises = relationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipeBean.getClinicOrgan(), 1);
+                AccessDrugEnterpriseService remoteService = null;
+                if(null != enterprises){
+                    remoteService = remoteDrugEnterpriseService.getServiceByDep(enterprises.get(0));
                 }
-                //date 20200305
-                //当前处方信息获取物流配送信息
-                //预校验返回 取药方式 0医院取药 1物流配送 2药店取药 4都支持 3其他
-                Object deliveryList = map.get("deliveryList");
-                if(null != deliveryList && null != giveMode){
-
-                    List<Map> deliveryLists = (List<Map>)deliveryList;
-                    //暂时按照逻辑只保存展示返回的第一个药企
-                    DeliveryList nowDeliveryList = JSON.parseObject(JSON.toJSONString(deliveryLists.get(0)), DeliveryList.class);
-                    if (null != nowDeliveryList){
-                        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-                        Map<String,String> updateMap = Maps.newHashMap();
-                        updateMap.put("deliveryCode", nowDeliveryList.getDeliveryCode());
-                        updateMap.put("deliveryName", nowDeliveryList.getDeliveryName());
-                        //存放处方金额
-                        updateMap.put("deliveryRecipeFee", null != nowDeliveryList.getRecipeFee() ? nowDeliveryList.getRecipeFee().toString() : null);
-                        recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(), updateMap);
-                    }
-
-                }else{
-                    LOGGER.info("hisRecipeCheck 当前处方{}预校验，配送方式没有返回药企信息！", recipeBean.getRecipeId());
+                if(null == remoteService){
+                    remoteService = getBean("commonRemoteService", AccessDrugEnterpriseService.class);
                 }
-
+                remoteService.checkRecipeGiveDeliveryMsg(recipeBean, map);
 
                 return "1".equals(map.get("checkResult"));
 

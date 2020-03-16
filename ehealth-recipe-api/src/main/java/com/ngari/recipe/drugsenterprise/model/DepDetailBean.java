@@ -103,6 +103,28 @@ public class DepDetailBean {
     //是否是还是返回的药企
     private Boolean hisDep;
 
+    //his的药企code
+    private String hisDepCode;
+
+    //his的药企处方金额
+    private BigDecimal hisDepFee;
+
+    public BigDecimal getHisDepFee() {
+        return hisDepFee;
+    }
+
+    public void setHisDepFee(BigDecimal hisDepFee) {
+        this.hisDepFee = hisDepFee;
+    }
+
+    public String getHisDepCode() {
+        return hisDepCode;
+    }
+
+    public void setHisDepCode(String hisDepCode) {
+        this.hisDepCode = hisDepCode;
+    }
+
     public Boolean getHisDep() {
         return hisDep;
     }

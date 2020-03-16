@@ -3,24 +3,23 @@ package recipe.drugsenterprise;
 import com.google.common.collect.Maps;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Pharmacy;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
-import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.PharmacyDAO;
-import recipe.dao.RecipeDAO;
+import recipe.bean.RecipePayModeSupportBean;
+import recipe.dao.*;
+import recipe.service.RecipeOrderService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateDrugsEpCallable;
 
@@ -261,5 +260,100 @@ public abstract class AccessDrugEnterpriseService {
                 LOGGER.info("pushMessageToEnterprise 当前处方[{}]已推送药企[{}],订单消息", recipeId, nowRecipe.getEnterpriseId());
             }
         }
+    }
+
+    /**
+     * 判断药企库存，包含平台内权限及药企实时库存
+     *
+     * @param dbRecipe
+     * @param dep
+     * @param drugIds
+     * @return
+     */
+    public boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds) {
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+
+        boolean succFlag = false;
+        if (null == dep || CollectionUtils.isEmpty(drugIds)) {
+            return succFlag;
+        }
+
+        //判断药企平台内药品权限，此处简单判断数量是否一致
+        Long count = saleDrugListDAO.getCountByOrganIdAndDrugIds(dep.getId(), drugIds);
+        if (null != count && count > 0) {
+            if (count == drugIds.size()) {
+                succFlag = true;
+            }
+        }
+
+        if (!succFlag) {
+            LOGGER.warn("scanStock 存在不支持配送药品. 处方ID=[{}], 药企ID=[{}], 药企名称=[{}], drugIds={}",
+                    dbRecipe.getRecipeId(), dep.getId(), dep.getName(), JSONUtils.toString(drugIds));
+        } else {
+            //通过查询该药企库存，最终确定能否配送
+            succFlag = remoteDrugService.scanStock(dbRecipe.getRecipeId(), dep);
+            if (!succFlag) {
+                LOGGER.warn("scanStock 药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}], 药企名称=[{}]",
+                        dbRecipe.getRecipeId(), dep.getId(), dep.getName());
+            }
+        }
+
+        return succFlag;
+    }
+
+    public String appEnterprise(RecipeOrder order) {
+        if (null != order && order.getEnterpriseId() != null) {
+                //设置配送方名称
+                DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+                return drugsEnterprise.getName();
+        }
+        return null;
+    }
+
+    public BigDecimal orderToRecipeFee(RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, BigDecimal recipeFee, Map<String, String> extInfo) {
+        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+        if ((payModeSupport.isSupportCOD() || payModeSupport.isSupportTFDS()|| payModeSupport.isSupportOnlinePay()) && null != order.getEnterpriseId()) {
+            return orderService.reCalculateRecipeFee(order.getEnterpriseId(), recipeIds, null);
+        }
+        return recipeFee;
+    }
+
+
+    public void setOrderEnterpriseMsg(Map<String, String> extInfo, RecipeOrder order) {
+        //设置药企运费细则
+        if (order.getEnterpriseId() != null) {
+            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+            if(drugsEnterprise != null){
+                order.setEnterpriseName(drugsEnterprise.getName());
+                order.setTransFeeDetail(drugsEnterprise.getTransFeeDetail());
+            }
+        }
+    }
+
+    public void checkRecipeGiveDeliveryMsg(RecipeBean recipeBean, Map<String, Object> map){
+        //预校验返回 取药方式1配送到家 2医院取药 3两者都支持
+        String giveMode = null != map.get("giveMode") ? map.get("giveMode").toString() : null;
+        //配送药企代码
+        String deliveryCode = null != map.get("deliveryCode") ? map.get("deliveryCode").toString() : null;
+        //配送药企名称
+        String deliveryName = null != map.get("deliveryName") ? map.get("deliveryName").toString() : null;
+        if (StringUtils.isNotEmpty(giveMode)){
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            Map<String,String> updateMap = Maps.newHashMap();
+            updateMap.put("giveMode",giveMode);
+            updateMap.put("deliveryCode",deliveryCode);
+            updateMap.put("deliveryName",deliveryName);
+            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(),updateMap);
+            LOGGER.info("hisRecipeCheck 当前处方{}预校验，配送方式存储成功:{}！", recipeBean.getRecipeId(), JSONUtils.toString(updateMap));
+        }
+
+    }
+
+
+    public void setEnterpriseMsgToOrder(RecipeOrder order, Integer depId, Map<String, String> extInfo) {
+        order.setEnterpriseId(depId);
     }
 }
