@@ -508,7 +508,7 @@ public class DrugToolService implements IDrugToolService {
      * 更新无匹配数据
      */
     @RpcService
-    public void updateNoMatchData(int drugId, String operator) {
+    public Integer updateNoMatchData(int drugId, String operator) {
         if (StringUtils.isEmpty(operator)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "operator is required");
         }
@@ -519,6 +519,51 @@ public class DrugToolService implements IDrugToolService {
         }
         drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("isNew", 1, "status", DrugMatchConstant.MARKED, "operator", operator));
         LOGGER.info("updateNoMatchData 操作人->{}更新无匹配数据,drugId={};status ->before={},after=3", operator, drugId, drugListMatch.getStatus());
+        //updata by maoly on 2020/03/16 自动同步至平台药品库
+        DrugList drugList = new DrugList();
+        //药品名
+        drugList.setDrugName(drugListMatch.getDrugName());
+        //商品名
+        drugList.setSaleName(drugListMatch.getSaleName());
+        //一次剂量
+        drugList.setUseDose(drugListMatch.getUseDose());
+        //剂量单位
+        drugList.setUseDoseUnit(drugListMatch.getUseDoseUnit());
+        //规格
+        drugList.setDrugSpec(drugListMatch.getDrugSpec());
+        //药品包装数量
+        drugList.setPack(drugListMatch.getPack());
+        //药品单位
+        drugList.setUnit(drugListMatch.getUnit());
+        //药品类型
+        drugList.setDrugType(drugListMatch.getDrugType());
+        //剂型
+        drugList.setDrugForm(drugListMatch.getDrugForm());
+        drugList.setPrice1(drugListMatch.getPrice().doubleValue());
+        drugList.setPrice2(drugListMatch.getPrice().doubleValue());
+        //厂家
+        drugList.setProducer(drugListMatch.getProducer());
+        //其他
+        drugList.setDrugClass("1901");
+        drugList.setAllPyCode("");
+        drugList.setStatus(1);
+        //来源机构
+        drugList.setSourceOrgan(drugListMatch.getSourceOrgan());
+        DrugList save = drugListDAO.save(drugList);
+        Integer status = drugListMatch.getStatus();
+        if (save != null){
+            //更新为已匹配，将已标记上传的药品自动关联上
+            //判断更新成已匹配还是匹配中
+            if (isHaveReulationId(drugListMatch.getSourceOrgan())&&StringUtils.isEmpty(drugListMatch.getRegulationDrugCode())){
+                //匹配中
+                status = DrugMatchConstant.MATCHING;
+            }else {
+                //已匹配
+                status = DrugMatchConstant.ALREADY_MATCH;
+            }
+            drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(),ImmutableMap.of("status", status,"matchDrugId",save.getDrugId()));
+        }
+        return status;
     }
 
     /**
