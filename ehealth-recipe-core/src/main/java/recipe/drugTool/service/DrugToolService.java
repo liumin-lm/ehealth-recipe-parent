@@ -832,20 +832,106 @@ public class DrugToolService implements IDrugToolService {
      * 药品提交(将匹配完成的数据提交更新)----互联网六期改为人工提交
      */
     @RpcService
-    public void drugCommit(List<DrugListMatch> lists,Integer organ) {
-        DrugListMatch db;
-        for (DrugListMatch drugListMatch : lists) {
-            db = drugListMatchDAO.get(drugListMatch.getDrugId());
-            if (1 == db.getStatus()) {
-                db.setUsingRate(drugListMatch.getUsingRate());
-                db.setUsePathways(drugListMatch.getUsePathways());
-                db.setDefaultUseDose(drugListMatch.getDefaultUseDose());
-                db.setStatus(DrugMatchConstant.SUBMITED);
-                drugListMatchDAO.update(db);
+    public Map<String, Integer> drugCommit(List<DrugListMatch> lists,Integer organ) {
+        List<DrugListMatch> lists1 = new ArrayList<>();
+        Map<String, Integer> result = new HashMap<>();
+        try{
+            if(lists.size() > 0){
+                for (DrugListMatch drugListMatch : lists) {
+                    DrugListMatch db = drugListMatchDAO.get(drugListMatch.getDrugId());
+                    if (1 == db.getStatus()) {
+                        db.setUsingRate(drugListMatch.getUsingRate());
+                        db.setUsePathways(drugListMatch.getUsePathways());
+                        db.setDefaultUseDose(drugListMatch.getDefaultUseDose());
+                        db.setStatus(DrugMatchConstant.SUBMITED);
+                        lists1.add(db);
+                        drugListMatchDAO.update(db);
+                    }
+                }
+                //update by maoly on 2020/03/16 药品提交，已匹配数据同步至机构药品库
+                result = this.drugManualCommitNew(lists1);
             }
+
+        }catch(Exception e){
+            throw new DAOException(609,"药品数据自动导入机构药品库失败！");
         }
-        //update by maoly on 2020/03/16 药品提交，已匹配数据同步至机构药品库
-        this.drugManualCommit(organ,DrugMatchConstant.ALREADY_MATCH);
+        return result;
+
+    }
+    private Map<String, Integer> drugManualCommitNew(List<DrugListMatch> lists) {
+        final HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
+            @SuppressWarnings("unchecked")
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                int num = 0;
+                //更新数据到organDrugList并更新状态已提交
+                for (DrugListMatch drugListMatch : lists) {
+                    if (drugListMatch.getMatchDrugId() != null) {
+                        OrganDrugList organDrugList = new OrganDrugList();
+                        organDrugList.setDrugId(drugListMatch.getMatchDrugId());
+                        organDrugList.setOrganDrugCode(drugListMatch.getOrganDrugCode());
+                        organDrugList.setOrganId(drugListMatch.getSourceOrgan());
+                        if (drugListMatch.getPrice() == null) {
+                            organDrugList.setSalePrice(new BigDecimal(0));
+                        } else {
+                            organDrugList.setSalePrice(drugListMatch.getPrice());
+                        }
+                        organDrugList.setDrugName(drugListMatch.getDrugName());
+                        if (StringUtils.isEmpty(drugListMatch.getSaleName())) {
+                            organDrugList.setSaleName(drugListMatch.getDrugName());
+                        } else {
+                            if (drugListMatch.getSaleName().equals(drugListMatch.getDrugName())) {
+                                organDrugList.setSaleName(drugListMatch.getSaleName());
+                            } else {
+                                organDrugList.setSaleName(drugListMatch.getSaleName() + " " + drugListMatch.getDrugName());
+                            }
+
+                        }
+
+                        organDrugList.setUsingRate(drugListMatch.getUsingRate());
+                        organDrugList.setUsePathways(drugListMatch.getUsePathways());
+                        organDrugList.setProducer(drugListMatch.getProducer());
+                        organDrugList.setUseDose(drugListMatch.getUseDose());
+                        organDrugList.setRecommendedUseDose(drugListMatch.getDefaultUseDose());
+                        organDrugList.setPack(drugListMatch.getPack());
+                        organDrugList.setUnit(drugListMatch.getUnit());
+                        organDrugList.setUseDoseUnit(drugListMatch.getUseDoseUnit());
+                        organDrugList.setDrugSpec(drugListMatch.getDrugSpec());
+                        organDrugList.setRetrievalCode(drugListMatch.getRetrievalCode());
+                        organDrugList.setDrugForm(drugListMatch.getDrugForm());
+                        organDrugList.setBaseDrug(drugListMatch.getBaseDrug());
+                        organDrugList.setRegulationDrugCode(drugListMatch.getRegulationDrugCode());
+                        organDrugList.setLicenseNumber(drugListMatch.getLicenseNumber());
+                        organDrugList.setTakeMedicine(0);
+                        organDrugList.setStatus(1);
+                        organDrugList.setProducerCode("");
+                        organDrugList.setLastModify(new Date());
+                        if(StringUtils.isNotEmpty(drugListMatch.getDrugManfCode())) {
+                            organDrugList.setProducerCode(drugListMatch.getDrugManfCode());
+                        }
+                        organDrugList.setMedicalDrugCode(drugListMatch.getMedicalDrugCode());
+                        organDrugList.setMedicalDrugFormCode(drugListMatch.getMedicalDrugFormCode());
+                        organDrugList.setDrugFormCode(drugListMatch.getHisFormCode());
+
+                        Boolean isSuccess = organDrugListDAO.updateData(organDrugList);
+                        if (!isSuccess) {
+                            organDrugListDAO.save(organDrugList);
+                            //同步药品到监管备案
+                            RecipeBusiThreadPool.submit(()->{
+                                organDrugListService.uploadDrugToRegulation(organDrugList);
+                                return null;
+                            });
+                            num = num + 1;
+                        }
+                    }
+                }
+                setResult(num);
+            }
+        };
+        HibernateSessionTemplate.instance().executeTrans(action);
+        Map<String, Integer> result = Maps.newHashMap();
+        result.put("saveSuccess", action.getResult());
+        return result;
     }
 
     /**
