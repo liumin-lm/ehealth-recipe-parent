@@ -857,7 +857,8 @@ public class DrugToolService implements IDrugToolService {
     @RpcService
     public Map<String, Integer> drugCommit(List<DrugListMatch> lists,Integer organ) {
         List<DrugListMatch> lists1 = new ArrayList<>();
-        Map<String, Integer> result = new HashMap<>();
+        Map<String, Integer> map = new HashMap<>();
+        Integer result = 0;
         try{
             if(lists.size() > 0){
                 for (DrugListMatch drugListMatch : lists) {
@@ -871,17 +872,19 @@ public class DrugToolService implements IDrugToolService {
                         drugListMatchDAO.update(db);
                     }
                 }
-                //update by maoly on 2020/03/16 药品提交，已匹配数据同步至机构药品库
-                result = this.drugManualCommitNew(lists1);
+                if(lists1.size() > 0){
+                    result = this.drugManualCommitNew(lists1);
+                }
+                map.put("successCount",result);
             }
 
         }catch(Exception e){
             throw new DAOException(609,"药品数据自动导入机构药品库失败！");
         }
-        return result;
+        return map;
 
     }
-    private Map<String, Integer> drugManualCommitNew(List<DrugListMatch> lists) {
+    private Integer drugManualCommitNew(List<DrugListMatch> lists) {
         final HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
             @SuppressWarnings("unchecked")
             @Override
@@ -952,9 +955,7 @@ public class DrugToolService implements IDrugToolService {
             }
         };
         HibernateSessionTemplate.instance().executeTrans(action);
-        Map<String, Integer> result = Maps.newHashMap();
-        result.put("saveSuccess", action.getResult());
-        return result;
+        return action.getResult();
     }
 
     /**
