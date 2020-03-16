@@ -589,13 +589,14 @@ public class RecipeService extends RecipeBaseService{
                         CAInterface caInterface = caFactory.useCAFunction(organId);
                         CaSignResultVo resultVo =  caInterface.commonCASignAndSeal(requestSealTO,recipe, organId, userAccount, caPassword);
                         //保存签名值、时间戳、电子签章文件
-                        String recipeFileId = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId,
+                        String result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId,
                                 loginId,resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false);
-                        if (null != recipeFileId) {
-                            bl = recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.<String, Object>of("chemistSignFile", recipeFileId));
-                        } else{
-                            bl = false;
-                        }
+//                        if (null != recipeFileId) {
+//                            bl = recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.<String, Object>of("chemistSignFile", recipeFileId));
+//                        } else{
+//                            bl = false;
+//                        }
+                        bl = "success".equals(result)? true : false;
                     } catch (Exception e){
                         LOGGER.error("reviewRecipe  signFile 标准化CA签章报错 recipeId={} ,doctor={} ,e={}============="
                                 , recipeId,recipe.getDoctor(), e);
@@ -769,14 +770,14 @@ public class RecipeService extends RecipeBaseService{
                 CAInterface caInterface = caFactory.useCAFunction(organId);
                 CaSignResultVo resultVo =  caInterface.commonCASignAndSeal(requestSealTO,recipe, organId, userAccount, caPassword);
                 //保存签名值、时间戳、电子签章文件
-                String recipeFileId = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId,resultVo.getSignCADate(),
+                RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId,resultVo.getSignCADate(),
                         resultVo.getSignRecipeCode(), true);
-                if (null != recipeFileId) {
-                    Map<String, Object> attrMap = Maps.newHashMap();
-                    attrMap.put("signFile", recipeFileId);
-                    attrMap.put("signDate", recipe.getSignDate());
-                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMap);
-                }
+//                if (null != recipeFileId) {
+//                    Map<String, Object> attrMap = Maps.newHashMap();
+//                    attrMap.put("signFile", recipeFileId);
+//                    attrMap.put("signDate", recipe.getSignDate());
+//                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMap);
+//                }
             } catch (Exception e){
                 LOGGER.error("generateRecipePdfAndSign 标准化CA签章报错 recipeId={} ,doctor={} ,e={}============="
                         , recipeId,recipe.getDoctor(), e);
