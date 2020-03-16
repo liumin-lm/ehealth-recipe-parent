@@ -780,7 +780,7 @@ public class DrugToolService implements IDrugToolService {
      * 药品提交(将匹配完成的数据提交更新)----互联网六期改为人工提交
      */
     @RpcService
-    public void drugCommit(List<DrugListMatch> lists) {
+    public void drugCommit(List<DrugListMatch> lists,Integer organ) {
         DrugListMatch db;
         for (DrugListMatch drugListMatch : lists) {
             db = drugListMatchDAO.get(drugListMatch.getDrugId());
@@ -792,6 +792,8 @@ public class DrugToolService implements IDrugToolService {
                 drugListMatchDAO.update(db);
             }
         }
+        //update by maoly on 2020/03/16 药品提交，已匹配数据同步至机构药品库
+        this.drugManualCommit(organ,DrugMatchConstant.ALREADY_MATCH);
     }
 
     /**
