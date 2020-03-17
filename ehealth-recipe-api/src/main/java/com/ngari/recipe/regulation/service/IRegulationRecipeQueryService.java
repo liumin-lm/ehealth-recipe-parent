@@ -1,5 +1,7 @@
 package com.ngari.recipe.regulation.service;
 
+import com.ngari.his.regulation.entity.RegulationChargeDetailReq;
+import com.ngari.platform.regulation.mode.QueryRegulationUnitReq;
 import com.ngari.recipe.regulation.model.QueryRegulationUnitDTO;
 import com.ngari.recipe.regulation.model.RegulationDrugDeliveryDTO;
 import com.ngari.recipe.regulation.model.RegulationRecipeDetailDTO;
@@ -37,4 +39,11 @@ public interface IRegulationRecipeQueryService {
      */
     @RpcService
     List<RegulationDrugDeliveryDTO> queryDrugDeliveries(QueryRegulationUnitDTO queryRegulationUnit);
+
+
+    /**
+     * 互联网服务收费明细
+     */
+    @RpcService
+   List<RegulationChargeDetailReq> queryRegulationChargeDetailList(QueryRegulationUnitReq queryRegulationUnit);
 }
