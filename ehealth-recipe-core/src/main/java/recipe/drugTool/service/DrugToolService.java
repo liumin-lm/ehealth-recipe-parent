@@ -414,9 +414,7 @@ public class DrugToolService implements IDrugToolService {
             drug.setOperator(operator);
             drug.setRegulationDrugCode(getStrFromCell(row.getCell(24)));
             drug.setPlatformDrugId(Integer.parseInt(getStrFromCell(row.getCell(23))));
-            LOGGER.info("THE second drug =[{}]",JSONUtils.toString(drug));
             if (errMsg.length() > 1) {
-                LOGGER.info("Have THE Error");
                 int showNum = rowIndex + 1;
                 String error = ("【第" + showNum + "行】" + errMsg.substring(0, errMsg.length() - 1));
                 errDrugListMatchList.add(error);
@@ -425,19 +423,19 @@ public class DrugToolService implements IDrugToolService {
                     boolean isSuccess = drugListMatchDAO.updateData(drug);
                     if (!isSuccess) {
                         //自动匹配功能暂无法提供
-                        AutoMatch(drug);
+                         AutoMatch(drug);
                         drugListMatchDAO.save(drug);
                     }
                 } catch (Exception e) {
                     LOGGER.error("save or update drugListMatch error " + e.getMessage());
                 }
             }
+            drug=null;
+            System.gc();
             progress = new BigDecimal((float) rowIndex / total).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
             redisClient.set(organId + operator, progress * 100);
 //                    progressMap.put(organId+operator,progress*100);
         }
-
-
         if (errDrugListMatchList.size()>0){
             result.put("code", 609);
             result.put("msg", errDrugListMatchList);
