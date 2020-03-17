@@ -454,7 +454,7 @@ public class OrganDrugListService implements IOrganDrugListService {
     }
 
     @Override
-    public List<RegulationOrganDrugListBean> queryRegulationDrugSHET(Map<String, Object> params) {
+    public List<RegulationOrganDrugListBean> queryRegulationDrug(Map<String, Object> params) {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<Object> drugList = organDrugListDAO.findByLastModifyAndOrganIdS(params);
         List<RegulationOrganDrugListBean> result = new ArrayList<>();
