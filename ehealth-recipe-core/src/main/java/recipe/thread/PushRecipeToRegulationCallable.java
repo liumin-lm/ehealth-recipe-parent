@@ -65,7 +65,7 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
         if (recipeId==null){
             return null;
         }
-        logger.info("uploadRecipeIndicators start");
+        logger.info("uploadRecipeIndicators start recipeId={}",recipeId);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
