@@ -30,6 +30,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.service.RecipeLogService;
+import recipe.service.RecipeMsgService;
 import recipe.service.RecipeService;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
@@ -130,6 +131,9 @@ public class HisCheckRecipeService implements IRecipeCheckService {
             //根据审方模式改变状态
             recipeStatus = auditModeContext.getAuditModes(recipe.getReviewType()).afterAuditRecipeChange();
             logMemo = "审核通过(第三方平台，药师：" + auditDoctorName + ")";
+        } else {
+            //通知患者审核不通过
+            RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_NOT_PASS_YS);
         }
 
         boolean bl = recipeDAO.updateRecipeInfoByRecipeId(recipeId, recipeStatus, attrMap);
