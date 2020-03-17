@@ -45,7 +45,9 @@ public class ShanxiCAImpl implements CAInterface {
         CaAccountRequestTO requestTO = new CaAccountRequestTO();
         requestTO.setIdCard(doctor.getIdNumber());
         requestTO.setMobile(doctor.getMobile());
-        requestTO.setOrganId(doctor.getOrgan());
+        //TODO 仅供测试
+//        requestTO.setOrganId(doctor.getOrgan());
+        requestTO.setOrganId(1005212);
         requestTO.setUserAccount(doctor.getIdNumber());
         requestTO.setUserEmail(doctor.getEmail());
         requestTO.setUserName(doctor.getName());
