@@ -237,7 +237,6 @@ public class DrugToolService implements IDrugToolService {
         }
         Sheet sheet = workbook.getSheetAt(0);
         Integer total = sheet.getLastRowNum();
-        LOGGER.info("The total=[{}]",total);
         if (total == null || total <= 0) {
             result.put("code", 609);
             result.put("msg", "data is required");
@@ -264,7 +263,6 @@ public class DrugToolService implements IDrugToolService {
                 }
 
             } drug = new DrugListMatch();
-            boolean flag = true;
             StringBuilder errMsg = new StringBuilder();
             /*try{*/
             try {
@@ -424,20 +422,13 @@ public class DrugToolService implements IDrugToolService {
                 errDrugListMatchList.add(error);
             }else {
                 try {
-                    LOGGER.info("The into start");
-                    DrugListMatch finalDrug = drug;
-                    GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
-                        @Override
-                        public void run() {
-                            //AutoMatch(finalDrug);
-                            boolean isSuccess = drugListMatchDAO.updateData(finalDrug);
-                            if (!isSuccess) {
-                                //自动匹配功能暂无法提供
-                                //AutoMatch(drug);
-                                drugListMatchDAO.save(finalDrug);
-                            }
-                        }
-                    });
+                    boolean isSuccess = drugListMatchDAO.updateData(drug);
+                    if (!isSuccess) {
+                        //自动匹配功能暂无法提供
+                        AutoMatch(drug);
+                        drugListMatchDAO.save(drug);
+                        drug=null;
+                    }
                 } catch (Exception e) {
                     LOGGER.error("save or update drugListMatch error " + e.getMessage());
                 }
