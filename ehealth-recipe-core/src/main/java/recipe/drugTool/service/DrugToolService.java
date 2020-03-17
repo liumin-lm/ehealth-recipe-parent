@@ -411,7 +411,9 @@ public class DrugToolService implements IDrugToolService {
             drug.setStatus(DrugMatchConstant.UNMATCH);
             drug.setOperator(operator);
             drug.setRegulationDrugCode(getStrFromCell(row.getCell(24)));
-            drug.setPlatformDrugId(Integer.parseInt(getStrFromCell(row.getCell(23))));
+            if(StringUtils.isNotEmpty(getStrFromCell(row.getCell(23)))){
+                drug.setPlatformDrugId(Integer.parseInt(getStrFromCell(row.getCell(23)).trim()));
+            }
             if (errMsg.length() > 1) {
                 int showNum = rowIndex + 1;
                 String error = ("【第" + showNum + "行】" + errMsg.substring(0, errMsg.length() - 1));
@@ -1510,5 +1512,49 @@ public class DrugToolService implements IDrugToolService {
         return status;
     }
 
-
+    @RpcService(timeout = 60)
+    public void drugImportAutoMatch(Integer organId){
+        LOGGER.info("THE DrugMatchOrganId=[{}]",organId);
+        GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
+            @Override
+            public void run() {
+                Boolean flag = checkOrganRegulation(organId);
+                String  addrArea = checkOrganAddrArea(organId);
+                List<DrugListMatch> result = drugListMatchDAO.findDataByOrganAndStatus(organId,DrugMatchConstant.UNMATCH);
+                for (DrugListMatch drug :result) {
+                    DrugList drugList = drugListDAO.get(drug.getPlatformDrugId());
+                  if (flag) {
+                      ProvinceDrugList provinceDrugList = provinceDrugListDAO.getByProvinceIdAndDrugId(addrArea, drug.getRegulationDrugCode(), 1);
+                      if (drugList != null && provinceDrugList != null) {
+                          // 以匹配
+                          drug.setStatus(DrugMatchConstant.ALREADY_MATCH);
+                          drug.setMatchDrugId(drugList.getDrugId());
+                      } else if (drugList == null && provinceDrugList == null) {
+                          //未匹配
+                          drug.setStatus(DrugMatchConstant.UNMATCH);
+                          drug.setRegulationDrugCode(null);
+                          drug.setPlatformDrugId(null);
+                      } else if (drugList != null && provinceDrugList == null) {
+                          //匹配中
+                          drug.setStatus(DrugMatchConstant.MATCHING);
+                          drug.setRegulationDrugCode(null);
+                      } else if (drugList == null && provinceDrugList != null) {
+                          // 匹配中
+                          drug.setStatus(DrugMatchConstant.MATCHING);
+                          drug.setPlatformDrugId(null);
+                      }
+                  } else {
+                      drug.setRegulationDrugCode(null);
+                      if (drugList != null) {
+                          drug.setStatus(DrugMatchConstant.ALREADY_MATCH);
+                          drug.setMatchDrugId(drugList.getDrugId());
+                      } else {
+                          drug.setPlatformDrugId(null);
+                      }
+                  }
+                  drugListMatchDAO.updateData(drug);
+              }
+            }
+        });
+    }
 }
