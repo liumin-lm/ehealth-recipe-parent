@@ -819,6 +819,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return commonRemoteService.getCompleteAddress(getBean(orderBean,RecipeOrder.class));
     }
 
+    @RpcService
     @Override
     public Map<String, Object> noticePlatRecipeAuditResult(NoticeNgariAuditResDTO req) {
         LOGGER.info("noticePlatRecipeAuditResult，req = {}", JSONUtils.toString(req));
