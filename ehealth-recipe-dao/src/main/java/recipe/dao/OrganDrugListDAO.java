@@ -567,8 +567,8 @@ public abstract class OrganDrugListDAO extends
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 String hql = "select a.organDrugId,a.organId,a.drugName,a.status,a.medicalDrugFormCode,a.drugForm," +
-                        " a.producer,a.baseDrug,b.licenseNumber,b.drugClass" +
-                        " from OrganDrugList a, DrugList b where a.drugId = b.drugId and a.lastModify>=:startDate and a.lastModify<=:endDate and a.OrganID IN :organIds";
+                        " a.producer,a.baseDrug,a.licenseNumber,b.drugClass" +
+                        " from OrganDrugList a, DrugList b where a.drugId = b.drugId and a.lastModify>=:startDate and a.lastModify<=:endDate and a.organId IN :organIds";
                 Query query = ss.createQuery(hql);
                 query.setProperties(params);
                 List list = query.list();
