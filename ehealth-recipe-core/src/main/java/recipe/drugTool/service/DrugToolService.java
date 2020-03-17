@@ -237,6 +237,7 @@ public class DrugToolService implements IDrugToolService {
         }
         Sheet sheet = workbook.getSheetAt(0);
         Integer total = sheet.getLastRowNum();
+        LOGGER.info("The total=[{}]",total);
         if (total == null || total <= 0) {
             result.put("code", 609);
             result.put("msg", "data is required");
@@ -428,7 +429,7 @@ public class DrugToolService implements IDrugToolService {
                     GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
                         @Override
                         public void run() {
-                            AutoMatch(finalDrug);
+                            //AutoMatch(finalDrug);
                             boolean isSuccess = drugListMatchDAO.updateData(finalDrug);
                             if (!isSuccess) {
                                 //自动匹配功能暂无法提供
