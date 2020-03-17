@@ -18,6 +18,7 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
 import recipe.bean.RecipePayModeSupportBean;
+import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
 import recipe.service.RecipeOrderService;
 import recipe.thread.RecipeBusiThreadPool;
@@ -303,21 +304,25 @@ public abstract class AccessDrugEnterpriseService {
     }
 
     public String appEnterprise(RecipeOrder order) {
+        String appEnterprise = null;
         if (null != order && order.getEnterpriseId() != null) {
                 //设置配送方名称
-                DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-                return drugsEnterprise.getName();
+            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+            appEnterprise = drugsEnterprise.getName();
         }
-        return null;
+        LOGGER.info("appEnterprise 当前非杭州市互联网返回的药企名为：{}", appEnterprise);
+        return appEnterprise;
     }
 
     public BigDecimal orderToRecipeFee(RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, BigDecimal recipeFee, Map<String, String> extInfo) {
+        BigDecimal nowFee = recipeFee;
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         if ((payModeSupport.isSupportCOD() || payModeSupport.isSupportTFDS()|| payModeSupport.isSupportOnlinePay()) && null != order.getEnterpriseId()) {
-            return orderService.reCalculateRecipeFee(order.getEnterpriseId(), recipeIds, null);
+            nowFee = orderService.reCalculateRecipeFee(order.getEnterpriseId(), recipeIds, null);
         }
-        return recipeFee;
+        LOGGER.info("appEnterprise 当前非杭州市互联网返回订单的处方费用为：{}", nowFee);
+        return nowFee;
     }
 
 
@@ -331,6 +336,7 @@ public abstract class AccessDrugEnterpriseService {
                 order.setTransFeeDetail(drugsEnterprise.getTransFeeDetail());
             }
         }
+        LOGGER.info("setOrderEnterpriseMsg 当前非杭州市互联网返回订单的药企信息：{}", JSONUtils.toString(order));
     }
 
     public void checkRecipeGiveDeliveryMsg(RecipeBean recipeBean, Map<String, Object> map){
@@ -355,5 +361,10 @@ public abstract class AccessDrugEnterpriseService {
 
     public void setEnterpriseMsgToOrder(RecipeOrder order, Integer depId, Map<String, String> extInfo) {
         order.setEnterpriseId(depId);
+        LOGGER.info("当前非虚拟药企组装的订单：{}", JSONUtils.toString(order));
+    }
+
+    public Boolean specialMakeDepList(DrugsEnterprise drugsEnterprise, Recipe dbRecipe) {
+        return DrugEnterpriseConstant.COMPANY_HZ.equals(drugsEnterprise.getCallSys()) && dbRecipe.getRecipeCode().contains("ngari");
     }
 }

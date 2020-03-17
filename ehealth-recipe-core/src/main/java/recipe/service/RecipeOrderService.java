@@ -251,7 +251,7 @@ public class RecipeOrderService extends RecipeBaseService {
             }
         }
         if(null == remoteService){
-            remoteService = getBean("commonRemoteService", AccessDrugEnterpriseService.class);
+            remoteService = getBean("commonRemoteService", CommonRemoteService.class);
         }
         remoteService.setOrderEnterpriseMsg(extInfo, order);
 
@@ -571,7 +571,7 @@ public class RecipeOrderService extends RecipeBaseService {
             }
         }
         if(null == remoteService){
-            remoteService = getBean("commonRemoteService", AccessDrugEnterpriseService.class);
+            remoteService = getBean("commonRemoteService", CommonRemoteService.class);
         }
         order.setRecipeFee(remoteService.orderToRecipeFee(order, recipeIds, payModeSupport, recipeFee, extInfo));
         //order.setRecipeFee(recipeFee);

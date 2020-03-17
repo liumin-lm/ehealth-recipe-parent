@@ -994,6 +994,7 @@ public class PayModeOnline implements IPurchaseService {
         public int compare(DrugsEnterprise drugsEnterpriseOne, DrugsEnterprise drugsEnterpriseTwo) {
             int compare = drugsEnterpriseOne.getPayModeSupport() - drugsEnterpriseTwo.getPayModeSupport();
             if (compare != 0) {
+
                 cp = compare > 0 ? 1 : -1;
             }
             return cp;
@@ -1002,9 +1003,15 @@ public class PayModeOnline implements IPurchaseService {
 
     private void checkStoreForSendToHom(Recipe dbRecipe, List<DepDetailBean> depDetailList) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        RemoteDrugEnterpriseService remoteDrugEnterpriseService =
+                ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByOrganId(dbRecipe.getClinicOrgan());
         for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
-            if (DrugEnterpriseConstant.COMPANY_HR.equals(drugsEnterprise.getCallSys()) || DrugEnterpriseConstant.COMPANY_HZ.equals(drugsEnterprise.getCallSys())) {
+            //date 20200316
+            //特殊处理的时候判断要不要走药企自己的展示
+            AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);;
+            boolean specialMake = remoteService.specialMakeDepList(drugsEnterprise, dbRecipe);
+            if (DrugEnterpriseConstant.COMPANY_HR.equals(drugsEnterprise.getCallSys()) || specialMake) {
                 //将药店配送的药企移除
                 BigDecimal recipeFree = BigDecimal.ZERO;
                 for (DepDetailBean depDetailBean : depDetailList) {

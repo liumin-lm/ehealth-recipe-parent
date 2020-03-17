@@ -50,6 +50,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.dao.bean.DrugInfoHisBean;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
+import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
@@ -1087,7 +1088,7 @@ public class RecipeHisService extends RecipeBaseService {
                     remoteService = remoteDrugEnterpriseService.getServiceByDep(enterprises.get(0));
                 }
                 if(null == remoteService){
-                    remoteService = getBean("commonRemoteService", AccessDrugEnterpriseService.class);
+                    remoteService = getBean("commonRemoteService", CommonRemoteService.class);
                 }
                 remoteService.checkRecipeGiveDeliveryMsg(recipeBean, map);
 
