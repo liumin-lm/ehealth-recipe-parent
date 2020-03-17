@@ -26,5 +26,16 @@
             <artifactId>ehealth-bill-api</artifactId>
             <version>${ngari.bill.version}</version>
         </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-his-api</artifactId>
+            <version>${ngari.hisapi.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>ehealth-patient-api</artifactId>
+                    <groupId>ngari</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 </project>
