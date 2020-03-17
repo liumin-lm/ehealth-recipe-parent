@@ -29,6 +29,7 @@ import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.spring.AppDomainContext;
 import ctd.util.BeanUtils;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
@@ -411,8 +412,8 @@ public class DrugToolService implements IDrugToolService {
             drug.setSourceOrgan(organId);
             drug.setStatus(DrugMatchConstant.UNMATCH);
             drug.setOperator(operator);
-            drug.setRegulationDrugCode(getStrFromCell(row.getCell(23)));
-            drug.setPlatformDrugId(Integer.parseInt(getStrFromCell(row.getCell(24))));
+            drug.setRegulationDrugCode(getStrFromCell(row.getCell(24)));
+            drug.setPlatformDrugId(Integer.parseInt(getStrFromCell(row.getCell(23))));
             if (errMsg.length() > 1) {
                 int showNum = rowIndex + 1;
                 String error = ("【第" + showNum + "行】" + errMsg.substring(0, errMsg.length() - 1));
@@ -448,6 +449,7 @@ public class DrugToolService implements IDrugToolService {
 
 
     private void AutoMatch(DrugListMatch drug) {
+        LOGGER.info("the new Drug=[{}]", JSONUtils.toString(drug));
         if (StringUtils.isNotEmpty(drug.getRegulationDrugCode()) || drug.getPlatformDrugId() != null) {
             DrugList drugList = drugListDAO.get(drug.getPlatformDrugId());
             // 如果该机构有省平台关联的话
