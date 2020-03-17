@@ -29,9 +29,7 @@ import recipe.dao.RecipeCheckDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.hisservice.RecipeToHisMqService;
-import recipe.service.RecipeLogService;
-import recipe.service.RecipeMsgService;
-import recipe.service.RecipeService;
+import recipe.service.*;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
@@ -132,8 +130,15 @@ public class HisCheckRecipeService implements IRecipeCheckService {
             recipeStatus = auditModeContext.getAuditModes(recipe.getReviewType()).afterAuditRecipeChange();
             logMemo = "审核通过(第三方平台，药师：" + auditDoctorName + ")";
         } else {
-            //通知患者审核不通过
-            RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_NOT_PASS_YS);
+            RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
+            //审核不通过
+            auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckNotPassYs(recipe);
+            //HIS消息发送
+            //审核不通过 往his更新状态（已取消）
+            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+            hisService.recipeStatusUpdate(recipe.getRecipeId());
+            //记录日志
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核不通过处理完成");
         }
 
         boolean bl = recipeDAO.updateRecipeInfoByRecipeId(recipeId, recipeStatus, attrMap);
