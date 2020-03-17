@@ -465,7 +465,6 @@ public class OrganDrugListService implements IOrganDrugListService {
         List drugList = HqlUtils.execHqlFindList("select a.organDrugId,a.organId,a.drugName,a.status,a.medicalDrugFormCode,a.drugForm, a.producer," +
                 "a.baseDrug,a.licenseNumber,b.drugClass,a.regulationDrugCode,a.organDrugCode,a.saleName,a.drugSpec,a.salePrice,a.drugFormCode" +
                 " from OrganDrugList a, DrugList b where a.drugId = b.drugId and a.lastModify>=:startDate and a.lastModify<=:endDate and a.organId IN :organIds", params);
-        //List<Object> drugList = organDrugListDAO.findByLastModifyAndOrganIdS(params);
         List<RegulationDrugCategoryBean> result = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(drugList)){
             logger.info("机构药品信息数据总数：" + drugList.size());
@@ -480,8 +479,7 @@ public class OrganDrugListService implements IOrganDrugListService {
                     bean.setOrganID(provUploadOrganDTO.getOrganId());
                     bean.setUnitID(provUploadOrganDTO.getUnitId());
                 }
-                OrganDTO organDTO = organService.getByOrganId(organId);
-                bean.setOrganName(organDTO == null ? null : organDTO.getName());
+                bean.setOrganName(organService.getNameById(organId));
                 String drugName = obj[2] == null ? null : String.valueOf(obj[2]);
                 bean.setHospDrugName(drugName);  //医院药品通用名drugName药品注册通用名
                 String status = obj[3] == null ? "" : String.valueOf(obj[3]);
