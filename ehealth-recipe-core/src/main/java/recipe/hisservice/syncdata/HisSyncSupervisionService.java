@@ -69,7 +69,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     @RpcService
     @Override
     public CommonResponse uploadRecipeIndicators(List<Recipe> recipeList) {
-        LOGGER.info("uploadRecipeIndicators recipeList length={}", recipeList.size());
+        LOGGER.info("uploadRecipeIndicators recipeList length={} recipeId={}", recipeList.size(),recipeList.get(0).getRecipeId());
         CommonResponse commonResponse = ResponseUtils.getFailResponse(CommonResponse.class, "");
         if (CollectionUtils.isEmpty(recipeList)) {
             commonResponse.setMsg("处方列表为空");
