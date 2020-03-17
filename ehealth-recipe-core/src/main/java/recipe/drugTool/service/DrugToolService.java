@@ -427,7 +427,6 @@ public class DrugToolService implements IDrugToolService {
                         //自动匹配功能暂无法提供
                         AutoMatch(drug);
                         drugListMatchDAO.save(drug);
-                        drug=null;
                     }
                 } catch (Exception e) {
                     LOGGER.error("save or update drugListMatch error " + e.getMessage());
@@ -453,12 +452,15 @@ public class DrugToolService implements IDrugToolService {
 
     private void AutoMatch(DrugListMatch drug) {
         LOGGER.info("the new Drug=[{}]", JSONUtils.toString(drug));
+        DrugList drugList = null;
+        String addrArea = null;
+        ProvinceDrugList provinceDrugList = null;
         if (StringUtils.isNotEmpty(drug.getRegulationDrugCode()) || drug.getPlatformDrugId() != null) {
-            DrugList drugList = drugListDAO.get(drug.getPlatformDrugId());
+            drugList = drugListDAO.get(drug.getPlatformDrugId());
             // 如果该机构有省平台关联的话
             if (checkOrganRegulation(drug.getSourceOrgan())) {
-                String addrArea = checkOrganAddrArea(drug.getSourceOrgan());
-                ProvinceDrugList provinceDrugList = provinceDrugListDAO.getByProvinceIdAndDrugId(addrArea, drug.getRegulationDrugCode(), 1);
+                addrArea = checkOrganAddrArea(drug.getSourceOrgan());
+                provinceDrugList = provinceDrugListDAO.getByProvinceIdAndDrugId(addrArea, drug.getRegulationDrugCode(), 1);
                 if (drugList != null && provinceDrugList != null) {
                     // 以匹配
                     drug.setStatus(DrugMatchConstant.ALREADY_MATCH);
