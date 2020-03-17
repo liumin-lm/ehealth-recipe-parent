@@ -283,18 +283,17 @@ public class DrugToolService implements IDrugToolService {
             } catch (Exception e) {
                 errMsg.append("药品通用名有误").append(";");
             }
-
-//            try {
+            try {
                 drug.setSaleName(getStrFromCell(row.getCell(2)));
-//            } catch (Exception e) {
-//                errMsg.append("药品商品名有误").append(";");
-//            }
-//
-//            try {
+            } catch (Exception e) {
+                errMsg.append("药品商品名有误").append(";");
+            }
+
+            try {
                 drug.setDrugSpec(getStrFromCell(row.getCell(3)));
-//            } catch (Exception e) {
-//                errMsg.append("药品规格有误").append(";");
-//            }
+            } catch (Exception e) {
+                errMsg.append("药品规格有误").append(";");
+            }
             try {
                 if (("中药").equals(getStrFromCell(row.getCell(4)))) {
                     drug.setDrugType(3);
@@ -310,7 +309,7 @@ public class DrugToolService implements IDrugToolService {
             }
 
             //中药不需要设置
-            if(3 != drug.getDrugType()){
+            if(new Integer(3).equals(drug.getDrugType())){
 
                 try {
                     if (StringUtils.isEmpty(getStrFromCell(row.getCell(5)))) {
@@ -375,17 +374,17 @@ public class DrugToolService implements IDrugToolService {
 
             }
 
-//            try {
+            try {
                 drug.setUseDoseUnit(getStrFromCell(row.getCell(7)));
-//            } catch (Exception e) {
-//                errMsg.append("剂量单位有误").append(";");
-//            }
-//
-//            try {
+            } catch (Exception e) {
+                errMsg.append("剂量单位有误").append(";");
+            }
+
+            try {
                drug.setRetrievalCode(getStrFromCell(row.getCell(19)));
-//            } catch (Exception e) {
-//                errMsg.append("院内检索码有误").append(";");
-//            }
+            } catch (Exception e) {
+                errMsg.append("院内检索码有误").append(";");
+            }
 
             try {
                 String priceCell = getStrFromCell(row.getCell(12));
