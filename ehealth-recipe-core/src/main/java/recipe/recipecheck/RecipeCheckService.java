@@ -1,4 +1,4 @@
-package recipe.service;
+package recipe.recipecheck;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -44,6 +44,7 @@ import recipe.audit.auditmode.AuditModeContext;
 import recipe.bean.CheckYsInfoBean;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.service.*;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ChinaIDNumberUtil;
