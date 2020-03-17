@@ -80,10 +80,18 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
         logger.info("uploadRecipeIndicators regulationOrgan:"+JSONUtils.toString(list));
         try {
             //各个状态都推送给前置机 由前置机判断什么状态的处方推哪个监管平台
-            if (CollectionUtils.isNotEmpty(list)){
-                String domainId = regulationOrgan.get(recipe.getClinicOrgan());
-                boolean flag = true;
-                if (StringUtils.isNotEmpty(domainId) && domainId.startsWith(REGULATION_JS)){
+            String domainId = regulationOrgan.get(recipe.getClinicOrgan());
+            if (CollectionUtils.isNotEmpty(list) && StringUtils.isNotEmpty(domainId)){
+                //boolean flag = true;
+                if (domainId.startsWith(REGULATION_ZJ)){
+                    //浙江省推送处方规则：（1）将status=2 处方审核后的数据推送给监管平台，不会推送审核中、流传的数据
+                    //审核后推送
+                    //互联网网模式下--审核通过后是待处理状态
+                    if (status == 2 && canUploadByReviewType(recipe)) {
+                        response = service.uploadRecipeIndicators(Arrays.asList(recipe));
+                        //flag = false;
+                    }
+                }else {
                     //江苏省推送处方规则：（1）如果没有审核直接推送处方数据、（2）status=2表示审核了，则推送处方审核后的数据，（3）审核数据推送成功后再推送处方流转数据
                     /*if (status == 2) {
                         response = service.uploadRecipeAuditIndicators(Arrays.asList(recipe));
@@ -94,24 +102,16 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
                             logger.warn("uploadRecipeAuditIndicators rpc execute error. recipe={}", JSONUtils.toString(recipe));
                         }
                     } */
-                    //处方开立，处方审核处方流转都用同一个接口，由前置机转换数据(可根据处方状态判断)
+                    //江苏省处方开立，处方审核处方流转都用同一个接口，由前置机转换数据(可根据处方状态判断)
+                    //除浙江省之外的都直接推
                     response = service.uploadRecipeIndicators(Arrays.asList(recipe));
-                }else {
-                    //浙江省推送处方规则：（1）将status=2 处方审核后的数据推送给监管平台，不会推送审核中、流传的数据
-                    //审核后推送
-                    //互联网网模式下--审核通过后是待处理状态
-                    if (status == 2 && canUploadByReviewType(recipe)) {
-                        response = service.uploadRecipeIndicators(Arrays.asList(recipe));
-                        flag = false;
-                    }
                 }
-                //从缓存中取机构列表上传--可配置
+                /*//从缓存中取机构列表上传--可配置
                 RedisClient redisClient = RedisClient.instance();
                 Set<String> organIdList = redisClient.sMembers(CacheConstant.UPLOAD_OPEN_RECIPE_LIST);
                 if (organIdList != null && organIdList.contains(recipe.getClinicOrgan().toString())&&flag){
                     response = service.uploadRecipeIndicators(Arrays.asList(recipe));
-                }
-
+                }*/
             }
         } catch (Exception e) {
             logger.warn("uploadRecipeIndicators exception recipe={}", JSONUtils.toString(recipe), e);
