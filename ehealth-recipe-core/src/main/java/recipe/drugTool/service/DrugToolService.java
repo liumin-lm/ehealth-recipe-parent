@@ -597,6 +597,7 @@ public class DrugToolService implements IDrugToolService {
                 drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(),ImmutableMap.of("status", status,"matchDrugId",save.getDrugId()));
             }
         }catch(Exception e){
+            LOGGER.error("DrugToolService.updateNoMatchData fail,e=[{}]",e);
             throw new DAOException(609, "数据自动导入平台药品库失败!");
         }
 
@@ -886,6 +887,7 @@ public class DrugToolService implements IDrugToolService {
             }
 
         }catch(Exception e){
+            LOGGER.error("DrugToolService.drugCommit fail,e=[{}]",e);
             throw new DAOException(609,"药品数据自动导入机构药品库失败！");
         }
         return map;
