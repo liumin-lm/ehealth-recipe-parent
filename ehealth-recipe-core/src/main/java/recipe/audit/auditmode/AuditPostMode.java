@@ -20,6 +20,7 @@ import recipe.constant.*;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.recipecheck.HisCheckRecipeService;
 import recipe.recipecheck.RecipeCheckService;
 import recipe.service.*;
 import recipe.util.MapValueUtil;

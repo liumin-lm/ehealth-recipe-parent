@@ -6,6 +6,7 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.model.PatientBean;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
 import com.ngari.home.asyn.model.BussFinishEvent;
@@ -30,6 +31,7 @@ import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -44,6 +46,8 @@ import recipe.audit.auditmode.AuditModeContext;
 import recipe.bean.CheckYsInfoBean;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.purchase.IPurchaseService;
+import recipe.purchase.PurchaseEnum;
 import recipe.service.*;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
@@ -630,95 +634,17 @@ public class RecipeCheckService {
         if (null == recipeId || null == result) {
             throw new DAOException(DAOException.VALUE_NEEDED, "params are needed");
         }
-
-        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-
-        //审核处方单（药师相关数据处理）
-        CheckYsInfoBean resultBean = recipeService.reviewRecipe(paramMap);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-
-        Map<String, Object> resMap = Maps.newHashMap();
-        resMap.put("result", resultBean.isRs());
-        resMap.put("recipeId", recipeId);
-        //把审核结果再返回前端 0:未审核 1:通过 2:不通过
-        resMap.put("check", (1 == result) ? 1 : 2);
-
-        //审核成功往药厂发消息
-        //审方做异步处理
-        GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
-            @Override
-            public void run() {
-                if (1 == result) {
-                    //审方成功
-                    auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckPassYs(recipe);
-                } else {
-                    //审核不通过后处理
-                    doAfterCheckNotPassYs(recipe);
-                }
-                //将审核结果推送HIS
-                try {
-                    RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-                    hisService.recipeAudit(recipe, resultBean);
-                } catch (Exception e) {
-                    LOGGER.warn("saveCheckResult send recipeAudit to his error. recipeId={}", recipeId, e);
-                }
-                if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
-                    //增加药师首页待处理任务---完成任务
-                    ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussFinishEvent(recipeId, BussTypeConstant.RECIPE));
-                }
-            }
-        });
-        //推送处方到监管平台(审核后数据)
-        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(),2));
-        return resMap;
-    }
-
-    private void doAfterCheckNotPassYs(Recipe recipe) {
-        IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
-        boolean secondsignflag = iOrganConfigService.getEnableSecondsignByOrganId(recipe.getClinicOrgan());
-        //不支持二次签名的机构直接执行后续操作
-        if (!secondsignflag) {
-            //一次审核不通过的需要将优惠券释放
-            RecipeCouponService recipeCouponService = ApplicationUtils.getRecipeService(RecipeCouponService.class);
-            recipeCouponService.unuseCouponByRecipeId(recipe.getRecipeId());
-            //TODO 根据审方模式改变
-            auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckNotPassYs(recipe);
-            //HIS消息发送
-            //审核不通过 往his更新状态（已取消）
-            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-            hisService.recipeStatusUpdate(recipe.getRecipeId());
-            //记录日志
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核不通过处理完成");
-        }else{
-            //需要二次审核，这里是一次审核不通过的流程
-            //需要将处方的审核状态设置成一次审核不通过的状态
-            Map<String, Object> updateMap = new HashMap<>();
-            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            updateMap.put("checkStatus", RecipecCheckStatusConstant.First_Check_No_Pass);
-            recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), updateMap);
+        //默认平台审核
+        Integer checkMode = 1;
+        try{
+            IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            checkMode =  (Integer)configurationCenterUtilsService.getConfiguration(recipe.getClinicOrgan(), "isOpenHisCheckRecipeFlag");
+        }catch (Exception e){
+            LOGGER.error("saveCheckResult error",e);
         }
-        //由于支持二次签名的机构第一次审方不通过时医生收不到消息。所以将审核不通过推送消息放这里处理
-        sendCheckNotPassYsMsg(recipe);
-    }
-
-    private void sendCheckNotPassYsMsg(Recipe recipe) {
-        RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
-        if (null == recipe) {
-            return;
-        }
-        recipe = rDao.get(recipe.getRecipeId());
-        if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipe.getFromflag())) {
-            //发送审核不成功消息
-            //${sendOrgan}：抱歉，您的处方未通过药师审核。如有收取费用，款项将为您退回，预计1-5个工作日到账。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
-            RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_CHECKNOTPASS_4HIS, recipe);
-        //date 2019/10/10
-        //添加判断 一次审核不通过不需要向患者发送消息
-        }else if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())){
-            //发送审核不成功消息
-            //处方审核不通过通知您的处方单审核不通过，如有疑问，请联系开方医生
-            RecipeMsgService.batchSendMsg(recipe, eh.cdr.constant.RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
-        }
+        return getCheckService(checkMode).saveCheckResult(paramMap);
     }
 
     /**
@@ -945,5 +871,23 @@ public class RecipeCheckService {
         }
 
         return organIds;
+    }
+
+    private IRecipeCheckService getCheckService(Integer checkMode) {
+        RecipeCheckEnum[] list = RecipeCheckEnum.values();
+        String serviceName = null;
+        for (RecipeCheckEnum e : list) {
+            if (e.getCheckMode().equals(checkMode)) {
+                serviceName = e.getServiceName();
+                break;
+            }
+        }
+
+        IRecipeCheckService recipeCheckService = null;
+        if (StringUtils.isNotEmpty(serviceName)) {
+            recipeCheckService = AppContextHolder.getBean(serviceName, IRecipeCheckService.class);
+        }
+
+        return recipeCheckService;
     }
 }
