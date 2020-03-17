@@ -60,6 +60,7 @@ public class HisCheckRecipeService implements IRecipeCheckService {
 
     @RpcService
     public void sendCheckRecipeInfo(Recipe recipe) {
+        LOGGER.info("HisCheckRecipeService.sendCheckRecipeInfo recipeId:{}.", recipe.getRecipeId());
         IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         Integer isOpenHisCheckRecipeFlag = (Integer) configurationCenterUtilsService.getConfiguration(recipe.getClinicOrgan(), "isOpenHisCheckRecipeFlag");
         if (isOpenHisCheckRecipeFlag == 2) {
