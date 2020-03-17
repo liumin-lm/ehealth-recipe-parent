@@ -458,7 +458,7 @@ public class OrganDrugListService implements IOrganDrugListService {
     public List<RegulationOrganDrugListBean> queryRegulationDrugSHET(Map<String, Object> params) {
         List drugList = HqlUtils.execHqlFindList("select a.organDrugId,a.organId,a.drugName,a.status,a.medicalDrugFormCode,a.drugForm," +
                 " a.producer,a.baseDrug,b.approvalNumber,b.DrugClass" +
-                " from OrganDrugList a, DrugList b where a.drugId = b.drugId and lastModify>=:startDate and lastModify<:endDate and a.OrganID IN :organIds", params);
+                " from OrganDrugList a, DrugList b where a.drugId = b.drugId and a.lastModify>=:startDate and a.lastModify<=:endDate and a.OrganID IN :organIds", params);
         List<RegulationOrganDrugListBean> result = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(drugList)){
             logger.info("机构药品信息数据总数：" + drugList.size());
