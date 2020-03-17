@@ -9,6 +9,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import recipe.ApplicationUtils;
 import recipe.dao.RecipeExtendDAO;
 import recipe.hisservice.RecipeToHisMqService;
@@ -20,6 +21,7 @@ import recipe.hisservice.RecipeToHisMqService;
 @RpcBean("hisCheckRecipeService")
 public class HisCheckRecipeService {
 
+    @RpcService
     public void sendCheckRecipeInfo(Recipe recipe){
         IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         Integer isOpenHisCheckRecipeFlag =  (Integer)configurationCenterUtilsService.getConfiguration(recipe.getClinicOrgan(), "isOpenHisCheckRecipeFlag");
