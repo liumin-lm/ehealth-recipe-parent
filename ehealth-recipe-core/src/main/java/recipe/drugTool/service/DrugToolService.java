@@ -29,8 +29,10 @@ import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.spring.AppDomainContext;
 import ctd.util.BeanUtils;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -411,21 +413,30 @@ public class DrugToolService implements IDrugToolService {
             drug.setSourceOrgan(organId);
             drug.setStatus(DrugMatchConstant.UNMATCH);
             drug.setOperator(operator);
-            drug.setRegulationDrugCode(getStrFromCell(row.getCell(23)));
-            drug.setPlatformDrugId(Integer.parseInt(getStrFromCell(row.getCell(24))));
+            drug.setRegulationDrugCode(getStrFromCell(row.getCell(24)));
+            drug.setPlatformDrugId(Integer.parseInt(getStrFromCell(row.getCell(23))));
+            LOGGER.info("THE second drug =[{}]",JSONUtils.toString(drug));
             if (errMsg.length() > 1) {
+                LOGGER.info("Have THE Error");
                 int showNum = rowIndex + 1;
                 String error = ("【第" + showNum + "行】" + errMsg.substring(0, errMsg.length() - 1));
                 errDrugListMatchList.add(error);
             }else {
                 try {
-                    AutoMatch(drug);
-                    boolean isSuccess = drugListMatchDAO.updateData(drug);
-                    if (!isSuccess) {
-                        //自动匹配功能暂无法提供
-                        //AutoMatch(drug);
-                        drugListMatchDAO.save(drug);
-                    }
+                    LOGGER.info("The into start");
+                    DrugListMatch finalDrug = drug;
+                    GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
+                        @Override
+                        public void run() {
+                            AutoMatch(finalDrug);
+                            boolean isSuccess = drugListMatchDAO.updateData(finalDrug);
+                            if (!isSuccess) {
+                                //自动匹配功能暂无法提供
+                                //AutoMatch(drug);
+                                drugListMatchDAO.save(finalDrug);
+                            }
+                        }
+                    });
                 } catch (Exception e) {
                     LOGGER.error("save or update drugListMatch error " + e.getMessage());
                 }
@@ -434,6 +445,7 @@ public class DrugToolService implements IDrugToolService {
             redisClient.set(organId + operator, progress * 100);
 //                    progressMap.put(organId+operator,progress*100);
         }
+
 
         if (errDrugListMatchList.size()>0){
             result.put("code", 609);
@@ -448,6 +460,7 @@ public class DrugToolService implements IDrugToolService {
 
 
     private void AutoMatch(DrugListMatch drug) {
+        LOGGER.info("the new Drug=[{}]", JSONUtils.toString(drug));
         if (StringUtils.isNotEmpty(drug.getRegulationDrugCode()) || drug.getPlatformDrugId() != null) {
             DrugList drugList = drugListDAO.get(drug.getPlatformDrugId());
             // 如果该机构有省平台关联的话

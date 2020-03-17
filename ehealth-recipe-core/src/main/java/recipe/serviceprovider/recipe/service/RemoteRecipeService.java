@@ -821,4 +821,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
         return commonRemoteService.getCompleteAddress(getBean(orderBean,RecipeOrder.class));
     }
+
+    @Override
+    public Map<String, Object> noticePlatRecipeAuditResult(NoticeNgariAuditResDTO req) {
+        Map<String, Object> map = Maps.newHashMap();
+        return map;
+    }
 }

@@ -1,15 +1,11 @@
 package recipe.hisservice.syncdata;
 
-import com.alibaba.fastjson.JSONObject;
-import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.model.QuestionnaireBean;
 import com.ngari.consult.common.service.IConsultService;
-import com.ngari.his.appoint.mode.OutpatientDetailRequestTO;
-import com.ngari.his.appoint.mode.OutpatientDetailResponseTO;
 import com.ngari.his.regulation.entity.*;
 import com.ngari.his.regulation.service.IRegulationService;
 import com.ngari.patient.dto.DepartmentDTO;
@@ -41,7 +37,6 @@ import recipe.common.response.CommonResponse;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
-import recipe.service.RecipeService;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
@@ -53,7 +48,7 @@ import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * created by shiyuping on 2019/6/3
- * 广东省监管平台同步
+ * 平台监管平台同步
  */
 @RpcBean("hisSyncSupervisionService")
 public class HisSyncSupervisionService implements ICommonSyncSupervisionService {
@@ -74,7 +69,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     @RpcService
     @Override
     public CommonResponse uploadRecipeIndicators(List<Recipe> recipeList) {
-        LOGGER.info("uploadRecipeIndicators recipeList length={}", recipeList.size());
+        LOGGER.info("uploadRecipeIndicators recipeList length={} recipeId={}", recipeList.size(),recipeList.get(0).getRecipeId());
         CommonResponse commonResponse = ResponseUtils.getFailResponse(CommonResponse.class, "");
         if (CollectionUtils.isEmpty(recipeList)) {
             commonResponse.setMsg("处方列表为空");
@@ -184,11 +179,13 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //设置专科编码等
             subCodeDTO = subCodeService.getByNgariProfessionCode(departmentDTO.getProfessionCode());
             if (null == subCodeDTO) {
+                //专科编码没设置不应该导致推送不了处方到监管平台
                 LOGGER.warn("uploadRecipeIndicators subCode is null. recipe.professionCode={}", departmentDTO.getProfessionCode());
-                continue;
+            }else {
+                req.setSubjectCode(subCodeDTO.getSubCode());
+                req.setSubjectName(subCodeDTO.getSubName());
             }
-            req.setSubjectCode(subCodeDTO.getSubCode());
-            req.setSubjectName(subCodeDTO.getSubName());
+
 
             //医生处理
             req.setDoctorId(recipe.getDoctor().toString());
