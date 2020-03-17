@@ -420,10 +420,10 @@ public class DrugToolService implements IDrugToolService {
                 errDrugListMatchList.add(error);
             }else {
                 try {
+                    AutoMatch(drug);
                     boolean isSuccess = drugListMatchDAO.updateData(drug);
                     if (!isSuccess) {
                         //自动匹配功能暂无法提供
-                         AutoMatch(drug);
                         drugListMatchDAO.save(drug);
                     }
                 } catch (Exception e) {
