@@ -14,5 +14,5 @@ import java.util.Map;
 public interface IOrganDrugListService {
 
     @RpcService
-    List<RegulationOrganDrugListBean> queryRegulationDrugSHET(Map<String, Object> params);
+    List<RegulationOrganDrugListBean> queryRegulationDrug(Map<String, Object> params);
 }
