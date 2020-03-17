@@ -15,9 +15,9 @@ public class RegulationOrganDrugListBean implements java.io.Serializable{
 
     private String hospDrugName;  //医院药品通用名
 
-    private String medicalDrugFormCode;  //剂型编码
+    private String medicalDrugFormCode;  //项目标准代码
 
-    private String approvalNumber;  //批准文号
+    private String licenseNumber;  //批准文号
 
     private String drugForm;  //剂型名称
 
@@ -73,12 +73,12 @@ public class RegulationOrganDrugListBean implements java.io.Serializable{
         this.medicalDrugFormCode = medicalDrugFormCode;
     }
 
-    public String getApprovalNumber() {
-        return approvalNumber;
+    public String getLicenseNumber() {
+        return licenseNumber;
     }
 
-    public void setApprovalNumber(String approvalNumber) {
-        this.approvalNumber = approvalNumber;
+    public void setLicenseNumber(String licenseNumber) {
+        this.licenseNumber = licenseNumber;
     }
 
     public String getDrugForm() {

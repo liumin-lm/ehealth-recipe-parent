@@ -21,7 +21,6 @@ import com.ngari.recipe.entity.OrganDrugList;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
-import ctd.persistence.support.hibernate.HqlUtils;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
@@ -456,9 +455,8 @@ public class OrganDrugListService implements IOrganDrugListService {
 
     @Override
     public List<RegulationOrganDrugListBean> queryRegulationDrugSHET(Map<String, Object> params) {
-        List drugList = HqlUtils.execHqlFindList("select a.organDrugId,a.organId,a.drugName,a.status,a.medicalDrugFormCode,a.drugForm," +
-                " a.producer,a.baseDrug,b.approvalNumber,b.DrugClass" +
-                " from OrganDrugList a, DrugList b where a.drugId = b.drugId and a.lastModify>=:startDate and a.lastModify<=:endDate and a.OrganID IN :organIds", params);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        List<Object> drugList = organDrugListDAO.findByLastModifyAndOrganIdS(params);
         List<RegulationOrganDrugListBean> result = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(drugList)){
             logger.info("机构药品信息数据总数：" + drugList.size());
@@ -474,11 +472,11 @@ public class OrganDrugListService implements IOrganDrugListService {
                 bean.setHospDrugName(obj[2] == null ? "" : String.valueOf(obj[2]));  //医院药品通用名:drugName--上海儿童-药品注册通用名
                 String status = obj[3] == null ? "" : String.valueOf(obj[3]);
                 bean.setUseFlag(StringUtils.equals("0", status) ? "1" : "0");  //医院药品包装规格:status--上海儿童-使用标志
-                bean.setMedicalDrugFormCode(obj[4] == null ? "" : String.valueOf(obj[4]));  //医保剂型编码:medicalDrugFormCode--上海儿童-剂型代码
+                bean.setMedicalDrugFormCode(obj[4] == null ? "" : String.valueOf(obj[4]));  //项目标准代码:medicalDrugFormCode--上海儿童-项目标准代码
                 bean.setDrugForm(obj[5] == null ? "" : String.valueOf(obj[5]));  //剂型:drugForm--上海儿童-剂型名称
                 String producer = obj[6] == null ? "" : String.valueOf(obj[6]);
                 bean.setBaseDrug(obj[7] == null ? "" : String.valueOf(obj[7]));  //是否基药:baseDrug--上海儿童-基药标识
-                bean.setApprovalNumber(obj[8] == null ? "" : String.valueOf(obj[8]));  //批准文号:approvalNumber--上海儿童-批准文号
+                bean.setLicenseNumber(obj[8] == null ? "" : String.valueOf(obj[8]));  //批准文号:licenseNumber--上海儿童-批准文号
                 String drugClass = obj[9] == null ? "" : String.valueOf(obj[9]);
                 bean.setHospitalPreparation(StringUtils.indexOf(producer, "新华医院调拨") == -1 ? "0" : "1");  //上海儿童-院内制剂标志
                 bean.setKssFlag(drugClass.startsWith("0101") ? "1" : "0");

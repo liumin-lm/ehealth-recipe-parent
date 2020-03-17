@@ -2,7 +2,6 @@ package recipe.dao;
 
 import com.alibaba.druid.util.StringUtils;
 import com.ngari.recipe.entity.DrugList;
-import com.ngari.recipe.entity.DrugListMatch;
 import com.ngari.recipe.entity.OrganDrugList;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
@@ -563,4 +562,20 @@ public abstract class OrganDrugListDAO extends
     @DAOMethod(sql = "from OrganDrugList where organId=:organId and drugId =:drugId and organDrugCode =:organDrugCode and status = 1", limit = 0)
     public abstract List<OrganDrugList> findByOrganIdAndDrugIdAndOrganDrugCode(@DAOParam("organId") int organId, @DAOParam("drugId") int drugId, @DAOParam("organDrugCode") String organDrugCode);
 
+    public List<Object> findByLastModifyAndOrganIdS(Map<String, Object> params){
+        HibernateStatelessResultAction<List> action = new AbstractHibernateStatelessResultAction<List>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String hql = "select a.organDrugId,a.organId,a.drugName,a.status,a.medicalDrugFormCode,a.drugForm," +
+                        " a.producer,a.baseDrug,a.licenseNumber,b.drugClass" +
+                        " from OrganDrugList a, DrugList b where a.drugId = b.drugId and a.lastModify>=:startDate and a.lastModify<=:endDate and a.organId IN :organIds";
+                Query query = ss.createQuery(hql);
+                query.setProperties(params);
+                List list = query.list();
+                setResult(list);
+            }
+        };
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        return action.getResult();
+    }
 }

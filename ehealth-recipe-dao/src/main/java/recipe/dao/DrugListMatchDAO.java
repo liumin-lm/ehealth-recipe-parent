@@ -220,4 +220,8 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
     @DAOMethod(sql = "select count(*) from DrugListMatch where sourceOrgan =:organId and status not in :noStatusList")
     public abstract long getCountByNoStatus(@DAOParam("organId")int organId, @DAOParam("noStatusList")List<Integer> noStatusList);
 
+
+    @DAOMethod(sql = "update DrugListMatch set platformDrugId=:platformDrugId where drugId = :drugId")
+    public abstract void updatePlatformDrugIdByDrugId(@DAOParam("platformDrugId") Integer platformDrugId, @DAOParam("drugId") Integer drugId);
+
 }

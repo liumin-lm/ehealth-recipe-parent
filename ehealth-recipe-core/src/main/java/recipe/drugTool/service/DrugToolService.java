@@ -536,7 +536,7 @@ public class DrugToolService implements IDrugToolService {
      * 更新无匹配数据
      */
     @RpcService
-    public Integer updateNoMatchData(int drugId, String operator) {
+    public DrugListMatch updateNoMatchData(int drugId, String operator) {
         if (StringUtils.isEmpty(operator)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "operator is required");
         }
@@ -588,9 +588,13 @@ public class DrugToolService implements IDrugToolService {
                 if (isHaveReulationId(drugListMatch.getSourceOrgan())&&StringUtils.isEmpty(drugListMatch.getRegulationDrugCode())){
                     //匹配中
                     status = DrugMatchConstant.MATCHING;
+                    drugListMatch.setStatus(status);
                 }else {
                     //已匹配
                     status = DrugMatchConstant.ALREADY_MATCH;
+                    drugListMatch.setStatus(status);
+                    drugListMatch.setPlatformDrugId(save.getDrugId());
+                    drugListMatchDAO.updatePlatformDrugIdByDrugId(save.getDrugId(),drugListMatch.getDrugId());
                 }
                 drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(),ImmutableMap.of("status", status,"matchDrugId",save.getDrugId()));
             }
@@ -599,7 +603,7 @@ public class DrugToolService implements IDrugToolService {
             throw new DAOException(609, "数据自动导入平台药品库失败!");
         }
 
-        return status;
+        return drugListMatch;
     }
 
     /**
