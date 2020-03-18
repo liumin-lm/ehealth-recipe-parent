@@ -347,6 +347,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setCancelFlag(getVerificationRevokeStatus(recipe));
             //核销标记
             req.setVerificationStatus(getVerificationStatus(recipe));
+            req.setPayFlag(null == recipe.getPayFlag() ? "" : String.valueOf(recipe.getPayFlag()));
+            //医生处方数字签名值
+            req.setSignCADate(recipe.getSignCADate());
+            //医生处方签名生成时间戳
+            req.setSignRecipeCode(recipe.getSignRecipeCode());
             //详情处理
             detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
             if (CollectionUtils.isEmpty(detailList)) {
