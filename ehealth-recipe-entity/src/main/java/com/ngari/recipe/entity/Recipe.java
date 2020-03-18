@@ -317,6 +317,10 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "审核模式")
     private Integer reviewType;
 
+    @ItemProperty(alias = "审核途径 1平台审核 2his审核")
+    private Integer checkMode;
+
+
     /**
      * 添加属性 2019/10/10
      * 审核状态标记位，暂时标记一次审核不通过
@@ -1311,5 +1315,14 @@ public class Recipe implements Serializable {
 
     public void setRecipeSource(Integer recipeSource) {
         this.recipeSource = recipeSource;
+    }
+
+    @Column(name = "checkMode")
+    public Integer getCheckMode() {
+        return checkMode;
+    }
+
+    public void setCheckMode(Integer checkMode) {
+        this.checkMode = checkMode;
     }
 }

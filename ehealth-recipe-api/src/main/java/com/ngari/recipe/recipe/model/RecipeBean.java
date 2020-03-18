@@ -307,6 +307,9 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias="处方审核方式")
     private Integer reviewType;
 
+    @ItemProperty(alias = "审核途径 1平台审核 2his审核")
+    private Integer checkMode;
+
     @ItemProperty(alias="处方审核状态")
     private Integer checkStatus;
 
@@ -1160,5 +1163,13 @@ public class RecipeBean implements Serializable {
 
     public void setCaPassword(String caPassword) {
         this.caPassword = caPassword;
+    }
+
+    public Integer getCheckMode() {
+        return checkMode;
+    }
+
+    public void setCheckMode(Integer checkMode) {
+        this.checkMode = checkMode;
     }
 }
