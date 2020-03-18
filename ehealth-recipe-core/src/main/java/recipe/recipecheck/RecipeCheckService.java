@@ -636,14 +636,11 @@ public class RecipeCheckService {
         }
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        //默认平台审核
-        Integer checkMode = 1;
-        try{
-            IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            checkMode =  (Integer)configurationCenterUtilsService.getConfiguration(recipe.getClinicOrgan(), "isOpenHisCheckRecipeFlag");
-        }catch (Exception e){
-            LOGGER.error("saveCheckResult error",e);
+        if (recipe == null){
+            throw new DAOException(609, "处方不存在");
         }
+        //默认平台审核
+        Integer checkMode = recipe.getCheckMode() == null ? 1:recipe.getCheckMode();
         return getCheckService(checkMode).saveCheckResult(paramMap);
     }
 

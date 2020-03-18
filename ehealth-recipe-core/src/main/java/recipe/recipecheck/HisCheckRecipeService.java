@@ -60,9 +60,8 @@ public class HisCheckRecipeService implements IRecipeCheckService {
     @RpcService
     public void sendCheckRecipeInfo(Recipe recipe) {
         LOGGER.info("HisCheckRecipeService.sendCheckRecipeInfo recipeId:{}.", recipe.getRecipeId());
-        IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        Integer isOpenHisCheckRecipeFlag = (Integer) configurationCenterUtilsService.getConfiguration(recipe.getClinicOrgan(), "isOpenHisCheckRecipeFlag");
-        if (isOpenHisCheckRecipeFlag == 2) {
+        //审方途径开处方的时候已经获取
+        if (new Integer(2).equals(recipe.getCheckMode())) {
             OrganService organService = BasicAPI.getService(OrganService.class);
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
@@ -118,7 +117,7 @@ public class HisCheckRecipeService implements IRecipeCheckService {
         recipeCheck.setMemo((StringUtils.isEmpty(memo)) ? "" : memo);
         recipeCheck.setCheckStatus(Integer.valueOf(result));
         recipeCheck.setCheckerName(auditDoctorName);
-        List<RecipeCheckDetail> recipeCheckDetails =null;
+        List<RecipeCheckDetail> recipeCheckDetails = null;
         RecipeCheckDAO recipeCheckDAO = getDAO(RecipeCheckDAO.class);
         recipeCheckDAO.saveRecipeCheckAndDetail(recipeCheck, recipeCheckDetails);
 
@@ -134,7 +133,7 @@ public class HisCheckRecipeService implements IRecipeCheckService {
         boolean bl = recipeDAO.updateRecipeInfoByRecipeId(recipeId, recipeStatus, attrMap);
         if (!bl) {
             LOGGER.error("saveCheckResult update recipe[" + recipeId + "] error!");
-            resMap.put("msg","更新处方审核信息失败");
+            resMap.put("msg", "更新处方审核信息失败");
             return resMap;
         }
         //记录日志

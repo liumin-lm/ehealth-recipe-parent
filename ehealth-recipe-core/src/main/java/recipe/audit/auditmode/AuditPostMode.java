@@ -156,19 +156,22 @@ public class AuditPostMode extends AbstractAuidtMode {
                                 "updateRecipePayResultImplForOrder 药师自动审核失败:" + e.getMessage());
                     }
                 } else {
-                    //如果处方 在待药师审核状态 给对应机构的药师进行消息推送
-                    RecipeMsgService.batchSendMsg(dbRecipe.getRecipeId(), status);
                     if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())) {
                         //进行身边医生消息推送
                         RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_READYCHECK_4HIS, dbRecipe);
                     }
-
-                    if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(dbRecipe.getRecipeMode())) {
-                        //增加药师首页待处理任务---创建任务
-                        Recipe recipe = recipeDAO.getByRecipeId(dbRecipe.getRecipeId());
-                        RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
-                        ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
+                    //平台审方下才推送
+                    if (new Integer(1).equals(dbRecipe.getCheckMode())){
+                        //如果处方 在待药师审核状态 给对应机构的药师进行消息推送
+                        RecipeMsgService.batchSendMsg(dbRecipe.getRecipeId(), status);
+                        if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(dbRecipe.getRecipeMode())) {
+                            //增加药师首页待处理任务---创建任务
+                            Recipe recipe = recipeDAO.getByRecipeId(dbRecipe.getRecipeId());
+                            RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+                            ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
+                        }
                     }
+
                 }
             }
             if (RecipeStatusConstant.CHECK_PASS_YS == status) {
