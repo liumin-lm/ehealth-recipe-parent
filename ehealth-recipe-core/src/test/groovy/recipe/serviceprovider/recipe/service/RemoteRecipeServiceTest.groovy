@@ -25,4 +25,9 @@ private RecipeDAO recipeDAO
         expect:
         recipeDAO.getCountByOrganAndDeptIds(1, Lists.newArrayList(47))==20;
     }
+
+    def "getRecipeByConsultId"(){
+        expect:
+        recipeDAO.findByClinicId(6851).size()==1
+    }
 }

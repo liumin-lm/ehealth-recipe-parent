@@ -383,4 +383,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     long getCountByOrganAndDeptIds(Integer organId, List<Integer> deptIds);
+
+    @RpcService
+    List<RecipeBean> findByClinicId(Integer consultId);
 }
