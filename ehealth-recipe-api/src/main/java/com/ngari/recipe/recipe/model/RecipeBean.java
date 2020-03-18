@@ -319,6 +319,8 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "CA密码")
     private String caPassword;
 
+    @ItemProperty(alias = "药师处方签名生成的时间戳结构体，由院方服务器获取")
+    private String signPharmacistCADate;
 
     public RecipeBean() {
     }
@@ -1172,4 +1174,8 @@ public class RecipeBean implements Serializable {
     public void setCheckMode(Integer checkMode) {
         this.checkMode = checkMode;
     }
+
+    public String getSignPharmacistCADate() { return signPharmacistCADate; }
+
+    public void setSignPharmacistCADate(String signPharmacistCADate) { this.signPharmacistCADate = signPharmacistCADate; }
 }
