@@ -67,10 +67,10 @@ public class AuditPreMode extends AbstractAuidtMode {
     private void sendMsg(Integer status, Recipe recipe, String memo) {
         //平台处方进行消息发送等操作
         if (1 == recipe.getFromflag()) {
+            //发送消息--待审核消息
+            RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
             //平台审方途径下才发消息
             if (status == RecipeStatusConstant.READY_CHECK_YS && new Integer(1).equals(recipe.getCheckMode())) {
-                //发送消息--待审核消息
-                RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
                 if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
                     //增加药师首页待处理任务---创建任务
                     RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
