@@ -332,6 +332,18 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "处方单特殊来源标识：1省中，邵逸夫医保小程序; 默认null")
     private Integer recipeSource;
 
+    @ItemProperty(alias="医生处方数字签名值")
+    private String signRecipeCode;
+
+    @ItemProperty(alias="药师处方数字签名值")
+    private String signPharmacistCode;
+
+    @ItemProperty(alias="医生处方数字签名可信服务器时间")
+    private String signCADate;
+
+    @ItemProperty(alias="药师处方数字签名可信服务器时间")
+    private String signPharmacistCADate;
+
     public Recipe() {
     }
 
@@ -1324,5 +1336,41 @@ public class Recipe implements Serializable {
 
     public void setCheckMode(Integer checkMode) {
         this.checkMode = checkMode;
+    }
+
+    @Column(name = "signRecipeCode")
+    public String getSignRecipeCode() {
+        return signRecipeCode;
+    }
+
+    public void setSignRecipeCode(String signRecipeCode) {
+        this.signRecipeCode = signRecipeCode;
+    }
+
+    @Column(name = "signPharmacistCode")
+    public String getSignPharmacistCode() {
+        return signPharmacistCode;
+    }
+
+    public void setSignPharmacistCode(String signPharmacistCode) {
+        this.signPharmacistCode = signPharmacistCode;
+    }
+
+    @Column(name = "signCADate")
+    public String getSignCADate() {
+        return signCADate;
+    }
+
+    public void setSignCADate(String signCADate) {
+        this.signCADate = signCADate;
+    }
+
+    @Column(name = "signPharmacistCADate")
+    public String getSignPharmacistCADate() {
+        return signPharmacistCADate;
+    }
+
+    public void setSignPharmacistCADate(String signPharmacistCADate) {
+        this.signPharmacistCADate = signPharmacistCADate;
     }
 }
