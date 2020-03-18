@@ -324,7 +324,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("select r.ClinicOrgan,l.RecipeDetailID,o.PayFlag,r.ClinicID,o.TradeNo,r.RecipeID,r.RecipeType,l.DrugUnit,l.actualSalePrice,l.UseTotalDose,r.status from cdr_recipe r LEFT JOIN cdr_recipedetail l ON r.RecipeID = l.recipeId");
+                hql.append("select r.ClinicOrgan,l.RecipeDetailID,o.PayFlag,r.ClinicID,o.TradeNo,r.RecipeID,r.RecipeType,l.DrugUnit,l.actualSalePrice,l.UseTotalDose,r.status，o.medicalDrugCode from cdr_recipe r LEFT JOIN cdr_recipedetail l ON r.RecipeID = l.recipeId");
                 hql.append(" LEFT JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode");
                 hql.append(" WHERE (date(r.CreateDate) between :startTime and :endTime) OR (date(r.LastModify) between :startTime and :endTime)");
                 hql.append(" AND o.Effective = 1");
@@ -352,6 +352,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         vo.setActualSalePrice(objs[8] == null ? null : (BigDecimal)objs[8]);
                         vo.setUseTotalDose(objs[9] == null ? null : (BigDecimal)objs[9]);
                         vo.setStatus(objs[10] == null ? null :  Integer.parseInt(objs[10]+""));
+                        vo.setMedicalDrugCode(objs[11]== null ? null: objs[11]+"");
                         backList.add(vo);
                     }
                 }
