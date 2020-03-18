@@ -229,6 +229,24 @@ public class RecipeUtil {
                 }
             }
         }
+
+        //设置运营平台设置的审方途径
+        if (recipe.getCheckMode() == null){
+            try {
+                IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+                Integer checkMode = (Integer)configurationService.getConfiguration(recipe.getClinicOrgan(), "isOpenHisCheckRecipeFlag");
+                if (checkMode == null){
+                    //默认平台审方
+                    recipe.setCheckMode(1);
+                }else {
+                    recipe.setCheckMode(checkMode);
+                }
+            }catch (Exception e){
+                LOGGER.error("获取运营平台审方途径配置异常",e);
+                //默认平台审方
+                recipe.setCheckMode(1);
+            }
+        }
         
         //默认剂数为1
         if (null == recipe.getCopyNum() || recipe.getCopyNum() < 1) {

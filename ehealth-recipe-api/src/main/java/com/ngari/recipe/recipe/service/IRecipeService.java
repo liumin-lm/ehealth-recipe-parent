@@ -4,7 +4,6 @@ import com.ngari.recipe.IBaseService;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
-import com.ngari.recipe.hisprescription.model.QueryRecipeResultDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.persistence.bean.QueryResult;
@@ -381,4 +380,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     Map<String, Object> noticePlatRecipeAuditResult(NoticeNgariAuditResDTO req);
+
+    @RpcService
+    long getCountByOrganAndDeptIds(Integer organId, List<Integer> deptIds);
 }
