@@ -564,6 +564,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         if (nowRecipe.getGiveMode() == 1) {
             sendHdRecipe.setPatientAddress(getCompleteAddress(order));
             sendHdRecipe.setDistributionFlag("1");
+            sendHdRecipe.setGiveMode("1");
         } else {
             sendHdRecipe.setDistributionFlag(distributionFlagDefault);
         }

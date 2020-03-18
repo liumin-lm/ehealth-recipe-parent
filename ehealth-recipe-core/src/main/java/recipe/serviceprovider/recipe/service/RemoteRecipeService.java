@@ -857,4 +857,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         return resMap;
     }
+
+    @Override
+    public long getCountByOrganAndDeptIds(Integer organId, List<Integer> deptIds) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        return recipeDAO.getCountByOrganAndDeptIds(organId, deptIds);
+    }
 }

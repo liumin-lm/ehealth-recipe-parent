@@ -34,6 +34,7 @@ import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.StatelessSession;
 import org.hibernate.type.LongType;
+import org.joda.time.LocalDate;
 import recipe.constant.ConditionOperator;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
@@ -2095,4 +2096,34 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     @DAOMethod(sql = "update Recipe set pushFlag=1 where enterpriseId=:enterpriseId and recipeId in (:recipeIds)")
     public abstract void updateRecipeByDepIdAndRecipes(@DAOParam("enterpriseId") Integer enterpriseId, @DAOParam("recipeIds") List recipeIds);
 
+    public long getCountByOrganAndDeptIds(Integer organId, List<Integer> deptIds) {
+        AbstractHibernateStatelessResultAction<Long> action = new AbstractHibernateStatelessResultAction<Long>() {
+            @Override
+            public void execute(StatelessSession statelessSession) throws Exception {
+                StringBuffer sql = new StringBuffer();
+                sql.append("select count(RecipeID) from Recipe where depart in :deptIds and ClinicOrgan= :organId and DATE_FORMAT(CreateDate,'%Y-%m-%d')=:appointDate");
+
+
+                Query query = statelessSession.createQuery(sql.toString());
+
+                query.setParameterList("deptIds", deptIds);
+
+                query.setInteger("organId", organId);
+                query.setDate("appointDate", LocalDate.now().minusDays(1).toDate());
+
+                long num = (long) query.uniqueResult();
+
+                setResult(num);
+
+
+            }
+        };
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        return action.getResult();
+
+    }
+
+
+    @DAOMethod(sql = "from Recipe where checkMode =:checkMode and status = 8 and reviewType in (1,2)")
+    public abstract List<Recipe> findReadyCheckRecipeByCheckMode(@DAOParam("checkMode") Integer checkMode);
 }
