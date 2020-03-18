@@ -2128,23 +2128,16 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     @DAOMethod(sql = "from Recipe where checkMode =:checkMode and status = 8 and reviewType in (1,2)")
     public abstract List<Recipe> findReadyCheckRecipeByCheckMode(@DAOParam("checkMode") Integer checkMode);
 
-    public List<Object[]> countRecipeIncomeGroupByDeptId(Date startDate, Date endDate, Integer organId){
-        HibernateStatelessResultAction<List<Object[]>> action = new AbstractHibernateStatelessResultAction<List<Object[]>>() {
-            @Override
-            public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("select sum(TotalMoney),Depart from Recipe where CreateDate between :startDate and :endDate and ClinicOrgan=: organId and PayFlag = 1 GROUP BY Depart");
-                Query query = ss.createQuery(hql.toString());
-                query.setParameter("organId",organId);
-                query.setParameter("startDate",startDate);
-                query.setParameter("endDate",endDate);
-                List<Object[]> list = query.list();
-                setResult(list);
-            }
-        };
 
-        HibernateSessionTemplate.instance().executeReadOnly(action);
-        return action.getResult();
-    }
+    /**
+     * 根据科室统计复诊挂号收入
+     * @param startDate
+     * @param endDate
+     * @param organId
+     * @return
+     */
+    @DAOMethod(sql = "select sum(TotalMoney) from Recipe where ClinicOrgan = :organId and payflag > 0 and CreateDate BETWEEN :startDate AND :endDate AND Depart in: deptIds")
+    public abstract BigDecimal getCostCountByOrganIdAndDepartIds(@DAOParam("organId") Integer organId, @DAOParam("startDate") Date startDate, @DAOParam("endDate") Date endDate,@DAOParam("deptIds")List<Integer> deptIds);
 
     @DAOMethod
     public abstract List<RecipeBean> findByClinicId(Integer consultId);

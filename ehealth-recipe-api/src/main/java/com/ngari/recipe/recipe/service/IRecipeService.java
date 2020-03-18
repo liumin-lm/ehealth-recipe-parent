@@ -9,6 +9,7 @@ import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -388,5 +389,5 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     List<RecipeBean> findByClinicId(Integer consultId);
 
     @RpcService
-    List<Object[]> countRecipeIncomeGroupByDeptId(Date startDate, Date endDate, Integer organId);
+    BigDecimal getRecipeCostCountByOrganIdAndDepartIds(Integer organId, Date startDate, Date endDate, List<Integer> deptIds);
 }
