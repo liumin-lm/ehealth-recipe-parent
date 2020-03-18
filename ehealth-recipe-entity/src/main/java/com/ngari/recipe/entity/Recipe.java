@@ -319,9 +319,6 @@ public class Recipe implements Serializable {
 
     @ItemProperty(alias = "审核途径 1平台审核 2his审核")
     private Integer checkMode;
-    @ItemProperty(alias = "药师处方签名生成的时间戳结构体，由院方服务器获取")
-    private String signPharmacistCADate;
-
 
     /**
      * 添加属性 2019/10/10
@@ -1376,7 +1373,4 @@ public class Recipe implements Serializable {
         this.checkMode = checkMode;
     }
 
-    @Column(name = "signPharmacistCADate")
-    public String getSignPharmacistCADate() { return signPharmacistCADate; }
-    public void setSignPharmacistCADate(String signPharmacistCADate) { this.signPharmacistCADate = signPharmacistCADate; }
 }
