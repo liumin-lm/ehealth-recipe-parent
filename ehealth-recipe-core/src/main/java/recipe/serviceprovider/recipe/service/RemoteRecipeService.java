@@ -863,4 +863,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         return recipeDAO.getCountByOrganAndDeptIds(organId, deptIds);
     }
+
+    @Override
+    public List<Object[]> countRecipeIncomeGroupByDeptId(Date startDate, Date endDate, Integer organId) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        return recipeDAO.countRecipeIncomeGroupByDeptId(startDate, endDate, organId);
+    }
 }
