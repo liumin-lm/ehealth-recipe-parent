@@ -373,4 +373,12 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     String getRecipeOrderCompleteAddress(RecipeOrderBean orderBean);
+
+    /**
+     * 第三方审核结果通知平台接口
+     * @param
+     * @return
+     */
+    @RpcService
+    Map<String, Object> noticePlatRecipeAuditResult(NoticeNgariAuditResDTO req);
 }

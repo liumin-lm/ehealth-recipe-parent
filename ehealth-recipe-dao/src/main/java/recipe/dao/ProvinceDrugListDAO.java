@@ -86,4 +86,9 @@ public abstract class ProvinceDrugListDAO extends HibernateSupportDelegateDAO<Pr
 
     @DAOMethod(sql = " delete from ProvinceDrugList where provinceDrugId =:provinceDrugId")
     public abstract void deleteByProvinceDrugId(@DAOParam("provinceDrugId")Integer provinceDrugId);
+
+    @DAOMethod(sql = "from ProvinceDrugList where provinceId =:provinceId and provinceDrugCode =:provinceDrugCode and status=:status")
+    public abstract ProvinceDrugList getByProvinceIdAndDrugId(@DAOParam("provinceId")String id,
+                                                  @DAOParam("provinceDrugCode")String provinceDrugId,
+                                                  @DAOParam("status")Integer status);
 }

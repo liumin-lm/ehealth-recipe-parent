@@ -3,23 +3,28 @@ package recipe.service;
 import com.google.common.collect.Lists;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.regulation.entity.RegulationDrugCategoryReq;
+import com.ngari.his.regulation.entity.RegulationNotifyDataReq;
 import com.ngari.his.regulation.service.IRegulationService;
 import com.ngari.jgpt.zjs.service.IMinkeOrganService;
 import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.dto.ProvUploadOrganDTO;
+import com.ngari.patient.dto.zjs.RegulationDoctorIndicatorsBean;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
+import com.ngari.patient.service.ProvUploadOrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.platform.sync.mode.DrugCategoryReq;
-import com.ngari.platform.sync.service.IProvinceIndicatorsDateUpdateService;
 import com.ngari.recipe.drug.model.DrugListAndOrganDrugListDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.OrganDrugListDTO;
+import com.ngari.recipe.drug.model.RegulationDrugCategoryBean;
+import com.ngari.recipe.drug.service.IOrganDrugListService;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugProducer;
 import com.ngari.recipe.entity.OrganDrugList;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.persistence.support.hibernate.HqlUtils;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
@@ -27,6 +32,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import recipe.ApplicationUtils;
@@ -35,9 +41,11 @@ import recipe.dao.*;
 import recipe.dao.bean.DrugListAndOrganDrugList;
 import recipe.drugsenterprise.ByRemoteService;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author zhongzx
@@ -45,7 +53,7 @@ import java.util.List;
  * 机构药品服务
  */
 @RpcBean("organDrugListService")
-public class OrganDrugListService {
+public class OrganDrugListService implements IOrganDrugListService {
 
     private static Logger logger = Logger.getLogger(OrganDrugListService.class);
 
@@ -167,6 +175,12 @@ public class OrganDrugListService {
         organDrugList.setStatus(status);
         organDrugList.setLastModify(new Date());
         organDrugListDAO.update(organDrugList);
+        IRegulationService iRegulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
+        RegulationNotifyDataReq req = new RegulationNotifyDataReq();
+        req.setBussType("drug");
+        req.setNotifyTime(System.currentTimeMillis()-1000);
+        req.setOrganId(organDrugList.getOrganId());
+        iRegulationService.notifyData(organDrugList.getOrganId(),req);
     }
 
     /**
@@ -194,6 +208,7 @@ public class OrganDrugListService {
                 organDrugList.setSaleName(organDrugList.getSaleName() + " " + organDrugList.getDrugName());
             }
         }
+        IRegulationService iRegulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
         if (organDrugList.getOrganDrugId() == null || organDrugList.getOrganDrugId() == 0) {
             logger.info("新增机构药品服务[updateOrganDrugList]:" + JSONUtils.toString(organDrugList));
             //说明为该机构新增机构药品
@@ -216,6 +231,11 @@ public class OrganDrugListService {
             OrganDrugList saveOrganDrugList = organDrugListDAO.save(organDrugList);
             addOrganDrugListToBy(saveOrganDrugList);
             uploadOrganDrugListToJg(saveOrganDrugList);
+            RegulationNotifyDataReq req = new RegulationNotifyDataReq();
+            req.setBussType("drug");
+            req.setNotifyTime(System.currentTimeMillis()-1000);
+            req.setOrganId(saveOrganDrugList.getOrganId());
+            iRegulationService.notifyData(saveOrganDrugList.getOrganId(),req);
             return ObjectCopyUtils.convert(saveOrganDrugList, OrganDrugListDTO.class);
         } else {
             logger.info("修改机构药品服务[updateOrganDrugList]:" + JSONUtils.toString(organDrugList));
@@ -244,6 +264,11 @@ public class OrganDrugListService {
                 target = organDrugListDAO.update(target);
                 uploadOrganDrugListToJg(target);
             }
+            RegulationNotifyDataReq req = new RegulationNotifyDataReq();
+            req.setBussType("drug");
+            req.setNotifyTime(System.currentTimeMillis()-1000);
+            req.setOrganId(target.getOrganId());
+            iRegulationService.notifyData(target.getOrganId(),req);
             return ObjectCopyUtils.convert(target, OrganDrugListDTO.class);
         }
     }
@@ -430,6 +455,60 @@ public class OrganDrugListService {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         QueryResult result = organDrugListDAO.queryOrganDrugListByOrganIdAndKeyword(organId, drugClass, keyword, status, start, limit);
         result.setItems(covertData(result.getItems()));
+        return result;
+    }
+
+    @Override
+    public List<RegulationDrugCategoryBean> queryRegulationDrug(Map<String, Object> params) {
+        ProvUploadOrganService provUploadOrganService = AppContextHolder.getBean("basic.provUploadOrganService",ProvUploadOrganService.class);
+        List<RegulationDoctorIndicatorsBean> regulationDoctorIndicatorsReqList = new ArrayList<>();
+        List drugList = HqlUtils.execHqlFindList("select a.organDrugId,a.organId,a.drugName,a.status,a.medicalDrugFormCode,a.drugForm, a.producer," +
+                "a.baseDrug,a.licenseNumber,b.drugClass,a.regulationDrugCode,a.organDrugCode,a.saleName,a.drugSpec,a.salePrice,a.drugFormCode" +
+                " from OrganDrugList a, DrugList b where a.drugId = b.drugId and a.lastModify>=:startDate and a.lastModify<=:endDate and a.organId IN :organIds", params);
+        List<RegulationDrugCategoryBean> result = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(drugList)){
+            logger.info("机构药品信息数据总数：" + drugList.size());
+            RegulationDrugCategoryBean bean;
+            OrganService organService = AppContextHolder.getBean("basic.organService", OrganService.class);
+            for (Object o : drugList) {
+                bean = new RegulationDrugCategoryBean();
+                Object[] obj =  (Object[]) o;
+                Integer organId =(Integer) obj[1];
+                ProvUploadOrganDTO provUploadOrganDTO = provUploadOrganService.getByNgariOrganId(organId);
+                if(provUploadOrganDTO != null){
+                    bean.setOrganID(provUploadOrganDTO.getOrganId());
+                    bean.setUnitID(provUploadOrganDTO.getUnitId());
+                }
+                bean.setOrganName(organService.getNameById(organId));
+                String drugName = obj[2] == null ? null : String.valueOf(obj[2]);
+                bean.setHospDrugName(drugName);  //医院药品通用名drugName药品注册通用名
+                String status = obj[3] == null ? "" : String.valueOf(obj[3]);
+                bean.setUseFlag(StringUtils.equals("0", status) ? "1" : "0");  //status使用标志
+                bean.setMedicalDrugFormCode(obj[4] == null ? null : String.valueOf(obj[4]));  //项目标准代码:medicalDrugFormCode项目标准代码
+                bean.setDrugForm(obj[5] == null ? null : String.valueOf(obj[5]));  //剂型:drugForm剂型名称
+                bean.setBaseDrug(obj[7] == null ? null : String.valueOf(obj[7]));  //是否基药:baseDrug基药标识
+                bean.setLicenseNumber(obj[8] == null ? null : String.valueOf(obj[8]));  //批准文号:licenseNumber批准文号
+                String drugClass = obj[9] == null ? "" : String.valueOf(obj[9]);
+                String producer = obj[6] == null ? "" : String.valueOf(obj[6]);
+                bean.setHospitalPreparation(StringUtils.indexOf(producer, "新华医院调拨") == -1 ? "0" : "1");  //上海儿童-院内制剂标志
+                bean.setKssFlag(drugClass.startsWith("0101") ? "1" : "0");
+                bean.setDmjfFlag(drugClass.startsWith("02") || drugClass.startsWith("04") ? "1" : "0");
+                bean.setModifyFlag("1");
+
+                bean.setPlatDrugCode(obj[10] == null ? null : String.valueOf(obj[10]));
+                bean.setPlatDrugName(drugName);
+                bean.setHospDrugCode(obj[11] == null ? null : String.valueOf(obj[11]));
+                bean.setHospTradeName(obj[12] == null ? null : String.valueOf(obj[12]));
+                bean.setHospDrugAlias(null);
+                bean.setHospDrugPacking(obj[13] == null ? null : String.valueOf(obj[13]));
+                bean.setHospDrugManuf(producer);
+                bean.setDrugClass(drugClass);
+                bean.setDrugPrice(obj[14] == null ? null : (BigDecimal) obj[14]);
+                bean.setDrugFormCode(obj[15] == null ? null : String.valueOf(obj[15]));
+
+                result.add(bean);
+            }
+        }
         return result;
     }
 

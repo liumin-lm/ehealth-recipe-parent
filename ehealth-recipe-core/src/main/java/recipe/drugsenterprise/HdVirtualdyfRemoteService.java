@@ -30,6 +30,9 @@ import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.hisservice.RecipeToHisService;
+import recipe.service.HisCallBackService;
+import recipe.service.RecipeLogService;
+import recipe.service.RecipeService;
 
 import java.util.List;
 import java.util.Map;
@@ -121,8 +124,17 @@ public class HdVirtualdyfRemoteService extends AccessDrugEnterpriseService {
         }
         //流转到这里来的属于物流配送，市三无药店取药
         updateTakeDrugWayReqTO.setDeliveryType("1");
+        LOGGER.info("华东虚拟药企-取药方式更新通知his. req={}",JSONUtils.toString(updateTakeDrugWayReqTO));
         HisResponseTO hisResult = service.updateTakeDrugWay(updateTakeDrugWayReqTO);
-        LOGGER.info("华东虚拟药企-取药方式更新通知his. param={},result={}", JSONUtils.toString(updateTakeDrugWayReqTO), JSONUtils.toString(hisResult));
+        LOGGER.info("华东虚拟药企-取药方式更新通知his. res={}",JSONUtils.toString(hisResult));
+        if (hisResult!=null && !"200".equals(hisResult.getMsg())){
+            //推送不成功就退款
+            //退款
+            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+            recipeService.wxPayRefundForRecipe(1, recipe.getRecipeId(), null);
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "更新取药方式失败，his返回原因：" + hisResult.getMsg());
+
+        }
         return DrugEnterpriseResult.getSuccess();
     }
 

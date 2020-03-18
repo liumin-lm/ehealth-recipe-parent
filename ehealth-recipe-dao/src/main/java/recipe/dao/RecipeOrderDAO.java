@@ -1,5 +1,6 @@
 package recipe.dao;
 
+import com.ngari.his.regulation.entity.RegulationChargeDetailReq;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -305,6 +306,58 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             }
         };
 
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+
+    /**
+     * 根据日期查询订单支付和退款信息(只获取实际支付金额不为0的，调用支付平台的)
+     *
+     * @param ngariOrganIds
+     * @param startTime
+     * @param endTime
+     * @return
+     */
+    public List<RegulationChargeDetailReq> queryRegulationChargeDetailList(List<Integer> ngariOrganIds,Date startTime, Date endTime){
+        HibernateStatelessResultAction<List<RegulationChargeDetailReq>> action = new AbstractHibernateStatelessResultAction<List<RegulationChargeDetailReq>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("select r.clinicOrgan,l.RecipeDetailID,o.PayFlag,r.ClinicID,o.TradeNo,r.RecipeID,r.RecipeType,l.DrugUnit,l.actualSalePrice,l.UseTotalDose,r.status from cdr_recipe r LEFT JOIN cdr_recipedetail l ON r.RecipeID = l.recipeId");
+                hql.append("LEFT JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode");
+                hql.append("WHERE (date(r.CreateDate) between :startTime and :endTime) OR (date(r.LastModify) between :startTime and :endTime)");
+                hql.append("AND o.Effective = 1");
+                hql.append("AND o.PayFlag > 0");
+                hql.append("AND r.bussSource = 2");
+                hql.append("AND r.ClinicOrgan IN :ngariOrganIds");
+                Query q = ss.createSQLQuery(hql.toString());
+                q.setParameter("startTime", startTime);
+                q.setParameter("endTime", endTime);
+                q.setParameterList("ngariOrganIds",ngariOrganIds);
+                List<Object[]> result = q.list();
+                List<RegulationChargeDetailReq> backList = new ArrayList<>();
+                if (CollectionUtils.isNotEmpty(result)){
+                    RegulationChargeDetailReq vo;
+                    for (Object[] objs : result) {
+                        vo = new RegulationChargeDetailReq();
+                        vo.setOrganID(objs[0] == null ? null : (Integer)objs[0]);
+                        vo.setRecipeDetailID(objs[1] == null ? null : objs[1] + "");
+                        vo.setPayFlag(objs[2] == null ? null : (Integer)objs[2]);
+                        vo.setClinicID(objs[3] == null ? null : objs[3]+"");
+                        vo.setTradeNo(objs[4] == null ? null : objs[4]+"");
+                        vo.setRecipeID(objs[5] == null ? null : objs[5]+"");
+                        vo.setRecipeType(objs[6] == null ? null : (Integer)objs[6]);
+                        vo.setDrugUnit(objs[7] == null ? null : objs[7] + "");
+                        vo.setActualSalePrice(objs[8] == null ? null : (BigDecimal)objs[8]);
+                        vo.setUseTotalDose(objs[9] == null ? null : (BigDecimal)objs[9]);
+                        vo.setStatus(objs[10] == null ? null : (Integer)objs[10]);
+                        backList.add(vo);
+                    }
+                }
+                setResult(backList);
+            }
+        };
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }

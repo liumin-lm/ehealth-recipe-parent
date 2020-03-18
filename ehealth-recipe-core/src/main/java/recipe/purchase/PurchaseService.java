@@ -506,7 +506,8 @@ public class PurchaseService {
         }
         //下面这块逻辑是针对市三(医保患者)选择配送到家或者(非医保患者)已经选择了到院取药使用
         //市三的到院取药依然使用的互联网的接口purchase
-        if (RecipeStatusConstant.CHECK_PASS == dbRecipe.getStatus()) {
+        //去掉市三个性化流程改造成平台流程
+        /*if (RecipeStatusConstant.CHECK_PASS == dbRecipe.getStatus()) {
             Integer consultId = dbRecipe.getClinicId();
             Integer medicalFlag = 0;
             IConsultExService consultExService = ApplicationUtils.getConsultService(IConsultExService.class);
@@ -539,7 +540,7 @@ public class PurchaseService {
                 result.setMsg(tips);
                 return true;
             }
-        }
+        }*/
         return false;
     }
 

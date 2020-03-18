@@ -1,9 +1,7 @@
 package recipe.audit.auditmode;
 
-import com.ngari.patient.service.HealthCardService;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.DAOFactory;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -11,7 +9,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDetailDAO;
-import recipe.hisservice.syncdata.SyncExecutorService;
+import recipe.recipecheck.HisCheckRecipeService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeServiceSub;
@@ -47,6 +45,9 @@ public class AuditPreMode extends AbstractAuidtMode {
         }
         //}
         super.saveStatusAndSendMsg(status,recipe,memo);
+        //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
+        HisCheckRecipeService hisCheckRecipeService = ApplicationUtils.getRecipeService(HisCheckRecipeService.class);
+        hisCheckRecipeService.sendCheckRecipeInfo(recipe);
     }
 
     @Override

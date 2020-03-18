@@ -3,6 +3,7 @@ package recipe.service;
 import com.google.common.collect.Maps;
 import com.ngari.base.esign.service.IESignBaseService;
 import com.ngari.his.ca.model.*;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.service.IRecipeService;
@@ -12,6 +13,7 @@ import ctd.mvc.upload.exception.FileRegistryException;
 import ctd.mvc.upload.exception.FileRepositoryException;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
+import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.base.constant.ErrorCode;
 import org.bouncycastle.util.encoders.Base64;
@@ -19,6 +21,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.dao.RecipeDAO;
 import sun.misc.BASE64Decoder;
 
 import java.io.*;
@@ -26,9 +29,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import static ctd.persistence.DAOFactory.getDAO;
+
 /**
  * CA标准化对接文档
  */
+@RpcBean
 public class RecipeServiceEsignExt {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeServiceEsignExt.class);
@@ -161,23 +167,6 @@ public class RecipeServiceEsignExt {
                 pdfBase64, recipeId, loginId, signCADate, signRecipeCode, isDoctor);
         String fileId = null;
         try {
-
-            Map<String, Object> attrMap = Maps.newHashMap();
-            attrMap.put("signDate", new Date());
-            if (isDoctor) {
-                //医生签名时间戳
-                attrMap.put("signCADate", signCADate);
-                //医生签名值
-                attrMap.put("signRecipeCode", signRecipeCode);
-            } else {
-                //药师签名时间戳
-                attrMap.put("signPharmacistCADate", signCADate);
-                //药师签名值
-                attrMap.put("signPharmacistCode", signRecipeCode);
-            }
-            //保存签名值
-            boolean upResult = recipeService.updateRecipeInfoByRecipeId(recipeId, attrMap);
-            LOGGER.info("saveSignRecipePDF 保存签名  upResult={}", upResult);
             if (null != pdfBase64) {
                 //组装生成pdf的参数
                 String fileName = "recipe_" + recipeId + ".pdf";
@@ -193,16 +182,34 @@ public class RecipeServiceEsignExt {
                     LOGGER.info("上传文件失败,fileName=" + fileName);
                 }
             }
-            if (upResult) {
-                LOGGER.info("saveSignRecipePDF 保存签名值、时间戳、签章文件成功. fileId={}, recipeId={}", fileId, recipeId);
+
+            Map<String, Object> attrMap = Maps.newHashMap();
+            attrMap.put("signDate", new Date());
+            if (isDoctor) {
+                //医生签名时间戳
+                attrMap.put("signCADate", signCADate);
+                //医生签名值
+                attrMap.put("signRecipeCode", signRecipeCode);
+                attrMap.put("signFile", fileId);
+                Recipe recipe = getDAO(RecipeDAO.class).getByRecipeId(recipeId);
+                attrMap.put("signDate", recipe.getSignDate());
             } else {
-                LOGGER.info("saveSignRecipePDF 保存签名值、时间、签章文件失败. fileId={}, recipeId={}", fileId, recipeId);
+                //药师签名时间戳
+                attrMap.put("signPharmacistCADate", signCADate);
+                //药师签名值
+                attrMap.put("signPharmacistCode", signRecipeCode);
+                attrMap.put("chemistSignFile", fileId);
             }
+
+            //保存签名值
+            boolean upResult = recipeService.updateRecipeInfoByRecipeId(recipeId, attrMap);
+            LOGGER.info("saveSignRecipePDF 保存签名  upResult={}=recipeId={}=attrMap={}=", upResult,recipeId,attrMap.toString());
+            String reuslt = upResult?"success":"fail";
+            return reuslt;
         } catch (Exception e){
             e.printStackTrace();
             return null;
         }
-        return fileId;
     }
 
     /**

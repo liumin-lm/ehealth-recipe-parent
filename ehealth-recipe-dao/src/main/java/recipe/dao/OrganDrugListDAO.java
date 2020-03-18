@@ -2,7 +2,6 @@ package recipe.dao;
 
 import com.alibaba.druid.util.StringUtils;
 import com.ngari.recipe.entity.DrugList;
-import com.ngari.recipe.entity.DrugListMatch;
 import com.ngari.recipe.entity.OrganDrugList;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;

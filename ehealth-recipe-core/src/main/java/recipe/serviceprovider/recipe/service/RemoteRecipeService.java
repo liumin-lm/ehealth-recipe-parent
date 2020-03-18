@@ -16,13 +16,10 @@ import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.hisprescription.model.QueryPlatRecipeInfoByDateDTO;
-import com.ngari.recipe.hisprescription.model.QueryRecipeResultDTO;
 import com.ngari.recipe.recipe.constant.RecipePayTextEnum;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
-import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -49,12 +46,12 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.TmdyfRemoteService;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.medicationguide.service.WinningMedicationGuideService;
+import recipe.recipecheck.RecipeCheckService;
 import recipe.service.*;
 import recipe.serviceprovider.BaseService;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
-import java.math.BigDecimal;
 import java.util.*;
 
 /**
@@ -820,5 +817,44 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public String getRecipeOrderCompleteAddress(RecipeOrderBean orderBean) {
         CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
         return commonRemoteService.getCompleteAddress(getBean(orderBean,RecipeOrder.class));
+    }
+
+    @RpcService
+    @Override
+    public Map<String, Object> noticePlatRecipeAuditResult(NoticeNgariAuditResDTO req) {
+        LOGGER.info("noticePlatRecipeAuditResult，req = {}", JSONUtils.toString(req));
+        Map<String, Object> resMap = Maps.newHashMap();
+        try {
+            RecipeCheckService recipeService = ApplicationUtils.getRecipeService(RecipeCheckService.class);
+            RecipeDAO dao = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe recipe = dao.getByRecipeCodeAndClinicOrgan(req.getRecipeCode(), req.getOrganId());
+            if (recipe == null){
+                resMap.put("msg","查询不到处方信息");
+            }
+            Map<String, Object> paramMap = Maps.newHashMap();
+            paramMap.put("recipeId",recipe.getRecipeId());
+            //1:审核通过 0-通过失败
+            paramMap.put("result",req.getAuditResult());
+            //审核机构
+            paramMap.put("checkOrgan",req.getOrganId());
+            //审核药师工号
+            paramMap.put("auditDoctorCode",req.getAuditDoctorCode());
+            //审核药师姓名
+            paramMap.put("auditDoctorName",req.getAuditDoctorName());
+            //审核不通过原因备注
+            paramMap.put("failMemo",req.getMemo());
+            //审核时间
+            paramMap.put("auditTime",req.getAuditTime());
+            Map<String, Object> result = recipeService.saveCheckResult(paramMap);
+            //错误消息返回
+            if (result!=null && result.get("msg") != null){
+                resMap.put("msg",result.get("msg"));
+            }
+            LOGGER.info("noticePlatRecipeAuditResult，res = {}", JSONUtils.toString(result));
+        }catch (Exception e){
+            resMap.put("msg",e.getMessage());
+            LOGGER.error("noticePlatRecipeAuditResult，error= {}", e);
+        }
+        return resMap;
     }
 }

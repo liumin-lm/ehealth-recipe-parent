@@ -4,26 +4,24 @@ import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import eh.base.constant.BussTypeConstant;
 import eh.cdr.constant.RecipeStatusConstant;
 import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.constant.*;
-import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.recipecheck.HisCheckRecipeService;
+import recipe.recipecheck.RecipeCheckService;
 import recipe.service.*;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
@@ -133,6 +131,10 @@ public class AuditPostMode extends AbstractAuidtMode {
         }
 
         super.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(),status,attrMap,result);
+
+        //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
+        HisCheckRecipeService hisCheckRecipeService = ApplicationUtils.getRecipeService(HisCheckRecipeService.class);
+        hisCheckRecipeService.sendCheckRecipeInfo(dbRecipe);
 
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
             if (RecipeStatusConstant.READY_CHECK_YS == status) {
