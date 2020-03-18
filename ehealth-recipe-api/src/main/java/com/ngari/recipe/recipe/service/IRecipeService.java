@@ -1,6 +1,5 @@
 package com.ngari.recipe.recipe.service;
 
-import com.ngari.platform.regulation.mode.QueryRegulationUnitReq;
 import com.ngari.recipe.IBaseService;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
@@ -389,5 +388,5 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     List<RecipeBean> findByClinicId(Integer consultId);
 
     @RpcService
-    List<Object[]> countRecipeIncomeGroupByDeptId(QueryRegulationUnitReq regulationUnitReq);
+    List<Object[]> countRecipeIncomeGroupByDeptId(Date startDate, Date endDate, Integer organId);
 }

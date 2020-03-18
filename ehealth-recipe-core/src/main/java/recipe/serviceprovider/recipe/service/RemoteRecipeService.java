@@ -11,7 +11,6 @@ import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.platform.regulation.mode.QueryRegulationUnitReq;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
@@ -873,10 +872,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @RpcService
     @Override
-    public List<Object[]> countRecipeIncomeGroupByDeptId(QueryRegulationUnitReq regulationUnitReq) {
+    public List<Object[]> countRecipeIncomeGroupByDeptId(Date startDate, Date endDate, Integer organId) {
         try{
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-            return recipeDAO.countRecipeIncomeGroupByDeptId(regulationUnitReq.getStartTime(), regulationUnitReq.getEndTime(), regulationUnitReq.getNgariOrganIds().get(0));
+            return recipeDAO.countRecipeIncomeGroupByDeptId(startDate, endDate, organId);
         }catch (Exception e){
             LOGGER.error("countRecipeIncomeGroupByDeptId error", e);
             return Collections.EMPTY_LIST;
