@@ -127,7 +127,7 @@ public class HdVirtualdyfRemoteService extends AccessDrugEnterpriseService {
         LOGGER.info("华东虚拟药企-取药方式更新通知his. req={}",JSONUtils.toString(updateTakeDrugWayReqTO));
         HisResponseTO hisResult = service.updateTakeDrugWay(updateTakeDrugWayReqTO);
         LOGGER.info("华东虚拟药企-取药方式更新通知his. res={}",JSONUtils.toString(hisResult));
-        if (hisResult!=null && !"200".equals(hisResult.getMsg())){
+        if (hisResult!=null && !"200".equals(hisResult.getMsgCode())){
             //推送不成功就退款
             //退款
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
