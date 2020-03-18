@@ -1554,7 +1554,7 @@ public class RecipeService extends RecipeBaseService{
 
 
     /**
-     * 定时任务:同步HIS医院药品信息
+     * 定时任务:同步HIS医院药品信息 每天凌晨1点同步
      */
     @RpcService(timeout = 600000)
     public void drugInfoSynTask() {
@@ -1569,6 +1569,7 @@ public class RecipeService extends RecipeBaseService{
         List<Integer> organIds = new ArrayList<>();
         if (null == organId) {
             //查询 base_organconfig 表配置需要同步的机构
+            //todo--这个配置要优化到运营平台机构配置中
             organIds = iOrganConfigService.findEnableDrugSync();
         } else {
             organIds.add(organId);
