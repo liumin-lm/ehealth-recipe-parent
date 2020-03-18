@@ -554,7 +554,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         //sendHdRecipe.setGiveMode(null == nowRecipe.getGiveMode() ? giveModeDefault : nowRecipe.getGiveMode().toString());
 
         sendHdRecipe.setGiveUser(nowRecipe.getGiveUser());
-        sendHdRecipe.setPayFlag(null == nowRecipe.getPayFlag() ? payFlagDefault : nowRecipe.getPayFlag().toString());
+        //sendHdRecipe.setPayFlag(null == nowRecipe.getPayFlag() ? payFlagDefault : nowRecipe.getPayFlag().toString());
         sendHdRecipe.setPayMode(null == nowRecipe.getPayMode() ? payModeDefault : nowRecipe.getPayMode().toString());
         sendHdRecipe.setRecipeType(null == nowRecipe.getRecipeType() ? recipeTypeDefault : nowRecipe.getRecipeType().toString());
         sendHdRecipe.setRecipeId(null == nowRecipe.getRecipeId() ? recipeIdDefault : nowRecipe.getRecipeId().toString());
@@ -570,6 +570,12 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         if (order != null && nowRecipe.getGiveMode() == 3 && StringUtils.isNotEmpty(order.getDrugStoreCode())) {
             sendHdRecipe.setGiveMode("3");
             sendHdRecipe.setPharmacyCode(order.getDrugStoreCode());
+        }
+        if (nowRecipe.getPayMode() == 1 && order != null) {
+            sendHdRecipe.setPayFlag(order.getPayFlag().toString());
+        }
+        if (nowRecipe.getPayMode() == 2 || nowRecipe.getPayMode() == 4) {
+            sendHdRecipe.setPayFlag("0");
         }
         //对浙四进行个性化处理,推送到指定药店配送
         /*RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);

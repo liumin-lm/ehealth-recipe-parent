@@ -129,12 +129,6 @@ public class HisCheckRecipeService implements IRecipeCheckService {
             //根据审方模式改变状态
             recipeStatus = auditModeContext.getAuditModes(recipe.getReviewType()).afterAuditRecipeChange();
             logMemo = "审核通过(第三方平台，药师：" + auditDoctorName + ")";
-        } else {
-            RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
-            //审核不通过
-            auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckNotPassYs(recipe);
-            //记录日志
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核不通过处理完成");
         }
 
         boolean bl = recipeDAO.updateRecipeInfoByRecipeId(recipeId, recipeStatus, attrMap);
@@ -153,8 +147,11 @@ public class HisCheckRecipeService implements IRecipeCheckService {
                 //审方成功
                 auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckPassYs(recipe);
             } else {
+                RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
                 //审核不通过后处理
                 auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckNotPassYs(recipe);
+                //记录日志
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核不通过处理完成");
             }
             return null;
         });
