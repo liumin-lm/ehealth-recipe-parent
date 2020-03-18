@@ -73,6 +73,14 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
     private String  verificationUnit;//	处方核销单位
     private Date  updateTime;//	最后更新时间
 
+    private Integer  recipeStatus;//处方状态
+
+    private String payFlag; //支付标识 0未支付 1已支付
+
+    private String signRecipeCode; //处方开具签名
+
+    private String signCADate; //可信时间戳（医生处方签名生成时间戳）
+
 //    private String  satisfaction; //满意度
 //    private String  scoring;//评分
 //    private String  evaluation;//评价内容
@@ -640,5 +648,37 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
 
     public void setFirstVisitRecord(FirstVisitRecord firstVisitRecord) {
         this.firstVisitRecord = firstVisitRecord;
+    }
+
+    public Integer getRecipeStatus() {
+        return recipeStatus;
+    }
+
+    public void setRecipeStatus(Integer recipeStatus) {
+        this.recipeStatus = recipeStatus;
+    }
+
+    public String getPayFlag() {
+        return payFlag;
+    }
+
+    public void setPayFlag(String payFlag) {
+        this.payFlag = payFlag;
+    }
+
+    public String getSignRecipeCode() {
+        return signRecipeCode;
+    }
+
+    public void setSignRecipeCode(String signRecipeCode) {
+        this.signRecipeCode = signRecipeCode;
+    }
+
+    public String getSignCADate() {
+        return signCADate;
+    }
+
+    public void setSignCADate(String signCADate) {
+        this.signCADate = signCADate;
     }
 }

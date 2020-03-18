@@ -2,6 +2,7 @@ package recipe.service;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.ngari.opbase.base.service.IPropertyOrganService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.entity.DrugsEnterprise;
@@ -11,6 +12,7 @@ import com.ngari.recipe.hisprescription.model.HospitalStatusUpdateDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
+import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -26,6 +28,7 @@ import recipe.constant.RecipeSystemConstant;
 import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
+import recipe.recipecheck.HisCheckRecipeService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.hospitalrecipe.PrescribeService;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
@@ -169,6 +172,20 @@ public class RecipeTimedTaskService {
                     LOGGER.info("updateRecipeStatus,recipeId={} result={}",recipe.getRecipeId(), JSONUtils.toString(result));
                 }
             }
+        }
+    }
+
+    /**
+     * 通知前置机去HIS查询审方状态
+     */
+    @RpcService
+    public void noticeGetHisCheckStatusTask(){
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        List<Recipe> recipes = recipeDAO.findReadyCheckRecipeByCheckMode(2);
+        for (Recipe recipe : recipes) {
+            //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
+            HisCheckRecipeService hisCheckRecipeService = ApplicationUtils.getRecipeService(HisCheckRecipeService.class);
+            hisCheckRecipeService.sendCheckRecipeInfo(recipe);
         }
     }
 }
