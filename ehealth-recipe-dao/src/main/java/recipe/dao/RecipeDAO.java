@@ -2131,7 +2131,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateStatelessResultAction<List<Object[]>> action = new AbstractHibernateStatelessResultAction<List<Object[]>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("select sum(TotalMoney),Depart from Recipe where CreateDate between :startDate and :endDate and ClinicOrgan=: organId and payFlag=1 GROUP BY Depart");
+                StringBuilder hql = new StringBuilder("select sum(TotalMoney),Depart from Recipe where CreateDate between :startDate and :endDate and ClinicOrgan=: organId and PayFlag = 1 GROUP BY Depart");
                 Query query = ss.createQuery(hql.toString());
                 query.setParameter("organId",organId);
                 query.setParameter("startDate",startDate);
@@ -2141,7 +2141,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             }
         };
 
-        HibernateSessionTemplate.instance().execute(action);
+        HibernateSessionTemplate.instance().executeReadOnly(action);
         return action.getResult();
     }
 }
