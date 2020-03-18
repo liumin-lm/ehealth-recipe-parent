@@ -554,7 +554,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         //sendHdRecipe.setGiveMode(null == nowRecipe.getGiveMode() ? giveModeDefault : nowRecipe.getGiveMode().toString());
 
         sendHdRecipe.setGiveUser(nowRecipe.getGiveUser());
-        sendHdRecipe.setPayFlag(null == nowRecipe.getPayFlag() ? payFlagDefault : nowRecipe.getPayFlag().toString());
+        //sendHdRecipe.setPayFlag(null == nowRecipe.getPayFlag() ? payFlagDefault : nowRecipe.getPayFlag().toString());
         sendHdRecipe.setPayMode(null == nowRecipe.getPayMode() ? payModeDefault : nowRecipe.getPayMode().toString());
         sendHdRecipe.setRecipeType(null == nowRecipe.getRecipeType() ? recipeTypeDefault : nowRecipe.getRecipeType().toString());
         sendHdRecipe.setRecipeId(null == nowRecipe.getRecipeId() ? recipeIdDefault : nowRecipe.getRecipeId().toString());
@@ -569,15 +569,24 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         }
         if (order != null && nowRecipe.getGiveMode() == 3 && StringUtils.isNotEmpty(order.getDrugStoreCode())) {
             sendHdRecipe.setGiveMode("3");
+            sendHdRecipe.setPharmacyCode(order.getDrugStoreCode());
+        }
+        if (nowRecipe.getPayMode() == 1 && order != null) {
+            sendHdRecipe.setPayFlag(order.getPayFlag().toString());
+        }
+        if (nowRecipe.getPayMode() == 2 || nowRecipe.getPayMode() == 4) {
+            sendHdRecipe.setPayFlag("0");
         }
         //对浙四进行个性化处理,推送到指定药店配送
-        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        /*RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         String hdStores = recipeParameterDao.getByName("hd_store_payonline");
         String storeOrganName = nowRecipe.getClinicOrgan() + "_" + "hd_organ_store";
-        String organStore = recipeParameterDao.getByName(storeOrganName);
-        if (StringUtils.isNotEmpty(hdStores) && hdStores.contains(nowRecipe.getClinicOrgan().toString())) {
+        String organStore = recipeParameterDao.getByName(storeOrganName);*/
+
+        if (nowRecipe.getClinicOrgan() == 1000053) {
+            LOGGER.info("HdRemoteService.pushRecipeInfo assembleRecipeMsg go here");
             sendHdRecipe.setGiveMode("4");
-            sendHdRecipe.setPharmacyCode(organStore);
+            sendHdRecipe.setPharmacyCode("B0000100029");
         }
     }
 
@@ -733,7 +742,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         sendHdRecipe.setDecoctionFee(null == order.getDecoctionFee() ?  feeDefault : order.getDecoctionFee().toString());
         sendHdRecipe.setRecipientName(order.getReceiver());
         sendHdRecipe.setRecipientTel(order.getRecMobile());
-        sendHdRecipe.setPharmacyCode(order.getDrugStoreCode());
         return null;
     }
 

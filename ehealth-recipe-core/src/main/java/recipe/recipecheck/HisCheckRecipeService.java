@@ -60,9 +60,8 @@ public class HisCheckRecipeService implements IRecipeCheckService {
     @RpcService
     public void sendCheckRecipeInfo(Recipe recipe) {
         LOGGER.info("HisCheckRecipeService.sendCheckRecipeInfo recipeId:{}.", recipe.getRecipeId());
-        IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        Integer isOpenHisCheckRecipeFlag = (Integer) configurationCenterUtilsService.getConfiguration(recipe.getClinicOrgan(), "isOpenHisCheckRecipeFlag");
-        if (isOpenHisCheckRecipeFlag == 2) {
+        //审方途径开处方的时候已经获取
+        if (new Integer(2).equals(recipe.getCheckMode())) {
             OrganService organService = BasicAPI.getService(OrganService.class);
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
@@ -118,7 +117,7 @@ public class HisCheckRecipeService implements IRecipeCheckService {
         recipeCheck.setMemo((StringUtils.isEmpty(memo)) ? "" : memo);
         recipeCheck.setCheckStatus(Integer.valueOf(result));
         recipeCheck.setCheckerName(auditDoctorName);
-        List<RecipeCheckDetail> recipeCheckDetails =null;
+        List<RecipeCheckDetail> recipeCheckDetails = null;
         RecipeCheckDAO recipeCheckDAO = getDAO(RecipeCheckDAO.class);
         recipeCheckDAO.saveRecipeCheckAndDetail(recipeCheck, recipeCheckDetails);
 
@@ -129,18 +128,12 @@ public class HisCheckRecipeService implements IRecipeCheckService {
             //根据审方模式改变状态
             recipeStatus = auditModeContext.getAuditModes(recipe.getReviewType()).afterAuditRecipeChange();
             logMemo = "审核通过(第三方平台，药师：" + auditDoctorName + ")";
-        } else {
-            RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
-            //审核不通过
-            auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckNotPassYs(recipe);
-            //记录日志
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核不通过处理完成");
         }
 
         boolean bl = recipeDAO.updateRecipeInfoByRecipeId(recipeId, recipeStatus, attrMap);
         if (!bl) {
             LOGGER.error("saveCheckResult update recipe[" + recipeId + "] error!");
-            resMap.put("msg","更新处方审核信息失败");
+            resMap.put("msg", "更新处方审核信息失败");
             return resMap;
         }
         //记录日志
@@ -153,8 +146,11 @@ public class HisCheckRecipeService implements IRecipeCheckService {
                 //审方成功
                 auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckPassYs(recipe);
             } else {
+                RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
                 //审核不通过后处理
                 auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckNotPassYs(recipe);
+                //记录日志
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核不通过处理完成");
             }
             return null;
         });
