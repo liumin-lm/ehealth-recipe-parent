@@ -447,7 +447,6 @@ public class DrugToolService implements IDrugToolService {
 
 
     private void AutoMatch(DrugListMatch drug) {
-        LOGGER.info("the new Drug=[{}]", JSONUtils.toString(drug));
         DrugList drugList = null;
         String addrArea = null;
         ProvinceDrugList provinceDrugList = null;
@@ -1403,7 +1402,8 @@ public class DrugToolService implements IDrugToolService {
     }
 
     /*判断当前机构下的建挂壁平台有没有配置，没有配置判断为没有省平台药品*/
-    private boolean checkOrganRegulation(int organId) {
+    @RpcService
+    public boolean checkOrganRegulation(int organId) {
         IRegulationService regulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
         try {
             Boolean haveList = regulationService.checkRegulationList();
