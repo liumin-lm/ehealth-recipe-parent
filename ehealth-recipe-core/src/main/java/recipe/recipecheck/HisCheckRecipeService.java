@@ -4,8 +4,10 @@ import com.google.common.collect.Maps;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.his.recipe.mode.NoticeHisRecipeInfoReq;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeCheck;
@@ -89,8 +91,17 @@ public class HisCheckRecipeService implements IRecipeCheckService {
         String auditDoctorName = MapValueUtil.getString(paramMap, "auditDoctorName");
         Date auditTime = MapValueUtil.getDate(paramMap, "auditTime");
         String memo = MapValueUtil.getString(paramMap, "failMemo");
-        if (null == recipeId || null == result) {
+        if (null == recipeId || null == result || checkOrgan == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "params are needed");
+        }
+        Integer checker = 0;
+        if (StringUtils.isNotEmpty(auditDoctorCode)){
+            EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
+            EmploymentDTO employmentDTO = employmentService.getByJobNumberAndOrganId(
+                    auditDoctorCode, checkOrgan);
+            if (employmentDTO != null){
+                checker = employmentDTO.getDoctorId();
+            }
         }
         Map<String, Object> resMap = Maps.newHashMap();
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
@@ -104,14 +115,14 @@ public class HisCheckRecipeService implements IRecipeCheckService {
         Map<String, Object> attrMap = Maps.newHashMap();
         attrMap.put("checkDateYs", auditTime);
         attrMap.put("checkOrgan", checkOrgan);
-        attrMap.put("checker", 0);
+        attrMap.put("checker", checker);
         attrMap.put("checkFailMemo", (StringUtils.isEmpty(memo)) ? "" : memo);
         attrMap.put("checkStatus", RecipecCheckStatusConstant.Check_Normal);
 
         //保存审核记录和详情审核记录
         RecipeCheck recipeCheck = new RecipeCheck();
         //暂时设置成0
-        recipeCheck.setChecker(0);
+        recipeCheck.setChecker(checker);
         recipeCheck.setRecipeId(recipeId);
         recipeCheck.setCheckOrgan(checkOrgan);
         recipeCheck.setCheckDate(auditTime);
