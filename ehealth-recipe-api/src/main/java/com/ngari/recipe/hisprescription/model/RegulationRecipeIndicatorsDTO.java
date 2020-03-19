@@ -65,6 +65,9 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
     private String  deliveryType;//	处方配送方式 0医院取药 1物流配送 2药店取药
     private String  deliveryFirm;//	配送厂商名称
     private Date    deliveryDate;//	配送时间
+    private Date sendTime; //配送开始时间
+    private Date finishTime; //配送结束时间
+    private Integer deliveryStatus; //配送状态
     private Double  totalFee;//	处方金额
     private String  isPay;//	是否支付
     private String  tradeNo;//	第三方支付交易流水号
@@ -680,5 +683,29 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
 
     public void setSignCADate(String signCADate) {
         this.signCADate = signCADate;
+    }
+
+    public Date getSendTime() {
+        return sendTime;
+    }
+
+    public void setSendTime(Date sendTime) {
+        this.sendTime = sendTime;
+    }
+
+    public Date getFinishTime() {
+        return finishTime;
+    }
+
+    public void setFinishTime(Date finishTime) {
+        this.finishTime = finishTime;
+    }
+
+    public Integer getDeliveryStatus() {
+        return deliveryStatus;
+    }
+
+    public void setDeliveryStatus(Integer deliveryStatus) {
+        this.deliveryStatus = deliveryStatus;
     }
 }
