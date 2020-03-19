@@ -606,9 +606,9 @@ public class DrugToolService implements IDrugToolService {
                     //已匹配
                     status = DrugMatchConstant.ALREADY_MATCH;
                     drugListMatch.setStatus(status);
-                    drugListMatch.setPlatformDrugId(save.getDrugId());
-                    drugListMatchDAO.updatePlatformDrugIdByDrugId(save.getDrugId(), drugListMatch.getDrugId());
                 }
+                drugListMatch.setPlatformDrugId(save.getDrugId());
+                drugListMatchDAO.updatePlatformDrugIdByDrugId(save.getDrugId(), drugListMatch.getDrugId());
                 drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(), ImmutableMap.of("status", status, "matchDrugId", save.getDrugId()));
             }
         } catch (Exception e) {
