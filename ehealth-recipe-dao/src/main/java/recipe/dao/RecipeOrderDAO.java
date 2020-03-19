@@ -1,6 +1,7 @@
 package recipe.dao;
 
 import com.ngari.his.regulation.entity.RegulationChargeDetailReq;
+import com.ngari.his.regulation.entity.RegulationChargeDetailReqTo;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -322,8 +323,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @param endTime
      * @return
      */
-    public List<RegulationChargeDetailReq> queryRegulationChargeDetailList(List<Integer> ngariOrganIds,Date startTime, Date endTime){
-        HibernateStatelessResultAction<List<RegulationChargeDetailReq>> action = new AbstractHibernateStatelessResultAction<List<RegulationChargeDetailReq>>() {
+    public List<RegulationChargeDetailReqTo> queryRegulationChargeDetailList(List<Integer> ngariOrganIds, Date startTime, Date endTime){
+        HibernateStatelessResultAction<List<RegulationChargeDetailReqTo>> action = new AbstractHibernateStatelessResultAction<List<RegulationChargeDetailReqTo>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
@@ -342,7 +343,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 q.setParameterList("ngariOrganIds",ngariOrganIds);
                 logger.info("paramter is startTime:[{}],endTime:[{}],ngariOrganIds[{}]",startTime,endTime,ngariOrganIds);
                 List<Object[]> result = q.list();
-                List<RegulationChargeDetailReq> backList = new ArrayList<>();
+                List<RegulationChargeDetailReqTo> backList = new ArrayList<>();
                 if (CollectionUtils.isNotEmpty(result)){
                     RegulationChargeDetailReq vo;
                     for (Object[] objs : result) {

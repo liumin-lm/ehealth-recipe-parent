@@ -1,6 +1,7 @@
 package recipe.regulation;
 
 import com.ngari.his.regulation.entity.RegulationChargeDetailReq;
+import com.ngari.his.regulation.entity.RegulationChargeDetailReqTo;
 import com.ngari.platform.regulation.mode.QueryRegulationUnitReq;
 import com.ngari.recipe.regulation.service.IRegulationRecipeQueryService;
 import ctd.util.JSONUtils;
@@ -26,8 +27,8 @@ public class RegulationRecipeQueryService implements IRegulationRecipeQueryServi
     RecipeOrderDAO recipeOrderDAO;
 
     @Override
-    public List<RegulationChargeDetailReq> queryRegulationChargeDetailList(QueryRegulationUnitReq queryRegulationUnit){
-        List<RegulationChargeDetailReq> result = new ArrayList<>();
+    public List<RegulationChargeDetailReqTo> queryRegulationChargeDetailList(QueryRegulationUnitReq queryRegulationUnit){
+        List<RegulationChargeDetailReqTo> result = new ArrayList<>();
                 List<Integer> ngariOrganIds = queryRegulationUnit.getNgariOrganIds();
                 Date startTime = queryRegulationUnit.getStartTime();
                 Date endTime = queryRegulationUnit.getEndTime();
