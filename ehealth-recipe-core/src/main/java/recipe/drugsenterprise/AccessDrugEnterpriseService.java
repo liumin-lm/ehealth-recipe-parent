@@ -20,6 +20,9 @@ import recipe.bean.PurchaseResponse;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
+import recipe.purchase.IPurchaseService;
+import recipe.purchase.PayModeOnline;
+import recipe.purchase.PurchaseService;
 import recipe.service.RecipeOrderService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateDrugsEpCallable;
@@ -272,6 +275,7 @@ public abstract class AccessDrugEnterpriseService {
      * @return
      */
     public boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds) {
+        LOGGER.info("scanStock 当前非杭州市互联网推送订单信息，入参：dbRecipe:{},dep:{},drugIds:{}", JSONUtils.toString(dbRecipe), JSONUtils.toString(dep), JSONUtils.toString(drugIds));
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
 
@@ -340,6 +344,7 @@ public abstract class AccessDrugEnterpriseService {
     }
 
     public void checkRecipeGiveDeliveryMsg(RecipeBean recipeBean, Map<String, Object> map){
+        LOGGER.info("checkRecipeGiveDeliveryMsg 当前非杭州市互联网预校验，入参：recipeBean:{},map:{}", JSONUtils.toString(recipeBean), JSONUtils.toString(map));
         //预校验返回 取药方式1配送到家 2医院取药 3两者都支持
         String giveMode = null != map.get("giveMode") ? map.get("giveMode").toString() : null;
         //配送药企代码
@@ -349,7 +354,7 @@ public abstract class AccessDrugEnterpriseService {
         if (StringUtils.isNotEmpty(giveMode)){
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             Map<String,String> updateMap = Maps.newHashMap();
-            updateMap.put("giveMode",giveMode);
+            //updateMap.put("giveMode",giveMode);
             updateMap.put("deliveryCode",deliveryCode);
             updateMap.put("deliveryName",deliveryName);
             recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(),updateMap);
@@ -365,6 +370,25 @@ public abstract class AccessDrugEnterpriseService {
     }
 
     public Boolean specialMakeDepList(DrugsEnterprise drugsEnterprise, Recipe dbRecipe) {
+        LOGGER.info("当前非虚拟药企判断个性化药企展示：drugsEnterprise：{}, dbRecipe:{}",
+                JSONUtils.toString(drugsEnterprise), JSONUtils.toString(dbRecipe));
         return DrugEnterpriseConstant.COMPANY_HZ.equals(drugsEnterprise.getCallSys()) && dbRecipe.getRecipeCode().contains("ngari");
+    }
+
+    public void sendDeliveryMsgToHis(Integer recipeId) {
+        LOGGER.info("当前非虚拟药企确认订单后推送配送信息：recipeId：{}",
+                recipeId);
+        PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+        PayModeOnline service = (PayModeOnline)purchaseService.getService(1);
+        RecipeBusiThreadPool.submit(()->{
+            service.updateGoodsReceivingInfo(recipeId);
+            return null;
+        });
+    }
+
+    public Map<String,Object> sendMsgResultMap(Recipe dbRecipe, Map<String, String> extInfo, Map<String, Object> payResult) {
+        LOGGER.info("当前非虚拟药企确认订单前校验订单信息推送配送信息：dbRecipe：{}，extInfo:{},payResult:{}",
+                JSONUtils.toString(dbRecipe), JSONUtils.toString(extInfo), JSONUtils.toString(payResult));
+        return payResult;
     }
 }

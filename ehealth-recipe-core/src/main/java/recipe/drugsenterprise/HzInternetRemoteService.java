@@ -408,7 +408,46 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
 
     @Override
     public void checkRecipeGiveDeliveryMsg(RecipeBean recipeBean, Map<String, Object> map) {
-        getRealization(recipeBean).checkRecipeGiveDeliveryMsg(recipeBean, map);
+        LOGGER.info("checkRecipeGiveDeliveryMsg recipeBean:{}, map:{}", JSONUtils.toString(recipeBean), JSONUtils.toString(map));
+        String giveMode = null != map.get("giveMode") ? map.get("giveMode").toString() : null;
+        Object deliveryList = map.get("deliveryList");
+        if(null != deliveryList && null != giveMode){
+
+            List<Map> deliveryLists = (List<Map>)deliveryList;
+            //暂时按照逻辑只保存展示返回的第一个药企
+            DeliveryList nowDeliveryList = JSON.parseObject(JSON.toJSONString(deliveryLists.get(0)), DeliveryList.class);
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            if (null != nowDeliveryList){
+                Map<String,String> updateMap = Maps.newHashMap();
+                updateMap.put("deliveryCode", nowDeliveryList.getDeliveryCode());
+                updateMap.put("deliveryName", nowDeliveryList.getDeliveryName());
+                //存放处方金额
+                updateMap.put("deliveryRecipeFee", null != nowDeliveryList.getRecipeFee() ? nowDeliveryList.getRecipeFee().toString() : null);
+                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(), updateMap);
+            }
+            //date 20200311
+            //将his返回的批量药企信息存储下来，将信息分成|分割
+            DeliveryList deliveryListNow;
+            Map<String,String> updateMap = Maps.newHashMap();
+            StringBuffer deliveryCodes = new StringBuffer().append("|");
+            StringBuffer deliveryNames = new StringBuffer().append("|");
+            StringBuffer deliveryRecipeFees = new StringBuffer().append("|");
+            for(Map<String,String> delivery : deliveryLists){
+                deliveryListNow = JSON.parseObject(JSON.toJSONString(delivery), DeliveryList.class);
+                deliveryCodes.append(deliveryListNow.getDeliveryCode()).append("|");
+                deliveryNames.append(deliveryListNow.getDeliveryName()).append("|");
+                deliveryRecipeFees.append(deliveryListNow.getRecipeFee()).append("|");
+            }
+            updateMap.put("deliveryCode", "|".equals(deliveryCodes) ? null : deliveryCodes.toString());
+            updateMap.put("deliveryName", "|".equals(deliveryNames) ? null : deliveryNames.toString());
+            //存放处方金额
+            updateMap.put("deliveryRecipeFee", "|".equals(deliveryRecipeFees) ? null : deliveryRecipeFees.toString());
+            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(), updateMap);
+            LOGGER.info("hisRecipeCheck 当前处方{}预校验，配送方式存储成功:{}！", recipeBean.getRecipeId(), JSONUtils.toString(updateMap));
+
+        }else{
+            LOGGER.info("hisRecipeCheck 当前处方{}预校验，配送方式没有返回药企信息！", recipeBean.getRecipeId());
+        }
     }
 
     @Override
@@ -419,6 +458,16 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
     @Override
     public Boolean specialMakeDepList(DrugsEnterprise drugsEnterprise, Recipe dbRecipe) {
         return getRealization(dbRecipe).specialMakeDepList(drugsEnterprise, dbRecipe);
+    }
+
+    @Override
+    public void sendDeliveryMsgToHis(Integer recipeId) {
+        getRealization(Lists.newArrayList(recipeId)).sendDeliveryMsgToHis(recipeId);
+    }
+
+    @Override
+    public Map<String, Object> sendMsgResultMap(Recipe dbRecipe, Map<String, String> extInfo, Map<String, Object> payResult) {
+        return getRealization(dbRecipe).sendMsgResultMap(dbRecipe, extInfo, payResult);
     }
 
     private HzInternetRemoteTypeInterface getRealization(List<Integer> recipeIds){

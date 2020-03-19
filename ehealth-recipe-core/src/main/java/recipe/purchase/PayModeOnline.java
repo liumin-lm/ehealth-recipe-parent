@@ -35,6 +35,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcService;
 import eh.base.constant.ErrorCode;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -324,10 +325,11 @@ public class PayModeOnline implements IPurchaseService {
         return result;
     }
 
-    private OrderCreateResult checkMakeOrder(Recipe dbRecipe, Map<String, String> extInfo) {
+    //date 20200318
+    //确认订单前校验处方信息
+    private Map<String,Object> checkMakeOrder(Recipe dbRecipe, Map<String, String> extInfo) {
         //首先校验：预结算
         //再校验：同步配送信息
-        OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
 
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
@@ -337,18 +339,17 @@ public class PayModeOnline implements IPurchaseService {
 
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
         Map<String, Object> payResult = hisService.provincialMedicalPreSettle(dbRecipe.getRecipeId());
-        if("-1".equals(payResult.get("code"))){
-            result.setCode(RecipeResultBean.FAIL);
-            result.setMsg("order 当前校验his订单信息，预结算失败");
-            result.setError("preSettleError");
-            return result;
+        if ("-1".equals(payResult.get("code"))) {
+            LOG.info("order 当前处方{}确认订单校验处方信息：预结算失败，结算结果：{}",
+                    dbRecipe.getRecipeId(), JSONUtils.toString(payResult));
+            return payResult;
         }
 
 
         HisResponseTO resultSave = updateGoodsReceivingInfoToCreateOrder(dbRecipe.getRecipeId(), extInfo);
 
-        if(null != resultSave) {
-            if(resultSave.isSuccess() && null != resultSave.getData()){
+        if (null != resultSave) {
+            if (resultSave.isSuccess() && null != resultSave.getData()) {
 
                 Map<String, Object> data = (Map<String, Object>) resultSave.getData();
 
@@ -358,127 +359,24 @@ public class PayModeOnline implements IPurchaseService {
                             ImmutableMap.of("recipeCode", data.get("recipeCode").toString()));
                     LOG.info("order 当前处方{}确认订单流程：his新增成功",
                             dbRecipe.getRecipeId());
-                    return result;
+                    return payResult;
                 } else {
-                    result.setCode(RecipeResultBean.FAIL);
-                    result.setMsg("order 当前处方确认订单的his同步配送信息，没有返回his处方code");
-                    result.setError("synSendError");
+                    payResult.put("code", "-1");
+                    payResult.put("msg", "订单信息校验失败");
                     LOG.info("order 当前处方确认订单的his同步配送信息，没有返回his处方code：{}", JSONUtils.toString(resultSave));
-                    return result;
+                    return payResult;
                 }
-            }else{
-                result.setCode(RecipeResultBean.FAIL);
-                result.setMsg("order 当前处方确认订单的his同步配送信息，同步失败");
-                result.setError("synSendError");
-                LOG.info("order 当前处方确认订单的his同步配送信息，返回：{}", JSONUtils.toString(resultSave));
-                return result;
+            } else {
+                payResult.put("code", "-1");
+                payResult.put("msg", "订单信息校验失败");
+                LOG.info("order 当前处方确认订单的his同步配送信息失败，返回：{}", JSONUtils.toString(resultSave));
+                return payResult;
             }
-        }else {
-            result.setMsg("order 当前没有对接同步配送信息，默认成功！");
+        } else {
             LOG.info("order 当前处方{}没有对接同步配送信息，默认成功！", dbRecipe.getRecipeId());
-            return result;
+            return payResult;
         }
-
-//        //
-//                    RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-//                    Map<String, Object> resultMap = hisService.provincialMedicalPreSettle(dbRecipe.getRecipeId());
-//                    if(null != resultMap && "200".equals(resultMap.get("code"))){
-//                        recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(),
-//                                ImmutableMap.of("orderMakeStatus", "3"));
-//                        LOG.info("order 当前处方{}确认订单流程：{}->{}",
-//                                dbRecipe.getRecipeId(), orderMakeStatus, "3");
-//                    }else{
-//                        result.setCode(RecipeResultBean.FAIL);
-//                        result.setMsg("order 当前处方确认订单的预结算处方流程，未预结算成功");
-//                        LOG.info("order 当前处方确认订单的预结算处方流程未成功，返回：{}" , JSONUtils.toString(resultMap));
-//                        break;
-//                    }
-//        //
-//                    break;
-//        //
-//                    result.setCode(RecipeResultBean.FAIL);
-//                    result.setMsg("order 当前处方确认订单流程节点状态无法识别：" + orderMakeStatus);
-//                    LOG.info("order 当前处方确认订单流程节点状态无法识别：：{}" , orderMakeStatus);
-//                    break;
-//            }
-//        //
-//            LOG.info("order 当前处方{}确认订单的流程信息为空!", dbRecipe.getRecipeId());
-//            result.setCode(RecipeResultBean.FAIL);
-//            result.setMsg("order 当前处方确认订单的流程信息为空！");
-
     }
-
-//    private synchronized OrderCreateResult getOrderCreateResultNew(Recipe dbRecipe, Map<String, String> extInfo, OrderCreateResult result, RecipeDAO recipeDAO, RecipeExtendDAO recipeExtendDAO, RecipeExtend extend) {
-//        String orderMakeStatus = extend.getOrderMakeStatus();
-//        if(StringUtils.isNotEmpty(orderMakeStatus)){
-//            switch (orderMakeStatus){
-//                case "0":
-//                    result = getOrderCreateResult(dbRecipe, extInfo, result);
-//                    if(RecipeResultBean.SUCCESS.equals(result.getCode())){
-//                        recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(),
-//                                ImmutableMap.of("orderMakeStatus", "1"));
-//                        LOG.info("order 当前处方{}确认订单流程：{}->{}",
-//                                dbRecipe.getRecipeId(), orderMakeStatus, "1");
-//                    }else{
-//                        break;
-//                    }
-//                case "1":
-//
-//                    HisResponseTO resultSave = updateGoodsReceivingInfo(dbRecipe.getRecipeId());
-//
-//                    if(null != resultSave && resultSave.isSuccess() && null != resultSave.getData()){
-//                        Map<String, Object> data =(Map<String, Object>)resultSave.getData();
-//
-//                        if(null != data.get("recipeCode")){
-//                            //新增成功更新his处方code
-//                            recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(),
-//                                    ImmutableMap.of("recipeCode", data.get("recipeCode").toString()));
-//                            recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(),
-//                                    ImmutableMap.of("orderMakeStatus", "2"));
-//                            LOG.info("order 当前处方{}确认订单流程：{}->{}",
-//                                    dbRecipe.getRecipeId(), orderMakeStatus, "2");
-//                        }else{
-//                            result.setCode(RecipeResultBean.FAIL);
-//                            result.setMsg("order 当前处方确认订单的新增处方流程，没有返回his处方code");
-//                            LOG.info("order 当前处方确认订单的新增处方流程，没有返回his处方code：{}" , JSONUtils.toString(resultSave));
-//                            break;
-//                        }
-//                    }else{
-//                        result.setCode(RecipeResultBean.FAIL);
-//                        result.setMsg("order 当前处方确认订单的新增处方流程，未新增成功");
-//                        LOG.info("order 当前处方确认订单的新增处方流程未新增成功，返回：{}" , JSONUtils.toString(resultSave));
-//                        break;
-//                    }
-//
-//                case "2":
-//                    RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-//                    Map<String, Object> resultMap = hisService.provincialMedicalPreSettle(dbRecipe.getRecipeId());
-//                    if(null != resultMap && "200".equals(resultMap.get("code"))){
-//                        recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(),
-//                                ImmutableMap.of("orderMakeStatus", "3"));
-//                        LOG.info("order 当前处方{}确认订单流程：{}->{}",
-//                                dbRecipe.getRecipeId(), orderMakeStatus, "3");
-//                    }else{
-//                        result.setCode(RecipeResultBean.FAIL);
-//                        result.setMsg("order 当前处方确认订单的预结算处方流程，未预结算成功");
-//                        LOG.info("order 当前处方确认订单的预结算处方流程未成功，返回：{}" , JSONUtils.toString(resultMap));
-//                        break;
-//                    }
-//                case "3":
-//                    break;
-//                default:
-//                    result.setCode(RecipeResultBean.FAIL);
-//                    result.setMsg("order 当前处方确认订单流程节点状态无法识别：" + orderMakeStatus);
-//                    LOG.info("order 当前处方确认订单流程节点状态无法识别：：{}" , orderMakeStatus);
-//                    break;
-//            }
-//        }else{
-//            LOG.info("order 当前处方{}确认订单的流程信息为空!", dbRecipe.getRecipeId());
-//            result.setCode(RecipeResultBean.FAIL);
-//            result.setMsg("order 当前处方确认订单的流程信息为空！");
-//        }
-//        return result;
-//    }
 
     //确认订单流程
     private OrderCreateResult getOrderCreateResult(Recipe dbRecipe, Map<String, String> extInfo, OrderCreateResult result) {
@@ -532,13 +430,14 @@ public class PayModeOnline implements IPurchaseService {
 //            }
 //        }else{
 
-            RemoteDrugEnterpriseService remoteDrugEnterpriseService =
+        order.setRecipeIdList(JSONUtils.toString(Arrays.asList(recipeId)));
+        RemoteDrugEnterpriseService remoteDrugEnterpriseService =
                     ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
 
-            DrugsEnterprise dep = drugsEnterpriseDAO.get(depId);
-            AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(dep);;
-            boolean stockFlag = remoteService.scanStock(dbRecipe, dep, drugIds);
-            if (!stockFlag) {
+        DrugsEnterprise dep = drugsEnterpriseDAO.get(depId);
+        AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(dep);;
+        boolean stockFlag = remoteService.scanStock(dbRecipe, dep, drugIds);
+        if (!stockFlag) {
                 //无法配送
                 result.setCode(RecipeResultBean.FAIL);
                 result.setMsg("药企无法配送");
@@ -547,7 +446,6 @@ public class PayModeOnline implements IPurchaseService {
                 remoteService.setEnterpriseMsgToOrder(order, depId, extInfo);
             }
         //}
-        order.setRecipeIdList(JSONUtils.toString(Arrays.asList(recipeId)));
 
         // 暂时还是设置成处方单的患者，不然用户历史处方列表不好查找
         order.setMpiId(dbRecipe.getMpiid());
@@ -610,20 +508,13 @@ public class PayModeOnline implements IPurchaseService {
             nowRecipe.setChooseFlag(1);
             recipeDAO.update(nowRecipe);
         }
-        //date 20200309
-        //当前处方不为杭州市互联网处方
-        if(!(null != extend && StringUtils.isNotEmpty(extend.getDeliveryRecipeFee()))){
-
-            //选择配送到家后调用更新取药方式-配送信息
-            RecipeBusiThreadPool.submit(()->{
-                updateGoodsReceivingInfo(dbRecipe.getRecipeId());
-                return null;
-            });
-        }
+        //date 20200318
+        //确认订单后同步配送信息接口
+        remoteService.sendDeliveryMsgToHis(dbRecipe.getRecipeId());
         return result;
     }
 
-    private HisResponseTO updateGoodsReceivingInfo(Integer recipeId) {
+    public HisResponseTO updateGoodsReceivingInfo(Integer recipeId) {
         try{
 
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -712,13 +603,13 @@ public class PayModeOnline implements IPurchaseService {
             //date 20200312
             //将配送信息同步过来
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-            updateTakeDrugWayReqTO.setCheckOrgan(null != recipe.getCheckOrgan() ? recipe.getCheckOrgan().toString() : null);
-            updateTakeDrugWayReqTO.setCheckDate(recipe.getCheckDate());
-            updateTakeDrugWayReqTO.setCheckerTel(recipe.getCheckerTel());
-            updateTakeDrugWayReqTO.setCheckMemo(recipe.getCheckFailMemo());
-            updateTakeDrugWayReqTO.setSupplementaryMemo(recipe.getSupplementaryMemo());
-            //设置当前更新
-            updateTakeDrugWayReqTO.setGiveMode(UpdateSendMsgStatusEnum.LOGISTIC_SEND.getSendType());
+//            updateTakeDrugWayReqTO.setCheckOrgan(null != recipe.getCheckOrgan() ? recipe.getCheckOrgan().toString() : null);
+//            updateTakeDrugWayReqTO.setCheckDate(recipe.getCheckDate());
+//            updateTakeDrugWayReqTO.setCheckerTel(recipe.getCheckerTel());
+//            updateTakeDrugWayReqTO.setCheckMemo(recipe.getCheckFailMemo());
+//            updateTakeDrugWayReqTO.setSupplementaryMemo(recipe.getSupplementaryMemo());
+//            //设置当前更新
+//            updateTakeDrugWayReqTO.setGiveMode(UpdateSendMsgStatusEnum.LOGISTIC_SEND.getSendType());
 
             LOG.info("收货信息更新通知his. req={}", JSONUtils.toString(updateTakeDrugWayReqTO));
             HisResponseTO hisResult = service.updateTakeDrugWay(updateTakeDrugWayReqTO);
@@ -733,7 +624,7 @@ public class PayModeOnline implements IPurchaseService {
 
     }
 
-    private HisResponseTO updateGoodsReceivingInfoToCreateOrder(Integer recipeId, Map<String, String> extInfo) {
+    public HisResponseTO updateGoodsReceivingInfoToCreateOrder(Integer recipeId, Map<String, String> extInfo) {
         try{
 
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -799,6 +690,11 @@ public class PayModeOnline implements IPurchaseService {
                     updateTakeDrugWayReqTO.setPlanDate(StringUtils.isNotEmpty(order.getExpectSendDate())?
                             DateConversion.getDateFormatter(DateConversion.getCurrentDate(order.getExpectSendDate(), "yyyy-MM-dd HH:mm"), "yyyy-MM-dd HH:mm") : null);
                     updateTakeDrugWayReqTO.setPlanTime(order.getExpectSendTime());
+                }else{
+                    LOG.info("同步配送信息，组装配送订单失败！");
+                    HisResponseTO hisResponseTO = new HisResponseTO();
+                    hisResponseTO.setMsgCode("-1");
+                    return hisResponseTO;
                 }
             }
             if (recipe.getClinicId() != null) {
@@ -880,7 +776,8 @@ public class PayModeOnline implements IPurchaseService {
             recipeOrder.setAddress3(address.getAddress3());
             recipeOrder.setAddress4(address.getAddress4());
         }else{
-
+            LOG.warn("当前确认订单推送没有设置配送地址");
+            return null;
         }
         recipeOrder.setReceiver(address.getReceiver());
         recipeOrder.setRecMobile(address.getRecMobile());

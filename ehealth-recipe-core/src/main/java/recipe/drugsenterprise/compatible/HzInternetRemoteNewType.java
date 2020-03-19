@@ -2,7 +2,9 @@ package recipe.drugsenterprise.compatible;
 
 import com.alibaba.fastjson.JSON;
 import com.alijk.bqhospital.alijk.conf.TaobaoConf;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DeliveryList;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
@@ -19,12 +21,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
+import recipe.purchase.PayModeOnline;
+import recipe.purchase.PurchaseService;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -51,7 +56,7 @@ public class HzInternetRemoteNewType implements HzInternetRemoteTypeInterface {
 
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
-        LOGGER.info("新-杭州互联网虚拟药企-更新取药信息至处方流转平台开始，处方ID：{}.", JSONUtils.toString(recipeIds));
+        LOGGER.info("新-pushRecipeInfo杭州互联网虚拟药企-更新取药信息至处方流转平台开始，处方ID：{}.", JSONUtils.toString(recipeIds));
 
         //虚拟药企推送，修改配送信息的逻辑调整到前面确认订单
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
@@ -226,52 +231,52 @@ public class HzInternetRemoteNewType implements HzInternetRemoteTypeInterface {
             order.setHisEnterpriseName(extInfo.get("depName"));
             order.setHisEnterpriseCode(extInfo.get("hisDepCode"));
         }
-        LOGGER.info("新-当前虚拟药企组装的订单：{}", JSONUtils.toString(order));
+        LOGGER.info("新-setOrderEnterpriseMsg 当前虚拟药企组装的订单：{}", JSONUtils.toString(order));
     }
 
-    @Override
-    public void checkRecipeGiveDeliveryMsg(RecipeBean recipeBean, Map<String, Object> map) {
-        LOGGER.info("新-checkRecipeGiveDeliveryMsg recipeBean:{}, map:{}", JSONUtils.toString(recipeBean), JSONUtils.toString(map));
-        String giveMode = null != map.get("giveMode") ? map.get("giveMode").toString() : null;
-        Object deliveryList = map.get("deliveryList");
-        if(null != deliveryList && null != giveMode){
-
-            List<Map> deliveryLists = (List<Map>)deliveryList;
-            //暂时按照逻辑只保存展示返回的第一个药企
-            DeliveryList nowDeliveryList = JSON.parseObject(JSON.toJSONString(deliveryLists.get(0)), DeliveryList.class);
-            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-            if (null != nowDeliveryList){
-                Map<String,String> updateMap = Maps.newHashMap();
-                updateMap.put("deliveryCode", nowDeliveryList.getDeliveryCode());
-                updateMap.put("deliveryName", nowDeliveryList.getDeliveryName());
-                //存放处方金额
-                updateMap.put("deliveryRecipeFee", null != nowDeliveryList.getRecipeFee() ? nowDeliveryList.getRecipeFee().toString() : null);
-                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(), updateMap);
-            }
-            //date 20200311
-            //将his返回的批量药企信息存储下来，将信息分成|分割
-            DeliveryList deliveryListNow;
-            Map<String,String> updateMap = Maps.newHashMap();
-            StringBuffer deliveryCodes = new StringBuffer().append("|");
-            StringBuffer deliveryNames = new StringBuffer().append("|");
-            StringBuffer deliveryRecipeFees = new StringBuffer().append("|");
-            for(Map<String,String> delivery : deliveryLists){
-                deliveryListNow = JSON.parseObject(JSON.toJSONString(delivery), DeliveryList.class);
-                deliveryCodes.append(deliveryListNow.getDeliveryCode()).append("|");
-                deliveryNames.append(deliveryListNow.getDeliveryName()).append("|");
-                deliveryRecipeFees.append(deliveryListNow.getRecipeFee()).append("|");
-            }
-            updateMap.put("deliveryCode", "|".equals(deliveryCodes) ? null : deliveryCodes.toString());
-            updateMap.put("deliveryName", "|".equals(deliveryNames) ? null : deliveryNames.toString());
-            //存放处方金额
-            updateMap.put("deliveryRecipeFee", "|".equals(deliveryRecipeFees) ? null : deliveryRecipeFees.toString());
-            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(), updateMap);
-            LOGGER.info("hisRecipeCheck 当前处方{}预校验，配送方式存储成功:{}！", recipeBean.getRecipeId(), JSONUtils.toString(updateMap));
-
-        }else{
-            LOGGER.info("hisRecipeCheck 当前处方{}预校验，配送方式没有返回药企信息！", recipeBean.getRecipeId());
-        }
-    }
+//    @Override
+//    public void checkRecipeGiveDeliveryMsg(RecipeBean recipeBean, Map<String, Object> map) {
+//        LOGGER.info("新-checkRecipeGiveDeliveryMsg recipeBean:{}, map:{}", JSONUtils.toString(recipeBean), JSONUtils.toString(map));
+//        String giveMode = null != map.get("giveMode") ? map.get("giveMode").toString() : null;
+//        Object deliveryList = map.get("deliveryList");
+//        if(null != deliveryList && null != giveMode){
+//
+//            List<Map> deliveryLists = (List<Map>)deliveryList;
+//            //暂时按照逻辑只保存展示返回的第一个药企
+//            DeliveryList nowDeliveryList = JSON.parseObject(JSON.toJSONString(deliveryLists.get(0)), DeliveryList.class);
+//            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+//            if (null != nowDeliveryList){
+//                Map<String,String> updateMap = Maps.newHashMap();
+//                updateMap.put("deliveryCode", nowDeliveryList.getDeliveryCode());
+//                updateMap.put("deliveryName", nowDeliveryList.getDeliveryName());
+//                //存放处方金额
+//                updateMap.put("deliveryRecipeFee", null != nowDeliveryList.getRecipeFee() ? nowDeliveryList.getRecipeFee().toString() : null);
+//                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(), updateMap);
+//            }
+//            //date 20200311
+//            //将his返回的批量药企信息存储下来，将信息分成|分割
+//            DeliveryList deliveryListNow;
+//            Map<String,String> updateMap = Maps.newHashMap();
+//            StringBuffer deliveryCodes = new StringBuffer().append("|");
+//            StringBuffer deliveryNames = new StringBuffer().append("|");
+//            StringBuffer deliveryRecipeFees = new StringBuffer().append("|");
+//            for(Map<String,String> delivery : deliveryLists){
+//                deliveryListNow = JSON.parseObject(JSON.toJSONString(delivery), DeliveryList.class);
+//                deliveryCodes.append(deliveryListNow.getDeliveryCode()).append("|");
+//                deliveryNames.append(deliveryListNow.getDeliveryName()).append("|");
+//                deliveryRecipeFees.append(deliveryListNow.getRecipeFee()).append("|");
+//            }
+//            updateMap.put("deliveryCode", "|".equals(deliveryCodes) ? null : deliveryCodes.toString());
+//            updateMap.put("deliveryName", "|".equals(deliveryNames) ? null : deliveryNames.toString());
+//            //存放处方金额
+//            updateMap.put("deliveryRecipeFee", "|".equals(deliveryRecipeFees) ? null : deliveryRecipeFees.toString());
+//            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(), updateMap);
+//            LOGGER.info("hisRecipeCheck 当前处方{}预校验，配送方式存储成功:{}！", recipeBean.getRecipeId(), JSONUtils.toString(updateMap));
+//
+//        }else{
+//            LOGGER.info("hisRecipeCheck 当前处方{}预校验，配送方式没有返回药企信息！", recipeBean.getRecipeId());
+//        }
+//    }
 
     @Override
     public void setEnterpriseMsgToOrder(RecipeOrder order, Integer depId, Map<String, String> extInfo) {
@@ -283,11 +288,58 @@ public class HzInternetRemoteNewType implements HzInternetRemoteTypeInterface {
             order.setHisEnterpriseName(extInfo.get("depName"));
             order.setHisEnterpriseCode(extInfo.get("hisDepCode"));
         }
-        LOGGER.info("新-当前虚拟药企组装的订单：{}", JSONUtils.toString(order));
+        LOGGER.info("新-setEnterpriseMsgToOrder 当前虚拟药企组装的订单：{}", JSONUtils.toString(order));
     }
 
     @Override
     public Boolean specialMakeDepList(DrugsEnterprise drugsEnterprise, Recipe dbRecipe) {
+        LOGGER.info("新-杭州互联网虚拟药企个性化展示药企列表 specialMakeDepList drugsEnterprise:{}，dbRecipe:{} "
+                , JSONUtils.toString(drugsEnterprise), JSONUtils.toString(dbRecipe));
         return true;
+    }
+
+    @Override
+    public void sendDeliveryMsgToHis(Integer recipeId) {
+        LOGGER.info("新-杭州互联网虚拟药企确认订单后同步配送信息 sendDeliveryMsgToHis recipeId:{}", recipeId);
+        return;
+    }
+
+    @Override
+    public Map<String, Object> sendMsgResultMap(Recipe dbRecipe, Map<String, String> extInfo, Map<String, Object> payResult) {
+        LOGGER.info("新-sendMsgResultMap杭州互联网虚拟药企确认订单前检验订单信息同步配送信息，入参：dbRecipe:{},extInfo:{},payResult:{]",
+                JSONUtils.toString(dbRecipe), JSONUtils.toString(extInfo), JSONUtils.toString(payResult));
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+        PayModeOnline service = (PayModeOnline)purchaseService.getService(1);
+        HisResponseTO resultSave = service.updateGoodsReceivingInfoToCreateOrder(dbRecipe.getRecipeId(), extInfo);
+
+        if(null != resultSave) {
+            if(resultSave.isSuccess() && null != resultSave.getData()){
+
+                Map<String, Object> data = (Map<String, Object>) resultSave.getData();
+
+                if (null != data.get("recipeCode")) {
+                    //新增成功更新his处方code
+                    recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(),
+                            ImmutableMap.of("recipeCode", data.get("recipeCode").toString()));
+                    LOGGER.info("order 当前处方{}确认订单流程：his新增成功",
+                            dbRecipe.getRecipeId());
+                    return payResult;
+                } else {
+                    payResult.put("code", "-1");
+                    payResult.put("msg", "订单信息校验失败");
+                    LOGGER.info("order 当前处方确认订单的his同步配送信息，没有返回his处方code：{}", JSONUtils.toString(resultSave));
+                    return payResult;
+                }
+            }else{
+                payResult.put("code", "-1");
+                payResult.put("msg", "订单信息校验失败");
+                LOGGER.info("order 当前处方确认订单的his同步配送信息失败，返回：{}", JSONUtils.toString(resultSave));
+                return payResult;
+            }
+        }else {
+            LOGGER.info("order 当前处方{}没有对接同步配送信息，默认成功！", dbRecipe.getRecipeId());
+            return payResult;
+        }
     }
 }

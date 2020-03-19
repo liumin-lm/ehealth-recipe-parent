@@ -55,6 +55,8 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.RecipeToHisService;
+import recipe.purchase.PayModeOnline;
+import recipe.purchase.PurchaseService;
 import recipe.util.DateConversion;
 import recipe.util.DigestUtil;
 import recipe.util.RedisClient;
@@ -638,6 +640,78 @@ public class RecipeHisService extends RecipeBaseService {
        return result;
     }
 
+    //date 20200318
+    //确认订单前校验处方信息
+    @RpcService
+    private Map<String,Object> checkMakeOrder(Recipe dbRecipe, Map<String, String> extInfo) {
+        LOGGER.info("checkMakeOrder 当前确认订单校验的新流程预结算->同步配送信息, 入参：{}，{}",
+                JSONUtils.toString(dbRecipe), JSONUtils.toString(extInfo));
+        //首先校验：预结算
+        //再校验：同步配送信息
+
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+        //修改逻辑成：事务1 -> 平台新增，his新增
+        //事务2 -> 预交付
+
+        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+        Map<String, Object> payResult = hisService.provincialMedicalPreSettle(dbRecipe.getRecipeId());
+        if("-1".equals(payResult.get("code"))){
+            LOGGER.info("order 当前处方{}确认订单校验处方信息：预结算失败，结算结果：{}",
+                    dbRecipe.getRecipeId(), JSONUtils.toString(payResult));
+            return payResult;
+        }
+        RemoteDrugEnterpriseService remoteDrugEnterpriseService =
+                ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        if(StringUtils.isEmpty(extInfo.get("depId"))){
+            LOGGER.info("order 当前处方{}确认订单校验处方信息,没有传递配送药企信息，直接返回预结算结果",
+                    dbRecipe.getRecipeId());
+            return payResult;
+        }
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(Integer.parseInt(extInfo.get("depId")));
+        AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+        return remoteService.sendMsgResultMap(dbRecipe, extInfo, payResult);
+
+    }
+
+    private Map<String, Object> sendMsgResultMap(Recipe dbRecipe, Map<String, String> extInfo, Map<String, Object> payResult) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+        PayModeOnline service = (PayModeOnline)purchaseService.getService(1);
+        HisResponseTO resultSave = service.updateGoodsReceivingInfoToCreateOrder(dbRecipe.getRecipeId(), extInfo);
+
+        if(null != resultSave) {
+            if(resultSave.isSuccess() && null != resultSave.getData()){
+
+                Map<String, Object> data = (Map<String, Object>) resultSave.getData();
+
+                if (null != data.get("recipeCode")) {
+                    //新增成功更新his处方code
+                    recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(),
+                            ImmutableMap.of("recipeCode", data.get("recipeCode").toString()));
+                    LOGGER.info("order 当前处方{}确认订单流程：his新增成功",
+                            dbRecipe.getRecipeId());
+                    return payResult;
+                } else {
+                    payResult.put("code", "-1");
+                    payResult.put("msg", "订单信息校验失败");
+                    LOGGER.info("order 当前处方确认订单的his同步配送信息，没有返回his处方code：{}", JSONUtils.toString(resultSave));
+                    return payResult;
+                }
+            }else{
+                payResult.put("code", "-1");
+                payResult.put("msg", "订单信息校验失败");
+                LOGGER.info("order 当前处方确认订单的his同步配送信息失败，返回：{}", JSONUtils.toString(resultSave));
+                return payResult;
+            }
+        }else {
+            LOGGER.info("order 当前处方{}没有对接同步配送信息，默认成功！", dbRecipe.getRecipeId());
+            return payResult;
+        }
+    }
+
     /**
      * 处方自费预结算接口
      * @param recipeId
@@ -886,7 +960,7 @@ public class RecipeHisService extends RecipeBaseService {
         IHisConfigService iHisConfigService = ApplicationUtils.getBaseService(IHisConfigService.class);
         return iHisConfigService.isHisEnable(sendOrganId);
     }
-
+    @RpcService
     public boolean hisRecipeCheck(Map<String, Object> rMap, RecipeBean recipeBean) {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> details = detailDAO.findByRecipeId(recipeBean.getRecipeId());

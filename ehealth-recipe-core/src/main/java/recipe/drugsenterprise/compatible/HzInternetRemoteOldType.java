@@ -21,12 +21,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.dao.*;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.hisservice.RecipeToHisService;
+import recipe.purchase.PayModeOnline;
+import recipe.purchase.PurchaseService;
+import recipe.thread.RecipeBusiThreadPool;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -42,6 +46,24 @@ public class HzInternetRemoteOldType implements HzInternetRemoteTypeInterface {
     @Override
     public Boolean specialMakeDepList(DrugsEnterprise drugsEnterprise, Recipe dbRecipe) {
         return false;
+    }
+
+    @Override
+    public void sendDeliveryMsgToHis(Integer recipeId) {
+        LOGGER.info("旧-杭州互联网虚拟药企确认订单后同步配送信息，入参：{}", recipeId);
+        PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+        PayModeOnline service = (PayModeOnline)purchaseService.getService(1);
+        RecipeBusiThreadPool.submit(()->{
+            service.updateGoodsReceivingInfo(recipeId);
+            return null;
+        });
+    }
+
+    @Override
+    public Map<String, Object> sendMsgResultMap(Recipe dbRecipe, Map<String, String> extInfo, Map<String, Object> payResult) {
+        LOGGER.info("旧-杭州互联网虚拟药企确认订单前检验订单信息同步配送信息，入参：dbRecipe:{},extInfo:{},payResult:{]",
+                JSONUtils.toString(dbRecipe), JSONUtils.toString(extInfo), JSONUtils.toString(payResult));
+        return payResult;
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HzInternetRemoteOldType.class);
@@ -175,13 +197,13 @@ public class HzInternetRemoteOldType implements HzInternetRemoteTypeInterface {
         remoteService.setOrderEnterpriseMsg(extInfo, order);
     }
 
-    @Override
-    public void checkRecipeGiveDeliveryMsg(RecipeBean recipeBean, Map<String, Object> map) {
-
-        LOGGER.info("旧-checkRecipeGiveDeliveryMsg recipeBean:{}, map:{}", JSONUtils.toString(recipeBean), JSONUtils.toString(map));
-        AccessDrugEnterpriseService remoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
-        remoteService.checkRecipeGiveDeliveryMsg(recipeBean, map);
-    }
+//    @Override
+//    public void checkRecipeGiveDeliveryMsg(RecipeBean recipeBean, Map<String, Object> map) {
+//
+//        LOGGER.info("旧-checkRecipeGiveDeliveryMsg recipeBean:{}, map:{}", JSONUtils.toString(recipeBean), JSONUtils.toString(map));
+//        AccessDrugEnterpriseService remoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
+//        remoteService.checkRecipeGiveDeliveryMsg(recipeBean, map);
+//    }
 
     @Override
     public void setEnterpriseMsgToOrder(RecipeOrder order, Integer depId, Map<String, String> extInfo) {
