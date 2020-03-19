@@ -1116,7 +1116,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                 mpiIds.add(recipe.getMpiid());
                                 doctorIds.add(recipe.getDoctor());
                             }
-                            List<PatientDTO> patientBeanList = patientService.findByMpiIdIn(new ArrayList<String>(mpiIds));
+                            List<PatientDTO> patientBeanList = Lists.newArrayList();
+                            if(0 < mpiIds.size()){
+                                patientBeanList = patientService.findByMpiIdIn(new ArrayList<String>(mpiIds));
+                            }
                             List<DoctorDTO> doctorBeen = Lists.newArrayList();
                             if (doctorIds.size() > 0) {
                                 doctorBeen = doctorService.findDoctorList(new ArrayList<>(doctorIds));
@@ -2136,8 +2139,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      * @param organId
      * @return
      */
-    @DAOMethod(sql = "select sum(TotalMoney) from Recipe where ClinicOrgan = :organId and payflag = 1 and CreateDate BETWEEN :startDate AND :endDate AND Depart in: deptIds")
-    public abstract BigDecimal getCostCountByOrganIdAndDepartIds(@DAOParam("organId") Integer organId, @DAOParam("startDate") Date startDate, @DAOParam("endDate") Date endDate,@DAOParam("deptIds")List<Integer> deptIds);
+    @DAOMethod(sql = "select sum(totalMoney) from Recipe where clinicOrgan = :organId AND payFlag = 1 AND createDate BETWEEN :startDate AND :endDate AND depart in :deptIds")
+    public abstract BigDecimal getRecipeIncome(@DAOParam("organId") Integer organId, @DAOParam("startDate") Date startDate, @DAOParam("endDate") Date endDate,@DAOParam("deptIds")List<Integer> deptIds);
 
     @DAOMethod
     public abstract List<RecipeBean> findByClinicId(Integer consultId);

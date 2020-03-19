@@ -806,9 +806,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         try {
             RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-            recipeOrderService.recipeMedicInsurSettleSaveOrder(request);
+            recipeOrderService.recipeMedicInsurSettleUpdateOrder(request);
         } catch (Exception e) {
-            LOGGER.info("recipeMedicInsurSettleSaveOrder error", e);
+            LOGGER.info("recipeMedicInsurSettle error", e);
         }
         return;
     }
@@ -875,7 +875,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     public BigDecimal getRecipeCostCountByOrganIdAndDepartIds(Integer organId, Date startDate, Date endDate, List<Integer> deptIds) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        return recipeDAO.getCostCountByOrganIdAndDepartIds(organId, startDate, endDate, deptIds);
+        return recipeDAO.getRecipeIncome(organId, startDate, endDate, deptIds);
     }
 
 }
