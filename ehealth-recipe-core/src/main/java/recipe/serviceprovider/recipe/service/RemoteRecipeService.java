@@ -868,7 +868,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public List<RecipeBean> findByClinicId(Integer consultId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        return recipeDAO.findByClinicId(consultId);
+        return ObjectCopyUtils.convert(recipeDAO.findByClinicId(consultId),RecipeBean.class);
     }
 
     @Override

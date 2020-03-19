@@ -2143,5 +2143,5 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     public abstract BigDecimal getRecipeIncome(@DAOParam("organId") Integer organId, @DAOParam("startDate") Date startDate, @DAOParam("endDate") Date endDate,@DAOParam("deptIds")List<Integer> deptIds);
 
     @DAOMethod
-    public abstract List<RecipeBean> findByClinicId(Integer consultId);
+    public abstract List<Recipe> findByClinicId(Integer consultId);
 }
