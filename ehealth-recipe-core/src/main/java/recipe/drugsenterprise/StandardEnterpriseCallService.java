@@ -651,6 +651,11 @@ public class StandardEnterpriseCallService {
         LOGGER.info("updateStatusByPatientGetDrug 药企调用接口更新状态. param = {}", list);
         StandardResultDTO result = new StandardResultDTO();
         result.setCode(StandardResultDTO.SUCCESS);
+        if (CollectionUtils.isEmpty(list)) {
+            result.setCode(StandardResultDTO.FAIL);
+            result.setMsg("入参信息不能为空");
+            return result;
+        }
         //校验提交修改状态的处方信息是否和
         for (ChangeStatusByGetDrugDTO changeStatusByGetDrugDTO : list) {
             //校验药企传输数据安全性
