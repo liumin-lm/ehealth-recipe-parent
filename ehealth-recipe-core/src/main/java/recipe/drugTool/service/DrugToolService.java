@@ -1573,4 +1573,17 @@ public class DrugToolService implements IDrugToolService {
             }
         });
     }
+
+    /**
+     * 判断该机构是否关联省平台（包括互联网医院）供前端调用
+     * @param organId
+     * @return
+     */
+    @RpcService
+    public Boolean judgeShowProvinceCode(Integer organId){
+        if(checkOrganRegulation(organId) && isHaveReulationId(organId)){
+            return  true;
+        }
+        return false;
+    }
 }
