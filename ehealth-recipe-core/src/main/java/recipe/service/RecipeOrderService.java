@@ -12,11 +12,6 @@ import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.payment.model.DabaiPayResult;
 import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
-import com.ngari.base.push.model.SmsInfoBean;
-import com.ngari.base.push.service.ISmsPushService;
-import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
-import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
-import com.ngari.bus.coupon.model.CouponBean;
 import com.ngari.bus.coupon.service.ICouponService;
 import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.OrganDTO;
@@ -45,10 +40,8 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.utils.DateConversion;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -61,7 +54,6 @@ import recipe.common.ResponseUtils;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
-import recipe.purchase.IPurchaseService;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.MapValueUtil;
@@ -70,8 +62,6 @@ import recipe.util.ValidateUtil;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
 
@@ -2024,47 +2014,37 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     @RpcService
-    public Integer recipeMedicInsurSettleSaveOrder(MedicInsurSettleSuccNoticNgariReqDTO request){
+    public void recipeMedicInsurSettleUpdateOrder(MedicInsurSettleSuccNoticNgariReqDTO request) {
+        // 更新处方订单数据
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe recipe = recipeDAO.getByRecipeId(Integer.valueOf(request.getRecipeId()));
-        RecipeOrder recipeOrder = new RecipeOrder();
-        recipeOrder.setOrganId(request.getOrganId());
+        RecipeOrder recipeOrder = recipeOrderDAO.getOrderByRecipeId(Integer.valueOf(request.getRecipeId()));
         recipeOrder.setPayOrganId(request.getOrganId().toString());
-        recipeOrder.setMpiId(recipe.getMpiid());
-        recipeOrder.setRecipeIdList("["+request.getRecipeId()+"]");
-        recipeOrder.setOrderCode(request.getRecipeCode());
         recipeOrder.setPayFlag(1);
-        recipeOrder.setRecipeFee(recipe.getTotalMoney());
-//        recipeOrder //his发票号
-        recipeOrder.setTotalFee(Optional.ofNullable(new BigDecimal(request.getTotalAmount())).orElse(BigDecimal.ZERO));
-        recipeOrder.setActualPrice(recipeOrder.getTotalFee().doubleValue());
+        recipeOrder.setActualPrice(Optional.ofNullable(request.getTotalAmount()).orElse(0.00));
         recipeOrder.setFundAmount(Optional.ofNullable(request.getFundAmount()).orElse(0.00));
         recipeOrder.setCashAmount(Optional.ofNullable(request.getCashAmount()).orElse(0.00));
         recipeOrder.setTradeNo(request.getInsuTSN());
-        recipeOrder.setRegisterFee(BigDecimal.ZERO);
-        recipeOrder.setCouponFee(BigDecimal.ZERO);
-        recipeOrder.setDivisionFlag(0);
-        recipeOrder.setEffective(1);
         recipeOrder.setStatus(3);
         recipeOrder.setSettleOrderNo(request.getPayOrderNo());
-        recipeOrder.setOrderType(3);
-        recipeOrder.setPayTime(request.getSettlingTime()); //医保结算时间
+        recipeOrder.setPayTime(request.getSettlingTime());
+        recipeOrderDAO.update(recipeOrder);
+        // 更新处方数据
         List<Integer> recipeIds = Arrays.asList(Integer.valueOf(request.getRecipeId()));
-        //保存his发票号
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        recipeDAO.updateOrderCodeByRecipeIds(recipeIds, recipeOrder.getOrderCode());
+        // 更新处方详情数据 保存his发票号
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(Integer.valueOf(request.getRecipeId()));
-        if(CollectionUtils.isNotEmpty(recipedetails)){
-            recipedetails.forEach(item->{
+        if (CollectionUtils.isNotEmpty(recipedetails)) {
+            recipedetails.forEach(item -> {
                 item.setPatientInvoiceNo(request.getInvoiceId());
                 item.setLastModify(new Date());
                 recipeDetailDAO.update(item);
             });
         }
-        //处方推送到药企
+        // 处方推送到药企
         RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-        remoteDrugEnterpriseService.pushSingleRecipeInfo(recipe.getRecipeId());
-        return createOrderToDB(recipeOrder,recipeIds,recipeOrderDAO,recipeDAO);
+        remoteDrugEnterpriseService.pushSingleRecipeInfo(Integer.valueOf(request.getRecipeId()));
     }
 
 }
