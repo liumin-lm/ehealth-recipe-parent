@@ -386,6 +386,9 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     long getCountByOrganAndDeptIds(Integer organId, List<Integer> deptIds,Integer plusDays);
 
     @RpcService
+    List<Object[]> countRecipeIncomeGroupByDeptId(Date startDate, Date endDate, Integer organId);
+
+    @RpcService
     List<RecipeBean> findByClinicId(Integer consultId);
 
     @RpcService
