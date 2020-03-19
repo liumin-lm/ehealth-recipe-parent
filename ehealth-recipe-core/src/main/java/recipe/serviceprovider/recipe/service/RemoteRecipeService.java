@@ -875,7 +875,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     public BigDecimal getRecipeCostCountByOrganIdAndDepartIds(Integer organId, Date startDate, Date endDate, List<Integer> deptIds) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        return recipeDAO.getCostCountByOrganIdAndDeptIds(organId, startDate, endDate, deptIds);
+        return recipeDAO.getRecipeIncome(organId, startDate, endDate, deptIds);
     }
 
 }
