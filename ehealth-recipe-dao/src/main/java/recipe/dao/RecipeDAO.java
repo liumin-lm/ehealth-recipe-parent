@@ -1116,7 +1116,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                 mpiIds.add(recipe.getMpiid());
                                 doctorIds.add(recipe.getDoctor());
                             }
-                            List<PatientDTO> patientBeanList = patientService.findByMpiIdIn(new ArrayList<String>(mpiIds));
+                            List<PatientDTO> patientBeanList = Lists.newArrayList();
+                            if(0 < mpiIds.size()){
+                                patientBeanList = patientService.findByMpiIdIn(new ArrayList<String>(mpiIds));
+                            }
                             List<DoctorDTO> doctorBeen = Lists.newArrayList();
                             if (doctorIds.size() > 0) {
                                 doctorBeen = doctorService.findDoctorList(new ArrayList<>(doctorIds));
