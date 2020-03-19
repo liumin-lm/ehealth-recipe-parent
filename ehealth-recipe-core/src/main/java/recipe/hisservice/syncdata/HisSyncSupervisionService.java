@@ -636,6 +636,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             } else {
                 reqDetail.setDrcode(StringUtils.isNotEmpty(organDrugList.getRegulationDrugCode()) ? organDrugList.getRegulationDrugCode() : organDrugList.getOrganDrugCode());
                 reqDetail.setLicenseNumber(organDrugList.getLicenseNumber());
+                reqDetail.setDosageFormCode(organDrugList.getDrugFormCode());
             }
 
             reqDetail.setDrname(detail.getDrugName());
