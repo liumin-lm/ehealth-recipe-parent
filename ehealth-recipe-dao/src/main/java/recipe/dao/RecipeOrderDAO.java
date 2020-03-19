@@ -324,14 +324,15 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("select r.ClinicOrgan,l.RecipeDetailID,o.PayFlag,r.ClinicID,o.TradeNo,r.RecipeID,r.RecipeType,l.DrugUnit,l.actualSalePrice,l.UseTotalDose,r.Status,drug.medicalDrugCode from cdr_recipe r LEFT JOIN cdr_recipedetail l ON r.RecipeID = l.recipeId");
+                hql.append("select r.ClinicOrgan,l.RecipeDetailID,o.PayFlag,r.ClinicID,o.TradeNo,r.RecipeID,r.RecipeType,l.DrugUnit,l.actualSalePrice,l.UseTotalDose,r.Status,drug.medicalDrugCode,l.salePrice from cdr_recipe r LEFT JOIN cdr_recipedetail l ON r.RecipeID = l.recipeId");
+                hql.append(" LEFT JOIN base_organdruglist drug on drug.OrganDrugCode=l.OrganDrugCode and drug.OrganID=r.clinicorgan");
                 hql.append(" LEFT JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode");
-                hql.append("LEFT JOIN base_organdruglist drug on drug.OrganDrugCode=l.OrganDrugCode and drug.OrganID=r.clinicorgan and drug.s = 1");
                 hql.append(" WHERE (date(r.CreateDate) between :startTime and :endTime) OR (date(r.LastModify) between :startTime and :endTime)");
                 hql.append(" AND o.Effective = 1");
                 hql.append(" AND o.PayFlag > 0");
                 hql.append(" AND r.bussSource = 2");
                 hql.append(" AND r.ClinicOrgan IN :ngariOrganIds");
+                hql.append(" AND l.`Status` =1");
                 Query q = ss.createSQLQuery(hql.toString());
                 q.setParameter("startTime", startTime);
                 q.setParameter("endTime", endTime);
@@ -350,10 +351,11 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         vo.setRecipeID(objs[5] == null ? null : objs[5]+"");
                         vo.setRecipeType(objs[6] == null ? null : Integer.parseInt(objs[6]+""));
                         vo.setDrugUnit(objs[7] == null ? null : objs[7] + "");
-                        vo.setActualSalePrice(objs[8] == null ? null : (BigDecimal)objs[8]);
+                        vo.setActualSalePrice(objs[8] == null ? null :(BigDecimal)objs[8]);
                         vo.setUseTotalDose(objs[9] == null ? null : (BigDecimal)objs[9]);
                         vo.setStatus(objs[10] == null ? null :  Integer.parseInt(objs[10]+""));
                         vo.setMedicalDrugCode(objs[11]== null ? null: objs[11]+"");
+                        vo.setSalePrice(objs[12] == null ? null : (BigDecimal)objs[12]);
                         backList.add(vo);
                     }
                 }
