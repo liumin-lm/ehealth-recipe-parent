@@ -1368,7 +1368,10 @@ public class RecipeServiceSub {
         //2.设置二次审核，一次通过展示（没有审核不通过日志的且审核通过的）
         //总结的来说就是只要审核通过的并且没有不通过记录就展示
         boolean showChecker = isShowChecker(recipeId, recipe);
-
+        if (recipe.getCheckMode() != null && recipe.getCheckMode() == 2) {
+            //TODO HIS审方不显示药师签名
+            showChecker = false;
+        }
         map.put("showChecker", showChecker);
 
         return map;
