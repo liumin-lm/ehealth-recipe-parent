@@ -383,7 +383,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     Map<String, Object> noticePlatRecipeAuditResult(NoticeNgariAuditResDTO req);
 
     @RpcService
-    long getCountByOrganAndDeptIds(Integer organId, List<Integer> deptIds);
+    long getCountByOrganAndDeptIds(Integer organId, List<Integer> deptIds,Integer plusDays);
 
     @RpcService
     List<RecipeBean> findByClinicId(Integer consultId);

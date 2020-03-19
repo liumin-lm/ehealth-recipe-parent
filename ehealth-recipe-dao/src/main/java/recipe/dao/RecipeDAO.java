@@ -2097,7 +2097,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     @DAOMethod(sql = "update Recipe set pushFlag=1 where enterpriseId=:enterpriseId and recipeId in (:recipeIds)")
     public abstract void updateRecipeByDepIdAndRecipes(@DAOParam("enterpriseId") Integer enterpriseId, @DAOParam("recipeIds") List recipeIds);
 
-    public long getCountByOrganAndDeptIds(Integer organId, List<Integer> deptIds) {
+    public long getCountByOrganAndDeptIds(Integer organId, List<Integer> deptIds,Integer plusDays) {
         AbstractHibernateStatelessResultAction<Long> action = new AbstractHibernateStatelessResultAction<Long>() {
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
@@ -2110,7 +2110,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 query.setParameterList("deptIds", deptIds);
 
                 query.setInteger("organId", organId);
-                query.setDate("appointDate", LocalDate.now().minusDays(1).toDate());
+                query.setDate("appointDate", LocalDate.now().plusDays(plusDays).toDate());
 
                 long num = (long) query.uniqueResult();
 
