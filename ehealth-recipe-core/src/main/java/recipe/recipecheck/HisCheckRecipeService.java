@@ -74,6 +74,7 @@ public class HisCheckRecipeService implements IRecipeCheckService {
             notice.setRecipeID(recipe.getRecipeCode());
             notice.setPlatRecipeID(recipe.getRecipeId() + "");
             notice.setRegisterId(recipeExtend.getRegisterID());
+            notice.setPatientId(recipe.getPatientID());
             notice.setRecipeStatus("5");
             recipeToHisMqService.recipeStatusToHis(notice);
         }
