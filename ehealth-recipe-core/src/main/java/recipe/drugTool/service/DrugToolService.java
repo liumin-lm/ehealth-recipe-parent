@@ -309,7 +309,7 @@ public class DrugToolService implements IDrugToolService {
             }
 
             //中药不需要设置
-            if(new Integer(3).equals(drug.getDrugType())){
+            if(!(new Integer(3).equals(drug.getDrugType()))){
 
                 try {
                     if (StringUtils.isEmpty(getStrFromCell(row.getCell(5)))) {
@@ -411,8 +411,12 @@ public class DrugToolService implements IDrugToolService {
             drug.setStatus(DrugMatchConstant.UNMATCH);
             drug.setOperator(operator);
             drug.setRegulationDrugCode(getStrFromCell(row.getCell(24)));
-            if(StringUtils.isNotEmpty(getStrFromCell(row.getCell(23)))){
-                drug.setPlatformDrugId(Integer.parseInt(getStrFromCell(row.getCell(23)).trim()));
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(23)))) {
+                    drug.setPlatformDrugId(Integer.parseInt(getStrFromCell(row.getCell(23)).trim()));
+                }
+            }catch (Exception e){
+                errMsg.append("平台药品编码有误").append(";");
             }
             if (errMsg.length() > 1) {
                 int showNum = rowIndex + 1;
