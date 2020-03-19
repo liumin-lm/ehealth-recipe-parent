@@ -345,9 +345,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 List<Object[]> result = q.list();
                 List<RegulationChargeDetailReqTo> backList = new ArrayList<>();
                 if (CollectionUtils.isNotEmpty(result)){
-                    RegulationChargeDetailReq vo;
+                    RegulationChargeDetailReqTo vo;
                     for (Object[] objs : result) {
-                        vo = new RegulationChargeDetailReq();
+                        vo = new RegulationChargeDetailReqTo();
                         vo.setOrganID(objs[0] == null ? null : (Integer)objs[0]);
                         vo.setRecipeDetailID(objs[1] == null ? null : objs[1] + "");
                         vo.setPayFlag(objs[2] == null ? null : Integer.parseInt(objs[2]+""));
