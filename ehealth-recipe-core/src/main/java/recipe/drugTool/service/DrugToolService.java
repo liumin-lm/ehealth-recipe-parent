@@ -469,7 +469,7 @@ public class DrugToolService implements IDrugToolService {
         if (StringUtils.isNotEmpty(drug.getRegulationDrugCode()) || drug.getPlatformDrugId() != null) {
             drugList = drugListDAO.get(drug.getPlatformDrugId());
             // 如果该机构有省平台关联的话
-            if (checkOrganRegulation(drug.getSourceOrgan())) {
+            if (checkOrganRegulation(drug.getSourceOrgan()) && isHaveReulationId(drug.getSourceOrgan())) {
                 addrArea = checkOrganAddrArea(drug.getSourceOrgan());
                 provinceDrugList = provinceDrugListDAO.getByProvinceIdAndDrugId(addrArea, drug.getRegulationDrugCode(), 1);
                 if (drugList != null && provinceDrugList != null) {
@@ -1179,7 +1179,8 @@ public class DrugToolService implements IDrugToolService {
         return 0;
     }
 
-    private boolean isHaveReulationId(Integer organId) {
+    @RpcService
+    public boolean isHaveReulationId(Integer organId) {
         String addrArea = checkOrganAddrArea(organId);
         Long provinceDrugNum = provinceDrugListDAO.getCountByProvinceIdAndStatus(addrArea, 1);
         //更新药品状态成匹配中
