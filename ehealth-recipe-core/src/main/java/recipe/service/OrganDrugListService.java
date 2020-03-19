@@ -42,10 +42,7 @@ import recipe.dao.bean.DrugListAndOrganDrugList;
 import recipe.drugsenterprise.ByRemoteService;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author zhongzx
@@ -468,18 +465,38 @@ public class OrganDrugListService implements IOrganDrugListService {
         List<RegulationDrugCategoryBean> result = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(drugList)){
             logger.info("机构药品信息数据总数：" + drugList.size());
+            Map<Integer, String[]> organMsg = new HashMap<>();
             RegulationDrugCategoryBean bean;
             OrganService organService = AppContextHolder.getBean("basic.organService", OrganService.class);
             for (Object o : drugList) {
                 bean = new RegulationDrugCategoryBean();
                 Object[] obj =  (Object[]) o;
                 Integer organId =(Integer) obj[1];
-                ProvUploadOrganDTO provUploadOrganDTO = provUploadOrganService.getByNgariOrganId(organId);
-                if(provUploadOrganDTO != null){
-                    bean.setOrganID(provUploadOrganDTO.getOrganId());
-                    bean.setUnitID(provUploadOrganDTO.getUnitId());
+                String[] str;
+                String proOrganId = "";
+                String proUnitID = "";
+                String organName = "";
+                if (organMsg.containsKey(organId)){
+                    str = organMsg.get(organId) == null? new String[3] : organMsg.get(organId);
+                    proOrganId = str[0];
+                    proUnitID = str[1];
+                    organName = str[2];
+                } else {
+                    str = new String[3];
+                    organName = organService.getNameById(organId);
+                    ProvUploadOrganDTO provUploadOrganDTO = provUploadOrganService.getByNgariOrganId(organId);
+                    if(provUploadOrganDTO != null){
+                        proOrganId = provUploadOrganDTO.getOrganId();
+                        proUnitID = provUploadOrganDTO.getUnitId();
+                    }
+                    str[0] = proOrganId;
+                    str[1] = proUnitID;
+                    str[2] = organName;
+                    organMsg.put(organId, str);
                 }
-                bean.setOrganName(organService.getNameById(organId));
+                bean.setOrganID(proOrganId);
+                bean.setUnitID(proUnitID);
+                bean.setOrganName(organName);
                 String drugName = obj[2] == null ? null : String.valueOf(obj[2]);
                 bean.setHospDrugName(drugName);  //医院药品通用名drugName药品注册通用名
                 String status = obj[3] == null ? "" : String.valueOf(obj[3]);

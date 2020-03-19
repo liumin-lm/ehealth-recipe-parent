@@ -12,6 +12,7 @@ import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
@@ -2143,4 +2144,18 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+
+    /**
+     * 根据科室统计复诊挂号收入
+     * @param startDate
+     * @param endDate
+     * @param organId
+     * @return
+     */
+    @DAOMethod(sql = "select sum(TotalMoney) from Recipe where ClinicOrgan = :organId and payflag = 1 and CreateDate BETWEEN :startDate AND :endDate AND Depart in: deptIds")
+    public abstract BigDecimal getCostCountByOrganIdAndDepartIds(@DAOParam("organId") Integer organId, @DAOParam("startDate") Date startDate, @DAOParam("endDate") Date endDate,@DAOParam("deptIds")List<Integer> deptIds);
+
+    @DAOMethod
+    public abstract List<RecipeBean> findByClinicId(Integer consultId);
 }

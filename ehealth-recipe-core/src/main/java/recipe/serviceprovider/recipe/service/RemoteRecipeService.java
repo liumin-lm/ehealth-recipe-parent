@@ -52,6 +52,7 @@ import recipe.serviceprovider.BaseService;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 /**
@@ -870,4 +871,18 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         return recipeDAO.countRecipeIncomeGroupByDeptId(startDate, endDate, organId);
     }
+
+    @Override
+    public List<RecipeBean> findByClinicId(Integer consultId) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        return recipeDAO.findByClinicId(consultId);
+    }
+
+    @Override
+    @RpcService
+    public BigDecimal getRecipeCostCountByOrganIdAndDepartIds(Integer organId, Date startDate, Date endDate, List<Integer> deptIds) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        return recipeDAO.getCostCountByOrganIdAndDepartIds(organId, startDate, endDate, deptIds);
+    }
+
 }
