@@ -117,6 +117,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
 
         Map<Integer, OrganDTO> organMap = new HashMap<>(20);
         Map<Integer, DepartmentDTO> departMap = new HashMap<>(20);
@@ -144,6 +145,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         List<AuditMedicines> medicineList;
         AuditMedicines medicine;
         RecipeExtend recipeExtend;
+        RecipeOrder recipeOrder;
         RedisClient redisClient = RedisClient.instance();
         String caSignature = null;
         for (Recipe recipe : recipeList) {
@@ -352,6 +354,18 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setSignCADate(recipe.getSignCADate());
             //医生处方签名生成时间戳
             req.setSignRecipeCode(recipe.getSignRecipeCode());
+            recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            if(null != recipeOrder){
+                //配送方式
+                req.setDeliveryType(null == recipeOrder.getGiveMode() ? "" : recipeOrder.getGiveMode().toString());
+                //配送开始时间
+                req.setSendTime(recipeOrder.getSendTime());
+                //配送结束时间
+                req.setFinishTime(recipeOrder.getFinishTime());
+                //配送状态
+                req.setDeliveryStatus(recipeOrder.getStatus());
+            }
+
             //详情处理
             detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
             if (CollectionUtils.isEmpty(detailList)) {
