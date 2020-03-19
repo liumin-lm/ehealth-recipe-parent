@@ -184,21 +184,21 @@ public class RecipeServiceEsignExt {
             }
 
             Map<String, Object> attrMap = Maps.newHashMap();
-            attrMap.put("signDate", new Date());
+
             if (isDoctor) {
                 //医生签名时间戳
                 attrMap.put("signCADate", signCADate);
                 //医生签名值
                 attrMap.put("signRecipeCode", signRecipeCode);
                 attrMap.put("signFile", fileId);
-                Recipe recipe = getDAO(RecipeDAO.class).getByRecipeId(recipeId);
-                attrMap.put("signDate", recipe.getSignDate());
+                attrMap.put("signDate", new Date());
             } else {
                 //药师签名时间戳
                 attrMap.put("signPharmacistCADate", signCADate);
                 //药师签名值
                 attrMap.put("signPharmacistCode", signRecipeCode);
                 attrMap.put("chemistSignFile", fileId);
+                attrMap.put("CheckDateYs", new Date());
             }
 
             //保存签名值
