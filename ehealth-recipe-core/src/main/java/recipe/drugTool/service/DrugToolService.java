@@ -249,7 +249,7 @@ public class DrugToolService implements IDrugToolService {
         for (int rowIndex = 0; rowIndex <= total; rowIndex++) {
             //循环获得每个行
             row = sheet.getRow(rowIndex);
-           // 判断是否是模板
+            // 判断是否是模板
             if (rowIndex == 0) {
                 String drugCode = getStrFromCell(row.getCell(0));
                 String drugName = getStrFromCell(row.getCell(1));
@@ -270,7 +270,7 @@ public class DrugToolService implements IDrugToolService {
                 if (StringUtils.isEmpty(getStrFromCell(row.getCell(0)))) {
                     errMsg.append("药品编号不能为空").append(";");
                 }
-               drug.setOrganDrugCode(getStrFromCell(row.getCell(0)));
+                drug.setOrganDrugCode(getStrFromCell(row.getCell(0)));
             } catch (Exception e) {
                 errMsg.append("药品编号有误").append(";");
             }
@@ -279,7 +279,7 @@ public class DrugToolService implements IDrugToolService {
                 if (StringUtils.isEmpty(getStrFromCell(row.getCell(1)))) {
                     errMsg.append("药品通用名不能为空").append(";");
                 }
-               drug.setDrugName(getStrFromCell(row.getCell(1)));
+                drug.setDrugName(getStrFromCell(row.getCell(1)));
             } catch (Exception e) {
                 errMsg.append("药品通用名有误").append(";");
             }
@@ -308,70 +308,82 @@ public class DrugToolService implements IDrugToolService {
                 errMsg.append("药品类型有误").append(";");
             }
 
-            //中药不需要设置
-            if(!(new Integer(3).equals(drug.getDrugType()))){
 
-                try {
-                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(5)))) {
+            try {
+                if (StringUtils.isEmpty(getStrFromCell(row.getCell(5)))) {
+                    //中药不需要设置
+                    if (!(new Integer(3).equals(drug.getDrugType()))) {
                         errMsg.append("单次剂量不能为空").append(";");
-                    } else {
-                        drug.setUseDose(Double.parseDouble(getStrFromCell(row.getCell(5))));
                     }
-                } catch (Exception e) {
-                    errMsg.append("单次剂量有误").append(";");
+
+                } else {
+                    drug.setUseDose(Double.parseDouble(getStrFromCell(row.getCell(5))));
                 }
+            } catch (Exception e) {
+                errMsg.append("单次剂量有误").append(";");
+            }
 
-                try {
-                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(6)))) {
-                        drug.setDefaultUseDose(null);
-                    } else {
-                        drug.setDefaultUseDose(Double.parseDouble(getStrFromCell(row.getCell(6))));
-                    }
-                } catch (Exception e) {
-                    errMsg.append("默认单次剂量有误").append(";");
+            try {
+                if (StringUtils.isEmpty(getStrFromCell(row.getCell(6)))) {
+
+                    drug.setDefaultUseDose(null);
+                } else {
+                    drug.setDefaultUseDose(Double.parseDouble(getStrFromCell(row.getCell(6))));
                 }
+            } catch (Exception e) {
+                errMsg.append("默认单次剂量有误").append(";");
+            }
 
 
-
-                try {
-                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(8)))) {
+            try {
+                if (StringUtils.isEmpty(getStrFromCell(row.getCell(8)))) {
+                    //中药不需要设置
+                    if (!(new Integer(3).equals(drug.getDrugType()))) {
                         errMsg.append("转换系数不能为空").append(";");
-                    } else {
-                        drug.setPack(Integer.parseInt(getStrFromCell(row.getCell(8))));
                     }
-                } catch (Exception e) {
-                    errMsg.append("转换系数有误").append(";");
+                } else {
+                    drug.setPack(Integer.parseInt(getStrFromCell(row.getCell(8))));
                 }
-                try {
-                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(9)))) {
+            } catch (Exception e) {
+                errMsg.append("转换系数有误").append(";");
+            }
+            try {
+                if (StringUtils.isEmpty(getStrFromCell(row.getCell(9)))) {
+                    //中药不需要设置
+                    if (!(new Integer(3).equals(drug.getDrugType()))) {
                         errMsg.append("药品单位不能为空").append(";");
                     }
-                    drug.setUnit(getStrFromCell(row.getCell(9)));
-                } catch (Exception e) {
-                    errMsg.append("药品单位有误").append(";");
                 }
-                try {
-                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(11)))) {
+                drug.setUnit(getStrFromCell(row.getCell(9)));
+            } catch (Exception e) {
+                errMsg.append("药品单位有误").append(";");
+            }
+            try {
+                if (StringUtils.isEmpty(getStrFromCell(row.getCell(11)))) {
+                    //中药不需要设置
+                    if (!(new Integer(3).equals(drug.getDrugType()))) {
                         errMsg.append("生产厂家不能为空").append(";");
                     }
-                    drug.setProducer(getStrFromCell(row.getCell(11)));
-                } catch (Exception e) {
-                    errMsg.append("生产厂家有误").append(";");
                 }
+                drug.setProducer(getStrFromCell(row.getCell(11)));
+            } catch (Exception e) {
+                errMsg.append("生产厂家有误").append(";");
+            }
 
+            //中药不需要设置
+            if (!(new Integer(3).equals(drug.getDrugType()))) {
                 try {
                     if (("是").equals(getStrFromCell(row.getCell(18)))) {
                         drug.setBaseDrug(1);
                     } else if (("否").equals(getStrFromCell(row.getCell(18)))) {
                         drug.setBaseDrug(0);
-                    }else {
+                    } else {
                         errMsg.append("是否基药格式不正确").append(";");
                     }
 
                 } catch (Exception e) {
                     errMsg.append("是否基药有误").append(";");
                 }
-
             }
 
             try {
@@ -381,7 +393,7 @@ public class DrugToolService implements IDrugToolService {
             }
 
             try {
-               drug.setRetrievalCode(getStrFromCell(row.getCell(19)));
+                drug.setRetrievalCode(getStrFromCell(row.getCell(19)));
             } catch (Exception e) {
                 errMsg.append("院内检索码有误").append(";");
             }
@@ -415,14 +427,14 @@ public class DrugToolService implements IDrugToolService {
                 if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(23)))) {
                     drug.setPlatformDrugId(Integer.parseInt(getStrFromCell(row.getCell(23)).trim()));
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 errMsg.append("平台药品编码有误").append(";");
             }
             if (errMsg.length() > 1) {
                 int showNum = rowIndex + 1;
                 String error = ("【第" + showNum + "行】" + errMsg.substring(0, errMsg.length() - 1));
                 errDrugListMatchList.add(error);
-            }else {
+            } else {
                 try {
                     AutoMatch(drug);
                     boolean isSuccess = drugListMatchDAO.updateData(drug);
@@ -438,7 +450,7 @@ public class DrugToolService implements IDrugToolService {
             redisClient.set(organId + operator, progress * 100);
 //                    progressMap.put(organId+operator,progress*100);
         }
-        if (errDrugListMatchList.size()>0){
+        if (errDrugListMatchList.size() > 0) {
             result.put("code", 609);
             result.put("msg", errDrugListMatchList);
             return result;
@@ -581,26 +593,26 @@ public class DrugToolService implements IDrugToolService {
         //来源机构
         drugList.setSourceOrgan(drugListMatch.getSourceOrgan());
         Integer status = drugListMatch.getStatus();
-        try{
+        try {
             DrugList save = drugListDAO.save(drugList);
-            if (save != null){
+            if (save != null) {
                 //更新为已匹配，将已标记上传的药品自动关联上
                 //判断更新成已匹配还是匹配中
-                if (isHaveReulationId(drugListMatch.getSourceOrgan())&&StringUtils.isEmpty(drugListMatch.getRegulationDrugCode())){
+                if (isHaveReulationId(drugListMatch.getSourceOrgan()) && StringUtils.isEmpty(drugListMatch.getRegulationDrugCode())) {
                     //匹配中
                     status = DrugMatchConstant.MATCHING;
                     drugListMatch.setStatus(status);
-                }else {
+                } else {
                     //已匹配
                     status = DrugMatchConstant.ALREADY_MATCH;
                     drugListMatch.setStatus(status);
                     drugListMatch.setPlatformDrugId(save.getDrugId());
-                    drugListMatchDAO.updatePlatformDrugIdByDrugId(save.getDrugId(),drugListMatch.getDrugId());
+                    drugListMatchDAO.updatePlatformDrugIdByDrugId(save.getDrugId(), drugListMatch.getDrugId());
                 }
-                drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(),ImmutableMap.of("status", status,"matchDrugId",save.getDrugId()));
+                drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(), ImmutableMap.of("status", status, "matchDrugId", save.getDrugId()));
             }
-        }catch(Exception e){
-            LOGGER.error("DrugToolService.updateNoMatchData fail,e=[{}]",e);
+        } catch (Exception e) {
+            LOGGER.error("DrugToolService.updateNoMatchData fail,e=[{}]", e);
             throw new DAOException(609, "数据自动导入平台药品库失败!");
         }
 
@@ -764,9 +776,7 @@ public class DrugToolService implements IDrugToolService {
         //已匹配状态返回匹配药品id
         if (CollectionUtils.isNotEmpty(drugLists)) {
             drugListBeans = ObjectCopyUtils.convert(drugLists, DrugListBean.class);
-            if (drugListMatch.getStatus().equals(DrugMatchConstant.ALREADY_MATCH)
-                    || drugListMatch.getStatus().equals(DrugMatchConstant.SUBMITED)
-                    || drugListMatch.getStatus().equals(DrugMatchConstant.MATCHING)) {
+            if (drugListMatch.getStatus().equals(DrugMatchConstant.ALREADY_MATCH) || drugListMatch.getStatus().equals(DrugMatchConstant.SUBMITED) || drugListMatch.getStatus().equals(DrugMatchConstant.MATCHING)) {
                 for (DrugListBean drugListBean : drugListBeans) {
                     if (drugListBean.getDrugId().equals(drugListMatch.getMatchDrugId())) {
                         drugListBean.setIsMatched(true);
@@ -782,7 +792,7 @@ public class DrugToolService implements IDrugToolService {
      * 药品提交至organDrugList(将匹配完成的数据提交更新)人工提交
      */
     @RpcService
-    public Map<String, Integer> drugManualCommit(int organId,int status) {
+    public Map<String, Integer> drugManualCommit(int organId, int status) {
         List<DrugListMatch> matchDataByOrgan = drugListMatchDAO.findMatchDataByOrgan(organId);
         final HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
             @SuppressWarnings("unchecked")
@@ -832,7 +842,7 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setStatus(1);
                         organDrugList.setProducerCode("");
                         organDrugList.setLastModify(new Date());
-                        if(StringUtils.isNotEmpty(drugListMatch.getDrugManfCode())) {
+                        if (StringUtils.isNotEmpty(drugListMatch.getDrugManfCode())) {
                             organDrugList.setProducerCode(drugListMatch.getDrugManfCode());
                         }
                         organDrugList.setMedicalDrugCode(drugListMatch.getMedicalDrugCode());
@@ -843,7 +853,7 @@ public class DrugToolService implements IDrugToolService {
                         if (!isSuccess) {
                             organDrugListDAO.save(organDrugList);
                             //同步药品到监管备案
-                            RecipeBusiThreadPool.submit(()->{
+                            RecipeBusiThreadPool.submit(() -> {
                                 organDrugListService.uploadDrugToRegulation(organDrugList);
                                 return null;
                             });
@@ -866,12 +876,12 @@ public class DrugToolService implements IDrugToolService {
      * 药品提交(将匹配完成的数据提交更新)----互联网六期改为人工提交
      */
     @RpcService
-    public Map<String, Integer> drugCommit(List<DrugListMatch> lists,Integer organ) {
+    public Map<String, Integer> drugCommit(List<DrugListMatch> lists, Integer organ) {
         List<DrugListMatch> lists1 = new ArrayList<>();
         Map<String, Integer> map = new HashMap<>();
         Integer result = 0;
-        try{
-            if(lists.size() > 0){
+        try {
+            if (lists.size() > 0) {
                 for (DrugListMatch drugListMatch : lists) {
                     DrugListMatch db = drugListMatchDAO.get(drugListMatch.getDrugId());
                     if (1 == db.getStatus()) {
@@ -883,19 +893,20 @@ public class DrugToolService implements IDrugToolService {
                         drugListMatchDAO.update(db);
                     }
                 }
-                if(lists1.size() > 0){
+                if (lists1.size() > 0) {
                     result = this.drugManualCommitNew(lists1);
                 }
-                map.put("successCount",result);
+                map.put("successCount", result);
             }
 
-        }catch(Exception e){
-            LOGGER.error("DrugToolService.drugCommit fail,e=[{}]",e);
-            throw new DAOException(609,"药品数据自动导入机构药品库失败！");
+        } catch (Exception e) {
+            LOGGER.error("DrugToolService.drugCommit fail,e=[{}]", e);
+            throw new DAOException(609, "药品数据自动导入机构药品库失败！");
         }
         return map;
 
     }
+
     private Integer drugManualCommitNew(List<DrugListMatch> lists) {
         final HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
             @SuppressWarnings("unchecked")
@@ -944,7 +955,7 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setStatus(1);
                         organDrugList.setProducerCode("");
                         organDrugList.setLastModify(new Date());
-                        if(StringUtils.isNotEmpty(drugListMatch.getDrugManfCode())) {
+                        if (StringUtils.isNotEmpty(drugListMatch.getDrugManfCode())) {
                             organDrugList.setProducerCode(drugListMatch.getDrugManfCode());
                         }
                         organDrugList.setMedicalDrugCode(drugListMatch.getMedicalDrugCode());
@@ -955,7 +966,7 @@ public class DrugToolService implements IDrugToolService {
                         if (!isSuccess) {
                             organDrugListDAO.save(organDrugList);
                             //同步药品到监管备案
-                            RecipeBusiThreadPool.submit(()->{
+                            RecipeBusiThreadPool.submit(() -> {
                                 organDrugListService.uploadDrugToRegulation(organDrugList);
                                 return null;
                             });
@@ -1037,8 +1048,8 @@ public class DrugToolService implements IDrugToolService {
     @RpcService
     public void deleteProvinceDrugData(Integer id, Boolean isProvinceId) {
         if (isProvinceId) {
-            if(null == id){
-               LOGGER.warn("当前清除省平台的数据，没有需要的省区域信息！");
+            if (null == id) {
+                LOGGER.warn("当前清除省平台的数据，没有需要的省区域信息！");
             }
             provinceDrugListDAO.deleteByProvinceId(id.toString());
         } else {
@@ -1057,6 +1068,7 @@ public class DrugToolService implements IDrugToolService {
             drugListMatchDAO.updateDrugListMatchInfoById(Integer.valueOf(entry.getKey()), ImmutableMap.of("organDrugCode", entry.getValue()));
         }
     }
+
     /**
      * 根据id更新机构药品表药品机构编码
      *
@@ -1070,28 +1082,27 @@ public class DrugToolService implements IDrugToolService {
     }
 
     /**
-     *
      * @param organId 机构id
-     * @param depId 药企id
-     * @param flag 是否用机构药品的编码作为药企编码，否就用平台的id作为药企编码
+     * @param depId   药企id
+     * @param flag    是否用机构药品的编码作为药企编码，否就用平台的id作为药企编码
      */
     @RpcService
-    public void addOrganDrugDataToSaleDrugList(Integer organId, Integer depId,Boolean flag) {
+    public void addOrganDrugDataToSaleDrugList(Integer organId, Integer depId, Boolean flag) {
         List<OrganDrugList> drugs = organDrugListDAO.findOrganDrugByOrganId(organId);
         SaleDrugList saleDrugList;
-        for (OrganDrugList organDrugList : drugs){
+        for (OrganDrugList organDrugList : drugs) {
             saleDrugList = new SaleDrugList();
-            SaleDrugList sales = saleDrugListDAO.getByDrugIdAndOrganId(organDrugList.getDrugId(),depId);
-            if (sales == null){
+            SaleDrugList sales = saleDrugListDAO.getByDrugIdAndOrganId(organDrugList.getDrugId(), depId);
+            if (sales == null) {
                 saleDrugList.setDrugId(organDrugList.getDrugId());
                 saleDrugList.setDrugName(organDrugList.getDrugName());
                 saleDrugList.setDrugSpec(organDrugList.getDrugSpec());
                 saleDrugList.setOrganId(depId);
                 saleDrugList.setStatus(1);
                 saleDrugList.setPrice(organDrugList.getSalePrice());
-                if (flag){
+                if (flag) {
                     saleDrugList.setOrganDrugCode(organDrugList.getOrganDrugCode());
-                }else {
+                } else {
                     saleDrugList.setOrganDrugCode(String.valueOf(organDrugList.getDrugId()));
                 }
                 saleDrugList.setInventory(new BigDecimal(100));
@@ -1149,18 +1160,18 @@ public class DrugToolService implements IDrugToolService {
                     drugList.setSourceOrgan(organId);
                 }
                 DrugList save = drugListDAO.save(drugList);
-                if (save != null){
+                if (save != null) {
                     //更新为已匹配，将已标记上传的药品自动关联上
                     //判断更新成已匹配还是匹配中
                     Integer status;
-                    if (isHaveReulationId(organId)&&StringUtils.isEmpty(drugListMatch.getRegulationDrugCode())){
+                    if (isHaveReulationId(organId) && StringUtils.isEmpty(drugListMatch.getRegulationDrugCode())) {
                         //匹配中
                         status = DrugMatchConstant.MATCHING;
-                    }else {
+                    } else {
                         //已匹配
                         status = DrugMatchConstant.ALREADY_MATCH;
                     }
-                    drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(),ImmutableMap.of("status", status,"matchDrugId",save.getDrugId()));
+                    drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(), ImmutableMap.of("status", status, "matchDrugId", save.getDrugId()));
                 }
             }
             return data.size();
@@ -1172,7 +1183,7 @@ public class DrugToolService implements IDrugToolService {
         String addrArea = checkOrganAddrArea(organId);
         Long provinceDrugNum = provinceDrugListDAO.getCountByProvinceIdAndStatus(addrArea, 1);
         //更新药品状态成匹配中
-        if(0L < provinceDrugNum){
+        if (0L < provinceDrugNum) {
             return true;
         }
         return false;
@@ -1215,7 +1226,7 @@ public class DrugToolService implements IDrugToolService {
         String addrArea = checkOrganAddrArea(organId);
         Long provinceDrugNum = provinceDrugListDAO.getCountByProvinceIdAndStatus(addrArea, 1);
         //更新药品状态成匹配中
-        if(0L < provinceDrugNum){
+        if (0L < provinceDrugNum) {
             //批量将匹配药品状态设置成匹配中
             drugListMatchDAO.updateStatusListToStatus(Arrays.asList(Change_Matching_StatusList), organId, DrugMatchConstant.MATCHING);
         }
@@ -1225,13 +1236,13 @@ public class DrugToolService implements IDrugToolService {
         //查询是否有意需要更新状态的药品（将匹配药品中已匹配的和已提交）
         //这里直接判断机构对应省药品有无药品
         OrganDTO organDTO = organService.get(organId);
-        if(null == organDTO){
+        if (null == organDTO) {
             LOGGER.warn("updateOrganDrugMatchByProvinceDrug 当期机构[{}]不存在", organId);
             return null;
         }
         String addrArea = organDTO.getAddrArea();
         //校验省平台的地址信息合理性
-        if(null == addrArea || 2 > addrArea.length()){
+        if (null == addrArea || 2 > addrArea.length()) {
             LOGGER.error("updateOrganDrugMatchByProvinceDrug() error : 医院[{}],对应的省信息不全", organId);
             throw new DAOException(DAOException.VALUE_NEEDED, "医院对应的省信息不全");
         }
@@ -1239,17 +1250,17 @@ public class DrugToolService implements IDrugToolService {
     }
 
     /**
-     * @method  updateMatchStatusCurrent
+     * @param updateMatchStatusFormBean 属性值
+     *                                  drugId 更新的药品id
+     *                                  matchDrugId 匹配上的平台药品id
+     *                                  matchDrugInfo 匹配上省平台的药品code
+     *                                  operator 操作人
+     *                                  haveProvinceDrug 是否有当前机构对应省的药品（由前端查询list是否为空判断）
+     * @return void
+     * @method updateMatchStatusCurrent
      * @description 选中的平台药品/省平台药品匹配机构药品
      * @date: 2019/10/25
      * @author: JRK
-     * @param updateMatchStatusFormBean 属性值
-     * drugId 更新的药品id
-     * matchDrugId 匹配上的平台药品id
-     * matchDrugInfo 匹配上省平台的药品code
-     * operator 操作人
-     * haveProvinceDrug 是否有当前机构对应省的药品（由前端查询list是否为空判断）
-     * @return void
      */
     @RpcService
     public Integer updateMatchStatusCurrent(UpdateMatchStatusFormBean updateMatchStatusFormBean) {
@@ -1262,7 +1273,7 @@ public class DrugToolService implements IDrugToolService {
         Integer drugId = updateMatchStatusFormBean.getDrugId();
         DrugListMatch drugListMatch = drugListMatchDAO.get(drugId);
         Integer drugListMatchStatus = drugListMatch.getStatus();
-        if(null == drugListMatch){
+        if (null == drugListMatch) {
             LOGGER.warn("updateMatchStatusCurrent 当期对照药品[{}]不存在", drugId);
             return null;
         }
@@ -1275,23 +1286,23 @@ public class DrugToolService implements IDrugToolService {
         Map<String, Object> updateMap = new HashMap<>();
         //判断是否有省平台药品对应
         Integer status = 0;
-        if(Platform_Type == makeType){
+        if (Platform_Type == makeType) {
             //平台匹配操作
-            if(haveProvinceDrug){
+            if (haveProvinceDrug) {
                 //匹配省平台的时候
                 status = geUpdateStatus(drugListMatch, Platform_Type);
                 if (status == null) return null;
-            }else{
+            } else {
                 //无匹省台的时候
                 status = DrugMatchConstant.ALREADY_MATCH;
             }
             updateMap.put("matchDrugId", matchDrugId);
-        }else if (Province_Platform_Type == makeType){
+        } else if (Province_Platform_Type == makeType) {
             //省平台匹配操作
             status = geUpdateStatus(drugListMatch, Province_Platform_Type);
             if (status == null) return null;
             updateMap.put("regulationDrugCode", matchDrugInfo);
-        }else{
+        } else {
             LOGGER.info("updateMatchStatusCurrent 传入操作状态非平台和省平台", makeType);
             return null;
         }
@@ -1310,47 +1321,47 @@ public class DrugToolService implements IDrugToolService {
         boolean haveRegulationDrugCode = null != drugListMatch.getRegulationDrugCode();
 
         Integer status;
-        if(Platform_Type == updateType){
+        if (Platform_Type == updateType) {
             //平台的更新
             //说明已经匹配，只需要修改匹配的药品代码就行了
-            if(haveMatchDrug){
+            if (haveMatchDrug) {
                 //已提交的也可以更新
-                if(DrugMatchConstant.SUBMITED == drugListMatchStatus){
-                    if(haveRegulationDrugCode){
+                if (DrugMatchConstant.SUBMITED == drugListMatchStatus) {
+                    if (haveRegulationDrugCode) {
                         status = DrugMatchConstant.ALREADY_MATCH;
-                    }else{
+                    } else {
                         status = DrugMatchConstant.MATCHING;
                     }
-                }else{
+                } else {
                     status = drugListMatchStatus;
                 }
-            }else{
+            } else {
                 //没有匹配的话，判断有没有省药品字段
-                if(haveRegulationDrugCode){
+                if (haveRegulationDrugCode) {
                     status = DrugMatchConstant.ALREADY_MATCH;
-                }else{
+                } else {
                     status = DrugMatchConstant.MATCHING;
                 }
             }
-        }else{
+        } else {
             //省平台的更新
             //说明已经匹配，只需要修改匹配的省药品代码就行了
-            if(haveRegulationDrugCode){
+            if (haveRegulationDrugCode) {
                 //已提交的也可以更新
-                if(DrugMatchConstant.SUBMITED == drugListMatchStatus){
-                    if(haveMatchDrug){
+                if (DrugMatchConstant.SUBMITED == drugListMatchStatus) {
+                    if (haveMatchDrug) {
                         status = DrugMatchConstant.ALREADY_MATCH;
-                    }else{
+                    } else {
                         status = DrugMatchConstant.MATCHING;
                     }
-                }else{
+                } else {
                     status = drugListMatchStatus;
                 }
-            }else{
+            } else {
                 //没有匹配的话，判断有没有药品字段
-                if(haveMatchDrug){
+                if (haveMatchDrug) {
                     status = DrugMatchConstant.ALREADY_MATCH;
-                }else{
+                } else {
                     status = DrugMatchConstant.MATCHING;
                 }
             }
@@ -1367,12 +1378,12 @@ public class DrugToolService implements IDrugToolService {
     public List<ProvinceDrugListBean> provinceDrugMatch(int drugId, int organId, int start, int limit, String seacrhString) {
         DrugListMatch drugListMatch = drugListMatchDAO.get(drugId);
 
-        if(null == drugListMatch){
+        if (null == drugListMatch) {
             LOGGER.warn("provinceDrugMatch 当期药品[{}]不在机构对照列表中", drugId);
             return null;
         }
         List<ProvinceDrugList> provinceDrugLists = getProvinceDrugLists(organId, drugListMatch, start, limit, seacrhString);
-        if(null == provinceDrugLists){
+        if (null == provinceDrugLists) {
             //如果没有省平台药品数据则为null
             return null;
         }
@@ -1390,7 +1401,7 @@ public class DrugToolService implements IDrugToolService {
         //判断机构对应省平台下有没有药品，没有省平台返回null
         String addrArea = checkOrganAddrArea(organId);
         Long countByProvinceIdAndStatus = provinceDrugListDAO.getCountByProvinceIdAndStatus(addrArea, 1);
-        if(null == countByProvinceIdAndStatus || 0 >= countByProvinceIdAndStatus){
+        if (null == countByProvinceIdAndStatus || 0 >= countByProvinceIdAndStatus) {
             return null;
         }
 
@@ -1398,7 +1409,7 @@ public class DrugToolService implements IDrugToolService {
         String likeDrugName = DrugMatchUtil.match(drugListMatch.getDrugName());
 
         List<ProvinceDrugList> searchDrugs = provinceDrugListDAO.findByProvinceSaleNameLike(likeDrugName, addrArea, start, limit, seacrhString);
-        if(CollectionUtils.isNotEmpty(searchDrugs)){
+        if (CollectionUtils.isNotEmpty(searchDrugs)) {
             provinceDrugLists = searchDrugs;
         }
 
@@ -1411,24 +1422,24 @@ public class DrugToolService implements IDrugToolService {
         IRegulationService regulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
         try {
             Boolean haveList = regulationService.checkRegulationList();
-            if(!haveList){
+            if (!haveList) {
                 //没有这个配置，则说明是互联网，默认关联互联网平台的，不需要在查有没有关联互联网平台
                 return true;
             }
-        }catch (Exception e) {
-            LOGGER.warn("查询互联网列表失败{}.",e);
+        } catch (Exception e) {
+            LOGGER.warn("查询互联网列表失败{}.", e);
         }
 
         //首先判断his配置中机构有没有监管平台。没有就不返回省平台列表
         IHisServiceConfigService configService = AppDomainContext.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
         HisResponseTO<ServiceConfigResponseTO> configResponse = configService.queryHisServiceConfigByOrganid(organId);
-        if(null != configResponse){
+        if (null != configResponse) {
             ServiceConfigResponseTO config = configResponse.getData();
-            if(null == config || null == config.getRegulation()){
+            if (null == config || null == config.getRegulation()) {
                 LOGGER.info("当前机构[{}]没有配置监管平台", organId);
                 return false;
             }
-        }else{
+        } else {
             LOGGER.warn("没有对应当前机构[{}]的配置", organId);
             return false;
         }
@@ -1465,19 +1476,19 @@ public class DrugToolService implements IDrugToolService {
         Map<String, Object> updateMap = new HashMap<>();
         DrugListMatch drugListMatch = drugListMatchDAO.get(drugId);
         Integer status = 0;
-        if(Platform_Type == makeType){
-            if(haveProvinceDrug){
+        if (Platform_Type == makeType) {
+            if (haveProvinceDrug) {
                 status = getCancelStatus(drugListMatch, "cancelMatchStatusByOrgan 当前匹配药品[{}]状态[{}]不能取消平台匹配");
                 if (status == null) return status;
-            }else{
+            } else {
                 status = DrugMatchConstant.UNMATCH;
             }
             updateMap.put("matchDrugId", null);
-        }else if(Province_Platform_Type == makeType){
+        } else if (Province_Platform_Type == makeType) {
             status = getCancelStatus(drugListMatch, "cancelMatchStatusByOrgan 当前匹配药品[{}]状态[{}]不能取消省平台匹配");
             if (status == null) return status;
             updateMap.put("regulationDrugCode", null);
-        }else{
+        } else {
             LOGGER.info("cancelMatchStatusByOrgan 传入操作状态非平台和省平台", makeType);
             return status;
         }
@@ -1496,20 +1507,20 @@ public class DrugToolService implements IDrugToolService {
         boolean haveRegulationDrugCode = null != drugListMatch.getRegulationDrugCode();
 
         Integer status;
-        if(DrugMatchConstant.ALREADY_MATCH == drugListMatchStatus){
+        if (DrugMatchConstant.ALREADY_MATCH == drugListMatchStatus) {
             status = DrugMatchConstant.MATCHING;
-        }else if(DrugMatchConstant.MATCHING == drugListMatchStatus) {
+        } else if (DrugMatchConstant.MATCHING == drugListMatchStatus) {
             status = DrugMatchConstant.UNMATCH;
-        }else if(DrugMatchConstant.SUBMITED == drugListMatchStatus){
-            if((!haveMatchDrug && haveRegulationDrugCode) && (haveMatchDrug && !haveRegulationDrugCode)){
+        } else if (DrugMatchConstant.SUBMITED == drugListMatchStatus) {
+            if ((!haveMatchDrug && haveRegulationDrugCode) && (haveMatchDrug && !haveRegulationDrugCode)) {
                 status = DrugMatchConstant.UNMATCH;
-            }else if(haveMatchDrug && haveRegulationDrugCode){
+            } else if (haveMatchDrug && haveRegulationDrugCode) {
                 status = DrugMatchConstant.MATCHING;
-            }else{
+            } else {
                 LOGGER.info(message, drugId, drugListMatchStatus);
                 return null;
             }
-        }else{
+        } else {
             LOGGER.info(message, drugId, drugListMatchStatus);
             return null;
         }
@@ -1517,47 +1528,47 @@ public class DrugToolService implements IDrugToolService {
     }
 
     @RpcService(timeout = 60)
-    public void drugImportAutoMatch(Integer organId){
-        LOGGER.info("THE DrugMatchOrganId=[{}]",organId);
+    public void drugImportAutoMatch(Integer organId) {
+        LOGGER.info("THE DrugMatchOrganId=[{}]", organId);
         GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
             @Override
             public void run() {
                 Boolean flag = checkOrganRegulation(organId);
-                String  addrArea = checkOrganAddrArea(organId);
-                List<DrugListMatch> result = drugListMatchDAO.findDataByOrganAndStatus(organId,DrugMatchConstant.UNMATCH);
-                for (DrugListMatch drug :result) {
+                String addrArea = checkOrganAddrArea(organId);
+                List<DrugListMatch> result = drugListMatchDAO.findDataByOrganAndStatus(organId, DrugMatchConstant.UNMATCH);
+                for (DrugListMatch drug : result) {
                     DrugList drugList = drugListDAO.get(drug.getPlatformDrugId());
-                  if (flag) {
-                      ProvinceDrugList provinceDrugList = provinceDrugListDAO.getByProvinceIdAndDrugId(addrArea, drug.getRegulationDrugCode(), 1);
-                      if (drugList != null && provinceDrugList != null) {
-                          // 以匹配
-                          drug.setStatus(DrugMatchConstant.ALREADY_MATCH);
-                          drug.setMatchDrugId(drugList.getDrugId());
-                      } else if (drugList == null && provinceDrugList == null) {
-                          //未匹配
-                          drug.setStatus(DrugMatchConstant.UNMATCH);
-                          drug.setRegulationDrugCode(null);
-                          drug.setPlatformDrugId(null);
-                      } else if (drugList != null && provinceDrugList == null) {
-                          //匹配中
-                          drug.setStatus(DrugMatchConstant.MATCHING);
-                          drug.setRegulationDrugCode(null);
-                      } else if (drugList == null && provinceDrugList != null) {
-                          // 匹配中
-                          drug.setStatus(DrugMatchConstant.MATCHING);
-                          drug.setPlatformDrugId(null);
-                      }
-                  } else {
-                      drug.setRegulationDrugCode(null);
-                      if (drugList != null) {
-                          drug.setStatus(DrugMatchConstant.ALREADY_MATCH);
-                          drug.setMatchDrugId(drugList.getDrugId());
-                      } else {
-                          drug.setPlatformDrugId(null);
-                      }
-                  }
-                  drugListMatchDAO.updateData(drug);
-              }
+                    if (flag) {
+                        ProvinceDrugList provinceDrugList = provinceDrugListDAO.getByProvinceIdAndDrugId(addrArea, drug.getRegulationDrugCode(), 1);
+                        if (drugList != null && provinceDrugList != null) {
+                            // 以匹配
+                            drug.setStatus(DrugMatchConstant.ALREADY_MATCH);
+                            drug.setMatchDrugId(drugList.getDrugId());
+                        } else if (drugList == null && provinceDrugList == null) {
+                            //未匹配
+                            drug.setStatus(DrugMatchConstant.UNMATCH);
+                            drug.setRegulationDrugCode(null);
+                            drug.setPlatformDrugId(null);
+                        } else if (drugList != null && provinceDrugList == null) {
+                            //匹配中
+                            drug.setStatus(DrugMatchConstant.MATCHING);
+                            drug.setRegulationDrugCode(null);
+                        } else if (drugList == null && provinceDrugList != null) {
+                            // 匹配中
+                            drug.setStatus(DrugMatchConstant.MATCHING);
+                            drug.setPlatformDrugId(null);
+                        }
+                    } else {
+                        drug.setRegulationDrugCode(null);
+                        if (drugList != null) {
+                            drug.setStatus(DrugMatchConstant.ALREADY_MATCH);
+                            drug.setMatchDrugId(drugList.getDrugId());
+                        } else {
+                            drug.setPlatformDrugId(null);
+                        }
+                    }
+                    drugListMatchDAO.updateData(drug);
+                }
             }
         });
     }
