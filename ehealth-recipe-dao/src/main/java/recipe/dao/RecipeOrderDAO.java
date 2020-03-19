@@ -327,7 +327,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 hql.append("select r.ClinicOrgan,l.RecipeDetailID,o.PayFlag,r.ClinicID,o.TradeNo,r.RecipeID,r.RecipeType,l.DrugUnit,l.actualSalePrice,l.UseTotalDose,r.Status,drug.medicalDrugCode,l.salePrice from cdr_recipe r LEFT JOIN cdr_recipedetail l ON r.RecipeID = l.recipeId");
                 hql.append(" LEFT JOIN base_organdruglist drug on drug.OrganDrugCode=l.OrganDrugCode and drug.OrganID=r.clinicorgan");
                 hql.append(" LEFT JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode");
-                hql.append(" WHERE (date(r.CreateDate) between :startTime and :endTime) OR (date(r.LastModify) between :startTime and :endTime)");
+                hql.append(" WHERE (date(r.CreateDate) between :startTime and :endTime OR date(r.LastModify) between :startTime and :endTime)");
                 hql.append(" AND o.Effective = 1");
                 hql.append(" AND o.PayFlag > 0");
                 hql.append(" AND r.bussSource = 2");
