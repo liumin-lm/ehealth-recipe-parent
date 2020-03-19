@@ -14,6 +14,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.constant.RecipeBussConstant;
 
 import java.math.BigDecimal;
@@ -29,6 +31,7 @@ import java.util.Map;
  */
 @RpcSupportDAO
 public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeOrder> {
+    private static final Logger logger = LoggerFactory.getLogger(RecipeOrderDAO.class);
 
     public RecipeOrderDAO() {
         super();
@@ -337,6 +340,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 q.setParameter("startTime", startTime);
                 q.setParameter("endTime", endTime);
                 q.setParameterList("ngariOrganIds",ngariOrganIds);
+                logger.info("paramter is startTime:[{}],endTime:[{}],ngariOrganIds[{}]",startTime,endTime,ngariOrganIds);
                 List<Object[]> result = q.list();
                 List<RegulationChargeDetailReq> backList = new ArrayList<>();
                 if (CollectionUtils.isNotEmpty(result)){
