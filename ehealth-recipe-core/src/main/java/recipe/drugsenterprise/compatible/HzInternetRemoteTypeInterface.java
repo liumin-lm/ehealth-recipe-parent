@@ -27,9 +27,14 @@ public interface HzInternetRemoteTypeInterface {
 
     public void setOrderEnterpriseMsg(Map<String, String> extInfo, RecipeOrder order);
 
-    public void checkRecipeGiveDeliveryMsg(RecipeBean recipeBean, Map<String, Object> map);
+    //public void checkRecipeGiveDeliveryMsg(RecipeBean recipeBean, Map<String, Object> map);
 
     public void setEnterpriseMsgToOrder(RecipeOrder order, Integer depId, Map<String, String> extInfo);
 
     public Boolean specialMakeDepList(DrugsEnterprise drugsEnterprise, Recipe dbRecipe);
+
+    public void sendDeliveryMsgToHis(Integer recipeId);
+
+    public Map<String,Object> sendMsgResultMap(Recipe dbRecipe, Map<String, String> extInfo, Map<String, Object> payResult);
+
 }
