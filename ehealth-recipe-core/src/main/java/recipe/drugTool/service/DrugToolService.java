@@ -598,7 +598,7 @@ public class DrugToolService implements IDrugToolService {
             if (save != null) {
                 //更新为已匹配，将已标记上传的药品自动关联上
                 //判断更新成已匹配还是匹配中
-                if (isHaveReulationId(drugListMatch.getSourceOrgan()) && StringUtils.isEmpty(drugListMatch.getRegulationDrugCode())) {
+                if (checkOrganRegulation(drugListMatch.getSourceOrgan()) && isHaveReulationId(drugListMatch.getSourceOrgan()) && StringUtils.isEmpty(drugListMatch.getRegulationDrugCode())) {
                     //匹配中
                     status = DrugMatchConstant.MATCHING;
                     drugListMatch.setStatus(status);
