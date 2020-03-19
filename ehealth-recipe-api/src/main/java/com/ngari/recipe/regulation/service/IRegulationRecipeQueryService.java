@@ -1,6 +1,7 @@
 package com.ngari.recipe.regulation.service;
 
 import com.ngari.his.regulation.entity.RegulationChargeDetailReq;
+import com.ngari.his.regulation.entity.RegulationChargeDetailReqTo;
 import com.ngari.platform.regulation.mode.QueryRegulationUnitReq;
 import ctd.util.annotation.RpcService;
 
@@ -16,5 +17,5 @@ public interface IRegulationRecipeQueryService {
      * 互联网服务收费明细
      */
     @RpcService
-   List<RegulationChargeDetailReq> queryRegulationChargeDetailList(QueryRegulationUnitReq queryRegulationUnit);
+   List<RegulationChargeDetailReqTo> queryRegulationChargeDetailList(QueryRegulationUnitReq queryRegulationUnit);
 }
