@@ -357,7 +357,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             if(null != recipeOrder){
                 //配送方式
-                req.setDeliveryType(null == recipeOrder.getGiveMode() ? "" : recipeOrder.getGiveMode().toString());
+                req.setDeliveryType(null == recipe.getGiveMode() ? "" : recipe.getGiveMode().toString());
                 //配送开始时间
                 req.setSendTime(recipeOrder.getSendTime());
                 //配送结束时间
