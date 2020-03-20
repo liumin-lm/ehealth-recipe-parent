@@ -59,7 +59,9 @@ import recipe.drugsenterprise.compatible.HzInternetRemoteNewType;
 import recipe.drugsenterprise.compatible.HzInternetRemoteOldType;
 import recipe.drugsenterprise.compatible.HzInternetRemoteTypeInterface;
 import recipe.hisservice.RecipeToHisService;
+import recipe.service.RecipeHisService;
 import recipe.service.RecipeLogService;
+import recipe.service.RecipeOrderService;
 import recipe.service.common.RecipeCacheService;
 
 import java.math.BigDecimal;
@@ -255,6 +257,45 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
         }
 
         return result;
+    }
+
+    //date 20200318
+    //确认订单前校验处方信息
+    @RpcService
+    public DrugEnterpriseResult checkMakeOrder(Integer recipeId, Map<String, String> extInfo) {
+        LOGGER.info("checkMakeOrder 当前确认订单校验的新流程预结算->同步配送信息, 入参：{}，{}",
+                recipeId, JSONUtils.toString(extInfo));
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        //首先校验：预结算
+        //再校验：同步配送信息
+
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+        //修改逻辑成：事务1 -> 平台新增，his新增
+        //事务2 -> 预交付
+
+        DrugEnterpriseResult payResult = recipeMedicalPreSettle
+                (recipeId, null == extInfo.get("depId") ? null : Integer.parseInt(extInfo.get("depId").toString()));
+        if(DrugEnterpriseResult.FAIL.equals(payResult.getCode())){
+            LOGGER.info("order 当前处方{}确认订单校验处方信息：预结算失败，结算结果：{}",
+                    recipeId, JSONUtils.toString(payResult));
+            return result;
+        }
+        RemoteDrugEnterpriseService remoteDrugEnterpriseService =
+                ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+
+        //判断当前确认订单是配送方式
+        if(StringUtils.isEmpty(extInfo.get("depId")) || StringUtils.isEmpty(extInfo.get("payMode"))){
+            LOGGER.info("order 当前处方{}确认订单校验处方信息,没有传递配送药企信息，无需同步配送信息，直接返回预结算结果",
+                    recipeId);
+            return payResult;
+        }
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(Integer.parseInt(extInfo.get("depId")));
+        AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+        return remoteService.sendMsgResultMap(recipeId, extInfo, payResult);
+
     }
 
     @Override
@@ -466,8 +507,8 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
     }
 
     @Override
-    public Map<String, Object> sendMsgResultMap(Recipe dbRecipe, Map<String, String> extInfo, Map<String, Object> payResult) {
-        return getRealization(dbRecipe).sendMsgResultMap(dbRecipe, extInfo, payResult);
+    public DrugEnterpriseResult sendMsgResultMap(Integer recipeId, Map<String, String> extInfo, DrugEnterpriseResult payResult) {
+        return getRealization(Lists.newArrayList(recipeId)).sendMsgResultMap(recipeId, extInfo, payResult);
     }
 
     private HzInternetRemoteTypeInterface getRealization(List<Integer> recipeIds){

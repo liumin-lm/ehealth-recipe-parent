@@ -640,41 +640,7 @@ public class RecipeHisService extends RecipeBaseService {
        return result;
     }
 
-    //date 20200318
-    //确认订单前校验处方信息
-    @RpcService
-    private Map<String,Object> checkMakeOrder(Recipe dbRecipe, Map<String, String> extInfo) {
-        LOGGER.info("checkMakeOrder 当前确认订单校验的新流程预结算->同步配送信息, 入参：{}，{}",
-                JSONUtils.toString(dbRecipe), JSONUtils.toString(extInfo));
-        //首先校验：预结算
-        //再校验：同步配送信息
 
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        //修改逻辑成：事务1 -> 平台新增，his新增
-        //事务2 -> 预交付
-
-        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-        Map<String, Object> payResult = hisService.provincialMedicalPreSettle(dbRecipe.getRecipeId());
-        if("-1".equals(payResult.get("code"))){
-            LOGGER.info("order 当前处方{}确认订单校验处方信息：预结算失败，结算结果：{}",
-                    dbRecipe.getRecipeId(), JSONUtils.toString(payResult));
-            return payResult;
-        }
-        RemoteDrugEnterpriseService remoteDrugEnterpriseService =
-                ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        if(StringUtils.isEmpty(extInfo.get("depId"))){
-            LOGGER.info("order 当前处方{}确认订单校验处方信息,没有传递配送药企信息，直接返回预结算结果",
-                    dbRecipe.getRecipeId());
-            return payResult;
-        }
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(Integer.parseInt(extInfo.get("depId")));
-        AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
-        return remoteService.sendMsgResultMap(dbRecipe, extInfo, payResult);
-
-    }
 
     private Map<String, Object> sendMsgResultMap(Recipe dbRecipe, Map<String, String> extInfo, Map<String, Object> payResult) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);

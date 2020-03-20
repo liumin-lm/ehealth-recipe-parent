@@ -60,9 +60,9 @@ public class HzInternetRemoteOldType implements HzInternetRemoteTypeInterface {
     }
 
     @Override
-    public Map<String, Object> sendMsgResultMap(Recipe dbRecipe, Map<String, String> extInfo, Map<String, Object> payResult) {
+    public DrugEnterpriseResult sendMsgResultMap(Integer recipeId, Map<String, String> extInfo, DrugEnterpriseResult payResult) {
         LOGGER.info("旧-杭州互联网虚拟药企确认订单前检验订单信息同步配送信息，入参：dbRecipe:{},extInfo:{},payResult:{]",
-                JSONUtils.toString(dbRecipe), JSONUtils.toString(extInfo), JSONUtils.toString(payResult));
+                recipeId, JSONUtils.toString(extInfo), JSONUtils.toString(payResult));
         return payResult;
     }
 

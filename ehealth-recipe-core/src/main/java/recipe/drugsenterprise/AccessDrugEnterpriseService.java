@@ -98,6 +98,22 @@ public abstract class AccessDrugEnterpriseService {
         return address.toString();
     }
 
+    /**
+     * 生成地址
+     *
+     * @param order 订单
+     * @return
+     */
+    public String getCompleteAddressToSend(RecipeOrder order) {
+        StringBuilder address = new StringBuilder();
+        if (null != order) {
+            this.getAddressDic(address, order.getAddress1());
+            this.getAddressDic(address, order.getAddress2());
+            this.getAddressDic(address, order.getAddress3());
+        }
+        return address.toString();
+    }
+
     public void getAddressDic(StringBuilder address, String area) {
         if (StringUtils.isNotEmpty(area)) {
             try {
@@ -275,7 +291,7 @@ public abstract class AccessDrugEnterpriseService {
      * @return
      */
     public boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds) {
-        LOGGER.info("scanStock 当前非杭州市互联网推送订单信息，入参：dbRecipe:{},dep:{},drugIds:{}", JSONUtils.toString(dbRecipe), JSONUtils.toString(dep), JSONUtils.toString(drugIds));
+        LOGGER.info("scanStock 当前公用药企逻辑-推送订单信息，入参：dbRecipe:{},dep:{},drugIds:{}", JSONUtils.toString(dbRecipe), JSONUtils.toString(dep), JSONUtils.toString(drugIds));
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
 
@@ -315,7 +331,7 @@ public abstract class AccessDrugEnterpriseService {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
             appEnterprise = drugsEnterprise.getName();
         }
-        LOGGER.info("appEnterprise 当前非杭州市互联网返回的药企名为：{}", appEnterprise);
+        LOGGER.info("appEnterprise 当前公用药企逻辑-返回的药企名为：{}", appEnterprise);
         return appEnterprise;
     }
 
@@ -325,7 +341,7 @@ public abstract class AccessDrugEnterpriseService {
         if ((payModeSupport.isSupportCOD() || payModeSupport.isSupportTFDS()|| payModeSupport.isSupportOnlinePay()) && null != order.getEnterpriseId()) {
             nowFee = orderService.reCalculateRecipeFee(order.getEnterpriseId(), recipeIds, null);
         }
-        LOGGER.info("appEnterprise 当前非杭州市互联网返回订单的处方费用为：{}", nowFee);
+        LOGGER.info("appEnterprise 当前公用药企逻辑-返回订单的处方费用为：{}", nowFee);
         return nowFee;
     }
 
@@ -340,11 +356,11 @@ public abstract class AccessDrugEnterpriseService {
                 order.setTransFeeDetail(drugsEnterprise.getTransFeeDetail());
             }
         }
-        LOGGER.info("setOrderEnterpriseMsg 当前非杭州市互联网返回订单的药企信息：{}", JSONUtils.toString(order));
+        LOGGER.info("setOrderEnterpriseMsg 当前公用药企逻辑-返回订单的药企信息：{}", JSONUtils.toString(order));
     }
 
     public void checkRecipeGiveDeliveryMsg(RecipeBean recipeBean, Map<String, Object> map){
-        LOGGER.info("checkRecipeGiveDeliveryMsg 当前非杭州市互联网预校验，入参：recipeBean:{},map:{}", JSONUtils.toString(recipeBean), JSONUtils.toString(map));
+        LOGGER.info("checkRecipeGiveDeliveryMsg 当前公用药企逻辑-预校验，入参：recipeBean:{},map:{}", JSONUtils.toString(recipeBean), JSONUtils.toString(map));
         //预校验返回 取药方式1配送到家 2医院取药 3两者都支持
         String giveMode = null != map.get("giveMode") ? map.get("giveMode").toString() : null;
         //配送药企代码
@@ -366,17 +382,17 @@ public abstract class AccessDrugEnterpriseService {
 
     public void setEnterpriseMsgToOrder(RecipeOrder order, Integer depId, Map<String, String> extInfo) {
         order.setEnterpriseId(depId);
-        LOGGER.info("当前非虚拟药企组装的订单：{}", JSONUtils.toString(order));
+        LOGGER.info("当前公用药企逻辑-组装的订单：{}", JSONUtils.toString(order));
     }
 
     public Boolean specialMakeDepList(DrugsEnterprise drugsEnterprise, Recipe dbRecipe) {
-        LOGGER.info("当前非虚拟药企判断个性化药企展示：drugsEnterprise：{}, dbRecipe:{}",
+        LOGGER.info("当前公用药企逻辑-判断个性化药企展示：drugsEnterprise：{}, dbRecipe:{}",
                 JSONUtils.toString(drugsEnterprise), JSONUtils.toString(dbRecipe));
         return DrugEnterpriseConstant.COMPANY_HZ.equals(drugsEnterprise.getCallSys()) && dbRecipe.getRecipeCode().contains("ngari");
     }
 
     public void sendDeliveryMsgToHis(Integer recipeId) {
-        LOGGER.info("当前非虚拟药企确认订单后推送配送信息：recipeId：{}",
+        LOGGER.info("当前公用药企逻辑-确认订单后推送配送信息：recipeId：{}",
                 recipeId);
         PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
         PayModeOnline service = (PayModeOnline)purchaseService.getService(1);
@@ -386,9 +402,9 @@ public abstract class AccessDrugEnterpriseService {
         });
     }
 
-    public Map<String,Object> sendMsgResultMap(Recipe dbRecipe, Map<String, String> extInfo, Map<String, Object> payResult) {
-        LOGGER.info("当前非虚拟药企确认订单前校验订单信息推送配送信息：dbRecipe：{}，extInfo:{},payResult:{}",
-                JSONUtils.toString(dbRecipe), JSONUtils.toString(extInfo), JSONUtils.toString(payResult));
+    public DrugEnterpriseResult sendMsgResultMap(Integer recipeId, Map<String, String> extInfo, DrugEnterpriseResult payResult) {
+        LOGGER.info("当前公用药企逻辑-确认订单前校验订单信息推送配送信息：dbRecipe：{}，extInfo:{},payResult:{}",
+                recipeId, JSONUtils.toString(extInfo), JSONUtils.toString(payResult));
         return payResult;
     }
 }

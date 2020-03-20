@@ -305,13 +305,13 @@ public class HzInternetRemoteNewType implements HzInternetRemoteTypeInterface {
     }
 
     @Override
-    public Map<String, Object> sendMsgResultMap(Recipe dbRecipe, Map<String, String> extInfo, Map<String, Object> payResult) {
+    public DrugEnterpriseResult sendMsgResultMap(Integer recipeId, Map<String, String> extInfo, DrugEnterpriseResult payResult) {
         LOGGER.info("新-sendMsgResultMap杭州互联网虚拟药企确认订单前检验订单信息同步配送信息，入参：dbRecipe:{},extInfo:{},payResult:{]",
-                JSONUtils.toString(dbRecipe), JSONUtils.toString(extInfo), JSONUtils.toString(payResult));
+                recipeId, JSONUtils.toString(extInfo), JSONUtils.toString(payResult));
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
         PayModeOnline service = (PayModeOnline)purchaseService.getService(1);
-        HisResponseTO resultSave = service.updateGoodsReceivingInfoToCreateOrder(dbRecipe.getRecipeId(), extInfo);
+        HisResponseTO resultSave = service.updateGoodsReceivingInfoToCreateOrder(recipeId, extInfo);
 
         if(null != resultSave) {
             if(resultSave.isSuccess() && null != resultSave.getData()){
@@ -320,25 +320,25 @@ public class HzInternetRemoteNewType implements HzInternetRemoteTypeInterface {
 
                 if (null != data.get("recipeCode")) {
                     //新增成功更新his处方code
-                    recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(),
+                    recipeDAO.updateRecipeInfoByRecipeId(recipeId,
                             ImmutableMap.of("recipeCode", data.get("recipeCode").toString()));
                     LOGGER.info("order 当前处方{}确认订单流程：his新增成功",
-                            dbRecipe.getRecipeId());
+                            recipeId);
                     return payResult;
                 } else {
-                    payResult.put("code", "-1");
-                    payResult.put("msg", "订单信息校验失败");
+                    payResult.setCode(DrugEnterpriseResult.FAIL);
+                    payResult.setMsg("订单信息校验失败");
                     LOGGER.info("order 当前处方确认订单的his同步配送信息，没有返回his处方code：{}", JSONUtils.toString(resultSave));
                     return payResult;
                 }
             }else{
-                payResult.put("code", "-1");
-                payResult.put("msg", "订单信息校验失败");
+                payResult.setCode(DrugEnterpriseResult.FAIL);
+                payResult.setMsg("订单信息校验失败");
                 LOGGER.info("order 当前处方确认订单的his同步配送信息失败，返回：{}", JSONUtils.toString(resultSave));
                 return payResult;
             }
         }else {
-            LOGGER.info("order 当前处方{}没有对接同步配送信息，默认成功！", dbRecipe.getRecipeId());
+            LOGGER.info("order 当前处方{}没有对接同步配送信息，默认成功！", recipeId);
             return payResult;
         }
     }

@@ -35,6 +35,6 @@ public interface HzInternetRemoteTypeInterface {
 
     public void sendDeliveryMsgToHis(Integer recipeId);
 
-    public Map<String,Object> sendMsgResultMap(Recipe dbRecipe, Map<String, String> extInfo, Map<String, Object> payResult);
+    public DrugEnterpriseResult sendMsgResultMap(Integer recipeId, Map<String, String> extInfo, DrugEnterpriseResult payResult);
 
 }

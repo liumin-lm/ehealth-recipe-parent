@@ -1,5 +1,9 @@
 package recipe.constant;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
 * @Description: UpdateSendMsgStatusEnum 配送信息同步his状态
 * @Author: JRK
@@ -7,23 +11,23 @@ package recipe.constant;
 */
 public enum UpdateSendMsgStatusEnum {
 
-    HIS_SEND("医院取药", "0", RecipeBussConstant.GIVEMODE_TO_HOS),
+    HIS_SEND("医院取药", "0", new ArrayList<>(Arrays.asList(RecipeBussConstant.PAYMODE_TO_HOS))),
 
-    LOGISTIC_SEND("物流配送", "1", RecipeBussConstant.GIVEMODE_SEND_TO_HOME),
+    LOGISTIC_SEND("物流配送", "1", new ArrayList<>(Arrays.asList(RecipeBussConstant.PAYMODE_ONLINE, RecipeBussConstant.PAYMODE_COD))),
 
-    PHARAMCY_SEND("药店取药", "2", RecipeBussConstant.GIVEMODE_TFDS),
+    PHARAMCY_SEND("药店取药", "2", new ArrayList<>(Arrays.asList(RecipeBussConstant.PAYMODE_TFDS))),
 
-    OTHER("其他", "3", -1),
+    OTHER("其他", "3", new ArrayList<>(Arrays.asList(RecipeBussConstant.PAYMODE_DOWNLOAD_RECIPE, RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE))),
 
-    ALL("都支持", "4", RecipeBussConstant.GIVEMODE_FREEDOM);
+    ALL("都支持", "4", new ArrayList<>(Arrays.asList(RecipeBussConstant.PAYMODE_COMPLEX)));
 
     private String sendMemo;
 
     private String sendType;
 
-    private Integer giveType;
+    private List<Integer> giveType;
 
-    UpdateSendMsgStatusEnum(String sendMemo, String sendType, Integer giveType) {
+    UpdateSendMsgStatusEnum(String sendMemo, String sendType, List<Integer> giveType) {
         this.sendType = sendType;
         this.sendMemo = sendMemo;
         this.giveType = giveType;
@@ -31,11 +35,11 @@ public enum UpdateSendMsgStatusEnum {
 
     public static UpdateSendMsgStatusEnum fromGiveType(Integer giveType) {
         for (UpdateSendMsgStatusEnum e : UpdateSendMsgStatusEnum.values()) {
-            if (e.getGiveType() == giveType) {
+            if (e.getGiveType().contains(giveType)) {
                 return e;
             }
         }
-        return UpdateSendMsgStatusEnum.OTHER;
+        return UpdateSendMsgStatusEnum.LOGISTIC_SEND;
     }
 
     public String getSendMemo() {
@@ -54,11 +58,11 @@ public enum UpdateSendMsgStatusEnum {
         this.sendType = sendType;
     }
 
-    public Integer getGiveType() {
+    public List<Integer> getGiveType() {
         return giveType;
     }
 
-    public void setGiveType(Integer giveType) {
+    public void setGiveType(List<Integer> giveType) {
         this.giveType = giveType;
     }
 }

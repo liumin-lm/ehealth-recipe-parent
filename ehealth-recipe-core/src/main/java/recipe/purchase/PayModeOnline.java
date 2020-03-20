@@ -59,6 +59,7 @@ import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -651,6 +652,7 @@ public class PayModeOnline implements IPurchaseService {
             updateTakeDrugWayReqTO.setClinicOrgan(recipe.getClinicOrgan());
             //医院处方号
             updateTakeDrugWayReqTO.setRecipeID(recipe.getRecipeCode());
+            updateTakeDrugWayReqTO.setNgarRecipeId(recipe.getRecipeId().toString());
             //审方药师工号和姓名
             if (recipe.getChecker()!=null){
                 IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
@@ -669,33 +671,36 @@ public class PayModeOnline implements IPurchaseService {
             updateTakeDrugWayReqTO.setPayFlag(recipe.getPayFlag());
             //支付方式
             updateTakeDrugWayReqTO.setPayMode("1");
-            if (StringUtils.isNotEmpty(recipe.getOrderCode())){
-//                RecipeOrderDAO dao = DAOFactory.getDAO(RecipeOrderDAO.class);
-//                RecipeOrder order = dao.getByOrderCode(recipe.getOrderCode());
-                RecipeOrder order = createOrderBySendMap(extInfo);
-                if (order!=null){
-                    //收货人
-                    updateTakeDrugWayReqTO.setConsignee(order.getReceiver());
-                    //联系电话
-                    updateTakeDrugWayReqTO.setContactTel(order.getRecMobile());
-                    //收货地址
-                    CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
-                    updateTakeDrugWayReqTO.setAddress(commonRemoteService.getCompleteAddress(order));
-                    //date 20200314
-                    //新添字段更新
-                    updateTakeDrugWayReqTO.setDeliveryCode(order.getHisEnterpriseCode());
-                    updateTakeDrugWayReqTO.setDeliveryName(order.getHisEnterpriseName());
-                    updateTakeDrugWayReqTO.setConsignee(order.getReceiver());
-                    updateTakeDrugWayReqTO.setContactTel(order.getRecTel());
-                    updateTakeDrugWayReqTO.setPlanDate(StringUtils.isNotEmpty(order.getExpectSendDate())?
-                            DateConversion.getDateFormatter(DateConversion.getCurrentDate(order.getExpectSendDate(), "yyyy-MM-dd HH:mm"), "yyyy-MM-dd HH:mm") : null);
-                    updateTakeDrugWayReqTO.setPlanTime(order.getExpectSendTime());
-                }else{
-                    LOG.info("同步配送信息，组装配送订单失败！");
-                    HisResponseTO hisResponseTO = new HisResponseTO();
-                    hisResponseTO.setMsgCode("-1");
-                    return hisResponseTO;
-                }
+            RecipeOrder order = createOrderBySendMap(extInfo);
+            LOG.info("组装的order信息：{}", JSONUtils.toString(order));
+            if (order!=null){
+                //收货人
+                updateTakeDrugWayReqTO.setConsignee(order.getReceiver());
+                //联系电话
+                updateTakeDrugWayReqTO.setContactTel(order.getRecMobile());
+                //收货地址
+                //date 20200319
+                //修改推送的地址细节：address ：address4,receiveAddress:集合，receiveAddrCode：address3
+                CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
+                updateTakeDrugWayReqTO.setAddress(order.getAddress4());
+                updateTakeDrugWayReqTO.setReceiveAddrCode(order.getAddress3());
+                updateTakeDrugWayReqTO.setReceiveAddress(commonRemoteService.getCompleteAddressToSend(order));
+
+                //date 20200314
+                //新添字段更新
+                updateTakeDrugWayReqTO.setDeliveryCode(order.getHisEnterpriseCode());
+                updateTakeDrugWayReqTO.setDeliveryName(order.getHisEnterpriseName());
+                updateTakeDrugWayReqTO.setConsignee(order.getReceiver());
+                updateTakeDrugWayReqTO.setContactTel(order.getRecTel());
+                SimpleDateFormat formatter = new SimpleDateFormat(DateConversion.DEFAULT_DATE_TIME);
+                updateTakeDrugWayReqTO.setPlanDate(StringUtils.isNotEmpty(order.getExpectSendDate())?
+                        formatter.parse(order.getExpectSendDate() + " 00:00:00") : null);
+                updateTakeDrugWayReqTO.setPlanTime(order.getExpectSendTime());
+            }else{
+                LOG.info("同步配送信息，组装配送订单失败！");
+                HisResponseTO hisResponseTO = new HisResponseTO();
+                hisResponseTO.setMsgCode("-1");
+                return hisResponseTO;
             }
             if (recipe.getClinicId() != null) {
                 updateTakeDrugWayReqTO.setClinicID(recipe.getClinicId().toString());
@@ -729,12 +734,13 @@ public class PayModeOnline implements IPurchaseService {
             //将配送信息同步过来
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
             updateTakeDrugWayReqTO.setCheckOrgan(null != recipe.getCheckOrgan() ? recipe.getCheckOrgan().toString() : null);
-            updateTakeDrugWayReqTO.setCheckDate(recipe.getCheckDate());
+            updateTakeDrugWayReqTO.setCheckDate(recipe.getCheckDateYs());
             updateTakeDrugWayReqTO.setCheckerTel(recipe.getCheckerTel());
             updateTakeDrugWayReqTO.setCheckMemo(recipe.getCheckFailMemo());
             updateTakeDrugWayReqTO.setSupplementaryMemo(recipe.getSupplementaryMemo());
             //设置当前更新
-            updateTakeDrugWayReqTO.setGiveMode(UpdateSendMsgStatusEnum.LOGISTIC_SEND.getSendType());
+            updateTakeDrugWayReqTO.setGiveMode(
+                    UpdateSendMsgStatusEnum.fromGiveType(null == extInfo.get("payMode") ? null : Integer.parseInt(extInfo.get("payMode").toString())).getSendType());
 
             LOG.info("收货信息更新通知his. req={}", JSONUtils.toString(updateTakeDrugWayReqTO));
             HisResponseTO hisResult = service.updateTakeDrugWay(updateTakeDrugWayReqTO);
@@ -781,7 +787,7 @@ public class PayModeOnline implements IPurchaseService {
         }
         recipeOrder.setReceiver(address.getReceiver());
         recipeOrder.setRecMobile(address.getRecMobile());
-        recipeOrder.setRecTel(address.getRecTel());
+        recipeOrder.setRecTel(address.getRecMobile());
         return recipeOrder;
     }
 
