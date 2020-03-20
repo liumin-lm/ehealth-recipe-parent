@@ -8,10 +8,7 @@ import com.ngari.consult.common.model.QuestionnaireBean;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.regulation.entity.*;
 import com.ngari.his.regulation.service.IRegulationService;
-import com.ngari.patient.dto.DepartmentDTO;
-import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.dto.OrganDTO;
-import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.dto.*;
 import com.ngari.patient.dto.zjs.SubCodeDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.service.zjs.SubCodeService;
@@ -118,6 +115,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
 
         Map<Integer, OrganDTO> organMap = new HashMap<>(20);
         Map<Integer, DepartmentDTO> departMap = new HashMap<>(20);
@@ -146,6 +144,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         AuditMedicines medicine;
         RecipeExtend recipeExtend;
         RecipeOrder recipeOrder;
+        DoctorExtendDTO doctorExtendDTO;
         RedisClient redisClient = RedisClient.instance();
         String caSignature = null;
         for (Recipe recipe : recipeList) {
@@ -350,8 +349,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //核销标记
             req.setVerificationStatus(getVerificationStatus(recipe));
             req.setPayFlag(null == recipe.getPayFlag() ? "" : String.valueOf(recipe.getPayFlag()));
+            doctorExtendDTO = doctorExtendService.getByDoctorId(recipe.getDoctor());
             //医生处方数字签名值
-            req.setSignCADate(recipe.getSignCADate());
+            if(null != doctorExtendDTO){
+                req.setSignCADate(doctorExtendDTO.getSealData());
+            }
             //医生处方签名生成时间戳
             req.setSignRecipeCode(recipe.getSignRecipeCode());
             recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
