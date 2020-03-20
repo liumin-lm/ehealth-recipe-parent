@@ -369,7 +369,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
             String paramesRequest = JSONUtils.toString(encryptDto);
             LOGGER.info("ByRemoteService.encrypt paramesRequest:{}.", paramesRequest);
             //开始发送请求数据
-            encryptData = HttpsClientUtils.doPost(drugsEnterprise.getBusinessUrl()+"yfz-cipher/AES/encrypt", paramesRequest);
+            encryptData = HttpsClientUtils.doPost(drugsEnterprise.getAuthenUrl()+"yfz-cipher/AES/encrypt", paramesRequest);
             LOGGER.info("ByRemoteService.encrypt encryptData:{}.", encryptData);
         }catch(Exception e){
             LOGGER.error("ByRemoteService-encrypt error:{}.", e.getMessage(), e);
@@ -388,7 +388,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
             String paramesRequest = JSONUtils.toString(encryptDto);
             LOGGER.info("ByRemoteService.encrypt paramesRequest:{}.", paramesRequest);
             //开始发送请求数据
-            decryptData = HttpsClientUtils.doPost(drugsEnterprise.getBusinessUrl()+"yfz-cipher/AES/decrypt", paramesRequest);
+            decryptData = HttpsClientUtils.doPost(drugsEnterprise.getAuthenUrl()+"yfz-cipher/AES/decrypt", paramesRequest);
             LOGGER.info("ByRemoteService.decrypt decryptData:{}.", decryptData);
         }catch(Exception e){
             LOGGER.error("ByRemoteService-decrypt error:{}.", e.getMessage(), e);
