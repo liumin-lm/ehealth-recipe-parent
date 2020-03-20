@@ -150,6 +150,9 @@ public class DrugListBean implements Serializable {
     @ItemProperty(alias = "药品库存")
     private BigDecimal inventory;
 
+    @ItemProperty(alias = "剂型")
+    private String drugForm;
+
     public DrugListBean() {
     }
 
@@ -404,5 +407,13 @@ public class DrugListBean implements Serializable {
 
     public void setInventory(BigDecimal inventory) {
         this.inventory = inventory;
+    }
+
+    public String getDrugForm() {
+        return drugForm;
+    }
+
+    public void setDrugForm(String drugForm) {
+        this.drugForm = drugForm;
     }
 }

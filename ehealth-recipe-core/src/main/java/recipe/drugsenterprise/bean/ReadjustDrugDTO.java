@@ -17,6 +17,8 @@ public class ReadjustDrugDTO implements Serializable{
 
     private Double price;
 
+    private String appKey;
+
     public String getAccount() {
         return account;
     }
@@ -47,5 +49,13 @@ public class ReadjustDrugDTO implements Serializable{
 
     public void setPrice(Double price) {
         this.price = price;
+    }
+
+    public String getAppKey() {
+        return appKey;
+    }
+
+    public void setAppKey(String appKey) {
+        this.appKey = appKey;
     }
 }

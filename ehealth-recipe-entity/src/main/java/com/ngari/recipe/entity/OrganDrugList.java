@@ -109,9 +109,12 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "批准文号")
     private String licenseNumber;
 
+    @ItemProperty(alias = "包装材料")
+    private String packingMaterials;
+
     @ItemProperty(alias = "医保药品编码")
     private String medicalDrugCode;
-    @ItemProperty(alias = "医院剂型编码")
+    @ItemProperty(alias = "HIS剂型编码")
     private String drugFormCode;
     @ItemProperty(alias = "医保剂型编码")
     private String medicalDrugFormCode;
@@ -206,7 +209,7 @@ public class OrganDrugList implements java.io.Serializable {
         this.salePrice = salePrice;
     }
 
-    @Column(name = "ProducerCode", length = 20)
+    @Column(name = "ProducerCode", length = 30)
     public String getProducerCode() {
         return producerCode;
     }
@@ -411,5 +414,14 @@ public class OrganDrugList implements java.io.Serializable {
 
     public void setMedicalDrugFormCode(String medicalDrugFormCode) {
         this.medicalDrugFormCode = medicalDrugFormCode;
+    }
+
+    @Column(name = "packingMaterials")
+    public String getPackingMaterials() {
+        return packingMaterials;
+    }
+
+    public void setPackingMaterials(String packingMaterials) {
+        this.packingMaterials = packingMaterials;
     }
 }

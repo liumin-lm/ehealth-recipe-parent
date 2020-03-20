@@ -16,6 +16,8 @@ public class QueryRecipeInfoDTO implements Serializable {
     private static final long serialVersionUID = -708693213105234237L;
     @ItemProperty(alias="院区代码，示例：A001 院区A，A002院区B")
     private String hoscode;
+    @ItemProperty(alias="平台机构id")
+    private String organId;
     @ItemProperty(alias="卡类型（1医院就诊卡  2医保卡3 医院病历号）")
     private String cardType;
     @ItemProperty(alias="卡(病历)号码")
@@ -34,6 +36,8 @@ public class QueryRecipeInfoDTO implements Serializable {
     private String registerId;
     @ItemProperty(alias="处方医生工号")
     private String doctorID;
+    @ItemProperty(alias="医生身份证")
+    private String doctorIDCard;
     @ItemProperty(alias="处方医生姓名")
     private String doctorName;
     @ItemProperty(alias="开单科室")
@@ -422,5 +426,21 @@ public class QueryRecipeInfoDTO implements Serializable {
 
     public void setDeptName(String deptName) {
         this.deptName = deptName;
+    }
+
+    public String getOrganId() {
+        return organId;
+    }
+
+    public void setOrganId(String organId) {
+        this.organId = organId;
+    }
+
+    public String getDoctorIDCard() {
+        return doctorIDCard;
+    }
+
+    public void setDoctorIDCard(String doctorIDCard) {
+        this.doctorIDCard = doctorIDCard;
     }
 }

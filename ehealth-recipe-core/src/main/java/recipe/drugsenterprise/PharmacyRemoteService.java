@@ -41,6 +41,11 @@ public class PharmacyRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+        return "暂不支持库存查询";
+    }
+
+    @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         LOGGER.info("PharmacyRemoteService pushRecipeInfo not implement.");
         return DrugEnterpriseResult.getSuccess();

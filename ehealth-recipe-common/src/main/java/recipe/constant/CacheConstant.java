@@ -118,5 +118,8 @@ public class CacheConstant {
      */
     public static final String KEY_RCP_BUSS_PURCHASE_LOCK = "RCP_BUSS_PURCHASE_";
 
-
+    /**
+     * 醫保結算申請key
+     */
+    public static final String KEY_MEDIC_INSURSETTLE_APPlY = "MEDIC_INSURSETTLE_APPlY_";
 }

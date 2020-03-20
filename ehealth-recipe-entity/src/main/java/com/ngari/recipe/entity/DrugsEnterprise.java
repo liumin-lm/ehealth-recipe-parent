@@ -35,6 +35,9 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "药企固定编码")
     private String enterpriseCode;
 
+    @ItemProperty(alias = "药企分配appKey从开放平台获取")
+    private String appKey;
+
     @ItemProperty(alias = "药企在平台的账户")
     private String account;
 
@@ -97,6 +100,15 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "是否医院类型药企：1医院结算药企，0普通药企")
     private Integer isHosDep;
 
+    @ItemProperty(alias = "药企备注")
+    private String memo;
+
+    @ItemProperty(alias = "是否支持省直医保：1不支持，0支持 默认0")
+    private Integer medicalInsuranceSupport;
+
+    @ItemProperty(alias = "0:不支付药品费用，1:全部支付")
+    private Integer storePayFlag;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -124,6 +136,15 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setEnterpriseCode(String enterpriseCode) {
         this.enterpriseCode = enterpriseCode;
+    }
+
+    @Column(name = "appKey")
+    public String getAppKey() {
+        return appKey;
+    }
+
+    public void setAppKey(String appKey) {
+        this.appKey = appKey;
     }
 
     @Column(name = "Account", length = 20)
@@ -303,6 +324,33 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setIsHosDep(Integer isHosDep) {
         this.isHosDep = isHosDep;
+    }
+
+    @Column(name = "memo")
+    public String getMemo() {
+        return memo;
+    }
+
+    public void setMemo(String memo) {
+        this.memo = memo;
+    }
+
+    @Column(name = "MedicalInsuranceSupport")
+    public Integer getMedicalInsuranceSupport() {
+        return medicalInsuranceSupport;
+    }
+
+    public void setMedicalInsuranceSupport(Integer medicalInsuranceSupport) {
+        this.medicalInsuranceSupport = medicalInsuranceSupport;
+    }
+
+    @Column(name = "storePayFlag")
+    public Integer getStorePayFlag() {
+        return storePayFlag;
+    }
+
+    public void setStorePayFlag(Integer storePayFlag) {
+        this.storePayFlag = storePayFlag;
     }
 
     @Override

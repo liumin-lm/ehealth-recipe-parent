@@ -8,10 +8,16 @@ import com.ngari.recipe.drugdistributionprice.service.IDrugDistributionPriceServ
 import com.ngari.recipe.entity.DrugDistributionPrice;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResultAction;
+import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
+import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.utils.ValidateUtil;
+import org.hibernate.StatelessSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -96,6 +102,33 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
     }
 
     @Override
+    public void savePriceList(List<DrugDistributionPriceBean> priceList){
+        LOGGER.info("savePriceList input： [{}]", JSONUtils.toString(priceList));
+        if(ValidateUtil.notBlankList(priceList)) {
+            DrugDistributionPriceDAO drugDistributionPriceDAO = DAOFactory.getDAO(DrugDistributionPriceDAO.class);
+            HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
+                @Override
+                public void execute(StatelessSession ss) throws Exception {
+                    for(DrugDistributionPriceBean priceBean : priceList){
+                        drugDistributionPriceDAO.deleteByEnterpriseIdAddr(priceBean.getEnterpriseId(),priceBean.getAddrArea());
+                        StringBuffer logMsg = new StringBuffer();
+                        DrugDistributionPrice price = getBean(priceBean,DrugDistributionPrice.class);
+                        price = drugDistributionPriceDAO.save(price);
+                        logMsg.append(" 新增:").append(price.toString());
+                        try{
+                            com.ngari.opbase.base.service.IBusActionLogService iBusActionLogService1 = AppContextHolder.getBean("opbase.busActionLogService", com.ngari.opbase.base.service.IBusActionLogService.class);
+                            iBusActionLogService1.recordBusinessLogRpcNew("药企配送价格管理", price.getId().toString(), "DrugDistributionPrice", logMsg.toString(), com.ngari.opbase.base.service.IBusActionLogService.defaultSubjectName);
+                        } catch (Exception e) {
+                            LOGGER.error("业务日志记录失败： errorMessage[{}]", e.getMessage(), e);
+                        }
+                    }
+                }
+            };
+            HibernateSessionTemplate.instance().executeTrans(action);
+        }
+    }
+
+    @Override
     public void deleteByEnterpriseId(Integer enterpriseId) {
         if (enterpriseId == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "price is enterpriseId");
@@ -130,6 +163,7 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
     }
 
     @RpcService
+    @Override
     public DrugDistributionPriceBean getDistributionPriceByEnterpriseIdAndAddrArea(Integer enterpriseId, String addrArea) {
         if (enterpriseId == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "enterpriseId is enterpriseId");

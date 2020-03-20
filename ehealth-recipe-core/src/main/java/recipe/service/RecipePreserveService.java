@@ -62,6 +62,7 @@ import recipe.util.RedisClient;
 import java.math.BigDecimal;
 import java.util.*;
 
+import static ctd.persistence.DAOFactory.getDAO;
 import static recipe.service.RecipeServiceSub.convertPatientForRAP;
 
 
@@ -92,10 +93,28 @@ public class RecipePreserveService {
         recipeService.manualRefundForRecipe(recipeId, operName, reason);
     }
 
+    /**
+     * 手动推送处方单到药企
+     * @param recipeId
+     * @return
+     */
     @RpcService
     public DrugEnterpriseResult pushSingleRecipeInfo(Integer recipeId) {
         RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         return service.pushSingleRecipeInfo(recipeId);
+    }
+
+    /**
+     * 手动推送处方单到his
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    public void pushSingleRecipeInfoToHis(Integer recipeId) {
+        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
+        hisService.sendRecipe(recipeId, dbRecipe.getClinicOrgan());
     }
 
     @RpcService
@@ -123,7 +142,7 @@ public class RecipePreserveService {
     }
 
     @RpcService
-    public Map<String,Object> getHosRecipeList(Integer consultId, Integer organId,String mpiId){
+    public Map<String,Object> getHosRecipeList(Integer consultId, Integer organId,String mpiId,Integer daysAgo){
         LOGGER.info("getHosRecipeList consultId={}, organId={},mpiId={}", consultId, organId,mpiId);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         Map<String,Object> result = Maps.newHashMap();
@@ -156,7 +175,7 @@ public class RecipePreserveService {
         }
 
         Date endDate = DateTime.now().toDate();
-        Date startDate = DateConversion.getDateTimeDaysAgo(180);
+        Date startDate = DateConversion.getDateTimeDaysAgo(daysAgo);
 
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         QueryRecipeRequestTO request = new QueryRecipeRequestTO();
@@ -180,7 +199,7 @@ public class RecipePreserveService {
         if(null == response){
             return result;
         }
-        LOGGER.info("getHosRecipeList msgCode={}, msg={},data={}", response.getMsgCode(), response.getMsg(),response.getData());
+        LOGGER.info("getHosRecipeList res={}", JSONUtils.toString(response));
         List<RecipeInfoTO> data = response.getData();
         //转换平台字段
         if (CollectionUtils.isEmpty(data)){
@@ -431,12 +450,12 @@ public class RecipePreserveService {
     }
 
     /**
-     * 手动推送处方审核数据到监管平台（江苏）
+     * 手动推送处方审核数据到监管平台
      * @param recipeId
      */
     @RpcService
     public void uploadRegulationAuditData(Integer recipeId){
-        //手动推送处方到监管平台（江苏）
+        //手动推送处方到监管平台
         RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipeId,2));
     }
 

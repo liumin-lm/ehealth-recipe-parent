@@ -27,7 +27,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.service.HisCallBackService;
-import recipe.service.RecipeCheckService;
+import recipe.recipecheck.RecipeCheckService;
 import recipe.service.RecipeLogService;
 
 import java.util.ArrayList;
@@ -331,6 +331,7 @@ public class RecipeToHisService {
             drugInfo = new DrugInfoTO(detail.getOrganDrugCode());
             drugInfo.setPack(detail.getPack().toString());
             drugInfo.setPackUnit(detail.getDrugUnit());
+            drugInfo.setUseTotalDose(detail.getUseTotalDose());
             organDrug = drugIdAndProduce.get(detail.getOrganDrugCode());
             if (null != organDrug) {
                 drugInfo.setManfcode(organDrug.getProducerCode());
@@ -493,6 +494,11 @@ public class RecipeToHisService {
     private RecipeSendMsgResTO recipeSendMsg(RecipeSendMsgRequestTO recipeSendMsgRequestTO) {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.recipeSendMsg(recipeSendMsgRequestTO);
+    }
+
+    public HisResponseTO<MedicInsurSettleApplyResTO>  recipeMedicInsurPreSettle(MedicInsurSettleApplyReqTO reqTO){
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        return hisService.recipeMedicInsurPreSettle(reqTO);
     }
 
 }

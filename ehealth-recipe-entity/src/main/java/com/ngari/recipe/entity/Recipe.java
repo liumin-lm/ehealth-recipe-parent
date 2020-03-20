@@ -317,6 +317,10 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "审核模式")
     private Integer reviewType;
 
+    @ItemProperty(alias = "审核途径 1平台审核 2his审核")
+    private Integer checkMode;
+
+
     /**
      * 添加属性 2019/10/10
      * 审核状态标记位，暂时标记一次审核不通过
@@ -324,6 +328,21 @@ public class Recipe implements Serializable {
      */
     @ItemProperty(alias = "审核状态标记位")
     private Integer checkStatus;
+
+    @ItemProperty(alias = "处方单特殊来源标识：1省中，邵逸夫医保小程序; 默认null")
+    private Integer recipeSource;
+
+    @ItemProperty(alias="医生处方数字签名值")
+    private String signRecipeCode;
+
+    @ItemProperty(alias="药师处方数字签名值")
+    private String signPharmacistCode;
+
+    @ItemProperty(alias="医生处方数字签名可信服务器时间")
+    private String signCADate;
+
+    @ItemProperty(alias="药师处方数字签名可信服务器时间")
+    private String signPharmacistCADate;
 
     public Recipe() {
     }
@@ -1299,5 +1318,59 @@ public class Recipe implements Serializable {
 
     public void setBussSource(Integer bussSource) {
         this.bussSource = bussSource;
+    }
+
+    @Column(name = "recipeSource")
+    public Integer getRecipeSource() {
+        return recipeSource;
+    }
+
+    public void setRecipeSource(Integer recipeSource) {
+        this.recipeSource = recipeSource;
+    }
+
+    @Column(name = "checkMode")
+    public Integer getCheckMode() {
+        return checkMode;
+    }
+
+    public void setCheckMode(Integer checkMode) {
+        this.checkMode = checkMode;
+    }
+
+    @Column(name = "signRecipeCode")
+    public String getSignRecipeCode() {
+        return signRecipeCode;
+    }
+
+    public void setSignRecipeCode(String signRecipeCode) {
+        this.signRecipeCode = signRecipeCode;
+    }
+
+    @Column(name = "signPharmacistCode")
+    public String getSignPharmacistCode() {
+        return signPharmacistCode;
+    }
+
+    public void setSignPharmacistCode(String signPharmacistCode) {
+        this.signPharmacistCode = signPharmacistCode;
+    }
+
+    @Column(name = "signCADate")
+    public String getSignCADate() {
+        return signCADate;
+    }
+
+    public void setSignCADate(String signCADate) {
+        this.signCADate = signCADate;
+    }
+
+    @Column(name = "signPharmacistCADate")
+    public String getSignPharmacistCADate() {
+        return signPharmacistCADate;
+    }
+
+    public void setSignPharmacistCADate(String signPharmacistCADate) {
+        this.signPharmacistCADate = signPharmacistCADate;
     }
 }

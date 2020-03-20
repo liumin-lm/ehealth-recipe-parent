@@ -44,7 +44,7 @@ public abstract class AbstractAuidtMode implements IAuditMode{
 
         //平台处方进行消息发送等操作
         if (1 == recipe.getFromflag()) {
-            //发送消息
+            //发送消息--待审核或者待处理消息
             RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
             if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
                 //增加药师首页待处理任务---创建任务

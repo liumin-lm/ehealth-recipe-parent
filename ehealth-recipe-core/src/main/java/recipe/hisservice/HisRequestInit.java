@@ -4,7 +4,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
-import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
@@ -22,6 +21,7 @@ import com.ngari.patient.service.*;
 import com.ngari.recipe.entity.*;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -37,7 +37,8 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.*;
-import recipe.service.RecipeCheckService;
+import recipe.drugsenterprise.CommonRemoteService;
+import recipe.recipecheck.RecipeCheckService;
 import recipe.util.DateConversion;
 
 import java.math.BigDecimal;
@@ -266,8 +267,15 @@ public class HisRequestInit {
                 .getRecipeType().toString() : null);
         //设置挂号序号---如果有
         if (recipe.getClinicId() != null){
+            IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
+            ConsultExDTO consultExDTO = exService.getByConsultId(recipe.getClinicId());
+            if (consultExDTO!=null){
+                requestTO.setRegisteredId(consultExDTO.getRegisterNo());
+                requestTO.setCardType(consultExDTO.getCardType());
+                requestTO.setCardNo(consultExDTO.getCardId());
+            }
             IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
-            //挂号记录
+            //挂号记录-如果有
             HosrelationBean hosrelation = hosrelationService.getByBusIdAndBusType(recipe.getClinicId(), BusTypeEnum.CONSULT.getId());
             if (hosrelation != null && StringUtils.isNotEmpty(hosrelation.getRegisterId())){
                 requestTO.setRegisteredId(hosrelation.getRegisterId());
@@ -308,7 +316,7 @@ public class HisRequestInit {
             // 简要病史
             requestTO.setDiseasesHistory(recipe.getOrganDiseaseName());
         }
-        if (null != card) {
+        if (null != card && StringUtils.isEmpty(requestTO.getCardNo())) {
             requestTO.setCardType(card.getCardType());
             requestTO.setCardNo(card.getCardId());
         }
@@ -317,7 +325,25 @@ public class HisRequestInit {
         if (Integer.valueOf(1).equals(recipe.getDistributionFlag())) {
             requestTO.setDeliveryType("1");
         } else {
-            requestTO.setDeliveryType("0");
+            switch (recipe.getGiveMode()){
+                //配送到家
+                case 1:requestTO.setDeliveryType("1");break;
+                //到院取药
+                case 2:requestTO.setDeliveryType("0");break;
+                //药店取药
+                case 3:requestTO.setDeliveryType("2");break;
+                default:requestTO.setDeliveryType("0");
+            }
+        }
+        if (StringUtils.isNotEmpty(recipe.getOrderCode())){
+            RecipeOrderDAO dao = getDAO(RecipeOrderDAO.class);
+            RecipeOrder order = dao.getByOrderCode(recipe.getOrderCode());
+            if (order!=null){
+                //第三方支付交易流水号（支付机构
+                requestTO.setTradeNo(order.getTradeNo());
+                //商户订单号（平台）
+                requestTO.setOutTradeNo(order.getOutTradeNo());
+            }
         }
         requestTO.setTakeMedicine(recipe.getTakeMedicine());
         // 设置结束日期
@@ -466,7 +492,14 @@ public class HisRequestInit {
                 RecipeExtendDAO extendDAO = getDAO(RecipeExtendDAO.class);
                 RecipeExtend extend = extendDAO.getByRecipeId(recipe.getRecipeId());
                 if(extend != null && extend.getCashAmount() != null){
+                    //自负金额
                     requestTO.setCashAmount(extend.getCashAmount());
+                    //应付金额
+                    requestTO.setPayAmount(extend.getPayAmount());
+                    //总金额
+                    requestTO.setPreSettleTotalAmount(extend.getPreSettletotalAmount());
+                    //his收据号
+                    requestTO.setHisSettlementNo(extend.getHisSettlementNo());
                 } else {
                     LOGGER.info("无法获取处方的预结算返回的自费金额，处方={}",recipe.getRecipeId());
                 }
@@ -516,6 +549,19 @@ public class HisRequestInit {
         }else {
             //默认走外配药方式
             requestTO.setTakeDrugsType("2");
+        }
+        if (StringUtils.isNotEmpty(recipe.getOrderCode())){
+            RecipeOrderDAO dao = DAOFactory.getDAO(RecipeOrderDAO.class);
+            RecipeOrder order = dao.getByOrderCode(recipe.getOrderCode());
+            if (order!=null){
+                //收货人
+                requestTO.setConsignee(order.getReceiver());
+                //联系电话
+                requestTO.setContactTel(order.getRecMobile());
+                //收货地址
+                CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
+                requestTO.setAddress(commonRemoteService.getCompleteAddress(order));
+            }
         }
         requestTO.setRecipeNo(recipe.getRecipeCode());
         requestTO.setRecipeType((null != recipe.getRecipeType()) ? Integer
@@ -637,6 +683,13 @@ public class HisRequestInit {
         RecipeAuditReqTO request = new RecipeAuditReqTO();
         request.setOrganId(recipe.getClinicOrgan());
         request.setRecipeCode(recipe.getRecipeCode());
+        request.setPatientName(recipe.getPatientName());
+        request.setPatientId(recipe.getPatientID());
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        if (recipeExtend!=null){
+            request.setRegisterId(recipeExtend.getRegisterID());
+        }
         request.setResult(resutlBean.getCheckResult().toString());
         request.setCheckMark(resutlBean.getCheckFailMemo());
         List<RecipeAuditDetailReqTO> detailList = Lists.newArrayList();

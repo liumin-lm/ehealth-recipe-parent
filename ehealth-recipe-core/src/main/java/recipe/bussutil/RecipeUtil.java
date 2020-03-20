@@ -208,6 +208,44 @@ public class RecipeUtil {
         //互联网模式默认为审方前置
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
             recipe.setReviewType(ReviewTypeConstant.Preposition_Check);
+        }else {
+            //设置运营平台设置的审方模式
+            //互联网设置了默认值，平台没有设置默认值从运营平台取
+            if (recipe.getReviewType() == null){
+                try {
+                    IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+                    Integer reviewType = (Integer)configurationService.getConfiguration(recipe.getClinicOrgan(), "reviewType");
+                    LOGGER.info("运营平台获取审方方式配置 reviewType[{}]",reviewType);
+                    if (reviewType == null){
+                        //默认审方后置
+                        recipe.setReviewType(ReviewTypeConstant.Postposition_Check);
+                    }else {
+                        recipe.setReviewType(reviewType);
+                    }
+                }catch (Exception e){
+                    LOGGER.error("获取运营平台审方方式配置异常",e);
+                    //默认审方后置
+                    recipe.setReviewType(ReviewTypeConstant.Postposition_Check);
+                }
+            }
+        }
+
+        //设置运营平台设置的审方途径
+        if (recipe.getCheckMode() == null){
+            try {
+                IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+                Integer checkMode = (Integer)configurationService.getConfiguration(recipe.getClinicOrgan(), "isOpenHisCheckRecipeFlag");
+                if (checkMode == null){
+                    //默认平台审方
+                    recipe.setCheckMode(1);
+                }else {
+                    recipe.setCheckMode(checkMode);
+                }
+            }catch (Exception e){
+                LOGGER.error("获取运营平台审方途径配置异常",e);
+                //默认平台审方
+                recipe.setCheckMode(1);
+            }
         }
         
         //默认剂数为1

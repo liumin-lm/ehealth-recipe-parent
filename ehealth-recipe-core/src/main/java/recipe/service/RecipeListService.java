@@ -14,10 +14,7 @@ import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.controller.exception.ControllerException;
@@ -37,10 +34,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
 import recipe.constant.*;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeExtendDAO;
-import recipe.dao.RecipeOrderDAO;
+import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.dao.bean.RecipeRollingInfo;
 import recipe.service.common.RecipeCacheService;
@@ -101,6 +95,7 @@ public class RecipeListService extends RecipeBaseService{
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
 
         List<Recipe> recipeList = recipeDAO.findRecipesForDoctor(doctorId, recipeId, 0, limit);
         LOGGER.info("findRecipesForDoctor recipeList size={}", recipeList.size());
@@ -112,7 +107,23 @@ public class RecipeListService extends RecipeBaseService{
                     patientIds.add(recipe.getMpiid());
                 }
                 //设置处方具体药品名称
-                recipe.setRecipeDrugName(recipeDetailDAO.getDrugNamesByRecipeId(recipe.getRecipeId()));
+                List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+                StringBuilder stringBuilder = new StringBuilder();
+
+                for (Recipedetail recipedetail : recipedetails) {
+                    List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipe.getClinicOrgan());
+                    if (organDrugLists != null) {
+                        stringBuilder.append(organDrugLists.get(0).getSaleName());
+                        if (StringUtils.isNotEmpty(organDrugLists.get(0).getDrugForm())) {
+                            stringBuilder.append(organDrugLists.get(0).getDrugForm());
+                        }
+                    } else {
+                        stringBuilder.append(recipedetail.getDrugName());
+                    }
+                    stringBuilder.append(" ").append(recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit()).append("、");
+                }
+                stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
+                recipe.setRecipeDrugName(stringBuilder.toString());
                 //前台页面展示的时间源不同
                 recipe.setRecipeShowTime(recipe.getCreateDate());
                 boolean effective = false;
@@ -592,7 +603,7 @@ public class RecipeListService extends RecipeBaseService{
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
-
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<Map<String, Object>> list = new ArrayList<>();
         //List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId, mpiId, start, limit);
         //修改逻辑历史处方中获取的处方列表：只显示未处理、未支付、审核不通过、失败、已完成状态的
@@ -601,7 +612,24 @@ public class RecipeListService extends RecipeBaseService{
         if (CollectionUtils.isNotEmpty(recipes)) {
             for (Recipe recipe : recipes) {
                 Map<String, Object> map = Maps.newHashMap();
-                recipe.setRecipeDrugName(recipeDetailDAO.getDrugNamesByRecipeId(recipe.getRecipeId()));
+                //设置处方具体药品名称
+                List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+                StringBuilder stringBuilder = new StringBuilder();
+
+                for (Recipedetail recipedetail : recipedetails) {
+                    List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipe.getClinicOrgan());
+                    if (organDrugLists != null) {
+                        stringBuilder.append(organDrugLists.get(0).getSaleName());
+                        if (StringUtils.isNotEmpty(organDrugLists.get(0).getDrugForm())) {
+                            stringBuilder.append(organDrugLists.get(0).getDrugForm());
+                        }
+                    } else {
+                        stringBuilder.append(recipedetail.getDrugName());
+                    }
+                    stringBuilder.append(" ").append(recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit()).append("、");
+                }
+                stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
+                recipe.setRecipeDrugName(stringBuilder.toString());
                 recipe.setRecipeShowTime(recipe.getCreateDate());
                 boolean effective = false;
                 //只有审核未通过的情况需要看订单状态
@@ -780,6 +808,8 @@ public class RecipeListService extends RecipeBaseService{
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
         List<PatientTabStatusRecipeDTO> backList = Lists.newArrayList();
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         if (CollectionUtils.isNotEmpty(list)) {
             backList = ObjectCopyUtils.convert(list, PatientTabStatusRecipeDTO.class);
             //处理订单类型数据
@@ -821,6 +851,14 @@ public class RecipeListService extends RecipeBaseService{
                     }
                     //药品详情
                     List<Recipedetail> recipedetailList = detailDAO.findByRecipeId(record.getRecordId());
+
+                    for (Recipedetail recipedetail : recipedetailList) {
+                        Recipe recipe = recipeDAO.getByRecipeId(recipedetail.getRecipeId());
+                        List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipe.getClinicOrgan());
+                        if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                            recipedetail.setDrugForm(organDrugLists.get(0).getDrugForm());
+                        }
+                    }
                     record.setRecipeDetail(ObjectCopyUtils.convert(recipedetailList, RecipeDetailBean.class));
                 } else if (LIST_TYPE_ORDER.equals(record.getRecordType())) {
                     RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
@@ -852,7 +890,15 @@ public class RecipeListService extends RecipeBaseService{
                                     // 订单支付方式
                                     record.setPayMode(recipe.getPayMode());
                                     //药品详情
-                                    record.setRecipeDetail(recipe.getRecipeDetail());
+                                    List<RecipeDetailBean> recipedetailList = recipe.getRecipeDetail();
+                                    for (RecipeDetailBean recipedetail : recipedetailList) {
+                                        Recipe recipes = recipeDAO.getByRecipeId(recipedetail.getRecipeId());
+                                        List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipes.getClinicOrgan());
+                                        if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                                            recipedetail.setDrugForm(organDrugLists.get(0).getDrugForm());
+                                        }
+                                    }
+                                    record.setRecipeDetail(recipedetailList);
                                     if (RecipeStatusConstant.CHECK_PASS == recipe.getStatusCode()
                                             && OrderStatusConstant.READY_PAY.equals(record.getStatusCode())) {
                                         record.setRecipeSurplusHours(recipe.getRecipeSurplusHours());

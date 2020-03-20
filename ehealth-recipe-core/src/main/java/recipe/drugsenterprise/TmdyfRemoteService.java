@@ -80,6 +80,11 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         LOGGER.info("TmdyfRemoteService tokenUpdateImpl not implement.");
     }
 
+    @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+        return "暂不支持库存查询";
+    }
+
     /*
      * @description 获取天猫大药房的跳转url并且发送处方
      * @author gmw

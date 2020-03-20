@@ -88,6 +88,9 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
     @ItemProperty(alias = "平台商品名")
     private String platformSaleName;
 
+    @ItemProperty(alias = "剂型")
+    private String drugForm;
+
     public CommonRecipeDrugDTO() {
     }
 
@@ -273,5 +276,13 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
 
     public void setOrganDrugCode(String organDrugCode) {
         this.organDrugCode = organDrugCode;
+    }
+
+    public String getDrugForm() {
+        return drugForm;
+    }
+
+    public void setDrugForm(String drugForm) {
+        this.drugForm = drugForm;
     }
 }

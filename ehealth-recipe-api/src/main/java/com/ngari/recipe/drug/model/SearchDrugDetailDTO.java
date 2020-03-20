@@ -124,6 +124,9 @@ public class SearchDrugDetailDTO implements Serializable {
     @ItemProperty(alias = "库存")
     private BigDecimal inventory;
 
+    @ItemProperty(alias = "剂型")
+    private String drugForm;
+
     public Integer getDrugId() {
         return drugId;
     }
@@ -386,5 +389,13 @@ public class SearchDrugDetailDTO implements Serializable {
 
     public void setInventory(BigDecimal inventory) {
         this.inventory = inventory;
+    }
+
+    public String getDrugForm() {
+        return drugForm;
+    }
+
+    public void setDrugForm(String drugForm) {
+        this.drugForm = drugForm;
     }
 }

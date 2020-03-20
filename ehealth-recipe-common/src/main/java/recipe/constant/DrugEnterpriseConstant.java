@@ -82,4 +82,33 @@ public class DrugEnterpriseConstant {
      * 杭州互联网处方流转平台
      */
     public static final String COMPANY_HZ = "hzInternet";
+    /**
+     * 百洋集团
+     */
+    public static final String COMPANY_BY = "by";
+
+    /**
+     * 英特药企
+     */
+    public static final String COMPANY_YK = "yk";
+
+    /**
+     * 上海国药
+     */
+    public static final String COMPANY_COMMON_SH = "commonSH";
+
+    /**
+     * 上海益友
+     */
+    public static final String COMPANY_SHYY = "shyy";
+
+    /**
+     * 云南医药
+     */
+    public static final String COMPANY_YNS = "yns";
+
+    /**
+     * 昆明市第一人民医院
+     */
+    public static final String COMPANY_KMS = "kms";
 }

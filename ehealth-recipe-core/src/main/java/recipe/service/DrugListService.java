@@ -27,6 +27,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.dao.DispensatoryDAO;
 import recipe.dao.DrugListDAO;
 import recipe.dao.SaleDrugListDAO;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.serviceprovider.BaseService;
 
 import java.util.*;
@@ -183,22 +184,29 @@ public class DrugListService extends BaseService<DrugListBean> {
     }
 
     @RpcService
-    public int isExistDrugId(Integer depId,Integer drugId){
+    public int isExistDrugId(Integer depId,Integer drugId, Integer organDrugId){
         if (drugId == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugId is required");
         }
         DrugListDAO dao = getDAO(DrugListDAO.class);
         DrugList drugList = dao.getById(drugId);
-        if (drugList != null) {
+
+        if (drugList == null) {
             return 1;
         } else {
             SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, depId);
-            if (saleDrugList == null) {
+            //说明用户修改药品ID
+            SaleDrugList tagersaleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, depId);
+            if (tagersaleDrugList == null) {
+                return 0;
+            }
+            logger.info("DrugListSerevice.isExistDrugId tagersaleDrugList:{"+JSONUtils.toString(tagersaleDrugList)+"},organDrugId:{"+organDrugId+"}.");
+            if (tagersaleDrugList.getOrganDrugId().equals(organDrugId)) {
+                return 0;
+            } else {
                 return 2;
             }
         }
-        return 0;
     }
 
     /**
@@ -555,5 +563,15 @@ public class DrugListService extends BaseService<DrugListBean> {
             RecipeUtil.getHospitalPrice(organId, dList);
         }
         return getList(dList, DrugListBean.class);
+    }
+
+    @RpcService
+    public Map<String, Object> getDrugInventory(Integer depId, Integer drugId){
+        Map<String, Object> map = new HashMap<>();
+        RemoteDrugEnterpriseService enterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        String inventory = enterpriseService.getDrugInventory(depId, drugId);
+        //根据药企ID查询该药企该药品的库存数量
+        map.put("inventory", inventory);
+        return map;
     }
 }

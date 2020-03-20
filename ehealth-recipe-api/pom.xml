@@ -6,7 +6,7 @@
     <parent>
         <artifactId>ehealth-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>1.17.1.master-SNAPSHOT</version>
+        <version>1.17.16.hotfix-20200313-SNAPSHOT</version>
     </parent>
 
     <packaging>jar</packaging>
@@ -19,6 +19,23 @@
             <groupId>ssdev</groupId>
             <artifactId>ssdev-mixins</artifactId>
             <version>${ssdev.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>ehealth-bill-api</artifactId>
+            <version>${ngari.bill.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-his-api</artifactId>
+            <version>${ngari.hisapi.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>ehealth-patient-api</artifactId>
+                    <groupId>ngari</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 </project>

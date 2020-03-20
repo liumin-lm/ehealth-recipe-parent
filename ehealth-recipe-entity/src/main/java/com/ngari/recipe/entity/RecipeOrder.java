@@ -220,7 +220,7 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "医保结算人脸识别token")
     private String smkFaceToken;
 
-    @ItemProperty(alias = "订单类型，暂定1表示省医保")
+    @ItemProperty(alias = "订单类型，暂定1表示省医保 2 杭州市医保 3省医保小程序 4上海市医保")
     @Dictionary(id = "eh.cdr.dictionary.RecipeOrderOrderType")
     private Integer orderType;
 
@@ -260,6 +260,22 @@ public class RecipeOrder implements Serializable {
     public void setHisEnterpriseName(String hisEnterpriseName) {
         this.hisEnterpriseName = hisEnterpriseName;
     }
+
+    @ItemProperty(alias = "订单退款标识")
+    private Integer refundFlag;
+
+    @ItemProperty(alias = "订单退款时间")
+    private Date refundTime;
+
+    @ItemProperty(alias = "医保结算信息串")
+    private String medicalSettleInfo;
+
+    @ItemProperty(alias = "医保代码")
+    private String medicalSettleCode;
+
+    @ItemProperty(alias = "卫宁付下的支付方式(卫宁的字典)ybpay=全医保支付 1支付宝手机支付 7微信公众号支付 随申办支付宝支付126 随申办微信支付127 随申办银联支付128")
+    private String wnPayWay;
+
 
     @Column(name = "cancelReason")
     public String getCancelReason() {
@@ -886,5 +902,51 @@ public class RecipeOrder implements Serializable {
 
     public void setCashAmount(Double cashAmount) {
         this.cashAmount = cashAmount;
+    }
+
+    @Column(name = "refundFlag")
+    public Integer getRefundFlag() {
+        return refundFlag;
+    }
+
+    public void setRefundFlag(Integer refundFlag) {
+        this.refundFlag = refundFlag;
+    }
+
+    @Column(name = "refundTime")
+    public Date getRefundTime() {
+        return refundTime;
+    }
+
+    public void setRefundTime(Date refundTime) {
+        this.refundTime = refundTime;
+    }
+
+    @Column(name = "medicalSettleInfo")
+    public String getMedicalSettleInfo() {
+        return medicalSettleInfo;
+    }
+
+    public void setMedicalSettleInfo(String medicalSettleInfo) {
+        this.medicalSettleInfo = medicalSettleInfo;
+    }
+
+    @Column(name = "medicalSettleCode")
+    public String getMedicalSettleCode() {
+        return medicalSettleCode;
+    }
+
+    public void setMedicalSettleCode(String medicalSettleCode) {
+        this.medicalSettleCode = medicalSettleCode;
+    }
+
+    @Column(name = "WnPayWay")
+    public String getWnPayWay() {
+        return wnPayWay;
+    }
+
+
+    public void setWnPayWay(String wnPayWay) {
+        this.wnPayWay = wnPayWay;
     }
 }

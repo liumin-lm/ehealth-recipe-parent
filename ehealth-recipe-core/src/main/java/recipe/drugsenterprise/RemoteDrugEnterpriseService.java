@@ -144,6 +144,20 @@ public class RemoteDrugEnterpriseService {
         return result.getCode().equals(DrugEnterpriseResult.SUCCESS) ? true : false;
     }
 
+    @RpcService
+    public String getDrugInventory(Integer depId, Integer drugId){
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        LOGGER.info("getDrugInventory depId:{}, drugId:{}", depId, drugId);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+        result.setAccessDrugEnterpriseService(this.getServiceByDep(drugsEnterprise));
+        if (DrugEnterpriseResult.SUCCESS.equals(result.getCode()) && null != result.getAccessDrugEnterpriseService()) {
+           return  result.getAccessDrugEnterpriseService().getDrugInventory(drugId, drugsEnterprise);
+        } else {
+            return "0";
+        }
+    }
+
 
     /**
      * 药师审核通过通知消息

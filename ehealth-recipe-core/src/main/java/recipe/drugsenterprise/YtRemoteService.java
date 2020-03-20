@@ -129,6 +129,34 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         }
 
     }
+
+    @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        SaleDrugList saleDrug = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
+        Pharmacy pharmacy = new Pharmacy();
+        if ("yt".equals(drugsEnterprise.getAccount())) {
+            pharmacy.setPharmacyCode("YMO0111470");
+        }
+        if ("yt_sy".equals(drugsEnterprise.getAccount())) {
+            pharmacy.setPharmacyCode("YK45286");
+        }
+        try{
+            CloseableHttpClient httpClient = HttpClients.createDefault();
+            CloseableHttpResponse response = sendStockHttpRequest(drugsEnterprise, saleDrug, pharmacy, httpClient);
+            HttpEntity httpEntity = response.getEntity();
+            String responseStr = EntityUtils.toString(httpEntity);
+            LOGGER.info("YtRemoteService.getDrugInventory:[{}]门店该[{}]药品查询库存，请求返回:{}", pharmacy.getPharmacyCode(), saleDrug.getOrganDrugCode(), responseStr);
+            if(CommonConstant.requestSuccessCode == response.getStatusLine().getStatusCode()) {
+                YtStockResponse stockResponse = JSONUtils.parse(responseStr, YtStockResponse.class);
+                return stockResponse.getStock().toString();
+            }
+        }catch (Exception e){
+            LOGGER.info("YtRemoteService.getDrugInventory:运营平台查询药品库存失败, {},{},{}", drugId, drugsEnterprise.getName(), e.getMessage());
+        }
+        return "暂不支持库存查询";
+    }
+
     /**
      * @method  sendTokenAndUpdateHttpRequest
      * @description 发送http请求获得新的token信息,并更新
@@ -409,7 +437,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         sendYtRecipe.setHzMedicalFlag(ytHzMedicalFlag);
         sendYtRecipe.setpTime(getNewTime(nowRecipe.getSignDate(), ytpTimeCheck));
         sendYtRecipe.setValidDay(ytValidDay);
-        sendYtRecipe.setCostType(ytCostType);
+
         sendYtRecipe.setRecordNo(nowRecipe.getPatientID());
 
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -420,19 +448,48 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 sendYtRecipe.setServiceFree(recipeOrder.getRegisterFee().doubleValue());
                 sendYtRecipe.setPrescriptionChecking(recipeOrder.getAuditFee().doubleValue());
                 sendYtRecipe.setTotalAmount(recipeOrder.getTotalFee().doubleValue());
+                sendYtRecipe.setOrderNo(recipeOrder.getOutTradeNo());
+                if (recipeOrder.getOrderType() != null && recipeOrder.getOrderType() == 1) {
+                    sendYtRecipe.setCostType(2);
+                } else {
+                    sendYtRecipe.setCostType(1);
+                }
                 if (1 == nowRecipe.getGiveMode()) {
                     sendYtRecipe.setGiveModel(1);
                 } else if (3 == nowRecipe.getGiveMode()) {
                     sendYtRecipe.setGiveModel(0);
                 }
+                String province = getAddressDic(recipeOrder.getAddress1());
+                String city = getAddressDic(recipeOrder.getAddress2());
+                String district = getAddressDic(recipeOrder.getAddress3());
+                sendYtRecipe.setProvince(province);
+                sendYtRecipe.setCity(city);
+                sendYtRecipe.setDistrict(district);
             }
         }
 
-        sendYtRecipe.setIfPay(ytIfPay);
+        //如果是药店取药的则没有进行支付
+        if (nowRecipe.getPayMode() == 1) {
+            sendYtRecipe.setIfPay(ytIfPay);
+        } else {
+            sendYtRecipe.setIfPay(0);
+        }
+
         sendYtRecipe.setSource(ytSource);
         sendYtRecipe.setRecipeId(nowRecipe.getRecipeId());
         sendYtRecipe.setDiagnose(nowRecipe.getOrganDiseaseName());
         sendYtRecipe.setRecipeType(nowRecipe.getRecipeType());
+    }
+
+    private String getAddressDic(String area) {
+        if (StringUtils.isNotEmpty(area)) {
+            try {
+                return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
+            } catch (ControllerException e) {
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area);
+            }
+        }
+        return "";
     }
 
     /**
@@ -692,6 +749,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             SaleDrugList saleDrug = null;
             //遍历药店，判断当有一个药店的所有的药品的库存量都够的话判断为库存足够
             boolean checkScan = false;
+            LOGGER.info("YtRemoteService.scanStock pharmacyList:{}.", JSONUtils.toString(pharmacyList));
             for (Pharmacy pharmacy : pharmacyList) {
                 GroupSumResult groupSumResult = checkDrugListByDeil(drugGroup, drugsEnterprise, saleDrug, result, pharmacy, false, recipeId);
                 //只有当某一家药店有所有处方详情下的药品并且库存不超过，查询库存的结果设为成功
@@ -748,6 +806,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                     //当相应状态为200时返回json
                     HttpEntity httpEntity = response.getEntity();
                     String responseStr = EntityUtils.toString(httpEntity);
+                    LOGGER.info("YtRemoteService.scanStock.responseStr:{}", responseStr);
                     if(CommonConstant.requestSuccessCode == response.getStatusLine().getStatusCode()){
                         YtStockResponse stockResponse = JSONUtils.parse(responseStr, YtStockResponse.class);
                         LOGGER.info("YtRemoteService.scanStock:[{}]门店该[{}]药品查询库存，请求返回:{}", pharmacy.getPharmacyCode(), saleDrug.getOrganDrugCode(), responseStr);
@@ -756,7 +815,9 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
                             String msg = "药企:"+drugsEnterprise.getName()+",药品名称:" + saleDrug.getDrugName() + ",药品库存:" + stockResponse.getStock() + ",平台药品编码:"+saleDrug.getDrugId() + ",药店编码:"+stockResponse.getCode()+",处方单号:"+recipeId;
                             LOGGER.info("YtRemoteService.scanStock:{}", msg);
-                            RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), msg);
+                            if (recipe != null && recipe.getStatus() == 0) {
+                                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), msg);
+                            }
                         }catch(Exception e){
                             LOGGER.error("YtRemoteService.checkDrugListByDeil error:{},{}.", recipeId, e.getMessage());
                         }
@@ -804,10 +865,12 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
     private CloseableHttpResponse sendStockHttpRequest(DrugsEnterprise drugsEnterprise, SaleDrugList saleDrug, Pharmacy pharmacy, CloseableHttpClient httpClient) throws IOException {
         HttpGet httpGet = new HttpGet(drugsEnterprise.getBusinessUrl() +
                 getStock + "/" + pharmacy.getPharmacyCode() + "/" + saleDrug.getOrganDrugCode());
+        LOGGER.info("YtRemoteService.sendStockHttpRequest url:{}.", drugsEnterprise.getBusinessUrl() +
+                getStock + "/" + pharmacy.getPharmacyCode() + "/" + saleDrug.getOrganDrugCode());
         //组装请求参数(组装权限验证部分)
         httpGet.setHeader(requestHeadJsonKey, requestHeadJsonValue);
         httpGet.setHeader(requestHeadPowerKey, drugsEnterprise.getToken());
-        LOGGER.info("YtRemoteService.scanStock:[{}]门店该[{}]药品发送查询库存请求", pharmacy.getPharmacyCode(), saleDrug.getOrganDrugCode());
+        LOGGER.info("YtRemoteService.sendStockHttpRequest:[{}]门店该[{}]药品发送查询库存请求", pharmacy.getPharmacyCode(), saleDrug.getOrganDrugCode());
 
         //获取响应消息
         return httpClient.execute(httpGet);

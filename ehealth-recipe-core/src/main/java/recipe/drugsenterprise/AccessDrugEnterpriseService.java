@@ -179,6 +179,14 @@ public abstract class AccessDrugEnterpriseService {
 
 
     /**
+     *
+     * @param drugId  药品ID
+     * @param drugsEnterprise  药企
+     * @return  库存
+     */
+    public abstract String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise);
+
+    /**
      * 库存检验
      *
      * @param recipeId        处方ID

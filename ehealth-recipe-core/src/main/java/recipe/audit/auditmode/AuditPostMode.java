@@ -4,26 +4,24 @@ import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import eh.base.constant.BussTypeConstant;
 import eh.cdr.constant.RecipeStatusConstant;
 import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.constant.*;
-import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.recipecheck.HisCheckRecipeService;
+import recipe.recipecheck.RecipeCheckService;
 import recipe.service.*;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
@@ -94,8 +92,8 @@ public class AuditPostMode extends AbstractAuidtMode {
                     //货到付款添加支付成功后修改状态
                     if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
                         status = RecipeStatusConstant.READY_CHECK_YS;
+                        memo = "配送到家-货到付款成功";
                     }
-                    memo = "配送到家-货到付款成功";
                 }
             } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)) {
                 //医院取药-线上支付，这块其实已经用不到了
@@ -105,8 +103,8 @@ public class AuditPostMode extends AbstractAuidtMode {
                 //添加支付成功后修改状态
                 if(PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag){
                     status = RecipeStatusConstant.READY_CHECK_YS;
+                    memo = "医院取药-线上支付部分费用(除药品费)成功";
                 }
-                memo = "医院取药-线上支付成功";
             } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode)) {
                 //收到userConfirm通知
 //                status = RecipeStatusConstant.READY_CHECK_YS;
@@ -115,8 +113,9 @@ public class AuditPostMode extends AbstractAuidtMode {
                 //添加支付成功后修改状态
                 if(PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag){
                     status = RecipeStatusConstant.READY_CHECK_YS;
+                    memo = "药店取药-线上支付部分费用(除药品费)成功";
                 }
-                memo = "药店取药-到店取药成功";
+
             }else if (RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(giveMode)){
                 if(PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag){
                     status = RecipeStatusConstant.READY_CHECK_YS;
@@ -132,6 +131,10 @@ public class AuditPostMode extends AbstractAuidtMode {
         }
 
         super.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(),status,attrMap,result);
+
+        //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
+        HisCheckRecipeService hisCheckRecipeService = ApplicationUtils.getRecipeService(HisCheckRecipeService.class);
+        hisCheckRecipeService.sendCheckRecipeInfo(dbRecipe);
 
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
             if (RecipeStatusConstant.READY_CHECK_YS == status) {
@@ -153,19 +156,22 @@ public class AuditPostMode extends AbstractAuidtMode {
                                 "updateRecipePayResultImplForOrder 药师自动审核失败:" + e.getMessage());
                     }
                 } else {
-                    //如果处方 在待药师审核状态 给对应机构的药师进行消息推送
-                    RecipeMsgService.batchSendMsg(dbRecipe.getRecipeId(), status);
                     if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())) {
                         //进行身边医生消息推送
                         RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_READYCHECK_4HIS, dbRecipe);
                     }
-
-                    if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(dbRecipe.getRecipeMode())) {
-                        //增加药师首页待处理任务---创建任务
-                        Recipe recipe = recipeDAO.getByRecipeId(dbRecipe.getRecipeId());
-                        RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
-                        ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
+                    //平台审方下才推送
+                    if (new Integer(1).equals(dbRecipe.getCheckMode())){
+                        //如果处方 在待药师审核状态 给对应机构的药师进行消息推送
+                        RecipeMsgService.batchSendMsg(dbRecipe.getRecipeId(), status);
+                        if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(dbRecipe.getRecipeMode())) {
+                            //增加药师首页待处理任务---创建任务
+                            Recipe recipe = recipeDAO.getByRecipeId(dbRecipe.getRecipeId());
+                            RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+                            ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
+                        }
                     }
+
                 }
             }
             if (RecipeStatusConstant.CHECK_PASS_YS == status) {

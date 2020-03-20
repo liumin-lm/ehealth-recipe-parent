@@ -1,23 +1,12 @@
 package recipe.service.common;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ngari.base.employment.service.IEmploymentService;
-import com.ngari.base.patient.model.PatientBean;
-import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
-import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
-import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
-import com.ngari.his.recipe.mode.HisCheckRecipeReqTO;
-import com.ngari.his.recipe.mode.RecipeOrderItemTO;
-import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.DepartmentService;
-import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeCommonBaseTO;
@@ -29,8 +18,6 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
-import ctd.spring.AppDomainContext;
-import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -42,14 +29,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
-import recipe.bussutil.RecipeUtil;
-import recipe.bussutil.UsePathwaysFilter;
-import recipe.bussutil.UsingRateFilter;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
-import recipe.hisservice.RecipeToHisService;
+import recipe.recipecheck.RecipeCheckService;
 import recipe.service.*;
 import recipe.thread.PushRecipeToHisCallable;
 import recipe.thread.RecipeBusiThreadPool;
@@ -331,7 +315,7 @@ public class RecipeSignService {
         if (recipe == null){
             throw new DAOException(ErrorCode.SERVICE_ERROR,"该处方不存在");
         }
-        RecipeServiceSub.canOpenRecipeDrugs(recipeId,drugIds);
+        RecipeServiceSub.canOpenRecipeDrugs(recipe.getClinicOrgan(), recipeId,drugIds);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         boolean isSupport = false;
@@ -399,17 +383,11 @@ public class RecipeSignService {
         String recipeCodeStr = "ngari" + DigestUtil.md5For16(recipeBean.getClinicOrgan() +
                 recipeBean.getMpiid() + Calendar.getInstance().getTimeInMillis());
         recipeBean.setRecipeCode(recipeCodeStr);
-        //11月大版本改造 咨询id由前端传入
-       /* //根据申请人mpiid，requestMode 获取当前咨询单consultId
-        IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-        List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipeBean.getRequestMpiId(),
-                recipeBean.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
-        Integer consultId = null;
-        if (CollectionUtils.isNotEmpty(consultIds)) {
-            consultId = consultIds.get(0);
-            recipeBean.setClinicId(consultId);
-            rMap.put("consultId", consultId);
-        }*/
+        //如果前端没有传入咨询id则从进行中的复诊或者咨询里取
+        //获取咨询单id,有进行中的复诊则优先取复诊，若没有则取进行中的图文咨询
+        if (recipeBean.getClinicId()==null){
+            recipeService.getConsultIdForRecipeSource(recipeBean);
+        }
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
         if (null != recipeId && recipeId > 0) {
             Integer status = recipeDAO.getStatusByRecipeId(recipeId);

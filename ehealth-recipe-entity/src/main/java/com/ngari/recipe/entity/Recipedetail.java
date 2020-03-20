@@ -147,6 +147,30 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias = "剂型")
 	private String drugForm;
 
+	//date 20200225
+	//同步机构药品信息新添字段
+	@ItemProperty(alias = "生产厂家")
+	private String producer;
+
+	//date 20200225
+	//同步机构药品信息新添字段
+	@ItemProperty(alias = "批准文号")
+	private String licenseNumber;
+
+	//date 20200225
+	//同步机构药品信息新添字段
+	@ItemProperty(alias = "生产厂家代码")
+	private String producerCode;
+
+	@ItemProperty(alias = "实际销售价格")
+	private BigDecimal actualSalePrice;
+
+	@ItemProperty(alias = "药企药品编码")
+	private String saleDrugCode;
+
+
+
+
 	public Recipedetail() {
 	}
 
@@ -193,6 +217,33 @@ public class Recipedetail implements java.io.Serializable {
 		this.price = price;
 		this.rate = rate;
 		this.ratePrice = ratePrice;
+	}
+
+	@Column(name = "licenseNumber")
+	public String getLicenseNumber() {
+		return licenseNumber;
+	}
+
+	public void setLicenseNumber(String licenseNumber) {
+		this.licenseNumber = licenseNumber;
+	}
+
+	@Column(name = "ProducerCode", length = 20)
+	public String getProducerCode() {
+		return producerCode;
+	}
+
+	public void setProducerCode(String producerCode) {
+		this.producerCode = producerCode;
+	}
+
+	@Column(name = "producer")
+	public String getProducer() {
+		return producer;
+	}
+
+	public void setProducer(String producer) {
+		this.producer = producer;
 	}
 
 	@Id
@@ -563,5 +614,23 @@ public class Recipedetail implements java.io.Serializable {
 
 	public void setDrugForm(String drugForm) {
 		this.drugForm = drugForm;
+	}
+
+	@Column(name = "actualSalePrice")
+	public BigDecimal getActualSalePrice() {
+		return actualSalePrice;
+	}
+
+	public void setActualSalePrice(BigDecimal actualSalePrice) {
+		this.actualSalePrice = actualSalePrice;
+	}
+
+	@Column(name = "saleDrugCode")
+	public String getSaleDrugCode() {
+		return saleDrugCode;
+	}
+
+	public void setSaleDrugCode(String saleDrugCode) {
+		this.saleDrugCode = saleDrugCode;
 	}
 }

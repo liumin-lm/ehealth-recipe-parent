@@ -124,6 +124,14 @@ public class RecipeExtend implements Serializable {
         this.deliveryRecipeFee = deliveryRecipeFee;
     }
 
+    @ItemProperty(alias = "处方预结算返回应付金额")
+    private String payAmount;
+
+    @ItemProperty(alias = "处方来源 0 线下his同步 1 平台处方")
+    private Integer fromFlag;
+
+
+
     public RecipeExtend() {
     }
 
@@ -370,5 +378,23 @@ public class RecipeExtend implements Serializable {
 
     public void setCashAmount(String cashAmount) {
         this.cashAmount = cashAmount;
+    }
+
+    @Column(name = "payAmount")
+    public String getPayAmount() {
+        return payAmount;
+    }
+
+    public void setPayAmount(String payAmount) {
+        this.payAmount = payAmount;
+    }
+
+    @Column(name = "fromFlag")
+    public Integer getFromFlag() {
+        return fromFlag;
+    }
+
+    public void setFromFlag(Integer fromFlag) {
+        this.fromFlag = fromFlag;
     }
 }
