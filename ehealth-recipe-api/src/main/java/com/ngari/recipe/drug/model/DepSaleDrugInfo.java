@@ -8,7 +8,7 @@ import java.io.Serializable;
 public class DepSaleDrugInfo implements Serializable {
     private static final long serialVersionUID = -7133021932958904909L;
     private String drugEnterpriseName;
-    private String saleDrugName;
+    private String saleDrugCode;
 
     public String getDrugEnterpriseName() {
         return drugEnterpriseName;
@@ -18,11 +18,11 @@ public class DepSaleDrugInfo implements Serializable {
         this.drugEnterpriseName = drugEnterpriseName;
     }
 
-    public String getSaleDrugName() {
-        return saleDrugName;
+    public String getSaleDrugCode() {
+        return saleDrugCode;
     }
 
-    public void setSaleDrugName(String saleDrugName) {
-        this.saleDrugName = saleDrugName;
+    public void setSaleDrugCode(String saleDrugCode) {
+        this.saleDrugCode = saleDrugCode;
     }
 }
