@@ -435,6 +435,8 @@ public class OrganDrugListService {
             backDTO = new DrugListAndOrganDrugListDTO();
             backDTO.setDrugList(ObjectCopyUtils.convert(daod.getDrugList(), DrugListBean.class));
             backDTO.setOrganDrugList(ObjectCopyUtils.convert(daod.getOrganDrugList(), OrganDrugListDTO.class));
+            backDTO.setCanSend(daod.getCanDrugSend());
+            backDTO.setDepSaleDrugInfos(daod.getDepSaleDrugInfos());
             newList.add(backDTO);
         }
 

@@ -349,4 +349,12 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                                                      @DAOParam(pageStart = true) int start,
                                                      @DAOParam(pageLimit = true) int limit);
 
+    /**
+     * 根据drugId查询所有配送药品
+     * @param drugId  平台药品id
+     * @return         药品列表
+     */
+    @DAOMethod(sql = "from SaleDrugList where drugId=:drugId and status = 1",limit = 0)
+    public abstract List<SaleDrugList> findByDrugId(@DAOParam("drugId") int drugId);
+
 }

@@ -1,9 +1,9 @@
 package recipe.dao;
 
 import com.alibaba.druid.util.StringUtils;
-import com.ngari.recipe.entity.DrugList;
-import com.ngari.recipe.entity.DrugListMatch;
-import com.ngari.recipe.entity.OrganDrugList;
+import com.google.common.collect.Lists;
+import com.ngari.recipe.drug.model.DepSaleDrugInfo;
+import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -19,6 +19,7 @@ import ctd.util.annotation.RpcSupportDAO;
 import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import recipe.dao.bean.DrugInfoHisBean;
 import recipe.dao.bean.DrugListAndOrganDrugList;
@@ -329,11 +330,39 @@ public abstract class OrganDrugListDAO extends
                     query.setMaxResults(limit);
                     List<OrganDrugList> list = query.list();
                     List<DrugListAndOrganDrugList> result = new ArrayList<>();
+                    DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+                    SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+                    DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                    DrugList drug;
+                    DrugListAndOrganDrugList drugListAndOrganDrugList;
+                    List<SaleDrugList> saleDrugLists;
                     for (OrganDrugList organDrugList : list) {
                         //查找drug
-                        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-                        DrugList drug = drugListDAO.getById(organDrugList.getDrugId());
-                        result.add(new DrugListAndOrganDrugList(drug, organDrugList));
+                        drug = drugListDAO.getById(organDrugList.getDrugId());
+                        drugListAndOrganDrugList = new DrugListAndOrganDrugList();
+                        drugListAndOrganDrugList.setDrugList(drug);
+                        drugListAndOrganDrugList.setOrganDrugList(organDrugList);
+                        //查找配送目录---运营平台显示机构药品目录是否可配送
+                        saleDrugLists = saleDrugListDAO.findByDrugId(organDrugList.getDrugId());
+                        if (CollectionUtils.isEmpty(saleDrugLists)){
+                            drugListAndOrganDrugList.setCanDrugSend(false);
+                        }else {
+                            drugListAndOrganDrugList.setCanDrugSend(true);
+                            List<DepSaleDrugInfo> depSaleDrugInfos = Lists.newArrayList();
+                            for (SaleDrugList saleDrugList : saleDrugLists){
+                                DepSaleDrugInfo info = new DepSaleDrugInfo();
+                                info.setSaleDrugName(saleDrugList.getOrganDrugCode());
+                                DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(saleDrugList.getOrganId());
+                                if (enterprise !=null){
+                                    info.setDrugEnterpriseName(enterprise.getName());
+                                }else {
+                                    info.setDrugEnterpriseName("无");
+                                }
+                                depSaleDrugInfos.add(info);
+                            }
+                            drugListAndOrganDrugList.setDepSaleDrugInfos(depSaleDrugInfos);
+                        }
+                        result.add(drugListAndOrganDrugList);
                     }
                     setResult(new QueryResult<>(total, query.getFirstResult(), query.getMaxResults(), result));
                 }
