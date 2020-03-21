@@ -302,6 +302,10 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     List<RecipeDetailBean> findRecipeDetailsByRecipeId(Integer recipeId);
 
     @RpcService
+    RecipeDetailBean getRecipeDetailByDetailId(Integer detailId);
+
+
+    @RpcService
     RecipeExtendBean findRecipeExtendByRecipeId(Integer recipeId);
 
     @RpcService
@@ -393,4 +397,6 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     BigDecimal getRecipeCostCountByOrganIdAndDepartIds(Integer organId, Date startDate, Date endDate, List<Integer> deptIds);
+
+
 }

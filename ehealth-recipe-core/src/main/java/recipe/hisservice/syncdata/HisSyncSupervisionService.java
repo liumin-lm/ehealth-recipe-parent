@@ -209,6 +209,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setCAInfo(doctorDTO.getName());
             //设置医生工号
             req.setDoctorNo(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
+            req.setDoctorProTitle(doctorDTO.getProTitle());
             //设置医生电子签名
             if (doctorDTO.getESignId() != null) {
                 try {
@@ -232,6 +233,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 req.setAuditDoctorCertID(doctorDTO.getIdNumber());
                 req.setAuditDoctor(doctorDTO.getName());
                 req.setAuditDoctorId(recipe.getChecker().toString());
+                req.setAuditProTitle(doctorDTO.getProTitle());
             }
             //设置药师电子签名
             if (doctorDTO.getESignId() != null) {
@@ -255,6 +257,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setPatientCardType(LocalStringUtil.toString(patientDTO.getCertificateType()));
             req.setPatientCertID(LocalStringUtil.toString(patientDTO.getCertificate()));
             req.setPatientName(patientDTO.getPatientName());
+            req.setNation(patientDTO.getNation());
             req.setMobile(LocalStringUtil.toString(patientDTO.getMobile()));
             req.setSex(patientDTO.getPatientSex());
             req.setAge(DateConversion.calculateAge(patientDTO.getBirthday()));
@@ -264,6 +267,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setRecipeID(recipe.getRecipeId().toString());
             //处方唯一编号
             req.setRecipeUniqueID(recipe.getRecipeCode());
+            //审方时间
+            req.setCheckDate(recipe.getCheckDate());
             //互联网医院处方都是经过合理用药审查
             req.setRationalFlag("1");
             medicineList = auditMedicinesDAO.findMedicinesByRecipeId(recipe.getRecipeId());
@@ -743,6 +748,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                         return;
                     }
                     RegulationOutpatientPayReq req = new RegulationOutpatientPayReq();
+                    req.setRecipeId(recipe.getRecipeId());
+
                     PatientService patientService = BasicAPI.getService(PatientService.class);
                     PatientDTO patientDTO = patientService.getPatientDTOByMpiId(recipe.getMpiid());
                     if (patientDTO != null) {

@@ -13,10 +13,7 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.ProvUploadOrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.drug.model.DrugListAndOrganDrugListDTO;
-import com.ngari.recipe.drug.model.DrugListBean;
-import com.ngari.recipe.drug.model.OrganDrugListDTO;
-import com.ngari.recipe.drug.model.RegulationDrugCategoryBean;
+import com.ngari.recipe.drug.model.*;
 import com.ngari.recipe.drug.service.IOrganDrugListService;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugProducer;
@@ -526,6 +523,13 @@ public class OrganDrugListService implements IOrganDrugListService {
             }
         }
         return result;
+    }
+
+    @Override
+    public List<OrganDrugListBean> findByOrganIdAndDrugIdAndOrganDrugCode(int organId, int drugId, String organDrugCode) {
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIdAndOrganDrugCode(organId,drugId,organDrugCode);
+        return ObjectCopyUtils.convert(organDrugLists, OrganDrugListBean.class);
     }
 
     private List<DrugListAndOrganDrugListDTO> covertData(List<DrugListAndOrganDrugList> dbList) {
