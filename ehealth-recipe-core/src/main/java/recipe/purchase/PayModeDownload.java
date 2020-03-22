@@ -3,10 +3,7 @@ package recipe.purchase;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -19,10 +16,7 @@ import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
-import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeOrderDAO;
+import recipe.dao.*;
 import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
 
@@ -30,6 +24,8 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
 * @Description: PayModeDownloadService 类（或接口）是 承接购药方式中下载处方方式
@@ -102,6 +98,14 @@ public class PayModeDownload implements IPurchaseService{
         if(0d >= order.getActualPrice()){
             //如果不需要支付则不走支付,直接掉支付后的逻辑
             orderService.finishOrderPay(order.getOrderCode(), 1, MapValueUtil.getInteger(extInfo, "payMode"));
+            //处方来源于线下转线上的处方单
+            if (dbRecipe.getRecipeSourceType() == 2) {
+                HisRecipeDAO hisRecipeDAO = getDAO(HisRecipeDAO.class);
+                HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(dbRecipe.getClinicOrgan(), dbRecipe.getRecipeCode());
+                if (hisRecipe != null) {
+                    hisRecipeDAO.updateHisRecieStatus(dbRecipe.getClinicOrgan(), dbRecipe.getRecipeCode(), 2);
+                }
+            }
         }else{
             //需要支付则走支付前的逻辑
             orderService.finishOrderPayWithoutPay(order.getOrderCode(), payMode);
