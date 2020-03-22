@@ -14,6 +14,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
@@ -291,91 +292,44 @@ public class HisRecipeService {
         Integer payMode = recipe.getPayMode();
         Integer payFlag = recipe.getPayFlag();
         Integer giveMode = recipe.getGiveMode();
-        String orderCode = recipe.getOrderCode();
+        Integer orderStatus = order.getStatus();
         String tips = "";
         switch (status) {
             case RecipeStatusConstant.FINISH:
                 tips = "已完成";
                 break;
-            case RecipeStatusConstant.HAVE_PAY:
-                if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(giveMode)) {
-                    //配送到家
-                    tips = "待配送";
-                } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)) {
-                    //医院取药
-                    tips = "待取药";
-                }
-                break;
-            case RecipeStatusConstant.NO_OPERATOR:
-            case RecipeStatusConstant.NO_PAY:
-                tips = "已失效";
-                break;
-            case RecipeStatusConstant.NO_DRUG:
-                tips = "已失效";
-                break;
             case RecipeStatusConstant.CHECK_PASS:
                 if (null == payMode || null == giveMode) {
-                    tips = "";
-                } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(payMode) && 0 == payFlag) {
+                    tips = "待处理";
+                } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(payMode)) {
                     tips = "待取药";
-                }
+                } else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(giveMode)) {
+                    if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                        if (payFlag == 0) {
+                            tips = "待支付";
+                        } else {
+                            if (OrderStatusConstant.READY_SEND.equals(orderStatus)) {
+                                tips = "待配送";
+                            } else if (OrderStatusConstant.SENDING.equals(orderStatus)) {
+                                tips = "配送中";
+                            } else if (OrderStatusConstant.FINISH.equals(orderStatus)) {
+                                tips = "已完成";
+                            }
+                        }
+                    }
 
-                if (StringUtils.isNotEmpty(orderCode) && null != order && 1 == order.getEffective()) {
-                    tips = "待取药";
-                }
-
-                break;
-            case RecipeStatusConstant.READY_CHECK_YS:
-                if (RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
-                    //在线支付
-                    tips = "待配送";
-                } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode) || RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
-                    tips = "待审核";
-                }
-                break;
-            case RecipeStatusConstant.WAIT_SEND:
-            case RecipeStatusConstant.CHECK_PASS_YS:
-                if (RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
-                    //在线支付
-                    tips = "待配送";
-                } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode)) {
-                    //货到付款
-                    tips = "待配送";
-                } else if (RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
-                    tips = "待取药";
-                }
-                break;
-            case RecipeStatusConstant.IN_SEND:
-                if (RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
-                    //在线支付
-                    tips = "待配送";
-                } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode)) {
-                    //货到付款
-                    tips = "配送中";
-                }
-                break;
-            case RecipeStatusConstant.CHECK_NOT_PASS_YS:
-                tips = "已失效";
-                if (StringUtils.isNotEmpty(orderCode) && null != order && 1 == order.getEffective()) {
-                    if (RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
-                        //在线支付
-                        tips = "待配送";
-                    } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode) || RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
-                        tips = "待审核";
+                } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) && StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                    if (OrderStatusConstant.HAS_DRUG.equals(orderStatus)) {
+                        if (payFlag == 0) {
+                            tips = "待支付";
+                        } else {
+                            tips = "待取药";
+                        }
                     }
                 }
-
-                break;
-            case RecipeStatusConstant.REVOKE:
-                tips = "已失效";
-                break;
-            //天猫特殊状态
-            case RecipeStatusConstant.USING:
-                tips = "处理中";
                 break;
             default:
-                tips = "未知状态" + status;
-
+                tips = "待取药";
         }
         return tips;
     }
