@@ -124,9 +124,8 @@ public class HisRecipeService {
                     result.add(hisRecipeVO);
                 } else {
                     RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                    RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-                    hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
                     if (StringUtils.isEmpty(recipe.getOrderCode())) {
+                        hisRecipeVO.setStatusText(getRecipeStatusTabText(recipe.getStatus()));
                         if (recipeExtend != null && recipeExtend.getFromFlag() == 0) {
                             hisRecipeVO.setFromFlag(1);
                             hisRecipeVO.setJumpPageType(0);
@@ -142,6 +141,8 @@ public class HisRecipeService {
                             result.add(hisRecipeVO);
                         }
                     } else {
+                        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                        hisRecipeVO.setStatusText(getTipsByStatusForPatient(recipe, recipeOrder));
                         hisRecipeVO.setOrderCode(recipe.getOrderCode());
                         hisRecipeVO.setFromFlag(recipe.getRecipeSourceType()==2?1:0);
                         if (recipe.getFromflag() != 0) {
@@ -279,6 +280,69 @@ public class HisRecipeService {
             recipedetail.setSalePrice(hisRecipeDetail.getPrice());
             recipeDetailDAO.save(recipedetail);
         }
+    }
+
+    private String getRecipeStatusTabText(int status) {
+        String msg;
+        switch (status) {
+            case RecipeStatusConstant.FINISH:
+                msg = "已完成";
+                break;
+            case RecipeStatusConstant.HAVE_PAY:
+                msg = "已支付，待取药";
+                break;
+            case RecipeStatusConstant.CHECK_PASS:
+                msg = "待处理";
+                break;
+            case RecipeStatusConstant.NO_PAY:
+                msg = "未支付";
+                break;
+            case RecipeStatusConstant.NO_OPERATOR:
+                msg = "未处理";
+                break;
+            //已撤销从已取消拆出来
+            case RecipeStatusConstant.REVOKE:
+                msg = "已撤销";
+                break;
+            //已撤销从已取消拆出来
+            case RecipeStatusConstant.DELETE:
+                msg = "已删除";
+                break;
+            //写入his失败从已取消拆出来
+            case RecipeStatusConstant.HIS_FAIL:
+                msg = "写入his失败";
+                break;
+            case RecipeStatusConstant.CHECK_NOT_PASS_YS:
+                msg = "审核不通过";
+                break;
+            case RecipeStatusConstant.IN_SEND:
+                msg = "配送中";
+                break;
+            case RecipeStatusConstant.WAIT_SEND:
+                msg = "待配送";
+                break;
+            case RecipeStatusConstant.READY_CHECK_YS:
+                msg = "待审核";
+                break;
+            case RecipeStatusConstant.CHECK_PASS_YS:
+                msg = "审核通过";
+                break;
+            //这里患者取药失败和取药失败都判定为失败
+            case RecipeStatusConstant.NO_DRUG:
+            case RecipeStatusConstant.RECIPE_FAIL:
+                msg = "失败";
+                break;
+            case RecipeStatusConstant.RECIPE_DOWNLOADED:
+                msg = "待取药";
+                break;
+            case RecipeStatusConstant.USING:
+                msg = "处理中";
+                break;
+            default:
+                msg = "未知状态";
+        }
+
+        return msg;
     }
 
 
