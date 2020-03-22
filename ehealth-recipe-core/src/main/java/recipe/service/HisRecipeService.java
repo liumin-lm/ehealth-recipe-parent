@@ -143,7 +143,7 @@ public class HisRecipeService {
                         }
                     } else {
                         hisRecipeVO.setOrderCode(recipe.getOrderCode());
-                        hisRecipeVO.setFromFlag(recipe.getFromflag()==0?1:0);
+                        hisRecipeVO.setFromFlag(recipe.getRecipeSourceType()==2?1:0);
                         if (recipe.getFromflag() != 0) {
                             hisRecipeVO.setOrganDiseaseName(recipe.getOrganDiseaseName());
                             List<HisRecipeDetailVO> recipeDetailVOS = getHisRecipeDetailVOS(recipe);
@@ -241,7 +241,8 @@ public class HisRecipeService {
         recipe.setRecipeMode("ngarihealth");
         recipe.setCopyNum(1);
         recipe.setValueDays(3);
-        recipe.setFromflag(0);
+        recipe.setFromflag(1);
+        recipe.setRecipeSourceType(2);
         recipe.setRequestMpiId(hisRecipe.getMpiId());
 
         return recipeDAO.saveRecipe(recipe);
@@ -295,6 +296,14 @@ public class HisRecipeService {
         Integer orderStatus = order.getStatus();
         String tips = "";
         switch (status) {
+            case RecipeStatusConstant.NO_PAY:
+            case RecipeStatusConstant.NO_OPERATOR:
+            case RecipeStatusConstant.REVOKE:
+            case RecipeStatusConstant.NO_DRUG:
+            case RecipeStatusConstant.DELETE:
+            case RecipeStatusConstant.HIS_FAIL:
+                tips = "已取消";
+                break;
             case RecipeStatusConstant.FINISH:
                 tips = "已完成";
                 break;
@@ -326,6 +335,8 @@ public class HisRecipeService {
                             tips = "待取药";
                         }
                     }
+                } else if (RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(giveMode)) {
+                    tips = "已完成";
                 }
                 break;
             default:
