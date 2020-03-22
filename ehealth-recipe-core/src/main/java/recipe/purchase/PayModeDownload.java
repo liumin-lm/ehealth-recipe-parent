@@ -98,14 +98,6 @@ public class PayModeDownload implements IPurchaseService{
         if(0d >= order.getActualPrice()){
             //如果不需要支付则不走支付,直接掉支付后的逻辑
             orderService.finishOrderPay(order.getOrderCode(), 1, MapValueUtil.getInteger(extInfo, "payMode"));
-            //处方来源于线下转线上的处方单
-            if (dbRecipe.getRecipeSourceType() == 2) {
-                HisRecipeDAO hisRecipeDAO = getDAO(HisRecipeDAO.class);
-                HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(dbRecipe.getClinicOrgan(), dbRecipe.getRecipeCode());
-                if (hisRecipe != null) {
-                    hisRecipeDAO.updateHisRecieStatus(dbRecipe.getClinicOrgan(), dbRecipe.getRecipeCode(), 2);
-                }
-            }
         }else{
             //需要支付则走支付前的逻辑
             orderService.finishOrderPayWithoutPay(order.getOrderCode(), payMode);
