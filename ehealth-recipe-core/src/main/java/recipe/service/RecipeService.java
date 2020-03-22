@@ -2633,6 +2633,14 @@ public class RecipeService extends RecipeBaseService{
                 result.setError("处方更新已下载状态失败");
                 return result;
             }
+            //处方来源于线下转线上的处方单
+            if (recipe.getRecipeSourceType() == 2) {
+                HisRecipeDAO hisRecipeDAO = getDAO(HisRecipeDAO.class);
+                HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
+                if (hisRecipe != null) {
+                    hisRecipeDAO.updateHisRecieStatus(recipe.getClinicOrgan(), recipe.getRecipeCode(), 2);
+                }
+            }
         }
         return result;
     }
