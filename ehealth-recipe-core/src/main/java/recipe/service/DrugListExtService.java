@@ -2,6 +2,9 @@ package recipe.service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.inject.internal.cglib.proxy.$MethodProxy;
+import com.ngari.base.searchcontent.model.SearchContentBean;
+import com.ngari.base.searchcontent.service.ISearchContentService;
 import com.ngari.base.searchservice.model.DrugSearchTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
@@ -13,6 +16,7 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.dictionary.DictionaryItem;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -22,6 +26,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
 import recipe.dao.DrugListDAO;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganDrugListDAO;
@@ -31,6 +36,7 @@ import recipe.serviceprovider.BaseService;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -196,6 +202,29 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         }
 
     }
+
+
+    /**
+     * 患者端药品目录搜索并保存搜索记录
+     * @param organId
+     * @param drugType
+     * @param drugName
+     * @param start
+     * @param MPIID
+     * @return
+     */
+    public List<SearchDrugDetailDTO> findDrugListsByNameOrCodeAndSaveRecord(Integer organId, Integer drugType, String drugName, int start,String MPIID){
+        if(StringUtils.isNotEmpty(drugName) && StringUtils.isNotEmpty(MPIID)){
+            ISearchContentService iSearchContentService = ApplicationUtils.getBaseService(ISearchContentService.class);
+            SearchContentBean searchContentBean = new SearchContentBean();
+            searchContentBean.setMpiId(MPIID);
+            searchContentBean.setContent(drugName);
+            searchContentBean.setBussType(18);
+            iSearchContentService.addSearchContent(searchContentBean,0);
+        }
+        return searchDrugListWithESForPatient(organId, drugType, drugName, start, 10);
+    }
+
 
     /**
      * zhongzx
