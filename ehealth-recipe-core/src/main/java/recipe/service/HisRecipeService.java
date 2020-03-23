@@ -1,11 +1,21 @@
 package recipe.service;
 
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.base.PatientBaseInfo;
+import com.ngari.his.recipe.mode.*;
+import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.HisRecipeDetailVO;
 import com.ngari.recipe.recipe.model.HisRecipeVO;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
+import ctd.util.AppContextHolder;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
@@ -18,6 +28,8 @@ import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
+import recipe.thread.QueryHisRecipeCallable;
+import recipe.thread.RecipeBusiThreadPool;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -66,8 +78,24 @@ public class HisRecipeService {
        if (!"ongoing".equals(status)) {
            flag = 2;
        }
-       List<HisRecipe> hisRecipes = hisRecipeDAO.findHisRecipes(organId, mpiId, flag);
-       List<HisRecipeVO> result = new ArrayList<>();
+       //查询his线下处方数据
+        //同步查询待缴费处方
+        try {
+            HisResponseTO<List<QueryHisRecipResTO>> responseTO = queryHisRecipeInfo(organId, mpiId, timeQuantum, 1);
+            if (null != responseTO) {
+                if (null != responseTO.getData()) {
+                    saveHisRecipeInfo(responseTO);
+                }
+            }
+        }catch (Exception ex){
+            LOGGER.error("queryHisRecipeInfo error:",ex);
+        }
+        //异步获取已缴费处方
+        QueryHisRecipeCallable callable = new QueryHisRecipeCallable(organId,mpiId,timeQuantum,2);
+        RecipeBusiThreadPool.submit(callable);
+
+        List<HisRecipe> hisRecipes = hisRecipeDAO.findHisRecipes(organId, mpiId, flag);
+        List<HisRecipeVO> result = new ArrayList<>();
        //根据status状态查询处方列表
         if ("ongoing".equals(status)) {
             //表示想要查询未处理的处方
@@ -157,6 +185,90 @@ public class HisRecipeService {
             }
         }
        return result;
+    }
+
+    @RpcService
+    public HisResponseTO<List<QueryHisRecipResTO>> queryHisRecipeInfo(Integer organId,String mpiId,Integer timeQuantum,Integer flag){
+        IRecipeHisService recipeHisService = AppContextHolder.getBean("his.iRecipeHisService",IRecipeHisService.class);
+        PatientService patientService = BasicAPI.getService(PatientService.class);
+        PatientDTO patientDTO = patientService.getPatientBeanByMpiId(mpiId);
+        if(null == patientDTO){
+            throw new DAOException(609,"患者信息不存在");
+        }
+        QueryRecipeRequestTO queryRecipeRequestTO = new QueryRecipeRequestTO();
+        Date startDate = tranDateByFlagNew(timeQuantum.toString());
+        PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
+        patientBaseInfo.setBirthday(patientDTO.getBirthday());
+        patientBaseInfo.setPatientName(patientDTO.getPatientName());
+        patientBaseInfo.setPatientSex(patientDTO.getPatientSex());
+        patientBaseInfo.setMobile(patientDTO.getMobile());
+        patientBaseInfo.setMpi(mpiId);
+        patientDTO.setCertificate(patientDTO.getCertificate());
+        queryRecipeRequestTO.setStartDate(startDate);
+        queryRecipeRequestTO.setEndDate(new Date());
+        queryRecipeRequestTO.setOrgan(organId);
+        queryRecipeRequestTO.setQueryType(flag);
+        queryRecipeRequestTO.setPatientInfo(patientBaseInfo);
+        LOGGER.info("queryHisRecipeInfo input:" + JSONUtils.toString(queryRecipeRequestTO,QueryRecipeRequestTO.class));
+        HisResponseTO<List<QueryHisRecipResTO>> responseTO = recipeHisService.queryHisRecipeInfo(queryRecipeRequestTO);
+        LOGGER.info("queryHisRecipeInfo output:" + JSONUtils.toString(responseTO,HisResponseTO.class));
+        return responseTO;
+    }
+
+    @RpcService
+    public void saveHisRecipeInfo(HisResponseTO<List<QueryHisRecipResTO>> responseTO){
+        List<QueryHisRecipResTO> queryHisRecipResTOList = responseTO.getData();
+        for(QueryHisRecipResTO queryHisRecipResTO : queryHisRecipResTOList){
+            HisRecipe hisRecipe = new HisRecipe();
+            hisRecipe = ObjectCopyUtils.convert(queryHisRecipResTO,HisRecipe.class);
+            if(null != queryHisRecipResTO.getMedicalInfo()){
+                MedicalInfo medicalInfo = queryHisRecipResTO.getMedicalInfo();
+                hisRecipe.setMedicalAmount(medicalInfo.getMedicalAmount());
+                hisRecipe.setCashAmount(medicalInfo.getCashAmount());
+                hisRecipe.setTotalAmount(medicalInfo.getTotalAmount());
+            }
+            hisRecipe = hisRecipeDAO.save(hisRecipe);
+            if(null != queryHisRecipResTO.getExt()){
+                for(ExtInfoTO extInfoTO : queryHisRecipResTO.getExt()) {
+                    HisRecipeExt ext = ObjectCopyUtils.convert(extInfoTO,HisRecipeExt.class);
+                    ext.setHisRecipeId(hisRecipe.getHisRecipeID());
+                    hisRecipeExtDAO.save(ext);
+                }
+            }
+            if(null != queryHisRecipResTO.getDrugList()){
+                for(RecipeDetailTO recipeDetailTO : queryHisRecipResTO.getDrugList()) {
+                    HisRecipeDetail detail = ObjectCopyUtils.convert(recipeDetailTO,HisRecipeDetail.class);
+                    detail.setHisRecipeId(hisRecipe.getHisRecipeID());
+                    hisRecipeDetailDAO.save(detail);
+                }
+            }
+        }
+    }
+
+    /**
+     * @param flag 根据flag转化日期 查询标志 0-近一个月数据;1-近三个月;2-近半年;3-近一年
+     *             1 代表一个月  3 代表三个月 6 代表6个月
+     * @return
+     */
+    private Date tranDateByFlagNew(String flag) {
+        Date beginTime = new Date();
+        Calendar ca = Calendar.getInstance();
+        //得到当前日期
+        ca.setTime(new Date());
+        if ("6".equals(flag)) {  //近半年数据
+            ca.add(Calendar.MONTH, -6);//月份减6
+            Date resultDate = ca.getTime(); //结果
+            beginTime = resultDate;
+        } else if ("3".equals(flag)) {  //近三个月数据
+            ca.add(Calendar.MONTH, -3);//月份减3
+            Date resultDate = ca.getTime(); //结果
+            beginTime = resultDate;
+        } else if ("1".equals(flag)) { //近一个月数据
+            ca.add(Calendar.MONTH, -1);//月份减1
+            Date resultDate = ca.getTime(); //结果
+            beginTime = resultDate;
+        }
+        return beginTime;
     }
 
     private List<HisRecipeDetailVO> getHisRecipeDetailVOS(Recipe recipe) {
