@@ -45,6 +45,8 @@ import java.util.Map;
 public class HzInternetRemoteOldType implements HzInternetRemoteTypeInterface {
     @Override
     public Boolean specialMakeDepList(DrugsEnterprise drugsEnterprise, Recipe dbRecipe) {
+        LOGGER.info("旧-杭州互联网虚拟药企展示配送列表是否需要个性化，入参：drugsEnterprise：{}，dbRecipe：{}",
+                JSONUtils.toString(drugsEnterprise), JSONUtils.toString(dbRecipe));
         return false;
     }
 

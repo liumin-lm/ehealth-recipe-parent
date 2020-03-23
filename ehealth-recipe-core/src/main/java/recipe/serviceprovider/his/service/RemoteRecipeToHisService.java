@@ -104,7 +104,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         hisRequest.setPlatRegisterId(String.valueOf(MapValueUtil.getInteger(map,"consultId")));
         //科室代码
         hisRequest.setDeptCode(MapValueUtil.getString(map,"deptCode"));
-        hisRequest.setRegType("2");
+        hisRequest.setRegType(2);
         Integer consultId = MapValueUtil.getInteger(map, "consultId");
         if(null != consultId){
             IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
@@ -124,7 +124,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
                 IConsultExService consultExService = ApplicationUtils.getConsultService(IConsultExService.class);
                 ConsultExDTO exDTO = consultExService.getByConsultId(consultId);
                 if(null != exDTO){
-                    hisRequest.setMedicalPayFlag(null == exDTO.getMedicalFlag() ? "0" : exDTO.getMedicalFlag().toString());
+                    hisRequest.setMedicalPayFlag(null == exDTO.getMedicalFlag() ? 0 : exDTO.getMedicalFlag());
                 }else{
                     LOGGER.error("visitRegist当前咨询id对应的咨询补充信息不存在{}", consultId);
                 }

@@ -753,7 +753,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     if (RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
                         //药店取药的
                         Integer depId = order.getEnterpriseId();
-                        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                        //DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
                         if (drugsEnterprise != null && drugsEnterprise.getStorePayFlag() != null && drugsEnterprise.getStorePayFlag() == 1) {
                             //storePayFlag = 1 表示线上支付但到店取药
@@ -1393,12 +1393,14 @@ public class RecipeOrderService extends RecipeBaseService {
                 //如果扩展表指定了配送商名称，那就用扩展表的为主替换掉药企表的（杭州互联网新加逻辑）
                 RecipeExtendDAO RecipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
                 RecipeExtend recipeExtend = RecipeExtendDAO.getByRecipeId(recipeList.get(0).getRecipeId());
-                if(recipeExtend != null && recipeExtend.getDeliveryName() != null){
+                if(recipeExtend != null && recipeExtend.getDeliveryName() != null && StringUtils.isEmpty(order.getHisEnterpriseName())){
                     orderBean.setEnterpriseName(recipeExtend.getDeliveryName());
                 }
                 //date 20200312
                 //订单详情展示his推送信息
-                if(StringUtils.isNotEmpty(order.getHisEnterpriseName())){
+                //date  20200320
+                //添加判断配送药企his信息只有配送方式才有
+                if((RecipeBussConstant.PAYMODE_ONLINE.equals(recipeList.get(0).getPayMode()) || RecipeBussConstant.PAYMODE_COD.equals(recipeList.get(0).getPayMode())) && StringUtils.isNotEmpty(order.getHisEnterpriseName())){
 
                     orderBean.setEnterpriseName(order.getHisEnterpriseName());
                 }

@@ -30,6 +30,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.purchase.PayModeOnline;
 import recipe.purchase.PurchaseService;
+import recipe.service.RecipeLogService;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -309,34 +310,21 @@ public class HzInternetRemoteNewType implements HzInternetRemoteTypeInterface {
         LOGGER.info("新-sendMsgResultMap杭州互联网虚拟药企确认订单前检验订单信息同步配送信息，入参：dbRecipe:{},extInfo:{},payResult:{]",
                 recipeId, JSONUtils.toString(extInfo), JSONUtils.toString(payResult));
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
         PayModeOnline service = (PayModeOnline)purchaseService.getService(1);
         HisResponseTO resultSave = service.updateGoodsReceivingInfoToCreateOrder(recipeId, extInfo);
 
         if(null != resultSave) {
-            if(resultSave.isSuccess() && null != resultSave.getData()){
-
-                Map<String, Object> data = (Map<String, Object>) resultSave.getData();
-
-                if (null != data.get("recipeCode")) {
-                    //新增成功更新his处方code
-                    recipeDAO.updateRecipeInfoByRecipeId(recipeId,
-                            ImmutableMap.of("recipeCode", data.get("recipeCode").toString()));
-                    LOGGER.info("order 当前处方{}确认订单流程：his新增成功",
-                            recipeId);
-                    return payResult;
-                } else {
-                    payResult.setCode(DrugEnterpriseResult.FAIL);
-                    payResult.setMsg("订单信息校验失败");
-                    LOGGER.info("order 当前处方确认订单的his同步配送信息，没有返回his处方code：{}", JSONUtils.toString(resultSave));
-                    return payResult;
-                }
-            }else{
+            if(!resultSave.isSuccess()){
                 payResult.setCode(DrugEnterpriseResult.FAIL);
-                payResult.setMsg("订单信息校验失败");
+                payResult.setMsg("同步配送信息失败");
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
+                        recipe.getStatus(), "处方" + recipe.getRecipeId() + "同步配送信息给his失败");
                 LOGGER.info("order 当前处方确认订单的his同步配送信息失败，返回：{}", JSONUtils.toString(resultSave));
                 return payResult;
             }
+            return payResult;
         }else {
             LOGGER.info("order 当前处方{}没有对接同步配送信息，默认成功！", recipeId);
             return payResult;
