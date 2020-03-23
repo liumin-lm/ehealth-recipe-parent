@@ -2,6 +2,7 @@ package recipe.dao;
 
 import com.google.common.collect.Maps;
 import com.ngari.recipe.entity.DrugList;
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.SaleDrugList;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -126,20 +127,22 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
     public abstract List<Integer> findDrugIdByOrganId(@DAOParam("organId") int organId);
 
     /**
-     * 获取药品与配送药企关系
+     * 获取药品与配送药企关系 （药品1:药企A,药企B）
      *
      * @param drugIds
+     * @param depIds
      * @return
      */
-    public Map<Integer, List<String>> findDrugDepRelation(final List<Integer> drugIds) {
+    public Map<Integer, List<String>> findDrugDepRelation(final List<Integer> drugIds, List<Integer> depIds) {
         HibernateStatelessResultAction<List<Object[]>> action =
                 new AbstractHibernateStatelessResultAction<List<Object[]>>() {
                     @Override
                     public void execute(StatelessSession ss) throws DAOException {
                         StringBuilder hql = new StringBuilder("select DrugId, GROUP_CONCAT(OrganID) from base_saledruglist " +
-                                "where DrugId in :drugIds and Status=1 GROUP BY DrugId");
+                                "where DrugId in :drugIds and OrganID in :depIds and Status=1 GROUP BY DrugId");
                         Query q = ss.createSQLQuery(hql.toString());
                         q.setParameterList("drugIds", drugIds);
+                        q.setParameterList("depIds", depIds);
                         setResult(q.list());
                     }
                 };
@@ -156,6 +159,43 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
 
             }
             relation.put(drugId, depIdList);
+        }
+        return relation;
+    }
+
+    /**
+     * 获取药企与配送药品关系 （药企A:药品1,药品2）
+     *
+     * @param drugIds
+     * @param depIds
+     * @return
+     */
+    public Map<Integer, List<String>> findDepDrugRelation(final List<Integer> drugIds, List<Integer> depIds) {
+        HibernateStatelessResultAction<List<Object[]>> action =
+                new AbstractHibernateStatelessResultAction<List<Object[]>>() {
+                    @Override
+                    public void execute(StatelessSession ss) throws DAOException {
+                        StringBuilder hql = new StringBuilder("select OrganID, GROUP_CONCAT(DrugId) from base_saledruglist " +
+                                "where DrugId in :drugIds and OrganID in :depIds and Status=1 GROUP BY OrganID");
+                        Query q = ss.createSQLQuery(hql.toString());
+                        q.setParameterList("drugIds", drugIds);
+                        q.setParameterList("depIds", depIds);
+                        setResult(q.list());
+                    }
+                };
+
+        HibernateSessionTemplate.instance().execute(action);
+        List<Object[]> objects = action.getResult();
+        Map<Integer, List<String>> relation = Maps.newHashMap();
+        for (Object[] obj : objects) {
+            Integer depId = Integer.valueOf(obj[0].toString());
+            String drugIdStr = LocalStringUtil.toString(obj[1]);
+            List<String> drugIdList = new ArrayList<>(0);
+            if (StringUtils.isNotEmpty(drugIdStr)) {
+                CollectionUtils.addAll(drugIdList, drugIdStr.split(","));
+
+            }
+            relation.put(depId, drugIdList);
         }
         return relation;
     }

@@ -28,6 +28,7 @@
     <import resource="spring-service-consult.xml" />
 	<import resource="spring-service-his-center.xml" />
 	<import resource="spring-service-opbase.xml"/>
+    <import resource="spring-file.xml"/>
 
 	<!--药企对接通用实现(国药协议)-->
 	<bean id="commonRemoteService" class="recipe.drugsenterprise.CommonRemoteService"></bean>
@@ -78,6 +79,20 @@
 
 	<!--以大药企-->
 	<bean id="ydRemoteService" class="recipe.drugsenterprise.YdRemoteService"/>
+
+	<!--易复诊药企-->
+	<bean id="byRemoteService" class="recipe.drugsenterprise.ByRemoteService"/>
+
+	<!--武汉六院英克药企-->
+	<bean id="ykRemoteService" class="recipe.drugsenterprise.YkRemoteService"/>
+
+	<!--云南省医药有限公司-->
+	<bean id="ynsRemoteService" class="recipe.drugsenterprise.YnsRemoteService"/>
+
+	<bean id="shyyRemoteService" class="recipe.drugsenterprise.ShyyRemoteService"/>
+
+	<!--昆明市第一人民医院-->
+	<bean id="kmsRemoteService" class="recipe.drugsenterprise.KmsRemoteService"/>
 
 	<bean id="busTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" destroy-method="shutdown">
 		<!-- 线程池活跃的线程数 -->

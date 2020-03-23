@@ -161,6 +161,12 @@ public class YtRecipeDTO implements Serializable{
      * 非必填
      */
     private String recipientTel;
+
+    private String province;
+
+    private String city;
+
+    private String district;
     /**
      * 邮编
      * 非必填
@@ -180,6 +186,15 @@ public class YtRecipeDTO implements Serializable{
 
     //处方单id
     private Integer recipeId;
+
+    //诊断名称
+    private String diagnose;
+
+    //处方类型
+    private int recipeType;
+
+    private String orderNo;
+
     /**
      * 商品明细
      */
@@ -449,6 +464,54 @@ public class YtRecipeDTO implements Serializable{
         this.giveModel = giveModel;
     }
 
+    public String getDiagnose() {
+        return diagnose;
+    }
+
+    public void setDiagnose(String diagnose) {
+        this.diagnose = diagnose;
+    }
+
+    public int getRecipeType() {
+        return recipeType;
+    }
+
+    public void setRecipeType(int recipeType) {
+        this.recipeType = recipeType;
+    }
+
+    public String getOrderNo() {
+        return orderNo;
+    }
+
+    public void setOrderNo(String orderNo) {
+        this.orderNo = orderNo;
+    }
+
+    public String getProvince() {
+        return province;
+    }
+
+    public void setProvince(String province) {
+        this.province = province;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getDistrict() {
+        return district;
+    }
+
+    public void setDistrict(String district) {
+        this.district = district;
+    }
+
     @Override
     public String toString() {
         return "YtRecipeDTO{" +
@@ -474,6 +537,12 @@ public class YtRecipeDTO implements Serializable{
                 ", totalAmount=" + totalAmount +
                 ", transFee=" + transFee +
                 ", giveModel=" + giveModel +
+                ", recipeType=" + recipeType +
+                ", diagnose=" + diagnose +
+                ", giveModel=" + giveModel +
+                ", province=" + province +
+                ", city=" + city +
+                ", district=" + district +
                 ", serviceFree=" + serviceFree +
                 ", prescriptionChecking=" + prescriptionChecking +
                 ", ifPay=" + ifPay +

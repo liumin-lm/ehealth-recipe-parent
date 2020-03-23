@@ -54,6 +54,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.bean.StandardResultDTO;
 import recipe.drugsenterprise.bean.StandardStateDTO;
 import recipe.hisservice.RecipeToHisService;
+import recipe.service.RecipeLogService;
 import recipe.service.common.RecipeCacheService;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -81,6 +82,11 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
         LOGGER.info("HzInternetRemoteService tokenUpdateImpl not implement.");
+    }
+
+    @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+        return "暂不支持库存查询";
     }
 
     @Override
@@ -218,83 +224,104 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
      * @return recipe.bean.DrugEnterpriseResult
      */
     @RpcService
-    public DrugEnterpriseResult recipeMedicalPreSettle(Integer recipeId) {
+    public DrugEnterpriseResult recipeMedicalPreSettle(Integer recipeId, Integer depId) {
+
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if(recipeId == null || depId == null){
+            LOGGER.info("recipeMedicalPreSettle-未获取处方或药企ID,处方ID={},药企ID：{}",recipeId,depId);
+        } else {
+            LOGGER.info("recipeMedicalPreSettle-杭州互联网医保预结算开始,处方号={},药企ID：{}",recipeId,depId);
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
 
-        DrugsEnterpriseDAO drugEnterpriseDao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugEnterprise = drugEnterpriseDao.get(recipe.getEnterpriseId());
-        if(drugEnterprise != null && "hzInternet".equals(drugEnterprise.getAccount())){
-            HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
-            //杭州市互联网医院监管中心 管理单元eh3301
-            OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
-            OrganDTO organDTO = organService.getByManageUnit("eh3301");
-            String bxh = null;
-            if (organDTO!=null) {
-                bxh = healthCardService.getMedicareCardId(recipe.getMpiid(), organDTO.getOrganId());
+            DrugsEnterpriseDAO drugEnterpriseDao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+            DrugsEnterprise drugEnterprise = drugEnterpriseDao.get(depId);
+            if(drugEnterprise != null && "hzInternet".equals(drugEnterprise.getAccount())){
+                HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
+                //杭州市互联网医院监管中心 管理单元eh3301
+                OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+                OrganDTO organDTO = organService.getByManageUnit("eh3301");
+                String bxh = null;
+                if (organDTO!=null) {
+                    bxh = healthCardService.getMedicareCardId(recipe.getMpiid(), organDTO.getOrganId());
 
-            }
-            //有市名卡才走预结算
-            if (StringUtils.isNotEmpty(bxh)){
-                PatientService patientService = BasicAPI.getService(PatientService.class);
-                PatientDTO patientBean = patientService.get(recipe.getMpiid());
-
-                MedicalPreSettleReqNTO request = new MedicalPreSettleReqNTO();
-                request.setClinicOrgan(recipe.getClinicOrgan());
-                request.setPatientName(patientBean.getPatientName());
-                request.setIdcard(patientBean.getIdcard());
-                request.setBirthday(patientBean.getBirthday());
-                request.setAddress(patientBean.getAddress());
-                request.setMobile(patientBean.getMobile());
-                request.setGuardianName(patientBean.getGuardianName());
-                request.setGuardianTel(patientBean.getLinkTel());
-                request.setGuardianCertificate(patientBean.getGuardianCertificate());
-                request.setRecipeId(recipeId + "");
-
-                request.setDoctorId(recipe.getDoctor() + "");
-                request.setDoctorName(recipe.getDoctorName());
-                request.setDepartId(recipe.getDepart() + "");
-
-                request.setBxh(bxh);
-
-                try {
-                    request.setSex(DictionaryController.instance().get("eh.base.dictionary.Gender").getText(patientBean.getPatientSex()));
-                    request.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
-                } catch (ControllerException e) {
-                    LOGGER.error("DictionaryController 字典转化异常,{}",e);
                 }
-                RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-                HisResponseTO<RecipeMedicalPreSettleInfo> hisResult = service.recipeMedicalPreSettleN(request);
-                if(hisResult != null && "200".equals(hisResult.getMsgCode())){
-                    LOGGER.info("杭州互联网虚拟药企-处方预结算成功-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
-                    if(hisResult.getData() != null){
-                        RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                        if(ext != null){
-                            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("registerNo", hisResult.getData().getGhxh()));
-                            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("hisSettlementNo", hisResult.getData().getSjh()));
-                        } else {
-                            ext = new RecipeExtend();
-                            ext.setRecipeId(recipe.getRecipeId());
-                            ext.setRegisterNo(hisResult.getData().getGhxh());
-                            ext.setHisSettlementNo(hisResult.getData().getSjh());
-                            recipeExtendDAO.save(ext);
+                //有市名卡才走预结算
+                if (StringUtils.isNotEmpty(bxh)){
+                    PatientService patientService = BasicAPI.getService(PatientService.class);
+                    PatientDTO patientBean = patientService.get(recipe.getMpiid());
+
+                    MedicalPreSettleReqNTO request = new MedicalPreSettleReqNTO();
+                    request.setClinicOrgan(recipe.getClinicOrgan());
+                    request.setPatientName(patientBean.getPatientName());
+                    request.setIdcard(patientBean.getIdcard());
+                    request.setBirthday(patientBean.getBirthday());
+                    request.setAddress(patientBean.getAddress());
+                    request.setMobile(patientBean.getMobile());
+                    request.setGuardianName(patientBean.getGuardianName());
+                    request.setGuardianTel(patientBean.getLinkTel());
+                    request.setGuardianCertificate(patientBean.getGuardianCertificate());
+                    request.setRecipeId(recipeId + "");
+
+                    request.setDoctorId(recipe.getDoctor() + "");
+                    request.setDoctorName(recipe.getDoctorName());
+                    request.setDepartId(recipe.getDepart() + "");
+
+                    request.setBxh(bxh);
+
+                    try {
+                        request.setSex(DictionaryController.instance().get("eh.base.dictionary.Gender").getText(patientBean.getPatientSex()));
+                        request.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
+                    } catch (ControllerException e) {
+                        LOGGER.error("DictionaryController 字典转化异常,{}",e);
+                    }
+                    RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+                    LOGGER.info("recipeMedicalPreSettle. recipeId={},req={}", recipeId, JSONUtils.toString(request));
+                    HisResponseTO<RecipeMedicalPreSettleInfo> hisResult = service.recipeMedicalPreSettleN(request);
+                    if(hisResult != null && "200".equals(hisResult.getMsgCode())){
+                        LOGGER.info("recipeMedicalPreSettle-success. recipeId={},result={}", recipeId, JSONUtils.toString(hisResult));
+                        if(hisResult.getData() != null){
+                            RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                            if(ext != null){
+                                Map<String, String> map = new HashMap<String, String>();
+                                map.put("registerNo", hisResult.getData().getGhxh());
+                                map.put("hisSettlementNo", hisResult.getData().getSjh());
+                                map.put("preSettleTotalAmount", hisResult.getData().getZje());
+                                map.put("fundAmount", hisResult.getData().getYbzf());
+                                map.put("cashAmount", hisResult.getData().getYfje());
+                                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), map);
+                            } else {
+                                ext = new RecipeExtend();
+                                ext.setRecipeId(recipe.getRecipeId());
+                                ext.setRegisterNo(hisResult.getData().getGhxh());
+                                ext.setHisSettlementNo(hisResult.getData().getSjh());
+                                ext.setPreSettletotalAmount(hisResult.getData().getZje());
+                                ext.setFundAmount(hisResult.getData().getYbzf());
+                                ext.setCashAmount(hisResult.getData().getYfje());
+                                recipeExtendDAO.save(ext);
+                            }
                         }
+                        result.setCode(DrugEnterpriseResult.SUCCESS);
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "杭州市医保预结算成功");
+                    }else{
+                        LOGGER.error("recipeMedicalPreSettle fail. recipeId={},result={}", recipeId, JSONUtils.toString(hisResult));
+                        String msg;
+                        if(hisResult != null){
+                            msg = hisResult.getMsg();
+                        }else {
+                            msg = "前置机返回结果null";
+                        }
+                        result.setCode(DrugEnterpriseResult.FAIL);
+                        result.setMsg(msg);
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "杭州市医保预结算失败，原因："+msg);
                     }
-                    result.setCode(DrugEnterpriseResult.SUCCESS);
-                }else{
-                    LOGGER.error("杭州互联网虚拟药企-处方预结算失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
-                    if(hisResult != null){
-                        result.setMsg(hisResult.getMsg());
-                    }
-                    result.setCode(DrugEnterpriseResult.FAIL);
+                } else{
+                    LOGGER.error("recipeMedicalPreSettle-患者医保卡号为null,recipeId{}，患者：{}", recipe.getRecipeId(), recipe.getPatientName());
+                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "由于获取不到杭州市医保卡,无法进行预结算");
                 }
-
-            } else{
-                LOGGER.error("患者医保卡号为null,患者：{}",recipe.getPatientName());
+            }  else{
+                LOGGER.info("recipeMedicalPreSettle-非杭州互联网药企不走杭州医保预结算,recipeId={} 药企ID：{}",recipeId,depId);
             }
-        }  else{
-            LOGGER.info("非杭州互联网药企不走杭州医保预结算,药企：{}",recipe.getEnterpriseId());
         }
 
         return result;

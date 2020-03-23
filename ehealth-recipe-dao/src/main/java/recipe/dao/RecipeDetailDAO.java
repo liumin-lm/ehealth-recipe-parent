@@ -208,4 +208,12 @@ public abstract class RecipeDetailDAO extends
     @DAOMethod(sql = "select count(*) from Recipedetail where recipeId=:recipeId and status=1")
     public abstract Long getCountByRecipeId(@DAOParam("recipeId") int recipeId);
 
+    /**
+     * 根据id删除无用的处方单关联的详情
+     * @param recipeId
+     * @return
+     */
+    @DAOMethod(sql = "delete from Recipedetail where recipeId =:recipeId")
+    public abstract void deleteByRecipeId(@DAOParam("recipeId") int recipeId);
+
 }

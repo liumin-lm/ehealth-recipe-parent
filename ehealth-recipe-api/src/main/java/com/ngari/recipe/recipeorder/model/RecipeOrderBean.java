@@ -5,7 +5,6 @@ import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
-import javax.persistence.Transient;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Calendar;
@@ -188,6 +187,9 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "药企名称")
     private String enterpriseName;
 
+    @ItemProperty(alias = "药企电话")
+    private String tel;
+
     //date 2019/10/18
     //添加优惠卷信息
     @ItemProperty(alias = "优惠券描述")
@@ -212,8 +214,33 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "医保结算人脸识别token")
     private String smkFaceToken;
 
-    @ItemProperty(alias = "订单类型，暂定1表示省医保")
+    @ItemProperty(alias = "订单类型，暂定1表示省医保 2 杭州市医保 3省医保小程序 4上海市医保")
+    @Dictionary(id = "eh.cdr.dictionary.RecipeOrderOrderType")
     private Integer orderType;
+
+    @ItemProperty(alias = "处方预结算返回支付总金额")
+    private Double preSettleTotalAmount;
+
+    @ItemProperty(alias = "处方预结算返回医保支付金额")
+    private Double fundAmount;
+
+    @ItemProperty(alias = "处方预结算返回自费金额")
+    private Double cashAmount;
+
+    @ItemProperty(alias = "订单退款标识")
+    private Integer refundFlag;
+
+    @ItemProperty(alias = "订单退款时间")
+    private Date refundTime;
+
+    @ItemProperty(alias = "医保结算信息串")
+    private String medicalSettleInfo;
+
+    @ItemProperty(alias = "医保代码")
+    private String medicalSettleCode;
+
+    @ItemProperty(alias = "卫宁付下的支付方式(卫宁的字典)ybpay=全医保支付 1支付宝手机支付 7微信公众号支付 随申办支付宝支付126 随申办微信支付127 随申办银联支付128")
+    private String wnPayWay;
 
     public RecipeOrderBean() {
         initData();
@@ -684,6 +711,14 @@ public class RecipeOrderBean implements Serializable {
         this.enterpriseName = enterpriseName;
     }
 
+    public String getTel() {
+        return tel;
+    }
+
+    public void setTel(String tel) {
+        this.tel = tel;
+    }
+
     public String getCancelReason() {
         return cancelReason;
     }
@@ -730,5 +765,69 @@ public class RecipeOrderBean implements Serializable {
 
     public void setSmkFaceToken(String smkFaceToken) {
         this.smkFaceToken = smkFaceToken;
+    }
+
+    public Double getPreSettletotalAmount() {
+        return preSettleTotalAmount;
+    }
+
+    public void setPreSettletotalAmount(Double preSettleTotalAmount) {
+        this.preSettleTotalAmount = preSettleTotalAmount;
+    }
+
+    public Double getFundAmount() {
+        return fundAmount;
+    }
+
+    public void setFundAmount(Double fundAmount) {
+        this.fundAmount = fundAmount;
+    }
+
+    public Double getCashAmount() {
+        return cashAmount;
+    }
+
+    public void setCashAmount(Double cashAmount) {
+        this.cashAmount = cashAmount;
+    }
+
+    public Integer getRefundFlag() {
+        return refundFlag;
+    }
+
+    public void setRefundFlag(Integer refundFlag) {
+        this.refundFlag = refundFlag;
+    }
+
+    public Date getRefundTime() {
+        return refundTime;
+    }
+
+    public void setRefundTime(Date refundTime) {
+        this.refundTime = refundTime;
+    }
+
+    public String getMedicalSettleInfo() {
+        return medicalSettleInfo;
+    }
+
+    public void setMedicalSettleInfo(String medicalSettleInfo) {
+        this.medicalSettleInfo = medicalSettleInfo;
+    }
+
+    public String getMedicalSettleCode() {
+        return medicalSettleCode;
+    }
+
+    public void setMedicalSettleCode(String medicalSettleCode) {
+        this.medicalSettleCode = medicalSettleCode;
+    }
+
+    public String getWnPayWay() {
+        return wnPayWay;
+    }
+
+    public void setWnPayWay(String wnPayWay) {
+        this.wnPayWay = wnPayWay;
     }
 }

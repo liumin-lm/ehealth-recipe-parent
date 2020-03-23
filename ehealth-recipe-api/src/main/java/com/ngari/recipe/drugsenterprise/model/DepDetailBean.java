@@ -100,6 +100,9 @@ public class DepDetailBean {
     //是否跳转第三方
     private Integer orderType;
 
+    //药企备注
+    private String memo;
+
     public Integer getDepId() {
         return depId;
     }
@@ -266,5 +269,13 @@ public class DepDetailBean {
 
     public void setOrderType(Integer orderType) {
         this.orderType = orderType;
+    }
+
+    public String getMemo() {
+        return memo;
+    }
+
+    public void setMemo(String memo) {
+        this.memo = memo;
     }
 }

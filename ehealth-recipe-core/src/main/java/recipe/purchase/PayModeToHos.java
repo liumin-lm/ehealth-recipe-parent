@@ -1,11 +1,9 @@
 package recipe.purchase;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
@@ -13,6 +11,8 @@ import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.OrderStatusConstant;
@@ -22,10 +22,8 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.RecipeOrderService;
-import recipe.service.RecipeServiceSub;
 import recipe.util.MapValueUtil;
 
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +35,10 @@ import java.util.Map;
  * @version： 1.0
  */
 public class PayModeToHos implements IPurchaseService{
+    /**
+     * logger
+     */
+    private static final Logger LOG = LoggerFactory.getLogger(PurchaseService.class);
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
@@ -49,7 +51,16 @@ public class PayModeToHos implements IPurchaseService{
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
         StringBuilder sb = new StringBuilder();
-
+        PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+        //todo---暂时写死上海六院---配送到家判断是否是自费患者
+        //到院取药非卫宁付
+        if (!purchaseService.getToHosPayConfig(dbRecipe.getClinicOrgan())){
+            if (dbRecipe.getClinicOrgan() == 1000899 && !purchaseService.isMedicarePatient(1000899,dbRecipe.getMpiid())){
+                resultBean.setCode(RecipeResultBean.FAIL);
+                resultBean.setMsg("自费患者不支持到院取药，请选择其他取药方式");
+                return resultBean;
+            }
+        }
         if(CollectionUtils.isNotEmpty(detailList)){
             String pharmNo = detailList.get(0).getPharmNo();
             if(StringUtils.isNotEmpty(pharmNo)){

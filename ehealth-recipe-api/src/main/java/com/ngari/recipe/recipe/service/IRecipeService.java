@@ -4,11 +4,12 @@ import com.ngari.recipe.IBaseService;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
-import com.ngari.recipe.hisprescription.model.QueryRecipeResultDTO;
 import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -270,6 +271,24 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     List<Map> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType,
                                                final Integer depart, List<Integer> organIds, Integer giveMode,Integer fromflag,Integer recipeId);
 
+    /**
+     *处方订单导出Excel
+     * @param organId
+     * @param status
+     * @param doctor
+     * @param patientName
+     * @param bDate
+     * @param eDate
+     * @param dateType
+     * @param depart
+     * @param giveMode
+     * @param fromflag
+     * @return
+     */
+    @RpcService(timeout = 600000)
+    List<Map> findRecipeOrdersByInfoForExcel(Integer organId, List<Integer> organIds, Integer status, Integer doctor, String patientName, Date bDate, Date eDate, Integer dateType,
+                                        Integer depart, Integer giveMode,Integer fromflag,Integer recipeId);
+
     @RpcService
     HashMap<Integer, Long> getCountGroupByOrgan();
 
@@ -331,4 +350,47 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     Map<String, String> getEnterpriseCodeByRecipeId(Integer recipeId);
+
+    /**
+     * 判断能否发起复诊申请-3天内有无待处理处方
+     *  先查3天内未处理的线上处方-平台
+     *  再查3天内线上未缴费的处方-到院取药推送的处方-his
+     * @param mpiId
+     * @param depId
+     * @param organId
+     * @return
+     */
+    @RpcService
+    Boolean canRequestConsultForRecipe(String mpiId,Integer depId,Integer organId);
+
+    /**
+     * 医保结算成功通知平台（结算数据回填到平台数据库）
+     * @param request
+     * @return
+     */
+    @RpcService
+    void recipeMedicInsurSettle(MedicInsurSettleSuccNoticNgariReqDTO request);
+
+    @RpcService
+    String getRecipeOrderCompleteAddress(RecipeOrderBean orderBean);
+
+    /**
+     * 第三方审核结果通知平台接口
+     * @param
+     * @return
+     */
+    @RpcService
+    Map<String, Object> noticePlatRecipeAuditResult(NoticeNgariAuditResDTO req);
+
+    @RpcService
+    long getCountByOrganAndDeptIds(Integer organId, List<Integer> deptIds,Integer plusDays);
+
+    @RpcService
+    List<Object[]> countRecipeIncomeGroupByDeptId(Date startDate, Date endDate, Integer organId);
+
+    @RpcService
+    List<RecipeBean> findByClinicId(Integer consultId);
+
+    @RpcService
+    BigDecimal getRecipeCostCountByOrganIdAndDepartIds(Integer organId, Date startDate, Date endDate, List<Integer> deptIds);
 }

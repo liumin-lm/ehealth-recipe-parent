@@ -307,8 +307,20 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias="处方审核方式")
     private Integer reviewType;
 
+    @ItemProperty(alias = "审核途径 1平台审核 2his审核")
+    private Integer checkMode;
+
     @ItemProperty(alias="处方审核状态")
     private Integer checkStatus;
+
+    @ItemProperty(alias = "处方单特殊来源标识：1省中，邵逸夫医保小程序; 默认null")
+    private Integer recipeSource;
+
+    @ItemProperty(alias = "CA密码")
+    private String caPassword;
+
+    @ItemProperty(alias = "药师处方签名生成的时间戳结构体，由院方服务器获取")
+    private String signPharmacistCADate;
 
     public RecipeBean() {
     }
@@ -1138,4 +1150,32 @@ public class RecipeBean implements Serializable {
     public void setBussSource(Integer bussSource) {
         this.bussSource = bussSource;
     }
+
+    public Integer getRecipeSource() {
+        return recipeSource;
+    }
+
+    public void setRecipeSource(Integer recipeSource) {
+        this.recipeSource = recipeSource;
+    }
+
+    public String getCaPassword() {
+        return caPassword;
+    }
+
+    public void setCaPassword(String caPassword) {
+        this.caPassword = caPassword;
+    }
+
+    public Integer getCheckMode() {
+        return checkMode;
+    }
+
+    public void setCheckMode(Integer checkMode) {
+        this.checkMode = checkMode;
+    }
+
+    public String getSignPharmacistCADate() { return signPharmacistCADate; }
+
+    public void setSignPharmacistCADate(String signPharmacistCADate) { this.signPharmacistCADate = signPharmacistCADate; }
 }

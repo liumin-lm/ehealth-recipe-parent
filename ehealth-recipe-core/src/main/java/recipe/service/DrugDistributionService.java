@@ -171,6 +171,7 @@ public class DrugDistributionService {
                     String param = iSysParamterService.getParam(ParameterConstant.KEY_TAOBAO_AUTHORIZATION_ADDR, null);
                     response.setAuthUrl(MessageFormat.format(param, taobaoConf.getAppkey(),
                         wxService.urlJoin()+"/taobao/callBack_code", loginId+"$"+request.getRecipeId()+"$"+request.getAppId()));
+                    LOGGER.info("DrugDistributionService.purchase AuthUrl:{}.", response.getAuthUrl());
                 } catch (Exception e) {
                     LOGGER.warn("purchase 组装授权页出错. loginId={}", loginId, e);
                     response.setCode(CommonConstant.FAIL);

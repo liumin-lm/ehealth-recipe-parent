@@ -651,6 +651,11 @@ public class StandardEnterpriseCallService {
         LOGGER.info("updateStatusByPatientGetDrug 药企调用接口更新状态. param = {}", list);
         StandardResultDTO result = new StandardResultDTO();
         result.setCode(StandardResultDTO.SUCCESS);
+        if (CollectionUtils.isEmpty(list)) {
+            result.setCode(StandardResultDTO.FAIL);
+            result.setMsg("入参信息不能为空");
+            return result;
+        }
         //校验提交修改状态的处方信息是否和
         for (ChangeStatusByGetDrugDTO changeStatusByGetDrugDTO : list) {
             //校验药企传输数据安全性
@@ -754,25 +759,51 @@ public class StandardEnterpriseCallService {
             Integer hospitalId = readjustDrugDTO.getHospitalId();
             String drugCode = readjustDrugDTO.getDrugCode();
             Double price = readjustDrugDTO.getPrice();
-            OrganAndDrugsepRelationDAO drugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-            List<DrugsEnterprise> drugsEnterprises = drugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(hospitalId, 1);
-            for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
-                if (account.equals(drugsEnterprise.getAccount())) {
-                    SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-                    SaleDrugList saleDrugList = saleDrugListDAO.getByOrganIdAndDrugCode(drugsEnterprise.getId(), drugCode);
-                    if (saleDrugList == null) {
-                        result.setCode(StandardResultDTO.FAIL);
-                        result.setMsg("未查到待调价的药品");
-                        result.setData(readjustDrugDTO);
-                        standardResultDTOS.add(result);
-                    } else {
-                        saleDrugList.setPrice(new BigDecimal(price));
-                        saleDrugListDAO.update(saleDrugList);
-                        result.setData(readjustDrugDTO);
-                        standardResultDTOS.add(result);
+            if (StringUtils.isEmpty(account) && StringUtils.isNotEmpty(readjustDrugDTO.getAppKey())) {
+                DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                DrugsEnterprise enterprise = drugsEnterpriseDAO.getByAppKey(readjustDrugDTO.getAppKey());
+                if (enterprise == null) {
+                    result.setCode(StandardResultDTO.FAIL);
+                    result.setMsg("未查到对应的药企");
+                    result.setData(readjustDrugDTO);
+                    standardResultDTOS.add(result);
+                    return standardResultDTOS;
+                }
+                SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+                SaleDrugList saleDrugList = saleDrugListDAO.getByOrganIdAndDrugCode(enterprise.getId(), drugCode);
+                if (saleDrugList == null) {
+                    result.setCode(StandardResultDTO.FAIL);
+                    result.setMsg("未查到待调价的药品");
+                    result.setData(readjustDrugDTO);
+                    standardResultDTOS.add(result);
+                } else {
+                    saleDrugList.setPrice(new BigDecimal(price));
+                    saleDrugListDAO.update(saleDrugList);
+                    result.setData(readjustDrugDTO);
+                    standardResultDTOS.add(result);
+                }
+            } else {
+                OrganAndDrugsepRelationDAO drugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+                List<DrugsEnterprise> drugsEnterprises = drugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(hospitalId, 1);
+                for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+                    if (account.equals(drugsEnterprise.getAccount())) {
+                        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+                        SaleDrugList saleDrugList = saleDrugListDAO.getByOrganIdAndDrugCode(drugsEnterprise.getId(), drugCode);
+                        if (saleDrugList == null) {
+                            result.setCode(StandardResultDTO.FAIL);
+                            result.setMsg("未查到待调价的药品");
+                            result.setData(readjustDrugDTO);
+                            standardResultDTOS.add(result);
+                        } else {
+                            saleDrugList.setPrice(new BigDecimal(price));
+                            saleDrugListDAO.update(saleDrugList);
+                            result.setData(readjustDrugDTO);
+                            standardResultDTOS.add(result);
+                        }
                     }
                 }
             }
+
         }
         LOGGER.info("StandardEnterpriseCallService-readjustDrugPrice standardResultDTOS:{}.", JSONUtils.toString(standardResultDTOS));
         return standardResultDTOS;

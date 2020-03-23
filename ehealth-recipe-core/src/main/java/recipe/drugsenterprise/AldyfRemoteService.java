@@ -260,6 +260,7 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                 prescriptionParam.setOssKey(ossKey);
                 prescriptionParam.setOutHospitalId(organizeCode);
                 prescriptionParam.setCreateTime(dbRecipe.getSignDate());
+                prescriptionParam.setAttribute("{\"hospitalId\":\""+organizeCode+"\"}");
                 LOGGER.info("prescriptionParam 处方信息:{}.", getJsonLog(prescriptionParam));
                 prescriptionAddRequest.setPrescriptionParam(prescriptionParam);
 
@@ -325,6 +326,11 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
     @Override
     public DrugEnterpriseResult pushRecipe(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
         return DrugEnterpriseResult.getSuccess();
+    }
+
+    @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+        return "暂不支持库存查询";
     }
 
     @Override

@@ -2,7 +2,6 @@ package recipe.dao;
 
 import com.alibaba.druid.util.StringUtils;
 import com.ngari.recipe.entity.DrugList;
-import com.ngari.recipe.entity.DrugListMatch;
 import com.ngari.recipe.entity.OrganDrugList;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
@@ -551,5 +550,16 @@ public abstract class OrganDrugListDAO extends
      */
     @DAOMethod(sql = "from OrganDrugList where organId=:organId and createDt =:createDt and status =1", limit = 0)
     public abstract List<OrganDrugList> findByOrganIdAndCreateDt(@DAOParam("organId") int organId, @DAOParam("createDt") Date createDt);
+
+    /**
+     * 通过organId和创建时间获取
+     *
+     * @param organId  机构Id
+     * @param drugId 药品id
+     * @param  organDrugCode 药品code
+     * @return
+     */
+    @DAOMethod(sql = "from OrganDrugList where organId=:organId and drugId =:drugId and organDrugCode =:organDrugCode and status = 1", limit = 0)
+    public abstract List<OrganDrugList> findByOrganIdAndDrugIdAndOrganDrugCode(@DAOParam("organId") int organId, @DAOParam("drugId") int drugId, @DAOParam("organDrugCode") String organDrugCode);
 
 }

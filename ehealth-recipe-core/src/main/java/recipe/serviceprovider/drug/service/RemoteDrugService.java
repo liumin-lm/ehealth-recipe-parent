@@ -157,6 +157,7 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
     @RpcService
     @Override
     public DrugListBean updateDrugList(DrugListBean d) {
+        DrugList drugList = ObjectCopyUtils.convert(d, DrugList.class);
         LOGGER.info("修改药品服务[updateDrugList]:" + JSONUtils.toString(d));
         if (null == d.getDrugId()) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugId is required");
@@ -166,15 +167,111 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         if (null == target) {
             throw new DAOException(DAOException.ENTITIY_NOT_FOUND, "Can't found drugList");
         } else {
-            d.setLastModify(new Date());
-            DrugList drugList1 = ObjectCopyUtils.convert(d, DrugList.class);
-            /*BeanUtils.map(drugList, target);*/
-            target = dao.update(drugList1);
+            drugList.setLastModify(new Date());
+            if(null == drugList.getAllPyCode()){
+                drugList.setAllPyCode(target.getAllPyCode());
+            }
+            if(null == drugList.getApprovalNumber()){
+                drugList.setApprovalNumber(target.getApprovalNumber());
+            }
+            if(null == drugList.getBaseDrug()){
+                drugList.setBaseDrug(target.getBaseDrug());
+            }
+            if(null == drugList.getCreateDt()){
+                drugList.setCreateDt(target.getCreateDt());
+            }
+            if(null == drugList.getDrugClass()){
+                drugList.setDrugClass(target.getDrugClass());
+            }
+            if(null == drugList.getDrugForm()){
+                drugList.setDrugForm(target.getDrugForm());
+            }
+            if(null == drugList.getDrugId()){
+                drugList.setDrugId(target.getDrugId());
+            }
+            if(null == drugList.getDrugName()){
+                drugList.setDrugName(target.getDrugName());
+            }
+            if(null == drugList.getDrugPic()){
+                drugList.setDrugPic(target.getDrugPic());
+            }
+            if(null == drugList.getDrugSpec()){
+                drugList.setDrugSpec(target.getDrugSpec());
+            }
+            if(null == drugList.getDrugType()){
+                drugList.setDrugType(target.getDrugType());
+            }
+            if(null == drugList.getHighlightedField()){
+                drugList.setHighlightedField(target.getHighlightedField());
+            }
+            if(null == drugList.getHighlightedFieldForIos()){
+                drugList.setHighlightedFieldForIos(target.getHighlightedFieldForIos());
+            }
+            if(null == drugList.getHospitalPrice()){
+                drugList.setHospitalPrice(target.getHospitalPrice());
+            }
+            if(null == drugList.getIndications()){
+                drugList.setIndications(target.getIndications());
+            }
+            if(null == drugList.getLastModify()){
+                drugList.setLastModify(target.getLastModify());
+            }
+            if(null == drugList.getOrganDrugCode()){
+                drugList.setOrganDrugCode(target.getOrganDrugCode());
+            }
+            if(null == drugList.getPack()){
+                drugList.setPack(target.getPack());
+            }
+            if(null == drugList.getPrice1()){
+                drugList.setPrice1(target.getPrice1());
+            }
+            if(null == drugList.getPrice2()){
+                drugList.setPrice2(target.getPrice2());
+            }
+            if(null == drugList.getPyCode()){
+                drugList.setPyCode(target.getPyCode());
+            }
+            if(null == drugList.getSaleName()){
+                drugList.setSaleName(target.getSaleName());
+            }
+            if(null == drugList.getSourceOrgan()){
+                drugList.setSourceOrgan(target.getSourceOrgan());
+            }
+            if(null == drugList.getStandardCode()){
+                drugList.setStandardCode(target.getStandardCode());
+            }
+            if(null == drugList.getStatus()){
+                drugList.setStatus(target.getStatus());
+            }
+            if(null == drugList.getUnit()){
+                drugList.setUnit(target.getUnit());
+            }
+            if(null == drugList.getUseDose()){
+                drugList.setUseDose(target.getUseDose());
+            }
+            if(null == drugList.getUseDoseUnit()){
+                drugList.setUseDoseUnit(target.getUseDoseUnit());
+            }
+            if(null == drugList.getUsePathways()){
+                drugList.setUsePathways(target.getUsePathways());
+            }
+            if(null == drugList.getUsingRate()){
+                drugList.setUsingRate(target.getUsingRate());
+            }
+            if(null == drugList.getProducer()){
+                drugList.setProducer(target.getProducer());
+            }
+            if(null == drugList.getInstructions()){
+                drugList.setInstructions(target.getInstructions());
+            }
+
+           /*BeanUtils.map(drugList, target);*/
+            drugList = dao.update(drugList);
             if(null != d.getDispensatory()) {
                 DispensatoryDAO dispensatoryDAO = DAOFactory.getDAO(DispensatoryDAO.class);
-                Dispensatory dispensatory = dispensatoryDAO.getByDrugId(target.getDrugId());
+                Dispensatory dispensatory = dispensatoryDAO.getByDrugId(drugList.getDrugId());
                 if(null == dispensatory){
-                    saveDispensatory(d, target.getDrugId());
+                    saveDispensatory(d, drugList.getDrugId());
                 }else{
                     dispensatory.setLastModifyTime(new Date());
                     BeanUtils.map(d.getDispensatory(), dispensatory);
@@ -182,7 +279,7 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
                 }
             }
         }
-        return getBean(target, DrugListBean.class);
+        return getBean(drugList, DrugListBean.class);
     }
 
     private void saveDispensatory(DrugListBean d, Integer drugId){

@@ -88,7 +88,7 @@ public class RecipePatientService extends RecipeBaseService {
     /**
      * 获取供应商列表
      *
-     * @param findDetail 1:表示获取详情，0：表示判断是否需要展示供应商具体列表
+     * @param findDetail 1:表示获取详情，0：表示判断是否需要展示供应商具体列表-开处方时查询库存
      * @param recipeIds
      */
     @RpcService
@@ -129,6 +129,7 @@ public class RecipePatientService extends RecipeBaseService {
             if (0 == findDetail && depList.size() > 1) {
                 depListBean.setSigle(false);
                 resultBean.setObject(depListBean);
+                //开处方阶段---判断药企库存这里就返回了
                 return resultBean;
             }
 
@@ -266,9 +267,10 @@ public class RecipePatientService extends RecipeBaseService {
         Integer supportMode = dep.getPayModeSupport();
         String giveModeText = "";
         List<Integer> payModeList = new ArrayList<>();
-        //配送模式支持 0:不支持 1:线上付款 2:货到付款 3:药店取药 8:货到付款和药店取药 9:都支持
+        //配送模式支持 0:不支持 1:线上付款 2:货到付款 3:药店取药 8:货到付款和药店取药 9:都支持 7配送到家和药店取药
         if (RecipeBussConstant.DEP_SUPPORT_ONLINE.equals(supportMode)) {
             payModeList.add(RecipeBussConstant.PAYMODE_ONLINE);
+            payModeList.add(RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS);
             giveModeText = "配送到家";
             //无法配送时间文案提示
             depDetailBean.setUnSendTitle(cacheService.getParam(ParameterConstant.KEY_RECIPE_UNSEND_TIP));
@@ -277,6 +279,7 @@ public class RecipePatientService extends RecipeBaseService {
             giveModeText = "配送到家";
         } else if (RecipeBussConstant.DEP_SUPPORT_TFDS.equals(supportMode)) {
             payModeList.add(RecipeBussConstant.PAYMODE_TFDS);
+            payModeList.add(RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS);
         } else if (RecipeBussConstant.DEP_SUPPORT_COD_TFDS.equals(supportMode)) {
             payModeList.add(RecipeBussConstant.PAYMODE_COD);
             payModeList.add(RecipeBussConstant.PAYMODE_TFDS);
@@ -284,10 +287,20 @@ public class RecipePatientService extends RecipeBaseService {
             payModeList.add(RecipeBussConstant.PAYMODE_ONLINE);
             payModeList.add(RecipeBussConstant.PAYMODE_COD);
             payModeList.add(RecipeBussConstant.PAYMODE_TFDS);
+            payModeList.add(RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS);
             //无法配送时间文案提示
             depDetailBean.setUnSendTitle(cacheService.getParam(ParameterConstant.KEY_RECIPE_UNSEND_TIP));
+        }else if (RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS.equals(supportMode)){
+            //配送到家
+            payModeList.add(RecipeBussConstant.PAYMODE_ONLINE);
+            //药店取药
+            payModeList.add(RecipeBussConstant.PAYMODE_TFDS);
+        } else if (RecipeBussConstant.DEP_SUPPORT_UNKNOW.equals(supportMode)){
+            payModeList.add(RecipeBussConstant.DEP_SUPPORT_UNKNOW);
         }
-        depDetailBean.setPayMode(payModeList.get(0));
+        if (CollectionUtils.isNotEmpty(payModeList)){
+            depDetailBean.setPayMode(payModeList.get(0));
+        }
         depDetailBean.setGiveModeText(giveModeText);
         depDetailList.add(depDetailBean);
     }
