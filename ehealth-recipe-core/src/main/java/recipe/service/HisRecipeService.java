@@ -77,20 +77,25 @@ public class HisRecipeService {
        if (!"ongoing".equals(status)) {
            flag = 2;
        }
+        PatientService patientService = BasicAPI.getService(PatientService.class);
+        PatientDTO patientDTO = patientService.getPatientBeanByMpiId(mpiId);
+        if(null == patientDTO){
+            throw new DAOException(609,"患者信息不存在");
+        }
        //查询his线下处方数据
         //同步查询待缴费处方
         try {
-            HisResponseTO<List<QueryHisRecipResTO>> responseTO = queryHisRecipeInfo(organId, mpiId, timeQuantum, 1);
+            HisResponseTO<List<QueryHisRecipResTO>> responseTO = queryHisRecipeInfo(organId, patientDTO, timeQuantum, 1);
             if (null != responseTO) {
                 if (null != responseTO.getData()) {
-                    saveHisRecipeInfo(responseTO);
+                    saveHisRecipeInfo(responseTO,patientDTO,1);
                 }
             }
         }catch (Exception ex){
             LOGGER.error("queryHisRecipeInfo error:",ex);
         }
         //异步获取已缴费处方
-        QueryHisRecipeCallable callable = new QueryHisRecipeCallable(organId,mpiId,timeQuantum,2);
+        QueryHisRecipeCallable callable = new QueryHisRecipeCallable(organId,mpiId,timeQuantum,2,patientDTO);
         RecipeBusiThreadPool.submit(callable);
 
         List<HisRecipe> hisRecipes = hisRecipeDAO.findHisRecipes(organId, mpiId, flag);
@@ -186,13 +191,8 @@ public class HisRecipeService {
     }
 
     @RpcService
-    public HisResponseTO<List<QueryHisRecipResTO>> queryHisRecipeInfo(Integer organId,String mpiId,Integer timeQuantum,Integer flag){
+    public HisResponseTO<List<QueryHisRecipResTO>> queryHisRecipeInfo(Integer organId,PatientDTO patientDTO,Integer timeQuantum,Integer flag){
         IRecipeHisService recipeHisService = AppContextHolder.getBean("his.iRecipeHisService",IRecipeHisService.class);
-        PatientService patientService = BasicAPI.getService(PatientService.class);
-        PatientDTO patientDTO = patientService.getPatientBeanByMpiId(mpiId);
-        if(null == patientDTO){
-            throw new DAOException(609,"患者信息不存在");
-        }
         QueryRecipeRequestTO queryRecipeRequestTO = new QueryRecipeRequestTO();
         Date startDate = tranDateByFlagNew(timeQuantum.toString());
         PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
@@ -200,7 +200,7 @@ public class HisRecipeService {
         patientBaseInfo.setPatientName(patientDTO.getPatientName());
         patientBaseInfo.setPatientSex(patientDTO.getPatientSex());
         patientBaseInfo.setMobile(patientDTO.getMobile());
-        patientBaseInfo.setMpi(mpiId);
+        patientBaseInfo.setMpi(patientDTO.getMpiId());
         patientDTO.setCertificate(patientDTO.getCertificate());
         queryRecipeRequestTO.setStartDate(startDate);
         queryRecipeRequestTO.setEndDate(new Date());
@@ -214,30 +214,49 @@ public class HisRecipeService {
     }
 
     @RpcService
-    public void saveHisRecipeInfo(HisResponseTO<List<QueryHisRecipResTO>> responseTO){
+    public void saveHisRecipeInfo(HisResponseTO<List<QueryHisRecipResTO>> responseTO,PatientDTO patientDTO,Integer flag){
         List<QueryHisRecipResTO> queryHisRecipResTOList = responseTO.getData();
         for(QueryHisRecipResTO queryHisRecipResTO : queryHisRecipResTOList){
-            HisRecipe hisRecipe = new HisRecipe();
-            hisRecipe = ObjectCopyUtils.convert(queryHisRecipResTO,HisRecipe.class);
-            if(null != queryHisRecipResTO.getMedicalInfo()){
-                MedicalInfo medicalInfo = queryHisRecipResTO.getMedicalInfo();
-                hisRecipe.setMedicalAmount(medicalInfo.getMedicalAmount());
-                hisRecipe.setCashAmount(medicalInfo.getCashAmount());
-                hisRecipe.setTotalAmount(medicalInfo.getTotalAmount());
-            }
-            hisRecipe = hisRecipeDAO.save(hisRecipe);
-            if(null != queryHisRecipResTO.getExt()){
-                for(ExtInfoTO extInfoTO : queryHisRecipResTO.getExt()) {
-                    HisRecipeExt ext = ObjectCopyUtils.convert(extInfoTO,HisRecipeExt.class);
-                    ext.setHisRecipeId(hisRecipe.getHisRecipeID());
-                    hisRecipeExtDAO.save(ext);
+            HisRecipe hisRecipe1 = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(queryHisRecipResTO.getClinicOrgan(),queryHisRecipResTO.getRecipeCode());
+            //数据库不存在处方信息，则新增
+            if(null == hisRecipe1) {
+                HisRecipe hisRecipe = new HisRecipe();
+                hisRecipe = ObjectCopyUtils.convert(queryHisRecipResTO, HisRecipe.class);
+                hisRecipe.setCertificate(patientDTO.getCertificate());
+                hisRecipe.setCertificateType(patientDTO.getCertificateType());
+                hisRecipe.setMpiId(patientDTO.getMpiId());
+                hisRecipe.setPatientName(patientDTO.getPatientName());
+                hisRecipe.setPatientAddress(patientDTO.getAddress());
+                hisRecipe.setPatientNumber(patientDTO.getMobile());
+                hisRecipe.setPatientTel(patientDTO.getMobile());
+                if (null != queryHisRecipResTO.getMedicalInfo()) {
+                    MedicalInfo medicalInfo = queryHisRecipResTO.getMedicalInfo();
+                    hisRecipe.setMedicalAmount(medicalInfo.getMedicalAmount());
+                    hisRecipe.setCashAmount(medicalInfo.getCashAmount());
+                    hisRecipe.setTotalAmount(medicalInfo.getTotalAmount());
                 }
-            }
-            if(null != queryHisRecipResTO.getDrugList()){
-                for(RecipeDetailTO recipeDetailTO : queryHisRecipResTO.getDrugList()) {
-                    HisRecipeDetail detail = ObjectCopyUtils.convert(recipeDetailTO,HisRecipeDetail.class);
-                    detail.setHisRecipeId(hisRecipe.getHisRecipeID());
-                    hisRecipeDetailDAO.save(detail);
+                hisRecipe = hisRecipeDAO.save(hisRecipe);
+                if (null != queryHisRecipResTO.getExt()) {
+                    for (ExtInfoTO extInfoTO : queryHisRecipResTO.getExt()) {
+                        HisRecipeExt ext = ObjectCopyUtils.convert(extInfoTO, HisRecipeExt.class);
+                        ext.setHisRecipeId(hisRecipe.getHisRecipeID());
+                        hisRecipeExtDAO.save(ext);
+                    }
+                }
+                if (null != queryHisRecipResTO.getDrugList()) {
+                    for (RecipeDetailTO recipeDetailTO : queryHisRecipResTO.getDrugList()) {
+                        HisRecipeDetail detail = ObjectCopyUtils.convert(recipeDetailTO, HisRecipeDetail.class);
+                        detail.setHisRecipeId(hisRecipe.getHisRecipeID());
+                        hisRecipeDetailDAO.save(detail);
+                    }
+                }
+            }else{
+                //如果已缴费处方在数据库里已存在，且数据里的状态是未缴费，则将数据库里的未缴费状态更新为已缴费状态
+                if(2 == flag){
+                    if(1 == hisRecipe1.getStatus()){
+                        hisRecipe1.setStatus(2);
+                        hisRecipeDAO.update(hisRecipe1);
+                    }
                 }
             }
         }
