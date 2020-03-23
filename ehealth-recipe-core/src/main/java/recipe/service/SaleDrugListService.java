@@ -8,6 +8,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.DrugListAndSaleDrugListDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.SaleDrugListDTO;
+import com.ngari.recipe.drug.service.ISaleDrugListService;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.SaleDrugList;
 import ctd.persistence.DAOFactory;
@@ -35,7 +36,7 @@ import java.util.List;
  * 销售药品管理服务
  */
 @RpcBean("saleDrugListService")
-public class SaleDrugListService {
+public class SaleDrugListService implements ISaleDrugListService {
 
     private static Logger logger = Logger.getLogger(SaleDrugListService.class);
 
@@ -173,5 +174,13 @@ public class SaleDrugListService {
             }
         }
         return false;
+    }
+
+    @Override
+    @RpcService
+    public SaleDrugListDTO getByOrganIdAndDrugId(Integer enterprise, Integer drugId ){
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        SaleDrugList saleDrugList=saleDrugListDAO.getByDrugIdAndOrganId(drugId,enterprise);
+        return ObjectCopyUtils.convert(saleDrugList, SaleDrugListDTO.class);
     }
 }
