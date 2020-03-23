@@ -66,7 +66,7 @@ public class HospitalDrugDTO implements Serializable {
     @Verify(isNotNull = false, desc = "药品使用备注", maxLength = 50)
     private String memo;
 
-    @Verify(desc = "处方明细编码")
+    @Verify(isNotNull = false, desc = "处方明细编码")
     private String recipedtlno;
 
     @Verify(isNotNull = false, desc = "药物单位")
