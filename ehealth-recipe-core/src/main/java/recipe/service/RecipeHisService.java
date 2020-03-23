@@ -23,6 +23,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.model.HisSendResTO;
 import com.ngari.recipe.recipe.model.OrderRepTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -1240,5 +1241,64 @@ public class RecipeHisService extends RecipeBaseService {
             throw new DAOException(hisResponseTO == null ? "医保结算申请失败" : hisResponseTO.getMsg());
         }
         return hisResponseTO.getData();
+    }
+
+    /**
+     * 医院在复诊/处方结算完成的时候将电子票据号同步到结算上
+     *
+     */
+    @RpcService
+    public HisResponseTO syncEinvoiceNumberToPay(SyncEinvoiceNumberDTO syncEinvoiceNumberDTO) {
+        //判断当前传入的信息是否满足定位更新电子票据号
+        //满足则更新支付的电子票据号
+        HisResponseTO result = new HisResponseTO();
+        result.setMsgCode("0");
+        if(!valiSyncEinvoiceNumber(syncEinvoiceNumberDTO, result)){
+            return result;
+        }
+        IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
+        //判断复诊的支付或者处方的支付能否定位到
+        HosrelationBean hosrelation = hosrelationService.getByStatusAndInvoiceNoAndOrganId
+                (1, syncEinvoiceNumberDTO.getInvoiceNo(), Integer.parseInt(syncEinvoiceNumberDTO.getOrganId()));
+
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        Integer recipeId = recipeDetailDAO.getRecipeIdByOrganIdAndInvoiceNo(Integer.parseInt(syncEinvoiceNumberDTO.getOrganId()), syncEinvoiceNumberDTO.getInvoiceNo());
+
+        if(null != hosrelation){
+            hosrelationService.updateEinvoiceNumberById(hosrelation.getId(), syncEinvoiceNumberDTO.getEinvoiceNumber());
+            result.setSuccess();
+            return result;
+
+        }
+        if(null != recipeId){
+            Boolean updateResult = recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeId, ImmutableMap.of("einvoiceNumber", syncEinvoiceNumberDTO.getEinvoiceNumber()));
+            if (updateResult) {
+                result.setSuccess();
+                return result;
+            }else{
+                result.setMsg("更新电子票据号失败！");
+            }
+        }
+        result.setMsg("当前无支付订单与支付单号对应，更新电子票据号失败！");
+        return result;
+    }
+
+    private boolean valiSyncEinvoiceNumber(SyncEinvoiceNumberDTO syncEinvoiceNumberDTO, HisResponseTO result) {
+        boolean flag = true;
+        if (null == syncEinvoiceNumberDTO) {
+            result.setMsg("当前医院更新电子票据号，请求参数为空！");
+            flag = false;
+        }
+        if(StringUtils.isEmpty(syncEinvoiceNumberDTO.getOrganId()) || StringUtils.isEmpty(syncEinvoiceNumberDTO.getInvoiceNo())){
+            result.setMsg("当前医院更新电子票据号，传入的机构id或者HIS结算单据号无法更新！");
+            flag = false;
+        }
+        if(StringUtils.isEmpty(syncEinvoiceNumberDTO.getEinvoiceNumber())){
+            result.setMsg("当前医院更新电子票据号，传入更新的电子票据号为空无法更新！");
+            flag = false;
+        }
+        return flag;
     }
 }

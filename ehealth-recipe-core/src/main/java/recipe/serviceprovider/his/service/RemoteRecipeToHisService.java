@@ -187,6 +187,9 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
                 hosrelationBean.setPatId(resDate.getPatId());
                 hosrelationBean.setExtendsParam(resDate.getExtendsParam());
                 hosrelationBean.setStatus(1);
+                //date 20200323
+                //添加设置HIS结算单据号
+                hosrelationBean.setInvoiceNo(resDate.getHisSettlementNo());
             } else {
                 response.setCode(RecipeCommonResTO.FAIL);
                 response.setMsg(hisResponse.getMsg());

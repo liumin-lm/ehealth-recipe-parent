@@ -130,7 +130,17 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "处方来源 0 线下his同步 1 平台处方")
     private Integer fromFlag;
 
+    @ItemProperty(alias = "电子票号")
+    private String einvoiceNumber;
 
+    @Column(name = "einvoiceNumber")
+    public String getEinvoiceNumber() {
+        return einvoiceNumber;
+    }
+
+    public void setEinvoiceNumber(String einvoiceNumber) {
+        this.einvoiceNumber = einvoiceNumber;
+    }
 
     public RecipeExtend() {
     }
