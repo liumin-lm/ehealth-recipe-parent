@@ -409,6 +409,9 @@ public class HisRecipeService {
             recipedetail.setUseDays(hisRecipeDetail.getUseDays());
             recipedetail.setStatus(1);
             recipedetail.setSalePrice(hisRecipeDetail.getPrice());
+            if (hisRecipeDetail.getUseTotalDose() != null && hisRecipeDetail.getPrice() != null) {
+                recipedetail.setDrugCost(hisRecipeDetail.getUseTotalDose().multiply(hisRecipeDetail.getPrice()));
+            }
             recipeDetailDAO.save(recipedetail);
         }
     }
