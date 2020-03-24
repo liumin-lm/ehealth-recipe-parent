@@ -1,5 +1,6 @@
 package com.ngari.recipe.drug.service;
 
+import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.drug.model.RegulationDrugCategoryBean;
 import ctd.util.annotation.RpcService;
 
@@ -15,4 +16,8 @@ public interface IOrganDrugListService {
 
     @RpcService
     List<RegulationDrugCategoryBean> queryRegulationDrug(Map<String, Object> params);
+
+    @RpcService
+    List<OrganDrugListBean> findByOrganIdAndDrugIdAndOrganDrugCode(int organId,
+                                                                  int drugId, String organDrugCode);
 }
