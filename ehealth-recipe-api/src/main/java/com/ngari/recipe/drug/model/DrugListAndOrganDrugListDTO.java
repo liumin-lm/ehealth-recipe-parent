@@ -24,14 +24,6 @@ public class DrugListAndOrganDrugListDTO implements Serializable {
     /**是否可配送*/
     private Boolean canDrugSend;
 
-    public Boolean canDrugSend() {
-        return canDrugSend;
-    }
-
-    public void setCanSend(Boolean canDrugSend) {
-        this.canDrugSend = canDrugSend;
-    }
-
     public List<DepSaleDrugInfo> getDepSaleDrugInfos() {
         return depSaleDrugInfos;
     }
@@ -58,5 +50,13 @@ public class DrugListAndOrganDrugListDTO implements Serializable {
 
     public void setOrganDrugList(OrganDrugListDTO organDrugList) {
         this.organDrugList = organDrugList;
+    }
+
+    public Boolean getCanDrugSend() {
+        return canDrugSend;
+    }
+
+    public void setCanDrugSend(Boolean canDrugSend) {
+        this.canDrugSend = canDrugSend;
     }
 }
