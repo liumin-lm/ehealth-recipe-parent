@@ -3,10 +3,7 @@ package recipe.purchase;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -19,10 +16,7 @@ import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
-import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeOrderDAO;
+import recipe.dao.*;
 import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
 
@@ -30,6 +24,8 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
 * @Description: PayModeDownloadService 类（或接口）是 承接购药方式中下载处方方式

@@ -216,4 +216,30 @@ public abstract class RecipeDetailDAO extends
     @DAOMethod(sql = "delete from Recipedetail where recipeId =:recipeId")
     public abstract void deleteByRecipeId(@DAOParam("recipeId") int recipeId);
 
+    /**
+     * 根据机构id和HIS结算单据号查询对应处方id
+     *
+     * @return
+     */
+    public Integer getRecipeIdByOrganIdAndInvoiceNo(final int organId, final String invoiceNo) {
+        StringBuilder drugNames = new StringBuilder();
+        HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
+            public void execute(StatelessSession ss) throws DAOException {
+                StringBuilder hql = new StringBuilder();
+                hql.append("select cd.* From cdr_recipedetail cd left join cdr_recipe cr on cd.RecipeID = cr.RecipeID " +
+                        "where cr.clinicOrgan =:organId and cd.status=1 and cd.invoiceNo = :invoiceNo");
+                Query q = ss.createSQLQuery(hql.toString()).addEntity(Recipedetail.class);
+                q.setParameter("organId", organId);
+                q.setParameter("invoiceNo", invoiceNo);
+                List<Recipedetail> list = q.list();
+                Integer recipeId = null;
+                if(null != list && 0 < list.size()){
+                    recipeId = list.get(0).getRecipeId();
+                }
+                setResult(recipeId);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }

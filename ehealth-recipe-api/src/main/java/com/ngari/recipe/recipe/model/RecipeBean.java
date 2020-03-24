@@ -21,6 +21,9 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "处方序号")
     private Integer recipeId;
 
+    @ItemProperty(alias = "处方序号(加密后)")
+    private String recipeIdE;
+
     @ItemProperty(alias = "订单编号")
     private String orderCode;
 
@@ -416,6 +419,14 @@ public class RecipeBean implements Serializable {
             this.setTakeMedicine(0);
         }
 
+    }
+
+    public String getRecipeIdE() {
+        return recipeIdE;
+    }
+
+    public void setRecipeIdE(String recipeIdE) {
+        this.recipeIdE = recipeIdE;
     }
 
     public Integer getReviewType() {

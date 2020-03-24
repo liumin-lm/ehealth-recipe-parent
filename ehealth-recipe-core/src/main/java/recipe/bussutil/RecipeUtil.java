@@ -263,6 +263,9 @@ public class RecipeUtil {
             recipe.setDistributionFlag(0);
         }
 
+        //设置处方来源类型
+        recipe.setRecipeSourceType(1);
+
         //默认非外带处方
         recipe.setTakeMedicine(0);
         //监管同步标记

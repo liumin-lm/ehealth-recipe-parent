@@ -44,6 +44,7 @@ import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.bean.CheckYsInfoBean;
+import recipe.bussutil.openapi.util.AESUtils;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.purchase.IPurchaseService;
@@ -233,7 +234,15 @@ public class RecipeCheckService {
                 }
 
                 map.put("dateString", dateString);
-                map.put("recipe", ObjectCopyUtils.convert(recipe, RecipeBean.class));
+                RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+                //加密recipeId
+                try {
+                    String recipeS = AESUtils.encrypt(recipe.getRecipeId() + "", "1234567890123456");
+                    recipeBean.setRecipeIdE(recipeS);
+                } catch (Exception e) {
+                    LOGGER.error("findRecipeAndDetailsAndCheckById-recipeId加密异常");
+                }
+                map.put("recipe", recipeBean);
                 map.put("patient", patient);
                 map.put("check", checkResult);
                 map.put("detail", ObjectCopyUtils.convert(detail, RecipeDetailBean.class));
@@ -251,7 +260,31 @@ public class RecipeCheckService {
      * @return
      */
     @RpcService
+    public Map<String, Object> findRecipeAndDetailsAndCheckByIdEncrypt(String recipeId, Integer doctorId) {
+        //20200323 解密recipe
+        Integer reicpeIdI = null;
+        try {
+            String recipeS = AESUtils.decrypt(recipeId, "1234567890123456");
+            reicpeIdI = Integer.valueOf(recipeS);
+        } catch (Exception e) {
+            LOGGER.error("findRecipeAndDetailsAndCheckByIdEncrypt-recipeId解密异常");
+            throw new DAOException("处方号解密异常");
+        }
+        //20200323 越权检查
+        checkUserIsChemistByDoctorId(reicpeIdI, doctorId);
+
+        return findRecipeAndDetailsAndCheckById(reicpeIdI);
+    }
+
+    /**
+     * 审核平台 获取处方单详情
+     *
+     * @param recipeId
+     * @return
+     */
+    @RpcService
     public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId) {
+
         RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -261,12 +294,21 @@ public class RecipeCheckService {
 
         //取recipe需要的字段
         Recipe recipe = rDao.getByRecipeId(recipeId);
+
         if (null == recipe) {
             LOGGER.error("findRecipeAndDetailsAndCheckById recipeId={} can't find.", recipeId);
             throw new DAOException(ErrorCode.SERVICE_ERROR, "无法找到该处方单");
         }
         Integer doctorId = recipe.getDoctor();
         RecipeBean r = new RecipeBean();
+        r.setRecipeId(recipe.getRecipeId());
+        //加密recipeId
+        try {
+            String recipeS = AESUtils.encrypt(recipe.getRecipeId() + "", "1234567890123456");
+            r.setRecipeIdE(recipeS);
+        } catch (Exception e) {
+            LOGGER.error("findRecipeAndDetailsAndCheckById-recipeId加密异常");
+        }
         r.setRecipeId(recipe.getRecipeId());
         r.setRecipeType(recipe.getRecipeType());
         r.setDoctor(doctorId);
@@ -617,6 +659,32 @@ public class RecipeCheckService {
 
     /**
      * zhongzx
+     * 保存药师审核平台审核结果(recipeId加密)
+     *
+     * @param paramMap 包含以下属性
+     *                 String     recipeId 处方ID(加密)
+     *                 int        checkOrgan  检查机构
+     *                 int        checker    检查人员
+     *                 int        result  1:审核通过 0-通过失败
+     *                 String     failMemo 备注
+     * @return boolean
+     */
+    @RpcService
+    public Map<String, Object> saveCheckResultEncrypt(Map<String, Object> paramMap) {
+        String recipeIdE = MapValueUtil.getString(paramMap, "recipeId");
+        //先解密recipeId
+        try {
+            String recipeS = AESUtils.decrypt(recipeIdE, "1234567890123456");
+            paramMap.put("recipeId", Integer.valueOf(recipeS));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Map<String, Object> map = saveCheckResult(paramMap);
+        return map;
+    }
+
+    /**
+     * zhongzx
      * 保存药师审核平台审核结果
      *
      * @param paramMap 包含以下属性
@@ -886,5 +954,31 @@ public class RecipeCheckService {
         }
 
         return recipeCheckService;
+    }
+
+    /**
+     * 判断登录用户能否审核机构下的处方
+     *
+     * @param recipeId
+     * @param organId
+     */
+    public void checkUserIsChemistByDoctorId(Integer recipeId, Integer organId){
+        RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = rDao.getByRecipeId(recipeId);
+        if(recipe == null ){
+            LOGGER.error("checkUserIsChemistByDoctorId-未获取到处方信息");
+            throw new DAOException("未获取到处方信息");
+        }
+        Integer doctorId = recipe.getDoctor();
+        if (null == doctorId || null == organId) {
+            LOGGER.error("药师ID或者机构ID不能为空doctorId[{}],organId[{}]", doctorId ,organId);
+            throw new DAOException("药师ID不能为空");
+        }
+        DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
+        List<Integer> organIds = doctorService.findAPOrganIdsByDoctorId(doctorId);
+        if(!(organIds.contains(organId))){
+            LOGGER.error("当前用户没有权限审核该处方doctorId[{}],organId[{}]", doctorId ,organId);
+            throw new DAOException("当前用户没有权限审核该处方");
+        }
     }
 }

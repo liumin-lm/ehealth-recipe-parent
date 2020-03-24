@@ -4,8 +4,14 @@ import com.ngari.base.BaseAPI;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.consult.ConsultBean;
+import com.ngari.consult.common.model.ConsultExDTO;
+import com.ngari.consult.common.service.IConsultExService;
+import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.visit.mode.*;
 import com.ngari.his.visit.service.IVisitService;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeCommonReqTO;
 import com.ngari.recipe.common.RecipeCommonResTO;
 import com.ngari.recipe.his.service.IRecipeToHisService;
@@ -16,6 +22,7 @@ import ctd.util.annotation.RpcService;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
 import recipe.constant.BusTypeEnum;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
@@ -78,6 +85,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
     @RpcService
     @Override
     public RecipeCommonResTO visitRegist(RecipeCommonReqTO request) {
+        LOGGER.info("visitRegist请求入参：{}", JSONUtils.toString(request));
         IVisitService hisService = AppDomainContext.getBean("his.visitService", IVisitService.class);
         Map<String, Object> map = request.getConditions();
         VisitRegistRequestTO hisRequest = new VisitRegistRequestTO();
@@ -96,6 +104,35 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         hisRequest.setPlatRegisterId(String.valueOf(MapValueUtil.getInteger(map,"consultId")));
         //科室代码
         hisRequest.setDeptCode(MapValueUtil.getString(map,"deptCode"));
+        hisRequest.setRegType(2);
+        Integer consultId = MapValueUtil.getInteger(map, "consultId");
+        if(null != consultId){
+            IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
+            ConsultBean consultBean = iConsultService.get(consultId);
+            if(null == consultBean){
+                LOGGER.error("visitRegist当前咨询id对应的咨询不存在{}", consultId);
+            }else{
+                if(null != consultBean.getPreSettletotalAmount()){
+                    hisRequest.setTotalAmount(new BigDecimal(consultBean.getPreSettletotalAmount()).setScale(2,BigDecimal.ROUND_HALF_UP));
+                }
+                if(null != consultBean.getFundAmount()){
+                    hisRequest.setFundAmount(new BigDecimal(consultBean.getFundAmount()).setScale(2,BigDecimal.ROUND_HALF_UP));
+                }
+                if(null != consultBean.getCashAmount()){
+                    hisRequest.setCashAmount(new BigDecimal(consultBean.getCashAmount()).setScale(2,BigDecimal.ROUND_HALF_UP));
+                }
+                IConsultExService consultExService = ApplicationUtils.getConsultService(IConsultExService.class);
+                ConsultExDTO exDTO = consultExService.getByConsultId(consultId);
+                if(null != exDTO){
+                    hisRequest.setMedicalPayFlag(null == exDTO.getMedicalFlag() ? 0 : exDTO.getMedicalFlag());
+                }else{
+                    LOGGER.error("visitRegist当前咨询id对应的咨询补充信息不存在{}", consultId);
+                }
+            }
+        }else{
+            LOGGER.error("当前咨询id传参为空");
+        }
+
         Double consultPrice = MapValueUtil.getDouble(map, "consultPrice");
         if (consultPrice !=null){
             //复诊金额
@@ -150,6 +187,9 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
                 hosrelationBean.setPatId(resDate.getPatId());
                 hosrelationBean.setExtendsParam(resDate.getExtendsParam());
                 hosrelationBean.setStatus(1);
+                //date 20200323
+                //添加设置HIS结算单据号
+                hosrelationBean.setInvoiceNo(resDate.getHisSettlementNo());
             } else {
                 response.setCode(RecipeCommonResTO.FAIL);
                 response.setMsg(hisResponse.getMsg());
