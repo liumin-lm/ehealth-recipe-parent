@@ -213,6 +213,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
      * @param MPIID
      * @return
      */
+    @RpcService
     public List<SearchDrugDetailDTO> findDrugListsByNameOrCodeAndSaveRecord(Integer organId, Integer drugType, String drugName, int start,String MPIID){
         if(StringUtils.isNotEmpty(drugName) && StringUtils.isNotEmpty(MPIID)){
             ISearchContentService iSearchContentService = ApplicationUtils.getBaseService(ISearchContentService.class);
