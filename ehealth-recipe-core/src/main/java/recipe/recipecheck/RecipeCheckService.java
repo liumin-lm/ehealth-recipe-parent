@@ -234,7 +234,15 @@ public class RecipeCheckService {
                 }
 
                 map.put("dateString", dateString);
-                map.put("recipe", ObjectCopyUtils.convert(recipe, RecipeBean.class));
+                RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+                //加密recipeId
+                try {
+                    String recipeS = AESUtils.encrypt(recipe.getRecipeId() + "", "1234567890123456");
+                    recipeBean.setRecipeIdE(recipeS);
+                } catch (Exception e) {
+                    LOGGER.error("findRecipeAndDetailsAndCheckById-recipeId加密异常");
+                }
+                map.put("recipe", recipeBean);
                 map.put("patient", patient);
                 map.put("check", checkResult);
                 map.put("detail", ObjectCopyUtils.convert(detail, RecipeDetailBean.class));
@@ -252,14 +260,15 @@ public class RecipeCheckService {
      * @return
      */
     @RpcService
-    public Map<String, Object> findRecipeAndDetailsAndCheckById(String recipeId, Integer doctorId) {
+    public Map<String, Object> findRecipeAndDetailsAndCheckByIdEncrypt(String recipeId, Integer doctorId) {
         //20200323 解密recipe
         Integer reicpeIdI = null;
         try {
             String recipeS = AESUtils.decrypt(recipeId, "1234567890123456");
             reicpeIdI = Integer.valueOf(recipeS);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("findRecipeAndDetailsAndCheckByIdEncrypt-recipeId解密异常");
+            throw new DAOException("处方号解密异常");
         }
         //20200323 越权检查
         checkUserIsChemistByDoctorId(reicpeIdI, doctorId);
@@ -292,6 +301,14 @@ public class RecipeCheckService {
         }
         Integer doctorId = recipe.getDoctor();
         RecipeBean r = new RecipeBean();
+        r.setRecipeId(recipe.getRecipeId());
+        //加密recipeId
+        try {
+            String recipeS = AESUtils.encrypt(recipe.getRecipeId() + "", "1234567890123456");
+            r.setRecipeIdE(recipeS);
+        } catch (Exception e) {
+            LOGGER.error("findRecipeAndDetailsAndCheckById-recipeId加密异常");
+        }
         r.setRecipeId(recipe.getRecipeId());
         r.setRecipeType(recipe.getRecipeType());
         r.setDoctor(doctorId);
@@ -645,7 +662,7 @@ public class RecipeCheckService {
      * 保存药师审核平台审核结果(recipeId加密)
      *
      * @param paramMap 包含以下属性
-     *                 int         recipeId 处方ID
+     *                 String     recipeId 处方ID(加密)
      *                 int        checkOrgan  检查机构
      *                 int        checker    检查人员
      *                 int        result  1:审核通过 0-通过失败
@@ -653,7 +670,7 @@ public class RecipeCheckService {
      * @return boolean
      */
     @RpcService
-    public Map<String, Object> saveCheckResultEcrypt(Map<String, Object> paramMap) {
+    public Map<String, Object> saveCheckResultEncrypt(Map<String, Object> paramMap) {
         String recipeIdE = MapValueUtil.getString(paramMap, "recipeId");
         //先解密recipeId
         try {
@@ -663,8 +680,6 @@ public class RecipeCheckService {
             e.printStackTrace();
         }
         Map<String, Object> map = saveCheckResult(paramMap);
-//        map();
-
         return map;
     }
 
