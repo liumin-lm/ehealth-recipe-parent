@@ -455,6 +455,29 @@ public class OrganDrugListService implements IOrganDrugListService {
         return result;
     }
 
+    /**
+     * * 运营平台（查询机构药品目录（可根据是否能配送查询））
+     *
+     * @param organId
+     * @param drugClass
+     * @param keyword
+     * @param status
+     * @param start
+     * @param limit
+     * @return
+     */
+    @RpcService
+    public QueryResult<DrugListAndOrganDrugListDTO> queryOrganDrugAndSaleForOp(final Integer organId,
+                                                                                               final String drugClass,
+                                                                                               final String keyword, final Integer status,
+                                                                                               final int start, final int limit,Boolean canDrugSend) {
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        QueryResult result = organDrugListDAO.queryOrganDrugAndSaleForOp(organId, drugClass, keyword, status, start, limit,canDrugSend);
+        result.setItems(covertData(result.getItems()));
+        return result;
+    }
+
+
     @Override
     public List<RegulationDrugCategoryBean> queryRegulationDrug(Map<String, Object> params) {
         ProvUploadOrganService provUploadOrganService = AppContextHolder.getBean("basic.provUploadOrganService",ProvUploadOrganService.class);
