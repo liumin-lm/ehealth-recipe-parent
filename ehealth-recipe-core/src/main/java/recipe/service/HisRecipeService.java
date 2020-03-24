@@ -203,7 +203,7 @@ public class HisRecipeService {
         patientBaseInfo.setPatientSex(patientDTO.getPatientSex());
         patientBaseInfo.setMobile(patientDTO.getMobile());
         patientBaseInfo.setMpi(patientDTO.getMpiId());
-        patientDTO.setCertificate(patientDTO.getCertificate());
+        patientBaseInfo.setCertificate(patientDTO.getCertificate());
         queryRecipeRequestTO.setStartDate(startDate);
         queryRecipeRequestTO.setEndDate(new Date());
         queryRecipeRequestTO.setOrgan(organId);
