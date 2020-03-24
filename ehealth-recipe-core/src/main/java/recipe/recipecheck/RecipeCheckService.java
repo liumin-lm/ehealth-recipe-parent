@@ -237,7 +237,7 @@ public class RecipeCheckService {
                 RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
                 //加密recipeId
                 try {
-                    String recipeS = AESUtils.encrypt(recipe.getRecipeId() + "", "1234567890123456");
+                    String recipeS = AESUtils.encrypt(recipe.getRecipeId() + "", "1234567890123gmw");
                     recipeBean.setRecipeIdE(recipeS);
                 } catch (Exception e) {
                     LOGGER.error("findRecipeAndDetailsAndCheckById-recipeId加密异常");
@@ -264,7 +264,7 @@ public class RecipeCheckService {
         //20200323 解密recipe
         Integer reicpeIdI = null;
         try {
-            String recipeS = AESUtils.decrypt(recipeId, "1234567890123456");
+            String recipeS = AESUtils.decrypt(recipeId, "1234567890123gmw");
             reicpeIdI = Integer.valueOf(recipeS);
         } catch (Exception e) {
             LOGGER.error("findRecipeAndDetailsAndCheckByIdEncrypt-recipeId解密异常");
@@ -304,7 +304,7 @@ public class RecipeCheckService {
         r.setRecipeId(recipe.getRecipeId());
         //加密recipeId
         try {
-            String recipeS = AESUtils.encrypt(recipe.getRecipeId() + "", "1234567890123456");
+            String recipeS = AESUtils.encrypt(recipe.getRecipeId() + "", "1234567890123gmw");
             r.setRecipeIdE(recipeS);
         } catch (Exception e) {
             LOGGER.error("findRecipeAndDetailsAndCheckById-recipeId加密异常");
@@ -674,7 +674,7 @@ public class RecipeCheckService {
         String recipeIdE = MapValueUtil.getString(paramMap, "recipeId");
         //先解密recipeId
         try {
-            String recipeS = AESUtils.decrypt(recipeIdE, "1234567890123456");
+            String recipeS = AESUtils.decrypt(recipeIdE, "1234567890123gmw");
             paramMap.put("recipeId", Integer.valueOf(recipeS));
         } catch (Exception e) {
             e.printStackTrace();
@@ -960,16 +960,16 @@ public class RecipeCheckService {
      * 判断登录用户能否审核机构下的处方
      *
      * @param recipeId
-     * @param organId
+     * @param doctorId
      */
-    public void checkUserIsChemistByDoctorId(Integer recipeId, Integer organId){
+    public void checkUserIsChemistByDoctorId(Integer recipeId, Integer doctorId){
         RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = rDao.getByRecipeId(recipeId);
         if(recipe == null ){
             LOGGER.error("checkUserIsChemistByDoctorId-未获取到处方信息");
             throw new DAOException("未获取到处方信息");
         }
-        Integer doctorId = recipe.getDoctor();
+        Integer organId = recipe.getClinicOrgan();
         if (null == doctorId || null == organId) {
             LOGGER.error("药师ID或者机构ID不能为空doctorId[{}],organId[{}]", doctorId ,organId);
             throw new DAOException("药师ID不能为空");
