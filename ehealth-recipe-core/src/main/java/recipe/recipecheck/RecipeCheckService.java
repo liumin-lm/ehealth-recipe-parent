@@ -301,6 +301,11 @@ public class RecipeCheckService {
         r.setSignFile(recipe.getSignFile());
         //医生+药师签名文件
         r.setChemistSignFile(recipe.getChemistSignFile());
+        //设置医生处方签
+        r.setSignRecipeCode(recipe.getSignRecipeCode());
+        //设置时间戳
+        r.setSignCADate(recipe.getSignCADate());
+
         try {
             String showTip = DictionaryController.instance().get("eh.cdr.dictionary.RecipeStatus").getText(recipe.getStatus());
             r.setShowTip(showTip);
