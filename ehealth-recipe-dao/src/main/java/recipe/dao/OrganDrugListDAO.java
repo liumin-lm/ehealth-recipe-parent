@@ -353,7 +353,9 @@ public abstract class OrganDrugListDAO extends
                             List<DepSaleDrugInfo> depSaleDrugInfos = Lists.newArrayList();
                             for (SaleDrugList saleDrugList : saleDrugLists){
                                 DepSaleDrugInfo info = new DepSaleDrugInfo();
+                                info.setDrugEnterpriseId(saleDrugList.getOrganId());
                                 info.setSaleDrugCode(saleDrugList.getOrganDrugCode());
+                                info.setDrugId(saleDrugList.getDrugId());
                                 DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(saleDrugList.getOrganId());
                                 if (enterprise !=null){
                                     info.setDrugEnterpriseName(enterprise.getName());

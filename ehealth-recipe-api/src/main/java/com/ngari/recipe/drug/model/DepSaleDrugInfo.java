@@ -7,6 +7,8 @@ import java.io.Serializable;
  */
 public class DepSaleDrugInfo implements Serializable {
     private static final long serialVersionUID = -7133021932958904909L;
+    private Integer drugEnterpriseId;
+    private Integer drugId;
     private String drugEnterpriseName;
     private String saleDrugCode;
 
@@ -24,5 +26,21 @@ public class DepSaleDrugInfo implements Serializable {
 
     public void setSaleDrugCode(String saleDrugCode) {
         this.saleDrugCode = saleDrugCode;
+    }
+
+    public Integer getDrugEnterpriseId() {
+        return drugEnterpriseId;
+    }
+
+    public void setDrugEnterpriseId(Integer drugEnterpriseId) {
+        this.drugEnterpriseId = drugEnterpriseId;
+    }
+
+    public Integer getDrugId() {
+        return drugId;
+    }
+
+    public void setDrugId(Integer drugId) {
+        this.drugId = drugId;
     }
 }
