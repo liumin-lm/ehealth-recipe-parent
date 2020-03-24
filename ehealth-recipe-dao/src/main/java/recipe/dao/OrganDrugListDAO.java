@@ -596,4 +596,15 @@ public abstract class OrganDrugListDAO extends
     @DAOMethod(sql = "from OrganDrugList where organId=:organId and drugId =:drugId and organDrugCode =:organDrugCode and status = 1", limit = 0)
     public abstract List<OrganDrugList> findByOrganIdAndDrugIdAndOrganDrugCode(@DAOParam("organId") int organId, @DAOParam("drugId") int drugId, @DAOParam("organDrugCode") String organDrugCode);
 
+    /**
+     * 通过organId和创建时间获取
+     *
+     * @param organId  机构Id
+     * @param drugId 药品id
+     * @param  organDrugCode 药品code
+     * @return
+     */
+    @DAOMethod(sql = "from OrganDrugList where organId=:organId and drugId =:drugId and organDrugCode =:organDrugCode and status =:status", limit = 0)
+    public abstract List<OrganDrugList> findByOrganIdAndDrugIdAndOrganDrugCodeAndStatus
+    (@DAOParam("organId") int organId, @DAOParam("drugId") int drugId, @DAOParam("organDrugCode") String organDrugCode, @DAOParam("status") Integer status);
 }
