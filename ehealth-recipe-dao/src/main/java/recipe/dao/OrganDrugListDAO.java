@@ -382,11 +382,13 @@ public abstract class OrganDrugListDAO extends
             @Override
             public void execute(StatelessSession ss) throws DAOException {
                 StringBuilder hql;
-                //查询机构药品目录是否配送
-                if (canDrugSend){
+                //查询机构药品目录是否配送---null的话没有是否配送的筛选条件
+                if (canDrugSend == null){
+                    hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId ");
+                }else if (canDrugSend){
                     hql = new StringBuilder(" from OrganDrugList a, DrugList b,SaleDrugList c where a.drugId = b.drugId and a.drugId = c.drugId and c.status =1 ");
                 }else {
-                    hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId ");
+                    hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId and a.drugId not in (select c.drugId from SaleDrugList c where c.status =1) ");
                 }
                     if (!StringUtils.isEmpty(drugClass)) {
                         hql.append(" and b.drugClass like :drugClass");
