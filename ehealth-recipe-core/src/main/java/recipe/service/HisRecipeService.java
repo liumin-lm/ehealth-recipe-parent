@@ -5,9 +5,11 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -390,7 +392,13 @@ public class HisRecipeService {
         recipe.setRecipeCode(hisRecipe.getRecipeCode());
         recipe.setRecipeType(hisRecipe.getRecipeType());
         recipe.setDepart(Integer.parseInt(hisRecipe.getDepartCode()));
-        recipe.setDoctor(Integer.parseInt(hisRecipe.getDoctorCode()));
+        EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
+        if (StringUtils.isNotEmpty(hisRecipe.getDoctorCode())) {
+            EmploymentDTO employmentDTO = employmentService.getByJobNumberAndOrganId(hisRecipe.getDoctorCode(), hisRecipe.getClinicOrgan());
+            if (employmentDTO != null) {
+                recipe.setDoctor(employmentDTO.getDoctorId());
+            }
+        }
         recipe.setDoctorName(hisRecipe.getDoctorName());
         recipe.setCreateDate(hisRecipe.getCreateDate());
         recipe.setSignDate(hisRecipe.getCreateDate());
