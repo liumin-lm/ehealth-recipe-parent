@@ -243,6 +243,8 @@ public class HisRecipeService {
                 hisRecipe.setDoctorName(queryHisRecipResTO.getDoctorName());
                 hisRecipe.setCreateDate(queryHisRecipResTO.getCreateDate());
                 hisRecipe.setStatus(queryHisRecipResTO.getStatus());
+                hisRecipe.setExtensionFlag(1);
+                hisRecipe.setMedicalType(queryHisRecipResTO.getMedicalType());
                 OrganService organService = BasicAPI.getService(OrganService.class);
                 OrganDTO organDTO = organService.getByOrganId(queryHisRecipResTO.getClinicOrgan());
                 if(null !=organDTO) {
