@@ -421,9 +421,9 @@ public abstract class OrganDrugListDAO extends
                     if (!StringUtils.isEmpty(drugClass)) {
                         countQuery.setParameter("drugClass", drugClass + "%");
                     }
-                    if (ObjectUtils.nullSafeEquals(status, 0) || ObjectUtils.nullSafeEquals(status, 1) || ObjectUtils.nullSafeEquals(status, -1) || ObjectUtils.nullSafeEquals(status, 9)) {
+                    //if (ObjectUtils.nullSafeEquals(status, 0) || ObjectUtils.nullSafeEquals(status, 1) || ObjectUtils.nullSafeEquals(status, -1) || ObjectUtils.nullSafeEquals(status, 9)) {
                         countQuery.setParameter("organId", organId);
-                    }
+                    //}
                     if (drugId != null) {
                         countQuery.setParameter("drugId", drugId);
                     }
@@ -436,9 +436,9 @@ public abstract class OrganDrugListDAO extends
                     if (!StringUtils.isEmpty(drugClass)) {
                         query.setParameter("drugClass", drugClass + "%");
                     }
-                    if (ObjectUtils.nullSafeEquals(status, 0) || ObjectUtils.nullSafeEquals(status, 1) || ObjectUtils.nullSafeEquals(status, -1) || ObjectUtils.nullSafeEquals(status, 9)) {
+                    //if (ObjectUtils.nullSafeEquals(status, 0) || ObjectUtils.nullSafeEquals(status, 1) || ObjectUtils.nullSafeEquals(status, -1) || ObjectUtils.nullSafeEquals(status, 9)) {
                         query.setParameter("organId", organId);
-                    }
+                    //}
                     if (drugId != null) {
                         query.setParameter("drugId", drugId);
                     }
