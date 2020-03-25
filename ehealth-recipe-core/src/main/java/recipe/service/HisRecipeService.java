@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
@@ -220,9 +221,7 @@ public class HisRecipeService {
     @RpcService
     public void saveHisRecipeInfo(HisResponseTO<List<QueryHisRecipResTO>> responseTO,PatientDTO patientDTO,Integer flag){
         List<QueryHisRecipResTO> queryHisRecipResTOList = responseTO.getData();
-        LOGGER.info("saveHisRecipeInfo queryHisRecipResTOList:" + JSONUtils.toString(queryHisRecipResTOList));
         for(QueryHisRecipResTO queryHisRecipResTO : queryHisRecipResTOList){
-            LOGGER.info("saveHisRecipeInfo queryHisRecipResTO:" + JSONUtils.toString(queryHisRecipResTO));
             HisRecipe hisRecipe1 = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(
                     patientDTO.getMpiId(),queryHisRecipResTO.getClinicOrgan(),queryHisRecipResTO.getRecipeCode());
             //数据库不存在处方信息，则新增
@@ -245,6 +244,10 @@ public class HisRecipeService {
                 hisRecipe.setStatus(queryHisRecipResTO.getStatus());
                 hisRecipe.setExtensionFlag(1);
                 hisRecipe.setMedicalType(1);
+                hisRecipe.setRecipeType(queryHisRecipResTO.getRecipeType());
+                if(!StringUtils.isEmpty(queryHisRecipResTO.getDoctorCode())){
+                    hisRecipe.setDoctorCode(queryHisRecipResTO.getDoctorCode());
+                }
                 OrganService organService = BasicAPI.getService(OrganService.class);
                 OrganDTO organDTO = organService.getByOrganId(queryHisRecipResTO.getClinicOrgan());
                 if(null !=organDTO) {
@@ -252,9 +255,15 @@ public class HisRecipeService {
                 }
                 if (null != queryHisRecipResTO.getMedicalInfo()) {
                     MedicalInfo medicalInfo = queryHisRecipResTO.getMedicalInfo();
-                    hisRecipe.setMedicalAmount(medicalInfo.getMedicalAmount());
-                    hisRecipe.setCashAmount(medicalInfo.getCashAmount());
-                    hisRecipe.setTotalAmount(medicalInfo.getTotalAmount());
+                    if(!ObjectUtils.isEmpty(medicalInfo.getMedicalAmount())){
+                        hisRecipe.setMedicalAmount(medicalInfo.getMedicalAmount());
+                    }
+                    if(!ObjectUtils.isEmpty(medicalInfo.getCashAmount())){
+                        hisRecipe.setCashAmount(medicalInfo.getCashAmount());
+                    }
+                    if(!ObjectUtils.isEmpty(medicalInfo.getTotalAmount())){
+                        hisRecipe.setTotalAmount(medicalInfo.getTotalAmount());
+                    }
                 }
                 hisRecipe = hisRecipeDAO.save(hisRecipe);
                 if (null != queryHisRecipResTO.getExt()) {
