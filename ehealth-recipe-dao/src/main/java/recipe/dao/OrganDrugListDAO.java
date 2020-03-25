@@ -724,4 +724,8 @@ public abstract class OrganDrugListDAO extends
     public abstract List<OrganDrugList> findByOrganIdAndDrugIdAndOrganDrugCodeAndStatus
     (@DAOParam("organId") int organId, @DAOParam("drugId") int drugId, @DAOParam("organDrugCode") String organDrugCode, @DAOParam("status") Integer status);
 
+    @DAOMethod(sql = "from OrganDrugList ")
+    public abstract List<OrganDrugList> findOrganDrug(@DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
+
+
 }

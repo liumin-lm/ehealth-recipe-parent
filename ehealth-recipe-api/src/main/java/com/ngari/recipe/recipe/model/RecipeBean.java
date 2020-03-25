@@ -325,6 +325,12 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "药师处方签名生成的时间戳结构体，由院方服务器获取")
     private String signPharmacistCADate;
 
+    @ItemProperty(alias = "医生处方数字签名值")
+    private String signRecipeCode;
+
+    @ItemProperty(alias = "医生处方签名生成的时间戳结构体，由院方服务器获取")
+    private String signCADate;
+
     public RecipeBean() {
     }
 
@@ -1189,4 +1195,20 @@ public class RecipeBean implements Serializable {
     public String getSignPharmacistCADate() { return signPharmacistCADate; }
 
     public void setSignPharmacistCADate(String signPharmacistCADate) { this.signPharmacistCADate = signPharmacistCADate; }
+
+    public String getSignRecipeCode() {
+        return signRecipeCode;
+    }
+
+    public void setSignRecipeCode(String signRecipeCode) {
+        this.signRecipeCode = signRecipeCode;
+    }
+
+    public String getSignCADate() {
+        return signCADate;
+    }
+
+    public void setSignCADate(String signCADate) {
+        this.signCADate = signCADate;
+    }
 }
