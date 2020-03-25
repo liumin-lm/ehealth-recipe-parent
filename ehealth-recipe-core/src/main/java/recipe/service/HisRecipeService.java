@@ -245,7 +245,9 @@ public class HisRecipeService {
                 hisRecipe.setStatus(queryHisRecipResTO.getStatus());
                 OrganService organService = BasicAPI.getService(OrganService.class);
                 OrganDTO organDTO = organService.getByOrganId(queryHisRecipResTO.getClinicOrgan());
-                hisRecipe.setOrganName(organDTO.getName());
+                if(null !=organDTO) {
+                    hisRecipe.setOrganName(organDTO.getName());
+                }
                 if (null != queryHisRecipResTO.getMedicalInfo()) {
                     MedicalInfo medicalInfo = queryHisRecipResTO.getMedicalInfo();
                     hisRecipe.setMedicalAmount(medicalInfo.getMedicalAmount());
