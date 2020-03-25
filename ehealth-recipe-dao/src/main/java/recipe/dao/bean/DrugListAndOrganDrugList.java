@@ -30,14 +30,6 @@ public class DrugListAndOrganDrugList {
         this.depSaleDrugInfos = depSaleDrugInfos;
     }
 
-    public Boolean getCanDrugSend() {
-        return canDrugSend;
-    }
-
-    public void setCanDrugSend(Boolean canDrugSend) {
-        this.canDrugSend = canDrugSend;
-    }
-
     public DrugListAndOrganDrugList(DrugList drugList, OrganDrugList organDrugList) {
         this.drugList = drugList;
         this.organDrugList = organDrugList;
@@ -57,5 +49,13 @@ public class DrugListAndOrganDrugList {
 
     public void setOrganDrugList(OrganDrugList organDrugList) {
         this.organDrugList = organDrugList;
+    }
+
+    public Boolean getCanDrugSend() {
+        return canDrugSend;
+    }
+
+    public void setCanDrugSend(Boolean canDrugSend) {
+        this.canDrugSend = canDrugSend;
     }
 }

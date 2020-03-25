@@ -677,7 +677,8 @@ public class RecipeCheckService {
             String recipeS = AESUtils.decrypt(recipeIdE, "1234567890123gmw");
             paramMap.put("recipeId", Integer.valueOf(recipeS));
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("saveCheckResultEncrypt-recipeId解密异常");
+            throw new DAOException("处方号解密异常");
         }
         Map<String, Object> map = saveCheckResult(paramMap);
         return map;
