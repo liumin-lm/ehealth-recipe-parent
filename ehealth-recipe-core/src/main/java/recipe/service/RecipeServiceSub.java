@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -311,6 +312,8 @@ public class RecipeServiceSub {
                         //判断药品能否开在一张处方单上
                         canOpenRecipeDrugs(recipe.getClinicOrgan(),recipe.getRecipeId(),drugIds);
                     }
+                    //判断某诊断下某药品能否开具
+                    canOpenRecipeDrugsAndDisease(recipe,drugIds);
                 } else if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
                     //浙江省互联网医院模式不需要这么多校验
                     for (OrganDrugList obj : organDrugList) {
@@ -379,6 +382,20 @@ public class RecipeServiceSub {
         recipe.setTotalMoney(totalMoney);
         recipe.setActualPrice(totalMoney);
         return success;
+    }
+
+    private static void canOpenRecipeDrugsAndDisease(Recipe recipe, List<Integer> drugIds) {
+        List<String> nameLists = Splitter.on("；").splitToList(recipe.getOrganDiseaseName());
+        for (String organDiseaseName : nameLists){
+            Set<Integer> drugIdSet = cacheService.findDrugByDiseaseName(organDiseaseName);
+            if (CollectionUtils.isEmpty(drugIdSet)){break;}
+            for (Integer drugId:drugIdSet){
+                if (drugIds.contains(drugId)){
+                    throw new DAOException(ErrorCode.SERVICE_ERROR,"["+organDiseaseName+"]患者禁用");
+                }
+            }
+
+        }
     }
 
     public static void canOpenRecipeDrugs(Integer clinicOrgan, Integer recipeId, List<Integer> drugIds) {
