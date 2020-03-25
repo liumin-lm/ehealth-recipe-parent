@@ -245,6 +245,7 @@ public class HisRecipeService {
                 hisRecipe.setExtensionFlag(1);
                 hisRecipe.setMedicalType(1);
                 hisRecipe.setRecipeType(queryHisRecipResTO.getRecipeType());
+                hisRecipe.setClinicOrgan(queryHisRecipResTO.getClinicOrgan());
                 if(!StringUtils.isEmpty(queryHisRecipResTO.getDoctorCode())){
                     hisRecipe.setDoctorCode(queryHisRecipResTO.getDoctorCode());
                 }
@@ -278,7 +279,7 @@ public class HisRecipeService {
                         HisRecipeDetail detail = ObjectCopyUtils.convert(recipeDetailTO, HisRecipeDetail.class);
                         detail.setHisRecipeId(hisRecipe.getHisRecipeID());
                         detail.setRecipeDeatilCode(recipeDetailTO.getRecipeDeatilCode());
-                        detail.setDrugName(recipeDetailTO.getSaleName());
+                        detail.setDrugName(recipeDetailTO.getDrugName());
                         detail.setPrice(recipeDetailTO.getPrice());
                         detail.setTotalPrice(recipeDetailTO.getTotalPrice());
                         detail.setUsingRate(recipeDetailTO.getUsingRate());
