@@ -386,9 +386,9 @@ public abstract class OrganDrugListDAO extends
                 if (canDrugSend == null){
                     hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId ");
                 }else if (canDrugSend){
-                    hql = new StringBuilder(" from OrganDrugList a, DrugList b,SaleDrugList c where a.drugId = b.drugId and a.drugId = c.drugId and c.status =1 ");
+                    hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId and a.drugId in (select c.drugId from SaleDrugList c where c.status =1) ");
                 }else {
-                    hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId and a.drugId not in (select c.drugId from SaleDrugList c where c.status =1) ");
+                    hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId and (a.drugId in (select c.drugId from SaleDrugList c where c.status =0)or(a.drugId not in (select c.drugId from SaleDrugList c)) ");
                 }
                     if (!StringUtils.isEmpty(drugClass)) {
                         hql.append(" and b.drugClass like :drugClass");
@@ -411,19 +411,19 @@ public abstract class OrganDrugListDAO extends
                         hql.append(" and a.status = 0 and a.organId =:organId ");
                     } else if (ObjectUtils.nullSafeEquals(status, 1)) {
                         hql.append(" and a.status = 1 and a.organId =:organId ");
-                    } else if (ObjectUtils.nullSafeEquals(status, -1)) {
-                        hql.append(" and a.organId =:organId ");
                     } else if (ObjectUtils.nullSafeEquals(status, ALL_DRUG_FLAG)) {
                         hql.append(" and a.status in (0, 1) and a.organId =:organId ");
+                    }else {
+                        hql.append(" and a.organId =:organId ");
                     }
                     hql.append(" and b.status = 1 order by a.organDrugId desc");
                     Query countQuery = ss.createQuery("select count(*) " + hql.toString());
                     if (!StringUtils.isEmpty(drugClass)) {
                         countQuery.setParameter("drugClass", drugClass + "%");
                     }
-                    if (ObjectUtils.nullSafeEquals(status, 0) || ObjectUtils.nullSafeEquals(status, 1) || ObjectUtils.nullSafeEquals(status, -1) || ObjectUtils.nullSafeEquals(status, 9)) {
+                    //if (ObjectUtils.nullSafeEquals(status, 0) || ObjectUtils.nullSafeEquals(status, 1) || ObjectUtils.nullSafeEquals(status, -1) || ObjectUtils.nullSafeEquals(status, 9)) {
                         countQuery.setParameter("organId", organId);
-                    }
+                    //}
                     if (drugId != null) {
                         countQuery.setParameter("drugId", drugId);
                     }
@@ -436,9 +436,9 @@ public abstract class OrganDrugListDAO extends
                     if (!StringUtils.isEmpty(drugClass)) {
                         query.setParameter("drugClass", drugClass + "%");
                     }
-                    if (ObjectUtils.nullSafeEquals(status, 0) || ObjectUtils.nullSafeEquals(status, 1) || ObjectUtils.nullSafeEquals(status, -1) || ObjectUtils.nullSafeEquals(status, 9)) {
+                    //if (ObjectUtils.nullSafeEquals(status, 0) || ObjectUtils.nullSafeEquals(status, 1) || ObjectUtils.nullSafeEquals(status, -1) || ObjectUtils.nullSafeEquals(status, 9)) {
                         query.setParameter("organId", organId);
-                    }
+                    //}
                     if (drugId != null) {
                         query.setParameter("drugId", drugId);
                     }
