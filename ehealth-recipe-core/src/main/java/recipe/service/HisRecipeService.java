@@ -5,8 +5,10 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.*;
@@ -219,7 +221,8 @@ public class HisRecipeService {
     public void saveHisRecipeInfo(HisResponseTO<List<QueryHisRecipResTO>> responseTO,PatientDTO patientDTO,Integer flag){
         List<QueryHisRecipResTO> queryHisRecipResTOList = responseTO.getData();
         for(QueryHisRecipResTO queryHisRecipResTO : queryHisRecipResTOList){
-            HisRecipe hisRecipe1 = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(queryHisRecipResTO.getClinicOrgan(),queryHisRecipResTO.getRecipeCode());
+            HisRecipe hisRecipe1 = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(
+                    patientDTO.getMpiId(),queryHisRecipResTO.getClinicOrgan(),queryHisRecipResTO.getRecipeCode());
             //数据库不存在处方信息，则新增
             if(null == hisRecipe1) {
                 HisRecipe hisRecipe = new HisRecipe();
@@ -231,6 +234,9 @@ public class HisRecipeService {
                 hisRecipe.setPatientAddress(patientDTO.getAddress());
                 hisRecipe.setPatientNumber(patientDTO.getMobile());
                 hisRecipe.setPatientTel(patientDTO.getMobile());
+                OrganService organService = BasicAPI.getService(OrganService.class);
+                OrganDTO organDTO = organService.getByOrganId(queryHisRecipResTO.getClinicOrgan());
+                hisRecipe.setOrganName(organDTO.getName());
                 if (null != queryHisRecipResTO.getMedicalInfo()) {
                     MedicalInfo medicalInfo = queryHisRecipResTO.getMedicalInfo();
                     hisRecipe.setMedicalAmount(medicalInfo.getMedicalAmount());
