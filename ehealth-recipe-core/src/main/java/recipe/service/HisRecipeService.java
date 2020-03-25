@@ -101,7 +101,7 @@ public class HisRecipeService {
         QueryHisRecipeCallable callable = new QueryHisRecipeCallable(organId,mpiId,timeQuantum,2,patientDTO);
         RecipeBusiThreadPool.submit(callable);
 
-        List<HisRecipe> hisRecipes = hisRecipeDAO.findHisRecipes(organId, mpiId, flag);
+        List<HisRecipe> hisRecipes = hisRecipeDAO.findHisRecipes(organId, mpiId, flag, start, limit);
         List<HisRecipeVO> result = new ArrayList<>();
        //根据status状态查询处方列表
         if ("ongoing".equals(status)) {
