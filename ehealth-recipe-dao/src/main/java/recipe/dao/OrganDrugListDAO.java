@@ -411,10 +411,10 @@ public abstract class OrganDrugListDAO extends
                         hql.append(" and a.status = 0 and a.organId =:organId ");
                     } else if (ObjectUtils.nullSafeEquals(status, 1)) {
                         hql.append(" and a.status = 1 and a.organId =:organId ");
-                    } else if (ObjectUtils.nullSafeEquals(status, -1)) {
-                        hql.append(" and a.organId =:organId ");
                     } else if (ObjectUtils.nullSafeEquals(status, ALL_DRUG_FLAG)) {
                         hql.append(" and a.status in (0, 1) and a.organId =:organId ");
+                    }else {
+                        hql.append(" and a.organId =:organId ");
                     }
                     hql.append(" and b.status = 1 order by a.organDrugId desc");
                     Query countQuery = ss.createQuery("select count(*) " + hql.toString());
