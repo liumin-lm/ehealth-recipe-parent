@@ -388,7 +388,7 @@ public abstract class OrganDrugListDAO extends
                 }else if (canDrugSend){
                     hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId and a.drugId in (select c.drugId from SaleDrugList c where c.status =1) ");
                 }else {
-                    hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId and (a.drugId in (select c.drugId from SaleDrugList c where c.status =0)or(a.drugId not in (select c.drugId from SaleDrugList c)) ");
+                    hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId and a.drugId not in (select c.drugId from SaleDrugList c where c.status =1 and c.drugId is not null) ");
                 }
                     if (!StringUtils.isEmpty(drugClass)) {
                         hql.append(" and b.drugClass like :drugClass");
