@@ -4,8 +4,6 @@ import com.ngari.base.BaseAPI;
 import com.ngari.base.clientconfig.service.IClientConfigService;
 import com.ngari.base.clientconfig.to.ClientConfigBean;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
-import ctd.mvc.weixin.WXApp;
-import ctd.mvc.weixin.WXAppManager;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
