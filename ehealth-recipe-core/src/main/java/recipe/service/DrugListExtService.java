@@ -501,5 +501,10 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         return itemList;
     }
 
+    // 封装提供给前端
+    @RpcService
+    public List<SearchDrugDetailDTO> findOrganDrugListsByNameOrCodePage(Integer organId, Integer drugType, String drugName, int start){
+        return searchDrugListWithESForPatient(organId, drugType, drugName, start, 10);
+    }
 
 }
