@@ -572,8 +572,8 @@ public class DrugToolService implements IDrugToolService {
         drugList.setUseDoseUnit(drugListMatch.getUseDoseUnit());
         //规格
         drugList.setDrugSpec(drugListMatch.getDrugSpec());
-        //药品包装数量
-        drugList.setPack(drugListMatch.getPack());
+        //药品包装数量---默认1
+        drugList.setPack(drugListMatch.getPack()==null?1:drugListMatch.getPack());
         //药品单位
         drugList.setUnit(drugListMatch.getUnit());
         //药品类型
