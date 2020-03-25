@@ -220,13 +220,16 @@ public class HisRecipeService {
     @RpcService
     public void saveHisRecipeInfo(HisResponseTO<List<QueryHisRecipResTO>> responseTO,PatientDTO patientDTO,Integer flag){
         List<QueryHisRecipResTO> queryHisRecipResTOList = responseTO.getData();
+        LOGGER.info("saveHisRecipeInfo queryHisRecipResTOList:" + JSONUtils.toString(queryHisRecipResTOList));
         for(QueryHisRecipResTO queryHisRecipResTO : queryHisRecipResTOList){
+            LOGGER.info("saveHisRecipeInfo queryHisRecipResTO:" + JSONUtils.toString(queryHisRecipResTO));
             HisRecipe hisRecipe1 = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(
                     patientDTO.getMpiId(),queryHisRecipResTO.getClinicOrgan(),queryHisRecipResTO.getRecipeCode());
             //数据库不存在处方信息，则新增
             if(null == hisRecipe1) {
                 HisRecipe hisRecipe = new HisRecipe();
                 hisRecipe = ObjectCopyUtils.convert(queryHisRecipResTO, HisRecipe.class);
+                LOGGER.info("saveHisRecipeInfo hisRecipe:" + JSONUtils.toString(hisRecipe));
                 hisRecipe.setCertificate(patientDTO.getCertificate());
                 hisRecipe.setCertificateType(patientDTO.getCertificateType());
                 hisRecipe.setMpiId(patientDTO.getMpiId());
