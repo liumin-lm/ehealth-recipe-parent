@@ -223,7 +223,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             searchContentBean.setBussType(18);
             iSearchContentService.addSearchContent(searchContentBean,0);
         }
-        return searchDrugListWithESForPatient(organId, drugType, drugName, start, 10);
+        return searchDrugListWithES(organId, drugType, drugName, start, 10);
     }
 
 
@@ -500,11 +500,4 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         //现在 按照字典的录入顺序显示
         return itemList;
     }
-
-    // 封装提供给前端
-    @RpcService
-    public List<SearchDrugDetailDTO> findOrganDrugListsByNameOrCodePage(Integer organId, Integer drugType, String drugName, int start){
-        return searchDrugListWithESForPatient(organId, drugType, drugName, start, 10);
-    }
-
 }
