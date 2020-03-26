@@ -480,6 +480,7 @@ public class HisRecipeService {
                 recipedetail.setUsingRate(organDrugLists.get(0).getUsingRate());
                 recipedetail.setUsePathways(organDrugLists.get(0).getUsePathways());
                 recipedetail.setSalePrice(organDrugLists.get(0).getSalePrice());
+                recipedetail.setUseDose(organDrugLists.get(0).getUseDose());
             }
 
             if (hisRecipeDetail.getUseTotalDose() != null) {
