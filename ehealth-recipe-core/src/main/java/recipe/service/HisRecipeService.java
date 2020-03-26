@@ -428,7 +428,7 @@ public class HisRecipeService {
         recipe.setMemo(hisRecipe.getMemo()==null?"无":hisRecipe.getMemo());
         recipe.setPayFlag(0);
         if (hisRecipe.getStatus() == 2) {
-            recipe.setStatus(5);
+            recipe.setStatus(6);
         } else {
             recipe.setStatus(2);
         }
