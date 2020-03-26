@@ -4,6 +4,7 @@ import com.ngari.base.BaseAPI;
 import com.ngari.base.clientconfig.service.IClientConfigService;
 import com.ngari.base.clientconfig.to.ClientConfigBean;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -50,14 +51,14 @@ public class RecipeConfigService {
         if(StringUtils.isEmpty(val)){
             val = RecipeBussConstant.RECIPEMODE_NGARIHEALTH;
             try {
-                //date 20200325
-                //根据前端传入的appkey和type做查询
-                String[] appKeyMsgs = appKey.split("@");
+                //date 2020 0326
+                //根据sdk辨别解析方式
+                if(appKey.contains("APP_SDK")){
+                    //直接替换
+                    appKey = appKey.split("@")[2];
+                }
                 IClientConfigService ccService = BaseAPI.getService(IClientConfigService.class);
-                ClientConfigBean clientConfigDTO = ccService.getByAppKeyAndType(appKeyMsgs[2], appKeyMsgs[0]);
-                //date 20200317
-                //更新去配置的方式为通过entrance
-                //ClientConfigBean clientConfigDTO = ccService.getClientConfigByEntrance(appKey);
+                ClientConfigBean clientConfigDTO = ccService.getByAppKey(appKey);
                 LOG.info("getRecipeMode 响应的为端配置：{}", JSONUtils.toString(clientConfigDTO));
                 if(null == clientConfigDTO){
                     LOG.warn("getRecipeMode clientConfigDTO is null. appKey={}", appKey);
