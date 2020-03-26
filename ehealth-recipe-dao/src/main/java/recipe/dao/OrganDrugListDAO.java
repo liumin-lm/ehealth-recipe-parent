@@ -463,8 +463,6 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 List<SaleDrugList> saleDrugLists;
                 if (CollectionUtils.isEmpty(depIds) && canDrugSend != null && canDrugSend) {
                     total = 0L;
-                    query.setFirstResult(0);
-                    query.setMaxResults(0);
                 }else {
                     for (OrganDrugList organDrugList : list) {
                         //查找drug
