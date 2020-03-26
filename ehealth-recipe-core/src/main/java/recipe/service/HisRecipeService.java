@@ -291,7 +291,7 @@ public class HisRecipeService {
                         detail.setDrugCode(recipeDetailTO.getDrugCode());
                         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
                         if (StringUtils.isNotEmpty(detail.getRecipeDeatilCode())) {
-                            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(detail.getRecipeDeatilCode()));
+                            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(detail.getDrugCode()));
                             if (CollectionUtils.isNotEmpty(organDrugLists)) {
                                 OrganDrugList organDrugList = organDrugLists.get(0);
                                 detail.setDrugName(organDrugList.getDrugName());
@@ -301,7 +301,7 @@ public class HisRecipeService {
                                 detail.setUsingRate(organDrugList.getUsingRate());
                                 detail.setUsePathways(organDrugList.getUsePathways());
                             } else {
-                                LOGGER.info("saveHisRecipeInfo organDrugLists his传过来的药品编码没有在对应机构维护,organId:"+hisRecipe.getClinicOrgan()+",organDrugCode:" + detail.getRecipeDeatilCode());
+                                LOGGER.info("saveHisRecipeInfo organDrugLists his传过来的药品编码没有在对应机构维护,organId:"+hisRecipe.getClinicOrgan()+",organDrugCode:" + detail.getDrugCode());
                             }
                         }
                         detail.setStatus(1);
@@ -451,14 +451,14 @@ public class HisRecipeService {
             return;
         }
         for (HisRecipeDetail hisRecipeDetail : hisRecipeDetails) {
-            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(hisRecipeDetail.getRecipeDeatilCode()));
+            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(hisRecipeDetail.getDrugCode()));
             Recipedetail recipedetail = new Recipedetail();
             recipedetail.setRecipeId(recipeId);
             recipedetail.setDrugName(hisRecipeDetail.getDrugName());
             recipedetail.setDrugSpec(hisRecipeDetail.getDrugSpec());
             recipedetail.setDrugUnit(hisRecipeDetail.getDrugUnit());
             recipedetail.setPack(hisRecipeDetail.getPack());
-            recipedetail.setOrganDrugCode(hisRecipeDetail.getRecipeDeatilCode());
+            recipedetail.setOrganDrugCode(hisRecipeDetail.getDrugCode());
             if (StringUtils.isNotEmpty(hisRecipeDetail.getUseDose())) {
                 recipedetail.setUseDose(Double.parseDouble(hisRecipeDetail.getUseDose()));
             }
