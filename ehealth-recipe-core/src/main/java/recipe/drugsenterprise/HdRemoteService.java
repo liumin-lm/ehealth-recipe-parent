@@ -584,7 +584,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         String storeOrganName = nowRecipe.getClinicOrgan() + "_" + "hd_organ_store";
         String organStore = recipeParameterDao.getByName(storeOrganName);
 
-        if (StringUtils.isNotEmpty(hdStores) && hdStores.contains(nowRecipe.getClinicOrgan().toString())) {
+        if (StringUtils.isNotEmpty(hdStores) && hasOrgan(nowRecipe.getClinicOrgan().toString(),hdStores)) {
             LOGGER.info("HdRemoteService.pushRecipeInfo organStore:{}.", organStore);
             sendHdRecipe.setGiveMode("4");
             sendHdRecipe.setPharmacyCode(organStore);
@@ -738,7 +738,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         sendHdRecipe.setRecipeFee(null == order.getRecipeFee() ?  feeDefault : order.getRecipeFee().toString());
         sendHdRecipe.setActualFee(null == order.getActualPrice() ?  feeDefault : order.getActualPrice().toString());
         sendHdRecipe.setCouponFee(null == order.getCouponFee() ?  feeDefault : order.getCouponFee().toString());
-        sendHdRecipe.setOrderTotalFee(null == order.getCouponFee() ?  feeDefault : order.getCouponFee().toString());
+        sendHdRecipe.setOrderTotalFee(null == order.getTotalFee() ?  feeDefault : order.getTotalFee().toString());
         sendHdRecipe.setExpressFee(null == order.getExpressFee() ?  feeDefault : order.getExpressFee().toString());
         sendHdRecipe.setDecoctionFee(null == order.getDecoctionFee() ?  feeDefault : order.getDecoctionFee().toString());
         sendHdRecipe.setRecipientName(order.getReceiver());
@@ -927,7 +927,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         String storeOrganName = recipe.getClinicOrgan() + "_" + "hd_organ_store";
         String organStore = recipeParameterDao.getByName(storeOrganName);
 
-        if (StringUtils.isNotEmpty(hdStores) && hdStores.contains(recipe.getClinicOrgan().toString())) {
+        if (StringUtils.isNotEmpty(hdStores) && hasOrgan(recipe.getClinicOrgan().toString(),hdStores)) {
             LOGGER.info("HdRemoteService.sendScanStock organStore:{}.", organStore);
             map.put("pharmacyCode", organStore);
         }
@@ -1506,6 +1506,18 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         httpPost.setEntity(requestEntry);
         //获取响应消息
         return httpClient.execute(httpPost);
+    }
+
+    private static boolean hasOrgan(String organ, String parames){
+        if (StringUtils.isNotEmpty(parames)) {
+            String[] organs = parames.split(",");
+            for (String o : organs) {
+                if (organ.equals(o)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 }
