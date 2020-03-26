@@ -2,11 +2,9 @@ package recipe.drugsenterprise;
 
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.DepartmentService;
-import com.ngari.patient.service.DoctorService;
-import com.ngari.patient.service.PatientService;
+import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
@@ -429,6 +427,7 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
         DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
         PatientService patientService = BasicAPI.getService(PatientService.class);
         DoctorService doctorService = BasicAPI.getService(DoctorService.class);
+        EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
         DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -455,8 +454,14 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                 return result;
             }
             yfzAddHospitalPrescriptionDto.setAccess_token(enterprise.getToken());
-            yfzAddHospitalPrescriptionDto.setHisprescriptionId(nowRecipe.getRecipeCode().toString());
-            yfzAddHospitalPrescriptionDto.setEmployeeCardNo(doctor.getDoctorId().toString());
+            yfzAddHospitalPrescriptionDto.setHisprescriptionId(nowRecipe.getRecipeCode());
+            EmploymentDTO employmentDTO = employmentService.getPrimaryEmpByDoctorId(nowRecipe.getDoctor());
+            if (employmentDTO != null && StringUtils.isNotEmpty(employmentDTO.getJobNumber())) {
+                LOGGER.info("YtRemoteService.pushRecipeInfo:处方ID为{},医生工号{}.", nowRecipe.getRecipeId(), employmentDTO.getJobNumber());
+                yfzAddHospitalPrescriptionDto.setEmployeeCardNo(employmentDTO.getJobNumber());
+            } else {
+                yfzAddHospitalPrescriptionDto.setEmployeeCardNo(doctor.getDoctorId().toString());
+            }
             yfzAddHospitalPrescriptionDto.setDoctorName(doctor.getName());
             yfzAddHospitalPrescriptionDto.setPrescriptionType("39");
             yfzAddHospitalPrescriptionDto.setDiagnoseName(nowRecipe.getMemo());

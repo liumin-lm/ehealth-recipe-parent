@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
+import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
 import recipe.constant.*;
 import recipe.dao.*;
@@ -300,6 +301,11 @@ public class RecipeCheckService {
         r.setSignFile(recipe.getSignFile());
         //医生+药师签名文件
         r.setChemistSignFile(recipe.getChemistSignFile());
+        //设置医生处方签
+        r.setSignRecipeCode(recipe.getSignRecipeCode());
+        //设置时间戳
+        r.setSignCADate(recipe.getSignCADate());
+
         try {
             String showTip = DictionaryController.instance().get("eh.cdr.dictionary.RecipeStatus").getText(recipe.getStatus());
             r.setShowTip(showTip);
@@ -436,6 +442,13 @@ public class RecipeCheckService {
         map.put("details", ObjectCopyUtils.convert(details, RecipeDetailBean.class));
         map.put("drugsEnterprise", e);
         map.put("recipeOrder", order);
+        //如果配了智能审方则显示智能审方结果
+        //增加返回智能审方结果药品问题列表
+        //判断开关是否开启
+        PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
+        if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
+            map.put("medicines", RecipeServiceSub.getAuditMedicineIssuesByRecipeId(recipeId));
+        }
 
         //运营平台 编辑订单信息按钮是否显示（自建药企、已审核、配送到家、药店取药、已支付）
         if(e.getCreateType() != null && e.getCreateType() == 0
