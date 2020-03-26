@@ -235,7 +235,7 @@ public class HisRecipeService {
                 hisRecipe.setMpiId(patientDTO.getMpiId());
                 hisRecipe.setPatientName(patientDTO.getPatientName());
                 hisRecipe.setPatientAddress(patientDTO.getAddress());
-                hisRecipe.setPatientNumber(patientDTO.getMobile());
+                hisRecipe.setPatientNumber(queryHisRecipResTO.getPatientNumber());
                 hisRecipe.setPatientTel(patientDTO.getMobile());
                 hisRecipe.setRegisteredId(queryHisRecipResTO.getRegisteredId());
                 hisRecipe.setRecipeCode(queryHisRecipResTO.getRecipeCode());
@@ -246,6 +246,7 @@ public class HisRecipeService {
                 hisRecipe.setStatus(queryHisRecipResTO.getStatus());
                 hisRecipe.setExtensionFlag(1);
                 hisRecipe.setMedicalType(1);
+                hisRecipe.setRecipeFee(queryHisRecipResTO.getRecipeFee());
                 hisRecipe.setRecipeType(queryHisRecipResTO.getRecipeType());
                 hisRecipe.setClinicOrgan(queryHisRecipResTO.getClinicOrgan());
                 if(!StringUtils.isEmpty(queryHisRecipResTO.getDiseaseName())){
@@ -287,11 +288,6 @@ public class HisRecipeService {
                         detail.setHisRecipeId(hisRecipe.getHisRecipeID());
                         detail.setRecipeDeatilCode(recipeDetailTO.getRecipeDeatilCode());
                         detail.setDrugName(recipeDetailTO.getDrugName());
-                        if(StringUtils.isEmpty(recipeDetailTO.getSaleName())){
-                            detail.setSaleName(recipeDetailTO.getDrugName());
-                        }else {
-                            detail.setSaleName(recipeDetailTO.getSaleName());
-                        }
                         detail.setPrice(recipeDetailTO.getPrice());
                         detail.setTotalPrice(recipeDetailTO.getTotalPrice());
                         detail.setUsingRate(recipeDetailTO.getUsingRate());
@@ -301,7 +297,7 @@ public class HisRecipeService {
                         detail.setDrugCode(recipeDetailTO.getDrugCode());
                         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
                         if (StringUtils.isNotEmpty(detail.getRecipeDeatilCode())) {
-                            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(detail.getRecipeDeatilCode()));
+                            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(detail.getDrugCode()));
                             if (CollectionUtils.isNotEmpty(organDrugLists)) {
                                 OrganDrugList organDrugList = organDrugLists.get(0);
                                 detail.setDrugName(organDrugList.getDrugName());
@@ -311,7 +307,7 @@ public class HisRecipeService {
                                 detail.setUsingRate(organDrugList.getUsingRate());
                                 detail.setUsePathways(organDrugList.getUsePathways());
                             } else {
-                                LOGGER.info("saveHisRecipeInfo organDrugLists his传过来的药品编码没有在对应机构维护,organId:"+hisRecipe.getClinicOrgan()+",organDrugCode:" + detail.getRecipeDeatilCode());
+                                LOGGER.info("saveHisRecipeInfo organDrugLists his传过来的药品编码没有在对应机构维护,organId:"+hisRecipe.getClinicOrgan()+",organDrugCode:" + detail.getDrugCode());
                             }
                         }
                         detail.setStatus(1);
@@ -378,7 +374,7 @@ public class HisRecipeService {
         HisRecipe hisRecipe = hisRecipeDAO.get(hisRecipeId);
         Recipe recipe = saveRecipeFromHisRecipe(hisRecipe);
         if (recipe != null) {
-            saveRecipeExt(recipe.getRecipeId());
+            saveRecipeExt(recipe.getRecipeId(),hisRecipe);
             //生成处方详情
             savaRecipeDetail(recipe.getRecipeId(),hisRecipe);
         }
@@ -392,7 +388,7 @@ public class HisRecipeService {
         return map;
     }
 
-    private void saveRecipeExt(Integer recipeId) {
+    private void saveRecipeExt(Integer recipeId, HisRecipe hisRecipe) {
         RecipeExtend haveRecipeExt = recipeExtendDAO.getByRecipeId(recipeId);
         if (haveRecipeExt != null) {
             return;
@@ -400,6 +396,7 @@ public class HisRecipeService {
         RecipeExtend recipeExtend = new RecipeExtend();
         recipeExtend.setRecipeId(recipeId);
         recipeExtend.setFromFlag(0);
+        recipeExtend.setRegisterID(hisRecipe.getRegisteredId());
         recipeExtendDAO.save(recipeExtend);
     }
 
@@ -435,7 +432,12 @@ public class HisRecipeService {
         recipe.setActualPrice(hisRecipe.getRecipeFee());
         recipe.setMemo(hisRecipe.getMemo()==null?"无":hisRecipe.getMemo());
         recipe.setPayFlag(0);
-        recipe.setStatus(2);
+        if (hisRecipe.getStatus() == 2) {
+            recipe.setStatus(6);
+        } else {
+            recipe.setStatus(2);
+        }
+
         recipe.setReviewType(0);
         recipe.setChooseFlag(0);
         recipe.setRemindFlag(0);
@@ -461,14 +463,14 @@ public class HisRecipeService {
             return;
         }
         for (HisRecipeDetail hisRecipeDetail : hisRecipeDetails) {
-            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(hisRecipeDetail.getRecipeDeatilCode()));
+            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(hisRecipeDetail.getDrugCode()));
             Recipedetail recipedetail = new Recipedetail();
             recipedetail.setRecipeId(recipeId);
             recipedetail.setDrugName(hisRecipeDetail.getDrugName());
             recipedetail.setDrugSpec(hisRecipeDetail.getDrugSpec());
             recipedetail.setDrugUnit(hisRecipeDetail.getDrugUnit());
             recipedetail.setPack(hisRecipeDetail.getPack());
-            recipedetail.setOrganDrugCode(hisRecipeDetail.getRecipeDeatilCode());
+            recipedetail.setOrganDrugCode(hisRecipeDetail.getDrugCode());
             if (StringUtils.isNotEmpty(hisRecipeDetail.getUseDose())) {
                 recipedetail.setUseDose(Double.parseDouble(hisRecipeDetail.getUseDose()));
             }
@@ -477,7 +479,9 @@ public class HisRecipeService {
             }
             recipedetail.setUsingRate(hisRecipeDetail.getUsingRate());
             recipedetail.setUsePathways(hisRecipeDetail.getUsePathways());
-            recipedetail.setUseTotalDose(hisRecipeDetail.getUseTotalDose().doubleValue());
+            if (hisRecipeDetail.getUseTotalDose() != null) {
+                recipedetail.setUseTotalDose(hisRecipeDetail.getUseTotalDose().doubleValue());
+            }
             recipedetail.setUseDays(hisRecipeDetail.getUseDays());
             recipedetail.setStatus(1);
             recipedetail.setSalePrice(hisRecipeDetail.getPrice());
