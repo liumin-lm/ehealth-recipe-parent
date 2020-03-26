@@ -390,7 +390,9 @@ public class HisRecipeService {
             List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipeId);
             map.put("hisRecipeDetails", hisRecipeDetails);
             map.put("tips", "已完成");
-
+            List<HisRecipeExt> hisRecipeExts = hisRecipeExtDAO.findByHisRecipeId(hisRecipeId);
+            map.put("hisRecipeExts", hisRecipeExts);
+            map.put("showText", hisRecipe.getShowText());
             map.put("recipe", hisRecipe);
 
             return  map;
