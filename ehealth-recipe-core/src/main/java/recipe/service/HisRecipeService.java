@@ -62,8 +62,6 @@ public class HisRecipeService {
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
 
-    private static PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
-
     /**
      * organId 机构编码
      * mpiId 用户mpiId
