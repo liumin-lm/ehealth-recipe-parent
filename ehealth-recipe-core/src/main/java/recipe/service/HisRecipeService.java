@@ -466,27 +466,30 @@ public class HisRecipeService {
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(hisRecipeDetail.getDrugCode()));
             Recipedetail recipedetail = new Recipedetail();
             recipedetail.setRecipeId(recipeId);
-            recipedetail.setDrugName(hisRecipeDetail.getDrugName());
-            recipedetail.setDrugSpec(hisRecipeDetail.getDrugSpec());
-            recipedetail.setDrugUnit(hisRecipeDetail.getDrugUnit());
-            recipedetail.setPack(hisRecipeDetail.getPack());
-            recipedetail.setOrganDrugCode(hisRecipeDetail.getDrugCode());
+
             if (StringUtils.isNotEmpty(hisRecipeDetail.getUseDose())) {
                 recipedetail.setUseDose(Double.parseDouble(hisRecipeDetail.getUseDose()));
             }
             if (CollectionUtils.isNotEmpty(organDrugLists)) {
                 recipedetail.setDrugId(organDrugLists.get(0).getDrugId());
+                recipedetail.setDrugName(organDrugLists.get(0).getDrugName());
+                recipedetail.setDrugSpec(organDrugLists.get(0).getDrugSpec());
+                recipedetail.setDrugUnit(organDrugLists.get(0).getUnit());
+                recipedetail.setPack(organDrugLists.get(0).getPack());
+                recipedetail.setOrganDrugCode(hisRecipeDetail.getDrugCode());
+                recipedetail.setUsingRate(organDrugLists.get(0).getUsingRate());
+                recipedetail.setUsePathways(organDrugLists.get(0).getUsePathways());
+                recipedetail.setSalePrice(organDrugLists.get(0).getSalePrice());
             }
-            recipedetail.setUsingRate(hisRecipeDetail.getUsingRate());
-            recipedetail.setUsePathways(hisRecipeDetail.getUsePathways());
+
             if (hisRecipeDetail.getUseTotalDose() != null) {
                 recipedetail.setUseTotalDose(hisRecipeDetail.getUseTotalDose().doubleValue());
             }
             recipedetail.setUseDays(hisRecipeDetail.getUseDays());
             recipedetail.setStatus(1);
-            recipedetail.setSalePrice(hisRecipeDetail.getPrice());
-            if (hisRecipeDetail.getUseTotalDose() != null && hisRecipeDetail.getPrice() != null) {
-                recipedetail.setDrugCost(hisRecipeDetail.getUseTotalDose().multiply(hisRecipeDetail.getPrice()));
+
+            if (hisRecipeDetail.getUseTotalDose() != null && hisRecipeDetail.getPrice() != null && CollectionUtils.isNotEmpty(organDrugLists)) {
+                recipedetail.setDrugCost(hisRecipeDetail.getUseTotalDose().multiply(organDrugLists.get(0).getSalePrice()));
             }
             recipeDetailDAO.save(recipedetail);
         }
