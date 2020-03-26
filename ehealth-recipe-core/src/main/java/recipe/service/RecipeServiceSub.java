@@ -1,7 +1,6 @@
 package recipe.service;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -385,7 +384,7 @@ public class RecipeServiceSub {
     }
 
     private static void canOpenRecipeDrugsAndDisease(Recipe recipe, List<Integer> drugIds) {
-        List<String> nameLists = Splitter.on("；").splitToList(recipe.getOrganDiseaseName());
+        /*List<String> nameLists = Splitter.on("；").splitToList(recipe.getOrganDiseaseName());
         for (String organDiseaseName : nameLists){
             Set<Integer> drugIdSet = cacheService.findDrugByDiseaseName(organDiseaseName);
             if (CollectionUtils.isEmpty(drugIdSet)){break;}
@@ -394,8 +393,7 @@ public class RecipeServiceSub {
                     throw new DAOException(ErrorCode.SERVICE_ERROR,"["+organDiseaseName+"]患者禁用");
                 }
             }
-
-        }
+        }*/
     }
 
     public static void canOpenRecipeDrugs(Integer clinicOrgan, Integer recipeId, List<Integer> drugIds) {
