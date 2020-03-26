@@ -157,7 +157,7 @@ public class HisRecipeService {
                     //表示该处方单患者在his线下已完成
                     hisRecipeVO.setStatusText("已完成");
                     hisRecipeVO.setOrderStatusText("已完成");
-                    hisRecipeVO.setFromFlag(0);
+                    hisRecipeVO.setFromFlag(1);
                     hisRecipeVO.setJumpPageType(0);
                     result.add(hisRecipeVO);
                 } else {
@@ -303,6 +303,7 @@ public class HisRecipeService {
                                 LOGGER.info("saveHisRecipeInfo organDrugLists his传过来的药品编码没有在对应机构维护,organId:"+hisRecipe.getClinicOrgan()+",organDrugCode:" + detail.getRecipeDeatilCode());
                             }
                         }
+                        detail.setStatus(1);
                         hisRecipeDetailDAO.save(detail);
                     }
                 }
