@@ -5,9 +5,11 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -25,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
@@ -226,7 +229,7 @@ public class HisRecipeService {
             //数据库不存在处方信息，则新增
             if(null == hisRecipe1) {
                 HisRecipe hisRecipe = new HisRecipe();
-                hisRecipe = ObjectCopyUtils.convert(queryHisRecipResTO, HisRecipe.class);
+//                hisRecipe = ObjectCopyUtils.convert(queryHisRecipResTO, HisRecipe.class);
                 hisRecipe.setCertificate(patientDTO.getCertificate());
                 hisRecipe.setCertificateType(patientDTO.getCertificateType());
                 hisRecipe.setMpiId(patientDTO.getMpiId());
@@ -234,14 +237,36 @@ public class HisRecipeService {
                 hisRecipe.setPatientAddress(patientDTO.getAddress());
                 hisRecipe.setPatientNumber(patientDTO.getMobile());
                 hisRecipe.setPatientTel(patientDTO.getMobile());
+                hisRecipe.setRegisteredId(queryHisRecipResTO.getRegisteredId());
+                hisRecipe.setRecipeCode(queryHisRecipResTO.getRecipeCode());
+                hisRecipe.setDepartCode(queryHisRecipResTO.getDepartCode());
+                hisRecipe.setDepartName(queryHisRecipResTO.getDepartName());
+                hisRecipe.setDoctorName(queryHisRecipResTO.getDoctorName());
+                hisRecipe.setCreateDate(queryHisRecipResTO.getCreateDate());
+                hisRecipe.setStatus(queryHisRecipResTO.getStatus());
+                hisRecipe.setExtensionFlag(1);
+                hisRecipe.setMedicalType(1);
+                hisRecipe.setRecipeType(queryHisRecipResTO.getRecipeType());
+                hisRecipe.setClinicOrgan(queryHisRecipResTO.getClinicOrgan());
+                if(!StringUtils.isEmpty(queryHisRecipResTO.getDoctorCode())){
+                    hisRecipe.setDoctorCode(queryHisRecipResTO.getDoctorCode());
+                }
                 OrganService organService = BasicAPI.getService(OrganService.class);
                 OrganDTO organDTO = organService.getByOrganId(queryHisRecipResTO.getClinicOrgan());
-                hisRecipe.setOrganName(organDTO.getName());
+                if(null !=organDTO) {
+                    hisRecipe.setOrganName(organDTO.getName());
+                }
                 if (null != queryHisRecipResTO.getMedicalInfo()) {
                     MedicalInfo medicalInfo = queryHisRecipResTO.getMedicalInfo();
-                    hisRecipe.setMedicalAmount(medicalInfo.getMedicalAmount());
-                    hisRecipe.setCashAmount(medicalInfo.getCashAmount());
-                    hisRecipe.setTotalAmount(medicalInfo.getTotalAmount());
+                    if(!ObjectUtils.isEmpty(medicalInfo.getMedicalAmount())){
+                        hisRecipe.setMedicalAmount(medicalInfo.getMedicalAmount());
+                    }
+                    if(!ObjectUtils.isEmpty(medicalInfo.getCashAmount())){
+                        hisRecipe.setCashAmount(medicalInfo.getCashAmount());
+                    }
+                    if(!ObjectUtils.isEmpty(medicalInfo.getTotalAmount())){
+                        hisRecipe.setTotalAmount(medicalInfo.getTotalAmount());
+                    }
                 }
                 hisRecipe = hisRecipeDAO.save(hisRecipe);
                 if (null != queryHisRecipResTO.getExt()) {
@@ -255,6 +280,14 @@ public class HisRecipeService {
                     for (RecipeDetailTO recipeDetailTO : queryHisRecipResTO.getDrugList()) {
                         HisRecipeDetail detail = ObjectCopyUtils.convert(recipeDetailTO, HisRecipeDetail.class);
                         detail.setHisRecipeId(hisRecipe.getHisRecipeID());
+                        detail.setRecipeDeatilCode(recipeDetailTO.getRecipeDeatilCode());
+                        detail.setDrugName(recipeDetailTO.getDrugName());
+                        detail.setPrice(recipeDetailTO.getPrice());
+                        detail.setTotalPrice(recipeDetailTO.getTotalPrice());
+                        detail.setUsingRate(recipeDetailTO.getUsingRate());
+                        detail.setDrugSpec(recipeDetailTO.getDrugSpec());
+                        detail.setDrugUnit(recipeDetailTO.getDrugUnit());
+                        detail.setUseDays(recipeDetailTO.getUseDays());
                         hisRecipeDetailDAO.save(detail);
                     }
                 }
@@ -359,7 +392,13 @@ public class HisRecipeService {
         recipe.setRecipeCode(hisRecipe.getRecipeCode());
         recipe.setRecipeType(hisRecipe.getRecipeType());
         recipe.setDepart(Integer.parseInt(hisRecipe.getDepartCode()));
-        recipe.setDoctor(Integer.parseInt(hisRecipe.getDoctorCode()));
+        EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
+        if (StringUtils.isNotEmpty(hisRecipe.getDoctorCode())) {
+            EmploymentDTO employmentDTO = employmentService.getByJobNumberAndOrganId(hisRecipe.getDoctorCode(), hisRecipe.getClinicOrgan());
+            if (employmentDTO != null) {
+                recipe.setDoctor(employmentDTO.getDoctorId());
+            }
+        }
         recipe.setDoctorName(hisRecipe.getDoctorName());
         recipe.setCreateDate(hisRecipe.getCreateDate());
         recipe.setSignDate(hisRecipe.getCreateDate());
