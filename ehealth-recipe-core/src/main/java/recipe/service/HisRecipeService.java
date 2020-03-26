@@ -248,6 +248,7 @@ public class HisRecipeService {
                 hisRecipe.setStatus(queryHisRecipResTO.getStatus());
                 hisRecipe.setExtensionFlag(1);
                 hisRecipe.setMedicalType(1);
+                hisRecipe.setRecipeFee(queryHisRecipResTO.getRecipeFee());
                 hisRecipe.setRecipeType(queryHisRecipResTO.getRecipeType());
                 hisRecipe.setClinicOrgan(queryHisRecipResTO.getClinicOrgan());
                 if(!StringUtils.isEmpty(queryHisRecipResTO.getDoctorCode())){
