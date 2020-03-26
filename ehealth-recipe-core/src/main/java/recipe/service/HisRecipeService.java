@@ -251,6 +251,11 @@ public class HisRecipeService {
                 hisRecipe.setRecipeFee(queryHisRecipResTO.getRecipeFee());
                 hisRecipe.setRecipeType(queryHisRecipResTO.getRecipeType());
                 hisRecipe.setClinicOrgan(queryHisRecipResTO.getClinicOrgan());
+                if(!StringUtils.isEmpty(queryHisRecipResTO.getDiseaseName())){
+                    hisRecipe.setDiseaseName(queryHisRecipResTO.getDiseaseName());
+                }else {
+                    hisRecipe.setDiseaseName("无");
+                }
                 if(!StringUtils.isEmpty(queryHisRecipResTO.getDoctorCode())){
                     hisRecipe.setDoctorCode(queryHisRecipResTO.getDoctorCode());
                 }
