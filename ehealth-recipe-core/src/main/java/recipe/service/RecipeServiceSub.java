@@ -389,7 +389,7 @@ public class RecipeServiceSub {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         for (String organDiseaseName : nameLists){
             Set<String> drugIdSet = cacheService.findDrugByDiseaseName(recipe.getClinicOrgan()+"_"+organDiseaseName);
-            if (CollectionUtils.isEmpty(drugIdSet)){break;}
+            if (CollectionUtils.isEmpty(drugIdSet)){continue;}
             for (String drugId:drugIdSet){
                 if (drugIds.contains(Integer.valueOf(drugId))){
                     DrugList drugList = drugListDAO.getById(Integer.valueOf(drugId));
