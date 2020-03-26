@@ -237,7 +237,7 @@ public class HisRecipeService {
                 hisRecipe.setMpiId(patientDTO.getMpiId());
                 hisRecipe.setPatientName(patientDTO.getPatientName());
                 hisRecipe.setPatientAddress(patientDTO.getAddress());
-                hisRecipe.setPatientNumber(patientDTO.getMobile());
+                hisRecipe.setPatientNumber(queryHisRecipResTO.getPatientNumber());
                 hisRecipe.setPatientTel(patientDTO.getMobile());
                 hisRecipe.setRegisteredId(queryHisRecipResTO.getRegisteredId());
                 hisRecipe.setRecipeCode(queryHisRecipResTO.getRecipeCode());
