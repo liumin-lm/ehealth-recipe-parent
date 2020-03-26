@@ -388,12 +388,13 @@ public class HisRecipeService {
             PatientDTO patientBean = patientService.get(hisRecipe.getMpiId());
             map.put("patient", patientBean);
             List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipeId);
-            map.put("hisRecipeDetails", hisRecipeDetails);
+            map.put("recipedetails", hisRecipeDetails);
             map.put("tips", "已完成");
             List<HisRecipeExt> hisRecipeExts = hisRecipeExtDAO.findByHisRecipeId(hisRecipeId);
             map.put("hisRecipeExts", hisRecipeExts);
             map.put("showText", hisRecipe.getShowText());
             map.put("recipe", hisRecipe);
+            map.put("showReferencePrice", true);
 
             return  map;
         }
