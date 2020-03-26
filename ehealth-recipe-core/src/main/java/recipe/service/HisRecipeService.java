@@ -368,36 +368,20 @@ public class HisRecipeService {
     public Map<String, Object> getHisRecipeDetail(Integer hisRecipeId){
         //将线下处方转化成线上处方
         HisRecipe hisRecipe = hisRecipeDAO.get(hisRecipeId);
-        if (hisRecipe.getStatus() == 1) {
-            Recipe recipe = saveRecipeFromHisRecipe(hisRecipe);
-            if (recipe != null) {
-                saveRecipeExt(recipe.getRecipeId());
-                //生成处方详情
-                savaRecipeDetail(recipe.getRecipeId(),hisRecipe);
-            }
-            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-            Map<String,Object> map = recipeService.getPatientRecipeById(recipe.getRecipeId());
-            List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipeId);
-            map.put("hisRecipeDetails", hisRecipeDetails);
-            List<HisRecipeExt> hisRecipeExts = hisRecipeExtDAO.findByHisRecipeId(hisRecipeId);
-            map.put("hisRecipeExts", hisRecipeExts);
-            map.put("showText", hisRecipe.getShowText());
-            return map;
-        } else {
-            Map<String,Object> map = new HashMap<>();
-            PatientDTO patientBean = patientService.get(hisRecipe.getMpiId());
-            map.put("patient", patientBean);
-            List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipeId);
-            map.put("recipedetails", hisRecipeDetails);
-            map.put("tips", "已完成");
-            List<HisRecipeExt> hisRecipeExts = hisRecipeExtDAO.findByHisRecipeId(hisRecipeId);
-            map.put("hisRecipeExts", hisRecipeExts);
-            map.put("showText", hisRecipe.getShowText());
-            map.put("recipe", hisRecipe);
-            map.put("showReferencePrice", true);
-
-            return  map;
+        Recipe recipe = saveRecipeFromHisRecipe(hisRecipe);
+        if (recipe != null) {
+            saveRecipeExt(recipe.getRecipeId());
+            //生成处方详情
+            savaRecipeDetail(recipe.getRecipeId(),hisRecipe);
         }
+        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+        Map<String,Object> map = recipeService.getPatientRecipeById(recipe.getRecipeId());
+        List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipeId);
+        map.put("hisRecipeDetails", hisRecipeDetails);
+        List<HisRecipeExt> hisRecipeExts = hisRecipeExtDAO.findByHisRecipeId(hisRecipeId);
+        map.put("hisRecipeExts", hisRecipeExts);
+        map.put("showText", hisRecipe.getShowText());
+        return map;
     }
 
     private void saveRecipeExt(Integer recipeId) {
@@ -443,7 +427,12 @@ public class HisRecipeService {
         recipe.setActualPrice(hisRecipe.getRecipeFee());
         recipe.setMemo(hisRecipe.getMemo()==null?"无":hisRecipe.getMemo());
         recipe.setPayFlag(0);
-        recipe.setStatus(2);
+        if (hisRecipe.getStatus() == 2) {
+            recipe.setStatus(5);
+        } else {
+            recipe.setStatus(2);
+        }
+
         recipe.setReviewType(0);
         recipe.setChooseFlag(0);
         recipe.setRemindFlag(0);
