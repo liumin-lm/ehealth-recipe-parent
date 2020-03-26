@@ -2,7 +2,6 @@ package recipe.service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.inject.internal.cglib.proxy.$MethodProxy;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
 import com.ngari.base.searchservice.model.DrugSearchTO;
@@ -16,7 +15,6 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.dictionary.DictionaryItem;
 import ctd.persistence.DAOFactory;
-import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -36,7 +34,6 @@ import recipe.serviceprovider.BaseService;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -223,7 +220,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             searchContentBean.setBussType(18);
             iSearchContentService.addSearchContent(searchContentBean,0);
         }
-        return searchDrugListWithESForPatient(organId, drugType, drugName, start, 10);
+        return searchDrugListWithES(organId, drugType, drugName, start, 10);
     }
 
 
@@ -500,11 +497,4 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         //现在 按照字典的录入顺序显示
         return itemList;
     }
-
-    // 封装提供给前端
-    @RpcService
-    public List<SearchDrugDetailDTO> findOrganDrugListsByNameOrCodePage(Integer organId, Integer drugType, String drugName, int start){
-        return searchDrugListWithESForPatient(organId, drugType, drugName, start, 10);
-    }
-
 }
