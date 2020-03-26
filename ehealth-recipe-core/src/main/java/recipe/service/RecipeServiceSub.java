@@ -388,7 +388,7 @@ public class RecipeServiceSub {
         List<String> nameLists = Splitter.on("；").splitToList(recipe.getOrganDiseaseName());
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         for (String organDiseaseName : nameLists){
-            Set<Integer> drugIdSet = cacheService.findDrugByDiseaseName(organDiseaseName);
+            Set<Integer> drugIdSet = cacheService.findDrugByDiseaseName(recipe.getClinicOrgan()+"_"+organDiseaseName);
             if (CollectionUtils.isEmpty(drugIdSet)){break;}
             for (Integer drugId:drugIdSet){
                 if (drugIds.contains(drugId)){
