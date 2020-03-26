@@ -376,7 +376,7 @@ public class HisRecipeService {
         HisRecipe hisRecipe = hisRecipeDAO.get(hisRecipeId);
         Recipe recipe = saveRecipeFromHisRecipe(hisRecipe);
         if (recipe != null) {
-            saveRecipeExt(recipe.getRecipeId());
+            saveRecipeExt(recipe.getRecipeId(),hisRecipe);
             //生成处方详情
             savaRecipeDetail(recipe.getRecipeId(),hisRecipe);
         }
@@ -390,7 +390,7 @@ public class HisRecipeService {
         return map;
     }
 
-    private void saveRecipeExt(Integer recipeId) {
+    private void saveRecipeExt(Integer recipeId, HisRecipe hisRecipe) {
         RecipeExtend haveRecipeExt = recipeExtendDAO.getByRecipeId(recipeId);
         if (haveRecipeExt != null) {
             return;
@@ -398,6 +398,7 @@ public class HisRecipeService {
         RecipeExtend recipeExtend = new RecipeExtend();
         recipeExtend.setRecipeId(recipeId);
         recipeExtend.setFromFlag(0);
+        recipeExtend.setRegisterID(hisRecipe.getRegisteredId());
         recipeExtendDAO.save(recipeExtend);
     }
 
