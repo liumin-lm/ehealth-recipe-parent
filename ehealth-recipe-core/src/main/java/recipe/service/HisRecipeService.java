@@ -157,7 +157,7 @@ public class HisRecipeService {
                     //表示该处方单患者在his线下已完成
                     hisRecipeVO.setStatusText("已完成");
                     hisRecipeVO.setOrderStatusText("已完成");
-                    hisRecipeVO.setFromFlag(0);
+                    hisRecipeVO.setFromFlag(1);
                     hisRecipeVO.setJumpPageType(0);
                     result.add(hisRecipeVO);
                 } else {
