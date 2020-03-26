@@ -388,11 +388,11 @@ public class RecipeServiceSub {
         List<String> nameLists = Splitter.on("；").splitToList(recipe.getOrganDiseaseName());
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         for (String organDiseaseName : nameLists){
-            Set<Integer> drugIdSet = cacheService.findDrugByDiseaseName(recipe.getClinicOrgan()+"_"+organDiseaseName);
+            Set<String> drugIdSet = cacheService.findDrugByDiseaseName(recipe.getClinicOrgan()+"_"+organDiseaseName);
             if (CollectionUtils.isEmpty(drugIdSet)){break;}
-            for (Integer drugId:drugIdSet){
-                if (drugIds.contains(drugId)){
-                    DrugList drugList = drugListDAO.getById(drugId);
+            for (String drugId:drugIdSet){
+                if (drugIds.contains(Integer.valueOf(drugId))){
+                    DrugList drugList = drugListDAO.getById(Integer.valueOf(drugId));
                     throw new DAOException(ErrorCode.SERVICE_ERROR,"本处方中:"+drugList.getDrugName()+"对诊断为["+organDiseaseName+"]的患者禁用,请修改处方,如确认无误请联系管理员");
                 }
             }
