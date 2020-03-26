@@ -189,6 +189,7 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
                     PatientDTO patientBean = patientService.get(recipe.getMpiid());
 
                     MedicalPreSettleReqNTO request = new MedicalPreSettleReqNTO();
+                    request.setClinicId(String.valueOf(recipe.getClinicId()));
                     request.setClinicOrgan(recipe.getClinicOrgan());
                     request.setPatientName(patientBean.getPatientName());
                     request.setIdcard(patientBean.getIdcard());
