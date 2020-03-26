@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -384,16 +385,18 @@ public class RecipeServiceSub {
     }
 
     private static void canOpenRecipeDrugsAndDisease(Recipe recipe, List<Integer> drugIds) {
-        /*List<String> nameLists = Splitter.on("；").splitToList(recipe.getOrganDiseaseName());
+        List<String> nameLists = Splitter.on("；").splitToList(recipe.getOrganDiseaseName());
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         for (String organDiseaseName : nameLists){
-            Set<Integer> drugIdSet = cacheService.findDrugByDiseaseName(organDiseaseName);
+            Set<Integer> drugIdSet = cacheService.findDrugByDiseaseName(recipe.getClinicOrgan()+"_"+organDiseaseName);
             if (CollectionUtils.isEmpty(drugIdSet)){break;}
             for (Integer drugId:drugIdSet){
                 if (drugIds.contains(drugId)){
-                    throw new DAOException(ErrorCode.SERVICE_ERROR,"["+organDiseaseName+"]患者禁用");
+                    DrugList drugList = drugListDAO.getById(drugId);
+                    throw new DAOException(ErrorCode.SERVICE_ERROR,"本处方中:"+drugList.getDrugName()+"对诊断为["+organDiseaseName+"]的患者禁用,请修改处方,如确认无误请联系管理员");
                 }
             }
-        }*/
+        }
     }
 
     public static void canOpenRecipeDrugs(Integer clinicOrgan, Integer recipeId, List<Integer> drugIds) {

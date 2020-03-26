@@ -672,7 +672,7 @@ public class PayModeOnline implements IPurchaseService {
                 updateTakeDrugWayReqTO.setContactTel(order.getRecTel());
                 SimpleDateFormat formatter = new SimpleDateFormat(DateConversion.DEFAULT_DATE_TIME);
                 updateTakeDrugWayReqTO.setPlanDate(StringUtils.isNotEmpty(order.getExpectSendDate())?
-                        formatter.parse(order.getExpectSendDate() + " 00:00:00") : null);
+                        order.getExpectSendDate() + " 00:00:00" : null);
                 updateTakeDrugWayReqTO.setPlanTime(order.getExpectSendTime());
             }else{
                 LOG.info("同步配送信息，组装配送订单失败！");
