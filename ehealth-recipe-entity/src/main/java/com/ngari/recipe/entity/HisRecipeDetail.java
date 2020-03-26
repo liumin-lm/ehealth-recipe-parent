@@ -289,6 +289,7 @@ public class HisRecipeDetail implements Serializable{
         this.useDays = useDays;
     }
 
+    @Column(name = "drugCode")
     public String getDrugCode() {
         return drugCode;
     }
