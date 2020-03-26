@@ -345,26 +345,30 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                         drugListAndOrganDrugList.setDrugList(drug);
                         drugListAndOrganDrugList.setOrganDrugList(organDrugList);
                         //查找配送目录---运营平台显示机构药品目录是否可配送
-                        saleDrugLists = saleDrugListDAO.findByDrugIdAndOrganIds(organDrugList.getDrugId(),depIds);
-                        if (CollectionUtils.isEmpty(saleDrugLists)) {
+                        if (CollectionUtils.isEmpty(depIds)){
                             drugListAndOrganDrugList.setCanDrugSend(false);
-                        } else {
-                            drugListAndOrganDrugList.setCanDrugSend(true);
-                            List<DepSaleDrugInfo> depSaleDrugInfos = Lists.newArrayList();
-                            for (SaleDrugList saleDrugList : saleDrugLists) {
-                                DepSaleDrugInfo info = new DepSaleDrugInfo();
-                                info.setDrugEnterpriseId(saleDrugList.getOrganId());
-                                info.setSaleDrugCode(saleDrugList.getOrganDrugCode());
-                                info.setDrugId(saleDrugList.getDrugId());
-                                DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(saleDrugList.getOrganId());
-                                if (enterprise != null) {
-                                    info.setDrugEnterpriseName(enterprise.getName());
-                                } else {
-                                    info.setDrugEnterpriseName("无");
+                        }else {
+                            saleDrugLists = saleDrugListDAO.findByDrugIdAndOrganIds(organDrugList.getDrugId(),depIds);
+                            if (CollectionUtils.isEmpty(saleDrugLists)) {
+                                drugListAndOrganDrugList.setCanDrugSend(false);
+                            } else {
+                                drugListAndOrganDrugList.setCanDrugSend(true);
+                                List<DepSaleDrugInfo> depSaleDrugInfos = Lists.newArrayList();
+                                for (SaleDrugList saleDrugList : saleDrugLists) {
+                                    DepSaleDrugInfo info = new DepSaleDrugInfo();
+                                    info.setDrugEnterpriseId(saleDrugList.getOrganId());
+                                    info.setSaleDrugCode(saleDrugList.getOrganDrugCode());
+                                    info.setDrugId(saleDrugList.getDrugId());
+                                    DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(saleDrugList.getOrganId());
+                                    if (enterprise != null) {
+                                        info.setDrugEnterpriseName(enterprise.getName());
+                                    } else {
+                                        info.setDrugEnterpriseName("无");
+                                    }
+                                    depSaleDrugInfos.add(info);
                                 }
-                                depSaleDrugInfos.add(info);
+                                drugListAndOrganDrugList.setDepSaleDrugInfos(depSaleDrugInfos);
                             }
-                            drugListAndOrganDrugList.setDepSaleDrugInfos(depSaleDrugInfos);
                         }
                         result.add(drugListAndOrganDrugList);
                     }
@@ -464,26 +468,30 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     drugListAndOrganDrugList.setDrugList(drug);
                     drugListAndOrganDrugList.setOrganDrugList(organDrugList);
                     //查找配送目录---运营平台显示机构药品目录是否可配送
-                    saleDrugLists = saleDrugListDAO.findByDrugIdAndOrganIds(organDrugList.getDrugId(),depIds);
-                    if (CollectionUtils.isEmpty(saleDrugLists)) {
+                    if (CollectionUtils.isEmpty(depIds)){
                         drugListAndOrganDrugList.setCanDrugSend(false);
-                    } else {
-                        drugListAndOrganDrugList.setCanDrugSend(true);
-                        List<DepSaleDrugInfo> depSaleDrugInfos = Lists.newArrayList();
-                        for (SaleDrugList saleDrugList : saleDrugLists) {
-                            DepSaleDrugInfo info = new DepSaleDrugInfo();
-                            info.setDrugEnterpriseId(saleDrugList.getOrganId());
-                            info.setSaleDrugCode(saleDrugList.getOrganDrugCode());
-                            info.setDrugId(saleDrugList.getDrugId());
-                            DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(saleDrugList.getOrganId());
-                            if (enterprise != null) {
-                                info.setDrugEnterpriseName(enterprise.getName());
-                            } else {
-                                info.setDrugEnterpriseName("无");
+                    }else {
+                        saleDrugLists = saleDrugListDAO.findByDrugIdAndOrganIds(organDrugList.getDrugId(),depIds);
+                        if (CollectionUtils.isEmpty(saleDrugLists)) {
+                            drugListAndOrganDrugList.setCanDrugSend(false);
+                        } else {
+                            drugListAndOrganDrugList.setCanDrugSend(true);
+                            List<DepSaleDrugInfo> depSaleDrugInfos = Lists.newArrayList();
+                            for (SaleDrugList saleDrugList : saleDrugLists) {
+                                DepSaleDrugInfo info = new DepSaleDrugInfo();
+                                info.setDrugEnterpriseId(saleDrugList.getOrganId());
+                                info.setSaleDrugCode(saleDrugList.getOrganDrugCode());
+                                info.setDrugId(saleDrugList.getDrugId());
+                                DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(saleDrugList.getOrganId());
+                                if (enterprise != null) {
+                                    info.setDrugEnterpriseName(enterprise.getName());
+                                } else {
+                                    info.setDrugEnterpriseName("无");
+                                }
+                                depSaleDrugInfos.add(info);
                             }
-                            depSaleDrugInfos.add(info);
+                            drugListAndOrganDrugList.setDepSaleDrugInfos(depSaleDrugInfos);
                         }
-                        drugListAndOrganDrugList.setDepSaleDrugInfos(depSaleDrugInfos);
                     }
                     result.add(drugListAndOrganDrugList);
                 }
