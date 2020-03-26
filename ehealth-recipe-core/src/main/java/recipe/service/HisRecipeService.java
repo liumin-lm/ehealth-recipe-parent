@@ -288,6 +288,7 @@ public class HisRecipeService {
                         detail.setDrugSpec(recipeDetailTO.getDrugSpec());
                         detail.setDrugUnit(recipeDetailTO.getDrugUnit());
                         detail.setUseDays(recipeDetailTO.getUseDays());
+                        detail.setDrugCode(recipeDetailTO.getDrugCode());
                         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
                         if (StringUtils.isNotEmpty(detail.getRecipeDeatilCode())) {
                             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(detail.getRecipeDeatilCode()));
