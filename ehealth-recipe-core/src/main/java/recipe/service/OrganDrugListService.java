@@ -564,15 +564,16 @@ public class OrganDrugListService implements IOrganDrugListService {
     private List<DrugListAndOrganDrugListDTO> covertData(List<DrugListAndOrganDrugList> dbList) {
         List<DrugListAndOrganDrugListDTO> newList = Lists.newArrayList();
         DrugListAndOrganDrugListDTO backDTO;
-        for (DrugListAndOrganDrugList daod : dbList) {
-            backDTO = new DrugListAndOrganDrugListDTO();
-            backDTO.setDrugList(ObjectCopyUtils.convert(daod.getDrugList(), DrugListBean.class));
-            backDTO.setOrganDrugList(ObjectCopyUtils.convert(daod.getOrganDrugList(), OrganDrugListDTO.class));
-            backDTO.setCanDrugSend(daod.getCanDrugSend());
-            backDTO.setDepSaleDrugInfos(daod.getDepSaleDrugInfos());
-            newList.add(backDTO);
+        if (CollectionUtils.isNotEmpty(dbList)){
+            for (DrugListAndOrganDrugList daod : dbList) {
+                backDTO = new DrugListAndOrganDrugListDTO();
+                backDTO.setDrugList(ObjectCopyUtils.convert(daod.getDrugList(), DrugListBean.class));
+                backDTO.setOrganDrugList(ObjectCopyUtils.convert(daod.getOrganDrugList(), OrganDrugListDTO.class));
+                backDTO.setCanDrugSend(daod.getCanDrugSend());
+                backDTO.setDepSaleDrugInfos(daod.getDepSaleDrugInfos());
+                newList.add(backDTO);
+            }
         }
-
         return newList;
     }
 
