@@ -116,10 +116,10 @@ public class RecipeCacheService {
     }
 
     @RpcService
-    public Set<Integer> findDrugByDiseaseName(String field) {
+    public Set<String> findDrugByDiseaseName(String field) {
         LOGGER.info("recipeCacheService getDiseaseAndDrugParam field={}", field);
         //先从缓存获取
-        Set<Integer> val = redisClient.sMembers(field);
+        Set<String> val = redisClient.sMembers(field);
         LOGGER.info("recipeCacheService getDiseaseAndDrugParam value={}", val);
         return val;
     }
