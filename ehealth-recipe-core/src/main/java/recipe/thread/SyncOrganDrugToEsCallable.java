@@ -66,7 +66,7 @@ public class SyncOrganDrugToEsCallable implements Callable<String> {
                     }
 
                     DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-                    List<DrugList> drugList = drugListDAO.findByDrugIds(drugIdList);
+                    List<DrugList> drugList = drugListDAO.findByDrugIdsWithOutStatus(drugIdList);
 
                     //基础数据为空的话则存在问题
                     if (CollectionUtils.isEmpty(drugList)) {
