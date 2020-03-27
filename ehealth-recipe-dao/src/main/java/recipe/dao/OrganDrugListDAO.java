@@ -18,10 +18,10 @@ import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction
 import ctd.persistence.support.impl.dictionary.DBDictionaryItemLoader;
 import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcSupportDAO;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import recipe.dao.bean.DrugInfoHisBean;
 import recipe.dao.bean.DrugListAndOrganDrugList;
@@ -386,13 +386,15 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
             @Override
             public void execute(StatelessSession ss) throws DAOException {
                 StringBuilder hql;
-                //查询机构药品目录是否配送---null的话没有是否配送的筛选条件
-                if (canDrugSend == null) {
+                OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+                List<Integer> depIds = organAndDrugsepRelationDAO.findDrugsEnterpriseIdByOrganIdAndStatus(organId, 1);
+                //查询机构药品目录是否配送---null的话没有是否配送的筛选条件 或者机构配置到药企为空到话 不从saledruglist里筛选
+                if (canDrugSend == null || CollectionUtils.isEmpty(depIds)) {
                     hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId ");
                 } else if (canDrugSend) {
-                    hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId and a.drugId in (select c.drugId from SaleDrugList c where c.status =1) ");
+                    hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId and a.drugId in (select c.drugId from SaleDrugList c where c.status =1 and c.organId in:depIds) ");
                 } else {
-                    hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId and a.drugId not in (select c.drugId from SaleDrugList c where c.status =1 and c.drugId is not null) ");
+                    hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId and a.drugId not in (select c.drugId from SaleDrugList c where c.status =1 and c.organId in:depIds and c.drugId is not null) ");
                 }
                 if (!StringUtils.isEmpty(drugClass)) {
                     hql.append(" and b.drugClass like :drugClass");
@@ -431,6 +433,9 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 if (drugId != null) {
                     countQuery.setParameter("drugId", drugId);
                 }
+                if (canDrugSend!=null && CollectionUtils.isNotEmpty(depIds)){
+                    countQuery.setParameterList("depIds", depIds);
+                }
                 if (!StringUtils.isEmpty(keyword)) {
                     countQuery.setParameter("keyword", "%" + keyword + "%");
                 }
@@ -449,6 +454,9 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 if (!StringUtils.isEmpty(keyword)) {
                     query.setParameter("keyword", "%" + keyword + "%");
                 }
+                if (canDrugSend!=null && CollectionUtils.isNotEmpty(depIds)){
+                    query.setParameterList("depIds", depIds);
+                }
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
                 List<OrganDrugList> list = query.list();
@@ -456,8 +464,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
                 SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
                 DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-                OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-                List<Integer> depIds = organAndDrugsepRelationDAO.findDrugsEnterpriseIdByOrganIdAndStatus(organId, 1);
+
                 DrugList drug;
                 DrugListAndOrganDrugList drugListAndOrganDrugList;
                 List<SaleDrugList> saleDrugLists;
@@ -475,6 +482,10 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                             drugListAndOrganDrugList.setCanDrugSend(false);
                         } else {
                             saleDrugLists = saleDrugListDAO.findByDrugIdAndOrganIds(organDrugList.getDrugId(), depIds);
+//                            //支持配送这里不能为false
+//                            if (CollectionUtils.isEmpty(saleDrugLists)&& canDrugSend != null&&canDrugSend) {
+//                                continue;
+//                            }
                             if (CollectionUtils.isEmpty(saleDrugLists)) {
                                 drugListAndOrganDrugList.setCanDrugSend(false);
                             } else {
