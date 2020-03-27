@@ -477,10 +477,10 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                         } else {
                             saleDrugLists = saleDrugListDAO.findByDrugIdAndOrganIds(organDrugList.getDrugId(), depIds);
                             //支持配送这里不能为false
-                            if (CollectionUtils.isEmpty(saleDrugLists)&&canDrugSend) {
+                            if (CollectionUtils.isEmpty(saleDrugLists)&& canDrugSend != null&&canDrugSend) {
                                 continue;
                             }
-                            if (CollectionUtils.isEmpty(saleDrugLists)&&!canDrugSend) {
+                            if (CollectionUtils.isEmpty(saleDrugLists)) {
                                 drugListAndOrganDrugList.setCanDrugSend(false);
                             } else {
                                 drugListAndOrganDrugList.setCanDrugSend(true);
