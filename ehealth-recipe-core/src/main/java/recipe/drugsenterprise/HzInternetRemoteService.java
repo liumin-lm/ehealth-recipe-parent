@@ -286,7 +286,7 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService{
         if(DrugEnterpriseResult.FAIL.equals(payResult.getCode())){
             LOGGER.info("order 当前处方{}确认订单校验处方信息：预结算失败，结算结果：{}",
                     recipeId, JSONUtils.toString(payResult));
-            return result;
+            return payResult;
         }
         RemoteDrugEnterpriseService remoteDrugEnterpriseService =
                 ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
