@@ -18,10 +18,10 @@ import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction
 import ctd.persistence.support.impl.dictionary.DBDictionaryItemLoader;
 import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcSupportDAO;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import recipe.dao.bean.DrugInfoHisBean;
 import recipe.dao.bean.DrugListAndOrganDrugList;
@@ -392,9 +392,9 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 if (canDrugSend == null || CollectionUtils.isEmpty(depIds)) {
                     hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId ");
                 } else if (canDrugSend) {
-                    hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId and a.drugId in (select c.drugId from SaleDrugList c where c.status =1) ");
+                    hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId and a.drugId in (select c.drugId from SaleDrugList c where c.status =1 and c.organId in:depIds) ");
                 } else {
-                    hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId and a.drugId not in (select c.drugId from SaleDrugList c where c.status =1 and c.drugId is not null) ");
+                    hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId and a.drugId not in (select c.drugId from SaleDrugList c where c.status =1 and c.organId in:depIds and c.drugId is not null) ");
                 }
                 if (!StringUtils.isEmpty(drugClass)) {
                     hql.append(" and b.drugClass like :drugClass");
@@ -433,6 +433,9 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 if (drugId != null) {
                     countQuery.setParameter("drugId", drugId);
                 }
+                if (CollectionUtils.isNotEmpty(depIds)){
+                    countQuery.setParameterList("depIds", depIds);
+                }
                 if (!StringUtils.isEmpty(keyword)) {
                     countQuery.setParameter("keyword", "%" + keyword + "%");
                 }
@@ -450,6 +453,9 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 }
                 if (!StringUtils.isEmpty(keyword)) {
                     query.setParameter("keyword", "%" + keyword + "%");
+                }
+                if (CollectionUtils.isNotEmpty(depIds)){
+                    countQuery.setParameterList("depIds", depIds);
                 }
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
@@ -476,10 +482,10 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                             drugListAndOrganDrugList.setCanDrugSend(false);
                         } else {
                             saleDrugLists = saleDrugListDAO.findByDrugIdAndOrganIds(organDrugList.getDrugId(), depIds);
-                            //支持配送这里不能为false
-                            if (CollectionUtils.isEmpty(saleDrugLists)&& canDrugSend != null&&canDrugSend) {
-                                continue;
-                            }
+//                            //支持配送这里不能为false
+//                            if (CollectionUtils.isEmpty(saleDrugLists)&& canDrugSend != null&&canDrugSend) {
+//                                continue;
+//                            }
                             if (CollectionUtils.isEmpty(saleDrugLists)) {
                                 drugListAndOrganDrugList.setCanDrugSend(false);
                             } else {
