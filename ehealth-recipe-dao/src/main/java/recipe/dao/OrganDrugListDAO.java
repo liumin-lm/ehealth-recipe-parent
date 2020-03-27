@@ -386,8 +386,10 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
             @Override
             public void execute(StatelessSession ss) throws DAOException {
                 StringBuilder hql;
-                //查询机构药品目录是否配送---null的话没有是否配送的筛选条件
-                if (canDrugSend == null) {
+                OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+                List<Integer> depIds = organAndDrugsepRelationDAO.findDrugsEnterpriseIdByOrganIdAndStatus(organId, 1);
+                //查询机构药品目录是否配送---null的话没有是否配送的筛选条件 或者机构配置到药企为空到话 不从saledruglist里筛选
+                if (canDrugSend == null || CollectionUtils.isEmpty(depIds)) {
                     hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId ");
                 } else if (canDrugSend) {
                     hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId and a.drugId in (select c.drugId from SaleDrugList c where c.status =1) ");
@@ -456,8 +458,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
                 SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
                 DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-                OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-                List<Integer> depIds = organAndDrugsepRelationDAO.findDrugsEnterpriseIdByOrganIdAndStatus(organId, 1);
+
                 DrugList drug;
                 DrugListAndOrganDrugList drugListAndOrganDrugList;
                 List<SaleDrugList> saleDrugLists;
@@ -475,7 +476,11 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                             drugListAndOrganDrugList.setCanDrugSend(false);
                         } else {
                             saleDrugLists = saleDrugListDAO.findByDrugIdAndOrganIds(organDrugList.getDrugId(), depIds);
-                            if (CollectionUtils.isEmpty(saleDrugLists)) {
+                            //支持配送这里不能为false
+                            if (CollectionUtils.isEmpty(saleDrugLists)&&canDrugSend) {
+                                continue;
+                            }
+                            if (CollectionUtils.isEmpty(saleDrugLists)&&!canDrugSend) {
                                 drugListAndOrganDrugList.setCanDrugSend(false);
                             } else {
                                 drugListAndOrganDrugList.setCanDrugSend(true);
