@@ -433,7 +433,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 if (drugId != null) {
                     countQuery.setParameter("drugId", drugId);
                 }
-                if (CollectionUtils.isNotEmpty(depIds)){
+                if (canDrugSend!=null && CollectionUtils.isNotEmpty(depIds)){
                     countQuery.setParameterList("depIds", depIds);
                 }
                 if (!StringUtils.isEmpty(keyword)) {
@@ -454,7 +454,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 if (!StringUtils.isEmpty(keyword)) {
                     query.setParameter("keyword", "%" + keyword + "%");
                 }
-                if (CollectionUtils.isNotEmpty(depIds)){
+                if (canDrugSend!=null && CollectionUtils.isNotEmpty(depIds)){
                     query.setParameterList("depIds", depIds);
                 }
                 query.setFirstResult(start);
