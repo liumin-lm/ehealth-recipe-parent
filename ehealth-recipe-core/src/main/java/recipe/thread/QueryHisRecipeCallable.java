@@ -4,15 +4,13 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.patient.dto.PatientDTO;
 import ctd.util.AppContextHolder;
-import recipe.ApplicationUtils;
 import recipe.service.HisRecipeService;
-import recipe.service.RecipeHisService;
 
 import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
- * created by shiyuping on 2019/7/22
+ * Created by Erek on 2020/3/26.
  */
 public class QueryHisRecipeCallable implements Callable<String> {
 
@@ -41,3 +39,4 @@ public class QueryHisRecipeCallable implements Callable<String> {
         return null;
     }
 }
+
