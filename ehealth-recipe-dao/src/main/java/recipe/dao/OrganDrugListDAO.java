@@ -455,7 +455,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     query.setParameter("keyword", "%" + keyword + "%");
                 }
                 if (CollectionUtils.isNotEmpty(depIds)){
-                    countQuery.setParameterList("depIds", depIds);
+                    query.setParameterList("depIds", depIds);
                 }
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
