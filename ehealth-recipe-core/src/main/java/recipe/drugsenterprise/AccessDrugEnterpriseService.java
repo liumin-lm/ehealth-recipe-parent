@@ -267,7 +267,7 @@ public abstract class AccessDrugEnterpriseService {
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(nowRecipe.getEnterpriseId());
             if(drugsEnterprise != null && drugsEnterprise.getCreateType() != null &&
-                    0 == drugsEnterprise.getCreateType()){
+                    0 == drugsEnterprise.getCreateType() && nowRecipe.getPayFlag() == 1){
                 LOGGER.info("pushMessageToEnterprise 当前处方[{}]需要推送订单消息给药企", recipeId);
                 SmsInfoBean smsInfo=new SmsInfoBean();
                 smsInfo.setBusType("RecipeOrderCreate");
