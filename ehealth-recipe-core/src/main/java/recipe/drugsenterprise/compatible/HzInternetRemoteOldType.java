@@ -72,12 +72,6 @@ public class HzInternetRemoteOldType implements HzInternetRemoteTypeInterface {
 
     private static final String EXPIRE_TIP = "请重新授权";
 
-    @Autowired
-    private RecipeExtendDAO recipeExtendDAO;
-
-    @Autowired
-    private TaobaoConf taobaoConf;
-
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         LOGGER.info("旧-杭州互联网虚拟药企-更新取药信息至处方流转平台开始，处方ID：{}.", JSONUtils.toString(recipeIds));
@@ -100,6 +94,7 @@ public class HzInternetRemoteOldType implements HzInternetRemoteTypeInterface {
         updateTakeDrugWayReqTO.setOrganID(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
 
         updateTakeDrugWayReqTO.setPayMode("1");
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         if(recipeExtend != null && recipeExtend.getDeliveryCode() != null){
             updateTakeDrugWayReqTO.setDeliveryCode(recipeExtend.getDeliveryCode());
