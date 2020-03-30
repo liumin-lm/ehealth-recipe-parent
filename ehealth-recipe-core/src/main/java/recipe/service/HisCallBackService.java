@@ -234,6 +234,7 @@ public class HisCallBackService {
         }
         //推送处方到监管平台
         RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
+
     }
 
     private static void updateRecipeRegisterID(Recipe recipe, RecipeCheckPassResult result) {
@@ -243,6 +244,10 @@ public class HisCallBackService {
         if (null != recipe.getClinicId()) {
             IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
             ConsultExDTO consultExDTO = exService.getByConsultId(recipe.getClinicId());
+            //更新咨询扩展表recipeid字段
+            if (!(new Integer(3).equals(recipe.getBussSource()))){
+                exService.updateRecipeIdByConsultId(recipe.getClinicId(),recipe.getRecipeId());
+            }
             if (null != consultExDTO && StringUtils.isNotEmpty(consultExDTO.getRegisterNo())) {
                 result.setRegisterID(consultExDTO.getRegisterNo());
             }
