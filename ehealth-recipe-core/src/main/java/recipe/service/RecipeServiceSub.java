@@ -1167,7 +1167,7 @@ public class RecipeServiceSub {
             //boolean b = RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && (recipe.canMedicalPay() || effective);
             boolean b = RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && (recipe.canMedicalPay() || (RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus()));
             if (b) {
-                map.put("secondSignFlag", iOrganConfigService.getEnableSecondsignByOrganId(recipe.getClinicOrgan()));
+                map.put("secondSignFlag", canSecondAudit(recipe.getClinicOrgan()));
             }
 
             //医生端获取处方扩展信息
@@ -2130,5 +2130,22 @@ public class RecipeServiceSub {
             return false;
         }
         return false;
+    }
+
+    /**
+     * 获取机构是否支持二次审方
+     * @param clinicOrgan
+     * @return
+     */
+    public static boolean canSecondAudit(Integer clinicOrgan) {
+        //默认不支持
+        Boolean flag =false;
+        try {
+            IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+            flag = (Boolean) configService.getConfiguration(clinicOrgan, "doctorSecondAuditFlag");
+        } catch (Exception e) {
+            LOGGER.error("canSecondAudit 获取机构配置异常",e);
+        }
+        return flag;
     }
 }
