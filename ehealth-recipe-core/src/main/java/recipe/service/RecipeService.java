@@ -34,6 +34,7 @@ import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderInfoBean;
+import com.ngari.wxpay.service.INgariPayService;
 import com.ngari.wxpay.service.INgariRefundService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -1688,6 +1689,19 @@ public class RecipeService extends RecipeBaseService{
                 }
                 //保存处方状态变更日志
                 RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.NO_OPERATOR, memo.toString());
+                //date 20200330
+                //调用支付平台取消支付接口
+                RecipeOrder orderNow;
+                INgariPayService payService = AppDomainContext.getBean("eh.payService", INgariPayService.class);
+                if (null != recipe) {
+                    //判断订单是否是单边账的
+                    if(0 == order.getPayFlag() && StringUtils.isNotEmpty(order.getOutTradeNo())){
+                        payService.payQuery(BusTypeEnum.RECIPE.getCode(), recipe.getRecipeId().toString());
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方"+ recipe.getRecipeId() +"调用支付接口成功");
+                    }
+                }else{
+                    LOGGER.info("RecipeOrderService.cancelOrder 取消的订单对应的处方为空.");
+                }
             }
         }
         for (Integer status : statusList) {

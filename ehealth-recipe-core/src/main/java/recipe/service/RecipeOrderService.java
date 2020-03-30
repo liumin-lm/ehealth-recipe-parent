@@ -32,10 +32,12 @@ import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
+import com.ngari.wxpay.service.INgariPayService;
 import coupon.api.service.ICouponBaseService;
 import coupon.api.vo.Coupon;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -1279,6 +1281,27 @@ public class RecipeOrderService extends RecipeBaseService {
                         }
                     }catch (Exception e){
                         LOGGER.info("RecipeOrderService.cancelOrder 来源于HIS的处方单更新hisRecipe的状态失败,error:{}.", e.getMessage());
+                    }
+                    //date 20200330
+                    //调用支付平台取消支付接口
+                    Recipe recipe;
+                    RecipeOrder orderNow;
+                    INgariPayService payService = AppDomainContext.getBean("eh.payService", INgariPayService.class);
+                    RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
+                    if (CollectionUtils.isNotEmpty(recipes)) {
+                        if(null != recipeIdList.get(0)){
+                            recipe = recipes.get(0);
+                            orderNow = orderDAO.getByOrderCode(order.getOrderCode());
+                            //判断订单是否是单边账的
+                            if(0 == orderNow.getPayFlag() && StringUtils.isNotEmpty(orderNow.getOutTradeNo())){
+                                payService.payQuery(BusTypeEnum.RECIPE.getCode(), recipe.getRecipeId().toString());
+                                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方"+ recipe.getRecipeId() +"调用支付接口成功");
+                            }
+                        }else{
+                            LOGGER.info("RecipeOrderService.cancelOrder 取消的订单处方id为空.");
+                        }
+                    }else{
+                        LOGGER.info("RecipeOrderService.cancelOrder 取消的订单对应的处方为空.");
                     }
                 }
             }
