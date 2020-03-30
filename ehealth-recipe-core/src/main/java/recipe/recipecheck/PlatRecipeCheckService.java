@@ -109,8 +109,9 @@ public class PlatRecipeCheckService implements IRecipeCheckService{
     }
 
     private void doAfterCheckNotPassYs(Recipe recipe) {
-        IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
-        boolean secondsignflag = iOrganConfigService.getEnableSecondsignByOrganId(recipe.getClinicOrgan());
+        boolean secondsignflag = RecipeServiceSub.canSecondAudit(recipe.getClinicOrgan());
+        /*IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
+        boolean secondsignflag = iOrganConfigService.getEnableSecondsignByOrganId(recipe.getClinicOrgan());*/
         //不支持二次签名的机构直接执行后续操作
         if (!secondsignflag) {
             //一次审核不通过的需要将优惠券释放
