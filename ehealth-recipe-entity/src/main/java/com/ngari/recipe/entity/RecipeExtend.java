@@ -49,8 +49,11 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "体格检查")
     private String physicalCheck;
 
-    @ItemProperty(alias = "HIS处方关联的卡类型")
+    @ItemProperty(alias = "HIS处方关联的卡类型名称")
     private String  cardTypeName;
+
+    @ItemProperty(alias = "HIS处方关联的卡类型")
+    private String  cardType;
 
     @ItemProperty(alias = "HIS处方关联的卡号")
     private String  cardNo;
@@ -406,5 +409,14 @@ public class RecipeExtend implements Serializable {
 
     public void setFromFlag(Integer fromFlag) {
         this.fromFlag = fromFlag;
+    }
+
+    @Column(name = "cardType")
+    public String getCardType() {
+        return cardType;
+    }
+
+    public void setCardType(String cardType) {
+        this.cardType = cardType;
     }
 }
