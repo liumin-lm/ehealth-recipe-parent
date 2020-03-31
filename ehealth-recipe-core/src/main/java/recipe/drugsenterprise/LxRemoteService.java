@@ -101,7 +101,7 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
                 String bodyStr = JSONUtils.toString(stockRequest);
 
                 ////根据处方信息发送药企库存查询请求，判断有药店是否满足库存
-                LOGGER.info("LxRemoteService.scanStock:[{}][{}]根据处方信息发送药企库存查询请求，请求内容：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), recipeId);
+                LOGGER.info("LxRemoteService.scanStock:[{}][{}]根据处方信息发送药企库存查询请求，请求内容：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), bodyStr);
                 String stockData = HttpsClientUtils.doPost(drugsEnterprise.getBusinessUrl()+checkstockUrl, bodyStr,extendHeaders);
                 LOGGER.info("LxRemoteService.scanStock:[{}][{}]获取药企库存查询请求，获取响应getBody消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), stockData);
                 Map resultMap = JSONUtils.parse(stockData, Map.class);
@@ -191,9 +191,9 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
                 String bodyStr = JSONUtils.toString(hdPharmacyAndStockRequest);
 
                 ////根据处方信息发送药企库存查询请求，判断有药店是否满足库存
-                LOGGER.info("LxRemoteService.scanStock:[{}][{}]根据处方信息发送药企库存查询请求，请求内容：{}", enterprise.getId(), enterprise.getName(), recipeIds);
+                LOGGER.info("LxRemoteService.scanStock:[{}][{}]根据处方信息发送药企库存列表请求，请求内容：{}", enterprise.getId(), enterprise.getName(), bodyStr);
                 String stockData = HttpsClientUtils.doPost(enterprise.getBusinessUrl()+storelistUrl, bodyStr,extendHeaders);
-                LOGGER.info("LxRemoteService.scanStock:[{}][{}]获取药企库存查询请求，获取响应getBody消息：{}", enterprise.getId(), enterprise.getName(), JSONUtils.toString(stockData));
+                LOGGER.info("LxRemoteService.scanStock:[{}][{}]获取药企列表查询请求，获取响应getBody消息：{}", enterprise.getId(), enterprise.getName(), JSONUtils.toString(stockData));
                 Map resultMap = JSONUtils.parse(stockData, Map.class);
                 if(requestSuccessCode.equals(MapValueUtil.getString(resultMap, "code"))) {
                     //接口返回的结果
@@ -202,7 +202,7 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
                     List<DepDetailBean> list=new ArrayList<>();
                     DepDetailBean detailBean;
                     for (Map<String, Object> ynsStoreBean : ynsStoreBeans) {
-                        LOGGER.info("LxRemoteService.findSupportDep ynsStoreBean:{}.", JSONUtils.toString(ynsStoreBean));
+                        LOGGER.info("LxRemoteService.findSupportDep lxStoreBean:{}.", JSONUtils.toString(ynsStoreBean));
                         detailBean=new DepDetailBean();
                         detailBean.setPharmacyCode(MapValueUtil.getString(ynsStoreBean, "pharmacyCode"));
                         detailBean.setDepName(MapValueUtil.getString(ynsStoreBean, "pharmacyName"));
@@ -210,9 +210,9 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
                         detailBean.setDistance(Double.parseDouble(MapValueUtil.getString(ynsStoreBean, "distance")));
                         LOGGER.info("LxRemoteService.findSupportDep pharmacyCode:{}.",MapValueUtil.getString(ynsStoreBean, "pharmacyCode") );
                         Map position=  (Map)MapValueUtil.getObject(ynsStoreBean, "position");
-                        LOGGER.info("LxRemoteService.findSupportDep position:{}.", position);
+                        LOGGER.info("LxRemoteService.findSupportDep position:{}.", JSONUtils.toString(position));
                         //Map mp = JSONUtils.parse(position, Map.class);
-                        LOGGER.info("LxRemoteService.findSupportDep mp:{}.", JSONUtils.toString(position));
+                        //LOGGER.info("LxRemoteService.findSupportDep mp:{}.", JSONUtils.toString(position));
                         Position postion=new Position();
                         postion.setLatitude(Double.parseDouble(MapValueUtil.getString(position, "latitude")));
                         postion.setLongitude(Double.parseDouble(MapValueUtil.getString(position, "longitude")));
@@ -286,7 +286,10 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
             hdPharmacyAndStockRequest.setPosition(new HdPosition(MapValueUtil.getString(ext, searchMapLongitude), MapValueUtil.getString(ext, searchMapLatitude)));
 
         }else{
-            LOGGER.warn("LxRemoteService.findSupportDep:请求的搜索参数不健全" );
+            //LOGGER.warn("LxRemoteService.findSupportDep:请求的搜索参数不健全" );
+            //配送到家的信息
+            List<HdDrugRequestData> drugRequestList = getDrugRequestList(resultMap, detailList, enterprise, result);
+            hdPharmacyAndStockRequest.setDrugList(drugRequestList);
         }
 
         return hdPharmacyAndStockRequest;
@@ -302,7 +305,7 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
      * @return java.util.List<recipe.drugsenterprise.bean.HdDrugRequestData>请求药店下药品信息列表
      */
     private List<HdDrugRequestData> getDrugRequestList(Map<String, HdDrugRequestData> result, List<Recipedetail> detailList, DrugsEnterprise drugsEnterprise, DrugEnterpriseResult finalResult) {
-        LOGGER.info("LxRemoteService.getDrugRequestList:[{}][{}]获取请求药店下药品信息接口下的药品总量（根据药品的code分组）的list：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), detailList);
+        LOGGER.info("LxRemoteService.getDrugRequestList:[{}][{}]获取请求药店下药品信息接口下的药品总量（根据药品的code分组）的list：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), JSONUtils.toString(detailList));
         HdDrugRequestData hdDrugRequestData;
         Double sum;
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
@@ -334,8 +337,7 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
             }
         }
         //将叠加好总量的药品分组转成list
-        List<HdDrugRequestData> hdDrugRequestDataList = new ArrayList<HdDrugRequestData>(result.values());
-        return hdDrugRequestDataList;
+        return new ArrayList<HdDrugRequestData>(result.values());
     }
     /**
      * @method  getFailResult

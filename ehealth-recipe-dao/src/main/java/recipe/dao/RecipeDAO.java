@@ -12,7 +12,6 @@ import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
@@ -1840,6 +1839,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      */
     public List<Recipe> findSyncRecipeListByOrganId(final Integer organId, final String startDate,final String endDate,final Boolean checkFlag){
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder(
                         "from Recipe where fromflag=1 ");
@@ -1850,6 +1850,36 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 }else {
                     hql.append("and lastModify between '" + startDate + "' and '" + endDate
                             + "' and clinicOrgan =:organId and syncFlag =0 ");
+                }
+                Query query = ss.createQuery(hql.toString());
+                query.setParameter("organId",organId);
+                setResult(query.list());
+            }
+        };
+
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        return action.getResult();
+    }
+
+    /**
+     * 监管平台反查接口
+     * @param organId
+     * @param startDate
+     * @param endDate
+     * @return
+     */
+    public List<Recipe> findSyncRecipeListByOrganIdForSH(final Integer organId, final String startDate,final String endDate,final Boolean updateFlag){
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder(
+                        "from Recipe r where fromflag=1 and clinicOrgan =:organId and syncFlag =0" +
+                                " and ( (r.createDate between '"+startDate+"' and '"+endDate+"') ");
+                //是否包含更新时间为指定时间范围内
+                if (updateFlag){
+                    hql.append(" or (r.lastModify between '"+startDate+"' and '"+endDate+"')  )");
+                }else {
+                    hql.append(")");
                 }
                 Query query = ss.createQuery(hql.toString());
                 query.setParameter("organId",organId);

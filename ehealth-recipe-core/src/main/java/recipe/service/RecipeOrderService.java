@@ -1295,7 +1295,7 @@ public class RecipeOrderService extends RecipeBaseService {
                             recipe = recipes.get(0);
                             orderNow = orderDAO.getByOrderCode(order.getOrderCode());
                             //判断订单是否是单边账的
-                            if(0 == orderNow.getPayFlag() && StringUtils.isNotEmpty(orderNow.getOutTradeNo())){
+                            if(0 == orderNow.getPayFlag() && StringUtils.isNotEmpty(orderNow.getOutTradeNo()) && StringUtils.isNotEmpty(orderNow.getWxPayWay()) && StringUtils.isNotEmpty(orderNow.getPayOrganId())){
                                 LOGGER.info("RecipeOrderService.cancelOrder 取消的订单处方id{}", recipe.getRecipeId());
 
                                 Map<String, Object> backResult = payService.payCancel(BusTypeEnum.RECIPE.getCode(), orderNow.getOrderId().toString());
