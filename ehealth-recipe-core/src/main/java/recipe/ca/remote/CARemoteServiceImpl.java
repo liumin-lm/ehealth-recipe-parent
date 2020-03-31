@@ -71,6 +71,12 @@ public class CARemoteServiceImpl implements ICARemoteService {
         return date;
     }
 
+    /**
+     * 仅供肺科医院 测评使用
+     * @param name
+     * @return
+     */
+    @Deprecated
     @RpcService
     public String getDoctorInfo(String name) {
         JSONObject json = new JSONObject();
@@ -86,6 +92,12 @@ public class CARemoteServiceImpl implements ICARemoteService {
                 json.put("certIssuer","Mkey Root CA");
                 json.put("startDate","2020-03-31 15:50:17");
                 json.put("endDate","2020-06-31 15:50:17");
+                break;
+            case "李爱武":
+                json.put("certSubject","李爱武");
+                json.put("certIssuer","Mkey Root CA");
+                json.put("startDate","2020-03-24 17:07:35");
+                json.put("endDate","2020-06-24 17:07:35");
                 break;
         }
         return json.toJSONString();
