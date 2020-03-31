@@ -1874,17 +1874,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder(
                         "from Recipe r where fromflag=1 and clinicOrgan =:organId and syncFlag =0" +
-                                " and ( (r.createDate between :startDate and :endDate) ");
+                                " and ( (r.createDate between '"+startDate+"' and '"+endDate+"') ");
                 //是否包含更新时间为指定时间范围内
                 if (updateFlag){
-                    hql.append(" or (r.lastModify between :startDate and :endDate)  )");
+                    hql.append(" or (r.lastModify between '"+startDate+"' and '"+endDate+"')  )");
                 }else {
                     hql.append(")");
                 }
                 Query query = ss.createQuery(hql.toString());
                 query.setParameter("organId",organId);
-                query.setParameter("startDate",startDate);
-                query.setParameter("endDate",endDate);
                 setResult(query.list());
             }
         };

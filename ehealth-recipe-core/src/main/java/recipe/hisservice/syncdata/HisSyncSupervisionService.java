@@ -348,6 +348,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (recipeExtend != null) {
                 req.setPatientNumber(recipeExtend.getRegisterID());
+                req.setCardNo(recipeExtend.getCardNo());
+                req.setCardType(recipeExtend.getCardType());
             }
             //处方状态
             req.setRecipeStatus(recipe.getStatus());
@@ -377,11 +379,17 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             }
 
             //卡号，卡类型
-            consultExDTO = iConsultExService.getByConsultId(recipe.getClinicId());
-            if(null != consultExDTO){
-                req.setCardNo(consultExDTO.getCardId());
-                req.setCardType(consultExDTO.getCardType());
+            if(req.getCardNo()==null){
+                //取复诊单里的卡号卡信息
+                if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
+                    consultExDTO = iConsultExService.getByConsultId(recipe.getClinicId());
+                    if(null != consultExDTO){
+                        req.setCardNo(consultExDTO.getCardId());
+                        req.setCardType(consultExDTO.getCardType());
+                    }
+                }
             }
+
             //详情处理
             detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
             if (CollectionUtils.isEmpty(detailList)) {
