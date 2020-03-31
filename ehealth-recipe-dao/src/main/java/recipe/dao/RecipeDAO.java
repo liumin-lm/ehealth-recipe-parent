@@ -2135,7 +2135,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             @Override
             public void execute(StatelessSession statelessSession) throws Exception {
                 StringBuffer sql = new StringBuffer();
-                sql.append("select count(RecipeID) from Recipe where depart in :deptIds and ClinicOrgan= :organId and DATE_FORMAT(CreateDate,'%Y-%m-%d')=:appointDate");
+                sql.append("select count(RecipeID) from Recipe where depart in :deptIds and ClinicOrgan= :organId and DATE_FORMAT(CreateDate,'%Y-%m-%d')=:appointDate AND STATUS IN (2,3,4,5,6,7) ");
 
 
                 Query query = statelessSession.createQuery(sql.toString());
