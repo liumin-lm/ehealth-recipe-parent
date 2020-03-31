@@ -33,7 +33,7 @@ public class RegulationDrugCategoryBean implements java.io.Serializable{
     private String error;//是否违规
     private BigDecimal drugPrice; //医院药品单价
 
-    private String medicalDrugFormCode;  //项目标准代码
+    private String medicalDrugCode;  //项目标准代码
     private String licenseNumber;  //批准文号
     private String drugForm;  //剂型名称
     private String drugFormCode;  //剂型代码
@@ -204,12 +204,12 @@ public class RegulationDrugCategoryBean implements java.io.Serializable{
         this.error = error;
     }
 
-    public String getMedicalDrugFormCode() {
-        return medicalDrugFormCode;
+    public String getMedicalDrugCode() {
+        return medicalDrugCode;
     }
 
-    public void setMedicalDrugFormCode(String medicalDrugFormCode) {
-        this.medicalDrugFormCode = medicalDrugFormCode;
+    public void setMedicalDrugCode(String medicalDrugCode) {
+        this.medicalDrugCode = medicalDrugCode;
     }
 
     public String getLicenseNumber() {
@@ -307,9 +307,10 @@ public class RegulationDrugCategoryBean implements java.io.Serializable{
                 ", warn='" + warn + '\'' +
                 ", error='" + error + '\'' +
                 ", drugPrice=" + drugPrice +
-                ", medicalDrugFormCode='" + medicalDrugFormCode + '\'' +
+                ", medicalDrugCode='" + medicalDrugCode + '\'' +
                 ", licenseNumber='" + licenseNumber + '\'' +
                 ", drugForm='" + drugForm + '\'' +
+                ", drugFormCode='" + drugFormCode + '\'' +
                 ", hospitalPreparation='" + hospitalPreparation + '\'' +
                 ", baseDrug='" + baseDrug + '\'' +
                 ", kssFlag='" + kssFlag + '\'' +
