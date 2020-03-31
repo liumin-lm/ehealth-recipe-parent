@@ -191,9 +191,9 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
                 String bodyStr = JSONUtils.toString(hdPharmacyAndStockRequest);
 
                 ////根据处方信息发送药企库存查询请求，判断有药店是否满足库存
-                LOGGER.info("LxRemoteService.scanStock:[{}][{}]根据处方信息发送药企库存查询请求，请求内容：{}", enterprise.getId(), enterprise.getName(), recipeIds);
+                LOGGER.info("LxRemoteService.scanStock:[{}][{}]根据处方信息发送药企库存列表请求，请求内容：{}", enterprise.getId(), enterprise.getName(), bodyStr);
                 String stockData = HttpsClientUtils.doPost(enterprise.getBusinessUrl()+storelistUrl, bodyStr,extendHeaders);
-                LOGGER.info("LxRemoteService.scanStock:[{}][{}]获取药企库存查询请求，获取响应getBody消息：{}", enterprise.getId(), enterprise.getName(), JSONUtils.toString(stockData));
+                LOGGER.info("LxRemoteService.scanStock:[{}][{}]获取药企列表查询请求，获取响应getBody消息：{}", enterprise.getId(), enterprise.getName(), JSONUtils.toString(stockData));
                 Map resultMap = JSONUtils.parse(stockData, Map.class);
                 if(requestSuccessCode.equals(MapValueUtil.getString(resultMap, "code"))) {
                     //接口返回的结果
@@ -202,7 +202,7 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
                     List<DepDetailBean> list=new ArrayList<>();
                     DepDetailBean detailBean;
                     for (Map<String, Object> ynsStoreBean : ynsStoreBeans) {
-                        LOGGER.info("LxRemoteService.findSupportDep ynsStoreBean:{}.", JSONUtils.toString(ynsStoreBean));
+                        LOGGER.info("LxRemoteService.findSupportDep lxStoreBean:{}.", JSONUtils.toString(ynsStoreBean));
                         detailBean=new DepDetailBean();
                         detailBean.setPharmacyCode(MapValueUtil.getString(ynsStoreBean, "pharmacyCode"));
                         detailBean.setDepName(MapValueUtil.getString(ynsStoreBean, "pharmacyName"));
@@ -210,9 +210,9 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
                         detailBean.setDistance(Double.parseDouble(MapValueUtil.getString(ynsStoreBean, "distance")));
                         LOGGER.info("LxRemoteService.findSupportDep pharmacyCode:{}.",MapValueUtil.getString(ynsStoreBean, "pharmacyCode") );
                         Map position=  (Map)MapValueUtil.getObject(ynsStoreBean, "position");
-                        LOGGER.info("LxRemoteService.findSupportDep position:{}.", position);
+                        LOGGER.info("LxRemoteService.findSupportDep position:{}.", JSONUtils.toString(position));
                         //Map mp = JSONUtils.parse(position, Map.class);
-                        LOGGER.info("LxRemoteService.findSupportDep mp:{}.", JSONUtils.toString(position));
+                        //LOGGER.info("LxRemoteService.findSupportDep mp:{}.", JSONUtils.toString(position));
                         Position postion=new Position();
                         postion.setLatitude(Double.parseDouble(MapValueUtil.getString(position, "latitude")));
                         postion.setLongitude(Double.parseDouble(MapValueUtil.getString(position, "longitude")));
