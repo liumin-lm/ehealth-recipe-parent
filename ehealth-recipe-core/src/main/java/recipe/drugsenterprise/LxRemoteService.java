@@ -286,7 +286,10 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
             hdPharmacyAndStockRequest.setPosition(new HdPosition(MapValueUtil.getString(ext, searchMapLongitude), MapValueUtil.getString(ext, searchMapLatitude)));
 
         }else{
-            LOGGER.warn("LxRemoteService.findSupportDep:请求的搜索参数不健全" );
+            //LOGGER.warn("LxRemoteService.findSupportDep:请求的搜索参数不健全" );
+            //配送到家的信息
+            List<HdDrugRequestData> drugRequestList = getDrugRequestList(resultMap, detailList, enterprise, result);
+            hdPharmacyAndStockRequest.setDrugList(drugRequestList);
         }
 
         return hdPharmacyAndStockRequest;
@@ -302,7 +305,7 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
      * @return java.util.List<recipe.drugsenterprise.bean.HdDrugRequestData>请求药店下药品信息列表
      */
     private List<HdDrugRequestData> getDrugRequestList(Map<String, HdDrugRequestData> result, List<Recipedetail> detailList, DrugsEnterprise drugsEnterprise, DrugEnterpriseResult finalResult) {
-        LOGGER.info("LxRemoteService.getDrugRequestList:[{}][{}]获取请求药店下药品信息接口下的药品总量（根据药品的code分组）的list：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), detailList);
+        LOGGER.info("LxRemoteService.getDrugRequestList:[{}][{}]获取请求药店下药品信息接口下的药品总量（根据药品的code分组）的list：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), JSONUtils.toString(detailList));
         HdDrugRequestData hdDrugRequestData;
         Double sum;
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
@@ -334,8 +337,7 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
             }
         }
         //将叠加好总量的药品分组转成list
-        List<HdDrugRequestData> hdDrugRequestDataList = new ArrayList<HdDrugRequestData>(result.values());
-        return hdDrugRequestDataList;
+        return new ArrayList<HdDrugRequestData>(result.values());
     }
     /**
      * @method  getFailResult
