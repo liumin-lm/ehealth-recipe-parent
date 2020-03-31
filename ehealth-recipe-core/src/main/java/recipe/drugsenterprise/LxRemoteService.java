@@ -352,7 +352,7 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
     }
     @Override
     public String getDrugEnterpriseCallSys() {
-        return DrugEnterpriseConstant.COMPANY_YNS;
+        return DrugEnterpriseConstant.COMPANY_LY;
     }
 
 }
