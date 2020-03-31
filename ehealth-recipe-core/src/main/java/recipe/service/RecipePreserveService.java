@@ -436,6 +436,20 @@ public class RecipePreserveService {
     }
 
     /**
+     * 机构用药频次初始化，缓存内数据结构应该为 key为xxx_organId， map的key为平台内编码，value为频次医保编码
+     *  平台转his
+     * @param organId
+     * @param map
+     */
+    @RpcService
+    public void initMedicalUsingRateForNagri(String organId, Map<String, String> map) {
+        Set<Map.Entry<String, String>> set = map.entrySet();
+        for (Map.Entry<String, String> entry : set) {
+            redisAddForHash(CacheConstant.KEY_MEDICAL_NGARI_USINGRATE + organId, entry.getKey(), entry.getValue());
+        }
+    }
+
+    /**
      * 更新his药品药房名称
      * @param organId
      * @param pharmacy
