@@ -1,5 +1,6 @@
 package recipe.ca.remote;
 
+import com.alibaba.fastjson.JSONObject;
 import com.ngari.his.ca.model.CaPasswordRequestTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.service.DoctorService;
@@ -68,5 +69,25 @@ public class CARemoteServiceImpl implements ICARemoteService {
         Date date = new Date();
         LOGGER.info("getSystemTime end  date={}",date);
         return date;
+    }
+
+    @RpcService
+    public String getSystemTime(String name) {
+        JSONObject json = new JSONObject();
+        switch (name){
+            case "便民门诊":
+                json.put("certSubject","李爱武");
+                json.put("certIssuer","Mkey Root CA");
+                json.put("startDate","2020-03-24 17:07:35");
+                json.put("endDate","2020-06-24 17:07:35");
+                break;
+            case "陈玮俊":
+                json.put("certSubject","陈玮俊");
+                json.put("certIssuer","Mkey Root CA");
+                json.put("startDate","2020-03-31 15:50:17");
+                json.put("endDate","2020-06-31 15:50:17");
+                break;
+        }
+        return json.toJSONString();
     }
 }
