@@ -1702,7 +1702,7 @@ public class RecipeService extends RecipeBaseService {
                 INgariPayService payService = AppDomainContext.getBean("eh.payService", INgariPayService.class);
                 if (null != recipe) {
                     //判断订单是否是单边账的
-                    if(0 == order.getPayFlag() && StringUtils.isNotEmpty(order.getOutTradeNo())){
+                    if(0 == order.getPayFlag() && StringUtils.isNotEmpty(order.getOutTradeNo()) && StringUtils.isNotEmpty(order.getWxPayWay()) && StringUtils.isNotEmpty(order.getPayOrganId())){
                         Map<String, Object> backResult = payService.payCancel(BusTypeEnum.RECIPE.getCode(), order.getOrderId().toString());
                         if(null != backResult && eh.wxpay.constant.PayConstant.RESULT_SUCCESS.equals(backResult.get("code"))){
                             LOGGER.info("RecipeService.cancelRecipeTask 取消的订单对应的处方{}成功.", recipe.getRecipeId());
@@ -1790,7 +1790,7 @@ public class RecipeService extends RecipeBaseService {
                     INgariPayService payService = AppDomainContext.getBean("eh.payService", INgariPayService.class);
                     if (null != recipe) {
                         //判断订单是否是单边账的
-                        if(0 == order.getPayFlag() && StringUtils.isNotEmpty(order.getOutTradeNo())){
+                        if(0 == order.getPayFlag() && StringUtils.isNotEmpty(order.getOutTradeNo()) && StringUtils.isNotEmpty(order.getWxPayWay()) && StringUtils.isNotEmpty(order.getPayOrganId())){
                             Map<String, Object> backResult = payService.payCancel(BusTypeEnum.RECIPE.getCode(), order.getOrderId().toString());
                             if(null != backResult && eh.wxpay.constant.PayConstant.RESULT_SUCCESS.equals(backResult.get("code"))){
                                 LOGGER.info("RecipeService.cancelRecipeTask 取消的订单对应的处方{}成功.", recipe.getRecipeId());
