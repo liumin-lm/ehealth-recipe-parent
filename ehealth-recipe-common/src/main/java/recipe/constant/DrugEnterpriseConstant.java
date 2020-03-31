@@ -111,4 +111,9 @@ public class DrugEnterpriseConstant {
      * 昆明市第一人民医院
      */
     public static final String COMPANY_KMS = "kms";
+
+    /**
+     * 罗欣药企
+     */
+    public static final String COMPANY_LY = "lx";
 }
