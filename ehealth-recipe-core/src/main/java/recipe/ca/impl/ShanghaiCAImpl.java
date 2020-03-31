@@ -2,6 +2,8 @@
 package recipe.ca.impl;
 
 import com.ngari.his.ca.model.*;
+import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.service.DoctorService;
 import com.ngari.recipe.entity.Recipe;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -9,6 +11,7 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
 import recipe.ca.CAInterface;
 import recipe.ca.ICommonCAServcie;
 import recipe.ca.vo.CaSignResultVo;
@@ -21,6 +24,8 @@ public class ShanghaiCAImpl implements CAInterface {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShanghaiCAImpl.class);
 
     private ICommonCAServcie iCommonCAServcie= AppContextHolder.getBean("iCommonCAServcie", ICommonCAServcie.class);
+
+    private DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
     /**
      * CA用户注册、申请证书接口
      * @param doctorId
@@ -28,7 +33,12 @@ public class ShanghaiCAImpl implements CAInterface {
      */
     @RpcService
     public boolean caUserLoginAndGetCertificate(Integer doctorId){
-       return true;
+        DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
+
+        CaAccountRequestTO caAccountRequestTO = new CaAccountRequestTO();
+        caAccountRequestTO.setOrganId(doctorDTO.getOrgan());
+        caAccountRequestTO.setUserName(doctorDTO.getName());
+        return iCommonCAServcie.caUserBusiness(caAccountRequestTO);
     }
 
     /**

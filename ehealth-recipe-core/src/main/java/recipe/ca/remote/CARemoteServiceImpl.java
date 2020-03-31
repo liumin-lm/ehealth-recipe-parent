@@ -11,6 +11,8 @@ import recipe.ApplicationUtils;
 import recipe.ca.CAInterface;
 import recipe.ca.factory.CommonCAFactory;
 
+import java.util.Date;
+
 @RpcBean(value="iCARemoteService", mvc_authentication = false)
 public class CARemoteServiceImpl implements ICARemoteService {
 
@@ -58,7 +60,13 @@ public class CARemoteServiceImpl implements ICARemoteService {
             return caInterface.caPasswordBusiness(requestTO);
         }
         return false;
-
     }
 
+    @RpcService
+    public Date getSystemTime() {
+        LOGGER.info("getSystemTime start");
+        Date date = new Date();
+        LOGGER.info("getSystemTime end  date={}",date);
+        return date;
+    }
 }
