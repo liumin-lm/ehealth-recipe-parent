@@ -38,11 +38,6 @@ public class TestRemoteService extends AccessDrugEnterpriseService {
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         LOGGER.info("TestRemoteService pushRecipeInfo not implement.");
-        try{
-            int a = 1/0;
-        }catch (Exception e){
-            e.printStackTrace();
-        }
         return DrugEnterpriseResult.getSuccess();
     }
 
