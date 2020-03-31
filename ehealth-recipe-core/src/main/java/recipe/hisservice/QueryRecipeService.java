@@ -17,6 +17,7 @@ import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.common.OrganDrugChangeBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.*;
@@ -38,18 +39,15 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import recipe.ApplicationUtils;
-import com.ngari.recipe.common.OrganDrugChangeBean;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
 import recipe.constant.RegexEnum;
 import recipe.dao.*;
-import recipe.drugsenterprise.CommonRemoteService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.RecipeServiceSub;
 import recipe.util.DateConversion;
 import recipe.util.RegexUtils;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -169,6 +167,27 @@ public class QueryRecipeService implements IQueryRecipeService {
         return result;
     }
 
+    @Override
+    @RpcService
+    public List<RegulationRecipeIndicatorsDTO> queryRegulationRecipeDataForSH(Integer organId,Date startDate,Date endDate,Boolean updateFlag) {
+        updateFlag=updateFlag==null?Boolean.TRUE:updateFlag;
+
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        String start = DateConversion.formatDateTimeWithSec(startDate);
+        String end = DateConversion.formatDateTimeWithSec(endDate);
+        List<Recipe> recipeList = recipeDAO.findSyncRecipeListByOrganIdForSH(organId, start, end,updateFlag);
+        if (CollectionUtils.isEmpty(recipeList)){
+            return new ArrayList<>();
+        }
+        HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+        List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
+        LOGGER.info("queryRegulationRecipeDataForSH start:organId={},startDate={},endDate={},updateFlag={}",
+                organId,startDate,endDate,updateFlag);
+        service.splicingBackRecipeData(recipeList,request);
+        List<RegulationRecipeIndicatorsDTO> result = ObjectCopyUtils.convert(request, RegulationRecipeIndicatorsDTO.class);
+        LOGGER.info("queryRegulationRecipeDataForSH data={}", JSONUtils.toString(result));
+        return result;
+    }
     /**
      * 拼接处方返回信息数据
      * @param details
