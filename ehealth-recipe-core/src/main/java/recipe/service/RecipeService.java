@@ -546,7 +546,7 @@ public class RecipeService extends RecipeBaseService{
         RecipeLogService.saveRecipeLog(recipeId, beforeStatus, recipeStatus, logMemo);
         if (1 == checkFlag) {
             String errorMsg = "";
-            if (null != recipe.getSignFile()) {
+            if (null != recipe.getSignFile() || StringUtils.isNotEmpty(recipe.getRecipeCode())) {
                 IESignBaseService esignService = ApplicationUtils.getBaseService(IESignBaseService.class);
 
                 Map<String, Object> dataMap = Maps.newHashMap();
