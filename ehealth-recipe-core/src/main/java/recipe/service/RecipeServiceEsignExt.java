@@ -1,9 +1,9 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import com.ngari.base.esign.service.IESignBaseService;
-import com.ngari.his.ca.model.*;
-import com.ngari.recipe.entity.Recipe;
+import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.service.IRecipeService;
@@ -21,15 +21,12 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
-import recipe.dao.RecipeDAO;
 import sun.misc.BASE64Decoder;
 
 import java.io.*;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * CA标准化对接文档
@@ -63,7 +60,7 @@ public class RecipeServiceEsignExt {
         //组装生成pdf的参数
         String fileName;
         RecipeBean recipe = recipeService.getByRecipeId(recipeId);
-        String pdf;
+        String pdf = "";
         if (isDoctor) {
             fileName = "recipe_" + recipeId + ".pdf";
             List<RecipeDetailBean> details = recipeService.findRecipeDetailsByRecipeId(recipeId);
@@ -131,8 +128,10 @@ public class RecipeServiceEsignExt {
                     }
                 }
             }
-
-            pdf = new String(Base64.encode(byteData));
+            LOGGER.info("signCreateRecipePDF pdf is success");
+            if (null != byteData) {
+                pdf = new String(Base64.encode(byteData));
+            }
             fileName = "recipecheck_" + recipeId + ".pdf";
             //中药
             if (TCM_TEMPLATETYPE.equals(recipe.getRecipeType())) {
@@ -152,6 +151,7 @@ public class RecipeServiceEsignExt {
         caBean.setPdfName(fileName);
         caBean.setPdfMd5("");
         caBean.setMode(1);
+        LOGGER.info("signCreateRecipePDF caBean is [{}]", JSONObject.toJSONString(caBean));
         return caBean;
     }
     /**
