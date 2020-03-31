@@ -1696,7 +1696,7 @@ public class RecipeService extends RecipeBaseService{
                 if (null != recipe) {
                     //判断订单是否是单边账的
                     if(0 == order.getPayFlag() && StringUtils.isNotEmpty(order.getOutTradeNo())){
-                        payService.payQuery(BusTypeEnum.RECIPE.getCode(), recipe.getRecipeId().toString());
+                        payService.payCancel(BusTypeEnum.RECIPE.getCode(), recipe.getRecipeId().toString());
                         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方"+ recipe.getRecipeId() +"调用支付接口成功");
                     }
                 }else{
@@ -1775,6 +1775,19 @@ public class RecipeService extends RecipeBaseService{
                     }
                     //保存处方状态变更日志
                     RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, status, memo.toString());
+                    //date 20200330
+                    //调用支付平台取消支付接口
+                    RecipeOrder orderNow;
+                    INgariPayService payService = AppDomainContext.getBean("eh.payService", INgariPayService.class);
+                    if (null != recipe) {
+                        //判断订单是否是单边账的
+                        if(0 == order.getPayFlag() && StringUtils.isNotEmpty(order.getOutTradeNo())){
+                            payService.payCancel(BusTypeEnum.RECIPE.getCode(), recipe.getRecipeId().toString());
+                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方"+ recipe.getRecipeId() +"调用支付接口成功");
+                        }
+                    }else{
+                        LOGGER.info("RecipeOrderService.cancelOrder 取消的订单对应的处方为空.");
+                    }
                 }
             }
         }
