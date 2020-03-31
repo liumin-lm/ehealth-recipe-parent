@@ -71,6 +71,12 @@ public class CARemoteServiceImpl implements ICARemoteService {
         return date;
     }
 
+    /**
+     * 仅供肺科医院 测评使用
+     * @param name
+     * @return
+     */
+    @Deprecated
     @RpcService
     public String getSystemTime(String name) {
         JSONObject json = new JSONObject();
