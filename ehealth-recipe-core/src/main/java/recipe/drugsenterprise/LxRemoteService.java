@@ -101,7 +101,7 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
                 String bodyStr = JSONUtils.toString(stockRequest);
 
                 ////根据处方信息发送药企库存查询请求，判断有药店是否满足库存
-                LOGGER.info("LxRemoteService.scanStock:[{}][{}]根据处方信息发送药企库存查询请求，请求内容：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), recipeId);
+                LOGGER.info("LxRemoteService.scanStock:[{}][{}]根据处方信息发送药企库存查询请求，请求内容：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), bodyStr);
                 String stockData = HttpsClientUtils.doPost(drugsEnterprise.getBusinessUrl()+checkstockUrl, bodyStr,extendHeaders);
                 LOGGER.info("LxRemoteService.scanStock:[{}][{}]获取药企库存查询请求，获取响应getBody消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), stockData);
                 Map resultMap = JSONUtils.parse(stockData, Map.class);
