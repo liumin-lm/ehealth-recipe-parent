@@ -1,5 +1,6 @@
 package recipe.ca.remote;
 
+import com.alibaba.fastjson.JSONObject;
 import com.ngari.his.ca.model.CaPasswordRequestTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.service.DoctorService;
@@ -10,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.ca.CAInterface;
 import recipe.ca.factory.CommonCAFactory;
+
+import java.util.Date;
 
 @RpcBean(value="iCARemoteService", mvc_authentication = false)
 public class CARemoteServiceImpl implements ICARemoteService {
@@ -58,7 +61,45 @@ public class CARemoteServiceImpl implements ICARemoteService {
             return caInterface.caPasswordBusiness(requestTO);
         }
         return false;
-
     }
 
+    @RpcService
+    public Date getSystemTime() {
+        LOGGER.info("getSystemTime start");
+        Date date = new Date();
+        LOGGER.info("getSystemTime end  date={}",date);
+        return date;
+    }
+
+    /**
+     * 仅供肺科医院 测评使用
+     * @param name
+     * @return
+     */
+    @Deprecated
+    @RpcService
+    public String getDoctorInfo(String name) {
+        JSONObject json = new JSONObject();
+        switch (name){
+            case "便民门诊":
+                json.put("certSubject","李爱武");
+                json.put("certIssuer","Mkey Root CA");
+                json.put("startDate","2020-03-24 17:07:35");
+                json.put("endDate","2020-06-24 17:07:35");
+                break;
+            case "陈玮俊":
+                json.put("certSubject","陈玮俊");
+                json.put("certIssuer","Mkey Root CA");
+                json.put("startDate","2020-03-31 15:50:17");
+                json.put("endDate","2020-06-31 15:50:17");
+                break;
+            case "李爱武":
+                json.put("certSubject","李爱武");
+                json.put("certIssuer","Mkey Root CA");
+                json.put("startDate","2020-03-24 17:07:35");
+                json.put("endDate","2020-06-24 17:07:35");
+                break;
+        }
+        return json.toJSONString();
+    }
 }

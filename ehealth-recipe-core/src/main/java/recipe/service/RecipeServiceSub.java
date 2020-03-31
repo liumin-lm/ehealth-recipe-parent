@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -311,6 +312,8 @@ public class RecipeServiceSub {
                         //判断药品能否开在一张处方单上
                         canOpenRecipeDrugs(recipe.getClinicOrgan(),recipe.getRecipeId(),drugIds);
                     }
+                    //判断某诊断下某药品能否开具
+                    canOpenRecipeDrugsAndDisease(recipe,drugIds);
                 } else if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
                     //浙江省互联网医院模式不需要这么多校验
                     for (OrganDrugList obj : organDrugList) {
@@ -379,6 +382,21 @@ public class RecipeServiceSub {
         recipe.setTotalMoney(totalMoney);
         recipe.setActualPrice(totalMoney);
         return success;
+    }
+
+    private static void canOpenRecipeDrugsAndDisease(Recipe recipe, List<Integer> drugIds) {
+        List<String> nameLists = Splitter.on("；").splitToList(recipe.getOrganDiseaseName());
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        for (String organDiseaseName : nameLists){
+            Set<String> drugIdSet = cacheService.findDrugByDiseaseName(recipe.getClinicOrgan()+"_"+organDiseaseName);
+            if (CollectionUtils.isEmpty(drugIdSet)){continue;}
+            for (String drugId:drugIdSet){
+                if (drugIds.contains(Integer.valueOf(drugId))){
+                    DrugList drugList = drugListDAO.getById(Integer.valueOf(drugId));
+                    throw new DAOException(ErrorCode.SERVICE_ERROR,"本处方中:"+drugList.getDrugName()+"对诊断为["+organDiseaseName+"]的患者禁用,请修改处方,如确认无误请联系管理员");
+                }
+            }
+        }
     }
 
     public static void canOpenRecipeDrugs(Integer clinicOrgan, Integer recipeId, List<Integer> drugIds) {
@@ -1149,7 +1167,7 @@ public class RecipeServiceSub {
             //boolean b = RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && (recipe.canMedicalPay() || effective);
             boolean b = RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && (recipe.canMedicalPay() || (RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus()));
             if (b) {
-                map.put("secondSignFlag", iOrganConfigService.getEnableSecondsignByOrganId(recipe.getClinicOrgan()));
+                map.put("secondSignFlag", canSecondAudit(recipe.getClinicOrgan()));
             }
 
             //医生端获取处方扩展信息
@@ -2112,5 +2130,22 @@ public class RecipeServiceSub {
             return false;
         }
         return false;
+    }
+
+    /**
+     * 获取机构是否支持二次审方
+     * @param clinicOrgan
+     * @return
+     */
+    public static boolean canSecondAudit(Integer clinicOrgan) {
+        //默认不支持
+        Boolean flag =false;
+        try {
+            IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+            flag = (Boolean) configService.getConfiguration(clinicOrgan, "doctorSecondAuditFlag");
+        } catch (Exception e) {
+            LOGGER.error("canSecondAudit 获取机构配置异常",e);
+        }
+        return flag;
     }
 }

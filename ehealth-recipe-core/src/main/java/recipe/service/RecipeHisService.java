@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
@@ -22,6 +23,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.model.HisSendResTO;
 import com.ngari.recipe.recipe.model.OrderRepTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -47,14 +49,16 @@ import recipe.constant.BusTypeEnum;
 import recipe.constant.CacheConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.dao.OrganDrugListDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeExtendDAO;
+import recipe.dao.*;
 import recipe.dao.bean.DrugInfoHisBean;
+import recipe.drugsenterprise.AccessDrugEnterpriseService;
+import recipe.drugsenterprise.CommonRemoteService;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.RecipeToHisService;
+import recipe.purchase.PayModeOnline;
+import recipe.purchase.PurchaseService;
 import recipe.purchase.PurchaseEnum;
 import recipe.util.DateConversion;
 import recipe.util.DigestUtil;
@@ -62,6 +66,8 @@ import recipe.util.RedisClient;
 
 import java.math.BigDecimal;
 import java.util.*;
+
+import static ctd.util.AppContextHolder.getBean;
 
 /**
  * @author yu_yun
@@ -654,6 +660,44 @@ public class RecipeHisService extends RecipeBaseService {
         return result;
     }
 
+
+
+    private Map<String, Object> sendMsgResultMap(Recipe dbRecipe, Map<String, String> extInfo, Map<String, Object> payResult) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+        PayModeOnline service = (PayModeOnline)purchaseService.getService(1);
+        HisResponseTO resultSave = service.updateGoodsReceivingInfoToCreateOrder(dbRecipe.getRecipeId(), extInfo);
+
+        if(null != resultSave) {
+            if(resultSave.isSuccess() && null != resultSave.getData()){
+
+                Map<String, Object> data = (Map<String, Object>) resultSave.getData();
+
+                if (null != data.get("recipeCode")) {
+                    //新增成功更新his处方code
+                    recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(),
+                            ImmutableMap.of("recipeCode", data.get("recipeCode").toString()));
+                    LOGGER.info("order 当前处方{}确认订单流程：his新增成功",
+                            dbRecipe.getRecipeId());
+                    return payResult;
+                } else {
+                    payResult.put("code", "-1");
+                    payResult.put("msg", "订单信息校验失败");
+                    LOGGER.info("order 当前处方确认订单的his同步配送信息，没有返回his处方code：{}", JSONUtils.toString(resultSave));
+                    return payResult;
+                }
+            }else{
+                payResult.put("code", "-1");
+                payResult.put("msg", "订单信息校验失败");
+                LOGGER.info("order 当前处方确认订单的his同步配送信息失败，返回：{}", JSONUtils.toString(resultSave));
+                return payResult;
+            }
+        }else {
+            LOGGER.info("order 当前处方{}没有对接同步配送信息，默认成功！", dbRecipe.getRecipeId());
+            return payResult;
+        }
+    }
+
     /**
      * 处方自费预结算接口
      *
@@ -925,7 +969,6 @@ public class RecipeHisService extends RecipeBaseService {
         IHisConfigService iHisConfigService = ApplicationUtils.getBaseService(IHisConfigService.class);
         return iHisConfigService.isHisEnable(sendOrganId);
     }
-
     @RpcService
     public boolean hisRecipeCheck(Map<String, Object> rMap, RecipeBean recipeBean) {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
@@ -1023,10 +1066,28 @@ public class RecipeHisService extends RecipeBaseService {
                 item.setPackUnit(detail.getDrugUnit());
                 //备注
                 item.setRemark(detail.getMemo());
+                //date 20200222 杭州市互联网添加字段
+                item.setDrugID(detail.getDrugId());
                 list.add(item);
             }
             hisCheckRecipeReqTO.setOrderList(list);
         }
+        //date 20200222杭州市互联网(添加诊断)
+        List<DiseaseInfo> diseaseInfos = new ArrayList<>();
+        DiseaseInfo diseaseInfo;
+        if(StringUtils.isNotEmpty(recipeBean.getOrganDiseaseId()) && StringUtils.isNotEmpty(recipeBean.getOrganDiseaseName())){
+            String [] diseaseIds = recipeBean.getOrganDiseaseId().split("；");
+            String [] diseaseNames = recipeBean.getOrganDiseaseName().split("；");
+            for (int i = 0; i < diseaseIds.length; i++){
+                diseaseInfo = new DiseaseInfo();
+                diseaseInfo.setDiseaseCode(diseaseIds[i]);
+                diseaseInfo.setDiseaseName(diseaseNames[i]);
+                diseaseInfos.add(diseaseInfo);
+            }
+            hisCheckRecipeReqTO.setDiseaseInfo(diseaseInfos);
+
+        }
+
 
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
         LOGGER.info("hisRecipeCheck req={}", JSONUtils.toString(hisCheckRecipeReqTO));
@@ -1038,28 +1099,84 @@ public class RecipeHisService extends RecipeBaseService {
             rMap.put("errorMsg", "his返回结果null");
             return false;
         }
-        if ("200".equals(hisResult.getMsgCode())) {
-            Map<String, String> map = (Map<String, String>) hisResult.getData();
-            if ("0".equals(map.get("checkResult"))) {
+        if ("200".equals(hisResult.getMsgCode())){
+            Map<String, Object> map = (Map<String, Object>)hisResult.getData();
+            if ("0".equals(map.get("checkResult"))){
                 rMap.put("signResult", false);
                 rMap.put("errorFlag", true);
                 rMap.put("errorMsg", map.get("resultMark"));
-            } else {
-                //预校验返回 取药方式1配送到家 2医院取药 3两者都支持
-                String giveMode = map.get("giveMode");
-                //配送药企代码
-                String deliveryCode = map.get("deliveryCode");
-                //配送药企名称
-                String deliveryName = map.get("deliveryName");
-                if (StringUtils.isNotEmpty(giveMode)) {
-                    RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-                    Map<String, String> updateMap = Maps.newHashMap();
-                    updateMap.put("giveMode", giveMode);
-                    updateMap.put("deliveryCode", deliveryCode);
-                    updateMap.put("deliveryName", deliveryName);
-                    recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(), updateMap);
+            }else {
+//                //预校验返回 取药方式1配送到家 2医院取药 3两者都支持
+//                String giveMode = null != map.get("giveMode") ? map.get("giveMode").toString() : null;
+//                //配送药企代码
+//                String deliveryCode = null != map.get("deliveryCode") ? map.get("deliveryCode").toString() : null;
+//                //配送药企名称
+//                String deliveryName = null != map.get("deliveryName") ? map.get("deliveryName").toString() : null;
+//                if (StringUtils.isNotEmpty(giveMode)){
+//                    RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+//                    Map<String,String> updateMap = Maps.newHashMap();
+//                    updateMap.put("giveMode",giveMode);
+//                    updateMap.put("deliveryCode",deliveryCode);
+//                    updateMap.put("deliveryName",deliveryName);
+//                    recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(),updateMap);
+//                }
+//                //date 20200305
+//                //当前处方信息获取物流配送信息
+//                //预校验返回 取药方式 0医院取药 1物流配送 2药店取药 4都支持 3其他
+//                Object deliveryList = map.get("deliveryList");
+//                if(null != deliveryList && null != giveMode){
+//
+//                    List<Map> deliveryLists = (List<Map>)deliveryList;
+//                    //暂时按照逻辑只保存展示返回的第一个药企
+//                    DeliveryList nowDeliveryList = JSON.parseObject(JSON.toJSONString(deliveryLists.get(0)), DeliveryList.class);
+//                    RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+//                    if (null != nowDeliveryList){
+//                        Map<String,String> updateMap = Maps.newHashMap();
+//                        updateMap.put("deliveryCode", nowDeliveryList.getDeliveryCode());
+//                        updateMap.put("deliveryName", nowDeliveryList.getDeliveryName());
+//                        //存放处方金额
+//                        updateMap.put("deliveryRecipeFee", null != nowDeliveryList.getRecipeFee() ? nowDeliveryList.getRecipeFee().toString() : null);
+//                        recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(), updateMap);
+//                    }
+//                    //date 20200311
+//                    //将his返回的批量药企信息存储下来，将信息分成|分割
+//                    DeliveryList deliveryListNow;
+//                    Map<String,String> updateMap = Maps.newHashMap();
+//                    StringBuffer deliveryCodes = new StringBuffer().append("|");
+//                    StringBuffer deliveryNames = new StringBuffer().append("|");
+//                    StringBuffer deliveryRecipeFees = new StringBuffer().append("|");
+//                    for(Map<String,String> delivery : deliveryLists){
+//                        deliveryListNow = JSON.parseObject(JSON.toJSONString(delivery), DeliveryList.class);
+//                        deliveryCodes.append(deliveryListNow.getDeliveryCode()).append("|");
+//                        deliveryNames.append(deliveryListNow.getDeliveryName()).append("|");
+//                        deliveryRecipeFees.append(deliveryListNow.getRecipeFee()).append("|");
+//                    }
+//                    updateMap.put("deliveryCode", "|".equals(deliveryCodes) ? null : deliveryCodes.toString());
+//                    updateMap.put("deliveryName", "|".equals(deliveryNames) ? null : deliveryNames.toString());
+//                    //存放处方金额
+//                    updateMap.put("deliveryRecipeFee", "|".equals(deliveryRecipeFees) ? null : deliveryRecipeFees.toString());
+//                    recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(), updateMap);
+//
+//
+//                }else{
+//                    LOGGER.info("hisRecipeCheck 当前处方{}预校验，配送方式没有返回药企信息！", recipeBean.getRecipeId());
+//                }
+                RemoteDrugEnterpriseService remoteDrugEnterpriseService =
+                        ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+
+                OrganAndDrugsepRelationDAO relationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+                List<DrugsEnterprise> enterprises = relationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipeBean.getClinicOrgan(), 1);
+                AccessDrugEnterpriseService remoteService = null;
+                if(null != enterprises){
+                    remoteService = remoteDrugEnterpriseService.getServiceByDep(enterprises.get(0));
                 }
+                if(null == remoteService){
+                    remoteService = getBean("commonRemoteService", CommonRemoteService.class);
+                }
+                remoteService.checkRecipeGiveDeliveryMsg(recipeBean, map);
+
                 return "1".equals(map.get("checkResult"));
+
 
             }
         } else {
@@ -1124,5 +1241,64 @@ public class RecipeHisService extends RecipeBaseService {
             throw new DAOException(hisResponseTO == null ? "医保结算申请失败" : hisResponseTO.getMsg());
         }
         return hisResponseTO.getData();
+    }
+
+    /**
+     * 医院在复诊/处方结算完成的时候将电子票据号同步到结算上
+     *
+     */
+    @RpcService
+    public HisResponseTO syncEinvoiceNumberToPay(SyncEinvoiceNumberDTO syncEinvoiceNumberDTO) {
+        //判断当前传入的信息是否满足定位更新电子票据号
+        //满足则更新支付的电子票据号
+        HisResponseTO result = new HisResponseTO();
+        result.setMsgCode("0");
+        if(!valiSyncEinvoiceNumber(syncEinvoiceNumberDTO, result)){
+            return result;
+        }
+        IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
+        //判断复诊的支付或者处方的支付能否定位到
+        HosrelationBean hosrelation = hosrelationService.getByStatusAndInvoiceNoAndOrganId
+                (1, syncEinvoiceNumberDTO.getInvoiceNo(), Integer.parseInt(syncEinvoiceNumberDTO.getOrganId()));
+
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        Integer recipeId = recipeDetailDAO.getRecipeIdByOrganIdAndInvoiceNo(Integer.parseInt(syncEinvoiceNumberDTO.getOrganId()), syncEinvoiceNumberDTO.getInvoiceNo());
+
+        if(null != hosrelation){
+            hosrelationService.updateEinvoiceNumberById(hosrelation.getId(), syncEinvoiceNumberDTO.getEinvoiceNumber());
+            result.setSuccess();
+            return result;
+
+        }
+        if(null != recipeId){
+            Boolean updateResult = recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeId, ImmutableMap.of("einvoiceNumber", syncEinvoiceNumberDTO.getEinvoiceNumber()));
+            if (updateResult) {
+                result.setSuccess();
+                return result;
+            }else{
+                result.setMsg("更新电子票据号失败！");
+            }
+        }
+        result.setMsg("当前无支付订单与支付单号对应，更新电子票据号失败！");
+        return result;
+    }
+
+    private boolean valiSyncEinvoiceNumber(SyncEinvoiceNumberDTO syncEinvoiceNumberDTO, HisResponseTO result) {
+        boolean flag = true;
+        if (null == syncEinvoiceNumberDTO) {
+            result.setMsg("当前医院更新电子票据号，请求参数为空！");
+            flag = false;
+        }
+        if(StringUtils.isEmpty(syncEinvoiceNumberDTO.getOrganId()) || StringUtils.isEmpty(syncEinvoiceNumberDTO.getInvoiceNo())){
+            result.setMsg("当前医院更新电子票据号，传入的机构id或者HIS结算单据号无法更新！");
+            flag = false;
+        }
+        if(StringUtils.isEmpty(syncEinvoiceNumberDTO.getEinvoiceNumber())){
+            result.setMsg("当前医院更新电子票据号，传入更新的电子票据号为空无法更新！");
+            flag = false;
+        }
+        return flag;
     }
 }

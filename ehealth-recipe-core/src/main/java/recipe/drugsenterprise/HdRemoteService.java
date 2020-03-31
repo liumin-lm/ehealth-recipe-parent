@@ -579,15 +579,15 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             sendHdRecipe.setPayFlag("0");
         }
         //对浙四进行个性化处理,推送到指定药店配送
-        /*RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         String hdStores = recipeParameterDao.getByName("hd_store_payonline");
         String storeOrganName = nowRecipe.getClinicOrgan() + "_" + "hd_organ_store";
-        String organStore = recipeParameterDao.getByName(storeOrganName);*/
+        String organStore = recipeParameterDao.getByName(storeOrganName);
 
-        if (nowRecipe.getClinicOrgan() == 1000053) {
-            LOGGER.info("HdRemoteService.pushRecipeInfo assembleRecipeMsg go here");
+        if (StringUtils.isNotEmpty(hdStores) && hasOrgan(nowRecipe.getClinicOrgan().toString(),hdStores)) {
+            LOGGER.info("HdRemoteService.pushRecipeInfo organStore:{}.", organStore);
             sendHdRecipe.setGiveMode("4");
-            sendHdRecipe.setPharmacyCode("B0000100029");
+            sendHdRecipe.setPharmacyCode(organStore);
         }
     }
 
@@ -738,7 +738,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         sendHdRecipe.setRecipeFee(null == order.getRecipeFee() ?  feeDefault : order.getRecipeFee().toString());
         sendHdRecipe.setActualFee(null == order.getActualPrice() ?  feeDefault : order.getActualPrice().toString());
         sendHdRecipe.setCouponFee(null == order.getCouponFee() ?  feeDefault : order.getCouponFee().toString());
-        sendHdRecipe.setOrderTotalFee(null == order.getCouponFee() ?  feeDefault : order.getCouponFee().toString());
+        sendHdRecipe.setOrderTotalFee(null == order.getTotalFee() ?  feeDefault : order.getTotalFee().toString());
         sendHdRecipe.setExpressFee(null == order.getExpressFee() ?  feeDefault : order.getExpressFee().toString());
         sendHdRecipe.setDecoctionFee(null == order.getDecoctionFee() ?  feeDefault : order.getDecoctionFee().toString());
         sendHdRecipe.setRecipientName(order.getReceiver());
@@ -884,7 +884,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        Map<String, List> map = new HashMap<>();
+        Map<String, Object> map = new HashMap<>();
         String methodName = "sendScanStock";
         List<Map<String, String>> hdDrugCodes = new ArrayList<>();
         Map<String, BigDecimal> drugCodes = new HashMap<>();
@@ -921,6 +921,16 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         }
 
         map.put("drugList", hdDrugCodes);
+        //对浙四进行个性化处理,推送到指定药店配送
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String hdStores = recipeParameterDao.getByName("hd_store_payonline");
+        String storeOrganName = recipe.getClinicOrgan() + "_" + "hd_organ_store";
+        String organStore = recipeParameterDao.getByName(storeOrganName);
+
+        if (StringUtils.isNotEmpty(hdStores) && hasOrgan(recipe.getClinicOrgan().toString(),hdStores)) {
+            LOGGER.info("HdRemoteService.sendScanStock organStore:{}.", organStore);
+            map.put("pharmacyCode", organStore);
+        }
         String requestStr = JSONUtils.toString(map);
         //访问库存足够的药店列表以及药店下的药品的信息
         CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -1496,6 +1506,18 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         httpPost.setEntity(requestEntry);
         //获取响应消息
         return httpClient.execute(httpPost);
+    }
+
+    private static boolean hasOrgan(String organ, String parames){
+        if (StringUtils.isNotEmpty(parames)) {
+            String[] organs = parames.split(",");
+            for (String o : organs) {
+                if (organ.equals(o)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 }

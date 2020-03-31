@@ -68,6 +68,8 @@ public class HisRecipeDetail implements Serializable{
     private Integer status; // tinyint(1) DEFAULT NULL COMMENT '0 不可在互联网流转 1 可以流转',
     @ItemProperty(alias = "使用天数")
     private Integer useDays;
+    @ItemProperty(alias = "药品编码")
+    private String drugCode;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -285,5 +287,14 @@ public class HisRecipeDetail implements Serializable{
 
     public void setUseDays(Integer useDays) {
         this.useDays = useDays;
+    }
+
+    @Column(name = "drugCode")
+    public String getDrugCode() {
+        return drugCode;
+    }
+
+    public void setDrugCode(String drugCode) {
+        this.drugCode = drugCode;
     }
 }

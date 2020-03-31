@@ -1,6 +1,7 @@
 package recipe.dao;
 
 import com.ngari.his.regulation.entity.RegulationChargeDetailReq;
+import com.ngari.his.regulation.entity.RegulationChargeDetailReqTo;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -14,6 +15,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.constant.RecipeBussConstant;
 
 import java.math.BigDecimal;
@@ -29,6 +32,7 @@ import java.util.Map;
  */
 @RpcSupportDAO
 public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeOrder> {
+    private static final Logger logger = LoggerFactory.getLogger(RecipeOrderDAO.class);
 
     public RecipeOrderDAO() {
         super();
@@ -319,8 +323,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @param endTime
      * @return
      */
-    public List<RegulationChargeDetailReq> queryRegulationChargeDetailList(List<Integer> ngariOrganIds,Date startTime, Date endTime){
-        HibernateStatelessResultAction<List<RegulationChargeDetailReq>> action = new AbstractHibernateStatelessResultAction<List<RegulationChargeDetailReq>>() {
+    public List<RegulationChargeDetailReqTo> queryRegulationChargeDetailList(final List<Integer> ngariOrganIds, final Date startTime, final Date endTime){
+        HibernateStatelessResultAction<List<RegulationChargeDetailReqTo>> action = new AbstractHibernateStatelessResultAction<List<RegulationChargeDetailReqTo>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
@@ -337,12 +341,13 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 q.setParameter("startTime", startTime);
                 q.setParameter("endTime", endTime);
                 q.setParameterList("ngariOrganIds",ngariOrganIds);
+                logger.info("paramter is startTime:[{}],endTime:[{}],ngariOrganIds[{}]",startTime,endTime,ngariOrganIds);
                 List<Object[]> result = q.list();
-                List<RegulationChargeDetailReq> backList = new ArrayList<>();
+                List<RegulationChargeDetailReqTo> backList = new ArrayList<>();
                 if (CollectionUtils.isNotEmpty(result)){
-                    RegulationChargeDetailReq vo;
+                    RegulationChargeDetailReqTo vo;
                     for (Object[] objs : result) {
-                        vo = new RegulationChargeDetailReq();
+                        vo = new RegulationChargeDetailReqTo();
                         vo.setOrganID(objs[0] == null ? null : (Integer)objs[0]);
                         vo.setRecipeDetailID(objs[1] == null ? null : objs[1] + "");
                         vo.setPayFlag(objs[2] == null ? null : Integer.parseInt(objs[2]+""));

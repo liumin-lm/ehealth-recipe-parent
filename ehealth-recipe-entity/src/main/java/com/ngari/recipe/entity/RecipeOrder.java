@@ -233,6 +233,34 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "处方预结算返回自费金额")
     private Double cashAmount;
 
+    //date 20200311
+    //存储his预校验的用户选中的药企code
+    @ItemProperty(alias = "his推送药企code")
+    private String hisEnterpriseCode;
+
+    //date 20200311
+    //存储his预校验的用户选中的药企名
+    @ItemProperty(alias = "his推送药企名")
+    private String hisEnterpriseName;
+
+    @Column(name = "HisEnterpriseCode")
+    public String getHisEnterpriseCode() {
+        return hisEnterpriseCode;
+    }
+
+    public void setHisEnterpriseCode(String hisEnterpriseCode) {
+        this.hisEnterpriseCode = hisEnterpriseCode;
+    }
+
+    @Column(name = "HisEnterpriseName")
+    public String getHisEnterpriseName() {
+        return hisEnterpriseName;
+    }
+
+    public void setHisEnterpriseName(String hisEnterpriseName) {
+        this.hisEnterpriseName = hisEnterpriseName;
+    }
+
     @ItemProperty(alias = "订单退款标识")
     private Integer refundFlag;
 

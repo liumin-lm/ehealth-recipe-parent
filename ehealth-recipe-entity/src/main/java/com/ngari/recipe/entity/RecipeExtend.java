@@ -49,8 +49,11 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "体格检查")
     private String physicalCheck;
 
-    @ItemProperty(alias = "HIS处方关联的卡类型")
+    @ItemProperty(alias = "HIS处方关联的卡类型名称")
     private String  cardTypeName;
+
+    @ItemProperty(alias = "HIS处方关联的卡类型")
+    private String  cardType;
 
     @ItemProperty(alias = "HIS处方关联的卡号")
     private String  cardNo;
@@ -98,13 +101,49 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "处方预结算返回自费金额")
     private String cashAmount;
 
+    @ItemProperty(alias = "his返回的处方总金额")
+    private String deliveryRecipeFee;
+
+//    @ItemProperty(alias = "处方创建状态  0：未进行，1：已生成订单 ，2.已创建处方，3. 已预支付处方")
+//    private String orderMakeStatus;
+//
+//    @ItemProperty(alias = "处方")
+//    private String deliverySendTag;
+
+//    public String getOrderMakeStatus() {
+//        return orderMakeStatus;
+//    }
+//
+//    public void setOrderMakeStatus(String orderMakeStatus) {
+//        this.orderMakeStatus = orderMakeStatus;
+//    }
+
+    @Column(name = "deliveryRecipeFee")
+    public String getDeliveryRecipeFee() {
+        return deliveryRecipeFee;
+    }
+
+    public void setDeliveryRecipeFee(String deliveryRecipeFee) {
+        this.deliveryRecipeFee = deliveryRecipeFee;
+    }
+
     @ItemProperty(alias = "处方预结算返回应付金额")
     private String payAmount;
 
     @ItemProperty(alias = "处方来源 0 线下his同步 1 平台处方")
     private Integer fromFlag;
 
+    @ItemProperty(alias = "电子票号")
+    private String einvoiceNumber;
 
+    @Column(name = "einvoiceNumber")
+    public String getEinvoiceNumber() {
+        return einvoiceNumber;
+    }
+
+    public void setEinvoiceNumber(String einvoiceNumber) {
+        this.einvoiceNumber = einvoiceNumber;
+    }
 
     public RecipeExtend() {
     }
@@ -370,5 +409,14 @@ public class RecipeExtend implements Serializable {
 
     public void setFromFlag(Integer fromFlag) {
         this.fromFlag = fromFlag;
+    }
+
+    @Column(name = "cardType")
+    public String getCardType() {
+        return cardType;
+    }
+
+    public void setCardType(String cardType) {
+        this.cardType = cardType;
     }
 }

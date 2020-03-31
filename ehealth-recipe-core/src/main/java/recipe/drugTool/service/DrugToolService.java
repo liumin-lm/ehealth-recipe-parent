@@ -469,7 +469,7 @@ public class DrugToolService implements IDrugToolService {
         if (StringUtils.isNotEmpty(drug.getRegulationDrugCode()) || drug.getPlatformDrugId() != null) {
             drugList = drugListDAO.get(drug.getPlatformDrugId());
             // 如果该机构有省平台关联的话
-            if (checkOrganRegulation(drug.getSourceOrgan())) {
+            if (checkOrganRegulation(drug.getSourceOrgan()) && isHaveReulationId(drug.getSourceOrgan())) {
                 addrArea = checkOrganAddrArea(drug.getSourceOrgan());
                 provinceDrugList = provinceDrugListDAO.getByProvinceIdAndDrugId(addrArea, drug.getRegulationDrugCode(), 1);
                 if (drugList != null && provinceDrugList != null) {
@@ -572,8 +572,8 @@ public class DrugToolService implements IDrugToolService {
         drugList.setUseDoseUnit(drugListMatch.getUseDoseUnit());
         //规格
         drugList.setDrugSpec(drugListMatch.getDrugSpec());
-        //药品包装数量
-        drugList.setPack(drugListMatch.getPack());
+        //药品包装数量---默认1
+        drugList.setPack(drugListMatch.getPack()==null?1:drugListMatch.getPack());
         //药品单位
         drugList.setUnit(drugListMatch.getUnit());
         //药品类型
@@ -1179,7 +1179,8 @@ public class DrugToolService implements IDrugToolService {
         return 0;
     }
 
-    private boolean isHaveReulationId(Integer organId) {
+    @RpcService
+    public boolean isHaveReulationId(Integer organId) {
         String addrArea = checkOrganAddrArea(organId);
         Long provinceDrugNum = provinceDrugListDAO.getCountByProvinceIdAndStatus(addrArea, 1);
         //更新药品状态成匹配中
@@ -1571,5 +1572,18 @@ public class DrugToolService implements IDrugToolService {
                 }
             }
         });
+    }
+
+    /**
+     * 判断该机构是否关联省平台（包括互联网医院）供前端调用
+     * @param organId
+     * @return
+     */
+    @RpcService
+    public Boolean judgeShowProvinceCode(Integer organId){
+        if(checkOrganRegulation(organId) && isHaveReulationId(organId)){
+            return  true;
+        }
+        return false;
     }
 }

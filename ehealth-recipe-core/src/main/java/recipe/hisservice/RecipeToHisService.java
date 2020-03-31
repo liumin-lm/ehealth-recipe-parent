@@ -485,6 +485,17 @@ public class RecipeToHisService {
         return hisService.recipeCashPreSettle(request);
     }
 
+    /**
+     * 处方药品配送信息查询接口
+     *
+     * @param recipeSendMsgRequestTO p配送信息请求获取
+     * @return
+     */
+    private RecipeSendMsgResTO recipeSendMsg(RecipeSendMsgRequestTO recipeSendMsgRequestTO) {
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        return hisService.recipeSendMsg(recipeSendMsgRequestTO);
+    }
+
     public HisResponseTO<MedicInsurSettleApplyResTO>  recipeMedicInsurPreSettle(MedicInsurSettleApplyReqTO reqTO){
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.recipeMedicInsurPreSettle(reqTO);

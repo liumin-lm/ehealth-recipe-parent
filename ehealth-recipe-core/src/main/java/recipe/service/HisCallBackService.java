@@ -52,6 +52,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -152,7 +153,7 @@ public class HisCallBackService {
 
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap);
 
-        //更新复诊挂号序号如果有
+        //更新复诊挂号序号、卡类型卡号等信息如果有
         updateRecipeRegisterID(recipe,result);
 
         List<Recipedetail> recipedetails = result.getDetailList();
@@ -234,6 +235,7 @@ public class HisCallBackService {
         }
         //推送处方到监管平台
         RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
+
     }
 
     private static void updateRecipeRegisterID(Recipe recipe, RecipeCheckPassResult result) {
@@ -243,8 +245,17 @@ public class HisCallBackService {
         if (null != recipe.getClinicId()) {
             IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
             ConsultExDTO consultExDTO = exService.getByConsultId(recipe.getClinicId());
-            if (null != consultExDTO && StringUtils.isNotEmpty(consultExDTO.getRegisterNo())) {
-                result.setRegisterID(consultExDTO.getRegisterNo());
+            //更新咨询扩展表recipeid字段
+            if (!(new Integer(3).equals(recipe.getBussSource()))){
+                exService.updateRecipeIdByConsultId(recipe.getClinicId(),recipe.getRecipeId());
+            }
+            if (null != consultExDTO) {
+                if (StringUtils.isNotEmpty(consultExDTO.getRegisterNo())){
+                    result.setRegisterID(consultExDTO.getRegisterNo());
+                }
+                if (StringUtils.isNotEmpty(consultExDTO.getCardId())&&StringUtils.isNotEmpty(consultExDTO.getCardType())){
+                    recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("cardNo", consultExDTO.getCardId(),"cardType",consultExDTO.getCardType()));
+                }
             }
         }
         if (recipeExtend != null) {

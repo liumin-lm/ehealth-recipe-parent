@@ -2,6 +2,8 @@ package recipe.service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.searchcontent.model.SearchContentBean;
+import com.ngari.base.searchcontent.service.ISearchContentService;
 import com.ngari.base.searchservice.model.DrugSearchTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
@@ -22,6 +24,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
 import recipe.dao.DrugListDAO;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganDrugListDAO;
@@ -196,6 +199,30 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         }
 
     }
+
+
+    /**
+     * 患者端药品目录搜索并保存搜索记录
+     * @param organId
+     * @param drugType
+     * @param drugName
+     * @param start
+     * @param MPIID
+     * @return
+     */
+    @RpcService
+    public List<SearchDrugDetailDTO> findDrugListsByNameOrCodeAndSaveRecord(Integer organId, Integer drugType, String drugName, int start,String MPIID){
+        if(StringUtils.isNotEmpty(drugName) && StringUtils.isNotEmpty(MPIID)){
+            ISearchContentService iSearchContentService = ApplicationUtils.getBaseService(ISearchContentService.class);
+            SearchContentBean searchContentBean = new SearchContentBean();
+            searchContentBean.setMpiId(MPIID);
+            searchContentBean.setContent(drugName);
+            searchContentBean.setBussType(18);
+            iSearchContentService.addSearchContent(searchContentBean,0);
+        }
+        return searchDrugListWithES(organId, drugType, drugName, start, 10);
+    }
+
 
     /**
      * zhongzx
@@ -470,6 +497,4 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         //现在 按照字典的录入顺序显示
         return itemList;
     }
-
-
 }

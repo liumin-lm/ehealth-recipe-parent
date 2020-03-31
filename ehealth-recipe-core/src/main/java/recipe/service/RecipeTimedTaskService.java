@@ -6,6 +6,7 @@ import com.ngari.opbase.base.service.IPropertyOrganService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.hisprescription.model.HosRecipeResult;
 import com.ngari.recipe.hisprescription.model.HospitalStatusUpdateDTO;
@@ -26,6 +27,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.OrganAndDrugsepRelationDAO;
+import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.recipecheck.HisCheckRecipeService;
@@ -186,6 +188,21 @@ public class RecipeTimedTaskService {
             //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
             HisCheckRecipeService hisCheckRecipeService = ApplicationUtils.getRecipeService(HisCheckRecipeService.class);
             hisCheckRecipeService.sendCheckRecipeInfo(recipe);
+        }
+
+        try{
+            OrganDrugListDAO drugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+            List<OrganDrugList> organDrugLists = drugListDAO.findOrganDrug(0,1);
+            if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                OrganDrugList organDrugList = organDrugLists.get(0);
+                Date lastModify = organDrugList.getLastModify();
+                organDrugList.setLastModify(new Date());
+                drugListDAO.update(organDrugList);
+                organDrugList.setLastModify(lastModify);
+                drugListDAO.update(organDrugList);
+            }
+        }catch(Exception e){
+            LOGGER.info("RecipeTimedTaskService.noticeGetHisCheckStatusTask 更新异常{}", e.getMessage());
         }
     }
 }

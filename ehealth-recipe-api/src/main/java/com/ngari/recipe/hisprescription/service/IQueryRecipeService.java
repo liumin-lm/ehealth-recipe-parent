@@ -1,5 +1,8 @@
 package com.ngari.recipe.hisprescription.service;
 
+import com.ngari.recipe.common.OrganDrugChangeBean;
+import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.hisprescription.model.*;
 import ctd.util.annotation.RpcService;
 
@@ -32,4 +35,10 @@ public interface IQueryRecipeService {
      */
     @RpcService
     List<RegulationRecipeIndicatorsDTO> queryRegulationRecipeData(Integer organId, Date startDate, Date endDate, Boolean checkFlag);
+
+    @RpcService
+    List<DrugListBean> getDrugList(String organId, String organName, Integer start, Integer limit);
+
+    @RpcService
+    RecipeResultBean updateOrSaveOrganDrug(OrganDrugChangeBean organDrugChangeBean);
 }

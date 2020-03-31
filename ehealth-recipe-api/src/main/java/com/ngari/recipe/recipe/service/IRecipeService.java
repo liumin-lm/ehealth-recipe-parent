@@ -1,9 +1,11 @@
 package com.ngari.recipe.recipe.service;
 
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.recipe.IBaseService;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
+import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.persistence.bean.QueryResult;
@@ -302,6 +304,10 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     List<RecipeDetailBean> findRecipeDetailsByRecipeId(Integer recipeId);
 
     @RpcService
+    RecipeDetailBean getRecipeDetailByDetailId(Integer detailId);
+
+
+    @RpcService
     RecipeExtendBean findRecipeExtendByRecipeId(Integer recipeId);
 
     @RpcService
@@ -393,4 +399,9 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     BigDecimal getRecipeCostCountByOrganIdAndDepartIds(Integer organId, Date startDate, Date endDate, List<Integer> deptIds);
+
+    @RpcService
+    HisResponseTO syncEinvoiceNumberToPay(SyncEinvoiceNumberDTO syncEinvoiceNumberDTO);
+
+
 }

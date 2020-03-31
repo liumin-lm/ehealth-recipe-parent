@@ -4,13 +4,10 @@ import com.ngari.base.BaseAPI;
 import com.ngari.base.clientconfig.service.IClientConfigService;
 import com.ngari.base.clientconfig.to.ClientConfigBean;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
-import com.ngari.patient.dto.ClientConfigDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.ClientConfigService;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.base.constant.ClientConfigConstant;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,11 +51,14 @@ public class RecipeConfigService {
         if(StringUtils.isEmpty(val)){
             val = RecipeBussConstant.RECIPEMODE_NGARIHEALTH;
             try {
+                //date 2020 0326
+                //根据sdk辨别解析方式
+                if(appKey.contains("APP_SDK")){
+                    //直接替换
+                    appKey = appKey.split("@")[2];
+                }
                 IClientConfigService ccService = BaseAPI.getService(IClientConfigService.class);
-                //ClientConfigBean clientConfigDTO = ccService.getByAppKey(appKey);
-                //date 20200317
-                //更新去配置的方式为通过entrance
-                ClientConfigBean clientConfigDTO = ccService.getClientConfigByEntrance(appKey);
+                ClientConfigBean clientConfigDTO = ccService.getByAppKey(appKey);
                 LOG.info("getRecipeMode 响应的为端配置：{}", JSONUtils.toString(clientConfigDTO));
                 if(null == clientConfigDTO){
                     LOG.warn("getRecipeMode clientConfigDTO is null. appKey={}", appKey);
@@ -84,4 +84,5 @@ public class RecipeConfigService {
         LOG.info("getRecipeMode appKey={}, recipeMode={}", appKey, val);
         return val;
     }
+
 }
