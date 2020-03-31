@@ -72,7 +72,7 @@ public class CARemoteServiceImpl implements ICARemoteService {
     }
 
     @RpcService
-    public String getSystemTime(String name) {
+    public String getDoctorInfo(String name) {
         JSONObject json = new JSONObject();
         switch (name){
             case "便民门诊":
