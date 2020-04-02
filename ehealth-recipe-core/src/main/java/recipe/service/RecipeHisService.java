@@ -1035,7 +1035,7 @@ public class RecipeHisService extends RecipeBaseService {
                 RecipeOrderItemTO item = new RecipeOrderItemTO();
                 OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(recipeBean.getClinicOrgan(), detail.getOrganDrugCode());
                 item.setDosage((null != detail.getUseDose()) ? Double
-                        .toString(detail.getUseDose()) : null);
+                        .toString(detail.getUseDose()) : detail.getUseDoseStr());
                 item.setDrcode(detail.getOrganDrugCode());
                 item.setDrname(detail.getDrugName());
                 if (organDrug != null) {

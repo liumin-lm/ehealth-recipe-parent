@@ -406,7 +406,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                 orderItem.setMedicalFrequency(UsingRateFilter.filterNgariByMedical(clinicOrgan,detail.getUsingRate()));
                 //单次剂量
                 orderItem.setDosage((null != detail.getUseDose()) ? Double
-                        .toString(detail.getUseDose()) : null);
+                        .toString(detail.getUseDose()) : detail.getUseDoseStr());
                 //剂量单位
                 orderItem.setDrunit(detail.getUseDoseUnit());
 

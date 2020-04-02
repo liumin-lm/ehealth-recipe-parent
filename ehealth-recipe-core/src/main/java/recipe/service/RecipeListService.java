@@ -711,13 +711,15 @@ public class RecipeListService extends RecipeBaseService{
 
                 Map<String,String> drugInfo;
                 List<Map<String,String>> drugInfoList = Lists.newArrayList();
+                String useDose;
                 for (Recipedetail detail : recipedetails){
                     drugInfo = Maps.newHashMap();
+                    useDose = detail.getUseDose()==null?detail.getUseDoseStr():String.valueOf(detail.getUseDose());
                     drugInfo.put("drugName",detail.getDrugName());
                     //开药总量+药品单位
                     String dSpec = "*"+detail.getUseTotalDose().intValue() + detail.getDrugUnit();
                     drugInfo.put("drugTotal",dSpec);
-                    String useWay = "用法：每次" + detail.getUseDose() + detail.getUseDoseUnit()
+                    String useWay = "用法：每次" + useDose + detail.getUseDoseUnit()
                             +"/"+usingRateDic.getText(detail.getUsingRate())
                             +"/"+usePathwaysDic.getText(detail.getUsePathways())
                             +detail.getUseDays() + "天";

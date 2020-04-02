@@ -345,10 +345,14 @@ public class RecipeServiceSub {
                             detail.setUsePathways(recipe.getTcmUsePathways());
                             detail.setUsingRate(recipe.getTcmUsingRate());
                             detail.setUseDays(recipe.getCopyNum());
-                            detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
+                            if (detail.getUseDose() !=null){
+                                detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
+                            }
                         } else if (RecipeBussConstant.RECIPETYPE_HP.equals(recipe.getRecipeType())) {
                             detail.setUseDays(recipe.getCopyNum());
-                            detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
+                            if (detail.getUseDose() !=null){
+                                detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
+                            }
                         }
 
                         //添加机构药品信息
@@ -520,6 +524,7 @@ public class RecipeServiceSub {
             }
             ctd.dictionary.Dictionary usingRateDic = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate");
             Dictionary usePathwaysDic = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways");
+            String useDose;
             for (Recipedetail d : details) {
                 DrugList drug = dMap.get(d.getDrugId());
                 String dName = (i + 1) + "、" + drug.getDrugName();
@@ -527,8 +532,9 @@ public class RecipeServiceSub {
                 String dSpec = drug.getDrugSpec() + "/" + drug.getUnit();
                 //使用天数
                 String useDay = d.getUseDays() + "天";
+                useDose = d.getUseDose() !=null?String.valueOf(d.getUseDose()):d.getUseDoseStr();
                 //每次剂量+剂量单位
-                String uDose = "Sig: " + "每次" + d.getUseDose() + (StringUtils.isEmpty(drug.getUseDoseUnit()) ?
+                String uDose = "Sig: " + "每次" + useDose + (StringUtils.isEmpty(drug.getUseDoseUnit()) ?
                         "" : drug.getUseDoseUnit());
                 //开药总量+药品单位
                 String dTotal = "X" + d.getUseTotalDose() + drug.getUnit();
@@ -613,12 +619,17 @@ public class RecipeServiceSub {
                 String dName = drug.getDrugName();
                 //开药总量+药品单位
                 String dTotal = "";
-                //增加判断条件  如果用量小数位为零，则不显示小数点
-                if ((d.getUseDose() - d.getUseDose().intValue()) == 0d) {
-                    dTotal = d.getUseDose().intValue() + drug.getUseDoseUnit();
-                } else {
-                    dTotal = d.getUseDose() + drug.getUseDoseUnit();
+                if (d.getUseDose()!=null){
+                    //增加判断条件  如果用量小数位为零，则不显示小数点
+                    if ((d.getUseDose() - d.getUseDose().intValue()) == 0d) {
+                        dTotal = d.getUseDose().intValue() + drug.getUseDoseUnit();
+                    } else {
+                        dTotal = d.getUseDose() + drug.getUseDoseUnit();
+                    }
+                }else {
+                    dTotal = d.getUseDoseStr()+drug.getUseDoseUnit();
                 }
+
                 if (!StringUtils.isEmpty(d.getMemo())) {
                     //备注
                     dTotal = dTotal + "*" + d.getMemo();
@@ -1854,8 +1865,10 @@ public class RecipeServiceSub {
         String diseaseName = recipe.getOrganDiseaseName();
         List<String> drugNames = Lists.newArrayList();
         if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
+            String useDose;
             for (Recipedetail r : details) {
-                drugNames.add(r.getDrugName() + " * " + BigDecimal.valueOf(r.getUseDose()).toBigInteger().toString() + r.getUseDoseUnit());
+                useDose = r.getUseDose()==null?r.getUseDoseStr():String.valueOf(r.getUseDose());
+                drugNames.add(r.getDrugName() + " * " +  useDose + r.getUseDoseUnit());
             }
         } else {
             //组装药品名称   药品名+商品名+规格
