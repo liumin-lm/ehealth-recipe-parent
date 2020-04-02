@@ -20,6 +20,7 @@ import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.entity.*;
 import ctd.dictionary.DictionaryController;
+import ctd.persistence.DAO;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -265,6 +266,17 @@ public class HisRequestInit {
         requestTO.setDeptID("");
         requestTO.setRecipeType((null != recipe.getRecipeType()) ? recipe
                 .getRecipeType().toString() : null);
+        //处方附带信息
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        if (recipeExtend != null){
+            //主诉
+            requestTO.setMainDieaseDescribe(recipeExtend.getMainDieaseDescribe());
+            //现病史
+            requestTO.setHistoryOfPresentIllness(recipeExtend.getHistoryOfPresentIllness());
+            //处理方法
+            requestTO.setHandleMethod(recipeExtend.getHandleMethod());
+        }
         //设置挂号序号---如果有
         if (recipe.getClinicId() != null){
             IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
