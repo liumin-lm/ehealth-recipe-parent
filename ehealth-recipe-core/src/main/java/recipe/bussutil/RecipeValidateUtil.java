@@ -44,7 +44,8 @@ public class RecipeValidateUtil {
                     "drugId is required!");
         }
         double d = 0d;
-        if (detail.getUseDose() == null || detail.getUseDose() <= d) {
+        if ((detail.getUseDose() == null && StringUtils.isEmpty(detail.getUseDoseStr()))
+                || (detail.getUseDose() != null && StringUtils.isEmpty(detail.getUseDoseStr()) && detail.getUseDose() <= d)) {
             throw new DAOException(DAOException.VALUE_NEEDED,
                     "useDose is required!");
         }

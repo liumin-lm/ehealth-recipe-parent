@@ -714,7 +714,11 @@ public class RecipeListService extends RecipeBaseService{
                 String useDose;
                 for (Recipedetail detail : recipedetails){
                     drugInfo = Maps.newHashMap();
-                    useDose = detail.getUseDose()==null?detail.getUseDoseStr():String.valueOf(detail.getUseDose());
+                    if (StringUtils.isNotEmpty(detail.getUseDoseStr())){
+                        useDose = detail.getUseDoseStr();
+                    }else {
+                        useDose = detail.getUseDose()==null?null:String.valueOf(detail.getUseDose());
+                    }
                     drugInfo.put("drugName",detail.getDrugName());
                     //开药总量+药品单位
                     String dSpec = "*"+detail.getUseTotalDose().intValue() + detail.getDrugUnit();

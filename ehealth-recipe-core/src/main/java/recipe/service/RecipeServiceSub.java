@@ -532,7 +532,11 @@ public class RecipeServiceSub {
                 String dSpec = drug.getDrugSpec() + "/" + drug.getUnit();
                 //使用天数
                 String useDay = d.getUseDays() + "天";
-                useDose = d.getUseDose() !=null?String.valueOf(d.getUseDose()):d.getUseDoseStr();
+                if (StringUtils.isNotEmpty(d.getUseDoseStr())){
+                    useDose = d.getUseDoseStr();
+                }else {
+                    useDose = d.getUseDose() !=null?String.valueOf(d.getUseDose()):d.getUseDoseStr();
+                }
                 //每次剂量+剂量单位
                 String uDose = "Sig: " + "每次" + useDose + (StringUtils.isEmpty(drug.getUseDoseUnit()) ?
                         "" : drug.getUseDoseUnit());
@@ -619,15 +623,17 @@ public class RecipeServiceSub {
                 String dName = drug.getDrugName();
                 //开药总量+药品单位
                 String dTotal = "";
-                if (d.getUseDose()!=null){
-                    //增加判断条件  如果用量小数位为零，则不显示小数点
-                    if ((d.getUseDose() - d.getUseDose().intValue()) == 0d) {
-                        dTotal = d.getUseDose().intValue() + drug.getUseDoseUnit();
-                    } else {
-                        dTotal = d.getUseDose() + drug.getUseDoseUnit();
-                    }
-                }else {
+                if (StringUtils.isNotEmpty(d.getUseDoseStr())){
                     dTotal = d.getUseDoseStr()+drug.getUseDoseUnit();
+                }else {
+                    if (d.getUseDose()!=null){
+                        //增加判断条件  如果用量小数位为零，则不显示小数点
+                        if ((d.getUseDose() - d.getUseDose().intValue()) == 0d) {
+                            dTotal = d.getUseDose().intValue() + drug.getUseDoseUnit();
+                        } else {
+                            dTotal = d.getUseDose() + drug.getUseDoseUnit();
+                        }
+                    }
                 }
 
                 if (!StringUtils.isEmpty(d.getMemo())) {
@@ -1867,7 +1873,11 @@ public class RecipeServiceSub {
         if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
             String useDose;
             for (Recipedetail r : details) {
-                useDose = r.getUseDose()==null?r.getUseDoseStr():String.valueOf(r.getUseDose());
+                if (StringUtils.isNotEmpty(r.getUseDoseStr())){
+                    useDose = r.getUseDoseStr();
+                }else {
+                    useDose = r.getUseDose()==null?r.getUseDoseStr():String.valueOf(r.getUseDose());
+                }
                 drugNames.add(r.getDrugName() + " * " +  useDose + r.getUseDoseUnit());
             }
         } else {
