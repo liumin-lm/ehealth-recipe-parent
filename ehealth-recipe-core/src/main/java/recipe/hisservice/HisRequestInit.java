@@ -188,8 +188,12 @@ public class HisRequestInit {
 
                     orderItem.setAdmission(UsePathwaysFilter.filterNgari(recipe.getClinicOrgan(),detail.getUsePathways()));
                     orderItem.setFrequency(UsePathwaysFilter.filterNgari(recipe.getClinicOrgan(),detail.getUsingRate()));
-                    orderItem.setDosage((null != detail.getUseDose()) ? Double
-                            .toString(detail.getUseDose()) : detail.getUseDoseStr());
+                    if (StringUtils.isNotEmpty(detail.getUseDoseStr())){
+                        orderItem.setDosage(detail.getUseDoseStr());
+                    }else {
+                        orderItem.setDosage((null != detail.getUseDose()) ? Double
+                                .toString(detail.getUseDose()) : null);
+                    }
                     orderItem.setDrunit(detail.getUseDoseUnit());
                     /*
                      * //每日剂量 转换成两位小数 DecimalFormat df = new DecimalFormat("0.00");
@@ -399,8 +403,12 @@ public class HisRequestInit {
 
                 orderItem.setAdmission(UsePathwaysFilter.filterNgari(recipe.getClinicOrgan(),detail.getUsePathways()));
                 orderItem.setFrequency(UsingRateFilter.filterNgari(recipe.getClinicOrgan(),detail.getUsingRate()));
-                orderItem.setDosage((null != detail.getUseDose()) ? Double
-                        .toString(detail.getUseDose()) : detail.getUseDoseStr());
+                if (StringUtils.isNotEmpty(detail.getUseDoseStr())){
+                    orderItem.setDosage(detail.getUseDoseStr());
+                }else {
+                    orderItem.setDosage((null != detail.getUseDose()) ? Double
+                            .toString(detail.getUseDose()) : null);
+                }
                 orderItem.setDrunit(detail.getUseDoseUnit());
                 /*
                  * //每日剂量 转换成两位小数 DecimalFormat df = new DecimalFormat("0.00");
