@@ -991,6 +991,13 @@ public class RecipeServiceSub {
             case RecipeStatusConstant.CHECKING_MEDICAL_INSURANCE:
                 tips = "医保上传确认中";
                 break;
+            case RecipeStatusConstant.SIGN_ERROR_CODE:
+                RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+                List<RecipeLog> recipeLog = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.SIGN_ERROR_CODE);
+                if (recipeLog != null &&recipeLog.size() > 0) {
+                    tips = recipeLog.get(0).getMemo();
+                }
+                break;
             default:
                 tips = "未知状态" + status;
         }
