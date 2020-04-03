@@ -242,6 +242,9 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "卫宁付下的支付方式(卫宁的字典)ybpay=全医保支付 1支付宝手机支付 7微信公众号支付 随申办支付宝支付126 随申办微信支付127 随申办银联支付128")
     private String wnPayWay;
 
+    @ItemProperty(alias = "his推送药企名")
+    private String hisEnterpriseName;
+
     public RecipeOrderBean() {
         initData();
     }
@@ -261,6 +264,14 @@ public class RecipeOrderBean implements Serializable {
         this.setCreateTime(now);
         this.setAuditFee(zero);
         this.setOtherFee(zero);
+    }
+
+    public String getHisEnterpriseName() {
+        return hisEnterpriseName;
+    }
+
+    public void setHisEnterpriseName(String hisEnterpriseName) {
+        this.hisEnterpriseName = hisEnterpriseName;
     }
 
     public Integer getOrderType() {

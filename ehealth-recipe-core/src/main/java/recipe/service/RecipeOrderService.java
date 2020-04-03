@@ -332,6 +332,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             }
         }
+        order.setHisEnterpriseName(extInfo.get("depName"));
         setCreateOrderResult(result, order, payModeSupport, toDbFlag);
         return result;
     }
