@@ -2191,4 +2191,22 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
 
     @DAOMethod
     public abstract List<Recipe> findByClinicId(Integer consultId);
+
+    public List<Object[]> findMsgByparameters(Date startTime, Date endTime, Integer organId){
+        HibernateStatelessResultAction<List> action = new AbstractHibernateStatelessResultAction<List>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuffer sql = new StringBuffer("SELECT r.ClinicID,DATE(r.CreateDate) FROM cdr_recipe r LEFT JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode " +
+                        "WHERE r.CreateDate >= :startTime and r.CreateDate <= :endTime and r.bussSource=2 AND r.ClinicOrgan=:organId AND o.Effective=1 and o.PayFlag=1");
+                Query query = ss.createSQLQuery(sql.toString());
+                query.setParameter("startTime",startTime);
+                query.setParameter("endTime",endTime);
+                query.setParameter("organId",organId);
+                List<Object[]> list = query.list();
+                setResult(list);
+            }
+        };
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        return action.getResult();
+    }
 }

@@ -403,5 +403,6 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     HisResponseTO syncEinvoiceNumberToPay(SyncEinvoiceNumberDTO syncEinvoiceNumberDTO);
 
-
+    @RpcService
+    Map<String, String> findMsgByparameters(Date startTime, Date endTime, Integer organId);
 }
