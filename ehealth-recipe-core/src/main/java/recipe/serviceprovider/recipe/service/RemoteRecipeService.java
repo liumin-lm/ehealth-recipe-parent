@@ -942,6 +942,22 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return result;
     }
 
+    @Override
+    @RpcService
+    public Map<String, String> findMsgByparameters(Date startTime, Date endTime, Integer organId){
+        List<Object[]> list = DAOFactory.getDAO(RecipeDAO.class).findMsgByparameters(startTime, endTime, organId);
+        Map<String, String> result = new HashMap<>();
+        if (CollectionUtils.isNotEmpty(list)){
+            for (Object[] obj : list) {
+                if (obj[0] == null){
+                    continue;
+                }
+                result.put(String.valueOf(obj[0]), String.valueOf(obj[1]));
+            }
+        }
+        return result;
+    }
+
     private boolean valiSyncEinvoiceNumber(SyncEinvoiceNumberDTO syncEinvoiceNumberDTO, HisResponseTO result) {
         boolean flag = true;
         if (null == syncEinvoiceNumberDTO) {
