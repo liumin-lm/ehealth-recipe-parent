@@ -79,9 +79,6 @@ public class RecipeCheckService {
 
     private DepartmentService departmentService = ApplicationUtils.getBasicService(DepartmentService.class);
 
-    @Resource
-    private AuditModeContext auditModeContext;
-
     /**
      * zhongzx
      * 根据flag查询处方列表   for phone
@@ -405,7 +402,10 @@ public class RecipeCheckService {
         //添加处方审核状态
         Integer checkResult = getCheckResultByPending(recipe);
         map.put("checkStatus", checkResult);
-
+        //获取撤销原因
+        if (recipe.getStatus() == RecipeStatusConstant.REVOKE){
+            map.put("cancelReason", getCancelReasonForChecker(recipe.getRecipeId()));
+        }
         List<Recipedetail> details = detailDAO.findByRecipeId(recipeId);
         try{
             Integer organId = recipe.getClinicOrgan();
@@ -502,6 +502,16 @@ public class RecipeCheckService {
             map.put("editFlag", 0);
         }
         return map;
+    }
+
+    private String getCancelReasonForChecker(Integer recipeId) {
+        RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipeId, RecipeStatusConstant.REVOKE);
+        String cancelReason ="";
+        if (CollectionUtils.isNotEmpty(recipeLogs)) {
+            cancelReason = "开方医生已撤销处方,撤销原因:"+recipeLogs.get(0).getMemo();
+        }
+        return cancelReason;
     }
 
     /**

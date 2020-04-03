@@ -1560,7 +1560,7 @@ public class RecipeService extends RecipeBaseService {
     }
 
     /**
-     * 处方撤销方法(供医生端使用)
+     * 处方撤销方法(供医生端使用)---无撤销原因时调用保留为了兼容---新方法在RecipeCancelService里
      *
      * @param recipeId 处方Id
      * @return Map<String ,   Object>
