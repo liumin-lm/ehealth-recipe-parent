@@ -945,7 +945,7 @@ public class PayModeOnline implements IPurchaseService {
                                 depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_ONLINE);
                                 depDetailBean.setPayModeText("在线支付");
                                 //如果是价格自定义的药企，则需要设置单独价格
-                                if (Integer.valueOf(0).equals(drugsEnterprise.getSettlementMode())) {
+                                if (Integer.valueOf(0).equals(drugsEnterprise.getSettlementMode()) && !depDetailBean.getHisDep()) {
                                     List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIds);
                                     if (CollectionUtils.isNotEmpty(saleDrugLists)) {
                                         BigDecimal total = BigDecimal.ZERO;
