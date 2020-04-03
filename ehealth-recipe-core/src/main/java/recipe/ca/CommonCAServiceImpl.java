@@ -117,6 +117,8 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
                 responseRs.setSignValue(responseTO.getData().getSignValue());
                 responseRs.setUserAccount(responseTO.getData().getUserAccount());
             }
+            responseRs.setCode(Integer.valueOf(responseTO.getMsgCode()));
+            responseRs.setMsg(responseTO.getMsg());
         } catch (Exception e){
             LOGGER.error("CommonCAServiceImpl caSignBusiness 调用前置机失败 userAccount={}, requestTO={}", requestTO.getUserAccount(), JSONUtils.toString(requestTO));
             e.printStackTrace();
@@ -140,6 +142,8 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
                 responseRs.setPdfBase64File(responseTO.getData().getPdfBase64File());
                 responseRs.setUserAccount(responseTO.getData().getUserAccount());
             }
+            responseRs.setCode(Integer.valueOf(responseTO.getMsgCode()));
+            responseRs.setMsg(responseTO.getMsg());
         } catch (Exception e){
             LOGGER.error("CommonCAServiceImpl caSealBusiness 调用前置机失败 userAccount={}, requestTO={}",requestTO.getUserAccount(), JSONUtils.toString(requestTO));
             e.printStackTrace();
@@ -162,6 +166,9 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
                 responseRs.setSignDate(responseTO.getData().getSignDate());
                 responseRs.setUserAccount(responseTO.getData().getUserAccount());
             }
+
+            responseRs.setCode(Integer.valueOf(responseTO.getMsgCode()));
+            responseRs.setMsg(responseTO.getMsg());
         } catch (Exception e){
             LOGGER.error("CommonCAServiceImpl caSignDateBusiness 调用前置机失败 userAccount={}, requestTO={}",requestTO.getUserAccount(), JSONUtils.toString(requestTO));
             e.printStackTrace();

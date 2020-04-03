@@ -149,6 +149,12 @@ public class RecipeStatusConstant {
      */
     public static final int NO_MEDICAL_INSURANCE_RETURN = 25;
 
+
+    /**
+     * 医生签名失败
+     */
+    public static final int SIGN_ERROR_CODE = 26;
+
     /**
      * 不存在的状态，用于微信发送,患者-未操作情况, 用于前一天提醒患者购药
      */

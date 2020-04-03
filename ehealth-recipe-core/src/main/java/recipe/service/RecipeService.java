@@ -778,8 +778,24 @@ public class RecipeService extends RecipeBaseService {
                 //通过工厂获取对应的实现CA类
                 CAInterface caInterface = caFactory.useCAFunction(organId);
                 CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
-                //保存签名值、时间戳、电子签章文件
-                RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true);
+                if (resultVo != null && 200 == resultVo.getCode()) {
+                    //保存签名值、时间戳、电子签章文件
+                    RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true);
+                } else {
+                    RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+                    RecipeLog recipeLog = new RecipeLog();
+                    recipeLog.setRecipeId(recipeId);
+                    recipeLog.setBeforeStatus(recipe.getStatus());
+                    recipeLog.setAfterStatus(RecipeStatusConstant.SIGN_ERROR_CODE);
+                    recipeLog.setMemo(resultVo.getMsg());
+                    recipeLog.setModifyDate(new Date());
+                    recipeLogDAO.saveRecipeLog(recipeLog);
+
+                    Map<String, Object> attrMap = Maps.newHashMap();
+                    attrMap.put("Status", RecipeStatusConstant.SIGN_ERROR_CODE);
+                    recipeDAO.updateRecipeInfoByRecipeId(recipeId,attrMap );
+                }
+
 //                if (null != recipeFileId) {
 //                    Map<String, Object> attrMap = Maps.newHashMap();
 //                    attrMap.put("signFile", recipeFileId);
