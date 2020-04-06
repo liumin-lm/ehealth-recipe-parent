@@ -554,7 +554,7 @@ public class HisRequestInit {
         }
 
         //takeDrugsType 取药方式 0-医院药房取药 1-物流配送(国药) 2-外配药(钥世圈)
-        if (null != recipe.getPayMode()) {
+        /*if (null != recipe.getPayMode()) {
             if (RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode())) {
                 requestTO.setTakeDrugsType("0");
             }
@@ -569,6 +569,34 @@ public class HisRequestInit {
         }else {
             //默认走外配药方式
             requestTO.setTakeDrugsType("2");
+        }*/
+        //此处就行改造
+        if (null != recipe.getPayMode()) {
+            if (RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode())) {
+                requestTO.setTakeDrugsType("0");
+            }
+            if (RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(recipe.getPayMode())
+                    || RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
+                if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                    RecipeOrderDAO dao = DAOFactory.getDAO(RecipeOrderDAO.class);
+                    RecipeOrder order = dao.getByOrderCode(recipe.getOrderCode());
+                    if (order!=null){
+                        Integer depId = order.getEnterpriseId();
+                        if (depId != null) {
+                            DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                            DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(depId);
+                            if (drugsEnterprise != null && drugsEnterprise.getSendType() == 1) {
+                                requestTO.setTakeDrugsType("1");
+                            } else {
+                                requestTO.setTakeDrugsType("2");
+                            }
+                        }
+                    }
+                }
+            }
+            if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
+                requestTO.setTakeDrugsType("3");
+            }
         }
         if (StringUtils.isNotEmpty(recipe.getOrderCode())){
             RecipeOrderDAO dao = DAOFactory.getDAO(RecipeOrderDAO.class);
