@@ -734,6 +734,7 @@ public class PayModeOnline implements IPurchaseService {
     }
     //将map中用来生成平台订单的信息组装成订单配送信息
     private RecipeOrder createOrderBySendMap(Map<String, String> extInfo) {
+        LOG.info("createOrderBySendMap. extInfo=[{}]", JSONUtils.toString(extInfo));
         RecipeOrder recipeOrder = new RecipeOrder();
         recipeOrder.setExpectSendDate(MapValueUtil.getString(extInfo, "expectSendDate"));
         recipeOrder.setExpectSendTime(MapValueUtil.getString(extInfo, "expectSendTime"));
@@ -945,6 +946,8 @@ public class PayModeOnline implements IPurchaseService {
                                 depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_ONLINE);
                                 depDetailBean.setPayModeText("在线支付");
                                 //如果是价格自定义的药企，则需要设置单独价格
+                                //date 20200402
+                                //判断当药企不是his返回的时候在重新计算金额
                                 if (Integer.valueOf(0).equals(drugsEnterprise.getSettlementMode()) && !depDetailBean.getHisDep()) {
                                     List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIds);
                                     if (CollectionUtils.isNotEmpty(saleDrugLists)) {

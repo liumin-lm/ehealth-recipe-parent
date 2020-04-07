@@ -2151,14 +2151,13 @@ public class RecipeServiceSub {
      * @return
      */
     public static boolean isNotHZInternet(Integer clinicOrgan) {
-        //由于不需要对接his，暂时放开
-        /*OrganAndDrugsepRelationDAO dao = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+        OrganAndDrugsepRelationDAO dao = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
         List<DrugsEnterprise> enterprises = dao.findDrugsEnterpriseByOrganIdAndStatus(clinicOrgan, 1);
         if (CollectionUtils.isNotEmpty(enterprises)){
             if ("hzInternet".equals(enterprises.get(0).getCallSys())){
                 return false;
             }
-        }*/
+        }
         return true;
     }
 
