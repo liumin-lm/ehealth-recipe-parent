@@ -41,8 +41,6 @@ public class AuditPostMode extends AbstractAuidtMode {
 
     private RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 
-    private RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-
     @Override
     public void afterCheckPassYs(Recipe recipe) {
         recipeService.afterCheckPassYs(recipe);

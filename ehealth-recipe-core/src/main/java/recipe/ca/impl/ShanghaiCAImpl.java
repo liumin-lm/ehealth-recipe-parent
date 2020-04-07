@@ -71,9 +71,12 @@ public class ShanghaiCAImpl implements CAInterface {
             caSignRequestTO.setSignMsg(JSONUtils.toString(recipe));
             caSignRequestTO.setUserAccount(userAccount);
             CaSignResponseTO responseTO = iCommonCAServcie.caSignBusiness(caSignRequestTO);
-            if (responseTO != null) {
-                signResultVo.setSignRecipeCode(responseTO.getSignValue());
+            if (responseTO == null || responseTO.getCode() != 200) {
+                signResultVo.setCode(responseTO.getCode());
+                signResultVo.setMsg(responseTO.getMsg());
+                return signResultVo;
             }
+            signResultVo.setSignRecipeCode(responseTO.getSignValue());
             //上传手签图片(暂不实现)
 
             //获取时间戳数据
@@ -83,10 +86,12 @@ public class ShanghaiCAImpl implements CAInterface {
             caSignDateRequestTO.setSignMsg(JSONUtils.toString(recipe));
 
             CaSignDateResponseTO responseDateTO = iCommonCAServcie.caSignDateBusiness(caSignDateRequestTO);
-            if (responseDateTO != null) {
-                signResultVo.setSignCADate(responseDateTO.getSignDate());
+            if (responseDateTO == null || responseDateTO.getCode() != 200) {
+                signResultVo.setCode(responseDateTO.getCode());
+                signResultVo.setMsg(responseDateTO.getMsg());
+                return signResultVo;
             }
-
+            signResultVo.setSignCADate(responseDateTO.getSignDate());
             //电子签章（暂不实现）
         } catch (Exception e){
             LOGGER.error("shanghaiCA commonCASignAndSeal 调用前置机失败 requestSealTO={},organId={},userAccount={},caPassword={}",

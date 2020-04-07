@@ -96,6 +96,9 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "0:不支付药品费用，1:全部支付")
     private Integer storePayFlag;
 
+    @ItemProperty(alias = "配送主体类型 1 药企配送 2 医院配送")
+    private Integer sendType;
+
     public DrugsEnterpriseBean() {
     }
 
@@ -293,5 +296,13 @@ public class DrugsEnterpriseBean implements Serializable {
 
     public void setStorePayFlag(Integer storePayFlag) {
         this.storePayFlag = storePayFlag;
+    }
+
+    public Integer getSendType() {
+        return sendType;
+    }
+
+    public void setSendType(Integer sendType) {
+        this.sendType = sendType;
     }
 }

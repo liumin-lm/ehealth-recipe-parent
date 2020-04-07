@@ -124,7 +124,7 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
             //请求类型
             req.setReqType(reqType);
         } catch (Exception e) {
-            LOGGER.error("assembleRequestParam error"+e);
+            LOGGER.error("assembleRequestParam error",e);
         }
 
         return req;

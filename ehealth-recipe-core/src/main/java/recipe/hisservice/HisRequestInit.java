@@ -20,6 +20,7 @@ import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.entity.*;
 import ctd.dictionary.DictionaryController;
+import ctd.persistence.DAO;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -187,8 +188,12 @@ public class HisRequestInit {
 
                     orderItem.setAdmission(UsePathwaysFilter.filterNgari(recipe.getClinicOrgan(),detail.getUsePathways()));
                     orderItem.setFrequency(UsePathwaysFilter.filterNgari(recipe.getClinicOrgan(),detail.getUsingRate()));
-                    orderItem.setDosage((null != detail.getUseDose()) ? Double
-                            .toString(detail.getUseDose()) : null);
+                    if (StringUtils.isNotEmpty(detail.getUseDoseStr())){
+                        orderItem.setDosage(detail.getUseDoseStr());
+                    }else {
+                        orderItem.setDosage((null != detail.getUseDose()) ? Double
+                                .toString(detail.getUseDose()) : null);
+                    }
                     orderItem.setDrunit(detail.getUseDoseUnit());
                     /*
                      * //每日剂量 转换成两位小数 DecimalFormat df = new DecimalFormat("0.00");
@@ -265,6 +270,17 @@ public class HisRequestInit {
         requestTO.setDeptID("");
         requestTO.setRecipeType((null != recipe.getRecipeType()) ? recipe
                 .getRecipeType().toString() : null);
+        //处方附带信息
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        if (recipeExtend != null){
+            //主诉
+            requestTO.setMainDieaseDescribe(recipeExtend.getMainDieaseDescribe());
+            //现病史
+            requestTO.setHistoryOfPresentIllness(recipeExtend.getHistoryOfPresentIllness());
+            //处理方法
+            requestTO.setHandleMethod(recipeExtend.getHandleMethod());
+        }
         //设置挂号序号---如果有
         if (recipe.getClinicId() != null){
             IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
@@ -387,8 +403,12 @@ public class HisRequestInit {
 
                 orderItem.setAdmission(UsePathwaysFilter.filterNgari(recipe.getClinicOrgan(),detail.getUsePathways()));
                 orderItem.setFrequency(UsingRateFilter.filterNgari(recipe.getClinicOrgan(),detail.getUsingRate()));
-                orderItem.setDosage((null != detail.getUseDose()) ? Double
-                        .toString(detail.getUseDose()) : null);
+                if (StringUtils.isNotEmpty(detail.getUseDoseStr())){
+                    orderItem.setDosage(detail.getUseDoseStr());
+                }else {
+                    orderItem.setDosage((null != detail.getUseDose()) ? Double
+                            .toString(detail.getUseDose()) : null);
+                }
                 orderItem.setDrunit(detail.getUseDoseUnit());
                 /*
                  * //每日剂量 转换成两位小数 DecimalFormat df = new DecimalFormat("0.00");
@@ -534,7 +554,7 @@ public class HisRequestInit {
         }
 
         //takeDrugsType 取药方式 0-医院药房取药 1-物流配送(国药) 2-外配药(钥世圈)
-        if (null != recipe.getPayMode()) {
+        /*if (null != recipe.getPayMode()) {
             if (RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode())) {
                 requestTO.setTakeDrugsType("0");
             }
@@ -549,6 +569,34 @@ public class HisRequestInit {
         }else {
             //默认走外配药方式
             requestTO.setTakeDrugsType("2");
+        }*/
+        //此处就行改造
+        if (null != recipe.getPayMode()) {
+            if (RecipeBussConstant.PAYMODE_TO_HOS.equals(recipe.getPayMode())) {
+                requestTO.setTakeDrugsType("0");
+            }
+            if (RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(recipe.getPayMode())
+                    || RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) || RecipeBussConstant.PAYMODE_COD.equals(recipe.getPayMode())) {
+                if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                    RecipeOrderDAO dao = DAOFactory.getDAO(RecipeOrderDAO.class);
+                    RecipeOrder order = dao.getByOrderCode(recipe.getOrderCode());
+                    if (order!=null){
+                        Integer depId = order.getEnterpriseId();
+                        if (depId != null) {
+                            DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                            DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(depId);
+                            if (drugsEnterprise != null && drugsEnterprise.getSendType() == 1) {
+                                requestTO.setTakeDrugsType("1");
+                            } else {
+                                requestTO.setTakeDrugsType("2");
+                            }
+                        }
+                    }
+                }
+            }
+            if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
+                requestTO.setTakeDrugsType("3");
+            }
         }
         if (StringUtils.isNotEmpty(recipe.getOrderCode())){
             RecipeOrderDAO dao = DAOFactory.getDAO(RecipeOrderDAO.class);

@@ -666,6 +666,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         /*double dosageDay;*/
         DrugList drugList;
         OrganDrugList organDrugList;
+        String useDose;
         for (Recipedetail detail : detailList) {
             reqDetail = new RegulationRecipeDetailIndicatorsReq();
             organDrugList = organDrugDao.getByOrganIdAndDrugId(recipe.getClinicOrgan(), detail.getDrugId());
@@ -696,7 +697,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             if (null != usePathwaysDic) {
                 reqDetail.setAdmissionName(usePathwaysDic.getText(detail.getUsePathways()));
             }
-            reqDetail.setDosage(detail.getUseDose().toString());
+            useDose = detail.getUseDose() == null?detail.getUseDoseStr():String.valueOf(detail.getUseDose());
+            reqDetail.setDosage(useDose);
             reqDetail.setDrunit(detail.getUseDoseUnit());
             reqDetail.setDosageTotal(detail.getUseTotalDose().toString());
             reqDetail.setUseDays(detail.getUseDays());

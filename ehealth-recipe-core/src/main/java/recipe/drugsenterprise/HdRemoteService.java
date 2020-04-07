@@ -539,7 +539,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         sendHdRecipe.setRecipeMemo(nowRecipe.getRecipeMemo());
         sendHdRecipe.setMemo(nowRecipe.getMemo());
         sendHdRecipe.setOrganDiseaseName(nowRecipe.getOrganDiseaseName());
-        sendHdRecipe.setMedicalPay(null == nowRecipe.getMedicalPayFlag() ? medicalPayDefault : nowRecipe.getMedicalPayFlag().toString());
+        //sendHdRecipe.setMedicalPay(null == nowRecipe.getMedicalPayFlag() ? medicalPayDefault : nowRecipe.getMedicalPayFlag().toString());
         sendHdRecipe.setOrganDiseaseId(nowRecipe.getOrganDiseaseId());
         if (nowRecipe.getCheckDateYs() != null) {
             sendHdRecipe.setAudiDate(getNewTime(nowRecipe.getCheckDateYs(), hdTimeCheck));
@@ -561,6 +561,22 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         sendHdRecipe.setPatientNumber(nowRecipe.getPatientID());
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder order = recipeOrderDAO.getByOrderCode(nowRecipe.getOrderCode());
+        //添加医保金额
+        if (order != null && order.getOrderType() == 1) {
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(nowRecipe.getRecipeId());
+            if (recipeExtend != null && recipeExtend.getFundAmount() != null) {
+                sendHdRecipe.setMedicalFee(recipeExtend.getFundAmount());
+                sendHdRecipe.setMedicalPay("1");
+            } else {
+                sendHdRecipe.setMedicalFee("0");
+                sendHdRecipe.setMedicalPay("1");
+            }
+        } else {
+            sendHdRecipe.setMedicalFee("0");
+            sendHdRecipe.setMedicalPay("0");
+        }
+
         if (nowRecipe.getGiveMode() == 1) {
             sendHdRecipe.setPatientAddress(getCompleteAddress(order));
             sendHdRecipe.setDistributionFlag("1");

@@ -49,6 +49,9 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias="默认每次剂量")
     private Double defaultUseDose;
 
+    @ItemProperty(alias="药物使用次剂量--中文标识-适量")
+    private String useDoseStr;
+
     @ItemProperty(alias="药物使用规格单位")
     private String useDoseUnit;
 
@@ -552,5 +555,13 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setDrugForm(String drugForm) {
         this.drugForm = drugForm;
+    }
+
+    public String getUseDoseStr() {
+        return useDoseStr;
+    }
+
+    public void setUseDoseStr(String useDoseStr) {
+        this.useDoseStr = useDoseStr;
     }
 }

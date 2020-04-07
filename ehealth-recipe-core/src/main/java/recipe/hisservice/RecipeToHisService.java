@@ -20,6 +20,7 @@ import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.formula.functions.T;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -496,9 +497,26 @@ public class RecipeToHisService {
         return hisService.recipeSendMsg(recipeSendMsgRequestTO);
     }
 
-    public HisResponseTO<MedicInsurSettleApplyResTO>  recipeMedicInsurPreSettle(MedicInsurSettleApplyReqTO reqTO){
+    public HisResponseTO<MedicInsurSettleApplyResTO> recipeMedicInsurPreSettle(MedicInsurSettleApplyReqTO reqTO){
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.recipeMedicInsurPreSettle(reqTO);
+    }
+
+    /**
+     * 获取患者特慢病病种列表
+     * @return
+     */
+    public HisResponseTO<List<ChronicDiseaseListResTO>> findPatientChronicDiseaseList(ChronicDiseaseListReqTO request){
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        LOGGER.info("findPatientChronicDiseaseList request={}", JSONUtils.toString(request));
+        HisResponseTO<List<ChronicDiseaseListResTO>> response = null;
+        try {
+            response = hisService.findPatientChronicDiseaseList(request);
+            LOGGER.info("findPatientChronicDiseaseList response={}", JSONUtils.toString(response));
+        } catch (Exception e) {
+            LOGGER.error("findPatientChronicDiseaseList error ", e);
+        }
+        return response;
     }
 
 }

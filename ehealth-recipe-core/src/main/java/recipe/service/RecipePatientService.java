@@ -4,6 +4,13 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.base.PatientBaseInfo;
+import com.ngari.his.recipe.mode.ChronicDiseaseListReqTO;
+import com.ngari.his.recipe.mode.ChronicDiseaseListResTO;
+import com.ngari.his.recipe.mode.MedicInsurSettleApplyResTO;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
@@ -14,6 +21,8 @@ import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.entity.SaleDrugList;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -30,6 +39,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.hisservice.RecipeToHisService;
 import recipe.service.common.RecipeCacheService;
 
 import javax.annotation.Nullable;
@@ -303,5 +313,33 @@ public class RecipePatientService extends RecipeBaseService {
         }
         depDetailBean.setGiveModeText(giveModeText);
         depDetailList.add(depDetailBean);
+    }
+
+    /**
+     * 获取患者特慢病病种列表
+     * @return
+     */
+    @RpcService
+    public List<ChronicDiseaseListResTO> findPatientChronicDiseaseList(Integer organId,String mpiId){
+        LOGGER.info("findPatientChronicDiseaseList organId={},mpiId={}",organId,mpiId);
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        PatientDTO patientDTO = patientService.get(mpiId);
+        if (patientDTO == null){
+            throw new DAOException(609, "找不到该患者");
+        }
+        RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+        ChronicDiseaseListReqTO req = new ChronicDiseaseListReqTO();
+        PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
+        patientBaseInfo.setPatientName(patientDTO.getPatientName());
+        patientBaseInfo.setCertificate(patientDTO.getCertificate());
+        patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
+        req.setPatient(patientBaseInfo);
+        req.setOrganId(organId);
+        List<ChronicDiseaseListResTO> list = Lists.newArrayList();
+        HisResponseTO<List<ChronicDiseaseListResTO>> res = service.findPatientChronicDiseaseList(req);
+        if (res == null){
+            return list;
+        }
+        return res.getData();
     }
 }

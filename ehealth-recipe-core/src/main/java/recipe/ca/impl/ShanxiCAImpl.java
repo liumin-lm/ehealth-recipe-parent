@@ -126,9 +126,12 @@ public class ShanxiCAImpl implements CAInterface {
             caSignDateRequestTO.setSignMsg(JSONUtils.toString(recipe));
             caSignDateRequestTO.setUserAccount(userAccount);
             CaSignDateResponseTO responseDateTO = iCommonCAServcie.caSignDateBusiness(caSignDateRequestTO);
-            if (responseDateTO != null) {
-                signResultVo.setSignCADate(responseDateTO.getSignDate());
+            if (responseDateTO == null || responseDateTO.getCode() != 200) {
+                signResultVo.setCode(responseDateTO.getCode());
+                signResultVo.setMsg(responseDateTO.getMsg());
+                return signResultVo;
             }
+            signResultVo.setSignCADate(responseDateTO.getSignDate());
 
             //电子签章业务
             requestSealTO.setOrganId(organId);
@@ -141,9 +144,12 @@ public class ShanxiCAImpl implements CAInterface {
             requestSealTO.setSzIndexes(0);
             CaSealResponseTO responseSealTO = iCommonCAServcie.caSealBusiness(requestSealTO);
 
-            if (responseSealTO != null){
-                signResultVo.setPdfBase64(responseSealTO.getPdfBase64File());
+            if (responseSealTO == null || responseSealTO.getCode() != 200){
+                signResultVo.setCode(responseSealTO.getCode());
+                signResultVo.setMsg(responseSealTO.getMsg());
+                return signResultVo;
             }
+            signResultVo.setPdfBase64(responseSealTO.getPdfBase64File());
         } catch (Exception e){
             LOGGER.error("ShanxiCAImpl commonCASignAndSeal 调用前置机失败 requestTO={}", requestSealTO.toString());
             e.printStackTrace();

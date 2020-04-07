@@ -815,16 +815,16 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 //1是审核通过
                 else if (flag == 1) {
                     hql.append("select distinct r from Recipe r,RecipeCheck rc where r.recipeId = rc.recipeId and r.clinicOrgan in (:organ)" +
-                            "and (rc.checkStatus = 1 or (rc.checkStatus=0 and r.supplementaryMemo is not null)) ");
+                            "and (rc.checkStatus = 1 or (rc.checkStatus=0 and r.supplementaryMemo is not null)) and r.status <> 9");
                 }
                 //2是审核未通过
                 else if (flag == notPass) {
                     hql.append("select distinct r from Recipe r,RecipeCheck rc where r.recipeId = rc.recipeId and r.clinicOrgan in (:organ)" +
-                            "and rc.checkStatus = 0 and r.supplementaryMemo is null ");
+                            "and rc.checkStatus = 0 and r.supplementaryMemo is null and r.status <> 9");
                 }
-                //2是全部
+                //3是全部---0409小版本要包含待审核或者审核后已撤销的处方--这里不好过滤外层covertRecipeListPageInfo方法里在过滤
                 else if (flag == all) {
-                    hql.append("from Recipe where clinicOrgan in (:organ) and (status = 8 or checkDateYs is not null) ");
+                    hql.append("from Recipe where clinicOrgan in (:organ) and (status in (8,9) or checkDateYs is not null) ");
                 } else {
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "flag is invalid");
                 }

@@ -104,6 +104,9 @@ public class YtRecipeDTO implements Serializable{
      * 默认
      */
     private Integer costType = 1;
+
+    //医保支付金额
+    private Double fundAmount;
     /**
      * 病历号
      * recipe的patientID
@@ -326,6 +329,14 @@ public class YtRecipeDTO implements Serializable{
 
     public void setCostType(Integer costType) {
         this.costType = costType;
+    }
+
+    public Double getFundAmount() {
+        return fundAmount;
+    }
+
+    public void setFundAmount(Double fundAmount) {
+        this.fundAmount = fundAmount;
     }
 
     public String getRecordNo() {

@@ -41,7 +41,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.audit.service.PrescriptionService;
@@ -96,9 +95,6 @@ public class RecipeServiceSub {
     private static Integer[] showRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.IN_SEND, RecipeStatusConstant.WAIT_SEND, RecipeStatusConstant.FINISH};
 
     private static Integer[] showDownloadRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.RECIPE_DOWNLOADED};
-
-    @Autowired
-    private static AldyfRemoteService aldyfRemoteService;
     
     /**
      * @param recipeBean
@@ -345,10 +341,14 @@ public class RecipeServiceSub {
                             detail.setUsePathways(recipe.getTcmUsePathways());
                             detail.setUsingRate(recipe.getTcmUsingRate());
                             detail.setUseDays(recipe.getCopyNum());
-                            detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
+                            if (detail.getUseDose() !=null){
+                                detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
+                            }
                         } else if (RecipeBussConstant.RECIPETYPE_HP.equals(recipe.getRecipeType())) {
                             detail.setUseDays(recipe.getCopyNum());
-                            detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
+                            if (detail.getUseDose() !=null){
+                                detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
+                            }
                         }
 
                         //添加机构药品信息
@@ -520,6 +520,7 @@ public class RecipeServiceSub {
             }
             ctd.dictionary.Dictionary usingRateDic = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate");
             Dictionary usePathwaysDic = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways");
+            String useDose;
             for (Recipedetail d : details) {
                 DrugList drug = dMap.get(d.getDrugId());
                 String dName = (i + 1) + "、" + drug.getDrugName();
@@ -527,8 +528,13 @@ public class RecipeServiceSub {
                 String dSpec = drug.getDrugSpec() + "/" + drug.getUnit();
                 //使用天数
                 String useDay = d.getUseDays() + "天";
+                if (StringUtils.isNotEmpty(d.getUseDoseStr())){
+                    useDose = d.getUseDoseStr();
+                }else {
+                    useDose = d.getUseDose() !=null?String.valueOf(d.getUseDose()):d.getUseDoseStr();
+                }
                 //每次剂量+剂量单位
-                String uDose = "Sig: " + "每次" + d.getUseDose() + (StringUtils.isEmpty(drug.getUseDoseUnit()) ?
+                String uDose = "Sig: " + "每次" + useDose + (StringUtils.isEmpty(drug.getUseDoseUnit()) ?
                         "" : drug.getUseDoseUnit());
                 //开药总量+药品单位
                 String dTotal = "X" + d.getUseTotalDose() + drug.getUnit();
@@ -613,12 +619,19 @@ public class RecipeServiceSub {
                 String dName = drug.getDrugName();
                 //开药总量+药品单位
                 String dTotal = "";
-                //增加判断条件  如果用量小数位为零，则不显示小数点
-                if ((d.getUseDose() - d.getUseDose().intValue()) == 0d) {
-                    dTotal = d.getUseDose().intValue() + drug.getUseDoseUnit();
-                } else {
-                    dTotal = d.getUseDose() + drug.getUseDoseUnit();
+                if (StringUtils.isNotEmpty(d.getUseDoseStr())){
+                    dTotal = d.getUseDoseStr()+drug.getUseDoseUnit();
+                }else {
+                    if (d.getUseDose()!=null){
+                        //增加判断条件  如果用量小数位为零，则不显示小数点
+                        if ((d.getUseDose() - d.getUseDose().intValue()) == 0d) {
+                            dTotal = d.getUseDose().intValue() + drug.getUseDoseUnit();
+                        } else {
+                            dTotal = d.getUseDose() + drug.getUseDoseUnit();
+                        }
+                    }
                 }
+
                 if (!StringUtils.isEmpty(d.getMemo())) {
                     //备注
                     dTotal = dTotal + "*" + d.getMemo();
@@ -886,7 +899,8 @@ public class RecipeServiceSub {
      * @param effective
      * @return
      */
-    public static Map<String, String> getTipsByStatusCopy(int status, Recipe recipe, boolean effective) {
+    public static Map<String, String> getTipsByStatusCopy(int status, Recipe recipe, Boolean effective) {
+        RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
         String cancelReason = "";
         String tips = "";
         String listTips = "";
@@ -905,8 +919,12 @@ public class RecipeServiceSub {
                 tips = "待处理";
                 break;
             case RecipeStatusConstant.REVOKE:
-                tips = "已取消";
+                tips = "已撤销";
                 cancelReason = "由于您已撤销，该处方单已失效";
+                List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.REVOKE);
+                if (CollectionUtils.isNotEmpty(recipeLogs)) {
+                    cancelReason = recipeLogs.get(0).getMemo();
+                }
                 break;
             case RecipeStatusConstant.HAVE_PAY:
                 tips = "待取药";
@@ -979,6 +997,12 @@ public class RecipeServiceSub {
                 break;
             case RecipeStatusConstant.CHECKING_MEDICAL_INSURANCE:
                 tips = "医保上传确认中";
+                break;
+            case RecipeStatusConstant.SIGN_ERROR_CODE:
+                List<RecipeLog> recipeLog = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.SIGN_ERROR_CODE);
+                if (recipeLog != null &&recipeLog.size() > 0) {
+                    tips = recipeLog.get(0).getMemo();
+                }
                 break;
             default:
                 tips = "未知状态" + status;
@@ -1123,9 +1147,10 @@ public class RecipeServiceSub {
             // 获取处方单药品总价
             RecipeUtil.getRecipeTotalPriceRange(recipe, recipedetails);
             boolean effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
-            Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, effective);
-            map.put("tips", MapValueUtil.getString(tipMap, "tips"));
+            Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, null);
             map.put("cancelReason", MapValueUtil.getString(tipMap, "cancelReason"));
+            map.put("tips", MapValueUtil.getString(tipMap, "tips"));
+
             RecipeCheckService service = ApplicationUtils.getRecipeService(RecipeCheckService.class);
             //获取审核不通过详情
             List<Map<String, Object>> mapList = service.getCheckNotPassDetail(recipeId);
@@ -1141,6 +1166,7 @@ public class RecipeServiceSub {
                         && recipe.getStatus() != RecipeStatusConstant.NO_PAY
                         && recipe.getStatus() != RecipeStatusConstant.NO_OPERATOR
                         && recipe.getStatus() != RecipeStatusConstant.RECIPE_MEDICAL_FAIL
+                        && recipe.getStatus() != RecipeStatusConstant.CHECKING_HOS
                         && recipe.getStatus() != RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN
                         && !Integer.valueOf(1).equals(recipe.getChooseFlag())) {
                     cancelFlag = true;
@@ -1192,6 +1218,10 @@ public class RecipeServiceSub {
             } else {
                 PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
                 map.put("tips", purchaseService.getTipsByStatusForPatient(recipe, order));
+            }
+            //获取撤销原因
+            if (recipe.getStatus() == RecipeStatusConstant.REVOKE){
+                map.put("cancelReason", getCancelReasonForPatient(recipeId));
             }
             boolean b = null != recipe.getEnterpriseId() && RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())
                     && (recipe.getStatus() == RecipeStatusConstant.WAIT_SEND || recipe.getStatus() == RecipeStatusConstant.IN_SEND
@@ -1393,6 +1423,16 @@ public class RecipeServiceSub {
         map.put("showChecker", showChecker);
 
         return map;
+    }
+
+    private static String getCancelReasonForPatient(int recipeId) {
+        RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipeId, RecipeStatusConstant.REVOKE);
+        String cancelReason ="";
+        if (CollectionUtils.isNotEmpty(recipeLogs)) {
+            cancelReason = "开方医生已撤销处方,撤销原因:"+recipeLogs.get(0).getMemo();
+        }
+        return cancelReason;
     }
 
     private static boolean isShowChecker(int recipeId, Recipe recipe) {
@@ -1854,8 +1894,14 @@ public class RecipeServiceSub {
         String diseaseName = recipe.getOrganDiseaseName();
         List<String> drugNames = Lists.newArrayList();
         if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
+            String useDose;
             for (Recipedetail r : details) {
-                drugNames.add(r.getDrugName() + " * " + BigDecimal.valueOf(r.getUseDose()).toBigInteger().toString() + r.getUseDoseUnit());
+                if (StringUtils.isNotEmpty(r.getUseDoseStr())){
+                    useDose = r.getUseDoseStr();
+                }else {
+                    useDose = r.getUseDose()==null?r.getUseDoseStr():String.valueOf(r.getUseDose());
+                }
+                drugNames.add(r.getDrugName() + " * " +  useDose + r.getUseDoseUnit());
             }
         } else {
             //组装药品名称   药品名+商品名+规格
@@ -1940,9 +1986,6 @@ public class RecipeServiceSub {
         if (Integer.valueOf(RecipeStatusConstant.REVOKE).equals(recipe.getStatus())) {
             msg = "该处方单已撤销，不能进行撤销操作";
         }
-        if (!(recipe.getChecker() == null)) {
-            msg = "该处方单已经过审核，不能进行撤销操作";
-        }
         if (recipe.getStatus() == RecipeStatusConstant.UNSIGN) {
             msg = "暂存的处方单不能进行撤销";
         }
@@ -2012,6 +2055,7 @@ public class RecipeServiceSub {
                         }
                     }
                 }
+                LOGGER.info("cancelRecipe result:" + memo);
                 //处方撤销后将状态设为已撤销，供记录日志使用
                 recipe.setStatus(RecipeStatusConstant.REVOKE);
                 //推送处方到监管平台
@@ -2020,10 +2064,23 @@ public class RecipeServiceSub {
                 msg = "未知原因，处方撤销失败";
                 memo.append("," + msg);
             }
+        }else {
+            rMap.put("result", result);
+            rMap.put("msg", msg);
+            return rMap;
         }
 
         if (1 == flag) {
-            memo.append("。" + "撤销人：" + name + ",撤销原因：" + message);
+            memo.append("处方撤销成功。" + "撤销人：" + name + ",撤销原因：" + message);
+        }else {
+            if (result){
+                if (StringUtils.isNotEmpty(message)){
+                    memo = new StringBuilder(message);
+                }else {
+                    memo = new StringBuilder("无");
+                }
+
+            }
         }
         //记录日志
         RecipeLogService.saveRecipeLog(recipeId, beforeStatus, recipe.getStatus(), memo.toString());

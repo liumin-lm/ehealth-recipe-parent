@@ -109,6 +109,9 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "0:不支付药品费用，1:全部支付")
     private Integer storePayFlag;
 
+    @ItemProperty(alias = "配送主体类型 1 药企配送 2 医院配送")
+    private Integer sendType;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -351,6 +354,15 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setStorePayFlag(Integer storePayFlag) {
         this.storePayFlag = storePayFlag;
+    }
+
+    @Column(name = "sendType")
+    public Integer getSendType() {
+        return sendType;
+    }
+
+    public void setSendType(Integer sendType) {
+        this.sendType = sendType;
     }
 
     @Override
