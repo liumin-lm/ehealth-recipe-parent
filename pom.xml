@@ -287,11 +287,6 @@
                 <version>1.1</version>
             </dependency>
             <dependency>
-                <groupId>com.alihealth</groupId>
-                <artifactId>top-api-sdk-dev</artifactId>
-                <version>20190301</version>
-            </dependency>
-            <dependency>
                 <groupId>javax.servlet</groupId>
                 <artifactId>javax.servlet-api</artifactId>
                 <version>3.1.0</version>
