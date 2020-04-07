@@ -2073,8 +2073,13 @@ public class RecipeServiceSub {
         if (1 == flag) {
             memo.append("处方撤销成功。" + "撤销人：" + name + ",撤销原因：" + message);
         }else {
-            if (result&&StringUtils.isNotEmpty(message)){
-                memo = new StringBuilder(message);
+            if (result){
+                if (StringUtils.isNotEmpty(message)){
+                    memo = new StringBuilder(message);
+                }else {
+                    memo = new StringBuilder("无");
+                }
+
             }
         }
         //记录日志
