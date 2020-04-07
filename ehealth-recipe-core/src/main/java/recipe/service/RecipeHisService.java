@@ -272,20 +272,25 @@ public class RecipeHisService extends RecipeBaseService {
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
 
             List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
-            PatientBean patientBean = iPatientService.get(recipe.getMpiid());
-            HealthCardBean cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
-            RecipeStatusUpdateReqTO request = HisRequestInit.initRecipeStatusUpdateReqTO(recipe, details, patientBean, cardBean);
-            //是否是武昌机构，替换请求体
-            Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_WUCHANG_ORGAN_LIST);
-            if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(sendOrganId.toString())) {
-                request = HisRequestInit.initRecipeStatusUpdateReqForWuChang(recipe, details, patientBean, cardBean);
-            }
-            request.setOrganID(sendOrganId.toString());
-            if (StringUtils.isNotEmpty(hisRecipeStatus)) {
-                request.setRecipeStatus(hisRecipeStatus);
-            }
 
-            flag = service.recipeUpdate(request);
+            try {
+                PatientBean patientBean = iPatientService.get(recipe.getMpiid());
+                HealthCardBean cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
+                RecipeStatusUpdateReqTO request = HisRequestInit.initRecipeStatusUpdateReqTO(recipe, details, patientBean, cardBean);
+                //是否是武昌机构，替换请求体
+                Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_WUCHANG_ORGAN_LIST);
+                if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(sendOrganId.toString())) {
+                    request = HisRequestInit.initRecipeStatusUpdateReqForWuChang(recipe, details, patientBean, cardBean);
+                }
+                request.setOrganID(sendOrganId.toString());
+                if (StringUtils.isNotEmpty(hisRecipeStatus)) {
+                    request.setRecipeStatus(hisRecipeStatus);
+                }
+
+                flag = service.recipeUpdate(request);
+            }catch (Exception e){
+                LOGGER.error("recipeStatusUpdateWithOrganId error ",e);
+            }
         } else {
             flag = false;
             LOGGER.error("recipeStatusUpdate 医院HIS未启用[organId:" + sendOrganId + ",recipeId:" + recipeId + "]");
