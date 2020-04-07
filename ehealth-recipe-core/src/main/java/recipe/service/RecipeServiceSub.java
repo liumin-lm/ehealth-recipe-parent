@@ -1159,7 +1159,7 @@ public class RecipeServiceSub {
             //设置处方撤销标识 true:可以撤销, false:不可撤销
             Boolean cancelFlag = false;
             if (RecipeStatusConstant.REVOKE != recipe.getStatus()) {
-                if ((recipe.getChecker() == null) && !Integer.valueOf(1).equals(recipe.getPayFlag())
+                if (!Integer.valueOf(1).equals(recipe.getPayFlag())
                         && recipe.getStatus() != RecipeStatusConstant.UNSIGN
                         && recipe.getStatus() != RecipeStatusConstant.HIS_FAIL
                         && recipe.getStatus() != RecipeStatusConstant.NO_DRUG

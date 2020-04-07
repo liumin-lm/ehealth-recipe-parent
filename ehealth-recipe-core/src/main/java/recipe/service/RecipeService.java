@@ -2482,14 +2482,11 @@ public class RecipeService extends RecipeBaseService {
         }
         attrMap.put("giveMode", giveMode);
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
-        //根据审方模式改变
-        auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterPayChange(saveFlag, dbRecipe, result, attrMap);
 
         if (saveFlag && RecipeResultBean.SUCCESS.equals(result.getCode())) {
             if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(dbRecipe.getFromflag()) || RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())) {
                 //HIS消息发送
                 RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-                //HIS调用失败不应该导致业务失败
                 hisService.recipeDrugTake(recipeId, payFlag, null);
                 /*//todo---写死上海六院---在患者选完取药方式之后推送处方
                 if (payFlag==1 && dbRecipe.getClinicOrgan() == 1000899){
@@ -2503,6 +2500,12 @@ public class RecipeService extends RecipeBaseService {
                     });
                 }*/
             }
+
+        }
+
+        if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
+            //根据审方模式改变
+            auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterPayChange(saveFlag, dbRecipe, result, attrMap);
 
         }
         return result;
