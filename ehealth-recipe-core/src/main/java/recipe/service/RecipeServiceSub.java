@@ -41,11 +41,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
-import recipe.audit.auditmode.AuditModeContext;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
@@ -62,7 +59,6 @@ import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.*;
 
-import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -2058,6 +2054,7 @@ public class RecipeServiceSub {
                         }
                     }
                 }
+                LOGGER.info("cancelRecipe result:" + memo);
                 //处方撤销后将状态设为已撤销，供记录日志使用
                 recipe.setStatus(RecipeStatusConstant.REVOKE);
                 //推送处方到监管平台
@@ -2066,13 +2063,17 @@ public class RecipeServiceSub {
                 msg = "未知原因，处方撤销失败";
                 memo.append("," + msg);
             }
+        }else {
+            rMap.put("result", result);
+            rMap.put("msg", msg);
+            return rMap;
         }
 
         if (1 == flag) {
             memo.append("处方撤销成功。" + "撤销人：" + name + ",撤销原因：" + message);
         }else {
             if (result&&StringUtils.isNotEmpty(message)){
-                memo.append(message);
+                memo = new StringBuilder(message);
             }
         }
         //记录日志

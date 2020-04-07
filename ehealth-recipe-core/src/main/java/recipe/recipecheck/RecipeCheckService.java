@@ -162,9 +162,21 @@ public class RecipeCheckService {
         List<Map<String, Object>> mapList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(list)) {
             RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
             PatientDTO patient;
             PatientDTO dbPatient;
             for (Recipe r : list) {
+                //获取待审核撤销的处方单
+                if (r.getStatus() == RecipeStatusConstant.REVOKE){
+                    List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(r.getRecipeId(), RecipeStatusConstant.REVOKE);
+                    if (CollectionUtils.isNotEmpty(recipeLogs)){
+                        //撤销前的状态不是待审核或者审核后的则过滤
+                        if (recipeLogs.get(0).getBeforeStatus()!=RecipeStatusConstant.READY_CHECK_YS
+                            || r.getChecker() == null){
+                            continue;
+                        }
+                    }
+                }
                 Map<String, Object> map = Maps.newHashMap();
                 //组装需要的处方数据
                 Recipe recipe = new Recipe();
@@ -259,6 +271,7 @@ public class RecipeCheckService {
      */
     @RpcService
     public Map<String, Object> findRecipeAndDetailsAndCheckByIdEncrypt(String recipeId, Integer doctorId) {
+        LOGGER.info("findRecipeAndDetailsAndCheckByIdEncrypt recipeId={},doctorId={}",recipeId,doctorId);
         //20200323 解密recipe
         Integer reicpeIdI = null;
         try {
@@ -556,7 +569,7 @@ public class RecipeCheckService {
     /**
      * 获取审核结果
      *
-     * @param recipe checkResult 0:未审核 1:通过 2:不通过 3:二次签名
+     * @param recipe checkResult 0:未审核 1:通过 2:不通过 3:二次签名 4:已撤销(被医生撤销)
      * @return
      */
     private Integer getCheckResult(Recipe recipe) {
@@ -564,6 +577,8 @@ public class RecipeCheckService {
         Integer status = recipe.getStatus();
         if (RecipeStatusConstant.READY_CHECK_YS == status) {
             checkResult = 0;
+        } else if (RecipeStatusConstant.REVOKE == status){
+            checkResult = 4;
         } else {
             if (StringUtils.isNotEmpty(recipe.getSupplementaryMemo())) {
                 checkResult = 3;
