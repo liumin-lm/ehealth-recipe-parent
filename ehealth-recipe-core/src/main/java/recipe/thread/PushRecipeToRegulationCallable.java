@@ -78,18 +78,18 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
             regulationOrgan.put(serviceConfigResponseTO.getOrganid(),serviceConfigResponseTO.getRegulationAppDomainId());
         }
         logger.info("uploadRecipeIndicators regulationOrgan:"+JSONUtils.toString(list));
+        Boolean flag = false;
         try {
             //各个状态都推送给前置机 由前置机判断什么状态的处方推哪个监管平台
             String domainId = regulationOrgan.get(recipe.getClinicOrgan());
             if (CollectionUtils.isNotEmpty(list) && StringUtils.isNotEmpty(domainId)){
-                //boolean flag = true;
                 if (domainId.startsWith(REGULATION_ZJ)){
                     //浙江省推送处方规则：（1）将status=2 处方审核后的数据推送给监管平台，不会推送审核中、流传的数据
                     //审核后推送
                     //互联网网模式下--审核通过后是待处理状态
                     if (status == 2 && canUploadByReviewType(recipe)) {
                         response = service.uploadRecipeIndicators(Arrays.asList(recipe));
-                        //flag = false;
+                        flag = true;
                     }
                 }else {
                     //江苏省推送处方规则：（1）如果没有审核直接推送处方数据、（2）status=2表示审核了，则推送处方审核后的数据，（3）审核数据推送成功后再推送处方流转数据
@@ -125,9 +125,13 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
                         recipe.getStatus(), "监管平台上传成功");
             }else{
-                //记录日志
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
-                        recipe.getStatus(), "监管平台上传失败,"+response.getMsg());
+                //记录日志-暂时只处理浙江省的
+                //由于有些监管平台不是这里主动推送的，也会导致上传失败，不需要在运营平台展示
+                if (flag){
+                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
+                            recipe.getStatus(), "监管平台上传失败,"+response.getMsg());
+                }
+
             }
         }
         return null;
