@@ -135,6 +135,10 @@ public class DrugDistributionService {
             response.setMsg("处方不存在");
             return response;
         }
+        if (recipe.getStatus() == RecipeStatusConstant.REVOKE){
+            response.setMsg("处方单已被撤销");
+            return response;
+        }
 
         //根据药企ID获取药企信息
         DrugsEnterprise drugsEnterprise = null;
