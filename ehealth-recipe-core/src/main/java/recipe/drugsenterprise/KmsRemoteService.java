@@ -113,16 +113,13 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
             Map resultMap = JSONUtils.parse(outputData, Map.class);
             if (requestSuccessCode.equals(MapValueUtil.getString(resultMap, "code"))) {
                 List<Map<String, Object>> drugList = MapValueUtil.getList(resultMap, "drugList");
-                ScanStockBean detailBean;
-                List<ScanStockBean> scanStockList = new ArrayList<>();
-                if (drugList.size() > 0) {
+                if (CollectionUtils.isNotEmpty(drugList) && drugList.size() > 0) {
                     for (Map<String, Object> drugBean : drugList) {
-                        detailBean = new ScanStockBean();
-                        detailBean.setInventory(MapValueUtil.getObject(drugBean, "inventory").toString());
-                        detailBean.setDrugCode(MapValueUtil.getString(drugBean, "drugCode"));
-                        scanStockList.add(detailBean);
+                        String inventory = MapValueUtil.getString(drugBean, "inventory");
+                        if ("false".equals(inventory)) {
+                            getFailResult(result, "当前药企下没有药店的药品库存足够");
+                        }
                     }
-                    result.setObject(scanStockList);
                     LOGGER.info("KmsRemoteService.findSupportDep:[{}][{}]获取药品库存请求，返回前端result消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), JSONUtils.toString(result));
                 } else {
                     getFailResult(result, "当前药企下没有药店的药品库存足够");
