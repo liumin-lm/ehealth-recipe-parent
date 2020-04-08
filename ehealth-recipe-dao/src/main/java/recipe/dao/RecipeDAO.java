@@ -824,7 +824,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 }
                 //3是全部---0409小版本要包含待审核或者审核后已撤销的处方--这里不好过滤外层covertRecipeListPageInfo方法里在过滤
                 else if (flag == all) {
-                    hql.append("from Recipe where clinicOrgan in (:organ) and (status in (8,9) or checkDateYs is not null) ");
+                    hql.append("from Recipe where clinicOrgan in (:organ) and (status = 8 or status = 9 or checkDateYs is not null) ");
                 } else {
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "flag is invalid");
                 }
