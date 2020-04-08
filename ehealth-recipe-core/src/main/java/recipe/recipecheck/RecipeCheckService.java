@@ -162,11 +162,11 @@ public class RecipeCheckService {
         List<Map<String, Object>> mapList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(list)) {
             RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-            RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+            /*RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);*/
             PatientDTO patient;
             PatientDTO dbPatient;
             for (Recipe r : list) {
-                //获取待审核撤销的处方单
+                /*//获取待审核撤销的处方单
                 if (r.getStatus() == RecipeStatusConstant.REVOKE){
                     List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(r.getRecipeId(), RecipeStatusConstant.REVOKE);
                     if (CollectionUtils.isNotEmpty(recipeLogs)){
@@ -176,7 +176,7 @@ public class RecipeCheckService {
                             continue;
                         }
                     }
-                }
+                }*/
                 Map<String, Object> map = Maps.newHashMap();
                 //组装需要的处方数据
                 Recipe recipe = new Recipe();
