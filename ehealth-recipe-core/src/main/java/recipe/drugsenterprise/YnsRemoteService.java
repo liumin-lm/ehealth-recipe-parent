@@ -91,10 +91,14 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
             LOGGER.info("YnsRemoteService.scanStock:[{}][{}]获取药企库存查询请求，获取响应getBody消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), response.getBody());
             Map resultMap = JSONUtils.parse(response.getBody(), Map.class);
             if (requestSuccessCode.equals(MapValueUtil.getString(resultMap, "code"))) {
-                YnsScanStockBean detailBean=new YnsScanStockBean();
-                detailBean.setInventory(MapValueUtil.getString(resultMap, "inventory"));
-                result.setObject(detailBean);
-                LOGGER.info("YnsRemoteService.findSupportDep:[{}][{}]获取药店列表请求，返回前端result消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), JSONUtils.toString(result));
+                String inventory = MapValueUtil.getString(resultMap, "inventory");
+                if ("true".equals(inventory)) {
+                    result.setCode(DrugEnterpriseResult.SUCCESS);
+                    return result;
+                } else {
+                    result.setCode(DrugEnterpriseResult.FAIL);
+                    return result;
+                }
             }else{
                 getFailResult(result, "当前药企下没有药店的药品库存足够");
             }
@@ -133,6 +137,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
         YnsPharmacyAndStockRequest hdPharmacyAndStockRequest = new YnsPharmacyAndStockRequest();
         hdPharmacyAndStockRequest.setDrugList(drugRequestDataList);
         bodyList.add(hdPharmacyAndStockRequest);
+        LOGGER.info("YnsRemoteService.findScanStockBussReq:获取药企库存查询请求药品数据:{}.", JSONUtils.toString(bodyList));
         //X-Service-Id对应的值
         String serviceId = "CallYygsService";
         //X-Service-Method对应的值
@@ -272,7 +277,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
      * @return java.util.List<recipe.drugsenterprise.bean.HdDrugRequestData>请求药店下药品信息列表
      */
     private List<HdDrugRequestData> getDrugRequestList(Map<String, HdDrugRequestData> result, List<Recipedetail> detailList, DrugsEnterprise drugsEnterprise, DrugEnterpriseResult finalResult) {
-        LOGGER.info("YnsRemoteService.getDrugRequestList:[{}][{}]获取请求药店下药品信息接口下的药品总量（根据药品的code分组）的list：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), detailList);
+        LOGGER.info("YnsRemoteService.getDrugRequestList:[{}][{}]获取请求药店下药品信息接口下的药品总量（根据药品的code分组）的list：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), JSONUtils.toString(detailList));
         HdDrugRequestData hdDrugRequestData;
         Double sum;
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);

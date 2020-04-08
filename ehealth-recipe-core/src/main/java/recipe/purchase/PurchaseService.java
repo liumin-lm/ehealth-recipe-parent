@@ -369,9 +369,7 @@ public class PurchaseService {
     private boolean checkRecipeIsDeal(Recipe dbRecipe, RecipeResultBean result, Map<String, String> extInfo) {
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
         if (dbRecipe.getStatus() == RecipeStatusConstant.REVOKE){
-            result.setCode(RecipeResultBean.FAIL);
-            result.setMsg("处方单已被撤销");
-            return true;
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "处方单已被撤销");
         }
         if (RecipeStatusConstant.CHECK_PASS != dbRecipe.getStatus()
                 || 1 == dbRecipe.getChooseFlag()) {
@@ -498,9 +496,7 @@ public class PurchaseService {
      */
     private boolean checkRecipeIsUser(Recipe dbRecipe, RecipeResultBean result) {
         if (dbRecipe.getStatus() == RecipeStatusConstant.REVOKE){
-            result.setCode(RecipeResultBean.FAIL);
-            result.setMsg("处方单已被撤销");
-            return true;
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "处方单已被撤销");
         }
         if (RecipeStatusConstant.CHECK_PASS != dbRecipe.getStatus()
                 || 1 == dbRecipe.getChooseFlag()) {

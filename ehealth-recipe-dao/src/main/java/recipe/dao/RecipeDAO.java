@@ -822,14 +822,19 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                     hql.append("select distinct r from Recipe r,RecipeCheck rc where r.recipeId = rc.recipeId and r.clinicOrgan in (:organ)" +
                             "and rc.checkStatus = 0 and r.supplementaryMemo is null and r.status <> 9");
                 }
-                //3是全部---0409小版本要包含待审核或者审核后已撤销的处方--这里不好过滤外层covertRecipeListPageInfo方法里在过滤
+                //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
                 else if (flag == all) {
-                    hql.append("from Recipe where clinicOrgan in (:organ) and (status in (8,9) or checkDateYs is not null) ");
+                    hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and (r.status = 8 or r.checkDateYs is not null or (r.status = 9 and (select l.beforeStatus from cdr_recipe_log l where l.recipeId = r.recipeId and l.afterStatus =9 ORDER BY l.Id desc limit 1) in (8,15,7,2))) ");
                 } else {
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "flag is invalid");
                 }
                 hql.append("order by signDate desc");
-                Query q = ss.createQuery(hql.toString());
+                Query q;
+                if (flag == all){
+                    q = ss.createSQLQuery(hql.toString()).addEntity(Recipe.class);
+                }else {
+                    q = ss.createQuery(hql.toString());
+                }
                 q.setParameterList("organ", organ);
                 q.setFirstResult(start);
                 q.setMaxResults(limit);

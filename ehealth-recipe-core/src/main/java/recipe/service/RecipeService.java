@@ -2664,6 +2664,9 @@ public class RecipeService extends RecipeBaseService {
                 return result;
             }
             Integer beforStatus = recipe.getStatus();
+            if (beforStatus == RecipeStatusConstant.REVOKE){
+                throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "处方单已被撤销");
+            }
             searchMap.put("giveMode", RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE);
             searchMap.put("chooseFlag", havChooseFlag);
             //更新处方的信息
