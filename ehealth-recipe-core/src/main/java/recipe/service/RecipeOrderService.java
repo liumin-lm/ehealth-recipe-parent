@@ -410,7 +410,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 if (!Integer.valueOf(RecipeStatusConstant.CHECK_PASS).equals(recipe.getStatus())) {
                     LOGGER.error("处方id=" + recipe.getRecipeId() + "不是待处理状态。");
                     if (RecipeStatusConstant.REVOKE == recipe.getStatus()) {
-                        result.setError("由于医生已撤销，该处方单已失效，请联系医生");
+                        result.setError("处方单已被撤销");
                     } else {
                         result.setError("处方单已处理");
                     }
