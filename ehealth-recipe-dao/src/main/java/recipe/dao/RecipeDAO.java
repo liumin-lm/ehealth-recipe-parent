@@ -831,7 +831,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 hql.append("order by signDate desc");
                 Query q;
                 if (flag == all){
-                    q = ss.createSQLQuery(hql.toString());
+                    q = ss.createSQLQuery(hql.toString()).addEntity(Recipe.class);
                 }else {
                     q = ss.createQuery(hql.toString());
                 }
