@@ -136,8 +136,7 @@ public class DrugDistributionService {
             return response;
         }
         if (recipe.getStatus() == RecipeStatusConstant.REVOKE){
-            response.setMsg("处方单已被撤销");
-            return response;
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "处方单已被撤销");
         }
 
         //根据药企ID获取药企信息
