@@ -99,6 +99,9 @@ public class RecipeOrderService extends RecipeBaseService {
     public RecipeOrderBean createBlankOrder(List<Integer> recipeIds, Map<String, String> extInfo) {
         OrderCreateResult result = createOrder(recipeIds, extInfo, 0);
         RecipeOrderBean order = null;
+        if (null != result && RecipeResultBean.FAIL.equals(result.getCode())){
+            throw new DAOException(609, result.getMsg()==null?"创建订单失败":result.getMsg());
+        }
         if (null != result && RecipeResultBean.SUCCESS.equals(result.getCode()) &&
                 null != result.getObject() && result.getObject() instanceof RecipeOrderBean) {
             order = (RecipeOrderBean) result.getObject();
