@@ -342,139 +342,30 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         LOGGER.info("findRecipeOrdersByInfoForExcel查询处方订单导出信息入参:{},{},{},{},{},{},{},{},{},{},{},{}",organId, organIds, status, doctor, patientName, bDate, eDate, dateType, depart, giveMode, fromflag, recipeId);
         IRecipeService recipeService = RecipeAPI.getService(IRecipeService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        List<Map> recipeMap = recipeDAO.findRecipesByInfoForExcel(organId, status, doctor, patientName, bDate, eDate, dateType, depart, organIds, giveMode, fromflag, recipeId);
+        List<Map> recipeMap = recipeDAO.findRecipesByInfoForExcelN(organId, status, doctor, patientName, bDate, eDate, dateType, depart, organIds, giveMode, fromflag, recipeId);
 
         //组装数据准备
         Object nowRecipeId;
-        Object clinicOrgan;
         Object address4 = null;
-        Integer nowRecipedId;
-        Integer clinicOrganId;
         RecipeOrder order;
-        SaleDrugList saleDrugList;
-        OrganDrugList organDrugList;
-        List<OrganDrugList> organDrugLists;
-        List<RecipeDetailBean> recipeDetails;
-        //List<Map<String, Object>> details;
-        //Map<String, Object> recipeDetailMap;
         List<Map> newRecipeMap = new ArrayList<>();
         Map<String, Object> recipeMsgMap;
-        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
 
         //组装处方相关联的数据
 
         for(Map<String, Object> recipeMsg: recipeMap){
             nowRecipeId = recipeMsg.get("recipeId");
-            clinicOrgan = recipeMsg.get("clinicOrgan");
-
             if(null != nowRecipeId){
                 try {
-                    nowRecipedId = Integer.parseInt(nowRecipeId.toString());
-                    clinicOrganId = Integer.parseInt(clinicOrgan.toString());
                     //订单数据
-                    LOGGER.info("findRecipeOrdersByInfoForExcel查询订单信息:RecipeId{}", nowRecipedId);
-                    order = recipeOrderDAO.getOrderByRecipeId(nowRecipedId);
-                    LOGGER.info("findRecipeOrdersByInfoForExcel查询订单信息,{}", JSONUtils.toString(order));
-                    //处方对应药品详情信息
-                    recipeDetails = recipeService.findRecipeDetailsByRecipeId(nowRecipedId);
-                    if(null != recipeDetails && 0 < recipeDetails.size()){
-                        //details = new ArrayList<>();
-                        for (RecipeDetailBean recipeDetailBean : recipeDetails){
-                            //recipeDetailMap = new HashMap();
-                            //药品名称
-                            recipeMsgMap = new HashMap();
-                            recipeMsgMap.putAll(recipeMsg);
-                            recipeMsgMap.put("detailDrugName", recipeDetailBean.getDrugName());
-                            //规格
-                            recipeMsgMap.put("detailDrugSpec", recipeDetailBean.getDrugSpec());
-                            //单位
-                            recipeMsgMap.put("detailDrugUnit", recipeDetailBean.getDrugUnit());
-                            //价格
-                            recipeMsgMap.put("detailDrugPrice", recipeDetailBean.getSalePrice());
-                            //date 20200225 修改药品查询信息
-                            //判断处方详情中药品信息存在去新的值(如果为空说明)
-                            if(null != recipeDetailBean.getProducer()){
-                                LOGGER.info("findRecipeOrdersByInfoForExcel当前处方关联的药品数据是新数据{}", nowRecipeId);
-                                //说明是新签名后添加的数据
-                                //批号
-                                recipeMsgMap.put("detailDruglicenseNumber", recipeDetailBean.getLicenseNumber());
-                                //生产厂家
-                                recipeMsgMap.put("detailDrugProducer", recipeDetailBean.getProducer());
-                            }else{
-                                //说明是老数据
-                                LOGGER.info("findRecipeOrdersByInfoForExcel当前处方关联的药品数据是旧数据{}", nowRecipeId);
-                                //处方的药品关联信息
-                                if (null != recipeDetailBean.getDrugId() && null != clinicOrganId && null != recipeDetailBean.getOrganDrugCode()){
+                    order = (RecipeOrder)recipeMsg.get("recipeOrder");
 
-                                    LOGGER.info("findRecipeOrdersByInfoForExcel查询处方机构药品信息:DrugId{},OrganId{},OrganDrugCode{}", recipeDetailBean.getDrugId(), clinicOrganId, recipeDetailBean.getOrganDrugCode());
-                                    organDrugLists = organDrugListDAO.findByOrganIdAndDrugIdAndOrganDrugCode(clinicOrganId, recipeDetailBean.getDrugId(), recipeDetailBean.getOrganDrugCode());
-                                    LOGGER.info("findRecipeOrdersByInfoForExcel查询处方机构药品信息,{},长度:{}", JSONUtils.toString(organDrugLists));
-                                    if(null == organDrugLists || 0 == organDrugLists.size()){
-                                        LOGGER.warn("当前处方药品详情关联的机构药品信息不存在DrugId:{},OrganId:{}", recipeDetailBean.getDrugId(), clinicOrganId);
-                                    }else{
-                                        organDrugList = organDrugLists.get(0);
-                                        LOGGER.info("findRecipeOrdersByInfoForExcel查询处方机构药品单个信息:DrugId{},OrganId{},OrganDrugCode{}", JSONUtils.toString(organDrugList));
-                                        //机构药品信息存在
-                                        //批号
-                                        recipeMsgMap.put("detailDruglicenseNumber", organDrugList.getLicenseNumber());
-                                        //生产厂家
-                                        recipeMsgMap.put("detailDrugProducer", organDrugList.getProducer());
-
-                                    }
-                                }
-
-                            }
-                            //将药企药品价格更新上去以及药企的药品code
-                            if(null != order){
-                                LOGGER.info("findRecipeOrdersByInfoForExcel查询处方配送药品信息:DrugId{},OrganId{}", recipeDetailBean.getDrugId(), order.getEnterpriseId());
-                                if(null != order.getEnterpriseId()){
-
-                                    saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), order.getEnterpriseId());
-                                    LOGGER.info("findRecipeOrdersByInfoForExcel查询处方配送药品信息,{}", JSONUtils.toString(saleDrugList));
-                                    if(null != saleDrugList && null != saleDrugList.getPrice()){
-                                        //价格
-                                        //有订单，判断订单对应的药品是否是药企的药品价格
-                                        recipeMsgMap.put("detailDrugPrice", saleDrugList.getPrice());
-                                    }
-                                    if(null != saleDrugList){
-                                        //药企药品编码
-                                        recipeMsgMap.put("saleDrugCode", saleDrugList.getOrganDrugCode());
-                                    }
-                                }
-                            }
-
-
-                            //每次剂量
-                            recipeMsgMap.put("detailUseDose", recipeDetailBean.getUseDose());
-                            //剂量单位
-                            recipeMsgMap.put("detailUseDoseUnit", recipeDetailBean.getUseDoseUnit());
-                            //用法
-                            if(StringUtils.isNotEmpty(recipeDetailBean.getUsePathways())){
-                                recipeMsgMap.put("detailUsePathways", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipeDetailBean.getUsePathways()));
-                            }
-                            //用药频度
-                            if(StringUtils.isNotEmpty(recipeDetailBean.getUsingRate())){
-                                recipeMsgMap.put("detailUsingRate", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(recipeDetailBean.getUsingRate()));
-                            }
-                            //数量
-                            recipeMsgMap.put("detailTotalDose", recipeDetailBean.getUseTotalDose());
-
-
-                            //details.add(recipeDetailMap);
-                            recipeAndOrderMsg(address4, order, commonRemoteService, recipeMsgMap);
-                            newRecipeMap.add(recipeMsgMap);
-                        }
-                        //recipeMsg.put("details", details);
-                    }else{
-                        recipeMsgMap = new HashMap();
-                        recipeMsgMap.putAll(recipeMsg);
-                        recipeAndOrderMsg(address4, order, commonRemoteService, recipeMsgMap);
-                        newRecipeMap.add(recipeMsgMap);
-                    }
-
+                    recipeMsgMap = new HashMap();
+                    recipeMsgMap.putAll(recipeMsg);
+                    recipeAndOrderMsg(address4, order, commonRemoteService, recipeMsgMap);
+                    recipeMsgMap.put("recipeOrder",null);
+                    newRecipeMap.add(recipeMsgMap);
 
                 } catch (Exception e) {
                     LOGGER.error("查询关联信息异常{}，对应的处方id{}", e, nowRecipeId);
@@ -517,7 +408,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 //DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                 DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
                 if(null != enterprise && null != enterprise.getName()){
-                    LOGGER.info("findRecipeOrdersByInfoForExcel 当前处方{}关联上药企:{}", order.getRecipeIdList(), JSONUtils.toString(enterprise));
                     recipeMsg.put("enterpriseName", enterprise.getName());
                 }else{
                     LOGGER.warn("findRecipeOrdersByInfoForExcel 当前处方{}关联的药企id:{}信息不全", order.getRecipeIdList(), order.getEnterpriseId());
@@ -532,9 +422,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             //date 20200305
             //添加支付状态
             if(null != order.getPayFlag()){
-                LOGGER.info("findRecipeOrdersByInfoForExcel 当前处方{}的订单支付状态{}", order.getRecipeIdList(), order.getPayFlag());
                 recipeMsg.put("payStatusText", RecipePayTextEnum.getByPayFlag(order.getPayFlag()).getPayText());
             }else{
+                LOGGER.info("findRecipeOrdersByInfoForExcel 当前处方{}的订单支付状态{}", order.getRecipeIdList(), order.getPayFlag());
                 recipeMsg.put("payStatusText", RecipePayTextEnum.Default.getPayText());
             }
             recipeMsg.put("payTime", order.getPayTime());
