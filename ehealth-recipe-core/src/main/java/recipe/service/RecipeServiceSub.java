@@ -20,6 +20,9 @@ import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.message.service.IConsultMessageService;
+import com.ngari.home.asyn.model.BussCancelEvent;
+import com.ngari.home.asyn.model.BussFinishEvent;
+import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -2056,6 +2059,10 @@ public class RecipeServiceSub {
                     }
                 }
                 LOGGER.info("cancelRecipe result:" + memo);
+                //如果是待审核要取消未结束任务
+                if (RecipeStatusConstant.READY_CHECK_YS == beforeStatus) {
+                    ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCancelEvent(recipeId, BussTypeConstant.RECIPE));
+                }
                 //处方撤销后将状态设为已撤销，供记录日志使用
                 recipe.setStatus(RecipeStatusConstant.REVOKE);
                 //推送处方到监管平台
