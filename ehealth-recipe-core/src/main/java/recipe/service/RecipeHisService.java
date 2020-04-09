@@ -380,7 +380,9 @@ public class RecipeHisService extends RecipeBaseService {
             if (RecipeResultBean.SUCCESS.equals(result.getCode()) && RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) && 1 == payFlag) {
                 PayNotifyReqTO payNotifyReq = HisRequestInit.initPayNotifyReqTO(recipe, patientBean, cardBean);
                 PayNotifyResTO response = service.payNotify(payNotifyReq);
-                if (null == response || null == response.getMsgCode() || response.getMsgCode() != 0 || response.getData() == null) {
+                if(null == response){
+                    LOGGER.error("payNotify 前置机未返回null，可能为对接结算接口");
+                } else if(null != response && (null == response.getMsgCode() || response.getMsgCode() != 0 || response.getData() == null)) {
                     result.setCode(RecipeResultBean.FAIL);
                     if (response != null) {
                         if (response.getMsg() != null) {
@@ -418,8 +420,8 @@ public class RecipeHisService extends RecipeBaseService {
         } else {
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "recipeDrugTake[DrugTakeUpdateService] HIS未启用");
             LOGGER.error("recipeDrugTake 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipe.getRecipeId() + "]");
-            result.setCode(RecipeResultBean.FAIL);
-            result.setError("医院HIS未启用。");
+//            result.setCode(RecipeResultBean.FAIL);
+//            result.setError("医院HIS未启用。");
         }
 
         return result;

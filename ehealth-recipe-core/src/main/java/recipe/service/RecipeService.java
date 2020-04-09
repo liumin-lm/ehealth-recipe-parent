@@ -2487,7 +2487,7 @@ public class RecipeService extends RecipeBaseService {
             if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(dbRecipe.getFromflag()) || RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())) {
                 //HIS消息发送
                 RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-                hisService.recipeDrugTake(recipeId, payFlag, null);
+                hisService.recipeDrugTake(recipeId, payFlag, result);
                 /*//todo---写死上海六院---在患者选完取药方式之后推送处方
                 if (payFlag==1 && dbRecipe.getClinicOrgan() == 1000899){
                     if (!new Integer(1).equals(dbRecipe.getChooseFlag())){
