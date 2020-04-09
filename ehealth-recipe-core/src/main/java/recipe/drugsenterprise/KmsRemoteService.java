@@ -115,7 +115,7 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
                 List<Map<String, Object>> drugList = MapValueUtil.getList(resultMap, "drugList");
                 if (CollectionUtils.isNotEmpty(drugList) && drugList.size() > 0) {
                     for (Map<String, Object> drugBean : drugList) {
-                        String inventory = MapValueUtil.getString(drugBean, "inventory");
+                        String inventory = MapValueUtil.getObject(drugBean, "inventory").toString();
                         if ("false".equals(inventory)) {
                             getFailResult(result, "当前药企下没有药店的药品库存足够");
                         }

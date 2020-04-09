@@ -91,7 +91,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
             LOGGER.info("YnsRemoteService.scanStock:[{}][{}]获取药企库存查询请求，获取响应getBody消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), response.getBody());
             Map resultMap = JSONUtils.parse(response.getBody(), Map.class);
             if (requestSuccessCode.equals(MapValueUtil.getString(resultMap, "code"))) {
-                String inventory = MapValueUtil.getString(resultMap, "inventory");
+                String inventory = MapValueUtil.getObject(resultMap, "inventory").toString();
                 if ("true".equals(inventory)) {
                     result.setCode(DrugEnterpriseResult.SUCCESS);
                     return result;

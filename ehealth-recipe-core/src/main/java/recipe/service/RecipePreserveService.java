@@ -156,6 +156,7 @@ public class RecipePreserveService {
             throw new DAOException(609, "找不到该机构");
         }
         String cardId = null;
+        String cardType = null;
         IConsultService service = ConsultAPI.getService(IConsultService.class);
         if (consultId == null){
             List<ConsultBean> consultBeans = service.findConsultByMpiId(Arrays.asList(mpiId));
@@ -170,6 +171,7 @@ public class RecipePreserveService {
                 ConsultExDTO consultExDTO = exService.getByConsultId(consultId);
                 if(null != consultExDTO && StringUtils.isNotEmpty(consultExDTO.getCardId())){
                     cardId = consultExDTO.getCardId();
+                    cardType = consultExDTO.getCardType();
                 }
             }
         }
@@ -185,6 +187,8 @@ public class RecipePreserveService {
         patientBaseInfo.setPatientID(cardId);
         patientBaseInfo.setCertificate(patientDTO.getCertificate());
         patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
+        patientBaseInfo.setCardID(cardId);
+        patientBaseInfo.setCardType(cardType);
         request.setPatientInfo(patientBaseInfo);
         request.setStartDate(startDate);
         request.setEndDate(endDate);
