@@ -586,9 +586,11 @@ public class HisRequestInit {
                             DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                             DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(depId);
                             if (drugsEnterprise != null && drugsEnterprise.getSendType() == 1) {
-                                requestTO.setTakeDrugsType("1");
-                            } else {
+                                //药企配送
                                 requestTO.setTakeDrugsType("2");
+                            } else {
+                                //医院配送
+                                requestTO.setTakeDrugsType("1");
                             }
                         }
                     }
