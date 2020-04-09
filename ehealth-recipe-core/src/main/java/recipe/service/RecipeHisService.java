@@ -396,7 +396,9 @@ public class RecipeHisService extends RecipeBaseService {
 
             if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
                 Boolean success = service.drugTakeChange(request);
-                if (success) {
+                //date 20200410
+                //前置机为实现判断
+                if (null == success || success) {
                     RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "HIS更新购药方式返回：写入his成功");
                 } else {
                     RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "HIS更新购药方式返回：写入his失败");
