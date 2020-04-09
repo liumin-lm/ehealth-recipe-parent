@@ -369,7 +369,7 @@ public abstract class AccessDrugEnterpriseService {
 
     public void checkRecipeGiveDeliveryMsg(RecipeBean recipeBean, Map<String, Object> map){
         LOGGER.info("checkRecipeGiveDeliveryMsg 当前公用药企逻辑-预校验，入参：recipeBean:{},map:{}", JSONUtils.toString(recipeBean), JSONUtils.toString(map));
-        //预校验返回 取药方式1配送到家 2医院取药 3两者都支持
+        /*//预校验返回 取药方式1配送到家 2医院取药 3两者都支持
         String giveMode = null != map.get("giveMode") ? map.get("giveMode").toString() : null;
         //配送药企代码
         String deliveryCode = null != map.get("deliveryCode") ? map.get("deliveryCode").toString() : null;
@@ -383,7 +383,7 @@ public abstract class AccessDrugEnterpriseService {
             updateMap.put("deliveryName",deliveryName);
             recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(),updateMap);
             LOGGER.info("hisRecipeCheck 当前处方{}预校验，配送方式存储成功:{}！", recipeBean.getRecipeId(), JSONUtils.toString(updateMap));
-        }
+        }*/
 
     }
 

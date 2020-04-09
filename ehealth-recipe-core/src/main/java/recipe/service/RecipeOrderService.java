@@ -937,9 +937,11 @@ public class RecipeOrderService extends RecipeBaseService {
                     ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-            AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
-            //药品匹配成功标识
-            order.setEnterpriseName(remoteService.appEnterprise(order));
+            if (drugsEnterprise!=null){
+                AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+                //药品匹配成功标识
+                order.setEnterpriseName(remoteService.appEnterprise(order));
+            }
         }
 
         //设置送货地址
