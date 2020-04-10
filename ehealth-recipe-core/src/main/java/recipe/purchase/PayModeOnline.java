@@ -948,7 +948,7 @@ public class PayModeOnline implements IPurchaseService {
                                 //如果是价格自定义的药企，则需要设置单独价格
                                 //date 20200402
                                 //判断当药企不是his返回的时候在重新计算金额
-                                if (Integer.valueOf(0).equals(drugsEnterprise.getSettlementMode()) && !depDetailBean.getHisDep()) {
+                                if (Integer.valueOf(0).equals(drugsEnterprise.getSettlementMode()) && (depDetailBean.getHisDep() == null || (depDetailBean.getHisDep() != null && !depDetailBean.getHisDep()))) {
                                     List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIds);
                                     if (CollectionUtils.isNotEmpty(saleDrugLists)) {
                                         BigDecimal total = BigDecimal.ZERO;

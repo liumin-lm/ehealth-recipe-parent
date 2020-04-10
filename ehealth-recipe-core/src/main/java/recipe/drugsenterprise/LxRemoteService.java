@@ -106,9 +106,19 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
                 LOGGER.info("LxRemoteService.scanStock:[{}][{}]获取药企库存查询请求，获取响应getBody消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), stockData);
                 Map resultMap = JSONUtils.parse(stockData, Map.class);
                 if (requestSuccessCode.equals(MapValueUtil.getString(resultMap, "code"))) {
-                    LxScanStockBean detailBean=new LxScanStockBean();
-                    detailBean.setDrugList(MapValueUtil.getList(resultMap,"drugList"));
-                    result.setObject(detailBean);
+                    List<Map<String, Object>> drugList = MapValueUtil.getList(resultMap,"drugList");
+                    if (CollectionUtils.isNotEmpty(drugList) && drugList.size() > 0) {
+                        for (Map<String, Object> drugBean : drugList) {
+                            String inventory = MapValueUtil.getObject(drugBean, "inventory").toString();
+                            if ("false".equals(inventory)) {
+                                getFailResult(result, "当前药企下没有药店的药品库存足够");
+                                return result;
+                            }
+                        }
+                        LOGGER.info("LxRemoteService.findSupportDep:[{}][{}]获取药品库存请求，返回前端result消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), JSONUtils.toString(result));
+                    } else {
+                        getFailResult(result, "当前药企下没有药店的药品库存足够");
+                    }
                     LOGGER.info("LxRemoteService.findSupportDep:[{}][{}]获取药店列表请求，返回前端result消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), JSONUtils.toString(result));
                 }else{
                     getFailResult(result, "当前药企下没有药店的药品库存足够");
