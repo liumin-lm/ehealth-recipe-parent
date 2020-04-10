@@ -118,6 +118,7 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
                         String inventory = MapValueUtil.getObject(drugBean, "inventory").toString();
                         if ("false".equals(inventory)) {
                             getFailResult(result, "当前药企下没有药店的药品库存足够");
+                            return result;
                         }
                     }
                     LOGGER.info("KmsRemoteService.findSupportDep:[{}][{}]获取药品库存请求，返回前端result消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), JSONUtils.toString(result));
