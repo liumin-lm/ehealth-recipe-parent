@@ -1115,6 +1115,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                     if (objectList != null) {
                         for (Object[] obj : objectList) {
                             Recipe recipe = (Recipe)obj[0];
+                            mpiIds.add(recipe.getMpiid());
                             doctorIds.add(recipe.getDoctor());
                         }
                         List<PatientDTO> patientBeanList = Lists.newArrayList();
@@ -1516,7 +1517,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     private StringBuilder generateRecipeOderHQLforStatisticsN(Integer organId,
         Integer status, Integer doctor, String patientName, Integer dateType,
         Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer fromflag, Integer recipeId) {
-        StringBuilder hql = new StringBuilder("select * from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode ");
+        StringBuilder hql = new StringBuilder("select if(o.EnterpriseId is not null and s.price is not null,s.price,d.price) as price, ");
+        hql.append("if(o.EnterpriseId is not null,s.OrganDrugCode,d.OrganDrugCode) as OrganDrugCode, ");
+        hql.append("r.mpiid, o.*, r.*, d.*, s.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode ");
         hql.append("LEFT JOIN cdr_recipedetail d ON r.RecipeID = d.RecipeID and d.Status= 1 ");
         hql.append("LEFT JOIN base_saledruglist s ON o.EnterpriseId = s.OrganID and d.DrugID = s.DrugId and s.Status=1 where 1=1 ");
         //默认查询所有
