@@ -9,6 +9,7 @@ import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.ChronicDiseaseListReqTO;
 import com.ngari.his.recipe.mode.ChronicDiseaseListResTO;
 import com.ngari.his.recipe.mode.MedicInsurSettleApplyResTO;
+import com.ngari.his.recipe.mode.PatientChronicDiseaseRes;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -336,10 +337,10 @@ public class RecipePatientService extends RecipeBaseService {
         req.setPatient(patientBaseInfo);
         req.setOrganId(organId);
         List<ChronicDiseaseListResTO> list = Lists.newArrayList();
-        HisResponseTO<List<ChronicDiseaseListResTO>> res = service.findPatientChronicDiseaseList(req);
-        if (res == null){
+        HisResponseTO<PatientChronicDiseaseRes> res = service.findPatientChronicDiseaseList(req);
+        if (res == null || res.getData() == null){
             return list;
         }
-        return res.getData();
+        return res.getData().getChronicDiseaseListResTOs();
     }
 }
