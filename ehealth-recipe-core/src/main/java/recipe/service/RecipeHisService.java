@@ -413,8 +413,8 @@ public class RecipeHisService extends RecipeBaseService {
                         LOGGER.error("HIS drugTake synchronize error. recipeId=" + recipeId);
                         //配送到家同步失败则返回异常,医院取药不需要管，医院处方默认是医院取药
 //                        HisCallBackService.havePayFail(_dbRecipe.getRecipeId());
-                        result.setCode(RecipeResultBean.FAIL);
-                        result.setError("由于医院接口异常，购药方式修改失败。");
+//                        result.setCode(RecipeResultBean.FAIL);
+//                        result.setError("由于医院接口异常，购药方式修改失败。");
                     }
                 }
             }
