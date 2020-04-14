@@ -1,5 +1,6 @@
 package com.ngari.recipe.recipe.model;
 
+import com.ngari.his.recipe.mode.ChronicDiseaseListResTO;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
