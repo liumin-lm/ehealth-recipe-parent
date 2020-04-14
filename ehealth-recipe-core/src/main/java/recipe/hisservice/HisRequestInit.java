@@ -18,6 +18,8 @@ import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.service.*;
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.recipe.entity.*;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -26,6 +28,7 @@ import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -281,6 +284,8 @@ public class HisRequestInit {
             requestTO.setHistoryOfPresentIllness(recipeExtend.getHistoryOfPresentIllness());
             //处理方法
             requestTO.setHandleMethod(recipeExtend.getHandleMethod());
+            //处方扩展信息
+            requestTO.setRecipeExtend(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
         }
         //设置挂号序号---如果有
         if (recipe.getClinicId() != null){
