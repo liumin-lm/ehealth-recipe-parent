@@ -13,14 +13,13 @@ import java.util.Map;
 /**
  * created by shiyuping on 2020/4/14
  */
-@RpcBean
 public class RecipeExtendService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(RecipeExtendService.class);
+   /* private static final Logger LOGGER = LoggerFactory.getLogger(RecipeExtendService.class);
 
     @RpcService
     public Boolean updateRecipeExInfoByRecipeId(int recipeId,Map<String, ?> changeAttr){
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         LOGGER.info("updateRecipeExInfoByRecipeId recipeId={},changeAttr={}",recipeId, JSONUtils.toString(changeAttr));
         return recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeId,changeAttr);
-    }
+    }*/
 }

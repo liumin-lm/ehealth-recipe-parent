@@ -94,8 +94,6 @@
 	<!--昆明市第一人民医院-->
 	<bean id="kmsRemoteService" class="recipe.drugsenterprise.KmsRemoteService"/>
 
-    <bean id="recipeExtendService" class="recipe.service.RecipeExtendService"/>
-
 	<!--纳里罗欣 临沂-->
 	<bean id="lxRemoteService" class="recipe.drugsenterprise.LxRemoteService"/>
 
