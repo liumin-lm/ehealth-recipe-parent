@@ -1,14 +1,13 @@
 package recipe.service;
 
+import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import recipe.dao.RecipeExtendDAO;
 
-import javax.annotation.Resource;
 import java.util.Map;
 
 /**
@@ -18,11 +17,9 @@ import java.util.Map;
 public class RecipeExtendService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeExtendService.class);
 
-    @Autowired
-    private RecipeExtendDAO recipeExtendDAO;
-
     @RpcService
     public Boolean updateRecipeExInfoByRecipeId(int recipeId,Map<String, ?> changeAttr){
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         LOGGER.info("updateRecipeExInfoByRecipeId recipeId={},changeAttr={}",recipeId, JSONUtils.toString(changeAttr));
         return recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeId,changeAttr);
     }
