@@ -13,7 +13,7 @@ import java.util.Map;
 /**
  * created by shiyuping on 2020/4/14
  */
-@RpcBean("recipeExtendService")
+@RpcBean
 public class RecipeExtendService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeExtendService.class);
 
