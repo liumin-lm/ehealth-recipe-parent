@@ -2,6 +2,10 @@ package recipe.drugsenterprise;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.ngari.base.patient.model.HealthCardBean;
+import com.ngari.base.patient.model.PatientBean;
+import com.ngari.base.patient.service.IPatientService;
+import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.OrganDTO;
@@ -37,12 +41,15 @@ import recipe.bean.ThirdResultBean;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.StandardResultDTO;
+import recipe.hisservice.HisRequestInit;
+import recipe.hisservice.RecipeToHisService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.purchase.CommonOrder;
 import recipe.service.*;
 import recipe.serviceprovider.BaseService;
 import recipe.third.IFileDownloadService;
 import recipe.third.IWXServiceInterface;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
@@ -85,6 +92,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
     @Autowired
     private YsqRemoteService ysqRemoteService;
+
+    private IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
 
     /**
      * 待配送状态
@@ -366,6 +375,18 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                     + ",快递公司：" + company + ",快递单号：" + trackingNumber);
             //信息推送
             RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.IN_SEND);
+            //将快递公司快递单号信息用更新配送方式接口更新至his
+            if (StringUtils.isNotEmpty(logisticsCompany)&&StringUtils.isNotEmpty(trackingNumber)){
+                RecipeBusiThreadPool.submit(()->{
+                    RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+                    RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+                    List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
+                    PatientBean patientBean = iPatientService.get(recipe.getMpiid());
+                    DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, details, patientBean, null);
+                    service.drugTakeChange(request);
+                    return null;
+                });
+            }
         } else {
             thirdResultBean.setCode(ErrorCode.SERVICE_ERROR);
             thirdResultBean.setMsg("电子处方更新失败");

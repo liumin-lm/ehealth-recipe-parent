@@ -1199,13 +1199,6 @@ public class RecipeServiceSub {
                 map.put("secondSignFlag", canSecondAudit(recipe.getClinicOrgan()));
             }
 
-            //医生端获取处方扩展信息
-            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-            if (recipeExtend !=null){
-                map.put("recipeExtend",recipeExtend);
-            }
-
             //增加医生返回智能审方结果药品问题列表 2018.11.26 shiyp
             //判断开关是否开启
             PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
@@ -1424,6 +1417,13 @@ public class RecipeServiceSub {
             showChecker = false;
         }
         map.put("showChecker", showChecker);
+
+        //医生端/患者端获取处方扩展信息
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if (recipeExtend !=null){
+            map.put("recipeExtend",recipeExtend);
+        }
 
         return map;
     }
