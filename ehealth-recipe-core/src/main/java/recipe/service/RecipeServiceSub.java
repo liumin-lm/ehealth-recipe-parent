@@ -1307,12 +1307,6 @@ public class RecipeServiceSub {
                     }
                 }
             }
-            //医生端/患者端获取处方扩展信息
-            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-            if (recipeExtend !=null){
-                map.put("recipeExtend",recipeExtend);
-            }
 
             //Date:20190904
             //Explain:审核是否通过
@@ -1423,6 +1417,13 @@ public class RecipeServiceSub {
             showChecker = false;
         }
         map.put("showChecker", showChecker);
+
+        //医生端/患者端获取处方扩展信息
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if (recipeExtend !=null){
+            map.put("recipeExtend",recipeExtend);
+        }
 
         return map;
     }
