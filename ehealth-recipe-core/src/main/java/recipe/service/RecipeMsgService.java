@@ -326,13 +326,21 @@ public class RecipeMsgService {
             return;
         }
 
+        Integer clientId = null;
+        //处方审核通过添加clientId
+        if(bussType != null && bussType.equals(RECIPE_CHECK_PASS)){
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+            clientId = recipe.getCurrentClient();
+        }
+
         SmsInfoBean info = new SmsInfoBean();
         // 业务表主键
         info.setBusId(recipeId);
         // 业务类型
         info.setBusType(bussType);
         info.setSmsType(bussType);
-        info.setClientId(null);
+        info.setClientId(clientId);
         info.setStatus(0);
         //0代表通用机构
         info.setOrganId(organId);

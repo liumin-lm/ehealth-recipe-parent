@@ -488,6 +488,13 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             }
             req.setUpdateTime(now);
 
+            //从his返回的挂号序号
+            RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend=recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if(recipeExtend!=null){
+                req.setRegisterNo(recipeExtend.getRegisterNo());
+            }
+
             request.add(req);
         }
         try {
@@ -768,6 +775,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     public void uploadRecipePayToRegulation(String orderCode, int payFlag) {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
+        RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
+
         List<Integer> recipeIds = recipeDAO.findRecipeIdsByOrderCode(orderCode);
         if (null != recipeIds) {
             Recipe recipe = recipeDAO.get(recipeIds.get(0));
@@ -837,6 +846,12 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     req.setDeptClassName("其他业务科室");
                     /*req.setOriginalAccountNo(outPatient.getRefundNo());*/
                     req.setOrderNo(order.getOutTradeNo());
+
+                    //从his返回的挂号序号
+                    RecipeExtend recipeExtend=recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                    if(recipeExtend!=null){
+                        req.setRegisterNo(recipeExtend.getRegisterNo());
+                    }
 
                     LOGGER.info("调用regulation接口，上传处方缴费信息，req = {}，payFlag = {}", JSONUtils.toString(req), payFlag);
                     IRegulationService regulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
