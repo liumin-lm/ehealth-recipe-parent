@@ -98,6 +98,10 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
                 extendHeaders.put("Content-Type",requestHeadJsonValue);
                 extendHeaders.put("X-Token",token);
                 YnsPharmacyAndStockRequest stockRequest=findScanStockBussReq(result,recipeId, drugsEnterprise);
+                if (stockRequest == null) {
+                    getFailResult(result, "库存不足");
+                    return result;
+                }
                 String bodyStr = JSONUtils.toString(stockRequest);
 
                 ////根据处方信息发送药企库存查询请求，判断有药店是否满足库存
@@ -129,15 +133,14 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
                 result.setMsg("获取Token失败");
                 LOGGER.error("LxRemoteService.findSupportDep: msg [{}][{}]登录罗欣药企获取Token：{}",drugsEnterprise.getId(), drugsEnterprise.getName(), "获取Token失败");
                 getFailResult(result, "获取Token失败");
-                return null;
+                return result;
             }
-
-
         } catch (Exception e) {
                 result.setCode(DrugEnterpriseResult.FAIL);
                 result.setMsg(e.getMessage());
                 LOGGER.error("LxRemoteService.scanStock:[{}][{}]获取药品库存异常：{}",drugsEnterprise.getId(), drugsEnterprise.getName(), e.getMessage());
                 getFailResult(result,  e.getMessage());
+                return result;
             } finally {
                 try {
                 } catch (Exception e) {
@@ -145,6 +148,7 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
                     result.setMsg(e.getMessage());
                     getFailResult(result,  e.getMessage());
                     LOGGER.error("LxRemoteService.scanStock:http请求资源关闭异常: {}！", e.getMessage());
+                    return result;
                 }
             }
             return result;
@@ -328,7 +332,7 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
                 LOGGER.warn("HdRemoteService.pushRecipeInfo:药品id:{},药企id:{}的药企药品信息不存在",
                         recipedetail.getDrugId(), drugsEnterprise.getId());
                 getFailResult(finalResult, "对接的药品信息为空");
-                return null;
+                return new ArrayList<>();
             }
             hdDrugRequestData = result.get(saleDrug.getOrganDrugCode());
 

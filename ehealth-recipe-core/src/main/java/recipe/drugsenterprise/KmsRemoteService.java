@@ -100,7 +100,7 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
             //根据药品请求华东旗下的所有可用药店，当有一个可用说明库存是足够的
             Map<String, HdDrugRequestData> drugResultMap = new HashMap<>();
             List<HdDrugRequestData> drugRequestDataList = getDrugRequestList(drugResultMap, detailList, drugsEnterprise, result);
-            if (DrugEnterpriseResult.FAIL == result.getCode()) return null;
+            if (DrugEnterpriseResult.FAIL == result.getCode()) return result;
             Map<String, Object> requestMap = new HashMap<>();
             requestMap.put("drugList", drugRequestDataList);
             String requestStr = JSONUtils.toString(requestMap);
@@ -187,7 +187,7 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
             YnsPharmacyAndStockRequest hdPharmacyAndStockRequest = new YnsPharmacyAndStockRequest();
             if (ext != null && null != ext.get(searchMapRANGE) && null != ext.get(searchMapLongitude) && null != ext.get(searchMapLatitude)) {
                 List<HdDrugRequestData> drugRequestList = getDrugRequestList(drugResultMap, detailList, enterprise, result);
-                if (DrugEnterpriseResult.FAIL == result.getCode()) return null;
+                if (DrugEnterpriseResult.FAIL == result.getCode()) return result;
                 hdPharmacyAndStockRequest.setDrugList(drugRequestList);
                 hdPharmacyAndStockRequest.setRange("20");
                 hdPharmacyAndStockRequest.setPosition(new HdPosition(MapValueUtil.getString(ext, searchMapLongitude), MapValueUtil.getString(ext, searchMapLatitude)));
@@ -195,7 +195,7 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
             } else {
                 LOGGER.warn("KmsRemoteService.findSupportDep:请求的搜索参数不健全");
             }
-            if (DrugEnterpriseResult.FAIL == result.getCode()) return null;
+            if (DrugEnterpriseResult.FAIL == result.getCode()) return result;
 
             String requestStr = JSONUtils.toString(hdPharmacyAndStockRequest);
             ////根据处方信息发送药企药店列表查询请求，判断是否企药店列表
@@ -274,7 +274,7 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
                 LOGGER.warn("KmsRemoteService.pushRecipeInfo:药品id:{},药企id:{}的药企药品信息不存在",
                         recipedetail.getDrugId(), drugsEnterprise.getId());
                 getFailResult(finalResult, "对接的药品信息为空");
-                return null;
+                return new ArrayList<>();
             }
             hdDrugRequestData = result.get(saleDrug.getOrganDrugCode());
 

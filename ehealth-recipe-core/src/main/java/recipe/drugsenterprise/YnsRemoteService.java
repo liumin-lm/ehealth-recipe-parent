@@ -202,7 +202,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
                 result.setMsg(responseData);
                 LOGGER.error("YnsRemoteService.findSupportDep: msg [{}][{}]获取药店列表异常：{}",enterprise.getId(), enterprise.getName(), responseData);
                 getFailResult(result, responseData);
-                return null;
+                return result;
             }
         } catch (Exception e) {
             result.setCode(DrugEnterpriseResult.FAIL);
