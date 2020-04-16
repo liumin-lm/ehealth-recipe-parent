@@ -2,13 +2,19 @@ package recipe.service;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
+import com.ngari.his.patient.mode.PatientQueryRequestTO;
+import com.ngari.his.patient.service.IPatientHisService;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
@@ -18,6 +24,7 @@ import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -155,6 +162,7 @@ public class HisCallBackService {
 
         //更新复诊挂号序号、卡类型卡号等信息如果有
         updateRecipeRegisterID(recipe,result);
+        updateRecipepatientType(recipe);
 
         List<Recipedetail> recipedetails = result.getDetailList();
         if (CollectionUtils.isNotEmpty(recipedetails)) {
@@ -238,6 +246,16 @@ public class HisCallBackService {
 
     }
 
+    private static void updateRecipepatientType(Recipe recipe) {
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        String patientType = "1";
+        //获取患者类型-后面让前置机传
+        if (isMedicarePatient(recipe.getClinicOrgan(),recipe.getMpiid())){
+            patientType = "2";
+        }
+        recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("patientType", patientType));
+    }
+
     private static void updateRecipeRegisterID(Recipe recipe, RecipeCheckPassResult result) {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
@@ -270,6 +288,34 @@ public class HisCallBackService {
                 recipeExtendDAO.saveRecipeExtend(recipeExtend);
             }
         }
+    }
+
+    public static Boolean isMedicarePatient(Integer organId, String mpiId) {
+        //获取his患者信息判断是否医保患者
+        IPatientHisService iPatientHisService = AppContextHolder.getBean("his.iPatientHisService", IPatientHisService.class);
+        PatientService patientService = BasicAPI.getService(PatientService.class);
+        PatientDTO patient = patientService.get(mpiId);
+        if (patient == null) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "平台查询不到患者信息");
+        }
+        PatientQueryRequestTO req = new PatientQueryRequestTO();
+        req.setOrgan(organId);
+        req.setPatientName(patient.getPatientName());
+        req.setCertificateType(patient.getCertificateType());
+        req.setCertificate(patient.getCertificate());
+        try {
+            HisResponseTO<PatientQueryRequestTO> response = iPatientHisService.queryPatient(req);
+            LOGGER.info("isMedicarePatient response={}", JSONUtils.toString(response));
+            if (response != null) {
+                PatientQueryRequestTO data = response.getData();
+                if (data != null && "2".equals(data.getPatientType())) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("isMedicarePatient error" + e);
+        }
+        return false;
     }
 
     /**
