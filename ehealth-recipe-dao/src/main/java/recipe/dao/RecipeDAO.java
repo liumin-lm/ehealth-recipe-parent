@@ -1435,8 +1435,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     }
 
     private StringBuilder generateRecipeOderHQLforStatistics(Integer organId,
-                                                   Integer status, Integer doctor, String patientName, Integer dateType,
-                                                   Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer fromflag, Integer recipeId) {
+                                                   Integer status, Integer doctor, String mpiId, Integer dateType,
+                                                   Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer fromflag, Integer recipeId ,
+                                                   Integer enterpriseId,Integer checkStatus,Integer payFlag
+
+    ) {
         StringBuilder hql = new StringBuilder("select r.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode where 1=1");
 
         //默认查询所有
@@ -1496,9 +1499,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             hql.append(" and r.doctor=").append(doctor);
         }
         //根据患者姓名  精确查询
-        if (patientName != null && !StringUtils.isEmpty(patientName.trim())) {
-            hql.append(" and r.patientName='").append(patientName).append("'");
-        }
+//        if (patientName != null && !StringUtils.isEmpty(patientName.trim())) {
+//            hql.append(" and r.patientName='").append(patientName).append("'");
+//        }
         if (depart != null) {
             hql.append(" and r.depart=").append(depart);
         }
@@ -1511,6 +1514,22 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         if (recipeId != null) {
             hql.append(" and r.recipeId=").append(recipeId);
         }
+
+        if (mpiId != null) {
+            hql.append(" and r.mpiid=").append(mpiid);
+        }
+        if (enterpriseId != null) {
+            hql.append(" and r.enterpriseId=").append(enterpriseId);
+        }
+
+        if (checkStatus != null) {
+            hql.append(" and r.checkStatus=").append(checkStatus);
+        }
+
+        if (payFlag != null) {
+            hql.append(" and r.payFlag=").append(payFlag);
+        }
+
         return hql;
     }
 

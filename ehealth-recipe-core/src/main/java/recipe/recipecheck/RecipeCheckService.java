@@ -37,6 +37,7 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -302,7 +303,7 @@ public class RecipeCheckService {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-
+        RecipeExtendDAO extendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         //取recipe需要的字段
         Recipe recipe = rDao.getByRecipeId(recipeId);
 
@@ -390,8 +391,9 @@ public class RecipeCheckService {
                 //加上手机号 和 身份证信息（脱敏）
                 p.setMobile(patient.getMobile());
                 p.setIdcard(hideIdCard(patient.getCertificate()));
+                p.setCertificate(hideIdCard(patient.getCertificate()));
                 p.setMpiId(patient.getMpiId());
-
+                p.setCertificateType(patient.getCertificateType());
                 //判断该就诊人是否为儿童就诊人
                 if (p.getAge() <= 5 && !ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
                     guardian.setName(patient.getGuardianName());
@@ -486,6 +488,15 @@ public class RecipeCheckService {
                 childRecipeFlag = true;
             }
         }
+
+        //患者就诊卡信息
+        RecipeExtend extend = extendDAO.getByRecipeId(recipeId);
+        String cardNo = extend.getCardNo();
+        String cardTypeName = extend.getCardTypeName();
+        HashMap<String, String> cardMap = Maps.newHashMap();
+        cardMap.put("cardNo",cardNo);
+        cardMap.put("cardTypeName",cardTypeName);
+        map.put("card",cardMap);
 
         map.put("childRecipeFlag", childRecipeFlag);
         map.put("guardian", guardian);
