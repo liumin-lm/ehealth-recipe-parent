@@ -78,7 +78,7 @@ public abstract class AbstractAuidtMode implements IAuditMode{
         //根据传入的方式来处理, 因为供应商列表，钥世圈提供的有可能是多种方式都支持，当时这2个值是保存为null的
         if (saveFlag) {
             attrMap.put("chooseFlag", 1);
-            String memo = "";
+            String memo = "ceshi";
             if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.toString().equals(giveMode)) {
                 if (RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
                     //线上支付
