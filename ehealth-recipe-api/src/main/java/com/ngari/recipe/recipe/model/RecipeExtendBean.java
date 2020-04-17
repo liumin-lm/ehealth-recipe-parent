@@ -82,6 +82,13 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "处方预结算返回自费金额")
     private String cashAmount;
 
+    @ItemProperty(alias = "慢病病种标识")
+    private String chronicDiseaseFlag;
+    @ItemProperty(alias = "慢病病种代码")
+    private String chronicDiseaseCode;
+    @ItemProperty(alias = "慢病病种名称")
+    private String chronicDiseaseName;
+
     public RecipeExtendBean() {
     }
 
@@ -268,5 +275,29 @@ public class RecipeExtendBean implements Serializable {
 
     public void setCashAmount(String cashAmount) {
         this.cashAmount = cashAmount;
+    }
+
+    public String getChronicDiseaseFlag() {
+        return chronicDiseaseFlag;
+    }
+
+    public void setChronicDiseaseFlag(String chronicDiseaseFlag) {
+        this.chronicDiseaseFlag = chronicDiseaseFlag;
+    }
+
+    public String getChronicDiseaseCode() {
+        return chronicDiseaseCode;
+    }
+
+    public void setChronicDiseaseCode(String chronicDiseaseCode) {
+        this.chronicDiseaseCode = chronicDiseaseCode;
+    }
+
+    public String getChronicDiseaseName() {
+        return chronicDiseaseName;
+    }
+
+    public void setChronicDiseaseName(String chronicDiseaseName) {
+        this.chronicDiseaseName = chronicDiseaseName;
     }
 }
