@@ -356,6 +356,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
      * @param organId  机构编码
      * @return         库存情况
      */
+    @RpcService
     public Map<String, Object> showDrugsEnterpriseInventory(Integer drugId, Integer organId){
         LOGGER.info("showDrugsEnterpriseInventory drugId:{},organId:{}.", drugId, organId);
         Map<String, Object> result = new HashMap<>();
