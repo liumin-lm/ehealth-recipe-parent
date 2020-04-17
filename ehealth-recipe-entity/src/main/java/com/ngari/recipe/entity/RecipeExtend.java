@@ -133,6 +133,13 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "处方来源 0 线下his同步 1 平台处方")
     private Integer fromFlag;
 
+    @ItemProperty(alias = "慢病病种标识")
+    private String chronicDiseaseFlag;
+    @ItemProperty(alias = "慢病病种代码")
+    private String chronicDiseaseCode;
+    @ItemProperty(alias = "慢病病种名称")
+    private String chronicDiseaseName;
+
     @ItemProperty(alias = "电子票号")
     private String einvoiceNumber;
 
@@ -418,5 +425,32 @@ public class RecipeExtend implements Serializable {
 
     public void setCardType(String cardType) {
         this.cardType = cardType;
+    }
+
+    @Column(name = "chronicDiseaseFlag")
+    public String getChronicDiseaseFlag() {
+        return chronicDiseaseFlag;
+    }
+
+    public void setChronicDiseaseFlag(String chronicDiseaseFlag) {
+        this.chronicDiseaseFlag = chronicDiseaseFlag;
+    }
+
+    @Column(name = "chronicDiseaseCode")
+    public String getChronicDiseaseCode() {
+        return chronicDiseaseCode;
+    }
+
+    public void setChronicDiseaseCode(String chronicDiseaseCode) {
+        this.chronicDiseaseCode = chronicDiseaseCode;
+    }
+
+    @Column(name = "chronicDiseaseName")
+    public String getChronicDiseaseName() {
+        return chronicDiseaseName;
+    }
+
+    public void setChronicDiseaseName(String chronicDiseaseName) {
+        this.chronicDiseaseName = chronicDiseaseName;
     }
 }

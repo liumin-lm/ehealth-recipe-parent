@@ -413,6 +413,12 @@ public class RecipeCheckService {
         }
 
         Map<String, Object> map = Maps.newHashMap();
+        //医生端获取处方扩展信息
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if (recipeExtend !=null){
+            map.put("recipeExtend",recipeExtend);
+        }
         //date 20191111
         //添加处方审核状态
         Integer checkResult = getCheckResultByPending(recipe);
