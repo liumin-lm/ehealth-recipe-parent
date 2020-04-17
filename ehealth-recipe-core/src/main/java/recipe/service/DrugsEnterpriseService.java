@@ -337,4 +337,24 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
             }
         }
     }
+
+    /**
+     * 根据机构获取是否配置配送药企
+     * @param organId  机构
+     * @return         true 是 false 否
+     */
+    @RpcService
+    public boolean isExistDrugsEnterpriseByOrgan(Integer organId){
+        OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+        List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
+        if (CollectionUtils.isEmpty(drugsEnterprises)) {
+            return false;
+        }
+        for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+            if (drugsEnterprise.getPayModeSupport() == 1 || drugsEnterprise.getPayModeSupport() == 7 || drugsEnterprise.getPayModeSupport() == 9) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

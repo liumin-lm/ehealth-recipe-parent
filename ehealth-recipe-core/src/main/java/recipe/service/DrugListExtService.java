@@ -121,6 +121,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
     @RpcService
     public List<DrugListBean> findCommonDrugLists(int doctor, int organId, int drugType) {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
         List<OrganDrugList> dList = drugListDAO.findCommonDrugListsWithPage(doctor, organId, drugType, 0, 20);
         // 添加医院价格
        /*if (CollectionUtils.isNotEmpty(dList)) {
@@ -135,6 +136,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     drugListBean.setPrice1(drugList.getPrice1());
                     drugListBean.setPrice2(drugList.getPrice2());
                 }
+                boolean drugInventoryFlag = drugsEnterpriseService.isExistDrugsEnterpriseByOrgan(organId);
+                drugListBean.setDrugInventoryFlag(drugInventoryFlag);
             }
         }
         /*try{
@@ -235,6 +238,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         DrugSearchService searchService = AppContextHolder.getBean("es.drugSearchService", DrugSearchService.class);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
         DrugSearchTO searchTO = new DrugSearchTO();
         searchTO.setDrugName(StringUtils.isEmpty(drugName) ? "" : drugName.toLowerCase());
         searchTO.setOrgan(null == organId ? null : String.valueOf(organId));
@@ -305,6 +309,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     detailDTO.setPrice1(null == detailDTO.getPrice1() ? drugListNow.getPrice1() : detailDTO.getPrice1());
                     detailDTO.setPrice2(null == detailDTO.getPrice2() ? drugListNow.getPrice2() : detailDTO.getPrice2());
                 }
+                boolean drugInventoryFlag = drugsEnterpriseService.isExistDrugsEnterpriseByOrgan(organId);
+                detailDTO.setDrugInventoryFlag(drugInventoryFlag);
             }
         }
         return dList;
