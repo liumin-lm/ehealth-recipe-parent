@@ -182,7 +182,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @RpcService
-//    @Override
+    @Override
     public QueryResult<Map> findRecipesByInfo(Integer organId, Integer status,
                                               Integer doctor, String patientName, Date bDate, Date eDate, Integer dateType,
                                               Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode,Integer fromflag,Integer recipeId,
