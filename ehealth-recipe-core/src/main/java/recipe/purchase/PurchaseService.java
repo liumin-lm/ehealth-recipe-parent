@@ -418,7 +418,7 @@ public class PurchaseService {
                 if (StringUtils.isNotEmpty(orderCode) && payFlag == 0 && order.getActualPrice() > 0) {
                     tips = "订单待支付，请于收到处方的3日内处理完成，否则处方将失效";
                 } else if (StringUtils.isEmpty(orderCode)) {
-                    tips = "处方单待处理，请于收到处方的3日内处理完成，否则处方将失效";
+                    tips = "处方单待处理，请于收到处方的3日内完成购药，否则处方将失效";
                 } else {
                     IPurchaseService purchaseService = getService(payMode);
                     tips = purchaseService.getTipsByStatusForPatient(recipe, order);
