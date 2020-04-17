@@ -7,13 +7,14 @@ import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
-import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -29,6 +30,7 @@ import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.HttpHelper;
 import recipe.util.MapValueUtil;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -38,6 +40,7 @@ import java.util.*;
  * @author: 0184/yu_yun
  * @date:2017/3/7.
  */
+@RpcBean(value = "commonRemoteService")
 public class CommonRemoteService extends AccessDrugEnterpriseService {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonRemoteService.class);
 
@@ -74,6 +77,51 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
             }
         } catch (Exception e) {
             LOGGER.warn("[{}][{}]更新异常。", depId, depName, e);
+        }
+    }
+
+    @RpcService
+    public void synchroDrug (Integer depId, Integer organId) {
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+
+        List<Integer> drugIds = saleDrugListDAO.findSynchroDrug(depId);
+        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(depId,drugIds);
+
+        if (!saleDrugLists.isEmpty()) {
+            String method = "setGoods";
+            Map<String, Object> sendMap = Maps.newHashMap();
+            sendMap.put("access_token", drugsEnterprise.getToken());
+            sendMap.put("action", method);
+
+            List<Map<String, Object>> drugs = new ArrayList<>(0);
+            sendMap.put("data", drugs);
+
+            for (SaleDrugList saleDrugList : saleDrugLists) {
+                Map<String, Object> map = new HashMap<>();
+                OrganDrugList organDrugList = organDrugListDAO.getByDrugIdAndOrganId(saleDrugList.getDrugId(), organId);
+                if (organDrugList != null) {
+                    map.put("goodsid", saleDrugList.getDrugId());
+                    map.put("gname", saleDrugList.getDrugName());
+                    map.put("spec", saleDrugList.getDrugSpec());
+                    map.put("drugname", saleDrugList.getSaleName());
+                    map.put("packnum", organDrugList.getPack());
+                    map.put("msunitno", organDrugList.getUnit());
+                    map.put("producer", organDrugList.getProducer());
+                    drugs.add(map);
+                }
+            }
+            String sendInfoStr = JSONUtils.toString(sendMap);
+            LOGGER.info("发送[{}][{}]内容：{}", drugsEnterprise.getName(), method, sendInfoStr);
+            String backMsg;
+            try {
+                backMsg = HttpHelper.doPost(drugsEnterprise.getBusinessUrl(), sendInfoStr);
+                LOGGER.info("调用[{}][{}]结果返回={}", LOGGER.getName(), method, backMsg);
+            } catch (IOException e) {
+                LOGGER.error("调用[{}][{}] IOException: " + e.getMessage() + "，详细数据：" + sendInfoStr, drugsEnterprise.getName(), method);
+            }
         }
     }
 
