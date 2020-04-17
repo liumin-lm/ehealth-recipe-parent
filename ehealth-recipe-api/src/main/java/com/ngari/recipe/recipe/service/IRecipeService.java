@@ -150,10 +150,10 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @param giveMode
      * @return
      */
-    @RpcService
-    QueryResult<Map> findRecipesByInfo(Integer organId, Integer status,
-                                       Integer doctor, String mpiid, Date bDate, Date eDate, Integer dateType,
-                                       Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode,Integer fromflag,Integer recipeId);
+//    @RpcService
+//    QueryResult<Map> findRecipesByInfo(Integer organId, Integer status,
+//                                       Integer doctor, String mpiid, Date bDate, Date eDate, Integer dateType,
+//                                       Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode,Integer fromflag,Integer recipeId);
 
     /**
      * 运营平台使用
@@ -269,9 +269,9 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @param fromflag
      * @return
      */
-    @RpcService
-    List<Map> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType,
-                                               final Integer depart, List<Integer> organIds, Integer giveMode,Integer fromflag,Integer recipeId);
+//    @RpcService
+//    List<Map> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType,
+//                                               final Integer depart, List<Integer> organIds, Integer giveMode,Integer fromflag,Integer recipeId);
 
     /**
      *处方订单导出Excel
