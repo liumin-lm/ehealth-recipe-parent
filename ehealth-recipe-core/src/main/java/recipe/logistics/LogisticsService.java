@@ -33,6 +33,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.dao.RecipeParameterDao;
 import recipe.util.AppSiganatureUtils;
+import recipe.util.DictionaryUtil;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLEventWriter;
@@ -493,10 +494,9 @@ public class LogisticsService {
         String APP_ID = recipeParameterDao.getByName("logistics_shsy_app_id");
         String APP_SECRET = recipeParameterDao.getByName("logistics_shsy_app_secret");
         String url = recipeParameterDao.getByName("logistics_shsy_url");
-
+        String item1 = DictionaryUtil.getKeyByValue("eh.cdr.dictionary.KuaiDiNiaoCode",expCode);
         //String item = DictionaryController.instance().get("eh.cdr.dictionary.KuaiDiNiaoCode").getItem(expCode).getKey();
-        LOGGER.info("上海上药物流信息查询，签名认证参数：item1={}",DictionaryController.instance().get("eh.cdr.dictionary.KuaiDiNiaoCode"));
-        LOGGER.info("上海上药物流信息查询，签名认证参数：item2={}",DictionaryController.instance().get("eh.cdr.dictionary.KuaiDiNiaoCode").getText(expCode));
+        LOGGER.info("上海上药物流信息查询，签名认证参数：item1={}",item1);
         String item = "16";
         Recipe recipe = new Recipe();
         if(StringUtils.isNotBlank(item)){
