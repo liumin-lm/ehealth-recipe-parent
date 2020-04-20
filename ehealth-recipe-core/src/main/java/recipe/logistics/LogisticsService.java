@@ -494,10 +494,7 @@ public class LogisticsService {
         String APP_ID = recipeParameterDao.getByName("logistics_shsy_app_id");
         String APP_SECRET = recipeParameterDao.getByName("logistics_shsy_app_secret");
         String url = recipeParameterDao.getByName("logistics_shsy_url");
-        String item1 = DictionaryUtil.getKeyByValue("eh.cdr.dictionary.KuaiDiNiaoCode",expCode);
-        //String item = DictionaryController.instance().get("eh.cdr.dictionary.KuaiDiNiaoCode").getItem(expCode).getKey();
-        LOGGER.info("上海上药物流信息查询，签名认证参数：item1={}",item1);
-        String item = "16";
+        String item = DictionaryUtil.getKeyByValue("eh.cdr.dictionary.KuaiDiNiaoCode",expCode);
         Recipe recipe = new Recipe();
         if(StringUtils.isNotBlank(item)){
             Integer logisticsCompany = Integer.parseInt(item);
