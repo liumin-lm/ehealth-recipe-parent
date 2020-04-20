@@ -19,7 +19,11 @@ public abstract class ChronicDiseaseDAO extends HibernateSupportDelegateDAO<Chro
         this.setKeyField("chronicDiseaseId");
     }
 
-    @DAOMethod(sql = "from ChronicDisease where organId =:organId and chronicDiseaseFlag=:chronicDiseaseFlag and status = 1")
-    public abstract List<ChronicDisease> findChronicDiseasesByOrganId(@DAOParam("organId") Integer organId,
-                                                                 @DAOParam("chronicDiseaseFlag") Integer chronicDiseaseFlag);
+    /**
+     * 根据机构id，病种类型获取病种数据，暂时去掉机构过滤后期有其他机构需要加上机构条件
+     * @param chronicDiseaseFlag
+     * @return
+     */
+    @DAOMethod(sql = "from ChronicDisease where  chronicDiseaseFlag=:chronicDiseaseFlag and status = 1")
+    public abstract List<ChronicDisease> findChronicDiseasesByOrganId(@DAOParam("chronicDiseaseFlag") Integer chronicDiseaseFlag);
 }
