@@ -29,6 +29,7 @@
     <ssdev:reference interface="ctd.controller.ConfigurableLoader" id="eh.categoryNodeRemoteLoader"/>
     <ssdev:reference interface="ctd.controller.ConfigurableLoader" id="eh.schemaRemoteLoader"/>
     <ssdev:reference id="eh.tenantRemoteLoader" interface="ctd.controller.ConfigurableLoader"/>
+    <ssdev:reference id="eh.dictionaryService" interface="ctd.dictionary.service.DictionaryLocalService" />
 
     <!-- remote updater -->
     <ssdev:reference interface="ctd.controller.updater.ConfigurableItemUpdater" id="eh.userUpdater"/>
