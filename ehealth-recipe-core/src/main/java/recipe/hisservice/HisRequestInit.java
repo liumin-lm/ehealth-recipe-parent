@@ -744,6 +744,8 @@ public class HisRequestInit {
 
     public static RecipeAuditReqTO recipeAudit(Recipe recipe, CheckYsInfoBean resutlBean){
         RecipeAuditReqTO request = new RecipeAuditReqTO();
+        EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
+        DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
         request.setOrganId(recipe.getClinicOrgan());
         request.setRecipeCode(recipe.getRecipeCode());
         request.setPatientName(recipe.getPatientName());
@@ -752,6 +754,14 @@ public class HisRequestInit {
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         if (recipeExtend!=null){
             request.setRegisterId(recipeExtend.getRegisterID());
+        }
+        //获取药师工号药师姓名
+        if (recipe.getChecker() != null && recipe.getChecker() != 0){
+            DoctorDTO doctor = doctorService.getByDoctorId(recipe.getChecker());
+            if (doctor!=null){
+                request.setAuditDoctorNo(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), doctor.getDepartment()));
+                request.setAuditDoctorName(doctor.getName());
+            }
         }
         request.setResult(resutlBean.getCheckResult().toString());
         request.setCheckMark(resutlBean.getCheckFailMemo());
