@@ -15,19 +15,15 @@ import com.ngari.base.patient.model.DocIndexBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.payment.service.IPaymentService;
+import com.ngari.base.push.model.SmsInfoBean;
+import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.ca.model.CaSealRequestTO;
-import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
-import com.ngari.his.recipe.mode.UpdateTakeDrugWayReqTO;
 import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.platform.recipe.mode.QueryRecipeReqHisDTO;
-import com.ngari.platform.recipe.mode.QueryRecipeResultHisDTO;
-import com.ngari.platform.recipe.service.IRecipePlatformServiceNew;
-import com.ngari.recipe.audit.model.AuditMedicineIssueDTO;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
@@ -77,7 +73,6 @@ import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
 import recipe.hisservice.RecipeToHisCallbackService;
-import recipe.hisservice.RecipeToHisService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
@@ -796,6 +791,16 @@ public class RecipeService extends RecipeBaseService {
                     Map<String, Object> attrMap = Maps.newHashMap();
                     attrMap.put("Status", RecipeStatusConstant.SIGN_ERROR_CODE);
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId,attrMap );
+
+                    ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
+                    PatientDTO patientDTO =patientService.get(recipe.getMpiid());
+                    SmsInfoBean smsInfo = new SmsInfoBean();
+                    smsInfo.setBusId(0);
+                    smsInfo.setOrganId(0);
+                    smsInfo.setBusType("SignNotify");
+                    smsInfo.setSmsType("SignNotify");
+                    smsInfo.setExtendValue(doctorDTO.getUrt() + "|" + recipeId + "|" + doctorDTO.getLoginId());
+                    smsPushService.pushMsgData2OnsExtendValue(smsInfo);
                 }
 
 //                if (null != recipeFileId) {
