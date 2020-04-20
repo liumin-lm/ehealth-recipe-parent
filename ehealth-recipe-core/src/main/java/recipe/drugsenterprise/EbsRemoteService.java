@@ -4,11 +4,10 @@ import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.controller.exception.ControllerException;
+import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -22,8 +21,10 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.EbsBean;
+import recipe.drugsenterprise.bean.EbsDetail;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -70,8 +71,6 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
         if (!CollectionUtils.isEmpty(recipeList)) {
             PatientService patientService = BasicAPI.getService(PatientService.class);
-            DoctorService doctorService = BasicAPI.getService(DoctorService.class);
-            EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
             OrganService organService = BasicAPI.getService(OrganService.class);
             DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
 
@@ -117,24 +116,53 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
                 ebsBean.setCityName(city);
                 ebsBean.setDistrictName(district);
             }
-
-
+            ebsBean.setRemark(recipe.getMemo());
+            List<EbsDetail> details = new ArrayList<>();
+            List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+            for (Recipedetail recipedetail : recipedetails) {
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), enterprise.getId());
+                if (saleDrugList != null) {
+                    EbsDetail ebsDetail = new EbsDetail();
+                    ebsDetail.setMedName(saleDrugList.getDrugName());
+                    ebsDetail.setMedCode(saleDrugList.getOrganDrugCode());
+                    ebsDetail.setSpec(saleDrugList.getDrugSpec());
+                    ebsDetail.setDrugForm(recipedetail.getDrugForm());
+                    try{
+                        Dictionary usingRateDic = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate");
+                        Dictionary usePathwaysDic = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways");
+                        ebsDetail.setDirections(usingRateDic.getText(recipedetail.getUsingRate()) + usePathwaysDic.getText(recipedetail.getUsePathways()));
+                    }catch(Exception e){
+                        LOGGER.error("pushRecipeInfo 用法用量获取失败.");
+                    }
+                    ebsDetail.setUnitName(recipedetail.getDrugUnit());
+                    ebsDetail.setAmount(recipedetail.getUseTotalDose());
+                    ebsDetail.setUnitPrice(saleDrugList.getPrice().doubleValue());
+                    details.add(ebsDetail);
+                }
+                ebsBean.setDetails(details);
+            }
         }
+        //以下开始推送处方信息
         return null;
     }
 
     @Override
     public DrugEnterpriseResult pushRecipe(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
-        return null;
+        return "";
     }
 
     @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
+        List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
+        for (Recipedetail recipedetail : recipedetails) {
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
+
+        }
         return null;
     }
 
