@@ -373,7 +373,6 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         List<List<String>> inventoryList = new ArrayList<>();
         List<String> inventoryData = new ArrayList<>();
         for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
-            Map<String, String> map = new HashMap<>();
             String inventory = enterpriseService.getDrugInventory(drugsEnterprise.getId(), drugId);
             inventoryData.add(drugsEnterprise.getName());
             if ("有库存".equals(inventory) || "无库存".equals(inventory) || "暂不支持库存查询".equals(inventory)) {
@@ -383,14 +382,21 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
                     inventoryData.add(inventory);
                 }
             } else {
-                Integer number = Integer.parseInt(inventory);
-                if (number > 0) {
-                    inventoryData.add("有库存");
-                    inventoryData.add(number + "");
-                } else {
+                try{
+                    Double number = Double.parseDouble(inventory);
+                    if (number > 0) {
+                        inventoryData.add("有库存");
+                        inventoryData.add(number + "");
+                    } else {
+                        inventoryData.add("无库存");
+                        inventoryData.add("0");
+                    }
+                } catch (Exception e) {
                     inventoryData.add("无库存");
                     inventoryData.add("0");
+                    LOGGER.info("showDrugsEnterpriseInventory drugId:{},organId:{},err:{}.", drugId, organId, e.getMessage(), e);
                 }
+
             }
             inventoryList.add(inventoryData);
         }
