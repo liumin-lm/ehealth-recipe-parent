@@ -348,7 +348,7 @@ public class RecipePatientService extends RecipeBaseService {
             }
             return res.getData().getChronicDiseaseListResTOs();
         }else{
-            List<ChronicDisease> chronicDiseaseList = chronicDiseaseDAO.findChronicDiseasesByOrganId(organId,3);
+            List<ChronicDisease> chronicDiseaseList = chronicDiseaseDAO.findChronicDiseasesByOrganId(3);
             list = ObjectCopyUtils.convert(chronicDiseaseList,ChronicDiseaseListResTO.class);
             return list;
         }
