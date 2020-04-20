@@ -371,11 +371,11 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         List<DrugsEnterprise> drugsEnterprises = drugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
         RemoteDrugEnterpriseService enterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         List<List<String>> inventoryList = new ArrayList<>();
-        List<String> inventoryData = new ArrayList<>();
         for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+            List<String> inventoryData = new ArrayList<>();
             String inventory = enterpriseService.getDrugInventory(drugsEnterprise.getId(), drugId);
-            inventoryData.add(drugsEnterprise.getName());
             if ("有库存".equals(inventory) || "无库存".equals(inventory) || "暂不支持库存查询".equals(inventory)) {
+                inventoryData.add(drugsEnterprise.getName());
                 if ("暂不支持库存查询".equals(inventory)) {
                     inventoryData.add("无库存");
                 } else {
@@ -383,6 +383,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
                 }
             } else {
                 try{
+                    inventoryData.add(drugsEnterprise.getName());
                     Double number = Double.parseDouble(inventory);
                     if (number > 0) {
                         inventoryData.add("有库存");
