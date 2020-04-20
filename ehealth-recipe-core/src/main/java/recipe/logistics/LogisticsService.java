@@ -496,7 +496,7 @@ public class LogisticsService {
 
         //String item = DictionaryController.instance().get("eh.cdr.dictionary.KuaiDiNiaoCode").getItem(expCode).getKey();
         LOGGER.info("上海上药物流信息查询，签名认证参数：item1={}",DictionaryController.instance().get("eh.cdr.dictionary.KuaiDiNiaoCode"));
-        LOGGER.info("上海上药物流信息查询，签名认证参数：item2={}",DictionaryController.instance().get("eh.cdr.dictionary.KuaiDiNiaoCode").getItem(expCode));
+        LOGGER.info("上海上药物流信息查询，签名认证参数：item2={}",DictionaryController.instance().get("eh.cdr.dictionary.KuaiDiNiaoCode").getText(expCode));
         String item = "16";
         Recipe recipe = new Recipe();
         if(StringUtils.isNotBlank(item)){
