@@ -1013,6 +1013,12 @@ public class RecipeServiceSub {
                     tips = recipeLog.get(0).getMemo();
                 }
                 break;
+            case RecipeStatusConstant.SIGN_ING_CODE_DOC:
+                tips = "处方签名中";
+                break;
+            case RecipeStatusConstant.SIGN_ING_CODE_PHA:
+                tips = "审方签名中";
+                break;
             default:
                 tips = "未知状态" + status;
         }
