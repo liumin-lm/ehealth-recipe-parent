@@ -594,13 +594,36 @@ public class RecipeService extends RecipeBaseService {
                         //通过工厂获取对应的实现CA类
                         CAInterface caInterface = caFactory.useCAFunction(organId);
                         CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
-                        //保存签名值、时间戳、电子签章文件
-                        String result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false);
-//                        if (null != recipeFileId) {
-//                            bl = recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.<String, Object>of("chemistSignFile", recipeFileId));
-//                        } else{
-//                            bl = false;
-//                        }
+//                        //保存签名值、时间戳、电子签章文件
+//                        String result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false);
+                        String result = "";
+                        if (resultVo != null && 200 == resultVo.getCode()) {
+                            //保存签名值、时间戳、电子签章文件
+                            result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false);
+                        } else {
+                            RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+                            RecipeLog recipeLog = new RecipeLog();
+                            recipeLog.setRecipeId(recipeId);
+                            recipeLog.setBeforeStatus(recipe.getStatus());
+                            recipeLog.setAfterStatus(RecipeStatusConstant.SIGN_ERROR_CODE_PHA);
+                            recipeLog.setMemo(resultVo.getMsg());
+                            recipeLog.setModifyDate(new Date());
+                            recipeLogDAO.saveRecipeLog(recipeLog);
+
+                            attrMap = Maps.newHashMap();
+                            attrMap.put("Status", RecipeStatusConstant.SIGN_ERROR_CODE_PHA);
+                            recipeDAO.updateRecipeInfoByRecipeId(recipeId,attrMap );
+
+                            ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
+                            SmsInfoBean smsInfo = new SmsInfoBean();
+                            smsInfo.setBusId(0);
+                            smsInfo.setOrganId(0);
+                            smsInfo.setBusType("SignNotify");
+                            smsInfo.setSmsType("SignNotify");
+                            smsInfo.setExtendValue(doctorDTO.getUrt() + "|" + recipeId + "|" + doctorDTO.getLoginId());
+                            smsPushService.pushMsgData2OnsExtendValue(smsInfo);
+                        }
+
                         bl = "success".equals(result) ? true : false;
                     } catch (Exception e) {
                         LOGGER.error("reviewRecipe  signFile 标准化CA签章报错 recipeId={} ,doctor={} ,e={}=============", recipeId, recipe.getDoctor(), e);
@@ -728,6 +751,7 @@ public class RecipeService extends RecipeBaseService {
         String imgFileId = MapValueUtil.getString(backMap, "imgFileId");
         Map<String, Object> attrMapimg = Maps.newHashMap();
         attrMapimg.put("signImg", imgFileId);
+        attrMapimg.put("status", imgFileId);
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMapimg);
         LOGGER.info("generateRecipeImg 签名图片成功. fileId={}, recipeId={}", imgFileId, recipe.getRecipeId());
         //0表示成功
@@ -783,17 +807,16 @@ public class RecipeService extends RecipeBaseService {
                     RecipeLog recipeLog = new RecipeLog();
                     recipeLog.setRecipeId(recipeId);
                     recipeLog.setBeforeStatus(recipe.getStatus());
-                    recipeLog.setAfterStatus(RecipeStatusConstant.SIGN_ERROR_CODE);
+                    recipeLog.setAfterStatus(RecipeStatusConstant.SIGN_ERROR_CODE_DOC);
                     recipeLog.setMemo(resultVo.getMsg());
                     recipeLog.setModifyDate(new Date());
                     recipeLogDAO.saveRecipeLog(recipeLog);
 
                     Map<String, Object> attrMap = Maps.newHashMap();
-                    attrMap.put("Status", RecipeStatusConstant.SIGN_ERROR_CODE);
+                    attrMap.put("Status", RecipeStatusConstant.SIGN_ERROR_CODE_DOC);
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId,attrMap );
 
                     ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
-                    PatientDTO patientDTO =patientService.get(recipe.getMpiid());
                     SmsInfoBean smsInfo = new SmsInfoBean();
                     smsInfo.setBusId(0);
                     smsInfo.setOrganId(0);

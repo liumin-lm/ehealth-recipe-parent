@@ -907,7 +907,7 @@ public class RecipeServiceSub {
         String cancelReason = "";
         String tips = "";
         String listTips = "";
-
+        List<RecipeLog> recipeLog = null;
         switch (status) {
             case RecipeStatusConstant.CHECK_NOT_PASS:
                 tips = "审核未通过";
@@ -1001,8 +1001,14 @@ public class RecipeServiceSub {
             case RecipeStatusConstant.CHECKING_MEDICAL_INSURANCE:
                 tips = "医保上传确认中";
                 break;
-            case RecipeStatusConstant.SIGN_ERROR_CODE:
-                List<RecipeLog> recipeLog = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.SIGN_ERROR_CODE);
+            case RecipeStatusConstant.SIGN_ERROR_CODE_DOC:
+                recipeLog = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.SIGN_ERROR_CODE_DOC);
+                if (recipeLog != null &&recipeLog.size() > 0) {
+                    tips = recipeLog.get(0).getMemo();
+                }
+                break;
+            case RecipeStatusConstant.SIGN_ERROR_CODE_PHA:
+                recipeLog = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.SIGN_ERROR_CODE_PHA);
                 if (recipeLog != null &&recipeLog.size() > 0) {
                     tips = recipeLog.get(0).getMemo();
                 }
