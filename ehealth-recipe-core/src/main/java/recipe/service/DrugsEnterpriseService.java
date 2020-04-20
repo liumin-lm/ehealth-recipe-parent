@@ -370,12 +370,29 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         OrganAndDrugsepRelationDAO drugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
         List<DrugsEnterprise> drugsEnterprises = drugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
         RemoteDrugEnterpriseService enterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-        List<Map<String, String>> inventoryList = new ArrayList<>();
+        List<List<String>> inventoryList = new ArrayList<>();
+        List<String> inventoryData = new ArrayList<>();
         for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
             Map<String, String> map = new HashMap<>();
             String inventory = enterpriseService.getDrugInventory(drugsEnterprise.getId(), drugId);
-            map.put(drugsEnterprise.getName(), inventory);
-            inventoryList.add(map);
+            inventoryData.add(drugsEnterprise.getName());
+            if ("有库存".equals(inventory) || "无库存".equals(inventory) || "暂不支持库存查询".equals(inventory)) {
+                if ("暂不支持库存查询".equals(inventory)) {
+                    inventoryData.add("无库存");
+                } else {
+                    inventoryData.add(inventory);
+                }
+            } else {
+                Integer number = Integer.parseInt(inventory);
+                if (number > 0) {
+                    inventoryData.add("有库存");
+                    inventoryData.add(number + "");
+                } else {
+                    inventoryData.add("无库存");
+                    inventoryData.add("0");
+                }
+            }
+            inventoryList.add(inventoryData);
         }
         result.put("enterpriseInventory", inventoryList);
         return result;
