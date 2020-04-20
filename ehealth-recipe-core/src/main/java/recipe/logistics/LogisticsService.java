@@ -494,7 +494,8 @@ public class LogisticsService {
         String APP_SECRET = recipeParameterDao.getByName("logistics_shsy_app_secret");
         String url = recipeParameterDao.getByName("logistics_shsy_url");
 
-        String item = DictionaryController.instance().get("eh.cdr.dictionary.KuaiDiNiaoCode").getItem(expCode).getKey();
+        //String item = DictionaryController.instance().get("eh.cdr.dictionary.KuaiDiNiaoCode").getItem(expCode).getKey();
+        String item = "16";
         Recipe recipe = new Recipe();
         if(StringUtils.isNotBlank(item)){
             Integer logisticsCompany = Integer.parseInt(item);
