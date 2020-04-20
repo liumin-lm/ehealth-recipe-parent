@@ -21,6 +21,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.constant.RecipeStatusConstant;
 import sun.misc.BASE64Decoder;
 
 import java.io.*;
@@ -192,6 +193,7 @@ public class RecipeServiceEsignExt {
                 attrMap.put("signRecipeCode", signRecipeCode);
                 attrMap.put("signFile", fileId);
                 attrMap.put("signDate", new Date());
+                attrMap.put("Status", RecipeStatusConstant.SIGN_SUCCESS_CODE_DOC);
             } else {
                 //药师签名时间戳
                 attrMap.put("signPharmacistCADate", signCADate);
@@ -199,6 +201,7 @@ public class RecipeServiceEsignExt {
                 attrMap.put("signPharmacistCode", signRecipeCode);
                 attrMap.put("chemistSignFile", fileId);
                 attrMap.put("CheckDateYs", new Date());
+                attrMap.put("Status", RecipeStatusConstant.SIGN_SUCCESS_CODE_PHA);
             }
 
             //保存签名值

@@ -22,10 +22,7 @@ import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
 import eh.billcheck.vo.BillRecipeDetailVo;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * company: ngarihealth
@@ -179,4 +176,18 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         return rep;
     }
 
+    /**
+     * 根据日期获取电子处方药企配送订单明细
+     *
+     * @param startTime 开始时间
+     * @param endTime 截止时间
+     * @param organId 机构ID
+     * @param depId 药企ID
+     * @return RecipeOrderBean
+     */
+    @RpcService
+    public List<Map<String, Object>> recipeOrderDetailedStatistics(Date startTime, Date endTime, Integer organId, Integer depId, int start, int limit){
+        List<Map<String, Object>> list = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeOrderDetailed(startTime, endTime, organId, depId, start, limit);
+        return list;
+    }
 }

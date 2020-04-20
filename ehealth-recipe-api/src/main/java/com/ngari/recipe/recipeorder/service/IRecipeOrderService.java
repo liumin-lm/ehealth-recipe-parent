@@ -119,4 +119,17 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
      */
     @RpcService
     public RecipeBillResponse<BillRecipeDetailVo> getRecipePayInfoByDate(RecipeBillRequest request);
+
+    /**
+     * 根据日期获取电子处方药企配送订单明细
+     *
+     * @param startTime 开始时间
+     * @param endTime 截止时间
+     * @param organId 机构ID
+     * @param depId 药企ID
+     * @return RecipeOrderBean
+     */
+    @RpcService
+    List<Map<String, Object>> recipeOrderDetailedStatistics(Date startTime, Date endTime, Integer organId, Integer depId, int start, int limit);
+
 }
