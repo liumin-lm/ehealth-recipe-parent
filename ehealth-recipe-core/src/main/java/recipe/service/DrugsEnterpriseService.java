@@ -373,7 +373,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         List<List<String>> inventoryList = new ArrayList<>();
         for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
             List<String> inventoryData = new ArrayList<>();
-            String inventory = enterpriseService.getDrugInventory(drugsEnterprise.getId(), drugId);
+            String inventory = enterpriseService.getDrugInventory(drugsEnterprise.getId(), drugId, organId);
             if ("有库存".equals(inventory) || "无库存".equals(inventory) || "暂不支持库存查询".equals(inventory)) {
                 inventoryData.add(drugsEnterprise.getName());
                 if ("暂不支持库存查询".equals(inventory)) {
