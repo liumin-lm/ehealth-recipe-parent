@@ -333,7 +333,11 @@ public class RecipePatientService extends RecipeBaseService {
         List<ChronicDiseaseListResTO> list = Lists.newArrayList();
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         Integer diseaseType = (Integer) configurationService.getConfiguration(organId, "recipeChooseChronicDisease");
-        if(2 == diseaseType) {
+        if(3 == diseaseType){
+            List<ChronicDisease> chronicDiseaseList = chronicDiseaseDAO.findChronicDiseasesByOrganId(3);
+            list = ObjectCopyUtils.convert(chronicDiseaseList,ChronicDiseaseListResTO.class);
+            return list;
+        }else {
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
             ChronicDiseaseListReqTO req = new ChronicDiseaseListReqTO();
             PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
@@ -347,10 +351,6 @@ public class RecipePatientService extends RecipeBaseService {
                 return list;
             }
             return res.getData().getChronicDiseaseListResTOs();
-        }else{
-            List<ChronicDisease> chronicDiseaseList = chronicDiseaseDAO.findChronicDiseasesByOrganId(3);
-            list = ObjectCopyUtils.convert(chronicDiseaseList,ChronicDiseaseListResTO.class);
-            return list;
         }
     }
 }
