@@ -61,6 +61,12 @@ public class PayModeToHos implements IPurchaseService{
                 return resultBean;
             }
         }
+        //判断是否是慢病医保患者------郑州人民医院
+        if (purchaseService.isMedicareSlowDiseasePatient(recipeId)){
+            resultBean.setCode(RecipeResultBean.FAIL);
+            resultBean.setMsg("抱歉，由于您是慢病医保患者，请到人社平台、医院指定药房或者到医院进行医保支付。");
+            return resultBean;
+        }
         if(CollectionUtils.isNotEmpty(detailList)){
             String pharmNo = detailList.get(0).getPharmNo();
             if(StringUtils.isNotEmpty(pharmNo)){

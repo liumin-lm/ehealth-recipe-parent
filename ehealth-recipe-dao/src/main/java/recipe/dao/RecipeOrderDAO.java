@@ -1,7 +1,13 @@
 package recipe.dao;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.ngari.his.regulation.entity.RegulationChargeDetailReq;
 import com.ngari.his.regulation.entity.RegulationChargeDetailReqTo;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -20,10 +26,7 @@ import org.slf4j.LoggerFactory;
 import recipe.constant.RecipeBussConstant;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * company: ngarihealth
@@ -314,7 +317,6 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         return action.getResult();
     }
 
-
     /**
      * 根据日期查询订单支付和退款信息(只获取实际支付金额不为0的，调用支付平台的)
      *
@@ -381,4 +383,85 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     @DAOMethod(sql = "select orderCode from RecipeOrder order  where order.logisticsCompany=:logisticsCompany and order.trackingNumber=:trackingNumber")
     public abstract String getOrderCodeByLogisticsCompanyAndTrackingNumber(@DAOParam("logisticsCompany") Integer logisticsCompany,
                                                                                 @DAOParam("trackingNumber") String trackingNumber);
+
+
+    /**
+     * 根据日期获取电子处方药企配送订单明细
+     *
+     * @param startTime 开始时间
+     * @param endTime 截止时间
+     * @param organId 机构ID
+     * @param depId 药企ID
+     * @return
+     */
+    public List<Map<String, Object>> queryrecipeOrderDetailed(Date startTime, Date endTime, Integer organId, Integer depId, int start, int limit){
+        HibernateStatelessResultAction<List<Map<String, Object>>> action = new AbstractHibernateStatelessResultAction<List<Map<String, Object>>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("SELECT r.recipeId, r.patientName, r.MPIID, dep.NAME, r.organName, r.doctorName, r.SignDate, o.PayTime, o.refundTime, o.ActualPrice ");
+                hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode LEFT JOIN cdr_drugsenterprise dep ON o.EnterpriseId = dep.Id ");
+                hql.append(" WHERE o.paytime BETWEEN :startTime  AND :endTime  OR o.refundTime BETWEEN :startTime  AND :endTime ");
+                if (organId != null) {
+                    hql.append(" and r.clinicOrgan = :organId");
+                }
+                if (depId != null) {
+                    hql.append(" and o.EnterpriseId = :depId");
+                }
+                Query q = ss.createSQLQuery(hql.toString());
+                q.setParameter("startTime", startTime);
+                q.setParameter("endTime", endTime);
+                if (organId != null) {
+                    q.setParameter("organId", organId);
+                }
+                if (depId != null) {
+                    q.setParameter("depId", depId);
+                }
+                q.setFirstResult(start);
+                q.setMaxResults(limit);
+                List<Object[]> result = q.list();
+                List<Map<String, Object>> backList = new ArrayList<>();
+
+                Set<String> mpiIds = Sets.newHashSet();
+                if (CollectionUtils.isNotEmpty(result)){
+
+                    //获取全部身份证信息
+                    PatientService patientService = BasicAPI.getService(PatientService.class);
+                    Map<String, String> patientBeanMap = Maps.newHashMap();
+                    for (Object[] obj : result) {
+                        if(obj[2] != null){
+                            mpiIds.add((String)obj[2]);
+                        }
+                    }
+
+                    if(0 < mpiIds.size()){
+                        List<PatientDTO> patientBeanList = patientService.findByMpiIdIn(new ArrayList<String>(mpiIds));
+                        for (PatientDTO p : patientBeanList) {
+                            patientBeanMap.put(p.getMpiId(), p.getCardId());
+                        }
+                    }
+
+                    Map<String, Object> vo;
+                    for (Object[] objs : result) {
+                        vo = new HashMap<String, Object>();
+                        vo.put("recipeId", objs[0] == null ? null : (Integer)objs[0]);
+                        vo.put("patientName", objs[1] == null ? null : (String)objs[1]);
+                        vo.put("cardId", objs[2] == null ? null : patientBeanMap.get((String)objs[2]));
+                        vo.put("enterpriseName", objs[3] == null ? null : (String)objs[3]);
+                        vo.put("organName", objs[4] == null ? null : (String)objs[4]);
+                        vo.put("doctorName", objs[5] == null ? null : (String)objs[5]);
+                        vo.put("signDate", objs[6] == null ? null : objs[6].toString());
+                        vo.put("payTime", objs[7] == null ? null : objs[7].toString());
+                        vo.put("refundTime", objs[8] == null ? null : objs[8].toString());
+                        vo.put("actualPrice", objs[9] == null ? null : Double.valueOf(objs[9]+""));
+                        backList.add(vo);
+                    }
+                }
+                setResult(backList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
 }

@@ -61,7 +61,7 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "医保备案号")
     private String putOnRecordID;
 
-    @ItemProperty(alias = "患者类型 自费 0 省医保33 杭州市医保3301 衢州市医保3308 衢化医保3308A")
+    @ItemProperty(alias = "患者类型 自费 0 商保 1 普通医保 2 慢病医保 3 省医保33 杭州市医保3301 衢州市医保3308 巨化医保3308A")
     private String patientType;
     /**互联网医院字段*/
 

@@ -3,9 +3,7 @@ package recipe.service;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganConfigService;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Pharmacy;
-import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
@@ -18,17 +16,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
-import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.OrganAndDrugsepRelationDAO;
-import recipe.dao.PharmacyDAO;
-import recipe.dao.RecipeDAO;
+import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.serviceprovider.BaseService;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 药企相关接口
@@ -356,5 +348,60 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
             }
         }
         return false;
+    }
+
+    /**
+     * 展示药企药品库存
+     * @param drugId   药品编码
+     * @param organId  机构编码
+     * @return         库存情况
+     */
+    @RpcService
+    public Map<String, Object> showDrugsEnterpriseInventory(Integer drugId, Integer organId){
+        LOGGER.info("showDrugsEnterpriseInventory drugId:{},organId:{}.", drugId, organId);
+        Map<String, Object> result = new HashMap<>();
+        //查询当前药品数据
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
+        if (CollectionUtils.isEmpty(organDrugLists)) {
+            throw new DAOException("没有查询到药品数据");
+        }
+        //查询当前机构配置的药企
+        OrganAndDrugsepRelationDAO drugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+        List<DrugsEnterprise> drugsEnterprises = drugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
+        RemoteDrugEnterpriseService enterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        List<List<String>> inventoryList = new ArrayList<>();
+        for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+            List<String> inventoryData = new ArrayList<>();
+            String inventory = enterpriseService.getDrugInventory(drugsEnterprise.getId(), drugId);
+            if ("有库存".equals(inventory) || "无库存".equals(inventory) || "暂不支持库存查询".equals(inventory)) {
+                inventoryData.add(drugsEnterprise.getName());
+                if ("暂不支持库存查询".equals(inventory)) {
+                    inventoryData.add("无库存");
+                } else {
+                    inventoryData.add(inventory);
+                }
+            } else {
+                try{
+                    inventoryData.add(drugsEnterprise.getName());
+                    Double number = Double.parseDouble(inventory);
+                    if (number > 0) {
+                        inventoryData.add("有库存");
+                        inventoryData.add(number + "");
+                    } else {
+                        inventoryData.add("无库存");
+                        inventoryData.add("0");
+                    }
+                } catch (Exception e) {
+                    inventoryData.add("无库存");
+                    inventoryData.add("0");
+                    LOGGER.info("showDrugsEnterpriseInventory drugId:{},organId:{},err:{}.", drugId, organId, e.getMessage(), e);
+                }
+
+            }
+            inventoryList.add(inventoryData);
+        }
+        result.put("enterpriseInventory", inventoryList);
+        return result;
     }
 }

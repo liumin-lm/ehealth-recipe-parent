@@ -94,7 +94,12 @@ public class PayModeOnline implements IPurchaseService {
             }
         }
         Integer recipeId = dbRecipe.getRecipeId();
-
+        //判断是否是慢病医保患者------郑州人民医院
+        if (purchaseService.isMedicareSlowDiseasePatient(recipeId)){
+            resultBean.setCode(RecipeResultBean.FAIL);
+            resultBean.setMsg("抱歉，由于您是慢病医保患者，请到人社平台、医院指定药房或者到医院进行医保支付。");
+            return resultBean;
+        }
         //药企列表
         List<DepDetailBean> depDetailList = new ArrayList<>();
 

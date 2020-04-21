@@ -33,6 +33,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.dao.RecipeParameterDao;
 import recipe.util.AppSiganatureUtils;
+import recipe.util.DictionaryUtil;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLEventWriter;
@@ -91,38 +92,42 @@ public class LogisticsService {
      * @throws Exception
      */
     @RpcService
-    public String getOrderTracesByJson(String expCode, String expNo) throws Exception {
-        if (StringUtils.isEmpty(expCode) || StringUtils.isEmpty(expNo)) {
-            LOGGER.warn("参数不正确 expCode={}, expNo={}", expCode, expNo);
-            return "";
+    public String getOrderTracesByJson(String expCode, String expNo) {
+        try{
+            if (StringUtils.isEmpty(expCode) || StringUtils.isEmpty(expNo)) {
+                LOGGER.warn("参数不正确 expCode={}, expNo={}", expCode, expNo);
+                return "";
+            }
+            LOGGER.info("getOrderTracesByJson expCode={}, expNo={} ", expCode, expNo);
+            if (StringUtils.equals("SF", expCode)) {
+                //获取顺丰物流信息
+                String result = getSfOrderTracesByJson(expCode, expNo);
+                //根据公司业务处理返回的信息......
+                LOGGER.info("getOrderTracesByJson result={}", result);
+                return result;
+            } else if(StringUtils.equals("SHSY", expCode)){
+                //上海上药物流信息
+                String result = getShsyTracesByJson(expCode,expNo);
+                LOGGER.info("getOrderTracesByJson result={}", result);
+                return result;
+            } else {
+                String requestData = "{'OrderCode':'','ShipperCode':'" + expCode + "','LogisticCode':'" + expNo + "'}";
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("RequestData", urlEncoder(requestData, "UTF-8"));
+                params.put("EBusinessID", EBusinessID);
+                params.put("RequestType", "1002");
+                String dataSign = encrypt(requestData, AppKey, "UTF-8");
+                params.put("DataSign", urlEncoder(dataSign, "UTF-8"));
+                params.put("DataType", "2");
+                String result = sendPost(ReqURL, params);
+                //根据公司业务处理返回的信息......
+                LOGGER.info("getOrderTracesByJson result={}", result);
+                return result;
+            }
+        }catch (Exception e){
+            LOGGER.info("LogisticsService.getOrderTracesByJson msg:{}.", e.getMessage(), e);
         }
-        LOGGER.info("getOrderTracesByJson expCode={}, expNo={} ", expCode, expNo);
-        if (StringUtils.equals("SF", expCode)) {
-            //获取顺丰物流信息
-            String result = getSfOrderTracesByJson(expCode, expNo);
-            //根据公司业务处理返回的信息......
-            LOGGER.info("getOrderTracesByJson result={}", result);
-            return result;
-        } else if(StringUtils.equals("SHSY", expCode)){
-            //上海上药物流信息
-            String result = getShsyTracesByJson(expCode,expNo);
-            LOGGER.info("getOrderTracesByJson result={}", result);
-            return result;
-        } else {
-            String requestData = "{'OrderCode':'','ShipperCode':'" + expCode + "','LogisticCode':'" + expNo + "'}";
-            Map<String, String> params = new HashMap<String, String>();
-            params.put("RequestData", urlEncoder(requestData, "UTF-8"));
-            params.put("EBusinessID", EBusinessID);
-            params.put("RequestType", "1002");
-            String dataSign = encrypt(requestData, AppKey, "UTF-8");
-            params.put("DataSign", urlEncoder(dataSign, "UTF-8"));
-            params.put("DataType", "2");
-            String result = sendPost(ReqURL, params);
-            //根据公司业务处理返回的信息......
-            LOGGER.info("getOrderTracesByJson result={}", result);
-            return result;
-        }
-
+        return "";
     }
 
     /**
@@ -486,11 +491,10 @@ public class LogisticsService {
         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        String APP_ID = recipeParameterDao.getByName("logistics_shsy_app_id");
-        String APP_SECRET = recipeParameterDao.getByName("logistics_shsy_app_secret");
+        String appId = recipeParameterDao.getByName("logistics_shsy_app_id");
+        String appSecret = recipeParameterDao.getByName("logistics_shsy_app_secret");
         String url = recipeParameterDao.getByName("logistics_shsy_url");
-
-        String item = DictionaryController.instance().get("eh.cdr.dictionary.KuaiDiNiaoCode").getItem(expCode).getKey();
+        String item = DictionaryUtil.getKeyByValue("eh.cdr.dictionary.KuaiDiNiaoCode",expCode);
         Recipe recipe = new Recipe();
         if(StringUtils.isNotBlank(item)){
             Integer logisticsCompany = Integer.parseInt(item);
@@ -508,12 +512,12 @@ public class LogisticsService {
         params.put("prescripNo",prescripNo);
         params.put("hospitalName",hospitalName);
         String json = JSONObject.toJSONString(params);
-        LOGGER.info("上海上药物流信息查询，签名认证参数：APP_ID={},APP_SECRET={},json={}",APP_ID,APP_SECRET,json);
+        LOGGER.info("上海上药物流信息查询，签名认证参数：APP_ID={},APP_SECRET={},json={}",appId,appSecret,json);
         long timestamp = System.currentTimeMillis();
         HttpPost method = new HttpPost(url);
-        method.addHeader("ACCESS_APPID", APP_ID);
+        method.addHeader("ACCESS_APPID", appId);
         method.addHeader("ACCESS_TIMESTAMP", String.valueOf(timestamp));
-        method.addHeader("ACCESS_SIGANATURE", AppSiganatureUtils.createSiganature(json, APP_ID, APP_SECRET,
+        method.addHeader("ACCESS_SIGANATURE", AppSiganatureUtils.createSiganature(json, appId, appSecret,
                 timestamp));
         method.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));
         HttpClient httpClient = HttpClientUtils.getHttpClient();
