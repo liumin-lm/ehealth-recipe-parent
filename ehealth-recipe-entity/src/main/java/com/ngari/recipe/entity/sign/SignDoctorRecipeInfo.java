@@ -23,6 +23,30 @@ public class SignDoctorRecipeInfo {
     /** 药师序列号*/
     private String caSerCodePha;
 
+    /** 医生签名时间戳*/
+    private String signCADate;
+
+    /**医生签名值*/
+    private String signRecipeCode;
+
+    /**医生签名文件*/
+    private String signFile;
+
+    /**医生签名时间*/
+    private Date signDate;
+
+    /** 药师审方时间戳*/
+    private String signPharmacistCADate;
+
+    /**药师审方签名值*/
+    private String signPharmacistCode;
+
+    /**药师签名文件*/
+    private String chemistSignFile;
+
+    /**药师审方时间*/
+    private Date CheckDateYs;
+
     private Date createDate;
 
     private Date lastmodify;
@@ -81,5 +105,77 @@ public class SignDoctorRecipeInfo {
 
     public void setLastmodify(Date lastmodify) {
         this.lastmodify = lastmodify;
+    }
+
+    @Column
+    public String getSignCADate() {
+        return signCADate;
+    }
+
+    public void setSignCADate(String signCADate) {
+        this.signCADate = signCADate;
+    }
+
+    @Column
+    public String getSignRecipeCode() {
+        return signRecipeCode;
+    }
+
+    public void setSignRecipeCode(String signRecipeCode) {
+        this.signRecipeCode = signRecipeCode;
+    }
+
+    @Column
+    public String getSignFile() {
+        return signFile;
+    }
+
+    public void setSignFile(String signFile) {
+        this.signFile = signFile;
+    }
+
+    @Column
+    public Date getSignDate() {
+        return signDate;
+    }
+
+    public void setSignDate(Date signDate) {
+        this.signDate = signDate;
+    }
+
+    @Column
+    public String getSignPharmacistCADate() {
+        return signPharmacistCADate;
+    }
+
+    public void setSignPharmacistCADate(String signPharmacistCADate) {
+        this.signPharmacistCADate = signPharmacistCADate;
+    }
+
+    @Column
+    public String getSignPharmacistCode() {
+        return signPharmacistCode;
+    }
+
+    public void setSignPharmacistCode(String signPharmacistCode) {
+        this.signPharmacistCode = signPharmacistCode;
+    }
+
+    @Column
+    public String getChemistSignFile() {
+        return chemistSignFile;
+    }
+
+    public void setChemistSignFile(String chemistSignFile) {
+        this.chemistSignFile = chemistSignFile;
+    }
+
+    @Column
+    public Date getCheckDateYs() {
+        return CheckDateYs;
+    }
+
+    public void setCheckDateYs(Date checkDateYs) {
+        CheckDateYs = checkDateYs;
     }
 }

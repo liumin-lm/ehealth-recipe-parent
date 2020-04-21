@@ -31,6 +31,7 @@ import com.ngari.recipe.audit.model.AuditMedicineIssueDTO;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
@@ -74,6 +75,7 @@ import recipe.ca.vo.CaSignResultVo;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
+import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
 import recipe.hisservice.RecipeToHisCallbackService;
@@ -134,6 +136,9 @@ public class RecipeService extends RecipeBaseService {
 
     @Autowired
     private DrugsEnterpriseService drugsEnterpriseService;
+
+    @Autowired
+    private SignDoctorRecipeInfoDAO signDoctorRecipeInfoDAO;
 
     /**
      * 药师审核不通过
@@ -601,11 +606,8 @@ public class RecipeService extends RecipeBaseService {
                         CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
                         //保存签名值、时间戳、电子签章文件
                         String result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false);
-//                        if (null != recipeFileId) {
-//                            bl = recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.<String, Object>of("chemistSignFile", recipeFileId));
-//                        } else{
-//                            bl = false;
-//                        }
+                        SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
+
                         bl = "success".equals(result) ? true : false;
                     } catch (Exception e) {
                         LOGGER.error("reviewRecipe  signFile 标准化CA签章报错 recipeId={} ,doctor={} ,e={}=============", recipeId, recipe.getDoctor(), e);
