@@ -5,10 +5,7 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.entity.SaleDrugList;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -62,8 +59,69 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String loginUrl=recipeParameterDao.getByName("lx-login-url");
+        String checkstockUrl=recipeParameterDao.getByName("lx-checkstock-url");
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        try {
+            Map<String, String> loginBody = new HashMap<String, String>();
+            loginBody.put("username", drugsEnterprise.getUserId());
+            loginBody.put("password", drugsEnterprise.getPassword());
+            String requestStr = JSONUtils.toString(loginBody);
+            LOGGER.info("LxRemoteService.scanStock:[{}][{}]根据用户名和密码获取Token请求，请求内容：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), requestStr);
+            String tokenData = HttpsClientUtils.doPost(drugsEnterprise.getBusinessUrl() + loginUrl, requestStr);
+            LOGGER.info("LxRemoteService.scanStock:[{}][{}]根据用户名和密码获取Token请求，获取响应消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), JSONUtils.toString(tokenData));
+            Map tokenMap = JSONUtils.parse(tokenData, Map.class);
+            if (requestSuccessCode.equals(MapValueUtil.getString(tokenMap, "code"))) {
+                String token = MapValueUtil.getString(tokenMap, "token");
+                Map<String, String> extendHeaders = new HashMap<String, String>();
+                extendHeaders.put("Content-Type", requestHeadJsonValue);
+                extendHeaders.put("X-Token", token);
+                /**
+                 * {"drugList":[{"drugCode":"SPH00001154","total":"1","unit":"盒"}]}
+                 */
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
+                List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
+                List<DrugBean> list = new ArrayList<>();
+                if (saleDrugList != null) {
+                    DrugBean drugBean = new DrugBean();
+                    drugBean.setDrugCode(saleDrugList.getOrganDrugCode());
+                    drugBean.setTotal("5");
+                    if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                        drugBean.setUnit(organDrugLists.get(0).getUnit());
+                    }
+                    list.add(drugBean);
+                }
+                Map<String, List<DrugBean>> map = new HashMap<>();
+                map.put("drugList", list);
+                String requestParames = JSONUtils.toString(map);
+                String stockData = HttpsClientUtils.doPost(drugsEnterprise.getBusinessUrl() + checkstockUrl, requestParames, extendHeaders);
+                LOGGER.info("LxRemoteService.scanStock:[{}][{}]获取药企库存查询请求，获取响应getBody消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), stockData);
+                Map resultMap = JSONUtils.parse(stockData, Map.class);
+                if (requestSuccessCode.equals(MapValueUtil.getString(resultMap, "code"))) {
+                    List<Map<String, Object>> drugList = MapValueUtil.getList(resultMap, "drugList");
+                    if (CollectionUtils.isNotEmpty(drugList) && drugList.size() > 0) {
+                        for (Map<String, Object> drugBean : drugList) {
+                            String inventory = MapValueUtil.getObject(drugBean, "inventory").toString();
+                            if ("false".equals(inventory)) {
+                                return "无库存";
+                            } else {
+                                return "有库存";
+                            }
+                        }
+                    } else {
+                        return "无库存";
+                    }
+                }
+            }
+        }catch (Exception e){
+            LOGGER.info("getDrugInventory error:{}.", e.getMessage(), e);
+            return "无库存";
+        }
         return "暂不支持库存查询";
     }
+
     @RpcService
     public void test(Integer recipeId){
         List<Integer> recipeIds = Arrays.asList(recipeId);

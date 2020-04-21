@@ -376,11 +376,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
             String inventory = enterpriseService.getDrugInventory(drugsEnterprise.getId(), drugId, organId);
             if ("有库存".equals(inventory) || "无库存".equals(inventory) || "暂不支持库存查询".equals(inventory)) {
                 inventoryData.add(drugsEnterprise.getName());
-                if ("暂不支持库存查询".equals(inventory)) {
-                    inventoryData.add("无库存");
-                } else {
-                    inventoryData.add(inventory);
-                }
+                inventoryData.add(inventory);
             } else {
                 try{
                     inventoryData.add(drugsEnterprise.getName());
@@ -397,7 +393,6 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
                     inventoryData.add("0");
                     LOGGER.info("showDrugsEnterpriseInventory drugId:{},organId:{},err:{}.", drugId, organId, e.getMessage(), e);
                 }
-
             }
             inventoryList.add(inventoryData);
         }
