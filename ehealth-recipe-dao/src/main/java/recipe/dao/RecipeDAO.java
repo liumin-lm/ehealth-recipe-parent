@@ -1516,7 +1516,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         }
 
         if (mpiId != null) {
-            hql.append(" and r.mpiid=").append(mpiId);
+            hql.append(" and r.mpiid='").append(mpiId+"'");
         }
         if (enterpriseId != null) {
             hql.append(" and r.enterpriseId=").append(enterpriseId);
