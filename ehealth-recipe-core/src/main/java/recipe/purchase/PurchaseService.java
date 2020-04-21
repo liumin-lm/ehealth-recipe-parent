@@ -559,6 +559,23 @@ public class PurchaseService {
     }
 
     /**
+     * 判断是否是慢病医保患者
+     * @param recipeId
+     * @return
+     */
+    public Boolean isMedicareSlowDiseasePatient(Integer recipeId){
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if (recipeExtend !=null){
+            //3慢病医保
+            if ("3".equals(recipeExtend.getPatientType())){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 配送到家判断是否是医保患者
      *
      * @return
