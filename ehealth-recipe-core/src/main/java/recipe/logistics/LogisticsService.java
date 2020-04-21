@@ -491,8 +491,8 @@ public class LogisticsService {
         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        String APP_ID = recipeParameterDao.getByName("logistics_shsy_app_id");
-        String APP_SECRET = recipeParameterDao.getByName("logistics_shsy_app_secret");
+        String appId = recipeParameterDao.getByName("logistics_shsy_app_id");
+        String appSecret = recipeParameterDao.getByName("logistics_shsy_app_secret");
         String url = recipeParameterDao.getByName("logistics_shsy_url");
         String item = DictionaryUtil.getKeyByValue("eh.cdr.dictionary.KuaiDiNiaoCode",expCode);
         Recipe recipe = new Recipe();
@@ -512,12 +512,12 @@ public class LogisticsService {
         params.put("prescripNo",prescripNo);
         params.put("hospitalName",hospitalName);
         String json = JSONObject.toJSONString(params);
-        LOGGER.info("上海上药物流信息查询，签名认证参数：APP_ID={},APP_SECRET={},json={}",APP_ID,APP_SECRET,json);
+        LOGGER.info("上海上药物流信息查询，签名认证参数：APP_ID={},APP_SECRET={},json={}",appId,appSecret,json);
         long timestamp = System.currentTimeMillis();
         HttpPost method = new HttpPost(url);
-        method.addHeader("ACCESS_APPID", APP_ID);
+        method.addHeader("ACCESS_APPID", appId);
         method.addHeader("ACCESS_TIMESTAMP", String.valueOf(timestamp));
-        method.addHeader("ACCESS_SIGANATURE", AppSiganatureUtils.createSiganature(json, APP_ID, APP_SECRET,
+        method.addHeader("ACCESS_SIGANATURE", AppSiganatureUtils.createSiganature(json, appId, appSecret,
                 timestamp));
         method.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));
         HttpClient httpClient = HttpClientUtils.getHttpClient();
