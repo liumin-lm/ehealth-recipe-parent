@@ -3075,7 +3075,7 @@ public class RecipeService extends RecipeBaseService {
         Map<String,String> map = new HashMap<>();
         map.put("0","自费");
         map.put("1","普通保险");
-        map.put("0","门特保险");
+        map.put("2","门特保险");
         return map;
     }
 
