@@ -3070,4 +3070,13 @@ public class RecipeService extends RecipeBaseService {
 //        return false;
 //    }
 
+    @RpcService
+    private Map<String,String> getRevisitType(){
+        Map<String,String> map = new HashMap<>();
+        map.put("0","自费");
+        map.put("1","普通保险");
+        map.put("0","门特保险");
+        return map;
+    }
+
 }
