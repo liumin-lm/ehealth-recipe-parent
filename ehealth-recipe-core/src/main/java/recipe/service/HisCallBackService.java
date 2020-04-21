@@ -168,6 +168,7 @@ public class HisCallBackService {
         if (CollectionUtils.isNotEmpty(recipedetails)) {
             Map<Integer, BigDecimal> priceMap = Maps.newHashMap();
             Map<String, Object> detailAttrMap;
+            //todo---更新recipe表TotalMoney、ActualPrice字段
             for (Recipedetail detail : recipedetails) {
                 if (null != detail.getRecipeDetailId()) {
                     detailAttrMap = Maps.newHashMap();
