@@ -83,9 +83,9 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
                  */
                 SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
                 List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
-                List<DrugBean> list = new ArrayList<>();
+                List<HdDrugRequestData> list = new ArrayList<>();
                 if (saleDrugList != null) {
-                    DrugBean drugBean = new DrugBean();
+                    HdDrugRequestData drugBean = new HdDrugRequestData();
                     drugBean.setDrugCode(saleDrugList.getOrganDrugCode());
                     drugBean.setTotal("5");
                     if (CollectionUtils.isNotEmpty(organDrugLists)) {
@@ -93,7 +93,7 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
                     }
                     list.add(drugBean);
                 }
-                Map<String, List<DrugBean>> map = new HashMap<>();
+                Map<String, List<HdDrugRequestData>> map = new HashMap<>();
                 map.put("drugList", list);
                 String requestParames = JSONUtils.toString(map);
                 String stockData = HttpsClientUtils.doPost(drugsEnterprise.getBusinessUrl() + checkstockUrl, requestParames, extendHeaders);
