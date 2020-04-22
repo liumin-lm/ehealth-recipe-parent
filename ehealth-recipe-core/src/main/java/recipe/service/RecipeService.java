@@ -130,6 +130,12 @@ public class RecipeService extends RecipeBaseService {
     @Autowired
     private DrugsEnterpriseService drugsEnterpriseService;
 
+    @Autowired
+    private RecipeCheckDAO recipeCheckDAO;
+
+    @Autowired
+    private RecipeCheckDetailDAO recipeCheckDetailDAO;
+
     /**
      * 药师审核不通过
      */
@@ -503,7 +509,8 @@ public class RecipeService extends RecipeBaseService {
         attrMap.put("Status", RecipeStatusConstant.SIGN_ING_CODE_PHA);
 
         //保存审核记录和详情审核记录
-        RecipeCheck recipeCheck = new RecipeCheck();
+//        RecipeCheck recipeCheck = new RecipeCheck();
+        RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeIdAndCheckStatus(recipeId);
         recipeCheck.setChecker(checker);
         recipeCheck.setRecipeId(recipeId);
         recipeCheck.setCheckOrgan(checkOrgan);
@@ -527,13 +534,21 @@ public class RecipeService extends RecipeBaseService {
                 RecipeCheckDetail recipeCheckDetail = new RecipeCheckDetail();
                 recipeCheckDetail.setRecipeDetailIds(recipeDetailIds);
                 recipeCheckDetail.setReasonIds(reasonIds);
+                recipeCheckDetail.setCheckId(recipeCheck.getCheckId());
                 recipeCheckDetails.add(recipeCheckDetail);
             }
         } else {
             recipeCheckDetails = null;
         }
+
+        //recipeCheckDAO.saveRecipeCheckAndDetail(recipeCheck, recipeCheckDetails);
         RecipeCheckDAO recipeCheckDAO = getDAO(RecipeCheckDAO.class);
-        recipeCheckDAO.saveRecipeCheckAndDetail(recipeCheck, recipeCheckDetails);
+        recipeCheckDAO.update(recipeCheck);
+        if(CollectionUtils.isNotEmpty(recipeCheckDetails)){
+            recipeCheckDetails.forEach(recipeCheckDetail->{
+                recipeCheckDetailDAO.save(recipeCheckDetail);
+            });
+        }
 
         boolean bl = recipeDAO.updateRecipeInfoByRecipeId(recipeId, recipeStatus, attrMap);
         if (!bl) {
