@@ -478,6 +478,58 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     }
 
     /**
+     * 根据日期获取电子处方药企配送订单明细（总计数据）
+     *
+     * @param startTime 开始时间
+     * @param endTime 截止时间
+     * @param organId 机构ID
+     * @param depId 药企ID
+     * @return
+     */
+    public Map<String, Object> queryrecipeOrderDetailedTotal(Date startTime, Date endTime, Integer organId, Integer depId, Integer drugId){
+        HibernateStatelessResultAction<Map<String, Object>> action = new AbstractHibernateStatelessResultAction<Map<String, Object>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("SELECT count(1), sum(o.ActualPrice) as totalPrice");
+                hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId ");
+                hql.append(" WHERE r.GiveMode = 1 and o.payflag = 1 and (o.paytime BETWEEN :startTime  AND :endTime  OR o.refundTime BETWEEN :startTime  AND :endTime) ");
+                if (organId != null) {
+                    hql.append(" and r.clinicOrgan = :organId");
+                }
+                if (depId != null) {
+                    hql.append(" and o.EnterpriseId = :depId");
+                }
+                if (drugId != null) {
+                    hql.append(" and d.drugId = :drugId");
+                }
+                Query q = ss.createSQLQuery(hql.toString());
+                q.setParameter("startTime", startTime);
+                q.setParameter("endTime", endTime);
+                if (organId != null) {
+                    q.setParameter("organId", organId);
+                }
+                if (depId != null) {
+                    q.setParameter("depId", depId);
+                }
+                if (drugId != null) {
+                    q.setParameter("drugId", drugId);
+                }
+
+                List<Object[]> result = q.list();
+                Map<String, Object> vo = new HashMap ();
+                if (CollectionUtils.isNotEmpty(result)){
+                    vo.put("totalNum", result.get(0)[0]);
+                    vo.put("totalPrice", result.get(0)[1]);
+                }
+                setResult(vo);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
      * 根据日期获取电子处方药企配送药品
      *
      * @param startTime 开始时间
@@ -494,7 +546,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 hql.append("SELECT s.OrganDrugCode, d.drugName, d.producer, s.drugSpec, d.DrugUnit, s.Price as price, sum(d.useTotalDose) as dose, s.price * sum(d.useTotalDose) as totalPrice, s.organId, s.DrugId ");
                 hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId INNER JOIN cdr_recipeorder o ON o.OrderCode = r.OrderCode ");
                 hql.append("  LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID ");
-                hql.append(" WHERE r.GiveMode = 1 recipeSend recive success.and o.PayFlag = 1 and (o.paytime BETWEEN :startTime  AND :endTime  OR o.refundTime BETWEEN :startTime  AND :endTime) ");
+                hql.append(" WHERE r.GiveMode = 1 and o.PayFlag = 1 and (o.paytime BETWEEN :startTime  AND :endTime  OR o.refundTime BETWEEN :startTime  AND :endTime) ");
                 if (organId != null) {
                     hql.append(" and r.clinicOrgan = :organId");
                 }
@@ -524,6 +576,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                     q.setParameter("recipeId", recipeId);
                 }
 
+                q.setFirstResult(start);
+                q.setMaxResults(limit);
                 List<Object[]> result = q.list();
                 List<Map<String, Object>> backList = new ArrayList<>();
 
@@ -563,6 +617,60 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                     }
                 }
                 setResult(backList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * 根据日期获取电子处方药企配送药品
+     *
+     * @param startTime 开始时间
+     * @param endTime 截止时间
+     * @param organId 机构ID
+     * @param depId 药企ID
+     * @return
+     */
+    public Map<String, Object> queryrecipeDrugtotal(Date startTime, Date endTime, Integer organId, Integer depId, Integer recipeId){
+        HibernateStatelessResultAction<Map<String, Object>> action = new AbstractHibernateStatelessResultAction<Map<String, Object>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("SELECT count(1), sum(totalPrice) from (SELECT s.price * sum(d.useTotalDose) as totalPrice ");
+                hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId INNER JOIN cdr_recipeorder o ON o.OrderCode = r.OrderCode ");
+                hql.append("  LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID ");
+                hql.append(" WHERE r.GiveMode = 1 and o.PayFlag = 1 and (o.paytime BETWEEN :startTime  AND :endTime  OR o.refundTime BETWEEN :startTime  AND :endTime) ");
+                if (organId != null) {
+                    hql.append(" and r.clinicOrgan = :organId");
+                }
+                if (depId != null) {
+                    hql.append(" and o.EnterpriseId = :depId");
+                }
+                if (recipeId != null) {
+                    hql.append(" and r.recipeId = :recipeId");
+                }
+                hql.append(" GROUP BY s.drugId, s.OrganID) a");
+                Query q = ss.createSQLQuery(hql.toString());
+                q.setParameter("startTime", startTime);
+                q.setParameter("endTime", endTime);
+                if (organId != null) {
+                    q.setParameter("organId", organId);
+                }
+                if (depId != null) {
+                    q.setParameter("depId", depId);
+                }
+                if (recipeId != null) {
+                    q.setParameter("recipeId", recipeId);
+                }
+                List<Object[]> result = q.list();
+
+                Map<String, Object> vo = new HashMap ();
+                if (CollectionUtils.isNotEmpty(result)){
+                    vo.put("totalNum", result.get(0)[0]);
+                    vo.put("totalPrice", result.get(0)[1]);
+                }
+                setResult(vo);
             }
         };
         HibernateSessionTemplate.instance().execute(action);
