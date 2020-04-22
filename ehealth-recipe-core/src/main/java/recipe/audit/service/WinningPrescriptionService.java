@@ -175,11 +175,13 @@ public class WinningPrescriptionService implements IntellectJudicialService {
             return result;
         }
 
-        LOGGER.info("analysisImpl funId={}, response={}", funId, uiResults.value);
+        LOGGER.info("analysisImpl funId={}, 1006-response={}", funId, uiResults.value);
 
-        List<PAWebMedicines> medicines = Collections.EMPTY_LIST;
+        LOGGER.info("analysisImpl funId={}, 1007-response={}", funId, hisResults2.value);
+
+        List<PAWebMedicines> medicines = new ArrayList<>();
         String brief = null;
-        List<PAWebRecipeDanger> recipeDangers = Collections.EMPTY_LIST;
+        List<PAWebRecipeDanger> recipeDangers = new ArrayList<>();
         try {
             // 将字符串转化成java对象
             PAWebResponse response = JSONObject.parseObject(uiResults.value, PAWebResponse.class);
@@ -196,7 +198,7 @@ public class WinningPrescriptionService implements IntellectJudicialService {
                 }
             }
         } catch (Exception e) {
-            LOGGER.warn("analysisImpl funId={} covert to PAWebResponse error.", funId);
+            LOGGER.warn("analysisImpl funId={} error.", funId ,e);
             result.setMsg(errorMsg);
             return result;
         }
