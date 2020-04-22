@@ -47,6 +47,12 @@ public class SignDoctorRecipeInfo {
     /**药师审方时间*/
     private Date checkDatePha;
 
+    /**医生手签图片*/
+    private String sealDataDoc;
+
+    /**药师手签图片*/
+    private String sealDataPha;
+
     private Date createDate;
 
     private Date lastmodify;
@@ -178,5 +184,23 @@ public class SignDoctorRecipeInfo {
 
     public void setCheckDatePha(Date checkDatePha) {
         this.checkDatePha = checkDatePha;
+    }
+
+    @Transient
+    public String getSealDataDoc() {
+        return sealDataDoc;
+    }
+
+    public void setSealDataDoc(String sealDataDoc) {
+        this.sealDataDoc = sealDataDoc;
+    }
+
+    @Transient
+    public String getSealDataPha() {
+        return sealDataPha;
+    }
+
+    public void setSealDataPha(String sealDataPha) {
+        this.sealDataPha = sealDataPha;
     }
 }
