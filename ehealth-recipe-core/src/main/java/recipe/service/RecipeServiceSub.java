@@ -95,6 +95,8 @@ public class RecipeServiceSub {
 
     private static DepartmentService departmentService = ApplicationUtils.getBasicService(DepartmentService.class);
 
+    private static IConfigurationCenterUtilsService configService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+
     private static Integer[] showRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.IN_SEND, RecipeStatusConstant.WAIT_SEND, RecipeStatusConstant.FINISH};
 
     private static Integer[] showDownloadRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.RECIPE_DOWNLOADED};
@@ -1203,8 +1205,11 @@ public class RecipeServiceSub {
             //判断开关是否开启
             PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
             if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
-                map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId));
+                List<AuditMedicinesDTO> auditMedicines = getAuditMedicineIssuesByRecipeId(recipeId);
+                map.put("medicines", handleAnalysisByType(auditMedicines,"medicines")); //返回药品分析数据
+                map.put("recipeDangers",handleAnalysisByType(auditMedicines,"recipeDangers")); //返回处方分析数据
             }
+
         } else {
             //处方详情单底部文案提示说明---机构配置
             map.put("bottomText", getBottomTextForPatient(recipe.getClinicOrgan()));
@@ -1426,6 +1431,28 @@ public class RecipeServiceSub {
         }
 
         return map;
+    }
+
+    private static List<AuditMedicinesDTO> handleAnalysisByType(List<AuditMedicinesDTO> auditMedicines,String type){
+        if(CollectionUtils.isNotEmpty(auditMedicines)){
+            auditMedicines.forEach(auditMedicinesDTO -> {
+                List<AuditMedicineIssueDTO> auditMedicineIssues = auditMedicinesDTO.getAuditMedicineIssues();
+                List<AuditMedicineIssueDTO> resultAuditMedicineIssues = new ArrayList<>();
+                auditMedicineIssues.forEach(auditMedicineIssueDTO->{
+                    if(type.equals("medicines")){
+                        if(null == auditMedicineIssueDTO.getDetailUrl()){
+                            resultAuditMedicineIssues.add(auditMedicineIssueDTO);
+                        }
+                    }else if(type.equals("recipeDangers")){
+                        if(null != auditMedicineIssueDTO.getDetailUrl()){
+                            resultAuditMedicineIssues.add(auditMedicineIssueDTO);
+                        }
+                    }
+                });
+                auditMedicinesDTO.setAuditMedicineIssues(resultAuditMedicineIssues);
+            });
+        }
+        return  auditMedicines;
     }
 
     private static String getCancelReasonForPatient(int recipeId) {
