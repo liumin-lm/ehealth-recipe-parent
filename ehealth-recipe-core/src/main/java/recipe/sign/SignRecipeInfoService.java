@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.service.RecipeService;
@@ -23,9 +24,6 @@ import java.util.Date;
 public class SignRecipeInfoService {
 
     private static final Logger logger = LoggerFactory.getLogger(SignDoctorRecipeInfo.class);
-
-    @Autowired
-    private RecipeService recipeService;
 
     @Autowired
     private DoctorExtendService doctorExtendService;
@@ -83,7 +81,8 @@ public class SignRecipeInfoService {
 
     @RpcService
     public SignDoctorRecipeInfo getSignInfoByRecipeId(Integer recipeId){
-
+        logger.info("getSignInfoByRecipeId start recipeId=" + recipeId);
+        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         RecipeBean recipeBean = recipeService.getByRecipeId(recipeId);
         if (recipeBean == null) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "处方订单不存在");
