@@ -231,6 +231,7 @@ public class SignDoctorRecipeInfo {
         this.signRemarkPha = signRemarkPha;
     }
 
+    @Column
     public String getSignBefText() {
         return signBefText;
     }
