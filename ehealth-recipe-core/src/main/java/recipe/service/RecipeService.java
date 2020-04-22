@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
@@ -605,8 +606,17 @@ public class RecipeService extends RecipeBaseService {
                         CAInterface caInterface = caFactory.useCAFunction(organId);
                         CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
                         //保存签名值、时间戳、电子签章文件
-                        String result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false);
+                        String fileId = null;
+                        String result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false,fileId);
                         SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
+                        if (signDoctorRecipeInfo != null) {
+                            signDoctorRecipeInfo.setSignCaDatePha(resultVo.getSignCADate());
+                            signDoctorRecipeInfo.setSignCodePha(resultVo.getSignRecipeCode());
+                            signDoctorRecipeInfo.setSignFilePha(fileId);
+                            signDoctorRecipeInfo.setCheckDatePha(new Date());
+                            LOGGER.error("reviewRecipe  signFile 标准化CA签章 signDoctorRecipeInfo={}=", JSONObject.toJSONString(signDoctorRecipeInfo));
+                            signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
+                        }
 
                         bl = "success".equals(result) ? true : false;
                     } catch (Exception e) {
@@ -780,7 +790,17 @@ public class RecipeService extends RecipeBaseService {
                 //通过工厂获取对应的实现CA类
                 CAInterface caInterface = caFactory.useCAFunction(organId);
                 CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
-                RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true);
+                String fileId = null;
+                RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
+                SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
+                if (signDoctorRecipeInfo != null) {
+                    signDoctorRecipeInfo.setSignCaDateDoc(resultVo.getSignCADate());
+                    signDoctorRecipeInfo.setSignCodeDoc(resultVo.getSignRecipeCode());
+                    signDoctorRecipeInfo.setSignFileDoc(fileId);
+                    signDoctorRecipeInfo.setSignDate(new Date());
+                    LOGGER.error("generateRecipePdfAndSign 标准化CA签章 signDoctorRecipeInfo={}=", JSONObject.toJSONString(signDoctorRecipeInfo));
+                    signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
+                }
 
                 //TODO 0423版本再提交
 //                if (resultVo != null && 200 == resultVo.getCode()) {
