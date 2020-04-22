@@ -127,16 +127,18 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 LOGGER.error("YtRemoteService.tokenUpdateImpl:http请求资源关闭异常: {}", e.getMessage());
             }
         }
-
     }
 
     @Override
-    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         SaleDrugList saleDrug = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
         Pharmacy pharmacy = new Pharmacy();
         if ("yt".equals(drugsEnterprise.getAccount())) {
-            pharmacy.setPharmacyCode("YMO0111470");
+            //设置指定药店配送
+            RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+            String store = recipeParameterDao.getByName(organId + "_yt_store_code");
+            pharmacy.setPharmacyCode(store);
         }
         if ("yt_sy".equals(drugsEnterprise.getAccount())) {
             pharmacy.setPharmacyCode("YK45286");

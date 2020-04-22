@@ -6,10 +6,7 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.entity.SaleDrugList;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -23,10 +20,7 @@ import org.slf4j.LoggerFactory;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
-import recipe.drugsenterprise.bean.HdDrugRequestData;
-import recipe.drugsenterprise.bean.HdPosition;
-import recipe.drugsenterprise.bean.ScanStockBean;
-import recipe.drugsenterprise.bean.YnsPharmacyAndStockRequest;
+import recipe.drugsenterprise.bean.*;
 import recipe.drugsenterprise.bean.yd.httpclient.HttpsClientUtils;
 import recipe.util.MapValueUtil;
 
@@ -64,8 +58,54 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
-        return null;
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        String goodsqtyMethod = recipeParameterDao.getByName("kms-goodsqty");
+        //发送请求，获得推送的结果
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        try{
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
+            List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
+            List<HdDrugRequestData> list = new ArrayList<>();
+            if (saleDrugList != null) {
+                HdDrugRequestData drugBean = new HdDrugRequestData();
+                drugBean.setDrugCode(saleDrugList.getOrganDrugCode());
+                drugBean.setTotal("5");
+                if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                    drugBean.setUnit(organDrugLists.get(0).getUnit());
+                }
+                list.add(drugBean);
+            }
+            Map<String, List<HdDrugRequestData>> map = new HashMap<>();
+            map.put("drugList", list);
+            String requestParames = JSONUtils.toString(map);
+            LOGGER.info("getDrugInventory requestParames:{}.", requestParames);
+            String outputData = HttpsClientUtils.doPost(drugsEnterprise.getBusinessUrl() + goodsqtyMethod, requestParames);
+            LOGGER.info("getDrugInventory outputData:{}.", outputData);
+            Map resultMap = JSONUtils.parse(outputData, Map.class);
+            if (requestSuccessCode.equals(MapValueUtil.getString(resultMap, "code"))) {
+                List<Map<String, Object>> drugList = MapValueUtil.getList(resultMap, "drugList");
+                if (CollectionUtils.isNotEmpty(drugList) && drugList.size() > 0) {
+                    for (Map<String, Object> drugBean : drugList) {
+                        String inventory = MapValueUtil.getObject(drugBean, "inventory").toString();
+                        if ("false".equals(inventory)) {
+                            return "有库存";
+                        }
+                    }
+                } else {
+                    return "无库存";
+                }
+
+            } else {
+                return "无库存";
+            }
+        }catch(Exception e){
+            LOGGER.info("getDrugInventory error:{}.", e.getMessage(), e);
+            return "无库存";
+        }
+        return "无库存";
     }
 
     @RpcService
