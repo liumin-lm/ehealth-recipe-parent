@@ -950,6 +950,16 @@ public class RecipeService extends RecipeBaseService {
             recipe.setRecipeId(recipeId);
         }
 
+        try {
+            SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("recipeBean", JSONObject.toJSONString(recipe));
+            jsonObject.put("details", JSONObject.toJSONString(details));
+            signDoctorRecipeInfo.setSignBefText(jsonObject.toJSONString());
+        } catch (Exception e) {
+            LOGGER.error("signBefText save error："  + e.getMessage());
+        }
+
         //非只能配送处方需要进行医院库存校验
         if (!Integer.valueOf(1).equals(recipe.getDistributionFlag())) {
             //HIS消息发送

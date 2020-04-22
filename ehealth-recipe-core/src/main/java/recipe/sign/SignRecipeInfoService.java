@@ -73,6 +73,9 @@ public class SignRecipeInfoService {
         if (StringUtils.isNotEmpty(signDoctorRecipeInfo.getSignRemarkPha())) {
             recipeInfo.setSignRemarkPha(signDoctorRecipeInfo.getSignRemarkPha());
         }
+        if(StringUtils.isNotEmpty(signDoctorRecipeInfo.getSignBefText())){
+            recipeInfo.setSignBefText(signDoctorRecipeInfo.getSignBefText());
+        }
 
         signDoctorRecipeInfoDAO.update(recipeInfo);
         return true;

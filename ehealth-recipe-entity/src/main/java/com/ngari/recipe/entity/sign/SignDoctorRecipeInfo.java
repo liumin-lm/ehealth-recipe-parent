@@ -59,6 +59,9 @@ public class SignDoctorRecipeInfo {
     /**药师签名摘要*/
     private String signRemarkPha;
 
+    /**签名原文*/
+    private String signBefText;
+
     private Date createDate;
 
     private Date lastmodify;
@@ -226,5 +229,13 @@ public class SignDoctorRecipeInfo {
 
     public void setSignRemarkPha(String signRemarkPha) {
         this.signRemarkPha = signRemarkPha;
+    }
+
+    public String getSignBefText() {
+        return signBefText;
+    }
+
+    public void setSignBefText(String signBefText) {
+        this.signBefText = signBefText;
     }
 }
