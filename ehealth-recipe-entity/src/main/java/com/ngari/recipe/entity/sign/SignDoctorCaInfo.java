@@ -20,9 +20,6 @@ public class SignDoctorCaInfo {
     /**签名序列号*/
     private String caSerCode;
 
-    /**手签图片base64*/
-    private String sealData;
-
     /**ca类型*/
     private String caType;
 
@@ -57,15 +54,6 @@ public class SignDoctorCaInfo {
 
     public void setCaSerCode(String caSerCode) {
         this.caSerCode = caSerCode;
-    }
-
-    @Column
-    public String getSealData() {
-        return sealData;
-    }
-
-    public void setSealData(String sealData) {
-        this.sealData = sealData;
     }
 
     @Column

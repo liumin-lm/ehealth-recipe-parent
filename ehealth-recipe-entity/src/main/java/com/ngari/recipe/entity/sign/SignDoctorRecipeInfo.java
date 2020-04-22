@@ -24,28 +24,28 @@ public class SignDoctorRecipeInfo {
     private String caSerCodePha;
 
     /** 医生签名时间戳*/
-    private String signCADate;
+    private String signCaDateDoc;
 
     /**医生签名值*/
-    private String signRecipeCode;
+    private String signCodeDoc;
 
     /**医生签名文件*/
-    private String signFile;
+    private String signFileDoc;
 
     /**医生签名时间*/
     private Date signDate;
 
     /** 药师审方时间戳*/
-    private String signPharmacistCADate;
+    private String signCaDatePha;
 
     /**药师审方签名值*/
-    private String signPharmacistCode;
+    private String signCodePha;
 
     /**药师签名文件*/
-    private String chemistSignFile;
+    private String signFilePha;
 
     /**药师审方时间*/
-    private Date CheckDateYs;
+    private Date checkDatePha;
 
     private Date createDate;
 
@@ -107,32 +107,6 @@ public class SignDoctorRecipeInfo {
         this.lastmodify = lastmodify;
     }
 
-    @Column
-    public String getSignCADate() {
-        return signCADate;
-    }
-
-    public void setSignCADate(String signCADate) {
-        this.signCADate = signCADate;
-    }
-
-    @Column
-    public String getSignRecipeCode() {
-        return signRecipeCode;
-    }
-
-    public void setSignRecipeCode(String signRecipeCode) {
-        this.signRecipeCode = signRecipeCode;
-    }
-
-    @Column
-    public String getSignFile() {
-        return signFile;
-    }
-
-    public void setSignFile(String signFile) {
-        this.signFile = signFile;
-    }
 
     @Column
     public Date getSignDate() {
@@ -144,38 +118,65 @@ public class SignDoctorRecipeInfo {
     }
 
     @Column
-    public String getSignPharmacistCADate() {
-        return signPharmacistCADate;
+    public String getSignCaDateDoc() {
+        return signCaDateDoc;
     }
 
-    public void setSignPharmacistCADate(String signPharmacistCADate) {
-        this.signPharmacistCADate = signPharmacistCADate;
-    }
-
-    @Column
-    public String getSignPharmacistCode() {
-        return signPharmacistCode;
-    }
-
-    public void setSignPharmacistCode(String signPharmacistCode) {
-        this.signPharmacistCode = signPharmacistCode;
+    public void setSignCaDateDoc(String signCaDateDoc) {
+        this.signCaDateDoc = signCaDateDoc;
     }
 
     @Column
-    public String getChemistSignFile() {
-        return chemistSignFile;
+    public String getSignCodeDoc() {
+        return signCodeDoc;
     }
 
-    public void setChemistSignFile(String chemistSignFile) {
-        this.chemistSignFile = chemistSignFile;
+    public void setSignCodeDoc(String signCodeDoc) {
+        this.signCodeDoc = signCodeDoc;
     }
 
     @Column
-    public Date getCheckDateYs() {
-        return CheckDateYs;
+    public String getSignFileDoc() {
+        return signFileDoc;
     }
 
-    public void setCheckDateYs(Date checkDateYs) {
-        CheckDateYs = checkDateYs;
+    public void setSignFileDoc(String signFileDoc) {
+        this.signFileDoc = signFileDoc;
+    }
+
+    @Column
+    public String getSignCaDatePha() {
+        return signCaDatePha;
+    }
+
+    public void setSignCaDatePha(String signCaDatePha) {
+        this.signCaDatePha = signCaDatePha;
+    }
+
+    @Column
+    public String getSignCodePha() {
+        return signCodePha;
+    }
+
+    public void setSignCodePha(String signCodePha) {
+        this.signCodePha = signCodePha;
+    }
+
+    @Column
+    public String getSignFilePha() {
+        return signFilePha;
+    }
+
+    public void setSignFilePha(String signFilePha) {
+        this.signFilePha = signFilePha;
+    }
+
+    @Column
+    public Date getCheckDatePha() {
+        return checkDatePha;
+    }
+
+    public void setCheckDatePha(Date checkDatePha) {
+        this.checkDatePha = checkDatePha;
     }
 }
