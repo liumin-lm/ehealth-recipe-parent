@@ -90,6 +90,7 @@ public class SignRecipeInfoService {
 
         SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
         if (signDoctorRecipeInfo == null) {
+            signDoctorRecipeInfo = new SignDoctorRecipeInfo();
             signDoctorRecipeInfo.setRecipeId(recipeId);
             signDoctorRecipeInfo = signDoctorRecipeInfoDAO.save(signDoctorRecipeInfo);
             return signDoctorRecipeInfo;
