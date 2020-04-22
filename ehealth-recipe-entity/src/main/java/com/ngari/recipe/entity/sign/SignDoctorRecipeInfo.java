@@ -53,6 +53,12 @@ public class SignDoctorRecipeInfo {
     /**药师手签图片*/
     private String sealDataPha;
 
+    /**医生签名摘要*/
+    private String signRemarkDoc;
+
+    /**药师签名摘要*/
+    private String signRemarkPha;
+
     private Date createDate;
 
     private Date lastmodify;
@@ -202,5 +208,23 @@ public class SignDoctorRecipeInfo {
 
     public void setSealDataPha(String sealDataPha) {
         this.sealDataPha = sealDataPha;
+    }
+
+    @Column
+    public String getSignRemarkDoc() {
+        return signRemarkDoc;
+    }
+
+    public void setSignRemarkDoc(String signRemarkDoc) {
+        this.signRemarkDoc = signRemarkDoc;
+    }
+
+    @Column
+    public String getSignRemarkPha() {
+        return signRemarkPha;
+    }
+
+    public void setSignRemarkPha(String signRemarkPha) {
+        this.signRemarkPha = signRemarkPha;
     }
 }
