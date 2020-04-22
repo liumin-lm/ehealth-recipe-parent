@@ -42,7 +42,7 @@ public class SignRecipeInfoService {
         }
         SignDoctorRecipeInfo recipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(signDoctorRecipeInfo.getRecipeId());
         if (signDoctorRecipeInfo == null) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "咨询订单不存在");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "处方订单不存在");
         }
 
         if (StringUtils.isNotEmpty(signDoctorRecipeInfo.getSignCaDateDoc())) {
@@ -83,13 +83,17 @@ public class SignRecipeInfoService {
 
     @RpcService
     public SignDoctorRecipeInfo getSignInfoByRecipeId(Integer recipeId){
-        SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
-        if (signDoctorRecipeInfo == null) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "咨询订单不存在");
-        }
+
         RecipeBean recipeBean = recipeService.getByRecipeId(recipeId);
         if (recipeBean == null) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "咨询订单不存在");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "处方订单不存在");
+        }
+
+        SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
+        if (signDoctorRecipeInfo == null) {
+            signDoctorRecipeInfo.setRecipeId(recipeId);
+            signDoctorRecipeInfo = signDoctorRecipeInfoDAO.save(signDoctorRecipeInfo);
+            return signDoctorRecipeInfo;
         }
 
         DoctorExtendDTO doctorExtendDTODoc =  doctorExtendService.getByDoctorId(recipeBean.getDoctor());
