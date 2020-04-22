@@ -96,13 +96,18 @@ public class SignRecipeInfoService {
             return signDoctorRecipeInfo;
         }
 
-        DoctorExtendDTO doctorExtendDTODoc =  doctorExtendService.getByDoctorId(recipeBean.getDoctor());
-        if (doctorExtendDTODoc != null) {
-            signDoctorRecipeInfo.setSealDataDoc(doctorExtendDTODoc.getSealData());
+        if(recipeBean.getDoctor() != null) {
+            DoctorExtendDTO doctorExtendDTODoc =  doctorExtendService.getByDoctorId(recipeBean.getDoctor());
+            if (doctorExtendDTODoc != null) {
+                signDoctorRecipeInfo.setSealDataDoc(doctorExtendDTODoc.getSealData());
+            }
         }
-        DoctorExtendDTO doctorExtendDTOPha = doctorExtendService.getByDoctorId(recipeBean.getChecker());
-        if (doctorExtendDTOPha != null) {
-            signDoctorRecipeInfo.setSealDataPha(doctorExtendDTOPha.getSealData());
+
+        if(recipeBean.getChecker() != null){
+            DoctorExtendDTO doctorExtendDTOPha = doctorExtendService.getByDoctorId(recipeBean.getChecker());
+            if (doctorExtendDTOPha != null) {
+                signDoctorRecipeInfo.setSealDataPha(doctorExtendDTOPha.getSealData());
+            }
         }
         return signDoctorRecipeInfo;
     }
