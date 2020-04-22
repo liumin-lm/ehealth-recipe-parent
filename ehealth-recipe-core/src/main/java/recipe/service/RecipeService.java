@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
@@ -31,6 +32,7 @@ import com.ngari.recipe.audit.model.AuditMedicineIssueDTO;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
@@ -74,6 +76,7 @@ import recipe.ca.vo.CaSignResultVo;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
+import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
 import recipe.hisservice.RecipeToHisCallbackService;
@@ -134,6 +137,9 @@ public class RecipeService extends RecipeBaseService {
 
     @Autowired
     private DrugsEnterpriseService drugsEnterpriseService;
+
+    @Autowired
+    private SignDoctorRecipeInfoDAO signDoctorRecipeInfoDAO;
 
     /**
      * 药师审核不通过
@@ -600,12 +606,18 @@ public class RecipeService extends RecipeBaseService {
                         CAInterface caInterface = caFactory.useCAFunction(organId);
                         CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
                         //保存签名值、时间戳、电子签章文件
-                        String result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false);
-//                        if (null != recipeFileId) {
-//                            bl = recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.<String, Object>of("chemistSignFile", recipeFileId));
-//                        } else{
-//                            bl = false;
-//                        }
+                        String fileId = null;
+                        String result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false,fileId);
+                        SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
+                        if (signDoctorRecipeInfo != null) {
+                            signDoctorRecipeInfo.setSignCaDatePha(resultVo.getSignCADate());
+                            signDoctorRecipeInfo.setSignCodePha(resultVo.getSignRecipeCode());
+                            signDoctorRecipeInfo.setSignFilePha(fileId);
+                            signDoctorRecipeInfo.setCheckDatePha(new Date());
+                            LOGGER.error("reviewRecipe  signFile 标准化CA签章 signDoctorRecipeInfo={}=", JSONObject.toJSONString(signDoctorRecipeInfo));
+                            signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
+                        }
+
                         bl = "success".equals(result) ? true : false;
                     } catch (Exception e) {
                         LOGGER.error("reviewRecipe  signFile 标准化CA签章报错 recipeId={} ,doctor={} ,e={}=============", recipeId, recipe.getDoctor(), e);
@@ -778,7 +790,17 @@ public class RecipeService extends RecipeBaseService {
                 //通过工厂获取对应的实现CA类
                 CAInterface caInterface = caFactory.useCAFunction(organId);
                 CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
-                RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true);
+                String fileId = null;
+                RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
+                SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
+                if (signDoctorRecipeInfo != null) {
+                    signDoctorRecipeInfo.setSignCaDateDoc(resultVo.getSignCADate());
+                    signDoctorRecipeInfo.setSignCodeDoc(resultVo.getSignRecipeCode());
+                    signDoctorRecipeInfo.setSignFileDoc(fileId);
+                    signDoctorRecipeInfo.setSignDate(new Date());
+                    LOGGER.error("generateRecipePdfAndSign 标准化CA签章 signDoctorRecipeInfo={}=", JSONObject.toJSONString(signDoctorRecipeInfo));
+                    signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
+                }
 
                 //TODO 0423版本再提交
 //                if (resultVo != null && 200 == resultVo.getCode()) {
@@ -926,6 +948,16 @@ public class RecipeService extends RecipeBaseService {
         } else {
             recipeId = saveRecipeData(recipe, details);
             recipe.setRecipeId(recipeId);
+        }
+
+        try {
+            SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("recipeBean", JSONObject.toJSONString(recipe));
+            jsonObject.put("details", JSONObject.toJSONString(details));
+            signDoctorRecipeInfo.setSignBefText(jsonObject.toJSONString());
+        } catch (Exception e) {
+            LOGGER.error("signBefText save error："  + e.getMessage());
         }
 
         //非只能配送处方需要进行医院库存校验

@@ -162,10 +162,10 @@ public class RecipeServiceEsignExt {
      */
     @RpcService
     public static String saveSignRecipePDF(String pdfBase64,Integer recipeId, String loginId,String signCADate,
-                                    String signRecipeCode,Boolean isDoctor){
+                                    String signRecipeCode,Boolean isDoctor, String fileId){
         LOGGER.info("saveSignRecipePDF start in pdfBase64={}, recipeId={}, loginId={},signCADate={},signRecipeCode={},isDoctor={}",
                 pdfBase64, recipeId, loginId, signCADate, signRecipeCode, isDoctor);
-        String fileId = null;
+//        String fileId = null;
         try {
             if (null != pdfBase64) {
                 //组装生成pdf的参数
