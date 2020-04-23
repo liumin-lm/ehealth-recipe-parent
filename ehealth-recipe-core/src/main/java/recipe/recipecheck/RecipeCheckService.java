@@ -549,8 +549,9 @@ public class RecipeCheckService {
         }
 
         UserRoleToken urt = UserRoleToken.getCurrent();
-        DoctorDTO loginDoctor = BeanUtils.map(urt.getProperty("doctor"), DoctorDTO.class);
-        if (null != loginDoctor) {
+
+        if (null != urt && null != urt.getProperty("doctor")) {
+            DoctorDTO loginDoctor = BeanUtils.map(urt.getProperty("doctor"), DoctorDTO.class);
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put("doctorId", loginDoctor.getDoctorId());
             paramMap.put("recipeId", r.getRecipeIdE());
