@@ -61,10 +61,6 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
     public void test(Integer recipeId, Integer depId){
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
-        //scanStock(recipeId, drugsEnterprise);
-        //return getDrugInventory(27, drugsEnterprise);
-        List<Integer> recipeIds = Arrays.asList(recipeId);
-        //pushRecipeInfo(recipeIds, drugsEnterprise);
         syncEnterpriseDrug(drugsEnterprise, null);
     }
 
