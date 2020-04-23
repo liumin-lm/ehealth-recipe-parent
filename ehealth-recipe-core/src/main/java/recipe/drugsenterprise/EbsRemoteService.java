@@ -61,10 +61,6 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
     public void test(Integer recipeId, Integer depId){
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
-        //scanStock(recipeId, drugsEnterprise);
-        //return getDrugInventory(27, drugsEnterprise);
-        List<Integer> recipeIds = Arrays.asList(recipeId);
-        //pushRecipeInfo(recipeIds, drugsEnterprise);
         syncEnterpriseDrug(drugsEnterprise, null);
     }
 
@@ -107,12 +103,15 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
         ebsBean.setDepartment(departmentDTO.getName());
         ebsBean.setDoctorName(recipe.getDoctorName());
         ebsBean.setName(recipe.getPatientName());
-        if (patientDTO != null && new Integer(1).equals(patientDTO.getPatientSex())) {
-            ebsBean.setSex(1);
-        } else {
-            ebsBean.setSex(0);
-        }
         if (patientDTO != null) {
+            if (StringUtils.isNotEmpty(patientDTO.getPatientSex())) {
+                Integer sex = Integer.parseInt(patientDTO.getPatientSex());
+                if (sex == 1) {
+                    ebsBean.setSex(1);
+                } else {
+                    ebsBean.setSex(0);
+                }
+            }
             ebsBean.setAge(DateConversion.getAge(patientDTO.getBirthday()));
             ebsBean.setMobile(patientDTO.getMobile());
             ebsBean.setIdCard(patientDTO.getCertificate());
