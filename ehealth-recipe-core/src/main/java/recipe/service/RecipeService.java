@@ -1218,8 +1218,6 @@ public class RecipeService extends RecipeBaseService {
         //校验处方药品药企配送以及库存信息
         boolean checkEnterprise = drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan());
         if (checkEnterprise) {
-            Boolean canOpenRecipeSuccess = true;
-            String msg;
             //验证能否药品配送以及能否开具到一张处方单上
             RecipeResultBean recipeResult1 = RecipeServiceSub.validateRecipeSendDrugMsg(recipe);
             if (RecipeResultBean.FAIL.equals(recipeResult1.getCode())){
