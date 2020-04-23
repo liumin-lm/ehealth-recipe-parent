@@ -79,10 +79,10 @@ public abstract class AbstractAuidtMode implements IAuditMode{
         if (saveFlag) {
             attrMap.put("chooseFlag", 1);
             String memo = "";
-            if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.toString().equals(giveMode)) {
+            if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(giveMode)) {
                 if (RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
                     //线上支付
-                    if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
+                    if (new Integer(PayConstant.PAY_FLAG_PAY_SUCCESS).equals(payFlag)) {
                         //配送到家-线上支付
                         memo = "配送到家-线上支付成功";
                     } else {
@@ -95,7 +95,7 @@ public abstract class AbstractAuidtMode implements IAuditMode{
                 } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode)) {
                     memo = "货到付款-待配送";
                 }
-            } else if (RecipeBussConstant.GIVEMODE_TFDS.toString().equals(giveMode)) {
+            } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode)) {
                 memo = "药店取药-待取药";
             }
             //记录日志
@@ -109,7 +109,7 @@ public abstract class AbstractAuidtMode implements IAuditMode{
         }
 
         updateRecipeInfoByRecipeId(recipe.getRecipeId(),status,attrMap,result);
-        if (saveFlag) {
+        if (saveFlag && new Integer(PayConstant.PAY_FLAG_PAY_SUCCESS).equals(payFlag)) {
             //处方推送到药企
             RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
             remoteDrugEnterpriseService.pushSingleRecipeInfo(recipe.getRecipeId());

@@ -40,8 +40,6 @@ import recipe.drugsenterprise.bean.EbsDetail;
 import recipe.service.RecipeLogService;
 import recipe.util.AppSiganatureUtils;
 import recipe.util.DateConversion;
-
-import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
 
