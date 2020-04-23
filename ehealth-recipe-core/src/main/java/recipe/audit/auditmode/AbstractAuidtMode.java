@@ -10,6 +10,8 @@ import ctd.persistence.DAOFactory;
 import eh.base.constant.BussTypeConstant;
 import eh.cdr.constant.RecipeStatusConstant;
 import eh.wxpay.constant.PayConstant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeSystemConstant;
@@ -27,6 +29,8 @@ import static ctd.persistence.DAOFactory.getDAO;
  * created by shiyuping on 2019/9/3
  */
 public abstract class AbstractAuidtMode implements IAuditMode{
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractAuidtMode.class);
     @Override
     public void afterHisCallBackChange(Integer status, Recipe recipe,String memo) {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
@@ -109,6 +113,7 @@ public abstract class AbstractAuidtMode implements IAuditMode{
         }
 
         updateRecipeInfoByRecipeId(recipe.getRecipeId(),status,attrMap,result);
+        LOGGER.info("AbstractAuidtMode.afterPayChange payFlag:{}.", payFlag);
         if (saveFlag && new Integer(PayConstant.PAY_FLAG_PAY_SUCCESS).equals(payFlag)) {
             //处方推送到药企
             RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
