@@ -113,7 +113,7 @@ public abstract class AbstractAuidtMode implements IAuditMode{
         }
 
         updateRecipeInfoByRecipeId(recipe.getRecipeId(),status,attrMap,result);
-        LOGGER.info("AbstractAuidtMode.afterPayChange payFlag:{}.", payFlag);
+        LOGGER.info("AbstractAuidtMode.afterPayChange saveFlag:{}, payFlag:{}.", saveFlag, payFlag);
         if (saveFlag && new Integer(PayConstant.PAY_FLAG_PAY_SUCCESS).equals(payFlag)) {
             //处方推送到药企
             RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
