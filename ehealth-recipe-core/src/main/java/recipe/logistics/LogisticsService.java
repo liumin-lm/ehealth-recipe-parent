@@ -500,7 +500,7 @@ public class LogisticsService {
             }
         }
         String prescripNo = recipe.getRecipeCode();
-        String hospitalName = recipe.getOrganName();
+        String hospitalName = recipeParameterDao.getByName(recipe.getClinicOrgan()+"_shyy-organname");
         Map<String, Object> params = new HashMap<>();
         params.put("prescripNo",prescripNo);
         params.put("hospitalName",hospitalName);
