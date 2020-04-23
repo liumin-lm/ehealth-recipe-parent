@@ -1215,42 +1215,59 @@ public class RecipeService extends RecipeBaseService {
                 return rMap;
             }
         }
-
-        RecipeServiceSub.validateRecipeSendDrugMsg(recipe);
-
+        //校验处方药品药企配送以及库存信息
         boolean checkEnterprise = drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan());
         if (checkEnterprise) {
+            //验证能否药品配送以及能否开具到一张处方单上
+            RecipeResultBean recipeResult1 = RecipeServiceSub.validateRecipeSendDrugMsg(recipe);
+            if (RecipeResultBean.FAIL.equals(recipeResult1.getCode())){
+                rMap.put("signResult", false);
+                rMap.put("recipeId", recipeId);
+                //错误信息弹出框，能否继续标记----点击是可以继续开方
+                rMap.put("canContinueFlag", true);
+                rMap.put("msg", recipeResult1.getMsg()+"该处方仅支持到院取药,无法药企配送,是否继续？");
+                LOGGER.info("doSignRecipe recipeId={},msg={}",recipeId,rMap.get("msg"));
+                return rMap;
+            }
             //药企库存实时查询
             RecipePatientService recipePatientService = ApplicationUtils.getRecipeService(RecipePatientService.class);
             //判断药企库存
-            //todo 返回具体某个药没库存--新写接口
             RecipeResultBean recipeResultBean = recipePatientService.findSupportDepList(0, Arrays.asList(recipeId));
             /*RecipeResultBean recipeResultBean = scanStockForOpenRecipe(recipeId);*/
             if (RecipeResultBean.FAIL.equals(recipeResultBean.getCode())) {
-                LOGGER.error("doSignRecipe scanStock enterprise error. result={} ", JSONUtils.toString(recipeResultBean));
-//            throw new DAOException(ErrorCode.SERVICE_ERROR, "很抱歉，当前库存不足无法开处方，请联系客服：" +
-//                    iSysParamterService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
                 rMap.put("signResult", false);
                 rMap.put("recipeId", recipeId);
-                //错误信息弹出框，只有 确定  按钮
-                rMap.put("errorFlag", true);
-                rMap.put("msg", "很抱歉，当前库存不足无法开处方，请联系客服：" + cacheService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
+                /*//错误信息弹出框，只有 确定  按钮
+                rMap.put("errorFlag", true);*/
+                //错误信息弹出框，能否继续标记----点击是可以继续开方
+                rMap.put("canContinueFlag", true);
+                //rMap.put("msg", "很抱歉，当前库存不足无法开处方，请联系客服：" + cacheService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
+                rMap.put("msg", "由于该处方单上的药品配送药企库存不足,该处方仅支持到院取药,无法药企配送,是否继续？");
+                LOGGER.info("doSignRecipe recipeId={},msg={}",recipeId,rMap.get("msg"));
                 return rMap;
             }
         }
-        //date 2020/04/20
-        //修改签名是判断
+        //修改状态并且推送处方到his
+        doSignRecipeContinue(recipeId);
+        return rMap;
+    }
 
-        //发送his签更新处方状态
+    /**
+     * 当药企无法配送只能到院取药时--继续签名方法--医生APP、医生PC
+     * @return Map<String ,   Object>
+     */
+    @RpcService
+    public Map<String, Object> doSignRecipeContinue(Integer recipeId) {
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        //发送his前更新处方状态---医院确认中
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, null);
-
         //HIS消息发送--异步处理
         /*boolean result = hisService.recipeSendHis(recipeId, null);*/
         RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeId));
+        Map<String, Object> rMap = Maps.newHashMap();
         rMap.put("signResult", true);
         rMap.put("recipeId", recipeId);
         rMap.put("errorFlag", false);
-
         LOGGER.info("doSignRecipe execute ok! rMap:" + JSONUtils.toString(rMap));
         return rMap;
     }

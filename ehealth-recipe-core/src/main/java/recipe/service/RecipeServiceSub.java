@@ -28,6 +28,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.audit.model.AuditMedicineIssueDTO;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
 import ctd.dictionary.Dictionary;
@@ -303,6 +304,8 @@ public class RecipeServiceSub {
                             recipe.setDistributionFlag(1);
                         }
                     }
+                    //判断某诊断下某药品能否开具
+                    canOpenRecipeDrugsAndDisease(recipe,drugIds);
                 }else{
                     for (OrganDrugList obj : organDrugList) {
                         organDrugListMap.put(obj.getOrganDrugCode(), obj);
@@ -377,13 +380,20 @@ public class RecipeServiceSub {
         return success;
     }
 
-    public static Map<String, String> validateRecipeSendDrugMsg(RecipeBean recipe){
-        Map<String, String> result = new HashMap<>();
-        String recipeMode = recipe.getRecipeMode();
+    public static RecipeResultBean validateRecipeSendDrugMsg(RecipeBean recipe){
+        RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Integer> drugIds = detailDAO.findDrugIdByRecipeId(recipe.getRecipeId());
-
-        //平台增加药品相关校验
+        try {
+            //处方药品能否配送以及能否开具同一张处方上
+            canOpenRecipeDrugs(recipe.getClinicOrgan(),recipe.getRecipeId(),drugIds);
+        }catch (Exception e){
+            LOGGER.error("canOpenRecipeDrugs error",e);
+            resultBean.setCode(RecipeResultBean.FAIL);
+            resultBean.setMsg(e.getMessage());
+            return resultBean;
+        }
+        /*//平台增加药品相关校验
         if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
 
             DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
@@ -392,8 +402,6 @@ public class RecipeServiceSub {
                 //判断药品能否开在一张处方单上
                 result.putAll(canOpenRecipeDrugsCopy(recipe.getClinicOrgan(),recipe.getRecipeId(),drugIds));
             }
-            //判断某诊断下某药品能否开具
-            result.putAll(canOpenRecipeDrugsAndDiseaseCopy(recipe,drugIds));
         } else if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
             //浙江省互联网医院模式不需要这么多校验
 //            for (OrganDrugList obj : organDrugList) {
@@ -402,8 +410,8 @@ public class RecipeServiceSub {
 //            }
             //无需校验
             result.put("code", "200");
-        }
-        return result;
+        }*/
+        return resultBean;
     }
 
     private static void canOpenRecipeDrugsAndDisease(Recipe recipe, List<Integer> drugIds) {
@@ -487,15 +495,15 @@ public class RecipeServiceSub {
         }
     }
 
-    public static Map<String, String> canOpenRecipeDrugsCopy(Integer clinicOrgan, Integer recipeId, List<Integer> drugIds) {
+    /*public static Map<String, String> canOpenRecipeDrugsCopy(Integer clinicOrgan, Integer recipeId, List<Integer> drugIds) {
         Map<String, String> result = new HashMap<>();
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         List<DrugList> drugList = drugListDAO.findByDrugIds(drugIds);
-       /* Map<Integer, DrugList> drugListMap = Maps.newHashMap();
+       *//* Map<Integer, DrugList> drugListMap = Maps.newHashMap();
         for (DrugList obj : drugList) {
             drugListMap.put(obj.getDrugId(), obj);
-        }*/
+        }*//*
         //list转map
         Map<Integer, DrugList> drugListMap = drugList.stream().collect(Collectors.toMap(DrugList::getDrugId, a -> a));
 
@@ -555,9 +563,9 @@ public class RecipeServiceSub {
             result.put("msg", Joiner.on(",").join(drugNames) + "不支持同一家药企配送，建议拆分药品开方。");
         }
         return result;
-    }
+    }*/
 
-    private static Map<String, String> canOpenRecipeDrugsAndDiseaseCopy(RecipeBean recipe, List<Integer> drugIds) {
+    /*private static Map<String, String> canOpenRecipeDrugsAndDiseaseCopy(RecipeBean recipe, List<Integer> drugIds) {
         Map<String, String> result = new HashMap<>();
         List<String> nameLists = Splitter.on("；").splitToList(recipe.getOrganDiseaseName());
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
@@ -573,7 +581,7 @@ public class RecipeServiceSub {
             }
         }
         return result;
-    }
+    }*/
 
     /**
      * 组装生成pdf的参数集合
