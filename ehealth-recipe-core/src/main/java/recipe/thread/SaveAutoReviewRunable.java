@@ -56,6 +56,21 @@ public class SaveAutoReviewRunable implements Runnable {
         List<AuditMedicinesDTO> auditMedicinesList = Lists.newArrayList();
         List<PAWebMedicines> paResultList = autoAuditResult.getMedicines();
         List<PAWebRecipeDanger> recipeDangers = autoAuditResult.getRecipeDangers();
+        if (CollectionUtils.isNotEmpty(recipeDangers)) {
+            recipeDangers.forEach(item->{
+                AuditMedicineIssue auditMedicineIssue = new AuditMedicineIssue();
+                auditMedicineIssue.setRecipeId(recipeId);
+                auditMedicineIssue.setLvl(item.getDangerType());
+                auditMedicineIssue.setLvlCode(item.getDangerLevel());
+                auditMedicineIssue.setDetail(item.getDangerDesc());
+                auditMedicineIssue.setTitle(item.getDangerDrug());
+                auditMedicineIssue.setCreateTime(new Date());
+                auditMedicineIssue.setLastModify(new Date());
+                auditMedicineIssue.setDetailUrl(item.getDetailUrl());
+                auditMedicineIssue.setLogicalDeleted(0);
+                auditMedicineIssueDAO.save(auditMedicineIssue);
+            });
+        }
         if (CollectionUtils.isEmpty(paResultList)) {
             AuditMedicinesDTO auditMedicinesDTO = new AuditMedicinesDTO();
             auditMedicinesDTO.setRecipeId(recipeId);
@@ -88,20 +103,8 @@ public class SaveAutoReviewRunable implements Runnable {
                 auditMedicinesList.add(auditMedicinesDTO);
             }
             auditMedicinesDAO.save(recipeId, auditMedicinesList);
-        } else if (CollectionUtils.isNotEmpty(recipeDangers)) {
-            recipeDangers.forEach(item->{
-                AuditMedicineIssue auditMedicineIssue = new AuditMedicineIssue();
-                auditMedicineIssue.setRecipeId(recipeId);
-                auditMedicineIssue.setLvl(item.getDangerType());
-                auditMedicineIssue.setLvlCode(item.getDangerLevel());
-                auditMedicineIssue.setDetail(item.getDangerDesc());
-                auditMedicineIssue.setTitle(item.getDangerDrug());
-                auditMedicineIssue.setCreateTime(new Date());
-                auditMedicineIssue.setLastModify(new Date());
-                auditMedicineIssue.setLogicalDeleted(0);
-                auditMedicineIssueDAO.save(auditMedicineIssue);
-            });
         }
+
         LOGGER.info("SaveAutoReview finish. recipeId={}", recipeId);
     }
 
