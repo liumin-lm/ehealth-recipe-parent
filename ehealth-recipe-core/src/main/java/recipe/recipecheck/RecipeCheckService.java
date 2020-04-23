@@ -8,6 +8,8 @@ import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.base.push.model.SmsInfoBean;
+import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
 import com.ngari.home.asyn.model.BussFinishEvent;
@@ -87,6 +89,9 @@ public class RecipeCheckService {
 
     @Autowired
     private RecipeCheckDAO recipeCheckDAO;
+
+    @Autowired
+    private RecipeDAO recipeDAO;
 
     private static final String RECIPEID_SECRET = "1234567890123gmw";
 
@@ -1121,6 +1126,8 @@ public class RecipeCheckService {
                 if (null != recipeCheck) {
                     recipeCheck.setGrabOrderStatus(GrabOrderStatusConstant.GRAB_ORDER_NO);
                     recipeCheckDAO.update(recipeCheck);
+                    //推送
+                    sendRecipeReadyCheckYsPush(recipeCheck);
                     resultMap.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDER_NO);
                 }
             }
@@ -1132,9 +1139,21 @@ public class RecipeCheckService {
         return resultMap;
     }
 
+    private void sendRecipeReadyCheckYsPush(RecipeCheck recipeCheck){
+        Recipe byRecipeId = recipeDAO.getByRecipeId(recipeCheck.getRecipeId());
+        SmsInfoBean info = new SmsInfoBean();
+        info.setBusId(recipeCheck.getRecipeId());
+        info.setBusType(RecipeMsgEnum.RECIPE_READY_CHECK_YS.getMsgType());
+        info.setSmsType(RecipeMsgEnum.RECIPE_READY_CHECK_YS.getMsgType());
+        info.setOrganId(byRecipeId.getClinicOrgan());
+        info.setExtendValue(String.valueOf(recipeCheck.getGrabDoctorId()));
+        LOGGER.info("RecipeReadyCheckYs send msg : {}", JSONUtils.toString(info));
+        ISmsPushService iSmsPushService = ApplicationUtils.getBaseService(ISmsPushService.class);
+        iSmsPushService.pushMsg(info);
+    }
+
     /**
      * 获取抢单状态和自动解锁时间
-     *
      * @param map
      * @return
      */
