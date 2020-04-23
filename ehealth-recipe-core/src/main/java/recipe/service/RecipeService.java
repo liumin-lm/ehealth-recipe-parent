@@ -1191,9 +1191,7 @@ public class RecipeService extends RecipeBaseService {
         Map<String, Object> rMap = null;
         try {
             //上海肺科个性化处理--智能审方重要警示弹窗处理
-            if (recipeBean.getClinicOrgan() == 1002902) {
-                doforShangHaiFeiKe(recipeBean, detailBeanList);
-            }
+            doforShangHaiFeiKe(recipeBean, detailBeanList)
             rMap = doSignRecipe(recipeBean, detailBeanList);
             //获取处方签名结果
             Boolean result = Boolean.parseBoolean(rMap.get("signResult").toString());
@@ -1222,23 +1220,27 @@ public class RecipeService extends RecipeBaseService {
     }
 
     private void doforShangHaiFeiKe(RecipeBean recipe, List<RecipeDetailBean> details) {
-        PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
-        AutoAuditResult autoAuditResult = prescriptionService.analysis(recipe, details);
-        List<PAWebMedicines> paResultList = autoAuditResult.getMedicines();
-        if (CollectionUtils.isNotEmpty(paResultList)) {
-            List<Issue> issueList;
-            for (PAWebMedicines paMedicine : paResultList) {
-                issueList = paMedicine.getIssues();
-                if (CollectionUtils.isNotEmpty(issueList)) {
-                    for (Issue issue : issueList) {
-                        if ("RL001".equals(issue.getLvlCode())){
-                            throw new DAOException(609,issue.getDetail());
+        ////上海医院个性化处理--智能审方重要警示弹窗处理--为了测评-可配置
+        Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_AUDIT_TIP_LIST);
+        if ((organIdList != null && organIdList.contains(recipe.getClinicOrgan().toString())) ||
+                recipe.getClinicOrgan() == 1002902) {//上海肺科
+            PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
+            AutoAuditResult autoAuditResult = prescriptionService.analysis(recipe, details);
+            List<PAWebMedicines> paResultList = autoAuditResult.getMedicines();
+            if (CollectionUtils.isNotEmpty(paResultList)) {
+                List<Issue> issueList;
+                for (PAWebMedicines paMedicine : paResultList) {
+                    issueList = paMedicine.getIssues();
+                    if (CollectionUtils.isNotEmpty(issueList)) {
+                        for (Issue issue : issueList) {
+                            if ("RL001".equals(issue.getLvlCode())){
+                                throw new DAOException(609,issue.getDetail());
+                            }
                         }
                     }
                 }
             }
         }
-
     }
 
     private void doHisReturnSuccessForOrgan(RecipeBean recipeBean, Map<String, Object> rMap) {

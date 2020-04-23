@@ -116,4 +116,9 @@ public class DrugEnterpriseConstant {
      * 罗欣药企
      */
     public static final String COMPANY_LY = "lx";
+
+    /**
+     * 上海胸科ebs
+     */
+    public static final String COMPANY_EBS = "ebs";
 }
