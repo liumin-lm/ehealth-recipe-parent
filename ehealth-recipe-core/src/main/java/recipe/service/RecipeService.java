@@ -1237,8 +1237,10 @@ public class RecipeService extends RecipeBaseService {
             if (RecipeResultBean.FAIL.equals(recipeResultBean.getCode())) {
                 rMap.put("signResult", false);
                 rMap.put("recipeId", recipeId);
-                //错误信息弹出框，只有 确定  按钮
-                rMap.put("errorFlag", true);
+                /*//错误信息弹出框，只有 确定  按钮
+                rMap.put("errorFlag", true);*/
+                //错误信息弹出框，能否继续标记----点击是可以继续开方
+                rMap.put("canContinueFlag", true);
                 //rMap.put("msg", "很抱歉，当前库存不足无法开处方，请联系客服：" + cacheService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
                 rMap.put("msg", "由于该处方单上的药品配送药企库存不足,该处方仅支持到院取药,无法药企配送,是否继续？");
                 LOGGER.info("doSignRecipe recipeId={},msg={}",recipeId,rMap.get("msg"));
