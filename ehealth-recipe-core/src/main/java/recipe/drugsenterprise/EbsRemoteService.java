@@ -64,7 +64,8 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
         //scanStock(recipeId, drugsEnterprise);
         //return getDrugInventory(27, drugsEnterprise);
         List<Integer> recipeIds = Arrays.asList(recipeId);
-        pushRecipeInfo(recipeIds, drugsEnterprise);
+        //pushRecipeInfo(recipeIds, drugsEnterprise);
+        syncEnterpriseDrug(drugsEnterprise, null);
     }
 
     @Override
@@ -97,13 +98,12 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
 
         OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
         DepartmentDTO departmentDTO = departmentService.get(recipe.getDepart());
-        PatientDTO patientDTO = patientService.getByMpiId(recipe.getMpiid());
-        LOGGER.info("pushRecipeInfoForSy patientDTO:{}.", JSONUtils.toString(patientDTO));
+        PatientDTO patientDTO = patientService.getPatientByMpiId(recipe.getMpiid());
         EbsBean ebsBean = new EbsBean();
         ebsBean.setPrescripNo(recipe.getRecipeCode());
         ebsBean.setPrescribeDate(recipe.getSignDate().getTime());
         ebsBean.setHospitalCode(organDTO.getOrganizeCode());
-        ebsBean.setHospitalName(organDTO.getName());
+        ebsBean.setHospitalName("上海市中医医院（上海中医药大学附属市中医医院）");
         ebsBean.setDepartment(departmentDTO.getName());
         ebsBean.setDoctorName(recipe.getDoctorName());
         ebsBean.setName(recipe.getPatientName());
@@ -112,9 +112,11 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
         } else {
             ebsBean.setSex(0);
         }
-        ebsBean.setAge(patientDTO.getAge());
-        ebsBean.setMobile(patientDTO.getMobile());
-        ebsBean.setIdCard(patientDTO.getCertificate());
+        if (patientDTO != null) {
+            ebsBean.setAge(DateConversion.getAge(patientDTO.getBirthday()));
+            ebsBean.setMobile(patientDTO.getMobile());
+            ebsBean.setIdCard(patientDTO.getCertificate());
+        }
         ebsBean.setSocialSecurityCard("");
         ebsBean.setAddress("");
         if (recipeOrder != null && new Integer(0).equals(recipeOrder.getOrderType())) {
@@ -322,13 +324,11 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
                 Boolean success = jsonObject.getBoolean("success");
                 String code = jsonObject.getString("code");
                 if ("0".equals(code) && success) {
-                    List drugResult = jsonObject.getJSONArray("result");
-                    LOGGER.info("syncEnterpriseDrug drugResult:{}.", JSONUtils.toString(drugResult));
-                    if (!CollectionUtils.isEmpty(drugResult)) {
-                        Map map = (Map)drugResult.get(0);
-                        String stockIsEnough = (String)map.get("prescripStatus");
-                        ThirdEnterpriseCallService thirdEnterpriseCallService = ApplicationUtils.getRecipeService(ThirdEnterpriseCallService.class);
-                        if ("43".equals(stockIsEnough)) {
+                    Integer drugResult = jsonObject.getInteger("result");
+                    LOGGER.info("syncEnterpriseDrug drugResult:{}.", drugResult);
+                    if (drugResult != null) {
+                        ThirdEnterpriseCallService thirdEnterpriseCallService = ApplicationUtils.getService(ThirdEnterpriseCallService.class, "takeDrugService");
+                        if ("43".equals(drugResult)) {
                             //已经配送待签收,同步配送信息 准备配送
                             Map<String, Object> paramMap = new HashMap<>();
                             paramMap.put("recipeId", recipe.getRecipeId());
@@ -343,7 +343,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
                             toSendParamMap.put("logisticsCompany", 16);
                             toSendParamMap.put("trackingNumber","L2003251318067955");
                             thirdEnterpriseCallService.toSend(toSendParamMap);
-                        } else if ("50".equals(stockIsEnough)) {
+                        } else if ("50".equals(drugResult)) {
                             //配送完成
                             Map<String, Object> finishParamMap = new HashMap<>();
                             finishParamMap.put("recipeId", recipe.getRecipeId());
