@@ -2460,4 +2460,21 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateSessionTemplate.instance().executeReadOnly(action);
         return action.getResult();
     }
+
+    public List<Recipe> findReadyToSendRecipeByDepId(final Integer enterpriseId){
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("select a from Recipe a, RecipeOrder b where a.orderCode = b.orderCode and b.enterpriseId=:enterpriseId and b.status = 3 and b.payFlag = 1 and b.effective=1 ");
+
+                Query query = ss.createQuery(hql.toString());
+
+                query.setParameter("enterpriseId",enterpriseId);
+                setResult(query.list());
+            }
+        };
+
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }
