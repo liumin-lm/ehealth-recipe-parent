@@ -46,6 +46,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
+import recipe.audit.bean.PAWebRecipe;
+import recipe.audit.bean.PAWebRecipeDanger;
+import recipe.audit.bean.PAWebRecipeResponse;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
@@ -94,6 +97,8 @@ public class RecipeServiceSub {
     private static RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
     private static DepartmentService departmentService = ApplicationUtils.getBasicService(DepartmentService.class);
+
+    private static IConfigurationCenterUtilsService configService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
 
     private static Integer[] showRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.IN_SEND, RecipeStatusConstant.WAIT_SEND, RecipeStatusConstant.FINISH};
 
@@ -1203,8 +1208,32 @@ public class RecipeServiceSub {
             //判断开关是否开启
             PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
             if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
-                map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId));
+                List<AuditMedicinesDTO> auditMedicines = getAuditMedicineIssuesByRecipeId(recipeId);
+                map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId)); //返回药品分析数据
+                AuditMedicineIssueDAO auditMedicineIssueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
+                List<AuditMedicineIssue> auditMedicineIssues = auditMedicineIssueDAO.findIssueByRecipeId(recipeId);
+                if(CollectionUtils.isNotEmpty(auditMedicineIssues)){
+                    List<AuditMedicineIssue> resultMedicineIssues = new ArrayList<>();
+                    auditMedicineIssues.forEach(item->{
+                        if(StringUtils.isNotEmpty(item.getDetailUrl())){
+                            resultMedicineIssues.add(item);
+                        }
+                    });
+
+                    List<PAWebRecipeDanger> recipeDangers = new ArrayList<>();
+                    resultMedicineIssues.forEach(item->{
+                        PAWebRecipeDanger recipeDanger = new PAWebRecipeDanger();
+                        recipeDanger.setDangerDesc(item.getDetail());
+                        recipeDanger.setDangerDrug(item.getTitle());
+                        recipeDanger.setDangerLevel(item.getLvlCode());
+                        recipeDanger.setDangerType(item.getLvl());
+                        recipeDanger.setDetailUrl(item.getDetailUrl());
+                        recipeDangers.add(recipeDanger);
+                    });
+                    map.put("recipeDangers",recipeDangers); //返回处方分析数据
+                }
             }
+
         } else {
             //处方详情单底部文案提示说明---机构配置
             map.put("bottomText", getBottomTextForPatient(recipe.getClinicOrgan()));
@@ -1428,6 +1457,28 @@ public class RecipeServiceSub {
         return map;
     }
 
+    private static List<AuditMedicinesDTO> handleAnalysisByType(List<AuditMedicinesDTO> auditMedicines,String type){
+        if(CollectionUtils.isNotEmpty(auditMedicines)){
+            auditMedicines.forEach(auditMedicinesDTO -> {
+                List<AuditMedicineIssueDTO> auditMedicineIssues = auditMedicinesDTO.getAuditMedicineIssues();
+                List<AuditMedicineIssueDTO> resultAuditMedicineIssues = new ArrayList<>();
+                auditMedicineIssues.forEach(auditMedicineIssueDTO->{
+                    if(type.equals("medicines")){
+                        if(null == auditMedicineIssueDTO.getDetailUrl()){
+                            resultAuditMedicineIssues.add(auditMedicineIssueDTO);
+                        }
+                    }else if(type.equals("recipeDangers")){
+                        if(null != auditMedicineIssueDTO.getDetailUrl()){
+                            resultAuditMedicineIssues.add(auditMedicineIssueDTO);
+                        }
+                    }
+                });
+                auditMedicinesDTO.setAuditMedicineIssues(resultAuditMedicineIssues);
+            });
+        }
+        return  auditMedicines;
+    }
+
     private static String getCancelReasonForPatient(int recipeId) {
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
         List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipeId, RecipeStatusConstant.REVOKE);
@@ -1597,7 +1648,8 @@ public class RecipeServiceSub {
                 for (AuditMedicinesDTO auditMedicinesDTO : list) {
                     issueList = Lists.newArrayList();
                     for (AuditMedicineIssue auditMedicineIssue : issues) {
-                        if (auditMedicineIssue.getMedicineId().equals(auditMedicinesDTO.getId())) {
+                        if (null != auditMedicineIssue.getMedicineId() &&
+                                auditMedicineIssue.getMedicineId().equals(auditMedicinesDTO.getId())) {
                             issueList.add(auditMedicineIssue);
                         }
                     }
