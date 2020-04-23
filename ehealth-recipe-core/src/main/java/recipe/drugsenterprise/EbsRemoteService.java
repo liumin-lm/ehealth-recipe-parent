@@ -47,7 +47,7 @@ import java.util.*;
  * @author yinsheng
  * @date 2020\4\15 0015 14:33
  */
-@RpcBean(value = "ebsRemoteService", mvc_authentication = false)
+@RpcBean(value = "ebsRemoteService")
 public class EbsRemoteService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EbsRemoteService.class);
