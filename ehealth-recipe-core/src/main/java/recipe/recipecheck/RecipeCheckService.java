@@ -513,11 +513,13 @@ public class RecipeCheckService {
 
         //患者就诊卡信息
         RecipeExtend extend = extendDAO.getByRecipeId(recipeId);
-        String cardNo = extend.getCardNo();
-        String cardTypeName = extend.getCardTypeName();
         HashMap<String, String> cardMap = Maps.newHashMap();
-        cardMap.put("cardNo", cardNo);
-        cardMap.put("cardTypeName", cardTypeName);
+        if(extend!=null){
+            String cardNo = extend.getCardNo();
+            String cardTypeName = extend.getCardTypeName();
+            cardMap.put("cardNo", cardNo);
+            cardMap.put("cardTypeName", cardTypeName);
+        }
         map.put("card", cardMap);
 
         map.put("childRecipeFlag", childRecipeFlag);
