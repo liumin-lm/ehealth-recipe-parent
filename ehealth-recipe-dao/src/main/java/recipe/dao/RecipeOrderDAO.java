@@ -449,7 +449,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                     if(0 < mpiIds.size()){
                         List<PatientDTO> patientBeanList = patientService.findByMpiIdIn(new ArrayList<String>(mpiIds));
                         for (PatientDTO p : patientBeanList) {
-                            patientBeanMap.put(p.getMpiId(), p.getCardId());
+                            patientBeanMap.put(p.getMpiId(), p.getIdcard());
                         }
                     }
 
