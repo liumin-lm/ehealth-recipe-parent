@@ -58,11 +58,13 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
     }
 
     @RpcService
-    public String test(Integer depId){
+    public void test(Integer recipeId, Integer depId){
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
         //scanStock(recipeId, drugsEnterprise);
-        return getDrugInventory(27, drugsEnterprise);
+        //return getDrugInventory(27, drugsEnterprise);
+        List<Integer> recipeIds = Arrays.asList(recipeId);
+        pushRecipeInfo(recipeIds, drugsEnterprise);
     }
 
     @Override
@@ -83,6 +85,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
     }
 
     private void pushRecipeInfoForSy(DrugsEnterprise enterprise, DrugEnterpriseResult result, Recipe recipe, Integer flag) {
+        LOGGER.info("pushRecipeInfoForSy recipeId:{}, flag:{}.", recipe.getRecipeId(), flag);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         PatientService patientService = BasicAPI.getService(PatientService.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
@@ -95,6 +98,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
         OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
         DepartmentDTO departmentDTO = departmentService.get(recipe.getDepart());
         PatientDTO patientDTO = patientService.getByMpiId(recipe.getMpiid());
+        LOGGER.info("pushRecipeInfoForSy patientDTO:{}.", JSONUtils.toString(patientDTO));
         EbsBean ebsBean = new EbsBean();
         ebsBean.setPrescripNo(recipe.getRecipeCode());
         ebsBean.setPrescribeDate(recipe.getSignDate().getTime());
