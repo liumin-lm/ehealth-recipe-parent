@@ -10,6 +10,8 @@ public class PAWebRecipeDanger implements Serializable{
     private String dangerDrug; //问题药品
     private String detailUrl; //详细信息
 
+    public PAWebRecipeDanger(){}
+
     public PAWebRecipeDanger(PAWebRecipe paWebRecipe,String detailId){
         this.dangerType = paWebRecipe.getType();
         this.dangerLevel = paWebRecipe.getLvl();

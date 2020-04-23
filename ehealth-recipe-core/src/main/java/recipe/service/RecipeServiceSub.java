@@ -46,6 +46,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
+import recipe.audit.bean.PAWebRecipe;
+import recipe.audit.bean.PAWebRecipeDanger;
+import recipe.audit.bean.PAWebRecipeResponse;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
@@ -1206,8 +1209,29 @@ public class RecipeServiceSub {
             PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
             if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
                 List<AuditMedicinesDTO> auditMedicines = getAuditMedicineIssuesByRecipeId(recipeId);
-                map.put("medicines", handleAnalysisByType(auditMedicines,"medicines")); //返回药品分析数据
-                map.put("recipeDangers",handleAnalysisByType(auditMedicines,"recipeDangers")); //返回处方分析数据
+                map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId)); //返回药品分析数据
+                AuditMedicineIssueDAO auditMedicineIssueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
+                List<AuditMedicineIssue> auditMedicineIssues = auditMedicineIssueDAO.findIssueByRecipeId(recipeId);
+                if(CollectionUtils.isNotEmpty(auditMedicineIssues)){
+                    List<AuditMedicineIssue> resultMedicineIssues = new ArrayList<>();
+                    auditMedicineIssues.forEach(item->{
+                        if(StringUtils.isNotEmpty(item.getDetailUrl())){
+                            resultMedicineIssues.add(item);
+                        }
+                    });
+
+                    List<PAWebRecipeDanger> recipeDangers = new ArrayList<>();
+                    resultMedicineIssues.forEach(item->{
+                        PAWebRecipeDanger recipeDanger = new PAWebRecipeDanger();
+                        recipeDanger.setDangerDesc(item.getDetail());
+                        recipeDanger.setDangerDrug(item.getTitle());
+                        recipeDanger.setDangerLevel(item.getLvlCode());
+                        recipeDanger.setDangerType(item.getLvl());
+                        recipeDanger.setDetailUrl(item.getDetailUrl());
+                        recipeDangers.add(recipeDanger);
+                    });
+                    map.put("recipeDangers",recipeDangers); //返回处方分析数据
+                }
             }
 
         } else {
@@ -1624,7 +1648,8 @@ public class RecipeServiceSub {
                 for (AuditMedicinesDTO auditMedicinesDTO : list) {
                     issueList = Lists.newArrayList();
                     for (AuditMedicineIssue auditMedicineIssue : issues) {
-                        if (auditMedicineIssue.getMedicineId().equals(auditMedicinesDTO.getId())) {
+                        if (null != auditMedicineIssue.getMedicineId() &&
+                                auditMedicineIssue.getMedicineId().equals(auditMedicinesDTO.getId())) {
                             issueList.add(auditMedicineIssue);
                         }
                     }
