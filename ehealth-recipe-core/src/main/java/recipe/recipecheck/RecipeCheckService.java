@@ -550,6 +550,7 @@ public class RecipeCheckService {
             map.put("editFlag", 0);
         }
 
+
         UserRoleToken urt = UserRoleToken.getCurrent();
 
         if (null != urt && null != urt.getProperty("doctor")) {
@@ -1071,6 +1072,16 @@ public class RecipeCheckService {
         }
     }
 
+    public static void main(String[] args) {
+        try{
+            String encrypt1 = AESUtils.encrypt("3444", RECIPEID_SECRET);
+            String encrypt2 = AESUtils.encrypt("3443", RECIPEID_SECRET);
+            System.out.println("3444:"+encrypt1+"3443"+encrypt2);
+        }catch (Exception e){
+
+        }
+    }
+
     /**
      * 点击抢单/取消抢单
      *
@@ -1082,10 +1093,10 @@ public class RecipeCheckService {
         Map<String, Object> resultMap = Maps.newHashMap();
         String recipeId = MapUtils.getString(map, "recipeId");
         Integer doctorId = MapUtils.getInteger(map, "doctorId");
-        String applyFlag = MapUtils.getString(map, "appFlag");
+        Integer applyFlag = MapUtils.getInteger(map, "appFlag");
         Args.notBlank(recipeId, "recipeId");
         Args.notNull(doctorId, "doctorId");
-        Args.notBlank(applyFlag, "applyFlag");
+        Args.notNull(applyFlag, "applyFlag");
         Integer recipeIdInteger = null;
         try {
             String recipeS = AESUtils.decrypt(recipeId, RECIPEID_SECRET);
@@ -1097,7 +1108,13 @@ public class RecipeCheckService {
                 recipeCheck.setLocalLimitDate(eh.utils.DateConversion.getDateAftMinute(new Date(), 10));
                 recipeCheck.setCheckStatus(RecipecCheckStatusConstant.Check_Normal);
                 recipeCheck.setRecipeId(recipeIdInteger);
-                recipeCheckDAO.save(recipeCheck);
+                RecipeCheck recipeCheck2 = recipeCheckDAO.getByRecipeIdAndCheckStatus(recipeIdInteger);
+                if(null == recipeCheck2){
+                    recipeCheckDAO.save(recipeCheck);
+                }else{
+                    recipeCheck2.setGrabOrderStatus(GrabOrderStatusConstant.GRAB_ORDERED_OWN);
+                    recipeCheckDAO.update(recipeCheck2);
+                }
                 resultMap.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDERED_OWN);
             } else if (applyFlag.equals(0)) { //取消抢单
                 RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeIdAndCheckStatus(recipeIdInteger);
