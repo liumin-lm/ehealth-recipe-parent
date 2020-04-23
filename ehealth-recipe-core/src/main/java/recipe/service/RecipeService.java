@@ -1191,7 +1191,7 @@ public class RecipeService extends RecipeBaseService {
         Map<String, Object> rMap = null;
         try {
             //上海肺科个性化处理--智能审方重要警示弹窗处理
-            doforShangHaiFeiKe(recipeBean, detailBeanList)
+            doforShangHaiFeiKe(recipeBean, detailBeanList);
             rMap = doSignRecipe(recipeBean, detailBeanList);
             //获取处方签名结果
             Boolean result = Boolean.parseBoolean(rMap.get("signResult").toString());
