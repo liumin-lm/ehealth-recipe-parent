@@ -99,7 +99,9 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
         ebsBean.setPrescripNo(recipe.getRecipeCode());
         ebsBean.setPrescribeDate(recipe.getSignDate().getTime());
         ebsBean.setHospitalCode(organDTO.getOrganizeCode());
-        ebsBean.setHospitalName("上海市中医医院（上海中医药大学附属市中医医院）");
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String organName = recipeParameterDao.getByName(recipe.getClinicOrgan()+"_shyy-organname");
+        ebsBean.setHospitalName(organName);
         ebsBean.setDepartment(departmentDTO.getName());
         ebsBean.setDoctorName(recipe.getDoctorName());
         ebsBean.setName(recipe.getPatientName());
