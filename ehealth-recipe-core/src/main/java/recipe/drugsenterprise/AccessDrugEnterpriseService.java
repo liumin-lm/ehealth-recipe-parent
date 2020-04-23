@@ -184,7 +184,7 @@ public abstract class AccessDrugEnterpriseService {
      * @param drugsEnterprise  药企
      * @return  库存
      */
-    public abstract String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise);
+    public abstract String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId);
 
     /**
      * 库存检验

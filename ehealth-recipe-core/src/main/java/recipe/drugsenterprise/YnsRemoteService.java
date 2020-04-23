@@ -5,10 +5,7 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.entity.SaleDrugList;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -61,9 +58,50 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
-        return null;
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String appKey=recipeParameterDao.getByName("ynsyy-key");
+        String pharmacyStock=recipeParameterDao.getByName("ynsyy-pharmacyStockMethod");
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        try{
+            Client client = new Client(drugsEnterprise.getBusinessUrl()+pharmacyStock, appKey, drugsEnterprise.getToken(), encodingAesKey);
+            ////根据处方信息发送药企库存查询请求，判断有药店是否满足库存
+            //X-Service-Id对应的值
+            String serviceId = "CallYygsService";
+            //X-Service-Method对应的值
+            String method = recipeParameterDao.getByName("ynsyy-pharmacyStockMethod");
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
+            List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
+            List list = new ArrayList<>();
+            if (saleDrugList != null) {
+                DrugBean drugBean = new DrugBean();
+                drugBean.setDrugCode(saleDrugList.getOrganDrugCode());
+                drugBean.setTotal("5");
+                if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                    drugBean.setUnit(organDrugLists.get(0).getUnit());
+                }
+                list.add(drugBean);
+            }
+            Request request =  new Request(serviceId,method,list);
+            Response response = client.execute(request);
+            Map resultMap = JSONUtils.parse(response.getBody(), Map.class);
+            if (requestSuccessCode.equals(MapValueUtil.getString(resultMap, "code"))) {
+                String inventory = MapValueUtil.getObject(resultMap, "inventory").toString();
+                if ("true".equals(inventory)) {
+                    return "有库存";
+                } else {
+                    return "无库存";
+                }
+            }else{
+                return "无库存";
+            }
+        }catch (Exception e){
+            LOGGER.info("getDrugInventory error:{}.", e.getMessage(), e);
+            return "无库存";
+        }
     }
+
     @RpcService
     public void test(Integer recipeId){
         List<Integer> recipeIds = Arrays.asList(recipeId);

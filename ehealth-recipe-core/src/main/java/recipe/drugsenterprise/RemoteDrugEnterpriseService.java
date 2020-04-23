@@ -145,14 +145,14 @@ public class RemoteDrugEnterpriseService {
     }
 
     @RpcService
-    public String getDrugInventory(Integer depId, Integer drugId){
+    public String getDrugInventory(Integer depId, Integer drugId, Integer organId){
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         LOGGER.info("getDrugInventory depId:{}, drugId:{}", depId, drugId);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
         result.setAccessDrugEnterpriseService(this.getServiceByDep(drugsEnterprise));
         if (DrugEnterpriseResult.SUCCESS.equals(result.getCode()) && null != result.getAccessDrugEnterpriseService()) {
-           return  result.getAccessDrugEnterpriseService().getDrugInventory(drugId, drugsEnterprise);
+           return  result.getAccessDrugEnterpriseService().getDrugInventory(drugId, drugsEnterprise, organId);
         } else {
             return "0";
         }

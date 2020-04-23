@@ -1470,17 +1470,35 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
         String methodName = "sendScanStock";
-        String hdDrugCodes = "{\"drugList\":[{\"drugCode\":\""+saleDrugList.getOrganDrugCode()+"\"}]}";
+        Map<String, Object> map = new HashMap<>();
+        List<Map<String, String>> hdDrugCodes = new ArrayList<>();
+        Map<String, String> drug = new HashMap<>();
+        drug.put("drugCode", saleDrugList.getOrganDrugCode());
+        hdDrugCodes.add(drug);
+        map.put("drugList", hdDrugCodes);
+
+        //对浙四进行个性化处理,推送到指定药店配送
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String hdStores = recipeParameterDao.getByName("hd_store_payonline");
+        String storeOrganName = organId + "_" + "hd_organ_store";
+        String organStore = recipeParameterDao.getByName(storeOrganName);
+
+        if (StringUtils.isNotEmpty(hdStores) && hasOrgan(organId.toString(),hdStores)) {
+            LOGGER.info("HdRemoteService.sendScanStock organStore:{}.", organStore);
+            map.put("pharmacyCode", organStore);
+        }
+
+        String requestParames = JSONUtils.toString(map);
         //访问库存足够的药店列表以及药店下的药品的信息
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HdHttpUrlEnum httpUrl;
         try {
             httpUrl = HdHttpUrlEnum.fromMethodName(methodName);
-            CloseableHttpResponse response = sendHttpRequest(httpClient, hdDrugCodes, httpUrl, drugsEnterprise);
+            CloseableHttpResponse response = sendHttpRequest(httpClient, requestParames, httpUrl, drugsEnterprise);
             //当相应状态为200时返回json
             HttpEntity httpEntity = response.getEntity();
             String responseStr = EntityUtils.toString(httpEntity);
@@ -1488,8 +1506,8 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             List drugList = (List)jsonObject.get("drugList");
 
             if (drugList != null && drugList.size() > 0) {
-                for (Object drug : drugList) {
-                    Map<String, Object> drugMap = (Map<String, Object>) drug;
+                for (Object drugs : drugList) {
+                    Map<String, Object> drugMap = (Map<String, Object>) drugs;
                     try{
                         BigDecimal availableSumQty = (BigDecimal)drugMap.get("availableSumQty");
                         return availableSumQty.intValue() + "";

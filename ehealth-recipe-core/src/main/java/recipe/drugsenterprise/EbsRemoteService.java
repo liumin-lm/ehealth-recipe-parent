@@ -1,5 +1,7 @@
 package recipe.drugsenterprise;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -9,10 +11,19 @@ import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
+import ctd.mvc.support.HttpClientUtils;
+import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -22,6 +33,8 @@ import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.EbsBean;
 import recipe.drugsenterprise.bean.EbsDetail;
+import recipe.service.RecipeLogService;
+import recipe.util.AppSiganatureUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -47,13 +60,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
     private RecipeOrderDAO recipeOrderDAO;
 
     @Resource
-    private RecipeCheckDAO recipeCheckDAO;
-
-    @Resource
     private SaleDrugListDAO saleDrugListDAO;
-
-    @Resource
-    private OrganDrugListDAO organDrugListDAO;
 
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
@@ -69,6 +76,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
             getDrugEnterpriseResult(result, "处方ID参数为空");
         }
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
+        EbsBean ebsBean = new EbsBean();
         if (!CollectionUtils.isEmpty(recipeList)) {
             PatientService patientService = BasicAPI.getService(PatientService.class);
             OrganService organService = BasicAPI.getService(OrganService.class);
@@ -81,7 +89,6 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
             DepartmentDTO departmentDTO = departmentService.get(recipe.getDepart());
             PatientDTO patientDTO = patientService.getByMpiId(recipe.getMpiid());
 
-            EbsBean ebsBean = new EbsBean();
             ebsBean.setPrescripNo(recipe.getRecipeCode());
             ebsBean.setPrescribeDate(recipe.getSignDate().getTime());
             ebsBean.setHospitalCode(organDTO.getOrganizeCode());
@@ -141,9 +148,31 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
                 }
                 ebsBean.setDetails(details);
             }
+            //以下开始推送处方信息
+            String sendRecipeUrl = "prescriptionService/addSingle";
+            String url = enterprise.getBusinessUrl() + sendRecipeUrl;
+            String json = JSONObject.toJSONString(ebsBean);
+
+            JSONObject jsonObject = sendRequest(url, json);
+            if (jsonObject != null) {
+                Boolean success = jsonObject.getBoolean("success");
+                String code = jsonObject.getString("code");
+                if("0".equals(code) && success){
+                    //表示推送成功
+                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "处方推送成功");
+                } else {
+                    //表示推送失败
+                    getDrugEnterpriseResult(result, "处方推送失败");
+                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "处方推送失败");
+                }
+            } else {
+                LOGGER.info("pushRecipeInfo recipeId:{}", recipeIds.get(0));
+                getDrugEnterpriseResult(result, "获取上药返回数据为空");
+                //表示推送失败
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "处方推送失败");
+            }
         }
-        //以下开始推送处方信息
-        return null;
+        return result;
     }
 
     @Override
@@ -152,22 +181,41 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         return "";
     }
 
     @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        String stockUrl = "partnerService/getMedicineStock";
         List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
         for (Recipedetail recipedetail : recipedetails) {
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
+            String parames = "{\"sku\":\""+saleDrugList.getOrganDrugCode()+"\",\"pageNo\":1,\"pageSize\":\"100\"}";
+            JSONObject jsonObject = sendRequest(drugsEnterprise.getBusinessUrl()+stockUrl, parames);
+            if (jsonObject != null) {
+                Boolean success = jsonObject.getBoolean("success");
+                String code = jsonObject.getString("code");
+                if ("0".equals(code) && success) {
+                    List drugResult = jsonObject.getJSONArray("result");
+                    LOGGER.info("scanStock drugResult:{}.", JSONUtils.toString(drugResult));
 
+                } else {
+                    getDrugEnterpriseResult(result, "药品库存不足");
+                    return result;
+                }
+            } else {
+                getDrugEnterpriseResult(result, "药品库存不足");
+                return result;
+            }
         }
-        return null;
+        return result;
     }
 
     @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
+        //获取HIS处方状态更新平台处方信息
         return DrugEnterpriseResult.getSuccess();
     }
 
@@ -207,5 +255,31 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
             }
         }
         return "";
+    }
+
+    private JSONObject sendRequest(String url, String json) {
+        try{
+            LOGGER.info("sendRequest input:{},{}.", url, json);
+            RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+            String APP_ID = recipeParameterDao.getByName("logistics_shsy_app_id");
+            String APP_SECRET = recipeParameterDao.getByName("logistics_shsy_app_secret");
+            long timestamp = System.currentTimeMillis();
+            HttpPost method = new HttpPost(url);
+            method.addHeader("ACCESS_APPID", APP_ID);
+            method.addHeader("ACCESS_TIMESTAMP", String.valueOf(timestamp));
+            method.addHeader("ACCESS_SIGANATURE", AppSiganatureUtils.createSiganature(json, APP_ID, APP_SECRET,
+                    timestamp));
+            method.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));
+            HttpClient httpClient = HttpClientUtils.getHttpClient();
+            HttpResponse httpResponse = httpClient.execute(method);
+            HttpEntity entity = httpResponse.getEntity();
+            String response = EntityUtils.toString(entity);
+            JSONObject jsonObject = JSON.parseObject(response);
+            LOGGER.info("sendRequest output:{}.", JSONUtils.toString(jsonObject));
+            return jsonObject;
+        }catch(Exception e){
+            LOGGER.error("sendRequest error :{},", e.getMessage(), e);
+        }
+        return null;
     }
 }

@@ -8,6 +8,7 @@ import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.exception.DAOException;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
+import ctd.persistence.support.hibernate.HibernateSupportWriteDAO;
 import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResultAction;
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
@@ -17,6 +18,7 @@ import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import recipe.constant.ErrorCode;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -38,7 +40,16 @@ public abstract class RecipeCheckDAO extends HibernateSupportDelegateDAO<RecipeC
     private static final int SEARCH_FLAG_BL = 3;
 
     public RecipeCheckDAO() {
-        super();
+        super(new HibernateSupportWriteDAO<RecipeCheck>(){
+            @Override
+            protected void beforeSave(RecipeCheck recipeCheck) throws DAOException {
+                recipeCheck.setUpdateTime(new Date());
+            }
+            @Override
+            protected void beforeUpdate(RecipeCheck recipeCheck) throws DAOException {
+                recipeCheck.setUpdateTime(new Date());
+            }
+        });
         this.setEntityName(RecipeCheck.class.getName());
         this.setKeyField("checkId");
     }
