@@ -1118,6 +1118,9 @@ public class RecipeCheckService {
                     recipeCheckDAO.save(recipeCheck);
                 }else{
                     recipeCheck2.setGrabOrderStatus(GrabOrderStatusConstant.GRAB_ORDERED_OWN);
+                    recipeCheck2.setGrabDoctorId(doctorId);
+                    recipeCheck2.setCheckStatus(RecipecCheckStatusConstant.Check_Normal);
+                    recipeCheck2.setLocalLimitDate(eh.utils.DateConversion.getDateAftMinute(new Date(), 10));
                     recipeCheckDAO.update(recipeCheck2);
                 }
                 resultMap.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDERED_OWN);
@@ -1195,6 +1198,22 @@ public class RecipeCheckService {
         } catch (Exception e) {
             LOGGER.error("getGrabOrderStatusAndLimitTime error", e);
             throw new DAOException("查询失败");
+        }
+    }
+
+    /**
+     * 处方抢单解锁定时器
+     */
+    @RpcService
+    public void cancelOverTimeRecipeCheck(){
+        List<RecipeCheck> overTimeRecipeChecks = recipeCheckDAO.findOverTimeRecipeCheck();
+        if(CollectionUtils.isNotEmpty(overTimeRecipeChecks)){
+            overTimeRecipeChecks.forEach(item->{
+                item.setGrabOrderStatus(GrabOrderStatusConstant.GRAB_ORDER_NO);
+                item.setLocalLimitDate(null);
+                LOGGER.info("处方抢单超时解锁，recipe={}", item.getRecipeId());
+                recipeCheckDAO.update(item);
+            });
         }
     }
 }
