@@ -328,7 +328,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
                     LOGGER.info("syncEnterpriseDrug drugResult:{}.", drugResult);
                     if (drugResult != null) {
                         ThirdEnterpriseCallService thirdEnterpriseCallService = ApplicationUtils.getService(ThirdEnterpriseCallService.class, "takeDrugService");
-                        if ("43".equals(drugResult)) {
+                        if (drugResult == 43) {
                             //已经配送待签收,同步配送信息 准备配送
                             Map<String, Object> paramMap = new HashMap<>();
                             paramMap.put("recipeId", recipe.getRecipeId());
@@ -343,7 +343,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
                             toSendParamMap.put("logisticsCompany", 16);
                             toSendParamMap.put("trackingNumber","L2003251318067955");
                             thirdEnterpriseCallService.toSend(toSendParamMap);
-                        } else if ("50".equals(drugResult)) {
+                        } else if (drugResult == 50) {
                             //配送完成
                             Map<String, Object> finishParamMap = new HashMap<>();
                             finishParamMap.put("recipeId", recipe.getRecipeId());
