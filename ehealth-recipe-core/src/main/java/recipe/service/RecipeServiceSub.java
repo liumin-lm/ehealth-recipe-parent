@@ -592,7 +592,6 @@ public class RecipeServiceSub {
      * @return Map<String, Object>
      */
     public static Map<String, Object> createParamMap(Recipe recipe, List<Recipedetail> details, String fileName) {
-        DrugListDAO dDao = DAOFactory.getDAO(DrugListDAO.class);
         Map<String, Object> paramMap = Maps.newHashMap();
         try {
             PatientDTO p = patientService.get(recipe.getMpiid());
@@ -621,29 +620,19 @@ public class RecipeServiceSub {
             paramMap.put("disease", recipe.getOrganDiseaseName());
             paramMap.put("cDate", DateConversion.getDateFormatter(recipe.getSignDate(), "yyyy-MM-dd HH:mm"));
             paramMap.put("diseaseMemo", recipe.getMemo());
-            paramMap.put("recipeCode", recipe.getRecipeCode().startsWith("ngari") ? "" : recipe.getRecipeCode());
+            paramMap.put("recipeCode", recipe.getRecipeCode() == null? "" : recipe.getRecipeCode().startsWith("ngari") ? "" : recipe.getRecipeCode());
             paramMap.put("patientId", recipe.getPatientID());
             paramMap.put("mobile", p.getMobile());
             paramMap.put("loginId", p.getLoginId());
             paramMap.put("label", recipeType + "处方");
             int i = 0;
-            List<Integer> drugIds = Lists.newArrayList();
-            for (Recipedetail d : details) {
-                drugIds.add(d.getDrugId());
-            }
-            List<DrugList> dlist = dDao.findByDrugIds(drugIds);
-            Map<Integer, DrugList> dMap = Maps.newHashMap();
-            for (DrugList d : dlist) {
-                dMap.put(d.getDrugId(), d);
-            }
             ctd.dictionary.Dictionary usingRateDic = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate");
             Dictionary usePathwaysDic = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways");
             String useDose;
             for (Recipedetail d : details) {
-                DrugList drug = dMap.get(d.getDrugId());
-                String dName = (i + 1) + "、" + drug.getDrugName();
+                String dName = (i + 1) + "、" + d.getDrugName();
                 //规格+药品单位
-                String dSpec = drug.getDrugSpec() + "/" + drug.getUnit();
+                String dSpec = d.getDrugSpec() + "/" + d.getDrugUnit();
                 //使用天数
                 String useDay = d.getUseDays() + "天";
                 if (StringUtils.isNotEmpty(d.getUseDoseStr())){
@@ -652,10 +641,10 @@ public class RecipeServiceSub {
                     useDose = d.getUseDose() !=null?String.valueOf(d.getUseDose()):d.getUseDoseStr();
                 }
                 //每次剂量+剂量单位
-                String uDose = "Sig: " + "每次" + useDose + (StringUtils.isEmpty(drug.getUseDoseUnit()) ?
-                        "" : drug.getUseDoseUnit());
+                String uDose = "Sig: " + "每次" + useDose + (StringUtils.isEmpty(d.getUseDoseUnit()) ?
+                        "" : d.getUseDoseUnit());
                 //开药总量+药品单位
-                String dTotal = "X" + d.getUseTotalDose() + drug.getUnit();
+                String dTotal = "X" + d.getUseTotalDose() + d.getDrugUnit();
                 //用药频次
                 String dRateName = d.getUsingRate() + "(" + usingRateDic.getText(d.getUsingRate()) + ")";
                 //用法
@@ -686,7 +675,6 @@ public class RecipeServiceSub {
      * @Author liuya
      */
     public static Map<String, Object> createParamMapForChineseMedicine(Recipe recipe, List<Recipedetail> details, String fileName) {
-        DrugListDAO dDao = DAOFactory.getDAO(DrugListDAO.class);
         Map<String, Object> paramMap = Maps.newHashMap();
         try {
             PatientDTO p = patientService.get(recipe.getMpiid());
@@ -715,7 +703,7 @@ public class RecipeServiceSub {
             paramMap.put("disease", recipe.getOrganDiseaseName());
             paramMap.put("cDate", DateConversion.getDateFormatter(recipe.getSignDate(), "yyyy-MM-dd HH:mm"));
             paramMap.put("diseaseMemo", recipe.getMemo());
-            paramMap.put("recipeCode", recipe.getRecipeCode().startsWith("ngari") ? "" : recipe.getRecipeCode());
+            paramMap.put("recipeCode", recipe.getRecipeCode() == null? "" : recipe.getRecipeCode().startsWith("ngari") ? "" : recipe.getRecipeCode());
             paramMap.put("patientId", recipe.getPatientID());
             paramMap.put("mobile", p.getMobile());
             paramMap.put("loginId", p.getLoginId());
@@ -723,29 +711,19 @@ public class RecipeServiceSub {
             paramMap.put("copyNum", recipe.getCopyNum() + "剂");
             paramMap.put("recipeMemo", recipe.getRecipeMemo());
             int i = 0;
-            List<Integer> drugIds = Lists.newArrayList();
             for (Recipedetail d : details) {
-                drugIds.add(d.getDrugId());
-            }
-            List<DrugList> dlist = dDao.findByDrugIds(drugIds);
-            Map<Integer, DrugList> dMap = Maps.newHashMap();
-            for (DrugList d : dlist) {
-                dMap.put(d.getDrugId(), d);
-            }
-            for (Recipedetail d : details) {
-                DrugList drug = dMap.get(d.getDrugId());
-                String dName = drug.getDrugName();
+                String dName = d.getDrugName();
                 //开药总量+药品单位
                 String dTotal = "";
                 if (StringUtils.isNotEmpty(d.getUseDoseStr())){
-                    dTotal = d.getUseDoseStr()+drug.getUseDoseUnit();
+                    dTotal = d.getUseDoseStr()+d.getUseDoseUnit();
                 }else {
                     if (d.getUseDose()!=null){
                         //增加判断条件  如果用量小数位为零，则不显示小数点
                         if ((d.getUseDose() - d.getUseDose().intValue()) == 0d) {
-                            dTotal = d.getUseDose().intValue() + drug.getUseDoseUnit();
+                            dTotal = d.getUseDose().intValue() + d.getUseDoseUnit();
                         } else {
-                            dTotal = d.getUseDose() + drug.getUseDoseUnit();
+                            dTotal = d.getUseDose() + d.getUseDoseUnit();
                         }
                     }
                 }
