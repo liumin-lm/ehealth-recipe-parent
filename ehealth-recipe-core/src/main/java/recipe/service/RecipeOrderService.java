@@ -2005,6 +2005,20 @@ public class RecipeOrderService extends RecipeBaseService {
         return order.getOrderId();
     }
 
+    private void saveOrderInfo(Integer recipeId, Map<String, Object> paramMap){
+        Map<String, Object> orderAttr = new HashMap<>();
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (recipe != null) {
+            RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+            String logisticsCompany = MapValueUtil.getString(paramMap, "logisticsCompany");
+            String trackingNumber = MapValueUtil.getString(paramMap, "trackingNumber");
+            orderAttr.put("logisticsCompany", StringUtils.isEmpty(logisticsCompany) ? null : Integer.valueOf(logisticsCompany));
+            orderAttr.put("trackingNumber", trackingNumber);
+            orderService.updateOrderInfo(recipe.getOrderCode(), orderAttr, null);
+        }
+    }
+
     /**
      * 更新处方订单信息(状态维护)
      *
@@ -2028,8 +2042,10 @@ public class RecipeOrderService extends RecipeBaseService {
         if(1 == recipe.getGiveMode() && status2 != null){
             if(RecipeStatusConstant.IN_SEND == status2){
                 resultBean = thirdEnterpriseCallService.toSend(attrMap);
+                saveOrderInfo(recipeId, attrMap);
             } else if (RecipeStatusConstant.FINISH == status2){
                 resultBean = thirdEnterpriseCallService.finishRecipe(attrMap);
+                saveOrderInfo(recipeId, attrMap);
             } else if (RecipeStatusConstant.RECIPE_FAIL == status2){
                 resultBean = thirdEnterpriseCallService.RecipeFall(attrMap);
             }
