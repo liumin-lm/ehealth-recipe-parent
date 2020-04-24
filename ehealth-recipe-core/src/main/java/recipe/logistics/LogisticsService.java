@@ -8,6 +8,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.logistics.model.RecipeLogisticsBean;
 import com.sf.csim.express.service.CallExpressServiceTools;
+import ctd.dictionary.DictionaryController;
 import ctd.mvc.support.HttpClientUtils;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -124,6 +125,7 @@ public class LogisticsService {
         }
 
     }
+
 
     /**
      * 前端调用查询物流轨迹

@@ -248,12 +248,15 @@ public class HisCallBackService {
 
     private static void updateRecipepatientType(Recipe recipe) {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        String patientType = "1";
-        //获取患者类型-后面让前置机传
-        if (isMedicarePatient(recipe.getClinicOrgan(),recipe.getMpiid())){
-            patientType = "2";
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        if (StringUtils.isEmpty(recipeExtend.getPatientType())){
+            String patientType = "1";
+            //获取患者类型-后面让前置机传
+            if (isMedicarePatient(recipe.getClinicOrgan(),recipe.getMpiid())){
+                patientType = "2";
+            }
+            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("patientType", patientType));
         }
-        recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("patientType", patientType));
     }
 
     private static void updateRecipeRegisterID(Recipe recipe, RecipeCheckPassResult result) {

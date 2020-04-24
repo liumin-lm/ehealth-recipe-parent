@@ -580,6 +580,18 @@ public class RecipeListService extends RecipeBaseService{
             case RecipeStatusConstant.USING:
                 msg = "处理中";
                 break;
+            case RecipeStatusConstant.SIGN_ERROR_CODE_DOC:
+                msg = "待审核";
+                break;
+            case RecipeStatusConstant.SIGN_ERROR_CODE_PHA:
+                msg = "待审核";
+                break;
+            case RecipeStatusConstant.SIGN_ING_CODE_DOC:
+                msg = "待审核";
+                break;
+            case RecipeStatusConstant.SIGN_ING_CODE_PHA:
+                msg = "待审核";
+                break;
             default:
                 msg = "未知状态";
         }
@@ -1006,7 +1018,7 @@ public class RecipeListService extends RecipeBaseService{
 
             //判断购药按钮是否可选状态的,当审方方式是前置且正在审核中时，不可选
             boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() &&
-                    (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus())));
+                    (RecipeStatusConstant.SIGN_ERROR_CODE_PHA == recipe.getStatus() || RecipeStatusConstant.SIGN_ING_CODE_PHA == recipe.getStatus() || RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus())));
             payModeShowButtonBean.setOptional(isOptional);
 
             //初始化互联网按钮信息（特殊化）

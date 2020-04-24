@@ -117,16 +117,15 @@ public class HzInternetRemoteOldType implements HzInternetRemoteTypeInterface {
                 updateTakeDrugWayReqTO.setAddress(commonRemoteService.getCompleteAddress(order));
 
                 //收货地址代码
-                updateTakeDrugWayReqTO.setReceiveAddrCode(order.getAddress3());
-                String address3 = null;
+                updateTakeDrugWayReqTO.setReceiveAddrCode(order.getStreetAddress());
+                String streetAddress = null;
                 try {
-                    address3 = DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(order.getAddress3());
+                    streetAddress = DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(order.getStreetAddress());
                 } catch (ControllerException e) {
-                    LOGGER.warn("杭州互联网虚拟药企-未获取收货地址名称-add={}", JSONUtils.toString(order.getAddress3()));
-
+                    LOGGER.warn("杭州互联网虚拟药企-未获取收货地址名称-add={}", JSONUtils.toString(order.getStreetAddress()));
                 }
                 //收货地址名称
-                updateTakeDrugWayReqTO.setReceiveAddress(address3);
+                updateTakeDrugWayReqTO.setReceiveAddress(streetAddress);
                 //期望配送日期
                 updateTakeDrugWayReqTO.setConsignee(order.getExpectSendDate());
                 //期望配送时间

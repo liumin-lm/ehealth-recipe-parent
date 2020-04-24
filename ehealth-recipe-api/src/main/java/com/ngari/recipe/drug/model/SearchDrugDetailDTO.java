@@ -127,6 +127,9 @@ public class SearchDrugDetailDTO implements Serializable {
     @ItemProperty(alias = "剂型")
     private String drugForm;
 
+    @ItemProperty(alias = "药品库存标志")
+    private boolean drugInventoryFlag;
+
     public Integer getDrugId() {
         return drugId;
     }
@@ -397,5 +400,13 @@ public class SearchDrugDetailDTO implements Serializable {
 
     public void setDrugForm(String drugForm) {
         this.drugForm = drugForm;
+    }
+
+    public boolean isDrugInventoryFlag() {
+        return drugInventoryFlag;
+    }
+
+    public void setDrugInventoryFlag(boolean drugInventoryFlag) {
+        this.drugInventoryFlag = drugInventoryFlag;
     }
 }

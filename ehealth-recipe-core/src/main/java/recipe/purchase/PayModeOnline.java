@@ -94,7 +94,12 @@ public class PayModeOnline implements IPurchaseService {
             }
         }
         Integer recipeId = dbRecipe.getRecipeId();
-
+        //判断是否是慢病医保患者------郑州人民医院
+        if (purchaseService.isMedicareSlowDiseasePatient(recipeId)){
+            resultBean.setCode(RecipeResultBean.FAIL);
+            resultBean.setMsg("抱歉，由于您是慢病医保患者，请到人社平台、医院指定药房或者到医院进行医保支付。");
+            return resultBean;
+        }
         //药企列表
         List<DepDetailBean> depDetailList = new ArrayList<>();
 
@@ -661,7 +666,12 @@ public class PayModeOnline implements IPurchaseService {
                 //修改推送的地址细节：address ：address4,receiveAddress:集合，receiveAddrCode：address3
                 CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
                 updateTakeDrugWayReqTO.setAddress(order.getAddress4());
-                updateTakeDrugWayReqTO.setReceiveAddrCode(order.getAddress3());
+                if(order.getStreetAddress() != null){
+                    updateTakeDrugWayReqTO.setReceiveAddrCode(order.getStreetAddress());
+                } else {
+                    updateTakeDrugWayReqTO.setReceiveAddrCode(order.getAddress3());
+                }
+
                 updateTakeDrugWayReqTO.setReceiveAddress(commonRemoteService.getCompleteAddressToSend(order));
 
                 //date 20200314

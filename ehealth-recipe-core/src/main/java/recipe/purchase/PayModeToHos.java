@@ -21,6 +21,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.service.RecipeHisService;
 import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
 
@@ -61,6 +62,22 @@ public class PayModeToHos implements IPurchaseService{
                 return resultBean;
             }
         }
+        //判断是否是慢病医保患者------郑州人民医院
+        if (purchaseService.isMedicareSlowDiseasePatient(recipeId)){
+            resultBean.setCode(RecipeResultBean.FAIL);
+            resultBean.setMsg("抱歉，由于您是慢病医保患者，请到人社平台、医院指定药房或者到医院进行医保支付。");
+            return resultBean;
+        }
+
+        //点击到院取药再次判断库存--防止之前开方的时候有库存流转到此无库存
+        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+        RecipeResultBean scanResult = hisService.scanDrugStockByRecipeId(recipeId);
+        if (RecipeResultBean.FAIL.equals(scanResult.getCode())) {
+            resultBean.setCode(RecipeResultBean.FAIL);
+            resultBean.setMsg("抱歉，医院没有库存，无法到医院取药，请选择其他购药方式。");
+            return resultBean;
+        }
+
         if(CollectionUtils.isNotEmpty(detailList)){
             String pharmNo = detailList.get(0).getPharmNo();
             if(StringUtils.isNotEmpty(pharmNo)){

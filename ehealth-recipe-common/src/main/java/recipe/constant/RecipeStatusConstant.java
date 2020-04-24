@@ -149,11 +149,35 @@ public class RecipeStatusConstant {
      */
     public static final int NO_MEDICAL_INSURANCE_RETURN = 25;
 
+    /**
+     * 签名失败-医生
+     */
+    public static final int SIGN_ERROR_CODE_DOC = 26;
 
     /**
-     * 医生签名失败
+     * 签名失败-药师
      */
-    public static final int SIGN_ERROR_CODE = 26;
+    public static final int SIGN_ERROR_CODE_PHA = 27;
+
+    /**
+     * 签名成功-医生
+     */
+    public static final int SIGN_SUCCESS_CODE_DOC = 28;
+
+    /**
+     * 签名成功-药师
+     */
+    public static final int SIGN_SUCCESS_CODE_PHA = 29;
+
+    /**
+     * 签名中-医生
+     */
+    public static final int SIGN_ING_CODE_DOC = 30;
+
+    /**
+     * 签名中-药师
+     */
+    public static final int SIGN_ING_CODE_PHA = 31;
 
     /**
      * 不存在的状态，用于微信发送,患者-未操作情况, 用于前一天提醒患者购药
@@ -234,5 +258,6 @@ public class RecipeStatusConstant {
      * 不存在的状态，药店取药-完成
      */
     public static final int RECIPE_TAKE_MEDICINE_FINISH = 124;
+
 
 }

@@ -52,6 +52,9 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "HIS处方关联的卡号")
     private String  cardNo;
 
+    @ItemProperty(alias = "患者类型 自费 0 商保 1 普通医保 2 慢病医保 3 省医保33 杭州市医保3301 衢州市医保3308 巨化医保3308A")
+    private String patientType;
+
     @ItemProperty(alias = "his返回的配送药企代码")
     private String deliveryCode;
 
@@ -299,5 +302,13 @@ public class RecipeExtendBean implements Serializable {
 
     public void setChronicDiseaseName(String chronicDiseaseName) {
         this.chronicDiseaseName = chronicDiseaseName;
+    }
+
+    public String getPatientType() {
+        return patientType;
+    }
+
+    public void setPatientType(String patientType) {
+        this.patientType = patientType;
     }
 }

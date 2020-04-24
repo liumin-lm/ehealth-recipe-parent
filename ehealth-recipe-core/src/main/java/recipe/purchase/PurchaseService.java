@@ -416,9 +416,9 @@ public class PurchaseService {
                 break;
             case RecipeStatusConstant.CHECK_PASS:
                 if (StringUtils.isNotEmpty(orderCode) && payFlag == 0 && order.getActualPrice() > 0) {
-                    tips = "订单待支付，请于收到处方的3日内处理完成，否则处方将失效";
+                    tips = "订单待支付，请于收到处方的3日内完成购药，否则处方将失效";
                 } else if (StringUtils.isEmpty(orderCode)) {
-                    tips = "处方单待处理，请于收到处方的3日内处理完成，否则处方将失效";
+                    tips = "处方单待处理，请于收到处方的3日内完成购药，否则处方将失效";
                 } else {
                     IPurchaseService purchaseService = getService(payMode);
                     tips = purchaseService.getTipsByStatusForPatient(recipe, order);
@@ -556,6 +556,23 @@ public class PurchaseService {
 
     private boolean unLock(Integer recipeId) {
         return redisClient.setex(CacheConstant.KEY_RCP_BUSS_PURCHASE_LOCK + recipeId, 1L);
+    }
+
+    /**
+     * 判断是否是慢病医保患者
+     * @param recipeId
+     * @return
+     */
+    public Boolean isMedicareSlowDiseasePatient(Integer recipeId){
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if (recipeExtend !=null){
+            //3慢病医保
+            if ("3".equals(recipeExtend.getPatientType())){
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

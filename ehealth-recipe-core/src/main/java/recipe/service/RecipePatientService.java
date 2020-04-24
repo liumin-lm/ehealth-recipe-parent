@@ -4,6 +4,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.ChronicDiseaseListReqTO;
@@ -16,10 +17,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.entity.SaleDrugList;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
@@ -30,12 +28,14 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeSystemConstant;
+import recipe.dao.ChronicDiseaseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.SaleDrugListDAO;
@@ -64,6 +64,8 @@ public class RecipePatientService extends RecipeBaseService {
      * LOGGER
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipePatientService.class);
+    @Autowired
+    private ChronicDiseaseDAO chronicDiseaseDAO;
 
     /**
      * 根据取药方式过滤药企
@@ -328,19 +330,27 @@ public class RecipePatientService extends RecipeBaseService {
         if (patientDTO == null){
             throw new DAOException(609, "找不到该患者");
         }
-        RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-        ChronicDiseaseListReqTO req = new ChronicDiseaseListReqTO();
-        PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
-        patientBaseInfo.setPatientName(patientDTO.getPatientName());
-        patientBaseInfo.setCertificate(patientDTO.getCertificate());
-        patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
-        req.setPatient(patientBaseInfo);
-        req.setOrganId(organId);
         List<ChronicDiseaseListResTO> list = Lists.newArrayList();
-        HisResponseTO<PatientChronicDiseaseRes> res = service.findPatientChronicDiseaseList(req);
-        if (res == null || res.getData() == null){
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        Integer diseaseType = (Integer) configurationService.getConfiguration(organId, "recipeChooseChronicDisease");
+        if(3 == diseaseType){
+            List<ChronicDisease> chronicDiseaseList = chronicDiseaseDAO.findChronicDiseasesByOrganId(3);
+            list = ObjectCopyUtils.convert(chronicDiseaseList,ChronicDiseaseListResTO.class);
             return list;
+        }else {
+            RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+            ChronicDiseaseListReqTO req = new ChronicDiseaseListReqTO();
+            PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
+            patientBaseInfo.setPatientName(patientDTO.getPatientName());
+            patientBaseInfo.setCertificate(patientDTO.getCertificate());
+            patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
+            req.setPatient(patientBaseInfo);
+            req.setOrganId(organId);
+            HisResponseTO<PatientChronicDiseaseRes> res = service.findPatientChronicDiseaseList(req);
+            if (res == null || res.getData() == null){
+                return list;
+            }
+            return res.getData().getChronicDiseaseListResTOs();
         }
-        return res.getData().getChronicDiseaseListResTOs();
     }
 }
