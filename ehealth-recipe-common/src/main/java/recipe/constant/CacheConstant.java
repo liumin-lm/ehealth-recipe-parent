@@ -48,6 +48,11 @@ public class CacheConstant {
     public static final String KEY_SKIP_HISRECIPE_LIST = "RCP_SKIP_HISRECIPE_LIST";
 
     /**
+     * 开处方智能审方重要警示弹窗处理organId列表
+     */
+    public static final String KEY_AUDIT_TIP_LIST = "RCP_AUDIT_TIP_LIST";
+
+    /**
      * 上传监管平台 开完处方就上传organId列表
      */
     public static final String UPLOAD_OPEN_RECIPE_LIST = "UPLOAD_OPEN_RECIPE_LIST";

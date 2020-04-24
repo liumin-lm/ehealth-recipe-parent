@@ -96,6 +96,16 @@ public class AuditMedicine {
      */
     private String needAlert;
 
+    /**
+     * 发药单位
+     */
+    private String dispenseUnit;
+
+    /**
+     * 发药数量
+     */
+    private String dispenseAmount;
+
     public String getOrdinal() {
         return ordinal;
     }
@@ -238,5 +248,21 @@ public class AuditMedicine {
 
     public void setNeedAlert(String needAlert) {
         this.needAlert = needAlert;
+    }
+
+    public String getDispenseUnit() {
+        return dispenseUnit;
+    }
+
+    public void setDispenseUnit(String dispenseUnit) {
+        this.dispenseUnit = dispenseUnit;
+    }
+
+    public String getDispenseAmount() {
+        return dispenseAmount;
+    }
+
+    public void setDispenseAmount(String dispenseAmount) {
+        this.dispenseAmount = dispenseAmount;
     }
 }

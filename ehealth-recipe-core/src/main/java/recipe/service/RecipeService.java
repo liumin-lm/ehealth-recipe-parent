@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
@@ -35,6 +36,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
@@ -81,6 +83,7 @@ import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
+import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
 import recipe.hisservice.RecipeToHisCallbackService;
@@ -146,6 +149,9 @@ public class RecipeService extends RecipeBaseService {
 
     @Autowired
     private RecipeCheckDetailDAO recipeCheckDetailDAO;
+
+    @Autowired
+    private SignDoctorRecipeInfoDAO signDoctorRecipeInfoDAO;
 
     /**
      * 药师审核不通过
@@ -624,9 +630,19 @@ public class RecipeService extends RecipeBaseService {
 //                        //保存签名值、时间戳、电子签章文件
 //                        String result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false);
                         String result = "";
+                        String fileId = null;
                         if (resultVo != null && 200 == resultVo.getCode()) {
                             //保存签名值、时间戳、电子签章文件
-                            result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false);
+                            result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
+                            SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
+                            if (signDoctorRecipeInfo != null) {
+                                signDoctorRecipeInfo.setSignCaDatePha(resultVo.getSignCADate());
+                                signDoctorRecipeInfo.setSignCodePha(resultVo.getSignRecipeCode());
+                                signDoctorRecipeInfo.setSignFilePha(fileId);
+                                signDoctorRecipeInfo.setCheckDatePha(new Date());
+                                LOGGER.error("generateRecipePdfAndSign 标准化CA签章 signDoctorRecipeInfo={}=", JSONObject.toJSONString(signDoctorRecipeInfo));
+                                signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
+                            }
                         } else {
                             RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
                             RecipeLog recipeLog = new RecipeLog();
@@ -757,9 +773,19 @@ public class RecipeService extends RecipeBaseService {
 //                        //保存签名值、时间戳、电子签章文件
 //                        String result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false);
                     String result = "";
+                    String fileId = null;
                     if (resultVo != null && 200 == resultVo.getCode()) {
                         //保存签名值、时间戳、电子签章文件
-                        result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false);
+                        result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
+                        SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
+                        if (signDoctorRecipeInfo != null) {
+                            signDoctorRecipeInfo.setSignCaDatePha(resultVo.getSignCADate());
+                            signDoctorRecipeInfo.setSignCodePha(resultVo.getSignRecipeCode());
+                            signDoctorRecipeInfo.setSignFilePha(fileId);
+                            signDoctorRecipeInfo.setCheckDatePha(new Date());
+                            LOGGER.error("generateRecipePdfAndSign 标准化CA签章 signDoctorRecipeInfo={}=", JSONObject.toJSONString(signDoctorRecipeInfo));
+                            signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
+                        }
                     } else {
                         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
                         RecipeLog recipeLog = new RecipeLog();
@@ -956,10 +982,19 @@ public class RecipeService extends RecipeBaseService {
                 CAInterface caInterface = caFactory.useCAFunction(organId);
                 CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
 //                RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true);
-
+                String fileId = null;
                 if (resultVo != null && 200 == resultVo.getCode()) {
                     //保存签名值、时间戳、电子签章文件
-                    RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true);
+                    RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
+                    SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
+                    if (signDoctorRecipeInfo != null) {
+                        signDoctorRecipeInfo.setSignCaDateDoc(resultVo.getSignCADate());
+                        signDoctorRecipeInfo.setSignCodeDoc(resultVo.getSignRecipeCode());
+                        signDoctorRecipeInfo.setSignFileDoc(fileId);
+                        signDoctorRecipeInfo.setSignDate(new Date());
+                        LOGGER.error("generateRecipePdfAndSign 标准化CA签章 signDoctorRecipeInfo={}=", JSONObject.toJSONString(signDoctorRecipeInfo));
+                        signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
+                    }
                 } else {
                     RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
                     RecipeLog recipeLog = new RecipeLog();
@@ -1189,6 +1224,16 @@ public class RecipeService extends RecipeBaseService {
         } else {
             recipeId = saveRecipeData(recipe, details);
             recipe.setRecipeId(recipeId);
+        }
+
+        try {
+            SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("recipeBean", JSONObject.toJSONString(recipe));
+            jsonObject.put("details", JSONObject.toJSONString(details));
+            signDoctorRecipeInfo.setSignBefText(jsonObject.toJSONString());
+        } catch (Exception e) {
+            LOGGER.error("signBefText save error："  + e.getMessage());
         }
 
         //非只能配送处方需要进行医院库存校验
@@ -1455,9 +1500,7 @@ public class RecipeService extends RecipeBaseService {
         Map<String, Object> rMap = null;
         try {
             //上海肺科个性化处理--智能审方重要警示弹窗处理
-            if (recipeBean.getClinicOrgan() == 1002902) {
-                doforShangHaiFeiKe(recipeBean, detailBeanList);
-            }
+            doforShangHaiFeiKe(recipeBean, detailBeanList);
             rMap = doSignRecipe(recipeBean, detailBeanList);
             //获取处方签名结果
             Boolean result = Boolean.parseBoolean(rMap.get("signResult").toString());
@@ -1486,23 +1529,27 @@ public class RecipeService extends RecipeBaseService {
     }
 
     private void doforShangHaiFeiKe(RecipeBean recipe, List<RecipeDetailBean> details) {
-        PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
-        AutoAuditResult autoAuditResult = prescriptionService.analysis(recipe, details);
-        List<PAWebMedicines> paResultList = autoAuditResult.getMedicines();
-        if (CollectionUtils.isNotEmpty(paResultList)) {
-            List<Issue> issueList;
-            for (PAWebMedicines paMedicine : paResultList) {
-                issueList = paMedicine.getIssues();
-                if (CollectionUtils.isNotEmpty(issueList)) {
-                    for (Issue issue : issueList) {
-                        if ("RL001".equals(issue.getLvlCode())){
-                            throw new DAOException(609,issue.getDetail());
+        ////上海医院个性化处理--智能审方重要警示弹窗处理--为了测评-可配置
+        Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_AUDIT_TIP_LIST);
+        if ((organIdList != null && organIdList.contains(recipe.getClinicOrgan().toString())) ||
+                recipe.getClinicOrgan() == 1002902) {//上海肺科
+            PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
+            AutoAuditResult autoAuditResult = prescriptionService.analysis(recipe, details);
+            List<PAWebMedicines> paResultList = autoAuditResult.getMedicines();
+            if (CollectionUtils.isNotEmpty(paResultList)) {
+                List<Issue> issueList;
+                for (PAWebMedicines paMedicine : paResultList) {
+                    issueList = paMedicine.getIssues();
+                    if (CollectionUtils.isNotEmpty(issueList)) {
+                        for (Issue issue : issueList) {
+                            if ("RL001".equals(issue.getLvlCode())){
+                                throw new DAOException(609,issue.getDetail());
+                            }
                         }
                     }
                 }
             }
         }
-
     }
 
     private void doHisReturnSuccessForOrgan(RecipeBean recipeBean, Map<String, Object> rMap) {

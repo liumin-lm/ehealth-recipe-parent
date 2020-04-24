@@ -405,7 +405,9 @@ public class RecipeHisService extends RecipeBaseService {
                 Boolean success = service.drugTakeChange(request);
                 //date 20200410
                 //前置机为实现判断
-                if (null == success || success) {
+                if (null == success) {
+                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "HIS更新购药方式返回：前置机未实现");
+                } else if (success) {
                     RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "HIS更新购药方式返回：写入his成功");
                 } else {
                     RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "HIS更新购药方式返回：写入his失败");
