@@ -41,6 +41,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
+import eh.cdr.constant.RecipeStatusConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -51,6 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
+import recipe.audit.bean.PAWebRecipeDanger;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.openapi.util.AESUtils;
@@ -543,6 +545,28 @@ public class RecipeCheckService {
         PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
         if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
             map.put("medicines", RecipeServiceSub.getAuditMedicineIssuesByRecipeId(recipeId));
+            AuditMedicineIssueDAO auditMedicineIssueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
+            List<AuditMedicineIssue> auditMedicineIssues = auditMedicineIssueDAO.findIssueByRecipeId(recipeId);
+            if(CollectionUtils.isNotEmpty(auditMedicineIssues)) {
+                List<AuditMedicineIssue> resultMedicineIssues = new ArrayList<>();
+                auditMedicineIssues.forEach(item -> {
+                    if (StringUtils.isNotEmpty(item.getDetailUrl())) {
+                        resultMedicineIssues.add(item);
+                    }
+                });
+
+                List<PAWebRecipeDanger> recipeDangers = new ArrayList<>();
+                resultMedicineIssues.forEach(item -> {
+                    PAWebRecipeDanger recipeDanger = new PAWebRecipeDanger();
+                    recipeDanger.setDangerDesc(item.getDetail());
+                    recipeDanger.setDangerDrug(item.getTitle());
+                    recipeDanger.setDangerLevel(item.getLvlCode());
+                    recipeDanger.setDangerType(item.getLvl());
+                    recipeDanger.setDetailUrl(item.getDetailUrl());
+                    recipeDangers.add(recipeDanger);
+                });
+                map.put("recipeDangers", recipeDangers); //返回处方分析数据
+            }
         }
 
         //运营平台 编辑订单信息按钮是否显示（自建药企、已审核、配送到家、药店取药、已支付）
