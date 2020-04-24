@@ -2041,10 +2041,10 @@ public class RecipeOrderService extends RecipeBaseService {
         if(1 == recipe.getGiveMode() && status2 != null){
             if(RecipeStatusConstant.IN_SEND == status2){
                 resultBean = thirdEnterpriseCallService.toSend(attrMap);
-                updateOrderStatus(recipeId, attrMap);
+                saveOrderInfo(recipeId, attrMap);
             } else if (RecipeStatusConstant.FINISH == status2){
                 resultBean = thirdEnterpriseCallService.finishRecipe(attrMap);
-                updateOrderStatus(recipeId, attrMap);
+                saveOrderInfo(recipeId, attrMap);
             } else if (RecipeStatusConstant.RECIPE_FAIL == status2){
                 resultBean = thirdEnterpriseCallService.RecipeFall(attrMap);
             }
