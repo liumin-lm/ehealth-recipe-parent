@@ -296,12 +296,12 @@ public class HisRequestInit {
                 requestTO.setCardType(consultExDTO.getCardType());
                 requestTO.setCardNo(consultExDTO.getCardId());
             }
-            IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
+           /* IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
             //挂号记录-如果有
             HosrelationBean hosrelation = hosrelationService.getByBusIdAndBusType(recipe.getClinicId(), BusTypeEnum.CONSULT.getId());
             if (hosrelation != null && StringUtils.isNotEmpty(hosrelation.getRegisterId())){
                 requestTO.setRegisteredId(hosrelation.getRegisterId());
-            }
+            }*/
         }
         //科室代码
         AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);

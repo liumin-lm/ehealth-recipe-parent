@@ -75,7 +75,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
             List list = new ArrayList<>();
             if (saleDrugList != null) {
-                DrugBean drugBean = new DrugBean();
+                HdDrugRequestData drugBean = new HdDrugRequestData();
                 drugBean.setDrugCode(saleDrugList.getOrganDrugCode());
                 drugBean.setTotal("5");
                 if (CollectionUtils.isNotEmpty(organDrugLists)) {
