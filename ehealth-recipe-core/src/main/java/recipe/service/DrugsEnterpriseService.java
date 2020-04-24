@@ -380,7 +380,13 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
             } else {
                 try{
                     inventoryData.add(drugsEnterprise.getName());
-                    Double number = Double.parseDouble(inventory);
+                    Integer number;
+                    if (inventory.contains(".")) {
+                        String num = inventory.substring(0, inventory.indexOf("."));
+                        number = Integer.parseInt(num);
+                    } else {
+                        number = Integer.parseInt(inventory);
+                    }
                     if (number > 0) {
                         inventoryData.add("有库存");
                         inventoryData.add(number + "");
