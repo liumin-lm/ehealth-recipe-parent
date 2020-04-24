@@ -630,9 +630,19 @@ public class RecipeService extends RecipeBaseService {
 //                        //保存签名值、时间戳、电子签章文件
 //                        String result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false);
                         String result = "";
+                        String fileId = null;
                         if (resultVo != null && 200 == resultVo.getCode()) {
                             //保存签名值、时间戳、电子签章文件
-                            result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false);
+                            result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
+                            SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
+                            if (signDoctorRecipeInfo != null) {
+                                signDoctorRecipeInfo.setSignCaDatePha(resultVo.getSignCADate());
+                                signDoctorRecipeInfo.setSignCodePha(resultVo.getSignRecipeCode());
+                                signDoctorRecipeInfo.setSignFilePha(fileId);
+                                signDoctorRecipeInfo.setCheckDatePha(new Date());
+                                LOGGER.error("generateRecipePdfAndSign 标准化CA签章 signDoctorRecipeInfo={}=", JSONObject.toJSONString(signDoctorRecipeInfo));
+                                signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
+                            }
                         } else {
                             RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
                             RecipeLog recipeLog = new RecipeLog();
@@ -763,9 +773,19 @@ public class RecipeService extends RecipeBaseService {
 //                        //保存签名值、时间戳、电子签章文件
 //                        String result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false);
                     String result = "";
+                    String fileId = null;
                     if (resultVo != null && 200 == resultVo.getCode()) {
                         //保存签名值、时间戳、电子签章文件
-                        result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false);
+                        result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
+                        SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
+                        if (signDoctorRecipeInfo != null) {
+                            signDoctorRecipeInfo.setSignCaDatePha(resultVo.getSignCADate());
+                            signDoctorRecipeInfo.setSignCodePha(resultVo.getSignRecipeCode());
+                            signDoctorRecipeInfo.setSignFilePha(fileId);
+                            signDoctorRecipeInfo.setCheckDatePha(new Date());
+                            LOGGER.error("generateRecipePdfAndSign 标准化CA签章 signDoctorRecipeInfo={}=", JSONObject.toJSONString(signDoctorRecipeInfo));
+                            signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
+                        }
                     } else {
                         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
                         RecipeLog recipeLog = new RecipeLog();
@@ -963,19 +983,18 @@ public class RecipeService extends RecipeBaseService {
                 CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
 //                RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true);
                 String fileId = null;
-                RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
-                SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
-                if (signDoctorRecipeInfo != null) {
-                    signDoctorRecipeInfo.setSignCaDateDoc(resultVo.getSignCADate());
-                    signDoctorRecipeInfo.setSignCodeDoc(resultVo.getSignRecipeCode());
-                    signDoctorRecipeInfo.setSignFileDoc(fileId);
-                    signDoctorRecipeInfo.setSignDate(new Date());
-                    LOGGER.error("generateRecipePdfAndSign 标准化CA签章 signDoctorRecipeInfo={}=", JSONObject.toJSONString(signDoctorRecipeInfo));
-                    signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
-                }
                 if (resultVo != null && 200 == resultVo.getCode()) {
                     //保存签名值、时间戳、电子签章文件
-                    RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true);
+                    RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
+                    SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
+                    if (signDoctorRecipeInfo != null) {
+                        signDoctorRecipeInfo.setSignCaDateDoc(resultVo.getSignCADate());
+                        signDoctorRecipeInfo.setSignCodeDoc(resultVo.getSignRecipeCode());
+                        signDoctorRecipeInfo.setSignFileDoc(fileId);
+                        signDoctorRecipeInfo.setSignDate(new Date());
+                        LOGGER.error("generateRecipePdfAndSign 标准化CA签章 signDoctorRecipeInfo={}=", JSONObject.toJSONString(signDoctorRecipeInfo));
+                        signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
+                    }
                 } else {
                     RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
                     RecipeLog recipeLog = new RecipeLog();
