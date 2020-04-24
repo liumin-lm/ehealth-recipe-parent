@@ -259,4 +259,5 @@ public class RecipeStatusConstant {
      */
     public static final int RECIPE_TAKE_MEDICINE_FINISH = 124;
 
+
 }

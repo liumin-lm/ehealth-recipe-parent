@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import com.ngari.base.esign.service.IESignBaseService;
 import com.ngari.his.ca.model.CaSealRequestTO;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.service.IRecipeService;
@@ -21,6 +22,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.audit.auditmode.AuditModeContext;
 import recipe.constant.RecipeStatusConstant;
 import sun.misc.BASE64Decoder;
 
@@ -185,7 +187,6 @@ public class RecipeServiceEsignExt {
             }
 
             Map<String, Object> attrMap = Maps.newHashMap();
-
             if (isDoctor) {
                 //医生签名时间戳
                 attrMap.put("signCADate", signCADate);
@@ -193,7 +194,7 @@ public class RecipeServiceEsignExt {
                 attrMap.put("signRecipeCode", signRecipeCode);
                 attrMap.put("signFile", fileId);
                 attrMap.put("signDate", new Date());
-                attrMap.put("Status", RecipeStatusConstant.SIGN_SUCCESS_CODE_DOC);
+                attrMap.put("Status", RecipeStatusConstant.CHECK_PASS);
             } else {
                 //药师签名时间戳
                 attrMap.put("signPharmacistCADate", signCADate);
@@ -201,7 +202,15 @@ public class RecipeServiceEsignExt {
                 attrMap.put("signPharmacistCode", signRecipeCode);
                 attrMap.put("chemistSignFile", fileId);
                 attrMap.put("CheckDateYs", new Date());
-                attrMap.put("Status", RecipeStatusConstant.SIGN_SUCCESS_CODE_PHA);
+
+                RecipeBean recipe =recipeService.get(recipeId);
+                AuditModeContext auditModeContext = new AuditModeContext();
+                int recipeStatus = auditModeContext.getAuditModes(recipe.getReviewType()).afterAuditRecipeChange();
+                if (recipe.canMedicalPay()) {
+                    //如果是可医保支付的单子，审核是在用户看到之前，所以审核通过之后变为待处理状态
+                    recipeStatus = RecipeStatusConstant.CHECK_PASS;
+                }
+                attrMap.put("Status", recipeStatus);
             }
 
             //保存签名值

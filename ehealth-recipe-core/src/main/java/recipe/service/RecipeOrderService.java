@@ -699,6 +699,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     order.setAddress1(address.getAddress1());
                     order.setAddress2(address.getAddress2());
                     order.setAddress3(address.getAddress3());
+                    order.setStreetAddress(address.getStreetAddress());
                     order.setAddress4(address.getAddress4());
 
                     try {
