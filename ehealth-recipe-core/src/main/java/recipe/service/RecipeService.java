@@ -1223,9 +1223,15 @@ public class RecipeService extends RecipeBaseService {
             if (RecipeResultBean.FAIL.equals(recipeResult1.getCode())){
                 rMap.put("signResult", false);
                 rMap.put("recipeId", recipeId);
-                //错误信息弹出框，能否继续标记----点击是可以继续开方
-                rMap.put("canContinueFlag", true);
-                rMap.put("msg", recipeResult1.getMsg()+"该处方仅支持到院取药,无法药企配送,是否继续？");
+                //错误信息弹出框，只有 确定  按钮
+                rMap.put("errorFlag", true);
+                rMap.put("msg", recipeResult1.getMsg());
+                //药品医院有库存的情况
+                if(!Integer.valueOf(1).equals(recipe.getDistributionFlag())){
+                    //错误信息弹出框，能否继续标记----点击是可以继续开方
+                    rMap.put("canContinueFlag", true);
+                    rMap.put("msg", recipeResult1.getMsg()+"该处方仅支持到院取药,无法药企配送,是否继续？");
+                }
                 LOGGER.info("doSignRecipe recipeId={},msg={}",recipeId,rMap.get("msg"));
                 return rMap;
             }
@@ -1237,12 +1243,15 @@ public class RecipeService extends RecipeBaseService {
             if (RecipeResultBean.FAIL.equals(recipeResultBean.getCode())) {
                 rMap.put("signResult", false);
                 rMap.put("recipeId", recipeId);
-                /*//错误信息弹出框，只有 确定  按钮
-                rMap.put("errorFlag", true);*/
-                //错误信息弹出框，能否继续标记----点击是可以继续开方
-                rMap.put("canContinueFlag", true);
-                //rMap.put("msg", "很抱歉，当前库存不足无法开处方，请联系客服：" + cacheService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
-                rMap.put("msg", "由于该处方单上的药品配送药企库存不足,该处方仅支持到院取药,无法药企配送,是否继续？");
+                //错误信息弹出框，只有 确定  按钮
+                rMap.put("errorFlag", true);
+                rMap.put("msg", "很抱歉，当前库存不足无法开处方，请联系客服：" + cacheService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
+                //药品医院有库存的情况
+                if(!Integer.valueOf(1).equals(recipe.getDistributionFlag())){
+                    //错误信息弹出框，能否继续标记----点击是可以继续开方
+                    rMap.put("canContinueFlag", true);
+                    rMap.put("msg", "由于该处方单上的药品配送药企库存不足,该处方仅支持到院取药,无法药企配送,是否继续？");
+                }
                 LOGGER.info("doSignRecipe recipeId={},msg={}",recipeId,rMap.get("msg"));
                 return rMap;
             }
