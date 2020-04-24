@@ -1268,6 +1268,7 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public Map<String, Object> doSignRecipeContinue(Integer recipeId) {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         //发送his前更新处方状态---医院确认中
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, null);
         //HIS消息发送--异步处理
@@ -1276,6 +1277,7 @@ public class RecipeService extends RecipeBaseService {
         Map<String, Object> rMap = Maps.newHashMap();
         rMap.put("signResult", true);
         rMap.put("recipeId", recipeId);
+        rMap.put("consultId", recipe.getClinicId());
         rMap.put("errorFlag", false);
         LOGGER.info("doSignRecipe execute ok! rMap:" + JSONUtils.toString(rMap));
         return rMap;
