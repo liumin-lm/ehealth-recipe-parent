@@ -187,14 +187,6 @@ public class RecipeServiceEsignExt {
             }
 
             Map<String, Object> attrMap = Maps.newHashMap();
-            RecipeBean recipe =recipeService.get(recipeId);
-            AuditModeContext auditModeContext = new AuditModeContext();
-            int recipeStatus = auditModeContext.getAuditModes(recipe.getReviewType()).afterAuditRecipeChange();
-            if (recipe.canMedicalPay()) {
-                //如果是可医保支付的单子，审核是在用户看到之前，所以审核通过之后变为待处理状态
-                recipeStatus = RecipeStatusConstant.CHECK_PASS;
-            }
-
             if (isDoctor) {
                 //医生签名时间戳
                 attrMap.put("signCADate", signCADate);
@@ -210,6 +202,14 @@ public class RecipeServiceEsignExt {
                 attrMap.put("signPharmacistCode", signRecipeCode);
                 attrMap.put("chemistSignFile", fileId);
                 attrMap.put("CheckDateYs", new Date());
+
+                RecipeBean recipe =recipeService.get(recipeId);
+                AuditModeContext auditModeContext = new AuditModeContext();
+                int recipeStatus = auditModeContext.getAuditModes(recipe.getReviewType()).afterAuditRecipeChange();
+                if (recipe.canMedicalPay()) {
+                    //如果是可医保支付的单子，审核是在用户看到之前，所以审核通过之后变为待处理状态
+                    recipeStatus = RecipeStatusConstant.CHECK_PASS;
+                }
                 attrMap.put("Status", recipeStatus);
             }
 
