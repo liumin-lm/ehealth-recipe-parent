@@ -23,5 +23,5 @@
     <!--网络门诊-->
     <reference id="nc.networkclinicMsgService" interface="networkclinic.api.service.INetworkclinicMsgService"/>
     <!--随访-->
-    <reference interface="com.ngari.follow.service.IRelationDoctorService" id="pm.remoteRelationDoctorService"/>
+    <reference interface="com.ngari.follow.service.IRelationPatientService" id="pm.remoteRelationPatientService"/>
 </s:beans>
