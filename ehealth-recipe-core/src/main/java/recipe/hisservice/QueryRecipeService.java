@@ -560,7 +560,7 @@ public class QueryRecipeService implements IQueryRecipeService {
             result.setMsg("his药品唯一编码不能为空");
             return result;
         }
-        if(organDrugChange.getOrganId()!=null){
+        if(organDrugChange.getOrganId() == null){
             result.setMsg("机构id不能为空");
             return result;
         }
