@@ -746,21 +746,21 @@ public class QueryRecipeService implements IQueryRecipeService {
         com.ngari.recipe.common.OrganDrugChangeBean request = new com.ngari.recipe.common.OrganDrugChangeBean();
         try {
 
-            request.setBaseDrug(Integer.parseInt(organDrugChangeBean.getBaseDrug()));
+            request.setBaseDrug(StringUtils.isEmpty(organDrugChangeBean.getBaseDrug()) ? null : Integer.parseInt(organDrugChangeBean.getBaseDrug()));
             request.setCloudPharmDrugCode(organDrugChangeBean.getCloudPharmDrugCode());
-            request.setDrugId(Integer.parseInt(organDrugChangeBean.getDrugId()));
+            request.setDrugId(StringUtils.isEmpty(organDrugChangeBean.getDrugId()) ? null : Integer.parseInt(organDrugChangeBean.getDrugId()));
             request.setDrugName(organDrugChangeBean.getDrugName());
             request.setDrugSpec(organDrugChangeBean.getDrugSpec());
             request.setDrugSpec(organDrugChangeBean.getDrugSpec());
-            request.setDrugType(Integer.parseInt(organDrugChangeBean.getDrugType()));
+            request.setDrugType(StringUtils.isEmpty(organDrugChangeBean.getDrugType()) ? null : Integer.parseInt(organDrugChangeBean.getDrugType()));
             request.setLicenseNumber(organDrugChangeBean.getLicenseNumber());
             request.setMedicalDrugCode(organDrugChangeBean.getMedicalDrugCode());
-            request.setMedicalDrugType(Integer.parseInt(organDrugChangeBean.getMedicalDrugType()));
-            request.setOperationCode(Integer.parseInt(organDrugChangeBean.getOperationCode()));
+            request.setMedicalDrugType(StringUtils.isEmpty(organDrugChangeBean.getMedicalDrugType()) ? null : Integer.parseInt(organDrugChangeBean.getMedicalDrugType()));
+            request.setOperationCode(StringUtils.isEmpty(organDrugChangeBean.getOperationCode()) ? null : Integer.parseInt(organDrugChangeBean.getOperationCode()));
             request.setOrganDrugCode(organDrugChangeBean.getOrganDrugCode());
             request.setOrganId(organDrugChangeBean.getOrganId());
             request.setOrganName(organDrugChangeBean.getOrganName());
-            request.setPack(Integer.parseInt(organDrugChangeBean.getPack()));
+            request.setPack(StringUtils.isEmpty(organDrugChangeBean.getPack()) ? null : Integer.parseInt(organDrugChangeBean.getPack()));
             request.setProducer(organDrugChangeBean.getProducer());
             request.setProducerCode(organDrugChangeBean.getProducerCode());
 
@@ -778,21 +778,23 @@ public class QueryRecipeService implements IQueryRecipeService {
             }
 
             request.setSaleName(organDrugChangeBean.getSaleName());
-            request.setSalePrice(new BigDecimal(organDrugChangeBean.getSalePrice()));
+            request.setSalePrice(StringUtils.isEmpty(organDrugChangeBean.getSalePrice()) ? null : new BigDecimal(organDrugChangeBean.getSalePrice()));
             request.setUnit(organDrugChangeBean.getUnit());
             //截取数字部分
             StringBuilder builder = new StringBuilder();
-            m = p.matcher(organDrugChangeBean.getUseDose());
-            if (m.find()) {//当符合正则表达式定义的条件时
-                builder.append(m.group());
-                request.setUseDose(Double.parseDouble(builder.toString()));
+            if(StringUtils.isNotEmpty(organDrugChangeBean.getUseDose())){
+                m = p.matcher(organDrugChangeBean.getUseDose());
+                if (m.find()) {//当符合正则表达式定义的条件时
+                    builder.append(m.group());
+                    request.setUseDose(Double.parseDouble(builder.toString()));
+                }
             }
             request.setUseDoseUnit(organDrugChangeBean.getUseDoseUnit());
             request.setUsePathways(organDrugChangeBean.getUsePathways());
             request.setUsingRate(organDrugChangeBean.getUsingRate());
         } catch (Exception e) {
             //抛出异常信息，返回空数组
-            LOGGER.error("updateOrSaveOrganDrug 当前更新操作异常：{}", e.getMessage());
+            LOGGER.error("updateOrSaveOrganDrug 当前更新操作异常：{}", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前药品修改请求数据异常！");
         }
         return request;

@@ -37,6 +37,7 @@ import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.EbsBean;
 import recipe.drugsenterprise.bean.EbsDetail;
+import recipe.drugsenterprise.bean.EsbWebService;
 import recipe.service.RecipeLogService;
 import recipe.util.AppSiganatureUtils;
 import recipe.util.DateConversion;
@@ -61,7 +62,8 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
     public void test(Integer recipeId, Integer depId){
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
-        syncEnterpriseDrug(drugsEnterprise, null);
+        List<Integer> recipeIds = Arrays.asList(recipeId);
+        pushRecipeInfo(recipeIds, drugsEnterprise);
     }
 
     @Override
@@ -125,7 +127,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
         } else {
             ebsBean.setFeeType(1);
         }
-        ebsBean.setDistrictName(recipe.getOrganDiseaseName());
+        ebsBean.setDistrictName(convertParame(recipe.getOrganDiseaseName()));
         if (recipeOrder != null) {
             if (flag == 1) {
                 ebsBean.setTotalAmount(recipeOrder.getTotalFee());
@@ -145,7 +147,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
             ebsBean.setDistrictName(district);
             ebsBean.setShippingAddress(getCompleteAddress(recipeOrder));
         }
-        ebsBean.setRemark(recipe.getMemo());
+        ebsBean.setRemark(convertParame(recipe.getMemo()));
         List<EbsDetail> details = new ArrayList<>();
         List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
         for (Recipedetail recipedetail : recipedetails) {
@@ -155,7 +157,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
                 ebsDetail.setMedName(saleDrugList.getDrugName());
                 ebsDetail.setMedCode(saleDrugList.getOrganDrugCode());
                 ebsDetail.setSpec(saleDrugList.getDrugSpec());
-                ebsDetail.setDrugForm(recipedetail.getDrugForm());
+                ebsDetail.setDrugForm(convertParame(recipedetail.getDrugForm()));
                 try{
                     Dictionary usingRateDic = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate");
                     Dictionary usePathwaysDic = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways");
@@ -175,34 +177,88 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
             }
             ebsBean.setDetails(details);
         }
-        //以下开始推送处方信息
-        String sendRecipeUrl = "prescriptionService/addSingle";
-        String url = enterprise.getBusinessUrl() + sendRecipeUrl;
-        String json = JSONObject.toJSONString(ebsBean);
 
-        JSONObject jsonObject = sendRequest(url, json, enterprise);
-        if (jsonObject != null) {
-            Boolean success = jsonObject.getBoolean("success");
-            String code = jsonObject.getString("code");
-            if("0".equals(code) && success){
-                if (flag == 1) {
-                    //表示推送成功
-                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "处方推送成功");
-                } else {
-                    //表示推送成功
-                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "处方退货推送成功");
-                }
+        String recipeXml = recipeToXml(ebsBean);
+        //以下开始推送处方信息
+        String addSingleMethod = "addSingle";
+        LOGGER.info("request:{}.", recipeXml);
+
+        Map<String, String> param=new HashMap<String, String>();
+        param.put("url", enterprise.getBusinessUrl());
+        EsbWebService xkyyHelper = new EsbWebService();
+        xkyyHelper.initConfig(param);
+        try{
+            String webServiceResult = xkyyHelper.HXCFZT(recipeXml, addSingleMethod);
+            LOGGER.info("pushRecipeInfoForSy recipeId:{},webServiceResult:{},", recipe.getRecipeId(), webServiceResult);
+            Map maps = (Map)JSON.parse(webServiceResult);
+            if (maps == null) {
+                getDrugEnterpriseResult(result, "推送失败");
             } else {
-                //表示推送失败
-                getDrugEnterpriseResult(result, "处方推送失败");
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "处方推送失败");
+                Boolean success = (Boolean) maps.get("success");
+                String code = (String) maps.get("code");
+                String msg = (String) maps.get("msg");
+                if (success && "0".equals(code)) {
+                    if (flag == 1) {
+                        //表示推送成功
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), enterprise.getName() + msg);
+                    } else {
+                        //表示推送失败
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), enterprise.getName() + "处方退货推送成功");
+                    }
+                } else {
+                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), enterprise.getName() +  msg);
+                }
             }
-        } else {
-            LOGGER.info("pushRecipeInfo recipeId:{}", recipe.getRecipeId());
-            getDrugEnterpriseResult(result, "获取上药返回数据为空");
-            //表示推送失败
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "处方推送失败");
+        }catch (Exception ex){
+            LOGGER.error("pushRecipeInfoForSy error recipeId:{}, {}", recipe.getRecipeId(), ex.getMessage(), ex);
+            getDrugEnterpriseResult(result, enterprise.getName() + "推送失败");
         }
+    }
+
+    private String convertParame(Object o){
+        if (o == null) {
+            return "";
+        } else {
+            return o.toString();
+        }
+    }
+
+    private String recipeToXml(EbsBean ebsBean) {
+        StringBuilder result = new StringBuilder("<root><body><params>");
+        result.append("<prescripNo>").append(ebsBean.getPrescripNo()).append("</prescripNo>");
+        result.append("<prescribeDate>").append(ebsBean.getPrescribeDate()/1000).append("</prescribeDate>");
+        result.append("<hospitalCode>").append(ebsBean.getHospitalCode()).append("</hospitalCode>");
+        result.append("<hospitalName>").append(ebsBean.getHospitalName()).append("</hospitalName>");
+        result.append("<department>").append(ebsBean.getDepartment()).append("</department>");
+        result.append("<doctorName>").append(ebsBean.getDoctorName()).append("</doctorName>");
+        result.append("<name>").append(ebsBean.getName()).append("</name>");
+        result.append("<sex>").append(ebsBean.getSex()).append("</sex>");
+        result.append("<age>").append(ebsBean.getAge()).append("</age>");
+        result.append("<mobile>").append(ebsBean.getMobile()).append("</mobile>");
+        result.append("<idCard>").append(ebsBean.getIdCard()).append("</idCard>");
+        result.append("<socialSecurityCard>").append(ebsBean.getSocialSecurityCard()).append("</socialSecurityCard>");
+        result.append("<address>").append(ebsBean.getAddress()).append("</address>");
+        result.append("<feeType>").append(ebsBean.getFeeType()).append("</feeType>");
+        result.append("<totalAmount>").append(10).append("</totalAmount>");
+        result.append("<diagnoseResult>").append("").append("</diagnoseResult>");
+        result.append("<receiver>").append(ebsBean.getReceiver()).append("</receiver>");
+        result.append("<receiverMobile>").append(ebsBean.getReceiverMobile()).append("</receiverMobile>");
+        result.append("<provinceName>").append(ebsBean.getProvinceName()).append("</provinceName>");
+        result.append("<cityName>").append(ebsBean.getCityName()).append("</cityName>");
+        result.append("<districtName>").append(ebsBean.getDistrictName()).append("</districtName>");
+        result.append("<shippingAddress>").append(ebsBean.getShippingAddress()).append("</shippingAddress>");
+        result.append("<remark>").append(ebsBean.getRemark()).append("</remark>");
+        for (EbsDetail ebsDetail : ebsBean.getDetails()) {
+            result.append("<medName>").append(ebsDetail.getMedName()).append("</medName>");
+            result.append("<medCode>").append(ebsDetail.getMedCode()).append("</medCode>");
+            result.append("<spec>").append(ebsDetail.getSpec()).append("</spec>");
+            result.append("<drugForm>").append(ebsDetail.getDrugForm()).append("</drugForm>");
+            result.append("<directions>").append(ebsDetail.getDirections()).append("</directions>");
+            result.append("<amount>").append(1).append("</amount>");
+            result.append("<unitPrice>").append(10).append("</unitPrice>");
+        }
+        result.append("</params></body></root>");
+        return result.toString();
     }
 
     @Override
@@ -214,36 +270,40 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         try{
-            String stockUrl = "partnerService/getMedicineStock";
+            String stockMethod = "getMedicineStock";
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
             if (saleDrugList != null) {
                 Map<String, Object> params = new HashMap<>();
                 params.put("sku", saleDrugList.getOrganDrugCode());
                 params.put("pageNo","1");
                 params.put("pageSize","100");
-                String parames = JSONUtils.toString(params);
-                JSONObject jsonObject = sendRequest(drugsEnterprise.getBusinessUrl()+stockUrl, parames, drugsEnterprise);
-                if (jsonObject != null) {
-                    Boolean success = jsonObject.getBoolean("success");
-                    String code = jsonObject.getString("code");
-                    if ("0".equals(code) && success) {
-                        List drugResult = jsonObject.getJSONArray("result");
-                        LOGGER.info("getDrugInventory drugResult:{}.", JSONUtils.toString(drugResult));
-                        if (!CollectionUtils.isEmpty(drugResult)) {
-                            Map map = (Map)drugResult.get(0);
+                String parames = jsonToXml(params);
+                LOGGER.info("scanStock parames:{}.", parames);
+                EsbWebService xkyyHelper = new EsbWebService();
+                Map<String, String> param=new HashMap<String, String>();
+                param.put("url", drugsEnterprise.getBusinessUrl());
+                xkyyHelper.initConfig(param);
+                try{
+                    String webServiceResult = xkyyHelper.HXCFZT(parames, stockMethod);
+                    System.out.println("result:"+webServiceResult);
+                    Map maps = (Map)JSON.parse(webServiceResult);
+                    Boolean success = (Boolean) maps.get("success");
+                    String code = (String) maps.get("code");
+                    if (success && "0".equals(code)) {
+                        List<Map<String, Object>> list = (List)maps.get("result");
+                        LOGGER.info("scanStock list:{}", JSONUtils.toString(list));
+                        if (!CollectionUtils.isEmpty(list)) {
+                            Map<String, Object> map = list.get(0);
                             String stockIsEnough = (String)map.get("stockIsEnough");
                             if ("1".equals(stockIsEnough)) {
                                 return "有库存";
-                            } else {
-                                return "无库存";
                             }
                         } else {
                             return "无库存";
                         }
-                    } else {
-                        return "无库存";
                     }
-                } else {
+                }catch (Exception ex){
+                    LOGGER.error("scanStock error drugId:{}, {}", drugId, ex.getMessage(), ex);
                     return "无库存";
                 }
             }
@@ -260,7 +320,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         try{
-            String stockUrl = "partnerService/getMedicineStock";
+            String stockMethod = "getMedicineStock";
             List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
             for (Recipedetail recipedetail : recipedetails) {
                 SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
@@ -269,16 +329,23 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
                     params.put("sku", saleDrugList.getOrganDrugCode());
                     params.put("pageNo","1");
                     params.put("pageSize","100");
-                    String parames = JSONUtils.toString(params);
-                    JSONObject jsonObject = sendRequest(drugsEnterprise.getBusinessUrl()+stockUrl, parames, drugsEnterprise);
-                    if (jsonObject != null) {
-                        Boolean success = jsonObject.getBoolean("success");
-                        String code = jsonObject.getString("code");
-                        if ("0".equals(code) && success) {
-                            List drugResult = jsonObject.getJSONArray("result");
-                            LOGGER.info("scanStock drugResult:{}.", JSONUtils.toString(drugResult));
-                            if (!CollectionUtils.isEmpty(drugResult)) {
-                                Map map = (Map)drugResult.get(0);
+                    String parames = jsonToXml(params);
+                    LOGGER.info("scanStock parames:{}.", parames);
+                    EsbWebService xkyyHelper = new EsbWebService();
+                    Map<String, String> param=new HashMap<String, String>();
+                    param.put("url", drugsEnterprise.getBusinessUrl());
+                    xkyyHelper.initConfig(param);
+                    try{
+                        String webServiceResult = xkyyHelper.HXCFZT(parames, stockMethod);
+                        System.out.println("result:"+webServiceResult);
+                        Map maps = (Map)JSON.parse(webServiceResult);
+                        Boolean success = (Boolean) maps.get("success");
+                        String code = (String) maps.get("code");
+                        if (success && "0".equals(code)) {
+                            List<Map<String, Object>> list = (List)maps.get("result");
+                            LOGGER.info("scanStock list:{}", JSONUtils.toString(list));
+                            if (!CollectionUtils.isEmpty(list)) {
+                                Map<String, Object> map = list.get(0);
                                 String stockIsEnough = (String)map.get("stockIsEnough");
                                 if ("0".equals(stockIsEnough)) {
                                     getDrugEnterpriseResult(result, "药品库存不足");
@@ -288,14 +355,14 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
                                 getDrugEnterpriseResult(result, "药品库存不足");
                                 return result;
                             }
-                        } else {
-                            getDrugEnterpriseResult(result, "药品库存不足");
-                            return result;
+
                         }
-                    } else {
+                    }catch (Exception ex){
+                        LOGGER.error("scanStock error recipeId:{}, {}", recipeId, ex.getMessage(), ex);
                         getDrugEnterpriseResult(result, "药品库存不足");
                         return result;
                     }
+
                 } else {
                     getDrugEnterpriseResult(result, "药品不存在");
                     return result;
@@ -408,6 +475,17 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
         return "";
     }
 
+    private String jsonToXml(Map<String, Object> params){
+        StringBuilder result = new StringBuilder("<root><body><params>");
+        if (params != null) {
+            for (Map.Entry<String, Object> entry : params.entrySet()) {
+                result.append("<").append(entry.getKey()).append(">").append(entry.getValue()).append("</").append(entry.getKey()).append(">");
+            }
+        }
+        result.append("</params></body></root>");
+        return result.toString();
+    }
+
     private JSONObject sendRequest(String url, String json, DrugsEnterprise drugsEnterprise) {
         try{
             LOGGER.info("sendRequest input:{},{}.", url, json);
@@ -432,4 +510,5 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
         }
         return null;
     }
+
 }
