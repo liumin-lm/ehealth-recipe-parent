@@ -406,9 +406,16 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("SELECT r.recipeId, r.patientName, r.MPIID, dep.NAME, r.organName, r.doctorName, r.SignDate as signDate, if(o.refundFlag=1,'退款成功','支付成功') as payType, o.PayTime as payTime, o.refundTime as refundTime, d.useTotalDose as dose, o.ActualPrice as ActualPrice");
-                hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId LEFT JOIN cdr_drugsenterprise dep ON o.EnterpriseId = dep.Id ");
-                hql.append(" WHERE r.GiveMode = 1 and o.payflag = 1 and (o.paytime BETWEEN :startTime  AND :endTime  OR o.refundTime BETWEEN :startTime  AND :endTime) ");
+
+                if (drugId != null) {
+                    hql.append("SELECT r.recipeId, r.patientName, r.MPIID, dep.NAME, r.organName, r.doctorName, r.SignDate as signDate, if(o.refundFlag=1,'退款成功','支付成功') as payType, o.PayTime as payTime, o.refundTime as refundTime, d.useTotalDose as dose, o.ActualPrice as ActualPrice");
+                    hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId LEFT JOIN cdr_drugsenterprise dep ON o.EnterpriseId = dep.Id ");
+                    hql.append(" WHERE r.GiveMode = 1 and o.payflag = 1 and (o.paytime BETWEEN :startTime  AND :endTime  OR o.refundTime BETWEEN :startTime  AND :endTime) ");
+                } else {
+                    hql.append("SELECT r.recipeId, r.patientName, r.MPIID, dep.NAME, r.organName, r.doctorName, r.SignDate as signDate, if(o.refundFlag=1,'退款成功','支付成功') as payType, o.PayTime as payTime, o.refundTime as refundTime, 1 as dose, o.ActualPrice as ActualPrice");
+                    hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode LEFT JOIN cdr_drugsenterprise dep ON o.EnterpriseId = dep.Id ");
+                    hql.append(" WHERE r.GiveMode = 1 and o.payflag = 1 and (o.paytime BETWEEN :startTime  AND :endTime  OR o.refundTime BETWEEN :startTime  AND :endTime) ");
+                }
                 if (organId != null) {
                     hql.append(" and r.clinicOrgan = :organId");
                 }
@@ -416,7 +423,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                     hql.append(" and o.EnterpriseId = :depId");
                 }
                 if (drugId != null) {
-                    hql.append(" and d.drugId = :drugId");
+                    hql.append(" and d.drugId = :drugId and d.status = 1");
                 }
                 if (orderColumn != null) {
                     hql.append(" order by " + orderColumn + " ");
@@ -495,22 +502,19 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @param depId 药企ID
      * @return
      */
-    public Map<String, Object> queryrecipeOrderDetailedTotal(Date startTime, Date endTime, Integer organId, Integer depId, Integer drugId){
+    public Map<String, Object> queryrecipeOrderDetailedTotal(Date startTime, Date endTime, Integer organId, Integer depId){
         HibernateStatelessResultAction<Map<String, Object>> action = new AbstractHibernateStatelessResultAction<Map<String, Object>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
                 hql.append("SELECT count(1), sum(o.ActualPrice) as totalPrice");
-                hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId ");
+                hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode ");
                 hql.append(" WHERE r.GiveMode = 1 and o.payflag = 1 and (o.paytime BETWEEN :startTime  AND :endTime  OR o.refundTime BETWEEN :startTime  AND :endTime) ");
                 if (organId != null) {
                     hql.append(" and r.clinicOrgan = :organId");
                 }
                 if (depId != null) {
                     hql.append(" and o.EnterpriseId = :depId");
-                }
-                if (drugId != null) {
-                    hql.append(" and d.drugId = :drugId");
                 }
                 Query q = ss.createSQLQuery(hql.toString());
                 q.setParameter("startTime", startTime);
@@ -521,10 +525,6 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if (depId != null) {
                     q.setParameter("depId", depId);
                 }
-                if (drugId != null) {
-                    q.setParameter("drugId", drugId);
-                }
-
                 List<Object[]> result = q.list();
                 Map<String, Object> vo = new HashMap ();
                 if (CollectionUtils.isNotEmpty(result)){
@@ -555,7 +555,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 hql.append("SELECT s.OrganDrugCode, d.drugName, d.producer, s.drugSpec, d.DrugUnit, s.Price as price, sum(d.useTotalDose) as dose, s.price * sum(d.useTotalDose) as totalPrice, s.organId, s.DrugId ");
                 hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId INNER JOIN cdr_recipeorder o ON o.OrderCode = r.OrderCode ");
                 hql.append("  LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID ");
-                hql.append(" WHERE r.GiveMode = 1 and o.PayFlag = 1 and (o.paytime BETWEEN :startTime  AND :endTime  OR o.refundTime BETWEEN :startTime  AND :endTime) ");
+                hql.append(" WHERE r.GiveMode = 1 and o.PayFlag = 1  and d.status = 1 and (o.paytime BETWEEN :startTime  AND :endTime  OR o.refundTime BETWEEN :startTime  AND :endTime) ");
                 if (organId != null) {
                     hql.append(" and r.clinicOrgan = :organId");
                 }
@@ -649,7 +649,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 hql.append("SELECT count(1), sum(totalPrice) from (SELECT s.price * sum(d.useTotalDose) as totalPrice ");
                 hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId INNER JOIN cdr_recipeorder o ON o.OrderCode = r.OrderCode ");
                 hql.append("  LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID ");
-                hql.append(" WHERE r.GiveMode = 1 and o.PayFlag = 1 and (o.paytime BETWEEN :startTime  AND :endTime  OR o.refundTime BETWEEN :startTime  AND :endTime) ");
+                hql.append(" WHERE r.GiveMode = 1 and o.PayFlag = 1 and d.status = 1 and (o.paytime BETWEEN :startTime  AND :endTime  OR o.refundTime BETWEEN :startTime  AND :endTime) ");
                 if (organId != null) {
                     hql.append(" and r.clinicOrgan = :organId");
                 }
