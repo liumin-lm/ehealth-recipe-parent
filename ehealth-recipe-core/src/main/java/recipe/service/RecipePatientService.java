@@ -334,7 +334,7 @@ public class RecipePatientService extends RecipeBaseService {
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         Integer diseaseType = (Integer) configurationService.getConfiguration(organId, "recipeChooseChronicDisease");
         if(3 == diseaseType){
-            List<ChronicDisease> chronicDiseaseList = chronicDiseaseDAO.findChronicDiseasesByOrganId(3);
+            List<ChronicDisease> chronicDiseaseList = chronicDiseaseDAO.findChronicDiseasesByOrganId(diseaseType);
             list = ObjectCopyUtils.convert(chronicDiseaseList,ChronicDiseaseListResTO.class);
             return list;
         }else {
