@@ -944,6 +944,7 @@ public class RecipeCheckService {
                 if (null != birthDay) {
                     patient.setAge(DateConversion.getAge(birthDay));
                 }
+                patient.setBirthday(null == p.getBirthday() ? new Date() : p.getBirthday());
                 //显示一条详情数据
                 List<Recipedetail> details = detailDAO.findByRecipeId(r.getRecipeId());
                 Recipedetail detail = null;
