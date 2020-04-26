@@ -27,7 +27,7 @@ public class ChronicDisease implements Serializable {
     @ItemProperty(alias="病种操作码")
     private String chronicDiseaseOptionCode;
     @ItemProperty(alias="'病种类型 1 无  2 特慢病病种 3重症病种 4 慢病病种'")
-    private Integer chronicDiseaseFlag;
+    private String chronicDiseaseFlag;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -68,11 +68,11 @@ public class ChronicDisease implements Serializable {
     }
 
     @Column(name = "chronicDiseaseFlag")
-    public Integer getChronicDiseaseFlag() {
+    public String getChronicDiseaseFlag() {
         return chronicDiseaseFlag;
     }
 
-    public void setChronicDiseaseFlag(Integer chronicDiseaseFlag) {
+    public void setChronicDiseaseFlag(String chronicDiseaseFlag) {
         this.chronicDiseaseFlag = chronicDiseaseFlag;
     }
 }
