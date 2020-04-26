@@ -579,64 +579,48 @@ public class RecipeService extends RecipeBaseService {
                     bl = true;
                 } else if (Integer.valueOf(100).equals(code)) {
                     LOGGER.info("reviewRecipe 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
-                    DoctorDTO doctorDTOn = doctorService.getByDoctorId(recipe.getDoctor());
-                    String value = ParamUtils.getParam("CA_TEST_ORGAN_IDS");
-                    if (value.indexOf(recipe.getClinicOrgan()) >= 0) {
-                        LOGGER.info("重庆ca value [{}] recipeId= [{}] ", value,recipe.getRecipeId());
-                        HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
-                        List<RegulationRecipeIndicatorsReq> request = new ArrayList<>();
-                        service.splicingBackRecipeData(Arrays.asList(recipe),request);
-                        ICommonCAServcie iCommonCAServcie= AppContextHolder.getBean("iCommonCAServcie", ICommonCAServcie.class);
-                        CaAccountRequestTO caAccountRequestTO = new CaAccountRequestTO();
-                        caAccountRequestTO.setOrganId(doctorDTO.getOrgan());
-                        caAccountRequestTO.setRegulationRecipeIndicatorsReq(request);
-                        caAccountRequestTO.setBusType(4);
-                        caAccountRequestTO.setIdCard(doctorDTOn.getIdNumber());
-                        iCommonCAServcie.caUserBusiness(caAccountRequestTO);
-                    } else {
-                        try {
-                            String loginId = MapValueUtil.getString(backMap, "loginId");
-                            Integer organId = recipe.getClinicOrgan();
-                            String userAccount = doctorDTOn.getIdNumber();
-                            String caPassword = "";
-                            //签名时的密码从redis中获取
-                            if (null != redisClient.get("caPassword")) {
-                                caPassword = redisClient.get("caPassword");
-                            }
-                            //标准化CA进行签名、签章==========================start=====
-                            //获取签章pdf数据。签名原文
-                            CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId, false);
-                            //获取签章图片
-                            DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
-                            DoctorExtendDTO doctorExtendDTO = doctorExtendService.getByDoctorId(recipe.getDoctor());
-                            if (doctorExtendDTO != null && doctorExtendDTO.getSealData() != null) {
-                                requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
-                            } else {
-                                requestSealTO.setSealBase64Str("");
-                            }
-                            CommonCAFactory caFactory = new CommonCAFactory();
-                            //通过工厂获取对应的实现CA类
-                            CAInterface caInterface = caFactory.useCAFunction(organId);
-                            CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
-                            //保存签名值、时间戳、电子签章文件
-                            String fileId = null;
-                            String result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false,fileId);
-                            SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
-                            if (signDoctorRecipeInfo != null) {
-                                signDoctorRecipeInfo.setSignCaDatePha(resultVo.getSignCADate());
-                                signDoctorRecipeInfo.setSignCodePha(resultVo.getSignRecipeCode());
-                                signDoctorRecipeInfo.setSignFilePha(fileId);
-                                signDoctorRecipeInfo.setCheckDatePha(new Date());
-                                LOGGER.error("reviewRecipe  signFile 标准化CA签章 signDoctorRecipeInfo={}=", JSONObject.toJSONString(signDoctorRecipeInfo));
-                                signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
-                            }
-
-                            bl = "success".equals(result) ? true : false;
-                        } catch (Exception e) {
-                            LOGGER.error("reviewRecipe  signFile 标准化CA签章报错 recipeId={} ,doctor={} ,e={}=============", recipeId, recipe.getDoctor(), e);
+                    try {
+                        String loginId = MapValueUtil.getString(backMap, "loginId");
+                        Integer organId = recipe.getClinicOrgan();
+                        DoctorDTO doctorDTOn = doctorService.getByDoctorId(recipe.getDoctor());
+                        String userAccount = doctorDTOn.getIdNumber();
+                        String caPassword = "";
+                        //签名时的密码从redis中获取
+                        if (null != redisClient.get("caPassword")) {
+                            caPassword = redisClient.get("caPassword");
                         }
-                    }
+                        //标准化CA进行签名、签章==========================start=====
+                        //获取签章pdf数据。签名原文
+                        CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId, false);
+                        //获取签章图片
+                        DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
+                        DoctorExtendDTO doctorExtendDTO = doctorExtendService.getByDoctorId(recipe.getDoctor());
+                        if (doctorExtendDTO != null && doctorExtendDTO.getSealData() != null) {
+                            requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
+                        } else {
+                            requestSealTO.setSealBase64Str("");
+                        }
+                        CommonCAFactory caFactory = new CommonCAFactory();
+                        //通过工厂获取对应的实现CA类
+                        CAInterface caInterface = caFactory.useCAFunction(organId);
+                        CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
+                        //保存签名值、时间戳、电子签章文件
+                        String fileId = null;
+                        String result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false,fileId);
+                        SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
+                        if (signDoctorRecipeInfo != null) {
+                            signDoctorRecipeInfo.setSignCaDatePha(resultVo.getSignCADate());
+                            signDoctorRecipeInfo.setSignCodePha(resultVo.getSignRecipeCode());
+                            signDoctorRecipeInfo.setSignFilePha(fileId);
+                            signDoctorRecipeInfo.setCheckDatePha(new Date());
+                            LOGGER.error("reviewRecipe  signFile 标准化CA签章 signDoctorRecipeInfo={}=", JSONObject.toJSONString(signDoctorRecipeInfo));
+                            signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
+                        }
 
+                        bl = "success".equals(result) ? true : false;
+                    } catch (Exception e) {
+                        LOGGER.error("reviewRecipe  signFile 标准化CA签章报错 recipeId={} ,doctor={} ,e={}=============", recipeId, recipe.getDoctor(), e);
+                    }
                     //标准化CA进行签名、签章==========================end=====
                 } else {
                     LOGGER.error("reviewRecipe signFile error. recipeId={}, result={}", recipeId, JSONUtils.toString(backMap));

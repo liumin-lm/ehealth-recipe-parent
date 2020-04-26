@@ -20,9 +20,6 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
 
     private static ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService",ICaHisService.class);
 
-    @Autowired
-    private RedisClient redisClient;
-
     /**
      * CA用户接口
      * @param requestTO
@@ -34,11 +31,6 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
             LOGGER.info("CommonCAServiceImpl caUserBusiness start userAccount={},requestTO={}",requestTO.getUserAccount(), JSONUtils.toString(requestTO));
             HisResponseTO<CaAccountResponseTO> responseTO = iCaHisService.caUserBusiness(requestTO);
             LOGGER.info("CommonCAServiceImpl caUserBusiness userAccount={} responseTO={}",requestTO.getUserAccount(), JSONUtils.toString(responseTO));
-            String value = ParamUtils.getParam("CA_TEST_ORGAN_IDS");
-            if (value.indexOf(requestTO.getOrganId()) >= 0) {
-                redisClient.set("cqCA_"+ requestTO.getIdCard()+"_" + requestTO.getBusType(),responseTO.getData().getMsg());
-            }
-
             if (CA_RESULT_CODE.equals(responseTO.getMsgCode())) {
                 return true;
             }
