@@ -1122,7 +1122,7 @@ public class RecipeCheckService {
         Map<String, Object> resultMap = Maps.newHashMap();
         String recipeId = MapUtils.getString(map, "recipeId");
         Integer doctorId = MapUtils.getInteger(map, "doctorId");
-        Integer applyFlag = MapUtils.getInteger(map, "appFlag");
+        Integer applyFlag = MapUtils.getInteger(map, "applyFlag");
         Args.notBlank(recipeId, "recipeId");
         Args.notNull(doctorId, "doctorId");
         Args.notNull(applyFlag, "applyFlag");
