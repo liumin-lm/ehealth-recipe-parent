@@ -1,5 +1,6 @@
 package recipe.dao;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -16,7 +17,12 @@ import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResu
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
+import ctd.util.converter.ConversionUtils;
+import eh.billcheck.constant.BillBusFeeTypeEnum;
+import eh.billcheck.vo.BillBusFeeVo;
+import eh.billcheck.vo.BillDrugFeeVo;
 import eh.billcheck.vo.BillRecipeDetailVo;
+import eh.billcheck.vo.RecipeBillRequest;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Query;
@@ -36,6 +42,8 @@ import java.util.*;
 @RpcSupportDAO
 public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeOrder> {
     private static final Logger logger = LoggerFactory.getLogger(RecipeOrderDAO.class);
+
+    private static final Map<Integer, String> DRUG_TYPE_TABLE = ImmutableMap.of(1, "西药", 2, "中成药", 3, "中药", 4, "膏方");
 
     public RecipeOrderDAO() {
         super();
@@ -231,19 +239,19 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 hql.append("select * from ( ");
                 hql.append("select r.recipeId, r.doctor, o.MpiId, o.PayTime, o.OrganId, r.Depart, o.OutTradeNo, ");
                 hql.append("o.OrderType, r.GiveMode, o.PayFlag, o.RegisterFee, o.ExpressFee, o.DecoctionFee, o.AuditFee, ");
-                hql.append("o.OtherFee, o.RecipeFee, o.CouponFee, o.TotalFee, o.FundAmount, d.name, 0 as billType, o.EnterpriseId from ");
+                hql.append("o.OtherFee, o.RecipeFee, o.CouponFee, o.PayBackPrice, o.FundAmount, d.name, 0 as billType, o.EnterpriseId from ");
                 hql.append("cdr_recipe r INNER JOIN cdr_recipeorder o on r.OrderCode = o.OrderCode LEFT JOIN cdr_drugsenterprise d on d.id = o.EnterpriseId ");
                 hql.append("where o.payFlag = 1 and o.payTime between :startTime and :endTime and o.Effective = 1 and o.actualPrice <> 0 ");
                 hql.append("UNION ALL ");
                 hql.append("select r.recipeId, r.doctor, o.MpiId, o.refundTime as PayTime, o.OrganId, r.Depart, o.OutTradeNo, ");
                 hql.append("o.OrderType, r.GiveMode, o.PayFlag, o.RegisterFee, o.ExpressFee, o.DecoctionFee, o.AuditFee, ");
-                hql.append("o.OtherFee, o.RecipeFee, o.CouponFee, o.TotalFee, o.FundAmount, d.name, 1 as billType, o.EnterpriseId from ");
+                hql.append("o.OtherFee, o.RecipeFee, o.CouponFee, o.PayBackPrice, o.FundAmount, d.name, 1 as billType, o.EnterpriseId from ");
                 hql.append("cdr_recipe r INNER JOIN cdr_recipeorder o on r.OrderCode = o.OrderCode LEFT JOIN cdr_drugsenterprise d on d.id = o.EnterpriseId ");
                 hql.append("where (o.refundFlag is Not Null and o.refundFlag <> 0) and o.refundTime between :startTime and :endTime and o.actualPrice <> 0 ");
                 hql.append("UNION ALL ");
                 hql.append("select r.recipeId, r.doctor, o.MpiId, o.PayTime, o.OrganId, r.Depart, o.OutTradeNo, ");
                 hql.append("o.OrderType, r.GiveMode, o.PayFlag, o.RegisterFee, o.ExpressFee, o.DecoctionFee, o.AuditFee, ");
-                hql.append("o.OtherFee, o.RecipeFee, o.CouponFee, o.TotalFee, o.FundAmount, d.name, 0 as billType, o.EnterpriseId from  ");
+                hql.append("o.OtherFee, o.RecipeFee, o.CouponFee, o.PayBackPrice, o.FundAmount, d.name, 0 as billType, o.EnterpriseId from  ");
                 hql.append("cdr_recipe r INNER JOIN cdr_recipeorder o on r.OrderCode = o.OrderCode LEFT JOIN cdr_drugsenterprise d on d.id = o.EnterpriseId ");
                 hql.append("where (o.refundFlag is Not Null and o.refundFlag <> 0) and o.payFlag <>1 and o.payTime between :startTime and :endTime and o.actualPrice <> 0 ");
                 hql.append(" ) a order by a.recipeId, a.payTime");
@@ -384,7 +392,6 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     public abstract String getOrderCodeByLogisticsCompanyAndTrackingNumber(@DAOParam("logisticsCompany") Integer logisticsCompany,
                                                                                 @DAOParam("trackingNumber") String trackingNumber);
 
-
     /**
      * 根据日期获取电子处方药企配送订单明细
      *
@@ -394,19 +401,28 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @param depId 药企ID
      * @return
      */
-    public List<Map<String, Object>> queryrecipeOrderDetailed(Date startTime, Date endTime, Integer organId, Integer depId, int start, int limit){
+    public List<Map<String, Object>> queryrecipeOrderDetailed(Date startTime, Date endTime, Integer organId, Integer depId, Integer drugId, String orderColumn, String orderType, int start, int limit){
         HibernateStatelessResultAction<List<Map<String, Object>>> action = new AbstractHibernateStatelessResultAction<List<Map<String, Object>>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("SELECT r.recipeId, r.patientName, r.MPIID, dep.NAME, r.organName, r.doctorName, r.SignDate, o.PayTime, o.refundTime, o.ActualPrice ");
-                hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode LEFT JOIN cdr_drugsenterprise dep ON o.EnterpriseId = dep.Id ");
-                hql.append(" WHERE o.paytime BETWEEN :startTime  AND :endTime  OR o.refundTime BETWEEN :startTime  AND :endTime ");
+                hql.append("SELECT r.recipeId, r.patientName, r.MPIID, dep.NAME, r.organName, r.doctorName, r.SignDate as signDate, if(o.refundFlag=1,'退款成功','支付成功') as payType, o.PayTime as payTime, o.refundTime as refundTime, d.useTotalDose as dose, o.ActualPrice as ActualPrice");
+                hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId LEFT JOIN cdr_drugsenterprise dep ON o.EnterpriseId = dep.Id ");
+                hql.append(" WHERE r.GiveMode = 1 and o.payflag = 1 and (o.paytime BETWEEN :startTime  AND :endTime  OR o.refundTime BETWEEN :startTime  AND :endTime) ");
                 if (organId != null) {
                     hql.append(" and r.clinicOrgan = :organId");
                 }
                 if (depId != null) {
                     hql.append(" and o.EnterpriseId = :depId");
+                }
+                if (drugId != null) {
+                    hql.append(" and d.drugId = :drugId");
+                }
+                if (orderColumn != null) {
+                    hql.append(" order by " + orderColumn + " ");
+                }
+                if(orderType != null){
+                    hql.append(orderType);
                 }
                 Query q = ss.createSQLQuery(hql.toString());
                 q.setParameter("startTime", startTime);
@@ -417,6 +433,158 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if (depId != null) {
                     q.setParameter("depId", depId);
                 }
+                if (drugId != null) {
+                    q.setParameter("drugId", drugId);
+                }
+
+                q.setFirstResult(start);
+                q.setMaxResults(limit);
+                List<Object[]> result = q.list();
+                List<Map<String, Object>> backList = new ArrayList<>();
+
+                Set<String> mpiIds = Sets.newHashSet();
+                if (CollectionUtils.isNotEmpty(result)){
+
+                    //获取全部身份证信息
+                    PatientService patientService = BasicAPI.getService(PatientService.class);
+                    Map<String, String> patientBeanMap = Maps.newHashMap();
+                    for (Object[] obj : result) {
+                        if(obj[2] != null){
+                            mpiIds.add((String)obj[2]);
+                        }
+                    }
+
+                    if(0 < mpiIds.size()){
+                        List<PatientDTO> patientBeanList = patientService.findByMpiIdIn(new ArrayList<String>(mpiIds));
+                        for (PatientDTO p : patientBeanList) {
+                            patientBeanMap.put(p.getMpiId(), p.getIdcard());
+                        }
+                    }
+
+                    Map<String, Object> vo;
+                    for (Object[] objs : result) {
+                        vo = new HashMap<String, Object>();
+                        vo.put("recipeId", objs[0] == null ? null : (Integer)objs[0]);
+                        vo.put("patientName", objs[1] == null ? null : (String)objs[1]);
+                        vo.put("cardId", objs[2] == null ? null : patientBeanMap.get((String)objs[2]));
+                        vo.put("enterpriseName", objs[3] == null ? null : (String)objs[3]);
+                        vo.put("organName", objs[4] == null ? null : (String)objs[4]);
+                        vo.put("doctorName", objs[5] == null ? null : (String)objs[5]);
+                        vo.put("signDate", objs[6] == null ? null : objs[6].toString());
+                        vo.put("payType", objs[7] == null ? null : objs[7].toString());
+                        vo.put("payTime", objs[8] == null ? null : objs[8].toString());
+                        vo.put("refundTime", objs[9] == null ? null : objs[9].toString());
+                        vo.put("dose", objs[10] == null ? null : objs[10].toString());
+                        vo.put("actualPrice", objs[11] == null ? null : Double.valueOf(objs[11]+""));
+                        backList.add(vo);
+                    }
+                }
+                setResult(backList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * 根据日期获取电子处方药企配送订单明细（总计数据）
+     *
+     * @param startTime 开始时间
+     * @param endTime 截止时间
+     * @param organId 机构ID
+     * @param depId 药企ID
+     * @return
+     */
+    public Map<String, Object> queryrecipeOrderDetailedTotal(Date startTime, Date endTime, Integer organId, Integer depId, Integer drugId){
+        HibernateStatelessResultAction<Map<String, Object>> action = new AbstractHibernateStatelessResultAction<Map<String, Object>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("SELECT count(1), sum(o.ActualPrice) as totalPrice");
+                hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId ");
+                hql.append(" WHERE r.GiveMode = 1 and o.payflag = 1 and (o.paytime BETWEEN :startTime  AND :endTime  OR o.refundTime BETWEEN :startTime  AND :endTime) ");
+                if (organId != null) {
+                    hql.append(" and r.clinicOrgan = :organId");
+                }
+                if (depId != null) {
+                    hql.append(" and o.EnterpriseId = :depId");
+                }
+                if (drugId != null) {
+                    hql.append(" and d.drugId = :drugId");
+                }
+                Query q = ss.createSQLQuery(hql.toString());
+                q.setParameter("startTime", startTime);
+                q.setParameter("endTime", endTime);
+                if (organId != null) {
+                    q.setParameter("organId", organId);
+                }
+                if (depId != null) {
+                    q.setParameter("depId", depId);
+                }
+                if (drugId != null) {
+                    q.setParameter("drugId", drugId);
+                }
+
+                List<Object[]> result = q.list();
+                Map<String, Object> vo = new HashMap ();
+                if (CollectionUtils.isNotEmpty(result)){
+                    vo.put("totalNum", result.get(0)[0]);
+                    vo.put("totalPrice", result.get(0)[1]);
+                }
+                setResult(vo);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * 根据日期获取电子处方药企配送药品
+     *
+     * @param startTime 开始时间
+     * @param endTime 截止时间
+     * @param organId 机构ID
+     * @param depId 药企ID
+     * @return
+     */
+    public List<Map<String, Object>> queryrecipeDrug(Date startTime, Date endTime, Integer organId, Integer depId, Integer recipeId, String orderColumn, String orderType, int start, int limit){
+        HibernateStatelessResultAction<List<Map<String, Object>>> action = new AbstractHibernateStatelessResultAction<List<Map<String, Object>>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("SELECT s.OrganDrugCode, d.drugName, d.producer, s.drugSpec, d.DrugUnit, s.Price as price, sum(d.useTotalDose) as dose, s.price * sum(d.useTotalDose) as totalPrice, s.organId, s.DrugId ");
+                hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId INNER JOIN cdr_recipeorder o ON o.OrderCode = r.OrderCode ");
+                hql.append("  LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID ");
+                hql.append(" WHERE r.GiveMode = 1 and o.PayFlag = 1 and (o.paytime BETWEEN :startTime  AND :endTime  OR o.refundTime BETWEEN :startTime  AND :endTime) ");
+                if (organId != null) {
+                    hql.append(" and r.clinicOrgan = :organId");
+                }
+                if (depId != null) {
+                    hql.append(" and o.EnterpriseId = :depId");
+                }
+                if (recipeId != null) {
+                    hql.append(" and r.recipeId = :recipeId");
+                }
+                hql.append(" GROUP BY s.drugId, s.OrganID");
+                if (orderColumn != null) {
+                    hql.append(" order by " + orderColumn + " ");
+                }
+                if(orderType != null){
+                    hql.append(orderType);
+                }
+                Query q = ss.createSQLQuery(hql.toString());
+                q.setParameter("startTime", startTime);
+                q.setParameter("endTime", endTime);
+                if (organId != null) {
+                    q.setParameter("organId", organId);
+                }
+                if (depId != null) {
+                    q.setParameter("depId", depId);
+                }
+                if (recipeId != null) {
+                    q.setParameter("recipeId", recipeId);
+                }
+
                 q.setFirstResult(start);
                 q.setMaxResults(limit);
                 List<Object[]> result = q.list();
@@ -444,20 +612,179 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                     Map<String, Object> vo;
                     for (Object[] objs : result) {
                         vo = new HashMap<String, Object>();
-                        vo.put("recipeId", objs[0] == null ? null : (Integer)objs[0]);
-                        vo.put("patientName", objs[1] == null ? null : (String)objs[1]);
-                        vo.put("cardId", objs[2] == null ? null : patientBeanMap.get((String)objs[2]));
-                        vo.put("enterpriseName", objs[3] == null ? null : (String)objs[3]);
-                        vo.put("organName", objs[4] == null ? null : (String)objs[4]);
-                        vo.put("doctorName", objs[5] == null ? null : (String)objs[5]);
-                        vo.put("signDate", objs[6] == null ? null : objs[6].toString());
-                        vo.put("payTime", objs[7] == null ? null : objs[7].toString());
-                        vo.put("refundTime", objs[8] == null ? null : objs[8].toString());
-                        vo.put("actualPrice", objs[9] == null ? null : Double.valueOf(objs[9]+""));
+                        vo.put("drugCode", objs[0] == null ? null : (String)objs[0]);
+                        vo.put("drugName", objs[1] == null ? null : (String)objs[1]);
+                        vo.put("producer", objs[2] == null ? null : (String)objs[2]);
+                        vo.put("drugSpec", objs[3] == null ? null : (String)objs[3]);
+                        vo.put("drugUnit", objs[4] == null ? null : (String)objs[4]);
+                        vo.put("price", objs[5] == null ? null : Double.valueOf(objs[5]+""));
+                        vo.put("dose", objs[6] == null ? null : objs[6].toString());
+                        vo.put("totalPrice", objs[7] == null ? null : Double.valueOf(objs[7]+""));
+                        vo.put("enterpriseId", objs[8] == null ? null : objs[8].toString());
+                        vo.put("DrugId", objs[9] == null ? null : objs[9].toString());
                         backList.add(vo);
                     }
                 }
                 setResult(backList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * 根据日期获取电子处方药企配送药品
+     *
+     * @param startTime 开始时间
+     * @param endTime 截止时间
+     * @param organId 机构ID
+     * @param depId 药企ID
+     * @return
+     */
+    public Map<String, Object> queryrecipeDrugtotal(Date startTime, Date endTime, Integer organId, Integer depId, Integer recipeId){
+        HibernateStatelessResultAction<Map<String, Object>> action = new AbstractHibernateStatelessResultAction<Map<String, Object>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("SELECT count(1), sum(totalPrice) from (SELECT s.price * sum(d.useTotalDose) as totalPrice ");
+                hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId INNER JOIN cdr_recipeorder o ON o.OrderCode = r.OrderCode ");
+                hql.append("  LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID ");
+                hql.append(" WHERE r.GiveMode = 1 and o.PayFlag = 1 and (o.paytime BETWEEN :startTime  AND :endTime  OR o.refundTime BETWEEN :startTime  AND :endTime) ");
+                if (organId != null) {
+                    hql.append(" and r.clinicOrgan = :organId");
+                }
+                if (depId != null) {
+                    hql.append(" and o.EnterpriseId = :depId");
+                }
+                if (recipeId != null) {
+                    hql.append(" and r.recipeId = :recipeId");
+                }
+                hql.append(" GROUP BY s.drugId, s.OrganID) a");
+                Query q = ss.createSQLQuery(hql.toString());
+                q.setParameter("startTime", startTime);
+                q.setParameter("endTime", endTime);
+                if (organId != null) {
+                    q.setParameter("organId", organId);
+                }
+                if (depId != null) {
+                    q.setParameter("depId", depId);
+                }
+                if (recipeId != null) {
+                    q.setParameter("recipeId", recipeId);
+                }
+                List<Object[]> result = q.list();
+
+                Map<String, Object> vo = new HashMap ();
+                if (CollectionUtils.isNotEmpty(result)){
+                    vo.put("totalNum", result.get(0)[0]);
+                    vo.put("totalPrice", result.get(0)[1]);
+                }
+                setResult(vo);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    public List<BillBusFeeVo> findRecipeFeeList(final RecipeBillRequest recipeBillRequest) {
+        HibernateStatelessResultAction<List<BillBusFeeVo>> action = new AbstractHibernateStatelessResultAction<List<BillBusFeeVo>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuffer paySql = new StringBuffer();
+                paySql.append("SELECT  r.ClinicOrgan, count(*), sum(IFNULL(o.ActualPrice, 0)) ");
+                paySql.append(" FROM cdr_recipe r, cdr_recipeorder o ");
+                paySql.append(" WHERE r.OrderCode = o.OrderCode AND o.PayFlag = 1 ");
+                paySql.append(" AND  PayTime >= :startTime AND PayTime < :endTime ");
+                paySql.append(" GROUP BY r.ClinicOrgan ");
+                Query paySqlQuery = ss.createSQLQuery(paySql.toString());
+                paySqlQuery.setParameter("startTime", recipeBillRequest.getStartTime());
+                paySqlQuery.setParameter("endTime", recipeBillRequest.getEndTime());
+                paySqlQuery.setFirstResult(0);
+                paySqlQuery.setMaxResults(0);
+                List<Object[]> payList = paySqlQuery.list();
+
+                StringBuffer refundSql = new StringBuffer();
+                refundSql.append("SELECT r.ClinicOrgan, count(*), sum(IFNULL(o.ActualPrice, 0)) ");
+                refundSql.append(" FROM cdr_recipe r, cdr_recipeorder o ");
+                refundSql.append(" WHERE r.OrderCode = o.OrderCode AND o.refundFlag = 1 ");
+                refundSql.append(" AND  refundTime >= :startTime AND refundTime < :endTime");
+                refundSql.append(" GROUP BY r.ClinicOrgan ");
+                Query refundSqlQuery = ss.createSQLQuery(refundSql.toString());
+                refundSqlQuery.setParameter("startTime", recipeBillRequest.getStartTime());
+                refundSqlQuery.setParameter("endTime", recipeBillRequest.getEndTime());
+                refundSqlQuery.setFirstResult(0);
+                refundSqlQuery.setMaxResults(0);
+                List<Object[]> refundList = refundSqlQuery.list();
+                setResult(convertToBBFVList(recipeBillRequest.getAcctDate(), payList, refundList));
+            }
+
+            private List<BillBusFeeVo> convertToBBFVList(String acctDate, List<Object[]> payList, List<Object[]> refundList) {
+                List<BillBusFeeVo> voList = Lists.newArrayList();
+                for(Object[] pos : payList){
+                    BillBusFeeVo vo = new BillBusFeeVo();
+                    vo.setAcctMonth(acctDate.substring(0, 8));
+                    vo.setAcctDate(acctDate);
+                    vo.setFeeType(BillBusFeeTypeEnum.RECIPE_ACTUAL_FEE.id());
+                    vo.setFeeTypeName(BillBusFeeTypeEnum.RECIPE_ACTUAL_FEE.text());
+                    vo.setOrganId(ConversionUtils.convert(pos[0], Integer.class));
+                    vo.setPayCount(ConversionUtils.convert(pos[1], Integer.class));
+                    vo.setPayAmount(ConversionUtils.convert(pos[2], Double.class));
+                    for(Object[] ros : refundList){
+                        Integer xo = ConversionUtils.convert(ros[0], Integer.class);
+                        if(vo.getOrganId().equals(xo)) {
+                            vo.setRefundCount(ConversionUtils.convert(pos[1], Integer.class));
+                            vo.setRefundAmount(ConversionUtils.convert(pos[2], Double.class));
+                            break;
+                        }
+                    }
+                    vo.setAggregateAmount(vo.getPayAmount()-vo.getRefundAmount());
+                    vo.setCreateTime(new Date());
+                    vo.setUpdateTime(new Date());
+                    voList.add(vo);
+                }
+                return voList;
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    public List<BillDrugFeeVo> findDrugFeeList(final RecipeBillRequest recipeBillRequest) {
+        HibernateStatelessResultAction<List<BillDrugFeeVo>> action = new AbstractHibernateStatelessResultAction<List<BillDrugFeeVo>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuffer sql = new StringBuffer();
+                sql.append("SELECT r.ClinicOrgan, r.enterpriseId, d.name, r.RecipeType, sum(o.RecipeFee) ");
+                sql.append("FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON (r.OrderCode = o.OrderCode) LEFT JOIN cdr_drugsenterprise d ON (r.EnterpriseId = d.id)");
+                sql.append(" WHERE r.OrderCode = o.OrderCode AND o.Effective = 1 AND o.PayFlag=1 ");
+                sql.append(" AND PayTime >= :startTime AND PayTime < :endTime");
+                sql.append("GROUP BY r.ClinicOrgan, r.enterpriseId, d.name, r.RecipeType");
+                Query sqlQuery = ss.createSQLQuery(sql.toString());
+                sqlQuery.setParameter("startTime", recipeBillRequest.getStartTime());
+                sqlQuery.setParameter("endTime", recipeBillRequest.getEndTime());
+                sqlQuery.setFirstResult(0);
+                sqlQuery.setMaxResults(0);
+                List<Object[]> list = sqlQuery.list();
+                setResult(convertToBDFVList(recipeBillRequest.getAcctDate(), list));
+            }
+
+            private List<BillDrugFeeVo> convertToBDFVList(String acctDate, List<Object[]> list) {
+                List<BillDrugFeeVo> voList = Lists.newArrayList();
+                for(Object[] objs : list){
+                    BillDrugFeeVo vo = new BillDrugFeeVo();
+                    vo.setAcctMonth(acctDate.substring(0, 8));
+                    vo.setAcctDate(acctDate);
+                    vo.setOrganId(ConversionUtils.convert(objs[0], Integer.class));
+                    vo.setDrugCompany(ConversionUtils.convert(objs[1], Integer.class));
+                    vo.setDrugCompanyName(ConversionUtils.convert(objs[2], String.class));
+                    vo.setDrugType(ConversionUtils.convert(objs[3], Integer.class));
+                    vo.setDrugTypeName(DRUG_TYPE_TABLE.get(vo.getDrugType()));
+                    vo.setAmount(ConversionUtils.convert(objs[4], Double.class));
+                    vo.setCreateTime(new Date());
+                    vo.setUpdateTime(new Date());
+                    voList.add(vo);
+                }
+                return voList;
             }
         };
         HibernateSessionTemplate.instance().execute(action);

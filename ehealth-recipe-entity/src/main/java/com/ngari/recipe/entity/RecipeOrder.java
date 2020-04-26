@@ -129,6 +129,10 @@ public class RecipeOrder implements Serializable {
     @Dictionary(id = "eh.base.dictionary.AddrArea")
     private String address3;
 
+    @ItemProperty(alias = "地址（区县）")
+    @Dictionary(id = "eh.base.dictionary.AddrArea")
+    private String streetAddress;
+
     @ItemProperty(alias = "详细地址")
     private String address4;
 
@@ -623,6 +627,15 @@ public class RecipeOrder implements Serializable {
 
     public void setAddress3(String address3) {
         this.address3 = address3;
+    }
+
+    @Column(name = "streetAddress")
+    public String getStreetAddress() {
+        return streetAddress;
+    }
+
+    public void setStreetAddress(String streetAddress) {
+        this.streetAddress = streetAddress;
     }
 
     @Column(name = "Address4")

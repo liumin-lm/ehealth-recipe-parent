@@ -16,8 +16,10 @@ public enum TabStatusEnum {
     Ongoing_Order_StatusList("ongoing", "order", new ArrayList<>(Arrays.asList(1, 9, 2, 12, 10, 3, 4, 11))),
     /**
      * 进行中处方的状态（待处理，待审核|前置）
+     * date 20200424
+     * 添加药师，签名失败的状态，页面显示状态待审核
      */
-    Ongoing_Recipe_StatusList("ongoing", "recipe" , new ArrayList<>(Arrays.asList(2, 8))),
+    Ongoing_Recipe_StatusList("ongoing", "recipe" , new ArrayList<>(Arrays.asList(2, 8, 27, 31))),
     /**
      * 已结束订单的状态(已完成)
      * date 2019/10/16

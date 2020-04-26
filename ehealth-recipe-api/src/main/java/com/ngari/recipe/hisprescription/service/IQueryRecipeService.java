@@ -1,6 +1,6 @@
 package com.ngari.recipe.hisprescription.service;
 
-import com.ngari.recipe.common.OrganDrugChangeBean;
+import com.ngari.platform.recipe.mode.OrganDrugChangeBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.hisprescription.model.QueryPlatRecipeInfoByDateDTO;

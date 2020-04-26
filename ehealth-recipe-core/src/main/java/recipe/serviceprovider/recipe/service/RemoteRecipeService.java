@@ -346,7 +346,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
         //组装数据准备
         Object nowRecipeId;
-        Object address4 = null;
         RecipeOrder order;
         List<Map> newRecipeMap = new ArrayList<>();
         Map<String, Object> recipeMsgMap;
@@ -363,7 +362,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
                     recipeMsgMap = new HashMap();
                     recipeMsgMap.putAll(recipeMsg);
-                    recipeAndOrderMsg(address4, order, commonRemoteService, recipeMsgMap);
+                    recipeAndOrderMsg(order, commonRemoteService, recipeMsgMap);
                     recipeMsgMap.put("recipeOrder",null);
                     newRecipeMap.add(recipeMsgMap);
 
@@ -378,15 +377,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return newRecipeMap;
     }
 
-    private void recipeAndOrderMsg(Object address4, RecipeOrder order, CommonRemoteService commonRemoteService, Map<String, Object> recipeMsg) throws ControllerException {
-        //地址 加非空校验
-        address4 = recipeMsg.get("address4");
+    private void recipeAndOrderMsg(RecipeOrder order, CommonRemoteService commonRemoteService, Map<String, Object> recipeMsg) throws ControllerException {
+        //地址
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        if (null != address4 && StringUtils.isNotEmpty(address4.toString())) {
-            recipeMsg.put("completeAddress", address4.toString());
-        } else {
-            recipeMsg.put("completeAddress", commonRemoteService.getCompleteAddress(order));
-        }
+
+        recipeMsg.put("completeAddress", commonRemoteService.getCompleteAddress(order));
+
         if(null != order){
             //下单时间
             recipeMsg.put("orderTime", order.getCreateTime());

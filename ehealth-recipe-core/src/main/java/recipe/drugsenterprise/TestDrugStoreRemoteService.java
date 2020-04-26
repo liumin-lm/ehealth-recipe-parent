@@ -47,7 +47,7 @@ public class TestDrugStoreRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         return "有库存";
     }
 

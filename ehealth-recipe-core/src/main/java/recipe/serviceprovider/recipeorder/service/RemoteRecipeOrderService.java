@@ -9,8 +9,7 @@ import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.billcheck.vo.RecipeBillRequest;
-import eh.billcheck.vo.RecipeBillResponse;
+import eh.billcheck.vo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -20,7 +19,7 @@ import recipe.service.RecipeOrderService;
 import recipe.serviceprovider.BaseService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
-import eh.billcheck.vo.BillRecipeDetailVo;
+
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -186,8 +185,39 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
      * @return RecipeOrderBean
      */
     @RpcService
-    public List<Map<String, Object>> recipeOrderDetailedStatistics(Date startTime, Date endTime, Integer organId, Integer depId, int start, int limit){
-        List<Map<String, Object>> list = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeOrderDetailed(startTime, endTime, organId, depId, start, limit);
-        return list;
+    public Map<String, Object> recipeOrderDetailedStatistics(Date startTime, Date endTime, Integer organId, Integer depId, Integer drugId, String orderColumn, String orderType, int start, int limit){
+        List<Map<String, Object>> list = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeOrderDetailed(startTime, endTime, organId, depId, drugId, orderColumn, orderType, start, limit);
+        Map<String, Object> map = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeOrderDetailedTotal(startTime, endTime, organId, depId, drugId);
+        map.put("orderData", list);
+        return map;
+    }
+
+    /**
+     * 电子处方药企配送药品统计
+     *
+     * @param startTime 开始时间
+     * @param endTime 截止时间
+     * @param organId 机构ID
+     * @param depId 药企ID
+     * @return RecipeOrderBean
+     */
+    @RpcService
+    public Map<String, Object> recipeDrugStatistics(Date startTime, Date endTime, Integer organId, Integer depId, Integer recipeId, String orderColumn, String orderType, int start, int limit){
+        List<Map<String, Object>> list = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeDrug(startTime, endTime, organId, depId, recipeId, orderColumn, orderType, start, limit);
+        Map<String, Object> map = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeDrugtotal(startTime, endTime, organId, depId, recipeId);
+        map.put("drugData", list);
+        return map;
+    }
+
+    @Override
+    public List<BillBusFeeVo> findRecipeFeeList(RecipeBillRequest recipeBillRequest) {
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        return recipeOrderDAO.findRecipeFeeList(recipeBillRequest);
+    }
+
+    @Override
+    public List<BillDrugFeeVo> findDrugFeeList(RecipeBillRequest recipeBillRequest) {
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        return recipeOrderDAO.findDrugFeeList(recipeBillRequest);
     }
 }

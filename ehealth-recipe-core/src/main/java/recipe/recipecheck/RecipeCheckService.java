@@ -2,11 +2,14 @@ package recipe.recipecheck;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.base.push.model.SmsInfoBean;
+import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
 import com.ngari.home.asyn.model.BussFinishEvent;
@@ -25,6 +28,7 @@ import com.ngari.recipe.recipe.model.GuardianBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
+import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
@@ -32,18 +36,23 @@ import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.AppContextHolder;
+import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
+import eh.cdr.constant.RecipeStatusConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
+import recipe.audit.bean.PAWebRecipeDanger;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.openapi.util.AESUtils;
@@ -79,6 +88,14 @@ public class RecipeCheckService {
     private DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
 
     private DepartmentService departmentService = ApplicationUtils.getBasicService(DepartmentService.class);
+
+    @Autowired
+    private RecipeCheckDAO recipeCheckDAO;
+
+    @Autowired
+    private RecipeDAO recipeDAO;
+
+    private static final String RECIPEID_SECRET = "1234567890123gmw";
 
     /**
      * zhongzx
@@ -204,8 +221,6 @@ public class RecipeCheckService {
                 if (null != details && details.size() > 0) {
                     detail = details.get(0);
                 }
-                //checkResult 0:未审核 1:通过 2:不通过
-                Integer checkResult = getCheckResult(r);
 
                 Date signDate = r.getSignDate();
                 String dateString = "";
@@ -213,11 +228,11 @@ public class RecipeCheckService {
                     dateString = DateConversion.getDateFormatter(signDate, "yyyy-MM-dd HH:mm");
                 }
                 //拿到当前药品详情的药品ID
-                try{
+                try {
                     Integer drugId = detail.getDrugId();
                     Integer organId = recipe.getClinicOrgan();
                     OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-                    if (organId != null){
+                    if (organId != null) {
                         List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
                         if (CollectionUtils.isNotEmpty(organDrugLists)) {
                             detail.setDrugForm(organDrugLists.get(0).getDrugForm());
@@ -231,7 +246,7 @@ public class RecipeCheckService {
                             if (CollectionUtils.isNotEmpty(organDrugLists)) {
                                 detail.setDrugForm(organDrugLists.get(0).getDrugForm());
                             }
-                        }else {
+                        } else {
                             DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
                             DrugList drugList = drugListDAO.getById(drugId);
                             if (drugList != null) {
@@ -240,7 +255,7 @@ public class RecipeCheckService {
                         }
 
                     }
-                }catch(Exception e){
+                } catch (Exception e) {
                     LOGGER.info("covertRecipeListPageInfo recipeId:{},error:{}.", JSONUtils.toString(recipe), e.getMessage());
                 }
 
@@ -253,6 +268,14 @@ public class RecipeCheckService {
                 } catch (Exception e) {
                     LOGGER.error("findRecipeAndDetailsAndCheckById-recipeId加密异常");
                 }
+                //checkResult 0:未审核 1:通过 2:不通过
+                Integer checkResult = getCheckResult(r);
+                //TODO 处理抢单状态
+//                RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeIdAndCheckStatus(r.getRecipeId());
+//                if(null != recipeCheck && recipeCheck.getGrabOrderStatus().equals(1)&&){
+//
+//                }
+
                 map.put("recipe", recipeBean);
                 map.put("patient", patient);
                 map.put("check", checkResult);
@@ -272,7 +295,7 @@ public class RecipeCheckService {
      */
     @RpcService
     public Map<String, Object> findRecipeAndDetailsAndCheckByIdEncrypt(String recipeId, Integer doctorId) {
-        LOGGER.info("findRecipeAndDetailsAndCheckByIdEncrypt recipeId={},doctorId={}",recipeId,doctorId);
+        LOGGER.info("findRecipeAndDetailsAndCheckByIdEncrypt recipeId={},doctorId={}", recipeId, doctorId);
         //20200323 解密recipe
         Integer reicpeIdI = null;
         try {
@@ -397,7 +420,7 @@ public class RecipeCheckService {
                 //判断该就诊人是否为儿童就诊人
                 if (p.getAge() <= 5 && !ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
                     guardian.setName(patient.getGuardianName());
-                    try{
+                    try {
                         guardian.setAge(ChinaIDNumberUtil.getAgeFromIDNumber(patient.getGuardianCertificate()));
                         guardian.setSex(ChinaIDNumberUtil.getSexFromIDNumber(patient.getGuardianCertificate()));
                     } catch (ValidateException exception) {
@@ -416,19 +439,19 @@ public class RecipeCheckService {
         //医生端获取处方扩展信息
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-        if (recipeExtend !=null){
-            map.put("recipeExtend",recipeExtend);
+        if (recipeExtend != null) {
+            map.put("recipeExtend", recipeExtend);
         }
         //date 20191111
         //添加处方审核状态
         Integer checkResult = getCheckResultByPending(recipe);
         map.put("checkStatus", checkResult);
         //获取撤销原因
-        if (recipe.getStatus() == RecipeStatusConstant.REVOKE){
+        if (recipe.getStatus() == RecipeStatusConstant.REVOKE) {
             map.put("cancelReason", getCancelReasonForChecker(recipe.getRecipeId()));
         }
         List<Recipedetail> details = detailDAO.findByRecipeId(recipeId);
-        try{
+        try {
             Integer organId = recipe.getClinicOrgan();
             for (Recipedetail recipedetail : details) {
                 Integer drugId = recipedetail.getDrugId();
@@ -437,7 +460,7 @@ public class RecipeCheckService {
                     recipedetail.setDrugForm(organDrugLists.get(0).getDrugForm());
                 }
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             LOGGER.info("findRecipeAndDetailsAndCheckById recipe:{},{}.", JSONUtils.toString(recipe), e.getMessage());
         }
 
@@ -467,18 +490,18 @@ public class RecipeCheckService {
         if (!StringUtils.isEmpty(orderCode)) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
             order = ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class);
-            if(order==null){
-                order=new RecipeOrderBean();
+            if (order == null) {
+                order = new RecipeOrderBean();
                 //跟前端约定好这个字段一定会给的，所以定义了-1作为无支付类型
                 order.setOrderType(-1);
             }
 
-            Integer effective=order.getEffective()==null?Integer.valueOf(1):order.getEffective();
-            Integer orderType=order.getOrderType()==null?Integer.valueOf(0):order.getOrderType();
+            Integer effective = order.getEffective() == null ? Integer.valueOf(1) : order.getEffective();
+            Integer orderType = order.getOrderType() == null ? Integer.valueOf(0) : order.getOrderType();
             //老数据处理
-            if(Integer.valueOf(0).equals(effective)){
+            if (Integer.valueOf(0).equals(effective)) {
                 order.setOrderType(-1);
-            }else {
+            } else {
                 order.setOrderType(orderType);
             }
 
@@ -497,12 +520,14 @@ public class RecipeCheckService {
 
         //患者就诊卡信息
         RecipeExtend extend = extendDAO.getByRecipeId(recipeId);
-        String cardNo = extend.getCardNo();
-        String cardTypeName = extend.getCardTypeName();
         HashMap<String, String> cardMap = Maps.newHashMap();
-        cardMap.put("cardNo",cardNo);
-        cardMap.put("cardTypeName",cardTypeName);
-        map.put("card",cardMap);
+        if(extend!=null){
+            String cardNo = extend.getCardNo();
+            String cardTypeName = extend.getCardTypeName();
+            cardMap.put("cardNo", cardNo);
+            cardMap.put("cardTypeName", cardTypeName);
+        }
+        map.put("card", cardMap);
 
         map.put("childRecipeFlag", childRecipeFlag);
         map.put("guardian", guardian);
@@ -520,16 +545,53 @@ public class RecipeCheckService {
         PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
         if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
             map.put("medicines", RecipeServiceSub.getAuditMedicineIssuesByRecipeId(recipeId));
+            AuditMedicineIssueDAO auditMedicineIssueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
+            List<AuditMedicineIssue> auditMedicineIssues = auditMedicineIssueDAO.findIssueByRecipeId(recipeId);
+            if(CollectionUtils.isNotEmpty(auditMedicineIssues)) {
+                List<AuditMedicineIssue> resultMedicineIssues = new ArrayList<>();
+                auditMedicineIssues.forEach(item -> {
+                    if (StringUtils.isNotEmpty(item.getDetailUrl())) {
+                        resultMedicineIssues.add(item);
+                    }
+                });
+
+                List<PAWebRecipeDanger> recipeDangers = new ArrayList<>();
+                resultMedicineIssues.forEach(item -> {
+                    PAWebRecipeDanger recipeDanger = new PAWebRecipeDanger();
+                    recipeDanger.setDangerDesc(item.getDetail());
+                    recipeDanger.setDangerDrug(item.getTitle());
+                    recipeDanger.setDangerLevel(item.getLvlCode());
+                    recipeDanger.setDangerType(item.getLvl());
+                    recipeDanger.setDetailUrl(item.getDetailUrl());
+                    recipeDangers.add(recipeDanger);
+                });
+                map.put("recipeDangers", recipeDangers); //返回处方分析数据
+            }
         }
 
         //运营平台 编辑订单信息按钮是否显示（自建药企、已审核、配送到家、药店取药、已支付）
-        if(e.getCreateType() != null && e.getCreateType() == 0
-            && checkResult != null && (checkResult == 1 || checkResult == 3)
-            && r.getGiveMode() != null && (r.getGiveMode() == 1 || r.getGiveMode() == 3)
-            && r.getPayFlag() != null && r.getPayFlag() == 1){
+        if (e.getCreateType() != null && e.getCreateType() == 0
+                && checkResult != null && (checkResult == 1 || checkResult == 3)
+                && r.getGiveMode() != null && (r.getGiveMode() == 1 || r.getGiveMode() == 3)
+                && r.getPayFlag() != null && r.getPayFlag() == 1) {
             map.put("editFlag", 1);
         } else {
             map.put("editFlag", 0);
+        }
+
+
+        UserRoleToken urt = UserRoleToken.getCurrent();
+
+        if (null != urt && null != urt.getProperty("doctor")) {
+            DoctorDTO loginDoctor = BeanUtils.map(urt.getProperty("doctor"), DoctorDTO.class);
+            Map<String, Object> paramMap = new HashMap<>();
+            paramMap.put("doctorId", loginDoctor.getDoctorId());
+            paramMap.put("recipeId", r.getRecipeIdE());
+            Map<String, Object> orderStatusAndLimitTime = getGrabOrderStatusAndLimitTime(paramMap);
+            if (!orderStatusAndLimitTime.isEmpty()) {
+                map.put("lockLimitTime", orderStatusAndLimitTime.get("lockLimitTime"));
+                map.put("grabOrderStatus", orderStatusAndLimitTime.get("grabOrderStatus"));
+            }
         }
         return map;
     }
@@ -537,9 +599,9 @@ public class RecipeCheckService {
     private String getCancelReasonForChecker(Integer recipeId) {
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
         List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipeId, RecipeStatusConstant.REVOKE);
-        String cancelReason ="";
+        String cancelReason = "";
         if (CollectionUtils.isNotEmpty(recipeLogs)) {
-            cancelReason = "开方医生已撤销处方,撤销原因:"+recipeLogs.get(0).getMemo();
+            cancelReason = "开方医生已撤销处方,撤销原因:" + recipeLogs.get(0).getMemo();
         }
         return cancelReason;
     }
@@ -594,7 +656,7 @@ public class RecipeCheckService {
         Integer status = recipe.getStatus();
         if (RecipeStatusConstant.READY_CHECK_YS == status) {
             checkResult = 0;
-        } else if (RecipeStatusConstant.REVOKE == status){
+        } else if (RecipeStatusConstant.REVOKE == status) {
             checkResult = 4;
         } else {
             if (StringUtils.isNotEmpty(recipe.getSupplementaryMemo())) {
@@ -639,7 +701,7 @@ public class RecipeCheckService {
         Integer status = recipe.getStatus();
         //date 20191127
         //添加前置判断:当审核方式是不需要审核则返回通过审核状态
-        if(ReviewTypeConstant.Not_Need_Check == recipe.getReviewType()){
+        if (ReviewTypeConstant.Not_Need_Check == recipe.getReviewType()) {
             return RecipePharmacistCheckConstant.Check_Pass;
         }
         if (RecipeStatusConstant.READY_CHECK_YS == status) {
@@ -651,15 +713,15 @@ public class RecipeCheckService {
                 RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
                 List<RecipeCheck> recipeCheckList = recipeCheckDAO.findByRecipeId(recipe.getRecipeId());
                 //有审核记录就展示
-                if(CollectionUtils.isNotEmpty(recipeCheckList)){
+                if (CollectionUtils.isNotEmpty(recipeCheckList)) {
                     RecipeCheck recipeCheck = recipeCheckList.get(0);
                     if (RecipecCheckStatusConstant.First_Check_No_Pass == recipeCheck.getCheckStatus()) {
                         checkResult = RecipePharmacistCheckConstant.Check_Pass;
                     } else {
                         checkResult = RecipePharmacistCheckConstant.Check_No_Pass;
                     }
-                //记录没有审核信息的处方，说明是没有进行审核的状态是失效的
-                }else{
+                    //记录没有审核信息的处方，说明是没有进行审核的状态是失效的
+                } else {
                     checkResult = RecipePharmacistCheckConstant.Check_Failure;
                 }
             }
@@ -760,11 +822,11 @@ public class RecipeCheckService {
         }
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        if (recipe == null){
+        if (recipe == null) {
             throw new DAOException(609, "处方不存在");
         }
         //默认平台审核
-        Integer checkMode = recipe.getCheckMode() == null ? 1:recipe.getCheckMode();
+        Integer checkMode = recipe.getCheckMode() == null ? 1 : recipe.getCheckMode();
         return getCheckService(checkMode).saveCheckResult(paramMap);
     }
 
@@ -878,7 +940,7 @@ public class RecipeCheckService {
                     detail = details.get(0);
                 }
                 //拿到当前药品详情的药品ID
-                try{
+                try {
                     Integer drugId = detail.getDrugId();
                     OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
                     if (organId != null) {
@@ -887,7 +949,7 @@ public class RecipeCheckService {
                             detail.setDrugForm(organDrugLists.get(0).getDrugForm());
                         }
                     }
-                }catch(Exception e){
+                } catch (Exception e) {
                     LOGGER.info("searchRecipeForChecker recipe:{},error:{}.", JSONUtils.toString(recipe), e.getMessage());
                 }
 
@@ -953,14 +1015,15 @@ public class RecipeCheckService {
 
     /**
      * 互联网医院 app首页 获取是否有待审核处方
+     *
      * @param doctorId
      * @return
      */
     @RpcService
-    public Boolean getUncheckRecipeFlag(Integer doctorId){
+    public Boolean getUncheckRecipeFlag(Integer doctorId) {
         Boolean flag = false;
         long l = getUncheckedRecipeNum(doctorId);
-        if(l > 0){
+        if (l > 0) {
             flag = true;
         }
         return flag;
@@ -1018,23 +1081,163 @@ public class RecipeCheckService {
      * @param recipeId
      * @param doctorId
      */
-    public void checkUserIsChemistByDoctorId(Integer recipeId, Integer doctorId){
+    public void checkUserIsChemistByDoctorId(Integer recipeId, Integer doctorId) {
         RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = rDao.getByRecipeId(recipeId);
-        if(recipe == null ){
+        if (recipe == null) {
             LOGGER.error("checkUserIsChemistByDoctorId-未获取到处方信息");
             throw new DAOException("未获取到处方信息");
         }
         Integer organId = recipe.getClinicOrgan();
         if (null == doctorId || null == organId) {
-            LOGGER.error("药师ID或者机构ID不能为空doctorId[{}],organId[{}]", doctorId ,organId);
+            LOGGER.error("药师ID或者机构ID不能为空doctorId[{}],organId[{}]", doctorId, organId);
             throw new DAOException("药师ID不能为空");
         }
         DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
         List<Integer> organIds = doctorService.findAPOrganIdsByDoctorId(doctorId);
-        if(!(organIds.contains(organId))){
-            LOGGER.error("当前用户没有权限审核该处方doctorId[{}],organId[{}]", doctorId ,organId);
+        if (!(organIds.contains(organId))) {
+            LOGGER.error("当前用户没有权限审核该处方doctorId[{}],organId[{}]", doctorId, organId);
             throw new DAOException("当前用户没有权限审核该处方");
+        }
+    }
+
+    public static void main(String[] args) {
+        try{
+            String encrypt1 = AESUtils.encrypt("3444", RECIPEID_SECRET);
+            String encrypt2 = AESUtils.encrypt("3443", RECIPEID_SECRET);
+            System.out.println("3444:"+encrypt1+"3443"+encrypt2);
+        }catch (Exception e){
+
+        }
+    }
+
+    /**
+     * 点击抢单/取消抢单
+     *
+     * @param map
+     * @return
+     */
+    @RpcService
+    public Map<String, Object> grabOrderApply(Map<String, Object> map) {
+        Map<String, Object> resultMap = Maps.newHashMap();
+        String recipeId = MapUtils.getString(map, "recipeId");
+        Integer doctorId = MapUtils.getInteger(map, "doctorId");
+        Integer applyFlag = MapUtils.getInteger(map, "appFlag");
+        Args.notBlank(recipeId, "recipeId");
+        Args.notNull(doctorId, "doctorId");
+        Args.notNull(applyFlag, "applyFlag");
+        Integer recipeIdInteger = null;
+        try {
+            String recipeS = AESUtils.decrypt(recipeId, RECIPEID_SECRET);
+            recipeIdInteger = Integer.valueOf(recipeS);
+            if (applyFlag.equals(1)) {
+                RecipeCheck recipeCheck = new RecipeCheck();
+                recipeCheck.setGrabDoctorId(doctorId);
+                recipeCheck.setGrabOrderStatus(GrabOrderStatusConstant.GRAB_ORDERED_OWN);
+                recipeCheck.setLocalLimitDate(eh.utils.DateConversion.getDateAftMinute(new Date(), 10));
+                recipeCheck.setCheckStatus(RecipecCheckStatusConstant.Check_Normal);
+                recipeCheck.setRecipeId(recipeIdInteger);
+                RecipeCheck recipeCheck2 = recipeCheckDAO.getByRecipeIdAndCheckStatus(recipeIdInteger);
+                if(null == recipeCheck2){
+                    recipeCheckDAO.save(recipeCheck);
+                }else{
+                    recipeCheck2.setGrabOrderStatus(GrabOrderStatusConstant.GRAB_ORDERED_OWN);
+                    recipeCheck2.setGrabDoctorId(doctorId);
+                    recipeCheck2.setCheckStatus(RecipecCheckStatusConstant.Check_Normal);
+                    recipeCheck2.setLocalLimitDate(eh.utils.DateConversion.getDateAftMinute(new Date(), 10));
+                    recipeCheckDAO.update(recipeCheck2);
+                }
+                resultMap.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDERED_OWN);
+            } else if (applyFlag.equals(0)) { //取消抢单
+                RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeIdAndCheckStatus(recipeIdInteger);
+                if (null != recipeCheck) {
+                    recipeCheck.setGrabOrderStatus(GrabOrderStatusConstant.GRAB_ORDER_NO);
+                    recipeCheckDAO.update(recipeCheck);
+                    //推送
+                    sendRecipeReadyCheckYsPush(recipeCheck);
+                    resultMap.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDER_NO);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("grabOrderApply error", e);
+            resultMap.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDER_NO); //失败处理
+            return resultMap;
+        }
+        return resultMap;
+    }
+
+    private void sendRecipeReadyCheckYsPush(RecipeCheck recipeCheck){
+        Recipe byRecipeId = recipeDAO.getByRecipeId(recipeCheck.getRecipeId());
+        SmsInfoBean info = new SmsInfoBean();
+        info.setBusId(recipeCheck.getRecipeId());
+        info.setBusType(RecipeMsgEnum.RECIPE_READY_CHECK_YS.getMsgType());
+        info.setSmsType(RecipeMsgEnum.RECIPE_READY_CHECK_YS.getMsgType());
+        info.setOrganId(byRecipeId.getClinicOrgan());
+        info.setExtendValue(String.valueOf(recipeCheck.getGrabDoctorId()));
+        LOGGER.info("RecipeReadyCheckYs send msg : {}", JSONUtils.toString(info));
+        ISmsPushService iSmsPushService = ApplicationUtils.getBaseService(ISmsPushService.class);
+        iSmsPushService.pushMsg(info);
+    }
+
+    /**
+     * 获取抢单状态和自动解锁时间
+     * @param map
+     * @return
+     */
+    @RpcService
+    public Map<String, Object> getGrabOrderStatusAndLimitTime(Map<String, Object> map) {
+        Map<String, Object> resultMap = new HashMap<>();
+        String recipeId = MapUtils.getString(map, "recipeId");
+        Integer doctorId = MapUtils.getInteger(map, "doctorId");
+        Args.notBlank(recipeId, "recipeId");
+        Args.notNull(doctorId, "doctorId");
+        String recipeS = null;
+        try {
+            recipeS = AESUtils.decrypt(recipeId, RECIPEID_SECRET);
+            Integer recipeIdInteger = Integer.valueOf(recipeS);
+            RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeIdAndCheckStatus(recipeIdInteger);
+            if (null == recipeCheck || recipeCheck.getGrabOrderStatus().equals(GrabOrderStatusConstant.GRAB_ORDER_NO)) {
+                resultMap.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDER_NO);
+                resultMap.put("lockLimitTime", 10); //未抢单默认返回10
+                return resultMap;
+            }
+            if (recipeCheck.getGrabOrderStatus().equals(1) && doctorId.equals(recipeCheck.getGrabDoctorId())) {//本人抢单
+                resultMap.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDERED_OWN);
+                long now = new Date().getTime();
+                long localLimeDate = recipeCheck.getLocalLimitDate().getTime();
+                long diff = localLimeDate - now;
+                if (diff <= 0) {
+                    resultMap.put("lockLimitTime", 0);
+                } else {
+                    int localLimitTime = (int) diff / (1000 * 60);
+                    resultMap.put("lockLimitTime", localLimitTime);
+                }
+
+            } else if (recipeCheck.getGrabOrderStatus().equals(1) && !doctorId.equals(recipeCheck.getGrabDoctorId())) { //他人抢单
+                resultMap.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDERED_OTHER);
+                resultMap.put("lockLimitTime", 10); //他人抢单默认返回10
+            }
+            return resultMap;
+
+        } catch (Exception e) {
+            LOGGER.error("getGrabOrderStatusAndLimitTime error", e);
+            throw new DAOException("查询失败");
+        }
+    }
+
+    /**
+     * 处方抢单解锁定时器
+     */
+    @RpcService
+    public void cancelOverTimeRecipeCheck(){
+        List<RecipeCheck> overTimeRecipeChecks = recipeCheckDAO.findOverTimeRecipeCheck();
+        if(CollectionUtils.isNotEmpty(overTimeRecipeChecks)){
+            overTimeRecipeChecks.forEach(item->{
+                item.setGrabOrderStatus(GrabOrderStatusConstant.GRAB_ORDER_NO);
+                item.setLocalLimitDate(null);
+                LOGGER.info("处方抢单超时解锁，recipe={}", item.getRecipeId());
+                recipeCheckDAO.update(item);
+            });
         }
     }
 }

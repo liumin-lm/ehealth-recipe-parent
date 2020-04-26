@@ -666,7 +666,12 @@ public class PayModeOnline implements IPurchaseService {
                 //修改推送的地址细节：address ：address4,receiveAddress:集合，receiveAddrCode：address3
                 CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
                 updateTakeDrugWayReqTO.setAddress(order.getAddress4());
-                updateTakeDrugWayReqTO.setReceiveAddrCode(order.getAddress3());
+                if(order.getStreetAddress() != null){
+                    updateTakeDrugWayReqTO.setReceiveAddrCode(order.getStreetAddress());
+                } else {
+                    updateTakeDrugWayReqTO.setReceiveAddrCode(order.getAddress3());
+                }
+
                 updateTakeDrugWayReqTO.setReceiveAddress(commonRemoteService.getCompleteAddressToSend(order));
 
                 //date 20200314
