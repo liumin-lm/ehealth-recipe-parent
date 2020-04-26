@@ -94,7 +94,7 @@ public class SignInfoService {
 
     @RpcService
     public String getUserCode(Integer doctorId) {
-        logger.info("getUserCode doctorId=", doctorId);
+        logger.info("getUserCode doctorId={}=", doctorId);
         DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
 
         CaAccountRequestTO caAccountRequestTO = new CaAccountRequestTO();
