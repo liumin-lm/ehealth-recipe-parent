@@ -585,10 +585,6 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 if (order != null ) {
                     //配送到家的方式
                     recipeMap.put("METHOD", "0");
-                    /*RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-                    String ysq_store_code = recipe.getClinicOrgan() + "_" + "ysq_store_code";
-                    String store_code = recipeParameterDao.getByName(ysq_store_code);*/
-
                     recipeMap.put("PATIENTSENDADDR", getCompleteAddress(order));
                     recipeMap.put("STORECODE", order.getDrugStoreCode());
                     recipeMap.put("SENDNAME", order.getReceiver());
@@ -600,8 +596,15 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     } else if (order.getPayFlag() != null && 0 == order.getPayFlag()){
                         recipeMap.put("ISPAYMENT", "0");
                     }
+                } else {
+                    if ("psysq".equals(drugsEnterprise.getAccount())) {
+                        recipeMap.put("METHOD", "0");
+                        recipeMap.put("PATIENTSENDADDR", "");
+                    } else {
+                        recipeMap.put("METHOD", "1");
+                        recipeMap.put("PATIENTSENDADDR", "");
+                    }
                 }
-
             } else {
                 if ("psysq".equals(drugsEnterprise.getAccount())) {
                     recipeMap.put("METHOD", "0");
