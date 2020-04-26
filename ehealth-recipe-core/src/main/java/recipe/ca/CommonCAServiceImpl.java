@@ -8,6 +8,9 @@ import ctd.util.annotation.RpcBean;
 import eh.utils.params.ParamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import recipe.util.RedisClient;
+
 @RpcBean("iCommonCAServcie")
 public class CommonCAServiceImpl implements ICommonCAServcie {
 
@@ -16,6 +19,9 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
     private static final String CA_RESULT_CODE = "200";
 
     private static ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService",ICaHisService.class);
+
+    @Autowired
+    private RedisClient redisClient;
 
     /**
      * CA用户接口
@@ -26,12 +32,13 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
     public boolean caUserBusiness(CaAccountRequestTO requestTO) {
         try {
             LOGGER.info("CommonCAServiceImpl caUserBusiness start userAccount={},requestTO={}",requestTO.getUserAccount(), JSONUtils.toString(requestTO));
-            HisResponseTO responseTO = iCaHisService.caUserBusiness(requestTO);
-            String value = ParamUtils.getParam("");
-            if (value.indexOf(requestTO.getOrganId()) >= 0) {
-
-            }
+            HisResponseTO<CaAccountResponseTO> responseTO = iCaHisService.caUserBusiness(requestTO);
             LOGGER.info("CommonCAServiceImpl caUserBusiness userAccount={} responseTO={}",requestTO.getUserAccount(), JSONUtils.toString(responseTO));
+            String value = ParamUtils.getParam("CA_TEST_ORGAN_IDS");
+            if (value.indexOf(requestTO.getOrganId()) >= 0) {
+                redisClient.set("cqCA_"+ requestTO.getIdCard()+"_" + requestTO.getBusType(),responseTO.getData().getMsg());
+            }
+
             if (CA_RESULT_CODE.equals(responseTO.getMsgCode())) {
                 return true;
             }

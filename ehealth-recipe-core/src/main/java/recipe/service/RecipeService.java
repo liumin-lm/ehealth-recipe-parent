@@ -579,8 +579,8 @@ public class RecipeService extends RecipeBaseService {
                     bl = true;
                 } else if (Integer.valueOf(100).equals(code)) {
                     LOGGER.info("reviewRecipe 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
-
-                    String value = ParamUtils.getParam("");
+                    DoctorDTO doctorDTOn = doctorService.getByDoctorId(recipe.getDoctor());
+                    String value = ParamUtils.getParam("CA_TEST_ORGAN_IDS");
                     if (value.indexOf(recipe.getClinicOrgan()) >= 0) {
                         LOGGER.info("重庆ca value [{}] recipeId= [{}] ", value,recipe.getRecipeId());
                         HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
@@ -590,12 +590,13 @@ public class RecipeService extends RecipeBaseService {
                         CaAccountRequestTO caAccountRequestTO = new CaAccountRequestTO();
                         caAccountRequestTO.setOrganId(doctorDTO.getOrgan());
                         caAccountRequestTO.setRegulationRecipeIndicatorsReq(request);
+                        caAccountRequestTO.setBusType(4);
+                        caAccountRequestTO.setIdCard(doctorDTOn.getIdNumber());
                         iCommonCAServcie.caUserBusiness(caAccountRequestTO);
                     } else {
                         try {
                             String loginId = MapValueUtil.getString(backMap, "loginId");
                             Integer organId = recipe.getClinicOrgan();
-                            DoctorDTO doctorDTOn = doctorService.getByDoctorId(recipe.getDoctor());
                             String userAccount = doctorDTOn.getIdNumber();
                             String caPassword = "";
                             //签名时的密码从redis中获取
