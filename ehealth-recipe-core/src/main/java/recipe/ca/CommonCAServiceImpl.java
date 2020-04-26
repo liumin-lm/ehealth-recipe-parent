@@ -5,6 +5,7 @@ import com.ngari.his.ca.service.ICaHisService;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
+import eh.utils.params.ParamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 @RpcBean("iCommonCAServcie")
@@ -26,6 +27,10 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
         try {
             LOGGER.info("CommonCAServiceImpl caUserBusiness start userAccount={},requestTO={}",requestTO.getUserAccount(), JSONUtils.toString(requestTO));
             HisResponseTO responseTO = iCaHisService.caUserBusiness(requestTO);
+            String value = ParamUtils.getParam("");
+            if (value.indexOf(requestTO.getOrganId()) >= 0) {
+
+            }
             LOGGER.info("CommonCAServiceImpl caUserBusiness userAccount={} responseTO={}",requestTO.getUserAccount(), JSONUtils.toString(responseTO));
             if (CA_RESULT_CODE.equals(responseTO.getMsgCode())) {
                 return true;

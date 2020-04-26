@@ -17,18 +17,14 @@ import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.consult.common.service.IConsultService;
+import com.ngari.his.ca.model.CaAccountRequestTO;
 import com.ngari.his.ca.model.CaSealRequestTO;
-import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
-import com.ngari.his.recipe.mode.UpdateTakeDrugWayReqTO;
+import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.platform.recipe.mode.QueryRecipeReqHisDTO;
-import com.ngari.platform.recipe.mode.QueryRecipeResultHisDTO;
-import com.ngari.platform.recipe.service.IRecipePlatformServiceNew;
-import com.ngari.recipe.audit.model.AuditMedicineIssueDTO;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
@@ -52,6 +48,7 @@ import ctd.util.annotation.RpcService;
 import eh.base.constant.ErrorCode;
 import eh.base.constant.PageConstant;
 import eh.cdr.constant.OrderStatusConstant;
+import eh.utils.params.ParamUtils;
 import eh.utils.params.ParameterConstant;
 import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
@@ -71,6 +68,7 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.ca.CAInterface;
+import recipe.ca.ICommonCAServcie;
 import recipe.ca.factory.CommonCAFactory;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.constant.*;
@@ -80,7 +78,7 @@ import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
 import recipe.hisservice.RecipeToHisCallbackService;
-import recipe.hisservice.RecipeToHisService;
+import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
@@ -554,6 +552,7 @@ public class RecipeService extends RecipeBaseService {
 
         //记录日志
         RecipeLogService.saveRecipeLog(recipeId, beforeStatus, recipeStatus, logMemo);
+
         if (1 == checkFlag) {
             String errorMsg = "";
             if (null != recipe.getSignFile() || StringUtils.isNotEmpty(recipe.getSignRecipeCode())) {
@@ -580,48 +579,63 @@ public class RecipeService extends RecipeBaseService {
                     bl = true;
                 } else if (Integer.valueOf(100).equals(code)) {
                     LOGGER.info("reviewRecipe 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
-                    try {
-                        String loginId = MapValueUtil.getString(backMap, "loginId");
-                        Integer organId = recipe.getClinicOrgan();
-                        DoctorDTO doctorDTOn = doctorService.getByDoctorId(recipe.getDoctor());
-                        String userAccount = doctorDTOn.getIdNumber();
-                        String caPassword = "";
-                        //签名时的密码从redis中获取
-                        if (null != redisClient.get("caPassword")) {
-                            caPassword = redisClient.get("caPassword");
-                        }
-                        //标准化CA进行签名、签章==========================start=====
-                        //获取签章pdf数据。签名原文
-                        CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId, false);
-                        //获取签章图片
-                        DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
-                        DoctorExtendDTO doctorExtendDTO = doctorExtendService.getByDoctorId(recipe.getDoctor());
-                        if (doctorExtendDTO != null && doctorExtendDTO.getSealData() != null) {
-                            requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
-                        } else {
-                            requestSealTO.setSealBase64Str("");
-                        }
-                        CommonCAFactory caFactory = new CommonCAFactory();
-                        //通过工厂获取对应的实现CA类
-                        CAInterface caInterface = caFactory.useCAFunction(organId);
-                        CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
-                        //保存签名值、时间戳、电子签章文件
-                        String fileId = null;
-                        String result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false,fileId);
-                        SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
-                        if (signDoctorRecipeInfo != null) {
-                            signDoctorRecipeInfo.setSignCaDatePha(resultVo.getSignCADate());
-                            signDoctorRecipeInfo.setSignCodePha(resultVo.getSignRecipeCode());
-                            signDoctorRecipeInfo.setSignFilePha(fileId);
-                            signDoctorRecipeInfo.setCheckDatePha(new Date());
-                            LOGGER.error("reviewRecipe  signFile 标准化CA签章 signDoctorRecipeInfo={}=", JSONObject.toJSONString(signDoctorRecipeInfo));
-                            signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
-                        }
 
-                        bl = "success".equals(result) ? true : false;
-                    } catch (Exception e) {
-                        LOGGER.error("reviewRecipe  signFile 标准化CA签章报错 recipeId={} ,doctor={} ,e={}=============", recipeId, recipe.getDoctor(), e);
+                    String value = ParamUtils.getParam("");
+                    if (value.indexOf(recipe.getClinicOrgan()) >= 0) {
+                        LOGGER.info("重庆ca value [{}] recipeId= [{}] ", value,recipe.getRecipeId());
+                        HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+                        List<RegulationRecipeIndicatorsReq> request = new ArrayList<>();
+                        service.splicingBackRecipeData(Arrays.asList(recipe),request);
+                        ICommonCAServcie iCommonCAServcie= AppContextHolder.getBean("iCommonCAServcie", ICommonCAServcie.class);
+                        CaAccountRequestTO caAccountRequestTO = new CaAccountRequestTO();
+                        caAccountRequestTO.setOrganId(doctorDTO.getOrgan());
+                        caAccountRequestTO.setRegulationRecipeIndicatorsReq(request);
+                        iCommonCAServcie.caUserBusiness(caAccountRequestTO);
+                    } else {
+                        try {
+                            String loginId = MapValueUtil.getString(backMap, "loginId");
+                            Integer organId = recipe.getClinicOrgan();
+                            DoctorDTO doctorDTOn = doctorService.getByDoctorId(recipe.getDoctor());
+                            String userAccount = doctorDTOn.getIdNumber();
+                            String caPassword = "";
+                            //签名时的密码从redis中获取
+                            if (null != redisClient.get("caPassword")) {
+                                caPassword = redisClient.get("caPassword");
+                            }
+                            //标准化CA进行签名、签章==========================start=====
+                            //获取签章pdf数据。签名原文
+                            CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId, false);
+                            //获取签章图片
+                            DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
+                            DoctorExtendDTO doctorExtendDTO = doctorExtendService.getByDoctorId(recipe.getDoctor());
+                            if (doctorExtendDTO != null && doctorExtendDTO.getSealData() != null) {
+                                requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
+                            } else {
+                                requestSealTO.setSealBase64Str("");
+                            }
+                            CommonCAFactory caFactory = new CommonCAFactory();
+                            //通过工厂获取对应的实现CA类
+                            CAInterface caInterface = caFactory.useCAFunction(organId);
+                            CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
+                            //保存签名值、时间戳、电子签章文件
+                            String fileId = null;
+                            String result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false,fileId);
+                            SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
+                            if (signDoctorRecipeInfo != null) {
+                                signDoctorRecipeInfo.setSignCaDatePha(resultVo.getSignCADate());
+                                signDoctorRecipeInfo.setSignCodePha(resultVo.getSignRecipeCode());
+                                signDoctorRecipeInfo.setSignFilePha(fileId);
+                                signDoctorRecipeInfo.setCheckDatePha(new Date());
+                                LOGGER.error("reviewRecipe  signFile 标准化CA签章 signDoctorRecipeInfo={}=", JSONObject.toJSONString(signDoctorRecipeInfo));
+                                signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
+                            }
+
+                            bl = "success".equals(result) ? true : false;
+                        } catch (Exception e) {
+                            LOGGER.error("reviewRecipe  signFile 标准化CA签章报错 recipeId={} ,doctor={} ,e={}=============", recipeId, recipe.getDoctor(), e);
+                        }
                     }
+
                     //标准化CA进行签名、签章==========================end=====
                 } else {
                     LOGGER.error("reviewRecipe signFile error. recipeId={}, result={}", recipeId, JSONUtils.toString(backMap));
