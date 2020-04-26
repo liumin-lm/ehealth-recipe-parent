@@ -406,7 +406,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("SELECT r.recipeId, r.patientName, r.MPIID, dep.NAME, r.organName, r.doctorName, r.SignDate as signDate, if(o.refundFlag=1,'退款成功','支付成功') as payType, o.PayTime as payTime, o.refundTime as refundTime, o.ActualPrice as ActualPrice");
+                hql.append("SELECT r.recipeId, r.patientName, r.MPIID, dep.NAME, r.organName, r.doctorName, r.SignDate as signDate, if(o.refundFlag=1,'退款成功','支付成功') as payType, o.PayTime as payTime, o.refundTime as refundTime, d.useTotalDose, o.ActualPrice as ActualPrice");
                 hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId LEFT JOIN cdr_drugsenterprise dep ON o.EnterpriseId = dep.Id ");
                 hql.append(" WHERE r.GiveMode = 1 and o.payflag = 1 and (o.paytime BETWEEN :startTime  AND :endTime  OR o.refundTime BETWEEN :startTime  AND :endTime) ");
                 if (organId != null) {
@@ -474,7 +474,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         vo.put("payType", objs[7] == null ? null : objs[7].toString());
                         vo.put("payTime", objs[8] == null ? null : objs[8].toString());
                         vo.put("refundTime", objs[9] == null ? null : objs[9].toString());
-                        vo.put("actualPrice", objs[10] == null ? null : Double.valueOf(objs[10]+""));
+                        vo.put("dose", objs[10] == null ? null : (Integer)objs[10]);
+                        vo.put("actualPrice", objs[11] == null ? null : Double.valueOf(objs[11]+""));
                         backList.add(vo);
                     }
                 }
