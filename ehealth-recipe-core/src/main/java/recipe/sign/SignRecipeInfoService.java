@@ -3,7 +3,6 @@ package recipe.sign;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.patient.dto.DoctorExtendDTO;
 import com.ngari.patient.service.DoctorExtendService;
-import com.ngari.patient.service.DoctorService;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.exception.DAOException;
@@ -19,6 +18,8 @@ import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.service.RecipeService;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @RpcBean
 public class SignRecipeInfoService {
@@ -129,6 +130,20 @@ public class SignRecipeInfoService {
         signDoctorRecipeInfo.setLastmodify(new Date());
         signDoctorRecipeInfo.setRecipeId(recipeId);
         return signDoctorRecipeInfoDAO.save(signDoctorRecipeInfo);
+    }
+
+    @RpcService
+    public Map getSignInfoByRegisterID(Integer recipeId, String type){
+        logger.info("getSignInfoByRegisterID start recipeId={}=,type={}=", recipeId, type);
+        SignDoctorRecipeInfo signDoctorRecipeInfo =signDoctorRecipeInfoDAO.getInfoByRecipeIdAndType(recipeId, type);
+        Map map = new HashMap();
+        if (signDoctorRecipeInfo != null) {
+            map.put("signCodeDoc",signDoctorRecipeInfo.getSignCodeDoc());
+            map.put("signRemarkDoc",signDoctorRecipeInfo.getSignRemarkDoc());
+            map.put("signCodePha",signDoctorRecipeInfo.getSignCodePha());
+            map.put("signRemarkPha",signDoctorRecipeInfo.getSignRemarkPha());
+        }
+        return map;
     }
 
     /**
