@@ -140,7 +140,7 @@ public class RecipeCheckService {
         RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
         List<Recipe> list = rDao.findRecipeByFlag(request.getOrganIdList(), request.getStatus(),
                 start, limit);
-        List<Map<String, Object>> mapList = covertRecipeListPageInfo(list);
+        List<Map<String, Object>> mapList = covertRecipeListPageInfo(list,request.getStatus());
         return mapList;
     }
 
@@ -175,7 +175,7 @@ public class RecipeCheckService {
         return mapList;
     }
 
-    private List<Map<String, Object>> covertRecipeListPageInfo(List<Recipe> list) {
+    private List<Map<String, Object>> covertRecipeListPageInfo(List<Recipe> list,Integer status) {
         //只返回要用到的字段
         List<Map<String, Object>> mapList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(list)) {
@@ -276,11 +276,11 @@ public class RecipeCheckService {
 
                 if (null != urt && null != urt.getProperty("doctor")) {
                     DoctorDTO loginDoctor = BeanUtils.map(urt.getProperty("doctor"), DoctorDTO.class);
-                    if(null != recipeCheck && recipeCheck.getGrabOrderStatus().equals(1) && null == recipeCheck.getChecker()
-                            &&recipeCheck.getGrabDoctorId().equals(loginDoctor.getDoctorId())){ //已抢单
+                    if(4 != checkResult && null != recipeCheck && recipeCheck.getGrabOrderStatus().equals(1) && null == recipeCheck.getChecker()
+                            &&recipeCheck.getGrabDoctorId().equals(loginDoctor.getDoctorId())){ //已抢单,不考虑排除撤销状态
                         checkResult = 6;
-                    }else if(null != recipeCheck && recipeCheck.getGrabOrderStatus().equals(1) && null == recipeCheck.getChecker()
-                            &&!recipeCheck.getGrabDoctorId().equals(loginDoctor.getDoctorId())){ //已被抢单
+                    }else if(4 != checkResult && null != recipeCheck && recipeCheck.getGrabOrderStatus().equals(1) && null == recipeCheck.getChecker()
+                            &&!recipeCheck.getGrabDoctorId().equals(loginDoctor.getDoctorId())){ //已被抢单,不考虑撤销状态
                         checkResult = 5;
                     }
                 }
@@ -289,7 +289,9 @@ public class RecipeCheckService {
                 map.put("patient", patient);
                 map.put("check", checkResult);
                 map.put("detail", ObjectCopyUtils.convert(detail, RecipeDetailBean.class));
-                mapList.add(map);
+                if(!(status.equals(0) && checkResult.equals(5))){ //待审核返回筛选已被抢单单子
+                    mapList.add(map);
+                }
             }
         }
 
@@ -724,9 +726,9 @@ public class RecipeCheckService {
                 //有审核记录就展示
                 if (CollectionUtils.isNotEmpty(recipeCheckList)) {
                     RecipeCheck recipeCheck = recipeCheckList.get(0);
-                    if (RecipecCheckStatusConstant.First_Check_No_Pass == recipeCheck.getCheckStatus()) {
+                    if (null != recipeCheck.getChecker() && RecipecCheckStatusConstant.First_Check_No_Pass == recipeCheck.getCheckStatus()) {
                         checkResult = RecipePharmacistCheckConstant.Check_Pass;
-                    } else {
+                    } else if (null == recipeCheck.getChecker() && RecipecCheckStatusConstant.Check_Normal == recipeCheck.getCheckStatus()) {
                         checkResult = RecipePharmacistCheckConstant.Check_No_Pass;
                     }
                     //记录没有审核信息的处方，说明是没有进行审核的状态是失效的
