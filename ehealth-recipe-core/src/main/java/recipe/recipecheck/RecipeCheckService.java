@@ -270,16 +270,16 @@ public class RecipeCheckService {
                 }
                 //checkResult 0:未审核 1:通过 2:不通过
                 Integer checkResult = getCheckResult(r);
-                //TODO 处理抢单状态
+
                 RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeIdAndCheckStatus(r.getRecipeId());
                 UserRoleToken urt = UserRoleToken.getCurrent();
 
                 if (null != urt && null != urt.getProperty("doctor")) {
                     DoctorDTO loginDoctor = BeanUtils.map(urt.getProperty("doctor"), DoctorDTO.class);
-                    if(null != recipeCheck && recipeCheck.getGrabOrderStatus().equals(1)&&recipeCheck.getCheckStatus().equals(0)
+                    if(null != recipeCheck && recipeCheck.getGrabOrderStatus().equals(1) && null == recipeCheck.getChecker()
                             &&recipeCheck.getGrabDoctorId().equals(loginDoctor.getDoctorId())){ //未审核
                         checkResult = 0;
-                    }else if(null != recipeCheck && recipeCheck.getGrabOrderStatus().equals(1)&&recipeCheck.getCheckStatus().equals(0)
+                    }else if(null != recipeCheck && recipeCheck.getGrabOrderStatus().equals(1) && null == recipeCheck.getChecker()
                             &&!recipeCheck.getGrabDoctorId().equals(loginDoctor.getDoctorId())){ //已抢单
                         checkResult = 5;
                     }
