@@ -92,4 +92,24 @@ public class SignInfoService {
         return null;
     }
 
+    @RpcService
+    public String getUserCode(Integer doctorId) {
+        logger.info("getUserCode doctorId=", doctorId);
+        DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
+
+        CaAccountRequestTO caAccountRequestTO = new CaAccountRequestTO();
+        caAccountRequestTO.setOrganId(doctorDTO.getOrgan());
+        caAccountRequestTO.setUserName(doctorDTO.getName());
+        caAccountRequestTO.setIdCard(doctorDTO.getIdNumber());
+        caAccountRequestTO.setMobile(doctorDTO.getMobile());
+        caAccountRequestTO.setBusType(5);
+        ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService",ICaHisService.class);
+        HisResponseTO<CaAccountResponseTO> responseTO = iCaHisService.caUserBusiness(caAccountRequestTO);
+        logger.info("getUserCode result info={}=", JSONObject.toJSONString(responseTO));
+        if ("200".equals(responseTO.getMsgCode())) {
+            return responseTO.getData().getMsg();
+        }
+        return null;
+    }
+
 }

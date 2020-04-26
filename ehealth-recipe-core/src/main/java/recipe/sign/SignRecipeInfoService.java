@@ -95,6 +95,8 @@ public class SignRecipeInfoService {
         if (signDoctorRecipeInfo == null) {
             signDoctorRecipeInfo = new SignDoctorRecipeInfo();
             signDoctorRecipeInfo.setRecipeId(recipeId);
+            signDoctorRecipeInfo.setCreateDate(new Date());
+            signDoctorRecipeInfo.setLastmodify(new Date());
             signDoctorRecipeInfo = signDoctorRecipeInfoDAO.save(signDoctorRecipeInfo);
             return signDoctorRecipeInfo;
         }
@@ -127,5 +129,42 @@ public class SignRecipeInfoService {
         signDoctorRecipeInfo.setLastmodify(new Date());
         signDoctorRecipeInfo.setRecipeId(recipeId);
         return signDoctorRecipeInfoDAO.save(signDoctorRecipeInfo);
+    }
+
+    /**
+     * ca保存ca信息
+     * @param recipeId 处方ID
+     * @param signCode 签名摘要
+     * @param signCrt 签名值
+     * @param isDoctor true 医生 false 药师
+     */
+    @RpcService
+    public void saveSignInfoByRecipe(Integer recipeId, String signCode, String signCrt, boolean isDoctor, String type){
+
+        logger.info("saveSignInfoByRecipe infos recipeId={}=,signCode={}=,signCrt={}=,isDoctor={}=, type={}=",recipeId, signCode, signCrt, isDoctor, type);
+        SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeIdAndType(recipeId, type);
+        if (signDoctorRecipeInfo == null) {
+            signDoctorRecipeInfo = new SignDoctorRecipeInfo();
+            signDoctorRecipeInfo.setRecipeId(recipeId);
+            signDoctorRecipeInfo.setCreateDate(new Date());
+            signDoctorRecipeInfo = getInfo(signDoctorRecipeInfo, signCode, signCrt,isDoctor, type);
+            signDoctorRecipeInfoDAO.save(signDoctorRecipeInfo);
+        } else {
+            signDoctorRecipeInfo = getInfo(signDoctorRecipeInfo, signCode, signCrt,isDoctor, type);
+            signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
+        }
+    }
+
+    private SignDoctorRecipeInfo getInfo (SignDoctorRecipeInfo signDoctorRecipeInfo, String signCode, String signCrt, boolean isDoctor,String type) {
+        if (isDoctor) {
+            signDoctorRecipeInfo.setSignRemarkDoc(signCrt);
+            signDoctorRecipeInfo.setSignCodeDoc(signCode);
+        } else {
+            signDoctorRecipeInfo.setSignRemarkPha(signCrt);
+            signDoctorRecipeInfo.setSignCodePha(signCode);
+        }
+        signDoctorRecipeInfo.setLastmodify(new Date());
+        signDoctorRecipeInfo.setType(type);
+        return signDoctorRecipeInfo;
     }
 }
