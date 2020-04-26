@@ -595,7 +595,7 @@ public class RecipeCheckService {
             DoctorDTO loginDoctor = BeanUtils.map(urt.getProperty("doctor"), DoctorDTO.class);
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put("doctorId", loginDoctor.getDoctorId());
-            paramMap.put("recipeId", r.getRecipeIdE());
+            paramMap.put("recipeId", r.getRecipeId());
             Map<String, Object> orderStatusAndLimitTime = getGrabOrderStatusAndLimitTime(paramMap);
             if (!orderStatusAndLimitTime.isEmpty()) {
                 map.put("lockLimitTime", orderStatusAndLimitTime.get("lockLimitTime"));
@@ -1129,24 +1129,21 @@ public class RecipeCheckService {
     @RpcService
     public Map<String, Object> grabOrderApply(Map<String, Object> map) {
         Map<String, Object> resultMap = Maps.newHashMap();
-        String recipeId = MapUtils.getString(map, "recipeId");
+        Integer recipeId = MapUtils.getInteger(map, "recipeId");
         Integer doctorId = MapUtils.getInteger(map, "doctorId");
         Integer applyFlag = MapUtils.getInteger(map, "applyFlag");
-        Args.notBlank(recipeId, "recipeId");
+        Args.notNull(recipeId, "recipeId");
         Args.notNull(doctorId, "doctorId");
         Args.notNull(applyFlag, "applyFlag");
-        Integer recipeIdInteger = null;
         try {
-            String recipeS = AESUtils.decrypt(recipeId, RECIPEID_SECRET);
-            recipeIdInteger = Integer.valueOf(recipeS);
             if (applyFlag.equals(1)) {
                 RecipeCheck recipeCheck = new RecipeCheck();
                 recipeCheck.setGrabDoctorId(doctorId);
                 recipeCheck.setGrabOrderStatus(GrabOrderStatusConstant.GRAB_ORDERED_OWN);
                 recipeCheck.setLocalLimitDate(eh.utils.DateConversion.getDateAftMinute(new Date(), 10));
                 recipeCheck.setCheckStatus(RecipecCheckStatusConstant.Check_Normal);
-                recipeCheck.setRecipeId(recipeIdInteger);
-                RecipeCheck recipeCheck2 = recipeCheckDAO.getByRecipeIdAndCheckStatus(recipeIdInteger);
+                recipeCheck.setRecipeId(recipeId);
+                RecipeCheck recipeCheck2 = recipeCheckDAO.getByRecipeIdAndCheckStatus(recipeId);
                 if(null == recipeCheck2){
                     recipeCheckDAO.save(recipeCheck);
                 }else{
@@ -1158,7 +1155,7 @@ public class RecipeCheckService {
                 }
                 resultMap.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDERED_OWN);
             } else if (applyFlag.equals(0)) { //取消抢单
-                RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeIdAndCheckStatus(recipeIdInteger);
+                RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeIdAndCheckStatus(recipeId);
                 if (null != recipeCheck) {
                     recipeCheck.setGrabOrderStatus(GrabOrderStatusConstant.GRAB_ORDER_NO);
                     recipeCheckDAO.update(recipeCheck);
@@ -1182,6 +1179,7 @@ public class RecipeCheckService {
         info.setBusType(RecipeMsgEnum.RECIPE_READY_CHECK_YS.getMsgType());
         info.setSmsType(RecipeMsgEnum.RECIPE_READY_CHECK_YS.getMsgType());
         info.setOrganId(byRecipeId.getClinicOrgan());
+        info.setStatus(0);
         info.setExtendValue(String.valueOf(recipeCheck.getGrabDoctorId()));
         LOGGER.info("RecipeReadyCheckYs send msg : {}", JSONUtils.toString(info));
         ISmsPushService iSmsPushService = ApplicationUtils.getBaseService(ISmsPushService.class);
@@ -1196,15 +1194,13 @@ public class RecipeCheckService {
     @RpcService
     public Map<String, Object> getGrabOrderStatusAndLimitTime(Map<String, Object> map) {
         Map<String, Object> resultMap = new HashMap<>();
-        String recipeId = MapUtils.getString(map, "recipeId");
+        Integer recipeId = MapUtils.getInteger(map, "recipeId");
         Integer doctorId = MapUtils.getInteger(map, "doctorId");
-        Args.notBlank(recipeId, "recipeId");
+        Args.notNull(recipeId, "recipeId");
         Args.notNull(doctorId, "doctorId");
         String recipeS = null;
         try {
-            recipeS = AESUtils.decrypt(recipeId, RECIPEID_SECRET);
-            Integer recipeIdInteger = Integer.valueOf(recipeS);
-            RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeIdAndCheckStatus(recipeIdInteger);
+            RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeIdAndCheckStatus(recipeId);
             if (null == recipeCheck || recipeCheck.getGrabOrderStatus().equals(GrabOrderStatusConstant.GRAB_ORDER_NO)) {
                 resultMap.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDER_NO);
                 resultMap.put("lockLimitTime", 10); //未抢单默认返回10
@@ -1246,6 +1242,7 @@ public class RecipeCheckService {
                 item.setLocalLimitDate(null);
                 LOGGER.info("处方抢单超时解锁，recipe={}", item.getRecipeId());
                 recipeCheckDAO.update(item);
+                sendRecipeReadyCheckYsPush(item);
             });
         }
     }
