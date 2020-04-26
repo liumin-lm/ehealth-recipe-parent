@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import recipe.constant.RecipeBussConstant;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -477,10 +478,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         vo.put("enterpriseName", objs[3] == null ? null : (String)objs[3]);
                         vo.put("organName", objs[4] == null ? null : (String)objs[4]);
                         vo.put("doctorName", objs[5] == null ? null : (String)objs[5]);
-                        vo.put("signDate", objs[6] == null ? null : objs[6].toString());
+                        vo.put("signDate", objs[6] == null ? null : (Date)objs[6]);
                         vo.put("payType", objs[7] == null ? null : objs[7].toString());
-                        vo.put("payTime", objs[8] == null ? null : objs[8].toString());
-                        vo.put("refundTime", objs[9] == null ? null : objs[9].toString());
+                        vo.put("payTime", objs[8] == null ? null : (Date)objs[8]);
+                        vo.put("refundTime", objs[9] == null ? null : (Date)objs[9]);
                         vo.put("dose", objs[10] == null ? null : objs[10].toString());
                         vo.put("actualPrice", objs[11] == null ? null : Double.valueOf(objs[11]+""));
                         backList.add(vo);
