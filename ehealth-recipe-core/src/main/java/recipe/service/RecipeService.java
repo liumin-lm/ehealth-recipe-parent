@@ -523,7 +523,7 @@ public class RecipeService extends RecipeBaseService {
         //date 2019/10/10
         //添加逻辑: 设置处方审核状态为常态
         attrMap.put("checkStatus", RecipecCheckStatusConstant.Check_Normal);
-        attrMap.put("Status", RecipeStatusConstant.SIGN_ING_CODE_PHA);
+//        attrMap.put("Status", RecipeStatusConstant.SIGN_ING_CODE_PHA);
 
         //保存审核记录和详情审核记录
 //        RecipeCheck recipeCheck = new RecipeCheck();
@@ -643,29 +643,30 @@ public class RecipeService extends RecipeBaseService {
                                 LOGGER.error("generateRecipePdfAndSign 标准化CA签章 signDoctorRecipeInfo={}=", JSONObject.toJSONString(signDoctorRecipeInfo));
                                 signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
                             }
-                        } else {
-                            RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-                            RecipeLog recipeLog = new RecipeLog();
-                            recipeLog.setRecipeId(recipeId);
-                            recipeLog.setBeforeStatus(recipe.getStatus());
-                            recipeLog.setAfterStatus(RecipeStatusConstant.SIGN_ERROR_CODE_PHA);
-                            recipeLog.setMemo(resultVo.getMsg());
-                            recipeLog.setModifyDate(new Date());
-                            recipeLogDAO.saveRecipeLog(recipeLog);
-
-                            attrMap = Maps.newHashMap();
-                            attrMap.put("Status", RecipeStatusConstant.SIGN_ERROR_CODE_PHA);
-                            recipeDAO.updateRecipeInfoByRecipeId(recipeId,attrMap );
-
-                            ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
-                            SmsInfoBean smsInfo = new SmsInfoBean();
-                            smsInfo.setBusId(0);
-                            smsInfo.setOrganId(0);
-                            smsInfo.setBusType("SignNotify");
-                            smsInfo.setSmsType("SignNotify");
-                            smsInfo.setExtendValue(doctorDTO.getUrt() + "|" + recipeId + "|" + doctorDTO.getLoginId());
-                            smsPushService.pushMsgData2OnsExtendValue(smsInfo);
                         }
+//                        else {
+//                            RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+//                            RecipeLog recipeLog = new RecipeLog();
+//                            recipeLog.setRecipeId(recipeId);
+//                            recipeLog.setBeforeStatus(recipe.getStatus());
+//                            recipeLog.setAfterStatus(RecipeStatusConstant.SIGN_ERROR_CODE_PHA);
+//                            recipeLog.setMemo(resultVo.getMsg());
+//                            recipeLog.setModifyDate(new Date());
+//                            recipeLogDAO.saveRecipeLog(recipeLog);
+//
+//                            attrMap = Maps.newHashMap();
+//                            attrMap.put("Status", RecipeStatusConstant.SIGN_ERROR_CODE_PHA);
+//                            recipeDAO.updateRecipeInfoByRecipeId(recipeId,attrMap );
+//
+//                            ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
+//                            SmsInfoBean smsInfo = new SmsInfoBean();
+//                            smsInfo.setBusId(0);
+//                            smsInfo.setOrganId(0);
+//                            smsInfo.setBusType("SignNotify");
+//                            smsInfo.setSmsType("SignNotify");
+//                            smsInfo.setExtendValue(doctorDTO.getUrt() + "|" + recipeId + "|" + doctorDTO.getLoginId());
+//                            smsPushService.pushMsgData2OnsExtendValue(smsInfo);
+//                        }
 
                         bl = "success".equals(result) ? true : false;
                     } catch (Exception e) {
@@ -786,28 +787,29 @@ public class RecipeService extends RecipeBaseService {
                             LOGGER.error("generateRecipePdfAndSign 标准化CA签章 signDoctorRecipeInfo={}=", JSONObject.toJSONString(signDoctorRecipeInfo));
                             signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
                         }
-                    } else {
-                        RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-                        RecipeLog recipeLog = new RecipeLog();
-                        recipeLog.setRecipeId(recipeId);
-                        recipeLog.setBeforeStatus(recipe.getStatus());
-                        recipeLog.setAfterStatus(RecipeStatusConstant.SIGN_ERROR_CODE_PHA);
-                        recipeLog.setMemo(resultVo.getMsg());
-                        recipeLog.setModifyDate(new Date());
-                        recipeLogDAO.saveRecipeLog(recipeLog);
-
-                        attrMap.put("Status", RecipeStatusConstant.SIGN_ERROR_CODE_PHA);
-                        recipeDAO.updateRecipeInfoByRecipeId(recipeId,attrMap );
-
-                        ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
-                        SmsInfoBean smsInfo = new SmsInfoBean();
-                        smsInfo.setBusId(0);
-                        smsInfo.setOrganId(0);
-                        smsInfo.setBusType("SignNotify");
-                        smsInfo.setSmsType("SignNotify");
-                        smsInfo.setExtendValue(doctorDTO.getUrt() + "|" + recipeId + "|" + doctorDTO.getLoginId());
-                        smsPushService.pushMsgData2OnsExtendValue(smsInfo);
                     }
+//                    else {
+//                        RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+//                        RecipeLog recipeLog = new RecipeLog();
+//                        recipeLog.setRecipeId(recipeId);
+//                        recipeLog.setBeforeStatus(recipe.getStatus());
+//                        recipeLog.setAfterStatus(RecipeStatusConstant.SIGN_ERROR_CODE_PHA);
+//                        recipeLog.setMemo(resultVo.getMsg());
+//                        recipeLog.setModifyDate(new Date());
+//                        recipeLogDAO.saveRecipeLog(recipeLog);
+//
+//                        attrMap.put("Status", RecipeStatusConstant.SIGN_ERROR_CODE_PHA);
+//                        recipeDAO.updateRecipeInfoByRecipeId(recipeId,attrMap );
+//
+//                        ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
+//                        SmsInfoBean smsInfo = new SmsInfoBean();
+//                        smsInfo.setBusId(0);
+//                        smsInfo.setOrganId(0);
+//                        smsInfo.setBusType("SignNotify");
+//                        smsInfo.setSmsType("SignNotify");
+//                        smsInfo.setExtendValue(doctorDTO.getUrt() + "|" + recipeId + "|" + doctorDTO.getLoginId());
+//                        smsPushService.pushMsgData2OnsExtendValue(smsInfo);
+//                    }
 
                     resultSign = "success".equals(result) ? true : false;
                 } catch (Exception e) {
@@ -935,7 +937,7 @@ public class RecipeService extends RecipeBaseService {
         String imgFileId = MapValueUtil.getString(backMap, "imgFileId");
         Map<String, Object> attrMapimg = Maps.newHashMap();
         attrMapimg.put("signImg", imgFileId);
-        attrMapimg.put("Status", RecipeStatusConstant.SIGN_ING_CODE_DOC);
+//        attrMapimg.put("Status", RecipeStatusConstant.SIGN_ING_CODE_DOC);
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMapimg);
         LOGGER.info("generateRecipeImg 签名图片成功. fileId={}, recipeId={}", imgFileId, recipe.getRecipeId());
         //0表示成功
@@ -995,29 +997,30 @@ public class RecipeService extends RecipeBaseService {
                         LOGGER.error("generateRecipePdfAndSign 标准化CA签章 signDoctorRecipeInfo={}=", JSONObject.toJSONString(signDoctorRecipeInfo));
                         signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
                     }
-                } else {
-                    RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-                    RecipeLog recipeLog = new RecipeLog();
-                    recipeLog.setRecipeId(recipeId);
-                    recipeLog.setBeforeStatus(recipe.getStatus());
-                    recipeLog.setAfterStatus(RecipeStatusConstant.SIGN_ERROR_CODE_DOC);
-                    recipeLog.setMemo(resultVo.getMsg());
-                    recipeLog.setModifyDate(new Date());
-                    recipeLogDAO.saveRecipeLog(recipeLog);
-
-                    Map<String, Object> attrMap = Maps.newHashMap();
-                    attrMap.put("Status", RecipeStatusConstant.SIGN_ERROR_CODE_DOC);
-                    recipeDAO.updateRecipeInfoByRecipeId(recipeId,attrMap );
-
-                    ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
-                    SmsInfoBean smsInfo = new SmsInfoBean();
-                    smsInfo.setBusId(0);
-                    smsInfo.setOrganId(0);
-                    smsInfo.setBusType("SignNotify");
-                    smsInfo.setSmsType("SignNotify");
-                    smsInfo.setExtendValue(doctorDTO.getUrt() + "|" + recipeId + "|" + doctorDTO.getLoginId());
-                    smsPushService.pushMsgData2OnsExtendValue(smsInfo);
                 }
+//                else {
+//                    RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+//                    RecipeLog recipeLog = new RecipeLog();
+//                    recipeLog.setRecipeId(recipeId);
+//                    recipeLog.setBeforeStatus(recipe.getStatus());
+//                    recipeLog.setAfterStatus(RecipeStatusConstant.SIGN_ERROR_CODE_DOC);
+//                    recipeLog.setMemo(resultVo.getMsg());
+//                    recipeLog.setModifyDate(new Date());
+//                    recipeLogDAO.saveRecipeLog(recipeLog);
+//
+//                    Map<String, Object> attrMap = Maps.newHashMap();
+//                    attrMap.put("Status", RecipeStatusConstant.SIGN_ERROR_CODE_DOC);
+//                    recipeDAO.updateRecipeInfoByRecipeId(recipeId,attrMap );
+//
+//                    ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
+//                    SmsInfoBean smsInfo = new SmsInfoBean();
+//                    smsInfo.setBusId(0);
+//                    smsInfo.setOrganId(0);
+//                    smsInfo.setBusType("SignNotify");
+//                    smsInfo.setSmsType("SignNotify");
+//                    smsInfo.setExtendValue(doctorDTO.getUrt() + "|" + recipeId + "|" + doctorDTO.getLoginId());
+//                    smsPushService.pushMsgData2OnsExtendValue(smsInfo);
+//                }
 
 //                if (null != recipeFileId) {
 //                    Map<String, Object> attrMap = Maps.newHashMap();
