@@ -70,8 +70,8 @@ public class SignInfoService {
     }
 
     @RpcService
-    public String getTaskCode(Integer recipeId,Integer doctorId){
-        logger.info("getTaskCode info recipeId={}=doctorId={}=", recipeId , doctorId);
+    public String getTaskCode(Integer recipeId,Integer doctorId,boolean isDoctor){
+        logger.info("getTaskCode info recipeId={}=doctorId={}=isDoctor={}=", recipeId , doctorId,isDoctor);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
 
@@ -82,7 +82,7 @@ public class SignInfoService {
         CaAccountRequestTO caAccountRequestTO = new CaAccountRequestTO();
         caAccountRequestTO.setOrganId(doctorDTO.getOrgan());
         caAccountRequestTO.setRegulationRecipeIndicatorsReq(request);
-        caAccountRequestTO.setBusType(4);
+        caAccountRequestTO.setBusType(isDoctor?4:5);
         ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService",ICaHisService.class);
         HisResponseTO<CaAccountResponseTO> responseTO = iCaHisService.caUserBusiness(caAccountRequestTO);
         logger.info("getTaskCode result info={}=", JSONObject.toJSONString(responseTO));
@@ -102,7 +102,7 @@ public class SignInfoService {
         caAccountRequestTO.setUserName(doctorDTO.getName());
         caAccountRequestTO.setIdCard(doctorDTO.getIdNumber());
         caAccountRequestTO.setMobile(doctorDTO.getMobile());
-        caAccountRequestTO.setBusType(5);
+        caAccountRequestTO.setBusType(6);
         ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService",ICaHisService.class);
         HisResponseTO<CaAccountResponseTO> responseTO = iCaHisService.caUserBusiness(caAccountRequestTO);
         logger.info("getUserCode result info={}=", JSONObject.toJSONString(responseTO));
