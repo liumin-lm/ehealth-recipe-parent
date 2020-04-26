@@ -277,10 +277,10 @@ public class RecipeCheckService {
                 if (null != urt && null != urt.getProperty("doctor")) {
                     DoctorDTO loginDoctor = BeanUtils.map(urt.getProperty("doctor"), DoctorDTO.class);
                     if(null != recipeCheck && recipeCheck.getGrabOrderStatus().equals(1) && null == recipeCheck.getChecker()
-                            &&recipeCheck.getGrabDoctorId().equals(loginDoctor.getDoctorId())){ //未审核
-                        checkResult = 0;
+                            &&recipeCheck.getGrabDoctorId().equals(loginDoctor.getDoctorId())){ //已抢单
+                        checkResult = 6;
                     }else if(null != recipeCheck && recipeCheck.getGrabOrderStatus().equals(1) && null == recipeCheck.getChecker()
-                            &&!recipeCheck.getGrabDoctorId().equals(loginDoctor.getDoctorId())){ //已抢单
+                            &&!recipeCheck.getGrabDoctorId().equals(loginDoctor.getDoctorId())){ //已被抢单
                         checkResult = 5;
                     }
                 }
