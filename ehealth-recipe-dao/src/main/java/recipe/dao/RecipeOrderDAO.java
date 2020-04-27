@@ -723,7 +723,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 List<BillBusFeeVo> voList = Lists.newArrayList();
                 for(Object[] pos : payList){
                     BillBusFeeVo vo = new BillBusFeeVo();
-                    vo.setAcctMonth(acctDate.substring(0, 8));
+                    vo.setAcctMonth(acctDate.substring(0, 7));
                     vo.setAcctDate(acctDate);
                     vo.setFeeType(BillBusFeeTypeEnum.RECIPE_ACTUAL_FEE.id());
                     vo.setFeeTypeName(BillBusFeeTypeEnum.RECIPE_ACTUAL_FEE.text());
