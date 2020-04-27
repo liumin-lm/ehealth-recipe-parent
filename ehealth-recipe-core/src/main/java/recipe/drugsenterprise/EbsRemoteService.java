@@ -48,7 +48,7 @@ import java.util.*;
  * @author yinsheng
  * @date 2020\4\15 0015 14:33
  */
-@RpcBean(value = "ebsRemoteService")
+@RpcBean(value = "ebsRemoteService", mvc_authentication = false)
 public class EbsRemoteService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EbsRemoteService.class);
@@ -107,6 +107,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
         ebsBean.setDepartment(departmentDTO.getName());
         ebsBean.setDoctorName(recipe.getDoctorName());
         ebsBean.setName(recipe.getPatientName());
+        ebsBean.setDiagnoseResult(recipe.getOrganDiseaseName());
         if (patientDTO != null) {
             if (StringUtils.isNotEmpty(patientDTO.getPatientSex())) {
                 Integer sex = Integer.parseInt(patientDTO.getPatientSex());
@@ -175,8 +176,8 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
                 ebsDetail.setUnitPrice(saleDrugList.getPrice().doubleValue());
                 details.add(ebsDetail);
             }
-            ebsBean.setDetails(details);
         }
+        ebsBean.setDetails(details);
 
         String recipeXml = recipeToXml(ebsBean);
         //以下开始推送处方信息
@@ -226,7 +227,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
     private String recipeToXml(EbsBean ebsBean) {
         StringBuilder result = new StringBuilder("<root><body><params>");
         result.append("<prescripNo>").append(ebsBean.getPrescripNo()).append("</prescripNo>");
-        result.append("<prescribeDate>").append(ebsBean.getPrescribeDate()/1000).append("</prescribeDate>");
+        result.append("<prescribeDate>").append(ebsBean.getPrescribeDate()).append("</prescribeDate>");
         result.append("<hospitalCode>").append(ebsBean.getHospitalCode()).append("</hospitalCode>");
         result.append("<hospitalName>").append(ebsBean.getHospitalName()).append("</hospitalName>");
         result.append("<department>").append(ebsBean.getDepartment()).append("</department>");
@@ -239,8 +240,8 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
         result.append("<socialSecurityCard>").append(ebsBean.getSocialSecurityCard()).append("</socialSecurityCard>");
         result.append("<address>").append(ebsBean.getAddress()).append("</address>");
         result.append("<feeType>").append(ebsBean.getFeeType()).append("</feeType>");
-        result.append("<totalAmount>").append(10).append("</totalAmount>");
-        result.append("<diagnoseResult>").append("").append("</diagnoseResult>");
+        result.append("<totalAmount>").append(ebsBean.getTotalAmount()).append("</totalAmount>");
+        result.append("<diagnoseResult>").append(ebsBean.getDiagnoseResult()).append("</diagnoseResult>");
         result.append("<receiver>").append(ebsBean.getReceiver()).append("</receiver>");
         result.append("<receiverMobile>").append(ebsBean.getReceiverMobile()).append("</receiverMobile>");
         result.append("<provinceName>").append(ebsBean.getProvinceName()).append("</provinceName>");
@@ -254,8 +255,8 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
             result.append("<spec>").append(ebsDetail.getSpec()).append("</spec>");
             result.append("<drugForm>").append(ebsDetail.getDrugForm()).append("</drugForm>");
             result.append("<directions>").append(ebsDetail.getDirections()).append("</directions>");
-            result.append("<amount>").append(1).append("</amount>");
-            result.append("<unitPrice>").append(10).append("</unitPrice>");
+            result.append("<amount>").append(ebsDetail.getAmount()).append("</amount>");
+            result.append("<unitPrice>").append(ebsDetail.getUnitPrice()).append("</unitPrice>");
         }
         result.append("</params></body></root>");
         return result.toString();
@@ -285,7 +286,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
                 xkyyHelper.initConfig(param);
                 try{
                     String webServiceResult = xkyyHelper.HXCFZT(parames, stockMethod);
-                    System.out.println("result:"+webServiceResult);
+                    LOGGER.info("getDrugInventory webServiceResult:{}. ", webServiceResult);
                     Map maps = (Map)JSON.parse(webServiceResult);
                     Boolean success = (Boolean) maps.get("success");
                     String code = (String) maps.get("code");
