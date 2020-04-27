@@ -427,6 +427,14 @@ public class RecipeSignService {
             }
 
         }
+        if (StringUtils.isNotEmpty(recipeBean.getRecipeExtend().getHandleMethod())
+        &&recipeBean.getRecipeExtend().getHandleMethod().startsWith("超时")){
+            try {
+                Thread.sleep(20000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         LOG.info("doSignRecipeExt execute ok! result={}", JSONUtils.toString(rMap));
         return rMap;
     }
