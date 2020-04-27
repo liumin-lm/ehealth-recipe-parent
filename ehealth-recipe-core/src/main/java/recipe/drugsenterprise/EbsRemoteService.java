@@ -378,7 +378,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
-        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        /*DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         //获取HIS处方状态更新平台处方信息
         //查询物流信息更新物流状态
@@ -424,7 +424,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
                     }
                 }
             }
-        }
+        }*/
         return DrugEnterpriseResult.getSuccess();
     }
 
