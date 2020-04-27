@@ -503,20 +503,30 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @param depId 药企ID
      * @return
      */
-    public Map<String, Object> queryrecipeOrderDetailedTotal(Date startTime, Date endTime, Integer organId, Integer depId){
+    public Map<String, Object> queryrecipeOrderDetailedTotal(Date startTime, Date endTime, Integer organId, Integer depId, Integer drugId){
         HibernateStatelessResultAction<Map<String, Object>> action = new AbstractHibernateStatelessResultAction<Map<String, Object>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("SELECT count(1), sum(o.ActualPrice) as totalPrice");
-                hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode ");
-                hql.append(" WHERE r.GiveMode = 1 and ((o.payflag = 1 and o.paytime BETWEEN :startTime  AND :endTime ) OR (o.refundflag = 1 and o.refundTime BETWEEN :startTime  AND :endTime)) ");
+                if (drugId != null) {
+                    hql.append("SELECT count(1), sum(totalPrice) as totalPrice from (SELECT max(o.ActualPrice) as totalPrice ");
+                    hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId");
+                    hql.append(" WHERE r.GiveMode = 1 and ((o.payflag = 1 and o.paytime BETWEEN :startTime  AND :endTime ) OR (o.refundflag = 1 and o.refundTime BETWEEN :startTime  AND :endTime)) ");
+                } else {
+                    hql.append("SELECT count(1), sum(o.ActualPrice) as totalPrice");
+                    hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode ");
+                    hql.append(" WHERE r.GiveMode = 1 and ((o.payflag = 1 and o.paytime BETWEEN :startTime  AND :endTime ) OR (o.refundflag = 1 and o.refundTime BETWEEN :startTime  AND :endTime)) ");
+                }
                 if (organId != null) {
                     hql.append(" and r.clinicOrgan = :organId");
                 }
                 if (depId != null) {
                     hql.append(" and o.EnterpriseId = :depId");
                 }
+                if (drugId != null) {
+                    hql.append(" and d.drugId = :drugId and d.status = 1 GROUP BY r.recipeId) a");
+                }
+
                 Query q = ss.createSQLQuery(hql.toString());
                 q.setParameter("startTime", startTime);
                 q.setParameter("endTime", endTime);
@@ -525,6 +535,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 }
                 if (depId != null) {
                     q.setParameter("depId", depId);
+                }
+                if (drugId != null) {
+                    q.setParameter("drugId", drugId);
                 }
                 List<Object[]> result = q.list();
                 Map<String, Object> vo = new HashMap ();

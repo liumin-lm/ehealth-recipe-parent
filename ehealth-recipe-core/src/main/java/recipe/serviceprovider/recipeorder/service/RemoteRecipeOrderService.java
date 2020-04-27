@@ -187,7 +187,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     @RpcService
     public Map<String, Object> recipeOrderDetailedStatistics(Date startTime, Date endTime, Integer organId, Integer depId, Integer drugId, String orderColumn, String orderType, int start, int limit){
         List<Map<String, Object>> list = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeOrderDetailed(startTime, endTime, organId, depId, drugId, orderColumn, orderType, start, limit);
-        Map<String, Object> map = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeOrderDetailedTotal(startTime, endTime, organId, depId);
+        Map<String, Object> map = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeOrderDetailedTotal(startTime, endTime, organId, depId, drugId);
         map.put("orderData", list);
         return map;
     }
