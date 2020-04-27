@@ -385,8 +385,16 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         OrganAndDrugsepRelationDAO drugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
         List<DrugsEnterprise> drugsEnterprises = drugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
         RemoteDrugEnterpriseService enterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        List<DrugsEnterprise> enterprises = new ArrayList<>();
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        for (DrugsEnterprise enterprise : drugsEnterprises) {
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganIdAndStatus(drugId, enterprise.getId());
+            if (saleDrugList != null) {
+                enterprises.add(enterprise);
+            }
+        }
         List<List<String>> inventoryList = new ArrayList<>();
-        for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+        for (DrugsEnterprise drugsEnterprise : enterprises) {
             List<String> inventoryData = new ArrayList<>();
             String inventory = enterpriseService.getDrugInventory(drugsEnterprise.getId(), drugId, organId);
             if ("有库存".equals(inventory) || "无库存".equals(inventory) || "暂不支持库存查询".equals(inventory)) {
