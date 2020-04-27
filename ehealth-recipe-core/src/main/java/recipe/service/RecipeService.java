@@ -1531,6 +1531,7 @@ public class RecipeService extends RecipeBaseService {
                 //更新审方信息
                 RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
             }
+            Thread.sleep(20000);
         } catch (Exception e) {
             LOGGER.error("doSignRecipeExt error", e);
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
