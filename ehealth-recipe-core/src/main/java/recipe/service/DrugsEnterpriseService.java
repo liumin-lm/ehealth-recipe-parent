@@ -353,7 +353,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
             }
             //如果药企不存在在任何一家可配送药企则不显示按钮
             for (DrugsEnterprise drugsEnterprise : drugsEnterpriseList) {
-                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganIdAndStatus(drugId, drugsEnterprise.getId());
                 if (saleDrugList != null) {
                     return true;
                 }
