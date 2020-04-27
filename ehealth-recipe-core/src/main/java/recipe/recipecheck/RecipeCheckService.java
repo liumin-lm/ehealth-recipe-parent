@@ -374,7 +374,7 @@ public class RecipeCheckService {
         r.setSignRecipeCode(recipe.getSignRecipeCode());
         //设置时间戳
         r.setSignCADate(recipe.getSignCADate());
-
+        r.setFromflag(recipe.getFromflag());
         try {
             String showTip = DictionaryController.instance().get("eh.cdr.dictionary.RecipeStatus").getText(recipe.getStatus());
             r.setShowTip(showTip);
@@ -382,12 +382,12 @@ public class RecipeCheckService {
             e.printStackTrace();
         }
         //取医生的手机号
-        DoctorDTO doc = new DoctorDTO();
+        DoctorDTO doctor = new DoctorDTO();
         try {
-            DoctorDTO doctor = doctorService.get(doctorId);
-            if (null != doctor) {
-                doc.setMobile(doctor.getMobile());
-            }
+            doctor = doctorService.get(doctorId);
+//            if (null != doctor) {
+//                doc.setMobile(doctor.getMobile());
+//            }
         } catch (Exception e) {
             LOGGER.warn("findRecipeAndDetailsAndCheckById get doctor error. doctorId={}", recipe.getDoctor(), e);
         }
@@ -528,7 +528,7 @@ public class RecipeCheckService {
         map.put("dateString", dateString);
         map.put("recipe", r);
         map.put("patient", p);
-        map.put("doctor", doc);
+        map.put("doctor", doctor);
         map.put("details", ObjectCopyUtils.convert(details, RecipeDetailBean.class));
         map.put("drugsEnterprise", e);
         map.put("recipeOrder", order);
