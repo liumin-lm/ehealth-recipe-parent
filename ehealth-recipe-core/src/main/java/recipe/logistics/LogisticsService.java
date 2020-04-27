@@ -6,10 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.logistics.model.RecipeLogisticsBean;
 import com.sf.csim.express.service.CallExpressServiceTools;
-import ctd.dictionary.DictionaryController;
-import ctd.mvc.support.HttpClientUtils;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -20,19 +17,12 @@ import de.odysseus.staxon.json.JsonXMLInputFactory;
 import de.odysseus.staxon.json.JsonXMLOutputFactory;
 import de.odysseus.staxon.xml.util.PrettyXMLEventWriter;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.dao.RecipeParameterDao;
-import recipe.util.AppSiganatureUtils;
+import recipe.drugsenterprise.bean.EsbWebService;
 import recipe.util.DictionaryUtil;
 
 import javax.xml.stream.XMLEventReader;
@@ -59,7 +49,7 @@ import java.util.*;
  * ID和Key请到官网申请：http://www.kdniao.com/ServiceApply.aspx
  */
 
-@RpcBean("logisticsService")
+@RpcBean(value = "logisticsService")
 public class LogisticsService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LogisticsService.class);
@@ -486,8 +476,6 @@ public class LogisticsService {
         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        String appId = recipeParameterDao.getByName("logistics_shsy_app_id");
-        String appSecret = recipeParameterDao.getByName("logistics_shsy_app_secret");
         String url = recipeParameterDao.getByName("logistics_shsy_url");
         String item = DictionaryUtil.getKeyByValue("eh.cdr.dictionary.KuaiDiNiaoCode",expCode);
         Recipe recipe = new Recipe();
@@ -506,32 +494,27 @@ public class LogisticsService {
         Map<String, Object> params = new HashMap<>();
         params.put("prescripNo",prescripNo);
         params.put("hospitalName",hospitalName);
-        String json = JSONObject.toJSONString(params);
-        LOGGER.info("上海上药物流信息查询，签名认证参数：APP_ID={},APP_SECRET={},json={}",appId,appSecret,json);
-        long timestamp = System.currentTimeMillis();
-        HttpPost method = new HttpPost(url);
-        method.addHeader("ACCESS_APPID", appId);
-        method.addHeader("ACCESS_TIMESTAMP", String.valueOf(timestamp));
-        method.addHeader("ACCESS_SIGANATURE", AppSiganatureUtils.createSiganature(json, appId, appSecret,
-                timestamp));
-        method.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));
-        HttpClient httpClient = HttpClientUtils.getHttpClient();
-        HttpResponse httpResponse = httpClient.execute(method);
-        HttpEntity entity = httpResponse.getEntity();
-        String response = EntityUtils.toString(entity);
-        JSONObject jsonObject = JSON.parseObject(response);
+        String request = jsonToXml(params);
+        EsbWebService xkyyHelper = new EsbWebService();
+        Map<String, String> param=new HashMap<String, String>();
+        param.put("url", url);
+        String fetchLogisticsProcessMethod = "fetchLogisticsProcess";
+        xkyyHelper.initConfig(param);
+        String webServiceResult = xkyyHelper.HXCFZT(request, fetchLogisticsProcessMethod);
+        LOGGER.info("getDrugInventory webServiceResult:{}. ", webServiceResult);
+        Map maps = (Map)JSON.parse(webServiceResult);
+
         LogisticsTraceResponse logisticsTraceResponse = new LogisticsTraceResponse();
-        Boolean success = jsonObject.getBoolean("success");
-        String code = jsonObject.getString("code");
+        Boolean success = (Boolean) maps.get("success");
+        String code = (String) maps.get("code");
         List<LogisticsTrace> traces = new ArrayList<>();
         if("0".equals(code)){
-            JSONArray jsonArray = jsonObject.getJSONArray("result");
-            List<ShsyTrace> list = jsonArray.toJavaList(ShsyTrace.class);
+            List<Map> list = (List)maps.get("result");
             if(list.size() > 0){
-                for(ShsyTrace shsyTrace : list){
+                for(Map shsyTrace : list){
                     LogisticsTrace logisticsTrace = new LogisticsTrace();
-                    logisticsTrace.setAcceptStation(shsyTrace.getProcessRemark());
-                    logisticsTrace.setAcceptTime(shsyTrace.getProcessTime());
+                    logisticsTrace.setAcceptStation((String)shsyTrace.get("processRemark"));
+                    logisticsTrace.setAcceptTime((String)shsyTrace.get("processTime"));
                     traces.add(logisticsTrace);
                 }
             }
@@ -541,5 +524,16 @@ public class LogisticsService {
         logisticsTraceResponse.setLogisticCode(expNo);
         logisticsTraceResponse.setShipperCode(expCode);
         return JSON.toJSONString(logisticsTraceResponse);
+    }
+
+    private String jsonToXml(Map<String, Object> params){
+        StringBuilder result = new StringBuilder("<root><body><params>");
+        if (params != null) {
+            for (Map.Entry<String, Object> entry : params.entrySet()) {
+                result.append("<").append(entry.getKey()).append(">").append(entry.getValue()).append("</").append(entry.getKey()).append(">");
+            }
+        }
+        result.append("</params></body></root>");
+        return result.toString();
     }
 }
