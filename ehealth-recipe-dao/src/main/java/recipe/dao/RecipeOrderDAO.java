@@ -708,7 +708,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 refundSql.append("SELECT r.ClinicOrgan, count(*), sum(IFNULL(o.ActualPrice, 0)) ");
                 refundSql.append(" FROM cdr_recipe r, cdr_recipeorder o ");
                 refundSql.append(" WHERE r.OrderCode = o.OrderCode AND o.refundFlag = 1 ");
-                refundSql.append(" AND  refundTime >= :startTime AND refundTime < :endTime");
+                refundSql.append(" AND  refundTime >= :startTime AND refundTime < :endTime ");
                 refundSql.append(" GROUP BY r.ClinicOrgan ");
                 Query refundSqlQuery = ss.createSQLQuery(refundSql.toString());
                 refundSqlQuery.setParameter("startTime", recipeBillRequest.getStartTime());
@@ -730,6 +730,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                     vo.setOrganId(ConversionUtils.convert(pos[0], Integer.class));
                     vo.setPayCount(ConversionUtils.convert(pos[1], Integer.class));
                     vo.setPayAmount(ConversionUtils.convert(pos[2], Double.class));
+                    vo.setRefundAmount(0.0);
+                    vo.setRefundCount(0);
                     for(Object[] ros : refundList){
                         Integer xo = ConversionUtils.convert(ros[0], Integer.class);
                         if(vo.getOrganId().equals(xo)) {
@@ -756,10 +758,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             public void execute(StatelessSession ss) throws Exception {
                 StringBuffer sql = new StringBuffer();
                 sql.append("SELECT r.ClinicOrgan, r.enterpriseId, d.name, r.RecipeType, sum(o.RecipeFee) ");
-                sql.append("FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON (r.OrderCode = o.OrderCode) LEFT JOIN cdr_drugsenterprise d ON (r.EnterpriseId = d.id)");
+                sql.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON (r.OrderCode = o.OrderCode) LEFT JOIN cdr_drugsenterprise d ON (r.EnterpriseId = d.id) ");
                 sql.append(" WHERE r.OrderCode = o.OrderCode AND o.Effective = 1 AND o.PayFlag=1 ");
-                sql.append(" AND PayTime >= :startTime AND PayTime < :endTime");
-                sql.append("GROUP BY r.ClinicOrgan, r.enterpriseId, d.name, r.RecipeType");
+                sql.append(" AND PayTime >= :startTime AND PayTime < :endTime ");
+                sql.append(" GROUP BY r.ClinicOrgan, r.enterpriseId, d.name, r.RecipeType");
                 Query sqlQuery = ss.createSQLQuery(sql.toString());
                 sqlQuery.setParameter("startTime", recipeBillRequest.getStartTime());
                 sqlQuery.setParameter("endTime", recipeBillRequest.getEndTime());
