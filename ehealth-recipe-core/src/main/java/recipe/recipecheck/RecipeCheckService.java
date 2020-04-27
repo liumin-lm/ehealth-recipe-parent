@@ -1150,6 +1150,9 @@ public class RecipeCheckService {
                 if(null == recipeCheck2){
                     recipeCheckDAO.save(recipeCheck);
                 }else{
+                    if(recipeCheck2.getGrabOrderStatus().equals(1) && !doctorId.equals(recipeCheck2.getGrabDoctorId())){
+                        throw new DAOException("来晚一步，处方单已被其他药师抢单");
+                    }
                     recipeCheck2.setGrabOrderStatus(GrabOrderStatusConstant.GRAB_ORDERED_OWN);
                     recipeCheck2.setGrabDoctorId(doctorId);
                     recipeCheck2.setCheckStatus(RecipecCheckStatusConstant.Check_Normal);
@@ -1168,6 +1171,9 @@ public class RecipeCheckService {
                 }
             }
         } catch (Exception e) {
+            if(e instanceof DAOException){
+                throw new DAOException(e.getMessage());
+            }
             LOGGER.error("grabOrderApply error", e);
             resultMap.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDER_NO); //失败处理
             return resultMap;
