@@ -9,8 +9,7 @@ import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.billcheck.vo.RecipeBillRequest;
-import eh.billcheck.vo.RecipeBillResponse;
+import eh.billcheck.vo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -20,7 +19,7 @@ import recipe.service.RecipeOrderService;
 import recipe.serviceprovider.BaseService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
-import eh.billcheck.vo.BillRecipeDetailVo;
+
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -188,7 +187,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     @RpcService
     public Map<String, Object> recipeOrderDetailedStatistics(Date startTime, Date endTime, Integer organId, Integer depId, Integer drugId, String orderColumn, String orderType, int start, int limit){
         List<Map<String, Object>> list = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeOrderDetailed(startTime, endTime, organId, depId, drugId, orderColumn, orderType, start, limit);
-        Map<String, Object> map = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeOrderDetailedTotal(startTime, endTime, organId, depId, drugId);
+        Map<String, Object> map = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeOrderDetailedTotal(startTime, endTime, organId, depId);
         map.put("orderData", list);
         return map;
     }
@@ -208,5 +207,17 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         Map<String, Object> map = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeDrugtotal(startTime, endTime, organId, depId, recipeId);
         map.put("drugData", list);
         return map;
+    }
+
+    @Override
+    public List<BillBusFeeVo> findRecipeFeeList(RecipeBillRequest recipeBillRequest) {
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        return recipeOrderDAO.findRecipeFeeList(recipeBillRequest);
+    }
+
+    @Override
+    public List<BillDrugFeeVo> findDrugFeeList(RecipeBillRequest recipeBillRequest) {
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        return recipeOrderDAO.findDrugFeeList(recipeBillRequest);
     }
 }

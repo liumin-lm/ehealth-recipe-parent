@@ -25,5 +25,5 @@ public abstract class ChronicDiseaseDAO extends HibernateSupportDelegateDAO<Chro
      * @return
      */
     @DAOMethod(sql = "from ChronicDisease where  chronicDiseaseFlag=:chronicDiseaseFlag and status = 1")
-    public abstract List<ChronicDisease> findChronicDiseasesByOrganId(@DAOParam("chronicDiseaseFlag") Integer chronicDiseaseFlag);
+    public abstract List<ChronicDisease> findChronicDiseasesByOrganId(@DAOParam("chronicDiseaseFlag") String chronicDiseaseFlag);
 }

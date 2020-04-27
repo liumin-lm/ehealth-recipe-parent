@@ -26,6 +26,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -334,7 +335,7 @@ public class RecipePatientService extends RecipeBaseService {
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         Integer diseaseType = (Integer) configurationService.getConfiguration(organId, "recipeChooseChronicDisease");
         if(3 == diseaseType){
-            List<ChronicDisease> chronicDiseaseList = chronicDiseaseDAO.findChronicDiseasesByOrganId(3);
+            List<ChronicDisease> chronicDiseaseList = chronicDiseaseDAO.findChronicDiseasesByOrganId(diseaseType.toString());
             list = ObjectCopyUtils.convert(chronicDiseaseList,ChronicDiseaseListResTO.class);
             return list;
         }else {
@@ -347,6 +348,13 @@ public class RecipePatientService extends RecipeBaseService {
             req.setPatient(patientBaseInfo);
             req.setOrganId(organId);
             HisResponseTO<PatientChronicDiseaseRes> res = service.findPatientChronicDiseaseList(req);
+            if (res!=null && !("200".equals(res.getMsgCode()))){
+                String msg = "接口异常";
+                if (StringUtils.isNotEmpty(res.getMsg())){
+                    msg = msg +":" +res.getMsg();
+                }
+                throw new DAOException(609, msg);
+            }
             if (res == null || res.getData() == null){
                 return list;
             }

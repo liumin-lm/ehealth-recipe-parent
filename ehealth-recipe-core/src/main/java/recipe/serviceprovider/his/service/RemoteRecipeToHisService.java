@@ -1,9 +1,11 @@
 package recipe.serviceprovider.his.service;
 
+import com.google.common.collect.ImmutableMap;
 import com.ngari.base.BaseAPI;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
@@ -19,6 +21,7 @@ import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -182,6 +185,14 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
             if ("200".equals(hisResponse.getMsgCode())) {
                 response.setCode(RecipeCommonResTO.SUCCESS);
                 VisitRegistResponseTO resDate = hisResponse.getData();
+                //更新复诊挂号序号
+                if (StringUtils.isNotEmpty(resDate.getRegisterId())){
+                    IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
+                    ConsultExDTO consultExDTO = exService.getByConsultId(hosrelationBean.getBusId());
+                    if (consultExDTO!=null && StringUtils.isEmpty(consultExDTO.getRegisterNo())) {
+                        exService.updateConsultExInfoByConsultId(hosrelationBean.getBusId(), ImmutableMap.of("registerNo", resDate.getRegisterId()));
+                    }
+                }
                 hosrelationBean.setRegisterId(resDate.getRegisterId());
                 hosrelationBean.setClinicNo(resDate.getClinicNo());
                 hosrelationBean.setPatId(resDate.getPatId());

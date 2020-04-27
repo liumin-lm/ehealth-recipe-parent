@@ -3,6 +3,7 @@ package recipe.thread;
 import com.google.common.collect.Lists;
 import com.ngari.recipe.audit.model.AuditMedicineIssueDTO;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
+import com.ngari.recipe.entity.AuditMedicineIssue;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
@@ -13,10 +14,13 @@ import recipe.ApplicationUtils;
 import recipe.audit.bean.AutoAuditResult;
 import recipe.audit.bean.Issue;
 import recipe.audit.bean.PAWebMedicines;
+import recipe.audit.bean.PAWebRecipeDanger;
 import recipe.audit.service.PrescriptionService;
+import recipe.dao.AuditMedicineIssueDAO;
 import recipe.dao.AuditMedicinesDAO;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -47,16 +51,33 @@ public class SaveAutoReviewRunable implements Runnable {
         LOGGER.info("SaveAutoReview start. recipeId={}", recipeId);
         PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
         AuditMedicinesDAO auditMedicinesDAO = DAOFactory.getDAO(AuditMedicinesDAO.class);
+        AuditMedicineIssueDAO auditMedicineIssueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
         AutoAuditResult autoAuditResult = prescriptionService.analysis(recipe, details);
         List<AuditMedicinesDTO> auditMedicinesList = Lists.newArrayList();
         List<PAWebMedicines> paResultList = autoAuditResult.getMedicines();
+        List<PAWebRecipeDanger> recipeDangers = autoAuditResult.getRecipeDangers();
+        if (CollectionUtils.isNotEmpty(recipeDangers)) {
+            recipeDangers.forEach(item->{
+                AuditMedicineIssue auditMedicineIssue = new AuditMedicineIssue();
+                auditMedicineIssue.setRecipeId(recipeId);
+                auditMedicineIssue.setLvl(item.getDangerType());
+                auditMedicineIssue.setLvlCode(item.getDangerLevel());
+                auditMedicineIssue.setDetail(item.getDangerDesc());
+                auditMedicineIssue.setTitle(item.getDangerDrug());
+                auditMedicineIssue.setCreateTime(new Date());
+                auditMedicineIssue.setLastModify(new Date());
+                auditMedicineIssue.setDetailUrl(item.getDetailUrl());
+                auditMedicineIssue.setLogicalDeleted(0);
+                auditMedicineIssueDAO.save(auditMedicineIssue);
+            });
+        }
         if (CollectionUtils.isEmpty(paResultList)) {
             AuditMedicinesDTO auditMedicinesDTO = new AuditMedicinesDTO();
             auditMedicinesDTO.setRecipeId(recipeId);
             auditMedicinesDTO.setRemark(autoAuditResult.getMsg());
             auditMedicinesList.add(auditMedicinesDTO);
             auditMedicinesDAO.save(recipeId, auditMedicinesList);
-        } else {
+        } else if(CollectionUtils.isNotEmpty(paResultList)) {
             AuditMedicinesDTO auditMedicinesDTO;
             List<Issue> issueList;
             List<AuditMedicineIssueDTO> auditMedicineIssues;
@@ -83,6 +104,7 @@ public class SaveAutoReviewRunable implements Runnable {
             }
             auditMedicinesDAO.save(recipeId, auditMedicinesList);
         }
+
         LOGGER.info("SaveAutoReview finish. recipeId={}", recipeId);
     }
 

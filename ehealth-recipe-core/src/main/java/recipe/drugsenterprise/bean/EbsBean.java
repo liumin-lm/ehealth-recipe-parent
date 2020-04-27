@@ -1,5 +1,6 @@
 package recipe.drugsenterprise.bean;
 
+import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
@@ -8,6 +9,7 @@ import java.util.List;
  * @author yinsheng
  * @date 2020\4\15 0015 14:52
  */
+@XmlRootElement(name="params")
 public class EbsBean implements Serializable{
     private static final long serialVersionUID = 598564582027934109L;
 

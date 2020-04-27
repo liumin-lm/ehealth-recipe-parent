@@ -6,9 +6,7 @@ import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.util.annotation.RpcService;
-import eh.billcheck.vo.BillRecipeDetailVo;
-import eh.billcheck.vo.RecipeBillRequest;
-import eh.billcheck.vo.RecipeBillResponse;
+import eh.billcheck.vo.*;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -144,4 +142,10 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
     @RpcService
     public Map<String, Object> recipeDrugStatistics(Date startTime, Date endTime, Integer organId, Integer depId, Integer recipeId, String orderColumn, String orderType, int start, int limit);
 
-    }
+    @RpcService
+    List<BillBusFeeVo> findRecipeFeeList(RecipeBillRequest recipeBillRequest);
+
+    @RpcService
+    List<BillDrugFeeVo> findDrugFeeList(RecipeBillRequest recipeBillRequest);
+
+}

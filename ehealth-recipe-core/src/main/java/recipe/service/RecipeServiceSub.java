@@ -6,7 +6,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
-import com.ngari.base.doctor.model.RelationDoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.operationrecords.model.OperationRecordsBean;
 import com.ngari.base.operationrecords.service.IOperationRecordsService;
@@ -20,14 +19,16 @@ import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.message.service.IConsultMessageService;
+import com.ngari.follow.service.IRelationPatientService;
+import com.ngari.follow.vo.RelationDoctorVO;
 import com.ngari.home.asyn.model.BussCancelEvent;
-import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.audit.model.AuditMedicineIssueDTO;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
 import ctd.dictionary.Dictionary;
@@ -46,6 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
+import recipe.audit.bean.PAWebRecipeDanger;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
@@ -94,6 +96,8 @@ public class RecipeServiceSub {
     private static RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
     private static DepartmentService departmentService = ApplicationUtils.getBasicService(DepartmentService.class);
+
+    private static IConfigurationCenterUtilsService configService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
 
     private static Integer[] showRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.IN_SEND, RecipeStatusConstant.WAIT_SEND, RecipeStatusConstant.FINISH};
 
@@ -303,6 +307,8 @@ public class RecipeServiceSub {
                             recipe.setDistributionFlag(1);
                         }
                     }
+                    //判断某诊断下某药品能否开具
+                    canOpenRecipeDrugsAndDisease(recipe,drugIds);
                 }else{
                     for (OrganDrugList obj : organDrugList) {
                         organDrugListMap.put(obj.getOrganDrugCode(), obj);
@@ -377,13 +383,20 @@ public class RecipeServiceSub {
         return success;
     }
 
-    public static Map<String, String> validateRecipeSendDrugMsg(RecipeBean recipe){
-        Map<String, String> result = new HashMap<>();
-        String recipeMode = recipe.getRecipeMode();
+    public static RecipeResultBean validateRecipeSendDrugMsg(RecipeBean recipe){
+        RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Integer> drugIds = detailDAO.findDrugIdByRecipeId(recipe.getRecipeId());
-
-        //平台增加药品相关校验
+        try {
+            //处方药品能否配送以及能否开具同一张处方上
+            canOpenRecipeDrugs(recipe.getClinicOrgan(),recipe.getRecipeId(),drugIds);
+        }catch (Exception e){
+            LOGGER.error("canOpenRecipeDrugs error",e);
+            resultBean.setCode(RecipeResultBean.FAIL);
+            resultBean.setMsg(e.getMessage());
+            return resultBean;
+        }
+        /*//平台增加药品相关校验
         if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
 
             DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
@@ -392,8 +405,6 @@ public class RecipeServiceSub {
                 //判断药品能否开在一张处方单上
                 result.putAll(canOpenRecipeDrugsCopy(recipe.getClinicOrgan(),recipe.getRecipeId(),drugIds));
             }
-            //判断某诊断下某药品能否开具
-            result.putAll(canOpenRecipeDrugsAndDiseaseCopy(recipe,drugIds));
         } else if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
             //浙江省互联网医院模式不需要这么多校验
 //            for (OrganDrugList obj : organDrugList) {
@@ -402,8 +413,8 @@ public class RecipeServiceSub {
 //            }
             //无需校验
             result.put("code", "200");
-        }
-        return result;
+        }*/
+        return resultBean;
     }
 
     private static void canOpenRecipeDrugsAndDisease(Recipe recipe, List<Integer> drugIds) {
@@ -487,15 +498,15 @@ public class RecipeServiceSub {
         }
     }
 
-    public static Map<String, String> canOpenRecipeDrugsCopy(Integer clinicOrgan, Integer recipeId, List<Integer> drugIds) {
+    /*public static Map<String, String> canOpenRecipeDrugsCopy(Integer clinicOrgan, Integer recipeId, List<Integer> drugIds) {
         Map<String, String> result = new HashMap<>();
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         List<DrugList> drugList = drugListDAO.findByDrugIds(drugIds);
-       /* Map<Integer, DrugList> drugListMap = Maps.newHashMap();
+       *//* Map<Integer, DrugList> drugListMap = Maps.newHashMap();
         for (DrugList obj : drugList) {
             drugListMap.put(obj.getDrugId(), obj);
-        }*/
+        }*//*
         //list转map
         Map<Integer, DrugList> drugListMap = drugList.stream().collect(Collectors.toMap(DrugList::getDrugId, a -> a));
 
@@ -555,9 +566,9 @@ public class RecipeServiceSub {
             result.put("msg", Joiner.on(",").join(drugNames) + "不支持同一家药企配送，建议拆分药品开方。");
         }
         return result;
-    }
+    }*/
 
-    private static Map<String, String> canOpenRecipeDrugsAndDiseaseCopy(RecipeBean recipe, List<Integer> drugIds) {
+    /*private static Map<String, String> canOpenRecipeDrugsAndDiseaseCopy(RecipeBean recipe, List<Integer> drugIds) {
         Map<String, String> result = new HashMap<>();
         List<String> nameLists = Splitter.on("；").splitToList(recipe.getOrganDiseaseName());
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
@@ -573,7 +584,7 @@ public class RecipeServiceSub {
             }
         }
         return result;
-    }
+    }*/
 
     /**
      * 组装生成pdf的参数集合
@@ -584,7 +595,6 @@ public class RecipeServiceSub {
      * @return Map<String, Object>
      */
     public static Map<String, Object> createParamMap(Recipe recipe, List<Recipedetail> details, String fileName) {
-        DrugListDAO dDao = DAOFactory.getDAO(DrugListDAO.class);
         Map<String, Object> paramMap = Maps.newHashMap();
         try {
             PatientDTO p = patientService.get(recipe.getMpiid());
@@ -613,29 +623,19 @@ public class RecipeServiceSub {
             paramMap.put("disease", recipe.getOrganDiseaseName());
             paramMap.put("cDate", DateConversion.getDateFormatter(recipe.getSignDate(), "yyyy-MM-dd HH:mm"));
             paramMap.put("diseaseMemo", recipe.getMemo());
-            paramMap.put("recipeCode", recipe.getRecipeCode().startsWith("ngari") ? "" : recipe.getRecipeCode());
+            paramMap.put("recipeCode", recipe.getRecipeCode() == null? "" : recipe.getRecipeCode().startsWith("ngari") ? "" : recipe.getRecipeCode());
             paramMap.put("patientId", recipe.getPatientID());
             paramMap.put("mobile", p.getMobile());
             paramMap.put("loginId", p.getLoginId());
             paramMap.put("label", recipeType + "处方");
             int i = 0;
-            List<Integer> drugIds = Lists.newArrayList();
-            for (Recipedetail d : details) {
-                drugIds.add(d.getDrugId());
-            }
-            List<DrugList> dlist = dDao.findByDrugIds(drugIds);
-            Map<Integer, DrugList> dMap = Maps.newHashMap();
-            for (DrugList d : dlist) {
-                dMap.put(d.getDrugId(), d);
-            }
             ctd.dictionary.Dictionary usingRateDic = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate");
             Dictionary usePathwaysDic = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways");
             String useDose;
             for (Recipedetail d : details) {
-                DrugList drug = dMap.get(d.getDrugId());
-                String dName = (i + 1) + "、" + drug.getDrugName();
+                String dName = (i + 1) + "、" + d.getDrugName();
                 //规格+药品单位
-                String dSpec = drug.getDrugSpec() + "/" + drug.getUnit();
+                String dSpec = d.getDrugSpec() + "/" + d.getDrugUnit();
                 //使用天数
                 String useDay = d.getUseDays() + "天";
                 if (StringUtils.isNotEmpty(d.getUseDoseStr())){
@@ -644,10 +644,10 @@ public class RecipeServiceSub {
                     useDose = d.getUseDose() !=null?String.valueOf(d.getUseDose()):d.getUseDoseStr();
                 }
                 //每次剂量+剂量单位
-                String uDose = "Sig: " + "每次" + useDose + (StringUtils.isEmpty(drug.getUseDoseUnit()) ?
-                        "" : drug.getUseDoseUnit());
+                String uDose = "Sig: " + "每次" + useDose + (StringUtils.isEmpty(d.getUseDoseUnit()) ?
+                        "" : d.getUseDoseUnit());
                 //开药总量+药品单位
-                String dTotal = "X" + d.getUseTotalDose() + drug.getUnit();
+                String dTotal = "X" + d.getUseTotalDose() + d.getDrugUnit();
                 //用药频次
                 String dRateName = d.getUsingRate() + "(" + usingRateDic.getText(d.getUsingRate()) + ")";
                 //用法
@@ -678,7 +678,6 @@ public class RecipeServiceSub {
      * @Author liuya
      */
     public static Map<String, Object> createParamMapForChineseMedicine(Recipe recipe, List<Recipedetail> details, String fileName) {
-        DrugListDAO dDao = DAOFactory.getDAO(DrugListDAO.class);
         Map<String, Object> paramMap = Maps.newHashMap();
         try {
             PatientDTO p = patientService.get(recipe.getMpiid());
@@ -707,7 +706,7 @@ public class RecipeServiceSub {
             paramMap.put("disease", recipe.getOrganDiseaseName());
             paramMap.put("cDate", DateConversion.getDateFormatter(recipe.getSignDate(), "yyyy-MM-dd HH:mm"));
             paramMap.put("diseaseMemo", recipe.getMemo());
-            paramMap.put("recipeCode", recipe.getRecipeCode().startsWith("ngari") ? "" : recipe.getRecipeCode());
+            paramMap.put("recipeCode", recipe.getRecipeCode() == null? "" : recipe.getRecipeCode().startsWith("ngari") ? "" : recipe.getRecipeCode());
             paramMap.put("patientId", recipe.getPatientID());
             paramMap.put("mobile", p.getMobile());
             paramMap.put("loginId", p.getLoginId());
@@ -715,29 +714,19 @@ public class RecipeServiceSub {
             paramMap.put("copyNum", recipe.getCopyNum() + "剂");
             paramMap.put("recipeMemo", recipe.getRecipeMemo());
             int i = 0;
-            List<Integer> drugIds = Lists.newArrayList();
             for (Recipedetail d : details) {
-                drugIds.add(d.getDrugId());
-            }
-            List<DrugList> dlist = dDao.findByDrugIds(drugIds);
-            Map<Integer, DrugList> dMap = Maps.newHashMap();
-            for (DrugList d : dlist) {
-                dMap.put(d.getDrugId(), d);
-            }
-            for (Recipedetail d : details) {
-                DrugList drug = dMap.get(d.getDrugId());
-                String dName = drug.getDrugName();
+                String dName = d.getDrugName();
                 //开药总量+药品单位
                 String dTotal = "";
                 if (StringUtils.isNotEmpty(d.getUseDoseStr())){
-                    dTotal = d.getUseDoseStr()+drug.getUseDoseUnit();
+                    dTotal = d.getUseDoseStr()+d.getUseDoseUnit();
                 }else {
                     if (d.getUseDose()!=null){
                         //增加判断条件  如果用量小数位为零，则不显示小数点
                         if ((d.getUseDose() - d.getUseDose().intValue()) == 0d) {
-                            dTotal = d.getUseDose().intValue() + drug.getUseDoseUnit();
+                            dTotal = d.getUseDose().intValue() + d.getUseDoseUnit();
                         } else {
-                            dTotal = d.getUseDose() + drug.getUseDoseUnit();
+                            dTotal = d.getUseDose() + d.getUseDoseUnit();
                         }
                     }
                 }
@@ -1140,7 +1129,9 @@ public class RecipeServiceSub {
     }
 
     public static void setPatientMoreInfo(PatientDTO patient, int doctorId) {
-        RelationDoctorBean relationDoctor = doctorService.getByMpiidAndDoctorId(patient.getMpiId(), doctorId);
+        IRelationPatientService iRelationPatientService= AppContextHolder.getBean("pm.remoteRelationPatientService", IRelationPatientService.class);
+        RelationDoctorVO relationDoctor = iRelationPatientService.getByMpiidAndDoctorId(patient.getMpiId(), doctorId);
+        /*RelationDoctorBean relationDoctor = doctorService.getByMpiidAndDoctorId(patient.getMpiId(), doctorId);*/
         //是否关注
         Boolean relationFlag = false;
         //是否签约
@@ -1322,8 +1313,32 @@ public class RecipeServiceSub {
             //判断开关是否开启
             PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
             if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
-                map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId));
+                List<AuditMedicinesDTO> auditMedicines = getAuditMedicineIssuesByRecipeId(recipeId);
+                map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId)); //返回药品分析数据
+                AuditMedicineIssueDAO auditMedicineIssueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
+                List<AuditMedicineIssue> auditMedicineIssues = auditMedicineIssueDAO.findIssueByRecipeId(recipeId);
+                if(CollectionUtils.isNotEmpty(auditMedicineIssues)){
+                    List<AuditMedicineIssue> resultMedicineIssues = new ArrayList<>();
+                    auditMedicineIssues.forEach(item->{
+                        if(StringUtils.isNotEmpty(item.getDetailUrl())){
+                            resultMedicineIssues.add(item);
+                        }
+                    });
+
+                    List<PAWebRecipeDanger> recipeDangers = new ArrayList<>();
+                    resultMedicineIssues.forEach(item->{
+                        PAWebRecipeDanger recipeDanger = new PAWebRecipeDanger();
+                        recipeDanger.setDangerDesc(item.getDetail());
+                        recipeDanger.setDangerDrug(item.getTitle());
+                        recipeDanger.setDangerLevel(item.getLvlCode());
+                        recipeDanger.setDangerType(item.getLvl());
+                        recipeDanger.setDetailUrl(item.getDetailUrl());
+                        recipeDangers.add(recipeDanger);
+                    });
+                    map.put("recipeDangers",recipeDangers); //返回处方分析数据
+                }
             }
+
         } else {
             //处方详情单底部文案提示说明---机构配置
             map.put("bottomText", getBottomTextForPatient(recipe.getClinicOrgan()));
@@ -1547,6 +1562,28 @@ public class RecipeServiceSub {
         return map;
     }
 
+    private static List<AuditMedicinesDTO> handleAnalysisByType(List<AuditMedicinesDTO> auditMedicines,String type){
+        if(CollectionUtils.isNotEmpty(auditMedicines)){
+            auditMedicines.forEach(auditMedicinesDTO -> {
+                List<AuditMedicineIssueDTO> auditMedicineIssues = auditMedicinesDTO.getAuditMedicineIssues();
+                List<AuditMedicineIssueDTO> resultAuditMedicineIssues = new ArrayList<>();
+                auditMedicineIssues.forEach(auditMedicineIssueDTO->{
+                    if(type.equals("medicines")){
+                        if(null == auditMedicineIssueDTO.getDetailUrl()){
+                            resultAuditMedicineIssues.add(auditMedicineIssueDTO);
+                        }
+                    }else if(type.equals("recipeDangers")){
+                        if(null != auditMedicineIssueDTO.getDetailUrl()){
+                            resultAuditMedicineIssues.add(auditMedicineIssueDTO);
+                        }
+                    }
+                });
+                auditMedicinesDTO.setAuditMedicineIssues(resultAuditMedicineIssues);
+            });
+        }
+        return  auditMedicines;
+    }
+
     private static String getCancelReasonForPatient(int recipeId) {
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
         List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipeId, RecipeStatusConstant.REVOKE);
@@ -1716,7 +1753,8 @@ public class RecipeServiceSub {
                 for (AuditMedicinesDTO auditMedicinesDTO : list) {
                     issueList = Lists.newArrayList();
                     for (AuditMedicineIssue auditMedicineIssue : issues) {
-                        if (auditMedicineIssue.getMedicineId().equals(auditMedicinesDTO.getId())) {
+                        if (null != auditMedicineIssue.getMedicineId() &&
+                                auditMedicineIssue.getMedicineId().equals(auditMedicinesDTO.getId())) {
                             issueList.add(auditMedicineIssue);
                         }
                     }
