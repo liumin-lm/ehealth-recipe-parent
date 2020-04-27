@@ -332,14 +332,13 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
 
     /**
      * 根据机构获取是否配置配送药企
-     * @param params  机构
+     * @param organId  机构
      * @return         true 是 false 否
      */
     @RpcService
-    public boolean isExistDrugsEnterpriseByOrgan(Map<String, Object> params){
+    public boolean isExistDrugsEnterprise(Integer organId, Integer drugId){
+        LOGGER.info("isExistDrugsEnterpriseByOrgan organId:{}, drugId:{}.", organId, drugId);
         try{
-            Integer organId = (Integer)params.get("organId");
-            Integer drugId = (Integer)params.get("drugId");
             SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
             OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
             List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
