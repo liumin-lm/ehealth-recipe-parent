@@ -15,6 +15,7 @@ import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.PharmacyDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeParameterDao;
+import recipe.service.RecipeLogService;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ public class TestDrugStoreRemoteService extends AccessDrugEnterpriseService {
     /**
      * logger
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(TestRemoteService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TestDrugStoreRemoteService.class);
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
         LOGGER.info("TestDrugStoreRemoteService tokenUpdateImpl not implement.");
@@ -38,6 +39,7 @@ public class TestDrugStoreRemoteService extends AccessDrugEnterpriseService {
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         LOGGER.info("TestDrugStoreRemoteService pushRecipeInfo not implement.");
+        RecipeLogService.saveRecipeLog(recipeIds.get(0), 2, 2, "处方推送药企成功");
         return DrugEnterpriseResult.getSuccess();
     }
 

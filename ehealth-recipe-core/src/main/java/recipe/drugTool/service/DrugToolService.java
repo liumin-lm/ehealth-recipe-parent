@@ -596,6 +596,7 @@ public class DrugToolService implements IDrugToolService {
         try {
             DrugList save = drugListDAO.save(drugList);
             if (save != null) {
+                drugListDAO.updateDrugListInfoById(save.getDrugId(),ImmutableMap.of("drugCode",String.valueOf(save.getDrugId())));
                 //更新为已匹配，将已标记上传的药品自动关联上
                 //判断更新成已匹配还是匹配中
                 if (checkOrganRegulation(drugListMatch.getSourceOrgan()) && isHaveReulationId(drugListMatch.getSourceOrgan()) && StringUtils.isEmpty(drugListMatch.getRegulationDrugCode())) {
@@ -1161,6 +1162,7 @@ public class DrugToolService implements IDrugToolService {
                 }
                 DrugList save = drugListDAO.save(drugList);
                 if (save != null) {
+                    drugListDAO.updateDrugListInfoById(save.getDrugId(),ImmutableMap.of("drugCode",String.valueOf(save.getDrugId())));
                     //更新为已匹配，将已标记上传的药品自动关联上
                     //判断更新成已匹配还是匹配中
                     Integer status;
