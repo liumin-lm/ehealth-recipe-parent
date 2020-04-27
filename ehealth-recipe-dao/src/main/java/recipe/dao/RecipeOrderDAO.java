@@ -409,7 +409,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 StringBuilder hql = new StringBuilder();
 
                 if (drugId != null) {
-                    hql.append("SELECT r.recipeId, r.patientName, r.MPIID, dep.NAME, r.organName, r.doctorName, r.SignDate as signDate, if(o.refundFlag=1,'退款成功','支付成功') as payType, o.PayTime as payTime, o.refundTime as refundTime, d.useTotalDose as dose, s.price * sum(d.useTotalDose) as ActualPrice");
+                    hql.append("SELECT r.recipeId, r.patientName, r.MPIID, dep.NAME, r.organName, r.doctorName, r.SignDate as signDate, if(o.refundFlag=1,'退款成功','支付成功') as payType, o.PayTime as payTime, o.refundTime as refundTime, d.useTotalDose as dose, s.price * d.useTotalDose as ActualPrice");
                     hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID LEFT JOIN cdr_drugsenterprise dep ON o.EnterpriseId = dep.Id ");
                     hql.append(" WHERE r.GiveMode = 1 and ((o.payflag = 1 and o.paytime BETWEEN :startTime  AND :endTime ) OR (o.refundflag = 1 and o.refundTime BETWEEN :startTime  AND :endTime)) ");
                 } else {
