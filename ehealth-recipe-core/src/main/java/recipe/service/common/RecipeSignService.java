@@ -427,11 +427,6 @@ public class RecipeSignService {
             }
 
         }
-        try {
-            Thread.sleep(20000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         LOG.info("doSignRecipeExt execute ok! result={}", JSONUtils.toString(rMap));
         return rMap;
     }
