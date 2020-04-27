@@ -148,6 +148,11 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         DrugListDAO dao = DAOFactory.getDAO(DrugListDAO.class);
         DrugList drugList = getBean(d, DrugList.class);
         drugList = dao.save(drugList);
+        if (StringUtils.isBlank(drugList.getDrugCode())){
+            //若药品编码为空，则将主键值（drugId）同步到药品编码字段（drugCode）
+            drugList.setDrugCode(String.valueOf(drugList.getDrugId()));
+            dao.update(drugList);
+        }
 
         saveDispensatory(d, drugList.getDrugId());
 
