@@ -574,6 +574,8 @@ public class QueryRecipeService implements IQueryRecipeService {
             OrganDrugList nowOrganDrugList = organDrugListDAO.update(organDrug);
             LOGGER.info("updateOrSaveOrganDrug 更新机构药品信息成功{}", JSONUtils.toString(nowOrganDrugList));
             result = RecipeResultBean.getSuccess();
+        }else{
+            LOGGER.info("updateOrSaveOrganDrug 当前OrganDrugCode:{}当前机构id:{}药品不存在!", organDrugChange.getOrganDrugCode(), organDrugChange.getOrganId());
         }
         return result;
     }
