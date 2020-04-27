@@ -11,7 +11,6 @@ import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.SaleDrugList;
-import com.sun.corba.se.spi.ior.ObjectKey;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.dictionary.DictionaryItem;
@@ -35,7 +34,6 @@ import recipe.serviceprovider.BaseService;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -138,10 +136,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     drugListBean.setPrice1(drugList.getPrice1());
                     drugListBean.setPrice2(drugList.getPrice2());
                 }
-                Map<String, Object> map = new HashMap<>();
-                map.put("organId", organId);
-                map.put("drugId", drugListBean.getDrugId());
-                boolean drugInventoryFlag = drugsEnterpriseService.isExistDrugsEnterpriseByOrgan(map);
+                boolean drugInventoryFlag = drugsEnterpriseService.isExistDrugsEnterprise(organId, drugListBean.getDrugId());
                 drugListBean.setDrugInventoryFlag(drugInventoryFlag);
             }
         }
@@ -314,10 +309,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     detailDTO.setPrice1(null == detailDTO.getPrice1() ? drugListNow.getPrice1() : detailDTO.getPrice1());
                     detailDTO.setPrice2(null == detailDTO.getPrice2() ? drugListNow.getPrice2() : detailDTO.getPrice2());
                 }
-                Map<String, Object> map = new HashMap<>();
-                map.put("organId", organId);
-                map.put("drugId", detailDTO.getDrugId());
-                boolean drugInventoryFlag = drugsEnterpriseService.isExistDrugsEnterpriseByOrgan(map);
+                boolean drugInventoryFlag = drugsEnterpriseService.isExistDrugsEnterprise(organId, detailDTO.getDrugId());
                 detailDTO.setDrugInventoryFlag(drugInventoryFlag);
             }
         }
