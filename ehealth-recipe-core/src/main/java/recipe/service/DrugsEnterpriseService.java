@@ -332,22 +332,38 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
 
     /**
      * 根据机构获取是否配置配送药企
-     * @param organId  机构
+     * @param params  机构
      * @return         true 是 false 否
      */
     @RpcService
-    public boolean isExistDrugsEnterpriseByOrgan(Integer organId){
-        OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-        List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
-        if (CollectionUtils.isEmpty(drugsEnterprises)) {
+    public boolean isExistDrugsEnterpriseByOrgan(Map<String, Object> params){
+        try{
+            Integer organId = (Integer)params.get("organId");
+            Integer drugId = (Integer)params.get("drugId");
+            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+            OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+            List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
+            if (CollectionUtils.isEmpty(drugsEnterprises)) {
+                return false;
+            }
+            List<DrugsEnterprise> drugsEnterpriseList = new ArrayList<>();
+            for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+                if (drugsEnterprise.getPayModeSupport() == 1 || drugsEnterprise.getPayModeSupport() == 7 || drugsEnterprise.getPayModeSupport() == 9) {
+                    drugsEnterpriseList.add(drugsEnterprise);
+                }
+            }
+            //如果药企不存在在任何一家可配送药企则不显示按钮
+            for (DrugsEnterprise drugsEnterprise : drugsEnterpriseList) {
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
+                if (saleDrugList != null) {
+                    return true;
+                }
+            }
+            return false;
+        }catch (Exception e){
+            LOGGER.error("isExistDrugsEnterpriseByOrgan error:{}", e.getMessage(), e);
             return false;
         }
-        for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
-            if (drugsEnterprise.getPayModeSupport() == 1 || drugsEnterprise.getPayModeSupport() == 7 || drugsEnterprise.getPayModeSupport() == 9) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
