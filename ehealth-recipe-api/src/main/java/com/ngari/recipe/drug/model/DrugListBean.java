@@ -120,6 +120,9 @@ public class DrugListBean implements Serializable {
     @ItemProperty(alias = "基药标识")
     private Integer baseDrug;
 
+    @ItemProperty(alias = "药品编码")
+    private String drugCode;
+
     public Integer getBaseDrug() {
         return baseDrug;
     }
@@ -415,5 +418,13 @@ public class DrugListBean implements Serializable {
 
     public void setDrugInventoryFlag(boolean drugInventoryFlag) {
         this.drugInventoryFlag = drugInventoryFlag;
+    }
+
+    public String getDrugCode() {
+        return drugCode;
+    }
+
+    public void setDrugCode(String drugCode) {
+        this.drugCode = drugCode;
     }
 }
