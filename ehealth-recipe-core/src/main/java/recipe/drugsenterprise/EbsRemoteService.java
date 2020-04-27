@@ -48,7 +48,7 @@ import java.util.*;
  * @author yinsheng
  * @date 2020\4\15 0015 14:33
  */
-@RpcBean(value = "ebsRemoteService", mvc_authentication = false)
+@RpcBean(value = "ebsRemoteService")
 public class EbsRemoteService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EbsRemoteService.class);
@@ -378,7 +378,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
-        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        /*DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         //获取HIS处方状态更新平台处方信息
         //查询物流信息更新物流状态
@@ -424,7 +424,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
                     }
                 }
             }
-        }
+        }*/
         return DrugEnterpriseResult.getSuccess();
     }
 
