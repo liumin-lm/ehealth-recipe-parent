@@ -1527,7 +1527,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         }
 
         if (payFlag != null) {
-            hql.append(" and o.payFlag=").append(payFlag);
+            if(payFlag==0){
+                hql.append(" and r.payFlag=").append(payFlag);
+            }else{
+                hql.append(" and o.payFlag=").append(payFlag);
+            }
         }
         if (orderType != null) {
             if(orderType==0){
