@@ -499,7 +499,7 @@ public class LogisticsService {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         String appId = recipeParameterDao.getByName("logistics_shsy_app_id");
         String appSecret = recipeParameterDao.getByName("logistics_shsy_app_secret");
-        String url = recipeParameterDao.getByName("logistics_shsy_url");
+
         String item = DictionaryUtil.getKeyByValue("eh.cdr.dictionary.KuaiDiNiaoCode",expCode);
         String ebs_organ = recipeParameterDao.getByName("ebs_organ");
         Recipe recipe = new Recipe();
@@ -523,6 +523,7 @@ public class LogisticsService {
             String request = jsonToXml(params);
             EsbWebService xkyyHelper = new EsbWebService();
             Map<String, String> param=new HashMap<String, String>();
+            String url = recipeParameterDao.getByName("logistics_shxk_url");
             param.put("url", url);
             String fetchLogisticsProcessMethod = "fetchLogisticsProcess";
             xkyyHelper.initConfig(param);
@@ -559,6 +560,7 @@ public class LogisticsService {
             String json = JSONObject.toJSONString(params);
             LOGGER.info("上海上药物流信息查询，签名认证参数：APP_ID={},APP_SECRET={},json={}",appId,appSecret,json);
             long timestamp = System.currentTimeMillis();
+            String url = recipeParameterDao.getByName("logistics_shsy_url");
             HttpPost method = new HttpPost(url);
             method.addHeader("ACCESS_APPID", appId);
             method.addHeader("ACCESS_TIMESTAMP", String.valueOf(timestamp));
