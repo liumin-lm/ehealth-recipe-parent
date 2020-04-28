@@ -358,7 +358,7 @@ public class RecipeSignService {
      */
     @RpcService
     public Map<String, Object> doSignRecipeExt(RecipeBean recipeBean, List<RecipeDetailBean> details) {
-        LOGGER.info("doSignRecipeExt param: recipeBean={} detailBean={}", JSONUtils.toString(recipeBean), JSONUtils.toString(details));
+        LOG.info("doSignRecipeExt param: recipeBean={} detailBean={}", JSONUtils.toString(recipeBean), JSONUtils.toString(details));
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         PatientService patientService = BasicAPI.getService(PatientService.class);
 
