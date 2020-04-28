@@ -1030,21 +1030,16 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
 
                         List<Map> maps = new ArrayList<Map>();
                         if (recipeList != null) {
-
                             RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
                             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                             for (Recipe recipe : recipeList) {
                                 Map<String, Object> map = Maps.newHashMap();
-                                BeanUtils.map(recipe, map);
-                                map.put("detailCount", recipeDetailDAO.getCountByRecipeId(recipe.getRecipeId()));
                                 PatientDTO patientBean;
                                 try {
                                     patientBean = patientService.get(recipe.getMpiid());
                                 } catch (Exception e) {
                                     patientBean = new PatientDTO();
                                 }
-                                map.put("patient", patientBean);
-
                                 RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
                                 RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipe.getRecipeId());
                                 if(order==null){
@@ -1057,8 +1052,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                     order.setOrderType(0);
                                     recipe.setPayFlag(order.getPayFlag());
                                 }
-                                map.put("recipeOrder", order);
+                                BeanUtils.map(recipe, map);
 
+                                map.put("recipeOrder", order);
+                                map.put("detailCount", recipeDetailDAO.getCountByRecipeId(recipe.getRecipeId()));
                                 Integer enterpriseId = recipe.getEnterpriseId();
                                 if (enterpriseId != null) {
                                     DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(enterpriseId);
@@ -1071,6 +1068,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                 }else{
                                     map.put("payDate", null);
                                 }
+                                map.put("patient", patientBean);
                                 maps.add(map);
                             }
                         }
