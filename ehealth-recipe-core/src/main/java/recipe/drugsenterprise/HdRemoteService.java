@@ -868,6 +868,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
     @Override
     @RpcService
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
+        tokenUpdateImpl(drugsEnterprise);
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         String hdStoreFlag = recipeParameterDao.getByName("hdStoreFlag");
@@ -1471,6 +1472,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
+        tokenUpdateImpl(drugsEnterprise);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
         String methodName = "sendScanStock";
