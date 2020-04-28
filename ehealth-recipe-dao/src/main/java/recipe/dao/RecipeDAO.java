@@ -1035,7 +1035,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                             for (Recipe recipe : recipeList) {
                                 Map<String, Object> map = Maps.newHashMap();
-                                BeanUtils.map(recipe, map);
+
                                 map.put("detailCount", recipeDetailDAO.getCountByRecipeId(recipe.getRecipeId()));
                                 PatientDTO patientBean;
                                 try {
@@ -1071,6 +1071,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                 }else{
                                     map.put("payDate", null);
                                 }
+                                BeanUtils.map(recipe, map);
                                 maps.add(map);
                             }
                         }
