@@ -1221,10 +1221,14 @@ public class RecipeCheckService {
                 long localLimeDate = recipeCheck.getLocalLimitDate().getTime();
                 long diff = localLimeDate - now;
                 if (diff <= 0) {
+                    // 自动解除抢单
+                    recipeCheck.setGrabOrderStatus(GrabOrderStatusConstant.GRAB_ORDER_NO);
+                    recipeCheck.setLocalLimitDate(null);
+                    recipeCheckDAO.update(recipeCheck);
                     resultMap.put("lockLimitTime", 0);
                 } else {
                     int localLimitTime = (int) diff / (1000 * 60);
-                    resultMap.put("lockLimitTime", localLimitTime);
+                    resultMap.put("lockLimitTime", localLimitTime + 1);
                 }
 
             } else if (recipeCheck.getGrabOrderStatus().equals(1) && !doctorId.equals(recipeCheck.getGrabDoctorId())) { //他人抢单
