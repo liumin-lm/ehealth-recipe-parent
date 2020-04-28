@@ -128,7 +128,7 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
      * @return RecipeOrderBean
      */
     @RpcService
-    Map<String, Object> recipeOrderDetailedStatistics(Date startTime, Date endTime, Integer organId, Integer depId, Integer drugId, String orderColumn, String orderType, int start, int limit);
+    Map<String, Object> recipeOrderDetailedStatistics(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer drugId, String orderColumn, String orderType, int start, int limit);
 
     /**
      * 电子处方药企配送药品统计
@@ -140,7 +140,7 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
      * @return RecipeOrderBean
      */
     @RpcService
-    public Map<String, Object> recipeDrugStatistics(Date startTime, Date endTime, Integer organId, Integer depId, Integer recipeId, String orderColumn, String orderType, int start, int limit);
+    public Map<String, Object> recipeDrugStatistics(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer recipeId, String orderColumn, String orderType, int start, int limit);
 
     @RpcService
     List<BillBusFeeVo> findRecipeFeeList(RecipeBillRequest recipeBillRequest);

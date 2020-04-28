@@ -402,7 +402,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @param depId 药企ID
      * @return
      */
-    public List<Map<String, Object>> queryrecipeOrderDetailed(Date startTime, Date endTime, Integer organId, Integer depId, Integer drugId, String orderColumn, String orderType, int start, int limit){
+    public List<Map<String, Object>> queryrecipeOrderDetailed(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer drugId, String orderColumn, String orderType, int start, int limit){
         HibernateStatelessResultAction<List<Map<String, Object>>> action = new AbstractHibernateStatelessResultAction<List<Map<String, Object>>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -419,6 +419,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 }
                 if (organId != null) {
                     hql.append(" and r.clinicOrgan = :organId");
+                } else if (organIds != null && organIds.size() > 0) {
+                    hql.append(" and r.clinicOrgan in (:organIds)");
                 }
                 if (depId != null) {
                     hql.append(" and o.EnterpriseId = :depId");
@@ -437,6 +439,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 q.setParameter("endTime", endTime);
                 if (organId != null) {
                     q.setParameter("organId", organId);
+                } else if (organIds != null && organIds.size() > 0) {
+                    q.setParameterList("organIds", organIds);
                 }
                 if (depId != null) {
                     q.setParameter("depId", depId);
@@ -503,7 +507,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @param depId 药企ID
      * @return
      */
-    public Map<String, Object> queryrecipeOrderDetailedTotal(Date startTime, Date endTime, Integer organId, Integer depId, Integer drugId){
+    public Map<String, Object> queryrecipeOrderDetailedTotal(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer drugId){
         HibernateStatelessResultAction<Map<String, Object>> action = new AbstractHibernateStatelessResultAction<Map<String, Object>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -519,6 +523,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 }
                 if (organId != null) {
                     hql.append(" and r.clinicOrgan = :organId");
+                } else if (organIds != null && organIds.size() > 0) {
+                    hql.append(" and r.clinicOrgan in (:organIds)");
                 }
                 if (depId != null) {
                     hql.append(" and o.EnterpriseId = :depId");
@@ -532,6 +538,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 q.setParameter("endTime", endTime);
                 if (organId != null) {
                     q.setParameter("organId", organId);
+                } else if (organIds != null && organIds.size() > 0) {
+                    q.setParameterList("organIds", organIds);
                 }
                 if (depId != null) {
                     q.setParameter("depId", depId);
@@ -561,7 +569,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @param depId 药企ID
      * @return
      */
-    public List<Map<String, Object>> queryrecipeDrug(Date startTime, Date endTime, Integer organId, Integer depId, Integer recipeId, String orderColumn, String orderType, int start, int limit){
+    public List<Map<String, Object>> queryrecipeDrug(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer recipeId, String orderColumn, String orderType, int start, int limit){
         HibernateStatelessResultAction<List<Map<String, Object>>> action = new AbstractHibernateStatelessResultAction<List<Map<String, Object>>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -572,6 +580,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 hql.append(" WHERE r.GiveMode = 1 and d.status = 1 and ((o.payflag = 1 and o.paytime BETWEEN :startTime  AND :endTime ) OR (o.refundflag = 1 and o.refundTime BETWEEN :startTime  AND :endTime)) ");
                 if (organId != null) {
                     hql.append(" and r.clinicOrgan = :organId");
+                } else if (organIds != null && organIds.size() > 0) {
+                    hql.append(" and r.clinicOrgan in (:organIds)");
                 }
                 if (depId != null) {
                     hql.append(" and o.EnterpriseId = :depId");
@@ -591,6 +601,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 q.setParameter("endTime", endTime);
                 if (organId != null) {
                     q.setParameter("organId", organId);
+                } else if (organIds != null && organIds.size() > 0) {
+                    q.setParameterList("organIds", organIds);
                 }
                 if (depId != null) {
                     q.setParameter("depId", depId);
@@ -655,7 +667,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @param depId 药企ID
      * @return
      */
-    public Map<String, Object> queryrecipeDrugtotal(Date startTime, Date endTime, Integer organId, Integer depId, Integer recipeId){
+    public Map<String, Object> queryrecipeDrugtotal(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer recipeId){
         HibernateStatelessResultAction<Map<String, Object>> action = new AbstractHibernateStatelessResultAction<Map<String, Object>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -666,6 +678,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 hql.append(" WHERE r.GiveMode = 1 and d.status = 1 and ((o.payflag = 1 and o.paytime BETWEEN :startTime  AND :endTime ) OR (o.refundflag = 1 and o.refundTime BETWEEN :startTime  AND :endTime)) ");
                 if (organId != null) {
                     hql.append(" and r.clinicOrgan = :organId");
+                } else if (organIds != null && organIds.size() > 0) {
+                    hql.append(" and r.clinicOrgan in (:organIds)");
                 }
                 if (depId != null) {
                     hql.append(" and o.EnterpriseId = :depId");
@@ -679,6 +693,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 q.setParameter("endTime", endTime);
                 if (organId != null) {
                     q.setParameter("organId", organId);
+                } else if (organIds != null && organIds.size() > 0) {
+                    q.setParameterList("organIds", organIds);
                 }
                 if (depId != null) {
                     q.setParameter("depId", depId);
