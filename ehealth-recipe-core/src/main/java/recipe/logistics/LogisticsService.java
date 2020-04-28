@@ -497,8 +497,6 @@ public class LogisticsService {
         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        String appId = recipeParameterDao.getByName("logistics_shsy_app_id");
-        String appSecret = recipeParameterDao.getByName("logistics_shsy_app_secret");
 
         String item = DictionaryUtil.getKeyByValue("eh.cdr.dictionary.KuaiDiNiaoCode",expCode);
         String ebs_organ = recipeParameterDao.getByName("ebs_organ");
@@ -554,13 +552,15 @@ public class LogisticsService {
         } else {
             String prescripNo = recipe.getRecipeCode();
             String hospitalName = recipeParameterDao.getByName(recipe.getClinicOrgan()+"_shyy-organname");
+            String appId = recipeParameterDao.getByName(recipe.getClinicOrgan()+"_logistics_shsy_app_id");
+            String appSecret = recipeParameterDao.getByName(recipe.getClinicOrgan()+"_logistics_shsy_app_secret");
             Map<String, Object> params = new HashMap<>();
             params.put("prescripNo",prescripNo);
             params.put("hospitalName",hospitalName);
             String json = JSONObject.toJSONString(params);
             LOGGER.info("上海上药物流信息查询，签名认证参数：APP_ID={},APP_SECRET={},json={}",appId,appSecret,json);
             long timestamp = System.currentTimeMillis();
-            String url = recipeParameterDao.getByName("logistics_shsy_url");
+            String url = recipeParameterDao.getByName(recipe.getClinicOrgan()+"_logistics_shsy_url");
             HttpPost method = new HttpPost(url);
             method.addHeader("ACCESS_APPID", appId);
             method.addHeader("ACCESS_TIMESTAMP", String.valueOf(timestamp));
