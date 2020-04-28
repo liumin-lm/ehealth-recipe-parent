@@ -5,8 +5,12 @@ import com.ngari.his.ca.service.ICaHisService;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
+import eh.utils.params.ParamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import recipe.util.RedisClient;
+
 @RpcBean("iCommonCAServcie")
 public class CommonCAServiceImpl implements ICommonCAServcie {
 
@@ -25,7 +29,7 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
     public boolean caUserBusiness(CaAccountRequestTO requestTO) {
         try {
             LOGGER.info("CommonCAServiceImpl caUserBusiness start userAccount={},requestTO={}",requestTO.getUserAccount(), JSONUtils.toString(requestTO));
-            HisResponseTO responseTO = iCaHisService.caUserBusiness(requestTO);
+            HisResponseTO<CaAccountResponseTO> responseTO = iCaHisService.caUserBusiness(requestTO);
             LOGGER.info("CommonCAServiceImpl caUserBusiness userAccount={} responseTO={}",requestTO.getUserAccount(), JSONUtils.toString(responseTO));
             if (CA_RESULT_CODE.equals(responseTO.getMsgCode())) {
                 return true;

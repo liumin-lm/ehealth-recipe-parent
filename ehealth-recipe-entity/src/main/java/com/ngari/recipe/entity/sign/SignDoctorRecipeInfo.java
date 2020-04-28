@@ -66,6 +66,8 @@ public class SignDoctorRecipeInfo {
 
     private Date lastmodify;
 
+    private String type;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column
@@ -238,5 +240,14 @@ public class SignDoctorRecipeInfo {
 
     public void setSignBefText(String signBefText) {
         this.signBefText = signBefText;
+    }
+
+    @Column
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

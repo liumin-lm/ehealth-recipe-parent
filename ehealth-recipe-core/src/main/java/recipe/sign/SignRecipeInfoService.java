@@ -3,7 +3,6 @@ package recipe.sign;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.patient.dto.DoctorExtendDTO;
 import com.ngari.patient.service.DoctorExtendService;
-import com.ngari.patient.service.DoctorService;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.exception.DAOException;
@@ -19,6 +18,8 @@ import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.service.RecipeService;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @RpcBean
 public class SignRecipeInfoService {
@@ -95,6 +96,8 @@ public class SignRecipeInfoService {
         if (signDoctorRecipeInfo == null) {
             signDoctorRecipeInfo = new SignDoctorRecipeInfo();
             signDoctorRecipeInfo.setRecipeId(recipeId);
+            signDoctorRecipeInfo.setCreateDate(new Date());
+            signDoctorRecipeInfo.setLastmodify(new Date());
             signDoctorRecipeInfo = signDoctorRecipeInfoDAO.save(signDoctorRecipeInfo);
             return signDoctorRecipeInfo;
         }
@@ -127,5 +130,56 @@ public class SignRecipeInfoService {
         signDoctorRecipeInfo.setLastmodify(new Date());
         signDoctorRecipeInfo.setRecipeId(recipeId);
         return signDoctorRecipeInfoDAO.save(signDoctorRecipeInfo);
+    }
+
+    @RpcService
+    public Map getSignInfoByRegisterID(Integer recipeId, String type){
+        logger.info("getSignInfoByRegisterID start recipeId={}=,type={}=", recipeId, type);
+        SignDoctorRecipeInfo signDoctorRecipeInfo =signDoctorRecipeInfoDAO.getInfoByRecipeIdAndType(recipeId, type);
+        Map map = new HashMap();
+        if (signDoctorRecipeInfo != null) {
+            map.put("signCodeDoc",signDoctorRecipeInfo.getSignCodeDoc());
+            map.put("signRemarkDoc",signDoctorRecipeInfo.getSignRemarkDoc());
+            map.put("signCodePha",signDoctorRecipeInfo.getSignCodePha());
+            map.put("signRemarkPha",signDoctorRecipeInfo.getSignRemarkPha());
+        }
+        return map;
+    }
+
+    /**
+     * ca保存ca信息
+     * @param recipeId 处方ID
+     * @param signCode 签名摘要
+     * @param signCrt 签名值
+     * @param isDoctor true 医生 false 药师
+     */
+    @RpcService
+    public void saveSignInfoByRecipe(Integer recipeId, String signCode, String signCrt, boolean isDoctor, String type){
+
+        logger.info("saveSignInfoByRecipe infos recipeId={}=,signCode={}=,signCrt={}=,isDoctor={}=, type={}=",recipeId, signCode, signCrt, isDoctor, type);
+        SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeIdAndType(recipeId, type);
+        if (signDoctorRecipeInfo == null) {
+            signDoctorRecipeInfo = new SignDoctorRecipeInfo();
+            signDoctorRecipeInfo.setRecipeId(recipeId);
+            signDoctorRecipeInfo.setCreateDate(new Date());
+            signDoctorRecipeInfo = getInfo(signDoctorRecipeInfo, signCode, signCrt,isDoctor, type);
+            signDoctorRecipeInfoDAO.save(signDoctorRecipeInfo);
+        } else {
+            signDoctorRecipeInfo = getInfo(signDoctorRecipeInfo, signCode, signCrt,isDoctor, type);
+            signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
+        }
+    }
+
+    private SignDoctorRecipeInfo getInfo (SignDoctorRecipeInfo signDoctorRecipeInfo, String signCode, String signCrt, boolean isDoctor,String type) {
+        if (isDoctor) {
+            signDoctorRecipeInfo.setSignRemarkDoc(signCrt);
+            signDoctorRecipeInfo.setSignCodeDoc(signCode);
+        } else {
+            signDoctorRecipeInfo.setSignRemarkPha(signCrt);
+            signDoctorRecipeInfo.setSignCodePha(signCode);
+        }
+        signDoctorRecipeInfo.setLastmodify(new Date());
+        signDoctorRecipeInfo.setType(type);
+        return signDoctorRecipeInfo;
     }
 }
