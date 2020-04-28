@@ -428,17 +428,6 @@ public class RecipeSignService {
             }
 
         }
-        RecipeExtendDAO extendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        RecipeExtend recipeExtend = extendDAO.getByRecipeId(recipeBean.getRecipeId());
-        if (recipeExtend != null
-                && StringUtils.isNotEmpty(recipeExtend.getHandleMethod())
-                && recipeExtend.getHandleMethod().startsWith("超时")){
-            try {
-                Thread.sleep(20000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
         LOG.info("doSignRecipeExt execute ok! result={}", JSONUtils.toString(rMap));
         return rMap;
     }
