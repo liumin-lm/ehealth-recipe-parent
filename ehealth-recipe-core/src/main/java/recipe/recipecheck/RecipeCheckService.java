@@ -715,6 +715,9 @@ public class RecipeCheckService {
         if (ReviewTypeConstant.Not_Need_Check == recipe.getReviewType()) {
             return RecipePharmacistCheckConstant.Check_Pass;
         }
+        if(RecipeStatusConstant.REVOKE == status){
+            return RecipePharmacistCheckConstant.Check_Failure;
+        }
         if (RecipeStatusConstant.READY_CHECK_YS == status) {
             checkResult = RecipePharmacistCheckConstant.Already_Check;
         } else {
@@ -731,9 +734,6 @@ public class RecipeCheckService {
                     } else if (null != recipeCheck.getChecker() && RecipecCheckStatusConstant.Check_Normal == recipeCheck.getCheckStatus()) {
                         checkResult = RecipePharmacistCheckConstant.Check_No_Pass;
                     }
-                    //记录没有审核信息的处方，说明是没有进行审核的状态是失效的
-                } else {
-                    checkResult = RecipePharmacistCheckConstant.Check_Failure;
                 }
             }
         }
