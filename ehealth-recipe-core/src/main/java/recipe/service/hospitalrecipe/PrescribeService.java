@@ -543,10 +543,18 @@ public class PrescribeService {
         String hospOrgCodeFromMedical = otherInfo.get("areaCode");
         String insuredArea = otherInfo.get("insuredArea");
         Map<String,String> updateMap = new HashMap<>(4);
-        updateMap.put("cardTypeName",cardTypeName);
-        updateMap.put("cardNo",cardNo);
-        updateMap.put("patientType",patientType);
-        updateMap.put("putOnRecordID",putOnRecordID);
+        if (StringUtils.isNotEmpty(cardTypeName)){
+            updateMap.put("cardTypeName",cardTypeName);
+        }
+        if (StringUtils.isNotEmpty(cardNo)){
+            updateMap.put("cardNo",cardNo);
+        }
+        if (StringUtils.isNotEmpty(patientType)){
+            updateMap.put("patientType",patientType);
+        }
+        if (StringUtils.isNotEmpty(putOnRecordID)){
+            updateMap.put("putOnRecordID",putOnRecordID);
+        }
         if (StringUtils.isNotEmpty(hospOrgCodeFromMedical)){
             updateMap.put("hospOrgCodeFromMedical",hospOrgCodeFromMedical);
         }
