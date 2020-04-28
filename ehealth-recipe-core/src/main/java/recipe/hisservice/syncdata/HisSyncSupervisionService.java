@@ -361,10 +361,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setPayFlag(null == recipe.getPayFlag() ? "" : String.valueOf(recipe.getPayFlag()));
             doctorExtendDTO = doctorExtendService.getByDoctorId(recipe.getDoctor());
             if(null != doctorExtendDTO){
-                req.setSignCADate(doctorExtendDTO.getSealData()); //医生处方数字签名值
                 req.setSerialNumCA(doctorExtendDTO.getSerialNumCA()); //医护人员证件序列号
             }
             //医生处方签名生成时间戳
+            req.setSignCADate(recipe.getSignCADate()); //医生处方数字签名值
             req.setSignRecipeCode(recipe.getSignRecipeCode());
             recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             if(null != recipeOrder){
