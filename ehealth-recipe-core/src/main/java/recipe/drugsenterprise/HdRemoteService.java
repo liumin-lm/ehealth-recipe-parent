@@ -1489,7 +1489,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         String storeOrganName = organId + "_" + "hd_organ_store";
         String organStore = recipeParameterDao.getByName(storeOrganName);
 
-        if (StringUtils.isNotEmpty(hdStores) && hasOrgan(organId.toString(),hdStores)) {
+        if (StringUtils.isNotEmpty(hdStores) && organId != null && hasOrgan(organId.toString(),hdStores)) {
             LOGGER.info("HdRemoteService.sendScanStock organStore:{}.", organStore);
             map.put("pharmacyCode", organStore);
         }
