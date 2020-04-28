@@ -604,11 +604,11 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 StringBuilder sql = new StringBuilder();
                 StringBuilder sqlPay = new StringBuilder();
                 StringBuilder sqlRefund = new StringBuilder();
-                sqlPay.append("SELECT s.OrganDrugCode, d.drugName, d.producer, s.drugSpec, d.DrugUnit, d.salePrice as price, sum(d.useTotalDose) as dose, d.salePrice * sum(d.useTotalDose) as totalPrice, s.organId, s.DrugId ");
+                sqlPay.append("SELECT d.saleDrugCode, d.drugName, d.producer, s.drugSpec, d.DrugUnit, d.salePrice as price, sum(d.useTotalDose) as dose, d.salePrice * sum(d.useTotalDose) as totalPrice, s.organId, s.DrugId ");
                 sqlPay.append(" FROM cdr_recipe r INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId INNER JOIN cdr_recipeorder o ON o.OrderCode = r.OrderCode ");
                 sqlPay.append("  LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID ");
                 sqlPay.append(" WHERE r.GiveMode = 1 and d.status = 1 and ((o.payflag = 1 OR o.refundflag = 1) and o.paytime BETWEEN :startTime  AND :endTime ) ");
-                sqlRefund.append("SELECT s.OrganDrugCode, d.drugName, d.producer, s.drugSpec, d.DrugUnit, d.salePrice as price, sum(d.useTotalDose) as dose, d.salePrice * sum(0-d.useTotalDose) as totalPrice, s.organId, s.DrugId ");
+                sqlRefund.append("SELECT d.saleDrugCode, d.drugName, d.producer, s.drugSpec, d.DrugUnit, d.salePrice as price, sum(d.useTotalDose) as dose, d.salePrice * sum(0-d.useTotalDose) as totalPrice, s.organId, s.DrugId ");
                 sqlRefund.append(" FROM cdr_recipe r INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId INNER JOIN cdr_recipeorder o ON o.OrderCode = r.OrderCode ");
                 sqlRefund.append("  LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID ");
                 sqlRefund.append(" WHERE r.GiveMode = 1 and d.status = 1 and (o.refundflag = 1 and o.refundTime BETWEEN :startTime  AND :endTime) ");
