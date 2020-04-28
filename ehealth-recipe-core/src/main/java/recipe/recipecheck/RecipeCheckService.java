@@ -728,7 +728,7 @@ public class RecipeCheckService {
                     RecipeCheck recipeCheck = recipeCheckList.get(0);
                     if (null != recipeCheck.getChecker() && RecipecCheckStatusConstant.First_Check_No_Pass == recipeCheck.getCheckStatus()) {
                         checkResult = RecipePharmacistCheckConstant.Check_Pass;
-                    } else if (null == recipeCheck.getChecker() && RecipecCheckStatusConstant.Check_Normal == recipeCheck.getCheckStatus()) {
+                    } else if (null != recipeCheck.getChecker() && RecipecCheckStatusConstant.Check_Normal == recipeCheck.getCheckStatus()) {
                         checkResult = RecipePharmacistCheckConstant.Check_No_Pass;
                     }
                     //记录没有审核信息的处方，说明是没有进行审核的状态是失效的
