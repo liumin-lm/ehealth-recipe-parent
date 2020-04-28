@@ -968,6 +968,20 @@ public class RecipeCheckService {
                 //checkResult 0:未审核 1:通过 2:不通过
                 Integer checkResult = getCheckResult(r);
 
+                RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeIdAndCheckStatus(r.getRecipeId());
+                UserRoleToken urt = UserRoleToken.getCurrent();
+
+                if (null != urt && null != urt.getProperty("doctor")) {
+                    DoctorDTO loginDoctor = BeanUtils.map(urt.getProperty("doctor"), DoctorDTO.class);
+                    if(4 != checkResult && null != recipeCheck && recipeCheck.getGrabOrderStatus().equals(1) && null == recipeCheck.getChecker()
+                            &&recipeCheck.getGrabDoctorId().equals(loginDoctor.getDoctorId())){ //已抢单,不考虑排除撤销状态
+                        checkResult = 6;
+                    }else if(4 != checkResult && null != recipeCheck && recipeCheck.getGrabOrderStatus().equals(1) && null == recipeCheck.getChecker()
+                            &&!recipeCheck.getGrabDoctorId().equals(loginDoctor.getDoctorId())){ //已被抢单,不考虑撤销状态
+                        checkResult = 5;
+                    }
+                }
+
                 Date signDate = r.getSignDate();
                 String dateString = "";
                 if (null != signDate) {
