@@ -496,6 +496,9 @@ public class RecipeService extends RecipeBaseService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单不存在或者已删除");
         }
         if (hosAuditFlag == null) {
+            if (Integer.valueOf(RecipeStatusConstant.REVOKE).equals(recipe.getStatus())) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方已被撤销");
+            }
             if (null == recipe.getStatus() || recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方已被审核");
             }
