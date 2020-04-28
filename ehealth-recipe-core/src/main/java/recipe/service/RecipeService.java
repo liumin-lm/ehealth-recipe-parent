@@ -1318,7 +1318,7 @@ public class RecipeService extends RecipeBaseService {
     }
 
     /**
-     * 当药企无法配送只能到院取药时--继续签名方法--医生APP、医生PC
+     * 当药企无法配送只能到院取药时--继续签名方法--医生APP、医生PC-----根据canContinueFlag判断
      * @return Map<String ,   Object>
      */
     @RpcService
@@ -1330,6 +1330,14 @@ public class RecipeService extends RecipeBaseService {
         //HIS消息发送--异步处理
         /*boolean result = hisService.recipeSendHis(recipeId, null);*/
         RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeId));
+        //更新保存智能审方信息
+        PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
+        if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
+            RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
+            List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
+            //更新审方信息
+            RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(ObjectCopyUtils.convert(recipe,RecipeBean.class), ObjectCopyUtils.convert(recipedetails,RecipeDetailBean.class)));
+        }
         Map<String, Object> rMap = Maps.newHashMap();
         rMap.put("signResult", true);
         rMap.put("recipeId", recipeId);

@@ -728,7 +728,7 @@ public class RecipeCheckService {
                     RecipeCheck recipeCheck = recipeCheckList.get(0);
                     if (null != recipeCheck.getChecker() && RecipecCheckStatusConstant.First_Check_No_Pass == recipeCheck.getCheckStatus()) {
                         checkResult = RecipePharmacistCheckConstant.Check_Pass;
-                    } else if (null == recipeCheck.getChecker() && RecipecCheckStatusConstant.Check_Normal == recipeCheck.getCheckStatus()) {
+                    } else if (null != recipeCheck.getChecker() && RecipecCheckStatusConstant.Check_Normal == recipeCheck.getCheckStatus()) {
                         checkResult = RecipePharmacistCheckConstant.Check_No_Pass;
                     }
                     //记录没有审核信息的处方，说明是没有进行审核的状态是失效的
@@ -968,6 +968,20 @@ public class RecipeCheckService {
                 //checkResult 0:未审核 1:通过 2:不通过
                 Integer checkResult = getCheckResult(r);
 
+                RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeIdAndCheckStatus(r.getRecipeId());
+                UserRoleToken urt = UserRoleToken.getCurrent();
+
+                if (null != urt && null != urt.getProperty("doctor")) {
+                    DoctorDTO loginDoctor = BeanUtils.map(urt.getProperty("doctor"), DoctorDTO.class);
+                    if(4 != checkResult && null != recipeCheck && recipeCheck.getGrabOrderStatus().equals(1) && null == recipeCheck.getChecker()
+                            &&recipeCheck.getGrabDoctorId().equals(loginDoctor.getDoctorId())){ //已抢单,不考虑排除撤销状态
+                        checkResult = 6;
+                    }else if(4 != checkResult && null != recipeCheck && recipeCheck.getGrabOrderStatus().equals(1) && null == recipeCheck.getChecker()
+                            &&!recipeCheck.getGrabDoctorId().equals(loginDoctor.getDoctorId())){ //已被抢单,不考虑撤销状态
+                        checkResult = 5;
+                    }
+                }
+
                 Date signDate = r.getSignDate();
                 String dateString = "";
                 if (null != signDate) {
@@ -1151,7 +1165,8 @@ public class RecipeCheckService {
                     recipeCheckDAO.save(recipeCheck);
                 }else{
                     if(recipeCheck2.getGrabOrderStatus().equals(1) && !doctorId.equals(recipeCheck2.getGrabDoctorId())){
-                        throw new DAOException("来晚一步，处方单已被其他药师抢单");
+                        resultMap.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDERED_OTHER);
+                        return resultMap; //他人抢单
                     }
                     recipeCheck2.setGrabOrderStatus(GrabOrderStatusConstant.GRAB_ORDERED_OWN);
                     recipeCheck2.setGrabDoctorId(doctorId);
@@ -1171,9 +1186,6 @@ public class RecipeCheckService {
                 }
             }
         } catch (Exception e) {
-            if(e instanceof DAOException){
-                throw new DAOException(e.getMessage());
-            }
             LOGGER.error("grabOrderApply error", e);
             resultMap.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDER_NO); //失败处理
             return resultMap;
