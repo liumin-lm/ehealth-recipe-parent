@@ -358,6 +358,7 @@ public class RecipeSignService {
      */
     @RpcService
     public Map<String, Object> doSignRecipeExt(RecipeBean recipeBean, List<RecipeDetailBean> details) {
+        LOGGER.info("doSignRecipeExt param: recipeBean={} detailBean={}", JSONUtils.toString(recipeBean), JSONUtils.toString(details));
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         PatientService patientService = BasicAPI.getService(PatientService.class);
 
@@ -427,8 +428,11 @@ public class RecipeSignService {
             }
 
         }
-        if (StringUtils.isNotEmpty(recipeBean.getRecipeExtend().getHandleMethod())
-        &&recipeBean.getRecipeExtend().getHandleMethod().startsWith("超时")){
+        RecipeExtendDAO extendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = extendDAO.getByRecipeId(recipeBean.getRecipeId());
+        if (recipeExtend != null
+                && StringUtils.isNotEmpty(recipeExtend.getHandleMethod())
+                && recipeExtend.getHandleMethod().startsWith("超时")){
             try {
                 Thread.sleep(20000);
             } catch (InterruptedException e) {
