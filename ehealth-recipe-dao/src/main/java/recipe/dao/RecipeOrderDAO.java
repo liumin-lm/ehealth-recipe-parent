@@ -90,9 +90,11 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @param recipeId
      * @return
      */
-//    @DAOMethod(sql = "select order from RecipeOrder order, Recipe recipe where order.orderCode=recipe.orderCode and order.effective=1 and recipe.recipeId=:recipeId")
-    @DAOMethod(sql = "select order from RecipeOrder order, Recipe recipe where order.orderCode=recipe.orderCode  and recipe.recipeId=:recipeId")
+    @DAOMethod(sql = "select order from RecipeOrder order, Recipe recipe where order.orderCode=recipe.orderCode and order.effective=1 and recipe.recipeId=:recipeId")
     public abstract RecipeOrder getOrderByRecipeId(@DAOParam("recipeId") Integer recipeId);
+
+    @DAOMethod(sql = "select order from RecipeOrder order, Recipe recipe where order.orderCode=recipe.orderCode and recipe.recipeId=:recipeId")
+    public abstract RecipeOrder getOrderByRecipeIdQuery(@DAOParam("recipeId") Integer recipeId);
 
     /**
      * 根据处方id获取药企id
