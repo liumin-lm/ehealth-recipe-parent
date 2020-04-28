@@ -93,6 +93,7 @@ public abstract class AccessDrugEnterpriseService {
             this.getAddressDic(address, order.getAddress1());
             this.getAddressDic(address, order.getAddress2());
             this.getAddressDic(address, order.getAddress3());
+            this.getAddressDic(address, order.getStreetAddress());
             address.append(StringUtils.isEmpty(order.getAddress4()) ? "" : order.getAddress4());
         }
         return address.toString();
