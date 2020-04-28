@@ -494,6 +494,7 @@ public class LogisticsService {
         Map<String, Object> params = new HashMap<>();
         params.put("prescripNo",prescripNo);
         params.put("hospitalName",hospitalName);
+        params.put("prescribeDate","");
         String request = jsonToXml(params);
         EsbWebService xkyyHelper = new EsbWebService();
         Map<String, String> param=new HashMap<String, String>();
