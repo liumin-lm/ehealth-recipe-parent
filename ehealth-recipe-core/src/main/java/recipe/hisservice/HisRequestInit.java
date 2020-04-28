@@ -323,6 +323,8 @@ public class HisRequestInit {
         //处方金额
         requestTO.setSelfPayingFee(recipe.getActualPrice());
         if (null != patient) {
+            //患者userId
+            requestTO.setUserId(patient.getLoginId());
             // 患者信息
             String idCard = patient.getCertificate();
             if(StringUtils.isNotEmpty(idCard)){
