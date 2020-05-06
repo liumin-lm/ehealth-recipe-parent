@@ -536,43 +536,45 @@ public class RecipeService extends RecipeBaseService {
         //保存审核记录和详情审核记录
 //        RecipeCheck recipeCheck = new RecipeCheck();
         RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeIdAndCheckStatus(recipeId);
-        recipeCheck.setChecker(checker);
-        recipeCheck.setRecipeId(recipeId);
-        recipeCheck.setCheckOrgan(checkOrgan);
-        recipeCheck.setCheckDate(now);
-        recipeCheck.setMemo((StringUtils.isEmpty(memo)) ? "" : memo);
-        recipeCheck.setCheckStatus(checkFlag);
-        DoctorDTO doctorDTO = doctorService.getByDoctorId(checker);
-        if (doctorDTO != null) {
-            recipeCheck.setCheckerName(doctorDTO.getName());
-        }
-        List<RecipeCheckDetail> recipeCheckDetails;
-        if (0 == checkFlag) {
-            recipeCheckDetails = new ArrayList<>();
-            for (Map<String, Object> map : checkList) {
-                //这里的数组是已字符串的形式传入保存，查询详情时需要解析成数组
-                String recipeDetailIds = MapValueUtil.getString(map, "recipeDetailIds");
-                String reasonIds = MapValueUtil.getString(map, "reasonIds");
-                if (StringUtils.isEmpty(recipeDetailIds) || StringUtils.isEmpty(reasonIds)) {
-                    throw new DAOException(DAOException.VALUE_NEEDED, "请选择不通过理由以及不合理药品");
-                }
-                RecipeCheckDetail recipeCheckDetail = new RecipeCheckDetail();
-                recipeCheckDetail.setRecipeDetailIds(recipeDetailIds);
-                recipeCheckDetail.setReasonIds(reasonIds);
-                recipeCheckDetail.setCheckId(recipeCheck.getCheckId());
-                recipeCheckDetails.add(recipeCheckDetail);
+        if (recipeCheck!=null){
+            recipeCheck.setChecker(checker);
+            recipeCheck.setRecipeId(recipeId);
+            recipeCheck.setCheckOrgan(checkOrgan);
+            recipeCheck.setCheckDate(now);
+            recipeCheck.setMemo((StringUtils.isEmpty(memo)) ? "" : memo);
+            recipeCheck.setCheckStatus(checkFlag);
+            DoctorDTO doctorDTO = doctorService.getByDoctorId(checker);
+            if (doctorDTO != null) {
+                recipeCheck.setCheckerName(doctorDTO.getName());
             }
-        } else {
-            recipeCheckDetails = null;
-        }
+            List<RecipeCheckDetail> recipeCheckDetails;
+            if (0 == checkFlag) {
+                recipeCheckDetails = new ArrayList<>();
+                for (Map<String, Object> map : checkList) {
+                    //这里的数组是已字符串的形式传入保存，查询详情时需要解析成数组
+                    String recipeDetailIds = MapValueUtil.getString(map, "recipeDetailIds");
+                    String reasonIds = MapValueUtil.getString(map, "reasonIds");
+                    if (StringUtils.isEmpty(recipeDetailIds) || StringUtils.isEmpty(reasonIds)) {
+                        throw new DAOException(DAOException.VALUE_NEEDED, "请选择不通过理由以及不合理药品");
+                    }
+                    RecipeCheckDetail recipeCheckDetail = new RecipeCheckDetail();
+                    recipeCheckDetail.setRecipeDetailIds(recipeDetailIds);
+                    recipeCheckDetail.setReasonIds(reasonIds);
+                    recipeCheckDetail.setCheckId(recipeCheck.getCheckId());
+                    recipeCheckDetails.add(recipeCheckDetail);
+                }
+            } else {
+                recipeCheckDetails = null;
+            }
 
-        //recipeCheckDAO.saveRecipeCheckAndDetail(recipeCheck, recipeCheckDetails);
-        RecipeCheckDAO recipeCheckDAO = getDAO(RecipeCheckDAO.class);
-        recipeCheckDAO.update(recipeCheck);
-        if(CollectionUtils.isNotEmpty(recipeCheckDetails)){
-            recipeCheckDetails.forEach(recipeCheckDetail->{
-                recipeCheckDetailDAO.save(recipeCheckDetail);
-            });
+            //recipeCheckDAO.saveRecipeCheckAndDetail(recipeCheck, recipeCheckDetails);
+            RecipeCheckDAO recipeCheckDAO = getDAO(RecipeCheckDAO.class);
+            recipeCheckDAO.update(recipeCheck);
+            if(CollectionUtils.isNotEmpty(recipeCheckDetails)){
+                recipeCheckDetails.forEach(recipeCheckDetail->{
+                    recipeCheckDetailDAO.save(recipeCheckDetail);
+                });
+            }
         }
 
         boolean bl = recipeDAO.updateRecipeInfoByRecipeId(recipeId, recipeStatus, attrMap);

@@ -282,7 +282,7 @@ public class RecipeSignService {
                 try {
                     checkService.autoPassForCheckYs(checkResult);
                 } catch (Exception e) {
-                    LOG.error("sign 药师自动审核失败. recipeId={}", recipeId);
+                    LOG.error("sign 药师自动审核失败. recipeId={}", recipeId,e);
                     RecipeLogService.saveRecipeLog(recipeId, dbRecipe.getStatus(), status,
                             "sign 药师自动审核失败:" + e.getMessage());
                 }
