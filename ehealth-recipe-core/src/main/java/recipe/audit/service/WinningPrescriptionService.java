@@ -327,6 +327,7 @@ public class WinningPrescriptionService implements IntellectJudicialService {
                 medicine.setEnd(DateConversion.getDateFormatter(DateConversion.getDateAftXDays(recipe.getSignDate(), 3),
                         DateConversion.DEFAULT_DATE_TIME));
             }
+            medicine.setGroup("1"); //组别默认传"1"
             medicines.add(medicine);
         }
         prescription.setMedicines(medicines);
