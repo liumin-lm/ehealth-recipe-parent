@@ -2,6 +2,9 @@ package recipe.service;
 
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.consult.ConsultAPI;
+import com.ngari.consult.common.model.ConsultExDTO;
+import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
@@ -407,6 +410,18 @@ public class HisRecipeService {
         }
         Recipe recipe = new Recipe();
         recipe.setBussSource(0);
+        //通过挂号序号关联复诊
+        try {
+            IConsultExService consultExService = ConsultAPI.getService(IConsultExService.class);
+            ConsultExDTO consultExDTO = consultExService.getByRegisterId(hisRecipe.getRegisteredId());
+            if (consultExDTO != null){
+                recipe.setBussSource(2);
+                recipe.setClinicId(consultExDTO.getConsultId());
+            }
+        }catch (Exception e){
+            LOGGER.error("线下处方转线上通过挂号序号关联复诊 error",e);
+        }
+
         recipe.setClinicOrgan(hisRecipe.getClinicOrgan());
         recipe.setMpiid(hisRecipe.getMpiId());
         recipe.setPatientName(hisRecipe.getPatientName());
