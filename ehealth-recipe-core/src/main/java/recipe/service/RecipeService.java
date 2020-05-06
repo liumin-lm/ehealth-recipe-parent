@@ -536,6 +536,7 @@ public class RecipeService extends RecipeBaseService {
         //保存审核记录和详情审核记录
 //        RecipeCheck recipeCheck = new RecipeCheck();
         RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeIdAndCheckStatus(recipeId);
+        List<RecipeCheckDetail> recipeCheckDetails =null;
         if (recipeCheck!=null){
             recipeCheck.setChecker(checker);
             recipeCheck.setRecipeId(recipeId);
@@ -547,7 +548,6 @@ public class RecipeService extends RecipeBaseService {
             if (doctorDTO != null) {
                 recipeCheck.setCheckerName(doctorDTO.getName());
             }
-            List<RecipeCheckDetail> recipeCheckDetails;
             if (0 == checkFlag) {
                 recipeCheckDetails = new ArrayList<>();
                 for (Map<String, Object> map : checkList) {
