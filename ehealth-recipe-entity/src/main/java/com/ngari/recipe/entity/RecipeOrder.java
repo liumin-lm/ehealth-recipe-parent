@@ -81,6 +81,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "实际支付费用")
     private Double actualPrice;
 
+    @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付")
+    private Integer expressFeePayWay;
+
     @ItemProperty(alias = "交易流水号")
     private String tradeNo;
 
@@ -961,5 +964,14 @@ public class RecipeOrder implements Serializable {
 
     public void setWnPayWay(String wnPayWay) {
         this.wnPayWay = wnPayWay;
+    }
+
+    @Column(name = "expressFeePayWay")
+    public Integer getExpressFeePayWay() {
+        return expressFeePayWay;
+    }
+
+    public void setExpressFeePayWay(Integer expressFeePayWay) {
+        this.expressFeePayWay = expressFeePayWay;
     }
 }

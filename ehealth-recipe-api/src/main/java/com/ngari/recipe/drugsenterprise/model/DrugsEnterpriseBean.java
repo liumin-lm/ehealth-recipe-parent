@@ -99,6 +99,9 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "配送主体类型 1 药企配送 2 医院配送")
     private Integer sendType;
 
+    @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付")
+    private Integer expressFeePayWay;
+
     public DrugsEnterpriseBean() {
     }
 
@@ -304,5 +307,13 @@ public class DrugsEnterpriseBean implements Serializable {
 
     public void setSendType(Integer sendType) {
         this.sendType = sendType;
+    }
+
+    public Integer getExpressFeePayWay() {
+        return expressFeePayWay;
+    }
+
+    public void setExpressFeePayWay(Integer expressFeePayWay) {
+        this.expressFeePayWay = expressFeePayWay;
     }
 }

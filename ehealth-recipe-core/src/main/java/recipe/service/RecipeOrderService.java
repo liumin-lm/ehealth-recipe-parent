@@ -247,6 +247,8 @@ public class RecipeOrderService extends RecipeBaseService {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
             if(null != drugsEnterprise){
                 remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+                //设置配送费支付方式
+                order.setExpressFeePayWay(drugsEnterprise.getExpressFeePayWay());
             }
         }
         if(null == remoteService){
@@ -1911,7 +1913,8 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         //配送费
-        if (null != order.getExpressFee()) {
+        //有配送费并且配送费支付方式为在线支付时才计入支付金额
+        if (null != order.getExpressFee() && (new Integer(1).equals(order.getExpressFeePayWay()))) {
             full = full.add(order.getExpressFee());
         }
 

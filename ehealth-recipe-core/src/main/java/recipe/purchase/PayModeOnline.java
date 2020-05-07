@@ -384,6 +384,10 @@ public class PayModeOnline implements IPurchaseService {
             }
         //}
 
+        //设置配送费支付方式
+        if (dep != null){
+            order.setExpressFeePayWay(dep.getExpressFeePayWay());
+        }
         // 暂时还是设置成处方单的患者，不然用户历史处方列表不好查找
         order.setMpiId(dbRecipe.getMpiid());
         order.setOrganId(dbRecipe.getClinicOrgan());
