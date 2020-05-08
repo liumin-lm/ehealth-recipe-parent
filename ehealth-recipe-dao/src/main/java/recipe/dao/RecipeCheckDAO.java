@@ -152,4 +152,7 @@ public abstract class RecipeCheckDAO extends HibernateSupportDelegateDAO<RecipeC
 
     @DAOMethod(sql = "from RecipeCheck where checker is null AND checkStatus=0 AND grabOrderStatus=1 AND localLimitDate<now()")
     public abstract List<RecipeCheck> findOverTimeRecipeCheck();
+
+    @DAOMethod(sql = "from RecipeCheck where recipeId=:recipeId")
+    public abstract RecipeCheck getByRecipeId(@DAOParam("recipeId") Integer recipeId);
 }

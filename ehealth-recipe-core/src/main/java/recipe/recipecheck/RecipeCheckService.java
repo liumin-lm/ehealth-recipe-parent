@@ -1160,7 +1160,8 @@ public class RecipeCheckService {
                 recipeCheck.setLocalLimitDate(eh.utils.DateConversion.getDateAftMinute(new Date(), 10));
                 recipeCheck.setCheckStatus(RecipecCheckStatusConstant.Check_Normal);
                 recipeCheck.setRecipeId(recipeId);
-                RecipeCheck recipeCheck2 = recipeCheckDAO.getByRecipeIdAndCheckStatus(recipeId);
+                //RecipeCheck recipeCheck2 = recipeCheckDAO.getByRecipeIdAndCheckStatus(recipeId);
+                RecipeCheck recipeCheck2 = recipeCheckDAO.getByRecipeId(recipeId);
                 if(null == recipeCheck2){
                     recipeCheckDAO.save(recipeCheck);
                 }else{
