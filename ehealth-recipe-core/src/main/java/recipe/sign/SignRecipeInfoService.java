@@ -165,6 +165,7 @@ public class SignRecipeInfoService {
             signDoctorRecipeInfo.setRecipeId(recipeId);
             signDoctorRecipeInfo.setCreateDate(new Date());
             signDoctorRecipeInfo = getInfoByResultVo(signDoctorRecipeInfo, signResult,isDoctor, type);
+            signDoctorRecipeInfo.setServerType(1);
             signDoctorRecipeInfoDAO.save(signDoctorRecipeInfo);
         } else {
             signDoctorRecipeInfo = getInfoByResultVo(signDoctorRecipeInfo, signResult,isDoctor, type);
@@ -189,6 +190,7 @@ public class SignRecipeInfoService {
             signDoctorRecipeInfo.setRecipeId(recipeId);
             signDoctorRecipeInfo.setCreateDate(new Date());
             signDoctorRecipeInfo = getInfo(signDoctorRecipeInfo, signCode, signCrt,isDoctor, type);
+            signDoctorRecipeInfo.setServerType(1);
             signDoctorRecipeInfoDAO.save(signDoctorRecipeInfo);
         } else {
             signDoctorRecipeInfo = getInfo(signDoctorRecipeInfo, signCode, signCrt,isDoctor, type);

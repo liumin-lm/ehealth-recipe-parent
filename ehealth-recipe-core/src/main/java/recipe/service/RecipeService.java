@@ -974,6 +974,16 @@ public class RecipeService extends RecipeBaseService {
                     RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
                     resultVo.setFileId(fileId);
                     signRecipeInfoSave(recipeId, true, resultVo, organId);
+                    try {
+                        SignDoctorRecipeInfo signDoctorRecipeInfo = signRecipeInfoService.get(recipeId);
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put("recipeBean", JSONObject.toJSONString(recipe));
+                        jsonObject.put("details", JSONObject.toJSONString(details));
+                        signDoctorRecipeInfo.setSignBefText(jsonObject.toJSONString());
+                        signRecipeInfoService.update(signDoctorRecipeInfo);
+                    } catch (Exception e) {
+                        LOGGER.error("signBefText save error："  + e.getMessage());
+                    }
                 }
 //                else {
 //                    RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
@@ -1204,17 +1214,6 @@ public class RecipeService extends RecipeBaseService {
         } else {
             recipeId = saveRecipeData(recipe, details);
             recipe.setRecipeId(recipeId);
-        }
-
-        try {
-            SignDoctorRecipeInfo signDoctorRecipeInfo = signRecipeInfoService.get(recipeId);
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("recipeBean", JSONObject.toJSONString(recipe));
-            jsonObject.put("details", JSONObject.toJSONString(details));
-            signDoctorRecipeInfo.setSignBefText(jsonObject.toJSONString());
-            signRecipeInfoService.update(signDoctorRecipeInfo);
-        } catch (Exception e) {
-            LOGGER.error("signBefText save error："  + e.getMessage());
         }
 
         //非只能配送处方需要进行医院库存校验
