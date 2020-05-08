@@ -7,6 +7,7 @@ import com.ngari.his.ca.model.CaAccountResponseTO;
 import com.ngari.his.ca.service.ICaHisService;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.sign.SignDoctorCaInfo;
@@ -48,7 +49,8 @@ public class SignInfoService {
     @RpcService
     public void setSerCodeAndEndDateByDoctorId(Integer doctorId, String type, String serCode, Date caEndTime){
         SignDoctorCaInfo signDoctorCaInfo = signDoctorCaInfoDAO.getDoctorSerCodeByDoctorIdAndType(doctorId, type);
-
+        DoctorService doctorService = BasicAPI.getService(DoctorService.class);
+        DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
         if (null == signDoctorCaInfo) {
             SignDoctorCaInfo caInfo = new SignDoctorCaInfo();
             caInfo.setCaSerCode(serCode);
@@ -57,11 +59,15 @@ public class SignInfoService {
             caInfo.setCreateDate(new Date());
             caInfo.setLastmodify(new Date());
             caInfo.setCaEndTime(caEndTime);
+            caInfo.setName(doctorDTO.getName());
+            caInfo.setIdcard(doctorDTO.getIdNumber());
             signDoctorCaInfoDAO.save(caInfo);
         } else {
             signDoctorCaInfo.setCaSerCode(serCode);
             signDoctorCaInfo.setLastmodify(new Date());
             signDoctorCaInfo.setCaEndTime(caEndTime);
+            signDoctorCaInfo.setName(doctorDTO.getName());
+            signDoctorCaInfo.setIdcard(doctorDTO.getIdNumber());
             signDoctorCaInfoDAO.update(signDoctorCaInfo);
         }
     }
