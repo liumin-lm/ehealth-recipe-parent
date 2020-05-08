@@ -7,7 +7,6 @@ import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
-import ctd.account.UserRoleToken;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
