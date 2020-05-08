@@ -27,6 +27,9 @@ public class SignDoctorCaInfo {
 
     private Date lastmodify;
 
+    /**证书到期时间*/
+    private Date caEndTime;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column
@@ -81,5 +84,14 @@ public class SignDoctorCaInfo {
 
     public void setLastmodify(Date lastmodify) {
         this.lastmodify = lastmodify;
+    }
+
+    @Column
+    public Date getCaEndTime() {
+        return caEndTime;
+    }
+
+    public void setCaEndTime(Date caEndTime) {
+        this.caEndTime = caEndTime;
     }
 }
