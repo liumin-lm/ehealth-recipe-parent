@@ -1049,4 +1049,6 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         return action.getResult();
     }
 
+    @DAOMethod(sql = "from RecipeOrder where orderCode in (:recipeCodes) and effective = 1")
+    public abstract List<RecipeOrder> findValidListbyCodes(@DAOParam("recipeCodes") List<String> recipeCodes);
 }

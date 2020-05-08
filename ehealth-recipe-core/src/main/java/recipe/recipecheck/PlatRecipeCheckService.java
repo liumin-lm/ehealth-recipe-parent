@@ -78,37 +78,42 @@ public class PlatRecipeCheckService implements IRecipeCheckService{
         //把审核结果再返回前端 0:未审核 1:通过 2:不通过
         resMap.put("check", (1 == result) ? 1 : 2);
 
-        //审核成功往药厂发消息
-        //审方做异步处理
-        GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
-            @Override
-            public void run() {
-                if (1 == result) {
-                    //审方成功
-                    auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckPassYs(recipe);
-                } else {
-                    //审核不通过后处理
-                    doAfterCheckNotPassYs(recipe);
-                }
-                //将审核结果推送HIS
-                try {
-                    RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-                    hisService.recipeAudit(recipe, resultBean);
-                } catch (Exception e) {
-                    LOGGER.warn("saveCheckResult send recipeAudit to his error. recipeId={}", recipeId, e);
-                }
-                if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
-                    //增加药师首页待处理任务---完成任务
-                    ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussFinishEvent(recipeId, BussTypeConstant.RECIPE));
-                }
-            }
-        });
-        //推送处方到监管平台(审核后数据)
-        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(),2));
+        //date 20200507
+        //将签名从不那个审核处方的逻辑中拆分出来
+        recipeService.retryPharmacistSignCheck(recipeId, recipe.getChecker(), resMap);
+        //签名失败，设置审核结果为失败
+
+//        //审核成功往药厂发消息
+//        //审方做异步处理
+//        GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
+//            @Override
+//            public void run() {
+//                if (1 == result) {
+//                    //审方成功
+//                    auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckPassYs(recipe);
+//                } else {
+//                    //审核不通过后处理
+//                    doAfterCheckNotPassYs(recipe);
+//                }
+//                //将审核结果推送HIS
+//                try {
+//                    RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+//                    hisService.recipeAudit(recipe, resultBean);
+//                } catch (Exception e) {
+//                    LOGGER.warn("saveCheckResult send recipeAudit to his error. recipeId={}", recipeId, e);
+//                }
+//                if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+//                    //增加药师首页待处理任务---完成任务
+//                    ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussFinishEvent(recipeId, BussTypeConstant.RECIPE));
+//                }
+//            }
+//        });
+//        //推送处方到监管平台(审核后数据)
+//        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(),2));
         return resMap;
     }
 
-    private void doAfterCheckNotPassYs(Recipe recipe) {
+    public void doAfterCheckNotPassYs(Recipe recipe) {
         boolean secondsignflag = RecipeServiceSub.canSecondAudit(recipe.getClinicOrgan());
         /*IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
         boolean secondsignflag = iOrganConfigService.getEnableSecondsignByOrganId(recipe.getClinicOrgan());*/

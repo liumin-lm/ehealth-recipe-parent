@@ -809,6 +809,11 @@ public class RecipeServiceSub {
         List<String> patientIds = new ArrayList<>(0);
         Map<Integer, RecipeBean> recipeMap = Maps.newHashMap();
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        //date 20200506
+        //获取处方对应的订单信息
+        List<String> recipeCodes = recipes.stream().map(recipe -> recipe.getRecipeCode()).filter(code -> StringUtils.isNotEmpty(code)).collect(Collectors.toList());
+        List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(recipeCodes);
+        Map<String, Integer> orderStatus = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, RecipeOrder::getStatus));
         for (Recipe recipe : recipes) {
             if (StringUtils.isNotEmpty(recipe.getMpiid())) {
                 patientIds.add(recipe.getMpiid());
@@ -830,7 +835,7 @@ public class RecipeServiceSub {
             if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
                 effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
             }
-            Map<String, String> tipMap = getTipsByStatusCopy(recipe.getStatus(), recipe, effective);
+            Map<String, String> tipMap = getTipsByStatusCopy(recipe.getStatus(), recipe, effective, (orderStatus == null || 0 >= orderStatus.size()) ? null : orderStatus.get(recipe.getOrderCode()));
             recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
             recipeMap.put(recipe.getRecipeId(), convertRecipeForRAP(recipe));
         }
@@ -998,125 +1003,155 @@ public class RecipeServiceSub {
      * @param effective
      * @return
      */
-    public static Map<String, String> getTipsByStatusCopy(int status, Recipe recipe, Boolean effective) {
+    public static Map<String, String> getTipsByStatusCopy(int status, Recipe recipe, Boolean effective, Integer orderStatus) {
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
         String cancelReason = "";
         String tips = "";
         String listTips = "";
         List<RecipeLog> recipeLog = null;
-        switch (status) {
-            case RecipeStatusConstant.CHECK_NOT_PASS:
-                tips = "审核未通过";
-                break;
-            case RecipeStatusConstant.UNSIGN:
-                tips = "未签名";
-                break;
-            case RecipeStatusConstant.UNCHECK:
-                tips = "待审核";
-                break;
-            case RecipeStatusConstant.CHECK_PASS:
-                tips = "待处理";
-                break;
-            case RecipeStatusConstant.REVOKE:
-                tips = "已撤销";
-                cancelReason = "由于您已撤销，该处方单已失效";
-                List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.REVOKE);
-                if (CollectionUtils.isNotEmpty(recipeLogs)) {
-                    cancelReason = recipeLogs.get(0).getMemo();
-                }
-                break;
-            case RecipeStatusConstant.HAVE_PAY:
-                tips = "待取药";
-                break;
-            case RecipeStatusConstant.IN_SEND:
-                tips = "配送中";
-                break;
-            case RecipeStatusConstant.WAIT_SEND:
-                tips = "待配送";
-                break;
-            case RecipeStatusConstant.FINISH:
-                tips = "已完成";
-                break;
-            case RecipeStatusConstant.CHECK_PASS_YS:
-                if (StringUtils.isNotEmpty(recipe.getSupplementaryMemo())) {
-                    tips = "医生再次确认处方";
-                } else {
-                    tips = "审核通过";
-                }
-                listTips = "审核通过";
-                break;
-            case RecipeStatusConstant.READY_CHECK_YS:
-                tips = "待审核";
-                break;
-            case RecipeStatusConstant.HIS_FAIL:
-                tips = "已取消";
-                cancelReason = "可能由于医院接口异常，处方单已取消，请稍后重试！";
-                break;
-            case RecipeStatusConstant.NO_DRUG:
-                tips = "已取消";
-                cancelReason = "由于患者未及时取药，该处方单已失效";
-                break;
-            case RecipeStatusConstant.NO_PAY:
-                //修改文案
-                tips = "已取消";
-                cancelReason = "由于患者未及时支付，该处方单已取消。";
-                break;
-            case RecipeStatusConstant.NO_OPERATOR:
-                //修改文案
-                tips = "已取消";
-                cancelReason = "由于患者未及时处理，该处方已取消。";
-                break;
-            case RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN:
-                tips = "已取消";
-                cancelReason = "处方超时医保上传失败，处方单已取消！";
-                break;
-            case RecipeStatusConstant.RECIPE_MEDICAL_FAIL:
-                tips = "已取消";
-                cancelReason = "医保上传失败，处方单已取消！";
-                break;
-            case RecipeStatusConstant.CHECK_NOT_PASS_YS:
-                //这里逻辑修改：原先处方取消后，保留处方的状态
-                //现在初始化成待处理的状态
-                tips = "审核未通过";
 
-                break;
-            case RecipeStatusConstant.CHECKING_HOS:
-                tips = "医院确认中";
-                break;
-            //添加状态
-            case RecipeStatusConstant.RECIPE_FAIL:
-                tips = "失败";
-                break;
-            case RecipeStatusConstant.RECIPE_DOWNLOADED:
-                tips = "待取药";
-                break;
-            //天猫特殊状态
-            case RecipeStatusConstant.USING:
-                tips = "处理中";
-                break;
-            case RecipeStatusConstant.CHECKING_MEDICAL_INSURANCE:
-                tips = "医保上传确认中";
-                break;
-            case RecipeStatusConstant.SIGN_ERROR_CODE_DOC:
-                recipeLog = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.SIGN_ERROR_CODE_DOC);
-                if (recipeLog != null &&recipeLog.size() > 0) {
-                    tips = recipeLog.get(0).getMemo();
-                }
-                break;
-            case RecipeStatusConstant.SIGN_ERROR_CODE_PHA:
-                recipeLog = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.SIGN_ERROR_CODE_PHA);
-                if (recipeLog != null &&recipeLog.size() > 0) {
-                    tips = recipeLog.get(0).getMemo();
-                }
-                break;
-            case RecipeStatusConstant.SIGN_ING_CODE_DOC:
-                tips = "处方签名中";
-                break;
-            case RecipeStatusConstant.SIGN_ING_CODE_PHA:
-                tips = "审方签名中";
-                break;
-            default:
-                tips = "未知状态" + status;
+        //date 20200506
+        //修改展示状态的方式，有订单的状态现优先展示订单的状态再展示处方的状态
+        if(null != orderStatus){
+            switch (orderStatus) {
+                case OrderStatusConstant.READY_GET_DRUG_INT:
+                    if(null != recipe.getGiveMode() && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())){
+                        tips = "待下载";
+                    }else{
+                        tips = "待取药";
+                    }
+                    break;
+                case OrderStatusConstant.READY_DRUG_INT:
+                    tips = "待取药";
+                    break;
+                case OrderStatusConstant.READY_SEND_INT:
+                    tips = "待配送";
+                    break;
+                case OrderStatusConstant.SENDING_INT:
+                    tips = "配送中";
+                    break;
+            }
+        }
+        //date 20200506
+        //判断当订单的状态不存在的时候用处方的状态
+        if(StringUtils.isEmpty(tips)){
+
+            switch (status) {
+                case RecipeStatusConstant.CHECK_NOT_PASS:
+                    tips = "审核未通过";
+                    break;
+                case RecipeStatusConstant.UNSIGN:
+                    tips = "未签名";
+                    break;
+                case RecipeStatusConstant.UNCHECK:
+                    tips = "待审核";
+                    break;
+                case RecipeStatusConstant.CHECK_PASS:
+                    tips = "待处理";
+                    break;
+                case RecipeStatusConstant.REVOKE:
+                    tips = "已撤销";
+                    cancelReason = "由于您已撤销，该处方单已失效";
+                    List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.REVOKE);
+                    if (CollectionUtils.isNotEmpty(recipeLogs)) {
+                        cancelReason = recipeLogs.get(0).getMemo();
+                    }
+                    break;
+                case RecipeStatusConstant.HAVE_PAY:
+                    tips = "待取药";
+                    break;
+                case RecipeStatusConstant.IN_SEND:
+                    tips = "配送中";
+                    break;
+                case RecipeStatusConstant.WAIT_SEND:
+                    tips = "待配送";
+                    break;
+                case RecipeStatusConstant.FINISH:
+                    tips = "已完成";
+                    break;
+                case RecipeStatusConstant.CHECK_PASS_YS:
+                    if (StringUtils.isNotEmpty(recipe.getSupplementaryMemo())) {
+                        tips = "医生再次确认处方";
+                    } else {
+                        tips = "审核通过";
+                    }
+                    listTips = "审核通过";
+                    break;
+                case RecipeStatusConstant.READY_CHECK_YS:
+                    tips = "待审核";
+                    break;
+                case RecipeStatusConstant.HIS_FAIL:
+                    tips = "已取消";
+                    cancelReason = "可能由于医院接口异常，处方单已取消，请稍后重试！";
+                    break;
+                case RecipeStatusConstant.NO_DRUG:
+                    tips = "已取消";
+                    cancelReason = "由于患者未及时取药，该处方单已失效";
+                    break;
+                case RecipeStatusConstant.NO_PAY:
+                    //修改文案
+                    tips = "已取消";
+                    cancelReason = "由于患者未及时支付，该处方单已取消。";
+                    break;
+                case RecipeStatusConstant.NO_OPERATOR:
+                    //修改文案
+                    tips = "已取消";
+                    cancelReason = "由于患者未及时处理，该处方已取消。";
+                    break;
+                case RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN:
+                    tips = "已取消";
+                    cancelReason = "处方超时医保上传失败，处方单已取消！";
+                    break;
+                case RecipeStatusConstant.RECIPE_MEDICAL_FAIL:
+                    tips = "已取消";
+                    cancelReason = "医保上传失败，处方单已取消！";
+                    break;
+                case RecipeStatusConstant.CHECK_NOT_PASS_YS:
+                    //这里逻辑修改：原先处方取消后，保留处方的状态
+                    //现在初始化成待处理的状态
+                    //date 20200506
+                    //修改审核不通过文案修改
+                    tips = "审核不通过";
+
+                    break;
+                case RecipeStatusConstant.CHECKING_HOS:
+                    tips = "医院确认中";
+                    break;
+                //添加状态
+                case RecipeStatusConstant.RECIPE_FAIL:
+                    tips = "失败";
+                    break;
+                case RecipeStatusConstant.RECIPE_DOWNLOADED:
+                    tips = "待取药";
+                    break;
+                //天猫特殊状态
+                case RecipeStatusConstant.USING:
+                    tips = "处理中";
+                    break;
+                case RecipeStatusConstant.CHECKING_MEDICAL_INSURANCE:
+                    tips = "医保上传确认中";
+                    break;
+                case RecipeStatusConstant.SIGN_ERROR_CODE_DOC:
+                    recipeLog = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.SIGN_ERROR_CODE_DOC);
+                    if (recipeLog != null &&recipeLog.size() > 0) {
+                        tips = recipeLog.get(0).getMemo();
+                    }
+                    break;
+                case RecipeStatusConstant.SIGN_ERROR_CODE_PHA:
+                    recipeLog = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.SIGN_ERROR_CODE_PHA);
+                    if (recipeLog != null &&recipeLog.size() > 0) {
+                        tips = recipeLog.get(0).getMemo();
+                    }
+                    break;
+                case RecipeStatusConstant.SIGN_ING_CODE_DOC:
+                    tips = "处方签名中";
+                    break;
+                case RecipeStatusConstant.SIGN_ING_CODE_PHA:
+                    tips = "审方签名中";
+                    break;
+                default:
+                    tips = "未知状态" + status;
+            }
         }
         if (StringUtils.isEmpty(listTips)) {
             listTips = tips;
@@ -1260,7 +1295,12 @@ public class RecipeServiceSub {
             // 获取处方单药品总价
             RecipeUtil.getRecipeTotalPriceRange(recipe, recipedetails);
             boolean effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
-            Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, null);
+
+            //date 20200506
+            //通过订单的状态判断
+            List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(Arrays.asList(recipe.getRecipeCode()));
+            Map<String, Integer> orderStatus = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, RecipeOrder::getStatus));
+            Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, null, (orderStatus == null || 0 >= orderStatus.size()) ? null : orderStatus.get(recipe.getOrderCode()));
             map.put("cancelReason", MapValueUtil.getString(tipMap, "cancelReason"));
             map.put("tips", MapValueUtil.getString(tipMap, "tips"));
 

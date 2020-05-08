@@ -42,6 +42,7 @@ import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static recipe.service.RecipeServiceSub.convertPatientForRAP;
 import static recipe.service.RecipeServiceSub.convertRecipeForRAP;
@@ -102,6 +103,12 @@ public class RecipeListService extends RecipeBaseService{
         if (CollectionUtils.isNotEmpty(recipeList)) {
             List<String> patientIds = new ArrayList<>(0);
             Map<Integer, RecipeBean> recipeMap = Maps.newHashMap();
+            //date 20200506
+            //获取处方对应的订单信息
+            List<String> recipeCodes = recipeList.stream().map(recipe -> recipe.getRecipeCode()).filter(code -> StringUtils.isNotEmpty(code)).collect(Collectors.toList());
+            List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(recipeCodes);
+            Map<String, Integer> orderStatus = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, RecipeOrder::getStatus));
+
             for (Recipe recipe : recipeList) {
                 if (StringUtils.isNotEmpty(recipe.getMpiid())) {
                     patientIds.add(recipe.getMpiid());
@@ -134,7 +141,8 @@ public class RecipeListService extends RecipeBaseService{
                 //Map<String, String> tipMap = RecipeServiceSub.getTipsByStatus(recipe.getStatus(), recipe, effective);
                 //date 20190929
                 //修改医生端状态文案显示
-                Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, effective);
+                Map<String, String> tipMap =
+                        RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, effective, (orderStatus == null || 0 >= orderStatus.size()) ? null : orderStatus.get(recipe.getOrderCode()));
 
                 recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
                 recipeMap.put(recipe.getRecipeId(), convertRecipeForRAP(recipe));
@@ -162,6 +170,10 @@ public class RecipeListService extends RecipeBaseService{
         }
 
         return list;
+    }
+
+    public static void main(String[] args) {
+
     }
 
     /**
@@ -622,6 +634,12 @@ public class RecipeListService extends RecipeBaseService{
         List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatientAndStatusList(doctorId, mpiId, start, limit, new ArrayList<>(Arrays.asList(HistoryRecipeListShowStatusList)));
         PatientDTO patient = RecipeServiceSub.convertPatientForRAP(patientService.get(mpiId));
         if (CollectionUtils.isNotEmpty(recipes)) {
+            //date 20200506
+            //获取处方对应的订单信息
+            List<String> recipeCodes = recipes.stream().map(recipe -> recipe.getRecipeCode()).filter(code -> StringUtils.isNotEmpty(code)).collect(Collectors.toList());
+            List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(recipeCodes);
+            Map<String, Integer> orderStatus = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, RecipeOrder::getStatus));
+
             for (Recipe recipe : recipes) {
                 Map<String, Object> map = Maps.newHashMap();
                 //设置处方具体药品名称
@@ -651,7 +669,9 @@ public class RecipeListService extends RecipeBaseService{
                 //Map<String, String> tipMap = RecipeServiceSub.getTipsByStatus(recipe.getStatus(), recipe, effective);
                 //date 20190929
                 //修改医生端状态文案显示
-                Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, effective);
+                //date 20200506
+                //添加订单的状态
+                Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, effective, (orderStatus == null || 0 >= orderStatus.size()) ? null : orderStatus.get(recipe.getOrderCode()));
 
                 recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
                 map.put("recipe", RecipeServiceSub.convertRecipeForRAP(recipe));
