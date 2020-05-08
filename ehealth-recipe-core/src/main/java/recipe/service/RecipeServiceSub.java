@@ -1389,9 +1389,13 @@ public class RecipeServiceSub {
                 PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
                 map.put("tips", purchaseService.getTipsByStatusForPatient(recipe, order));
             }
-            //获取撤销原因
+            //获取医生撤销原因
             if (recipe.getStatus() == RecipeStatusConstant.REVOKE){
                 map.put("cancelReason", getCancelReasonForPatient(recipeId));
+            }
+            //获取药师撤销原因
+            if (recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS){
+                map.put("cancelReason", getCancelReasonForChecker(recipeId));
             }
             boolean b = null != recipe.getEnterpriseId() && RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())
                     && (recipe.getStatus() == RecipeStatusConstant.WAIT_SEND || recipe.getStatus() == RecipeStatusConstant.IN_SEND
@@ -1624,9 +1628,21 @@ public class RecipeServiceSub {
         return  auditMedicines;
     }
 
+    private static Object getCancelReasonForChecker(int recipeId) {
+        RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.READY_CHECK_YS);
+        String cancelReason ="";
+        if (CollectionUtils.isNotEmpty(recipeLogs)) {
+            if (RecipeStatusConstant.CHECK_PASS == recipeLogs.get(0).getAfterStatus()){
+                cancelReason = "药师已撤销审方结果,"+recipeLogs.get(0).getMemo()+"。请耐心等待药师再次审核";
+            }
+        }
+        return cancelReason;
+    }
+
     private static String getCancelReasonForPatient(int recipeId) {
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipeId, RecipeStatusConstant.REVOKE);
+        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.REVOKE);
         String cancelReason ="";
         if (CollectionUtils.isNotEmpty(recipeLogs)) {
             cancelReason = "开方医生已撤销处方,撤销原因:"+recipeLogs.get(0).getMemo();

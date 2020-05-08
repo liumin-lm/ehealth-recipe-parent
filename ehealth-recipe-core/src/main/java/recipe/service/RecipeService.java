@@ -16,6 +16,7 @@ import com.ngari.base.patient.model.DocIndexBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.payment.service.IPaymentService;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.common.mode.HisResponseTO;
@@ -50,6 +51,7 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
@@ -100,10 +102,7 @@ import recipe.recipecheck.IRecipeCheckService;
 import recipe.recipecheck.PlatRecipeCheckService;
 import recipe.service.common.RecipeCacheService;
 import recipe.thread.*;
-import recipe.util.DateConversion;
-import recipe.util.DigestUtil;
-import recipe.util.MapValueUtil;
-import recipe.util.RedisClient;
+import recipe.util.*;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -3576,6 +3575,45 @@ public class RecipeService extends RecipeBaseService {
         }
         LOGGER.info("recipeCanDelivery 处方[{}],是否支持配送：{}", recipeId, flag);
         return flag;
+    }
+
+    /**
+     * 开处方时，通过年龄判断是否能够开处方
+     * mpiid
+     * @return Map<String,Object>
+     */
+    @RpcService
+    public Map<String, Object>   findCanRecipeByAge(Map<String,String> params) {
+        LOGGER.info("findCanRecipeByAge 参数{}",JSONUtils.toString(params));
+        if(StringUtils.isEmpty(params.get("mpiid")))   throw new DAOException("findCanRecipeByAge mpiid不允许为空");
+        if(StringUtils.isEmpty(params.get("organId")))   throw new DAOException("findCanRecipeByAge organId不允许为空");
+        Map<String, Object> map = Maps.newHashMap();
+        boolean canRecipe=false;//默认不可开处方
+        //从opbase配置项获取允许开处方患者年龄 findCanRecipeByAge
+        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+        Object findCanRecipeByAge = configService.getConfiguration(Integer.parseInt(params.get("organId")), "findCanRecipeByAge");
+        LOGGER.info("findCanRecipeByAge 从opbase配置项获取允许开处方患者年龄{}",findCanRecipeByAge);
+        if(findCanRecipeByAge==null) canRecipe=true;//查询不到设置值或默认值或没配置配置项 设置可开处方
+        if(!canRecipe){
+            //从opbase获取患者数据
+            List<String> findByMpiIdInParam=new ArrayList<>();
+            findByMpiIdInParam.add(params.get("mpiid"));
+            List<PatientDTO> patientList = patientService.findByMpiIdIn(findByMpiIdInParam);
+            //通过证件号码获取患者年龄
+            Integer age = 0;
+            try {
+                age=ChinaIDNumberUtil.getAgeFromIDNumber(patientList.get(0).getIdcard());
+                LOGGER.info("findCanRecipeByAge 通过证件号码获取患者年龄{}",age);
+            } catch (ValidateException e) {
+                LOGGER.error("findCanRecipeByAge 通过证件号码获取患者年龄异常"+e.getMessage());
+                e.printStackTrace();
+            }
+            //实际年龄>=配置年龄 设置可开处方
+            if(age>=(Integer) findCanRecipeByAge) canRecipe=true;
+        }
+        map.put("canRecipe",canRecipe);
+        map.put("canRecipeAge",findCanRecipeByAge);
+        return map;
     }
 
 //    @RpcService

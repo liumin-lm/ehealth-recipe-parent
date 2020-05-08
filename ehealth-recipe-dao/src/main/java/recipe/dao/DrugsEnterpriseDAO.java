@@ -196,4 +196,10 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      */
     @DAOMethod(sql = "from DrugsEnterprise where status=1 and appKey=:appKey", limit = 1)
     public abstract DrugsEnterprise getByAppKey(@DAOParam("appKey") String appKey);
+
+    @DAOMethod(sql = "update DrugsEnterprise set manageUnit=:manageUnit where id=:id ")
+    public abstract void updateManageUnitById(@DAOParam("id") Integer id,@DAOParam("manageUnit") String manageUnit);
+
+    @DAOMethod(sql = "from DrugsEnterprise where manageUnit=:manageUnit", limit = 1)
+    public abstract DrugsEnterprise getByManageUnit(@DAOParam("manageUnit") String manageUnit);
 }

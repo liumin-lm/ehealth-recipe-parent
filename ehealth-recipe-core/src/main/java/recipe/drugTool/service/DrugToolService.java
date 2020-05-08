@@ -542,7 +542,8 @@ public class DrugToolService implements IDrugToolService {
      */
     @RpcService
     public QueryResult<DrugListMatch> findData(int organId, int start, int limit) {
-        return drugListMatchDAO.findMatchDataByOrgan(organId, start, limit);
+        int status=2;
+        return drugListMatchDAO.findMatchDataByOrgan(organId, start, limit,status);
     }
 
     /**

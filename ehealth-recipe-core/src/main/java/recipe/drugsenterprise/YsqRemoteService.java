@@ -599,10 +599,10 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     //快递费用
                     recipeMap.put("DELIVERYCASH", order.getExpressFee());
                     //快递费用是否已支付
-                    if (new Integer(1).equals(order.getExpressFeePayWay())){
-                        recipeMap.put("DELIVERYFLAG","1");
-                    }else{
+                    if (new Integer(2).equals(order.getExpressFeePayWay())){
                         recipeMap.put("DELIVERYFLAG","0");
+                    }else {
+                        recipeMap.put("DELIVERYFLAG","1");
                     }
                 } else {
                     if ("psysq".equals(drugsEnterprise.getAccount())) {
