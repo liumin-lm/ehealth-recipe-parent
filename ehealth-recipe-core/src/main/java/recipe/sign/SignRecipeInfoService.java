@@ -1,10 +1,16 @@
 package recipe.sign;
 
 import com.alibaba.fastjson.JSONObject;
+import com.ngari.base.department.service.IDepartmentService;
 import com.ngari.patient.dto.DoctorExtendDTO;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorExtendService;
+import com.ngari.patient.service.PatientService;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -15,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.constant.ErrorCode;
+import recipe.dao.RecipeExtendDAO;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.service.RecipeService;
 
@@ -140,6 +147,40 @@ public class SignRecipeInfoService {
         signDoctorRecipeInfo.setLastmodify(new Date());
         signDoctorRecipeInfo.setRecipeId(recipeId);
         return signDoctorRecipeInfoDAO.save(signDoctorRecipeInfo);
+    }
+
+    @RpcService
+    public void setMedicalSignInfoByRecipeId(Integer recipeId){
+        SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getRecipeInfoByRecipeId(recipeId);
+        if (signDoctorRecipeInfo != null) {
+            SignDoctorRecipeInfo signInfo = new SignDoctorRecipeInfo();
+            signInfo.setRecipeId(recipeId);
+            signInfo.setServerType(2);
+            signInfo.setSignCodeDoc(signDoctorRecipeInfo.getSignCodeDoc());
+            signInfo.setSignCaDateDoc(signDoctorRecipeInfo.getSignCaDateDoc());
+
+            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+            RecipeBean recipeBean = recipeService.getByRecipeId(recipeId);
+
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+
+            PatientService patientService = BasicAPI.getService(PatientService.class);
+            PatientDTO p = patientService.getByMpiId(recipeBean.getMpiid());
+
+            IDepartmentService iDepartmentService = ApplicationUtils.getBaseService(IDepartmentService.class);
+            JSONObject json = new JSONObject();
+            json.put("patientName",p.getPatientName());
+            json.put("patientMobile",p.getMobile());
+            json.put("patientIdcard",p.getCertificate());
+            json.put("doctorName",recipeBean.getDoctorName());
+            json.put("dateTime",recipeBean.getCreateDate());
+            json.put("DepartName",iDepartmentService.getNameById(recipeBean.getDepart()));
+            json.put("organDiseaseName",recipeBean.getOrganDiseaseName());
+            json.put("mainDieaseDescribe",recipeExtend.getMainDieaseDescribe());
+            signInfo.setSignBefText(json.toJSONString());
+            signDoctorRecipeInfoDAO.save(signInfo);
+        }
     }
 
     @RpcService
