@@ -30,6 +30,10 @@ public class SignDoctorCaInfo {
     /**证书到期时间*/
     private Date caEndTime;
 
+    private String name;
+
+    private String idcard;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column
@@ -93,5 +97,23 @@ public class SignDoctorCaInfo {
 
     public void setCaEndTime(Date caEndTime) {
         this.caEndTime = caEndTime;
+    }
+
+    @Column
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Column
+    public String getIdcard() {
+        return idcard;
+    }
+
+    public void setIdcard(String idcard) {
+        this.idcard = idcard;
     }
 }
