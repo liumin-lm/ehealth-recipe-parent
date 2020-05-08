@@ -46,7 +46,7 @@ public class SignInfoService {
     private DoctorService doctorService;
 
     @RpcService
-    public void setSerCodeByDoctorId(Integer doctorId, String type, String serCode, Date caEndTime){
+    public void setSerCodeAndEndDateByDoctorId(Integer doctorId, String type, String serCode, Date caEndTime){
         SignDoctorCaInfo signDoctorCaInfo = signDoctorCaInfoDAO.getDoctorSerCodeByDoctorIdAndType(doctorId, type);
 
         if (null == signDoctorCaInfo) {
@@ -64,6 +64,11 @@ public class SignInfoService {
             signDoctorCaInfo.setCaEndTime(caEndTime);
             signDoctorCaInfoDAO.update(signDoctorCaInfo);
         }
+    }
+
+    @RpcService
+    public void setSerCodeByDoctorId(Integer doctorId, String type, String serCode){
+        setSerCodeAndEndDateByDoctorId(doctorId, type, serCode, null);
     }
 
     @RpcService
