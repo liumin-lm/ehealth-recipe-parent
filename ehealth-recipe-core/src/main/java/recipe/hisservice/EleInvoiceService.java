@@ -1,11 +1,13 @@
 package recipe.hisservice;
 
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.EleInvoiceReqTo;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
+import ctd.account.UserRoleToken;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
@@ -14,6 +16,7 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
 import recipe.bean.EleInvoiceDTO;
 import recipe.util.DateConversion;
 
@@ -33,6 +36,7 @@ public class EleInvoiceService {
     @RpcService
     public String findEleInvoice(EleInvoiceDTO eleInvoiceDTO){
         LOGGER.info("EleInvoiceService.findEleInvoice 入参eleInvoiceDTO=[{}]",JSONUtils.toString(eleInvoiceDTO));
+        validateParam(eleInvoiceDTO);
         PatientService patientService = BasicAPI.getService(PatientService.class);
         PatientDTO patientDTO = patientService.get(eleInvoiceDTO.getMpiid());
         EleInvoiceReqTo eleInvoiceReqTo = new EleInvoiceReqTo();
@@ -101,6 +105,28 @@ public class EleInvoiceService {
         if(StringUtils.isBlank(eleInvoiceDTO.getType())){
             throw new DAOException(609,"type is null");
         }
+    }
+
+    @RpcService
+    public String getEleInvoiceEnable(Integer organId,String type){
+        if(organId == null){
+            throw new DAOException(609,"organId is null");
+        }
+        if(StringUtils.isBlank(type)){
+            throw new DAOException(609,"type is null");
+        }
+        IConfigurationCenterUtilsService configurationCenterUtils = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        String result = "";
+        if("0".equals(type)){
+            result = (String)configurationCenterUtils.getConfiguration(organId, "EleInvoiceFzSwitch");
+        }
+        if("1".equals(type)){
+            result = (String)configurationCenterUtils.getConfiguration(organId, "EleInvoiceCfSwitch");
+        }
+        if(StringUtils.isBlank(result)){
+            throw new DAOException(609, "该机构下未配置查看电子发票的开关");
+        }
+        return result;
     }
 
 }
