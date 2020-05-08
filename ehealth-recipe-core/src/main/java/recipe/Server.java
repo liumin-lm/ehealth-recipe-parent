@@ -1,5 +1,7 @@
 package recipe;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import java.io.*;
@@ -10,9 +12,10 @@ import java.io.*;
  * @author: 0184/yu_yun
  */
 public class Server {
-
+    private static final Logger logger = LoggerFactory.getLogger(Server.class);
     public static void main(String[] args) {
         ClassPathXmlApplicationContext appContext = new ClassPathXmlApplicationContext("spring.xml");
+        logger.info("Server start");
     }
 
     private static String getString(String... args) {
