@@ -3357,14 +3357,16 @@ public class RecipeService extends RecipeBaseService {
      * @return Map<String,Object>
      */
     @RpcService
-    public Map<String, Boolean>  findCanRecipeByAge(Map<String,String> params) {
+    public Map<String, Object>   findCanRecipeByAge(Map<String,String> params) {
+        LOGGER.info("findCanRecipeByAge 参数{}",JSONUtils.toString(params));
         if(StringUtils.isEmpty(params.get("mpiid")))   throw new DAOException("findCanRecipeByAge mpiid不允许为空");
         if(StringUtils.isEmpty(params.get("organId")))   throw new DAOException("findCanRecipeByAge organId不允许为空");
-        Map<String, Boolean> map = Maps.newHashMap();
+        Map<String, Object> map = Maps.newHashMap();
         boolean canRecipe=false;//默认不可开处方
         //从opbase配置项获取允许开处方患者年龄 findCanRecipeByAge
         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
         Object findCanRecipeByAge = configService.getConfiguration(Integer.parseInt(params.get("organId")), "findCanRecipeByAge");
+        LOGGER.info("findCanRecipeByAge 从opbase配置项获取允许开处方患者年龄{}",findCanRecipeByAge);
         if(findCanRecipeByAge==null) canRecipe=true;//查询不到设置值或默认值或没配置配置项 设置可开处方
         if(!canRecipe){
             //从opbase获取患者数据
@@ -3375,16 +3377,17 @@ public class RecipeService extends RecipeBaseService {
             Integer age = 0;
             try {
                 age=ChinaIDNumberUtil.getAgeFromIDNumber(patientList.get(0).getIdcard());
+                LOGGER.info("findCanRecipeByAge 通过证件号码获取患者年龄{}",age);
             } catch (ValidateException e) {
-                LOGGER.info("findCanRecipeByAge 通过证件号码获取患者年龄异常"+e.getMessage());
+                LOGGER.error("findCanRecipeByAge 通过证件号码获取患者年龄异常"+e.getMessage());
                 e.printStackTrace();
             }
             //实际年龄>=配置年龄 设置可开处方
             if(age>=(Integer) findCanRecipeByAge) canRecipe=true;
         }
         map.put("canRecipe",canRecipe);
+        map.put("canRecipeAge",findCanRecipeByAge);
         return map;
-
     }
 
 //    @RpcService
