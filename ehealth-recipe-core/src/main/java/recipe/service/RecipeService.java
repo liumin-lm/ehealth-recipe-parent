@@ -3400,7 +3400,7 @@ public class RecipeService extends RecipeBaseService {
             if (value.indexOf(organId) >= 0) {
                 thirdCASign = "shanghaiCA";
             }
-            signRecipeInfoService.saveSignInfo(recipeId, false, signResultVo,thirdCASign);
+            signRecipeInfoService.saveSignInfo(recipeId, isDoctor, signResultVo,thirdCASign);
         } catch (Exception e) {
             LOGGER.info("signRecipeInfoService error recipeId[{}] errorMsg[{}]", recipeId, e.getMessage());
         }
