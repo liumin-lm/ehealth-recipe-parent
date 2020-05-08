@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.ca.vo.CaSignResultVo;
 import recipe.constant.ErrorCode;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.service.RecipeService;
@@ -82,6 +83,15 @@ public class SignRecipeInfoService {
         return true;
     }
 
+    @RpcService
+    public void update(SignDoctorRecipeInfo signDoctorRecipeInfo){
+        signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
+    }
+
+    @RpcService
+    public SignDoctorRecipeInfo get(Integer recipeId) {
+        return signDoctorRecipeInfoDAO.getRecipeInfoByRecipeId(recipeId);
+    }
 
     @RpcService
     public SignDoctorRecipeInfo getSignInfoByRecipeId(Integer recipeId){
@@ -146,7 +156,23 @@ public class SignRecipeInfoService {
         return map;
     }
 
-    /**
+    @RpcService
+    public void saveSignInfo(Integer recipeId, boolean isDoctor, CaSignResultVo signResult, String type) {
+        logger.info("saveSignInfoByRecipe infos recipeId={}=,isDoctor={}=, signResult={}=,type={}=",recipeId, isDoctor, JSONObject.toJSONString(signResult),type);
+        SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getRecipeInfoByRecipeIdAndType(recipeId, type);
+        if (signDoctorRecipeInfo == null) {
+            signDoctorRecipeInfo = new SignDoctorRecipeInfo();
+            signDoctorRecipeInfo.setRecipeId(recipeId);
+            signDoctorRecipeInfo.setCreateDate(new Date());
+            signDoctorRecipeInfo = getInfoByResultVo(signDoctorRecipeInfo, signResult,isDoctor, type);
+            signDoctorRecipeInfoDAO.save(signDoctorRecipeInfo);
+        } else {
+            signDoctorRecipeInfo = getInfoByResultVo(signDoctorRecipeInfo, signResult,isDoctor, type);
+            signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
+        }
+    }
+
+    /** 重庆ca专用
      * ca保存ca信息
      * @param recipeId 处方ID
      * @param signCode 签名摘要
@@ -169,6 +195,22 @@ public class SignRecipeInfoService {
             signDoctorRecipeInfoDAO.update(signDoctorRecipeInfo);
         }
     }
+
+    private SignDoctorRecipeInfo getInfoByResultVo (SignDoctorRecipeInfo signDoctorRecipeInfo, CaSignResultVo signResult, boolean isDoctor,String type) {
+        if (isDoctor) {
+            signDoctorRecipeInfo.setSignFileDoc(signResult.getFileId());
+            signDoctorRecipeInfo.setSignCaDateDoc(signResult.getSignCADate());
+            signDoctorRecipeInfo.setSignCodeDoc(signResult.getSignRecipeCode());
+        } else {
+            signDoctorRecipeInfo.setSignFilePha(signResult.getFileId());
+            signDoctorRecipeInfo.setSignCaDatePha(signResult.getSignCADate());
+            signDoctorRecipeInfo.setSignCodePha(signResult.getSignRecipeCode());
+        }
+        signDoctorRecipeInfo.setLastmodify(new Date());
+        signDoctorRecipeInfo.setType(type);
+        return signDoctorRecipeInfo;
+    }
+
 
     private SignDoctorRecipeInfo getInfo (SignDoctorRecipeInfo signDoctorRecipeInfo, String signCode, String signCrt, boolean isDoctor,String type) {
         if (isDoctor) {
