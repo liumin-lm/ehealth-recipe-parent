@@ -1207,6 +1207,13 @@ public class RecipeListService extends RecipeBaseService{
         if (CollectionUtils.isNotEmpty(recipeList)) {
             List<String> patientIds = new ArrayList<>(0);
             Map<Integer, RecipeBean> recipeMap = Maps.newHashMap();
+
+            //date 20200506
+            //获取处方对应的订单信息
+            List<String> recipeCodes = recipeList.stream().map(recipe -> recipe.getRecipeCode()).filter(code -> StringUtils.isNotEmpty(code)).collect(Collectors.toList());
+            List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(recipeCodes);
+            Map<String, Integer> orderStatus = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, RecipeOrder::getStatus));
+
             for (Recipe recipe : recipeList) {
                 if (StringUtils.isNotEmpty(recipe.getMpiid())) {
                     patientIds.add(recipe.getMpiid());
@@ -1239,7 +1246,7 @@ public class RecipeListService extends RecipeBaseService{
                 //Map<String, String> tipMap = RecipeServiceSub.getTipsByStatus(recipe.getStatus(), recipe, effective);
                 //date 20190929
                 //修改医生端状态文案显示
-                Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, effective);
+                Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, effective, (orderStatus == null || 0 >= orderStatus.size()) ? null : orderStatus.get(recipe.getOrderCode()));
 
                 recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
                 recipeMap.put(recipe.getRecipeId(), convertRecipeForRAP(recipe));
