@@ -1,9 +1,11 @@
 package recipe.service;
 
+import com.google.common.collect.Lists;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganConfigService;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
+import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
@@ -429,5 +431,15 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         }
         result.put("enterpriseInventory", inventoryList);
         return result;
+    }
+
+    @RpcService
+    public List<DrugsEnterprise> findDrugsEnterpriseForOpUser(){
+        List<DrugsEnterprise> list = Lists.newArrayList();
+        UserRoleToken ur = UserRoleToken.getCurrent();
+        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise enterprise = enterpriseDAO.getByManageUnit(ur.getManageUnit());
+        list.add(enterprise);
+        return list;
     }
 }
