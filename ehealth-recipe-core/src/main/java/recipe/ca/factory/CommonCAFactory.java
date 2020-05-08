@@ -2,6 +2,7 @@ package recipe.ca.factory;
 
 import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import eh.utils.params.ParamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ca.CAInterface;
@@ -45,8 +46,9 @@ public class CommonCAFactory {
             IConfigurationCenterUtilsService configurationService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
             String thirdCASign = (String) configurationService.getConfiguration(organId, THIRD_CA_SIGN);
             //上海儿童特殊处理
-            if (1000899 == organId || 1002902 == organId) {
-                thirdCASign = CA_TYPE_SHANGHAI;
+            String value = ParamUtils.getParam("SH_CA_ORGANID_WHITE_LIST");
+            if (value.indexOf(organId) >= 0) {
+                thirdCASign = "shanghaiCA";
             }
             LOGGER.info("useCAFunction in organId ={} ,CA 模式 ={}", organId, thirdCASign);
             return map.get(thirdCASign);
