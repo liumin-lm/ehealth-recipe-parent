@@ -22,6 +22,7 @@ import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
+import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -1146,6 +1147,106 @@ public class RecipeListService extends RecipeBaseService{
             }
         }
         return 1;
+    }
+
+    /**
+     * 医生端处方列表根据tab展示
+     * doctorId 医生ID
+     * recipeId 上一页最后一条处方ID，首页传0
+     * limit    每页限制数
+     * tabStatus     电子处方列表tab状态
+     *      0或不传-[ 全部 ]：包含所有状态的处方单
+     *      1- [ 未签名 ]：暂存 [ 未签名 ] 的处方单
+     *      2- [ 处理中 ]：其余所有状态的处方单
+     *      3- [ 审核不通过 ]：[ 审核不通过 ] 的处方单
+     *      4- [ 已结束 ]：包括 [ 已取消 ]、[ 已完成 ]、[ 已撤销 ] 的处方单
+     * @return
+     */
+    @RpcService
+    public List<Map<String, Object>> findRecipesForDoctorByTapstatus(Map<String,Integer> params) {
+        if(params.get("doctorId")==null)   throw new DAOException("findRecipesForDoctor doctorId不允许为空");
+        if(params.get("recipeId")==null)   throw new DAOException("findRecipesForDoctor recipeId不允许为空");
+        if(params.get("limit")==null)   throw new DAOException("findRecipesForDoctor limit不允许为空");
+
+        Integer doctorId=params.get("doctorId");
+        Integer recipeId=params.get("recipeId");
+        Integer limit=params.get("limit");
+        Integer tapStatus=params.get("tapStatus");
+        checkUserHasPermissionByDoctorId(doctorId);
+        recipeId = (null == recipeId || Integer.valueOf(0).equals(recipeId)) ? Integer.valueOf(Integer.MAX_VALUE) : recipeId;
+
+        List<Map<String, Object>> list = new ArrayList<>(0);
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+
+        List<Recipe> recipeList = recipeDAO.findRecipesByTabstatusForDoctor(doctorId, recipeId, 0, limit,tapStatus);
+        LOGGER.info("findRecipesForDoctor recipeList size={}", recipeList.size());
+        if (CollectionUtils.isNotEmpty(recipeList)) {
+            List<String> patientIds = new ArrayList<>(0);
+            Map<Integer, RecipeBean> recipeMap = Maps.newHashMap();
+            for (Recipe recipe : recipeList) {
+                if (StringUtils.isNotEmpty(recipe.getMpiid())) {
+                    patientIds.add(recipe.getMpiid());
+                }
+                //设置处方具体药品名称
+                List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+                StringBuilder stringBuilder = new StringBuilder();
+
+                for (Recipedetail recipedetail : recipedetails) {
+                    List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipe.getClinicOrgan());
+                    if (organDrugLists != null && 0 < organDrugLists.size()) {
+                        stringBuilder.append(organDrugLists.get(0).getSaleName());
+                        if (StringUtils.isNotEmpty(organDrugLists.get(0).getDrugForm())) {
+                            stringBuilder.append(organDrugLists.get(0).getDrugForm());
+                        }
+                    } else {
+                        stringBuilder.append(recipedetail.getDrugName());
+                    }
+                    stringBuilder.append(" ").append(recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit()).append("、");
+                }
+                stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
+                recipe.setRecipeDrugName(stringBuilder.toString());
+                //前台页面展示的时间源不同
+                recipe.setRecipeShowTime(recipe.getCreateDate());
+                boolean effective = false;
+                //只有审核未通过的情况需要看订单状态
+                if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
+                    effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
+                }
+                //Map<String, String> tipMap = RecipeServiceSub.getTipsByStatus(recipe.getStatus(), recipe, effective);
+                //date 20190929
+                //修改医生端状态文案显示
+                Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, effective);
+
+                recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
+                recipeMap.put(recipe.getRecipeId(), convertRecipeForRAP(recipe));
+            }
+
+            Map<String, PatientDTO> patientMap = Maps.newHashMap();
+            if (CollectionUtils.isNotEmpty(patientIds)) {
+                List<PatientDTO> patientList = patientService.findByMpiIdIn(patientIds);
+                if (CollectionUtils.isNotEmpty(patientList)) {
+                    for (PatientDTO patient : patientList) {
+                        //设置患者数据
+                        RecipeServiceSub.setPatientMoreInfo(patient, doctorId);
+                        patientMap.put(patient.getMpiId(), convertPatientForRAP(patient));
+                    }
+                }
+            }
+
+            for (Recipe recipe : recipeList) {
+                String mpiId = recipe.getMpiid();
+                HashMap<String, Object> map = Maps.newHashMap();
+                map.put("recipe", recipeMap.get(recipe.getRecipeId()));
+                map.put("patient", patientMap.get(mpiId));
+                list.add(map);
+            }
+        }
+
+        return list;
     }
 
 }
