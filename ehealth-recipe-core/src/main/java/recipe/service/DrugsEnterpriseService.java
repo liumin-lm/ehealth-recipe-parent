@@ -88,7 +88,9 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
 
         //存储药企信息
         DrugsEnterprise newDrugsEnterprise = drugsEnterpriseDAO.save(drugsEnterprise);
-
+        //更新管理单元
+        String manageUnit = "yq"+newDrugsEnterprise.getId();
+        drugsEnterpriseDAO.updateManageUnitById(newDrugsEnterprise.getId(),manageUnit);
         if( 0 == drugsEnterpriseBean.getCreateType()){
             //自建药企要存储药店信息
 
