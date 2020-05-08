@@ -645,7 +645,7 @@ public class RecipeService extends RecipeBaseService {
                         if (resultVo != null && 200 == resultVo.getCode()) {
                             //保存签名值、时间戳、电子签章文件
                             result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
-                            SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
+                            SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getRecipeInfoByRecipeId(recipeId);
                             if (signDoctorRecipeInfo != null) {
                                 signDoctorRecipeInfo.setSignCaDatePha(resultVo.getSignCADate());
                                 signDoctorRecipeInfo.setSignCodePha(resultVo.getSignRecipeCode());
@@ -789,7 +789,7 @@ public class RecipeService extends RecipeBaseService {
                     if (resultVo != null && 200 == resultVo.getCode()) {
                         //保存签名值、时间戳、电子签章文件
                         result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
-                        SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
+                        SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getRecipeInfoByRecipeId(recipeId);
                         if (signDoctorRecipeInfo != null) {
                             signDoctorRecipeInfo.setSignCaDatePha(resultVo.getSignCADate());
                             signDoctorRecipeInfo.setSignCodePha(resultVo.getSignRecipeCode());
@@ -999,7 +999,7 @@ public class RecipeService extends RecipeBaseService {
                 if (resultVo != null && 200 == resultVo.getCode()) {
                     //保存签名值、时间戳、电子签章文件
                     RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
-                    SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
+                    SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getRecipeInfoByRecipeId(recipeId);
                     if (signDoctorRecipeInfo != null) {
                         signDoctorRecipeInfo.setSignCaDateDoc(resultVo.getSignCADate());
                         signDoctorRecipeInfo.setSignCodeDoc(resultVo.getSignRecipeCode());
@@ -1241,7 +1241,7 @@ public class RecipeService extends RecipeBaseService {
         }
 
         try {
-            SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
+            SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getRecipeInfoByRecipeId(recipeId);
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("recipeBean", JSONObject.toJSONString(recipe));
             jsonObject.put("details", JSONObject.toJSONString(details));

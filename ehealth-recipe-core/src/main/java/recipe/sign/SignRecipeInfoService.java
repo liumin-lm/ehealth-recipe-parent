@@ -39,7 +39,7 @@ public class SignRecipeInfoService {
         if (signDoctorRecipeInfo == null) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "signDoctorRecipeInfo is not null!");
         }
-        SignDoctorRecipeInfo recipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(signDoctorRecipeInfo.getRecipeId());
+        SignDoctorRecipeInfo recipeInfo = signDoctorRecipeInfoDAO.getRecipeInfoByRecipeId(signDoctorRecipeInfo.getRecipeId());
         if (signDoctorRecipeInfo == null) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "处方订单不存在");
         }
@@ -92,7 +92,7 @@ public class SignRecipeInfoService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "处方订单不存在");
         }
 
-        SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeId(recipeId);
+        SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getRecipeInfoByRecipeId(recipeId);
         if (signDoctorRecipeInfo == null) {
             signDoctorRecipeInfo = new SignDoctorRecipeInfo();
             signDoctorRecipeInfo.setRecipeId(recipeId);
@@ -135,7 +135,7 @@ public class SignRecipeInfoService {
     @RpcService
     public Map getSignInfoByRegisterID(Integer recipeId, String type){
         logger.info("getSignInfoByRegisterID start recipeId={}=,type={}=", recipeId, type);
-        SignDoctorRecipeInfo signDoctorRecipeInfo =signDoctorRecipeInfoDAO.getInfoByRecipeIdAndType(recipeId, type);
+        SignDoctorRecipeInfo signDoctorRecipeInfo =signDoctorRecipeInfoDAO.getRecipeInfoByRecipeIdAndType(recipeId, type);
         Map map = new HashMap();
         if (signDoctorRecipeInfo != null) {
             map.put("signCodeDoc",signDoctorRecipeInfo.getSignCodeDoc());
@@ -157,7 +157,7 @@ public class SignRecipeInfoService {
     public void saveSignInfoByRecipe(Integer recipeId, String signCode, String signCrt, boolean isDoctor, String type){
 
         logger.info("saveSignInfoByRecipe infos recipeId={}=,signCode={}=,signCrt={}=,isDoctor={}=, type={}=",recipeId, signCode, signCrt, isDoctor, type);
-        SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getInfoByRecipeIdAndType(recipeId, type);
+        SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getRecipeInfoByRecipeIdAndType(recipeId, type);
         if (signDoctorRecipeInfo == null) {
             signDoctorRecipeInfo = new SignDoctorRecipeInfo();
             signDoctorRecipeInfo.setRecipeId(recipeId);
