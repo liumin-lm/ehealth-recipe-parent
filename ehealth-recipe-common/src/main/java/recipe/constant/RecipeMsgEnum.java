@@ -97,6 +97,11 @@ public enum RecipeMsgEnum {
     RECIPE_TAKE_MEDICINE_FINISH(124, "RecipeTakeMedicineFinish"),
 
     /**
+     * 药师撤销处方
+     */
+    RECIPE_REVOKE_YS(125, "RecipeRevokeYs"),
+
+    /**
      * 默认消息
      */
     DEFAULT(999, "");
