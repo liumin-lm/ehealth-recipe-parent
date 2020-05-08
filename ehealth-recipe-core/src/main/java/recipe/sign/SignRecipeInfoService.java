@@ -152,7 +152,8 @@ public class SignRecipeInfoService {
     @RpcService
     public void setMedicalSignInfoByRecipeId(Integer recipeId){
         SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getRecipeInfoByRecipeId(recipeId);
-        if (signDoctorRecipeInfo != null) {
+        SignDoctorRecipeInfo s = signDoctorRecipeInfoDAO.getInfoByRecipeIdAndServiceType(recipeId, 2);
+        if (signDoctorRecipeInfo != null && s == null) {
             SignDoctorRecipeInfo signInfo = new SignDoctorRecipeInfo();
             signInfo.setRecipeId(recipeId);
             signInfo.setServerType(2);

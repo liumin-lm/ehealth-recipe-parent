@@ -17,6 +17,9 @@ public abstract class SignDoctorRecipeInfoDAO extends HibernateSupportDelegateDA
     @DAOMethod(sql = " from SignDoctorRecipeInfo where recipeId=:recipeId and serverType = 1")
     public abstract SignDoctorRecipeInfo getRecipeInfoByRecipeId(@DAOParam("recipeId")Integer recipeId);
 
+    @DAOMethod(sql = " from SignDoctorRecipeInfo where recipeId=:recipeId and serverType =: serviceType")
+    public abstract SignDoctorRecipeInfo getInfoByRecipeIdAndServiceType(@DAOParam("recipeId")Integer recipeId, @DAOParam("serviceType")Integer serviceType);
+
     @DAOMethod(sql = " from SignDoctorRecipeInfo where recipeId=:recipeId and type=:type and serverType = 1")
     public abstract SignDoctorRecipeInfo getRecipeInfoByRecipeIdAndType(@DAOParam("recipeId")Integer recipeId, @DAOParam("type")String type);
 }
