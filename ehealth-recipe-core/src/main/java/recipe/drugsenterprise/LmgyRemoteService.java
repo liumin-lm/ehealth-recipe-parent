@@ -36,7 +36,7 @@ import java.util.Map;
  * @author yinsheng
  * @date 2020\5\8 0008 15:08
  */
-@RpcBean("a")
+@RpcBean
 public class LmgyRemoteService extends AccessDrugEnterpriseService {
 
     RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
@@ -47,7 +47,7 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LmgyRemoteService.class);
 
-    private static String NAME_SPACE = "http://tempuri.org";
+    private static String NAME_SPACE = "http://tempuri.org/";
 
     private static String method="ngarihealth_checkstock";
 
@@ -75,39 +75,41 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    @RpcService
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         LOGGER.info("LmgyRemoteService.scanStock:[{}]", JSONUtils.toString(recipeId));
         String drugEpName = drugsEnterprise.getName();
-
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        Map<String,Object> param=new HashMap<>();
+        Recipe recipe=recipeDAO.getByRecipeId(recipeId);
+        if(recipe==null) return  new DrugEnterpriseResult(0);
+        LOGGER.info("LmgyRemoteService.scanStock:[{}][{}]请求临沐国药调用库存校验，通过recipeid{}未获取到处方", drugsEnterprise.getId(), drugsEnterprise.getName(),recipeId);
+        List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
+        if(recipedetails==null||recipedetails.size()==0) return  new DrugEnterpriseResult(0);
+        LOGGER.info("LmgyRemoteService.scanStock:[{}][{}]请求临沐国药调用库存校验，通过recipeid{}未获取到处方详情", drugsEnterprise.getId(), drugsEnterprise.getName(),recipeId);
+        List<Map<String,Object>> paramList=new ArrayList<>();
+        for (Recipedetail recipedetail : recipedetails) {
+            //获取oraanDrugCode
+            Map<String,Object> paramMap=new HashMap<>();
+            List<Integer> drugIds=new ArrayList<>();
+            drugIds.add(recipedetail.getDrugId());
+            int organid=recipe.getClinicOrgan();
+            List<SaleDrugList> saleDrugLists= saleDrugListDAO.findByOrganIdAndDrugIds(organid,drugIds);
+            if(saleDrugLists==null||saleDrugLists.size()==0) return  new DrugEnterpriseResult(0);
+            LOGGER.info("LmgyRemoteService.scanStock:[{}][{}]请求临沐国药调用库存校验，请求参数drugCode通过saleDrugListDAO.findByOrganIdAndDrugIds(organid{},drugIds{})未获取到值", drugsEnterprise.getId(), drugsEnterprise.getName(),organid,drugIds);
+            paramMap.put("drugCode",saleDrugLists.get(0).getOrganDrugCode());
+            paramMap.put("total",recipedetail.getUseTotalDose());
+            paramMap.put("unit",recipedetail.getDrugUnit());
+            paramList.add(paramMap);
+        }
+        param.put("accesstoken",drugsEnterprise.getToken());
+        param.put("account",drugsEnterprise.getAccount());
+        param.put("password",drugsEnterprise.getPassword());
+        param.put("drugList",paramList);
 
-//        Map<String,Object> param=new HashMap<>();
-//        Recipe recipe=recipeDAO.getByRecipeId(recipeId);
-//        List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
-//        List<Map<String,Object>> paramList=new ArrayList<>();
-//        for (Recipedetail recipedetail : recipedetails) {
-//            //获取oraanDrugCode
-//            Map<String,Object> paramMap=new HashMap<>();
-//            List<Integer> drugIds=new ArrayList<>();
-//            drugIds.add(recipedetail.getDrugId());
-//            int organid=recipe.getClinicOrgan();
-//            List<SaleDrugList> saleDrugLists= saleDrugListDAO.findByOrganIdAndDrugIds(organid,drugIds);
-//            //paramMap.put("drugCode",saleDrugList.getOrganDrugCode());
-//            paramMap.put("total",recipedetail.getUseTotalDose());
-//            paramMap.put("unit",recipedetail.getDrugUnit());
-//            paramList.add(paramMap);
-//        }
-//        param.put("accesstoken",drugsEnterprise.getToken());
-//        param.put("account",drugsEnterprise.getAccount());
-//        param.put("password",drugsEnterprise.getPassword());
-//        param.put("drugList",paramList);
-//
-//        //请求临沐国药
-//        String requestStr = JSONUtils.toString(param);
-        String requestStr = "{\"accesstoken\":\"710F2F0A5778728AAB04EB3ED1842758\",\"account\":\"ngarihealth\",\"password\":\"202CB962AC59075B964B07152D234B70\",\"drugList\":[{\"drugCode\":\"z1211\",\"total\":\"3\",\"unit\":\"  盒\"},{\"drugCode\":\"z1212\",\"total\":\"3\",\"unit\":\"盒\"}]}";
+        //请求临沐国药
+        String requestStr = JSONUtils.toString(param);
+        //String requestStr = "{\"accesstoken\":\"710F2F0A5778728AAB04EB3ED1842758\",\"account\":\"ngarihealth\",\"password\":\"202CB962AC59075B964B07152D234B70\",\"drugList\":[{\"drugCode\":\"z1211\",\"total\":\"3\",\"unit\":\"  盒\"},{\"drugCode\":\"z1212\",\"total\":\"3\",\"unit\":\"盒\"}]}";
 
-        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         LOGGER.info("LmgyRemoteService.scanStock:[{}][{}]请求临沐国药调用库存校验，请求内容：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), requestStr);
 
         String resultJson = null;
@@ -133,32 +135,32 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
             result.setMsg(drugEpName + "接口调用出错");
             result.setCode(DrugEnterpriseResult.FAIL);
         }
-        //{"Code":"0","Content":"数据已返回！","Table":[{"drugcode":"z1211","inventory":"0"},{"drugcode":"z1212","inventory":"0"}]}
+        //resultJson="{\"Code\":\"0\",\"Content\":\"数据已返回！\",\"Table\":[{\"drugcode\":\"z1211\",\"inventory\":\"0\"},{\"drugcode\":\"z1212\",\"inventory\":\"1\"}]}";
         if (StringUtils.isNotEmpty(resultJson)) {
             Map resultMap = JSONUtils.parse(resultJson, Map.class);
-            String resCode = MapValueUtil.getString(resultMap, "CODE");
+            String resCode = MapValueUtil.getString(resultMap, "Code");
             if (!RESULT_SUCCESS.equals(resCode)) {
                 result.setMsg("调用[" + drugEpName + "][" + method + "]失败.error:" + MapValueUtil.getString(resultMap, "MSG"));
                 result.setCode(DrugEnterpriseResult.FAIL);
                 return result;
             }
+            int code=1;//是否有库存 0：无  1：有
             List<Map<String, Object>> drugList = MapValueUtil.getList(resultMap, "Table");
-//            if (CollectionUtils.isNotEmpty(drugList) && drugList.size() > 0) {
-//                for (Map<String, Object> drugBean : drugList) {
-//                    String inventory = MapValueUtil.getObject(drugBean, "inventory").toString();
-//                    if ("0".equals(inventory)) {
-//                        //return "无库存";
-//                    } else {
-//                        //return "有库存";
-//                    }
-//                }
-//            } else {
-//                //return "无库存";
-//            }
-            result.setMsg(JSONUtils.toString(drugList));
-            result.setCode(DrugEnterpriseResult.SUCCESS);
+            //一个处方对应多个药品，只要其中一个药品没库存就返回没库存 code:1
+            if (CollectionUtils.isNotEmpty(drugList) && drugList.size() > 0) {
+                for (Map<String, Object> drugBean : drugList) {
+                    String inventory = MapValueUtil.getObject(drugBean, "inventory").toString();
+                    if ("0".equals(inventory)) {
+                        code=DrugEnterpriseResult.FAIL;
+                        break;
+                    }
+                }
+            } else {
+                code=DrugEnterpriseResult.FAIL;
+            }
+            //result.setMsg(JSONUtils.toString(drugList));
+            result.setCode(code);
         }
-
         return result;
     }
 
