@@ -684,6 +684,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 //有些医院不提供身份证号,年龄提供默认值
                 recipeMap.put("AGE", 25);
             }
+            recipeMap.put("BINGLINUMBER", recipe.getPatientID());
             //身份信息使用原始身份证号，暂定空
             recipeMap.put("IDENTIFICATION", patient.getCertificate());
             recipeMap.put("USERID", recipe.getPatientID());
