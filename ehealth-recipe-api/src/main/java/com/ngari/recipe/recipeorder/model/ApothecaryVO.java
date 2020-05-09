@@ -1,14 +1,19 @@
 package com.ngari.recipe.recipeorder.model;
 
 import ctd.schema.annotation.ItemProperty;
+import ctd.schema.annotation.Schema;
+
+import java.io.Serializable;
 
 /**
  * 药师信息用于前端展示
  *
  * @author fuzi
  */
-public class ApothecaryVO {
+@Schema
+public class ApothecaryVO implements Serializable {
 
+    private static final long serialVersionUID = 2398885985048336367L;
     @ItemProperty(alias = "订单ID")
     private Integer orderId;
 

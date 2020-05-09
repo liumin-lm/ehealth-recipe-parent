@@ -139,11 +139,14 @@ public class ChinaIDNumberUtil
 		} catch (RuntimeException e) {
 			throw new ValidateException("BirthdayDateInvaid[" + birth + "]");
 		}
-		
+
 		return age;
 	}
-	
-	private static void isValidIDNumber(String idNumber) throws ValidateException {
+
+	public static void isValidIDNumber(String idNumber) throws ValidateException {
+		if (StringUtils.isEmpty(idNumber)) {
+			throw new ValidateException("idNumber is null");
+		}
 		int len = idNumber.length();
 		int len18 = 18;
 		if (len != len18) {

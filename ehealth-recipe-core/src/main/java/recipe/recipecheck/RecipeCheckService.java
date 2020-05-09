@@ -491,6 +491,7 @@ public class RecipeCheckService {
         String orderCode = recipe.getOrderCode();
         if (!StringUtils.isEmpty(orderCode)) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
+            recipeOrder.setDispensingApothecaryIdCard(hideIdCard(recipeOrder.getDispensingApothecaryIdCard()));
             order = ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class);
             if (order == null) {
                 order = new RecipeOrderBean();
@@ -599,6 +600,7 @@ public class RecipeCheckService {
         return map;
     }
 
+
     /**
      * 查询药师信息
      *
@@ -611,8 +613,10 @@ public class RecipeCheckService {
         ApothecaryVO apothecaryVO = new ApothecaryVO();
         if (null != apothecaryId && !apothecaryId.equals(0)) {
             DoctorDTO doctorDTO = doctorService.get(apothecaryId);
-            apothecaryVO.setCheckApothecaryIdCard(doctorDTO.getIdNumber());
-            apothecaryVO.setCheckApothecaryName(doctorDTO.getName());
+            if (null != doctorDTO) {
+                apothecaryVO.setCheckApothecaryIdCard(doctorDTO.getIdNumber());
+                apothecaryVO.setCheckApothecaryName(doctorDTO.getName());
+            }
         }
         if (null != order) {
             apothecaryVO.setOrderId(order.getOrderId());
@@ -620,6 +624,7 @@ public class RecipeCheckService {
             apothecaryVO.setDispensingApothecaryName(order.getDispensingApothecaryName());
         }
         LOGGER.info("getApothecary apothecaryVO:{} ", JSONUtils.toString(apothecaryVO));
+        map.put("apothecary", apothecaryVO);
     }
 
     private String getCancelReasonForChecker(Integer recipeId) {
