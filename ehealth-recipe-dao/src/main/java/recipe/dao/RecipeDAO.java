@@ -32,10 +32,7 @@ import org.hibernate.SQLQuery;
 import org.hibernate.StatelessSession;
 import org.hibernate.type.LongType;
 import org.joda.time.LocalDate;
-import recipe.constant.ConditionOperator;
-import recipe.constant.ErrorCode;
-import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
+import recipe.constant.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.dao.bean.RecipeRollingInfo;
 import recipe.util.DateConversion;
@@ -1052,6 +1049,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                     order.setOrderType(0);
                                     recipe.setPayFlag(order.getPayFlag());
                                 }
+                                //处方审核状态处理
+                                Integer checkStatus2 = getCheckResultByPending(recipe);
+                                recipe.setCheckStatus(checkStatus2);
                                 BeanUtils.map(recipe, map);
 
                                 map.put("recipeOrder", order);
@@ -1079,6 +1079,45 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         return action.getResult();
     }
 
+    /**
+     * 获取待审核列表审核结果
+     *
+     * @param recipe checkResult 0:未审核 1:通过 2:不通过 3:二次签名 4:失效
+     * @return
+     */
+    private Integer getCheckResultByPending(Recipe recipe) {
+        Integer checkResult = 0;
+        Integer status = recipe.getStatus();
+        //date 20191127
+        //添加前置判断:当审核方式是不需要审核则返回通过审核状态
+        if (ReviewTypeConstant.Not_Need_Check == recipe.getReviewType()) {
+            return RecipePharmacistCheckConstant.Check_Pass;
+        }
+        if(eh.cdr.constant.RecipeStatusConstant.REVOKE == status){
+            return RecipePharmacistCheckConstant.Check_Failure;
+        }
+        if (eh.cdr.constant.RecipeStatusConstant.READY_CHECK_YS == status) {
+            checkResult = RecipePharmacistCheckConstant.Already_Check;
+        } else {
+            if (StringUtils.isNotEmpty(recipe.getSupplementaryMemo())) {
+                checkResult = RecipePharmacistCheckConstant.Second_Sign;
+            } else {
+                RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
+                List<RecipeCheck> recipeCheckList = recipeCheckDAO.findByRecipeId(recipe.getRecipeId());
+                //有审核记录就展示
+                if (CollectionUtils.isNotEmpty(recipeCheckList)) {
+                    RecipeCheck recipeCheck = recipeCheckList.get(0);
+                    if (null != recipeCheck.getChecker() && RecipecCheckStatusConstant.First_Check_No_Pass == recipeCheck.getCheckStatus()) {
+                        checkResult = RecipePharmacistCheckConstant.Check_Pass;
+                    } else if (null != recipeCheck.getChecker() && RecipecCheckStatusConstant.Check_Normal == recipeCheck.getCheckStatus()) {
+                        checkResult = RecipePharmacistCheckConstant.Check_No_Pass;
+                    }
+                }
+            }
+        }
+
+        return checkResult;
+    }
 
     /**
      * 查询处方列表
@@ -1440,7 +1479,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                                    Integer enterpriseId,Integer checkStatus,Integer payFlag,Integer orderType
 
     ) {
-        StringBuilder hql = new StringBuilder("select r.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode where 1=1");
+        StringBuilder hql = new StringBuilder("select r.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode LEFT JOIN cdr_recipecheck c ON r.recipeID=c.recipeId where 1=1");
 
         //默认查询所有
         if (CollectionUtils.isNotEmpty(requestOrgans)) {
@@ -1523,7 +1562,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         }
 
         if (checkStatus != null) {
-            hql.append(" and r.checkStatus=").append(checkStatus);
+            hql.append(" and c.checkStatus=").append(checkStatus);
         }
 
         if (payFlag != null) {
