@@ -1,4 +1,3 @@
-/*
 package recipe.drugsenterprise;
 
 import com.ngari.recipe.entity.*;
@@ -33,12 +32,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-*/
 /**
  * @author yinsheng
  * @date 2020\5\8 0008 15:08
- *//*
-
+ */
 @RpcBean
 public class LmgyRemoteService extends AccessDrugEnterpriseService {
 
@@ -167,8 +164,7 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
         return result;
     }
 
-    */
-/**
+    /**
      * @method  getFailResult
      * @description 失败操作的结果对象
      * @date: 2019/7/10
@@ -176,8 +172,7 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
      * @param result 返回的结果集对象
      * @param msg 失败提示的信息
      * @return
-     *//*
-
+     */
     private void getFailResult(DrugEnterpriseResult result, String msg) {
         result.setMsg(msg);
         result.setCode(DrugEnterpriseResult.FAIL);
@@ -203,15 +198,13 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
         return DrugEnterpriseConstant.COMPANY_LMGY;
     }
 
-    */
-/**
+    /**
      * 获取wsdl调用客户端
      *
      * @param drugsEnterprise
      * @param method
      * @return
-     *//*
-
+     */
     protected Call getCall(DrugsEnterprise drugsEnterprise, String method) throws Exception {
         String wsdlUrl = drugsEnterprise.getBusinessUrl();
         String nameSpaceUri = NAME_SPACE + method;
@@ -240,4 +233,3 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
 
 
 }
-*/
