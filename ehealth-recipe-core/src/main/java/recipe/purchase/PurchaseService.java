@@ -502,6 +502,10 @@ public class PurchaseService {
         if (dbRecipe.getStatus() == RecipeStatusConstant.REVOKE){
             throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "处方单已被撤销");
         }
+        //此时如果处方状态为待审核则说明药师端已经撤销了处方审核结果
+        if (dbRecipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS){
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "处方审核结果已被撤销");
+        }
         if (RecipeStatusConstant.CHECK_PASS != dbRecipe.getStatus()
                 || 1 == dbRecipe.getChooseFlag()) {
             result.setCode(RecipeResultBean.FAIL);
