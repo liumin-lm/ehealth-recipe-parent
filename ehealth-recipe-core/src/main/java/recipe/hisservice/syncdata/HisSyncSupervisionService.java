@@ -272,7 +272,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //处方唯一编号
             req.setRecipeUniqueID(recipe.getRecipeCode());
             //审方时间
-            req.setCheckDate(recipe.getCheckDate());
+            req.setCheckDate(recipe.getCheckDateYs());
             //互联网医院处方都是经过合理用药审查
             req.setRationalFlag("1");
             medicineList = auditMedicinesDAO.findMedicinesByRecipeId(recipe.getRecipeId());
