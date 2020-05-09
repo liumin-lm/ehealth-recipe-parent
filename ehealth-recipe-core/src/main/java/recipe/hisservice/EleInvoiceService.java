@@ -123,7 +123,7 @@ public class EleInvoiceService {
             result = (String)configurationCenterUtils.getConfiguration(organId, "EleInvoiceCfSwitch");
         }
         if(StringUtils.isBlank(result)){
-            throw new DAOException(609, "该机构下未配置查看电子发票的开关");
+           result = "0";
         }
         return result;
     }
