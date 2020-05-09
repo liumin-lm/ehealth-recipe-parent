@@ -280,6 +280,11 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "卫宁付下的支付方式(卫宁的字典)ybpay=全医保支付 1支付宝手机支付 7微信公众号支付 随申办支付宝支付126 随申办微信支付127 随申办银联支付128")
     private String wnPayWay;
 
+    @ItemProperty(alias = "发药药师姓名")
+    private String dispensingApothecaryName;
+
+    @ItemProperty(alias = "发药药师身份证")
+    private String dispensingApothecaryIdCard;
 
     @Column(name = "cancelReason")
     public String getCancelReason() {
@@ -961,5 +966,22 @@ public class RecipeOrder implements Serializable {
 
     public void setWnPayWay(String wnPayWay) {
         this.wnPayWay = wnPayWay;
+    }
+
+
+    public String getDispensingApothecaryName() {
+        return dispensingApothecaryName;
+    }
+
+    public void setDispensingApothecaryName(String dispensingApothecaryName) {
+        this.dispensingApothecaryName = dispensingApothecaryName;
+    }
+
+    public String getDispensingApothecaryIdCard() {
+        return dispensingApothecaryIdCard;
+    }
+
+    public void setDispensingApothecaryIdCard(String dispensingApothecaryIdCard) {
+        this.dispensingApothecaryIdCard = dispensingApothecaryIdCard;
     }
 }
