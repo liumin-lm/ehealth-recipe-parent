@@ -48,7 +48,7 @@ public class RemoteRecipeLogService extends BaseService<RecipeLogBean> implement
     @Override
     public List<RecipeLogBean> findByRecipeIdAndAfterStatus(Integer recipeId, Integer afterStatus) {
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipeId, afterStatus);
+        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, afterStatus);
         return ObjectCopyUtils.convert(recipeLogs,RecipeLogBean.class);
     }
 }

@@ -193,56 +193,66 @@ public class HisCallBackService {
             //更新医院-药品对应表的价格
             recipeService.updateDrugPrice(recipe.getClinicOrgan(), priceMap);
         }
-        try {
-            //写入his成功后，生成pdf并签名
-            recipeService.generateRecipePdfAndSign(recipe.getRecipeId());
+//        try {
+//            //写入his成功后，生成pdf并签名
+//            recipeService.generateRecipePdfAndSign(recipe.getRecipeId());
+//            //date 20200424
+//            //判断当前处方的状态为签名失败不走下面逻辑
+//            if(new Integer(28).equals(recipeService.getByRecipeId(recipe.getRecipeId()).getStatus())){
+//                return;
+//            }
+//
+//            //TODO 根据审方模式改变状态
+//            auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(status, recipe, memo);
+//
+//        } catch (Exception e) {
+//            LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. ", e);
+//        }
+//
+//        if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
+//            //配送处方标记 1:只能配送 更改处方取药方式
+//            if (Integer.valueOf(1).equals(recipe.getDistributionFlag())) {
+//                try {
+//                    RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+//                    RecipeResultBean result1 = hisService.recipeDrugTake(recipe.getRecipeId(), PayConstant.PAY_FLAG_NOT_PAY, null);
+//                    if (RecipeResultBean.FAIL.equals(result1.getCode())) {
+//                        LOGGER.warn("checkPassSuccess recipeId=[{}]更改取药方式失败，error=[{}]", recipe.getRecipeId(), result1.getError());
+//                        //不能影响流程去掉异常
+//                        /*throw new DAOException(ErrorCode.SERVICE_ERROR, "更改取药方式失败，错误:" + result1.getError());*/
+//                    }
+//                } catch (Exception e) {
+//                    LOGGER.warn("checkPassSuccess recipeId=[{}]更改取药方式异常", recipe.getRecipeId(), e);
+//                }
+//            }
+//        }
+//        //2019/5/16 互联网模式--- 医生开完处方之后聊天界面系统消息提示
+//        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
+//            /*//根据申请人mpiid，requestMode 获取当前咨询单consultId
+//            IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
+//            List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
+//                    recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
+//            Integer consultId = null;
+//            if (CollectionUtils.isNotEmpty(consultIds)) {
+//                consultId = consultIds.get(0);
+//            }*/
+//            Integer consultId = recipe.getClinicId();
+//            if (null != consultId) {
+//                try {
+//                    IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
+//                    recipeOnLineConsultService.sendRecipeMsg(consultId, 3);
+//                } catch (Exception e) {
+//                    LOGGER.error("checkPassSuccess sendRecipeMsg error, type:3, consultId:{}, error:{}", consultId, e);
+//                }
+//
+//            }
+//        }
+//        //推送处方到监管平台
+//        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
 
-            //TODO 根据审方模式改变状态
-            auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(status, recipe, memo);
+        //date 20200507
+        //调用医生重新签名的逻辑
+        recipeService.retryDoctorSignCheck(result.getRecipeId());
 
-        } catch (Exception e) {
-            LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. ", e);
-        }
-
-        if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
-            //配送处方标记 1:只能配送 更改处方取药方式
-            if (Integer.valueOf(1).equals(recipe.getDistributionFlag())) {
-                try {
-                    RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-                    RecipeResultBean result1 = hisService.recipeDrugTake(recipe.getRecipeId(), PayConstant.PAY_FLAG_NOT_PAY, null);
-                    if (RecipeResultBean.FAIL.equals(result1.getCode())) {
-                        LOGGER.warn("checkPassSuccess recipeId=[{}]更改取药方式失败，error=[{}]", recipe.getRecipeId(), result1.getError());
-                        //不能影响流程去掉异常
-                        /*throw new DAOException(ErrorCode.SERVICE_ERROR, "更改取药方式失败，错误:" + result1.getError());*/
-                    }
-                } catch (Exception e) {
-                    LOGGER.warn("checkPassSuccess recipeId=[{}]更改取药方式异常", recipe.getRecipeId(), e);
-                }
-            }
-        }
-        //2019/5/16 互联网模式--- 医生开完处方之后聊天界面系统消息提示
-        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
-            /*//根据申请人mpiid，requestMode 获取当前咨询单consultId
-            IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-            List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
-                    recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
-            Integer consultId = null;
-            if (CollectionUtils.isNotEmpty(consultIds)) {
-                consultId = consultIds.get(0);
-            }*/
-            Integer consultId = recipe.getClinicId();
-            if (null != consultId) {
-                try {
-                    IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
-                    recipeOnLineConsultService.sendRecipeMsg(consultId, 3);
-                } catch (Exception e) {
-                    LOGGER.error("checkPassSuccess sendRecipeMsg error, type:3, consultId:{}, error:{}", consultId, e);
-                }
-
-            }
-        }
-        //推送处方到监管平台
-        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
 
     }
 

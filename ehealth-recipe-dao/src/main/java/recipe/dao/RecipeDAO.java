@@ -2520,4 +2520,35 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    public List<Recipe> findRecipesByTabstatusForDoctor(final Integer doctorId, final Integer recipeId,
+                                            final int start, final int limit,final Integer tapStatus) {
+
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("from Recipe r where doctor=:doctorId and fromflag=1 and recipeId<:recipeId and status!=10  ");
+                //通过条件查询status
+                if(tapStatus==null||tapStatus==0);
+                else if(tapStatus==1) hql.append("and status= "+RecipeStatusConstant.UNSIGN);//未签名
+                else if(tapStatus==2) hql.append("and status not in(" +RecipeStatusConstant.UNSIGN+","+RecipeStatusConstant.CHECK_NOT_PASS_YS+","+RecipeStatusConstant.CHECK_NOT_PASS+","+RecipeStatusConstant.HIS_FAIL+","+RecipeStatusConstant.NO_DRUG+","+RecipeStatusConstant.NO_PAY+","+RecipeStatusConstant.NO_OPERATOR+","+RecipeStatusConstant.RECIPE_MEDICAL_FAIL+","+RecipeStatusConstant.EXPIRED+","+RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN +") ");
+                else if(tapStatus==3) hql.append("and status in ("+RecipeStatusConstant.CHECK_NOT_PASS_YS+","+RecipeStatusConstant.CHECK_NOT_PASS+") ");//审核未通过
+                else if(tapStatus==4) hql.append("and status in ("+RecipeStatusConstant.HIS_FAIL+","+RecipeStatusConstant.NO_DRUG+","+RecipeStatusConstant.NO_PAY+","+RecipeStatusConstant.NO_OPERATOR+","+RecipeStatusConstant.RECIPE_MEDICAL_FAIL+","+RecipeStatusConstant.EXPIRED+","+RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN+") ");//[ 已结束 ]：包括 [ 已取消 ]、[ 已完成 ]、[ 已撤销 ]
+                hql.append("order by createDate desc ");
+                Query query = ss.createQuery(hql.toString());
+                query.setParameter("doctorId", doctorId);
+                query.setParameter("recipeId", recipeId);
+                query.setFirstResult(start);
+                query.setMaxResults(limit);
+
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+
+        List<Recipe> recipes = action.getResult();
+        return recipes;
+    }
+
 }

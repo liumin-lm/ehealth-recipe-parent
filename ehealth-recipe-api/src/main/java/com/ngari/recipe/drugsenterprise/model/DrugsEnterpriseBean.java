@@ -102,6 +102,10 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付")
     private Integer expressFeePayWay;
 
+    @ItemProperty(alias = "管理单元")
+    private String manageUnit;
+
+
     public DrugsEnterpriseBean() {
     }
 
@@ -315,5 +319,13 @@ public class DrugsEnterpriseBean implements Serializable {
 
     public void setExpressFeePayWay(Integer expressFeePayWay) {
         this.expressFeePayWay = expressFeePayWay;
+    }
+
+    public String getManageUnit() {
+        return manageUnit;
+    }
+
+    public void setManageUnit(String manageUnit) {
+        this.manageUnit = manageUnit;
     }
 }

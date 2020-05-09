@@ -1,9 +1,11 @@
 package recipe.service;
 
+import com.google.common.collect.Lists;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganConfigService;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
+import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
@@ -88,7 +90,9 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
 
         //存储药企信息
         DrugsEnterprise newDrugsEnterprise = drugsEnterpriseDAO.save(drugsEnterprise);
-
+        //更新管理单元
+        String manageUnit = "yq"+newDrugsEnterprise.getId();
+        drugsEnterpriseDAO.updateManageUnitById(newDrugsEnterprise.getId(),manageUnit);
         if( 0 == drugsEnterpriseBean.getCreateType()){
             //自建药企要存储药店信息
 
@@ -427,5 +431,15 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         }
         result.put("enterpriseInventory", inventoryList);
         return result;
+    }
+
+    @RpcService
+    public List<DrugsEnterprise> findDrugsEnterpriseForOpUser(){
+        List<DrugsEnterprise> list = Lists.newArrayList();
+        UserRoleToken ur = UserRoleToken.getCurrent();
+        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise enterprise = enterpriseDAO.getByManageUnit(ur.getManageUnit());
+        list.add(enterprise);
+        return list;
     }
 }

@@ -391,30 +391,32 @@ public class PrescribeService {
                     HisCallBackService.checkPassSuccess(recipeCheckPassResult, true);
                     result.setCode(HosRecipeResult.SUCCESS);
 
-                    OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-                    List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(clinicOrgan, 1);
-                    if (CollectionUtils.isEmpty(drugsEnterprises)){
-                        return result;
-                    }
-                    DrugsEnterprise drugsEnterprise = drugsEnterprises.get(0);
-                    if ("aldyf".equals(drugsEnterprise.getCallSys())) {
-                        //判断用户是否已鉴权
-                        if (StringUtils.isNotEmpty(dbRecipe.getRequestMpiId())) {
-                            DrugDistributionService drugDistributionService = ApplicationUtils.getRecipeService(DrugDistributionService.class);
-                            PatientService patientService = BasicAPI.getService(PatientService.class);
-                            String loginId = patientService.getLoginIdByMpiId(dbRecipe.getRequestMpiId());
-                            if (drugDistributionService.authorization(loginId)) {
-                                //推送阿里处方推片和信息
-                                if (null == drugsEnterprise) {
-                                    LOG.warn("updateRecipeStatus aldyf 药企不存在");
-                                }
-                                RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-                                DrugEnterpriseResult deptResult =
-                                    remoteDrugEnterpriseService.pushSingleRecipeInfoWithDepId(recipeId, drugsEnterprise.getId());
-                                LOG.info("updateRecipeStatus 推送药企处方，result={}", JSONUtils.toString(deptResult));
-                            }
-                        }
-                    }
+                    //date 20200507
+                    //移动到医生签名尝试重试中
+//                    OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+//                    List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(clinicOrgan, 1);
+//                    if (CollectionUtils.isEmpty(drugsEnterprises)){
+//                        return result;
+//                    }
+//                    DrugsEnterprise drugsEnterprise = drugsEnterprises.get(0);
+//                    if ("aldyf".equals(drugsEnterprise.getCallSys())) {
+//                        //判断用户是否已鉴权
+//                        if (StringUtils.isNotEmpty(dbRecipe.getRequestMpiId())) {
+//                            DrugDistributionService drugDistributionService = ApplicationUtils.getRecipeService(DrugDistributionService.class);
+//                            PatientService patientService = BasicAPI.getService(PatientService.class);
+//                            String loginId = patientService.getLoginIdByMpiId(dbRecipe.getRequestMpiId());
+//                            if (drugDistributionService.authorization(loginId)) {
+//                                //推送阿里处方推片和信息
+//                                if (null == drugsEnterprise) {
+//                                    LOG.warn("updateRecipeStatus aldyf 药企不存在");
+//                                }
+//                                RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+//                                DrugEnterpriseResult deptResult =
+//                                    remoteDrugEnterpriseService.pushSingleRecipeInfoWithDepId(recipeId, drugsEnterprise.getId());
+//                                LOG.info("updateRecipeStatus 推送药企处方，result={}", JSONUtils.toString(deptResult));
+//                            }
+//                        }
+//                    }
 
                     break;
                 case RecipeStatusConstant.HAVE_PAY:

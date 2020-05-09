@@ -78,5 +78,24 @@ public class OrderStatusConstant {
      */
     public static final Integer FAIL = 17;
 
+    /**
+     * 待取药
+     */
+    public static final int READY_GET_DRUG_INT = 2;
+
+    /**
+     * 准备中
+     */
+    public static final int READY_DRUG_INT = 11;
+
+    /**
+     * 待配送
+     */
+    public static final int READY_SEND_INT = 3;
+
+    /**
+     * 配送中
+     */
+    public static final int SENDING_INT = 4;
 
 }
