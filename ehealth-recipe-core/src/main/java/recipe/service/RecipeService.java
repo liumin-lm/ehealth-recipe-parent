@@ -985,62 +985,6 @@ public class RecipeService extends RecipeBaseService {
                 try {
                     RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
                     hisService.recipeAudit(recipe, resultBean);
-//                    String loginId = MapValueUtil.getString(backMap, "loginId");
-//                    Integer organId = recipe.getClinicOrgan();
-//                    DoctorDTO doctorDTOn = doctorService.getByDoctorId(recipe.getDoctor());
-//                    String userAccount = doctorDTOn.getIdNumber();
-//                    String caPassword = "";
-//                    //签名时的密码从redis中获取
-//                    if (null != redisClient.get("caPassword")) {
-//                        caPassword = redisClient.get("caPassword");
-//                    }
-//                    //标准化CA进行签名、签章==========================start=====
-//                    //获取签章pdf数据。签名原文
-//                    CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId, false);
-//                    //获取签章图片
-//                    DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
-//                    DoctorExtendDTO doctorExtendDTO = doctorExtendService.getByDoctorId(recipe.getDoctor());
-//                    if (doctorExtendDTO != null && doctorExtendDTO.getSealData() != null) {
-//                        requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
-//                    } else {
-//                        requestSealTO.setSealBase64Str("");
-//                    }
-//                    CommonCAFactory caFactory = new CommonCAFactory();
-//                    //通过工厂获取对应的实现CA类
-//                    CAInterface caInterface = caFactory.useCAFunction(organId);
-//                    CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
-//                    String result = "";
-//                    String fileId = null;
-//                    if (resultVo != null && 200 == resultVo.getCode()) {
-//                        //保存签名值、时间戳、电子签章文件
-//                        result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
-//                        resultVo.setFileId(fileId);
-//                        signRecipeInfoSave(recipeId, false, resultVo, organId);
-//                    }
-//                    else {
-//                        RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-//                        RecipeLog recipeLog = new RecipeLog();
-//                        recipeLog.setRecipeId(recipeId);
-//                        recipeLog.setBeforeStatus(recipe.getStatus());
-//                        recipeLog.setAfterStatus(RecipeStatusConstant.SIGN_ERROR_CODE_PHA);
-//                        recipeLog.setMemo(resultVo.getMsg());
-//                        recipeLog.setModifyDate(new Date());
-//                        recipeLogDAO.saveRecipeLog(recipeLog);
-//
-//                        attrMap.put("Status", RecipeStatusConstant.SIGN_ERROR_CODE_PHA);
-//                        recipeDAO.updateRecipeInfoByRecipeId(recipeId,attrMap );
-//
-//                        ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
-//                        SmsInfoBean smsInfo = new SmsInfoBean();
-//                        smsInfo.setBusId(0);
-//                        smsInfo.setOrganId(0);
-//                        smsInfo.setBusType("SignNotify");
-//                        smsInfo.setSmsType("SignNotify");
-//                        smsInfo.setExtendValue(doctorDTO.getUrt() + "|" + recipeId + "|" + doctorDTO.getLoginId());
-//                        smsPushService.pushMsgData2OnsExtendValue(smsInfo);
-//                    }
-
-//                    resultSign = "success".equals(result) ? true : false;
                 } catch (Exception e) {
                     LOGGER.warn("saveCheckResult send recipeAudit to his error. recipeId={}", recipeId, e);
                 }
