@@ -53,12 +53,25 @@ public class EleInvoiceService {
             if(StringUtils.isNotBlank(consultExDTO.getRegisterNo())){
                 eleInvoiceDTO.setGhxh(consultExDTO.getRegisterNo());
             }
+            if(StringUtils.isNotBlank(consultExDTO.getCardId())){
+                eleInvoiceDTO.setCardId(consultExDTO.getCardId());
+            }
+            if(StringUtils.isNotBlank(consultExDTO.getCardType())){
+                eleInvoiceDTO.setCardType(consultExDTO.getCardType());
+            }
+
         }
         if("1".equals(eleInvoiceDTO.getType())){
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(eleInvoiceDTO.getId());
             if(StringUtils.isNotBlank(recipeExtend.getRegisterID())){
                 eleInvoiceDTO.setGhxh(recipeExtend.getRegisterID());
+            }
+            if(StringUtils.isNotBlank(recipeExtend.getCardType())){
+                eleInvoiceDTO.setCardType(recipeExtend.getCardType());
+            }
+            if(StringUtils.isNotBlank(recipeExtend.getCardNo())){
+                eleInvoiceDTO.setCardId(recipeExtend.getCardNo());
             }
         }
 
@@ -112,12 +125,16 @@ public class EleInvoiceService {
                     if(StringUtils.isNotBlank(result)){
                         LOGGER.info("EleInvoiceService.findEleInvoice :result={}",result);
                        return stringToList(result);
+                    }else{
+                        throw new DAOException(609,"当前系统繁忙，请稍后再试");
                     }
                 }else{
                     LOGGER.info("EleInvoiceService.findEleInvoice 请求his失败，返回信息:msg={}",hisResponseTO.getMsg());
+                    throw new DAOException(609,hisResponseTO.getMsg());
                 }
             }else{
                 LOGGER.info("EleInvoiceService.findEleInvoice 请求his失败,hisResponseTo is null");
+                throw new DAOException(609,"当前系统繁忙，请稍后再试");
             }
         }catch (Exception e){
             LOGGER.error("EleInvoiceService.findEleInvoice:e:{}",e);
