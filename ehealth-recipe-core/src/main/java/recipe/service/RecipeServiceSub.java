@@ -1660,7 +1660,7 @@ public class RecipeServiceSub {
         List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.READY_CHECK_YS);
         String cancelReason ="";
         if (CollectionUtils.isNotEmpty(recipeLogs)) {
-            if (RecipeStatusConstant.CHECK_PASS == recipeLogs.get(0).getAfterStatus()){
+            if (RecipeStatusConstant.CHECK_PASS == recipeLogs.get(0).getBeforeStatus()){
                 cancelReason = "药师已撤销审方结果,"+recipeLogs.get(0).getMemo()+"。请耐心等待药师再次审核";
             }
         }
