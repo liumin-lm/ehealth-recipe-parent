@@ -20,6 +20,11 @@ public class SignDoctorCaInfo {
     /**签名序列号*/
     private String caSerCode;
 
+    /**
+     * 证书信息
+     */
+    private String certVoucher;
+
     /**ca类型*/
     private String caType;
 
@@ -61,6 +66,15 @@ public class SignDoctorCaInfo {
 
     public void setCaSerCode(String caSerCode) {
         this.caSerCode = caSerCode;
+    }
+
+    @Column
+    public String getCertVoucher() {
+        return certVoucher;
+    }
+
+    public void setCertVoucher(String certVoucher) {
+        this.certVoucher = certVoucher;
     }
 
     @Column
