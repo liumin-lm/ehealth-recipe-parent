@@ -9,8 +9,8 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.ChronicDiseaseListReqTO;
 import com.ngari.his.recipe.mode.ChronicDiseaseListResTO;
-import com.ngari.his.recipe.mode.MedicInsurSettleApplyResTO;
 import com.ngari.his.recipe.mode.PatientChronicDiseaseRes;
+import com.ngari.his.recipe.mode.PatientDiagnoseTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -29,13 +29,11 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
-import recipe.constant.DrugEnterpriseConstant;
-import recipe.constant.ParameterConstant;
-import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeSystemConstant;
+import recipe.constant.*;
 import recipe.dao.ChronicDiseaseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
@@ -348,17 +346,39 @@ public class RecipePatientService extends RecipeBaseService {
             req.setPatient(patientBaseInfo);
             req.setOrganId(organId);
             HisResponseTO<PatientChronicDiseaseRes> res = service.findPatientChronicDiseaseList(req);
-            if (res!=null && !("200".equals(res.getMsgCode()))){
+            if (res != null && !("200".equals(res.getMsgCode()))) {
                 String msg = "接口异常";
-                if (StringUtils.isNotEmpty(res.getMsg())){
-                    msg = msg +":" +res.getMsg();
+                if (StringUtils.isNotEmpty(res.getMsg())) {
+                    msg = msg + ":" + res.getMsg();
                 }
                 throw new DAOException(609, msg);
             }
-            if (res == null || res.getData() == null){
+            if (res == null || res.getData() == null) {
                 return list;
             }
             return res.getData().getChronicDiseaseListResTOs();
         }
+    }
+
+    /**
+     * 获取患者诊断比较结果
+     *
+     * @return
+     */
+    @RpcService
+    public void findPatientDiagnose(PatientDiagnoseTO request) {
+        LOGGER.info("findPatientDiagnose request={}", JSONUtils.toString(request));
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        PatientDTO patientDTO = patientService.get(request.getMpi());
+        if (null == patientDTO) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "找不到该患者");
+        }
+        PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
+        BeanUtils.copyProperties(patientDTO, patientBaseInfo);
+        patientBaseInfo.setMpi(patientDTO.getMpiId());
+        request.setPatient(patientBaseInfo);
+        RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+        String result = service.findPatientDiagnose(request);
+        LOGGER.info("findPatientDiagnose result={}", JSONUtils.toString(result));
     }
 }

@@ -2,18 +2,13 @@ package recipe.recipecheck;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
-import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.model.PatientBean;
-import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
-import com.ngari.home.asyn.model.BussFinishEvent;
-import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -27,6 +22,7 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.GuardianBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
@@ -40,7 +36,6 @@ import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import ctd.util.event.GlobalEventExecFactory;
 import eh.cdr.constant.RecipeStatusConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -51,23 +46,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
-import recipe.audit.auditmode.AuditModeContext;
 import recipe.audit.bean.PAWebRecipeDanger;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.openapi.util.AESUtils;
 import recipe.constant.*;
 import recipe.dao.*;
-import recipe.purchase.IPurchaseService;
-import recipe.purchase.PurchaseEnum;
-import recipe.service.*;
-import recipe.thread.PushRecipeToRegulationCallable;
-import recipe.thread.RecipeBusiThreadPool;
+import recipe.service.RecipeService;
+import recipe.service.RecipeServiceSub;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
-import javax.annotation.Resource;
 import java.util.*;
 
 /**
@@ -393,6 +383,7 @@ public class RecipeCheckService {
         //设置时间戳
         r.setSignCADate(recipe.getSignCADate());
         r.setFromflag(recipe.getFromflag());
+        r.setOrderCode(recipe.getOrderCode());
         try {
             String showTip = DictionaryController.instance().get("eh.cdr.dictionary.RecipeStatus").getText(recipe.getStatus());
             r.setShowTip(showTip);
@@ -500,6 +491,7 @@ public class RecipeCheckService {
         String orderCode = recipe.getOrderCode();
         if (!StringUtils.isEmpty(orderCode)) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
+            recipeOrder.setDispensingApothecaryIdCard(hideIdCard(recipeOrder.getDispensingApothecaryIdCard()));
             order = ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class);
             if (order == null) {
                 order = new RecipeOrderBean();
@@ -604,7 +596,35 @@ public class RecipeCheckService {
                 map.put("grabOrderStatus", orderStatusAndLimitTime.get("grabOrderStatus"));
             }
         }
+        getApothecary(recipe.getChecker(), order, map);
         return map;
+    }
+
+
+    /**
+     * 查询药师信息
+     *
+     * @param apothecaryId
+     * @param order
+     * @param map
+     */
+    private void getApothecary(Integer apothecaryId, RecipeOrderBean order, Map<String, Object> map) {
+        LOGGER.info("getApothecary apothecaryId:{} order :{}", apothecaryId, JSONUtils.toString(order));
+        ApothecaryVO apothecaryVO = new ApothecaryVO();
+        if (null != apothecaryId && !apothecaryId.equals(0)) {
+            DoctorDTO doctorDTO = doctorService.get(apothecaryId);
+            if (null != doctorDTO) {
+                apothecaryVO.setCheckApothecaryIdCard(doctorDTO.getIdNumber());
+                apothecaryVO.setCheckApothecaryName(doctorDTO.getName());
+            }
+        }
+        if (null != order) {
+            apothecaryVO.setOrderId(order.getOrderId());
+            apothecaryVO.setDispensingApothecaryIdCard(order.getDispensingApothecaryIdCard());
+            apothecaryVO.setDispensingApothecaryName(order.getDispensingApothecaryName());
+        }
+        LOGGER.info("getApothecary apothecaryVO:{} ", JSONUtils.toString(apothecaryVO));
+        map.put("apothecary", apothecaryVO);
     }
 
     private String getCancelReasonForChecker(Integer recipeId) {
