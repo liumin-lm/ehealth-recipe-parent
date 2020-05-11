@@ -17,6 +17,7 @@ import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.*;
+import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
@@ -1338,4 +1339,17 @@ public class RecipeHisService extends RecipeBaseService {
         }
         return flag;
     }
+
+    @RpcService
+    public List<HzyyRationalUseDrugResTO> queryHzyyRationalUserDurg(HzyyRationalUseDrugReqTO reqTO) {
+        LOGGER.info("调用杭州逸曜合理用药queryHzyyRationalUserDurg,入参 = {}，idNO = {}", reqTO, reqTO.getPatient().getIdNo());
+        IRecipeHisService iRecipeHisService = AppContextHolder.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        HisResponseTO<List<HzyyRationalUseDrugResTO>> hisResponseTO = iRecipeHisService.queryHzyyRationalUserDurg(reqTO);
+        LOGGER.info("调用杭州逸曜合理用药queryHzyyRationalUserDurg,出参 = {}, idNO = {}", reqTO, reqTO.getPatient().getIdNo());
+        if(hisResponseTO == null || !hisResponseTO.getMsgCode().equals("200")){
+            return Collections.EMPTY_LIST;
+        }
+        return hisResponseTO.getData();
+    }
+
 }
