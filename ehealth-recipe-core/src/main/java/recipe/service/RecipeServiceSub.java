@@ -812,7 +812,7 @@ public class RecipeServiceSub {
         //date 20200506
         //获取处方对应的订单信息
         Map<String, Integer> orderStatus = new HashMap<>();
-        List<String> recipeCodes = recipes.stream().map(recipe -> recipe.getRecipeCode()).filter(code -> StringUtils.isNotEmpty(code)).collect(Collectors.toList());
+        List<String> recipeCodes = recipes.stream().map(recipe -> recipe.getOrderCode()).filter(code -> StringUtils.isNotEmpty(code)).collect(Collectors.toList());
         if(CollectionUtils.isNotEmpty(recipeCodes)){
             List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(recipeCodes);
             orderStatus = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, RecipeOrder::getStatus));
@@ -1303,7 +1303,7 @@ public class RecipeServiceSub {
             //通过订单的状态判断
             Map<String, Integer> orderStatus = new HashMap<>();
             if(null != recipe.getRecipeCode()){
-                List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(Arrays.asList(recipe.getRecipeCode()));
+                List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(Arrays.asList(recipe.getOrderCode()));
                 orderStatus = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, RecipeOrder::getStatus));
             }
             Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, null, (orderStatus == null || 0 >= orderStatus.size()) ? null : orderStatus.get(recipe.getOrderCode()));

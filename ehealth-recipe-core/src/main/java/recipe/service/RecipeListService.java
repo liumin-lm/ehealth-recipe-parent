@@ -107,7 +107,7 @@ public class RecipeListService extends RecipeBaseService{
             //date 20200506
             //获取处方对应的订单信息
             Map<String, Integer> orderStatus = new HashMap<>();
-            List<String> recipeCodes = recipeList.stream().map(recipe -> recipe.getRecipeCode()).filter(code -> StringUtils.isNotEmpty(code)).collect(Collectors.toList());
+            List<String> recipeCodes = recipeList.stream().map(recipe -> recipe.getOrderCode()).filter(code -> StringUtils.isNotEmpty(code)).collect(Collectors.toList());
             if(CollectionUtils.isNotEmpty(recipeCodes)){
 
                 List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(recipeCodes);
@@ -636,7 +636,7 @@ public class RecipeListService extends RecipeBaseService{
             //date 20200506
             //获取处方对应的订单信息
             Map<String, Integer> orderStatus = new HashMap<>();
-            List<String> recipeCodes = recipes.stream().map(recipe -> recipe.getRecipeCode()).filter(code -> StringUtils.isNotEmpty(code)).collect(Collectors.toList());
+            List<String> recipeCodes = recipes.stream().map(recipe -> recipe.getOrderCode()).filter(code -> StringUtils.isNotEmpty(code)).collect(Collectors.toList());
             if(CollectionUtils.isNotEmpty(recipeCodes)){
                 List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(recipeCodes);
                 orderStatus = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, RecipeOrder::getStatus));
@@ -1238,7 +1238,7 @@ public class RecipeListService extends RecipeBaseService{
 
             //date 20200506
             //获取处方对应的订单信息
-            List<String> recipeCodes = recipeList.stream().map(recipe -> recipe.getRecipeCode()).filter(code -> StringUtils.isNotEmpty(code)).collect(Collectors.toList());
+            List<String> recipeCodes = recipeList.stream().map(recipe -> recipe.getOrderCode()).filter(code -> StringUtils.isNotEmpty(code)).collect(Collectors.toList());
             Map<String, Integer> orderStatus = new HashMap<>();
             if(CollectionUtils.isNotEmpty(recipeCodes)){
 
