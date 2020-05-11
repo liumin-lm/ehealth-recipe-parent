@@ -11,6 +11,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -78,7 +79,11 @@ public class PrescriptionService {
     @RpcService
     public Integer getIntellectJudicialFlag(Integer organId){
         IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        return (Integer) configurationCenterUtilsService.getConfiguration(organId, "intellectJudicialFlag");
+        Integer intellectJudicialFlag = (Integer) configurationCenterUtilsService.getConfiguration(organId, "intellectJudicialFlag");
+        if(intellectJudicialFlag == 2){
+            intellectJudicialFlag = 1;
+        }
+        return intellectJudicialFlag;
     }
 
     private IntellectJudicialService getService(Integer organId){
@@ -89,8 +94,15 @@ public class PrescriptionService {
             LOGGER.info("PrescriptionService getService 没有维护智能审方关系");
             OrganJudicialRelation judicialRelation = new OrganJudicialRelation();
             judicialRelation.setOrganId(organId);
-            //默认配置卫宁智能审方
-            JudicialOrgan judicialOrgan = judicialOrganDAO.getByAccount("winning");
+            IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            Integer intellectJudicialFlag = (Integer) configurationCenterUtilsService.getConfiguration(organId, "intellectJudicialFlag");
+            String account = StringUtils.EMPTY;
+            if (intellectJudicialFlag == 1) { //卫宁审方
+                account = "winning";
+            } else if (intellectJudicialFlag == 2) { //逸曜
+                account = "hangzhouyiyao";
+            }
+            JudicialOrgan judicialOrgan = judicialOrganDAO.getByAccount(account);
             judicialRelation.setJudicialorganId(judicialOrgan.getJudicialorganId());
             organJudicialRelationDAO.save(judicialRelation);
             organJudicialRelation = organJudicialRelationDAO.getOrganJudicialRelationByOrganId(organId);
