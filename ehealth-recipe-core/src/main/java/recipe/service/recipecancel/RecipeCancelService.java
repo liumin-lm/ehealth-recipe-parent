@@ -117,6 +117,7 @@ public class RecipeCancelService {
         map.put("CheckStatus",0);
         map.put("grabOrderStatus",1);
         map.put("localLimitDate", DateConversion.getDateAftMinute(new Date(), 10));
+        map.put("updateTime",new Date());
         recipeCheckDAO.updateRecipeExInfoByRecipeId(recipeId,map);
     }
 }
