@@ -534,8 +534,12 @@ public class RecipeToHisService {
             LOGGER.error("findPatientDiagnose error ", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
-        if (null != response && !"200".equals(response.getMsgCode())) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, response.getMsg());
+        if (null == response) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "接口返回异常");
+        } else {
+            if (!"200".equals(response.getMsgCode())) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, response.getMsg());
+            }
         }
     }
 }
