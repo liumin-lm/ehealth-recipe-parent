@@ -526,15 +526,16 @@ public class RecipeToHisService {
     public void findPatientDiagnose(PatientDiagnoseTO request) {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("findPatientDiagnose request={}", JSONUtils.toString(request));
+        HisResponseTO<String> response;
         try {
-            HisResponseTO<String> response = hisService.findPatientDiagnose(request);
+            response = hisService.findPatientDiagnose(request);
             LOGGER.info("findPatientDiagnose response={}", JSONUtils.toString(response));
-            if (null != response && !("200".equals(response.getMsgCode()))) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, response.getMsg());
-            }
         } catch (Exception e) {
             LOGGER.error("findPatientDiagnose error ", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "调用异常");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+        if (null != response && !"200".equals(response.getMsgCode())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, response.getMsg());
         }
     }
 }
