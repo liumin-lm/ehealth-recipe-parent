@@ -6,11 +6,9 @@ import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import groovy.util.logging.Slf4j;
 import org.apache.axis.Constants;
 import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
-import org.apache.axis.encoding.XMLType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -18,14 +16,10 @@ import org.slf4j.LoggerFactory;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
-import recipe.drugsenterprise.bean.YnsPharmacyAndStockRequest;
-import recipe.drugsenterprise.bean.yd.httpclient.HttpsClientUtils;
-import recipe.service.RecipeListService;
 import recipe.util.MapValueUtil;
 
 import javax.xml.namespace.QName;
 import javax.xml.rpc.ParameterMode;
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -74,6 +68,7 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
         return null;
     }
 
+    @RpcService
     @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         LOGGER.info("LmgyRemoteService.scanStock:[{}]", JSONUtils.toString(recipeId));
