@@ -19,11 +19,9 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.EleInvoiceDTO;
 import recipe.dao.RecipeExtendDAO;
-import recipe.service.RecipeExtendService;
 import recipe.util.DateConversion;
 
 import java.util.ArrayList;
