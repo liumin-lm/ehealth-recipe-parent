@@ -1399,10 +1399,6 @@ public class RecipeServiceSub {
             if (recipe.getStatus() == RecipeStatusConstant.REVOKE){
                 map.put("cancelReason", getCancelReasonForPatient(recipeId));
             }
-            //获取药师撤销原因
-            if (recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS){
-                map.put("cancelReason", getCancelReasonForChecker(recipeId));
-            }
             boolean b = null != recipe.getEnterpriseId() && RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())
                     && (recipe.getStatus() == RecipeStatusConstant.WAIT_SEND || recipe.getStatus() == RecipeStatusConstant.IN_SEND
                     || recipe.getStatus() == RecipeStatusConstant.FINISH);
@@ -1541,6 +1537,11 @@ public class RecipeServiceSub {
 
             map.put("showButton", showButton);
 
+        }
+
+        //获取药师撤销原因
+        if (recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS){
+            map.put("cancelReason", getCancelReasonForChecker(recipeId));
         }
 
         if (StringUtils.isEmpty(recipe.getMemo())) {
