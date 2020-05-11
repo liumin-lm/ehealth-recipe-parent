@@ -2,7 +2,7 @@ package recipe.audit.service;
 
 import com.ngari.base.doctor.model.DoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
-import com.ngari.base.patient.service.IPatientService;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.dto.ProTitleDTO;
@@ -13,10 +13,7 @@ import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import ctd.controller.exception.ControllerException;
-import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
-import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -26,8 +23,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
+import recipe.audit.bean.AuditDiagnose;
 import recipe.audit.bean.AutoAuditResult;
 import recipe.audit.bean.PAWebRecipeDanger;
+import recipe.constant.RecipeSystemConstant;
 import recipe.dao.CompareDrugDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -44,8 +43,8 @@ import java.util.List;
  */
 
 @RpcBean
-public class HangzhouyyPrescriptionService implements IntellectJudicialService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(HangzhouyyPrescriptionService.class);
+public class HangzhouyiyaoPrescriptionService implements IntellectJudicialService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HangzhouyiyaoPrescriptionService.class);
 
     @Autowired
     private PatientService patientService;
@@ -65,10 +64,13 @@ public class HangzhouyyPrescriptionService implements IntellectJudicialService {
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
 
+    @Autowired
+    private IConfigurationCenterUtilsService configService;
+
     @Override
     @RpcService
     public AutoAuditResult analysis(RecipeBean recipe, List<RecipeDetailBean> recipedetails) {
-        AutoAuditResult result = null;
+        AutoAuditResult result = new AutoAuditResult();
         if (null == recipe || CollectionUtils.isEmpty(recipedetails)) {
             result.setCode(RecipeCommonBaseTO.FAIL);
             result.setMsg("参数错误");
@@ -89,6 +91,7 @@ public class HangzhouyyPrescriptionService implements IntellectJudicialService {
 
             reqTO.setPrescription(packPrescriptionData(recipe, recipedetails, proTitle, doctor));
 
+            reqTO.setDiagnoses(packDiagnosisData(recipe));
             RecipeHisService recipeHisService = AppContextHolder.getBean("eh.recipeHisService", RecipeHisService.class);
             List<HzyyRationalUseDrugResTO> useDrugResTOS = recipeHisService.queryHzyyRationalUserDurg(reqTO);
 
@@ -101,12 +104,20 @@ public class HangzhouyyPrescriptionService implements IntellectJudicialService {
             List<PAWebRecipeDanger> recipeDangers = new ArrayList<>();
             useDrugResTOS.forEach(item -> {
                 PAWebRecipeDanger paWebRecipeDanger = new PAWebRecipeDanger();
-                paWebRecipeDanger.setDangerType(item.getType());
+                paWebRecipeDanger.setDangerType(item.getAnalysisType());
                 paWebRecipeDanger.setDangerLevel(item.getSeverity());
                 paWebRecipeDanger.setDangerDrug(item.getDrugName());
                 paWebRecipeDanger.setDangerDesc(item.getErrorInfo());
                 recipeDangers.add(paWebRecipeDanger);
             });
+            Integer intellectJudicialFlag = (Integer) configService.getConfiguration(recipe.getClinicOrgan(), "intellectJudicialFlag");
+            Object needInterceptLevel = configService.getConfiguration(recipe.getClinicOrgan(), "needInterceptLevel");
+            String highestDrangeLevel = StringUtils.EMPTY;
+            if (!(intellectJudicialFlag == 1 && null != needInterceptLevel
+                    && Integer.valueOf(needInterceptLevel.toString()) > 3)) { //卫宁合理用药配置了等级3以上数据传空
+                highestDrangeLevel = (String) needInterceptLevel;
+            }
+            result.setHighestDrangeLevel(highestDrangeLevel);
             result.setMsg("查询成功");
             result.setRecipeDangers(recipeDangers);
             return result;
@@ -204,6 +215,32 @@ public class HangzhouyyPrescriptionService implements IntellectJudicialService {
         });
         prescription.setPrescriptionItems(detailDatas);
         return prescription;
+    }
+
+    private List<HzyyDiagnosisData> packDiagnosisData(RecipeBean recipe) {
+        List<HzyyDiagnosisData> diagnoses = new ArrayList<>();
+        HzyyDiagnosisData auditDiagnose;
+        if (recipe.getOrganDiseaseName().contains("；")) {
+            String[] a = recipe.getOrganDiseaseName().split("；");
+            String[] b = recipe.getOrganDiseaseId().split("；");
+            for (int i = 0; i < a.length; i++) {
+                auditDiagnose = new HzyyDiagnosisData();
+                auditDiagnose.setDiagCode(b[i]);
+                auditDiagnose.setDiagame(a[i]);
+                auditDiagnose.setDiagId(b[i]);
+                auditDiagnose.setDiagStatus("0");
+                auditDiagnose.setDiagDate(DateConversion.getDateFormatter(recipe.getSignDate(), DateConversion.DEFAULT_DATE_TIME));
+                diagnoses.add(auditDiagnose);
+            }
+        } else {
+            auditDiagnose = new HzyyDiagnosisData();
+            auditDiagnose.setDiagCode(recipe.getOrganDiseaseId());
+            auditDiagnose.setDiagame(recipe.getOrganDiseaseName());
+            auditDiagnose.setDiagStatus("0");
+            auditDiagnose.setDiagDate(DateConversion.getDateFormatter(recipe.getSignDate(), DateConversion.DEFAULT_DATE_TIME));
+            diagnoses.add(auditDiagnose);
+        }
+        return diagnoses;
     }
 
     @Override
