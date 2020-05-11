@@ -106,9 +106,13 @@ public class RecipeListService extends RecipeBaseService{
             Map<Integer, RecipeBean> recipeMap = Maps.newHashMap();
             //date 20200506
             //获取处方对应的订单信息
+            Map<String, Integer> orderStatus = new HashMap<>();
             List<String> recipeCodes = recipeList.stream().map(recipe -> recipe.getRecipeCode()).filter(code -> StringUtils.isNotEmpty(code)).collect(Collectors.toList());
-            List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(recipeCodes);
-            Map<String, Integer> orderStatus = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, RecipeOrder::getStatus));
+            if(CollectionUtils.isNotEmpty(recipeCodes)){
+
+                List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(recipeCodes);
+                orderStatus = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, RecipeOrder::getStatus));
+            }
 
             for (Recipe recipe : recipeList) {
                 if (StringUtils.isNotEmpty(recipe.getMpiid())) {
@@ -130,7 +134,9 @@ public class RecipeListService extends RecipeBaseService{
                     }
                     stringBuilder.append(" ").append(recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit()).append("、");
                 }
-                stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
+                if(-1 != stringBuilder.lastIndexOf("、")){
+                    stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
+                }
                 recipe.setRecipeDrugName(stringBuilder.toString());
                 //前台页面展示的时间源不同
                 recipe.setRecipeShowTime(recipe.getCreateDate());
@@ -171,10 +177,6 @@ public class RecipeListService extends RecipeBaseService{
         }
 
         return list;
-    }
-
-    public static void main(String[] args) {
-
     }
 
     /**
@@ -593,13 +595,9 @@ public class RecipeListService extends RecipeBaseService{
             case RecipeStatusConstant.USING:
                 msg = "处理中";
                 break;
-            case RecipeStatusConstant.SIGN_ERROR_CODE_DOC:
-                msg = "待审核";
-                break;
+            //date 20200511
+            //药师签名状态依旧是待审核标识
             case RecipeStatusConstant.SIGN_ERROR_CODE_PHA:
-                msg = "待审核";
-                break;
-            case RecipeStatusConstant.SIGN_ING_CODE_DOC:
                 msg = "待审核";
                 break;
             case RecipeStatusConstant.SIGN_ING_CODE_PHA:
@@ -637,9 +635,12 @@ public class RecipeListService extends RecipeBaseService{
         if (CollectionUtils.isNotEmpty(recipes)) {
             //date 20200506
             //获取处方对应的订单信息
+            Map<String, Integer> orderStatus = new HashMap<>();
             List<String> recipeCodes = recipes.stream().map(recipe -> recipe.getRecipeCode()).filter(code -> StringUtils.isNotEmpty(code)).collect(Collectors.toList());
-            List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(recipeCodes);
-            Map<String, Integer> orderStatus = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, RecipeOrder::getStatus));
+            if(CollectionUtils.isNotEmpty(recipeCodes)){
+                List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(recipeCodes);
+                orderStatus = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, RecipeOrder::getStatus));
+            }
 
             for (Recipe recipe : recipes) {
                 Map<String, Object> map = Maps.newHashMap();
@@ -827,6 +828,12 @@ public class RecipeListService extends RecipeBaseService{
         List<Integer> specialStatusList = new ArrayList<>();
         if("ongoing".equals(tabStatus)){
             specialStatusList.add(RecipeStatusConstant.RECIPE_DOWNLOADED);
+            //date 20200511
+            //添加处方单中新加的药师签名中签名失败的，患者认为是待审核
+            specialStatusList.addAll(new ArrayList<Integer>(){
+                {add(RecipeStatusConstant.SIGN_ERROR_CODE_PHA);
+                    add(RecipeStatusConstant.SIGN_ING_CODE_PHA);}
+            });
         }
         try{
             List<PatientRecipeBean> backList = recipeDAO.findTabStatusRecipesForPatient(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), specialStatusList, tabStatus);
@@ -1064,6 +1071,27 @@ public class RecipeListService extends RecipeBaseService{
         }
 
         payModeShowButtonBean.setButtonType(getButtonType(payModeShowButtonBean, recipe, record.getRecordType(), record.getStatusCode(), showUseDrugConfig));
+
+        //date 20200508
+        //设置展示配送到家的配送方式
+        //判断当前处方对应的机构支持的配送药企包含的配送类型
+
+        //首先判断按钮中配送药品购药方式是否展示，不展示购药方式按钮就不展示药企配送和医院配送
+        if(!payModeShowButtonBean.getSupportOnline()){
+            return payModeShowButtonBean;
+        }
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_ONLINE);
+        Long enterprisesSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Enterprise_Send);
+        Long hosSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Hos_Send);
+        if(null != enterprisesSend && 0 < enterprisesSend){
+
+            payModeShowButtonBean.setShowSendToEnterprises(true);
+        }
+        if(null != hosSend && 0 < hosSend){
+
+            payModeShowButtonBean.setShowSendToHos(true);
+        }
         return payModeShowButtonBean;
     }
 
@@ -1211,8 +1239,12 @@ public class RecipeListService extends RecipeBaseService{
             //date 20200506
             //获取处方对应的订单信息
             List<String> recipeCodes = recipeList.stream().map(recipe -> recipe.getRecipeCode()).filter(code -> StringUtils.isNotEmpty(code)).collect(Collectors.toList());
-            List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(recipeCodes);
-            Map<String, Integer> orderStatus = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, RecipeOrder::getStatus));
+            Map<String, Integer> orderStatus = new HashMap<>();
+            if(CollectionUtils.isNotEmpty(recipeCodes)){
+
+                List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(recipeCodes);
+                orderStatus = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, RecipeOrder::getStatus));
+            }
 
             for (Recipe recipe : recipeList) {
                 if (StringUtils.isNotEmpty(recipe.getMpiid())) {

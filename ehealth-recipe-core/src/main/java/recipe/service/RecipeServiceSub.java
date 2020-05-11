@@ -811,9 +811,12 @@ public class RecipeServiceSub {
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         //date 20200506
         //获取处方对应的订单信息
+        Map<String, Integer> orderStatus = new HashMap<>();
         List<String> recipeCodes = recipes.stream().map(recipe -> recipe.getRecipeCode()).filter(code -> StringUtils.isNotEmpty(code)).collect(Collectors.toList());
-        List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(recipeCodes);
-        Map<String, Integer> orderStatus = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, RecipeOrder::getStatus));
+        if(CollectionUtils.isNotEmpty(recipeCodes)){
+            List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(recipeCodes);
+            orderStatus = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, RecipeOrder::getStatus));
+        }
         for (Recipe recipe : recipes) {
             if (StringUtils.isNotEmpty(recipe.getMpiid())) {
                 patientIds.add(recipe.getMpiid());
@@ -1298,8 +1301,11 @@ public class RecipeServiceSub {
 
             //date 20200506
             //通过订单的状态判断
-            List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(Arrays.asList(recipe.getRecipeCode()));
-            Map<String, Integer> orderStatus = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, RecipeOrder::getStatus));
+            Map<String, Integer> orderStatus = new HashMap<>();
+            if(null != recipe.getRecipeCode()){
+                List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(Arrays.asList(recipe.getRecipeCode()));
+                orderStatus = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, RecipeOrder::getStatus));
+            }
             Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, null, (orderStatus == null || 0 >= orderStatus.size()) ? null : orderStatus.get(recipe.getOrderCode()));
             map.put("cancelReason", MapValueUtil.getString(tipMap, "cancelReason"));
             map.put("tips", MapValueUtil.getString(tipMap, "tips"));
@@ -1603,6 +1609,27 @@ public class RecipeServiceSub {
             map.put("recipeExtend",recipeExtend);
         }
 
+        //date 20200508
+        //设置展示配送到家的配送方式
+        //判断当前处方对应的机构支持的配送药企包含的配送类型
+
+        //首先判断按钮中配送药品购药方式是否展示，不展示购药方式按钮就不展示药企配送和医院配送
+        boolean showSend = (null == map.get("supportOnline") ? false : 1 == Integer.parseInt(map.get("supportOnline").toString()));
+        map.put("showSendToEnterprises", 0);
+        map.put("showSendToHos", 0);
+        if(!showSend){
+            return map;
+        }
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_ONLINE);
+        Long enterprisesSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Enterprise_Send);
+        Long hosSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Hos_Send);
+        if(null != enterprisesSend && 0 < enterprisesSend){
+            map.put("showSendToEnterprises", 1);
+        }
+        if(null != hosSend && 0 < hosSend){
+            map.put("showSendToHos", 1);
+        }
         return map;
     }
 
