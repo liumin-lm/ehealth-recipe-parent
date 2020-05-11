@@ -154,6 +154,7 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
 
                 Query countQuery = ss.createQuery("select count(*) " + hql.toString());
                 countQuery.setParameter("organId", organId);
+                countQuery.setParameter("status", status);
                 Long total = (Long) countQuery.uniqueResult();
 
                 List<DrugListMatch> lists = query.list();
