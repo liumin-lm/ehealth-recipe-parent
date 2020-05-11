@@ -350,7 +350,7 @@ public class HisCallBackService {
         }
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.HIS_FAIL, paramMap);
         //日志记录
-        RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECKING_HOS, RecipeStatusConstant.HIS_FAIL, "HIS审核返回：写入his失败[" + errCode + ":" + errMsg + "]");
+        RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECKING_HOS, RecipeStatusConstant.HIS_FAIL, "HIS审核返回：写入his失败[" + errCode + ":|" + errMsg + "]");
         //发送消息
         RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.HIS_FAIL);
     }
