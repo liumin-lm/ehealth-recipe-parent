@@ -535,7 +535,7 @@ public class RecipeToHisService {
             return response.getData();
         } catch (Exception e) {
             LOGGER.error("findPatientDiagnose error ", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "调用异常");
         }
     }
 }
