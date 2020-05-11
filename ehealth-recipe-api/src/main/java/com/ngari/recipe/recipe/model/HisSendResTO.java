@@ -29,6 +29,11 @@ public class HisSendResTO implements java.io.Serializable {
     private String msg;
 
     /**
+     * 患者类型（1自费 2医保）
+     */
+    private String patientType;
+
+    /**
      * 返回医嘱列表数据
      */
     private List<OrderRepTO> data;
@@ -63,5 +68,13 @@ public class HisSendResTO implements java.io.Serializable {
 
     public void setMsg(String msg) {
         this.msg = msg;
+    }
+
+    public String getPatientType() {
+        return patientType;
+    }
+
+    public void setPatientType(String patientType) {
+        this.patientType = patientType;
     }
 }
