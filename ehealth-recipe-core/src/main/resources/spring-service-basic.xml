@@ -26,4 +26,5 @@
     <reference id="basic.clientConfigService" interface="com.ngari.patient.service.ClientConfigService"/>
     <reference id="basic.healthCardService" interface="com.ngari.patient.service.HealthCardService"/>
     <reference id="basic.addressService" interface="com.ngari.patient.service.AddressService"/>
+    <reference id="basic.proTitleService" interface="com.ngari.patient.service.ProTitleService"/>
 </s:beans>
