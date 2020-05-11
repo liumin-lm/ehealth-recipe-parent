@@ -20,6 +20,7 @@ import recipe.constant.ErrorCode;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -163,4 +164,40 @@ public abstract class RecipeCheckDAO extends HibernateSupportDelegateDAO<RecipeC
      */
     @DAOMethod(sql = "from RecipeCheck c where c.checkId = (select max(c.checkId) from c where c.recipeId=:recipeId)")
     public abstract RecipeCheck getNowCheckResultByRecipeId(@DAOParam("recipeId") Integer recipeId);
+
+    /**
+     * 更新处方自定义字段
+     *
+     * @param recipeId
+     * @param changeAttr
+     * @return
+     */
+    public Boolean updateRecipeExInfoByRecipeId(final int recipeId, final Map<String, ?> changeAttr) {
+        if (null == changeAttr || changeAttr.isEmpty()) {
+            return true;
+        }
+
+        HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("update RecipeCheck set ");
+                StringBuilder keyHql = new StringBuilder();
+                for (String key : changeAttr.keySet()) {
+                    keyHql.append("," + key + "=:" + key);
+                }
+                hql.append(keyHql.toString().substring(1)).append(" where recipeId=:recipeId");
+                Query q = ss.createQuery(hql.toString());
+
+                q.setParameter("recipeId", recipeId);
+                for (String key : changeAttr.keySet()) {
+                    q.setParameter(key, changeAttr.get(key));
+                }
+
+                int flag = q.executeUpdate();
+                setResult(flag == 1);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }

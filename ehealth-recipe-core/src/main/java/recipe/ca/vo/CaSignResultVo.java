@@ -15,6 +15,8 @@ public class CaSignResultVo {
      */
     private String signRecipeCode;
 
+    private String fileId;
+
     private Integer code;
 
     private String msg;
@@ -57,5 +59,13 @@ public class CaSignResultVo {
 
     public void setSignRecipeCode(String signRecipeCode) {
         this.signRecipeCode = signRecipeCode;
+    }
+
+    public String getFileId() {
+        return fileId;
+    }
+
+    public void setFileId(String fileId) {
+        this.fileId = fileId;
     }
 }

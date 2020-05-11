@@ -20,12 +20,16 @@ import recipe.constant.BussTypeConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeMsgEnum;
 import recipe.constant.RecipeStatusConstant;
+import recipe.dao.RecipeCheckDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeServiceSub;
+import recipe.util.DateConversion;
 
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -91,12 +95,8 @@ public class RecipeCancelService {
         if (result){
             //向医生端推送药师撤销处方系统消息-------药师撤销处方审核结果
             RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_REVOKE_YS,recipe);
-            //药师审核新增待处理任务
-           /* if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
-                //增加药师首页待处理任务---创建任务
-                RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
-                ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
-            }*/
+            //如果该处方单是某药师抢单后撤销审核结果的处方单则要更新为该药师的抢单单子
+            updateCheckerGrabOrderStatus(recipeId);
             //记录日志
             if (StringUtils.isEmpty(message)){
                 message = "无";
@@ -107,5 +107,17 @@ public class RecipeCancelService {
         rMap.put("msg",msg);
         LOGGER.info("cancelRecipeForChecker execute ok! rMap:"+JSONUtils.toString(rMap));
         return rMap;
+    }
+
+    private void updateCheckerGrabOrderStatus(Integer recipeId) {
+        RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
+        Map<String, Object> map = Maps.newHashMap();
+        map.put("Checker",null);
+        map.put("CheckerName",null);
+        map.put("CheckStatus",0);
+        map.put("grabOrderStatus",1);
+        map.put("localLimitDate", DateConversion.getDateAftMinute(new Date(), 10));
+        map.put("updateTime",new Date());
+        recipeCheckDAO.updateRecipeExInfoByRecipeId(recipeId,map);
     }
 }

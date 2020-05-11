@@ -43,6 +43,16 @@ public class PayModeShowButtonBean implements Serializable{
      */
     private Integer buttonType;
 
+    /**
+     * 配送到家药企配送
+     */
+    private Boolean showSendToEnterprises = false;
+
+    /**
+     * 配送到家医院配送
+     */
+    private Boolean showSendToHos = false;
+
     public PayModeShowButtonBean() {
     }
 
@@ -64,6 +74,24 @@ public class PayModeShowButtonBean implements Serializable{
         setSupportTFDS(false);
         setSupportToHos(false);
         setButtonType(0);
+        setShowSendToEnterprises(false);
+        setShowSendToHos(false);
+    }
+
+    public Boolean getShowSendToEnterprises() {
+        return showSendToEnterprises;
+    }
+
+    public void setShowSendToEnterprises(Boolean showSendToEnterprises) {
+        this.showSendToEnterprises = showSendToEnterprises;
+    }
+
+    public Boolean getShowSendToHos() {
+        return showSendToHos;
+    }
+
+    public void setShowSendToHos(Boolean showSendToHos) {
+        this.showSendToHos = showSendToHos;
     }
 
     public Integer getButtonType() {

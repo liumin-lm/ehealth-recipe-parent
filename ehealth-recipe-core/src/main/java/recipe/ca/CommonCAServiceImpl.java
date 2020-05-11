@@ -47,20 +47,23 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
      * @return
      */
     @Override
-    public boolean caCertificateBusiness(CaCertificateRequestTO requestTO) {
+    public CaCertificateResponseTO caCertificateBusiness(CaCertificateRequestTO requestTO) {
+        CaCertificateResponseTO responseRs = new CaCertificateResponseTO();
         try {
             LOGGER.info("CommonCAServiceImpl caCertificateBusiness start userAccount={},requestTO={}",requestTO.getUserAccount(), JSONUtils.toString(requestTO));
-            HisResponseTO responseTO = iCaHisService.caCertificateBusiness(requestTO);
+            HisResponseTO<CaCertificateResponseTO> responseTO = iCaHisService.caCertificateBusiness(requestTO);
             LOGGER.info("CommonCAServiceImpl caCertificateBusiness userAccount={},responseTO={}", requestTO.getUserAccount(),JSONUtils.toString(responseTO));
             if (CA_RESULT_CODE.equals(responseTO.getMsgCode())) {
-                return true;
+                responseRs.setCretBody(responseTO.getData().getCretBody());
+                responseRs.setUserAccount(responseTO.getData().getUserAccount());
             }
+            responseRs.setCode(Integer.valueOf(responseTO.getMsgCode()));
+            responseRs.setMsg(responseTO.getMsg());
         } catch (Exception e){
             LOGGER.error("CommonCAServiceImpl caCertificateBusiness 调用前置机失败 userAccount={},requestTO={}",requestTO.getUserAccount(), JSONUtils.toString(requestTO));
             e.printStackTrace();
-            return false;
         }
-        return false;
+        return responseRs;
     }
 
     /**

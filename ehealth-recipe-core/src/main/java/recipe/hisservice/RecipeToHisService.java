@@ -14,21 +14,25 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.hisprescription.model.*;
+import com.ngari.recipe.hisprescription.model.HosPatientDTO;
+import com.ngari.recipe.hisprescription.model.HosPatientRecipeDTO;
+import com.ngari.recipe.hisprescription.model.HosRecipeDTO;
+import com.ngari.recipe.hisprescription.model.HosRecipeDetailDTO;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.formula.functions.T;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
-import recipe.service.HisCallBackService;
 import recipe.recipecheck.RecipeCheckService;
+import recipe.service.HisCallBackService;
 import recipe.service.RecipeLogService;
 
 import java.util.ArrayList;
@@ -519,4 +523,19 @@ public class RecipeToHisService {
         return response;
     }
 
+    public String findPatientDiagnose(PatientDiagnoseTO request) {
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        LOGGER.info("findPatientDiagnose request={}", JSONUtils.toString(request));
+        try {
+            HisResponseTO<String> response = hisService.findPatientDiagnose(request);
+            LOGGER.info("findPatientDiagnose response={}", JSONUtils.toString(response));
+            if (null != response && !("200".equals(response.getMsgCode()))) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, response.getMsg());
+            }
+            return response.getData();
+        } catch (Exception e) {
+            LOGGER.error("findPatientDiagnose error ", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
 }

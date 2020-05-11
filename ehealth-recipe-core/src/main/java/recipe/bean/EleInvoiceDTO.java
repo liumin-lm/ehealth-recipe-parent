@@ -11,6 +11,7 @@ import java.io.Serializable;
 public class EleInvoiceDTO implements Serializable {
     private static final long serialVersionUID = 6820457888091344342L;
 
+    private Integer id;
     /*患者mpiid*/
     private String mpiid;
     /*机构id*/
@@ -72,5 +73,11 @@ public class EleInvoiceDTO implements Serializable {
         this.ghxh = ghxh;
     }
 
+    public Integer getId() {
+        return id;
+    }
 
+    public void setId(Integer id) {
+        this.id = id;
+    }
 }

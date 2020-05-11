@@ -678,11 +678,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 StringBuilder hql = new StringBuilder("from Recipe where signDate between '" + startDt + "' and '" + endDt + "' ");
                 if (cancelStatus == RecipeStatusConstant.NO_PAY) {
                     //超过3天未支付，支付模式修改
-                    hql.append(" and fromflag in (1,2) and status=" + RecipeStatusConstant.CHECK_PASS
+                    //添加状态列表判断，从状态待处理添加签名失败，签名中
+                    hql.append(" and fromflag in (1,2) and status in （2, 31, 30, 26, 27)"
                             + " and payFlag=0 and payMode is not null and orderCode is not null ");
                 } else if (cancelStatus == RecipeStatusConstant.NO_OPERATOR) {
                     //超过3天未操作,添加前置未操作的判断 后置待处理或者前置待审核和医保上传确认中
-                    hql.append(" and fromflag = 1 and status= " + RecipeStatusConstant.CHECK_PASS + " and payMode is null " +
+                    //添加状态列表判断，从状态待处理添加签名失败，签名中
+                    hql.append(" and fromflag = 1 and status in (2, 31, 30, 26, 27) and payMode is null " +
                             "or ( status in (8,24) and reviewType = 1 and signDate between '" + startDt + "' and '" + endDt + "' )");
                 }
                 Query q = ss.createQuery(hql.toString());
@@ -809,16 +811,16 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 //1是审核通过
                 else if (flag == 1) {
                     hql.append("select distinct r from Recipe r,RecipeCheck rc where r.recipeId = rc.recipeId and r.clinicOrgan in (:organ)" +
-                            "and (rc.checkStatus = 1 or (rc.checkStatus=0 and r.supplementaryMemo is not null)) and r.status <> 9");
+                            "and (rc.checkStatus = 1 or (rc.checkStatus=0 and r.supplementaryMemo is not null)) and r.status not in (9,31)");
                 }
                 //2是审核未通过
                 else if (flag == notPass) {
                     hql.append("select distinct r from Recipe r,RecipeCheck rc where r.recipeId = rc.recipeId and r.clinicOrgan in (:organ)" +
-                            "and rc.checkStatus = 0 and rc.checker is not null and r.supplementaryMemo is null and r.status <> 9");
+                            "and rc.checkStatus = 0 and rc.checker is not null and r.supplementaryMemo is null and r.status not in (9,31)");
                 }
                 //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
                 else if (flag == all) {
-                    hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and (r.status = 8 or r.checkDateYs is not null or (r.status = 9 and (select l.beforeStatus from cdr_recipe_log l where l.recipeId = r.recipeId and l.afterStatus =9 ORDER BY l.Id desc limit 1) in (8,15,7,2))) ");
+                    hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and (r.status in (8,31) or r.checkDateYs is not null or (r.status = 9 and (select l.beforeStatus from cdr_recipe_log l where l.recipeId = r.recipeId and l.afterStatus =9 ORDER BY l.Id desc limit 1) in (8,15,7,2))) ");
                 } else {
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "flag is invalid");
                 }
