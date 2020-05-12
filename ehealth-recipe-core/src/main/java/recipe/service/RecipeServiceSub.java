@@ -1639,6 +1639,12 @@ public class RecipeServiceSub {
         if(null != hosSend && 0 < hosSend){
             map.put("showSendToHos", 1);
         }
+        //不支持配送，则按钮都不显示--包括药店取药
+        if (new Integer(2).equals(recipe.getDistributionFlag())){
+            map.put("showSendToEnterprises", 0);
+            map.put("showSendToHos", 0);
+            map.put("supportTFDS",0);
+        }
         return map;
     }
 
