@@ -1085,7 +1085,15 @@ public class RecipeServiceSub {
                     break;
                 case RecipeStatusConstant.HIS_FAIL:
                     tips = "已取消";
-                    cancelReason = "可能由于医院接口异常，处方单已取消，请稍后重试！";
+                    //date 20200507
+                    //判断当前处方调用医院接口是否有异常信息，有的话展示异常信息抹油获取默认信息
+                    List<RecipeLog> recipeFailLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipe.getRecipeId(), RecipeStatusConstant.HIS_FAIL);
+                    if(CollectionUtils.isNotEmpty(recipeFailLogs)){
+                        cancelReason = recipeFailLogs.get(0).getMemo().substring(recipeFailLogs.get(0).getMemo().indexOf("|") + 1, recipeFailLogs.get(0).getMemo().length() - 1);
+                    }else{
+
+                        cancelReason = "可能由于医院接口异常，处方单已取消，请稍后重试！";
+                    }
                     break;
                 case RecipeStatusConstant.NO_DRUG:
                     tips = "已取消";
