@@ -1342,10 +1342,10 @@ public class RecipeHisService extends RecipeBaseService {
 
     @RpcService
     public List<HzyyRationalUseDrugResTO> queryHzyyRationalUserDurg(HzyyRationalUseDrugReqTO reqTO) {
-        LOGGER.info("调用杭州逸曜合理用药queryHzyyRationalUserDurg,入参 = {}，idNO = {}", reqTO, reqTO.getPatient().getIdNo());
+        LOGGER.info("调用杭州逸曜合理用药queryHzyyRationalUserDurg,入参 = {}，idNO = {}",JSONUtils.toString(reqTO), reqTO.getPatient().getIdNo());
         IRecipeHisService iRecipeHisService = AppContextHolder.getBean("his.iRecipeHisService", IRecipeHisService.class);
         HisResponseTO<List<HzyyRationalUseDrugResTO>> hisResponseTO = iRecipeHisService.queryHzyyRationalUserDurg(reqTO);
-        LOGGER.info("调用杭州逸曜合理用药queryHzyyRationalUserDurg,出参 = {}, idNO = {}", reqTO, reqTO.getPatient().getIdNo());
+        LOGGER.info("调用杭州逸曜合理用药queryHzyyRationalUserDurg,出参 = {}, idNO = {}", JSONUtils.toString(reqTO), reqTO.getPatient().getIdNo());
         if(hisResponseTO == null || !hisResponseTO.getMsgCode().equals("200")){
             return Collections.EMPTY_LIST;
         }
