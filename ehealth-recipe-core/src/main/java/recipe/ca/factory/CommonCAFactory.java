@@ -2,6 +2,8 @@ package recipe.ca.factory;
 
 import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import eh.utils.params.ParamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +18,7 @@ import java.util.Map;
  * 根据不同的机构获取机构对应的实现
  * CA工厂类
  */
+@RpcBean
 public class CommonCAFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonCAFactory.class);
@@ -41,7 +44,8 @@ public class CommonCAFactory {
         map.put(CA_TYPE_SHANGHAI, new ShanghaiCAImpl());
     }
 
-   public static CAInterface useCAFunction(Integer organId) {
+    @RpcService
+    public CAInterface useCAFunction(Integer organId) {
         try {
             IConfigurationCenterUtilsService configurationService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
             String thirdCASign = (String) configurationService.getConfiguration(organId, THIRD_CA_SIGN);
@@ -60,6 +64,26 @@ public class CommonCAFactory {
         }
         return null;
     }
+
+//   public static CAInterface useCAFunction(Integer organId) {
+//        try {
+//            IConfigurationCenterUtilsService configurationService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+//            String thirdCASign = (String) configurationService.getConfiguration(organId, THIRD_CA_SIGN);
+//            //上海儿童特殊处理
+//            String value = ParamUtils.getParam("SH_CA_ORGANID_WHITE_LIST");
+//            LOGGER.info("useCAFunction value ={}=", value);
+//            if (value.indexOf(organId+"") >= 0) {
+//                thirdCASign = "shanghaiCA";
+//            }
+//            LOGGER.info("useCAFunction in organId ={} ,CA 模式 ={}", organId, thirdCASign);
+//            return map.get(thirdCASign);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            LOGGER.error("useCAFunction in organId ={} ,获取CA机构配置异常{}",organId,e);
+//
+//        }
+//        return null;
+//    }
 
 
 }
