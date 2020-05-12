@@ -43,7 +43,10 @@ public class TianjinCAImpl implements CAInterface {
         caAccountRequestTO.setOrganId(doctorDTO.getOrgan());
         caAccountRequestTO.setUserName(doctorDTO.getName());
         caAccountRequestTO.setIdCard(doctorDTO.getIdNumber());
+        caAccountRequestTO.setIdNoType("1");
         caAccountRequestTO.setMobile(doctorDTO.getMobile());
+        caAccountRequestTO.setUserEmail(doctorDTO.getEmail());
+        caAccountRequestTO.setUserAccount(doctorDTO.getLoginId());
         try {
             //用户操作类型 * 1.用户注册 * 2.用户修改 * 3.用户查询
             /*caAccountRequestTO.setBusType(3);
