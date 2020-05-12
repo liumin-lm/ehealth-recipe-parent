@@ -749,11 +749,12 @@ public class RecipeService extends RecipeBaseService {
                     //通过工厂获取对应的实现CA类
                     CAInterface caInterface = caFactory.useCAFunction(organId);
                     CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
-                    String result = "";
                     String fileId = null;
+                    checkResult.setMsg(resultVo.getMsg());
                     if (resultVo != null && 200 == resultVo.getCode()) {
                         //保存签名值、时间戳、电子签章文件
-                        result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
+                        checkResult.setCode(RecipeResultBean.SUCCESS);
+                        RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
                         resultVo.setFileId(fileId);
                         signRecipeInfoSave(recipeId, false, resultVo, organId);
                     }
@@ -781,7 +782,7 @@ public class RecipeService extends RecipeBaseService {
 //                            smsPushService.pushMsgData2OnsExtendValue(smsInfo);
 //                        }
 
-                        bl = "success".equals(result) ? true : false;
+//                        bl = "success".equals(result) ? true : false;
                     } catch (Exception e) {
                         LOGGER.error("reviewRecipe  signFile 标准化CA签章报错 recipeId={} ,doctor={} ,e={}=============", recipeId, recipe.getDoctor(), e);
                     }
@@ -1171,7 +1172,9 @@ public class RecipeService extends RecipeBaseService {
                 CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
 //                RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true);
                 String fileId = null;
+                result.setMsg(resultVo.getMsg());
                 if (resultVo != null && 200 == resultVo.getCode()) {
+                    result.setCode(RecipeResultBean.SUCCESS);
                     //保存签名值、时间戳、电子签章文件
                     RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
                     resultVo.setFileId(fileId);
