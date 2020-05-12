@@ -989,6 +989,19 @@ public class RecipeService extends RecipeBaseService {
         resultBean.setCheckResult(checkResult.getCheckStatus());
         resultBean.setCheckDetailList(recipeCheckDetailDAO.findByCheckId(checkResult.getCheckId()));
         int result = checkResult.getCheckStatus();
+
+        //date 20200512
+        //更新处方审核结果状态
+        int recipeStatus = RecipeStatusConstant.CHECK_NOT_PASS_YS;
+        if (1 == result) {
+            //根据审方模式改变状态
+            recipeStatus = auditModeContext.getAuditModes(recipe.getReviewType()).afterAuditRecipeChange();
+            if (recipe.canMedicalPay()) {
+                //如果是可医保支付的单子，审核是在用户看到之前，所以审核通过之后变为待处理状态
+                recipeStatus = RecipeStatusConstant.CHECK_PASS;
+            }
+        }
+        recipeDAO.updateRecipeInfoByRecipeId(recipeId, recipeStatus, null);
         //审核成功往药厂发消息
         //审方做异步处理
         GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {

@@ -1144,14 +1144,20 @@ public class RecipeServiceSub {
                     break;
                 case RecipeStatusConstant.SIGN_ERROR_CODE_DOC:
                     recipeLog = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.SIGN_ERROR_CODE_DOC);
+                    tips = "处方签名失败";
                     if (recipeLog != null &&recipeLog.size() > 0) {
-                        tips = recipeLog.get(0).getMemo();
+                        cancelReason = "处方签名失败:" + recipeLog.get(0).getMemo();
+                    }else{
+                        cancelReason = "处方签名失败！";
                     }
                     break;
                 case RecipeStatusConstant.SIGN_ERROR_CODE_PHA:
                     recipeLog = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.SIGN_ERROR_CODE_PHA);
+                    tips = "审方签名失败";
                     if (recipeLog != null &&recipeLog.size() > 0) {
-                        tips = recipeLog.get(0).getMemo();
+                        cancelReason = "审方签名失败:" + recipeLog.get(0).getMemo();
+                    }else{
+                        cancelReason = "审方签名失败！";
                     }
                     break;
                 case RecipeStatusConstant.SIGN_ING_CODE_DOC:
