@@ -753,7 +753,7 @@ public class RecipeService extends RecipeBaseService {
                     checkResult.setMsg(resultVo.getMsg());
                     if (resultVo != null && 200 == resultVo.getCode()) {
                         //保存签名值、时间戳、电子签章文件
-                        checkResult.setCode(1);
+                        checkResult.setCode(RecipeResultBean.SUCCESS);
                         RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
                         resultVo.setFileId(fileId);
                         signRecipeInfoSave(recipeId, false, resultVo, organId);
