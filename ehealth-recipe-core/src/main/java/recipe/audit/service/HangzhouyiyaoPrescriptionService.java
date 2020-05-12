@@ -13,8 +13,10 @@ import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.dictionary.DictionaryController;
 import ctd.util.AppContextHolder;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
@@ -32,10 +34,13 @@ import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.service.RecipeHisService;
 import recipe.util.DateConversion;
+import recipe.util.DigestUtil;
 import recipe.util.LocalStringUtil;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -77,7 +82,7 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
             return result;
         }
         PatientDTO patient = patientService.getPatientByMpiId(recipe.getMpiid());
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        RecipeExtendBean recipeExtend = recipe.getRecipeExtend();
         DoctorBean doctor = doctorService.getBeanByDoctorId(recipe.getDoctor());
         ProTitleDTO proTitle = proTitleService.getById(Integer.valueOf(doctor.getProTitle()));
 
@@ -122,7 +127,7 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
             result.setRecipeDangers(recipeDangers);
             return result;
         } catch (Exception e) {
-            LOGGER.error("杭州逸曜获取合理用药返回失败，recipeId = {}", recipe.getRecipeId(), e);
+            LOGGER.error("杭州逸曜获取合理用药返回失败，recipe = {}", JSONUtils.toString(recipe), e);
             result.setCode(RecipeCommonBaseTO.SUCCESS);
             result.setMsg("系统预审未发现处方问题");
             return result;
@@ -132,14 +137,16 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
 
     private HzyyBaseData packBaseData(RecipeBean recipe) {
         HzyyBaseData baseData = new HzyyBaseData();
-        baseData.setEventNo(String.valueOf(recipe.getRecipeId()));
+        String recipeTempId = DigestUtil.md5For16(recipe.getClinicOrgan() +
+                recipe.getMpiid() + Calendar.getInstance().getTimeInMillis());
+        baseData.setEventNo(recipeTempId);
         baseData.setOrganId(recipe.getClinicOrgan());
         baseData.setPatientId(recipe.getMpiid());
         baseData.setSource("门诊");
         return baseData;
     }
 
-    private HzyyPatientData packPatientData(PatientDTO patient, RecipeBean recipe, RecipeExtend recipeExtend) {
+    private HzyyPatientData packPatientData(PatientDTO patient, RecipeBean recipe, RecipeExtendBean recipeExtend) {
         HzyyPatientData patientData = new HzyyPatientData();
         patientData.setSex(patient.getPatientSex().equals("1") ? "M" : "F");
         patientData.setName(patient.getPatientName());
@@ -157,8 +164,10 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
 
     private HzyyPrescriptionsData packPrescriptionData(RecipeBean recipe, List<RecipeDetailBean> recipedetails, ProTitleDTO proTitle, DoctorBean doctor) {
         HzyyPrescriptionsData prescription = new HzyyPrescriptionsData();
-        prescription.setRecipeId(String.valueOf(recipe.getRecipeId()));
-        prescription.setRecipeNo(String.valueOf(recipe.getRecipeId()));
+        String recipeTempId = DigestUtil.md5For16(recipe.getClinicOrgan() +
+                recipe.getMpiid() + Calendar.getInstance().getTimeInMillis());
+        prescription.setRecipeId(recipeTempId);
+        prescription.setRecipeNo(recipeTempId);
         prescription.setRecipeSource("门诊");
         if (recipe.getRecipeType() != null && recipe.getRecipeType() == 1) {
             prescription.setRecipeType("西药方");
@@ -169,10 +178,8 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
         prescription.setRecipeDocTitle(proTitle.getText());
         prescription.setRecipeDocId(String.valueOf(recipe.getDoctor()));
         prescription.setRecipeDocName(doctor.getName());
-        if (null != recipe.getSendDate()) {
-            prescription.setRecipeTime(DateConversion.getDateFormatter(recipe.getSendDate(), DateConversion.DEFAULT_DATE_TIME));
-        }
-        prescription.setRecipeFeeTotal(Double.valueOf(recipe.getTotalMoney().toString()));
+        prescription.setRecipeTime(DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
+        // prescription.setRecipeFeeTotal(Double.valueOf(recipe.getTotalMoney().toString()));
         prescription.setRecipeStatus("0");
 
         List<HzyyPrescriptionDetailData> detailDatas = new ArrayList<>();
@@ -183,35 +190,37 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
             detailData.setRecipeId(String.valueOf(recipedetail.getRecipeId()));
             detailData.setGroupNo("1");
             Integer targetDrugId = compareDrugDAO.findTargetDrugIdByOriginalDrugId(recipedetail.getDrugId());
-            OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(recipe.getClinicOrgan(), recipedetail.getOrganDrugCode());
+//            OrganDrugList organDrug = organDrugListDAO.getByDrugIdAndOrganId(recipe.getClinicOrgan(), recipedetail.getDrugId());
             if (ObjectUtils.isEmpty(targetDrugId)) {
-                if (organDrug != null && StringUtils.isNotEmpty(organDrug.getRegulationDrugCode())) {
-                    detailData.setDrugId(organDrug.getRegulationDrugCode());
-                } else {
-                    detailData.setDrugId(LocalStringUtil.toString(recipedetail.getDrugId()));
-                }
+//                if (organDrug != null && StringUtils.isNotEmpty(organDrug.getRegulationDrugCode())) {
+//                    detailData.setDrugId(organDrug.getRegulationDrugCode());
+//                } else {
+//                }
+                detailData.setDrugId(LocalStringUtil.toString(recipedetail.getDrugId()));
             } else {
                 detailData.setDrugId(LocalStringUtil.toString(targetDrugId));
             }
             detailData.setDrugName(recipedetail.getDrugName());
             detailData.setSpecification(recipedetail.getDrugSpec());
-            detailData.setManufacturerName(organDrug.getProducer());
-            detailData.setDrugDose(String.valueOf(organDrug.getUseDose()));
+            //TODO
+//            detailData.setManufacturerName(organDrug.getProducer());
+//            detailData.setDrugDose(String.valueOf(organDrug.getUseDose()));
             try {
                 detailData.setDrugAdminRouteName(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipedetail.getUsePathways()));
             } catch (Exception e) {
                 LOGGER.error("get UsePathways error", e);
             }
             detailData.setDrugUsingFreq(recipedetail.getUsingRate());
-            detailData.setDespensingNum(recipedetail.getPack());
+//            detailData.setDespensingNum(recipedetail.getPack());
             detailData.setPackUnit(recipedetail.getDrugUnit());
             detailData.setCountUnit(String.valueOf(recipedetail.getUseTotalDose()));
-            detailData.setUnitPrice(Double.valueOf(recipedetail.getDrugCost().toString()));
-            detailData.setFeeTotal(Double.valueOf((recipedetail.getDrugCost().
-                    multiply(new BigDecimal(recipedetail.getUseTotalDose()))).toString()));
-            detailData.setPreparation(organDrug.getDrugForm());
-            detailData.setStartTime(DateConversion.getDateFormatter(recipe.getSignDate(), DateConversion.DEFAULT_DATE_TIME));
-            detailData.setEndTime(DateConversion.getDateFormatter(DateConversion.getDateAftXDays(recipe.getSignDate(), 3), DateConversion.DEFAULT_DATE_TIME));
+//            detailData.setUnitPrice(Double.valueOf(recipedetail.getDrugCost().toString()));
+//            detailData.setFeeTotal(Double.valueOf((recipedetail.getDrugCost().
+//                    multiply(new BigDecimal(recipedetail.getUseTotalDose()))).toString()));
+            //TODO
+//            detailData.setPreparation(organDrug.getDrugForm());
+            detailData.setStartTime(DateConversion.getDateFormatter(new Date(),DateConversion.DEFAULT_DATE_TIME));
+            detailData.setEndTime(DateConversion.getDateFormatter(DateConversion.getDateAftXDays(new Date(), 3), DateConversion.DEFAULT_DATE_TIME));
         });
         prescription.setPrescriptionItems(detailDatas);
         return prescription;
@@ -229,7 +238,7 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
                 auditDiagnose.setDiagame(a[i]);
                 auditDiagnose.setDiagId(b[i]);
                 auditDiagnose.setDiagStatus("0");
-                auditDiagnose.setDiagDate(DateConversion.getDateFormatter(recipe.getSignDate(), DateConversion.DEFAULT_DATE_TIME));
+                auditDiagnose.setDiagDate(DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
                 diagnoses.add(auditDiagnose);
             }
         } else {
@@ -237,7 +246,7 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
             auditDiagnose.setDiagCode(recipe.getOrganDiseaseId());
             auditDiagnose.setDiagame(recipe.getOrganDiseaseName());
             auditDiagnose.setDiagStatus("0");
-            auditDiagnose.setDiagDate(DateConversion.getDateFormatter(recipe.getSignDate(), DateConversion.DEFAULT_DATE_TIME));
+            auditDiagnose.setDiagDate(DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
             diagnoses.add(auditDiagnose);
         }
         return diagnoses;
