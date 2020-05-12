@@ -693,7 +693,7 @@ public class RecipeService extends RecipeBaseService {
     }
 
     public RecipeResultBean generateCheckRecipePdf(Integer checker, Recipe recipe, int beforeStatus, int recipeStatus) {
-        RecipeResultBean checkResult = RecipeResultBean.getFail();
+        RecipeResultBean checkResult = RecipeResultBean.getSuccess();
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         DoctorService doctorService = BasicAPI.getService(DoctorService.class);
 
@@ -757,6 +757,8 @@ public class RecipeService extends RecipeBaseService {
                         RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
                         resultVo.setFileId(fileId);
                         signRecipeInfoSave(recipeId, false, resultVo, organId);
+                    }else{
+                        checkResult.setCode(RecipeResultBean.FAIL);
                     }
 //                        else {
 //                            RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
@@ -1095,7 +1097,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public RecipeResultBean generateRecipePdfAndSign(Integer recipeId) {
-        RecipeResultBean result = RecipeResultBean.getFail();
+        RecipeResultBean result = RecipeResultBean.getSuccess();
         if (null == recipeId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeId is null");
         }
@@ -1189,6 +1191,8 @@ public class RecipeService extends RecipeBaseService {
                     } catch (Exception e) {
                         LOGGER.error("signBefText save error："  + e.getMessage());
                     }
+                }else{
+                    result.setCode(RecipeResultBean.FAIL);
                 }
 //                else {
 //                    RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
