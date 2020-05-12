@@ -304,9 +304,7 @@ public abstract class AccessDrugEnterpriseService {
         LOGGER.info("scanStock 当前公用药企逻辑-推送订单信息，入参：dbRecipe:{},dep:{},drugIds:{}", JSONUtils.toString(dbRecipe), JSONUtils.toString(dep), JSONUtils.toString(drugIds));
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-        if (dep != null && dep.getCheckInventoryFlag() != null && dep.getCheckInventoryFlag() == 0) {
-            return true;
-        }
+
         boolean succFlag = false;
         if (null == dep || CollectionUtils.isEmpty(drugIds)) {
             return succFlag;
