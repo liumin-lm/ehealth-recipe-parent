@@ -159,6 +159,8 @@ public class SignRecipeInfoService {
             signInfo.setServerType(2);
             signInfo.setSignCodeDoc(signDoctorRecipeInfo.getSignCodeDoc());
             signInfo.setSignCaDateDoc(signDoctorRecipeInfo.getSignCaDateDoc());
+            signInfo.setSignCodePha(signDoctorRecipeInfo.getSignCodePha());
+            signInfo.setSignCaDatePha(signDoctorRecipeInfo.getSignCaDatePha());
 
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
             RecipeBean recipeBean = recipeService.getByRecipeId(recipeId);
