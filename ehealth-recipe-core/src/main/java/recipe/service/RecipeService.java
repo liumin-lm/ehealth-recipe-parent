@@ -621,9 +621,9 @@ public class RecipeService extends RecipeBaseService {
                         } else {
                             requestSealTO.setSealBase64Str("");
                         }
-                        CommonCAFactory caFactory = new CommonCAFactory();
+//                        CommonCAFactory caFactory = new CommonCAFactory();
                         //通过工厂获取对应的实现CA类
-                        CAInterface caInterface = caFactory.useCAFunction(organId);
+                        CAInterface caInterface = CommonCAFactory.useCAFunction(organId);
                         CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
 //                        //保存签名值、时间戳、电子签章文件
 //                        String result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false);
@@ -758,9 +758,9 @@ public class RecipeService extends RecipeBaseService {
                     } else {
                         requestSealTO.setSealBase64Str("");
                     }
-                    CommonCAFactory caFactory = new CommonCAFactory();
+//                    CommonCAFactory caFactory = new CommonCAFactory();
                     //通过工厂获取对应的实现CA类
-                    CAInterface caInterface = caFactory.useCAFunction(organId);
+                    CAInterface caInterface = CommonCAFactory.useCAFunction(organId);
                     CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
 //                        //保存签名值、时间戳、电子签章文件
 //                        String result = RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false);
@@ -963,9 +963,9 @@ public class RecipeService extends RecipeBaseService {
                     requestSealTO.setSealBase64Str("");
                 }
 
-                CommonCAFactory caFactory = new CommonCAFactory();
+//                CommonCAFactory caFactory = new CommonCAFactory();
                 //通过工厂获取对应的实现CA类
-                CAInterface caInterface = caFactory.useCAFunction(organId);
+                CAInterface caInterface = CommonCAFactory.useCAFunction(organId);
                 CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
 //                RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true);
                 String fileId = null;

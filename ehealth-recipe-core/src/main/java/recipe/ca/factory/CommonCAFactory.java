@@ -41,12 +41,13 @@ public class CommonCAFactory {
         map.put(CA_TYPE_SHANGHAI, new ShanghaiCAImpl());
     }
 
-   public CAInterface useCAFunction(Integer organId) {
+   public static CAInterface useCAFunction(Integer organId) {
         try {
             IConfigurationCenterUtilsService configurationService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
             String thirdCASign = (String) configurationService.getConfiguration(organId, THIRD_CA_SIGN);
             //上海儿童特殊处理
             String value = ParamUtils.getParam("SH_CA_ORGANID_WHITE_LIST");
+            LOGGER.info("useCAFunction value ={}=", value);
             if (value.indexOf(organId+"") >= 0) {
                 thirdCASign = "shanghaiCA";
             }
