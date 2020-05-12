@@ -105,7 +105,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
     /**
      * 根据机构id，配送模式支持，省直医保支持获取
      * @param organId
-     * @param payModeSupport
+     * @param payModeSuppor
      * @return
      */
     @DAOMethod(sql = "select t from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 and t.medicalInsuranceSupport=1 " +
