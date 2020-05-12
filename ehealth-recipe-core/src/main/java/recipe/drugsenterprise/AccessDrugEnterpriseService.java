@@ -305,6 +305,11 @@ public abstract class AccessDrugEnterpriseService {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
 
+        //判断药企是否校验库存的开关
+        if (dep != null && dep.getCheckInventoryFlag() == 0) {
+            //不需要校验库存
+            return true;
+        }
         boolean succFlag = false;
         if (null == dep || CollectionUtils.isEmpty(drugIds)) {
             return succFlag;
