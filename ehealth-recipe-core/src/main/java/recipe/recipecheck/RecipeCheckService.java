@@ -36,7 +36,7 @@ import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.cdr.constant.RecipeStatusConstant;
+import recipe.constant.RecipeStatusConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -452,6 +452,11 @@ public class RecipeCheckService {
         if (recipe.getStatus() == RecipeStatusConstant.REVOKE) {
             map.put("cancelReason", getCancelReasonForChecker(recipe.getRecipeId()));
         }
+        //date 20200512
+        //添加签名页面展示信息
+        if(recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||  recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA){
+            map.put("cancelReason", getSignReasonForChecker(recipe.getRecipeId(), recipe.getStatus()));
+        }
         List<Recipedetail> details = detailDAO.findByRecipeId(recipeId);
         try {
             Integer organId = recipe.getClinicOrgan();
@@ -600,6 +605,21 @@ public class RecipeCheckService {
         return map;
     }
 
+    private String getSignReasonForChecker(Integer recipeId, Integer status) {
+        RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_PHA);
+        String signReason = "";
+        if(RecipeStatusConstant.SIGN_ERROR_CODE_PHA == status){
+            if (CollectionUtils.isNotEmpty(recipeLogs)) {
+                signReason = recipeLogs.get(0).getMemo();
+            }
+        }
+        if(RecipeStatusConstant.SIGN_ING_CODE_PHA == status){
+            signReason = "审方签名中";
+        }
+        return signReason;
+    }
+
 
     /**
      * 查询药师信息
@@ -629,7 +649,7 @@ public class RecipeCheckService {
 
     private String getCancelReasonForChecker(Integer recipeId) {
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipeId, RecipeStatusConstant.REVOKE);
+        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.REVOKE);
         String cancelReason = "";
         if (CollectionUtils.isNotEmpty(recipeLogs)) {
             cancelReason = "开方医生已撤销处方,撤销原因:" + recipeLogs.get(0).getMemo();
