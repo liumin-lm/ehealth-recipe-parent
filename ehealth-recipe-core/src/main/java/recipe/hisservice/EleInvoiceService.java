@@ -110,7 +110,7 @@ public class EleInvoiceService {
         if(StringUtils.isNotBlank(eleInvoiceDTO.getGhxh())){
             eleInvoiceReqTo.setGhxh(eleInvoiceDTO.getGhxh());
         }else{
-            throw new DAOException(609,"ghxh is null");
+            throw new DAOException(609,"ghxh is null,无法获取对应电子发票");
         }
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         HisResponseTO<String> hisResponseTO = null;
