@@ -54,7 +54,7 @@ public class CommonCAFactory {
             return map.get(thirdCASign);
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.error("useCAFunction in organId ={} ,获取CA机构配置异常",organId);
+            LOGGER.error("useCAFunction in organId ={} ,获取CA机构配置异常{}",organId,e);
 
         }
         return null;
