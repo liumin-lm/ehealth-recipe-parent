@@ -171,16 +171,18 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
 
             PatientService patientService = BasicAPI.getService(PatientService.class);
-            PatientDTO p = patientService.getByMpiId(recipeBean.getMpiid());
+            PatientDTO p = patientService.getPatientByMpiId(recipeBean.getMpiid());
 
             IDepartmentService iDepartmentService = ApplicationUtils.getBaseService(IDepartmentService.class);
+            String departName = iDepartmentService.getNameById(recipeBean.getDepart());
+
             JSONObject json = new JSONObject();
             json.put("patientName",p.getPatientName());
             json.put("patientMobile",p.getMobile());
             json.put("patientIdcard",p.getCertificate());
             json.put("doctorName",recipeBean.getDoctorName());
             json.put("dateTime",recipeBean.getCreateDate());
-            json.put("DepartName",iDepartmentService.getNameById(recipeBean.getDepart()));
+            json.put("DepartName",departName);
             json.put("organDiseaseName",recipeBean.getOrganDiseaseName());
             json.put("mainDieaseDescribe",recipeExtend.getMainDieaseDescribe());
             signInfo.setSignBefText(json.toJSONString());
