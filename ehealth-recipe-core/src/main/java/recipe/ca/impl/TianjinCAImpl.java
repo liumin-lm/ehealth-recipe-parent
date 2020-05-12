@@ -51,6 +51,7 @@ public class TianjinCAImpl implements CAInterface {
             //用户操作类型 * 1.用户注册 * 2.用户修改 * 3.用户查询
             /*caAccountRequestTO.setBusType(3);
             if (!iCommonCAServcie.caUserBusiness(caAccountRequestTO)) {
+                LOGGER.info("account is exist!");
                 return true;
             }*/
 
@@ -64,8 +65,10 @@ public class TianjinCAImpl implements CAInterface {
                 caCertificateRequestTO.setUserAccount(doctorDTO.getLoginId());
                 caCertificateRequestTO.setBusType(1);
                 CaCertificateResponseTO caCertificateResponseTO = iCommonCAServcie.caCertificateBusiness(caCertificateRequestTO);
+                LOGGER.info("TianjinCAImpl caCertificateBusiness end response={}", caCertificateResponseTO);
 
                 SignDoctorCaInfo caInfo = signDoctorCaInfoDAO.getDoctorSerCodeByDoctorIdAndType(doctorId, CommonCAFactory.CA_TYPE_TIANJIN);
+                LOGGER.info("TianjinCAImpl getDoctorSerCodeByDoctorIdAndType end response={}", caInfo);
                 if (null == caInfo) {
                     caInfo = new SignDoctorCaInfo();
                     caInfo.setCertVoucher(caCertificateResponseTO.getCretBody());
@@ -77,11 +80,10 @@ public class TianjinCAImpl implements CAInterface {
                     caInfo.setCertVoucher(caCertificateResponseTO.getCretBody());
                 }
                 signDoctorCaInfoDAO.save(caInfo);
-                LOGGER.info("TianjinCAImpl caCertificateBusiness end isSuccess={}", caCertificateResponseTO);
                 return true;
             }
         } catch (Exception e){
-            LOGGER.error("TianjinCAImpl caUserLoginAndGetCertificate 调用前置机失败 requestTO={}", JSONUtils.toString(caAccountRequestTO));
+            LOGGER.error("TianjinCAImpl caUserLoginAndGetCertificate 调用前置机失败 requestTO={},errorInfo={}", JSONUtils.toString(caAccountRequestTO), e.getMessage());
             e.printStackTrace();
         }
         return false;

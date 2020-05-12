@@ -262,7 +262,7 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "医保支付标志，1：可以用医保")
     private Integer medicalPayFlag;
 
-    @ItemProperty(alias = "配送处方标记 默认0，1: 只能配送")
+    @ItemProperty(alias = "配送处方标记 默认0，1: 只能配送,2:只能到院取药")
     private Integer distributionFlag;
 
     @ItemProperty(alias = "处方备注")
