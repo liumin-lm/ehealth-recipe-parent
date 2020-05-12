@@ -306,7 +306,7 @@ public abstract class AccessDrugEnterpriseService {
         RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
 
         //判断药企是否校验库存的开关
-        if (dep != null && dep.getCheckInventoryFlag() == 0) {
+        if (dep != null && dep.getCheckInventoryFlag() != null &&  dep.getCheckInventoryFlag() == 0) {
             //不需要校验库存
             return true;
         }
