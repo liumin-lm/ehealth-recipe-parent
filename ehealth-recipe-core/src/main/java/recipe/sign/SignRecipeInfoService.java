@@ -10,6 +10,7 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.sign.ISignRecipeInfoService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
@@ -30,7 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RpcBean
-public class SignRecipeInfoService {
+public class SignRecipeInfoService implements ISignRecipeInfoService {
 
     private static final Logger logger = LoggerFactory.getLogger(SignDoctorRecipeInfo.class);
 
@@ -150,6 +151,7 @@ public class SignRecipeInfoService {
     }
 
     @RpcService
+    @Override
     public void setMedicalSignInfoByRecipeId(Integer recipeId){
         SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getRecipeInfoByRecipeId(recipeId);
         SignDoctorRecipeInfo s = signDoctorRecipeInfoDAO.getInfoByRecipeIdAndServiceType(recipeId, 2);
