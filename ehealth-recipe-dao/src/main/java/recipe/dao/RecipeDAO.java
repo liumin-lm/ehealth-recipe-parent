@@ -2481,4 +2481,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    @DAOMethod(sql = "from Recipe where mpiid =:mpiId")
+    public abstract List<Recipe> findByMpiId(@DAOParam("mpiId") String mpiId);
 }
