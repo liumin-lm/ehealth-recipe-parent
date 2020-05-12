@@ -115,4 +115,7 @@
 
     <!-- session updater -->
     <bean class="ctd.account.session.SessionItemManager"/>
+    <!-- parameter store -->
+    <ssdev:reference id="eh.paramLoader" interface="eh.utils.params.ParamLoader"/>
+
 </beans>
