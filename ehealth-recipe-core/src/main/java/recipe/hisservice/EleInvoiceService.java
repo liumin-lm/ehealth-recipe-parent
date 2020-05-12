@@ -110,34 +110,31 @@ public class EleInvoiceService {
         if(StringUtils.isNotBlank(eleInvoiceDTO.getGhxh())){
             eleInvoiceReqTo.setGhxh(eleInvoiceDTO.getGhxh());
         }else{
-            throw new DAOException(609,"ghxh is null");
+            throw new DAOException(609,"ghxh is null,无法获取对应电子发票");
         }
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         HisResponseTO<String> hisResponseTO = null;
-        try{
-            LOGGER.info("EleInvoiceService.findEleInvoice 待推送数据:eleInvoiceReqTo:[{}]", JSONUtils.toString(eleInvoiceReqTo));
-            hisResponseTO = hisService.queryEleInvoice(eleInvoiceReqTo);
-            if(hisResponseTO != null){
-                if(hisResponseTO.getMsgCode().equals("200")){
-                    String result = hisResponseTO.getData();
-                    if(StringUtils.isNotBlank(result)){
-                        LOGGER.info("EleInvoiceService.findEleInvoice :result={}",result);
-                       return stringToList(result);
-                    }else{
-                        throw new DAOException(609,"当前系统繁忙，请稍后再试");
-                    }
+
+        LOGGER.info("EleInvoiceService.findEleInvoice 待推送数据:eleInvoiceReqTo:[{}]", JSONUtils.toString(eleInvoiceReqTo));
+        hisResponseTO = hisService.queryEleInvoice(eleInvoiceReqTo);
+        if(hisResponseTO != null){
+            if(hisResponseTO.getMsgCode().equals("200")){
+                String result = hisResponseTO.getData();
+                if(StringUtils.isNotBlank(result)){
+                    LOGGER.info("EleInvoiceService.findEleInvoice :result={}",result);
+                   return stringToList(result);
                 }else{
-                    LOGGER.info("EleInvoiceService.findEleInvoice 请求his失败，返回信息:msg={}",hisResponseTO.getMsg());
-                    throw new DAOException(609,hisResponseTO.getMsg());
+                    throw new DAOException(609,"当前系统繁忙，请稍后再试");
                 }
             }else{
-                LOGGER.info("EleInvoiceService.findEleInvoice 请求his失败,hisResponseTo is null");
-                throw new DAOException(609,"当前系统繁忙，请稍后再试");
+                LOGGER.info("EleInvoiceService.findEleInvoice 请求his失败，返回信息:msg={}",hisResponseTO.getMsg());
+                throw new DAOException(609,hisResponseTO.getMsg());
             }
-        }catch (Exception e){
-            LOGGER.error("EleInvoiceService.findEleInvoice:e:{}",e);
+        }else{
+            LOGGER.info("EleInvoiceService.findEleInvoice 请求his失败,hisResponseTo is null");
+            throw new DAOException(609,"当前系统繁忙，请稍后再试");
         }
-         return null;
+
     }
 
     private void validateParam(EleInvoiceDTO eleInvoiceDTO){
