@@ -266,6 +266,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setSex(patientDTO.getPatientSex());
             req.setAge(DateConversion.calculateAge(patientDTO.getBirthday()));
             req.setBirthDay(patientDTO.getBirthday());
+            //陪诊人信息
+            req.setGuardianName(patientDTO.getGuardianName());
+            req.setGuardianCertID(patientDTO.getGuardianCertificate());
             //其他信息
             //监管接收方现在使用recipeId去重
             req.setRecipeID(recipe.getRecipeId().toString());
