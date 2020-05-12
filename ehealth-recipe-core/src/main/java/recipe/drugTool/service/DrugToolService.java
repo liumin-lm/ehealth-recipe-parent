@@ -549,7 +549,7 @@ public class DrugToolService implements IDrugToolService {
     /**
      * 更新无匹配数据
      */
-    @RpcService
+        @RpcService
     public DrugListMatch updateNoMatchData(int drugId, String operator) {
         if (StringUtils.isEmpty(operator)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "operator is required");
