@@ -47,7 +47,7 @@ public class CommonCAFactory {
             String thirdCASign = (String) configurationService.getConfiguration(organId, THIRD_CA_SIGN);
             //上海儿童特殊处理
             String value = ParamUtils.getParam("SH_CA_ORGANID_WHITE_LIST");
-            if (value.indexOf(organId) >= 0) {
+            if (value.indexOf(organId+"") >= 0) {
                 thirdCASign = "shanghaiCA";
             }
             LOGGER.info("useCAFunction in organId ={} ,CA 模式 ={}", organId, thirdCASign);
