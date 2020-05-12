@@ -928,7 +928,8 @@ public class RecipeHisService extends RecipeBaseService {
         RecipeResultBean result = RecipeResultBean.getSuccess();
         if (isHisEnable(recipe.getClinicOrgan())) {
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-            RecipeAuditReqTO request = HisRequestInit.recipeAudit(recipe, resutlBean);
+            PatientBean patientBean = iPatientService.get(recipe.getMpiid());
+            RecipeAuditReqTO request = HisRequestInit.recipeAudit(recipe,patientBean,resutlBean);
             service.recipeAudit(request);
             return result;
         } else {
