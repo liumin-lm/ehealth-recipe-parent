@@ -48,7 +48,9 @@ public class CommonCAFactory {
     public CAInterface useCAFunction(Integer organId) {
         try {
             IConfigurationCenterUtilsService configurationService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+            LOGGER.info("useCAFunction configurationService ={}=", configurationService);
             String thirdCASign = (String) configurationService.getConfiguration(organId, THIRD_CA_SIGN);
+            LOGGER.info("useCAFunction thirdCASign ={}=", thirdCASign);
             //上海儿童特殊处理
             String value = ParamUtils.getParam("SH_CA_ORGANID_WHITE_LIST");
             LOGGER.info("useCAFunction value ={}=", value);
