@@ -20,6 +20,7 @@ import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
+import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.constant.RecipePayTextEnum;
@@ -863,6 +864,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             flag = false;
         }
         return flag;
+    }
+
+    @Override
+    public DrugsEnterpriseBean getDrugsEnterpriseBeanById(Integer depId){
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+        return ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class);
     }
 
 }
