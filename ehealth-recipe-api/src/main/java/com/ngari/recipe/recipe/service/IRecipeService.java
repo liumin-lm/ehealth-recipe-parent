@@ -11,6 +11,7 @@ import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
 
+import java.beans.ConstructorProperties;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
@@ -405,4 +406,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     Map<String, String> findMsgByparameters(Date startTime, Date endTime, Integer organId);
+
+    @RpcService
+    public List<RecipeBean> findByMpiId(String mpiId);
 }

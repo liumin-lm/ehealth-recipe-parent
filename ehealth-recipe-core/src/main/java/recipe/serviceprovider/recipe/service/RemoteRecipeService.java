@@ -144,7 +144,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public RecipeBean getByRecipeId(int recipeId) {
-        return get(recipeId);
+        RecipeBean recipeBean =  get(recipeId);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if(recipeBean != null && recipeExtend != null){
+            recipeBean.setMainDieaseDescribe(recipeExtend.getMainDieaseDescribe());
+        }
+        return recipeBean;
     }
 
     @RpcService
@@ -775,6 +781,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public List<RecipeBean> findByClinicId(Integer consultId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         return ObjectCopyUtils.convert(recipeDAO.findByClinicId(consultId),RecipeBean.class);
+    }
+
+    @Override
+    public List<RecipeBean> findByMpiId(String mpiId) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        return ObjectCopyUtils.convert(recipeDAO.findByMpiId(mpiId),RecipeBean.class);
     }
 
     @Override
