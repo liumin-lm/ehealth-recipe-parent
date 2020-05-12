@@ -463,7 +463,7 @@ public class RecipeServiceSub {
         if (CollectionUtils.isNotEmpty(noFilterDrugName)) {
             LOGGER.warn("setDetailsInfo 存在无法配送的药品. recipeId=[{}], drugIds={}, noFilterDrugName={}",
                     recipeId, JSONUtils.toString(drugIds), JSONUtils.toString(noFilterDrugName));
-            throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(noFilterDrugName) + "药品不在该机构可配送药企的药品目录里面，无法进行配送");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(noFilterDrugName) + "药品不在该机构可配送药企的药品目录里面,无法进行配送");
         }
 
         noFilterDrugName.clear();
@@ -494,7 +494,7 @@ public class RecipeServiceSub {
                     recipeId, JSONUtils.toString(drugIds), JSONUtils.toString(noFilterDrugName));
             //一张处方单上的药品不能同时支持同一家药企配送
             //throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(noFilterDrugName) + "不能开具在一张处方上！");
-            throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(drugNames) + "不支持同一家药企配送，建议拆分药品开方。");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(drugNames) + "不支持同一家药企配送,建议拆分药品开方");
         }
     }
 
@@ -1638,6 +1638,12 @@ public class RecipeServiceSub {
         }
         if(null != hosSend && 0 < hosSend){
             map.put("showSendToHos", 1);
+        }
+        //不支持配送，则按钮都不显示--包括药店取药
+        if (new Integer(2).equals(recipe.getDistributionFlag())){
+            map.put("showSendToEnterprises", 0);
+            map.put("showSendToHos", 0);
+            map.put("supportTFDS",0);
         }
         return map;
     }

@@ -5,6 +5,7 @@ import com.ngari.recipe.IBaseService;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
+import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
@@ -405,4 +406,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     Map<String, String> findMsgByparameters(Date startTime, Date endTime, Integer organId);
+
+    @RpcService
+    DrugsEnterpriseBean getDrugsEnterpriseBeanById(Integer depId);
 }

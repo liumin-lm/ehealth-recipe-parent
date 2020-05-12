@@ -744,7 +744,7 @@ public class HisRequestInit {
         return requestTO;
     }
 
-    public static RecipeAuditReqTO recipeAudit(Recipe recipe, CheckYsInfoBean resutlBean){
+    public static RecipeAuditReqTO recipeAudit(Recipe recipe, PatientBean patientBean, CheckYsInfoBean resutlBean){
         RecipeAuditReqTO request = new RecipeAuditReqTO();
         EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
         DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
@@ -813,6 +813,14 @@ public class HisRequestInit {
             } catch (Exception e) {
                 LOGGER.warn("recipeAudit create his data error. recipeId={}", recipe.getRecipeId(), e);
             }
+            //创建处方新增请求体
+            try{
+                RecipeSendRequestTO recipeInfo = HisRequestInit.initRecipeSendRequestTO(recipe, recipeDetailList, patientBean, null);
+                request.setRecipeInfo(recipeInfo);
+            }catch (Exception e){
+                LOGGER.warn("recipeAudit create recipeSendInfo error. recipeId={}", recipe.getRecipeId(), e);
+            }
+
         }
 
         return request;
