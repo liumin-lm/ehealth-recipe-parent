@@ -112,6 +112,12 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "配送主体类型 1 药企配送 2 医院配送")
     private Integer sendType;
 
+    @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付")
+    private Integer expressFeePayWay;
+
+    @ItemProperty(alias = "管理单元")
+    private String manageUnit;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -363,6 +369,24 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setSendType(Integer sendType) {
         this.sendType = sendType;
+    }
+
+    @Column(name = "expressFeePayWay")
+    public Integer getExpressFeePayWay() {
+        return expressFeePayWay;
+    }
+
+    public void setExpressFeePayWay(Integer expressFeePayWay) {
+        this.expressFeePayWay = expressFeePayWay;
+    }
+
+    @Column(name = "manageUnit")
+    public String getManageUnit() {
+        return manageUnit;
+    }
+
+    public void setManageUnit(String manageUnit) {
+        this.manageUnit = manageUnit;
     }
 
     @Override

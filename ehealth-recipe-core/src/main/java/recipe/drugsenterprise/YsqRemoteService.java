@@ -596,6 +596,14 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     } else if (order.getPayFlag() != null && 0 == order.getPayFlag()){
                         recipeMap.put("ISPAYMENT", "0");
                     }
+                    //快递费用
+                    recipeMap.put("DELIVERYCASH", order.getExpressFee());
+                    //快递费用是否已支付
+                    if (new Integer(2).equals(order.getExpressFeePayWay())){
+                        recipeMap.put("DELIVERYFLAG","0");
+                    }else {
+                        recipeMap.put("DELIVERYFLAG","1");
+                    }
                 } else {
                     if ("psysq".equals(drugsEnterprise.getAccount())) {
                         recipeMap.put("METHOD", "0");
@@ -614,6 +622,8 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     recipeMap.put("PATIENTSENDADDR", "");
                 }
             }
+            //icd10
+            recipeMap.put("ICD10", recipe.getOrganDiseaseId());
             if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
                 order = orderDAO.getByOrderCode(recipe.getOrderCode());
                 if (order != null ) {
@@ -674,6 +684,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 //有些医院不提供身份证号,年龄提供默认值
                 recipeMap.put("AGE", 25);
             }
+            recipeMap.put("BINGLINUMBER", recipe.getPatientID());
             //身份信息使用原始身份证号，暂定空
             recipeMap.put("IDENTIFICATION", patient.getCertificate());
             recipeMap.put("USERID", recipe.getPatientID());

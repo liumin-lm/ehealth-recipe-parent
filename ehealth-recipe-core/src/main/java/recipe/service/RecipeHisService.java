@@ -17,6 +17,7 @@ import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.*;
+import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
@@ -380,25 +381,47 @@ public class RecipeHisService extends RecipeBaseService {
             if (RecipeResultBean.SUCCESS.equals(result.getCode()) && RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) && 1 == payFlag) {
                 PayNotifyReqTO payNotifyReq = HisRequestInit.initPayNotifyReqTO(recipe, patientBean, cardBean);
                 PayNotifyResTO response = service.payNotify(payNotifyReq);
-                if(null == response){
-                    LOGGER.error("payNotify 前置机未返回null，可能为对接结算接口");
-                } else if(null != response && (null == response.getMsgCode() || response.getMsgCode() != 0 || response.getData() == null)) {
-                    result.setCode(RecipeResultBean.FAIL);
-                    if (response != null) {
-                        if (response.getMsg() != null) {
-                            result.setError(response.getMsg());
-                        } else {
-                            result.setError("由于医院接口异常，支付失败，建议您稍后重新支付。");
-                        }
-                        HisCallBackService.havePayFail(recipe.getRecipeId());
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "支付完成结算失败，his返回原因：" + response.getMsg());
-                    }
-                } else {
+                if(null != response && response.getMsgCode() == 0 && response.getData() != null){
+                    //结算成功
                     Recipedetail detail = new Recipedetail();
                     detail.setPatientInvoiceNo(response.getData().getInvoiceNo());
                     detail.setPharmNo(response.getData().getWindows());
                     HisCallBackService.havePaySuccess(recipe.getRecipeId(), detail);
+                } else if ((null != response && (response.getMsgCode() != 0 || response.getMsg() != null)) ||
+                    (response == null && "1".equals(payNotifyReq.getIsMedicalSettle()))){
+                    //前置机返回结算失败，或者医保结算前置机返回null
+                    result.setCode(RecipeResultBean.FAIL);
+                    if (response != null && response.getMsg() != null) {
+                        result.setError(response.getMsg());
+                    } else {
+                        result.setError("由于医院接口异常，支付失败，建议您稍后重新支付。");
+                    }
+                    HisCallBackService.havePayFail(recipe.getRecipeId());
+                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "支付完成结算失败，his返回原因：" + response.getMsg());
+                } else {
+                    //非医保结算前置机返回null可能未对接接口
+                    LOGGER.error("payNotify 前置机未返回null，可能未对接结算接口");
                 }
+
+//                if(null == response){
+//                    LOGGER.error("payNotify 前置机未返回null，可能为对接结算接口");
+//                } else if(null != response && (null == response.getMsgCode() || response.getMsgCode() != 0 || response.getData() == null)) {
+//                    result.setCode(RecipeResultBean.FAIL);
+//                    if (response != null) {
+//                        if (response.getMsg() != null) {
+//                            result.setError(response.getMsg());
+//                        } else {
+//                            result.setError("由于医院接口异常，支付失败，建议您稍后重新支付。");
+//                        }
+//                        HisCallBackService.havePayFail(recipe.getRecipeId());
+//                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), status, status, "支付完成结算失败，his返回原因：" + response.getMsg());
+//                    }
+//                } else {
+//                    Recipedetail detail = new Recipedetail();
+//                    detail.setPatientInvoiceNo(response.getData().getInvoiceNo());
+//                    detail.setPharmNo(response.getData().getWindows());
+//                    HisCallBackService.havePaySuccess(recipe.getRecipeId(), detail);
+//                }
             }
 
             if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
@@ -1316,4 +1339,17 @@ public class RecipeHisService extends RecipeBaseService {
         }
         return flag;
     }
+
+    @RpcService
+    public List<HzyyRationalUseDrugResTO> queryHzyyRationalUserDurg(HzyyRationalUseDrugReqTO reqTO) {
+        LOGGER.info("调用杭州逸曜合理用药queryHzyyRationalUserDurg,入参 = {}，idNO = {}",JSONUtils.toString(reqTO), reqTO.getPatient().getIdNo());
+        IRecipeHisService iRecipeHisService = AppContextHolder.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        HisResponseTO<List<HzyyRationalUseDrugResTO>> hisResponseTO = iRecipeHisService.queryHzyyRationalUserDurg(reqTO);
+        LOGGER.info("调用杭州逸曜合理用药queryHzyyRationalUserDurg,出参 = {}, idNO = {}", JSONUtils.toString(reqTO), reqTO.getPatient().getIdNo());
+        if(hisResponseTO == null || !hisResponseTO.getMsgCode().equals("200")){
+            return Collections.EMPTY_LIST;
+        }
+        return hisResponseTO.getData();
+    }
+
 }

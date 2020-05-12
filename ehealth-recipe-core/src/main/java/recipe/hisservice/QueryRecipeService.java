@@ -484,7 +484,8 @@ public class QueryRecipeService implements IQueryRecipeService {
             for (int i = 0; i < icd10Lists.size(); i++) {
                 String innerCode = diseaseService.getInnerCodeByNameOrCode(clinicOrgan, nameLists.get(i), icd10Lists.get(i));
                 if (StringUtils.isEmpty(innerCode)) {
-                    innerCode = " ";
+                    //如果取不到就有icd10
+                    innerCode = icd10Lists.get(i);
                 }
                 icdRdnList.add(innerCode);
             }

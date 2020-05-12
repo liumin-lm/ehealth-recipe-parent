@@ -384,6 +384,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         recipeMsg.put("completeAddress", commonRemoteService.getCompleteAddress(order));
 
         if(null != order){
+            //收货人
+            recipeMsg.put("receiver", order.getReceiver());
+            //收货人联系方式
+            recipeMsg.put("recMobile", order.getRecMobile());
             //下单时间
             recipeMsg.put("orderTime", order.getCreateTime());
             //配送费

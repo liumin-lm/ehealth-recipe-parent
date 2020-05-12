@@ -20,12 +20,24 @@ public class SignDoctorCaInfo {
     /**签名序列号*/
     private String caSerCode;
 
+    /**
+     * 证书信息
+     */
+    private String certVoucher;
+
     /**ca类型*/
     private String caType;
 
     private Date createDate;
 
     private Date lastmodify;
+
+    /**证书到期时间*/
+    private Date caEndTime;
+
+    private String name;
+
+    private String idcard;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -57,6 +69,15 @@ public class SignDoctorCaInfo {
     }
 
     @Column
+    public String getCertVoucher() {
+        return certVoucher;
+    }
+
+    public void setCertVoucher(String certVoucher) {
+        this.certVoucher = certVoucher;
+    }
+
+    @Column
     public String getCaType() {
         return caType;
     }
@@ -81,5 +102,32 @@ public class SignDoctorCaInfo {
 
     public void setLastmodify(Date lastmodify) {
         this.lastmodify = lastmodify;
+    }
+
+    @Column
+    public Date getCaEndTime() {
+        return caEndTime;
+    }
+
+    public void setCaEndTime(Date caEndTime) {
+        this.caEndTime = caEndTime;
+    }
+
+    @Column
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Column
+    public String getIdcard() {
+        return idcard;
+    }
+
+    public void setIdcard(String idcard) {
+        this.idcard = idcard;
     }
 }

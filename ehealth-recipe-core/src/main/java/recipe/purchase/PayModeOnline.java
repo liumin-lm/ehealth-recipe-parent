@@ -150,10 +150,16 @@ public class PayModeOnline implements IPurchaseService {
         LOG.info("drugsEnterpriseList organId:{}, payModeSupport:{}", dbRecipe.getClinicOrgan(), payModeSupport);
         //筛选出来的数据已经去掉不支持任何方式配送的药企
         List<DrugsEnterprise> drugsEnterpriseList;
-        if (Integer.valueOf(1).equals(dbRecipe.getRecipeSource())) {
-            drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndOther(dbRecipe.getClinicOrgan(), payModeSupport);
-        } else {
-            drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(dbRecipe.getClinicOrgan(), payModeSupport);
+        if(null != extInfo.get("sendType")){
+            if (Integer.valueOf(1).equals(dbRecipe.getRecipeSource())) {
+    //            drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndOther(dbRecipe.getClinicOrgan(), payModeSupport);
+                drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndOtherAndSendType(dbRecipe.getClinicOrgan(), payModeSupport, Integer.parseInt(extInfo.get("sendType")));
+            } else {
+    //            drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(dbRecipe.getClinicOrgan(), payModeSupport);
+                drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupportAndSendType(dbRecipe.getClinicOrgan(), payModeSupport, Integer.parseInt(extInfo.get("sendType")));
+            }
+        }else{
+            drugsEnterpriseList = new ArrayList<DrugsEnterprise>();
         }
         if (CollectionUtils.isEmpty(drugsEnterpriseList)) {
             LOG.warn("findSupportDepList 处方[{}]没有任何药企可以进行配送！", recipeId);
@@ -384,6 +390,10 @@ public class PayModeOnline implements IPurchaseService {
             }
         //}
 
+        //设置配送费支付方式
+        if (dep != null){
+            order.setExpressFeePayWay(dep.getExpressFeePayWay());
+        }
         // 暂时还是设置成处方单的患者，不然用户历史处方列表不好查找
         order.setMpiId(dbRecipe.getMpiid());
         order.setOrganId(dbRecipe.getClinicOrgan());

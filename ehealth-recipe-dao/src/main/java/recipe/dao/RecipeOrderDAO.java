@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.ngari.his.regulation.entity.RegulationChargeDetailReq;
 import com.ngari.his.regulation.entity.RegulationChargeDetailReqTo;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
@@ -32,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import recipe.constant.RecipeBussConstant;
 
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -1049,4 +1047,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         return action.getResult();
     }
 
+    @DAOMethod(sql = "from RecipeOrder where orderCode in (:recipeCodes) and effective = 1")
+    public abstract List<RecipeOrder> findValidListbyCodes(@DAOParam("recipeCodes") List<String> recipeCodes);
+    @DAOMethod(sql = "update RecipeOrder set dispensingApothecaryName=:dispensingApothecaryName,dispensingApothecaryIdCard=:dispensingApothecaryIdCard where orderId=:orderId")
+    public abstract void updateApothecaryByOrderId(@DAOParam("orderId") Integer orderId,
+                                                   @DAOParam("dispensingApothecaryName") String dispensingApothecaryName,
+                                                   @DAOParam("dispensingApothecaryIdCard") String dispensingApothecaryIdCard);
 }

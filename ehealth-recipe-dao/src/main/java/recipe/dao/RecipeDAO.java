@@ -32,10 +32,7 @@ import org.hibernate.SQLQuery;
 import org.hibernate.StatelessSession;
 import org.hibernate.type.LongType;
 import org.joda.time.LocalDate;
-import recipe.constant.ConditionOperator;
-import recipe.constant.ErrorCode;
-import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
+import recipe.constant.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.dao.bean.RecipeRollingInfo;
 import recipe.util.DateConversion;
@@ -681,11 +678,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 StringBuilder hql = new StringBuilder("from Recipe where signDate between '" + startDt + "' and '" + endDt + "' ");
                 if (cancelStatus == RecipeStatusConstant.NO_PAY) {
                     //超过3天未支付，支付模式修改
-                    hql.append(" and fromflag in (1,2) and status=" + RecipeStatusConstant.CHECK_PASS
+                    //添加状态列表判断，从状态待处理添加签名失败，签名中
+                    hql.append(" and fromflag in (1,2) and status in （2, 31, 30, 26, 27)"
                             + " and payFlag=0 and payMode is not null and orderCode is not null ");
                 } else if (cancelStatus == RecipeStatusConstant.NO_OPERATOR) {
                     //超过3天未操作,添加前置未操作的判断 后置待处理或者前置待审核和医保上传确认中
-                    hql.append(" and fromflag = 1 and status= " + RecipeStatusConstant.CHECK_PASS + " and payMode is null " +
+                    //添加状态列表判断，从状态待处理添加签名失败，签名中
+                    hql.append(" and fromflag = 1 and status in (2, 31, 30, 26, 27) and payMode is null " +
                             "or ( status in (8,24) and reviewType = 1 and signDate between '" + startDt + "' and '" + endDt + "' )");
                 }
                 Query q = ss.createQuery(hql.toString());
@@ -812,16 +811,16 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 //1是审核通过
                 else if (flag == 1) {
                     hql.append("select distinct r from Recipe r,RecipeCheck rc where r.recipeId = rc.recipeId and r.clinicOrgan in (:organ)" +
-                            "and (rc.checkStatus = 1 or (rc.checkStatus=0 and r.supplementaryMemo is not null)) and r.status <> 9");
+                            "and (rc.checkStatus = 1 or (rc.checkStatus=0 and r.supplementaryMemo is not null)) and r.status not in (9,31)");
                 }
                 //2是审核未通过
                 else if (flag == notPass) {
                     hql.append("select distinct r from Recipe r,RecipeCheck rc where r.recipeId = rc.recipeId and r.clinicOrgan in (:organ)" +
-                            "and rc.checkStatus = 0 and rc.checker is not null and r.supplementaryMemo is null and r.status <> 9");
+                            "and rc.checkStatus = 0 and rc.checker is not null and r.supplementaryMemo is null and r.status not in (9,31)");
                 }
                 //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
                 else if (flag == all) {
-                    hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and (r.status = 8 or r.checkDateYs is not null or (r.status = 9 and (select l.beforeStatus from cdr_recipe_log l where l.recipeId = r.recipeId and l.afterStatus =9 ORDER BY l.Id desc limit 1) in (8,15,7,2))) ");
+                    hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and (r.status in (8,31) or r.checkDateYs is not null or (r.status = 9 and (select l.beforeStatus from cdr_recipe_log l where l.recipeId = r.recipeId and l.afterStatus =9 ORDER BY l.Id desc limit 1) in (8,15,7,2))) ");
                 } else {
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "flag is invalid");
                 }
@@ -1052,6 +1051,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                     order.setOrderType(0);
                                     recipe.setPayFlag(order.getPayFlag());
                                 }
+                                //处方审核状态处理
+                                Integer checkStatus2 = getCheckResultByPending(recipe);
+                                recipe.setCheckStatus(checkStatus2);
                                 BeanUtils.map(recipe, map);
 
                                 map.put("recipeOrder", order);
@@ -1079,6 +1081,45 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         return action.getResult();
     }
 
+    /**
+     * 获取待审核列表审核结果
+     *
+     * @param recipe checkResult 0:未审核 1:通过 2:不通过 3:二次签名 4:失效
+     * @return
+     */
+    private Integer getCheckResultByPending(Recipe recipe) {
+        Integer checkResult = 0;
+        Integer status = recipe.getStatus();
+        //date 20191127
+        //添加前置判断:当审核方式是不需要审核则返回通过审核状态
+        if (ReviewTypeConstant.Not_Need_Check == recipe.getReviewType()) {
+            return RecipePharmacistCheckConstant.Check_Pass;
+        }
+        if(eh.cdr.constant.RecipeStatusConstant.REVOKE == status){
+            return RecipePharmacistCheckConstant.Check_Failure;
+        }
+        if (eh.cdr.constant.RecipeStatusConstant.READY_CHECK_YS == status) {
+            checkResult = RecipePharmacistCheckConstant.Already_Check;
+        } else {
+            if (StringUtils.isNotEmpty(recipe.getSupplementaryMemo())) {
+                checkResult = RecipePharmacistCheckConstant.Second_Sign;
+            } else {
+                RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
+                List<RecipeCheck> recipeCheckList = recipeCheckDAO.findByRecipeId(recipe.getRecipeId());
+                //有审核记录就展示
+                if (CollectionUtils.isNotEmpty(recipeCheckList)) {
+                    RecipeCheck recipeCheck = recipeCheckList.get(0);
+                    if (null != recipeCheck.getChecker() && RecipecCheckStatusConstant.First_Check_No_Pass == recipeCheck.getCheckStatus()) {
+                        checkResult = RecipePharmacistCheckConstant.Check_Pass;
+                    } else if (null != recipeCheck.getChecker() && RecipecCheckStatusConstant.Check_Normal == recipeCheck.getCheckStatus()) {
+                        checkResult = RecipePharmacistCheckConstant.Check_No_Pass;
+                    }
+                }
+            }
+        }
+
+        return checkResult;
+    }
 
     /**
      * 查询处方列表
@@ -1440,7 +1481,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                                    Integer enterpriseId,Integer checkStatus,Integer payFlag,Integer orderType
 
     ) {
-        StringBuilder hql = new StringBuilder("select r.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode where 1=1");
+        StringBuilder hql = new StringBuilder("select r.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode LEFT JOIN cdr_recipecheck c ON r.recipeID=c.recipeId where 1=1");
 
         //默认查询所有
         if (CollectionUtils.isNotEmpty(requestOrgans)) {
@@ -1523,7 +1564,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         }
 
         if (checkStatus != null) {
-            hql.append(" and r.checkStatus=").append(checkStatus);
+            hql.append(" and c.checkStatus=").append(checkStatus);
         }
 
         if (payFlag != null) {
@@ -2481,4 +2522,35 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    public List<Recipe> findRecipesByTabstatusForDoctor(final Integer doctorId, final Integer recipeId,
+                                            final int start, final int limit,final Integer tapStatus) {
+
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("from Recipe r where doctor=:doctorId and fromflag=1 and recipeId<:recipeId and status!=10  ");
+                //通过条件查询status
+                if(tapStatus==null||tapStatus==0);
+                else if(tapStatus==1) hql.append("and status= "+RecipeStatusConstant.UNSIGN);//未签名
+                else if(tapStatus==2) hql.append("and status not in(" +RecipeStatusConstant.UNSIGN+","+RecipeStatusConstant.CHECK_NOT_PASS_YS+","+RecipeStatusConstant.CHECK_NOT_PASS+","+RecipeStatusConstant.HIS_FAIL+","+RecipeStatusConstant.NO_DRUG+","+RecipeStatusConstant.NO_PAY+","+RecipeStatusConstant.NO_OPERATOR+","+RecipeStatusConstant.RECIPE_MEDICAL_FAIL+","+RecipeStatusConstant.EXPIRED+","+RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN +") ");
+                else if(tapStatus==3) hql.append("and status in ("+RecipeStatusConstant.CHECK_NOT_PASS_YS+","+RecipeStatusConstant.CHECK_NOT_PASS+") ");//审核未通过
+                else if(tapStatus==4) hql.append("and status in ("+RecipeStatusConstant.HIS_FAIL+","+RecipeStatusConstant.NO_DRUG+","+RecipeStatusConstant.NO_PAY+","+RecipeStatusConstant.NO_OPERATOR+","+RecipeStatusConstant.RECIPE_MEDICAL_FAIL+","+RecipeStatusConstant.EXPIRED+","+RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN+") ");//[ 已结束 ]：包括 [ 已取消 ]、[ 已完成 ]、[ 已撤销 ]
+                hql.append("order by createDate desc ");
+                Query query = ss.createQuery(hql.toString());
+                query.setParameter("doctorId", doctorId);
+                query.setParameter("recipeId", recipeId);
+                query.setFirstResult(start);
+                query.setMaxResults(limit);
+
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+
+        List<Recipe> recipes = action.getResult();
+        return recipes;
+    }
+
 }

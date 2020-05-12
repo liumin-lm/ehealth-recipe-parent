@@ -79,6 +79,9 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "实际支付费用")
     private Double actualPrice;
 
+    @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付")
+    private Integer expressFeePayWay;
+
     @ItemProperty(alias = "交易流水号")
     private String tradeNo;
 
@@ -248,6 +251,12 @@ public class RecipeOrderBean implements Serializable {
 
     @ItemProperty(alias = "his推送药企名")
     private String hisEnterpriseName;
+
+    @ItemProperty(alias = "发药药师姓名")
+    private String dispensingApothecaryName;
+
+    @ItemProperty(alias = "发药药师身份证")
+    private String dispensingApothecaryIdCard;
 
     public RecipeOrderBean() {
         initData();
@@ -852,5 +861,29 @@ public class RecipeOrderBean implements Serializable {
 
     public void setWnPayWay(String wnPayWay) {
         this.wnPayWay = wnPayWay;
+    }
+
+    public String getDispensingApothecaryName() {
+        return dispensingApothecaryName;
+    }
+
+    public void setDispensingApothecaryName(String dispensingApothecaryName) {
+        this.dispensingApothecaryName = dispensingApothecaryName;
+    }
+
+    public String getDispensingApothecaryIdCard() {
+        return dispensingApothecaryIdCard;
+    }
+
+    public void setDispensingApothecaryIdCard(String dispensingApothecaryIdCard) {
+        this.dispensingApothecaryIdCard = dispensingApothecaryIdCard;
+    }
+
+    public Integer getExpressFeePayWay() {
+        return expressFeePayWay;
+    }
+
+    public void setExpressFeePayWay(Integer expressFeePayWay) {
+        this.expressFeePayWay = expressFeePayWay;
     }
 }

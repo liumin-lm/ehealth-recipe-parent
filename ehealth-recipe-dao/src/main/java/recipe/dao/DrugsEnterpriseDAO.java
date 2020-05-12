@@ -64,6 +64,16 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
     public abstract List<DrugsEnterprise> findByOrganIdAndPayModeSupport(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") List<Integer> payModeSupport);
 
     /**
+     * 根据机构id及配送模式支持获取
+     * @param organId
+     * @param payModeSupport
+     * @return
+     */
+    @DAOMethod(sql = "select count(*) from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 " +
+            "and s.organId=:organId and t.payModeSupport in :payModeSupport and t.sendType = :sendType")
+    public abstract Long getCountByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") List<Integer> payModeSupport, @DAOParam("sendType") Integer sendType);
+
+    /**
      * 根据机构id，配送模式支持，省直医保支持获取
      * @param organId
      * @param payModeSupport
@@ -81,6 +91,26 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
     @DAOMethod(sql = "select t from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 " +
             "and s.organId=:organId and t.hosInteriorSupport=1 order by t.sort, t.id")
     public abstract List<DrugsEnterprise> findByOrganIdAndHosInteriorSupport(@DAOParam("organId") Integer organId);
+
+    /**
+     * 根据机构id及配送模式支持获取
+     * @param organId
+     * @param payModeSupport
+     * @return
+     */
+    @DAOMethod(sql = "select t from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 " +
+            "and s.organId=:organId and t.payModeSupport in :payModeSupport and t.sendType = :sendType order by t.sort, t.id")
+    public abstract List<DrugsEnterprise> findByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") List<Integer> payModeSupport, @DAOParam("sendType") Integer sendType);
+
+    /**
+     * 根据机构id，配送模式支持，省直医保支持获取
+     * @param organId
+     * @param payModeSuppor
+     * @return
+     */
+    @DAOMethod(sql = "select t from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 and t.medicalInsuranceSupport=1 " +
+            "and s.organId=:organId and t.payModeSupport in :payModeSupport and t.sendType = :sendType order by t.sort, t.id")
+    public abstract List<DrugsEnterprise> findByOrganIdAndOtherAndSendType(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") List<Integer> payModeSuppor, @DAOParam("sendType") Integer sendType);
 
 
     /**
@@ -196,4 +226,10 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      */
     @DAOMethod(sql = "from DrugsEnterprise where status=1 and appKey=:appKey", limit = 1)
     public abstract DrugsEnterprise getByAppKey(@DAOParam("appKey") String appKey);
+
+    @DAOMethod(sql = "update DrugsEnterprise set manageUnit=:manageUnit where id=:id ")
+    public abstract void updateManageUnitById(@DAOParam("id") Integer id,@DAOParam("manageUnit") String manageUnit);
+
+    @DAOMethod(sql = "from DrugsEnterprise where manageUnit=:manageUnit", limit = 1)
+    public abstract DrugsEnterprise getByManageUnit(@DAOParam("manageUnit") String manageUnit);
 }

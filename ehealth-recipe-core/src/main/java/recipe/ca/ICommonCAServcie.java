@@ -20,7 +20,7 @@ public interface ICommonCAServcie {
      * @return
      */
     @RpcService
-    boolean caCertificateBusiness(CaCertificateRequestTO requestTO);
+    CaCertificateResponseTO caCertificateBusiness(CaCertificateRequestTO requestTO);
 
 
     /**

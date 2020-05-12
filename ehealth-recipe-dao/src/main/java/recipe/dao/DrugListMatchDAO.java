@@ -141,18 +141,20 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
     @DAOMethod(sql = "from DrugListMatch where sourceOrgan =:organId",limit = 0)
     public abstract List<DrugListMatch> findMatchDataByOrgan(@DAOParam("organId") int organId);
 
-    public QueryResult<DrugListMatch> findMatchDataByOrgan(final int organId, final int start, final int limit){
+    public QueryResult<DrugListMatch> findMatchDataByOrgan(final int organId, final int start, final int limit,final int status){
         HibernateStatelessResultAction<QueryResult<DrugListMatch>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugListMatch>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("from DrugListMatch where sourceOrgan =:organId");
+                StringBuilder hql = new StringBuilder("from DrugListMatch where sourceOrgan =:organId and status !=:status");
                 Query query = ss.createQuery(hql.toString());
                 query.setParameter("organId", organId);
+                query.setParameter("status", status);
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
 
                 Query countQuery = ss.createQuery("select count(*) " + hql.toString());
                 countQuery.setParameter("organId", organId);
+                countQuery.setParameter("status", status);
                 Long total = (Long) countQuery.uniqueResult();
 
                 List<DrugListMatch> lists = query.list();

@@ -29,6 +29,7 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.MedicInsurSettleSuccNoticNgariReqDTO;
 import com.ngari.recipe.recipe.model.PatientRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipeorder.model.ApothecaryVO;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
@@ -37,16 +38,17 @@ import coupon.api.service.ICouponBaseService;
 import coupon.api.vo.Coupon;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.wxpay.constant.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
@@ -55,11 +57,11 @@ import recipe.bussutil.RecipeUtil;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.constant.*;
-import recipe.constant.PayConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
+import recipe.util.ChinaIDNumberUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
 
@@ -88,6 +90,9 @@ public class RecipeOrderService extends RecipeBaseService {
     private RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
     private static Integer[] showDownloadRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.RECIPE_DOWNLOADED};
+
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
 
     /**
      * 处方结算时创建临时订单
@@ -247,6 +252,8 @@ public class RecipeOrderService extends RecipeBaseService {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
             if(null != drugsEnterprise){
                 remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+                //设置配送费支付方式
+                order.setExpressFeePayWay(drugsEnterprise.getExpressFeePayWay());
             }
         }
         if(null == remoteService){
@@ -1911,7 +1918,8 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         //配送费
-        if (null != order.getExpressFee()) {
+        //有配送费并且配送费支付方式为在线支付时才计入支付金额
+        if (null != order.getExpressFee() && !(new Integer(2).equals(order.getExpressFeePayWay()))) {
             full = full.add(order.getExpressFee());
         }
 
@@ -2232,4 +2240,19 @@ public class RecipeOrderService extends RecipeBaseService {
         remoteDrugEnterpriseService.pushSingleRecipeInfo(Integer.valueOf(request.getRecipeId()));
     }
 
+    @RpcService
+    public Boolean updateApothecaryByOrderId(ApothecaryVO apothecary) throws ValidateException {
+        if (null == apothecary || null == apothecary.getOrderId()) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "参数异常");
+        }
+        ChinaIDNumberUtil.isValidIDNumber(apothecary.getDispensingApothecaryIdCard());
+        try {
+            recipeOrderDAO.updateApothecaryByOrderId(apothecary.getOrderId(),
+                    apothecary.getDispensingApothecaryName(), apothecary.getDispensingApothecaryIdCard());
+            return true;
+        } catch (Exception e) {
+            LOGGER.error("updateApothecaryByOrderId e : {} ,apothecaryVO :{}", e, JSONUtils.toString(apothecary));
+            return false;
+        }
+    }
 }

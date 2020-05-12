@@ -66,7 +66,11 @@ public class SignDoctorRecipeInfo {
 
     private Date lastmodify;
 
+    /** 签名类型*/
     private String type;
+
+    /**业务类型 1：处方 2：病历*/
+    private Integer serverType;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -249,5 +253,14 @@ public class SignDoctorRecipeInfo {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    @Column
+    public Integer getServerType() {
+        return serverType;
+    }
+
+    public void setServerType(Integer serverType) {
+        this.serverType = serverType;
     }
 }
