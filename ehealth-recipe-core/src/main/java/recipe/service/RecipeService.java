@@ -693,7 +693,7 @@ public class RecipeService extends RecipeBaseService {
     }
 
     public RecipeResultBean generateCheckRecipePdf(Integer checker, Recipe recipe, int beforeStatus, int recipeStatus) {
-        RecipeResultBean checkResult = RecipeResultBean.getFail();
+        RecipeResultBean checkResult = RecipeResultBean.getSuccess();
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         DoctorService doctorService = BasicAPI.getService(DoctorService.class);
 
@@ -757,6 +757,8 @@ public class RecipeService extends RecipeBaseService {
                         RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
                         resultVo.setFileId(fileId);
                         signRecipeInfoSave(recipeId, false, resultVo, organId);
+                    }else{
+                        checkResult.setCode(RecipeResultBean.FAIL);
                     }
 //                        else {
 //                            RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
@@ -1095,7 +1097,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public RecipeResultBean generateRecipePdfAndSign(Integer recipeId) {
-        RecipeResultBean result = RecipeResultBean.getFail();
+        RecipeResultBean result = RecipeResultBean.getSuccess();
         if (null == recipeId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeId is null");
         }
@@ -1189,6 +1191,8 @@ public class RecipeService extends RecipeBaseService {
                     } catch (Exception e) {
                         LOGGER.error("signBefText save error："  + e.getMessage());
                     }
+                }else{
+                    result.setCode(RecipeResultBean.FAIL);
                 }
 //                else {
 //                    RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
@@ -1634,7 +1638,7 @@ public class RecipeService extends RecipeBaseService {
                 if(!Integer.valueOf(1).equals(recipe.getDistributionFlag())){
                     //错误信息弹出框，能否继续标记----点击是可以继续开方
                     rMap.put("canContinueFlag", true);
-                    rMap.put("msg", recipeResult1.getMsg()+"该处方仅支持到院取药,无法药企配送,是否继续？");
+                    rMap.put("msg", recipeResult1.getMsg()+",若继续开方仅支持到院取药,是否继续？");
                 }
                 LOGGER.info("doSignRecipe recipeId={},msg={}",recipeId,rMap.get("msg"));
                 return rMap;
@@ -1682,7 +1686,7 @@ public class RecipeService extends RecipeBaseService {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         //发送his前更新处方状态---医院确认中
-        recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, null);
+        recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, ImmutableMap.of("distributionFlag",2));
         //HIS消息发送--异步处理
         /*boolean result = hisService.recipeSendHis(recipeId, null);*/
         RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeId));

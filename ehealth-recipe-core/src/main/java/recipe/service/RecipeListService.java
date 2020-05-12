@@ -1092,6 +1092,12 @@ public class RecipeListService extends RecipeBaseService{
 
             payModeShowButtonBean.setShowSendToHos(true);
         }
+        //不支持配送，则按钮都不显示--包括药店取药
+        if (new Integer(2).equals(recipe.getDistributionFlag())){
+            payModeShowButtonBean.setShowSendToEnterprises(false);
+            payModeShowButtonBean.setShowSendToHos(false);
+            payModeShowButtonBean.setSupportTFDS(false);
+        }
         return payModeShowButtonBean;
     }
 
