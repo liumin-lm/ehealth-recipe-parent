@@ -463,7 +463,7 @@ public class RecipeServiceSub {
         if (CollectionUtils.isNotEmpty(noFilterDrugName)) {
             LOGGER.warn("setDetailsInfo 存在无法配送的药品. recipeId=[{}], drugIds={}, noFilterDrugName={}",
                     recipeId, JSONUtils.toString(drugIds), JSONUtils.toString(noFilterDrugName));
-            throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(noFilterDrugName) + "药品不在该机构可配送药企的药品目录里面,无法进行配送");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(noFilterDrugName) + "不在该机构可配送药企的药品目录里面,无法进行配送");
         }
 
         noFilterDrugName.clear();
@@ -1685,7 +1685,7 @@ public class RecipeServiceSub {
         return  auditMedicines;
     }
 
-    private static String getCancelReasonForChecker(int recipeId) {
+    public static String getCancelReasonForChecker(int recipeId) {
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
         List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.READY_CHECK_YS);
         String cancelReason ="";
@@ -1929,6 +1929,10 @@ public class RecipeServiceSub {
                     tips = "您已支付，药品将尽快为您配送.";
                 } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode) || RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
                     tips = "处方正在审核中.";
+                }
+                String reason = RecipeServiceSub.getCancelReasonForChecker(recipe.getRecipeId());
+                if (StringUtils.isNotEmpty(reason)){
+                    tips = reason;
                 }
                 break;
             case RecipeStatusConstant.WAIT_SEND:
@@ -2286,11 +2290,14 @@ public class RecipeServiceSub {
         StringBuilder memo = new StringBuilder(msg);
         if (StringUtils.isEmpty(msg)) {
             Map<String, Integer> changeAttr = Maps.newHashMap();
-            if (!recipe.canMedicalPay()) {
-                changeAttr.put("chooseFlag", 1);
+            if(order !=null){
+                if (!recipe.canMedicalPay()) {
+                    changeAttr.put("chooseFlag", 1);
+                }
+                orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
             }
             result = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.REVOKE, changeAttr);
-            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+
             if (result) {
                 msg = "处方撤销成功";
                 //向患者推送处方撤销消息

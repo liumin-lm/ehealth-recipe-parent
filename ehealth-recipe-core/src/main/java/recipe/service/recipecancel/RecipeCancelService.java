@@ -76,7 +76,7 @@ public class RecipeCancelService {
 
         //获取撤销前处方单状态
         Integer beforeStatus = recipe.getStatus();
-        if (!Integer.valueOf(RecipeStatusConstant.CHECK_PASS).equals(beforeStatus)) {
+        if (!(Integer.valueOf(RecipeStatusConstant.CHECK_PASS).equals(beforeStatus))) {
             msg = "该处方单不是待处理的处方单,不能进行撤销操作";
         }
         if (Integer.valueOf(1).equals(recipe.getPayFlag())) {

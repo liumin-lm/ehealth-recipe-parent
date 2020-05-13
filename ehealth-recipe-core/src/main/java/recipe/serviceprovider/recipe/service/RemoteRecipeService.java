@@ -212,7 +212,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId) {
         RecipeCheckService service = ApplicationUtils.getRecipeService(RecipeCheckService.class);
-        return service.findRecipeAndDetailsAndCheckById(recipeId);
+        return service.findRecipeAndDetailsAndCheckById(recipeId,null);
     }
 
     @RpcService

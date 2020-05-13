@@ -1,19 +1,15 @@
 package recipe.purchase;
 
-import com.google.common.collect.ImmutableMap;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.consult.common.model.ConsultExDTO;
-import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.his.patient.service.IPatientHisService;
 import com.ngari.his.recipe.mode.MedicInsurSettleApplyReqTO;
 import com.ngari.his.recipe.mode.MedicInsurSettleApplyResTO;
-import com.ngari.his.recipe.mode.MedicInsurSettleSuccNoticNgariReqTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
@@ -25,7 +21,6 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
-import coupon.api.service.ICouponBaseService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -47,8 +42,6 @@ import recipe.service.RecipeHisService;
 import recipe.service.RecipeListService;
 import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
-import recipe.thread.PushRecipeToHisCallable;
-import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 
@@ -405,6 +398,7 @@ public class PurchaseService {
      * @return 文案
      */
     public String getTipsByStatusForPatient(Recipe recipe, RecipeOrder order) {
+        RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
         Integer status = recipe.getStatus();
         Integer payMode = recipe.getPayMode();
         Integer payFlag = recipe.getPayFlag();
@@ -417,6 +411,10 @@ public class PurchaseService {
         switch (status) {
             case RecipeStatusConstant.READY_CHECK_YS:
                 tips = "请耐心等待药师审核";
+                String reason = RecipeServiceSub.getCancelReasonForChecker(recipe.getRecipeId());
+                if (StringUtils.isNotEmpty(reason)){
+                    tips = reason;
+                }
                 break;
             case RecipeStatusConstant.CHECK_PASS:
                 if (StringUtils.isNotEmpty(orderCode) && payFlag == 0 && order.getActualPrice() > 0) {
