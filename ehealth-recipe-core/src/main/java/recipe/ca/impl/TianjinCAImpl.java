@@ -50,7 +50,7 @@ public class TianjinCAImpl implements CAInterface {
         try {
             //用户操作类型 * 1.用户注册 * 2.用户修改 * 3.用户查询
             caAccountRequestTO.setBusType(3);
-            if (!iCommonCAServcie.caUserBusiness(caAccountRequestTO)) {
+            if (iCommonCAServcie.caUserBusiness(caAccountRequestTO)) {
                 LOGGER.info("account is exist!");
                 return true;
             }
