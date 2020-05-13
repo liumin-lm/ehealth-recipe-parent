@@ -28,6 +28,7 @@ import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.HisSendResTO;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
@@ -50,9 +51,17 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
+import eh.base.constant.BussTypeConstant;
 import eh.base.constant.ErrorCode;
 import eh.base.constant.PageConstant;
+import eh.cdr.constant.DrugEnterpriseConstant;
 import eh.cdr.constant.OrderStatusConstant;
+import eh.cdr.constant.RecipeStatusConstant;
+import eh.entity.bus.pay.BusTypeEnum;
+import eh.redis.RedisClient;
+import eh.utils.ChinaIDNumberUtil;
+import eh.utils.DateConversion;
+import eh.utils.MapValueUtil;
 import eh.utils.params.ParamUtils;
 import eh.utils.params.ParameterConstant;
 import eh.wxpay.constant.PayConstant;
@@ -989,6 +998,19 @@ public class RecipeService extends RecipeBaseService {
         resultBean.setCheckResult(checkResult.getCheckStatus());
         resultBean.setCheckDetailList(recipeCheckDetailDAO.findByCheckId(checkResult.getCheckId()));
         int result = checkResult.getCheckStatus();
+
+        //date 20200512
+        //更新处方审核结果状态
+        int recipeStatus = RecipeStatusConstant.CHECK_NOT_PASS_YS;
+        if (1 == result) {
+            //根据审方模式改变状态
+            recipeStatus = auditModeContext.getAuditModes(recipe.getReviewType()).afterAuditRecipeChange();
+            if (recipe.canMedicalPay()) {
+                //如果是可医保支付的单子，审核是在用户看到之前，所以审核通过之后变为待处理状态
+                recipeStatus = RecipeStatusConstant.CHECK_PASS;
+            }
+        }
+        recipeDAO.updateRecipeInfoByRecipeId(recipeId, recipeStatus, null);
         //审核成功往药厂发消息
         //审方做异步处理
         GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
@@ -1638,7 +1660,7 @@ public class RecipeService extends RecipeBaseService {
                 if(!Integer.valueOf(1).equals(recipe.getDistributionFlag())){
                     //错误信息弹出框，能否继续标记----点击是可以继续开方
                     rMap.put("canContinueFlag", true);
-                    rMap.put("msg", recipeResult1.getMsg()+",若继续开方仅支持到院取药,是否继续？");
+                    rMap.put("msg", recipeResult1.getMsg()+",仅支持到院取药，是否继续开方？");
                 }
                 LOGGER.info("doSignRecipe recipeId={},msg={}",recipeId,rMap.get("msg"));
                 return rMap;
@@ -3726,7 +3748,7 @@ public class RecipeService extends RecipeBaseService {
             //通过证件号码获取患者年龄
             Integer age = 0;
             try {
-                age=ChinaIDNumberUtil.getAgeFromIDNumber(patientList.get(0).getIdcard());
+                age= ChinaIDNumberUtil.getAgeFromIDNumber(patientList.get(0).getIdcard());
                 LOGGER.info("findCanRecipeByAge 通过证件号码获取患者年龄{}",age);
             } catch (ValidateException e) {
                 LOGGER.error("findCanRecipeByAge 通过证件号码获取患者年龄异常"+e.getMessage());

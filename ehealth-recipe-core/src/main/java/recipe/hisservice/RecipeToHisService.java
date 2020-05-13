@@ -523,19 +523,23 @@ public class RecipeToHisService {
         return response;
     }
 
-    public String findPatientDiagnose(PatientDiagnoseTO request) {
+    public void findPatientDiagnose(PatientDiagnoseTO request) {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("findPatientDiagnose request={}", JSONUtils.toString(request));
+        HisResponseTO<String> response;
         try {
-            HisResponseTO<String> response = hisService.findPatientDiagnose(request);
+            response = hisService.findPatientDiagnose(request);
             LOGGER.info("findPatientDiagnose response={}", JSONUtils.toString(response));
-            if (null != response && !("200".equals(response.getMsgCode()))) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, response.getMsg());
-            }
-            return response.getData();
         } catch (Exception e) {
             LOGGER.error("findPatientDiagnose error ", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+        if (null == response) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "接口返回异常");
+        } else {
+            if (!"200".equals(response.getMsgCode())) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, response.getMsg());
+            }
         }
     }
 }
