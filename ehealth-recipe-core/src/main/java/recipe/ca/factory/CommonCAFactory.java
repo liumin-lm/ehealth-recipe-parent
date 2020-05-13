@@ -12,7 +12,9 @@ import recipe.ca.impl.ShanghaiCAImpl;
 import recipe.ca.impl.ShanxiCAImpl;
 import recipe.ca.impl.TianjinCAImpl;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -57,8 +59,8 @@ public class CommonCAFactory {
             String thirdCASign = (String) configurationService.getConfiguration(organId, THIRD_CA_SIGN);
             //上海儿童特殊处理
             String value = ParamUtils.getParam("SH_CA_ORGANID_WHITE_LIST");
-            LOGGER.info("useCAFunction value ={}=", value);
-            if (value.indexOf(organId+"") >= 0) {
+            List<String> caList = Arrays.asList(value.split(","));
+            if (caList.contains(organId+"")) {
                 thirdCASign = "shanghaiCA";
             }
             LOGGER.info("useCAFunction in organId ={} ,CA 模式 ={}", organId, thirdCASign);
