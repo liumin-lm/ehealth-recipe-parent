@@ -150,7 +150,7 @@ public class PayModeOnline implements IPurchaseService {
         LOG.info("drugsEnterpriseList organId:{}, payModeSupport:{}", dbRecipe.getClinicOrgan(), payModeSupport);
         //筛选出来的数据已经去掉不支持任何方式配送的药企
         List<DrugsEnterprise> drugsEnterpriseList;
-        if(null != extInfo.get("sendType")){
+        if(StringUtils.isNotEmpty(extInfo.get("sendType"))){
             if (Integer.valueOf(1).equals(dbRecipe.getRecipeSource())) {
     //            drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndOther(dbRecipe.getClinicOrgan(), payModeSupport);
                 drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndOtherAndSendType(dbRecipe.getClinicOrgan(), payModeSupport, Integer.parseInt(extInfo.get("sendType")));
