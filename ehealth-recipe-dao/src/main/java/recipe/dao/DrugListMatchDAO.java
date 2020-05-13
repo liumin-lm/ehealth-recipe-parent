@@ -54,6 +54,7 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
      */
     public QueryResult<DrugListMatch> queryDrugListsByDrugNameAndStartAndLimit(final Integer organId,final String keyword,
                                                                                final Integer status,
+                                                                               final Integer status2,
                                                                                final int start, final int limit) {
         HibernateStatelessResultAction<QueryResult<DrugListMatch>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugListMatch>>() {
             @SuppressWarnings("unchecked")
@@ -67,11 +68,15 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
                 }
                 if (!ObjectUtils.isEmpty(status)) {
                     hql.append(" and status =:status");
+                }else {
+                    hql.append(" and status !=:status2");
                 }
                 /*hql.append(" order by createDt desc");*/
                 Query countQuery = ss.createQuery("select count(*) " + hql.toString());
                 if (!ObjectUtils.isEmpty(status)) {
                     countQuery.setParameter("status", status);
+                }else {
+                    countQuery.setParameter("status2", status2);
                 }
                 if (!StringUtils.isEmpty(keyword)) {
                     countQuery.setParameter("keyword", "%" + keyword + "%");
@@ -85,6 +90,8 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
                 Query query = ss.createQuery(hql.toString());
                 if (!ObjectUtils.isEmpty(status)) {
                     query.setParameter("status", status);
+                }else {
+                    query.setParameter("status2", status2);
                 }
                 if (!StringUtils.isEmpty(keyword)) {
                     query.setParameter("keyword", "%" + keyword + "%");
