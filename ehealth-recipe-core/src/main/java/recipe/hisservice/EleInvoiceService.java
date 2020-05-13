@@ -163,7 +163,7 @@ public class EleInvoiceService {
         IConfigurationCenterUtilsService configurationCenterUtils = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         String result = "";
         if("0".equals(type)){
-            result = (String)configurationCenterUtils.getConfiguration(organId, "EleInvoiceFzSwitch");
+            result = (String)configurationCenterUtils.getConfiguration(organId, "EleInvoiceFzSwitchNew");
         }
         if("1".equals(type)){
             result = (String)configurationCenterUtils.getConfiguration(organId, "EleInvoiceCfSwitch");
