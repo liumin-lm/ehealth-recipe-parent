@@ -115,4 +115,13 @@
 
     <!-- session updater -->
     <bean class="ctd.account.session.SessionItemManager"/>
+    <!-- parameter store -->
+    <ssdev:reference id="eh.paramLoader" interface="eh.utils.params.ParamLoader"/>
+
+    <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="staticMethod" value="eh.utils.params.ParamUtils.setParamLoader"/>
+        <property name="arguments">
+            <list><ref bean="eh.paramLoader"/></list>
+        </property>
+    </bean>
 </beans>

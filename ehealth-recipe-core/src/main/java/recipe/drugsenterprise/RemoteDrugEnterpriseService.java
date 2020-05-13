@@ -136,6 +136,9 @@ public class RemoteDrugEnterpriseService {
     @RpcService
     public boolean scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         LOGGER.info("scanStock recipeId:{}, drugsEnterprise:{}", recipeId, JSONUtils.toString(drugsEnterprise));
+        if (drugsEnterprise != null && drugsEnterprise.getCheckInventoryFlag() != null && drugsEnterprise.getCheckInventoryFlag() == 0) {
+            return true;
+        }
         DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
         RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         String drugsEnterpriseList = parameterDao.getByName("drugsEnterpriseList");

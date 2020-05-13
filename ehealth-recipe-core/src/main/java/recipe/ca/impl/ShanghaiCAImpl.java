@@ -92,6 +92,7 @@ public class ShanghaiCAImpl implements CAInterface {
                 return signResultVo;
             }
             signResultVo.setSignCADate(responseDateTO.getSignDate());
+            signResultVo.setCode(200);
             //电子签章（暂不实现）
         } catch (Exception e){
             LOGGER.error("shanghaiCA commonCASignAndSeal 调用前置机失败 requestSealTO={},organId={},userAccount={},caPassword={}",

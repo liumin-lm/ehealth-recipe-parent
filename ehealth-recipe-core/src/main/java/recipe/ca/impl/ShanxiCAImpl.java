@@ -150,6 +150,7 @@ public class ShanxiCAImpl implements CAInterface {
                 return signResultVo;
             }
             signResultVo.setPdfBase64(responseSealTO.getPdfBase64File());
+            signResultVo.setCode(200);
         } catch (Exception e){
             LOGGER.error("ShanxiCAImpl commonCASignAndSeal 调用前置机失败 requestTO={}", requestSealTO.toString());
             e.printStackTrace();

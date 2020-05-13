@@ -146,6 +146,9 @@ public class RecipeService extends RecipeBaseService {
     @Autowired
     private SignRecipeInfoService signRecipeInfoService;
 
+    @Autowired
+    private CommonCAFactory commonCAFactory;
+
     /**
      * 药师审核不通过
      */
@@ -747,7 +750,7 @@ public class RecipeService extends RecipeBaseService {
                     }
                     CommonCAFactory caFactory = new CommonCAFactory();
                     //通过工厂获取对应的实现CA类
-                    CAInterface caInterface = caFactory.useCAFunction(organId);
+                    CAInterface caInterface = commonCAFactory.useCAFunction(organId);
                     CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
                     String fileId = null;
                     checkResult.setMsg(resultVo.getMsg());
@@ -1181,9 +1184,9 @@ public class RecipeService extends RecipeBaseService {
                     requestSealTO.setSealBase64Str("");
                 }
 
-                CommonCAFactory caFactory = new CommonCAFactory();
+//                CommonCAFactory caFactory = new CommonCAFactory();
                 //通过工厂获取对应的实现CA类
-                CAInterface caInterface = caFactory.useCAFunction(organId);
+                CAInterface caInterface = commonCAFactory.useCAFunction(organId);
                 CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
 //                RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true);
                 String fileId = null;
@@ -3832,7 +3835,7 @@ public class RecipeService extends RecipeBaseService {
             String thirdCASign = (String) configurationService.getConfiguration(organId,"thirdCASign");
             //上海儿童特殊处理
             String value = ParamUtils.getParam("SH_CA_ORGANID_WHITE_LIST");
-            if (value.indexOf(organId) >= 0) {
+            if (value.indexOf(organId+"") >= 0) {
                 thirdCASign = "shanghaiCA";
             }
             signRecipeInfoService.saveSignInfo(recipeId, isDoctor, signResultVo,thirdCASign);
