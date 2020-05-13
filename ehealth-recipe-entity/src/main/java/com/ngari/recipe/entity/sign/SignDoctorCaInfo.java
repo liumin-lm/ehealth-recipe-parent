@@ -23,7 +23,7 @@ public class SignDoctorCaInfo {
     /**
      * 证书信息
      */
-    private String certVoucher;
+    private String cert_voucher;
 
     /**ca类型*/
     private String caType;
@@ -69,13 +69,14 @@ public class SignDoctorCaInfo {
     }
 
     @Column
-    public String getCertVoucher() {
-        return certVoucher;
+    public String getCert_voucher() {
+        return cert_voucher;
     }
 
-    public void setCertVoucher(String certVoucher) {
-        this.certVoucher = certVoucher;
+    public void setCert_voucher(String cert_voucher) {
+        this.cert_voucher = cert_voucher;
     }
+
 
     @Column
     public String getCaType() {
