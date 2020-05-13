@@ -71,15 +71,15 @@ public class TianjinCAImpl implements CAInterface {
                 LOGGER.info("TianjinCAImpl getDoctorSerCodeByDoctorIdAndType end response={}", caInfo);
                 if (null == caInfo) {
                     caInfo = new SignDoctorCaInfo();
-                    caInfo.setCertVoucher(caCertificateResponseTO.getCretBody());
+                    caInfo.setCert_voucher(caCertificateResponseTO.getCretBody());
                     caInfo.setCaType(CommonCAFactory.CA_TYPE_TIANJIN);
                     caInfo.setCreateDate(new Date());
                     caInfo.setLastmodify(new Date());
                     caInfo.setDoctorId(doctorId);
                     caInfo.setIdcard(doctorDTO.getIdNumber());
                     caInfo.setName(doctorDTO.getName());
-                }else if (StringUtils.isEmpty(caInfo.getCertVoucher())) {
-                    caInfo.setCertVoucher(caCertificateResponseTO.getCretBody());
+                }else if (StringUtils.isEmpty(caInfo.getCert_voucher())) {
+                    caInfo.setCert_voucher(caCertificateResponseTO.getCretBody());
                 }
                 signDoctorCaInfoDAO.save(caInfo);
                 return true;
@@ -110,7 +110,7 @@ public class TianjinCAImpl implements CAInterface {
             SignDoctorCaInfo caInfo =
                     signDoctorCaInfoDAO.getDoctorSerCodeByDoctorIdAndType(recipe.getDoctor(), CommonCAFactory.CA_TYPE_TIANJIN);
             if (null != caInfo) {
-                caSignRequestTO.setCertVoucher(caInfo.getCertVoucher());
+                caSignRequestTO.setCertVoucher(caInfo.getCert_voucher());
             }
             caSignRequestTO.setOrganId(organId);
             caSignRequestTO.setSignMsg(JSONUtils.toString(recipe));
