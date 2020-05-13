@@ -2286,11 +2286,14 @@ public class RecipeServiceSub {
         StringBuilder memo = new StringBuilder(msg);
         if (StringUtils.isEmpty(msg)) {
             Map<String, Integer> changeAttr = Maps.newHashMap();
-            if (!recipe.canMedicalPay()) {
-                changeAttr.put("chooseFlag", 1);
+            if(order !=null){
+                if (!recipe.canMedicalPay()) {
+                    changeAttr.put("chooseFlag", 1);
+                }
+                orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
             }
             result = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.REVOKE, changeAttr);
-            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+
             if (result) {
                 msg = "处方撤销成功";
                 //向患者推送处方撤销消息
