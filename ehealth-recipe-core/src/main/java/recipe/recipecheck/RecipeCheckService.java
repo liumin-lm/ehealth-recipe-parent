@@ -308,8 +308,7 @@ public class RecipeCheckService {
         }
         //20200323 越权检查
         checkUserIsChemistByDoctorId(reicpeIdI, doctorId);
-
-        return findRecipeAndDetailsAndCheckById(reicpeIdI);
+        return findRecipeAndDetailsAndCheckById(reicpeIdI,doctorId);
     }
 
     /**
@@ -319,7 +318,7 @@ public class RecipeCheckService {
      * @return
      */
     @RpcService
-    public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId) {
+    public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId,Integer checkerId) {
 
         RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
@@ -525,6 +524,12 @@ public class RecipeCheckService {
                 childRecipeFlag = true;
             }
         }
+        //药师能否撤销标识
+        Boolean cancelRecipeFlag = false;
+        if (checkerId != null && checkerId.equals(recipe.getChecker())){
+            cancelRecipeFlag = true;
+        }
+        map.put("cancelRecipeFlag", cancelRecipeFlag);
 
         //患者就诊卡信息
         RecipeExtend extend = extendDAO.getByRecipeId(recipeId);
