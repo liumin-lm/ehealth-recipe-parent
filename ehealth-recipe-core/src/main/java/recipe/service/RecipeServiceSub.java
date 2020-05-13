@@ -1685,7 +1685,7 @@ public class RecipeServiceSub {
         return  auditMedicines;
     }
 
-    private static String getCancelReasonForChecker(int recipeId) {
+    public static String getCancelReasonForChecker(int recipeId) {
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
         List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.READY_CHECK_YS);
         String cancelReason ="";
