@@ -143,10 +143,15 @@ public class PurchaseService {
             return resultBean;
         }
 
-        for (Integer i : payModes) {
-            IPurchaseService purchaseService = getService(i);
-            //如果涉及到多种购药方式合并成一个列表，此处需要进行合并
-            resultBean = purchaseService.findSupportDepList(dbRecipe, extInfo);
+        try {
+            for (Integer i : payModes) {
+                IPurchaseService purchaseService = getService(i);
+                //如果涉及到多种购药方式合并成一个列表，此处需要进行合并
+                resultBean = purchaseService.findSupportDepList(dbRecipe, extInfo);
+            }
+        } catch (Exception e) {
+            LOG.error("filterSupportDepList error", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
         return resultBean;
     }
