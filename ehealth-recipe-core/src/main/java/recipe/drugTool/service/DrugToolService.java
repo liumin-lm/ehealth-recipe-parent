@@ -549,7 +549,7 @@ public class DrugToolService implements IDrugToolService {
     /**
      * 更新无匹配数据
      */
-    @RpcService
+        @RpcService
     public DrugListMatch updateNoMatchData(int drugId, String operator) {
         if (StringUtils.isEmpty(operator)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "operator is required");
@@ -988,7 +988,8 @@ public class DrugToolService implements IDrugToolService {
      */
     @RpcService
     public QueryResult<DrugListMatch> drugSearch(int organId, String keyWord, Integer status, int start, int limit) {
-        return drugListMatchDAO.queryDrugListsByDrugNameAndStartAndLimit(organId, keyWord, status, start, limit);
+        Integer a=2;
+        return drugListMatchDAO.queryDrugListsByDrugNameAndStartAndLimit(organId, keyWord, status,a, start, limit);
     }
 
     /**

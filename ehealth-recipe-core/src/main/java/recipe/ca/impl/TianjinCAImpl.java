@@ -143,6 +143,7 @@ public class TianjinCAImpl implements CAInterface {
             requestSealTO.setOrganId(organId);
             requestSealTO.setUserPin(caPassword);
             requestSealTO.setUserAccount(userAccount);
+            requestSealTO.setCertVoucher(caInfo.getCert_voucher());
             DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
             DoctorExtendDTO doctorExtendDTO = doctorExtendService.getByDoctorId(recipe.getChecker());
             if (doctorExtendDTO != null && doctorExtendDTO.getSealData() != null) {
