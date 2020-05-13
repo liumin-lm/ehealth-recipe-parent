@@ -2243,7 +2243,7 @@ public class RecipeOrderService extends RecipeBaseService {
     @RpcService
     public Boolean updateApothecaryByOrderId(ApothecaryVO apothecary) throws ValidateException {
         if (null == apothecary || null == apothecary.getOrderId()) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "参数异常");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "订单不存在");
         }
         ChinaIDNumberUtil.isValidIDNumber(apothecary.getDispensingApothecaryIdCard());
         try {
