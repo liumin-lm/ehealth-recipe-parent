@@ -44,6 +44,13 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.base.constant.BussTypeConstant;
+import eh.cdr.constant.DrugEnterpriseConstant;
+import eh.cdr.constant.OrderStatusConstant;
+import eh.cdr.constant.RecipeStatusConstant;
+import eh.entity.bus.pay.BusTypeEnum;
+import eh.utils.params.ParameterConstant;
+import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -1050,7 +1057,7 @@ public class RecipeOrderService extends RecipeBaseService {
             }
             createOrderToDB(order, recipeIds, orderDAO, recipeDAO);
         } catch (DAOException e) {
-            LOGGER.warn("createOrder orderCode={}, error={}. ", order.getOrderCode(), e.getMessage());
+            LOGGER.warn("createOrder orderCode={}", order.getOrderCode(), e);
             saveFlag = false;
         } finally {
             //如果小概率造成orderCode重复，则修改并重试
@@ -1060,7 +1067,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     createOrderToDB(order, recipeIds, orderDAO, recipeDAO);
                     saveFlag = true;
                 } catch (DAOException e) {
-                    LOGGER.warn("createOrder again orderCode={}, error={}. ", order.getOrderCode(), e.getMessage());
+                    LOGGER.warn("createOrder again orderCode={}", order.getOrderCode(), e);
                     saveFlag = false;
                     result.setCode(RecipeResultBean.FAIL);
                     result.setMsg("保存订单系统错误");
