@@ -1553,11 +1553,6 @@ public class RecipeServiceSub {
 
         }
 
-        //获取药师撤销原因
-        if (recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS){
-            map.put("cancelReason", getCancelReasonForChecker(recipeId));
-        }
-
         if (StringUtils.isEmpty(recipe.getMemo())) {
             recipe.setMemo("无");
         }
@@ -1591,13 +1586,17 @@ public class RecipeServiceSub {
             map.put("doctorSignImg",doctorDTO.getSignImage());
             map.put("doctorSignImgToken", FileAuth.instance().createToken(doctorDTO.getSignImage(), 3600L));
         }
-        //设置药师手签图片id
-        if (recipe.getChecker()!=null){
+        //设置药师手签图片id-----药师撤销审核结果不应该显示药师手签
+        if (recipe.getChecker()!=null && recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS){
             DoctorDTO auditDTO = doctorService.getByDoctorId(recipe.getChecker());
             if (auditDTO != null){
                 map.put("checkerSignImg",auditDTO.getSignImage());
                 map.put("checkerSignImgToken", FileAuth.instance().createToken(auditDTO.getSignImage(), 3600L));
             }
+        }
+        //获取药师撤销原因
+        if (recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS){
+            map.put("cancelReason", getCancelReasonForChecker(recipeId));
         }
         //Date:2019/12/16
         //Explain:添加判断展示处方参考价格
