@@ -1575,6 +1575,16 @@ public class RecipeServiceSub {
         map.put("childRecipeFlag", childRecipeFlag);
         map.put("recipe", ObjectCopyUtils.convert(recipe, RecipeBean.class));
 
+        //慢病列表配置
+        try{
+            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            Integer recipeChooseChronicDisease = (Integer) configurationService.getConfiguration(recipe.getClinicOrgan(), "recipeChooseChronicDisease");
+            map.put("recipeChooseChronicDisease", recipeChooseChronicDisease);
+        }catch (Exception e){
+            LOGGER.error("RecipeServiceSub.getRecipeAndDetailByIdImpl 获取慢病配置error, recipeId:{}", recipeId, e);
+        }
+
+
         //设置订单信息
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
