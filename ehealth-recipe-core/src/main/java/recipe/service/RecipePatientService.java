@@ -378,7 +378,6 @@ public class RecipePatientService extends RecipeBaseService {
         patientBaseInfo.setMpi(patientDTO.getMpiId());
         request.setPatient(patientBaseInfo);
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-        String result = service.findPatientDiagnose(request);
-        LOGGER.info("findPatientDiagnose result={}", JSONUtils.toString(result));
+        service.findPatientDiagnose(request);
     }
 }
