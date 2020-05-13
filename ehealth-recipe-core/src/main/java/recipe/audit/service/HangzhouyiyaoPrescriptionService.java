@@ -9,6 +9,7 @@ import com.ngari.patient.dto.ProTitleDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.service.ProTitleService;
 import com.ngari.recipe.common.RecipeCommonBaseTO;
+import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -30,6 +31,7 @@ import recipe.audit.bean.AutoAuditResult;
 import recipe.audit.bean.PAWebRecipeDanger;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.CompareDrugDAO;
+import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.service.RecipeHisService;
@@ -71,6 +73,9 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
 
     @Autowired
     private IConfigurationCenterUtilsService configService;
+
+    @Autowired
+    private DrugListDAO drugListDAO;
 
     @Override
     @RpcService
@@ -166,6 +171,8 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
         HzyyPrescriptionsData prescription = new HzyyPrescriptionsData();
         String recipeTempId = DigestUtil.md5For16(recipe.getClinicOrgan() +
                 recipe.getMpiid() + Calendar.getInstance().getTimeInMillis());
+        String recipeDetailTempId = DigestUtil.md5For16(recipe.getClinicOrgan() +
+                "" + Calendar.getInstance().getTimeInMillis());
         prescription.setRecipeId(recipeTempId);
         prescription.setRecipeNo(recipeTempId);
         prescription.setRecipeSource("门诊");
@@ -185,9 +192,10 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
         List<HzyyPrescriptionDetailData> detailDatas = new ArrayList<>();
 
         recipedetails.forEach(recipedetail -> {
+            DrugList drugList = drugListDAO.getById(recipedetail.getDrugId());
             HzyyPrescriptionDetailData detailData = new HzyyPrescriptionDetailData();
             detailData.setRecipeItemId(String.valueOf(recipedetail.getRecipeDetailId()));
-            detailData.setRecipeId(String.valueOf(recipedetail.getRecipeId()));
+            detailData.setRecipeId(recipeTempId);
             detailData.setGroupNo("1");
             Integer targetDrugId = compareDrugDAO.findTargetDrugIdByOriginalDrugId(recipedetail.getDrugId());
 //            OrganDrugList organDrug = organDrugListDAO.getByDrugIdAndOrganId(recipe.getClinicOrgan(), recipedetail.getDrugId());
@@ -202,25 +210,25 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
             }
             detailData.setDrugName(recipedetail.getDrugName());
             detailData.setSpecification(recipedetail.getDrugSpec());
-            //TODO
-//            detailData.setManufacturerName(organDrug.getProducer());
-//            detailData.setDrugDose(String.valueOf(organDrug.getUseDose()));
+            detailData.setManufacturerName(drugList.getProducer());
+            detailData.setDrugDose(String.valueOf(recipedetail.getUseDose()));
             try {
                 detailData.setDrugAdminRouteName(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipedetail.getUsePathways()));
             } catch (Exception e) {
                 LOGGER.error("get UsePathways error", e);
             }
             detailData.setDrugUsingFreq(recipedetail.getUsingRate());
+            //TODO
 //            detailData.setDespensingNum(recipedetail.getPack());
             detailData.setPackUnit(recipedetail.getDrugUnit());
             detailData.setCountUnit(String.valueOf(recipedetail.getUseTotalDose()));
 //            detailData.setUnitPrice(Double.valueOf(recipedetail.getDrugCost().toString()));
 //            detailData.setFeeTotal(Double.valueOf((recipedetail.getDrugCost().
 //                    multiply(new BigDecimal(recipedetail.getUseTotalDose()))).toString()));
-            //TODO
-//            detailData.setPreparation(organDrug.getDrugForm());
+            detailData.setPreparation(drugList.getDrugForm());
             detailData.setStartTime(DateConversion.getDateFormatter(new Date(),DateConversion.DEFAULT_DATE_TIME));
             detailData.setEndTime(DateConversion.getDateFormatter(DateConversion.getDateAftXDays(new Date(), 3), DateConversion.DEFAULT_DATE_TIME));
+            detailDatas.add(detailData);
         });
         prescription.setPrescriptionItems(detailDatas);
         return prescription;
