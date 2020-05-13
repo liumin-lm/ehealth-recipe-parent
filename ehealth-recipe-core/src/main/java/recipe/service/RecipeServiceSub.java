@@ -1930,6 +1930,10 @@ public class RecipeServiceSub {
                 } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode) || RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
                     tips = "处方正在审核中.";
                 }
+                String reason = RecipeServiceSub.getCancelReasonForChecker(recipe.getRecipeId());
+                if (StringUtils.isNotEmpty(reason)){
+                    tips = reason;
+                }
                 break;
             case RecipeStatusConstant.WAIT_SEND:
             case RecipeStatusConstant.CHECK_PASS_YS:
