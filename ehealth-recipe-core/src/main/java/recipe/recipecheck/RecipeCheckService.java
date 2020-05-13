@@ -758,6 +758,9 @@ public class RecipeCheckService {
         if(RecipeStatusConstant.REVOKE == status){
             return RecipePharmacistCheckConstant.Check_Failure;
         }
+        if(RecipeStatusConstant.SIGN_ERROR_CODE_PHA == status || RecipeStatusConstant.SIGN_ING_CODE_PHA == status ){
+            return RecipePharmacistCheckConstant.Already_Check;
+        }
         if (RecipeStatusConstant.READY_CHECK_YS == status) {
             checkResult = RecipePharmacistCheckConstant.Already_Check;
         } else {
