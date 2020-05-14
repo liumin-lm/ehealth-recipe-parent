@@ -17,6 +17,7 @@ import recipe.ApplicationUtils;
 import recipe.common.CommonConstant;
 import recipe.common.response.CommonResponse;
 import recipe.constant.CacheConstant;
+import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
@@ -108,6 +109,14 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
                         return null;
                     }
                     response = service.uploadRecipeIndicators(Arrays.asList(recipe));
+                }
+            }else {
+                //互联网模式
+                if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
+                    if (status == 2 && canUploadByReviewType(recipe)) {
+                        response = service.uploadRecipeIndicators(Arrays.asList(recipe));
+                        flag = true;
+                    }
                 }
             }
         } catch (Exception e) {
