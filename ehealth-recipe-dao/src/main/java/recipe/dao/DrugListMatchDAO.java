@@ -66,7 +66,7 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
                     hql.append(" drugName like :keyword or producer like :keyword or saleName like :keyword or organDrugCode like :keyword ");
                     hql.append(")");
                 }
-                if (!ObjectUtils.isEmpty(status)) {
+                if (!ObjectUtils.isEmpty(status)&&!status.equals(-1)) {
                     hql.append(" and status =:status");
                 }
                 if (status.equals(-1)){
