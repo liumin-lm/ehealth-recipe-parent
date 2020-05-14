@@ -1285,7 +1285,7 @@ public class RecipeCheckService {
                 long now = new Date().getTime();
                 long localLimeDate = recipeCheck.getLocalLimitDate().getTime();
                 long diff = localLimeDate - now;
-                if (diff <= 0) {
+                if (null == recipeCheck.getChecker() && diff <= 0) {
                     // 自动解除抢单
                     recipeCheck.setGrabOrderStatus(GrabOrderStatusConstant.GRAB_ORDER_NO);
                     recipeCheck.setLocalLimitDate(null);
