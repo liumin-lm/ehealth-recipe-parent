@@ -55,17 +55,17 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
     public DrugEnterpriseResult pushRecipe(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
-        return null;
+        return "暂不支持库存查询";
     }
 
     @RpcService
@@ -175,17 +175,17 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
     public DrugEnterpriseResult pushCheckResult(Integer recipeId, Integer checkFlag, DrugsEnterprise enterprise) {
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise) {
-        return null;
+        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override

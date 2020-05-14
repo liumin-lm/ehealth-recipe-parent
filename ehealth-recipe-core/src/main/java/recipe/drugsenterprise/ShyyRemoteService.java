@@ -78,11 +78,17 @@ public class ShyyRemoteService  extends AccessDrugEnterpriseService {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         for (Recipedetail recipedetail : recipedetails) {
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
-            if (saleDrugList.getInventory().doubleValue() < recipedetail.getUseTotalDose()) {
-                //说明开药比较多
+            if (saleDrugList != null && saleDrugList.getInventory() != null) {
+                if (saleDrugList.getInventory().doubleValue() < recipedetail.getUseTotalDose()) {
+                    //说明开药比较多
+                    drugEnterpriseResult.setCode(DrugEnterpriseResult.FAIL);
+                    return drugEnterpriseResult;
+                }
+            } else {
                 drugEnterpriseResult.setCode(DrugEnterpriseResult.FAIL);
                 return drugEnterpriseResult;
             }
+
         }
         return drugEnterpriseResult;
     }
