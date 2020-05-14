@@ -1033,6 +1033,14 @@ public class RecipeServiceSub {
                 case OrderStatusConstant.SENDING_INT:
                     tips = "配送中";
                     break;
+                //date 20200514
+                //添加订单药店配送有无库存待取药
+                case OrderStatusConstant.NO_DRUG_INT:
+                    tips = "待取药";
+                    break;
+                case OrderStatusConstant.HAS_DRUG_INT:
+                    tips = "待取药";
+                    break;
             }
         }
         //date 20200506
