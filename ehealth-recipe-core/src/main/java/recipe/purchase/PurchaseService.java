@@ -416,9 +416,11 @@ public class PurchaseService {
         switch (status) {
             case RecipeStatusConstant.READY_CHECK_YS:
                 tips = "请耐心等待药师审核";
-                String reason = RecipeServiceSub.getCancelReasonForChecker(recipe.getRecipeId());
-                if (StringUtils.isNotEmpty(reason)){
-                    tips = reason;
+                if (ReviewTypeConstant.Preposition_Check.equals(recipe.getReviewType())){
+                    String reason = RecipeServiceSub.getCancelReasonForChecker(recipe.getRecipeId());
+                    if (StringUtils.isNotEmpty(reason)){
+                        tips = reason;
+                    }
                 }
                 break;
             case RecipeStatusConstant.CHECK_PASS:
