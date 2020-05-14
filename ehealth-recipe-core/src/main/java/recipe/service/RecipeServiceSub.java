@@ -1404,7 +1404,7 @@ public class RecipeServiceSub {
                 if(CollectionUtils.isNotEmpty(auditMedicineIssues)){
                     List<AuditMedicineIssue> resultMedicineIssues = new ArrayList<>();
                     auditMedicineIssues.forEach(item->{
-                        if(StringUtils.isNotEmpty(item.getDetailUrl())){
+                        if (null == item.getMedicineId()) {
                             resultMedicineIssues.add(item);
                         }
                     });
