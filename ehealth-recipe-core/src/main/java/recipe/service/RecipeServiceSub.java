@@ -1611,7 +1611,7 @@ public class RecipeServiceSub {
             }
         }
         //获取药师撤销原因
-        if (recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS){
+        if (recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS && ReviewTypeConstant.Preposition_Check.equals(recipe.getReviewType())){
             map.put("cancelReason", getCancelReasonForChecker(recipeId));
         }
         //Date:2019/12/16
@@ -1936,9 +1936,11 @@ public class RecipeServiceSub {
                 } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode) || RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
                     tips = "处方正在审核中.";
                 }
-                String reason = RecipeServiceSub.getCancelReasonForChecker(recipe.getRecipeId());
-                if (StringUtils.isNotEmpty(reason)){
-                    tips = reason;
+                if (ReviewTypeConstant.Preposition_Check.equals(recipe.getReviewType())){
+                    String reason = RecipeServiceSub.getCancelReasonForChecker(recipe.getRecipeId());
+                    if (StringUtils.isNotEmpty(reason)){
+                        tips = reason;
+                    }
                 }
                 break;
             case RecipeStatusConstant.WAIT_SEND:
