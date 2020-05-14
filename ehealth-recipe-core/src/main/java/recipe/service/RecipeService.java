@@ -17,6 +17,8 @@ import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.base.push.model.SmsInfoBean;
+import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
@@ -761,6 +763,14 @@ public class RecipeService extends RecipeBaseService {
                         resultVo.setFileId(fileId);
                         signRecipeInfoSave(recipeId, false, resultVo, organId);
                     }else{
+                        ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
+                        SmsInfoBean smsInfo = new SmsInfoBean();
+                        smsInfo.setBusId(0);
+                        smsInfo.setOrganId(0);
+                        smsInfo.setBusType("SignNotify");
+                        smsInfo.setSmsType("SignNotify");
+                        smsInfo.setExtendValue(doctorDTOn.getUrt() + "|" + recipeId + "|" + doctorDTOn.getLoginId());
+                        smsPushService.pushMsgData2OnsExtendValue(smsInfo);
                         checkResult.setCode(RecipeResultBean.FAIL);
                     }
 //                        else {
@@ -1208,6 +1218,14 @@ public class RecipeService extends RecipeBaseService {
                         LOGGER.error("signBefText save error："  + e.getMessage());
                     }
                 }else{
+                    ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
+                    SmsInfoBean smsInfo = new SmsInfoBean();
+                    smsInfo.setBusId(0);
+                    smsInfo.setOrganId(0);
+                    smsInfo.setBusType("SignNotify");
+                    smsInfo.setSmsType("SignNotify");
+                    smsInfo.setExtendValue(doctorDTO.getUrt() + "|" + recipeId + "|" + doctorDTO.getLoginId());
+                    smsPushService.pushMsgData2OnsExtendValue(smsInfo);
                     result.setCode(RecipeResultBean.FAIL);
                 }
 //                else {
