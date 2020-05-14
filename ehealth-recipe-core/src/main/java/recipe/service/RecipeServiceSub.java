@@ -1033,6 +1033,14 @@ public class RecipeServiceSub {
                 case OrderStatusConstant.SENDING_INT:
                     tips = "配送中";
                     break;
+                //date 20200514
+                //添加订单药店配送有无库存待取药
+                case OrderStatusConstant.NO_DRUG_INT:
+                    tips = "待取药";
+                    break;
+                case OrderStatusConstant.HAS_DRUG_INT:
+                    tips = "待取药";
+                    break;
             }
         }
         //date 20200506
@@ -1611,7 +1619,7 @@ public class RecipeServiceSub {
             }
         }
         //获取药师撤销原因
-        if (recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS){
+        if (recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS && ReviewTypeConstant.Preposition_Check.equals(recipe.getReviewType())){
             map.put("cancelReason", getCancelReasonForChecker(recipeId));
         }
         //Date:2019/12/16
@@ -1936,9 +1944,11 @@ public class RecipeServiceSub {
                 } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode) || RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
                     tips = "处方正在审核中.";
                 }
-                String reason = RecipeServiceSub.getCancelReasonForChecker(recipe.getRecipeId());
-                if (StringUtils.isNotEmpty(reason)){
-                    tips = reason;
+                if (ReviewTypeConstant.Preposition_Check.equals(recipe.getReviewType())){
+                    String reason = RecipeServiceSub.getCancelReasonForChecker(recipe.getRecipeId());
+                    if (StringUtils.isNotEmpty(reason)){
+                        tips = reason;
+                    }
                 }
                 break;
             case RecipeStatusConstant.WAIT_SEND:

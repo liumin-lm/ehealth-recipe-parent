@@ -526,7 +526,8 @@ public class RecipeCheckService {
         }
         //药师能否撤销标识
         Boolean cancelRecipeFlag = false;
-        if (checkerId != null && checkerId.equals(recipe.getChecker())){
+        //只有审核通过的才有标识
+        if (checkerId != null && checkerId.equals(recipe.getChecker()) && new Integer(1).equals(checkResult)){
             cancelRecipeFlag = true;
         }
         map.put("cancelRecipeFlag", cancelRecipeFlag);
@@ -1285,7 +1286,7 @@ public class RecipeCheckService {
                 long now = new Date().getTime();
                 long localLimeDate = recipeCheck.getLocalLimitDate().getTime();
                 long diff = localLimeDate - now;
-                if (diff <= 0) {
+                if (null == recipeCheck.getChecker() && diff <= 0) {
                     // 自动解除抢单
                     recipeCheck.setGrabOrderStatus(GrabOrderStatusConstant.GRAB_ORDER_NO);
                     recipeCheck.setLocalLimitDate(null);
