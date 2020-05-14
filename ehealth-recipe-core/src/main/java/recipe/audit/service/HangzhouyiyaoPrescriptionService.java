@@ -90,7 +90,6 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
             return result;
         }
         PatientDTO patient = patientService.getPatientByMpiId(recipe.getMpiid());
-        RecipeExtendBean recipeExtend = recipe.getRecipeExtend();
         DoctorBean doctor = doctorService.getBeanByDoctorId(recipe.getDoctor());
         ProTitleDTO proTitle = proTitleService.getById(Integer.valueOf(doctor.getProTitle()));
         DepartmentDTO depart = departmentService.getById(recipe.getDepart());
@@ -101,7 +100,7 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
 
             reqTO.setBase(packBaseData(recipe));
 
-            reqTO.setPatient(packPatientData(patient, recipe, recipeExtend, depart));
+            reqTO.setPatient(packPatientData(patient, recipe, depart));
 
             reqTO.setPrescription(packPrescriptionData(recipe, recipedetails, proTitle, doctor,depart));
 
@@ -155,12 +154,12 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
         return baseData;
     }
 
-    private HzyyPatientData packPatientData(PatientDTO patient, RecipeBean recipe, RecipeExtendBean recipeExtend,DepartmentDTO depart) {
+    private HzyyPatientData packPatientData(PatientDTO patient, RecipeBean recipe,DepartmentDTO depart) {
         HzyyPatientData patientData = new HzyyPatientData();
         patientData.setSex(patient.getPatientSex().equals("1") ? "M" : "F");
         patientData.setName(patient.getPatientName());
         patientData.setBirthday(DateConversion.getDateFormatter(patient.getBirthday(), DateConversion.YYYY_MM_DD));
-        patientData.setMedCardNo(recipeExtend.getCardNo());
+//        patientData.setMedCardNo(recipeExtend.getCardNo());
         patientData.setDeptId(String.valueOf(recipe.getDepart()));
         patientData.setIdType("身份证");
         patientData.setIdNo(patient.getIdcard());
