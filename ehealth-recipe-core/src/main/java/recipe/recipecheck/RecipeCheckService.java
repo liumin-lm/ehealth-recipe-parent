@@ -36,6 +36,7 @@ import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.jfree.chart.axis.StandardTickUnitSource;
 import recipe.constant.RecipeStatusConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -764,6 +765,7 @@ public class RecipeCheckService {
     private Integer getCheckResultByPending(Recipe recipe) {
         Integer checkResult = 0;
         Integer status = recipe.getStatus();
+        RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
         //date 20191127
         //添加前置判断:当审核方式是不需要审核则返回通过审核状态
         if (ReviewTypeConstant.Not_Need_Check == recipe.getReviewType()) {
@@ -773,7 +775,17 @@ public class RecipeCheckService {
             return RecipePharmacistCheckConstant.Check_Failure;
         }
         if(RecipeStatusConstant.SIGN_ERROR_CODE_PHA == status || RecipeStatusConstant.SIGN_ING_CODE_PHA == status ){
-            return RecipePharmacistCheckConstant.Already_Check;
+            RecipeCheck nowRecipeCheck = recipeCheckDAO.getNowCheckResultByRecipeId(recipe.getRecipeId());
+            if(null != nowRecipeCheck) {
+                if (1 == nowRecipeCheck.getCheckStatus()) {
+                    checkResult = RecipePharmacistCheckConstant.Check_Pass;
+                } else {
+                    checkResult = RecipePharmacistCheckConstant.Check_Failure;
+                }
+            }else{
+                LOGGER.warn("当前处方{}不存在！", recipe.getRecipeId());
+            }
+            return checkResult;
         }
         if (RecipeStatusConstant.READY_CHECK_YS == status) {
             checkResult = RecipePharmacistCheckConstant.Already_Check;
@@ -781,7 +793,6 @@ public class RecipeCheckService {
             if (StringUtils.isNotEmpty(recipe.getSupplementaryMemo())) {
                 checkResult = RecipePharmacistCheckConstant.Second_Sign;
             } else {
-                RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
                 List<RecipeCheck> recipeCheckList = recipeCheckDAO.findByRecipeId(recipe.getRecipeId());
                 //有审核记录就展示
                 if (CollectionUtils.isNotEmpty(recipeCheckList)) {
