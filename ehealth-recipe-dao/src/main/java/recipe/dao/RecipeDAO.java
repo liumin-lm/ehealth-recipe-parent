@@ -1522,8 +1522,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 break;
             case 1:
                 //审核时间
-                hql.append(" and r.checkDate >= :startTime"
-                        + " and r.checkDate <= :endTime ");
+                hql.append(" and c.checkDate >= :startTime"
+                        + " and c.checkDate <= :endTime ");
                 break;
             case 2:
                 //审核时间
