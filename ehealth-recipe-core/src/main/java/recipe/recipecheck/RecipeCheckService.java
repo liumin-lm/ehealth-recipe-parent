@@ -528,7 +528,8 @@ public class RecipeCheckService {
         //药师能否撤销标识
         Boolean cancelRecipeFlag = false;
         //只有审核通过的才有标识
-        if (checkerId != null && checkerId.equals(recipe.getChecker()) && new Integer(1).equals(checkResult)){
+        if (checkerId != null && checkerId.equals(recipe.getChecker()) && new Integer(1).equals(checkResult)
+                && !(RecipeStatusConstant.SIGN_ERROR_CODE_PHA == recipe.getStatus() || RecipeStatusConstant.SIGN_ING_CODE_PHA == recipe.getStatus())){
             cancelRecipeFlag = true;
         }
         map.put("cancelRecipeFlag", cancelRecipeFlag);
