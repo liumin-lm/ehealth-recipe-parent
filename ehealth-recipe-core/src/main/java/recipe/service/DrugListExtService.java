@@ -238,6 +238,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         DrugSearchService searchService = AppContextHolder.getBean("es.drugSearchService", DrugSearchService.class);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
         DrugSearchTO searchTO = new DrugSearchTO();
         searchTO.setDrugName(StringUtils.isEmpty(drugName) ? "" : drugName.toLowerCase());
@@ -287,10 +288,10 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             LOGGER.info("searchDrugListWithES result DList.size = " + dList.size());
         } else {
             LOGGER.info("searchDrugListWithES result isEmpty! drugName = " + drugName);
+            //organDrugListDAO.findByDrugNameLikeNew(organId,drugName,start,limit);
         }
 
         //从机构药品目录查询改药品剂型
-        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         DrugList drugListNow;
         for (SearchDrugDetailDTO detailDTO : dList) {

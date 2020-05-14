@@ -751,5 +751,33 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
     @DAOMethod(sql = "from OrganDrugList ")
     public abstract List<OrganDrugList> findOrganDrug(@DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
 
-
+    /**
+     * 药品名称模糊查询
+     *
+     * @param drugName 药品名称
+     * @return List<OrganDrugList>
+     * @author luf
+     */
+    public List<OrganDrugList> findByDrugNameLikeNew(final Integer organId, final String drugName, final int start, final int limit) {
+        HibernateStatelessResultAction<List<OrganDrugList>> action = new AbstractHibernateStatelessResultAction<List<OrganDrugList>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("select a from OrganDrugList a, DrugList b where a.drugId=b.drugId ");
+                if (organId !=null){
+                    hql.append("and a.organId = :organId ");
+                }
+                hql.append("and a.status=1 and b.status =1 and (a.drugName like :drugName or a.saleName like :drugName) order by a.organDrugId desc");
+                Query q = ss.createQuery(hql.toString());
+                if (organId !=null){
+                    q.setParameter("organId", organId);
+                }
+                q.setParameter("drugName", "%" + drugName + "%");
+                q.setFirstResult(start);
+                q.setMaxResults(limit);
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        return action.getResult();
+    }
 }
