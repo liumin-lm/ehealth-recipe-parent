@@ -463,7 +463,7 @@ public class RecipeServiceSub {
         if (CollectionUtils.isNotEmpty(noFilterDrugName)) {
             LOGGER.warn("setDetailsInfo 存在无法配送的药品. recipeId=[{}], drugIds={}, noFilterDrugName={}",
                     recipeId, JSONUtils.toString(drugIds), JSONUtils.toString(noFilterDrugName));
-            throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(noFilterDrugName) + "不在该机构可配送药企的药品目录里面,无法进行配送");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(noFilterDrugName) + "不在该机构可配送药企的药品目录里面，无法进行配送");
         }
 
         noFilterDrugName.clear();
