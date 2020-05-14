@@ -1522,8 +1522,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 break;
             case 1:
                 //审核时间
-                hql.append(" and r.checkDate >= :startTime"
-                        + " and r.checkDate <= :endTime ");
+                hql.append(" and c.checkDate >= :startTime"
+                        + " and c.checkDate <= :endTime ");
                 break;
             case 2:
                 //审核时间
@@ -1564,7 +1564,24 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         }
 
         if (checkStatus != null) {
-            hql.append(" and c.checkStatus=").append(checkStatus);
+//            checkResult 0:未审核 1:通过 2:不通过 3:二次签名 4:失效
+            switch (checkStatus){
+                case 0:
+                    hql.append(" and r.status =").append(8);
+                    break;
+                case 1:
+                    hql.append(" and c.checkStatus =").append(1);
+                    break;
+                case 2:
+                    hql.append(" and c.checkStatus =").append(0).append(" and r.checker is not null ");
+                    break;
+                case 3:
+                    hql.append(" and r.supplementaryMemo is not null ");
+                    break;
+                case 4:
+                    hql.append(" and r.status = ").append(9);
+                    break;
+            }
         }
 
         if (payFlag != null) {
