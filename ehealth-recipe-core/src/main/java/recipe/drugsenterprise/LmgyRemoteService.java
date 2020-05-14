@@ -85,9 +85,8 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
         for (Recipedetail recipedetail : recipedetails) {
             //获取oraanDrugCode
             Map<String,Object> paramMap=new HashMap<>();
-            int organId = recipe.getClinicOrgan();
-            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), organId);
-            if(saleDrugList == null) return  new DrugEnterpriseResult(0);
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
+            if(saleDrugList == null) return  DrugEnterpriseResult.getFail();
             LOGGER.info("LmgyRemoteService.scanStock:请求临沐国药调用库存校验，drugId{}", recipedetail.getDrugId());
             paramMap.put("drugCode",saleDrugList.getOrganDrugCode());
             paramMap.put("total",recipedetail.getUseTotalDose());
