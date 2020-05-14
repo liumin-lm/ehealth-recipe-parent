@@ -1277,7 +1277,7 @@ public class RecipeCheckService {
         try {
             RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeIdAndCheckStatus(recipeId);
             List<RecipeCheck> recipeCheckeds = recipeCheckDAO.findByRecipeId(recipeId);
-            if ((null == recipeCheck && CollectionUtils.isEmpty(recipeCheckeds)) || recipeCheck.getGrabOrderStatus().equals(GrabOrderStatusConstant.GRAB_ORDER_NO)) {
+            if ((null == recipeCheck && CollectionUtils.isEmpty(recipeCheckeds)) || (null != recipeCheck && recipeCheck.getGrabOrderStatus().equals(GrabOrderStatusConstant.GRAB_ORDER_NO))) {
                 resultMap.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDER_NO);
                 resultMap.put("lockLimitTime", 10); //未抢单默认返回10
                 return resultMap;
