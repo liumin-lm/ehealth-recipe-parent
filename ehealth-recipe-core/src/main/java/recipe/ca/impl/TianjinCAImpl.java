@@ -50,7 +50,7 @@ public class TianjinCAImpl implements CAInterface {
         try {
             //用户操作类型 * 1.用户注册 * 2.用户修改 * 3.用户查询
             caAccountRequestTO.setBusType(3);
-            if (!iCommonCAServcie.caUserBusiness(caAccountRequestTO)) {
+            if (iCommonCAServcie.caUserBusiness(caAccountRequestTO)) {
                 LOGGER.info("account is exist!");
                 return true;
             }
@@ -65,10 +65,10 @@ public class TianjinCAImpl implements CAInterface {
                 caCertificateRequestTO.setUserAccount(doctorDTO.getLoginId());
                 caCertificateRequestTO.setBusType(1);
                 CaCertificateResponseTO caCertificateResponseTO = iCommonCAServcie.caCertificateBusiness(caCertificateRequestTO);
-                LOGGER.info("TianjinCAImpl caCertificateBusiness end response={}", caCertificateResponseTO);
+                LOGGER.info("TianjinCAImpl caCertificateBusiness end response={}", JSONUtils.toString(caCertificateResponseTO));
 
                 SignDoctorCaInfo caInfo = signDoctorCaInfoDAO.getDoctorSerCodeByDoctorIdAndType(doctorId, CommonCAFactory.CA_TYPE_TIANJIN);
-                LOGGER.info("TianjinCAImpl getDoctorSerCodeByDoctorIdAndType end response={}", caInfo);
+                LOGGER.info("TianjinCAImpl getDoctorSerCodeByDoctorIdAndType end response={}", JSONUtils.toString(caInfo));
                 if (null == caInfo) {
                     caInfo = new SignDoctorCaInfo();
                     caInfo.setCert_voucher(caCertificateResponseTO.getCretBody());
@@ -119,7 +119,7 @@ public class TianjinCAImpl implements CAInterface {
             if (responseTO == null || responseTO.getCode() != 200) {
                 signResultVo.setCode(responseTO.getCode());
                 signResultVo.setMsg(responseTO.getMsg());
-                LOGGER.error("caSignBusiness Romote error, signResultVo={}", signResultVo);
+                LOGGER.error("caSignBusiness Romote error, signResultVo={}", JSONUtils.toString(signResultVo));
                 return signResultVo;
             }
             signResultVo.setSignRecipeCode(responseTO.getSignValue());
@@ -134,7 +134,7 @@ public class TianjinCAImpl implements CAInterface {
             if (responseDateTO == null || responseDateTO.getCode() != 200) {
                 signResultVo.setCode(responseDateTO.getCode());
                 signResultVo.setMsg(responseDateTO.getMsg());
-                LOGGER.error("caSignDateBusiness Romote error, signResultVo={}", signResultVo);
+                LOGGER.error("caSignDateBusiness Romote error, signResultVo={}", JSONUtils.toString(signResultVo));
                 return signResultVo;
             }
             signResultVo.setSignCADate(responseDateTO.getSignDate());
@@ -143,6 +143,7 @@ public class TianjinCAImpl implements CAInterface {
             requestSealTO.setOrganId(organId);
             requestSealTO.setUserPin(caPassword);
             requestSealTO.setUserAccount(userAccount);
+            requestSealTO.setCertVoucher(caInfo.getCert_voucher());
             DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
             DoctorExtendDTO doctorExtendDTO = doctorExtendService.getByDoctorId(recipe.getChecker());
             if (doctorExtendDTO != null && doctorExtendDTO.getSealData() != null) {
@@ -150,14 +151,14 @@ public class TianjinCAImpl implements CAInterface {
             } else {
                 requestSealTO.setSealBase64Str("");
             }
-            LOGGER.info("caSealBusiness before requestSealTO={}", requestSealTO);
+            LOGGER.info("caSealBusiness before requestSealTO={}", JSONUtils.toString(requestSealTO));
             CaSealResponseTO responseSealTO = iCommonCAServcie.caSealBusiness(requestSealTO);
-            LOGGER.info("caSealBusiness end responseSealTO={}", responseSealTO);
+            LOGGER.info("caSealBusiness end responseSealTO={}", JSONUtils.toString(responseTO));
 
             if (responseSealTO == null || responseSealTO.getCode() != 200){
                 signResultVo.setCode(responseSealTO.getCode());
                 signResultVo.setMsg(responseSealTO.getMsg());
-                LOGGER.error("caSealBusiness Romote error, signResultVo={}", signResultVo);
+                LOGGER.error("caSealBusiness Romote error, signResultVo={}", JSONUtils.toString(signResultVo));
                 return signResultVo;
             }
             signResultVo.setPdfBase64(responseSealTO.getPdfBase64File());

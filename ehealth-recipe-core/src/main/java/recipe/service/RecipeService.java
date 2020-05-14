@@ -1651,7 +1651,7 @@ public class RecipeService extends RecipeBaseService {
                 if(!Integer.valueOf(1).equals(recipe.getDistributionFlag())){
                     //错误信息弹出框，能否继续标记----点击是可以继续开方
                     rMap.put("canContinueFlag", true);
-                    rMap.put("msg", recipeResult1.getMsg()+",仅支持到院取药，是否继续开方？");
+                    rMap.put("msg", recipeResult1.getMsg()+"，仅支持到院取药，是否继续开方？");
                 }
                 LOGGER.info("doSignRecipe recipeId={},msg={}",recipeId,rMap.get("msg"));
                 return rMap;
@@ -1671,7 +1671,7 @@ public class RecipeService extends RecipeBaseService {
                 if(!Integer.valueOf(1).equals(recipe.getDistributionFlag())){
                     //错误信息弹出框，能否继续标记----点击是可以继续开方
                     rMap.put("canContinueFlag", true);
-                    rMap.put("msg", "由于该处方单上的药品配送药企库存不足,该处方仅支持到院取药,无法药企配送,是否继续？");
+                    rMap.put("msg", "由于该处方单上的药品配送药企库存不足，该处方仅支持到院取药，无法药企配送，是否继续？");
                 }
                 LOGGER.info("doSignRecipe recipeId={},msg={}",recipeId,rMap.get("msg"));
                 return rMap;

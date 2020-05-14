@@ -100,6 +100,9 @@
 	<!--ebs药企对接-->
 	<bean id="ebsRemoteService" class="recipe.drugsenterprise.EbsRemoteService"/>
 
+	<!--临沐国药药企对接-->
+	<bean id="lmgyRemoteService" class="recipe.drugsenterprise.LmgyRemoteService"/>
+
 	<bean id="busTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" destroy-method="shutdown">
 		<!-- 线程池活跃的线程数 -->
 		<property name="corePoolSize" value="5" />

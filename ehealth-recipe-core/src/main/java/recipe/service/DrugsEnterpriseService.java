@@ -150,6 +150,9 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
 
         BeanUtils.map(drugsEnterprise, target);
         target.setLastModify(new Date());
+        if (drugsEnterpriseBean.getExpressFeePayWay() == null){
+            target.setExpressFeePayWay(null);
+        }
         target = drugsEnterpriseDAO.update(target);
 
 
