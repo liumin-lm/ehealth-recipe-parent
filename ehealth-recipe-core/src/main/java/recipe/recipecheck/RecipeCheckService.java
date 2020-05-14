@@ -720,6 +720,19 @@ public class RecipeCheckService {
     private Integer getCheckResult(Recipe recipe) {
         Integer checkResult = 0;
         Integer status = recipe.getStatus();
+        if(RecipeStatusConstant.SIGN_ERROR_CODE_PHA == status || RecipeStatusConstant.SIGN_ING_CODE_PHA == status ){
+            RecipeCheck nowRecipeCheck = recipeCheckDAO.getNowCheckResultByRecipeId(recipe.getRecipeId());
+            if(null != nowRecipeCheck) {
+                if (1 == nowRecipeCheck.getCheckStatus()) {
+                    checkResult = RecipePharmacistCheckConstant.Check_Pass;
+                } else {
+                    checkResult = RecipePharmacistCheckConstant.Check_Failure;
+                }
+            }else{
+                LOGGER.warn("当前处方{}不存在！", recipe.getRecipeId());
+            }
+            return checkResult;
+        }
         if (RecipeStatusConstant.READY_CHECK_YS == status) {
             checkResult = 0;
         } else if (RecipeStatusConstant.REVOKE == status) {
