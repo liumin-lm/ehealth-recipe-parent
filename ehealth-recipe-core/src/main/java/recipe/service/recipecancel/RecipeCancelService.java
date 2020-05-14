@@ -91,7 +91,12 @@ public class RecipeCancelService {
             return rMap;
         }
         //审核通过变为待审核
-        result = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.READY_CHECK_YS, null);
+        Map<String, Object> updateMap = Maps.newHashMap();
+        if (StringUtils.isNotEmpty(recipe.getChemistSignFile())){
+            LOGGER.info("cancelRecipeForChecker recipe.getChemistSignFile ="+recipe.getChemistSignFile());
+            updateMap.put("chemistSignFile",null);
+        }
+        result = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.READY_CHECK_YS, updateMap);
         if (result){
             //向医生端推送药师撤销处方系统消息-------药师撤销处方审核结果
             RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_REVOKE_YS,recipe);
