@@ -528,7 +528,8 @@ public class RecipeCheckService {
         //药师能否撤销标识
         Boolean cancelRecipeFlag = false;
         //只有审核通过的才有标识
-        if (checkerId != null && checkerId.equals(recipe.getChecker()) && new Integer(1).equals(checkResult)){
+        if (checkerId != null && checkerId.equals(recipe.getChecker()) && new Integer(1).equals(checkResult)
+                && !(RecipeStatusConstant.SIGN_ERROR_CODE_PHA == recipe.getStatus() || RecipeStatusConstant.SIGN_ING_CODE_PHA == recipe.getStatus())){
             cancelRecipeFlag = true;
         }
         map.put("cancelRecipeFlag", cancelRecipeFlag);
@@ -626,7 +627,9 @@ public class RecipeCheckService {
         String signReason = "";
         if(RecipeStatusConstant.SIGN_ERROR_CODE_PHA == status){
             if (CollectionUtils.isNotEmpty(recipeLogs)) {
-                signReason = recipeLogs.get(0).getMemo();
+                signReason = "审方签名失败：" + recipeLogs.get(0).getMemo();
+            }else{
+                signReason = "审方签名失败!";
             }
         }
         if(RecipeStatusConstant.SIGN_ING_CODE_PHA == status){
