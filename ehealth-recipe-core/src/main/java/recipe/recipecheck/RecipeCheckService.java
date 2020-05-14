@@ -602,6 +602,7 @@ public class RecipeCheckService {
             paramMap.put("doctorId", loginDoctor.getDoctorId());
             paramMap.put("recipeId", r.getRecipeId());
             Map<String, Object> orderStatusAndLimitTime = getGrabOrderStatusAndLimitTime(paramMap);
+            setSignStatusToGrabOrder(orderStatusAndLimitTime, recipe);
             if (!orderStatusAndLimitTime.isEmpty()) {
                 map.put("lockLimitTime", orderStatusAndLimitTime.get("lockLimitTime"));
                 map.put("grabOrderStatus", orderStatusAndLimitTime.get("grabOrderStatus"));
@@ -609,6 +610,13 @@ public class RecipeCheckService {
         }
         getApothecary(recipe.getChecker(), order, map);
         return map;
+    }
+
+    private void setSignStatusToGrabOrder(Map<String, Object> orderStatusAndLimitTime, Recipe recipe) {
+        if(RecipeStatusConstant.SIGN_ERROR_CODE_PHA == recipe.getStatus() || RecipeStatusConstant.SIGN_ING_CODE_PHA == recipe.getStatus()){
+            orderStatusAndLimitTime.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDERED_OWN);
+            orderStatusAndLimitTime.put("lockLimitTime", 10);
+        }
     }
 
     private String getSignReasonForChecker(Integer recipeId, Integer status) {
@@ -1276,8 +1284,7 @@ public class RecipeCheckService {
         String recipeS = null;
         try {
             RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeIdAndCheckStatus(recipeId);
-            List<RecipeCheck> recipeCheckeds = recipeCheckDAO.findByRecipeId(recipeId);
-            if ((null == recipeCheck && CollectionUtils.isEmpty(recipeCheckeds)) || (null != recipeCheck && recipeCheck.getGrabOrderStatus().equals(GrabOrderStatusConstant.GRAB_ORDER_NO))) {
+            if (null == recipeCheck || recipeCheck.getGrabOrderStatus().equals(GrabOrderStatusConstant.GRAB_ORDER_NO)) {
                 resultMap.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDER_NO);
                 resultMap.put("lockLimitTime", 10); //未抢单默认返回10
                 return resultMap;
