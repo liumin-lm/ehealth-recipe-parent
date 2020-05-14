@@ -1050,7 +1050,7 @@ public class RecipeOrderService extends RecipeBaseService {
             }
             createOrderToDB(order, recipeIds, orderDAO, recipeDAO);
         } catch (DAOException e) {
-            LOGGER.warn("createOrder orderCode={}, error={}. ", order.getOrderCode(), e.getMessage());
+            LOGGER.warn("createOrder orderCode={}", order.getOrderCode(), e);
             saveFlag = false;
         } finally {
             //如果小概率造成orderCode重复，则修改并重试
@@ -1060,7 +1060,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     createOrderToDB(order, recipeIds, orderDAO, recipeDAO);
                     saveFlag = true;
                 } catch (DAOException e) {
-                    LOGGER.warn("createOrder again orderCode={}, error={}. ", order.getOrderCode(), e.getMessage());
+                    LOGGER.warn("createOrder again orderCode={}", order.getOrderCode(), e);
                     saveFlag = false;
                     result.setCode(RecipeResultBean.FAIL);
                     result.setMsg("保存订单系统错误");
@@ -2243,7 +2243,7 @@ public class RecipeOrderService extends RecipeBaseService {
     @RpcService
     public Boolean updateApothecaryByOrderId(ApothecaryVO apothecary) throws ValidateException {
         if (null == apothecary || null == apothecary.getOrderId()) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "参数异常");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "订单不存在");
         }
         ChinaIDNumberUtil.isValidIDNumber(apothecary.getDispensingApothecaryIdCard());
         try {

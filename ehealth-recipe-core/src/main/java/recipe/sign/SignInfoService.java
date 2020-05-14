@@ -11,6 +11,7 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.sign.SignDoctorCaInfo;
+import com.ngari.recipe.sign.ISignInfoService;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -33,7 +34,7 @@ import java.util.Date;
 import java.util.List;
 
 @RpcBean
-public class SignInfoService {
+public class SignInfoService implements ISignInfoService {
 
     private static final Logger logger = LoggerFactory.getLogger(SignInfoService.class);
 
@@ -47,6 +48,7 @@ public class SignInfoService {
     private DoctorService doctorService;
 
     @RpcService
+    @Override
     public void setSerCodeAndEndDateByDoctorId(Integer doctorId, String type, String serCode, Date caEndTime){
         SignDoctorCaInfo signDoctorCaInfo = signDoctorCaInfoDAO.getDoctorSerCodeByDoctorIdAndType(doctorId, type);
         DoctorService doctorService = BasicAPI.getService(DoctorService.class);

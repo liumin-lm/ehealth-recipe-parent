@@ -3,12 +3,16 @@ package recipe.audit.service;
 import com.ngari.base.doctor.model.DoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.his.base.service.IDepartmentService;
 import com.ngari.his.recipe.mode.*;
+import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.dto.ProTitleDTO;
+import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.service.ProTitleService;
 import com.ngari.recipe.common.RecipeCommonBaseTO;
+import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -30,6 +34,7 @@ import recipe.audit.bean.AutoAuditResult;
 import recipe.audit.bean.PAWebRecipeDanger;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.CompareDrugDAO;
+import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.service.RecipeHisService;
@@ -55,9 +60,6 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
     private PatientService patientService;
 
     @Autowired
-    private RecipeExtendDAO recipeExtendDAO;
-
-    @Autowired
     private IDoctorService doctorService;
 
     @Autowired
@@ -72,6 +74,12 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
     @Autowired
     private IConfigurationCenterUtilsService configService;
 
+    @Autowired
+    private DrugListDAO drugListDAO;
+
+    @Autowired
+    private DepartmentService departmentService;
+
     @Override
     @RpcService
     public AutoAuditResult analysis(RecipeBean recipe, List<RecipeDetailBean> recipedetails) {
@@ -85,6 +93,7 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
         RecipeExtendBean recipeExtend = recipe.getRecipeExtend();
         DoctorBean doctor = doctorService.getBeanByDoctorId(recipe.getDoctor());
         ProTitleDTO proTitle = proTitleService.getById(Integer.valueOf(doctor.getProTitle()));
+        DepartmentDTO depart = departmentService.getById(recipe.getDepart());
 
         try {
             HzyyRationalUseDrugReqTO reqTO = new HzyyRationalUseDrugReqTO();
@@ -92,9 +101,9 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
 
             reqTO.setBase(packBaseData(recipe));
 
-            reqTO.setPatient(packPatientData(patient, recipe, recipeExtend));
+            reqTO.setPatient(packPatientData(patient, recipe, recipeExtend, depart));
 
-            reqTO.setPrescription(packPrescriptionData(recipe, recipedetails, proTitle, doctor));
+            reqTO.setPrescription(packPrescriptionData(recipe, recipedetails, proTitle, doctor,depart));
 
             reqTO.setDiagnoses(packDiagnosisData(recipe));
             RecipeHisService recipeHisService = AppContextHolder.getBean("eh.recipeHisService", RecipeHisService.class);
@@ -146,7 +155,7 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
         return baseData;
     }
 
-    private HzyyPatientData packPatientData(PatientDTO patient, RecipeBean recipe, RecipeExtendBean recipeExtend) {
+    private HzyyPatientData packPatientData(PatientDTO patient, RecipeBean recipe, RecipeExtendBean recipeExtend,DepartmentDTO depart) {
         HzyyPatientData patientData = new HzyyPatientData();
         patientData.setSex(patient.getPatientSex().equals("1") ? "M" : "F");
         patientData.setName(patient.getPatientName());
@@ -155,14 +164,16 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
         patientData.setDeptId(String.valueOf(recipe.getDepart()));
         patientData.setIdType("身份证");
         patientData.setIdNo(patient.getIdcard());
-//        patientData.setPayType();//病人付费类型，如：自费，市医保，省医保等。
+        patientData.setPayType("自费");//病人付费类型，如：自费，市医保，省医保等。
         patientData.setHeight(patient.getHeight());//身高
         patientData.setWeight(patient.getWeight());//体重
         patientData.setPhoneNo(patient.getMobile());
+        patientData.setEventTime(DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
+        patientData.setDeptName(depart.getName());
         return patientData;
     }
 
-    private HzyyPrescriptionsData packPrescriptionData(RecipeBean recipe, List<RecipeDetailBean> recipedetails, ProTitleDTO proTitle, DoctorBean doctor) {
+    private HzyyPrescriptionsData packPrescriptionData(RecipeBean recipe, List<RecipeDetailBean> recipedetails, ProTitleDTO proTitle, DoctorBean doctor,DepartmentDTO department) {
         HzyyPrescriptionsData prescription = new HzyyPrescriptionsData();
         String recipeTempId = DigestUtil.md5For16(recipe.getClinicOrgan() +
                 recipe.getMpiid() + Calendar.getInstance().getTimeInMillis());
@@ -181,46 +192,47 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
         prescription.setRecipeTime(DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
         // prescription.setRecipeFeeTotal(Double.valueOf(recipe.getTotalMoney().toString()));
         prescription.setRecipeStatus("0");
+        prescription.setDeptName(department.getName());
 
         List<HzyyPrescriptionDetailData> detailDatas = new ArrayList<>();
 
         recipedetails.forEach(recipedetail -> {
+            DrugList drugList = drugListDAO.getById(recipedetail.getDrugId());
             HzyyPrescriptionDetailData detailData = new HzyyPrescriptionDetailData();
-            detailData.setRecipeItemId(String.valueOf(recipedetail.getRecipeDetailId()));
-            detailData.setRecipeId(String.valueOf(recipedetail.getRecipeId()));
+            String recipeDetailTempId = DigestUtil.md5For16(recipe.getClinicOrgan() +
+                    "" + recipedetail.getDrugId());
+            detailData.setRecipeItemId(recipeDetailTempId);
+            detailData.setRecipeId(recipeTempId);
             detailData.setGroupNo("1");
             Integer targetDrugId = compareDrugDAO.findTargetDrugIdByOriginalDrugId(recipedetail.getDrugId());
-//            OrganDrugList organDrug = organDrugListDAO.getByDrugIdAndOrganId(recipe.getClinicOrgan(), recipedetail.getDrugId());
             if (ObjectUtils.isEmpty(targetDrugId)) {
-//                if (organDrug != null && StringUtils.isNotEmpty(organDrug.getRegulationDrugCode())) {
-//                    detailData.setDrugId(organDrug.getRegulationDrugCode());
-//                } else {
-//                }
                 detailData.setDrugId(LocalStringUtil.toString(recipedetail.getDrugId()));
             } else {
                 detailData.setDrugId(LocalStringUtil.toString(targetDrugId));
             }
             detailData.setDrugName(recipedetail.getDrugName());
             detailData.setSpecification(recipedetail.getDrugSpec());
-            //TODO
-//            detailData.setManufacturerName(organDrug.getProducer());
-//            detailData.setDrugDose(String.valueOf(organDrug.getUseDose()));
+            detailData.setManufacturerName(drugList.getProducer());
+            detailData.setDrugDose(String.valueOf(drugList.getUseDose()));
             try {
                 detailData.setDrugAdminRouteName(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipedetail.getUsePathways()));
             } catch (Exception e) {
                 LOGGER.error("get UsePathways error", e);
             }
             detailData.setDrugUsingFreq(recipedetail.getUsingRate());
-//            detailData.setDespensingNum(recipedetail.getPack());
-            detailData.setPackUnit(recipedetail.getDrugUnit());
-            detailData.setCountUnit(String.valueOf(recipedetail.getUseTotalDose()));
+
+            detailData.setDespensingNum(recipedetail.getUseTotalDose());
+            detailData.setPackUnit(drugList.getUnit());
+            detailData.setCountUnit(String.valueOf(drugList.getPack()));
+            detailData.setSkinTestFlag("0");
+            detailData.setDrugReturnFlag("0");
 //            detailData.setUnitPrice(Double.valueOf(recipedetail.getDrugCost().toString()));
 //            detailData.setFeeTotal(Double.valueOf((recipedetail.getDrugCost().
 //                    multiply(new BigDecimal(recipedetail.getUseTotalDose()))).toString()));
-            //TODO
-//            detailData.setPreparation(organDrug.getDrugForm());
-            detailData.setStartTime(DateConversion.getDateFormatter(new Date(),DateConversion.DEFAULT_DATE_TIME));
+            detailData.setPreparation(drugList.getDrugForm());
+            detailData.setStartTime(DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
             detailData.setEndTime(DateConversion.getDateFormatter(DateConversion.getDateAftXDays(new Date(), 3), DateConversion.DEFAULT_DATE_TIME));
+            detailDatas.add(detailData);
         });
         prescription.setPrescriptionItems(detailDatas);
         return prescription;
@@ -233,10 +245,12 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
             String[] a = recipe.getOrganDiseaseName().split("；");
             String[] b = recipe.getOrganDiseaseId().split("；");
             for (int i = 0; i < a.length; i++) {
+                String diagIdTempId = DigestUtil.md5For16(recipe.getClinicOrgan() +
+                        "" + b[i]);
                 auditDiagnose = new HzyyDiagnosisData();
                 auditDiagnose.setDiagCode(b[i]);
                 auditDiagnose.setDiagame(a[i]);
-                auditDiagnose.setDiagId(b[i]);
+                auditDiagnose.setDiagId(diagIdTempId);
                 auditDiagnose.setDiagStatus("0");
                 auditDiagnose.setDiagDate(DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
                 diagnoses.add(auditDiagnose);

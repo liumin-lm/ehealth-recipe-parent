@@ -463,7 +463,7 @@ public class RecipeServiceSub {
         if (CollectionUtils.isNotEmpty(noFilterDrugName)) {
             LOGGER.warn("setDetailsInfo 存在无法配送的药品. recipeId=[{}], drugIds={}, noFilterDrugName={}",
                     recipeId, JSONUtils.toString(drugIds), JSONUtils.toString(noFilterDrugName));
-            throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(noFilterDrugName) + "药品不在该机构可配送药企的药品目录里面，无法进行配送");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(noFilterDrugName) + "不在该机构可配送药企的药品目录里面，无法进行配送");
         }
 
         noFilterDrugName.clear();
@@ -494,7 +494,7 @@ public class RecipeServiceSub {
                     recipeId, JSONUtils.toString(drugIds), JSONUtils.toString(noFilterDrugName));
             //一张处方单上的药品不能同时支持同一家药企配送
             //throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(noFilterDrugName) + "不能开具在一张处方上！");
-            throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(drugNames) + "不支持同一家药企配送，建议拆分药品开方。");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, Joiner.on(",").join(drugNames) + "不支持同一家药企配送");
         }
     }
 
@@ -1033,6 +1033,14 @@ public class RecipeServiceSub {
                 case OrderStatusConstant.SENDING_INT:
                     tips = "配送中";
                     break;
+                //date 20200514
+                //添加订单药店配送有无库存待取药
+                case OrderStatusConstant.NO_DRUG_INT:
+                    tips = "待取药";
+                    break;
+                case OrderStatusConstant.HAS_DRUG_INT:
+                    tips = "待取药";
+                    break;
             }
         }
         //date 20200506
@@ -1144,14 +1152,20 @@ public class RecipeServiceSub {
                     break;
                 case RecipeStatusConstant.SIGN_ERROR_CODE_DOC:
                     recipeLog = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.SIGN_ERROR_CODE_DOC);
+                    tips = "处方签名失败";
                     if (recipeLog != null &&recipeLog.size() > 0) {
-                        tips = recipeLog.get(0).getMemo();
+                        cancelReason = "处方签名失败:" + recipeLog.get(0).getMemo();
+                    }else{
+                        cancelReason = "处方签名失败！";
                     }
                     break;
                 case RecipeStatusConstant.SIGN_ERROR_CODE_PHA:
                     recipeLog = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), RecipeStatusConstant.SIGN_ERROR_CODE_PHA);
+                    tips = "审方签名失败";
                     if (recipeLog != null &&recipeLog.size() > 0) {
-                        tips = recipeLog.get(0).getMemo();
+                        cancelReason = "审方签名失败:" + recipeLog.get(0).getMemo();
+                    }else{
+                        cancelReason = "审方签名失败！";
                     }
                     break;
                 case RecipeStatusConstant.SIGN_ING_CODE_DOC:
@@ -1335,6 +1349,12 @@ public class RecipeServiceSub {
                         && recipe.getStatus() != RecipeStatusConstant.RECIPE_MEDICAL_FAIL
                         && recipe.getStatus() != RecipeStatusConstant.CHECKING_HOS
                         && recipe.getStatus() != RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN
+                        //date 2020/05/14
+                        //将签名失败和审核失败的
+                        && recipe.getStatus() != RecipeStatusConstant.SIGN_ERROR_CODE_PHA
+                        && recipe.getStatus() != RecipeStatusConstant.SIGN_ERROR_CODE_DOC
+                        && recipe.getStatus() != RecipeStatusConstant.SIGN_ING_CODE_DOC
+                        && recipe.getStatus() != RecipeStatusConstant.SIGN_ING_CODE_PHA
                         && !Integer.valueOf(1).equals(recipe.getChooseFlag())) {
                     cancelFlag = true;
                 }
@@ -1547,11 +1567,6 @@ public class RecipeServiceSub {
 
         }
 
-        //获取药师撤销原因
-        if (recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS){
-            map.put("cancelReason", getCancelReasonForChecker(recipeId));
-        }
-
         if (StringUtils.isEmpty(recipe.getMemo())) {
             recipe.setMemo("无");
         }
@@ -1574,6 +1589,16 @@ public class RecipeServiceSub {
         map.put("childRecipeFlag", childRecipeFlag);
         map.put("recipe", ObjectCopyUtils.convert(recipe, RecipeBean.class));
 
+        //慢病列表配置
+        try{
+            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            Integer recipeChooseChronicDisease = (Integer) configurationService.getConfiguration(recipe.getClinicOrgan(), "recipeChooseChronicDisease");
+            map.put("recipeChooseChronicDisease", recipeChooseChronicDisease);
+        }catch (Exception e){
+            LOGGER.error("RecipeServiceSub.getRecipeAndDetailByIdImpl 获取慢病配置error, recipeId:{}", recipeId, e);
+        }
+
+
         //设置订单信息
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
@@ -1585,13 +1610,17 @@ public class RecipeServiceSub {
             map.put("doctorSignImg",doctorDTO.getSignImage());
             map.put("doctorSignImgToken", FileAuth.instance().createToken(doctorDTO.getSignImage(), 3600L));
         }
-        //设置药师手签图片id
-        if (recipe.getChecker()!=null){
+        //设置药师手签图片id-----药师撤销审核结果不应该显示药师手签
+        if (recipe.getChecker()!=null && recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS){
             DoctorDTO auditDTO = doctorService.getByDoctorId(recipe.getChecker());
             if (auditDTO != null){
                 map.put("checkerSignImg",auditDTO.getSignImage());
                 map.put("checkerSignImgToken", FileAuth.instance().createToken(auditDTO.getSignImage(), 3600L));
             }
+        }
+        //获取药师撤销原因
+        if (recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS && ReviewTypeConstant.Preposition_Check.equals(recipe.getReviewType())){
+            map.put("cancelReason", getCancelReasonForChecker(recipeId));
         }
         //Date:2019/12/16
         //Explain:添加判断展示处方参考价格
@@ -1670,7 +1699,7 @@ public class RecipeServiceSub {
         return  auditMedicines;
     }
 
-    private static String getCancelReasonForChecker(int recipeId) {
+    public static String getCancelReasonForChecker(int recipeId) {
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
         List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.READY_CHECK_YS);
         String cancelReason ="";
@@ -1914,6 +1943,12 @@ public class RecipeServiceSub {
                     tips = "您已支付，药品将尽快为您配送.";
                 } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode) || RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
                     tips = "处方正在审核中.";
+                }
+                if (ReviewTypeConstant.Preposition_Check.equals(recipe.getReviewType())){
+                    String reason = RecipeServiceSub.getCancelReasonForChecker(recipe.getRecipeId());
+                    if (StringUtils.isNotEmpty(reason)){
+                        tips = reason;
+                    }
                 }
                 break;
             case RecipeStatusConstant.WAIT_SEND:
@@ -2271,11 +2306,14 @@ public class RecipeServiceSub {
         StringBuilder memo = new StringBuilder(msg);
         if (StringUtils.isEmpty(msg)) {
             Map<String, Integer> changeAttr = Maps.newHashMap();
-            if (!recipe.canMedicalPay()) {
-                changeAttr.put("chooseFlag", 1);
+            if(order !=null){
+                if (!recipe.canMedicalPay()) {
+                    changeAttr.put("chooseFlag", 1);
+                }
+                orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
             }
             result = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.REVOKE, changeAttr);
-            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+
             if (result) {
                 msg = "处方撤销成功";
                 //向患者推送处方撤销消息

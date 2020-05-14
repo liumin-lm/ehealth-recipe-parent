@@ -308,8 +308,7 @@ public class RecipeCheckService {
         }
         //20200323 越权检查
         checkUserIsChemistByDoctorId(reicpeIdI, doctorId);
-
-        return findRecipeAndDetailsAndCheckById(reicpeIdI);
+        return findRecipeAndDetailsAndCheckById(reicpeIdI,doctorId);
     }
 
     /**
@@ -319,7 +318,7 @@ public class RecipeCheckService {
      * @return
      */
     @RpcService
-    public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId) {
+    public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId,Integer checkerId) {
 
         RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
@@ -525,6 +524,13 @@ public class RecipeCheckService {
                 childRecipeFlag = true;
             }
         }
+        //药师能否撤销标识
+        Boolean cancelRecipeFlag = false;
+        //只有审核通过的才有标识
+        if (checkerId != null && checkerId.equals(recipe.getChecker()) && new Integer(1).equals(checkResult)){
+            cancelRecipeFlag = true;
+        }
+        map.put("cancelRecipeFlag", cancelRecipeFlag);
 
         //患者就诊卡信息
         RecipeExtend extend = extendDAO.getByRecipeId(recipeId);
@@ -634,7 +640,7 @@ public class RecipeCheckService {
         if (null != apothecaryId && !apothecaryId.equals(0)) {
             DoctorDTO doctorDTO = doctorService.get(apothecaryId);
             if (null != doctorDTO) {
-                apothecaryVO.setCheckApothecaryIdCard(doctorDTO.getIdNumber());
+                apothecaryVO.setCheckApothecaryIdCard(hideIdCard(doctorDTO.getIdNumber()));
                 apothecaryVO.setCheckApothecaryName(doctorDTO.getName());
             }
         }
@@ -757,6 +763,9 @@ public class RecipeCheckService {
         }
         if(RecipeStatusConstant.REVOKE == status){
             return RecipePharmacistCheckConstant.Check_Failure;
+        }
+        if(RecipeStatusConstant.SIGN_ERROR_CODE_PHA == status || RecipeStatusConstant.SIGN_ING_CODE_PHA == status ){
+            return RecipePharmacistCheckConstant.Already_Check;
         }
         if (RecipeStatusConstant.READY_CHECK_YS == status) {
             checkResult = RecipePharmacistCheckConstant.Already_Check;
@@ -891,12 +900,16 @@ public class RecipeCheckService {
         if (StringUtils.isEmpty(idCard)) {
             return "";
         }
-        //显示前1-3位
-        String str1 = idCard.substring(0, 3);
-        //显示后15-18位
-        String str2 = idCard.substring(14, 18);
-        idCard = str1 + "***********" + str2;
-        return idCard;
+        try {
+            //显示前1-3位
+            String str1 = idCard.substring(0, 3);
+            //显示后15-18位
+            String str2 = idCard.substring(14, 18);
+            idCard = str1 + "***********" + str2;
+            return idCard;
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     /**
@@ -1273,7 +1286,7 @@ public class RecipeCheckService {
                 long now = new Date().getTime();
                 long localLimeDate = recipeCheck.getLocalLimitDate().getTime();
                 long diff = localLimeDate - now;
-                if (diff <= 0) {
+                if (null == recipeCheck.getChecker() && diff <= 0) {
                     // 自动解除抢单
                     recipeCheck.setGrabOrderStatus(GrabOrderStatusConstant.GRAB_ORDER_NO);
                     recipeCheck.setLocalLimitDate(null);

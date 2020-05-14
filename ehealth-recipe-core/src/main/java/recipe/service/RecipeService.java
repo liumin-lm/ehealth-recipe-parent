@@ -693,7 +693,7 @@ public class RecipeService extends RecipeBaseService {
     }
 
     public RecipeResultBean generateCheckRecipePdf(Integer checker, Recipe recipe, int beforeStatus, int recipeStatus) {
-        RecipeResultBean checkResult = RecipeResultBean.getFail();
+        RecipeResultBean checkResult = RecipeResultBean.getSuccess();
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         DoctorService doctorService = BasicAPI.getService(DoctorService.class);
 
@@ -757,6 +757,8 @@ public class RecipeService extends RecipeBaseService {
                         RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
                         resultVo.setFileId(fileId);
                         signRecipeInfoSave(recipeId, false, resultVo, organId);
+                    }else{
+                        checkResult.setCode(RecipeResultBean.FAIL);
                     }
 //                        else {
 //                            RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
@@ -987,6 +989,19 @@ public class RecipeService extends RecipeBaseService {
         resultBean.setCheckResult(checkResult.getCheckStatus());
         resultBean.setCheckDetailList(recipeCheckDetailDAO.findByCheckId(checkResult.getCheckId()));
         int result = checkResult.getCheckStatus();
+
+        //date 20200512
+        //更新处方审核结果状态
+        int recipeStatus = RecipeStatusConstant.CHECK_NOT_PASS_YS;
+        if (1 == result) {
+            //根据审方模式改变状态
+            recipeStatus = auditModeContext.getAuditModes(recipe.getReviewType()).afterAuditRecipeChange();
+            if (recipe.canMedicalPay()) {
+                //如果是可医保支付的单子，审核是在用户看到之前，所以审核通过之后变为待处理状态
+                recipeStatus = RecipeStatusConstant.CHECK_PASS;
+            }
+        }
+        recipeDAO.updateRecipeInfoByRecipeId(recipeId, recipeStatus, null);
         //审核成功往药厂发消息
         //审方做异步处理
         GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
@@ -1095,7 +1110,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public RecipeResultBean generateRecipePdfAndSign(Integer recipeId) {
-        RecipeResultBean result = RecipeResultBean.getFail();
+        RecipeResultBean result = RecipeResultBean.getSuccess();
         if (null == recipeId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeId is null");
         }
@@ -1189,6 +1204,8 @@ public class RecipeService extends RecipeBaseService {
                     } catch (Exception e) {
                         LOGGER.error("signBefText save error："  + e.getMessage());
                     }
+                }else{
+                    result.setCode(RecipeResultBean.FAIL);
                 }
 //                else {
 //                    RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
@@ -1634,7 +1651,7 @@ public class RecipeService extends RecipeBaseService {
                 if(!Integer.valueOf(1).equals(recipe.getDistributionFlag())){
                     //错误信息弹出框，能否继续标记----点击是可以继续开方
                     rMap.put("canContinueFlag", true);
-                    rMap.put("msg", recipeResult1.getMsg()+",仅支持到院取药,是否继续？");
+                    rMap.put("msg", recipeResult1.getMsg()+"，仅支持到院取药，是否继续开方？");
                 }
                 LOGGER.info("doSignRecipe recipeId={},msg={}",recipeId,rMap.get("msg"));
                 return rMap;
@@ -1654,7 +1671,7 @@ public class RecipeService extends RecipeBaseService {
                 if(!Integer.valueOf(1).equals(recipe.getDistributionFlag())){
                     //错误信息弹出框，能否继续标记----点击是可以继续开方
                     rMap.put("canContinueFlag", true);
-                    rMap.put("msg", "由于该处方单上的药品配送药企库存不足,该处方仅支持到院取药,无法药企配送,是否继续？");
+                    rMap.put("msg", "由于该处方单上的药品配送药企库存不足，该处方仅支持到院取药，无法药企配送，是否继续？");
                 }
                 LOGGER.info("doSignRecipe recipeId={},msg={}",recipeId,rMap.get("msg"));
                 return rMap;
@@ -3722,7 +3739,7 @@ public class RecipeService extends RecipeBaseService {
             //通过证件号码获取患者年龄
             Integer age = 0;
             try {
-                age=ChinaIDNumberUtil.getAgeFromIDNumber(patientList.get(0).getIdcard());
+                age= ChinaIDNumberUtil.getAgeFromIDNumber(patientList.get(0).getIdcard());
                 LOGGER.info("findCanRecipeByAge 通过证件号码获取患者年龄{}",age);
             } catch (ValidateException e) {
                 LOGGER.error("findCanRecipeByAge 通过证件号码获取患者年龄异常"+e.getMessage());
