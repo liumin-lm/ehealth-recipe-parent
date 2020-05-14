@@ -66,19 +66,16 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
                     hql.append(" drugName like :keyword or producer like :keyword or saleName like :keyword or organDrugCode like :keyword ");
                     hql.append(")");
                 }
-                if (!ObjectUtils.isEmpty(status)&&!status.equals(-1)) {
+                if (!ObjectUtils.isEmpty(status)) {
                     hql.append(" and status =:status");
-                }
-                if (status.equals(-1)){
+                }else {
                     hql.append(" and status !=:status2");
                 }
                 /*hql.append(" order by createDt desc");*/
                 Query countQuery = ss.createQuery("select count(*) " + hql.toString());
-                if (!ObjectUtils.isEmpty(status)&&!status.equals(-1)) {
+                if (!ObjectUtils.isEmpty(status)) {
                     countQuery.setParameter("status", status);
-                }
-                if (status.equals(-1)) {
-                    countQuery.setParameter("status", status);
+                }else {
                     countQuery.setParameter("status2", status2);
                 }
                 if (!StringUtils.isEmpty(keyword)) {
@@ -91,11 +88,9 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
                 Long total = (Long) countQuery.uniqueResult();
 
                 Query query = ss.createQuery(hql.toString());
-                if (!ObjectUtils.isEmpty(status)&&!status.equals(-1)) {
+                if (!ObjectUtils.isEmpty(status)) {
                     query.setParameter("status", status);
-                }
-                if (status.equals(-1)) {
-                    query.setParameter("status", status);
+                }else {
                     query.setParameter("status2", status2);
                 }
                 if (!StringUtils.isEmpty(keyword)) {
