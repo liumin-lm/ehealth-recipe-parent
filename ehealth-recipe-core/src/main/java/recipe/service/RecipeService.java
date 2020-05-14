@@ -767,8 +767,8 @@ public class RecipeService extends RecipeBaseService {
                         SmsInfoBean smsInfo = new SmsInfoBean();
                         smsInfo.setBusId(0);
                         smsInfo.setOrganId(0);
-                        smsInfo.setBusType("SignNotify");
-                        smsInfo.setSmsType("SignNotify");
+                        smsInfo.setBusType("PhaSignNotify");
+                        smsInfo.setSmsType("PhaSignNotify");
                         smsInfo.setExtendValue(doctorDTOn.getUrt() + "|" + recipeId + "|" + doctorDTOn.getLoginId());
                         smsPushService.pushMsgData2OnsExtendValue(smsInfo);
                         checkResult.setCode(RecipeResultBean.FAIL);
@@ -1222,8 +1222,8 @@ public class RecipeService extends RecipeBaseService {
                     SmsInfoBean smsInfo = new SmsInfoBean();
                     smsInfo.setBusId(0);
                     smsInfo.setOrganId(0);
-                    smsInfo.setBusType("SignNotify");
-                    smsInfo.setSmsType("SignNotify");
+                    smsInfo.setBusType("DocSignNotify");
+                    smsInfo.setSmsType("DocSignNotify");
                     smsInfo.setExtendValue(doctorDTO.getUrt() + "|" + recipeId + "|" + doctorDTO.getLoginId());
                     smsPushService.pushMsgData2OnsExtendValue(smsInfo);
                     result.setCode(RecipeResultBean.FAIL);
