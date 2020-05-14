@@ -68,7 +68,8 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
                 }
                 if (!ObjectUtils.isEmpty(status)) {
                     hql.append(" and status =:status");
-                }else {
+                }
+                if (status.equals(-1)){
                     hql.append(" and status !=:status2");
                 }
                 /*hql.append(" order by createDt desc");*/
