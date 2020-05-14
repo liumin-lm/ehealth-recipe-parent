@@ -85,19 +85,16 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
         for (Recipedetail recipedetail : recipedetails) {
             //获取oraanDrugCode
             Map<String,Object> paramMap=new HashMap<>();
-            List<Integer> drugIds=new ArrayList<>();
-            drugIds.add(recipedetail.getDrugId());
-            int organid=recipe.getClinicOrgan();
-            List<SaleDrugList> saleDrugLists= saleDrugListDAO.findByOrganIdAndDrugIds(organid,drugIds);
-            if(saleDrugLists==null||saleDrugLists.size()==0) return  new DrugEnterpriseResult(0);
-            LOGGER.info("LmgyRemoteService.scanStock:[{}][{}]请求临沐国药调用库存校验，请求参数drugCode通过saleDrugListDAO.findByOrganIdAndDrugIds(organid{},drugIds{})未获取到值", drugsEnterprise.getId(), drugsEnterprise.getName(),organid,drugIds);
-            paramMap.put("drugCode",saleDrugLists.get(0).getOrganDrugCode());
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
+            if(saleDrugList == null) return  DrugEnterpriseResult.getFail();
+            LOGGER.info("LmgyRemoteService.scanStock:请求临沐国药调用库存校验，drugId{}", recipedetail.getDrugId());
+            paramMap.put("drugCode",saleDrugList.getOrganDrugCode());
             paramMap.put("total",recipedetail.getUseTotalDose());
             paramMap.put("unit",recipedetail.getDrugUnit());
             paramList.add(paramMap);
         }
         param.put("accesstoken",drugsEnterprise.getToken());
-        param.put("account",drugsEnterprise.getAccount());
+        param.put("account",drugsEnterprise.getUserId());
         param.put("password",drugsEnterprise.getPassword());
         param.put("drugList",paramList);
 
