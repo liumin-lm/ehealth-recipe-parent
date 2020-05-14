@@ -74,9 +74,10 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
                 }
                 /*hql.append(" order by createDt desc");*/
                 Query countQuery = ss.createQuery("select count(*) " + hql.toString());
-                if (!ObjectUtils.isEmpty(status)) {
+                if (!ObjectUtils.isEmpty(status)||status.equals(-1)) {
                     countQuery.setParameter("status", status);
-                }else {
+                }
+                if (status.equals(-1)) {
                     countQuery.setParameter("status2", status2);
                 }
                 if (!StringUtils.isEmpty(keyword)) {
@@ -89,9 +90,10 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
                 Long total = (Long) countQuery.uniqueResult();
 
                 Query query = ss.createQuery(hql.toString());
-                if (!ObjectUtils.isEmpty(status)) {
+                if (!ObjectUtils.isEmpty(status)||status.equals(-1)) {
                     query.setParameter("status", status);
-                }else {
+                }
+                if (status.equals(-1)) {
                     query.setParameter("status2", status2);
                 }
                 if (!StringUtils.isEmpty(keyword)) {
