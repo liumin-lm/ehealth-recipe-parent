@@ -98,4 +98,14 @@ public class OrderStatusConstant {
      */
     public static final int SENDING_INT = 4;
 
+    /**
+     * 药店取药（无库存可取药）
+     */
+    public static final int NO_DRUG_INT = 10;
+
+    /**
+     * 药店取药（有库存可取药）
+     */
+    public static final int HAS_DRUG_INT = 12;
+
 }
