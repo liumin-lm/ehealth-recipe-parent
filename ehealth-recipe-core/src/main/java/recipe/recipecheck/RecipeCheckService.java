@@ -626,7 +626,9 @@ public class RecipeCheckService {
         String signReason = "";
         if(RecipeStatusConstant.SIGN_ERROR_CODE_PHA == status){
             if (CollectionUtils.isNotEmpty(recipeLogs)) {
-                signReason = recipeLogs.get(0).getMemo();
+                signReason = "审方签名失败：" + recipeLogs.get(0).getMemo();
+            }else{
+                signReason = "审方签名失败!";
             }
         }
         if(RecipeStatusConstant.SIGN_ING_CODE_PHA == status){
