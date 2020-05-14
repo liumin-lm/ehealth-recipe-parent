@@ -1013,34 +1013,44 @@ public class RecipeServiceSub {
         String listTips = "";
         List<RecipeLog> recipeLog = null;
 
+        //date 20200515
+        //下载处方，下载处方待取药特殊处理，根据处方状态来
+        switch (status) {
+            case RecipeStatusConstant.RECIPE_DOWNLOADED:
+                tips = "待取药";
+                break;
+        }
+
         //date 20200506
         //修改展示状态的方式，有订单的状态现优先展示订单的状态再展示处方的状态
-        if(null != orderStatus){
-            switch (orderStatus) {
-                case OrderStatusConstant.READY_GET_DRUG_INT:
-                    if(null != recipe.getGiveMode() && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())){
-                        tips = "待下载";
-                    }else{
+        if(StringUtils.isEmpty(tips)) {
+            if (null != orderStatus) {
+                switch (orderStatus) {
+                    case OrderStatusConstant.READY_GET_DRUG_INT:
+                        if (null != recipe.getGiveMode() && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())) {
+                            tips = "待下载";
+                        } else {
+                            tips = "待取药";
+                        }
+                        break;
+                    case OrderStatusConstant.READY_DRUG_INT:
                         tips = "待取药";
-                    }
-                    break;
-                case OrderStatusConstant.READY_DRUG_INT:
-                    tips = "待取药";
-                    break;
-                case OrderStatusConstant.READY_SEND_INT:
-                    tips = "待配送";
-                    break;
-                case OrderStatusConstant.SENDING_INT:
-                    tips = "配送中";
-                    break;
-                //date 20200514
-                //添加订单药店配送有无库存待取药
-                case OrderStatusConstant.NO_DRUG_INT:
-                    tips = "待取药";
-                    break;
-                case OrderStatusConstant.HAS_DRUG_INT:
-                    tips = "待取药";
-                    break;
+                        break;
+                    case OrderStatusConstant.READY_SEND_INT:
+                        tips = "待配送";
+                        break;
+                    case OrderStatusConstant.SENDING_INT:
+                        tips = "配送中";
+                        break;
+                    //date 20200514
+                    //添加订单药店配送有无库存待取药
+                    case OrderStatusConstant.NO_DRUG_INT:
+                        tips = "待取药";
+                        break;
+                    case OrderStatusConstant.HAS_DRUG_INT:
+                        tips = "待取药";
+                        break;
+                }
             }
         }
         //date 20200506
