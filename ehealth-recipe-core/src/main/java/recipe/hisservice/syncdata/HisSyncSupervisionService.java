@@ -819,6 +819,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                         req.setName(patientDTO.getPatientName());
                         req.setGenderCode(patientDTO.getPatientSex());
                         req.setBirthdate(patientDTO.getBirthday());
+                        req.setNation(patientDTO.getNation());
                     }
                     req.setVisitNo(String.valueOf(recipe.getClinicId()));
                     req.setAccountNo(order.getTradeNo());
@@ -865,6 +866,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     if(recipeExtend!=null){
                         req.setRegisterNo(recipeExtend.getRegisterNo());
                     }
+                    //开方医生信息
+                    req.setDoctor(getRegulationBusDocReq(recipe.getDoctor(),recipe.getClinicOrgan(),recipe.getDepart()));
 
                     LOGGER.info("调用regulation接口，上传处方缴费信息，req = {}，payFlag = {}", JSONUtils.toString(req), payFlag);
                     IRegulationService regulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
