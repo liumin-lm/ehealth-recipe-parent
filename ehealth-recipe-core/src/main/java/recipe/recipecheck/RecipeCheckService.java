@@ -444,6 +444,7 @@ public class RecipeCheckService {
         if (recipeExtend != null) {
             map.put("recipeExtend", recipeExtend);
         }
+        map.put("showAllergyMedical", (null != recipeExtend && StringUtils.isNotEmpty(recipeExtend.getAllergyMedical())));
         //date 20191111
         //添加处方审核状态
         Integer checkResult = getCheckResultByPending(recipe);

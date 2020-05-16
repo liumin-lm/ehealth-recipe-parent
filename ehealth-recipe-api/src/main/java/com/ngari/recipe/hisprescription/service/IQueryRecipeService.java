@@ -44,7 +44,7 @@ public interface IQueryRecipeService {
      * @param organId
      * @param startDate
      * @param endDate
-     * @param checkFlag
+     * @param updateFlag
      * @return
      */
     @RpcService
@@ -56,4 +56,7 @@ public interface IQueryRecipeService {
 
     @RpcService
     RecipeResultBean updateOrSaveOrganDrug(OrganDrugChangeBean organDrugChangeBean);
+
+    @RpcService
+    Boolean updateSuperviseRecipecodeToRecipe(Integer recipeId, String superviseRecipecode);
 }

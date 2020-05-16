@@ -143,6 +143,18 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "电子票号")
     private String einvoiceNumber;
 
+    @ItemProperty(alias = "电子处方监管平台流水号")
+    private String superviseRecipecode;
+
+    @Column(name = "superviseRecipecode")
+    public String getSuperviseRecipecode() {
+        return superviseRecipecode;
+    }
+
+    public void setSuperviseRecipecode(String superviseRecipecode) {
+        this.superviseRecipecode = superviseRecipecode;
+    }
+
     @Column(name = "einvoiceNumber")
     public String getEinvoiceNumber() {
         return einvoiceNumber;
