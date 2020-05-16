@@ -2,7 +2,6 @@ package recipe.drugsenterprise;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
@@ -18,7 +17,6 @@ import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.DrugListForThreeBean;
 import com.ngari.recipe.recipe.model.RecipeAndOrderDetailBean;
-import com.ngari.recipe.recipe.model.SynchronizeDrugBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -30,7 +28,6 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -38,11 +35,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.ThirdResultBean;
+import recipe.common.CommonConstant;
+import recipe.common.response.CommonResponse;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.StandardResultDTO;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisService;
+import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.purchase.CommonOrder;
 import recipe.service.*;
@@ -384,6 +384,21 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                     PatientBean patientBean = iPatientService.get(recipe.getMpiid());
                     DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, details, patientBean, null);
                     service.drugTakeChange(request);
+                    return null;
+                });
+                //监管平台上传配送信息(派药)
+                RecipeBusiThreadPool.submit(()->{
+                    HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+                    CommonResponse response= hisSyncService.uploadSendMedicine(recipeId);
+                    if (CommonConstant.SUCCESS.equals(response.getCode())){
+                        //记录日志
+                        RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.IN_SEND,
+                                "监管平台配送信息[派药]上传成功");
+                    } else{
+                        //记录日志
+                        RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.IN_SEND,
+                                "监管平台配送信息[派药]上传失败："+response.getMsg());
+                    }
                     return null;
                 });
             }
