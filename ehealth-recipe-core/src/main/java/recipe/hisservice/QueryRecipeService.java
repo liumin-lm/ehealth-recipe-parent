@@ -1,6 +1,7 @@
 package recipe.hisservice;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.cdr.service.IDiseaseService;
@@ -553,6 +554,19 @@ public class QueryRecipeService implements IQueryRecipeService {
             //杭州互联网his药品同步处理
             return dealWithforHZInternet(organDrugChange);
         }
+    }
+
+    @Override
+    @RpcService
+    public Boolean updateSuperviseRecipecodeToRecipe(Integer recipeId, String superviseRecipecode) {
+        LOGGER.info("更新电子处方监管平台流水号入参：recipeId：{}，superviseRecipecode：{}", recipeId, superviseRecipecode);
+        if(null == recipeId){
+            return false;
+        }
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        Boolean result = recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeId, ImmutableMap.of("superviseRecipecode", superviseRecipecode));
+        LOGGER.info("更新电子处方监管平台流水号结果：{}", result);
+        return result;
     }
 
     private RecipeResultBean dealWithforOnlyOrganDrug(OrganDrugChangeBean organDrugChange) {
