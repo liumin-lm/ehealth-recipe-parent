@@ -560,6 +560,9 @@ public class QueryRecipeService implements IQueryRecipeService {
     @RpcService
     public Boolean updateSuperviseRecipecodeToRecipe(Integer recipeId, String superviseRecipecode) {
         LOGGER.info("更新电子处方监管平台流水号入参：recipeId：{}，superviseRecipecode：{}", recipeId, superviseRecipecode);
+        if(null == recipeId){
+            return false;
+        }
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         Boolean result = recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeId, ImmutableMap.of("superviseRecipecode", superviseRecipecode));
         LOGGER.info("更新电子处方监管平台流水号结果：{}", result);
