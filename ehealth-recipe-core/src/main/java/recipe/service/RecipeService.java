@@ -77,12 +77,15 @@ import recipe.bussutil.RecipeValidateUtil;
 import recipe.ca.CAInterface;
 import recipe.ca.factory.CommonCAFactory;
 import recipe.ca.vo.CaSignResultVo;
+import recipe.common.CommonConstant;
+import recipe.common.response.CommonResponse;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
 import recipe.hisservice.RecipeToHisCallbackService;
+import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.purchase.PurchaseService;
 import recipe.recipecheck.PlatRecipeCheckService;
@@ -163,6 +166,10 @@ public class RecipeService extends RecipeBaseService {
      * 手动退款
      */
     public static final int REFUND_MANUALLY = 4;
+    /**
+     * 患者手动退款
+     */
+    public static final int REFUND_PATIENT = 5;
 
     public static final String WX_RECIPE_BUSTYPE = "recipe";
 
@@ -3039,6 +3046,38 @@ public class RecipeService extends RecipeBaseService {
     }
 
     /**
+    * 患者手动退款
+    * @return
+    **/
+    @RpcService
+    public void patientRefundForRecipe(int recipeId) {
+        wxPayRefundForRecipe(5, recipeId, "患者手动申请退款");
+
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+
+        CommonResponse response = null;
+        HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+        try {
+            response = hisSyncService.uploadRecipeVerificationIndicators(Arrays.asList(recipe));
+            if (CommonConstant.SUCCESS.equals(response.getCode())){
+                //记录日志
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
+                        recipe.getStatus(), "监管平台上传处方退款信息成功");
+                LOGGER.info("patientRefundForRecipe execute success. recipeId={}", recipe.getRecipeId());
+            } else{
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(),
+                        recipe.getStatus(), "监管平台上传处方退款信息失败,"+response.getMsg());
+                LOGGER.warn("patientRefundForRecipe execute error. recipe={}", JSONUtils.toString(recipe));
+            }
+        } catch (Exception e) {
+            LOGGER.warn("patientRefundForRecipe exception recipe={}", JSONUtils.toString(recipe), e);
+        }
+    }
+
+
+
+    /**
      * 退款方法
      *
      * @param flag
@@ -3069,6 +3108,10 @@ public class RecipeService extends RecipeBaseService {
                 errorInfo += log;
                 status = RecipeStatusConstant.REVOKE;
                 break;
+            case 5:
+                errorInfo += log;
+                status = RecipeStatusConstant.REVOKE;
+                break;
             default:
                 errorInfo += "未知,flag=" + flag;
 
@@ -3087,6 +3130,11 @@ public class RecipeService extends RecipeBaseService {
             orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
             //处理处方单
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, null);
+        }else if (REFUND_PATIENT == flag) {
+            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+            orderService.updateOrderInfo(order.getOrderCode(), ImmutableMap.of("payFlag",2), null);
+            //处理处方单
+            recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, null);
         }
         orderService.updateOrderInfo(order.getOrderCode(), ImmutableMap.of("refundFlag", 1, "refundTime", new Date()), null);
 
@@ -3098,10 +3146,14 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.error("wxPayRefundForRecipe " + errorInfo + "*****微信退款异常！recipeId[" + recipeId + "],err[" + e.getMessage() + "]");
         }
 
-        if (CHECK_NOT_PASS == flag || PUSH_FAIL == flag || REFUND_MANUALLY == flag) {
-            //HIS消息发送
-            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-            hisService.recipeRefund(recipeId);
+        try {
+            if (CHECK_NOT_PASS == flag || PUSH_FAIL == flag || REFUND_MANUALLY == flag) {
+                //HIS消息发送
+                RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+                hisService.recipeRefund(recipeId);
+            }
+        } catch (Exception e) {
+            LOGGER.error("wxPayRefundForRecipe " + errorInfo + "*****HIS消息发送异常！recipeId[" + recipeId + "],err[" + e.getMessage() + "]");
         }
 
     }
