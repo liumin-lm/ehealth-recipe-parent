@@ -449,6 +449,11 @@ public class PurchaseService {
                 }
             case RecipeStatusConstant.REVOKE:
                 tips = "由于医生已撤销，该处方单已失效，请联系医生";
+                //20200519 zhangx 是否展示退款按钮(重庆大学城退款流程)，前端调用patientRefundForRecipe
+                //原设计：处方单待处理状态，患者未下单时可撤销，重庆大学城流程，支付完未配送可撤销，
+                if(order!=null){
+                    tips = "该处方单已失效";
+                }
                 break;
             case RecipeStatusConstant.RECIPE_DOWNLOADED:
                 tips = "已下载处方笺";

@@ -3044,7 +3044,7 @@ public class RecipeService extends RecipeBaseService {
     **/
     @RpcService
     public void patientRefundForRecipe(int recipeId) {
-        wxPayRefundForRecipe(4, recipeId, "");
+        wxPayRefundForRecipe(4, recipeId, "患者手动申请退款");
     }
 
 
