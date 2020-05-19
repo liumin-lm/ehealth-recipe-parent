@@ -242,7 +242,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 req.setAuditProTitle(doctorDTO.getProTitle());
                 //工号：医生取开方机构的工号，药师取第一职业点的工号
                 EmploymentDTO  employment=iEmploymentService.getPrimaryEmpByDoctorId(recipe.getChecker());
-                req.setAuditDoctorNo(employment.getJobNumber());
+                if(employment!=null){
+                    req.setAuditDoctorNo(employment.getJobNumber());
+                }
+                
             }
             //设置药师电子签名
             if (doctorDTO.getESignId() != null) {
