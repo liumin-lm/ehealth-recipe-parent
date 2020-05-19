@@ -240,8 +240,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 req.setAuditDoctor(doctorDTO.getName());
                 req.setAuditDoctorId(recipe.getChecker().toString());
                 req.setAuditProTitle(doctorDTO.getProTitle());
-                req.setAuditDoctorNo(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(
-                        recipe.getChecker(), recipe.getClinicOrgan(), recipe.getDepart()));
+                //工号：医生取开方机构的工号，药师取第一职业点的工号
+                EmploymentDTO  employment=iEmploymentService.getPrimaryEmpByDoctorId(recipe.getChecker());
+                req.setAuditDoctorNo(employment.getJobNumber());
             }
             //设置药师电子签名
             if (doctorDTO.getESignId() != null) {
@@ -494,7 +495,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 req.setIsPay("0");
             }
             req.setUpdateTime(now);
-
+            req.setPayFlag(order.getPayFlag());
+            req.setOutTradeNo(order.getOutTradeNo());
 
             RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend=recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
