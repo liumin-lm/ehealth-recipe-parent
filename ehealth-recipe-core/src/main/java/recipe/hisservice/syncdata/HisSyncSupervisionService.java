@@ -361,6 +361,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 req.setPatientNumber(recipeExtend.getRegisterID());
                 req.setCardNo(recipeExtend.getCardNo());
                 req.setCardType(recipeExtend.getCardType());
+                req.setRegisterNo(recipeExtend.getRegisterNo());
+                req.setRegisterID(recipeExtend.getRegisterID());
             }
             //处方状态
             req.setRecipeStatus(recipe.getStatus());
@@ -506,6 +508,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             if(recipeExtend!=null){
                 //从his返回的挂号序号
                 req.setRegisterNo(recipeExtend.getRegisterNo());
+                req.setRegisterID(recipeExtend.getRegisterID());
                 //从监管平台返回监管平台流水号
                 req.setSuperviseRecipecode(recipeExtend.getSuperviseRecipecode());
             }
@@ -873,6 +876,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     RecipeExtend recipeExtend=recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                     if(recipeExtend!=null){
                         req.setRegisterNo(recipeExtend.getRegisterNo());
+                        req.setRegisterID(recipeExtend.getRegisterID());
                     }
                     //开方医生信息
                     req.setDoctor(getRegulationBusDocReq(recipe.getDoctor(),recipe.getClinicOrgan(),recipe.getDepart()));
@@ -1011,6 +1015,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     if (recipeExtend != null) {
                         //从his返回的挂号序号
                         req.setRegisterNo(recipeExtend.getRegisterNo());
+                        req.setRegisterID(recipeExtend.getRegisterID());
                         //从监管平台上传保存的序号
                         req.setSuperviseRecipecode(recipeExtend.getSuperviseRecipecode());
                     }
