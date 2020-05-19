@@ -3039,6 +3039,17 @@ public class RecipeService extends RecipeBaseService {
     }
 
     /**
+    * 患者手动退款
+    * @return
+    **/
+    @RpcService
+    public void patientRefundForRecipe(int recipeId) {
+        wxPayRefundForRecipe(4, recipeId, "");
+    }
+
+
+
+    /**
      * 退款方法
      *
      * @param flag

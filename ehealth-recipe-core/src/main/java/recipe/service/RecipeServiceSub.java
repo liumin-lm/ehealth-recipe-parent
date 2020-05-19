@@ -1685,6 +1685,17 @@ public class RecipeServiceSub {
             map.put("showSendToHos", 0);
             map.put("supportTFDS",0);
         }
+
+        //20200519 zhangx 是否展示退款按钮(重庆大学城退款流程)，前端调用patientRefundForRecipe
+        map.put("showRefund",0);
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String patient_refund_organList = recipeParameterDao.getByName("patient_refund_organList");
+        List<Integer> organIds=JSONUtils.parse(patient_refund_organList,ArrayList.class);
+        if(organIds!=null && organIds.contains(recipe.getClinicOrgan())){
+            map.put("showRefund",1);
+        }
+
+
         return map;
     }
 

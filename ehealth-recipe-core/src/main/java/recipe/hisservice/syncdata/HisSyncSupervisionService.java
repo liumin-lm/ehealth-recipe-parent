@@ -508,6 +508,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //审方医生信息
             req.setCheckDoctor(getRegulationBusDocReq(recipe.getChecker(),null,null));
 
+            //开方医生信息
+            req.setDoctor(getRegulationBusDocReq(recipe.getDoctor(),recipe.getClinicOrgan(),recipe.getDepart()));
+
             request.add(req);
         }
         try {
