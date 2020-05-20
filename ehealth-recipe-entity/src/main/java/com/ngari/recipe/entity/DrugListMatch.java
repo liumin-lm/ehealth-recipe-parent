@@ -66,7 +66,7 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "参考价格")
     private BigDecimal price;
 
-    @ItemProperty(alias = "状态")//0未匹配 1已匹配 2已提交
+    @ItemProperty(alias = "状态")//0未匹配 1已匹配 2已提交 4匹配中
     private Integer status;
 
     @ItemProperty(alias = "适用症状")
