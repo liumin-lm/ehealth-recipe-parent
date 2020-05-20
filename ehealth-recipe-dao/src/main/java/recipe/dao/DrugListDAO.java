@@ -22,6 +22,7 @@ import org.springframework.util.ObjectUtils;
 import recipe.util.DateConversion;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -473,7 +474,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
      * @return QueryResult<DrugList>
      * @author houxr
      */
-    public QueryResult<DrugList> queryDrugListsByDrugNameAndStartAndLimit(final String drugClass, final String keyword,
+    public QueryResult<DrugList> queryDrugListsByDrugNameAndStartAndLimit(final Date startTime, final Date endTime, final String drugClass, final String keyword,
                                                                           final Integer status,
                                                                           final int start, final int limit) {
         HibernateStatelessResultAction<QueryResult<DrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugList>>() {
@@ -481,8 +482,17 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
             @Override
             public void execute(StatelessSession ss) throws DAOException {
                 StringBuilder hql = new StringBuilder("From DrugList where 1=1 and sourceOrgan is NULL ");
+                if (ObjectUtils.isEmpty(startTime)) {
+                    throw new DAOException(DAOException.VALUE_NEEDED, "startTime is require");
+                }
+                if (ObjectUtils.isEmpty(endTime)) {
+                    throw new DAOException(DAOException.VALUE_NEEDED, "endTime is require");
+                }
                 if (!StringUtils.isEmpty(drugClass)) {
                     hql.append(" and drugClass like :drugClass");
+                }
+                if (!ObjectUtils.isEmpty(startTime)&&!ObjectUtils.isEmpty(endTime)) {
+                    hql.append(" and createDt>=:startTime and createDt<:endTime ");
                 }
                 Integer drugId = null;
                 if (!StringUtils.isEmpty(keyword)) {
@@ -509,6 +519,12 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 if (drugId != null) {
                     countQuery.setParameter("drugId", drugId);
                 }
+                if (!ObjectUtils.isEmpty(startTime)){
+                    countQuery.setParameter("startTime", startTime);
+                }
+                if (!ObjectUtils.isEmpty(endTime)){
+                    countQuery.setParameter("endTime", endTime);
+                }
                 if (!StringUtils.isEmpty(keyword)) {
                     countQuery.setParameter("keyword", "%" + keyword + "%");
                 }
@@ -520,6 +536,12 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 Query query = ss.createQuery(hql.toString());
                 if (!ObjectUtils.isEmpty(status)) {
                     query.setParameter("status", status);
+                }
+                if (!ObjectUtils.isEmpty(startTime)){
+                    query.setParameter("startTime", startTime);
+                }
+                if (!ObjectUtils.isEmpty(endTime)){
+                    query.setParameter("endTime", endTime);
                 }
                 if (drugId != null) {
                     query.setParameter("drugId", drugId);

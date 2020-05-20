@@ -18,6 +18,7 @@ import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction
 import ctd.persistence.support.impl.dictionary.DBDictionaryItemLoader;
 import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcSupportDAO;
+import io.netty.util.internal.ObjectUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Query;
@@ -66,6 +67,14 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
     @DAOMethod(sql = "from OrganDrugList where organId=:organId and drugId=:drugId and status=1")
     public abstract OrganDrugList getByOrganIdAndDrugId(@DAOParam("organId") int organId, @DAOParam("drugId") int drugId);
 
+    /**
+     * 通过药品id及机构id获取
+     *
+     * @param organId
+     * @return
+     */
+    @DAOMethod(sql = "from OrganDrugList where organId=:organId  and status=1")
+    public abstract List<OrganDrugList> findByOrganId(@DAOParam("organId") int organId);
     /**
      * 通过机构id获取
      *
@@ -380,7 +389,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
         return action.getResult();
     }
 
-    public QueryResult queryOrganDrugAndSaleForOp(Integer organId, String drugClass, String keyword, Integer status, int start, int limit, Boolean canDrugSend) {
+    public QueryResult queryOrganDrugAndSaleForOp(final Date startTime, final Date endTime,Integer organId, String drugClass, String keyword, Integer status, int start, int limit, Boolean canDrugSend) {
         HibernateStatelessResultAction<QueryResult<DrugListAndOrganDrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugListAndOrganDrugList>>() {
             @SuppressWarnings("unchecked")
             @Override
@@ -388,6 +397,12 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 StringBuilder hql;
                 OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
                 List<Integer> depIds = organAndDrugsepRelationDAO.findDrugsEnterpriseIdByOrganIdAndStatus(organId, 1);
+                if (ObjectUtils.isEmpty(startTime)) {
+                    throw new DAOException(DAOException.VALUE_NEEDED, "startTime is require");
+                }
+                if (ObjectUtils.isEmpty(endTime)) {
+                    throw new DAOException(DAOException.VALUE_NEEDED, "endTime is require");
+                }
                 //查询机构药品目录是否配送---null的话没有是否配送的筛选条件 或者机构配置到药企为空到话 不从saledruglist里筛选
                 if (canDrugSend == null || CollectionUtils.isEmpty(depIds)) {
                     hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId ");
@@ -413,6 +428,9 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     }
                     hql.append(")");
                 }
+                if (!ObjectUtils.isEmpty(startTime)&&!ObjectUtils.isEmpty(endTime)) {
+                    hql.append(" and a.createDt>=:startTime and a.createDt<:endTime ");
+                }
                 if (ObjectUtils.nullSafeEquals(status, 0)) {
                     hql.append(" and a.status = 0 and a.organId =:organId ");
                 } else if (ObjectUtils.nullSafeEquals(status, 1)) {
@@ -433,6 +451,12 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 if (drugId != null) {
                     countQuery.setParameter("drugId", drugId);
                 }
+                if (!ObjectUtils.isEmpty(startTime)){
+                    countQuery.setParameter("startTime", startTime);
+                }
+                if (!ObjectUtils.isEmpty(endTime)){
+                    countQuery.setParameter("endTime", endTime);
+                }
                 if (canDrugSend!=null && CollectionUtils.isNotEmpty(depIds)){
                     countQuery.setParameterList("depIds", depIds);
                 }
@@ -450,6 +474,12 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 //}
                 if (drugId != null) {
                     query.setParameter("drugId", drugId);
+                }
+                if (!ObjectUtils.isEmpty(startTime)){
+                    query.setParameter("startTime", startTime);
+                }
+                if (!ObjectUtils.isEmpty(endTime)){
+                    query.setParameter("endTime", endTime);
                 }
                 if (!StringUtils.isEmpty(keyword)) {
                     query.setParameter("keyword", "%" + keyword + "%");

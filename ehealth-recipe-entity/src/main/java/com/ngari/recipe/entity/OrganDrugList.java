@@ -119,6 +119,9 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "医保剂型编码")
     private String medicalDrugFormCode;
 
+    @ItemProperty(alias = "禁用原因")
+    private String disableReason;
+
     public OrganDrugList() {
     }
 
@@ -423,5 +426,14 @@ public class OrganDrugList implements java.io.Serializable {
 
     public void setPackingMaterials(String packingMaterials) {
         this.packingMaterials = packingMaterials;
+    }
+
+    @Column(name = "disableReason")
+    public String getDisableReason() {
+        return disableReason;
+    }
+
+    public void setDisableReason(String disableReason) {
+        this.disableReason = disableReason;
     }
 }

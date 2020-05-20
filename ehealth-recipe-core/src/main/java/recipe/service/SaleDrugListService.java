@@ -8,12 +8,14 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.DrugListAndSaleDrugListDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.SaleDrugListDTO;
+import com.ngari.recipe.drug.service.IDrugService;
 import com.ngari.recipe.drug.service.ISaleDrugListService;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.SaleDrugList;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -21,11 +23,9 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 import recipe.constant.ErrorCode;
-import recipe.dao.DrugListDAO;
-import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.OrganAndDrugsepRelationDAO;
-import recipe.dao.SaleDrugListDAO;
+import recipe.dao.*;
 import recipe.dao.bean.DrugListAndSaleDrugList;
+import recipe.serviceprovider.drug.service.RemoteDrugService;
 
 import java.util.Date;
 import java.util.List;
@@ -120,6 +120,22 @@ public class SaleDrugListService implements ISaleDrugListService {
     }
 
     /**
+     * 批量删除药企药品数据
+     * @param saleDrugList 前台传参集合
+     */
+    @RpcService
+    public void deletesaleDrugListBySaleDrugLists(List<DrugListBean> saleDrugList) {
+        if (saleDrugList.isEmpty()) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "organDrugId is required");
+        }
+        RemoteDrugService remoteDrugService = AppDomainContext.getBean("eh.remoteDrugService", RemoteDrugService.class);
+        for (DrugListBean drugListBean : saleDrugList) {
+            remoteDrugService.updateDrugList(drugListBean);
+
+        }
+    }
+
+    /**
      * 销售机构药品查询
      *
      * @param organId   机构
@@ -131,12 +147,12 @@ public class SaleDrugListService implements ISaleDrugListService {
      * @author houxr
      */
     @RpcService
-    public QueryResult<DrugListAndSaleDrugListDTO> querySaleDrugListByOrganIdAndKeyword(final Integer organId,
+    public QueryResult<DrugListAndSaleDrugListDTO> querySaleDrugListByOrganIdAndKeyword(final Date startTime, final Date endTime,final Integer organId,
                                                                                         final String drugClass,
                                                                                         final String keyword, final Integer status,
                                                                                         final int start, final int limit) {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        QueryResult result = saleDrugListDAO.querySaleDrugListByOrganIdAndKeyword(organId, drugClass, keyword, status, start, limit);
+        QueryResult result = saleDrugListDAO.querySaleDrugListByOrganIdAndKeyword(startTime,endTime,organId, drugClass, keyword, status, start, limit);
         result.setItems(covertData(result.getItems()));
         return result;
     }

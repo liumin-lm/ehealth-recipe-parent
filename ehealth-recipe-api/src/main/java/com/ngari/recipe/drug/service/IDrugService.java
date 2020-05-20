@@ -7,6 +7,7 @@ import com.ngari.recipe.drug.model.DrugListBean;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -98,6 +99,6 @@ public interface IDrugService extends IBaseService<DrugListBean> {
      * @return
      */
     @RpcService
-    QueryResult<DrugListBean> queryDrugListsByDrugNameAndStartAndLimit(String drugClass, String keyword,
-                                                                        Integer status, int start, int limit);
+    QueryResult<DrugListBean> queryDrugListsByDrugNameAndStartAndLimit(final Date startTime, final Date endTime, String drugClass, String keyword,
+                                                                       Integer status, int start, int limit);
 }

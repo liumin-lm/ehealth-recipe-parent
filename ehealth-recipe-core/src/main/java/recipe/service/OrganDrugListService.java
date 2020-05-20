@@ -32,6 +32,7 @@ import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
 import recipe.dao.*;
@@ -154,19 +155,56 @@ public class OrganDrugListService implements IOrganDrugListService {
     }
 
     /**
+     * 删除机构药品数据
+     *
+     * @param organDrugListId 入参药品参数
+     */
+    @RpcService
+    public void deleteOrganDrugListById(Integer organDrugListId) {
+        if (organDrugListId == null) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "organDrugId is required");
+        }
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        organDrugListDAO.deleteById(organDrugListId);
+
+    }
+    /**
+     * 批量删除机构药品数据
+     *
+     * @param organDrugListIds 入参药品参数集合
+     */
+    @RpcService
+    public void deleteOrganDrugListByIds(List<Integer> organDrugListIds) {
+        if (organDrugListIds.isEmpty()) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "organDrugId is required");
+        }
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        for (Integer organDrugListId : organDrugListIds) {
+            deleteOrganDrugListById(organDrugListId);
+        }
+
+    }
+
+    /**
      * 删除药品在医院中的信息
      *
      * @param organDrugListId 入参药品参数
      * @param status 入参药品参数
      */
     @RpcService
-    public void updateOrganDrugListStatusById(Integer organDrugListId, Integer status) {
+    public void updateOrganDrugListStatusById(Integer organDrugListId, Integer status,String disableReason) {
         if (organDrugListId == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "organDrugId is required");
         }
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         OrganDrugList organDrugList = organDrugListDAO.get(organDrugListId);
         organDrugList.setStatus(status);
+        if (status.equals(0)){
+            if (ObjectUtils.isEmpty(disableReason)) {
+                throw new DAOException(DAOException.VALUE_NEEDED, "disableReason is required");
+            }
+            organDrugList.setDisableReason(disableReason);
+        }
         organDrugList.setLastModify(new Date());
         organDrugListDAO.update(organDrugList);
         IRegulationService iRegulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
@@ -197,7 +235,9 @@ public class OrganDrugListService implements IOrganDrugListService {
         drugCodes.add(organDrugList.getOrganDrugCode());
         if (StringUtils.isEmpty(organDrugList.getSaleName())) {
             organDrugList.setSaleName(organDrugList.getDrugName());
-        } else {
+        }else if (organDrugList.getSaleName().indexOf(organDrugList.getDrugName())!=-1){
+            organDrugList.setSaleName(organDrugList.getSaleName());
+        }else {
             if (StringUtils.isNotEmpty(organDrugList.getDrugName()) && !organDrugList.getSaleName().equals(organDrugList.getDrugName())) {
                 organDrugList.setSaleName(organDrugList.getSaleName() + " " + organDrugList.getDrugName());
             }
@@ -464,14 +504,14 @@ public class OrganDrugListService implements IOrganDrugListService {
      * @return
      */
     @RpcService
-    public QueryResult<DrugListAndOrganDrugListDTO> queryOrganDrugAndSaleForOp(final Integer organId,
+    public QueryResult<DrugListAndOrganDrugListDTO> queryOrganDrugAndSaleForOp(final Date startTime, final Date endTime,final Integer organId,
                                                                                                final String drugClass,
                                                                                                final String keyword, final Integer status,
                                                                                                final int start, final int limit,Boolean canDrugSend) {
         QueryResult result = null;
         try {
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-            result = organDrugListDAO.queryOrganDrugAndSaleForOp(organId, drugClass, keyword, status, start, limit,canDrugSend);
+            result = organDrugListDAO.queryOrganDrugAndSaleForOp(startTime,endTime,organId, drugClass, keyword, status, start, limit,canDrugSend);
             result.setItems(covertData(result.getItems()));
         } catch (Exception e) {
             logger.error("queryOrganDrugAndSaleForOp error",e);
