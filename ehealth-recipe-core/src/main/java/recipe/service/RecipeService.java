@@ -3827,18 +3827,17 @@ public class RecipeService extends RecipeBaseService {
     }
 
     /**
-     * 根据organid和药剂数获取中医辨证论治费和中药处方代煎费
+     * 根据organid和药剂数获取中药处方代煎费
      * @return Map<String,Object>
      */
     @RpcService
-    public Map<String, Object>   findDecoctionAndTCMFee(Map<String,String> params) {
+    public Map<String, Object>   findDecoctionFee(Map<String,String> params) {
         LOGGER.info("findCanRecipeByAge 参数{}",JSONUtils.toString(params));
         if(StringUtils.isEmpty(params.get("organId")))   throw new DAOException("findDecoctionAndTCM organId不允许为空");
         if(StringUtils.isEmpty(params.get("useDays")))   throw new DAOException("findDecoctionAndTCM useDays不允许为空");
 
         Map<String, Object> map = Maps.newHashMap();
         BigDecimal decoctionFee=new BigDecimal(0);
-        BigDecimal TCMFee=new BigDecimal(0);
 
         //从opbase配置项获取中药处方每贴代煎费 recipeDecoctionPrice
         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
@@ -3846,16 +3845,32 @@ public class RecipeService extends RecipeBaseService {
         LOGGER.info("findCanRecipeByAge 从opbase配置项获取中药处方每贴代煎费是{}",findRecipeDecoctionPrice);
         if(findRecipeDecoctionPrice!=null&& ((BigDecimal)findRecipeDecoctionPrice).compareTo(BigDecimal.ZERO)==1) decoctionFee=((BigDecimal)findRecipeDecoctionPrice).multiply(new BigDecimal(params.get("useDays")));
 
+        if(decoctionFee.compareTo(BigDecimal.ZERO)==-1) decoctionFee=new BigDecimal(0);//金额为负数
+        map.put("decoctionFee",decoctionFee);
+        return map;
+    }
+
+    /**
+     * 根据organid获取中医辨证论治费
+     * @return Map<String,Object>
+     */
+    @RpcService
+    public Map<String, Object>   findTCMFee(Map<String,String> params) {
+        LOGGER.info("findCanRecipeByAge 参数{}",JSONUtils.toString(params));
+        if(StringUtils.isEmpty(params.get("organId")))   throw new DAOException("findDecoctionAndTCM organId不允许为空");
+
+        Map<String, Object> map = Maps.newHashMap();
+        BigDecimal TCMFee=new BigDecimal(0);
+
+        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
         //从opbase配置项获取中医辨证论治费 recipeTCMPrice
         Object findRecipeTCMPrice = configService.getConfiguration(Integer.parseInt(params.get("organId")), "recipeTCMPrice");
         LOGGER.info("findCanRecipeByAge 从opbase配置项获取中医辨证论治费是{}",findRecipeTCMPrice);
         if(findRecipeTCMPrice!=null&& ((BigDecimal)findRecipeTCMPrice).compareTo(BigDecimal.ZERO)==1) TCMFee=(BigDecimal)findRecipeTCMPrice;
-
-        if(decoctionFee.compareTo(BigDecimal.ZERO)==-1) decoctionFee=new BigDecimal(0);//金额为负数
-        map.put("decoctionFee",decoctionFee);
         map.put("TCMFee",TCMFee);
         return map;
     }
+
 
 //    @RpcService
 //    public void synDeliveryRecipeMsgTask(){
