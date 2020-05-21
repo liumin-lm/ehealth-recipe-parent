@@ -89,7 +89,7 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
 
                 Query query = ss.createQuery(hql.toString());
                 if (!ObjectUtils.isEmpty(status) && status != -1) {
-                    countQuery.setParameter("status", status);
+                    query.setParameter("status", status);
                 }
                 if (!StringUtils.isEmpty(keyword)) {
                     query.setParameter("keyword", "%" + keyword + "%");
