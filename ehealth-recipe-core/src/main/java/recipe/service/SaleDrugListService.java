@@ -151,6 +151,9 @@ public class SaleDrugListService implements ISaleDrugListService {
                                                                                         final String drugClass,
                                                                                         final String keyword, final Integer status,
                                                                                         final int start, final int limit) {
+        if(organId == null){
+            return null;
+        }
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         QueryResult result = saleDrugListDAO.querySaleDrugListByOrganIdAndKeyword(startTime,endTime,organId, drugClass, keyword, status, start, limit);
         result.setItems(covertData(result.getItems()));
