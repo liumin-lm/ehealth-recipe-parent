@@ -735,10 +735,35 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public Map<String, Object> noticePlatRecipeAuditResult(NoticeNgariAuditResDTO req) {
         LOGGER.info("noticePlatRecipeAuditResult，req = {}", JSONUtils.toString(req));
         Map<String, Object> resMap = Maps.newHashMap();
+        if(null == req){
+            LOGGER.warn("当前处方更新审核结果接口入参为空！");
+            resMap.put("msg","当前处方更新审核结果接口入参为空");
+            return resMap;
+        }
         try {
             RecipeCheckService recipeService = ApplicationUtils.getRecipeService(RecipeCheckService.class);
             RecipeDAO dao = DAOFactory.getDAO(RecipeDAO.class);
-            Recipe recipe = dao.getByRecipeCodeAndClinicOrgan(req.getRecipeCode(), req.getOrganId());
+
+            //date 20200519
+            //当调用处方审核失败接口记录日志，不走有审核结果的逻辑
+            Recipe recipe = null;
+            //添加处方审核接受结果，recipeId的字段，优先使用recipeId
+            if(StringUtils.isNotEmpty(req.getRecipeId())){
+                recipe = dao.getByRecipeId(Integer.parseInt(req.getRecipeId()));
+            }else{
+                recipe = dao.getByRecipeCodeAndClinicOrgan(req.getRecipeCode(), req.getOrganId());
+            }
+            if("2".equals(req.getAuditResult())){
+                LOGGER.warn("当前处方{}调用审核接口失败！", JSONUtils.toString(req));
+                RecipeLogDAO logDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+                if(null != recipe){
+                    logDAO.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方调用审核接口失败");
+                }else{
+                    LOGGER.warn("当前处方code的处方{}不存在！", req.getRecipeCode());
+                }
+                resMap.put("msg","当前处方调用审核接口失败");
+                return resMap;
+            }
             if (recipe == null){
                 resMap.put("msg","查询不到处方信息");
             }
