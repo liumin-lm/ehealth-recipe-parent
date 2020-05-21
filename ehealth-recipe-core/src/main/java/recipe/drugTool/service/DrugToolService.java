@@ -906,6 +906,9 @@ public class DrugToolService implements IDrugToolService {
         Map<String, Integer> map = new HashMap<>();
         Integer result = 0;
         try {
+            if(CollectionUtils.isEmpty(lists)){
+                lists = drugListMatchDAO.findMatchDataByOrgan(organ);
+            }
             if (lists.size() > 0) {
                 for (DrugListMatch drugListMatch : lists) {
                     DrugListMatch db = drugListMatchDAO.get(drugListMatch.getDrugId());
