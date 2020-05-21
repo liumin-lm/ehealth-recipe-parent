@@ -478,7 +478,7 @@ public class DrugToolService implements IDrugToolService {
 
         result.put("addNum",addNum);
         result.put("updateNum",updateNum);
-        result.put("updateNum",total-addNum-updateNum);
+        result.put("failNum",total-addNum-updateNum);
         LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         result.put("code", 200);
         return result;
