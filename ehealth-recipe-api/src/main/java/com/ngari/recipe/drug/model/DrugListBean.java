@@ -82,6 +82,9 @@ public class DrugListBean implements Serializable {
     @Dictionary(id = "eh.base.dictionary.DrugListStatus")
     private Integer status;
 
+    @ItemProperty(alias = "药品来源机构，null表示基础库数据")
+    private Integer sourceOrgan;
+
     @ItemProperty(alias = "适用症状")
     private String indications;
 
@@ -122,6 +125,15 @@ public class DrugListBean implements Serializable {
 
     @ItemProperty(alias = "药品编码")
     private String drugCode;
+    @ItemProperty(alias = "药品库存")
+    private BigDecimal inventory;
+    @ItemProperty(alias = "剂型")
+    private String drugForm;
+    @ItemProperty(alias = "药品库存标志")
+    private boolean drugInventoryFlag;
+
+    public DrugListBean() {
+    }
 
     public Integer getBaseDrug() {
         return baseDrug;
@@ -137,18 +149,6 @@ public class DrugListBean implements Serializable {
 
     public void setIsMatched(boolean matched) {
         isMatched = matched;
-    }
-
-    @ItemProperty(alias = "药品库存")
-    private BigDecimal inventory;
-
-    @ItemProperty(alias = "剂型")
-    private String drugForm;
-
-    @ItemProperty(alias = "药品库存标志")
-    private boolean drugInventoryFlag;
-
-    public DrugListBean() {
     }
 
     public Integer getDrugId() {
@@ -426,5 +426,13 @@ public class DrugListBean implements Serializable {
 
     public void setDrugCode(String drugCode) {
         this.drugCode = drugCode;
+    }
+
+    public Integer getSourceOrgan() {
+        return sourceOrgan;
+    }
+
+    public void setSourceOrgan(Integer sourceOrgan) {
+        this.sourceOrgan = sourceOrgan;
     }
 }
