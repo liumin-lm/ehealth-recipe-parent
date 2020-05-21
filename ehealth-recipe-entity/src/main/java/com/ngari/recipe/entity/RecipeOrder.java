@@ -289,6 +289,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "发药药师身份证")
     private String dispensingApothecaryIdCard;
 
+    @ItemProperty(alias = "中医辨证论治费")
+    private BigDecimal TCMFee;
+
     @Column(name = "cancelReason")
     public String getCancelReason() {
         return cancelReason;
@@ -996,4 +999,14 @@ public class RecipeOrder implements Serializable {
     public void setExpressFeePayWay(Integer expressFeePayWay) {
         this.expressFeePayWay = expressFeePayWay;
     }
+
+    @Transient
+    public BigDecimal getTCMFee() {
+        return TCMFee;
+    }
+
+    public void setTCMFee(BigDecimal TCMFee) {
+        this.TCMFee = TCMFee;
+    }
+
 }

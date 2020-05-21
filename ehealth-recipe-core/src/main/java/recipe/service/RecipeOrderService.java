@@ -5,6 +5,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.BaseAPI;
 import com.ngari.base.hisconfig.model.HisServiceConfigBean;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.model.OrganConfigBean;
@@ -617,6 +618,8 @@ public class RecipeOrderService extends RecipeBaseService {
             }
         }
 
+        BigDecimal TCMFee=new BigDecimal(0.00);
+        int i=0;
         for (Recipe recipe : recipeList) {
             if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
                 totalCopyNum = totalCopyNum + recipe.getCopyNum();
@@ -624,7 +627,17 @@ public class RecipeOrderService extends RecipeBaseService {
                     //代煎费等于剂数乘以代煎单价
                     otherFee = otherFee.add(order.getDecoctionUnitPrice().multiply(BigDecimal.valueOf(recipe.getCopyNum())));
                 }
+                //一张订单只会有一个处方
+                if(i==0){
+                    //设置中医辨证论治费（中医辨证论治费，所有中药处方都需要增加此收费项目，运营平台增加配置项；若填写了金额，则患者端展示该收费项目；）
+                    IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+                    //从opbase配置项获取中医辨证论治费 recipeTCMPrice
+                    Object findRecipeTCMPrice = configService.getConfiguration(recipe.getClinicOrgan(), "recipeTCMPrice");
+                    if(findRecipeTCMPrice!=null&& ((BigDecimal)findRecipeTCMPrice).compareTo(BigDecimal.ZERO)==1) TCMFee=(BigDecimal)findRecipeTCMPrice;
+                    order.setTCMFee(TCMFee);
+                }
             }
+            i++;
         }
         order.setCopyNum(totalCopyNum);
         order.setDecoctionFee(otherFee);
@@ -1942,6 +1955,11 @@ public class RecipeOrderService extends RecipeBaseService {
         //其他服务费
         if (null != order.getOtherFee()) {
             full = full.add(order.getOtherFee());
+        }
+
+        //中医辨证论治费
+        if (null != order.getTCMFee()) {
+            full = full.add(order.getTCMFee());
         }
 
         return full.divide(BigDecimal.ONE, 3, RoundingMode.UP);
