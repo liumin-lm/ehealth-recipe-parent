@@ -524,12 +524,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
 
                 RecipeDetailDAO
                         recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-                for (Recipedetail detail : recipedetails) {
-                    if (!update) {
-                        detail.setRecipeId(dbRecipe.getRecipeId());
+                if(recipedetails != null){
+                    for (Recipedetail detail : recipedetails) {
+                        if (!update) {
+                            detail.setRecipeId(dbRecipe.getRecipeId());
+                        }
+                        recipeDetailDAO.save(detail);
                     }
-                    recipeDetailDAO.save(detail);
                 }
+
 
                 setResult(dbRecipe.getRecipeId());
             }

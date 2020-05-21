@@ -126,7 +126,9 @@ public class RecipeServiceSub {
         //设置处方默认数据
         RecipeUtil.setDefaultData(recipe);
         //设置处方明细数据
-        setReciepeDetailsInfo(flag,recipeBean,recipe,details);
+        if(detailBeanList != null){
+            setReciepeDetailsInfo(flag,recipeBean,recipe,details);
+        }
 
         //患者数据前面已校验--设置患者姓名医生姓名机构名
         String mpiId = recipe.getMpiid();
@@ -226,11 +228,10 @@ public class RecipeServiceSub {
 
     private static void validateRecipeAndDetailData(Recipe recipe, List<Recipedetail> details) {
         RecipeValidateUtil.validateSaveRecipeData(recipe);
-        if (null == details) {
-            details = new ArrayList<>(0);
-        }
-        for (Recipedetail recipeDetail : details) {
-            RecipeValidateUtil.validateRecipeDetailData(recipeDetail, recipe);
+        if (null != details) {
+            for (Recipedetail recipeDetail : details) {
+                RecipeValidateUtil.validateRecipeDetailData(recipeDetail, recipe);
+            }
         }
     }
 
