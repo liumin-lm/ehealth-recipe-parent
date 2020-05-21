@@ -99,6 +99,6 @@ public interface IDrugService extends IBaseService<DrugListBean> {
      * @return
      */
     @RpcService
-    QueryResult<DrugListBean> queryDrugListsByDrugNameAndStartAndLimit(final Date startTime, final Date endTime, String drugClass, String keyword,
+    QueryResult<DrugListBean> queryDrugListsByDrugNameAndStartAndLimit(String drugClass, String keyword,
                                                                        Integer status, int start, int limit);
 }
