@@ -45,6 +45,13 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.base.constant.BussTypeConstant;
+import eh.cdr.constant.DrugEnterpriseConstant;
+import eh.cdr.constant.OrderStatusConstant;
+import eh.cdr.constant.RecipeStatusConstant;
+import eh.entity.bus.pay.BusTypeEnum;
+import eh.utils.params.ParameterConstant;
+import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -752,6 +759,19 @@ public class RecipeOrderService extends RecipeBaseService {
 
         //}
         order.setTotalFee(countOrderTotalFeeByRecipeInfo(order, firstRecipe, payModeSupport));
+        //判断计算扣掉运费的总金额----等于线下支付----总计要先算上运费，实际支付时再不支付运费
+        BigDecimal totalFee;
+        //配送到家并且线下支付
+        Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
+        if (new Integer(2).equals(order.getExpressFeePayWay()) && RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)){
+            if (order.getTotalFee().compareTo(order.getExpressFee()) > -1) {
+                totalFee = order.getTotalFee().subtract(order.getExpressFee());
+            } else {
+                totalFee = order.getTotalFee();
+            }
+        }else{
+            totalFee = order.getTotalFee();
+        }
         //计算优惠券价格
         ICouponBaseService couponService = AppContextHolder.getBean("voucher.couponBaseService",ICouponBaseService.class);
         if (isUsefulCoupon(order.getCouponId())) {
@@ -762,20 +782,19 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setCouponFee(coupon.getDiscountAmount());
                 order.setCouponDesc(coupon.getCouponDesc());
             }
-            if (order.getTotalFee().compareTo(order.getCouponFee()) > -1) {
-                order.setActualPrice(order.getTotalFee().subtract(order.getCouponFee()).doubleValue());
+            if (totalFee.compareTo(order.getCouponFee()) > -1) {
+                order.setActualPrice(totalFee.subtract(order.getCouponFee()).doubleValue());
             } else {
-                order.setActualPrice(order.getTotalFee().doubleValue());
+                order.setActualPrice(totalFee.doubleValue());
             }
         } else {
-            Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
             if (payMode != RecipeBussConstant.PAYMODE_ONLINE && !RecipeServiceSub.isJSOrgan(order.getOrganId())) {
 
                 if (RecipeBussConstant.PAYMODE_TO_HOS.equals(payMode)){
                     PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
                     //卫宁付
                     if (purchaseService.getToHosPayConfig(firstRecipe.getClinicOrgan())){
-                        order.setActualPrice(order.getTotalFee().doubleValue());
+                        order.setActualPrice(totalFee.doubleValue());
                     }else {
                         //此时的实际费用是不包含药品费用的
                         order.setActualPrice(order.getAuditFee().doubleValue());
@@ -788,7 +807,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
                         if (drugsEnterprise != null && drugsEnterprise.getStorePayFlag() != null && drugsEnterprise.getStorePayFlag() == 1) {
                             //storePayFlag = 1 表示线上支付但到店取药
-                            order.setActualPrice(order.getTotalFee().doubleValue());
+                            order.setActualPrice(totalFee.doubleValue());
                         } else {
                             //此时的实际费用是不包含药品费用的
                             order.setActualPrice(order.getAuditFee().doubleValue());
@@ -799,7 +818,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     }
                 }
             } else {
-                order.setActualPrice(order.getTotalFee().doubleValue());
+                order.setActualPrice(totalFee.doubleValue());
                 RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(firstRecipe.getRecipeId());
                 if (recipeExtend!=null){
