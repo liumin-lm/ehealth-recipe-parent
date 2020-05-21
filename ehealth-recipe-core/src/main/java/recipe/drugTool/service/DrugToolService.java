@@ -119,6 +119,9 @@ public class DrugToolService implements IDrugToolService {
     @Resource
     private ProvinceDrugListDAO provinceDrugListDAO;
 
+    @Resource
+    private ImportDrugRecordDAO importDrugRecordDAO;
+
     private LoadingCache<String, List<DrugList>> drugListCache = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(new CacheLoader<String, List<DrugList>>() {
         @Override
         public List<DrugList> load(String str) throws Exception {
@@ -246,6 +249,8 @@ public class DrugToolService implements IDrugToolService {
         DrugListMatch drug;
         Row row;
         List<String> errDrugListMatchList = Lists.newArrayList();
+        Integer addNum = 0;
+        Integer updateNum = 0;
         for (int rowIndex = 0; rowIndex <= total; rowIndex++) {
             //循环获得每个行
             row = sheet.getRow(rowIndex);
@@ -441,6 +446,9 @@ public class DrugToolService implements IDrugToolService {
                     if (!isSuccess) {
                         //自动匹配功能暂无法提供
                         drugListMatchDAO.save(drug);
+                        addNum++;
+                    }else {
+                        updateNum++;
                     }
                 } catch (Exception e) {
                     LOGGER.error("save or update drugListMatch error " + e.getMessage());
@@ -450,12 +458,27 @@ public class DrugToolService implements IDrugToolService {
             redisClient.set(organId + operator, progress * 100);
 //                    progressMap.put(organId+operator,progress*100);
         }
+
+        //导入药品记录
+        ImportDrugRecord importDrugRecord = new ImportDrugRecord();
+        importDrugRecord.setFileName(originalFilename);
+        importDrugRecord.setOrganId(organId);
+        importDrugRecord.setAddNum(addNum);
+        importDrugRecord.setUpdateNum(updateNum);
+        importDrugRecord.setFailNum(total-addNum-updateNum);
+        importDrugRecord.setImportOperator(operator);
         if (errDrugListMatchList.size() > 0) {
             result.put("code", 609);
             result.put("msg", errDrugListMatchList);
+            importDrugRecord.setErrMsg(JSONUtils.toString(errDrugListMatchList));
             return result;
         }
+        importDrugRecordDAO.save(importDrugRecord);
 
+
+        result.put("addNum",addNum);
+        result.put("updateNum",updateNum);
+        result.put("updateNum",total-addNum-updateNum);
         LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         result.put("code", 200);
         return result;
@@ -1588,5 +1611,15 @@ public class DrugToolService implements IDrugToolService {
             return  true;
         }
         return false;
+    }
+
+    /**
+     * 判断该机构是否关联省平台（包括互联网医院）供前端调用
+     * @param organId
+     * @return
+     */
+    @RpcService
+    public List<ImportDrugRecord> findImportDrugRecordByOrganId(Integer organId){
+        return importDrugRecordDAO.findImportDrugRecordByOrganId(organId);
     }
 }
