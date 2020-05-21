@@ -913,6 +913,7 @@ public class RecipeListService extends RecipeBaseService{
                     if (RecipeResultBean.SUCCESS.equals(resultBean.getCode())) {
                         if (null != resultBean.getObject() && resultBean.getObject() instanceof RecipeOrderBean) {
                             RecipeOrderBean order = (RecipeOrderBean) resultBean.getObject();
+                            record.setEnterpriceId(order.getEnterpriseId());
                             if (null != order.getLogisticsCompany()) {
                                 try {
                                     //4.01需求：物流信息查询
