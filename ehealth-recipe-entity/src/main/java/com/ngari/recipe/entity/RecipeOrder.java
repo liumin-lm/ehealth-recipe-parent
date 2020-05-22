@@ -314,6 +314,7 @@ public class RecipeOrder implements Serializable {
         this.setCouponFee(zero);
         this.setExpressFee(zero);
         this.setDecoctionFee(zero);
+        this.setTCMFee(zero);
         this.setTotalFee(zero);
         this.setActualPrice(0d);
         this.setPushFlag(0);
@@ -1000,7 +1001,7 @@ public class RecipeOrder implements Serializable {
         this.expressFeePayWay = expressFeePayWay;
     }
 
-    @Transient
+    @Column(name = "TCMFee")
     public BigDecimal getTCMFee() {
         return TCMFee;
     }
