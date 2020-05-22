@@ -611,7 +611,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
      *
      * @return
      */
-    @DAOMethod(sql = "select count(*) from OrganDrugList a, DrugList b where a.drugId=b.drugId and a.status=1 " + "and b.status=1")
+    @DAOMethod(sql = "select count(*) from OrganDrugList a, DrugList b where a.drugId=b.drugId")
     public abstract long getUsefulTotal();
 
     @DAOMethod(sql = "from OrganDrugList where organDrugId in (:organDrugId) ", limit = 0)
