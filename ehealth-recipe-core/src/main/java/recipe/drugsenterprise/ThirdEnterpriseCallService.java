@@ -1540,7 +1540,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             List<Recipe> recipes = recipeDAO.findRecipeListByOrderCode(orderCode);
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipes:{} .", JSONUtils.toString(recipes));
             Recipe recipe = recipes.get(0);
-            if (recipeOrder.getOrderType() != 1 && BigDecimal.ZERO.compareTo(recipeOrder.getCouponFee()) == 0 && recipe.getPayMode() != 4) {
+            if (recipeOrder.getOrderType() != 1 && BigDecimal.ZERO.compareTo(recipeOrder.getCouponFee()) == 0 && (recipe.getPayMode() != 4 || recipe.getPayMode() != 2) ) {
                 //表示不是医保患者并且没有优惠券并且还不是药店取药的,那他一定要支付钱
                 if (StringUtils.isEmpty(recipeOrder.getOutTradeNo())) {
                     continue;
