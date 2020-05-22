@@ -126,7 +126,7 @@ public class RecipeServiceSub {
         //设置处方默认数据
         RecipeUtil.setDefaultData(recipe);
         //设置处方明细数据
-        if(detailBeanList != null){
+        if(detailBeanList != null && detailBeanList.size() > 0){
             setReciepeDetailsInfo(flag,recipeBean,recipe,details);
         }
 
