@@ -118,6 +118,9 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "管理单元")
     private String manageUnit;
 
+    @ItemProperty(alias = "药企下载处方签类型")
+    private Integer downSignImgType;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -387,6 +390,15 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setManageUnit(String manageUnit) {
         this.manageUnit = manageUnit;
+    }
+
+    @Column(name = "downSignImgType")
+    public Integer getDownSignImgType() {
+        return downSignImgType;
+    }
+
+    public void setDownSignImgType(Integer downSignImgType) {
+        this.downSignImgType = downSignImgType;
     }
 
     @Override

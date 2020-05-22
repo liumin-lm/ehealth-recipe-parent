@@ -1593,22 +1593,32 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 orderDetailBean.setDistributionFlag("0");
             }
 
-            //设置处方笺base
-            String ossId = recipe.getSignImg();
-            if(null != ossId){
-                try {
-                    IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
-                    String imgStr = imgHead + fileDownloadService.downloadImg(ossId);
-                    if(org.springframework.util.ObjectUtils.isEmpty(imgStr)){
-                        LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:处方ID为{}的ossid为{}处方笺不存在", recipe.getRecipeId(), ossId);
-                    }
-                    LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:{}处方，下载处方笺服务成功", recipe.getRecipeId());
-                    orderDetailBean.setRecipeSignImg(imgStr);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:{}处方，下载处方笺服务异常：{}.", recipe.getRecipeId(), e.getMessage() );
+            if (drugsEnterprise.getDownSignImgType() != null && drugsEnterprise.getDownSignImgType() == 1) {
+                //获取处方签链接
+                RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+                String signImgFile = recipeParameterDao.getByName("fileImgUrl");
+                if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
+                    orderDetailBean.setRecipeSignImg(signImgFile + recipe.getChemistSignFile());
+                } else {
+                    orderDetailBean.setRecipeSignImg(signImgFile + recipe.getSignFile());
                 }
-
+            } else {
+                //设置处方笺base
+                String ossId = recipe.getSignImg();
+                if(null != ossId){
+                    try {
+                        IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+                        String imgStr = imgHead + fileDownloadService.downloadImg(ossId);
+                        if(org.springframework.util.ObjectUtils.isEmpty(imgStr)){
+                            LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:处方ID为{}的ossid为{}处方笺不存在", recipe.getRecipeId(), ossId);
+                        }
+                        LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:{}处方，下载处方笺服务成功", recipe.getRecipeId());
+                        orderDetailBean.setRecipeSignImg(imgStr);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:{}处方，下载处方笺服务异常：{}.", recipe.getRecipeId(), e.getMessage() );
+                    }
+                }
             }
 
             //设置订单信息
@@ -1618,6 +1628,10 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setDecoctionFee(convertParame(recipeOrder.getDecoctionFee()));
             orderDetailBean.setAuditFee(convertParame(recipeOrder.getAuditFee()));
             orderDetailBean.setRegisterFee(convertParame(recipeOrder.getRegisterFee()));
+            //代煎费
+            orderDetailBean.setDecoctionFee(convertParame(recipeOrder.getDecoctionFee()));
+            //设置中医辨证论治费
+            orderDetailBean.setTCMFee(convertParame(recipeOrder.getTCMFee()));
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (recipeExtend != null) {
                 if (recipeExtend.getFundAmount() != null) {
