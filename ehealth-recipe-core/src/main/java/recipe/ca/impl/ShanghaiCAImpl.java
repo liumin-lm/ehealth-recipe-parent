@@ -87,6 +87,7 @@ public class ShanghaiCAImpl implements CAInterface {
             caSignDateRequestTO.setOrganId(organId);
             caSignDateRequestTO.setUserAccount(userAccount);
             caSignDateRequestTO.setSignMsg(JSONUtils.toString(recipe));
+            String signId = "CA_" + recipe.getRecipeId() + "_" + "";
 
             CaSignDateResponseTO responseDateTO = iCommonCAServcie.caSignDateBusiness(caSignDateRequestTO);
             if (responseDateTO == null || responseDateTO.getCode() != 200) {
@@ -110,7 +111,8 @@ public class ShanghaiCAImpl implements CAInterface {
             }
             CaSealResponseTO responseSealTO = iCommonCAServcie.caSealBusiness(requestSealTO);
 
-            if (responseSealTO == null || responseSealTO.getCode() != 200){
+            if (responseSealTO == null || (responseSealTO.getCode() != 200
+                    && requestSealTO.getCode() != 404 && requestSealTO.getCode() != 405)){
                 signResultVo.setCode(responseSealTO.getCode());
                 signResultVo.setMsg(responseSealTO.getMsg());
                 return signResultVo;
@@ -121,6 +123,7 @@ public class ShanghaiCAImpl implements CAInterface {
                     JSONUtils.toString(requestSealTO), organId, userAccount, caPassword );
             e.printStackTrace();
         }
+        LOGGER.info("commonCASignAndSeal params: {}", JSONUtils.toString(signResultVo));
         return signResultVo;
     }
 }
