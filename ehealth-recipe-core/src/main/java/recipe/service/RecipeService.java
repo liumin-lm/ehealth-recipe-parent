@@ -1856,7 +1856,6 @@ public class RecipeService extends RecipeBaseService {
         RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
 
         Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
-        List<Recipedetail> recipedetails = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
 
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
         if (null == dbRecipe.getStatus() || dbRecipe.getStatus() > RecipeStatusConstant.UNSIGN) {
@@ -1864,12 +1863,7 @@ public class RecipeService extends RecipeBaseService {
         }
 
         int beforeStatus = dbRecipe.getStatus();
-        if (null == recipedetails) {
-            recipedetails = new ArrayList<>(0);
-        }
-        for (Recipedetail recipeDetail : recipedetails) {
-            RecipeValidateUtil.validateRecipeDetailData(recipeDetail, dbRecipe);
-        }
+
         //由于使用BeanUtils.map，空的字段不会进行copy，要进行手工处理
         if (StringUtils.isEmpty(recipe.getMemo())) {
             dbRecipe.setMemo("");
@@ -1880,14 +1874,25 @@ public class RecipeService extends RecipeBaseService {
         }
         //复制修改的数据
         BeanUtils.map(recipe, dbRecipe);
-        //设置药品价格
-        boolean isSucc = RecipeServiceSub.setDetailsInfo(dbRecipe, recipedetails);
-        if (!isSucc) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "药品详情数据有误");
-        }
-        //将原先处方单详情的记录都置为无效 status=0
 
-        recipeDetailDAO.updateDetailInvalidByRecipeId(recipeId);
+        List<Recipedetail> recipedetails = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
+        if(null != detailBeanList && detailBeanList.size() > 0){
+            if (null == recipedetails) {
+                recipedetails = new ArrayList<>(0);
+            }
+            for (Recipedetail recipeDetail : recipedetails) {
+                RecipeValidateUtil.validateRecipeDetailData(recipeDetail, dbRecipe);
+            }
+            //设置药品价格
+            boolean isSucc = RecipeServiceSub.setDetailsInfo(dbRecipe, recipedetails);
+            if (!isSucc) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "药品详情数据有误");
+            }
+            //将原先处方单详情的记录都置为无效 status=0
+
+            recipeDetailDAO.updateDetailInvalidByRecipeId(recipeId);
+        }
+
         Integer dbRecipeId = recipeDAO.updateOrSaveRecipeAndDetail(dbRecipe, recipedetails, true);
 
         //武昌需求，加入处方扩展信息
