@@ -413,4 +413,14 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     DrugsEnterpriseBean getDrugsEnterpriseBeanById(Integer depId);
+
+    /**
+     * CA异步回调接口
+     * @param pdfBase64
+     * @param recipeId
+     * @param signRecipeCode
+     * @return
+     */
+    @RpcService
+    Boolean saveSignRecipePDF(String pdfBase64,Integer recipeId, String signRecipeCode);
 }
