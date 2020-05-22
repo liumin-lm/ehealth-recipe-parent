@@ -110,7 +110,7 @@ public class PatientTabStatusRecipeDTO implements Serializable {
     /**
      * 药企编码
      */
-    private Integer enterpriceId;
+    private Integer enterpriseId;
 
     public PatientTabStatusRecipeDTO() {
     }
@@ -371,11 +371,11 @@ public class PatientTabStatusRecipeDTO implements Serializable {
         this.recipeSource = recipeSource;
     }
 
-    public Integer getEnterpriceId() {
-        return enterpriceId;
+    public Integer getEnterpriseId() {
+        return enterpriseId;
     }
 
-    public void setEnterpriceId(Integer enterpriceId) {
-        this.enterpriceId = enterpriceId;
+    public void setEnterpriseId(Integer enterpriseId) {
+        this.enterpriseId = enterpriseId;
     }
 }
