@@ -1260,21 +1260,23 @@ public class RecipeListService extends RecipeBaseService{
                 //设置处方具体药品名称
                 List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
                 StringBuilder stringBuilder = new StringBuilder();
-
-                for (Recipedetail recipedetail : recipedetails) {
-                    List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipe.getClinicOrgan());
-                    if (organDrugLists != null && 0 < organDrugLists.size()) {
-                        stringBuilder.append(organDrugLists.get(0).getSaleName());
-                        if (StringUtils.isNotEmpty(organDrugLists.get(0).getDrugForm())) {
-                            stringBuilder.append(organDrugLists.get(0).getDrugForm());
+                if(null != recipedetails && recipedetails.size() > 0){
+                    for (Recipedetail recipedetail : recipedetails) {
+                        List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipe.getClinicOrgan());
+                        if (organDrugLists != null && 0 < organDrugLists.size()) {
+                            stringBuilder.append(organDrugLists.get(0).getSaleName());
+                            if (StringUtils.isNotEmpty(organDrugLists.get(0).getDrugForm())) {
+                                stringBuilder.append(organDrugLists.get(0).getDrugForm());
+                            }
+                        } else {
+                            stringBuilder.append(recipedetail.getDrugName());
                         }
-                    } else {
-                        stringBuilder.append(recipedetail.getDrugName());
+                        stringBuilder.append(" ").append(recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit()).append("、");
                     }
-                    stringBuilder.append(" ").append(recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit()).append("、");
+                    stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
+                    recipe.setRecipeDrugName(stringBuilder.toString());
                 }
-                stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
-                recipe.setRecipeDrugName(stringBuilder.toString());
+
                 //前台页面展示的时间源不同
                 recipe.setRecipeShowTime(recipe.getCreateDate());
                 boolean effective = false;
