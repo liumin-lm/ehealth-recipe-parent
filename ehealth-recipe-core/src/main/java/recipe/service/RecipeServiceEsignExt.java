@@ -17,6 +17,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.base.constant.ErrorCode;
+import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Base64;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -201,6 +202,79 @@ public class RecipeServiceEsignExt {
                 //药师签名值
                 attrMap.put("signPharmacistCode", signRecipeCode);
                 attrMap.put("chemistSignFile", fileId);
+                attrMap.put("CheckDateYs", new Date());
+
+                RecipeBean recipe =recipeService.get(recipeId);
+                AuditModeContext auditModeContext = new AuditModeContext();
+                int recipeStatus = auditModeContext.getAuditModes(recipe.getReviewType()).afterAuditRecipeChange();
+                if (recipe.canMedicalPay()) {
+                    //如果是可医保支付的单子，审核是在用户看到之前，所以审核通过之后变为待处理状态
+                    recipeStatus = RecipeStatusConstant.CHECK_PASS;
+                }
+                attrMap.put("Status", recipeStatus);
+            }
+
+            //保存签名值
+            boolean upResult = recipeService.updateRecipeInfoByRecipeId(recipeId, attrMap);
+            LOGGER.info("saveSignRecipePDF 保存签名  upResult={}=recipeId={}=attrMap={}=", upResult,recipeId,attrMap.toString());
+            String reuslt = upResult?"success":"fail";
+            return reuslt;
+        } catch (Exception e){
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static String saveSignRecipePDF2(String pdfBase64,Integer recipeId, String loginId,String signCADate,
+                                           String signRecipeCode,Boolean isDoctor, String fileId){
+        LOGGER.info("saveSignRecipePDF start in pdfBase64={}, recipeId={}, loginId={},signCADate={},signRecipeCode={},isDoctor={}",
+                pdfBase64, recipeId, loginId, signCADate, signRecipeCode, isDoctor);
+//        String fileId = null;
+        try {
+            if (null != pdfBase64) {
+                //组装生成pdf的参数
+                String fileName = "recipe_" + recipeId + ".pdf";
+                BASE64Decoder d = new BASE64Decoder();
+                byte[] data = new byte[0];
+                try {
+                    data = d.decodeBuffer(pdfBase64);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                fileId = uploadRecipeSignFile(data, fileName, loginId);
+                if (null == fileId) {
+                    LOGGER.info("上传文件失败,fileName=" + fileName);
+                }
+            }
+
+            Map<String, Object> attrMap = Maps.newHashMap();
+            if (isDoctor) {
+                //医生签名时间戳
+                if (!StringUtils.isEmpty(signCADate)) {
+                    attrMap.put("signCADate", signCADate);
+                }
+                //医生签名值
+                if (!StringUtils.isEmpty(signRecipeCode)) {
+                    attrMap.put("signRecipeCode", signRecipeCode);
+                }
+                if (!StringUtils.isEmpty(fileId)) {
+                    attrMap.put("signFile", fileId);
+                }
+                attrMap.put("signDate", new Date());
+                attrMap.put("Status", RecipeStatusConstant.CHECK_PASS);
+            } else {
+                //药师签名时间戳
+                if (!StringUtils.isEmpty(signCADate)) {
+                    attrMap.put("signPharmacistCADate", signCADate);
+                }
+
+                //药师签名值
+                if (!StringUtils.isEmpty(signRecipeCode)) {
+                    attrMap.put("signPharmacistCode", signRecipeCode);
+                }
+                if (!StringUtils.isEmpty(fileId)) {
+                    attrMap.put("chemistSignFile", fileId);
+                }
                 attrMap.put("CheckDateYs", new Date());
 
                 RecipeBean recipe =recipeService.get(recipeId);

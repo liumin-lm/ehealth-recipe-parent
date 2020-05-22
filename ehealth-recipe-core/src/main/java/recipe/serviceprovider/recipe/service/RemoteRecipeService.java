@@ -5,6 +5,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
+import com.ngari.base.doctor.model.DoctorBean;
+import com.ngari.base.doctor.service.IDoctorService;
+import com.ngari.base.esign.service.IESignBaseService;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.common.mode.HisResponseTO;
@@ -14,12 +17,14 @@ import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
@@ -42,9 +47,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
+import recipe.ca.vo.CaSignResultVo;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
@@ -56,6 +63,7 @@ import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.recipecheck.RecipeCheckService;
 import recipe.service.*;
 import recipe.serviceprovider.BaseService;
+import recipe.sign.SignRecipeInfoService;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
@@ -908,6 +916,46 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
         return ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class);
+    }
+
+    @Autowired
+    RecipeService recipeService;
+
+    @Autowired
+    RecipeDAO recipeDAO;
+
+    @Override
+    public Boolean saveSignRecipePDF(String pdfBase64, Integer recipeId, String signRecipeCode) {
+
+        try {
+            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+            boolean isDoctor = true;
+            if (null == recipe.getCheckDateYs()) { // 注意这里在RecipeServiceEsignExt.saveSignRecipePDF判断时药师还是医生，那边改动会有影响
+                isDoctor = false;
+            }
+
+            IDoctorService iDoctorService = AppDomainContext
+                    .getBean("eh.doctorservice", IDoctorService.class);
+            DoctorBean doctor = iDoctorService.getBeanByDoctorId(recipe.getDoctor());
+            String loginId = doctor.getLoginId();
+
+            CaSignResultVo resultVo = new CaSignResultVo();
+            resultVo.setPdfBase64(pdfBase64);
+            resultVo.setSignRecipeCode(signRecipeCode);
+            String fileId = null;
+            //保存签名值、时间戳、电子签章文件
+            String result = RecipeServiceEsignExt.saveSignRecipePDF2(resultVo.getPdfBase64(),
+                    recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), isDoctor, fileId);
+            if ("fail".equalsIgnoreCase(result)){
+                return false;
+            }
+            resultVo.setFileId(fileId);
+            recipeService.signRecipeInfoSave(recipeId, isDoctor, resultVo, recipe.getClinicOrgan());
+        }catch (Exception e) {
+            LOGGER.error("saveSignRecipePDF error", e);
+            return false;
+        }
+        return true;
     }
 
 }

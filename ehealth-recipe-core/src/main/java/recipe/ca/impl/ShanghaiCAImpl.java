@@ -3,6 +3,9 @@ package recipe.ca.impl;
 
 import com.ngari.his.ca.model.*;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.DoctorExtendDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.DoctorExtendService;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.recipe.entity.Recipe;
 import ctd.util.AppContextHolder;
@@ -93,12 +96,33 @@ public class ShanghaiCAImpl implements CAInterface {
             }
             signResultVo.setSignCADate(responseDateTO.getSignDate());
             signResultVo.setCode(200);
-            //电子签章（暂不实现）
+
+            // 电子签章
+            requestSealTO.setOrganId(organId);
+            requestSealTO.setUserPin(caPassword);
+            requestSealTO.setUserAccount(userAccount);
+            DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
+            DoctorExtendDTO doctorExtendDTO = doctorExtendService.getByDoctorId(recipe.getChecker());
+            if (doctorExtendDTO != null && doctorExtendDTO.getSealData() != null) {
+                requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
+            } else {
+                requestSealTO.setSealBase64Str("");
+            }
+            CaSealResponseTO responseSealTO = iCommonCAServcie.caSealBusiness(requestSealTO);
+
+            if (responseSealTO == null || (responseSealTO.getCode() != 200
+                    && requestSealTO.getCode() != 404 && requestSealTO.getCode() != 405)){
+                signResultVo.setCode(responseSealTO.getCode());
+                signResultVo.setMsg(responseSealTO.getMsg());
+                return signResultVo;
+            }
+            signResultVo.setPdfBase64(responseSealTO.getPdfBase64File());
         } catch (Exception e){
             LOGGER.error("shanghaiCA commonCASignAndSeal 调用前置机失败 requestSealTO={},organId={},userAccount={},caPassword={}",
                     JSONUtils.toString(requestSealTO), organId, userAccount, caPassword );
             e.printStackTrace();
         }
+        LOGGER.info("commonCASignAndSeal params: {}", JSONUtils.toString(signResultVo));
         return signResultVo;
     }
 }
