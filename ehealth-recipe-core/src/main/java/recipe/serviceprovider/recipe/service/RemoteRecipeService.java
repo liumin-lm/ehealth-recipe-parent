@@ -930,7 +930,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         try {
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             boolean isDoctor = true;
-            if (null == recipe.getCheckDateYs()) {
+            if (null == recipe.getCheckDateYs()) { // 注意这里在RecipeServiceEsignExt.saveSignRecipePDF判断时药师还是医生，那边改动会有影响
                 isDoctor = false;
             }
 

@@ -87,7 +87,6 @@ public class ShanghaiCAImpl implements CAInterface {
             caSignDateRequestTO.setOrganId(organId);
             caSignDateRequestTO.setUserAccount(userAccount);
             caSignDateRequestTO.setSignMsg(JSONUtils.toString(recipe));
-            String signId = "CA_" + recipe.getRecipeId() + "_" + "";
 
             CaSignDateResponseTO responseDateTO = iCommonCAServcie.caSignDateBusiness(caSignDateRequestTO);
             if (responseDateTO == null || responseDateTO.getCode() != 200) {
