@@ -165,7 +165,7 @@ public class OrganDrugListService implements IOrganDrugListService {
             throw new DAOException(DAOException.VALUE_NEEDED, "organDrugId is required");
         }
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        organDrugListDAO.deleteById(organDrugListId);
+        organDrugListDAO.remove(organDrugListId);
 
     }
     /**
@@ -175,7 +175,7 @@ public class OrganDrugListService implements IOrganDrugListService {
      */
     @RpcService
     public void deleteOrganDrugListByIds(List<Integer> organDrugListIds) {
-        if (organDrugListIds.isEmpty()) {
+        if (CollectionUtils.isEmpty(organDrugListIds)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "organDrugId is required");
         }
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
