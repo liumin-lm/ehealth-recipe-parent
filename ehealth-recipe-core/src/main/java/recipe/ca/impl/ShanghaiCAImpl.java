@@ -119,8 +119,8 @@ public class ShanghaiCAImpl implements CAInterface {
             signResultVo.setPdfBase64(responseSealTO.getPdfBase64File());
         } catch (Exception e){
             LOGGER.error("shanghaiCA commonCASignAndSeal 调用前置机失败 requestSealTO={},organId={},userAccount={},caPassword={}",
-                    JSONUtils.toString(requestSealTO), organId, userAccount, caPassword );
-            e.printStackTrace();
+                    JSONUtils.toString(requestSealTO), organId, userAccount, caPassword);
+            LOGGER.error("commonCASignAndSeal Exception", e);
         }
         LOGGER.info("commonCASignAndSeal params: {}", JSONUtils.toString(signResultVo));
         return signResultVo;
