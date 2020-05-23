@@ -101,13 +101,6 @@ public class ShanghaiCAImpl implements CAInterface {
             requestSealTO.setOrganId(organId);
             requestSealTO.setUserPin(caPassword);
             requestSealTO.setUserAccount(userAccount);
-            DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
-            DoctorExtendDTO doctorExtendDTO = doctorExtendService.getByDoctorId(recipe.getChecker());
-            if (doctorExtendDTO != null && doctorExtendDTO.getSealData() != null) {
-                requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
-            } else {
-                requestSealTO.setSealBase64Str("");
-            }
             CaSealResponseTO responseSealTO = iCommonCAServcie.caSealBusiness(requestSealTO);
 
             if (responseSealTO == null || (responseSealTO.getCode() != 200
