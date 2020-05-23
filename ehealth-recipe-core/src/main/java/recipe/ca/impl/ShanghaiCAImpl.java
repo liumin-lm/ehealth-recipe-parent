@@ -101,6 +101,7 @@ public class ShanghaiCAImpl implements CAInterface {
             requestSealTO.setOrganId(organId);
             requestSealTO.setUserPin(caPassword);
             requestSealTO.setUserAccount(userAccount);
+            requestSealTO.setSignMsg(JSONUtils.toString(recipe));
             CaSealResponseTO responseSealTO = iCommonCAServcie.caSealBusiness(requestSealTO);
 
             if (responseSealTO == null || (responseSealTO.getCode() != 200
