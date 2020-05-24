@@ -933,6 +933,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         Integer recipeId = caSignResultTo.getRecipeId();
         String errorMsg = caSignResultTo.getMsg();
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (null == recipe) {
+            return false;
+        }
         if (!StringUtils.isEmpty(errorMsg)){
             LOGGER.info("当前审核处方{}签名失败！errorMsg: {}", recipeId, errorMsg);
             RecipeLogDAO recipeLogDAO = getDAO(RecipeLogDAO.class);
@@ -948,7 +951,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             }
 
             IDoctorService iDoctorService = AppDomainContext
-                    .getBean("eh.doctorservice", IDoctorService.class);
+                    .getBean("basic.doctorService", IDoctorService.class);
             DoctorBean doctor = iDoctorService.getBeanByDoctorId(recipe.getDoctor());
             String loginId = doctor.getLoginId();
 
