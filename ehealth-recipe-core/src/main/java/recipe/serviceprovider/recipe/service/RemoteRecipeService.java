@@ -946,9 +946,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
 
         try {
-            boolean isDoctor = true;
+            boolean isDoctor = false;
             if (null == recipe.getCheckDateYs()) { // 注意这里在RecipeServiceEsignExt.saveSignRecipePDF判断时药师还是医生，那边改动会有影响
-                isDoctor = false;
+                isDoctor = true;
             }
 
             DoctorService doctorService = AppDomainContext
