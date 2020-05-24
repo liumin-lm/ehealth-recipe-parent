@@ -16,10 +16,12 @@ import com.ngari.his.recipe.mode.QueryRecipeRequestTO;
 import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.ca.mode.CaSignResultTo;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
@@ -69,6 +71,8 @@ import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * company: ngarihealth
@@ -925,25 +929,39 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     RecipeDAO recipeDAO;
 
     @Override
-    public Boolean saveSignRecipePDF(String pdfBase64, Integer recipeId, String signRecipeCode) {
+    public Boolean saveSignRecipePDF(CaSignResultTo caSignResultTo) {
+        LOGGER.info("saveSignRecipePDF caSignResultTo:{}", JSONUtils.toString(caSignResultTo));
+        Integer recipeId = caSignResultTo.getRecipeId();
+        String errorMsg = caSignResultTo.getMsg();
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (null == recipe) {
+            return false;
+        }
+        if (!StringUtils.isEmpty(errorMsg)){
+            LOGGER.info("当前审核处方{}签名失败！errorMsg: {}", recipeId, errorMsg);
+            RecipeLogDAO recipeLogDAO = getDAO(RecipeLogDAO.class);
+            recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_PHA, null);
+            recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), errorMsg);
+            return true;
+        }
 
         try {
-            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-            boolean isDoctor = true;
+            boolean isDoctor = false;
             if (null == recipe.getCheckDateYs()) { // 注意这里在RecipeServiceEsignExt.saveSignRecipePDF判断时药师还是医生，那边改动会有影响
-                isDoctor = false;
+                isDoctor = true;
             }
 
-            IDoctorService iDoctorService = AppDomainContext
-                    .getBean("eh.doctorservice", IDoctorService.class);
-            DoctorBean doctor = iDoctorService.getBeanByDoctorId(recipe.getDoctor());
+            DoctorService doctorService = AppDomainContext
+                    .getBean("basic.doctorService", DoctorService.class);
+            DoctorDTO doctor = doctorService.getBeanByDoctorId(recipe.getDoctor());
             String loginId = doctor.getLoginId();
 
             CaSignResultVo resultVo = new CaSignResultVo();
-            resultVo.setPdfBase64(pdfBase64);
-            resultVo.setSignRecipeCode(signRecipeCode);
+            resultVo.setPdfBase64(caSignResultTo.getPdfBase64());
+            resultVo.setSignRecipeCode(caSignResultTo.getSignRecipeCode());
             String fileId = null;
             //保存签名值、时间戳、电子签章文件
+            LOGGER.info("start save PdfBase64 Or SignRecipeCode");
             String result = RecipeServiceEsignExt.saveSignRecipePDF2(resultVo.getPdfBase64(),
                     recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), isDoctor, fileId);
             if ("fail".equalsIgnoreCase(result)){

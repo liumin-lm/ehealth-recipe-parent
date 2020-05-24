@@ -101,13 +101,7 @@ public class ShanghaiCAImpl implements CAInterface {
             requestSealTO.setOrganId(organId);
             requestSealTO.setUserPin(caPassword);
             requestSealTO.setUserAccount(userAccount);
-            DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
-            DoctorExtendDTO doctorExtendDTO = doctorExtendService.getByDoctorId(recipe.getChecker());
-            if (doctorExtendDTO != null && doctorExtendDTO.getSealData() != null) {
-                requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
-            } else {
-                requestSealTO.setSealBase64Str("");
-            }
+            requestSealTO.setSignMsg(JSONUtils.toString(recipe));
             CaSealResponseTO responseSealTO = iCommonCAServcie.caSealBusiness(requestSealTO);
 
             if (responseSealTO == null || (responseSealTO.getCode() != 200
@@ -119,8 +113,8 @@ public class ShanghaiCAImpl implements CAInterface {
             signResultVo.setPdfBase64(responseSealTO.getPdfBase64File());
         } catch (Exception e){
             LOGGER.error("shanghaiCA commonCASignAndSeal 调用前置机失败 requestSealTO={},organId={},userAccount={},caPassword={}",
-                    JSONUtils.toString(requestSealTO), organId, userAccount, caPassword );
-            e.printStackTrace();
+                    JSONUtils.toString(requestSealTO), organId, userAccount, caPassword);
+            LOGGER.error("commonCASignAndSeal Exception", e);
         }
         LOGGER.info("commonCASignAndSeal params: {}", JSONUtils.toString(signResultVo));
         return signResultVo;
