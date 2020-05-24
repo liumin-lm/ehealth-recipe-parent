@@ -16,6 +16,7 @@ import com.ngari.his.recipe.mode.QueryRecipeRequestTO;
 import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
@@ -950,9 +951,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 isDoctor = false;
             }
 
-            IDoctorService iDoctorService = AppDomainContext
-                    .getBean("basic.doctorService", IDoctorService.class);
-            DoctorBean doctor = iDoctorService.getBeanByDoctorId(recipe.getDoctor());
+            DoctorService doctorService = AppDomainContext
+                    .getBean("basic.doctorService", DoctorService.class);
+            DoctorDTO doctor = doctorService.getBeanByDoctorId(recipe.getDoctor());
             String loginId = doctor.getLoginId();
 
             CaSignResultVo resultVo = new CaSignResultVo();
