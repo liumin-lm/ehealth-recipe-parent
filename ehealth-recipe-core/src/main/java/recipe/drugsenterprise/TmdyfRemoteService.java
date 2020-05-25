@@ -29,6 +29,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.entity.mpi.Patient;
 import eh.utils.DateConversion;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -558,7 +559,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
 
     private void getPatientInfo(Recipe dbRecipe, AlibabaAlihealthOutflowPrescriptionCreateRequest.PrescriptionOutflowUpdateRequest requestParam) {
         //操作人手机号
-        PatientDTO patient2 = UserRoleToken.getCurrent().getProperty("patient", PatientDTO.class);
+        Patient patient2 = UserRoleToken.getCurrent().getProperty("patient", Patient.class);
         if(patient2!=null && null != patient2.getMobile()){
             requestParam.setMobilePhone(patient2.getMobile());
         } else {
