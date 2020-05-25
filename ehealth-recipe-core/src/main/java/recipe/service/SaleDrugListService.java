@@ -146,7 +146,7 @@ public class SaleDrugListService implements ISaleDrugListService {
      * @return
      * @author houxr
      */
-    @RpcService
+    @Override
     public QueryResult<DrugListAndSaleDrugListDTO> querySaleDrugListByOrganIdAndKeyword(final Date startTime, final Date endTime,final Integer organId,
                                                                                         final String drugClass,
                                                                                         final String keyword, final Integer status,
