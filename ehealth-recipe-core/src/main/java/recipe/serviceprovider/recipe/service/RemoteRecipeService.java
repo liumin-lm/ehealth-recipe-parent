@@ -318,7 +318,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @param fromflag
      * @return
      */
-    @RpcService
+    @RpcService(timeout = 600000)
+    @Override
     public List<Map> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate,
                                         final Date eDate, final Integer dateType, final Integer depart, List<Integer> organIds, Integer giveMode,
                                         Integer fromflag,Integer recipeId,Integer enterpriseId,Integer checkStatus,Integer payFlag,Integer orderType){
