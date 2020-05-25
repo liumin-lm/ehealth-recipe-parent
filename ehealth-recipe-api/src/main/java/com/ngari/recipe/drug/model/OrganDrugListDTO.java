@@ -89,6 +89,29 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "推荐单次剂量")
     private Double recommendedUseDose;
 
+    @ItemProperty(alias = "转换系数")
+    private Integer pack;
+
+    @ItemProperty(alias = "药品包装单位")
+    private String unit;
+
+    @ItemProperty(alias = "使用频率")
+    @Dictionary(id = "eh.cdr.dictionary.UsingRate")
+    private String usingRate;
+
+    @ItemProperty(alias = "用药途径")
+    @Dictionary(id = "eh.cdr.dictionary.UsePathways")
+    private String usePathways;
+
+    @ItemProperty(alias = "单次剂量单位")
+    private String useDoseUnit;
+
+    @ItemProperty(alias = "生产厂家")
+    private String producer;
+
+
+
+
     public OrganDrugListDTO() {
     }
 
@@ -282,5 +305,53 @@ public class OrganDrugListDTO implements java.io.Serializable {
 
     public void setRecommendedUseDose(Double recommendedUseDose) {
         this.recommendedUseDose = recommendedUseDose;
+    }
+
+    public Integer getPack() {
+        return pack;
+    }
+
+    public void setPack(Integer pack) {
+        this.pack = pack;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
+
+    public String getUsingRate() {
+        return usingRate;
+    }
+
+    public void setUsingRate(String usingRate) {
+        this.usingRate = usingRate;
+    }
+
+    public String getUsePathways() {
+        return usePathways;
+    }
+
+    public void setUsePathways(String usePathways) {
+        this.usePathways = usePathways;
+    }
+
+    public String getUseDoseUnit() {
+        return useDoseUnit;
+    }
+
+    public void setUseDoseUnit(String useDoseUnit) {
+        this.useDoseUnit = useDoseUnit;
+    }
+
+    public String getProducer() {
+        return producer;
+    }
+
+    public void setProducer(String producer) {
+        this.producer = producer;
     }
 }

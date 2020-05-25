@@ -132,6 +132,9 @@ public class DrugListBean implements Serializable {
     @ItemProperty(alias = "药品库存标志")
     private boolean drugInventoryFlag;
 
+    @ItemProperty(alias = "药品本位码")
+    private String standardCode;
+
     public DrugListBean() {
     }
 
@@ -434,5 +437,13 @@ public class DrugListBean implements Serializable {
 
     public void setSourceOrgan(Integer sourceOrgan) {
         this.sourceOrgan = sourceOrgan;
+    }
+
+    public String getStandardCode() {
+        return standardCode;
+    }
+
+    public void setStandardCode(String standardCode) {
+        this.standardCode = standardCode;
     }
 }
