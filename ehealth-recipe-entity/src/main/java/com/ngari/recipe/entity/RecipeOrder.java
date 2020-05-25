@@ -292,6 +292,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "中医辨证论治费")
     private BigDecimal TCMFee;
 
+    @ItemProperty(alias = "支付平台回写支付信息")
+    private String payBackInfo;
+
     @Column(name = "cancelReason")
     public String getCancelReason() {
         return cancelReason;
@@ -1010,4 +1013,12 @@ public class RecipeOrder implements Serializable {
         this.TCMFee = TCMFee;
     }
 
+    @Column(name = "payBackInfo")
+    public String getPayBackInfo() {
+        return payBackInfo;
+    }
+
+    public void setPayBackInfo(String payBackInfo) {
+        this.payBackInfo = payBackInfo;
+    }
 }

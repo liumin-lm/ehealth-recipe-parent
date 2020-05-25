@@ -258,6 +258,9 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "发药药师身份证")
     private String dispensingApothecaryIdCard;
 
+    @ItemProperty(alias = "支付平台回写支付信息")
+    private String payBackInfo;
+
     public RecipeOrderBean() {
         initData();
     }
@@ -885,5 +888,13 @@ public class RecipeOrderBean implements Serializable {
 
     public void setExpressFeePayWay(Integer expressFeePayWay) {
         this.expressFeePayWay = expressFeePayWay;
+    }
+
+    public String getPayBackInfo() {
+        return payBackInfo;
+    }
+
+    public void setPayBackInfo(String payBackInfo) {
+        this.payBackInfo = payBackInfo;
     }
 }
