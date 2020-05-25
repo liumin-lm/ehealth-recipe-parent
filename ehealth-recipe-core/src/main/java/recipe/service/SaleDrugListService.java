@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.google.common.collect.Lists;
+import com.ngari.opbase.base.service.IBusActionLogService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
@@ -71,6 +72,8 @@ public class SaleDrugListService implements ISaleDrugListService {
     @RpcService
     public boolean addSaleDrugList(SaleDrugList saleDrugList) {
         logger.info("新增销售机构药品服务[addSaleDrugList]:" + JSONUtils.toString(saleDrugList));
+        IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
+
         SaleDrugListDAO dao = DAOFactory.getDAO(SaleDrugListDAO.class);
         if (null == saleDrugList) {
             throw new DAOException(DAOException.VALUE_NEEDED, "saleDrugList is null");
@@ -79,6 +82,7 @@ public class SaleDrugListService implements ISaleDrugListService {
         if (!drugsEnterpriseDAO.exist(saleDrugList.getOrganId())) {
             throw new DAOException(DAOException.VALUE_NEEDED, "DrugsEnterprise not exist");
         }
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(saleDrugList.getOrganId());
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         if (!drugListDAO.exist(saleDrugList.getDrugId())) {
             throw new DAOException(DAOException.VALUE_NEEDED, "DrugList not exist");
@@ -89,6 +93,7 @@ public class SaleDrugListService implements ISaleDrugListService {
         saleDrugList.setCreateDt(new Date());
         saleDrugList.setStatus(1);
         dao.save(saleDrugList);
+        busActionLogService.recordBusinessLogRpcNew("药企药品管理","","SaleDrugList","【"+drugsEnterprise.getName()+"】新增药品【"+saleDrugList.getOrganDrugId()+"-"+saleDrugList.getDrugName()+"】",drugsEnterprise.getName());
         return true;
     }
 
@@ -103,18 +108,32 @@ public class SaleDrugListService implements ISaleDrugListService {
     @RpcService
     public SaleDrugListDTO updateSaleDrugList(SaleDrugList saleDrugList) {
         logger.info("修改销售机构药品服务[updateSaleDrugList]:" + JSONUtils.toString(saleDrugList));
+        IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
         if (null == saleDrugList.getDrugId()) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugId is required");
         }
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         SaleDrugList target = saleDrugListDAO.get(saleDrugList.getOrganDrugId());
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(saleDrugList.getOrganId());
         if (null == target) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "此药在该医院药品列表中不存在");
         } else {
+            Integer oldStatus = target.getStatus();
+            Integer newStatus = saleDrugList.getStatus();
             BeanUtils.map(saleDrugList, target);
             validateSaleDrugList(target);
             target.setLastModify(new Date());
             target = saleDrugListDAO.update(target);
+            if (oldStatus != newStatus){
+                //禁用 启用
+                String type = newStatus == 0 ? "禁用" : "启用";
+                busActionLogService.recordBusinessLogRpcNew("药企药品管理","","SaleDrugList","【"+drugsEnterprise.getName()+"】"+type+"【"+saleDrugList.getOrganDrugId()+" -"+saleDrugList.getDrugName()+"】",drugsEnterprise.getName());
+            }else {
+                //更新
+                busActionLogService.recordBusinessLogRpcNew("药企药品管理","","SaleDrugList","【"+drugsEnterprise.getName()+"】更新药品【"+saleDrugList.getOrganDrugId()
+                        +"-"+saleDrugList.getDrugName()+"】",drugsEnterprise.getName());
+            }
         }
         return ObjectCopyUtils.convert(target, SaleDrugListDTO.class);
     }

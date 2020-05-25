@@ -25,6 +25,7 @@ public interface IOrganDrugListService {
                                                                   int drugId, String organDrugCode);
     @RpcService
     QueryResult<DrugListAndOrganDrugListDTO> queryOrganDrugAndSaleForOp(Date startTime, Date endTime, Integer organId, String drugClass, String keyword, Integer status, int start, int limit, Boolean canDrugSend);
+
     @RpcService
     List<OrganDrugListBean> findByOrganId(int organId);
 }
