@@ -5,6 +5,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
+import com.ngari.base.doctor.model.DoctorBean;
+import com.ngari.base.doctor.service.IDoctorService;
+import com.ngari.base.esign.service.IESignBaseService;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.common.mode.HisResponseTO;
@@ -13,13 +16,17 @@ import com.ngari.his.recipe.mode.QueryRecipeRequestTO;
 import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.ca.mode.CaSignResultTo;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
@@ -42,9 +49,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
+import recipe.ca.vo.CaSignResultVo;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
@@ -56,11 +65,14 @@ import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.recipecheck.RecipeCheckService;
 import recipe.service.*;
 import recipe.serviceprovider.BaseService;
+import recipe.sign.SignRecipeInfoService;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * company: ngarihealth
@@ -736,10 +748,35 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public Map<String, Object> noticePlatRecipeAuditResult(NoticeNgariAuditResDTO req) {
         LOGGER.info("noticePlatRecipeAuditResult，req = {}", JSONUtils.toString(req));
         Map<String, Object> resMap = Maps.newHashMap();
+        if(null == req){
+            LOGGER.warn("当前处方更新审核结果接口入参为空！");
+            resMap.put("msg","当前处方更新审核结果接口入参为空");
+            return resMap;
+        }
         try {
             RecipeCheckService recipeService = ApplicationUtils.getRecipeService(RecipeCheckService.class);
             RecipeDAO dao = DAOFactory.getDAO(RecipeDAO.class);
-            Recipe recipe = dao.getByRecipeCodeAndClinicOrgan(req.getRecipeCode(), req.getOrganId());
+
+            //date 20200519
+            //当调用处方审核失败接口记录日志，不走有审核结果的逻辑
+            Recipe recipe = null;
+            //添加处方审核接受结果，recipeId的字段，优先使用recipeId
+            if(StringUtils.isNotEmpty(req.getRecipeId())){
+                recipe = dao.getByRecipeId(Integer.parseInt(req.getRecipeId()));
+            }else{
+                recipe = dao.getByRecipeCodeAndClinicOrgan(req.getRecipeCode(), req.getOrganId());
+            }
+            if("2".equals(req.getAuditResult())){
+                LOGGER.warn("当前处方{}调用审核接口失败！", JSONUtils.toString(req));
+                RecipeLogDAO logDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+                if(null != recipe){
+                    logDAO.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方调用审核接口失败");
+                }else{
+                    LOGGER.warn("当前处方code的处方{}不存在！", req.getRecipeCode());
+                }
+                resMap.put("msg","当前处方调用审核接口失败");
+                return resMap;
+            }
             if (recipe == null){
                 resMap.put("msg","查询不到处方信息");
             }
@@ -884,6 +921,60 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
         return ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class);
+    }
+
+    @Autowired
+    RecipeService recipeService;
+
+    @Autowired
+    RecipeDAO recipeDAO;
+
+    @Override
+    public Boolean saveSignRecipePDF(CaSignResultTo caSignResultTo) {
+        LOGGER.info("saveSignRecipePDF caSignResultTo:{}", JSONUtils.toString(caSignResultTo));
+        Integer recipeId = caSignResultTo.getRecipeId();
+        String errorMsg = caSignResultTo.getMsg();
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (null == recipe) {
+            return false;
+        }
+        if (!StringUtils.isEmpty(errorMsg)){
+            LOGGER.info("当前审核处方{}签名失败！errorMsg: {}", recipeId, errorMsg);
+            RecipeLogDAO recipeLogDAO = getDAO(RecipeLogDAO.class);
+            recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_PHA, null);
+            recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), errorMsg);
+            return true;
+        }
+
+        try {
+            boolean isDoctor = false;
+            if (null == recipe.getCheckDateYs()) { // 注意这里在RecipeServiceEsignExt.saveSignRecipePDF判断时药师还是医生，那边改动会有影响
+                isDoctor = true;
+            }
+
+            DoctorService doctorService = AppDomainContext
+                    .getBean("basic.doctorService", DoctorService.class);
+            DoctorDTO doctor = doctorService.getBeanByDoctorId(recipe.getDoctor());
+            String loginId = doctor.getLoginId();
+
+            CaSignResultVo resultVo = new CaSignResultVo();
+            resultVo.setPdfBase64(caSignResultTo.getPdfBase64());
+            resultVo.setSignRecipeCode(caSignResultTo.getSignRecipeCode());
+            String fileId = null;
+            //保存签名值、时间戳、电子签章文件
+            LOGGER.info("start save PdfBase64 Or SignRecipeCode");
+            String result = RecipeServiceEsignExt.saveSignRecipePDF2(resultVo.getPdfBase64(),
+                    recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), isDoctor, fileId);
+            if ("fail".equalsIgnoreCase(result)){
+                return false;
+            }
+            resultVo.setFileId(fileId);
+            recipeService.signRecipeInfoSave(recipeId, isDoctor, resultVo, recipe.getClinicOrgan());
+        }catch (Exception e) {
+            LOGGER.error("saveSignRecipePDF error", e);
+            return false;
+        }
+        return true;
     }
 
 }

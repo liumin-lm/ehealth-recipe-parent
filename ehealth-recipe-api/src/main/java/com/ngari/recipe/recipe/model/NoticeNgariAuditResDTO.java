@@ -18,10 +18,20 @@ public class NoticeNgariAuditResDTO implements Serializable {
     private String auditDoctorName;
     /** 审核时间*/
     private Date auditTime;
-    /** 审核结果 0审核不通过 1审核通过*/
+    /** 审核结果 0审核不通过 1审核通过 2审核失败*/
     private String auditResult;
     /** 审核结果描述*/
     private String memo;
+    /** 本地处方号*/
+    private String recipeId;
+
+    public String getRecipeId() {
+        return recipeId;
+    }
+
+    public void setRecipeId(String recipeId) {
+        this.recipeId = recipeId;
+    }
 
     public Integer getOrganId() {
         return organId;

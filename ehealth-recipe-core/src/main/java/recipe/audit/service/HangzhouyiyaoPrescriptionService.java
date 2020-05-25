@@ -212,7 +212,7 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
             detailData.setDrugName(recipedetail.getDrugName());
             detailData.setSpecification(recipedetail.getDrugSpec());
             detailData.setManufacturerName(drugList.getProducer());
-            detailData.setDrugDose(String.valueOf(drugList.getUseDose()));
+            detailData.setDrugDose(String.valueOf(drugList.getUseDose()) + drugList.getUseDoseUnit());
             try {
                 detailData.setDrugAdminRouteName(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipedetail.getUsePathways()));
             } catch (Exception e) {

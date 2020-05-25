@@ -159,7 +159,9 @@ public class PayModeOnline implements IPurchaseService {
                 drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupportAndSendType(dbRecipe.getClinicOrgan(), payModeSupport, Integer.parseInt(extInfo.get("sendType")));
             }
         }else{
-            drugsEnterpriseList = new ArrayList<DrugsEnterprise>();
+            //考虑到浙江省互联网项目的药店取药也会走这里,sendType是"" 还是需要查询一下支持的药企
+            drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(dbRecipe.getClinicOrgan(), payModeSupport);
+            //drugsEnterpriseList = new ArrayList<DrugsEnterprise>();
         }
         if (CollectionUtils.isEmpty(drugsEnterpriseList)) {
             LOG.warn("findSupportDepList 处方[{}]没有任何药企可以进行配送！", recipeId);

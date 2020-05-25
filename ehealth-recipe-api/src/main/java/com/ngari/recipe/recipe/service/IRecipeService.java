@@ -1,6 +1,7 @@
 package com.ngari.recipe.recipe.service;
 
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.platform.ca.mode.CaSignResultTo;
 import com.ngari.recipe.IBaseService;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
@@ -413,4 +414,11 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     DrugsEnterpriseBean getDrugsEnterpriseBeanById(Integer depId);
+
+    /**
+     * CA异步回调接口
+     * @return
+     */
+    @RpcService
+    Boolean saveSignRecipePDF(CaSignResultTo caSignResultTo);
 }

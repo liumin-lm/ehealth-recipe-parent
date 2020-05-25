@@ -377,8 +377,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 req.setSerialNumCA(doctorExtendDTO.getSerialNumCA()); //医护人员证件序列号
             }
             //医生处方签名生成时间戳
-            req.setSignCADate(recipe.getSignCADate()); //医生处方数字签名值
+            req.setSignCADate(recipe.getSignCADate());
+            //医生处方数字签名值
             req.setSignRecipeCode(recipe.getSignRecipeCode());
+            //药师处方数字签名值
+            req.setSignPharmacistCode(recipe.getSignPharmacistCode());
             recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             if(null != recipeOrder){
                 //配送方式
