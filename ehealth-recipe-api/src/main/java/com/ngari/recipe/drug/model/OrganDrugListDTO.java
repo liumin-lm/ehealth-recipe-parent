@@ -86,6 +86,9 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "禁用原因")
     private String disableReason;
 
+    @ItemProperty(alias = "推荐单次剂量")
+    private Double recommendedUseDose;
+
     public OrganDrugListDTO() {
     }
 
@@ -271,5 +274,13 @@ public class OrganDrugListDTO implements java.io.Serializable {
 
     public void setDisableReason(String disableReason) {
         this.disableReason = disableReason;
+    }
+
+    public Double getRecommendedUseDose() {
+        return recommendedUseDose;
+    }
+
+    public void setRecommendedUseDose(Double recommendedUseDose) {
+        this.recommendedUseDose = recommendedUseDose;
     }
 }
