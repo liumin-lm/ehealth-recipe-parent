@@ -3,6 +3,7 @@ package com.ngari.recipe.drug.service;
 import com.ngari.recipe.IBaseService;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
+import com.ngari.recipe.drug.model.DispensatoryDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
@@ -101,4 +102,6 @@ public interface IDrugService extends IBaseService<DrugListBean> {
     @RpcService
     QueryResult<DrugListBean> queryDrugListsByDrugNameAndStartAndLimit(String drugClass, String keyword,
                                                                        Integer status, int start, int limit);
+    @RpcService
+    DispensatoryDTO getByDrugId(Integer drugId);
 }

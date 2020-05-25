@@ -316,4 +316,11 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
                 status, start, limit);
         return result;
     }
+
+    @Override
+    public DispensatoryDTO getByDrugId(Integer drugId) {
+        DispensatoryDAO dispensatoryDAO = DAOFactory.getDAO(DispensatoryDAO.class);
+        Dispensatory dispensatory = dispensatoryDAO.getByDrugId(drugId);
+        return getBean(dispensatory,DispensatoryDTO.class);
+    }
 }
