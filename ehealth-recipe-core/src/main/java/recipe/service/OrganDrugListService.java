@@ -601,6 +601,13 @@ public class OrganDrugListService implements IOrganDrugListService {
         return ObjectCopyUtils.convert(organDrugLists, OrganDrugListBean.class);
     }
 
+    @Override
+    public List<OrganDrugListBean> findByOrganId(int organId) {
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        List<OrganDrugList> byOrganId = organDrugListDAO.findByOrganId(organId);
+        return ObjectCopyUtils.convert(byOrganId, OrganDrugListBean.class);
+    }
+
     private List<DrugListAndOrganDrugListDTO> covertData(List<DrugListAndOrganDrugList> dbList) {
         List<DrugListAndOrganDrugListDTO> newList = Lists.newArrayList();
         DrugListAndOrganDrugListDTO backDTO;
