@@ -55,6 +55,37 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "外带药标志 1:外带药")
     private Integer takeMedicine;
 
+    @ItemProperty(alias = "院内检索关键字")
+    private String retrievalCode;
+
+    @ItemProperty(alias = "医院药房名字")
+    private String pharmacyName;
+
+    @ItemProperty(alias = "监管平台药品编码")
+    private String regulationDrugCode;
+
+    @ItemProperty(alias = "剂型")
+    private String drugForm;
+
+    @ItemProperty(alias = "是否基药")
+    private Integer baseDrug;
+
+    @ItemProperty(alias = "批准文号")
+    private String licenseNumber;
+
+    @ItemProperty(alias = "包装材料")
+    private String packingMaterials;
+
+    @ItemProperty(alias = "医保药品编码")
+    private String medicalDrugCode;
+    @ItemProperty(alias = "HIS剂型编码")
+    private String drugFormCode;
+    @ItemProperty(alias = "医保剂型编码")
+    private String medicalDrugFormCode;
+
+    @ItemProperty(alias = "禁用原因")
+    private String disableReason;
+
     public OrganDrugListDTO() {
     }
 
@@ -152,5 +183,93 @@ public class OrganDrugListDTO implements java.io.Serializable {
 
     public void setTakeMedicine(Integer takeMedicine) {
         this.takeMedicine = takeMedicine;
+    }
+
+    public String getRetrievalCode() {
+        return retrievalCode;
+    }
+
+    public void setRetrievalCode(String retrievalCode) {
+        this.retrievalCode = retrievalCode;
+    }
+
+    public String getPharmacyName() {
+        return pharmacyName;
+    }
+
+    public void setPharmacyName(String pharmacyName) {
+        this.pharmacyName = pharmacyName;
+    }
+
+    public String getRegulationDrugCode() {
+        return regulationDrugCode;
+    }
+
+    public void setRegulationDrugCode(String regulationDrugCode) {
+        this.regulationDrugCode = regulationDrugCode;
+    }
+
+    public String getDrugForm() {
+        return drugForm;
+    }
+
+    public void setDrugForm(String drugForm) {
+        this.drugForm = drugForm;
+    }
+
+    public Integer getBaseDrug() {
+        return baseDrug;
+    }
+
+    public void setBaseDrug(Integer baseDrug) {
+        this.baseDrug = baseDrug;
+    }
+
+    public String getLicenseNumber() {
+        return licenseNumber;
+    }
+
+    public void setLicenseNumber(String licenseNumber) {
+        this.licenseNumber = licenseNumber;
+    }
+
+    public String getPackingMaterials() {
+        return packingMaterials;
+    }
+
+    public void setPackingMaterials(String packingMaterials) {
+        this.packingMaterials = packingMaterials;
+    }
+
+    public String getMedicalDrugCode() {
+        return medicalDrugCode;
+    }
+
+    public void setMedicalDrugCode(String medicalDrugCode) {
+        this.medicalDrugCode = medicalDrugCode;
+    }
+
+    public String getDrugFormCode() {
+        return drugFormCode;
+    }
+
+    public void setDrugFormCode(String drugFormCode) {
+        this.drugFormCode = drugFormCode;
+    }
+
+    public String getMedicalDrugFormCode() {
+        return medicalDrugFormCode;
+    }
+
+    public void setMedicalDrugFormCode(String medicalDrugFormCode) {
+        this.medicalDrugFormCode = medicalDrugFormCode;
+    }
+
+    public String getDisableReason() {
+        return disableReason;
+    }
+
+    public void setDisableReason(String disableReason) {
+        this.disableReason = disableReason;
     }
 }
