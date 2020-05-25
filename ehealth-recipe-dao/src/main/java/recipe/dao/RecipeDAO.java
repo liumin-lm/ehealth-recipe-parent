@@ -2576,4 +2576,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
 
     @DAOMethod(sql = "from Recipe where mpiid =:mpiId")
     public abstract List<Recipe> findByMpiId(@DAOParam("mpiId") String mpiId);
+
+    @DAOMethod(sql = "from Recipe where RecipeID =:recipeId and EnterpriseId =:depId")
+    public abstract Recipe getByRecipeIdAndEnterpriseId(@DAOParam("depId") Integer depId, @DAOParam("recipeId") Integer recipeId);
 }

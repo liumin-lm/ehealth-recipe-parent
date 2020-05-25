@@ -1470,22 +1470,25 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         LOGGER.info("ThirdEnterpriseCallService.recipeDownloadConfirmation appKey:{}, recipeIds", appKey, JSONUtils.toString(recipeIds));
         result.setCode(StandardResultDTO.SUCCESS);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAppKey(appKey);
+        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByAppKey(appKey);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        if (drugsEnterprise == null) {
+        if (drugsEnterprises == null) {
             result.setCode(StandardResultDTO.FAIL);
             result.setMsg("未匹配到药企");
             return result;
         }
-        recipeDAO.updateRecipeByDepIdAndRecipes(drugsEnterprise.getId(), recipeIds);
-        //添加回写日志
-        List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
-        for (Recipe recipe : recipes) {
-            if (recipe.getPushFlag() == 1) {
-                //说明已经下载成功
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), drugsEnterprise.getName()+"获取处方成功");
-            } else {
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), drugsEnterprise.getName()+"未获取到处方");
+        for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+            for (Integer recipeId : recipeIds) {
+                Recipe recipe = recipeDAO.getByRecipeIdAndEnterpriseId(drugsEnterprise.getId(), recipeId);
+                if (recipe != null) {
+                    recipeDAO.updateRecipeByDepIdAndRecipes(drugsEnterprise.getId(), Arrays.asList(recipeId));
+                    if (recipe.getPushFlag() == 1) {
+                        //说明已经下载成功
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), drugsEnterprise.getName()+"获取处方成功");
+                    } else {
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), drugsEnterprise.getName()+"未获取到处方");
+                    }
+                }
             }
         }
         return result;
@@ -1505,9 +1508,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         String appKey = (String)parames.get("appKey");
         String lastUpdateTime = (String)parames.get("lastUpdateTime");
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAppKey(appKey);
-        LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes drugsEnterprise:{}.", JSONUtils.toString(drugsEnterprise));
-        if (drugsEnterprise == null) {
+        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByAppKey(appKey);
+        LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes drugsEnterprise:{}.", JSONUtils.toString(drugsEnterprises));
+        if (drugsEnterprises == null) {
             standardResult.setCode(StandardResultDTO.FAIL);
             standardResult.setMsg("无法匹配到药企");
             return standardResult;
@@ -1522,10 +1525,14 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
 
+        List<Integer> drugsEnterpriseIds = new ArrayList<>();
+        for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+            drugsEnterpriseIds.add(drugsEnterprise.getId());
+        }
         //查找指定药企已支付完成的处方单
         List<RecipeOrder> recipeOrders = new ArrayList<>();
         try{
-            recipeOrders = recipeOrderDAO.findRecipeOrderByDepIdAndPayTime(drugsEnterprise.getId(), lastUpdateTime);
+            recipeOrders = recipeOrderDAO.findRecipeOrderByDepIdAndPayTime(drugsEnterpriseIds, lastUpdateTime);
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipeOrders:{}.", JSONUtils.toString(recipeOrders));
         }catch (Exception e){
             e.printStackTrace();
@@ -1593,6 +1600,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 orderDetailBean.setDistributionFlag("0");
             }
 
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
             if (drugsEnterprise.getDownSignImgType() != null && drugsEnterprise.getDownSignImgType() == 1) {
                 //获取处方签链接
                 RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
