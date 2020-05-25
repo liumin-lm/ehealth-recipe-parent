@@ -1888,11 +1888,10 @@ public class RecipeService extends RecipeBaseService {
             if (!isSucc) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "药品详情数据有误");
             }
-            //将原先处方单详情的记录都置为无效 status=0
-
-            recipeDetailDAO.updateDetailInvalidByRecipeId(recipeId);
         }
 
+        //将原先处方单详情的记录都置为无效 status=0
+        recipeDetailDAO.updateDetailInvalidByRecipeId(recipeId);
         Integer dbRecipeId = recipeDAO.updateOrSaveRecipeAndDetail(dbRecipe, recipedetails, true);
 
         //武昌需求，加入处方扩展信息
