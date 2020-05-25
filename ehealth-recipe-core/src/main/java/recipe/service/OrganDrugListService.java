@@ -503,7 +503,7 @@ public class OrganDrugListService implements IOrganDrugListService {
      * @param limit
      * @return
      */
-    @RpcService
+    @Override
     public QueryResult<DrugListAndOrganDrugListDTO> queryOrganDrugAndSaleForOp(final Date startTime, final Date endTime,final Integer organId,
                                                                                                final String drugClass,
                                                                                                final String keyword, final Integer status,
