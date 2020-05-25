@@ -43,8 +43,6 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
 
     private static String NAME_SPACE = "http://tempuri.org/";
 
-    private static String method="ngarihealth_checkstock";
-
     private static String RESULT_SUCCESS = "0";
 
     private static final String searchMapRANGE = "range";
@@ -67,6 +65,13 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
         return DrugEnterpriseResult.getSuccess();
     }
 
+    @RpcService
+    public void test(Integer recipeId){
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(251);
+        scanStock(recipeId, drugsEnterprise);
+    }
+
     @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         return "暂不支持库存查询";
@@ -76,7 +81,6 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
     @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         LOGGER.info("LmgyRemoteService.scanStock:[{}]", JSONUtils.toString(recipeId));
-        String drugEpName = drugsEnterprise.getName();
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         Map<String,Object> param=new HashMap<>();
         Recipe recipe=recipeDAO.getByRecipeId(recipeId);
@@ -102,22 +106,18 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
         param.put("password",drugsEnterprise.getPassword());
         param.put("drugList",paramList);
 
-        if (drugsEnterprise.getPayModeSupport() == 3) {
-            //表示为药店取药
-            DrugEnterpriseResult drugEnterpriseResult = this.findSupportDep(Arrays.asList(recipeId), null, drugsEnterprise);
-            if (drugEnterpriseResult.getCode() == 1 && drugEnterpriseResult.getObject() != null) {
-                List<DepDetailBean> list = (List<DepDetailBean>)drugEnterpriseResult.getObject();
-                for (DepDetailBean depDetailBean : list) {
-                    String pharmacyCode = depDetailBean.getPharmacyCode();
-                    param.put("hisid",pharmacyCode);
-                    result.setCode(DrugEnterpriseResult.SUCCESS);
-                    if (getScanResult(drugsEnterprise, result, param).getCode() == 1){
-                        return result;
-                    }
+        //表示为药店取药
+        DrugEnterpriseResult drugEnterpriseResult = this.findSupportDep(Arrays.asList(recipeId), null, drugsEnterprise);
+        if (drugEnterpriseResult.getCode() == 1 && drugEnterpriseResult.getObject() != null) {
+            List<DepDetailBean> list = (List<DepDetailBean>)drugEnterpriseResult.getObject();
+            for (DepDetailBean depDetailBean : list) {
+                String pharmacyCode = depDetailBean.getPharmacyCode();
+                param.put("hisid",pharmacyCode);
+                result.setCode(DrugEnterpriseResult.SUCCESS);
+                if (getScanResult(drugsEnterprise, result, param).getCode() == 1){
+                    return result;
                 }
             }
-        } else {
-            getScanResult(drugsEnterprise, result, param);
         }
         return result;
     }
@@ -128,38 +128,44 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
         //String requestStr = "{\"accesstoken\":\"710F2F0A5778728AAB04EB3ED1842758\",\"account\":\"ngarihealth\",\"password\":\"202CB962AC59075B964B07152D234B70\",\"drugList\":[{\"drugCode\":\"z1211\",\"total\":\"3\",\"unit\":\"  盒\"},{\"drugCode\":\"z1212\",\"total\":\"3\",\"unit\":\"盒\"}]}";
 
         LOGGER.info("LmgyRemoteService.scanStock:[{}][{}]请求临沐国药调用库存校验，请求内容：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), requestStr);
-
-        String resultJson = getResultString(drugsEnterprise, result, requestStr);
+        String method = "ngarihealth_checkstock";
+        String resultJson = getResultString(drugsEnterprise, result, requestStr, method);
         //resultJson="{\"Code\":\"0\",\"Content\":\"数据已返回！\",\"Table\":[{\"drugcode\":\"z1211\",\"inventory\":\"0\"},{\"drugcode\":\"z1212\",\"inventory\":\"1\"}]}";
-        if (StringUtils.isNotEmpty(resultJson)) {
-            Map resultMap = JSONUtils.parse(resultJson, Map.class);
-            String resCode = MapValueUtil.getString(resultMap, "Code");
-            if (!RESULT_SUCCESS.equals(resCode)) {
-                result.setMsg("调用[" + drugsEnterprise.getName() + "][" + method + "]失败.error:" + MapValueUtil.getString(resultMap, "MSG"));
-                result.setCode(DrugEnterpriseResult.FAIL);
-                return result;
-            }
-            int code=1;//是否有库存 0：无  1：有
-            List<Map<String, Object>> drugList = MapValueUtil.getList(resultMap, "Table");
-            //一个处方对应多个药品，只要其中一个药品没库存就返回没库存 code:1
-            if (CollectionUtils.isNotEmpty(drugList) && drugList.size() > 0) {
-                for (Map<String, Object> drugBean : drugList) {
-                    String inventory = MapValueUtil.getObject(drugBean, "inventory").toString();
-                    if ("0".equals(inventory)) {
-                        code=DrugEnterpriseResult.FAIL;
-                        break;
-                    }
+        try{
+            if (StringUtils.isNotEmpty(resultJson)) {
+                Map resultMap = JSONUtils.parse(resultJson, Map.class);
+                String resCode = MapValueUtil.getString(resultMap, "Code");
+                if (!RESULT_SUCCESS.equals(resCode)) {
+                    result.setMsg("调用[" + drugsEnterprise.getName() + "][" + method + "]失败.error:" + MapValueUtil.getString(resultMap, "MSG"));
+                    result.setCode(DrugEnterpriseResult.FAIL);
+                    return result;
                 }
-            } else {
-                code=DrugEnterpriseResult.FAIL;
+                int code=1;//是否有库存 0：无  1：有
+                List<Map<String, Object>> drugList = MapValueUtil.getList(resultMap, "Table");
+                //一个处方对应多个药品，只要其中一个药品没库存就返回没库存 code:1
+                if (CollectionUtils.isNotEmpty(drugList) && drugList.size() > 0) {
+                    for (Map<String, Object> drugBean : drugList) {
+                        String inventory = MapValueUtil.getObject(drugBean, "inventory").toString();
+                        if ("false".equals(inventory)) {
+                            code = DrugEnterpriseResult.FAIL;
+                            break;
+                        }
+                    }
+                } else {
+                    code = DrugEnterpriseResult.FAIL;
+                }
+                result.setCode(code);
+            } else{
+                result.setCode(DrugEnterpriseResult.FAIL);
             }
-            //result.setMsg(JSONUtils.toString(drugList));
-            result.setCode(code);
+        }catch(Exception e){
+            result.setCode(DrugEnterpriseResult.FAIL);
         }
         return result;
     }
 
-    private String getResultString(DrugsEnterprise drugsEnterprise, DrugEnterpriseResult result, String requestStr) {
+    private String getResultString(DrugsEnterprise drugsEnterprise, DrugEnterpriseResult result, String requestStr, String method) {
+        LOGGER.info("getResultString requestStr:{}.", requestStr);
         String resultJson = null;
         try {
             Call call = getCall(drugsEnterprise, method);
@@ -251,14 +257,14 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
             }
         } else {
             //医生开处方
-            param.put("longitude", "36.632060");
-            param.put("latitude", "117.085419");
+            param.put("longitude", "117.085419");
+            param.put("latitude", "36.632060");
             param.put("range", "1000");
         }
 
         //请求临沐国药
         String requestStr = JSONUtils.toString(param);
-        String resultJson = getResultString(enterprise, result, requestStr);
+        String resultJson = getResultString(enterprise, result, requestStr, method);
         if (StringUtils.isNotEmpty(resultJson)) {
             Map resultMap = JSONUtils.parse(resultJson, Map.class);
             String resCode = MapValueUtil.getString(resultMap, "Code");
