@@ -68,10 +68,10 @@ public class AuditPostMode extends AbstractAuidtMode {
                     if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
                         //配送到家-线上支付
                         status = RecipeStatusConstant.READY_CHECK_YS;
-                        // 如果处方类型是中药或膏方不需要走药师审核流程,默认状态审核通过
+                        /*// 如果处方类型是中药或膏方不需要走药师审核流程,默认状态审核通过
                         if (RecipeUtil.isTcmType(dbRecipe.getRecipeType())) {
                             status = RecipeStatusConstant.CHECK_PASS_YS;
-                        }
+                        }*/
                         memo = "配送到家-线上支付成功";
                     } else {
                         memo = "配送到家-线上支付失败";

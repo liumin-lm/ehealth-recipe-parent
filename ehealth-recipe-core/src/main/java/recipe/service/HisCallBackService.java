@@ -134,11 +134,11 @@ public class HisCallBackService {
         if (isCheckPass) {
             // 医保用户
             if (recipe.canMedicalPay()) {
-                // 如果是中药或膏方处方不需要药师审核
+                /*// 如果是中药或膏方处方不需要药师审核
                 if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
                     status = RecipeStatusConstant.CHECK_PASS_YS;
                     memo = "HIS审核返回：写入his成功，药师审核通过";
-                }
+                }*/
 
                /* else {
                     //可以进行医保支付，先去药师进行审核

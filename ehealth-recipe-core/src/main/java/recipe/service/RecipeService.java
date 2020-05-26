@@ -1417,7 +1417,7 @@ public class RecipeService extends RecipeBaseService {
         Integer status = RecipeStatusConstant.CHECK_PASS;
 
         String memo = "HIS审核返回：写入his成功，审核通过";
-        // 医保用户
+        /*// 医保用户
         if (recipe.canMedicalPay()) {
             // 如果是中药或膏方处方不需要药师审核
             if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
@@ -1425,7 +1425,7 @@ public class RecipeService extends RecipeBaseService {
                 memo = "HIS审核返回：写入his成功，药师审核通过";
             }
 
-        }
+        }*/
 
         //其他平台处方状态不变
         if (0 == recipe.getFromflag()) {
