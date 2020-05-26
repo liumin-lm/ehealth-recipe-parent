@@ -1,6 +1,7 @@
 package recipe.serviceprovider.drug.service;
 
 import com.google.common.collect.Lists;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
@@ -17,6 +18,7 @@ import com.ngari.recipe.entity.Dispensatory;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugListMatch;
 import com.ngari.recipe.entity.OrganDrugList;
+import com.squareup.moshi.Json;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
@@ -380,9 +382,15 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         if (CollectionUtils.isEmpty(listBeen)){
             return Boolean.TRUE;
         }
+        IConfigurationCenterUtilsService configurationCenterUtilsService = (IConfigurationCenterUtilsService)AppContextHolder.getBean("eh.configurationCenterUtils");
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         OrganDrugListService organDrugListService= AppContextHolder.getBean("organDrugListService", OrganDrugListService.class);
         HisOrganDrugListBean drugListMatch = listBeen.get(0);
+        Boolean organDrugFromHis = (Boolean) configurationCenterUtilsService.getConfiguration(drugListMatch.getOrganId(),"organDrugFromHis");
+        if (!organDrugFromHis){
+            LOGGER.info("His接口返回"+JSONUtils.toString(listBeen));
+            return Boolean.TRUE;
+        }
         OrganService organService = BasicAPI.getService(OrganService.class);
         OrganDTO organDTO = organService.getByOrganId(drugListMatch.getOrganId());
         //【机构名称】批量新增药品【编码-药品名】……
