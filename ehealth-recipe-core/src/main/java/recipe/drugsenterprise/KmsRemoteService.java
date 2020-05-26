@@ -65,6 +65,7 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
         String goodsqtyMethod = recipeParameterDao.getByName("kms-goodsqty");
         //发送请求，获得推送的结果
         CloseableHttpClient httpClient = HttpClients.createDefault();
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         try{
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
@@ -75,6 +76,9 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
                 drugBean.setTotal("5");
                 if (CollectionUtils.isNotEmpty(organDrugLists)) {
                     drugBean.setUnit(organDrugLists.get(0).getUnit());
+                } else {
+                    DrugList drugList = drugListDAO.getById(drugId);
+                    drugBean.setUnit(drugList.getUnit());
                 }
                 list.add(drugBean);
             }
@@ -90,7 +94,7 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
                 if (CollectionUtils.isNotEmpty(drugList) && drugList.size() > 0) {
                     for (Map<String, Object> drugBean : drugList) {
                         String inventory = MapValueUtil.getObject(drugBean, "inventory").toString();
-                        if ("false".equals(inventory)) {
+                        if ("true".equals(inventory)) {
                             return "有库存";
                         }
                     }
