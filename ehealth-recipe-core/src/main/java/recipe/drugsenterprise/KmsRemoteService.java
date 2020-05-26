@@ -61,25 +61,18 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         String goodsqtyMethod = recipeParameterDao.getByName("kms-goodsqty");
         //发送请求，获得推送的结果
-        CloseableHttpClient httpClient = HttpClients.createDefault();
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         try{
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
-            List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
             List<HdDrugRequestData> list = new ArrayList<>();
             if (saleDrugList != null) {
                 HdDrugRequestData drugBean = new HdDrugRequestData();
                 drugBean.setDrugCode(saleDrugList.getOrganDrugCode());
                 drugBean.setTotal("5");
-                if (CollectionUtils.isNotEmpty(organDrugLists)) {
-                    drugBean.setUnit(organDrugLists.get(0).getUnit());
-                } else {
-                    DrugList drugList = drugListDAO.getById(drugId);
-                    drugBean.setUnit(drugList.getUnit());
-                }
+                DrugList drugList = drugListDAO.getById(drugId);
+                drugBean.setUnit(drugList.getUnit());
                 list.add(drugBean);
             }
             Map<String, List<HdDrugRequestData>> map = new HashMap<>();

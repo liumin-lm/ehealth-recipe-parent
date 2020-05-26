@@ -63,7 +63,6 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
         String appKey=recipeParameterDao.getByName("ynsyy-key");
         String pharmacyStock=recipeParameterDao.getByName("ynsyy-pharmacyStockMethod");
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         try{
             Client client = new Client(drugsEnterprise.getBusinessUrl()+pharmacyStock, appKey, drugsEnterprise.getToken(), encodingAesKey);
             ////根据处方信息发送药企库存查询请求，判断有药店是否满足库存
@@ -72,7 +71,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
             //X-Service-Method对应的值
             String method = recipeParameterDao.getByName("ynsyy-pharmacyStockMethod");
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
-            List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
+
             List list = new ArrayList<>();
             YnsPharmacyAndStockRequest hdPharmacyAndStockRequest = new YnsPharmacyAndStockRequest();
             List<HdDrugRequestData> drugRequestDataList = new ArrayList<>();
@@ -81,13 +80,10 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
                 HdDrugRequestData drugBean = new HdDrugRequestData();
                 drugBean.setDrugCode(saleDrugList.getOrganDrugCode());
                 drugBean.setTotal("5");
-                if (CollectionUtils.isNotEmpty(organDrugLists)) {
-                    drugBean.setUnit(organDrugLists.get(0).getUnit());
-                } else {
-                    DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-                    DrugList drugList = drugListDAO.getById(drugId);
-                    drugBean.setUnit(drugList.getUnit());
-                }
+
+                DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+                DrugList drugList = drugListDAO.getById(drugId);
+                drugBean.setUnit(drugList.getUnit());
                 drugRequestDataList.add(drugBean);
                 hdPharmacyAndStockRequest.setDrugList(drugRequestDataList);
             }
