@@ -1487,59 +1487,11 @@ public class RecipeServiceSub {
 //            }
 
             //Date:20190904
-            //Explain:添加患者点击按钮信息
-            if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode()) ||
-                RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
-                //获取配置项
-                IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-                //添加按钮配置项key
-                Object payModeDeploy = configService.getConfiguration(recipe.getClinicOrgan(), "payModeDeploy");
-                if(null != payModeDeploy){
-                    List<String> configurations = new ArrayList<>(Arrays.asList((String[])payModeDeploy));
-                    //将配置的购药方式放在map上
-                    for (String configuration : configurations) {
-                        map.put(configuration, 1);
-                    }
-                }
-
-                //互联网按钮信息（特殊化）
-                if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
-                    PayModeShowButtonBean payModeShowButtonBean = new PayModeShowButtonBean();
-                    if(map.get("supportOnline") != null && 1 == (Integer) map.get("supportOnline")){
-                        payModeShowButtonBean.setSupportOnline(true);
-                    }
-                    if(map.get("supportToHos") != null && 1 == (Integer) map.get("supportToHos")){
-                        payModeShowButtonBean.setSupportToHos(true);
-                    }
-
-                    //如果运营平台没设置按钮，那底下也不用走了
-                    if(payModeShowButtonBean.getSupportOnline() || payModeShowButtonBean.getSupportToHos()){
-                        RecipeListService recipeListService = new RecipeListService();
-                        recipeListService.initInternetModel(null, payModeShowButtonBean, recipe);
-
-                        if(null != payModeShowButtonBean.getSupportToHos() && !payModeShowButtonBean.getSupportToHos()){
-                            map.put("supportToHos", 0);
-                        }
-                        if(null != payModeShowButtonBean.getSupportOnline() && !payModeShowButtonBean.getSupportOnline()){
-                            map.put("supportOnline", 0);
-                        }
-                    }
-                }
-            }
-
-            //Date:20190904
             //Explain:审核是否通过
             boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() &&
                     (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus())));
             map.put("optional", isOptional);
-            //Date:20190909
-            //Explain:判断是否下载处方签
 
-            //1.判断配置项中是否配置了下载处方签，
-            //2.是否是后置的，后置的判断状态是否是已审核，已完成, 配送中，
-            //3.如果不是后置的，判断实际金额是否为0：为0则ordercode关联则展示，不为0支付则展示
-            boolean isDownload = getDownConfig(recipe, order);
-            map.put("isDownload", isDownload);
             //date 2190929
             //添加处方详情上提示信息的展示颜色类型
             //添加一次审核不通过，状态待审核
@@ -1551,31 +1503,8 @@ public class RecipeServiceSub {
             if(null != colorType){
                 map.put("tipsType", colorType.getShowType());
             }
-            //date 2191011
-            //添加处方详情上是否展示按钮
-            boolean showButton = false;
-            if(!((null == map.get("supportTFDS") || 0 == Integer.parseInt(map.get("supportTFDS").toString())) &&
-                    (null == map.get("supportOnline") || 0 == Integer.parseInt(map.get("supportOnline").toString())) &&
-                    (null == map.get("supportDownload") || 0 == Integer.parseInt(map.get("supportDownload").toString())) &&
-                    (null == map.get("supportToHos") || 0 == Integer.parseInt(map.get("supportToHos").toString())))){
-                if(ReviewTypeConstant.Preposition_Check == recipe.getReviewType()){
-                    //带药师审核，审核一次不通过，待处理无订单
-                    if (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus()
-                            || RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus()
-                            || (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode())) {
-
-                        showButton = true;
-                    }
-                }else{
-                    if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode()) {
-
-                        showButton = true;
-                    }
-                }
-            }
-
-            map.put("showButton", showButton);
-
+            //患者处方单详情页按钮显示
+            patientRecipeInfoBottonShow(map,recipe,order);
         }
 
         if (StringUtils.isEmpty(recipe.getMemo())) {
@@ -1658,35 +1587,6 @@ public class RecipeServiceSub {
             map.put("recipeExtend",recipeExtend);
         }
 
-        //date 20200508
-        //设置展示配送到家的配送方式
-        //判断当前处方对应的机构支持的配送药企包含的配送类型
-
-        //首先判断按钮中配送药品购药方式是否展示，不展示购药方式按钮就不展示药企配送和医院配送
-        boolean showSend = (null == map.get("supportOnline") ? false : 1 == Integer.parseInt(map.get("supportOnline").toString()));
-        map.put("showSendToEnterprises", 0);
-        map.put("showSendToHos", 0);
-        if(!showSend){
-            return map;
-        }
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_ONLINE);
-        payModeSupport.addAll(RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_COD));
-        Long enterprisesSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Enterprise_Send);
-        Long hosSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Hos_Send);
-        if(null != enterprisesSend && 0 < enterprisesSend){
-            map.put("showSendToEnterprises", 1);
-        }
-        if(null != hosSend && 0 < hosSend){
-            map.put("showSendToHos", 1);
-        }
-        //不支持配送，则按钮都不显示--包括药店取药
-        if (new Integer(2).equals(recipe.getDistributionFlag())){
-            map.put("showSendToEnterprises", 0);
-            map.put("showSendToHos", 0);
-            map.put("supportTFDS",0);
-        }
-
         //20200519 zhangx 是否展示退款按钮(重庆大学城退款流程)，前端调用patientRefundForRecipe
         map.put("showRefund",0);
         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
@@ -1698,6 +1598,109 @@ public class RecipeServiceSub {
 
 
         return map;
+    }
+
+    private static void patientRecipeInfoBottonShow(Map<String, Object> map, Recipe recipe, RecipeOrder order) {
+        //Date:20190904
+        //Explain:添加患者点击按钮信息
+        if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode()) ||
+                RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
+            //获取配置项
+            IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+            //添加按钮配置项key
+            Object payModeDeploy = configService.getConfiguration(recipe.getClinicOrgan(), "payModeDeploy");
+            if(null != payModeDeploy){
+                List<String> configurations = new ArrayList<>(Arrays.asList((String[])payModeDeploy));
+                //将配置的购药方式放在map上
+                for (String configuration : configurations) {
+                    map.put(configuration, 1);
+                }
+            }
+
+            //互联网按钮信息（特殊化）
+            if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
+                PayModeShowButtonBean payModeShowButtonBean = new PayModeShowButtonBean();
+                if(map.get("supportOnline") != null && 1 == (Integer) map.get("supportOnline")){
+                    payModeShowButtonBean.setSupportOnline(true);
+                }
+                if(map.get("supportToHos") != null && 1 == (Integer) map.get("supportToHos")){
+                    payModeShowButtonBean.setSupportToHos(true);
+                }
+
+                //如果运营平台没设置按钮，那底下也不用走了
+                if(payModeShowButtonBean.getSupportOnline() || payModeShowButtonBean.getSupportToHos()){
+                    RecipeListService recipeListService = new RecipeListService();
+                    recipeListService.initInternetModel(null, payModeShowButtonBean, recipe);
+
+                    if(null != payModeShowButtonBean.getSupportToHos() && !payModeShowButtonBean.getSupportToHos()){
+                        map.put("supportToHos", 0);
+                    }
+                    if(null != payModeShowButtonBean.getSupportOnline() && !payModeShowButtonBean.getSupportOnline()){
+                        map.put("supportOnline", 0);
+                    }
+                }
+            }
+        }
+        //Date:20190909
+        //Explain:判断是否下载处方签
+
+        //1.判断配置项中是否配置了下载处方签，
+        //2.是否是后置的，后置的判断状态是否是已审核，已完成, 配送中，
+        //3.如果不是后置的，判断实际金额是否为0：为0则ordercode关联则展示，不为0支付则展示
+        boolean isDownload = getDownConfig(recipe, order);
+        map.put("isDownload", isDownload);
+        //date 20200508
+        //设置展示配送到家的配送方式
+        //判断当前处方对应的机构支持的配送药企包含的配送类型
+
+        //首先判断按钮中配送药品购药方式是否展示，不展示购药方式按钮就不展示药企配送和医院配送
+        boolean showSend = (null == map.get("supportOnline") ? false : 1 == Integer.parseInt(map.get("supportOnline").toString()));
+        map.put("showSendToEnterprises", 0);
+        map.put("showSendToHos", 0);
+        //显示配送才判断具体显示哪个配送按钮
+        if(showSend){
+            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+            List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_ONLINE);
+            payModeSupport.addAll(RecipeServiceSub.getDepSupportMode(RecipeBussConstant.PAYMODE_COD));
+            Long enterprisesSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Enterprise_Send);
+            Long hosSend = drugsEnterpriseDAO.getCountByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, EnterpriseSendConstant.Hos_Send);
+            if(null != enterprisesSend && 0 < enterprisesSend){
+                map.put("showSendToEnterprises", 1);
+            }
+            if(null != hosSend && 0 < hosSend){
+                map.put("showSendToHos", 1);
+            }
+            //不支持配送，则按钮都不显示--包括药店取药
+            if (new Integer(2).equals(recipe.getDistributionFlag())){
+                map.put("showSendToEnterprises", 0);
+                map.put("showSendToHos", 0);
+                map.put("supportTFDS",0);
+            }
+        }
+        //date 2191011
+        //添加处方详情上是否展示按钮
+        boolean showButton = false;
+        if(!((null == map.get("supportTFDS") || 0 == Integer.parseInt(map.get("supportTFDS").toString())) &&
+                (null == map.get("supportOnline") || 0 == Integer.parseInt(map.get("supportOnline").toString())) &&
+                (null == map.get("supportDownload") || 0 == Integer.parseInt(map.get("supportDownload").toString())) &&
+                (null == map.get("supportToHos") || 0 == Integer.parseInt(map.get("supportToHos").toString())))){
+            if(ReviewTypeConstant.Preposition_Check == recipe.getReviewType()){
+                //带药师审核，审核一次不通过，待处理无订单
+                if (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus()
+                        || RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus()
+                        || (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode())) {
+
+                    showButton = true;
+                }
+            }else{
+                if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode()) {
+
+                    showButton = true;
+                }
+            }
+        }
+
+        map.put("showButton", showButton);
     }
 
     private static List<AuditMedicinesDTO> handleAnalysisByType(List<AuditMedicinesDTO> auditMedicines,String type){
