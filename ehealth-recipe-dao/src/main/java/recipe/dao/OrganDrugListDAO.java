@@ -38,9 +38,8 @@ import java.util.*;
 @RpcSupportDAO
 public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<OrganDrugList> implements DBDictionaryItemLoader<OrganDrugList> {
 
-    private static Logger logger = Logger.getLogger(OrganDrugListDAO.class);
-
     private static final Integer ALL_DRUG_FLAG = 9;
+    private static Logger logger = Logger.getLogger(OrganDrugListDAO.class);
 
     public OrganDrugListDAO() {
         super();
@@ -810,4 +809,6 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
         HibernateSessionTemplate.instance().executeReadOnly(action);
         return action.getResult();
     }
+
+
 }
