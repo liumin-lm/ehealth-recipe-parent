@@ -62,6 +62,8 @@ public class RecipeToHisCallbackService {
             String amount = repList.get(0).getAmount();
             String registerId = repList.get(0).getRegisterID();
             String sendFlag = repList.get(0).getSendFlag();
+            String medicalType = repList.get(0).getMedicalType();
+            String medicalTypeText = repList.get(0).getMedicalTypeText();
             boolean isWuChang = false;
             //是否武昌模式
             if (StringUtils.isNotEmpty(repList.get(0).getIsDrugStock())){
@@ -100,6 +102,8 @@ public class RecipeToHisCallbackService {
             result.setRecipeCode(recipeNo);
             result.setPatientID(patientId);
             result.setRegisterID(registerId);
+            result.setMedicalType(medicalType);
+            result.setMedicalTypeText(medicalTypeText);
             result.setDetailList(list);
             LOGGER.info("recipeSend recive success. recipeId={}, checkPassSuccess result={}", response.getRecipeId(), JSONUtils.toString(result));
             HisCallBackService.checkPassSuccess(result, true);

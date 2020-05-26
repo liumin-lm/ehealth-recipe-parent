@@ -374,9 +374,15 @@ public class RecipeHisService extends RecipeBaseService {
 
             List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
             PatientBean patientBean = iPatientService.get(recipe.getMpiid());
-            HealthCardBean cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
+            HealthCardBean cardBean = null;
+            try {
+                cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
+            } catch (Exception e) {
+                //打印日志，程序继续执行，不影响支付回调
+                LOGGER.error("recipeDrugTake 获取健康卡失败:{},recipeId:{}.", e.getCause().getMessage(),recipe.getRecipeId());
+            }
             DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, details, patientBean, cardBean);
-            LOGGER.error("payNotify 请求参数:{}.", JSONUtils.toString(request));
+            LOGGER.info("payNotify 请求参数:{}.", JSONUtils.toString(request));
             //线上支付完成需要发送消息（结算）（省医保则是医保结算）
             if (RecipeResultBean.SUCCESS.equals(result.getCode()) && RecipeBussConstant.PAYMODE_ONLINE.equals(recipe.getPayMode()) && 1 == payFlag) {
                 PayNotifyReqTO payNotifyReq = HisRequestInit.initPayNotifyReqTO(recipe, patientBean, cardBean);

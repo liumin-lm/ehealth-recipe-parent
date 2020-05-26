@@ -69,6 +69,16 @@ public class OrderRepTO implements Serializable {
     private String pharmNo;
 
     /**
+     * 患者医保类型（编码）
+     */
+    private String medicalType;
+
+    /**
+     * 患者医保类型（名称）
+     */
+    private String medicalTypeText;
+
+    /**
      * 备注
      */
     private String remark;
@@ -197,5 +207,21 @@ public class OrderRepTO implements Serializable {
 
     public void setRegisterID(String registerID) {
         this.registerID = registerID;
+    }
+
+    public String getMedicalType() {
+        return medicalType;
+    }
+
+    public void setMedicalType(String medicalType) {
+        this.medicalType = medicalType;
+    }
+
+    public String getMedicalTypeText() {
+        return medicalTypeText;
+    }
+
+    public void setMedicalTypeText(String medicalTypeText) {
+        this.medicalTypeText = medicalTypeText;
     }
 }
