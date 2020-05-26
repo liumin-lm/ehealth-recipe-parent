@@ -510,7 +510,7 @@ public class RecipeOrderService extends RecipeBaseService {
         IConfigurationCenterUtilsService configurationCenterUtilsService = (IConfigurationCenterUtilsService)AppContextHolder.getBean("eh.configurationCenterUtils");
         RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
         OrganConfigBean organConfig = iOrganConfigService.get(order.getOrganId());
-
+        LOGGER.info("进入方法setOrderFee");
         if (null == organConfig) {
             //只有需要真正保存订单时才提示
             result.setCode(RecipeResultBean.FAIL);
@@ -618,7 +618,7 @@ public class RecipeOrderService extends RecipeBaseService {
             }
         }
 
-        BigDecimal TCMFee=new BigDecimal(0.00);
+        BigDecimal TCMFee=new BigDecimal(0);
         int i=0;
         for (Recipe recipe : recipeList) {
             if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
@@ -634,11 +634,14 @@ public class RecipeOrderService extends RecipeBaseService {
                     //从opbase配置项获取中医辨证论治费 recipeTCMPrice
                     Object findRecipeTCMPrice = configService.getConfiguration(recipe.getClinicOrgan(), "recipeTCMPrice");
                     if(findRecipeTCMPrice!=null&& ((BigDecimal)findRecipeTCMPrice).compareTo(BigDecimal.ZERO)==1) TCMFee=(BigDecimal)findRecipeTCMPrice;
-                    order.setTCMFee(TCMFee);
                 }
+                LOGGER.info("处方recipeid:{},TCMFee是：{}",recipe.getRecipeId(),TCMFee);
+
             }
             i++;
         }
+        LOGGER.info("TCMFee是：{}",TCMFee);
+        order.setTCMFee(TCMFee);
         order.setCopyNum(totalCopyNum);
         order.setDecoctionFee(otherFee);
         //当前是his返回的，范围不进行校验
