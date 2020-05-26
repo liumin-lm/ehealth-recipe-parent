@@ -74,17 +74,28 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
             List list = new ArrayList<>();
+            YnsPharmacyAndStockRequest hdPharmacyAndStockRequest = new YnsPharmacyAndStockRequest();
+            List<HdDrugRequestData> drugRequestDataList = new ArrayList<>();
+
             if (saleDrugList != null) {
                 HdDrugRequestData drugBean = new HdDrugRequestData();
                 drugBean.setDrugCode(saleDrugList.getOrganDrugCode());
                 drugBean.setTotal("5");
                 if (CollectionUtils.isNotEmpty(organDrugLists)) {
                     drugBean.setUnit(organDrugLists.get(0).getUnit());
+                } else {
+                    DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+                    DrugList drugList = drugListDAO.getById(drugId);
+                    drugBean.setUnit(drugList.getUnit());
                 }
-                list.add(drugBean);
+                drugRequestDataList.add(drugBean);
+                hdPharmacyAndStockRequest.setDrugList(drugRequestDataList);
             }
+            list.add(hdPharmacyAndStockRequest);
+            LOGGER.info("getDrugInventory request:{}.", JSONUtils.toString(list));
             Request request =  new Request(serviceId,method,list);
             Response response = client.execute(request);
+            LOGGER.info("getDrugInventory response:{}.", JSONUtils.toString(response));
             Map resultMap = JSONUtils.parse(response.getBody(), Map.class);
             if (requestSuccessCode.equals(MapValueUtil.getString(resultMap, "code"))) {
                 String inventory = MapValueUtil.getObject(resultMap, "inventory").toString();
@@ -111,7 +122,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
         ext.put("longitude","31.2553210000");
         ext.put("latitude","121.4620020000");
         ext.put("range","20");
-        findSupportDep(recipeIds,ext,drugsEnterprise);
+        getDrugInventory(749, drugsEnterprise, 11);
 //        scanStock(recipeId,drugsEnterprise);
     }
     @Override
