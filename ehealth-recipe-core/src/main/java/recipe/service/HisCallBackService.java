@@ -272,6 +272,8 @@ public class HisCallBackService {
     private static void updateRecipeRegisterID(Recipe recipe, RecipeCheckPassResult result) {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        Map<String, String> map = new HashMap<String, String>();
+
         //更新复诊挂号序号如果有
         if (null != recipe.getClinicId()) {
             IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
@@ -285,18 +287,26 @@ public class HisCallBackService {
                     result.setRegisterID(consultExDTO.getRegisterNo());
                 }
                 if (StringUtils.isNotEmpty(consultExDTO.getCardId())&&StringUtils.isNotEmpty(consultExDTO.getCardType())){
-                    recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("cardNo", consultExDTO.getCardId(),"cardType",consultExDTO.getCardType()));
+                    map.put("cardNo", consultExDTO.getCardId());
+                    map.put("cardType", consultExDTO.getCardType());
                 }
             }
         }
         if (recipeExtend != null) {
             if (StringUtils.isNotEmpty(result.getRegisterID())) {
-                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("registerID", result.getRegisterID()));
+                map.put("registerID", result.getRegisterID());
+                map.put("medicalType", result.getMedicalType());
+                map.put("medicalTypeText", result.getMedicalTypeText());
+                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), map);
             }
         } else {
             recipeExtend = new RecipeExtend();
             recipeExtend.setRecipeId(recipe.getRecipeId());
             recipeExtend.setRegisterID(result.getRegisterID());
+            recipeExtend.setMedicalType(result.getMedicalType());
+            recipeExtend.setMedicalTypeText(result.getMedicalTypeText());
+            recipeExtend.setCardNo(map.get("cardNo"));
+            recipeExtend.setCardType(map.get("cardType"));
             if (StringUtils.isNotEmpty(recipeExtend.getRegisterID())) {
                 recipeExtendDAO.saveRecipeExtend(recipeExtend);
             }

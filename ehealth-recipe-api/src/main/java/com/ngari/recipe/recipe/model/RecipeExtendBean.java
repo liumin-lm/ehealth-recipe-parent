@@ -92,6 +92,16 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "慢病病种名称")
     private String chronicDiseaseName;
 
+    /**
+     * 患者医保类型（编码）
+     */
+    private String medicalType;
+
+    /**
+     * 患者医保类型（名称）
+     */
+    private String medicalTypeText;
+
     public RecipeExtendBean() {
     }
 
@@ -310,5 +320,21 @@ public class RecipeExtendBean implements Serializable {
 
     public void setPatientType(String patientType) {
         this.patientType = patientType;
+    }
+
+    public String getMedicalType() {
+        return medicalType;
+    }
+
+    public void setMedicalType(String medicalType) {
+        this.medicalType = medicalType;
+    }
+
+    public String getMedicalTypeText() {
+        return medicalTypeText;
+    }
+
+    public void setMedicalTypeText(String medicalTypeText) {
+        this.medicalTypeText = medicalTypeText;
     }
 }

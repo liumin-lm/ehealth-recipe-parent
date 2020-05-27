@@ -104,6 +104,16 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "his返回的处方总金额")
     private String deliveryRecipeFee;
 
+    /**
+     * 患者医保类型（编码）
+     */
+    private String medicalType;
+
+    /**
+     * 患者医保类型（名称）
+     */
+    private String medicalTypeText;
+
 //    @ItemProperty(alias = "处方创建状态  0：未进行，1：已生成订单 ，2.已创建处方，3. 已预支付处方")
 //    private String orderMakeStatus;
 //
@@ -464,5 +474,21 @@ public class RecipeExtend implements Serializable {
 
     public void setChronicDiseaseName(String chronicDiseaseName) {
         this.chronicDiseaseName = chronicDiseaseName;
+    }
+
+    public String getMedicalType() {
+        return medicalType;
+    }
+
+    public void setMedicalType(String medicalType) {
+        this.medicalType = medicalType;
+    }
+
+    public String getMedicalTypeText() {
+        return medicalTypeText;
+    }
+
+    public void setMedicalTypeText(String medicalTypeText) {
+        this.medicalTypeText = medicalTypeText;
     }
 }
