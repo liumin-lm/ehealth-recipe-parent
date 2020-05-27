@@ -618,7 +618,7 @@ public class RecipeOrderService extends RecipeBaseService {
             }
         }
 
-        BigDecimal TCMFee=new BigDecimal(0);
+        BigDecimal tcmFee=new BigDecimal(0);
         int i=0;
         for (Recipe recipe : recipeList) {
             if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
@@ -633,15 +633,15 @@ public class RecipeOrderService extends RecipeBaseService {
                     IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
                     //从opbase配置项获取中医辨证论治费 recipeTCMPrice
                     Object findRecipeTCMPrice = configService.getConfiguration(recipe.getClinicOrgan(), "recipeTCMPrice");
-                    if(findRecipeTCMPrice!=null&& ((BigDecimal)findRecipeTCMPrice).compareTo(BigDecimal.ZERO)==1) TCMFee=(BigDecimal)findRecipeTCMPrice;
+                    if(findRecipeTCMPrice!=null&& ((BigDecimal)findRecipeTCMPrice).compareTo(BigDecimal.ZERO)==1) tcmFee=(BigDecimal)findRecipeTCMPrice;
                 }
-                LOGGER.info("处方recipeid:{},TCMFee是：{}",recipe.getRecipeId(),TCMFee);
+                LOGGER.info("处方recipeid:{},tcmFee是：{}",recipe.getRecipeId(),tcmFee);
 
             }
             i++;
         }
-        LOGGER.info("TCMFee是：{}",TCMFee);
-        order.setTCMFee(TCMFee);
+        LOGGER.info("tcmFee是：{}",tcmFee);
+        order.setTcmFee(tcmFee);
         order.setCopyNum(totalCopyNum);
         order.setDecoctionFee(otherFee);
         //当前是his返回的，范围不进行校验
@@ -1973,8 +1973,8 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         //中医辨证论治费
-        if (null != order.getTCMFee()) {
-            full = full.add(order.getTCMFee());
+        if (null != order.getTcmFee()) {
+            full = full.add(order.getTcmFee());
         }
 
         return full.divide(BigDecimal.ONE, 3, RoundingMode.UP);

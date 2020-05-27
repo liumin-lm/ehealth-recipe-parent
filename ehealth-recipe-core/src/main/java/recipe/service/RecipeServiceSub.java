@@ -45,6 +45,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.audit.bean.PAWebRecipeDanger;
@@ -102,7 +103,7 @@ public class RecipeServiceSub {
     private static Integer[] showRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.IN_SEND, RecipeStatusConstant.WAIT_SEND, RecipeStatusConstant.FINISH};
 
     private static Integer[] showDownloadRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.RECIPE_DOWNLOADED};
-    
+
     /**
      * @param recipeBean
      * @param detailBeanList
@@ -1309,6 +1310,22 @@ public class RecipeServiceSub {
                 if (CollectionUtils.isNotEmpty(organDrugLists)) {
                     recipedetail.setDrugForm(organDrugLists.get(0).getDrugForm());
                 }
+
+                //处方来源：线下 从his获取用药频率说明、用药方式说明
+//                if(recipe.getRecipeSourceType()==2){
+//                    HisRecipeDetailDAO hisRecipeDetailDAO = DAOFactory.getDAO(HisRecipeDetailDAO.class);
+//                    List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(recipeId);
+//                    for (HisRecipeDetail hisRecipeDetail : hisRecipeDetails) {
+//                        if(!StringUtils.isEmpty(hisRecipeDetail.getDrugCode())
+//                                &&hisRecipeDetail.getDrugCode().equals(recipedetail.getDrugCode())){
+//                            recipedetail.setUsingRateTextFromHis(hisRecipeDetail.getUsingRateText());
+//                            recipedetail.setUsePathwaysTextFromHis(hisRecipeDetail.getUsePathwaysText());
+//                            break;
+//                        }
+//                    }
+//                }
+
+
             }
         }catch(Exception e){
             LOGGER.info("RecipeServiceSub.getRecipeAndDetailByIdImpl 查询剂型出错, recipeId:{},{}.", recipeId, e.getMessage());

@@ -180,7 +180,7 @@ public class RecipeOrderBean implements Serializable {
     private BigDecimal decoctionUnitPrice;
 
     @ItemProperty(alias = "中医辨证论治费")
-    private BigDecimal TCMFee;
+    private BigDecimal tcmFee;
 
     @ItemProperty(alias = "剂数")
     private Integer copyNum;
@@ -276,7 +276,7 @@ public class RecipeOrderBean implements Serializable {
         this.setCouponFee(zero);
         this.setExpressFee(zero);
         this.setDecoctionFee(zero);
-        this.setTCMFee(zero);
+        this.setTcmFee(zero);
         this.setTotalFee(zero);
         this.setActualPrice(0d);
         this.setPushFlag(0);
@@ -902,11 +902,11 @@ public class RecipeOrderBean implements Serializable {
         this.payBackInfo = payBackInfo;
     }
 
-    public BigDecimal getTCMFee() {
-        return TCMFee;
+    public BigDecimal getTcmFee() {
+        return tcmFee;
     }
 
-    public void setTCMFee(BigDecimal TCMFee) {
-        this.TCMFee = TCMFee;
+    public void setTcmFee(BigDecimal tcmFee) {
+        this.tcmFee = tcmFee;
     }
 }

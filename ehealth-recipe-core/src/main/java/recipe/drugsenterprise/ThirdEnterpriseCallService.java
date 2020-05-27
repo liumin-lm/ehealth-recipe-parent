@@ -1639,7 +1639,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             //代煎费
             orderDetailBean.setDecoctionFee(convertParame(recipeOrder.getDecoctionFee()));
             //设置中医辨证论治费
-            orderDetailBean.setTCMFee(convertParame(recipeOrder.getTCMFee()));
+            orderDetailBean.setTcmFee(convertParame(recipeOrder.getTcmFee()));
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (recipeExtend != null) {
                 if (recipeExtend.getFundAmount() != null) {

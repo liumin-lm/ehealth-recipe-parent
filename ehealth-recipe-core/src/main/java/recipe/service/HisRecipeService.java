@@ -294,10 +294,13 @@ public class HisRecipeService {
                         detail.setPrice(recipeDetailTO.getPrice());
                         detail.setTotalPrice(recipeDetailTO.getTotalPrice());
                         detail.setUsingRate(recipeDetailTO.getUsingRate());
+                        detail.setUsePathways(recipeDetailTO.getUsePathWays());
                         detail.setDrugSpec(recipeDetailTO.getDrugSpec());
                         detail.setDrugUnit(recipeDetailTO.getDrugUnit());
                         detail.setUseDays(recipeDetailTO.getUseDays());
                         detail.setDrugCode(recipeDetailTO.getDrugCode());
+                        detail.setUsingRateText(recipeDetailTO.getUsingRateText());
+                        detail.setUsePathwaysText(recipeDetailTO.getUsePathwaysText());
                         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
                         if (StringUtils.isNotEmpty(detail.getRecipeDeatilCode())) {
                             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(detail.getDrugCode()));
@@ -497,6 +500,8 @@ public class HisRecipeService {
                 recipedetail.setSalePrice(organDrugLists.get(0).getSalePrice());
                 recipedetail.setUseDose(organDrugLists.get(0).getUseDose());
             }
+            recipedetail.setUsingRateTextFromHis(hisRecipeDetail.getUsingRateText());
+            recipedetail.setUsePathwaysTextFromHis(hisRecipeDetail.getUsePathwaysText());
 
             if (hisRecipeDetail.getUseTotalDose() != null) {
                 recipedetail.setUseTotalDose(hisRecipeDetail.getUseTotalDose().doubleValue());
