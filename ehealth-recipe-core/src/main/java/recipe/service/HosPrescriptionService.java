@@ -186,10 +186,20 @@ public class HosPrescriptionService implements IHosPrescriptionService {
             if (enterpriseResult.getCode() == 1) {
                 //表示推送药企成功,需要查询患者是否已经在平台注册
                 PatientService patientService = BasicAPI.getService(PatientService.class);
+                //查询用户或者当前就诊人绑定的用户
                 PatientDTO patientDTO = patientService.getByIdCard(hospitalRecipeDTO.getCertificate());
                 if (patientDTO != null) {
                     pushWechatTplForYd(hospitalRecipeDTO, organ, patientDTO);
                 } else {
+                    //如果是为空，则查询是否为绑定的就诊人
+                    List<PatientDTO> patientDTOList = patientService.findByIdCardAndNotOwn(hospitalRecipeDTO.getCertificate());
+                    if (CollectionUtils.isNotEmpty(patientDTOList)) {
+                        PatientDTO patient = patientDTOList.get(0);
+                        if (patient != null) {
+                            pushWechatTplForYd(hospitalRecipeDTO, organ, patient);
+                            return result;
+                        }
+                    }
                     //用户没有注册,需要给用户发送短信
                     if (StringUtils.isNotEmpty(hospitalRecipeDTO.getPatientTel())) {
                         pushDyInfoForYd(hospitalRecipeDTO);
