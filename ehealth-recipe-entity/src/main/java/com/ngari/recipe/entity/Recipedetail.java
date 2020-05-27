@@ -72,11 +72,11 @@ public class Recipedetail implements java.io.Serializable {
     @Dictionary(id="eh.cdr.dictionary.UsePathways")
 	private String usePathways;
 
-	//用药频率说明（优先取his,his为null则从机构药品目录取）
+	//用药频率说明（来源his）
 	@ItemProperty(alias="用药频率说明")
 	private String usingRateTextFromHis;
 
-	//用药方式说明（优先取his,his为null则从机构药品目录取）
+	//用药方式说明（来源his）
 	@ItemProperty(alias="用药方式说明")
 	private String usePathwaysTextFromHis;
 	

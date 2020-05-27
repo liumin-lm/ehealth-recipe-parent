@@ -481,6 +481,8 @@ public class HisRecipeService {
             return;
         }
         for (HisRecipeDetail hisRecipeDetail : hisRecipeDetails) {
+            LOGGER.info("hisRecipe.getClinicOrgan(): "+hisRecipe.getClinicOrgan()+"");
+            LOGGER.info("Arrays.asList(hisRecipeDetail.getDrugCode()):"+hisRecipeDetail.getDrugCode());
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(hisRecipeDetail.getDrugCode()));
             Recipedetail recipedetail = new Recipedetail();
             recipedetail.setRecipeId(recipeId);
