@@ -944,8 +944,8 @@ public class PayModeOnline implements IPurchaseService {
                 //特殊处理的时候判断要不要走药企自己的展示
                 AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);;
                 boolean specialMake = remoteService.specialMakeDepList(drugsEnterprise, dbRecipe);
-                if (DrugEnterpriseConstant.COMPANY_HR.equals(drugsEnterprise.getCallSys()) || DrugEnterpriseConstant.COMPANY_BY.equals(drugsEnterprise.getCallSys())
-                        || DrugEnterpriseConstant.COMPANY_YSQ.equals(drugsEnterprise.getCallSys())|| specialMake || DrugEnterpriseConstant.COMPANY_LY.equals(drugsEnterprise.getCallSys())) {
+                boolean storeEnterpriseFlag = isExistStoreEnterprise(drugsEnterprise.getCallSys());
+                if (storeEnterpriseFlag || specialMake) {
                     //将药店配送的药企移除
                     for (DepDetailBean depDetailBean : depDetailList) {
                         if (drugsEnterprise.getId().equals(depDetailBean.getDepId())) {
@@ -999,5 +999,26 @@ public class PayModeOnline implements IPurchaseService {
         }catch (Exception e){
             LOG.info("PayModeOnline.checkStoreForSendToHom:{},{}.", JSONUtils.toString(dbRecipe), e.getMessage());
         }
+    }
+
+    /**
+     * 查询是否存在药店的药企
+     * @return 是否存在
+     */
+    private boolean isExistStoreEnterprise(String callSys) {
+        if (StringUtils.isEmpty(callSys)) {
+            return false;
+        }
+        RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String existStoreEnterpriseList = parameterDao.getByName("existStoreEnterpriseList");
+        if (StringUtils.isNotEmpty(existStoreEnterpriseList)) {
+            String[] enterpriseParames = existStoreEnterpriseList.split(",");
+            for (String parame : enterpriseParames) {
+                if (callSys.equals(parame)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
