@@ -15,7 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
-import recipe.audit.bean.*;
+import recipe.audit.bean.AutoAuditResult;
 import recipe.dao.JudicialOrganDAO;
 import recipe.dao.OrganJudicialRelationDAO;
 
@@ -104,6 +104,9 @@ public class PrescriptionService {
             account = "winning";
         } else if (intellectJudicialFlag == 2) { //逸曜
             account = "hangzhouyiyao";
+        } else if (intellectJudicialFlag == 3) {
+            //第三方
+            account = "thirdParty";
         }
         if (organJudicialRelation == null) {
             LOGGER.info("PrescriptionService getService 没有维护智能审方关系");
