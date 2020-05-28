@@ -2,6 +2,8 @@ package recipe.audit.service;
 
 import com.ngari.base.doctor.model.DoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
+import com.ngari.consult.common.model.ConsultExDTO;
+import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -52,6 +54,8 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
     private RecipeHisService recipeHisService;
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
+    @Autowired
+    private IConsultExService consultExService;
 
     @Override
     @RpcService
@@ -67,14 +71,18 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
         DepartmentDTO departmentDTO = Optional.ofNullable(departmentService.getById(recipeBean.getDepart())).orElseThrow(() -> new DAOException("找不到部门信息"));
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
         ThirdPartyRationalUseDrugReqTO reqTO;
+        ConsultExDTO consultExDTO = null;
         try {
             reqTO = new ThirdPartyRationalUseDrugReqTO();
             reqTO.setOrganId(recipeBean.getClinicOrgan());
             reqTO.setDeptCode((null != departmentDTO) ? departmentDTO.getCode() : StringUtils.EMPTY);
             reqTO.setDeptName((null != departmentDTO) ? departmentDTO.getName() : StringUtils.EMPTY);
-            reqTO.setDoctCode(recipeBean.getDoctorName());
-            reqTO.setDoctName(doctorBean.getIdNumber());
-            reqTO.setThirdPartyBaseData(packThirdPartyBaseData(recipeExtend, patientDTO));
+            reqTO.setDoctCode(doctorBean.getIdNumber());
+            reqTO.setDoctName(recipeBean.getDoctorName());
+            if (Objects.nonNull(recipeBean.getClinicId())) {
+                consultExDTO = consultExService.getByConsultId(recipeBean.getClinicId());
+            }
+            reqTO.setThirdPartyBaseData(packThirdPartyBaseData(patientDTO, consultExDTO));
             reqTO.setThirdPartyPatientData(packThirdPartyPatientData(patientDTO));
             reqTO.setThirdPartyPrescriptionsData(packThirdPartyPrescriptionData(recipeBean, recipeExtend, departmentDTO, doctorBean, recipeDetailBeanList));
             ThirdPartyRationalUseDrugResTO thirdPartyRationalUseDrugResTO = recipeHisService.queryThirdPartyRationalUserDurg(reqTO);
@@ -117,13 +125,15 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
     /**
      * 封装基本信息
      *
-     * @param recipeExtend
      * @param patientDTO
+     * @param consultExDTO
      * @return
      */
-    private ThirdPartyBaseData packThirdPartyBaseData(RecipeExtend recipeExtend, PatientDTO patientDTO) {
+    private ThirdPartyBaseData packThirdPartyBaseData(PatientDTO patientDTO, ConsultExDTO consultExDTO) {
         ThirdPartyBaseData thirdPartyBaseData = new ThirdPartyBaseData();
-        thirdPartyBaseData.setAdmNo(recipeExtend.getRegisterNo());
+        if (Objects.nonNull(consultExDTO)) {
+            thirdPartyBaseData.setAdmNo(consultExDTO.getRegisterNo());
+        }
         thirdPartyBaseData.setName(patientDTO.getPatientName());
         return thirdPartyBaseData;
     }
