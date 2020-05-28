@@ -257,6 +257,10 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
     @RpcService
     public Boolean updateSignInfoByRecipeInfo(SignDoctorRecipeInfo signDoctorRecipeInfo) {
         logger.info("updateSignInfoByRecipeInfo signDoctorRecipeInfo={}", JSONUtils.toString(signDoctorRecipeInfo));
+        if (null == signDoctorRecipeInfo) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
+        }
+
         if (null == signDoctorRecipeInfo.getRecipeId()) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "处方号为空");
         }
