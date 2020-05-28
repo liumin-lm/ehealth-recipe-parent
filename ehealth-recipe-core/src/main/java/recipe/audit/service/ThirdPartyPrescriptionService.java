@@ -86,7 +86,13 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
             List<PAWebMedicines> paWebMedicinesList = new ArrayList<>();
             thirdPartyRationalUseDrugResTO.getThirdPartyIssuesDataList().forEach(thirdPartyIssuesData -> {
                 PAWebMedicines paWebMedicines = new PAWebMedicines();
-                paWebMedicines.setName(StringUtils.isNotBlank(thirdPartyIssuesData.getNameA()) ? thirdPartyIssuesData.getNameA() : thirdPartyIssuesData.getNameB());
+                String name;
+                if (StringUtils.isNotBlank(thirdPartyIssuesData.getNameA()) && StringUtils.isNotBlank(thirdPartyIssuesData.getNameB())) {
+                    name = StringUtils.join(thirdPartyIssuesData.getNameA(), thirdPartyIssuesData.getNameB());
+                } else {
+                    name = StringUtils.isNotBlank(thirdPartyIssuesData.getNameA()) ? thirdPartyIssuesData.getNameA() : thirdPartyIssuesData.getNameB();
+                }
+                paWebMedicines.setName(name);
                 List<Issue> issueList = new ArrayList<>();
                 Issue issue = new Issue();
                 issue.setLvl(thirdPartyIssuesData.getLvl());
