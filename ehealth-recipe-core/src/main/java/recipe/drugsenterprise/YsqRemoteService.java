@@ -606,6 +606,27 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     } else {
                         recipeMap.put("DELIVERYFLAG", 0);
                     }
+                    //添加省市区信息
+                    String province = getAddressDic(order.getAddress1());
+                    String city = getAddressDic(order.getAddress2());
+                    String district = getAddressDic(order.getAddress3());
+                    recipeMap.put("PROVINCE", province);
+                    recipeMap.put("CITY", city);
+                    recipeMap.put("DISTRICT", district);
+                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+                    if (recipeExtend != null) {
+                        //添加挂号序号
+                        recipeMap.put("REGISTRATIONNUMBER", recipeExtend.getRegisterID());
+                    }
+                    RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
+                    RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeId(recipeId);
+                    if (recipeCheck != null) {
+                        recipeMap.put("reviewuser", recipeCheck.getCheckerName());
+                        recipeMap.put("reviewstate", "true");
+                        recipeMap.put("reviewmsg", recipeCheck.getMemo());
+                        recipeMap.put("reviewTIME", recipeCheck.getCheckDate());
+                    }
+
                     recipeMap.put("DELIVERYCASH", order.getExpressFee());
                     //添加代煎相关
                     if (order.getDecoctionFee() != null && order.getDecoctionFee().compareTo(new BigDecimal(0)) == 1 ) {
@@ -661,7 +682,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             } else {
                 recipeMap.put("HOSCODE", organ.getOrganId().toString());
             }
-            recipeMap.put("HOSNAME", organ.getName());
+            recipeMap.put("HOSNAME", "黑龙江省中医医院");
             recipeMap.put("PRESCRIPTDATE", DateConversion.getDateFormatter(recipe.getSignDate(), DateConversion.DEFAULT_DATE_TIME));
             //医院处方号  医院机构?处方编号
             if (StringUtils.isNotEmpty(recipe.getRecipeCode())) {
@@ -889,4 +910,19 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         return result;
     }
 
+    /**
+     * 获取区域文本
+     * @param area 区域
+     * @return     区域文本
+     */
+    private String getAddressDic(String area) {
+        if (StringUtils.isNotEmpty(area)) {
+            try {
+                return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
+            } catch (ControllerException e) {
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area);
+            }
+        }
+        return "";
+    }
 }
