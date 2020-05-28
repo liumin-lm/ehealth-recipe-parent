@@ -605,7 +605,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     }
                     recipeMap.put("DELIVERYCASH", order.getExpressFee());
                     //添加代煎相关
-                    if (order.getDecoctionFee() != null) {
+                    if (order.getDecoctionFee() != null && order.getDecoctionFee().compareTo(new BigDecimal(0)) == 1) {
                         //代煎费不为空
                         recipeMap.put("REPLACEFLY", "1");  //需要代煎
                         recipeMap.put("REPLACEFLYQTY", recipe.getCopyNum());  //代煎数量
