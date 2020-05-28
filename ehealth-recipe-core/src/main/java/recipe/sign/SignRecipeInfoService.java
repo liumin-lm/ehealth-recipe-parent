@@ -265,13 +265,9 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "处方号为空");
         }
 
-        SignDoctorRecipeInfo recipeInfo = getSignInfoByRecipeId(signDoctorRecipeInfo.getRecipeId());
-        if (null == recipeInfo) {
-            recipeInfo = signDoctorRecipeInfo;
-        }
+        getSignInfoByRecipeId(signDoctorRecipeInfo.getRecipeId());
 
-        logger.info("updateSignInfoByRecipeInfo recipeInfo={}", JSONUtils.toString(recipeInfo));
-        return updateSignInfoByRecipeId(recipeInfo);
+        return updateSignInfoByRecipeId(signDoctorRecipeInfo);
     }
 
     private SignDoctorRecipeInfo getInfoByResultVo(SignDoctorRecipeInfo signDoctorRecipeInfo, CaSignResultVo signResult, boolean isDoctor, String type) {
