@@ -608,7 +608,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     }
                     recipeMap.put("DELIVERYCASH", order.getExpressFee());
                     //添加代煎相关
-                    if (order.getDecoctionFee() != null) {
+                    if (order.getDecoctionFee() != null && order.getDecoctionFee().compareTo(new BigDecimal(0)) == 1 ) {
                         //代煎费不为空
                         recipeMap.put("REPLACEFLY", "1");  //需要代煎
                         recipeMap.put("REPLACEFLYQTY", recipe.getCopyNum());  //代煎数量
@@ -661,7 +661,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             } else {
                 recipeMap.put("HOSCODE", organ.getOrganId().toString());
             }
-            recipeMap.put("HOSNAME", organ.getName());
+            recipeMap.put("HOSNAME", "黑龙江省中医医院");
             recipeMap.put("PRESCRIPTDATE", DateConversion.getDateFormatter(recipe.getSignDate(), DateConversion.DEFAULT_DATE_TIME));
             //医院处方号  医院机构?处方编号
             if (StringUtils.isNotEmpty(recipe.getRecipeCode())) {
