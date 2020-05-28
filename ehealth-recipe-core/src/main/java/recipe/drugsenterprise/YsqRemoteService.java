@@ -618,10 +618,10 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
                     RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeId(recipeId);
                     if (recipeCheck != null) {
-                        recipeMap.put("reviewuser", recipeCheck.getCheckerName());
-                        recipeMap.put("reviewstate", "true");
-                        recipeMap.put("reviewmsg", recipeCheck.getMemo());
-                        recipeMap.put("reviewTIME", recipeCheck.getCheckDate());
+                        recipeMap.put("REVIEWUSER", recipeCheck.getCheckerName());
+                        recipeMap.put("REVIEWSTATE", "true");
+                        recipeMap.put("REVIEWMSG", recipeCheck.getMemo());
+                        recipeMap.put("REVIEWTIME", recipeCheck.getCheckDate());
                     }
 
                     recipeMap.put("DELIVERYCASH", order.getExpressFee());
