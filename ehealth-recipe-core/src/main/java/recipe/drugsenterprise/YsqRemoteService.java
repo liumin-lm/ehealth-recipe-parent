@@ -791,7 +791,9 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     detailMap.put("SPEC", drug.getDrugSpec());
                     detailMap.put("PRODUCER", drug.getProducer());
                     detailMap.put("MSUNITNO", drug.getUnit());
-                    detailMap.put("BILLQTY", getFormatDouble(detail.getUseTotalDose()));
+                    if (detail.getUseTotalDose() != null) {
+                        detailMap.put("BILLQTY", getFormatDouble(detail.getUseTotalDose()));
+                    }
                     detailMap.put("PRC", detail.getSalePrice().toString());
                     //医保药 0：是；1：否
                     detailMap.put("YIBAO", "1");
