@@ -81,7 +81,7 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "实际支付费用")
     private Double actualPrice;
 
-    @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付")
+    @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付 3-第三方支付")
     private Integer expressFeePayWay;
 
     @ItemProperty(alias = "交易流水号")
