@@ -59,7 +59,7 @@ public abstract class RecipeDetailDAO extends
      * @return List<Recipedetail>
      * @author luf
      */
-    @DAOMethod(sql = "from Recipedetail where recipeId=:recipeId and status=1")
+    @DAOMethod(sql = "from Recipedetail where recipeId=:recipeId and status=1", limit = 0)
     public abstract List<Recipedetail> findByRecipeId(@DAOParam("recipeId") int recipeId);
 
     /**
@@ -104,6 +104,15 @@ public abstract class RecipeDetailDAO extends
      */
     @DAOMethod(sql = "select sum(useTotalDose) from Recipedetail where recipeId in :recipeIds and status=1")
     public abstract Double getUseTotalDoseByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
+
+    /**
+     * 获取处方总剂量
+     *
+     * @param recipeIds
+     * @return
+     */
+    @DAOMethod(sql = "select recipeId, sum(useTotalDose) from Recipedetail where recipeId in :recipeIds and status=1 group by recipeId", limit = 0)
+    public abstract List<Object[]> findUseTotalsDoseByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
 
     /**
      * 新处方详情自定义字段 by recipeId

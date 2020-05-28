@@ -167,6 +167,17 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias = "生产厂家代码")
     private String producerCode;
 
+    @ItemProperty(alias="药物使用天数小数型")
+    private String useDaysB;
+
+    public String getUseDaysB() {
+        return useDaysB;
+    }
+
+    public void setUseDaysB(String useDaysB) {
+        this.useDaysB = useDaysB;
+    }
+
     public RecipeDetailBean() {
     }
 

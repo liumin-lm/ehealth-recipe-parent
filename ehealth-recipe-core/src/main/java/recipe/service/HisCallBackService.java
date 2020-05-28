@@ -157,6 +157,9 @@ public class HisCallBackService {
             status = RecipeStatusConstant.CHECK_NOT_PASS;
             memo = "HIS审核返回：写入his成功，审核未通过";
         }
+        //date 20200526
+        //添加医院审方后保存审核日志
+        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
 
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap);
 

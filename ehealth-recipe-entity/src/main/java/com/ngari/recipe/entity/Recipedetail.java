@@ -179,8 +179,17 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias = "药企药品编码")
 	private String saleDrugCode;
 
+	@ItemProperty(alias="药物使用天数(小数类型)")
+	private String useDaysB;
 
+	@Column(name = "UseDaysB")
+	public String getUseDaysB() {
+		return useDaysB;
+	}
 
+	public void setUseDaysB(String useDaysB) {
+		this.useDaysB = useDaysB;
+	}
 
 	public Recipedetail() {
 	}

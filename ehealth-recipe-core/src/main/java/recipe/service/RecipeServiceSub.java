@@ -341,11 +341,22 @@ public class RecipeServiceSub {
                         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
                             detail.setUsePathways(recipe.getTcmUsePathways());
                             detail.setUsingRate(recipe.getTcmUsingRate());
+
+                            //date 20200526
+                            //构建处方初始化处方药品详情的时候用recipe的剂数
+//                            if(null != recipe.getCopyNum()){
+//                                detail.setUseDays(new BigDecimal(recipe.getCopyNum()));
+//                            }
                             detail.setUseDays(recipe.getCopyNum());
                             if (detail.getUseDose() !=null){
                                 detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());
                             }
                         } else if (RecipeBussConstant.RECIPETYPE_HP.equals(recipe.getRecipeType())) {
+                            //date 20200526
+                            //构建处方初始化处方药品详情的时候用recipe的剂数
+//                            if(null != recipe.getCopyNum()){
+//                                detail.setUseDays(new BigDecimal(recipe.getCopyNum()));
+//                            }
                             detail.setUseDays(recipe.getCopyNum());
                             if (detail.getUseDose() !=null){
                                 detail.setUseTotalDose(BigDecimal.valueOf(recipe.getCopyNum()).multiply(BigDecimal.valueOf(detail.getUseDose())).doubleValue());

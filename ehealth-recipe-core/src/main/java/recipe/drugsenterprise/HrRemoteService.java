@@ -247,6 +247,8 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
                 detail.setPerDosageQuantity(recipedetails.get(i).getUseDose());
                 detail.setPerDosageUnit(recipedetails.get(i).getUseDoseUnit());
                 detail.setDays(recipedetails.get(i).getUseDays());
+                //date 20200526
+                //修改推给华润药企的天数big->int
 
                 detail.setCommonName(saleDrugList.getDrugName());
                 detail.setSpecs(saleDrugList.getDrugSpec());

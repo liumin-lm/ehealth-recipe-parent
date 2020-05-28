@@ -1,5 +1,7 @@
 package recipe.dao;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -41,6 +43,7 @@ import recipe.util.SqlOperInfo;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 处方DAO
@@ -1023,7 +1026,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                         sqlQuery.setParameter("endTime", sdf.format(eDate));
                         Long total = (Long) sqlQuery.uniqueResult();
 
-                        Query query = ss.createSQLQuery(sbHql.append(" order by recipeId DESC").toString()).addEntity(Recipe.class);
+                        Query query = ss.createSQLQuery(sbHql.append(" order by recipeId DESC").toString()).addEntity("r", Recipe.class);
                         query.setParameter("startTime", sdf.format(bDate));
                         query.setParameter("endTime", sdf.format(eDate));
                         query.setFirstResult(start);
@@ -1057,7 +1060,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                 //处方审核状态处理
                                 Integer checkStatus2 = getCheckResultByPending(recipe);
                                 recipe.setCheckStatus(checkStatus2);
-                                BeanUtils.map(recipe, map);
+                                //BeanUtils.map(recipe, map);
+                                map.putAll(JSONObject.parseObject(JSON.toJSONString(recipe)));
 
                                 map.put("recipeOrder", order);
                                 map.put("detailCount", recipeDetailDAO.getCountByRecipeId(recipe.getRecipeId()));
@@ -1186,7 +1190,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                             PatientDTO patient = patientBeanMap.get(mpiId);
                             DoctorDTO doctor = doctorBeanMap.get(doctorId);
                             Map<String, Object> map = Maps.newHashMap();
-                            BeanUtils.map(recipe, map);
+                            //BeanUtils.map(recipe, map);
+                            map.putAll(JSONObject.parseObject(JSON.toJSONString(recipe)));
 
                             RecipeOrder order = (RecipeOrder)obj[1];
                             map.put("recipeOrder", order);
@@ -1285,22 +1290,30 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                     public void execute(StatelessSession ss) throws Exception {
                         StringBuilder sbHql = preparedHql;
                         System.out.println(preparedHql);
-                        Query query = ss.createSQLQuery(sbHql.append(" order by r.recipeId DESC").toString()).addEntity(Recipe.class);
+                        Query query = ss.createSQLQuery(sbHql.append(" order by r.recipeId DESC").toString()).addEntity("r", Recipe.class).addEntity("o", RecipeOrder.class);
                         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                         query.setParameter("startTime", sdf.format(bDate));
                         query.setParameter("endTime", sdf.format(eDate));
-                        List<Recipe> recipeList = query.list();
+                        List<Object[]> list = query.list();
 
                         Set<String> mpiIds = Sets.newHashSet();
+                        List<Integer> recipes = new ArrayList<Integer>();
                         Set<Integer> doctorIds = Sets.newHashSet();
                         Map<String, PatientDTO> patientBeanMap = Maps.newHashMap();
+                        Map<String, String> patientNameMap = Maps.newHashMap();
+                        Map<String, String> patientPhoneMap = Maps.newHashMap();
                         Map<Integer, DoctorDTO> doctorBeanMap = Maps.newHashMap();
+                        Map<Integer, String> doctorPhoneMap = Maps.newHashMap();
+                        Map<Integer, Double>  useTotalMap = Maps.newHashMap();
                         List<Map> maps = new ArrayList<Map>();
-                        if (recipeList != null) {
-                            for (Recipe recipe : recipeList) {
+                        if(list != null) {
+                            for (Object[] objectList : list) {
+                                Recipe recipe = (Recipe)objectList[0];
                                 mpiIds.add(recipe.getMpiid());
                                 doctorIds.add(recipe.getDoctor());
+                                recipes.add(recipe.getRecipeId());
                             }
+                            recipes = recipes.stream().distinct().collect(Collectors.toList());
                             List<PatientDTO> patientBeanList = Lists.newArrayList();
                             if(0 < mpiIds.size()){
                                 patientBeanList = patientService.findByMpiIdIn(new ArrayList<String>(mpiIds));
@@ -1310,45 +1323,58 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                 doctorBeen = doctorService.findDoctorList(new ArrayList<>(doctorIds));
                             }
                             for (PatientDTO p : patientBeanList) {
-                                patientBeanMap.put(p.getMpiId(), p);
+                                //patientBeanMap.put(p.getMpiId(), p);
+                                patientNameMap.put(p.getMpiId(), p.getPatientName());
+                                patientPhoneMap.put(p.getMpiId(), p.getMobile());
                             }
                             if (doctorBeen != null && doctorBeen.size() > 0) {
                                 for (DoctorDTO d : doctorBeen) {
                                     doctorBeanMap.put(d.getDoctorId(), d);
+                                    doctorPhoneMap.put(d.getDoctorId(), d.getMobile());
                                 }
                             }
                             RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+                            List<Object[]> useTotalsDose = recipeDetailDAO.findUseTotalsDoseByRecipeIds(recipes);
+                            if (useTotalsDose != null && useTotalsDose.size() > 0) {
+                                for (Object[] useTotal : useTotalsDose) {
+                                    useTotalMap.put((Integer) useTotal[0], (null !=useTotal[1] ? (Double) useTotal[1] : 0d));
+                                }
+                            }
+
                             String mpiId;
                             Integer doctorId;
                             PatientDTO patient;
                             DoctorDTO doctor;
                             List<Recipedetail> recipedetails;
                             Double detailCount;
-                            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-                            for (Recipe recipe : recipeList) {
+                            RecipeOrder order;
+                            Recipe recipe;
+
+                            for (int i = 0; i < list.size(); i++) {
                                 Map<String, Object> map = Maps.newHashMap();
-                                map.clear();
+                                recipe = (Recipe)list.get(i)[0];
                                 mpiId = recipe.getMpiid();
                                 doctorId = recipe.getDoctor();
-                                patient = patientBeanMap.get(mpiId);
-                                doctor = doctorBeanMap.get(doctorId);
-                                BeanUtils.map(recipe, map);
-                                recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
-                                detailCount = 0.0;
-                                for(Recipedetail recipedetail : recipedetails){
-                                    detailCount += (null == recipedetail.getUseTotalDose() ?  0.0 : recipedetail.getUseTotalDose());
-                                }
+//                                patient = patientBeanMap.get(mpiId);
+//                                doctor = doctorBeanMap.get(doctorId);
+                                //BeanUtils.map(recipe, map);
+                                map.putAll(JSONObject.parseObject(JSON.toJSONString(recipe)));
+                                detailCount = useTotalMap.get(recipe.getRecipeId());
+//                               detailCount = 0.0;
+//                                for(Recipedetail recipedetail : recipedetails){
+//                                    detailCount += (null == recipedetail.getUseTotalDose() ?  0.0 : recipedetail.getUseTotalDose());
+//                                }
 
                                 map.put("detailCount", detailCount);
-                                if (patient != null) {
-                                    map.put("patientName", patient.getPatientName());
-                                    map.put("patientMobile", patient.getMobile());
-                                }
-                                if (doctor != null) {
-                                    map.put("doctorMobile", doctor.getMobile());
-                                }
-                                RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipe.getRecipeId());
-                                if(null != order){
+//                                if (patient != null) {
+                                    map.put("patientName", patientNameMap.get(mpiId));
+                                    map.put("patientMobile", patientPhoneMap.get(mpiId));
+//                                }
+//                                if (doctor != null) {
+                                    map.put("doctorMobile", doctorPhoneMap.get(doctorId));
+//                                }
+                                if(null != list.get(i)[1]){
+                                    order = (RecipeOrder) list.get(i)[1];
                                     map.put("payTime", order.getPayTime());
                                 }else{
                                     map.put("payTime", null);
@@ -1491,7 +1517,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                                    Integer enterpriseId,Integer checkStatus,Integer payFlag,Integer orderType
 
     ) {
-        StringBuilder hql = new StringBuilder("select r.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode LEFT JOIN cdr_recipecheck c ON r.recipeID=c.recipeId where 1=1");
+        StringBuilder hql = new StringBuilder("select r.*,o.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode LEFT JOIN cdr_recipecheck c ON r.recipeID=c.recipeId where 1=1");
 
         //默认查询所有
         if (CollectionUtils.isNotEmpty(requestOrgans)) {
@@ -1527,18 +1553,18 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
 //                break;
             case 0:
                 //开方时间
-                hql.append(" and r.createDate >= :startTime"
-                        + " and r.createDate <= :endTime ");
+                hql.append(" and r.createDate BETWEEN :startTime"
+                        + " and :endTime ");
                 break;
             case 1:
                 //审核时间
-                hql.append(" and c.checkDate >= :startTime"
-                        + " and c.checkDate <= :endTime ");
+                hql.append(" and c.checkDate BETWEEN :startTime"
+                        + " and :endTime ");
                 break;
             case 2:
                 //审核时间
-                hql.append(" and o.payTime >= :startTime"
-                        + " and o.payTime <= :endTime ");
+                hql.append(" and o.payTime BETWEEN :startTime"
+                        + " and :endTime ");
                 break;
             default:
                 break;
@@ -1717,7 +1743,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                     RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
                     for (Recipe recipe : recipeList) {
                         Map<String, Object> map = Maps.newHashMap();
-                        BeanUtils.map(recipe, map);
+                        //BeanUtils.map(recipe, map);
+                        map.putAll(JSONObject.parseObject(JSON.toJSONString(recipe)));
                         map.put("detailCount", recipeDetailDAO.getCountByRecipeId(recipe.getRecipeId()));
                         //map.put("patient",patientService.get(recipe.getMpiid()));
                         maps.add(map);

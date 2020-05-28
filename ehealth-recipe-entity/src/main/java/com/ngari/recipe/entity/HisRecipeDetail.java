@@ -70,6 +70,19 @@ public class HisRecipeDetail implements Serializable{
     private Integer useDays;
     @ItemProperty(alias = "药品编码")
     private String drugCode;
+    //date 20200526
+    //设置药品使用天数为String，
+    @ItemProperty(alias = "使用天数(小数类型)")
+    private String useDaysB;
+
+    @Column(name = "UseDaysB")
+    public String getUseDaysB() {
+        return useDaysB;
+    }
+
+    public void setUseDaysB(String useDaysB) {
+        this.useDaysB = useDaysB;
+    }
 
     @Id
     @GeneratedValue(strategy = IDENTITY)

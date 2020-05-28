@@ -297,7 +297,10 @@ public class HisRecipeService {
                         detail.setUsePathways(recipeDetailTO.getUsePathWays());
                         detail.setDrugSpec(recipeDetailTO.getDrugSpec());
                         detail.setDrugUnit(recipeDetailTO.getDrugUnit());
-                        detail.setUseDays(recipeDetailTO.getUseDays());
+                        //date 20200526
+                        //修改线下处方同步用药天数，判断是否有小数类型的用药天数
+                        detail.setUseDays((null == recipeDetailTO.getUseDays() &&  null != recipeDetailTO.getUseDaysB()) ? 0 : recipeDetailTO.getUseDays());
+                        detail.setUseDaysB(recipeDetailTO.getUseDaysB());
                         detail.setDrugCode(recipeDetailTO.getDrugCode());
                         detail.setUsingRateText(recipeDetailTO.getUsingRateText());
                         detail.setUsePathwaysText(recipeDetailTO.getUsePathwaysText());
@@ -509,6 +512,9 @@ public class HisRecipeService {
                 recipedetail.setUseTotalDose(hisRecipeDetail.getUseTotalDose().doubleValue());
             }
             recipedetail.setUseDays(hisRecipeDetail.getUseDays());
+            //date 20200528
+            //设置线上处方的信息
+            recipedetail.setUseDaysB(hisRecipeDetail.getUseDaysB());
             recipedetail.setStatus(1);
 
             if (hisRecipeDetail.getUseTotalDose() != null && hisRecipeDetail.getPrice() != null && CollectionUtils.isNotEmpty(organDrugLists)) {
