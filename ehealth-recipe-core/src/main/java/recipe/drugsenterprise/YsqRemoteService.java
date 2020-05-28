@@ -39,6 +39,7 @@ import recipe.drugsenterprise.bean.InventoryDrug;
 import recipe.drugsenterprise.bean.YsqDrugResponse;
 import recipe.drugsenterprise.bean.yd.httpclient.HttpsClientUtils;
 import recipe.service.RecipeLogService;
+import recipe.service.RecipeMsgService;
 import recipe.service.RecipeOrderService;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.DateConversion;
@@ -129,7 +130,9 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             for (Integer recipeId : recipeIds) {
                 orderService.updateOrderInfo(recipeOrderDAO.getOrderCodeByRecipeIdWithoutCheck(recipeId), ImmutableMap.of("pushFlag", 1, "depSn", result.getDepSn()), null);
                 RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.CHECK_PASS, "药企推送成功:" + drugsEnterprise.getName());
+                RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_EXPRESSFEE_REMIND_NOPAY,recipeId);
             }
+
         } else {
             for (Integer recipeId : recipeIds) {
                 orderService.updateOrderInfo(recipeOrderDAO.getOrderCodeByRecipeIdWithoutCheck(recipeId), ImmutableMap.of("pushFlag", -1), null);
