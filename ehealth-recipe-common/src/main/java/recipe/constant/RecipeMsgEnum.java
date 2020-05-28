@@ -102,6 +102,11 @@ public enum RecipeMsgEnum {
     RECIPE_REVOKE_YS(125, "RecipeRevokeYs"),
 
     /**
+     * 处方未支付运费提醒
+     */
+    RECIPE_EXPRESSFEE_REMIND_NOPAY(126, "RecipeExpressFeeRemindNoPay"),
+
+    /**
      * 默认消息
      */
     DEFAULT(999, "");

@@ -247,6 +247,7 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
         }
     }
 
+
     /**
      * 处方订单号修改签名数据
      *
@@ -255,18 +256,18 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
      */
     @RpcService
     public Boolean updateSignInfoByRecipeInfo(SignDoctorRecipeInfo signDoctorRecipeInfo) {
-        logger.info("getCaByRecipeId signDoctorRecipeInfo={}", JSONUtils.toString(signDoctorRecipeInfo));
+        logger.info("updateSignInfoByRecipeInfo signDoctorRecipeInfo={}", JSONUtils.toString(signDoctorRecipeInfo));
+        if (null == signDoctorRecipeInfo) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
+        }
+
         if (null == signDoctorRecipeInfo.getRecipeId()) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "处方号为空");
         }
 
-        SignDoctorRecipeInfo recipeInfo = getSignInfoByRecipeId(signDoctorRecipeInfo.getRecipeId());
-        if (null == recipeInfo) {
-            recipeInfo = signDoctorRecipeInfo;
-        }
+        getSignInfoByRecipeId(signDoctorRecipeInfo.getRecipeId());
 
-        logger.info("getCaByRecipeId recipeInfo={}", JSONUtils.toString(recipeInfo));
-        return updateSignInfoByRecipeId(recipeInfo);
+        return updateSignInfoByRecipeId(signDoctorRecipeInfo);
     }
 
     private SignDoctorRecipeInfo getInfoByResultVo(SignDoctorRecipeInfo signDoctorRecipeInfo, CaSignResultVo signResult, boolean isDoctor, String type) {

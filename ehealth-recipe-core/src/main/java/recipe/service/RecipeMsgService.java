@@ -4,15 +4,18 @@ import com.google.common.collect.Maps;
 import com.ngari.base.department.service.IDepartmentService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
+import com.ngari.opbase.base.service.IDynamicLinkService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
 import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeBussConstant;
@@ -160,8 +163,7 @@ public class RecipeMsgService {
             return;
         }
 
-        Integer expiredDays = Integer.parseInt(cacheService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS,
-                RecipeService.RECIPE_EXPIRED_DAYS.toString()));
+        Integer expiredDays = Integer.parseInt(cacheService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS, RecipeService.RECIPE_EXPIRED_DAYS.toString()));
 
         for (Recipe recipe : recipesList) {
             if (null == recipe) {
@@ -190,11 +192,11 @@ public class RecipeMsgService {
             } else if (RecipeStatusConstant.READY_CHECK_YS == afterStatus) {
                 sendMsgInfo(recipeId, RECIPE_READY_CHECK_YS, organId);
             } else if (RecipeStatusConstant.CHECK_PASS == afterStatus) {
-                if(StringUtils.isEmpty(recipeMode) || RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
+                if (StringUtils.isEmpty(recipeMode) || RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
                     sendMsgInfo(recipeId, RECIPE_CHECK_PASS, organId);
-                } else if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)){
+                } else if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
                     Map<String, String> extendInfo = getRecipeCardInfo(recipe);
-                    sendMsgInfo(recipeId, RECIPE_CHECK_PASS, organId,JSONUtils.toString(extendInfo));
+                    sendMsgInfo(recipeId, RECIPE_CHECK_PASS, organId, JSONUtils.toString(extendInfo));
                 }
             } else if (RecipeStatusConstant.CHECK_PASS_YS == afterStatus) {
                 String drugStoreName = "";
@@ -227,7 +229,7 @@ public class RecipeMsgService {
             } else if (RecipeStatusConstant.REVOKE == afterStatus) {
                 Map<String, String> extendValue = Maps.newHashMap();
                 IDepartmentService iDepartmentService = ApplicationUtils.getBaseService(IDepartmentService.class);
-                extendValue.put("departName",iDepartmentService.getNameById(recipe.getDepart()));
+                extendValue.put("departName", iDepartmentService.getNameById(recipe.getDepart()));
                 sendMsgInfo(recipeId, RECIPE_REVOKE, organId, JSONUtils.toString(extendValue));
             } else if (RecipeStatusConstant.RECIPE_LOW_STOCKS == afterStatus) {
                 sendMsgInfo(recipeId, RECIPE_LOW_STOCKS, organId, Integer.toString(afterStatus));
@@ -241,7 +243,7 @@ public class RecipeMsgService {
                 sendMsgInfo(recipeId, RECIPE_DRUG_HAVE_STOCK, organId, Integer.toString(afterStatus));
             } else if (RecipeStatusConstant.RECIPE_TAKE_MEDICINE_FINISH == afterStatus) {
                 sendMsgInfo(recipeId, RECIPE_TAKE_MEDICINE_FINISH, organId, Integer.toString(afterStatus));
-            }  else {
+            } else {
                 //新处理方式
                 Map<String, String> extendValue = Maps.newHashMap();
                 RecipeMsgEnum msgEnum = RecipeMsgUtils.getEnumByStatus(afterStatus);
@@ -252,8 +254,7 @@ public class RecipeMsgService {
                     case RECIPE_YS_CHECKPASS_4TFDS:
                         getHosRecipeInfo(recipe, extendValue);
                         //设置 expireDate 过期时间
-                        extendValue.put("expireDate", DateConversion.formatDate(
-                                DateConversion.getDateAftXDays(recipe.getSignDate(), expiredDays)));
+                        extendValue.put("expireDate", DateConversion.formatDate(DateConversion.getDateAftXDays(recipe.getSignDate(), expiredDays)));
                         break;
                     default:
 
@@ -270,11 +271,30 @@ public class RecipeMsgService {
      * 通过枚举类型发送消息
      *
      * @param em
+     * @param
+     */
+    public static void sendRecipeMsg(RecipeMsgEnum em, Integer recipeId) {
+        RecipeDAO dao = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = dao.getByRecipeId(recipeId);
+        Assert.notNull(recipe,"recipe must not be null");
+        switch (em) {
+            case RECIPE_EXPRESSFEE_REMIND_NOPAY:
+                //获取配置动态链接
+                String url = getRecipeExpressFeeRemindNoPayUrl(recipe);
+                sendMsgInfo(recipeId, em.getMsgType(), recipe.getClinicOrgan(), url);
+                return;
+            default:
+        }
+    }
+
+    /**
+     * 通过枚举类型发送消息
+     *
+     * @param em
      * @param recipeList
      */
     public static void sendRecipeMsg(RecipeMsgEnum em, Recipe... recipeList) {
-        Integer expiredDays = Integer.parseInt(cacheService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS,
-                RecipeService.RECIPE_EXPIRED_DAYS.toString()));
+        Integer expiredDays = Integer.parseInt(cacheService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS, RecipeService.RECIPE_EXPIRED_DAYS.toString()));
         for (Recipe recipe : recipeList) {
             Integer recipeId = recipe.getRecipeId();
             Map<String, String> extendValue = Maps.newHashMap();
@@ -291,30 +311,40 @@ public class RecipeMsgService {
                     getHosRecipeInfo(recipe, extendValue);
                     break;
                 case RECIPE_YS_CHECKPASS_4FREEDOM:
-                    getHosRecipeInfo(recipe,extendValue);
+                    getHosRecipeInfo(recipe, extendValue);
                     break;
                 case RECIPE_YS_CHECKPASS_4TFDS:
                     getHosRecipeInfo(recipe, extendValue);
                     //设置 expireDate 过期时间
-                    extendValue.put("expireDate", DateConversion.formatDate(
-                            DateConversion.getDateAftXDays(recipe.getSignDate(), expiredDays)));
+                    extendValue.put("expireDate", DateConversion.formatDate(DateConversion.getDateAftXDays(recipe.getSignDate(), expiredDays)));
                     break;
                 case RECIPE_CANCEL_4HIS:
-                    getHosRecipeInfo(recipe,extendValue);
+                    getHosRecipeInfo(recipe, extendValue);
                     //设置 overtime 超时时间
-                    extendValue.put("overtime",expiredDays.toString());
+                    extendValue.put("overtime", expiredDays.toString());
                     break;
                 case RECIPE_HOSSUPPORT_NOINVENTORY:
                 case RECIPE_HOSSUPPORT_INVENTORY:
                     IDepartmentService iDepartmentService = ApplicationUtils.getBaseService(IDepartmentService.class);
-                    extendValue.put("departName",iDepartmentService.getNameById(recipe.getDepart()));
+                    extendValue.put("departName", iDepartmentService.getNameById(recipe.getDepart()));
                     break;
+                case RECIPE_EXPRESSFEE_REMIND_NOPAY:
+                    //获取配置动态链接
+                    String url = getRecipeExpressFeeRemindNoPayUrl(recipe);
+                    sendMsgInfo(recipeId, em.getMsgType(), recipe.getClinicOrgan(), url);
+                    return;
                 default:
 
             }
 
             sendMsgInfo(recipeId, em.getMsgType(), recipe.getClinicOrgan(), JSONUtils.toString(extendValue));
         }
+    }
+
+    private static String getRecipeExpressFeeRemindNoPayUrl(Recipe recipe) {
+        //获取配置动态链接
+        IDynamicLinkService dynamicLinkService = AppContextHolder.getBean("opbase.dynamicLinkService", IDynamicLinkService.class);
+        return dynamicLinkService.getLinkUrlByLinkKey(recipe.getClinicOrgan() + "_RecipeEFRemindUrl");
     }
 
     private static void sendMsgInfo(Integer recipeId, String bussType, Integer organId) {
@@ -328,7 +358,7 @@ public class RecipeMsgService {
 
         Integer clientId = null;
         //处方审核通过添加clientId
-        if(bussType != null && bussType.equals(RECIPE_CHECK_PASS)){
+        if (bussType != null && bussType.equals(RECIPE_CHECK_PASS)) {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             clientId = recipe.getCurrentClient();
@@ -367,7 +397,8 @@ public class RecipeMsgService {
     }
 
     /**
-     *互联网医院获取就诊卡扩展信息
+     * 互联网医院获取就诊卡扩展信息
+     *
      * @param recipe
      */
     private static Map<String, String> getRecipeCardInfo(Recipe recipe) {
@@ -375,14 +406,12 @@ public class RecipeMsgService {
         Integer recipeId = recipe.getRecipeId();
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-        if (recipeExtend!=null
-                &&StringUtils.isNotEmpty(recipeExtend.getCardNo())
-                &&StringUtils.isNotEmpty(recipeExtend.getCardTypeName())){
+        if (recipeExtend != null && StringUtils.isNotEmpty(recipeExtend.getCardNo()) && StringUtils.isNotEmpty(recipeExtend.getCardTypeName())) {
 
             String cardNo = recipeExtend.getCardNo();
             String cardTypeName = recipeExtend.getCardTypeName();
-            extendValue.put("cardTypeName",cardTypeName);
-            extendValue.put("cardNo",cardNo);
+            extendValue.put("cardTypeName", cardTypeName);
+            extendValue.put("cardNo", cardNo);
         }
 
         return extendValue;
@@ -432,10 +461,10 @@ public class RecipeMsgService {
     }
 
     /**
-     *  发送用药指导模板消息---
-     *
-     *  场景一-扫码后触发-微信事件消息--WXCallbackListenerImpl》onEvent
-     *  wxservice(扫码) -> recipe(得到参数) -> 前置机(获取his药品相关信息) -> recipe(第三方获取跳转url) —> wxservice(推送微信模板事件消息)
+     * 发送用药指导模板消息---
+     * <p>
+     * 场景一-扫码后触发-微信事件消息--WXCallbackListenerImpl》onEvent
+     * wxservice(扫码) -> recipe(得到参数) -> 前置机(获取his药品相关信息) -> recipe(第三方获取跳转url) —> wxservice(推送微信模板事件消息)
      */
     @Deprecated
     public static void sendMedicationGuideMsg(String appId, String templateId, String openId, String url, Map<String, Object> data) {
@@ -443,20 +472,20 @@ public class RecipeMsgService {
     }
 
     /**
-     *  发送用药指导模板消息--
-     *  场景三-线下开处方线上推送消息--前提患者已在公众号注册过
-     *  前置机(推送his处方药品等信息)->recipe(获取第三方url)->sms(发送微信模板消息)
+     * 发送用药指导模板消息--
+     * 场景三-线下开处方线上推送消息--前提患者已在公众号注册过
+     * 前置机(推送his处方药品等信息)->recipe(获取第三方url)->sms(发送微信模板消息)
      */
     public static void sendMedicationGuideMsg(Map<String, Object> param) {
         Integer organId = MapValueUtil.getInteger(param, "organId");
-        sendMsgInfo(0,"medicationGuidePush",organId,JSONUtils.toString(param));
+        sendMsgInfo(0, "medicationGuidePush", organId, JSONUtils.toString(param));
     }
 
     /**
      * 发送第三方链接的模板消息
      */
-    public static void sendRecipeThirdMsg(Map<String, Object> param){
+    public static void sendRecipeThirdMsg(Map<String, Object> param) {
         Integer organId = MapValueUtil.getInteger(param, "organId");
-        sendMsgInfo(0,"recipeThirdPush",organId,JSONUtils.toString(param));
+        sendMsgInfo(0, "recipeThirdPush", organId, JSONUtils.toString(param));
     }
 }

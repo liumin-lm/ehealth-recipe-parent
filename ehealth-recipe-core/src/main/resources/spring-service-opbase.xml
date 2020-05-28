@@ -8,5 +8,6 @@
 
     <reference interface="com.ngari.opbase.base.service.IBusActionLogService" id="opbase.busActionLogService"/>
     <reference interface="com.ngari.opbase.zjs.service.IMinkeOrganService" id="opbase.minkeOrganService"/>
+    <reference interface="com.ngari.opbase.base.service.IDynamicLinkService" id="opbase.dynamicLinkService"/>
 
 </s:beans>

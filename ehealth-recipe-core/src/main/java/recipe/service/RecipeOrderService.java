@@ -909,6 +909,7 @@ public class RecipeOrderService extends RecipeBaseService {
         LOGGER.info("createOrder finish. result={}", JSONUtils.toString(result));
     }
 
+
     /**
      * @method  setAppOtherMessage
      * @description 添加设置app端的额外信息
