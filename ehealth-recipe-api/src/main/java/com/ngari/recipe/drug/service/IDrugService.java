@@ -1,12 +1,12 @@
 package com.ngari.recipe.drug.service;
 
+import com.ngari.platform.recipe.mode.HisDrugListBean;
+import com.ngari.platform.recipe.mode.HisOrganDrugListBean;
 import com.ngari.recipe.IBaseService;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
-import com.ngari.recipe.drug.model.HisDrugListBean;
-import com.ngari.recipe.drug.model.HisOrganDrugListBean;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
 
@@ -108,7 +108,7 @@ public interface IDrugService extends IBaseService<DrugListBean> {
     DispensatoryDTO getByDrugId(Integer drugId);
 
     @RpcService
-    List<HisDrugListBean> findDrugList(Integer start,Integer limit);
+    List<HisDrugListBean> findDrugList(Integer start, Integer limit);
 
     @RpcService
     Boolean saveCompareDrugListData(List<HisOrganDrugListBean> listBeen);
