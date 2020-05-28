@@ -130,7 +130,10 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             for (Integer recipeId : recipeIds) {
                 orderService.updateOrderInfo(recipeOrderDAO.getOrderCodeByRecipeIdWithoutCheck(recipeId), ImmutableMap.of("pushFlag", 1, "depSn", result.getDepSn()), null);
                 RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.CHECK_PASS, "药企推送成功:" + drugsEnterprise.getName());
-                RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_EXPRESSFEE_REMIND_NOPAY,recipeId);
+                if (new Integer(3).equals(drugsEnterprise.getExpressFeePayWay())){
+                    //推送处方运费待支付消息提醒
+                    RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_EXPRESSFEE_REMIND_NOPAY,recipeId);
+                }
             }
 
         } else {
@@ -606,6 +609,27 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     } else {
                         recipeMap.put("DELIVERYFLAG", 0);
                     }
+                    //添加省市区信息
+                    String province = getAddressDic(order.getAddress1());
+                    String city = getAddressDic(order.getAddress2());
+                    String district = getAddressDic(order.getAddress3());
+                    recipeMap.put("PROVINCE", province);
+                    recipeMap.put("CITY", city);
+                    recipeMap.put("DISTRICT", district);
+                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+                    if (recipeExtend != null) {
+                        //添加挂号序号
+                        recipeMap.put("REGISTRATIONNUMBER", recipeExtend.getRegisterID());
+                    }
+                    RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
+                    RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeId(recipeId);
+                    if (recipeCheck != null) {
+                        recipeMap.put("REVIEWUSER", recipeCheck.getCheckerName());
+                        recipeMap.put("REVIEWSTATE", "true");
+                        recipeMap.put("REVIEWMSG", recipeCheck.getMemo());
+                        recipeMap.put("REVIEWTIME", recipeCheck.getCheckDate());
+                    }
+
                     recipeMap.put("DELIVERYCASH", order.getExpressFee());
                     //添加代煎相关
                     if (order.getDecoctionFee() != null && order.getDecoctionFee().compareTo(new BigDecimal(0)) == 1 ) {
@@ -767,7 +791,9 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     detailMap.put("SPEC", drug.getDrugSpec());
                     detailMap.put("PRODUCER", drug.getProducer());
                     detailMap.put("MSUNITNO", drug.getUnit());
-                    detailMap.put("BILLQTY", getFormatDouble(detail.getUseTotalDose()));
+                    if (detail.getUseTotalDose() != null) {
+                        detailMap.put("BILLQTY", getFormatDouble(detail.getUseTotalDose()));
+                    }
                     detailMap.put("PRC", detail.getSalePrice().toString());
                     //医保药 0：是；1：否
                     detailMap.put("YIBAO", "1");
@@ -889,4 +915,19 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         return result;
     }
 
+    /**
+     * 获取区域文本
+     * @param area 区域
+     * @return     区域文本
+     */
+    private String getAddressDic(String area) {
+        if (StringUtils.isNotEmpty(area)) {
+            try {
+                return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
+            } catch (ControllerException e) {
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area);
+            }
+        }
+        return "";
+    }
 }
