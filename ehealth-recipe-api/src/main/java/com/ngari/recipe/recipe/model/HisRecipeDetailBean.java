@@ -24,6 +24,15 @@ public class HisRecipeDetailBean implements Serializable {
     private String useDose;
     private String drugUnit;
     private String useDays;
+    private String useDaysB;
+
+    public String getUseDaysB() {
+        return useDaysB;
+    }
+
+    public void setUseDaysB(String useDaysB) {
+        this.useDaysB = useDaysB;
+    }
 
     public String getRecipeDeatilCode() {
         return recipeDeatilCode;
