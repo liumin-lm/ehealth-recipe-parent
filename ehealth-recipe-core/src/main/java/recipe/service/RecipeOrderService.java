@@ -26,6 +26,7 @@ import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.recipe.model.MedicInsurSettleSuccNoticNgariReqDTO;
 import com.ngari.recipe.recipe.model.PatientRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -61,6 +62,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.*;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
+import recipe.sign.SignRecipeInfoService;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
@@ -93,6 +95,8 @@ public class RecipeOrderService extends RecipeBaseService {
 
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
+    @Autowired
+    private SignRecipeInfoService signRecipeInfoService;
 
     /**
      * 处方结算时创建临时订单
@@ -353,6 +357,28 @@ public class RecipeOrderService extends RecipeBaseService {
     private double getFee(Object fee) {
         return null != fee ?
                 Double.parseDouble(fee.toString()) : 0d;
+    }
+
+    /**
+     * 处方订单号修改签名数据
+     *
+     * @param signDoctorRecipeInfo
+     * @return
+     */
+    @RpcService
+    public Boolean updateSignInfoByRecipeInfo(SignDoctorRecipeInfo signDoctorRecipeInfo) {
+        LOGGER.info("updateSignInfoByRecipeInfo signDoctorRecipeInfo={}", JSONUtils.toString(signDoctorRecipeInfo));
+        if (null == signDoctorRecipeInfo.getRecipeId()) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "处方号为空");
+        }
+
+        SignDoctorRecipeInfo recipeInfo = signRecipeInfoService.getSignInfoByRecipeId(signDoctorRecipeInfo.getRecipeId());
+        if (null == recipeInfo) {
+            recipeInfo = signDoctorRecipeInfo;
+        }
+
+        LOGGER.info("updateSignInfoByRecipeInfo recipeInfo={}", JSONUtils.toString(recipeInfo));
+        return signRecipeInfoService.updateSignInfoByRecipeId(recipeInfo);
     }
 
     /**
@@ -908,6 +934,7 @@ public class RecipeOrderService extends RecipeBaseService {
 
         LOGGER.info("createOrder finish. result={}", JSONUtils.toString(result));
     }
+
 
     /**
      * @method  setAppOtherMessage

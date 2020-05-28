@@ -13,7 +13,6 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.sign.ISignRecipeInfoService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
-import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
@@ -247,27 +246,7 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
         }
     }
 
-    /**
-     * 处方订单号修改签名数据
-     *
-     * @param signDoctorRecipeInfo
-     * @return
-     */
-    @RpcService
-    public Boolean updateSignInfoByRecipeInfo(SignDoctorRecipeInfo signDoctorRecipeInfo) {
-        logger.info("updateSignInfoByRecipeInfo signDoctorRecipeInfo={}", JSONUtils.toString(signDoctorRecipeInfo));
-        if (null == signDoctorRecipeInfo.getRecipeId()) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "处方号为空");
-        }
 
-        SignDoctorRecipeInfo recipeInfo = getSignInfoByRecipeId(signDoctorRecipeInfo.getRecipeId());
-        if (null == recipeInfo) {
-            recipeInfo = signDoctorRecipeInfo;
-        }
-
-        logger.info("updateSignInfoByRecipeInfo recipeInfo={}", JSONUtils.toString(recipeInfo));
-        return updateSignInfoByRecipeId(recipeInfo);
-    }
 
     private SignDoctorRecipeInfo getInfoByResultVo(SignDoctorRecipeInfo signDoctorRecipeInfo, CaSignResultVo signResult, boolean isDoctor, String type) {
         if (isDoctor) {
