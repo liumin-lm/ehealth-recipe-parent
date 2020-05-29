@@ -299,8 +299,11 @@ public class HisRecipeService {
                         detail.setDrugUnit(recipeDetailTO.getDrugUnit());
                         //date 20200526
                         //修改线下处方同步用药天数，判断是否有小数类型的用药天数
-                        detail.setUseDays((null == recipeDetailTO.getUseDays() &&  null != recipeDetailTO.getUseDaysB()) ? 0 : recipeDetailTO.getUseDays());
-                        detail.setUseDaysB(recipeDetailTO.getUseDaysB());
+                        if (null == recipeDetailTO.getUseDays()) {
+                            recipeDetailTO.setUseDays(0);
+                        }
+                        detail.setUseDays(recipeDetailTO.getUseDays());
+                        detail.setUseDaysB(recipeDetailTO.getUseDays().toString());
                         detail.setDrugCode(recipeDetailTO.getDrugCode());
                         detail.setUsingRateText(recipeDetailTO.getUsingRateText());
                         detail.setUsePathwaysText(recipeDetailTO.getUsePathwaysText());
