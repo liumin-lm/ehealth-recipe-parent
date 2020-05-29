@@ -3715,14 +3715,21 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.error("recipeCanDelivery 当前处方或者药品信息不全：{},{}.", JSON.toJSONString(recipe), JSON.toJSONString(details));
             return false;
         }
-        for (RecipeDetailBean recipedetail : details) {
+        /*for (RecipeDetailBean recipedetail : details) {
             recipedetail.setDrugUnit(null == recipedetail.getDrugUnit() ? "" : recipedetail.getDrugUnit());
             recipedetail.setStatus(1);
             recipedetail.setPack(null == recipedetail.getPack() ? 0 : recipedetail.getPack());
             //date 20200226 添加默认值
             recipedetail.setSalePrice(null == recipedetail.getSalePrice() ? BigDecimal.ZERO : recipedetail.getSalePrice());
+        }*/
+        Recipe dbrecipe = ObjectCopyUtils.convert(recipe, Recipe.class);
+        List<Recipedetail> recipedetails = ObjectCopyUtils.convert(details, Recipedetail.class);
+        //设置药品价格
+        boolean isSucc = RecipeServiceSub.setDetailsInfo(dbrecipe, recipedetails);
+        if (!isSucc) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "recipeCanDelivery-药品详情数据有误");
         }
-        Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(ObjectCopyUtils.convert(recipe, Recipe.class), ObjectCopyUtils.convert(details, Recipedetail.class), false);
+        Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(dbrecipe, recipedetails, false);
 
         boolean checkEnterprise = drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan());
         if (checkEnterprise) {
