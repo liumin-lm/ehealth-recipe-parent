@@ -59,6 +59,8 @@ public class RecipeAndOrderDetailBean implements Serializable{
     private String pharmacyCode;
     private String pharmacyName;
     private String recipeSignImg;
+    private String recipeSignImgUrl;
+    private String decoctionFlag;
     private List<DrugListForThreeBean> drugList;
 
     public String getMsg() {
@@ -483,6 +485,22 @@ public class RecipeAndOrderDetailBean implements Serializable{
 
     public void setRecipeSignImg(String recipeSignImg) {
         this.recipeSignImg = recipeSignImg;
+    }
+
+    public String getRecipeSignImgUrl() {
+        return recipeSignImgUrl;
+    }
+
+    public void setRecipeSignImgUrl(String recipeSignImgUrl) {
+        this.recipeSignImgUrl = recipeSignImgUrl;
+    }
+
+    public String getDecoctionFlag() {
+        return decoctionFlag;
+    }
+
+    public void setDecoctionFlag(String decoctionFlag) {
+        this.decoctionFlag = decoctionFlag;
     }
 
     public List<DrugListForThreeBean> getDrugList() {
