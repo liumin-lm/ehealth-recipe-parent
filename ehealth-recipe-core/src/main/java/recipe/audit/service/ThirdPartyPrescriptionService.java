@@ -8,6 +8,7 @@ import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.DepartmentService;
+import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.common.RecipeCommonBaseTO;
 import com.ngari.recipe.entity.RecipeExtend;
@@ -56,6 +57,8 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
     private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private IConsultExService consultExService;
+    @Autowired
+    private EmploymentService employmentService;
 
     @Override
     @RpcService
@@ -78,7 +81,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
             reqTO.setOrganId(recipeBean.getClinicOrgan());
             reqTO.setDeptCode((null != departmentDTO) ? departmentDTO.getCode() : StringUtils.EMPTY);
             reqTO.setDeptName((null != departmentDTO) ? departmentDTO.getName() : StringUtils.EMPTY);
-            reqTO.setDoctCode(doctorBean.getIdNumber());
+            reqTO.setDoctCode(employmentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipeBean.getDoctor(), recipeBean.getClinicOrgan(), recipeBean.getDepart()));
             reqTO.setDoctName(recipeBean.getDoctorName());
             if (Objects.nonNull(recipeBean.getClinicId())) {
                 consultExDTO = consultExService.getByConsultId(recipeBean.getClinicId());
@@ -152,6 +155,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
     private ThirdPartyPatientData packThirdPartyPatientData(PatientDTO patientDTO) {
         ThirdPartyPatientData thirdPartyPatientData = new ThirdPartyPatientData();
         thirdPartyPatientData.setIdCard(patientDTO.getIdcard());
+        thirdPartyPatientData.setName(patientDTO.getPatientName());
         return thirdPartyPatientData;
     }
 
@@ -169,7 +173,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
                                                                        DoctorBean doctorBean, List<RecipeDetailBean> recipeDetailBeanList) {
         ThirdPartyPrescriptionsData thirdPartyPrescriptionsData = new ThirdPartyPrescriptionsData();
         thirdPartyPrescriptionsData.setId(String.valueOf(recipeBean.getRecipeId()));
-        thirdPartyPrescriptionsData.setReason(recipeExtend.getHisSettlementNo());
+        thirdPartyPrescriptionsData.setReason(recipeExtend.getHistoryOfPresentIllness());
         thirdPartyPrescriptionsData.setDeptCode(departmentDTO.getCode());
         thirdPartyPrescriptionsData.setDeptName(departmentDTO.getName());
         thirdPartyPrescriptionsData.setDoctCode(doctorBean.getIdNumber());
@@ -178,7 +182,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
         recipeDetailBeanList.forEach(recipeDetailBean -> {
             ThirdPartyMedicinesData thirdPartyMedicinesData = new ThirdPartyMedicinesData();
             thirdPartyMedicinesData.setName(recipeDetailBean.getDrugName());
-            thirdPartyMedicinesData.setHisCode(recipeDetailBean.getDrugCode());
+            thirdPartyMedicinesData.setHisCode(recipeDetailBean.getOrganDrugCode());
             thirdPartyMedicinesData.setReason(recipeExtend.getHistoryOfPresentIllness());
             thirdPartyMedicinesData.setUnit(recipeDetailBean.getUseDoseUnit());
             if (StringUtils.isNotEmpty(recipeDetailBean.getUseDoseStr())) {
@@ -191,6 +195,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
             thirdPartyMedicinesData.setTotalQty(new BigDecimal(recipeDetailBean.getUseTotalDose()));
             thirdPartyMedicinesData.setDays(String.valueOf(recipeDetailBean.getUseDays()));
             thirdPartyMedicinesData.setNeedAlert(recipeDetailBean.getOrganDrugCode());
+            thirdPartyMedicinesData.setSpec(recipeDetailBean.getDrugSpec());
             thirdPartyMedicinesDataList.add(thirdPartyMedicinesData);
         });
         thirdPartyPrescriptionsData.setThirdPartyMedicinesDataList(thirdPartyMedicinesDataList);
