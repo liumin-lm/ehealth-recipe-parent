@@ -87,7 +87,7 @@ public class PrescriptionService {
     public Integer getIntellectJudicialFlag(Integer organId) {
         IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         Integer intellectJudicialFlag = (Integer) configurationCenterUtilsService.getConfiguration(organId, "intellectJudicialFlag");
-        if (intellectJudicialFlag == 2) {
+        if (intellectJudicialFlag == 2 || intellectJudicialFlag == 3) {
             intellectJudicialFlag = 1;
         }
         return intellectJudicialFlag;
