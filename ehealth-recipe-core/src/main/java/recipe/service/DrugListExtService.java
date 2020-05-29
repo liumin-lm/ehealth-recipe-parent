@@ -2,6 +2,7 @@ package recipe.service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
 import com.ngari.base.searchservice.model.DrugSearchTO;
@@ -123,6 +124,27 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
         List<OrganDrugList> dList = drugListDAO.findCommonDrugListsWithPage(doctor, organId, drugType, 0, 20);
+        //支持开西药（含中成药）的临时解决方案  如果是西药或者中成药就检索两次
+        Boolean isMergeRecipeType = null;
+        try {
+            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            isMergeRecipeType = (Boolean) configurationService.getConfiguration(organId, "isMergeRecipeType");
+        } catch (Exception e) {
+            LOGGER.error("获取运营平台处方支付配置异常:isMergeRecipeType。",e);
+        }
+        if(isMergeRecipeType != null && isMergeRecipeType == true){
+            if(1 == drugType){
+                drugType = 2;
+            } else if(2 == drugType){
+                drugType = 1;
+            }
+            List<OrganDrugList> dList2 = drugListDAO.findCommonDrugListsWithPage(doctor, organId, drugType, 0, 20- dList.size());
+
+            if(dList != null && dList2 != null && dList2.size() != 0){
+                dList.addAll(dList2);
+            }
+        }
+
         // 添加医院价格
        /*if (CollectionUtils.isNotEmpty(dList)) {
             getHospitalPrice(organId, dList);
@@ -249,6 +271,28 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         LOGGER.info("searchDrugListWithES DrugSearchTO={} ", JSONUtils.toString(searchTO));
         List<String> drugInfo = searchService.searchHighlightedPagesForDoctor(searchTO.getDrugName(), searchTO.getOrgan(),
                 searchTO.getDrugType(), searchTO.getStart(), searchTO.getLimit());
+        //支持开西药（含中成药）的临时解决方案  如果是西药或者中成药就检索两次，分页可能有问题时间紧急后面再说
+        Boolean isMergeRecipeType = null;
+        try {
+            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            isMergeRecipeType = (Boolean) configurationService.getConfiguration(organId, "isMergeRecipeType");
+        } catch (Exception e) {
+            LOGGER.error("获取运营平台处方支付配置异常:isMergeRecipeType。",e);
+        }
+        if(isMergeRecipeType != null && isMergeRecipeType == true){
+            if(drugType != null && 1 == drugType){
+                searchTO.setDrugType("2");
+            } else if(drugType != null && 2 == drugType){
+                searchTO.setDrugType("1");
+            }
+            searchTO.setLimit(limit - drugInfo.size());
+            List<String> drugInfo2 = searchService.searchHighlightedPagesForDoctor(searchTO.getDrugName(), searchTO.getOrgan(),
+                searchTO.getDrugType(), searchTO.getStart(), searchTO.getLimit());
+            if(drugInfo != null && drugInfo2 != null && drugInfo2.size() != 0){
+                drugInfo.addAll(drugInfo2);
+            }
+        }
+
         List<SearchDrugDetailDTO> dList = new ArrayList<>(drugInfo.size());
         // 将String转化成DrugList对象返回给前端
         if (CollectionUtils.isNotEmpty(drugInfo)) {
