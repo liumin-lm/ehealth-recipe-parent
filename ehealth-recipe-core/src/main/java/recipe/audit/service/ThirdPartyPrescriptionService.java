@@ -14,6 +14,8 @@ import com.ngari.recipe.common.RecipeCommonBaseTO;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -133,7 +135,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
         } catch (Exception e) {
             LOGGER.error("analysis error, params: {}", JSONUtils.toString(recipeBean), e);
             result.setMsg("智能审方接口异常");
-            result.setCode(RecipeCommonBaseTO.FAIL);
+            result.setCode(RecipeCommonBaseTO.ERROR);
             return result;
         }
     }
@@ -203,7 +205,14 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
                 thirdPartyMedicinesData.setDose((null != recipeDetailBean.getUseDose()) ? Double.toString(recipeDetailBean.getUseDose()) : null);
             }
             if (StringUtils.isNotBlank(recipeDetailBean.getUsingRate())) {
-                thirdPartyMedicinesData.setFreqName(UsingRateFilter.filterNgari(recipeBean.getClinicOrgan(), recipeDetailBean.getUsingRate()));
+                thirdPartyMedicinesData.setFreq(UsingRateFilter.filterNgari(recipeBean.getClinicOrgan(), recipeDetailBean.getUsingRate()));
+                String freqName = StringUtils.EMPTY;
+                try {
+                    freqName = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(recipeDetailBean.getUsingRate());
+                } catch (ControllerException e) {
+                    LOGGER.error("analysis parse error", e);
+                }
+                thirdPartyMedicinesData.setFreqName(freqName);
             }
             if (StringUtils.isNotBlank(recipeDetailBean.getUsePathways())) {
                 thirdPartyMedicinesData.setPath(UsePathwaysFilter.filterNgari(recipeBean.getClinicOrgan(), recipeDetailBean.getUsePathways()));
