@@ -617,6 +617,9 @@ public class HisRequestInit {
                 RecipeOrderDAO dao = DAOFactory.getDAO(RecipeOrderDAO.class);
                 RecipeOrder order = dao.getByOrderCode(recipe.getOrderCode());
                 if (order != null) {
+                    //期待配送时间
+                    requestTO.setPlanDate(order.getExpectSendDate());
+                    requestTO.setPlanTime(order.getExpectSendTime());
                     //收货人
                     requestTO.setConsignee(order.getReceiver());
                     //联系电话

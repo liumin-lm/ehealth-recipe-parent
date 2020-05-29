@@ -171,8 +171,18 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias = "药企药品编码")
 	private String saleDrugCode;
 
+	@ItemProperty(alias = "处方药品详情类型")
+	@Dictionary(id="eh.base.dictionary.DrugType")
+	private Integer drugType;
 
+	@Column(name = "drugType")
+	public Integer getDrugType() {
+		return drugType;
+	}
 
+	public void setDrugType(Integer drugType) {
+		this.drugType = drugType;
+	}
 
 	public Recipedetail() {
 	}
