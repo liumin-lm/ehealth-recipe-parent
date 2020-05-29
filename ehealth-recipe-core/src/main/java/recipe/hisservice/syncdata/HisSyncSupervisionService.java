@@ -1,5 +1,7 @@
 package recipe.hisservice.syncdata;
 
+import com.ngari.base.BaseAPI;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.common.mode.HisResponseTO;
@@ -16,6 +18,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.service.zjs.SubCodeService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
@@ -38,6 +41,7 @@ import recipe.common.response.CommonResponse;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
+import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
@@ -120,6 +124,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        SignDoctorRecipeInfoDAO signDoctorRecipeInfoDAO = DAOFactory.getDAO(SignDoctorRecipeInfoDAO.class);
         DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
 
         Map<Integer, OrganDTO> organMap = new HashMap<>(20);
@@ -153,6 +158,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         ConsultExDTO consultExDTO;
         RedisClient redisClient = RedisClient.instance();
         String caSignature = null;
+        SignDoctorRecipeInfo caInfo;
         for (Recipe recipe : recipeList) {
             req = new RegulationRecipeIndicatorsReq();
             //机构处理
@@ -217,13 +223,21 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setDoctorNo(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
             req.setDoctorProTitle(doctorDTO.getProTitle());
             //设置医生电子签名
-            if (doctorDTO.getESignId() != null) {
+           /* if (doctorDTO.getESignId() != null) {
                 try {
                     caSignature = redisClient.get(doctorDTO.getESignId() + "_signature");
                 } catch (Exception e) {
                     LOGGER.error("get caSignature error. doctorId={}", doctorDTO.getDoctorId(), e);
                 }
                 req.setDoctorSign(StringUtils.isNotEmpty(caSignature) ? caSignature : "");
+            }*/
+            //江苏ca用到
+            caInfo = signDoctorRecipeInfoDAO.getRecipeInfoByRecipeId(recipe.getRecipeId());
+            if (caInfo != null){
+                //医生签名值
+                req.setDoctorSign(caInfo.getSignCodeDoc());
+                //药师签名值
+                req.setAuditDoctorSign(caInfo.getSignCodePha());
             }
             //药师处理
             if (recipe.getChecker() != null) {
@@ -247,7 +261,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 }
                 
             }
-            //设置药师电子签名
+            /*//设置药师电子签名
             if (doctorDTO.getESignId() != null) {
                 try {
                     caSignature = redisClient.get(doctorDTO.getESignId() + "_signature");
@@ -255,7 +269,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     LOGGER.error("get caSignature error. doctorId={}", doctorDTO.getDoctorId(), e);
                 }
                 req.setAuditDoctorSign(StringUtils.isNotEmpty(caSignature) ? caSignature : "");
-            }
+            }*/
 
             //患者处理
             patientDTO = patientService.get(recipe.getMpiid());
