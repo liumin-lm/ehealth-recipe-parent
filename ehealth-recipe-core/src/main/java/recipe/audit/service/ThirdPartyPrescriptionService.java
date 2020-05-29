@@ -60,6 +60,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
     @Override
     @RpcService
     public AutoAuditResult analysis(RecipeBean recipeBean, List<RecipeDetailBean> recipeDetailBeanList) {
+        LOGGER.info("analysis params: {}", recipeBean.getRecipeId());
         AutoAuditResult result = new AutoAuditResult();
         if (Objects.isNull(recipeBean) || CollectionUtils.isEmpty(recipeDetailBeanList)) {
             result.setCode(RecipeCommonBaseTO.FAIL);
@@ -86,7 +87,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
             reqTO.setThirdPartyPatientData(packThirdPartyPatientData(patientDTO));
             reqTO.setThirdPartyPrescriptionsData(packThirdPartyPrescriptionData(recipeBean, recipeExtend, departmentDTO, doctorBean, recipeDetailBeanList));
             ThirdPartyRationalUseDrugResTO thirdPartyRationalUseDrugResTO = recipeHisService.queryThirdPartyRationalUserDurg(reqTO);
-            if (Objects.nonNull(thirdPartyRationalUseDrugResTO)) {
+            if (Objects.isNull(thirdPartyRationalUseDrugResTO)) {
                 result.setCode(RecipeCommonBaseTO.SUCCESS);
                 result.setMsg("系统预审未发现处方问题");
                 return result;
@@ -96,7 +97,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
                 PAWebMedicines paWebMedicines = new PAWebMedicines();
                 String name;
                 if (StringUtils.isNotBlank(thirdPartyIssuesData.getNameA()) && StringUtils.isNotBlank(thirdPartyIssuesData.getNameB())) {
-                    name = StringUtils.join(thirdPartyIssuesData.getNameA(), thirdPartyIssuesData.getNameB());
+                    name = StringUtils.join(thirdPartyIssuesData.getNameA(), "|", thirdPartyIssuesData.getNameB());
                 } else {
                     name = StringUtils.isNotBlank(thirdPartyIssuesData.getNameA()) ? thirdPartyIssuesData.getNameA() : thirdPartyIssuesData.getNameB();
                 }
