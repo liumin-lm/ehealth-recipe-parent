@@ -122,6 +122,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
                 paWebMedicinesList.add(paWebMedicines);
             });
             result.setMedicines(paWebMedicinesList);
+            LOGGER.info("analysis result: {}", JSONUtils.toString(result));
             return result;
         } catch (Exception e) {
             LOGGER.error("analysis error, params: {}", JSONUtils.toString(recipeBean), e);
