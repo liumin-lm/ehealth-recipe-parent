@@ -1365,7 +1365,7 @@ public class RecipeHisService extends RecipeBaseService {
             return null;
         }
         if (Objects.isNull(hisResponseTO)) {
-            new DAOException("前置机调用失败");
+            throw new DAOException("前置机调用失败");
         }
         return hisResponseTO.getData();
     }
