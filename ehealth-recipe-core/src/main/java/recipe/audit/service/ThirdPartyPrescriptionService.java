@@ -128,7 +128,12 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
                 paWebMedicines.setIssues(issueList);
                 paWebMedicinesList.add(paWebMedicines);
             });
-            result.setMedicines(paWebMedicinesList);
+            if (CollectionUtils.isEmpty(paWebMedicinesList)) {
+                result.setMedicines(null);
+                result.setMsg(thirdPartyRationalUseDrugResTO.getIssueTypes());
+            } else {
+                result.setMedicines(paWebMedicinesList);
+            }
             result.setCode(RecipeCommonBaseTO.FAIL);
             LOGGER.info("analysis result: {}", JSONUtils.toString(result));
             return result;
