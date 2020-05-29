@@ -102,21 +102,28 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
         return signDoctorRecipeInfoDAO.getRecipeInfoByRecipeId(recipeId);
     }
 
+    @Deprecated
     @RpcService
-    public SignDoctorRecipeInfo getSignInfoByRecipeId(Integer recipeId){
-        logger.info("getSignInfoByRecipeId start recipeId=" + recipeId);
+    public SignDoctorRecipeInfo getSignInfoByRecipeId(Integer serverId) {
+        return getSignInfoByServerIdAndServerType(serverId, 1);
+    }
+
+    @RpcService
+    public SignDoctorRecipeInfo getSignInfoByServerIdAndServerType(Integer serverId, Integer serverType){
+        logger.info("getSignInfoByRecipeId start serverId={}= serverType={}=" , serverId, serverType);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-        RecipeBean recipeBean = recipeService.getByRecipeId(recipeId);
+        RecipeBean recipeBean = recipeService.getByRecipeId(serverId);
         if (recipeBean == null) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "处方订单不存在");
         }
 
-        SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getRecipeInfoByRecipeId(recipeId);
+        SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getRecipeInfoByRecipeIdAndServerType(serverId, serverType);
         if (signDoctorRecipeInfo == null) {
             signDoctorRecipeInfo = new SignDoctorRecipeInfo();
-            signDoctorRecipeInfo.setRecipeId(recipeId);
+            signDoctorRecipeInfo.setRecipeId(serverId);
             signDoctorRecipeInfo.setCreateDate(new Date());
             signDoctorRecipeInfo.setLastmodify(new Date());
+            signDoctorRecipeInfo.setServerType(serverType);
             signDoctorRecipeInfo = signDoctorRecipeInfoDAO.save(signDoctorRecipeInfo);
             return signDoctorRecipeInfo;
         }
@@ -138,7 +145,7 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
     }
 
     @RpcService
-    public SignDoctorRecipeInfo setSignRecipeInfo(Integer recipeId, boolean isDoctor, String serCode){
+    public SignDoctorRecipeInfo setSignRecipeInfoByServerIdAndServerType(Integer serverId, boolean isDoctor, String serCode, Integer serverType){
         SignDoctorRecipeInfo signDoctorRecipeInfo = new SignDoctorRecipeInfo();
         if (isDoctor) {
             signDoctorRecipeInfo.setCaSerCodeDoc(serCode);
@@ -147,8 +154,15 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
         }
         signDoctorRecipeInfo.setCreateDate(new Date());
         signDoctorRecipeInfo.setLastmodify(new Date());
-        signDoctorRecipeInfo.setRecipeId(recipeId);
+        signDoctorRecipeInfo.setRecipeId(serverId);
+        signDoctorRecipeInfo.setServerType(serverType);
         return signDoctorRecipeInfoDAO.save(signDoctorRecipeInfo);
+    }
+
+    @Deprecated
+    @RpcService
+    public SignDoctorRecipeInfo setSignRecipeInfo(Integer recipeId, boolean isDoctor, String serCode){
+        return setSignRecipeInfoByServerIdAndServerType(recipeId, isDoctor, serCode, 1);
     }
 
     @RpcService

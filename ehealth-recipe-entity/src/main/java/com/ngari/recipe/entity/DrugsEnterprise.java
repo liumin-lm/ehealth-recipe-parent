@@ -118,6 +118,9 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "管理单元")
     private String manageUnit;
 
+    @ItemProperty(alias = "展示配送药店标识")
+    private Integer showStoreFlag;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
@@ -387,6 +390,15 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setManageUnit(String manageUnit) {
         this.manageUnit = manageUnit;
+    }
+
+    @Column(name = "showStoreFlag")
+    public Integer getShowStoreFlag() {
+        return showStoreFlag;
+    }
+
+    public void setShowStoreFlag(Integer showStoreFlag) {
+        this.showStoreFlag = showStoreFlag;
     }
 
     @Override
