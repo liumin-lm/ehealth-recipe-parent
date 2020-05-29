@@ -398,46 +398,52 @@ public class HisRequestInit {
 
         if (null != details && !details.isEmpty()) {
             List<OrderItemTO> orderList = new ArrayList<>();
-            for (Recipedetail detail : details) {
-                OrderItemTO orderItem = new OrderItemTO();
-                orderItem.setOrderID(Integer.toString(detail
-                        .getRecipeDetailId()));
-                orderItem.setDrcode(detail.getOrganDrugCode());
-                orderItem.setDrname(detail.getDrugName());
-                //药品规格
-                orderItem.setDrmodel(detail.getDrugSpec());
-                orderItem.setPackUnit(detail.getDrugUnit());
-                orderItem.setDrugId(detail.getDrugId());
+            try{
+                for (Recipedetail detail : details) {
+                    OrderItemTO orderItem = new OrderItemTO();
+                    orderItem.setOrderID(Integer.toString(detail
+                            .getRecipeDetailId()));
+                    orderItem.setDrcode(detail.getOrganDrugCode());
+                    orderItem.setDrname(detail.getDrugName());
+                    //药品规格
+                    orderItem.setDrmodel(detail.getDrugSpec());
+                    orderItem.setPackUnit(detail.getDrugUnit());
+                    orderItem.setDrugId(detail.getDrugId());
 
-                orderItem.setAdmission(UsePathwaysFilter.filterNgari(recipe.getClinicOrgan(),detail.getUsePathways()));
-                orderItem.setFrequency(UsingRateFilter.filterNgari(recipe.getClinicOrgan(),detail.getUsingRate()));
-                if (StringUtils.isNotEmpty(detail.getUseDoseStr())){
-                    orderItem.setDosage(detail.getUseDoseStr());
-                }else {
-                    orderItem.setDosage((null != detail.getUseDose()) ? Double
-                            .toString(detail.getUseDose()) : null);
+                    orderItem.setAdmission(UsePathwaysFilter.filterNgari(recipe.getClinicOrgan(),detail.getUsePathways()));
+                    orderItem.setFrequency(UsingRateFilter.filterNgari(recipe.getClinicOrgan(),detail.getUsingRate()));
+                    orderItem.setAdmissionName(DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detail.getUsingRate()));
+                    //频次名称
+                    orderItem.setFrequencyName(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detail.getUsePathways()));
+                    if (StringUtils.isNotEmpty(detail.getUseDoseStr())){
+                        orderItem.setDosage(detail.getUseDoseStr());
+                    }else {
+                        orderItem.setDosage((null != detail.getUseDose()) ? Double
+                                .toString(detail.getUseDose()) : null);
+                    }
+                    orderItem.setDrunit(detail.getUseDoseUnit());
+                    /*
+                     * //每日剂量 转换成两位小数 DecimalFormat df = new DecimalFormat("0.00");
+                     * String dosageDay =
+                     * df.format(getFrequency(detail.getUsingRate(
+                     * ))*detail.getUseDose());
+                     */
+                    // 传用药总量 药品包装 * 开药数量
+                    Double dos = detail.getUseTotalDose() * detail.getPack();
+                    orderItem.setDosageDay(dos.toString());
+
+                    orderItem.setRemark(detail.getMemo());
+                    orderItem.setPack(detail.getPack());
+                    //用药天数
+                    orderItem.setUseDays(detail.getUseDays());
+                    //药品数量
+                    orderItem.setItemCount(new BigDecimal(detail.getUseTotalDose()));
+
+                    orderList.add(orderItem);
                 }
-                orderItem.setDrunit(detail.getUseDoseUnit());
-                /*
-                 * //每日剂量 转换成两位小数 DecimalFormat df = new DecimalFormat("0.00");
-				 * String dosageDay =
-				 * df.format(getFrequency(detail.getUsingRate(
-				 * ))*detail.getUseDose());
-				 */
-                // 传用药总量 药品包装 * 开药数量
-                Double dos = detail.getUseTotalDose() * detail.getPack();
-                orderItem.setDosageDay(dos.toString());
-
-                orderItem.setRemark(detail.getMemo());
-                orderItem.setPack(detail.getPack());
-                //用药天数
-                orderItem.setUseDays(detail.getUseDays());
-                //药品数量
-                orderItem.setItemCount(new BigDecimal(detail.getUseTotalDose()));
-
-                orderList.add(orderItem);
+            }catch (Exception e){
+                LOGGER.error("initRecipeSendRequestTO error ",e);
             }
-
             requestTO.setOrderList(orderList);
         } else {
             requestTO.setOrderList(null);
