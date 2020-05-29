@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.google.common.collect.Maps;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -558,6 +559,25 @@ public class DrugListService extends BaseService<DrugListBean> {
         DrugListDAO drugListDAO = getDAO(DrugListDAO.class);
         List<DrugList> dList = drugListDAO.findDrugListsByOrganOrDrugClass(organId, drugType, drugClass, start,
                 limit);
+        //支持开西药（含中成药）的临时解决方案  如果是西药或者中成药就检索两次，分页可能有问题时间紧急后面再说
+        Boolean isMergeRecipeType = null;
+        try {
+            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            isMergeRecipeType = (Boolean) configurationService.getConfiguration(organId, "isMergeRecipeType");
+        } catch (Exception e) {
+            logger.error("获取运营平台处方支付配置异常:isMergeRecipeType。",e);
+        }
+        if(isMergeRecipeType != null && isMergeRecipeType == true){
+            if(1 == drugType){
+                drugType = 2;
+            } else if(2 == drugType){
+                drugType = 1;
+            }
+            List<DrugList> dList2 = drugListDAO.findDrugListsByOrganOrDrugClass(organId, drugType, drugClass, start, limit-dList.size());
+            if(dList != null && dList2 != null && dList2.size() != 0){
+                dList.addAll(dList2);
+            }
+        }
         // 添加医院价格
         if (!dList.isEmpty()) {
             RecipeUtil.getHospitalPrice(organId, dList);
