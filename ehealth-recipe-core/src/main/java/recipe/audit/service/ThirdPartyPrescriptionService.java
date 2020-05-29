@@ -63,17 +63,21 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
     @Override
     @RpcService
     public AutoAuditResult analysis(RecipeBean recipeBean, List<RecipeDetailBean> recipeDetailBeanList) {
-        LOGGER.info("analysis params: {}", recipeBean.getRecipeId());
+        LOGGER.info("analysis params: {}", JSONUtils.toString(recipeBean));
         AutoAuditResult result = new AutoAuditResult();
         if (Objects.isNull(recipeBean) || CollectionUtils.isEmpty(recipeDetailBeanList)) {
             result.setCode(RecipeCommonBaseTO.FAIL);
             result.setMsg("analysis params error");
             return result;
         }
+        // mpiid doctor depart三个字段必传
         PatientDTO patientDTO = Optional.ofNullable(patientService.getPatientByMpiId(recipeBean.getMpiid())).orElseThrow(() -> new DAOException("找不到患者信息"));
         DoctorBean doctorBean = Optional.ofNullable(doctorService.getBeanByDoctorId(recipeBean.getDoctor())).orElseThrow(() -> new DAOException("找不到医生信息"));
         DepartmentDTO departmentDTO = Optional.ofNullable(departmentService.getById(recipeBean.getDepart())).orElseThrow(() -> new DAOException("找不到部门信息"));
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
+        RecipeExtend recipeExtend = null;
+        if (Objects.nonNull(recipeBean.getRecipeId())) {
+            recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
+        }
         ThirdPartyRationalUseDrugReqTO reqTO;
         ConsultExDTO consultExDTO = null;
         try {
@@ -92,6 +96,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
             ThirdPartyRationalUseDrugResTO thirdPartyRationalUseDrugResTO = recipeHisService.queryThirdPartyRationalUserDurg(reqTO);
             if (Objects.isNull(thirdPartyRationalUseDrugResTO)) {
                 result.setMsg("系统预审未发现处方问题");
+                result.setCode(RecipeCommonBaseTO.SUCCESS);
                 return result;
             }
             List<PAWebMedicines> paWebMedicinesList = new ArrayList<>();
@@ -122,10 +127,13 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
                 paWebMedicinesList.add(paWebMedicines);
             });
             result.setMedicines(paWebMedicinesList);
+            result.setCode(RecipeCommonBaseTO.FAIL);
+            LOGGER.info("analysis result: {}", JSONUtils.toString(result));
             return result;
         } catch (Exception e) {
             LOGGER.error("analysis error, params: {}", JSONUtils.toString(recipeBean), e);
             result.setMsg("智能审方接口异常");
+            result.setCode(RecipeCommonBaseTO.FAIL);
             return result;
         }
     }
@@ -173,7 +181,9 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
                                                                        DoctorBean doctorBean, List<RecipeDetailBean> recipeDetailBeanList) {
         ThirdPartyPrescriptionsData thirdPartyPrescriptionsData = new ThirdPartyPrescriptionsData();
         thirdPartyPrescriptionsData.setId(String.valueOf(recipeBean.getRecipeId()));
-        thirdPartyPrescriptionsData.setReason(recipeExtend.getHistoryOfPresentIllness());
+        if (Objects.nonNull(recipeExtend)) {
+            thirdPartyPrescriptionsData.setReason(recipeExtend.getHistoryOfPresentIllness());
+        }
         thirdPartyPrescriptionsData.setDeptCode(departmentDTO.getCode());
         thirdPartyPrescriptionsData.setDeptName(departmentDTO.getName());
         thirdPartyPrescriptionsData.setDoctCode(doctorBean.getIdNumber());
@@ -183,15 +193,21 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
             ThirdPartyMedicinesData thirdPartyMedicinesData = new ThirdPartyMedicinesData();
             thirdPartyMedicinesData.setName(recipeDetailBean.getDrugName());
             thirdPartyMedicinesData.setHisCode(recipeDetailBean.getOrganDrugCode());
-            thirdPartyMedicinesData.setReason(recipeExtend.getHistoryOfPresentIllness());
+            if (Objects.nonNull(recipeExtend)) {
+                thirdPartyMedicinesData.setReason(recipeExtend.getHistoryOfPresentIllness());
+            }
             thirdPartyMedicinesData.setUnit(recipeDetailBean.getUseDoseUnit());
             if (StringUtils.isNotEmpty(recipeDetailBean.getUseDoseStr())) {
                 thirdPartyMedicinesData.setDose(recipeDetailBean.getUseDoseStr());
             } else {
                 thirdPartyMedicinesData.setDose((null != recipeDetailBean.getUseDose()) ? Double.toString(recipeDetailBean.getUseDose()) : null);
             }
-            thirdPartyMedicinesData.setFreq(UsingRateFilter.filterNgari(recipeBean.getClinicOrgan(), recipeDetailBean.getUsingRate()));
-            thirdPartyMedicinesData.setPath(UsePathwaysFilter.filterNgari(recipeBean.getClinicOrgan(), recipeDetailBean.getUsePathways()));
+            if (StringUtils.isNotBlank(recipeDetailBean.getUsingRate())) {
+                thirdPartyMedicinesData.setFreq(UsingRateFilter.filterNgari(recipeBean.getClinicOrgan(), recipeDetailBean.getUsingRate()));
+            }
+            if (StringUtils.isNotBlank(recipeDetailBean.getUsePathways())) {
+                thirdPartyMedicinesData.setPath(UsePathwaysFilter.filterNgari(recipeBean.getClinicOrgan(), recipeDetailBean.getUsePathways()));
+            }
             thirdPartyMedicinesData.setTotalQty(new BigDecimal(recipeDetailBean.getUseTotalDose()));
             thirdPartyMedicinesData.setDays(String.valueOf(recipeDetailBean.getUseDays()));
             thirdPartyMedicinesData.setNeedAlert(recipeDetailBean.getOrganDrugCode());

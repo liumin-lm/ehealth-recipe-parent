@@ -1364,6 +1364,9 @@ public class RecipeHisService extends RecipeBaseService {
         if (Objects.nonNull(hisResponseTO) && hisResponseTO.getMsgCode().equals("200")) {
             return null;
         }
+        if (Objects.isNull(hisResponseTO)) {
+            new DAOException("前置机调用失败");
+        }
         return hisResponseTO.getData();
     }
 }
