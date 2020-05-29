@@ -63,7 +63,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
     @Override
     @RpcService
     public AutoAuditResult analysis(RecipeBean recipeBean, List<RecipeDetailBean> recipeDetailBeanList) {
-        LOGGER.info("analysis params: {}", recipeBean.getRecipeId());
+        LOGGER.info("analysis params: {}", JSONUtils.toString(recipeBean));
         AutoAuditResult result = new AutoAuditResult();
         if (Objects.isNull(recipeBean) || CollectionUtils.isEmpty(recipeDetailBeanList)) {
             result.setCode(RecipeCommonBaseTO.FAIL);
