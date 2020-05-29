@@ -224,6 +224,14 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      * @param appKey
      * @return
      */
+    @DAOMethod(sql = "from DrugsEnterprise where status=1 and appKey=:appKey")
+    public abstract List<DrugsEnterprise> findByAppKey(@DAOParam("appKey") String appKey);
+
+    /**
+     * 根据appKey获取药企
+     * @param appKey
+     * @return
+     */
     @DAOMethod(sql = "from DrugsEnterprise where status=1 and appKey=:appKey", limit = 1)
     public abstract DrugsEnterprise getByAppKey(@DAOParam("appKey") String appKey);
 

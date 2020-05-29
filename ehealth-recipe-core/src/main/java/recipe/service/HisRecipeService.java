@@ -294,10 +294,16 @@ public class HisRecipeService {
                         detail.setPrice(recipeDetailTO.getPrice());
                         detail.setTotalPrice(recipeDetailTO.getTotalPrice());
                         detail.setUsingRate(recipeDetailTO.getUsingRate());
+                        detail.setUsePathways(recipeDetailTO.getUsePathWays());
                         detail.setDrugSpec(recipeDetailTO.getDrugSpec());
                         detail.setDrugUnit(recipeDetailTO.getDrugUnit());
-                        detail.setUseDays(recipeDetailTO.getUseDays());
+                        //date 20200526
+                        //修改线下处方同步用药天数，判断是否有小数类型的用药天数
+                        detail.setUseDays((null == recipeDetailTO.getUseDays() &&  null != recipeDetailTO.getUseDaysB()) ? 0 : recipeDetailTO.getUseDays());
+                        detail.setUseDaysB(recipeDetailTO.getUseDaysB());
                         detail.setDrugCode(recipeDetailTO.getDrugCode());
+                        detail.setUsingRateText(recipeDetailTO.getUsingRateText());
+                        detail.setUsePathwaysText(recipeDetailTO.getUsePathwaysText());
                         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
                         if (StringUtils.isNotEmpty(detail.getRecipeDeatilCode())) {
                             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(detail.getDrugCode()));
@@ -478,6 +484,8 @@ public class HisRecipeService {
             return;
         }
         for (HisRecipeDetail hisRecipeDetail : hisRecipeDetails) {
+            LOGGER.info("hisRecipe.getClinicOrgan(): "+hisRecipe.getClinicOrgan()+"");
+            LOGGER.info("Arrays.asList(hisRecipeDetail.getDrugCode()):"+hisRecipeDetail.getDrugCode());
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(hisRecipeDetail.getDrugCode()));
             Recipedetail recipedetail = new Recipedetail();
             recipedetail.setRecipeId(recipeId);
@@ -497,11 +505,16 @@ public class HisRecipeService {
                 recipedetail.setSalePrice(organDrugLists.get(0).getSalePrice());
                 recipedetail.setUseDose(organDrugLists.get(0).getUseDose());
             }
+            recipedetail.setUsingRateTextFromHis(hisRecipeDetail.getUsingRateText());
+            recipedetail.setUsePathwaysTextFromHis(hisRecipeDetail.getUsePathwaysText());
 
             if (hisRecipeDetail.getUseTotalDose() != null) {
                 recipedetail.setUseTotalDose(hisRecipeDetail.getUseTotalDose().doubleValue());
             }
             recipedetail.setUseDays(hisRecipeDetail.getUseDays());
+            //date 20200528
+            //设置线上处方的信息
+            recipedetail.setUseDaysB(hisRecipeDetail.getUseDaysB());
             recipedetail.setStatus(1);
 
             if (hisRecipeDetail.getUseTotalDose() != null && hisRecipeDetail.getPrice() != null && CollectionUtils.isNotEmpty(organDrugLists)) {

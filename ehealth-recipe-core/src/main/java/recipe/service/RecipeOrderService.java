@@ -5,6 +5,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.BaseAPI;
 import com.ngari.base.hisconfig.model.HisServiceConfigBean;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.model.OrganConfigBean;
@@ -509,7 +510,7 @@ public class RecipeOrderService extends RecipeBaseService {
         IConfigurationCenterUtilsService configurationCenterUtilsService = (IConfigurationCenterUtilsService)AppContextHolder.getBean("eh.configurationCenterUtils");
         RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
         OrganConfigBean organConfig = iOrganConfigService.get(order.getOrganId());
-
+        LOGGER.info("进入方法setOrderFee");
         if (null == organConfig) {
             //只有需要真正保存订单时才提示
             result.setCode(RecipeResultBean.FAIL);
@@ -617,6 +618,8 @@ public class RecipeOrderService extends RecipeBaseService {
             }
         }
 
+        BigDecimal tcmFee=new BigDecimal(0);
+        int i=0;
         for (Recipe recipe : recipeList) {
             if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
                 totalCopyNum = totalCopyNum + recipe.getCopyNum();
@@ -624,8 +627,21 @@ public class RecipeOrderService extends RecipeBaseService {
                     //代煎费等于剂数乘以代煎单价
                     otherFee = otherFee.add(order.getDecoctionUnitPrice().multiply(BigDecimal.valueOf(recipe.getCopyNum())));
                 }
+                //一张订单只会有一个处方
+                if(i==0){
+                    //设置中医辨证论治费（中医辨证论治费，所有中药处方都需要增加此收费项目，运营平台增加配置项；若填写了金额，则患者端展示该收费项目；）
+                    IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+                    //从opbase配置项获取中医辨证论治费 recipeTCMPrice
+                    Object findRecipeTCMPrice = configService.getConfiguration(recipe.getClinicOrgan(), "recipeTCMPrice");
+                    if(findRecipeTCMPrice!=null&& ((BigDecimal)findRecipeTCMPrice).compareTo(BigDecimal.ZERO)==1) tcmFee=(BigDecimal)findRecipeTCMPrice;
+                }
+                LOGGER.info("处方recipeid:{},tcmFee是：{}",recipe.getRecipeId(),tcmFee);
+
             }
+            i++;
         }
+        LOGGER.info("tcmFee是：{}",tcmFee);
+        order.setTcmFee(tcmFee);
         order.setCopyNum(totalCopyNum);
         order.setDecoctionFee(otherFee);
         //当前是his返回的，范围不进行校验
@@ -739,6 +755,19 @@ public class RecipeOrderService extends RecipeBaseService {
 
         //}
         order.setTotalFee(countOrderTotalFeeByRecipeInfo(order, firstRecipe, payModeSupport));
+        //判断计算扣掉运费的总金额----等于线下支付----总计要先算上运费，实际支付时再不支付运费
+        BigDecimal totalFee;
+        //配送到家并且线下支付
+        Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
+        if (new Integer(2).equals(order.getExpressFeePayWay()) && RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)){
+            if (order.getTotalFee().compareTo(order.getExpressFee()) > -1) {
+                totalFee = order.getTotalFee().subtract(order.getExpressFee());
+            } else {
+                totalFee = order.getTotalFee();
+            }
+        }else{
+            totalFee = order.getTotalFee();
+        }
         //计算优惠券价格
         ICouponBaseService couponService = AppContextHolder.getBean("voucher.couponBaseService",ICouponBaseService.class);
         if (isUsefulCoupon(order.getCouponId())) {
@@ -749,20 +778,19 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setCouponFee(coupon.getDiscountAmount());
                 order.setCouponDesc(coupon.getCouponDesc());
             }
-            if (order.getTotalFee().compareTo(order.getCouponFee()) > -1) {
-                order.setActualPrice(order.getTotalFee().subtract(order.getCouponFee()).doubleValue());
+            if (totalFee.compareTo(order.getCouponFee()) > -1) {
+                order.setActualPrice(totalFee.subtract(order.getCouponFee()).doubleValue());
             } else {
-                order.setActualPrice(order.getTotalFee().doubleValue());
+                order.setActualPrice(totalFee.doubleValue());
             }
         } else {
-            Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
             if (payMode != RecipeBussConstant.PAYMODE_ONLINE && !RecipeServiceSub.isJSOrgan(order.getOrganId())) {
 
                 if (RecipeBussConstant.PAYMODE_TO_HOS.equals(payMode)){
                     PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
                     //卫宁付
                     if (purchaseService.getToHosPayConfig(firstRecipe.getClinicOrgan())){
-                        order.setActualPrice(order.getTotalFee().doubleValue());
+                        order.setActualPrice(totalFee.doubleValue());
                     }else {
                         //此时的实际费用是不包含药品费用的
                         order.setActualPrice(order.getAuditFee().doubleValue());
@@ -775,7 +803,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
                         if (drugsEnterprise != null && drugsEnterprise.getStorePayFlag() != null && drugsEnterprise.getStorePayFlag() == 1) {
                             //storePayFlag = 1 表示线上支付但到店取药
-                            order.setActualPrice(order.getTotalFee().doubleValue());
+                            order.setActualPrice(totalFee.doubleValue());
                         } else {
                             //此时的实际费用是不包含药品费用的
                             order.setActualPrice(order.getAuditFee().doubleValue());
@@ -786,7 +814,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     }
                 }
             } else {
-                order.setActualPrice(order.getTotalFee().doubleValue());
+                order.setActualPrice(totalFee.doubleValue());
                 RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(firstRecipe.getRecipeId());
                 if (recipeExtend!=null){
@@ -1942,6 +1970,11 @@ public class RecipeOrderService extends RecipeBaseService {
         //其他服务费
         if (null != order.getOtherFee()) {
             full = full.add(order.getOtherFee());
+        }
+
+        //中医辨证论治费
+        if (null != order.getTcmFee()) {
+            full = full.add(order.getTcmFee());
         }
 
         return full.divide(BigDecimal.ONE, 3, RoundingMode.UP);

@@ -105,6 +105,9 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "管理单元")
     private String manageUnit;
 
+    @ItemProperty(alias = "药企下载处方签类型")
+    private Integer downSignImgType;
+
 
     public DrugsEnterpriseBean() {
     }
@@ -327,5 +330,13 @@ public class DrugsEnterpriseBean implements Serializable {
 
     public void setManageUnit(String manageUnit) {
         this.manageUnit = manageUnit;
+    }
+
+    public Integer getDownSignImgType() {
+        return downSignImgType;
+    }
+
+    public void setDownSignImgType(Integer downSignImgType) {
+        this.downSignImgType = downSignImgType;
     }
 }

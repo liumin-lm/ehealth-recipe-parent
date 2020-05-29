@@ -134,11 +134,11 @@ public class HisCallBackService {
         if (isCheckPass) {
             // 医保用户
             if (recipe.canMedicalPay()) {
-                // 如果是中药或膏方处方不需要药师审核
+                /*// 如果是中药或膏方处方不需要药师审核
                 if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
                     status = RecipeStatusConstant.CHECK_PASS_YS;
                     memo = "HIS审核返回：写入his成功，药师审核通过";
-                }
+                }*/
 
                /* else {
                     //可以进行医保支付，先去药师进行审核
@@ -157,6 +157,9 @@ public class HisCallBackService {
             status = RecipeStatusConstant.CHECK_NOT_PASS;
             memo = "HIS审核返回：写入his成功，审核未通过";
         }
+        //date 20200526
+        //添加医院审方后保存审核日志
+        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
 
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap);
 
@@ -272,6 +275,8 @@ public class HisCallBackService {
     private static void updateRecipeRegisterID(Recipe recipe, RecipeCheckPassResult result) {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        Map<String, String> map = new HashMap<String, String>();
+
         //更新复诊挂号序号如果有
         if (null != recipe.getClinicId()) {
             IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
@@ -285,18 +290,26 @@ public class HisCallBackService {
                     result.setRegisterID(consultExDTO.getRegisterNo());
                 }
                 if (StringUtils.isNotEmpty(consultExDTO.getCardId())&&StringUtils.isNotEmpty(consultExDTO.getCardType())){
-                    recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("cardNo", consultExDTO.getCardId(),"cardType",consultExDTO.getCardType()));
+                    map.put("cardNo", consultExDTO.getCardId());
+                    map.put("cardType", consultExDTO.getCardType());
                 }
             }
         }
         if (recipeExtend != null) {
             if (StringUtils.isNotEmpty(result.getRegisterID())) {
-                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("registerID", result.getRegisterID()));
+                map.put("registerID", result.getRegisterID());
+                map.put("medicalType", result.getMedicalType());
+                map.put("medicalTypeText", result.getMedicalTypeText());
+                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), map);
             }
         } else {
             recipeExtend = new RecipeExtend();
             recipeExtend.setRecipeId(recipe.getRecipeId());
             recipeExtend.setRegisterID(result.getRegisterID());
+            recipeExtend.setMedicalType(result.getMedicalType());
+            recipeExtend.setMedicalTypeText(result.getMedicalTypeText());
+            recipeExtend.setCardNo(map.get("cardNo"));
+            recipeExtend.setCardType(map.get("cardType"));
             if (StringUtils.isNotEmpty(recipeExtend.getRegisterID())) {
                 recipeExtendDAO.saveRecipeExtend(recipeExtend);
             }

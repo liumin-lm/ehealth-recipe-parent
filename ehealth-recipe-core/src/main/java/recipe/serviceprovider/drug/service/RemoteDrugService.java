@@ -1,17 +1,28 @@
 package recipe.serviceprovider.drug.service;
 
 import com.google.common.collect.Lists;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.HisDrugListBean;
+import com.ngari.platform.recipe.mode.HisOrganDrugListBean;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.service.IDrugService;
+import com.ngari.recipe.drug.service.IOrganDrugListService;
 import com.ngari.recipe.entity.Dispensatory;
 import com.ngari.recipe.entity.DrugList;
+import com.ngari.recipe.entity.DrugListMatch;
+import com.ngari.recipe.entity.OrganDrugList;
+import com.squareup.moshi.Json;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.PyConverter;
@@ -21,15 +32,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 import recipe.ApplicationUtils;
 import recipe.dao.DispensatoryDAO;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.PriortyDrugsBindDoctorDao;
 import recipe.service.DrugListService;
+import recipe.service.OrganDrugListService;
 import recipe.serviceprovider.BaseService;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -315,5 +330,128 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         QueryResult<DrugListBean> result = drugListService.queryDrugListsByDrugNameAndStartAndLimit(drugClass, keyword,
                 status, start, limit);
         return result;
+    }
+
+    @Override
+    public DispensatoryDTO getByDrugId(Integer drugId) {
+        DispensatoryDAO dispensatoryDAO = DAOFactory.getDAO(DispensatoryDAO.class);
+        Dispensatory dispensatory = dispensatoryDAO.getByDrugId(drugId);
+        return getBean(dispensatory,DispensatoryDTO.class);
+    }
+
+    @Override
+    public List<HisDrugListBean> findDrugList(Integer start, Integer limit) {
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        List<HisDrugListBean> hisDrugListBeen = Lists.newArrayList();
+        QueryResult<DrugList> queryResult = drugListDAO.queryDrugListsByDrugNameAndStartAndLimit("","",1,start,limit);
+        List<DrugList> lists = queryResult.getItems();
+        if (CollectionUtils.isEmpty(lists)){
+            return hisDrugListBeen;
+        }
+        for (DrugList drugList : lists){
+            HisDrugListBean hisDrugListBean = new HisDrugListBean();
+            hisDrugListBean.setDrugId(drugList.getDrugId());
+            hisDrugListBean.setDrugName(drugList.getDrugName());
+            hisDrugListBean.setSaleName(drugList.getSaleName());
+            hisDrugListBean.setDrugSpec(drugList.getDrugSpec());
+            hisDrugListBean.setPack(drugList.getPack());
+            hisDrugListBean.setUnit(drugList.getUnit());
+            hisDrugListBean.setDrugType(drugList.getDrugType());
+            hisDrugListBean.setDrugClass(drugList.getDrugClass());
+            hisDrugListBean.setUseDose(drugList.getUseDose());
+            hisDrugListBean.setUseDoseUnit(drugList.getUseDoseUnit());
+            hisDrugListBean.setUsingRate(drugList.getUsingRate());
+            hisDrugListBean.setUsePathways(drugList.getUsePathways());
+            hisDrugListBean.setProducer(drugList.getProducer());
+            hisDrugListBean.setIndications("");
+            hisDrugListBean.setStatus(drugList.getStatus());
+            hisDrugListBean.setPyCode(drugList.getPyCode());
+            hisDrugListBean.setCreateDt(drugList.getCreateDt());
+            hisDrugListBean.setLastModify(drugList.getLastModify());
+            hisDrugListBean.setLicenseNumber(drugList.getApprovalNumber());
+            hisDrugListBean.setDrugForm(drugList.getDrugForm());
+            hisDrugListBean.setStandardCode(drugList.getStandardCode());
+            hisDrugListBean.setPackingMaterials("");
+            hisDrugListBeen.add(hisDrugListBean);
+        }
+        return hisDrugListBeen;
+    }
+
+    @Override
+    public Boolean saveCompareDrugListData(List<HisOrganDrugListBean> listBeen) {
+        if (CollectionUtils.isEmpty(listBeen)){
+            return Boolean.TRUE;
+        }
+        IConfigurationCenterUtilsService configurationCenterUtilsService = (IConfigurationCenterUtilsService)AppContextHolder.getBean("eh.configurationCenterUtils");
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        OrganDrugListService organDrugListService= AppContextHolder.getBean("organDrugListService", OrganDrugListService.class);
+        HisOrganDrugListBean drugListMatch = listBeen.get(0);
+        Boolean organDrugFromHis = (Boolean) configurationCenterUtilsService.getConfiguration(drugListMatch.getOrganId(),"organDrugFromHis");
+        if (!organDrugFromHis){
+            LOGGER.info("His接口返回"+JSONUtils.toString(listBeen));
+            return Boolean.TRUE;
+        }
+        OrganService organService = BasicAPI.getService(OrganService.class);
+        OrganDTO organDTO = organService.getByOrganId(drugListMatch.getOrganId());
+        //【机构名称】批量新增药品【编码-药品名】……
+        StringBuilder saveMsg = new StringBuilder("【"+organDTO.getName()+"】his批量新增药品");
+        //【机构名称】更新药品【编码-药品名】……
+        StringBuilder updateMsg = new StringBuilder("【"+organDTO.getName()+"】his更新药品");
+        for (HisOrganDrugListBean bean : listBeen){
+            if (bean.getDrugId() != null) {
+                OrganDrugList organDrugList = new OrganDrugList();
+                organDrugList.setDrugId(bean.getDrugId());
+                organDrugList.setOrganDrugCode(bean.getOrganDrugCode());
+                organDrugList.setOrganId(bean.getOrganId());
+                if (bean.getSalePrice() == null) {
+                    organDrugList.setSalePrice(new BigDecimal(0));
+                } else {
+                    organDrugList.setSalePrice(bean.getSalePrice());
+                }
+                organDrugList.setDrugName(bean.getDrugName());
+                if (StringUtils.isEmpty(bean.getSaleName())) {
+                    organDrugList.setSaleName(bean.getDrugName());
+                } else {
+                    if (bean.getSaleName().equals(bean.getDrugName())) {
+                        organDrugList.setSaleName(bean.getSaleName());
+                    } else {
+                        organDrugList.setSaleName(bean.getSaleName() + " " + bean.getDrugName());
+                    }
+
+                }
+
+                organDrugList.setUsingRate(bean.getUsingRate());
+                organDrugList.setUsePathways(bean.getUsePathways());
+                organDrugList.setProducer(bean.getProducer());
+                organDrugList.setUseDose(bean.getUseDose());
+                organDrugList.setPack(bean.getPack());
+                organDrugList.setUnit(bean.getUnit());
+                organDrugList.setUseDoseUnit(bean.getUseDoseUnit());
+                organDrugList.setDrugSpec(bean.getDrugSpec());
+                organDrugList.setDrugForm(bean.getDrugForm());
+                organDrugList.setLicenseNumber(bean.getLicenseNumber());
+                organDrugList.setTakeMedicine(0);
+                organDrugList.setStatus(bean.getStatus());
+                organDrugList.setProducerCode("");
+                organDrugList.setLastModify(new Date());
+
+                Boolean isSuccess = organDrugListDAO.updateData(organDrugList);
+                if (!isSuccess) {
+                    organDrugListDAO.save(organDrugList);
+                    saveMsg.append("【"+organDrugList.getDrugId()+"-"+organDrugList.getDrugName()+"】");
+                    //同步药品到监管备案
+                    RecipeBusiThreadPool.submit(() -> {
+                        organDrugListService.uploadDrugToRegulation(organDrugList);
+                        return null;
+                    });
+                }else {
+                    //更新
+                    updateMsg.append("【"+organDrugList.getDrugId()+"-"+organDrugList.getDrugName()+"】");
+                }
+            }
+        }
+        LOGGER.info(updateMsg.toString());
+        LOGGER.info(saveMsg.toString());
+        return Boolean.TRUE;
     }
 }

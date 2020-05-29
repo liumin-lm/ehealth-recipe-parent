@@ -1470,22 +1470,25 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         LOGGER.info("ThirdEnterpriseCallService.recipeDownloadConfirmation appKey:{}, recipeIds", appKey, JSONUtils.toString(recipeIds));
         result.setCode(StandardResultDTO.SUCCESS);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAppKey(appKey);
+        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByAppKey(appKey);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        if (drugsEnterprise == null) {
+        if (drugsEnterprises == null) {
             result.setCode(StandardResultDTO.FAIL);
             result.setMsg("未匹配到药企");
             return result;
         }
-        recipeDAO.updateRecipeByDepIdAndRecipes(drugsEnterprise.getId(), recipeIds);
-        //添加回写日志
-        List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
-        for (Recipe recipe : recipes) {
-            if (recipe.getPushFlag() == 1) {
-                //说明已经下载成功
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), drugsEnterprise.getName()+"获取处方成功");
-            } else {
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), drugsEnterprise.getName()+"未获取到处方");
+        for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+            for (Integer recipeId : recipeIds) {
+                Recipe recipe = recipeDAO.getByRecipeIdAndEnterpriseId(drugsEnterprise.getId(), recipeId);
+                if (recipe != null) {
+                    recipeDAO.updateRecipeByDepIdAndRecipes(drugsEnterprise.getId(), Arrays.asList(recipeId));
+                    if (recipe.getPushFlag() == 1) {
+                        //说明已经下载成功
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), drugsEnterprise.getName()+"获取处方成功");
+                    } else {
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), drugsEnterprise.getName()+"未获取到处方");
+                    }
+                }
             }
         }
         return result;
@@ -1505,9 +1508,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         String appKey = (String)parames.get("appKey");
         String lastUpdateTime = (String)parames.get("lastUpdateTime");
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAppKey(appKey);
-        LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes drugsEnterprise:{}.", JSONUtils.toString(drugsEnterprise));
-        if (drugsEnterprise == null) {
+        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByAppKey(appKey);
+        LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes drugsEnterprise:{}.", JSONUtils.toString(drugsEnterprises));
+        if (drugsEnterprises == null) {
             standardResult.setCode(StandardResultDTO.FAIL);
             standardResult.setMsg("无法匹配到药企");
             return standardResult;
@@ -1522,10 +1525,14 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
 
+        List<Integer> drugsEnterpriseIds = new ArrayList<>();
+        for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+            drugsEnterpriseIds.add(drugsEnterprise.getId());
+        }
         //查找指定药企已支付完成的处方单
         List<RecipeOrder> recipeOrders = new ArrayList<>();
         try{
-            recipeOrders = recipeOrderDAO.findRecipeOrderByDepIdAndPayTime(drugsEnterprise.getId(), lastUpdateTime);
+            recipeOrders = recipeOrderDAO.findRecipeOrderByDepIdAndPayTime(drugsEnterpriseIds, lastUpdateTime);
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipeOrders:{}.", JSONUtils.toString(recipeOrders));
         }catch (Exception e){
             e.printStackTrace();
@@ -1540,7 +1547,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             List<Recipe> recipes = recipeDAO.findRecipeListByOrderCode(orderCode);
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipes:{} .", JSONUtils.toString(recipes));
             Recipe recipe = recipes.get(0);
-            if (recipeOrder.getOrderType() != 1 && BigDecimal.ZERO.compareTo(recipeOrder.getCouponFee()) == 0 && (new Integer(1).equals(recipe.getPayMode()))) {
+            if (recipeOrder.getOrderType() != 1 && BigDecimal.ZERO.compareTo(recipeOrder.getCouponFee()) == 0 && new Integer(1).equals(recipe.getPayMode()) ) {
                 //表示不是医保患者并且没有优惠券并且还不是药店取药的,那他一定要支付钱
                 if (StringUtils.isEmpty(recipeOrder.getOutTradeNo())) {
                     continue;
@@ -1586,29 +1593,40 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setTcmUsingRate(convertParame(recipe.getTcmUsingRate()));
             orderDetailBean.setPharmacyCode(convertParame(recipeOrder.getDrugStoreCode()));
             orderDetailBean.setPharmacyName(convertParame(recipeOrder.getDrugStoreName()));
-            orderDetailBean.setTcmNum("");
+            orderDetailBean.setTcmNum(convertParame(recipe.getCopyNum()));
             if (recipe.getPayMode() == 1) {
                 orderDetailBean.setDistributionFlag("1");
             } else {
                 orderDetailBean.setDistributionFlag("0");
             }
 
-            //设置处方笺base
-            String ossId = recipe.getSignImg();
-            if(null != ossId){
-                try {
-                    IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
-                    String imgStr = imgHead + fileDownloadService.downloadImg(ossId);
-                    if(org.springframework.util.ObjectUtils.isEmpty(imgStr)){
-                        LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:处方ID为{}的ossid为{}处方笺不存在", recipe.getRecipeId(), ossId);
-                    }
-                    LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:{}处方，下载处方笺服务成功", recipe.getRecipeId());
-                    orderDetailBean.setRecipeSignImg(imgStr);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:{}处方，下载处方笺服务异常：{}.", recipe.getRecipeId(), e.getMessage() );
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
+            if (drugsEnterprise.getDownSignImgType() != null && drugsEnterprise.getDownSignImgType() == 1) {
+                //获取处方签链接
+                RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+                String signImgFile = recipeParameterDao.getByName("fileImgUrl");
+                if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
+                    orderDetailBean.setRecipeSignImg(signImgFile + recipe.getChemistSignFile());
+                } else {
+                    orderDetailBean.setRecipeSignImg(signImgFile + recipe.getSignFile());
                 }
-
+            } else {
+                //设置处方笺base
+                String ossId = recipe.getSignImg();
+                if(null != ossId){
+                    try {
+                        IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+                        String imgStr = imgHead + fileDownloadService.downloadImg(ossId);
+                        if(org.springframework.util.ObjectUtils.isEmpty(imgStr)){
+                            LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:处方ID为{}的ossid为{}处方笺不存在", recipe.getRecipeId(), ossId);
+                        }
+                        LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:{}处方，下载处方笺服务成功", recipe.getRecipeId());
+                        orderDetailBean.setRecipeSignImg(imgStr);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:{}处方，下载处方笺服务异常：{}.", recipe.getRecipeId(), e.getMessage() );
+                    }
+                }
             }
 
             //设置订单信息
@@ -1618,6 +1636,10 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setDecoctionFee(convertParame(recipeOrder.getDecoctionFee()));
             orderDetailBean.setAuditFee(convertParame(recipeOrder.getAuditFee()));
             orderDetailBean.setRegisterFee(convertParame(recipeOrder.getRegisterFee()));
+            //代煎费
+            orderDetailBean.setDecoctionFee(convertParame(recipeOrder.getDecoctionFee()));
+            //设置中医辨证论治费
+            orderDetailBean.setTcmFee(convertParame(recipeOrder.getTcmFee()));
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (recipeExtend != null) {
                 if (recipeExtend.getFundAmount() != null) {

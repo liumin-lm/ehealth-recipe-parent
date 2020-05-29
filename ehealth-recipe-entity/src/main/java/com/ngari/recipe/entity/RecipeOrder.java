@@ -289,6 +289,12 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "发药药师身份证")
     private String dispensingApothecaryIdCard;
 
+    @ItemProperty(alias = "中医辨证论治费")
+    private BigDecimal tcmFee;
+
+    @ItemProperty(alias = "支付平台回写支付信息")
+    private String payBackInfo;
+
     @Column(name = "cancelReason")
     public String getCancelReason() {
         return cancelReason;
@@ -311,6 +317,7 @@ public class RecipeOrder implements Serializable {
         this.setCouponFee(zero);
         this.setExpressFee(zero);
         this.setDecoctionFee(zero);
+        this.setTcmFee(zero);
         this.setTotalFee(zero);
         this.setActualPrice(0d);
         this.setPushFlag(0);
@@ -995,5 +1002,23 @@ public class RecipeOrder implements Serializable {
 
     public void setExpressFeePayWay(Integer expressFeePayWay) {
         this.expressFeePayWay = expressFeePayWay;
+    }
+
+    @Column(name = "TCMFee")
+    public BigDecimal getTcmFee() {
+        return tcmFee;
+    }
+
+    public void setTcmFee(BigDecimal tcmFee) {
+        this.tcmFee = tcmFee;
+    }
+
+    @Column(name = "payBackInfo")
+    public String getPayBackInfo() {
+        return payBackInfo;
+    }
+
+    public void setPayBackInfo(String payBackInfo) {
+        this.payBackInfo = payBackInfo;
     }
 }

@@ -28,6 +28,7 @@ public class RecipeAndOrderDetailBean implements Serializable{
     private String actualFee;
     private String couponFee;
     private String decoctionFee;
+    private String tcmFee;
     private String auditFee;
     private String registerFee;
     private String medicalFee;
@@ -258,6 +259,14 @@ public class RecipeAndOrderDetailBean implements Serializable{
 
     public void setMedicalFee(String medicalFee) {
         this.medicalFee = medicalFee;
+    }
+
+    public String getTcmFee() {
+        return tcmFee;
+    }
+
+    public void setTcmFee(String tcmFee) {
+        this.tcmFee = tcmFee;
     }
 
     public String getProvince() {

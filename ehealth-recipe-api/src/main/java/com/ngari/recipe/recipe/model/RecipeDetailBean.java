@@ -66,6 +66,14 @@ public class RecipeDetailBean implements java.io.Serializable {
     @Dictionary(id="eh.cdr.dictionary.UsePathways")
     private String usePathways;
 
+    //用药频率说明（来源his）
+    @ItemProperty(alias="用药频率说明")
+    private String usingRateTextFromHis;
+
+    //用药方式说明（来源his）
+    @ItemProperty(alias="用药方式说明")
+    private String usePathwaysTextFromHis;
+
     @ItemProperty(alias="药物使用总数量")
     private Double useTotalDose;
 
@@ -158,6 +166,17 @@ public class RecipeDetailBean implements java.io.Serializable {
     //同步机构药品信息新添字段
     @ItemProperty(alias = "生产厂家代码")
     private String producerCode;
+
+    @ItemProperty(alias="药物使用天数小数型")
+    private String useDaysB;
+
+    public String getUseDaysB() {
+        return useDaysB;
+    }
+
+    public void setUseDaysB(String useDaysB) {
+        this.useDaysB = useDaysB;
+    }
 
     public RecipeDetailBean() {
     }
@@ -563,5 +582,21 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setUseDoseStr(String useDoseStr) {
         this.useDoseStr = useDoseStr;
+    }
+
+    public String getUsingRateTextFromHis() {
+        return usingRateTextFromHis;
+    }
+
+    public void setUsingRateTextFromHis(String usingRateTextFromHis) {
+        this.usingRateTextFromHis = usingRateTextFromHis;
+    }
+
+    public String getUsePathwaysTextFromHis() {
+        return usePathwaysTextFromHis;
+    }
+
+    public void setUsePathwaysTextFromHis(String usePathwaysTextFromHis) {
+        this.usePathwaysTextFromHis = usePathwaysTextFromHis;
     }
 }

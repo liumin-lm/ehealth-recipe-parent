@@ -223,6 +223,8 @@ public class HisRequestInit {
                     //转换系数
                     orderItem.setConversionFactor(detail.getPack());
                     //服用天数
+                    //date 20200526
+                    //线上推送处方到his，将用药天数big转成int
                     orderItem.setUseDays(detail.getUseDays());
                     //每天次数
                     orderItem.setDailyTimes(UsingRateFilter.transDailyTimes(detail.getUsingRate()));
@@ -431,6 +433,8 @@ public class HisRequestInit {
                 orderItem.setRemark(detail.getMemo());
                 orderItem.setPack(detail.getPack());
                 //用药天数
+                //date 20200526
+                //线上推送处方到his，将用药天数big转成int
                 orderItem.setUseDays(detail.getUseDays());
                 //药品数量
                 orderItem.setItemCount(new BigDecimal(detail.getUseTotalDose()));

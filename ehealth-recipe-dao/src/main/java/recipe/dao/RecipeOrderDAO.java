@@ -306,19 +306,19 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
     /**
      * 根据药企编号和支付时间查询订单
-     * @param enterpriseId    药企编号
+     * @param enterpriseIds    药企编号
      * @param payTime         支付时间
      * @return                订单列表
      */
-    public List<RecipeOrder> findRecipeOrderByDepIdAndPayTime(Integer enterpriseId, String payTime){
+    public List<RecipeOrder> findRecipeOrderByDepIdAndPayTime(List<Integer> enterpriseIds, String payTime){
         HibernateStatelessResultAction<List<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrder>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 String sql = "select a from RecipeOrder a,Recipe b where a.orderCode = b.orderCode and b.pushFlag = 0 and a.payFlag = 1 and a.effective = 1 and a.status in (3,12)" +
-                        " and a.effective = 1 and a.enterpriseId =:enterpriseId ";
+                        " and a.effective = 1 and a.enterpriseId in (:enterpriseIds)";
 
                 Query q = ss.createQuery(sql);
-                q.setParameter("enterpriseId", enterpriseId);
+                q.setParameterList("enterpriseIds", enterpriseIds);
                 setResult(q.list());
             }
         };

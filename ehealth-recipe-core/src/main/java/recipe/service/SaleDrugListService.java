@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.google.common.collect.Lists;
+import com.ngari.opbase.base.service.IBusActionLogService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
@@ -8,12 +9,14 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.DrugListAndSaleDrugListDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.SaleDrugListDTO;
+import com.ngari.recipe.drug.service.IDrugService;
 import com.ngari.recipe.drug.service.ISaleDrugListService;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.SaleDrugList;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -21,11 +24,9 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 import recipe.constant.ErrorCode;
-import recipe.dao.DrugListDAO;
-import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.OrganAndDrugsepRelationDAO;
-import recipe.dao.SaleDrugListDAO;
+import recipe.dao.*;
 import recipe.dao.bean.DrugListAndSaleDrugList;
+import recipe.serviceprovider.drug.service.RemoteDrugService;
 
 import java.util.Date;
 import java.util.List;
@@ -71,6 +72,8 @@ public class SaleDrugListService implements ISaleDrugListService {
     @RpcService
     public boolean addSaleDrugList(SaleDrugList saleDrugList) {
         logger.info("新增销售机构药品服务[addSaleDrugList]:" + JSONUtils.toString(saleDrugList));
+        IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
+
         SaleDrugListDAO dao = DAOFactory.getDAO(SaleDrugListDAO.class);
         if (null == saleDrugList) {
             throw new DAOException(DAOException.VALUE_NEEDED, "saleDrugList is null");
@@ -79,6 +82,7 @@ public class SaleDrugListService implements ISaleDrugListService {
         if (!drugsEnterpriseDAO.exist(saleDrugList.getOrganId())) {
             throw new DAOException(DAOException.VALUE_NEEDED, "DrugsEnterprise not exist");
         }
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(saleDrugList.getOrganId());
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         if (!drugListDAO.exist(saleDrugList.getDrugId())) {
             throw new DAOException(DAOException.VALUE_NEEDED, "DrugList not exist");
@@ -89,6 +93,7 @@ public class SaleDrugListService implements ISaleDrugListService {
         saleDrugList.setCreateDt(new Date());
         saleDrugList.setStatus(1);
         dao.save(saleDrugList);
+        busActionLogService.recordBusinessLogRpcNew("药企药品管理","","SaleDrugList","【"+drugsEnterprise.getName()+"】新增药品【"+saleDrugList.getOrganDrugId()+"-"+saleDrugList.getDrugName()+"】",drugsEnterprise.getName());
         return true;
     }
 
@@ -103,20 +108,50 @@ public class SaleDrugListService implements ISaleDrugListService {
     @RpcService
     public SaleDrugListDTO updateSaleDrugList(SaleDrugList saleDrugList) {
         logger.info("修改销售机构药品服务[updateSaleDrugList]:" + JSONUtils.toString(saleDrugList));
+        IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
         if (null == saleDrugList.getDrugId()) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugId is required");
         }
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         SaleDrugList target = saleDrugListDAO.get(saleDrugList.getOrganDrugId());
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(saleDrugList.getOrganId());
         if (null == target) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "此药在该医院药品列表中不存在");
         } else {
+            Integer oldStatus = target.getStatus();
+            Integer newStatus = saleDrugList.getStatus();
             BeanUtils.map(saleDrugList, target);
             validateSaleDrugList(target);
             target.setLastModify(new Date());
             target = saleDrugListDAO.update(target);
+            if (oldStatus != newStatus){
+                //禁用 启用
+                String type = newStatus == 0 ? "禁用" : "启用";
+                busActionLogService.recordBusinessLogRpcNew("药企药品管理","","SaleDrugList","【"+drugsEnterprise.getName()+"】"+type+"【"+saleDrugList.getOrganDrugId()+" -"+saleDrugList.getDrugName()+"】",drugsEnterprise.getName());
+            }else {
+                //更新
+                busActionLogService.recordBusinessLogRpcNew("药企药品管理","","SaleDrugList","【"+drugsEnterprise.getName()+"】更新药品【"+saleDrugList.getOrganDrugId()
+                        +"-"+saleDrugList.getDrugName()+"】",drugsEnterprise.getName());
+            }
         }
         return ObjectCopyUtils.convert(target, SaleDrugListDTO.class);
+    }
+
+    /**
+     * 批量删除药企药品数据
+     * @param saleDrugList 前台传参集合
+     */
+    @RpcService
+    public void deletesaleDrugListBySaleDrugLists(List<DrugListBean> saleDrugList) {
+        if (saleDrugList.isEmpty()) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "organDrugId is required");
+        }
+        RemoteDrugService remoteDrugService = AppDomainContext.getBean("eh.remoteDrugService", RemoteDrugService.class);
+        for (DrugListBean drugListBean : saleDrugList) {
+            remoteDrugService.updateDrugList(drugListBean);
+
+        }
     }
 
     /**
@@ -130,13 +165,16 @@ public class SaleDrugListService implements ISaleDrugListService {
      * @return
      * @author houxr
      */
-    @RpcService
-    public QueryResult<DrugListAndSaleDrugListDTO> querySaleDrugListByOrganIdAndKeyword(final Integer organId,
+    @Override
+    public QueryResult<DrugListAndSaleDrugListDTO> querySaleDrugListByOrganIdAndKeyword(final Date startTime, final Date endTime,final Integer organId,
                                                                                         final String drugClass,
                                                                                         final String keyword, final Integer status,
                                                                                         final int start, final int limit) {
+        if(organId == null){
+            return null;
+        }
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        QueryResult result = saleDrugListDAO.querySaleDrugListByOrganIdAndKeyword(organId, drugClass, keyword, status, start, limit);
+        QueryResult result = saleDrugListDAO.querySaleDrugListByOrganIdAndKeyword(startTime,endTime,organId, drugClass, keyword, status, start, limit);
         result.setItems(covertData(result.getItems()));
         return result;
     }

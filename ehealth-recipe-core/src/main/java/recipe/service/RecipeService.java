@@ -1417,7 +1417,7 @@ public class RecipeService extends RecipeBaseService {
         Integer status = RecipeStatusConstant.CHECK_PASS;
 
         String memo = "HIS审核返回：写入his成功，审核通过";
-        // 医保用户
+        /*// 医保用户
         if (recipe.canMedicalPay()) {
             // 如果是中药或膏方处方不需要药师审核
             if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
@@ -1425,7 +1425,7 @@ public class RecipeService extends RecipeBaseService {
                 memo = "HIS审核返回：写入his成功，药师审核通过";
             }
 
-        }
+        }*/
 
         //其他平台处方状态不变
         if (0 == recipe.getFromflag()) {
@@ -1856,7 +1856,6 @@ public class RecipeService extends RecipeBaseService {
         RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
 
         Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
-        List<Recipedetail> recipedetails = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
 
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
         if (null == dbRecipe.getStatus() || dbRecipe.getStatus() > RecipeStatusConstant.UNSIGN) {
@@ -1864,12 +1863,7 @@ public class RecipeService extends RecipeBaseService {
         }
 
         int beforeStatus = dbRecipe.getStatus();
-        if (null == recipedetails) {
-            recipedetails = new ArrayList<>(0);
-        }
-        for (Recipedetail recipeDetail : recipedetails) {
-            RecipeValidateUtil.validateRecipeDetailData(recipeDetail, dbRecipe);
-        }
+
         //由于使用BeanUtils.map，空的字段不会进行copy，要进行手工处理
         if (StringUtils.isEmpty(recipe.getMemo())) {
             dbRecipe.setMemo("");
@@ -1880,13 +1874,23 @@ public class RecipeService extends RecipeBaseService {
         }
         //复制修改的数据
         BeanUtils.map(recipe, dbRecipe);
-        //设置药品价格
-        boolean isSucc = RecipeServiceSub.setDetailsInfo(dbRecipe, recipedetails);
-        if (!isSucc) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "药品详情数据有误");
-        }
-        //将原先处方单详情的记录都置为无效 status=0
 
+        List<Recipedetail> recipedetails = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
+        if(null != detailBeanList && detailBeanList.size() > 0){
+            if (null == recipedetails) {
+                recipedetails = new ArrayList<>(0);
+            }
+            for (Recipedetail recipeDetail : recipedetails) {
+                RecipeValidateUtil.validateRecipeDetailData(recipeDetail, dbRecipe);
+            }
+            //设置药品价格
+            boolean isSucc = RecipeServiceSub.setDetailsInfo(dbRecipe, recipedetails);
+            if (!isSucc) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "药品详情数据有误");
+            }
+        }
+
+        //将原先处方单详情的记录都置为无效 status=0
         recipeDetailDAO.updateDetailInvalidByRecipeId(recipeId);
         Integer dbRecipeId = recipeDAO.updateOrSaveRecipeAndDetail(dbRecipe, recipedetails, true);
 
@@ -2745,7 +2749,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Map<String, Object> getPatientRecipeById(int recipeId) {
-        checkUserHasPermission(recipeId);
+        //checkUserHasPermission(recipeId);
 
         Map<String, Object> result = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false);
         PatientDTO patient = (PatientDTO) result.get("patient");
@@ -3825,6 +3829,52 @@ public class RecipeService extends RecipeBaseService {
         map.put("canRecipeAge",findCanRecipeByAge);
         return map;
     }
+
+//    /**
+//     * 根据organid和药剂数获取中药处方代煎费
+//     * @return Map<String,Object>
+//     */
+//    @RpcService
+//    public Map<String, Object>   findDecoctionFee(Map<String,String> params) {
+//        LOGGER.info("findCanRecipeByAge 参数{}",JSONUtils.toString(params));
+//        if(StringUtils.isEmpty(params.get("organId")))   throw new DAOException("findDecoctionAndTCM organId不允许为空");
+//        if(StringUtils.isEmpty(params.get("useDays")))   throw new DAOException("findDecoctionAndTCM useDays不允许为空");
+//
+//        Map<String, Object> map = Maps.newHashMap();
+//        BigDecimal decoctionFee=new BigDecimal(0);
+//
+//        //从opbase配置项获取中药处方每贴代煎费 recipeDecoctionPrice
+//        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+//        Object findRecipeDecoctionPrice = configService.getConfiguration(Integer.parseInt(params.get("organId")), "recipeDecoctionPrice");
+//        LOGGER.info("findCanRecipeByAge 从opbase配置项获取中药处方每贴代煎费是{}",findRecipeDecoctionPrice);
+//        if(findRecipeDecoctionPrice!=null&& ((BigDecimal)findRecipeDecoctionPrice).compareTo(BigDecimal.ZERO)==1) decoctionFee=((BigDecimal)findRecipeDecoctionPrice).multiply(new BigDecimal(params.get("useDays")));
+//
+//        if(decoctionFee.compareTo(BigDecimal.ZERO)==-1) decoctionFee=new BigDecimal(0);//金额为负数
+//        map.put("decoctionFee",decoctionFee);
+//        return map;
+//    }
+//
+    /**
+     * 根据organid获取中医辨证论治费
+     * @return Map<String,Object>
+     */
+//    @RpcService
+//    public Map<String, Object>   findTCMFee(Map<String,String> params) {
+//        LOGGER.info("findCanRecipeByAge 参数{}",JSONUtils.toString(params));
+//        if(StringUtils.isEmpty(params.get("organId")))   throw new DAOException("findDecoctionAndTCM organId不允许为空");
+//
+//        Map<String, Object> map = Maps.newHashMap();
+//        BigDecimal TCMFee=new BigDecimal(0);
+//
+//        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+//        //从opbase配置项获取中医辨证论治费 recipeTCMPrice
+//        Object findRecipeTCMPrice = configService.getConfiguration(Integer.parseInt(params.get("organId")), "recipeTCMPrice");
+//        LOGGER.info("findCanRecipeByAge 从opbase配置项获取中医辨证论治费是{}",findRecipeTCMPrice);
+//        if(findRecipeTCMPrice!=null&& ((BigDecimal)findRecipeTCMPrice).compareTo(BigDecimal.ZERO)==1) TCMFee=(BigDecimal)findRecipeTCMPrice;
+//        map.put("TCMFee",TCMFee);
+//        return map;
+//    }
+
 
 //    @RpcService
 //    public void synDeliveryRecipeMsgTask(){

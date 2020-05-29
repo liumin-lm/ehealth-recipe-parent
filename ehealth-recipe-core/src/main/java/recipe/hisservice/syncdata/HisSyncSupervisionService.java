@@ -735,7 +735,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             reqDetail.setDosage(useDose);
             reqDetail.setDrunit(detail.getUseDoseUnit());
             reqDetail.setDosageTotal(detail.getUseTotalDose().toString());
+            //date 202000526
+            //添加字段UseDaysB用药天数的小数类型数据
             reqDetail.setUseDays(detail.getUseDays());
+            reqDetail.setUseDaysB(detail.getUseDaysB());
             reqDetail.setRemark(detail.getMemo());
             drugList = drugListDao.getById(detail.getDrugId());
             if (drugList != null) {

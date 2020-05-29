@@ -400,7 +400,10 @@ public class QueryRecipeService implements IQueryRecipeService {
                 //包装单位
                 orderItem.setPackUnit(detail.getDrugUnit());
                 //用药天数
+                //date 20200526
+                //修改推送给医院的用药天数big转String
                 orderItem.setUseDays(Integer.toString(detail.getUseDays()));
+                //设置
                 //用法
                 orderItem.setAdmission(UsePathwaysFilter.filterNgari(clinicOrgan, detail.getUsePathways()));
                 //频次

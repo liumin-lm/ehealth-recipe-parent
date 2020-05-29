@@ -1,5 +1,9 @@
 package recipe.drugsenterprise;
 
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganService;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.DrugsEnterprise;
@@ -8,17 +12,20 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.SaleDrugList;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.PharmacyDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.SaleDrugListDAO;
+import recipe.service.RecipeHisService;
 import recipe.util.DistanceUtil;
 import recipe.util.MapValueUtil;
 
@@ -32,6 +39,7 @@ import java.util.Map;
  * @author yinsheng
  * @date 2019\11\7 0007 14:20
  */
+@RpcBean("commonSelfRemoteService")
 public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
 
     private static final String searchMapRANGE = "range";
@@ -62,9 +70,53 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
     }
 
     @Override
+    @RpcService
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        LOGGER.info("PublicSelfRemoteService scanStock not implement.");
-        return DrugEnterpriseResult.getSuccess();
+//        LOGGER.info("PublicSelfRemoteService scanStock not implement.");
+//        return DrugEnterpriseResult.getSuccess();
+
+        //date 20200525
+        //判断库存是否足够，如果是配送主体是医院取药的，通过医院库存接口判断库存是否足够
+        if(null == recipeId){
+            LOGGER.warn("判断当前处方库存是否足够，处方id为空，校验失败！");
+            return DrugEnterpriseResult.getFail();
+        }
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if(null == recipe){
+            LOGGER.warn("判断当前处方{}不存在，校验失败！", recipeId);
+            return DrugEnterpriseResult.getFail();
+        }
+        if(null == drugsEnterprise){
+            LOGGER.warn("判断当前处方{}查询药企不存在，校验失败！", recipeId);
+            return DrugEnterpriseResult.getFail();
+        }
+        //1 药企配送 2 医院配送
+        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+        if(2 == drugsEnterprise.getSendType()){
+            //当前医院配送，调用医院库存
+            //当前医院呢库存接口，前置机对接了，则按对接的算
+            //前置机没对接算库存足够
+            RecipeResultBean scanResult = hisService.scanDrugStockByRecipeId(recipeId);
+            if(null != scanResult){
+                if(RecipeResultBean.SUCCESS == scanResult.getCode()){
+                    LOGGER.warn("当前处方{}调用医院库存，库存足够", recipeId);
+                    return DrugEnterpriseResult.getSuccess();
+                }else{
+                    LOGGER.warn("当前处方{}调用医院库存，库存不足", recipeId);
+                    return DrugEnterpriseResult.getFail();
+                }
+            }else{
+                LOGGER.warn("当前处方{}调用医院库存，返回为空，默认无库存", recipeId);
+                return DrugEnterpriseResult.getFail();
+            }
+
+        }else{
+            //当前配送主体不是医院配送，默认库存足够
+            return DrugEnterpriseResult.getSuccess();
+        }
+
+
     }
 
     @Override

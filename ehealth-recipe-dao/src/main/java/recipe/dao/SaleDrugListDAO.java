@@ -24,6 +24,7 @@ import recipe.util.LocalStringUtil;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -211,7 +212,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
      * @return
      * @author houxr
      */
-    public QueryResult<DrugListAndSaleDrugList> querySaleDrugListByOrganIdAndKeyword(final Integer organId,
+    public QueryResult<DrugListAndSaleDrugList> querySaleDrugListByOrganIdAndKeyword(final Date startTime, final Date endTime, final Integer organId,
                                                                                      final String drugClass,
                                                                                      final String keyword, final Integer status,
                                                                                      final int start, final int limit) {
@@ -239,13 +240,13 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                             hql.append(")");
                         }
                         if (ObjectUtils.nullSafeEquals(status, 0)) {
-                            hql.append(" and d.drugId in (select o.drugId from SaleDrugList o where o.status = 0 and o.organId =:organId)");
+                            hql.append(" and d.drugId in (select o.drugId from SaleDrugList o where o.status = 0 and o.organId =:organId and o.createDt>=:startTime and o.createDt<:endTime)");
                         } else if (ObjectUtils.nullSafeEquals(status, 1)) {
-                            hql.append(" and d.drugId in (select o.drugId from SaleDrugList o where o.status = 1 and o.organId =:organId)");
+                            hql.append(" and d.drugId in (select o.drugId from SaleDrugList o where o.status = 1 and o.organId =:organId and o.createDt>=:startTime and o.createDt<:endTime)");
                         } else if (ObjectUtils.nullSafeEquals(status, -1)) {
-                            hql.append(" and d.drugId not in (select o.drugId from SaleDrugList o where o.organId =:organId) ");
+                            hql.append(" and d.drugId not in (select o.drugId from SaleDrugList o where o.organId =:organId and o.createDt>=:startTime and o.createDt<:endTime) ");
                         } else if (ObjectUtils.nullSafeEquals(status, ALL_DRUG_FLAG)) {
-                            hql.append(" and d.drugId in (select o.drugId from SaleDrugList o where o.status in (0, 1) and o.organId =:organId)");
+                            hql.append(" and d.drugId in (select o.drugId from SaleDrugList o where o.status in (0, 1) and o.organId =:organId and o.createDt>=:startTime and o.createDt<:endTime)");
                         }
                         hql.append(" and d.status=1 order by d.drugId desc");
                         Query countQuery = ss.createQuery("select count(*) " + hql.toString());
@@ -261,6 +262,8 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         if (drugId != null) {
                             countQuery.setParameter("drugId", drugId);
                         }
+                        countQuery.setParameter("startTime", startTime);
+                        countQuery.setParameter("endTime", endTime);
                         if (!StringUtils.isEmpty(keyword)) {
                             countQuery.setParameter("keyword", "%" + keyword + "%");
                         }
@@ -281,6 +284,12 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         }
                         if (!StringUtils.isEmpty(keyword)) {
                             query.setParameter("keyword", "%" + keyword + "%");
+                        }
+                        if (!ObjectUtils.isEmpty(startTime)){
+                            query.setParameter("startTime", startTime);
+                        }
+                        if (!ObjectUtils.isEmpty(endTime)){
+                            query.setParameter("endTime", endTime);
                         }
                         query.setFirstResult(start);
                         query.setMaxResults(limit);
