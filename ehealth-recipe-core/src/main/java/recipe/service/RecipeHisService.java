@@ -1,6 +1,5 @@
 package recipe.service;
 
-import com.alibaba.fastjson.JSON;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.FluentIterable;
@@ -1361,8 +1360,8 @@ public class RecipeHisService extends RecipeBaseService {
         LOGGER.info("queryThirdPartyRationalUserDurg params: {}", JSONUtils.toString(reqTO));
         IRecipeHisService iRecipeHisService = AppContextHolder.getBean("his.iRecipeHisService", IRecipeHisService.class);
         HisResponseTO<ThirdPartyRationalUseDrugResTO> hisResponseTO = iRecipeHisService.queryThirdPartyRationalUserDurg(reqTO);
-        LOGGER.info("queryThirdPartyRationalUserDurg result：{}, idNO: {}", JSONUtils.toString(hisResponseTO), reqTO.getThirdPartyPatientData().getIdCard());
-        if (hisResponseTO == null || !hisResponseTO.getMsgCode().equals("200")) {
+        LOGGER.info("queryThirdPartyRationalUserDurg result：{}, idCard: {}", JSONUtils.toString(hisResponseTO), reqTO.getThirdPartyPatientData().getIdCard());
+        if (Objects.nonNull(hisResponseTO) && hisResponseTO.getMsgCode().equals("200")) {
             return null;
         }
         return hisResponseTO.getData();

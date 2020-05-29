@@ -88,7 +88,6 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
             reqTO.setThirdPartyPrescriptionsData(packThirdPartyPrescriptionData(recipeBean, recipeExtend, departmentDTO, doctorBean, recipeDetailBeanList));
             ThirdPartyRationalUseDrugResTO thirdPartyRationalUseDrugResTO = recipeHisService.queryThirdPartyRationalUserDurg(reqTO);
             if (Objects.isNull(thirdPartyRationalUseDrugResTO)) {
-                result.setCode(RecipeCommonBaseTO.SUCCESS);
                 result.setMsg("系统预审未发现处方问题");
                 return result;
             }
@@ -96,12 +95,19 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
             thirdPartyRationalUseDrugResTO.getThirdPartyIssuesDataList().forEach(thirdPartyIssuesData -> {
                 PAWebMedicines paWebMedicines = new PAWebMedicines();
                 String name;
+                String code;
                 if (StringUtils.isNotBlank(thirdPartyIssuesData.getNameA()) && StringUtils.isNotBlank(thirdPartyIssuesData.getNameB())) {
                     name = StringUtils.join(thirdPartyIssuesData.getNameA(), "|", thirdPartyIssuesData.getNameB());
                 } else {
                     name = StringUtils.isNotBlank(thirdPartyIssuesData.getNameA()) ? thirdPartyIssuesData.getNameA() : thirdPartyIssuesData.getNameB();
                 }
+                if (StringUtils.isNotBlank(thirdPartyIssuesData.getHisCodeA()) && StringUtils.isNotBlank(thirdPartyIssuesData.getHisCodeB())) {
+                    code = StringUtils.join(thirdPartyIssuesData.getHisCodeA(), "|", thirdPartyIssuesData.getHisCodeB());
+                } else {
+                    code = StringUtils.isNotBlank(thirdPartyIssuesData.getNameA()) ? thirdPartyIssuesData.getNameA() : thirdPartyIssuesData.getNameB();
+                }
                 paWebMedicines.setName(name);
+                paWebMedicines.setCode(code);
                 List<Issue> issueList = new ArrayList<>();
                 Issue issue = new Issue();
                 issue.setLvl(thirdPartyIssuesData.getLvl());
@@ -113,12 +119,10 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
                 paWebMedicinesList.add(paWebMedicines);
             });
             result.setMedicines(paWebMedicinesList);
-            result.setMsg("查询成功");
             return result;
         } catch (Exception e) {
             LOGGER.error("analysis error, params: {}", JSONUtils.toString(recipeBean), e);
-            result.setCode(RecipeCommonBaseTO.SUCCESS);
-            result.setMsg("系统预审未发现处方问题");
+            result.setMsg("智能审方接口异常");
             return result;
         }
     }
