@@ -1593,7 +1593,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setTcmUsingRate(convertParame(recipe.getTcmUsingRate()));
             orderDetailBean.setPharmacyCode(convertParame(recipeOrder.getDrugStoreCode()));
             orderDetailBean.setPharmacyName(convertParame(recipeOrder.getDrugStoreName()));
-            orderDetailBean.setTcmNum(convertParame(recipe.getCopyNum()));
+            if (recipe.getRecipeType() == 3 && recipe.getCopyNum() != null) {
+                orderDetailBean.setTcmNum(convertParame(recipe.getCopyNum()));
+            }
             if (recipe.getPayMode() == 1) {
                 orderDetailBean.setDistributionFlag("1");
             } else {
@@ -1606,9 +1608,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
                 String signImgFile = recipeParameterDao.getByName("fileImgUrl");
                 if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
-                    orderDetailBean.setRecipeSignImg(signImgFile + recipe.getChemistSignFile());
+                    orderDetailBean.setRecipeSignImgUrl(signImgFile + recipe.getChemistSignFile());
                 } else {
-                    orderDetailBean.setRecipeSignImg(signImgFile + recipe.getSignFile());
+                    orderDetailBean.setRecipeSignImgUrl(signImgFile + recipe.getSignFile());
                 }
             } else {
                 //设置处方笺base
@@ -1641,6 +1643,11 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             //设置中医辨证论治费
             orderDetailBean.setTcmFee(convertParame(recipeOrder.getTcmFee()));
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (recipe.getRecipeType() == 3 && recipeOrder.getDecoctionFee() != null && recipeOrder.getDecoctionFee().compareTo(BigDecimal.ZERO) == 1 ) {
+                orderDetailBean.setDecoctionFlag("1");
+            } else {
+                orderDetailBean.setDecoctionFlag("0");
+            }
             if (recipeExtend != null) {
                 if (recipeExtend.getFundAmount() != null) {
                     orderDetailBean.setMedicalFee(convertParame(recipeExtend.getFundAmount()));

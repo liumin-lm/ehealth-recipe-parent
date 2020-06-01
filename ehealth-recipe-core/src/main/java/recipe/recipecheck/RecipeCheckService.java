@@ -443,6 +443,8 @@ public class RecipeCheckService {
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         if (recipeExtend != null) {
             map.put("recipeExtend", recipeExtend);
+            r.setMedicalType(recipeExtend.getMedicalType());
+            r.setMedicalTypeText(recipeExtend.getMedicalTypeText());
         }
         map.put("showAllergyMedical", (null != recipeExtend && StringUtils.isNotEmpty(recipeExtend.getAllergyMedical())));
         //date 20191111
