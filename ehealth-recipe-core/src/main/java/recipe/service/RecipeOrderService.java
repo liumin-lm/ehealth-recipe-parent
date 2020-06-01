@@ -1947,9 +1947,8 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         //配送费
-        //有配送费并且配送费支付方式为在线支付时才计入支付金额---不是线下支付和第三方支付
-        if (null != order.getExpressFee() && !(new Integer(2).equals(order.getExpressFeePayWay()))
-                && !(new Integer(3).equals(order.getExpressFeePayWay()))) {
+        //有配送费并且配送费支付方式为不等于第三方支付时才计入支付金额
+        if (null != order.getExpressFee() && !(new Integer(3).equals(order.getExpressFeePayWay()))) {
             full = full.add(order.getExpressFee());
         }
 
