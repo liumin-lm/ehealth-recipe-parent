@@ -1593,7 +1593,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setTcmUsingRate(convertParame(recipe.getTcmUsingRate()));
             orderDetailBean.setPharmacyCode(convertParame(recipeOrder.getDrugStoreCode()));
             orderDetailBean.setPharmacyName(convertParame(recipeOrder.getDrugStoreName()));
-            orderDetailBean.setTcmNum(convertParame(recipe.getCopyNum()));
+            if (recipe.getRecipeType() == 3 && recipe.getCopyNum() != null) {
+                orderDetailBean.setTcmNum(convertParame(recipe.getCopyNum()));
+            }
             if (recipe.getPayMode() == 1) {
                 orderDetailBean.setDistributionFlag("1");
             } else {
