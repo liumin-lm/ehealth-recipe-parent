@@ -384,6 +384,13 @@ public class RecipeServiceSub {
                         detail.setDrugCost(drugCost);
                         totalMoney = totalMoney.add(drugCost);
                     }
+                    //date 202000601
+                    //设置处方用药天数字符类型
+                    if(StringUtils.isEmpty(detail.getUseDaysB())){
+
+                        detail.setUseDaysB(null != detail.getUseDays() ? detail.getUseDays().toString() : "0");
+
+                    }
                 }
                 success = true;
             } else {
@@ -2559,5 +2566,21 @@ public class RecipeServiceSub {
             LOGGER.error("canSecondAudit 获取机构配置异常",e);
         }
         return flag;
+    }
+
+    /**
+     * 设置没有用药天数字符的处方详情
+     *
+     * @param recipeDetails
+     * @return
+     */
+    public static void setUseDaysBToDetali(List<Recipedetail> recipeDetails) {
+       for(Recipedetail recipedetail : recipeDetails){
+           if(StringUtils.isEmpty(recipedetail.getUseDaysB())){
+
+               recipedetail.setUseDaysB(null != recipedetail.getUseDays() ? recipedetail.getUseDays().toString() : "0");
+
+           }
+       }
     }
 }

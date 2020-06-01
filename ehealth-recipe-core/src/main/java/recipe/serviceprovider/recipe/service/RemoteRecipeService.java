@@ -286,6 +286,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         if (recipeBean.getReviewType()==null){
             recipeBean.setReviewType(ReviewTypeConstant.Postposition_Check);
         }
+        //date 20200601
+        //设置处方详情字符类型
+        RecipeServiceSub.setUseDaysBToDetali(recipedetails);
         recipeDAO.updateOrSaveRecipeAndDetail(getBean(recipeBean,Recipe.class),recipedetails,false);
     }
 

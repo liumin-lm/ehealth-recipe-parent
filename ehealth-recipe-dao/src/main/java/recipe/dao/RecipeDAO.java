@@ -529,6 +529,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                         recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
                 if(recipedetails != null){
                     for (Recipedetail detail : recipedetails) {
+                        //date 20200601
+                        //修改
                         if (!update) {
                             detail.setRecipeId(dbRecipe.getRecipeId());
                         }
@@ -1465,7 +1467,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
 //                break;
             case 0:
                 //开方时间
-                hql.append(" and r.signDate BETWEEN :startTime"
+                hql.append(" and r.createDate BETWEEN :startTime"
                         + " and :endTime ");
                 break;
             case 1:
@@ -1593,7 +1595,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
 //                break;
             case 0:
                 //开方时间
-                hql.append(" and r.signDate BETWEEN :startTime"
+                hql.append(" and r.createDate BETWEEN :startTime"
                         + " and :endTime ");
                 break;
             case 1:
