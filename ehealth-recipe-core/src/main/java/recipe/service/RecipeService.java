@@ -736,6 +736,7 @@ public class RecipeService extends RecipeBaseService {
                 bl = true;
             } else if (Integer.valueOf(100).equals(code)) {
                 LOGGER.info("reviewRecipe 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
+                bl = true;
                 try {
                     String loginId = MapValueUtil.getString(backMap, "loginId");
                     Integer organId = recipe.getClinicOrgan();
@@ -809,6 +810,7 @@ public class RecipeService extends RecipeBaseService {
 //                        bl = "success".equals(result) ? true : false;
                     } catch (Exception e) {
                         LOGGER.error("reviewRecipe  signFile 标准化CA签章报错 recipeId={} ,doctor={} ,e={}=============", recipeId, recipe.getDoctor(), e);
+                        bl = false;
                     }
                     //标准化CA进行签名、签章==========================end=====
                 } else {
