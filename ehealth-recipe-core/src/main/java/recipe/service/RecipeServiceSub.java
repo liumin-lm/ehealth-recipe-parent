@@ -468,7 +468,7 @@ public class RecipeServiceSub {
         //找到每一个药能支持的药企关系
         Map<Integer, List<String>> drugDepRel = saleDrugListDAO.findDrugDepRelation(drugIds,deps);
 
-        //无法配送药品校验
+        //无法配送药品校验------有一个药企能支持就不会提示
         List<String> noFilterDrugName = new ArrayList<>();
         for (Integer drugId : drugIds) {
             if (CollectionUtils.isEmpty(drugDepRel.get(drugId))) {
