@@ -137,11 +137,15 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 drugType = 2;
             } else if(2 == drugType){
                 drugType = 1;
+            }else {
+                isMergeRecipeType = false;
             }
-            List<OrganDrugList> dList2 = drugListDAO.findCommonDrugListsWithPage(doctor, organId, drugType, 0, 20- dList.size());
+            if (isMergeRecipeType){
+                List<OrganDrugList> dList2 = drugListDAO.findCommonDrugListsWithPage(doctor, organId, drugType, 0, 20- dList.size());
 
-            if(dList != null && dList2 != null && dList2.size() != 0){
-                dList.addAll(dList2);
+                if(dList != null && dList2 != null && dList2.size() != 0){
+                    dList.addAll(dList2);
+                }
             }
         }
 

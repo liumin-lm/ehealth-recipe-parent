@@ -572,10 +572,14 @@ public class DrugListService extends BaseService<DrugListBean> {
                 drugType = 2;
             } else if(2 == drugType){
                 drugType = 1;
+            }else {
+                isMergeRecipeType = false;
             }
-            List<DrugList> dList2 = drugListDAO.findDrugListsByOrganOrDrugClass(organId, drugType, drugClass, start, limit-dList.size());
-            if(dList != null && dList2 != null && dList2.size() != 0){
-                dList.addAll(dList2);
+            if (isMergeRecipeType){
+                List<DrugList> dList2 = drugListDAO.findDrugListsByOrganOrDrugClass(organId, drugType, drugClass, start, limit-dList.size());
+                if(dList != null && dList2 != null && dList2.size() != 0){
+                    dList.addAll(dList2);
+                }
             }
         }
         // 添加医院价格
