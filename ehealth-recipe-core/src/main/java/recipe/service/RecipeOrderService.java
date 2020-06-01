@@ -618,7 +618,7 @@ public class RecipeOrderService extends RecipeBaseService {
             }
         }
 
-        BigDecimal tcmFee=BigDecimal.ZERO;
+        BigDecimal tcmFee=null;//null表示用户在运营平台没有配置这项费用
         int i=0;
         for (Recipe recipe : recipeList) {
             if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
@@ -634,7 +634,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     //从opbase配置项获取中医辨证论治费 recipeTCMPrice
                     Object findRecipeTCMPrice = configService.getConfiguration(recipe.getClinicOrgan(), "recipeTCMPrice");
                     if(findRecipeTCMPrice!=null&& ((BigDecimal)findRecipeTCMPrice).compareTo(BigDecimal.ZERO)>-1) tcmFee=(BigDecimal)findRecipeTCMPrice;//大于等于0
-                    if(findRecipeTCMPrice==null)tcmFee=null;//区分用户是否在运营平台填写这项费用
+                    //if(findRecipeTCMPrice==null)tcmFee=null;//区分用户是否在运营平台填写这项费用
                 }
                 LOGGER.info("处方recipeid:{},tcmFee是：{}",recipe.getRecipeId(),tcmFee);
 
