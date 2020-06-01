@@ -284,12 +284,17 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 searchTO.setDrugType("2");
             } else if(drugType != null && 2 == drugType){
                 searchTO.setDrugType("1");
+            }else {
+                //bug# 中药或者膏方会重复搜索
+                isMergeRecipeType = false;
             }
-            searchTO.setLimit(limit - drugInfo.size());
-            List<String> drugInfo2 = searchService.searchHighlightedPagesForDoctor(searchTO.getDrugName(), searchTO.getOrgan(),
-                searchTO.getDrugType(), searchTO.getStart(), searchTO.getLimit());
-            if(drugInfo != null && drugInfo2 != null && drugInfo2.size() != 0){
-                drugInfo.addAll(drugInfo2);
+            if (isMergeRecipeType){
+                searchTO.setLimit(limit - drugInfo.size());
+                List<String> drugInfo2 = searchService.searchHighlightedPagesForDoctor(searchTO.getDrugName(), searchTO.getOrgan(),
+                        searchTO.getDrugType(), searchTO.getStart(), searchTO.getLimit());
+                if(drugInfo != null && drugInfo2 != null && drugInfo2.size() != 0){
+                    drugInfo.addAll(drugInfo2);
+                }
             }
         }
 
