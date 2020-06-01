@@ -428,7 +428,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     hql.append(")");
                 }
                 if (!ObjectUtils.isEmpty(startTime)&&!ObjectUtils.isEmpty(endTime)) {
-                    hql.append(" and a.createDt>=:startTime and a.createDt<:endTime ");
+                    hql.append(" and a.createDt>=:startTime and a.createDt<=:endTime ");
                 }
                 if (ObjectUtils.nullSafeEquals(status, 0)) {
                     hql.append(" and a.status = 0 and a.organId =:organId ");
