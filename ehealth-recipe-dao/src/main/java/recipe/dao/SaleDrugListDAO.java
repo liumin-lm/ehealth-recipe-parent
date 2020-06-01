@@ -18,6 +18,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
+import org.joda.time.DateTime;
 import org.springframework.util.ObjectUtils;
 import recipe.dao.bean.DrugListAndSaleDrugList;
 import recipe.util.LocalStringUtil;
@@ -289,7 +290,8 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                             query.setParameter("startTime", startTime);
                         }
                         if (!ObjectUtils.isEmpty(endTime)){
-                            query.setParameter("endTime", endTime);
+                            DateTime dt = new DateTime(endTime);
+                            query.setParameter("endTime", dt.plusDays(1).toDate());
                         }
                         query.setFirstResult(start);
                         query.setMaxResults(limit);

@@ -23,6 +23,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
+import org.joda.time.DateTime;
 import org.springframework.util.ObjectUtils;
 import recipe.dao.bean.DrugInfoHisBean;
 import recipe.dao.bean.DrugListAndOrganDrugList;
@@ -454,7 +455,8 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     countQuery.setParameter("startTime", startTime);
                 }
                 if (!ObjectUtils.isEmpty(endTime)){
-                    countQuery.setParameter("endTime", endTime);
+                    DateTime dt = new DateTime(endTime);
+                    countQuery.setParameter("endTime", dt.plusDays(1).toDate());
                 }
                 if (canDrugSend!=null && CollectionUtils.isNotEmpty(depIds)){
                     countQuery.setParameterList("depIds", depIds);
