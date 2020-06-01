@@ -1898,7 +1898,7 @@ public class RecipeService extends RecipeBaseService {
 
         //将原先处方单详情的记录都置为无效 status=0
         recipeDetailDAO.updateDetailInvalidByRecipeId(recipeId);
-        Integer dbRecipeId = recipeDAO.updateOrSaveRecipeAndDetail(dbRecipe, recipedetails, true);
+        Integer dbRecipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, recipedetails, true);
 
         //武昌需求，加入处方扩展信息
         RecipeExtendBean recipeExt = recipeBean.getRecipeExtend();
