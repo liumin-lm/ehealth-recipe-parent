@@ -1875,16 +1875,22 @@ public class RecipeService extends RecipeBaseService {
 
         int beforeStatus = dbRecipe.getStatus();
 
-        //由于使用BeanUtils.map，空的字段不会进行copy，要进行手工处理
-        if (StringUtils.isEmpty(recipe.getMemo())) {
-            dbRecipe.setMemo("");
-        }
-        //医嘱
-        if (StringUtils.isEmpty(recipe.getRecipeMemo())) {
-            dbRecipe.setRecipeMemo("");
-        }
-        //复制修改的数据
-        BeanUtils.map(recipe, dbRecipe);
+//        //由于使用BeanUtils.map，空的字段不会进行copy，要进行手工处理
+//        if (StringUtils.isEmpty(recipe.getMemo())) {
+//            dbRecipe.setMemo("");
+//        }
+//        //医嘱
+//        if (StringUtils.isEmpty(recipe.getRecipeMemo())) {
+//            dbRecipe.setRecipeMemo("");
+//        }
+//        //复制修改的数据
+//        BeanUtils.map(recipe, dbRecipe);
+        //设置处方默认数据
+        RecipeUtil.setDefaultData(recipe);
+        recipe.setCreateDate(dbRecipe.getCreateDate());
+        recipe.setLastModify(new Date());
+        //校验处方保存数据
+        RecipeValidateUtil.validateSaveRecipeData(recipe);
 
         List<Recipedetail> recipedetails = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
         if(null != detailBeanList && detailBeanList.size() > 0){
@@ -1892,10 +1898,10 @@ public class RecipeService extends RecipeBaseService {
                 recipedetails = new ArrayList<>(0);
             }
             for (Recipedetail recipeDetail : recipedetails) {
-                RecipeValidateUtil.validateRecipeDetailData(recipeDetail, dbRecipe);
+                RecipeValidateUtil.validateRecipeDetailData(recipeDetail, recipe);
             }
             //设置药品价格
-            boolean isSucc = RecipeServiceSub.setDetailsInfo(dbRecipe, recipedetails);
+            boolean isSucc = RecipeServiceSub.setDetailsInfo(recipe, recipedetails);
             if (!isSucc) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "药品详情数据有误");
             }
