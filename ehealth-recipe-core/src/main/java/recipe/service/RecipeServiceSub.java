@@ -148,6 +148,8 @@ public class RecipeServiceSub {
             }
         }
 
+        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+        recipeService.setMergeDrugType(details, recipe);
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
         recipe.setRecipeId(recipeId);
 

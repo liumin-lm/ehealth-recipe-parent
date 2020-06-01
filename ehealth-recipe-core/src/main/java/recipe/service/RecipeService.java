@@ -1280,30 +1280,8 @@ public class RecipeService extends RecipeBaseService {
     }
 
     //重试二次医生审核通过签名
-    @RpcService
-    public void retryDoctorSecondCheckPass(Integer recipeId){
+    public void retryDoctorSecondCheckPass(Recipe recipe){
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        //date 20200507
-        //设置处方的状态为医生签名中
-        if(null == recipe){
-            LOGGER.warn("当前处方{}不存在!", recipeId);
-            return;
-        }
-        recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("status", RecipeStatusConstant.SIGN_ING_CODE_DOC));
-        try {
-            //写入his成功后，生成pdf并签名
-            generateRecipePdfAndSign(recipe.getRecipeId());
-            //date 20200424
-            //判断当前处方的状态为签名失败不走下面逻辑
-            if(new Integer(28).equals(getByRecipeId(recipe.getRecipeId()).getStatus())){
-                return;
-            }
-
-
-        } catch (Exception e) {
-            LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. ", e);
-        }
 
         Integer afterStatus = RecipeStatusConstant.CHECK_PASS_YS;
         //添加后置状态设置
@@ -1345,10 +1323,41 @@ public class RecipeService extends RecipeBaseService {
 
 
     }
+
     //重试二次医生审核不通过签名
-    @RpcService
-    public void retryDoctorSecondCheckNoPass(Integer recipeId){
+    public void retryDoctorSecondCheckNoPass(Recipe dbRecipe){
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        //date 2020/1/2
+        //发送二次不通过消息判断是否是二次审核不通过
+        if (!RecipecCheckStatusConstant.Check_Normal.equals(dbRecipe.getCheckStatus())) {
+            //添加发送不通过消息
+            RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
+            //更新处方一次审核不通过标记
+            Map<String, Object> updateMap = new HashMap<>();
+            updateMap.put("checkStatus", RecipecCheckStatusConstant.Check_Normal);
+            recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), updateMap);
+            //HIS消息发送
+            //审核不通过 往his更新状态（已取消）
+            Recipe recipe = recipeDAO.getByRecipeId(dbRecipe.getRecipeId());
+            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+            hisService.recipeStatusUpdate(recipe.getRecipeId());
+            //记录日志
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核不通过处理完成");
+        }
+
+        //患者如果使用优惠券将优惠券解锁
+        RecipeCouponService recipeCouponService = ApplicationUtils.getRecipeService(RecipeCouponService.class);
+        recipeCouponService.unuseCouponByRecipeId(dbRecipe.getRecipeId());
+
+        //根据审方模式改变--审核未通过处理
+        auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckNotPassYs(dbRecipe);
+    }
+
+    //医生端二次审核签名重试
+    @RpcService
+    public void retryDoctorSecondSignCheck(Integer recipeId){
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        RecipeLogDAO recipeLogDAO = getDAO(RecipeLogDAO.class);
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
         //date 20200507
         //设置处方的状态为医生签名中
@@ -1359,41 +1368,39 @@ public class RecipeService extends RecipeBaseService {
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("status", RecipeStatusConstant.SIGN_ING_CODE_DOC));
         try {
             //写入his成功后，生成pdf并签名
-            generateRecipePdfAndSign(dbRecipe.getRecipeId());
+            RecipeResultBean recipeSignResult = generateRecipePdfAndSign(dbRecipe.getRecipeId());
             //date 20200424
             //判断当前处方的状态为签名失败不走下面逻辑
-            if(new Integer(28).equals(getByRecipeId(dbRecipe.getRecipeId()).getStatus())){
+//            if(new Integer(28).equals(getByRecipeId(dbRecipe.getRecipeId()).getStatus())){
+//                return;
+//            }
+            if(RecipeResultBean.FAIL == recipeSignResult.getCode()){
+                //说明处方签名失败
+                LOGGER.info("当前签名处方{}签名失败！", recipeId);
+                recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_DOC, null);
+                recipeLogDAO.saveRecipeLog(recipeId, dbRecipe.getStatus(), dbRecipe.getStatus(), recipeSignResult.getMsg());
                 return;
+            }else{
+                //说明处方签名成功，记录日志，走签名成功逻辑
+                LOGGER.info("当前签名处方{}签名成功！", recipeId);
+                recipeLogDAO.saveRecipeLog(recipeId, dbRecipe.getStatus(), dbRecipe.getStatus(), "当前签名处方签名成功");
             }
 
 
         } catch (Exception e) {
             LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. ", e);
         }
-        //date 2020/1/2
-        //发送二次不通过消息判断是否是二次审核不通过
-        if (!RecipecCheckStatusConstant.Check_Normal.equals(dbRecipe.getCheckStatus())) {
-            //添加发送不通过消息
-            RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
-            //更新处方一次审核不通过标记
-            Map<String, Object> updateMap = new HashMap<>();
-            updateMap.put("checkStatus", RecipecCheckStatusConstant.Check_Normal);
-            recipeDAO.updateRecipeInfoByRecipeId(recipeId, updateMap);
-            //HIS消息发送
-            //审核不通过 往his更新状态（已取消）
-            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-            hisService.recipeStatusUpdate(recipe.getRecipeId());
-            //记录日志
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核不通过处理完成");
+
+        //根据处方单判断处方二次审核通过原因，判断是否通过
+        //说明是二次审核不通过
+        if(StringUtils.isEmpty(dbRecipe.getSupplementaryMemo())){
+            retryDoctorSecondCheckNoPass(dbRecipe);
+        }else{
+            //说明是二次审核通过
+            retryDoctorSecondCheckPass(dbRecipe);
         }
 
-        //患者如果使用优惠券将优惠券解锁
-        RecipeCouponService recipeCouponService = ApplicationUtils.getRecipeService(RecipeCouponService.class);
-        recipeCouponService.unuseCouponByRecipeId(recipeId);
 
-        //根据审方模式改变--审核未通过处理
-        auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckNotPassYs(dbRecipe);
     }
 
     //重试医生签名
@@ -1422,7 +1429,8 @@ public class RecipeService extends RecipeBaseService {
             // 如果是中药或膏方处方不需要药师审核
             if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
                 status = RecipeStatusConstant.CHECK_PASS_YS;
-                memo = "HIS审核返回：写入his成功，药师审核通过";
+                //memo = "HIS审核返回：写入his成功，药师审核通过";
+                //date 医院审核日志记录放在前置机调用结果的时候记录
             }
 
         }
@@ -1430,7 +1438,8 @@ public class RecipeService extends RecipeBaseService {
         //其他平台处方状态不变
         if (0 == recipe.getFromflag()) {
             status = recipe.getStatus();
-            memo = "HIS审核返回：写入his成功(其他平台处方)";
+            //memo = "HIS审核返回：写入his成功(其他平台处方)";
+            //date 医院审核日志记录放在前置机调用结果的时候记录
         }
 
         try {
@@ -1450,7 +1459,9 @@ public class RecipeService extends RecipeBaseService {
             }else{
                 //说明处方签名成功，记录日志，走签名成功逻辑
                 LOGGER.info("当前签名处方{}签名成功！", recipeId);
-                recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
+                //recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
+                //date 20200526
+                memo = "当前签名处方签名成功";
             }
             //TODO 根据审方模式改变状态
             //设置处方签名成功后的处方的状态
@@ -1888,6 +1899,10 @@ public class RecipeService extends RecipeBaseService {
         //将原先处方单详情的记录都置为无效 status=0
 
         recipeDetailDAO.updateDetailInvalidByRecipeId(recipeId);
+        //date  20200529 JRK
+        //根据配置项重新设置处方类型和处方药品详情属性类型
+        setMergeDrugType(recipedetails, dbRecipe);
+
         Integer dbRecipeId = recipeDAO.updateOrSaveRecipeAndDetail(dbRecipe, recipedetails, true);
 
         //武昌需求，加入处方扩展信息
@@ -1902,6 +1917,27 @@ public class RecipeService extends RecipeBaseService {
         //记录日志
         RecipeLogService.saveRecipeLog(dbRecipeId, beforeStatus, beforeStatus, "修改处方单");
         return dbRecipeId;
+    }
+
+    public void setMergeDrugType(List<Recipedetail> recipedetails, Recipe dbRecipe) {
+        //date  20200529 JRK
+        //根据配置项重新设置处方类型和处方药品详情属性类型
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        boolean isMergeRecipeType = (null != configurationService.getConfiguration(dbRecipe.getClinicOrgan(), "isMergeRecipeType")) ? (Boolean) configurationService.getConfiguration(dbRecipe.getClinicOrgan(), "isMergeRecipeType") : false;
+        //允许中西药合并
+        DrugList nowDrugList;
+        if(isMergeRecipeType){
+            if(CollectionUtils.isNotEmpty(recipedetails)){
+                nowDrugList = drugListDAO.getById(recipedetails.get(0).getDrugId());
+                dbRecipe.setRecipeType(null != nowDrugList ? nowDrugList.getDrugType() : null);
+                for (Recipedetail recipedetail : recipedetails) {
+                    nowDrugList = drugListDAO.getById(recipedetail.getDrugId());
+                    recipedetail.setDrugType(null != nowDrugList ? nowDrugList.getDrugType() : null);
+                }
+            }
+
+        }
     }
 
     /**
