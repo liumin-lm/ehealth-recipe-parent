@@ -310,7 +310,9 @@ public class RecipeServiceSub {
                         }
                     }
                     //判断某诊断下某药品能否开具
-                    canOpenRecipeDrugsAndDisease(recipe,drugIds);
+                    if(recipe != null && recipe.getOrganDiseaseName() != null){
+                        canOpenRecipeDrugsAndDisease(recipe,drugIds);
+                    }
                 }else{
                     for (OrganDrugList obj : organDrugList) {
                         organDrugListMap.put(obj.getOrganDrugCode(), obj);
