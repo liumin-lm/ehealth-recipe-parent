@@ -1705,6 +1705,7 @@ public class RecipeServiceSub {
                 map.put("showSendToEnterprises", 0);
                 map.put("showSendToHos", 0);
                 map.put("supportTFDS",0);
+                map.put("supportOnline",0);
             }
         }
         //date 2191011
