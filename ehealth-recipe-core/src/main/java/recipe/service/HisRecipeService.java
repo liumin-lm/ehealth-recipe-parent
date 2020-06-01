@@ -317,8 +317,8 @@ public class HisRecipeService {
                         detail.setUseDays(recipeDetailTO.getUseDays());
                         detail.setUseDaysB(recipeDetailTO.getUseDays().toString());
                         detail.setDrugCode(recipeDetailTO.getDrugCode());
-                        detail.setUsingRateText(recipeDetailTO.getUsingRateText());
-                        detail.setUsePathwaysText(recipeDetailTO.getUsePathwaysText());
+//                        detail.setUsingRateText(recipeDetailTO.getUsingRateText());
+//                        detail.setUsePathwaysText(recipeDetailTO.getUsePathwaysText());
                         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
                         if (StringUtils.isNotEmpty(detail.getRecipeDeatilCode())) {
                             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(detail.getDrugCode()));
