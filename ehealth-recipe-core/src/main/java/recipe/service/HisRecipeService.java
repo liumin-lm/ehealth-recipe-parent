@@ -300,8 +300,19 @@ public class HisRecipeService {
                         detail.setDrugUnit(recipeDetailTO.getDrugUnit());
                         //date 20200526
                         //修改线下处方同步用药天数，判断是否有小数类型的用药天数
-                        if (null == recipeDetailTO.getUseDays()) {
-                            recipeDetailTO.setUseDays(0);
+                        //修改逻辑，UseDays这个字段为老字段只有整数
+                        //UseDaysB这个字段为字符类型，可能小数，准备之后用药天数都用这个字段
+                        //取对应没有的字段设置传过来的值
+                        //这两个值只会有一个没有传
+                        if(null != recipeDetailTO.getUseDays()){
+                            //设置字符类型的
+                            detail.setUseDaysB(recipeDetailTO.getUseDays().toString());
+                        }
+                        if(null != recipeDetailTO.getUseDaysB()){
+                            //设置int类型的
+                            //设置字符转向上取整
+                            int useDays = new BigDecimal(recipeDetailTO.getUseDaysB()).setScale(0, BigDecimal.ROUND_UP).intValue();
+                            detail.setUseDays(useDays);
                         }
                         detail.setUseDays(recipeDetailTO.getUseDays());
                         detail.setUseDaysB(recipeDetailTO.getUseDays().toString());

@@ -257,6 +257,14 @@ public class PrescribeProcess {
                 recipedetail.setDrugCost(StringUtils.isEmpty(hosDetail.getDrugTotalFee()) ?
                         BigDecimal.ZERO : new BigDecimal(hosDetail.getDrugTotalFee()));
 
+                //date 202000601
+                //设置处方用药天数字符类型
+                if(StringUtils.isEmpty(recipedetail.getUseDaysB())){
+
+                    recipedetail.setUseDaysB(null != recipedetail.getUseDays() ? recipedetail.getUseDays().toString() : "0");
+
+                }
+
                 recipeDetails.add(recipedetail);
             }
         }

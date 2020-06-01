@@ -286,6 +286,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         if (recipeBean.getReviewType()==null){
             recipeBean.setReviewType(ReviewTypeConstant.Postposition_Check);
         }
+        //date 20200601
+        //设置处方详情字符类型
+        RecipeServiceSub.setUseDaysBToDetali(recipedetails);
         recipeDAO.updateOrSaveRecipeAndDetail(getBean(recipeBean,Recipe.class),recipedetails,false);
     }
 
@@ -332,11 +335,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      */
     @RpcService(timeout = 600000)
     @Override
-    public List<Map> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate,
+    public List<Object[]> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate,
                                         final Date eDate, final Integer dateType, final Integer depart, List<Integer> organIds, Integer giveMode,
                                         Integer fromflag,Integer recipeId,Integer enterpriseId,Integer checkStatus,Integer payFlag,Integer orderType){
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        return recipeDAO.findRecipesByInfoForExcel(organId,status,doctor,patientName,bDate,eDate,dateType,depart,organIds,giveMode,fromflag,recipeId,enterpriseId,checkStatus,payFlag,orderType);
+        List<Object[]> result = recipeDAO.findRecipesByInfoForExcel(organId,status,doctor,patientName,bDate,eDate,dateType,depart,organIds,giveMode,fromflag,recipeId,enterpriseId,checkStatus,payFlag,orderType);
+        return result;
     }
 
     /**
