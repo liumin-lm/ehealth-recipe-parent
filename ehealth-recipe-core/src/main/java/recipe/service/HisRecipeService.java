@@ -226,6 +226,7 @@ public class HisRecipeService {
     @RpcService
     public void saveHisRecipeInfo(HisResponseTO<List<QueryHisRecipResTO>> responseTO,PatientDTO patientDTO,Integer flag){
         List<QueryHisRecipResTO> queryHisRecipResTOList = responseTO.getData();
+        LOGGER.info("saveHisRecipeInfo queryHisRecipResTOList:" + JSONUtils.toString(queryHisRecipResTOList));
         for(QueryHisRecipResTO queryHisRecipResTO : queryHisRecipResTOList){
             HisRecipe hisRecipe1 = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(
                     patientDTO.getMpiId(),queryHisRecipResTO.getClinicOrgan(),queryHisRecipResTO.getRecipeCode());
