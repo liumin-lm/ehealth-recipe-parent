@@ -662,8 +662,14 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             //icd10
             recipeMap.put("ICD10", recipe.getOrganDiseaseId());
             //中药贴数
-            if (recipe.getCopyNum() != null) {
+            if (recipe.getRecipeType() == 3 && recipe.getCopyNum() != null) {
                 recipeMap.put("COUNTTIENUM", recipe.getCopyNum());
+            }
+            //处方类型
+            if (recipe.getRecipeType() == 1 || recipe.getRecipeType() == 2) {
+                recipeMap.put("PRESCRIPTIONTYPE", "1");
+            } else {
+                recipeMap.put("PRESCRIPTIONTYPE", "2");
             }
             //医嘱
             if (StringUtils.isNotEmpty(recipe.getRecipeMemo())) {
