@@ -403,6 +403,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 if (ObjectUtils.isEmpty(endTime)) {
                     throw new DAOException(DAOException.VALUE_NEEDED, "endTime is require");
                 }
+                DateTime dt = new DateTime(endTime);
                 //查询机构药品目录是否配送---null的话没有是否配送的筛选条件 或者机构配置到药企为空到话 不从saledruglist里筛选
                 if (canDrugSend == null || CollectionUtils.isEmpty(depIds)) {
                     hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId ");
@@ -455,7 +456,6 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     countQuery.setParameter("startTime", startTime);
                 }
                 if (!ObjectUtils.isEmpty(endTime)){
-                    DateTime dt = new DateTime(endTime);
                     countQuery.setParameter("endTime", dt.plusDays(1).toDate());
                 }
                 if (canDrugSend!=null && CollectionUtils.isNotEmpty(depIds)){
@@ -480,7 +480,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     query.setParameter("startTime", startTime);
                 }
                 if (!ObjectUtils.isEmpty(endTime)){
-                    query.setParameter("endTime", endTime);
+                    query.setParameter("endTime", dt.plusDays(1).toDate());
                 }
                 if (!StringUtils.isEmpty(keyword)) {
                     query.setParameter("keyword", "%" + keyword + "%");

@@ -222,6 +222,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                     @SuppressWarnings("unchecked")
                     @Override
                     public void execute(StatelessSession ss) throws DAOException {
+                        DateTime dt = new DateTime(endTime);
                         StringBuilder hql = new StringBuilder(" from DrugList d where 1=1 ");
                         if (!StringUtils.isEmpty(drugClass)) {
                             hql.append(" and d.drugClass like :drugClass");
@@ -264,7 +265,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                             countQuery.setParameter("drugId", drugId);
                         }
                         countQuery.setParameter("startTime", startTime);
-                        countQuery.setParameter("endTime", endTime);
+                        countQuery.setParameter("endTime", dt.plusDays(1).toDate());
                         if (!StringUtils.isEmpty(keyword)) {
                             countQuery.setParameter("keyword", "%" + keyword + "%");
                         }
@@ -290,7 +291,6 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                             query.setParameter("startTime", startTime);
                         }
                         if (!ObjectUtils.isEmpty(endTime)){
-                            DateTime dt = new DateTime(endTime);
                             query.setParameter("endTime", dt.plusDays(1).toDate());
                         }
                         query.setFirstResult(start);
