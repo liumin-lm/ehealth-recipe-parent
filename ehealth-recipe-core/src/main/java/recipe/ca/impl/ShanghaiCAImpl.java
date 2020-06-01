@@ -67,9 +67,11 @@ public class ShanghaiCAImpl implements CAInterface {
                 JSONUtils.toString(requestSealTO), organId, userAccount, caPassword);
         CaSignResultVo signResultVo = new CaSignResultVo();
         try {
+            DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
             //电子签名
             CaSignRequestTO caSignRequestTO = new CaSignRequestTO();
             caSignRequestTO.setCretMsg(null);
+            caSignRequestTO.setJobnumber(doctorDTO.getJobNumber());
             caSignRequestTO.setOrganId(organId);
             caSignRequestTO.setSignMsg(JSONUtils.toString(recipe));
             caSignRequestTO.setUserAccount(userAccount);
@@ -100,6 +102,7 @@ public class ShanghaiCAImpl implements CAInterface {
             // 电子签章
             requestSealTO.setOrganId(organId);
             requestSealTO.setUserPin(caPassword);
+            requestSealTO.setJobnumber(doctorDTO.getJobNumber());
             requestSealTO.setUserAccount(userAccount);
             requestSealTO.setSignMsg(JSONUtils.toString(recipe));
             CaSealResponseTO responseSealTO = iCommonCAServcie.caSealBusiness(requestSealTO);

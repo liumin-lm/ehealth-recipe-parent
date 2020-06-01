@@ -944,8 +944,7 @@ public class PayModeOnline implements IPurchaseService {
                 //特殊处理的时候判断要不要走药企自己的展示
                 AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);;
                 boolean specialMake = remoteService.specialMakeDepList(drugsEnterprise, dbRecipe);
-                boolean storeEnterpriseFlag = isExistStoreEnterprise(drugsEnterprise.getCallSys());
-                if (storeEnterpriseFlag || specialMake) {
+                if (new Integer(1).equals(drugsEnterprise.getShowStoreFlag()) || specialMake) {
                     //将药店配送的药企移除
                     for (DepDetailBean depDetailBean : depDetailList) {
                         if (drugsEnterprise.getId().equals(depDetailBean.getDepId())) {

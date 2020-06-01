@@ -112,11 +112,14 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "配送主体类型 1 药企配送 2 医院配送")
     private Integer sendType;
 
-    @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付")
+    @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付 3-第三方支付")
     private Integer expressFeePayWay;
 
     @ItemProperty(alias = "管理单元")
     private String manageUnit;
+
+    @ItemProperty(alias = "展示配送药店标识")
+    private Integer showStoreFlag;
 
     @ItemProperty(alias = "药企下载处方签类型")
     private Integer downSignImgType;
@@ -390,6 +393,15 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setManageUnit(String manageUnit) {
         this.manageUnit = manageUnit;
+    }
+
+    @Column(name = "showStoreFlag")
+    public Integer getShowStoreFlag() {
+        return showStoreFlag;
+    }
+
+    public void setShowStoreFlag(Integer showStoreFlag) {
+        this.showStoreFlag = showStoreFlag;
     }
 
     @Column(name = "downSignImgType")

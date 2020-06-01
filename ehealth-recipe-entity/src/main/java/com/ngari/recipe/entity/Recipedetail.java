@@ -79,7 +79,7 @@ public class Recipedetail implements java.io.Serializable {
 	//用药方式说明（来源his）
 	@ItemProperty(alias="用药方式说明")
 	private String usePathwaysTextFromHis;
-	
+
 	@ItemProperty(alias="药物使用总数量")
 	private Double useTotalDose;
 	
@@ -181,14 +181,24 @@ public class Recipedetail implements java.io.Serializable {
 
 	@ItemProperty(alias="药物使用天数(小数类型)")
 	private String useDaysB;
+	@ItemProperty(alias = "处方药品详情类型")
+	@Dictionary(id="eh.base.dictionary.DrugType")
+	private Integer drugType;
 
 	@Column(name = "UseDaysB")
 	public String getUseDaysB() {
 		return useDaysB;
 	}
+	@Column(name = "drugType")
+	public Integer getDrugType() {
+		return drugType;
+	}
 
 	public void setUseDaysB(String useDaysB) {
 		this.useDaysB = useDaysB;
+	}
+	public void setDrugType(Integer drugType) {
+		this.drugType = drugType;
 	}
 
 	public Recipedetail() {
