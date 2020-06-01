@@ -146,7 +146,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
             ebsBean.setProvinceName(province);
             ebsBean.setCityName(city);
             ebsBean.setDistrictName(district);
-            ebsBean.setShippingAddress(getCompleteAddress(recipeOrder));
+            ebsBean.setShippingAddress(recipeOrder.getAddress4());
         }
         ebsBean.setRemark(convertParame(recipe.getMemo()));
         List<EbsDetail> details = new ArrayList<>();
@@ -256,6 +256,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
             result.append("<drugForm>").append(ebsDetail.getDrugForm()).append("</drugForm>");
             result.append("<directions>").append(ebsDetail.getDirections()).append("</directions>");
             result.append("<amount>").append(ebsDetail.getAmount()).append("</amount>");
+            result.append("<unitName>").append(ebsDetail.getUnitName()).append("</unitName>");
             result.append("<unitPrice>").append(ebsDetail.getUnitPrice()).append("</unitPrice>");
         }
         result.append("</params></body></root>");
