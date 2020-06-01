@@ -761,7 +761,7 @@ public class RecipeOrderService extends RecipeBaseService {
         //配送到家并且线下支付
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
         if (new Integer(2).equals(order.getExpressFeePayWay()) && RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)){
-            if (order.getTotalFee().compareTo(order.getExpressFee()) > -1) {
+            if (order.getExpressFee() != null && order.getTotalFee().compareTo(order.getExpressFee()) > -1) {
                 totalFee = order.getTotalFee().subtract(order.getExpressFee());
             } else {
                 totalFee = order.getTotalFee();
