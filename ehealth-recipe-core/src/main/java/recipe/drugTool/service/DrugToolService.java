@@ -496,7 +496,6 @@ public class DrugToolService implements IDrugToolService {
                 } else if (drugList == null && provinceDrugList == null) {
                     //未匹配
                     drug.setStatus(DrugMatchConstant.UNMATCH);
-                    drug.setRegulationDrugCode(null);
                     drug.setPlatformDrugId(null);
                 } else if (drugList != null && provinceDrugList == null) {
                     //匹配中
@@ -508,7 +507,6 @@ public class DrugToolService implements IDrugToolService {
                     drug.setPlatformDrugId(null);
                 }
             } else {
-                drug.setRegulationDrugCode(null);
                 if (drugList != null) {
                     drug.setStatus(DrugMatchConstant.ALREADY_MATCH);
                     drug.setMatchDrugId(drugList.getDrugId());
