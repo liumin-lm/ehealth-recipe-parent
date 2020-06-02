@@ -25,6 +25,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.base.constant.ErrorCode;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -454,13 +455,18 @@ public class HisRecipeService {
         recipe.setRecipeCode(hisRecipe.getRecipeCode());
         recipe.setRecipeType(hisRecipe.getRecipeType());
         recipe.setDepart(Integer.parseInt(hisRecipe.getDepartCode()));
-        EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
-        if (StringUtils.isNotEmpty(hisRecipe.getDoctorCode())) {
-            EmploymentDTO employmentDTO = employmentService.getByJobNumberAndOrganId(hisRecipe.getDoctorCode(), hisRecipe.getClinicOrgan());
-            if (employmentDTO != null) {
-                recipe.setDoctor(employmentDTO.getDoctorId());
+        try{
+            EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
+            if (StringUtils.isNotEmpty(hisRecipe.getDoctorCode())) {
+                EmploymentDTO employmentDTO = employmentService.getByJobNumberAndOrganId(hisRecipe.getDoctorCode(), hisRecipe.getClinicOrgan());
+                if (employmentDTO != null) {
+                    recipe.setDoctor(employmentDTO.getDoctorId());
+                }
             }
+        }catch(Exception e){
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "没有查找到医生工号"+hisRecipe.getDoctorCode());
         }
+
         recipe.setDoctorName(hisRecipe.getDoctorName());
         recipe.setCreateDate(hisRecipe.getCreateDate());
         recipe.setSignDate(hisRecipe.getCreateDate());
