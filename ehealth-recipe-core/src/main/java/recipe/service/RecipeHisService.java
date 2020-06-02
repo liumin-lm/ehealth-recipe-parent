@@ -109,7 +109,11 @@ public class RecipeHisService extends RecipeBaseService {
         Integer sendOrganId = (null == otherOrganId) ? recipe.getClinicOrgan() : otherOrganId;
         if (isHisEnable(sendOrganId)) {
             //推送处方
-            sendRecipe(recipeId, sendOrganId);
+            try {
+                sendRecipe(recipeId, sendOrganId);
+            } catch (Exception e) {
+                LOGGER.error("recipeSendHis error, recipeId={}", recipeId,e);
+            }
         } else {
             result = false;
             LOGGER.error("recipeSendHis 医院HIS未启用[organId:" + sendOrganId + ",recipeId:" + recipeId + "]");
