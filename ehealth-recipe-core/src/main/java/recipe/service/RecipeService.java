@@ -1913,9 +1913,9 @@ public class RecipeService extends RecipeBaseService {
         recipeDetailDAO.updateDetailInvalidByRecipeId(recipeId);
         //date  20200529 JRK
         //根据配置项重新设置处方类型和处方药品详情属性类型
-        setMergeDrugType(recipedetails, dbRecipe);
+        setMergeDrugType(recipedetails, recipe);
 
-        Integer dbRecipeId = recipeDAO.updateOrSaveRecipeAndDetail(dbRecipe, recipedetails, true);
+        Integer dbRecipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, recipedetails, true);
 
         //武昌需求，加入处方扩展信息
         RecipeExtendBean recipeExt = recipeBean.getRecipeExtend();
