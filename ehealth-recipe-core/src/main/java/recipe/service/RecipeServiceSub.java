@@ -124,8 +124,6 @@ public class RecipeServiceSub {
 
         setRecipeMoreInfo(recipe,details,recipeBean,flag);
 
-        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-        recipeService.setMergeDrugType(details, recipe);
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
         recipe.setRecipeId(recipeId);
 
@@ -175,6 +173,8 @@ public class RecipeServiceSub {
                 recipe.setRecipeSource(consultBean.getConsultSource());
             }
         }
+        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+        recipeService.setMergeDrugType(details, recipe);
     }
 
     private static void saveOperationRecordsForRecipe(String mpiId, PatientDTO patient, Recipe recipe) {
