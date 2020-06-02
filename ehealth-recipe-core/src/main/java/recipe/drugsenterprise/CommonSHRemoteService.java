@@ -449,7 +449,6 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
                 String sendInfoStr = JSON.toJSONString(sendInfo, new SerializerFeature[]
                         { SerializerFeature.WriteMapNullValue, SerializerFeature.WriteNullStringAsEmpty });
                 String methodName = "TransData";
-                LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
 
                 //发送药企信息
                 String appId = enterprise.getUserId();
