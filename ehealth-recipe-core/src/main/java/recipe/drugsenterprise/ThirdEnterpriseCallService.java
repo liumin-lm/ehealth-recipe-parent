@@ -1589,8 +1589,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setOrganDiseaseId(convertParame(recipe.getOrganDiseaseId()));
             orderDetailBean.setOrganDiseaseName(convertParame(recipe.getOrganDiseaseName()));
             orderDetailBean.setRecipeMemo(convertParame(recipe.getRecipeMemo()));
-            orderDetailBean.setTcmUsePathways(convertParame(recipe.getTcmUsePathways()));
-            orderDetailBean.setTcmUsingRate(convertParame(recipe.getTcmUsingRate()));
             orderDetailBean.setPharmacyCode(convertParame(recipeOrder.getDrugStoreCode()));
             orderDetailBean.setPharmacyName(convertParame(recipeOrder.getDrugStoreName()));
             if (recipe.getRecipeType() == 3 && recipe.getCopyNum() != null) {
@@ -1706,6 +1704,10 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 drugList.setUesDays(convertParame(recipedetail.getUseDays()));
                 drugList.setUsingRate(convertParame(recipedetail.getUsingRate()));
                 drugList.setUsePathways(convertParame(recipedetail.getUsePathways()));
+                if (recipe.getRecipeType() == 3 || recipe.getRecipeType() == 4) {
+                    orderDetailBean.setTcmUsePathways(convertParame(recipedetail.getUsePathways()));
+                    orderDetailBean.setTcmUsingRate(convertParame(recipedetail.getUsingRate()));
+                }
                 drugList.setDrugUnit(convertParame(recipedetail.getDrugUnit()));
                 drugList.setPack(convertParame(recipedetail.getPack()));
                 drugList.setLicenseNumber(convertParame(recipedetail.getLicenseNumber()));
