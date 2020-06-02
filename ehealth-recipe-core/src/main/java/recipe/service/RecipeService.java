@@ -1876,6 +1876,12 @@ public class RecipeService extends RecipeBaseService {
         }
 
         int beforeStatus = dbRecipe.getStatus();
+        List<Recipedetail> recipedetails = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
+        if(null != detailBeanList && detailBeanList.size() > 0){
+            if (null == recipedetails) {
+                recipedetails = new ArrayList<>(0);
+            }
+        }
 
 //        //由于使用BeanUtils.map，空的字段不会进行copy，要进行手工处理
 //        if (StringUtils.isEmpty(recipe.getMemo())) {
@@ -1888,7 +1894,7 @@ public class RecipeService extends RecipeBaseService {
 //        //复制修改的数据
 //        BeanUtils.map(recipe, dbRecipe);
         //设置处方默认数据
-        RecipeUtil.setDefaultData(recipe);
+        /*RecipeUtil.setDefaultData(recipe);
         recipe.setCreateDate(dbRecipe.getCreateDate());
         recipe.setLastModify(new Date());
         //校验处方保存数据
@@ -1913,8 +1919,10 @@ public class RecipeService extends RecipeBaseService {
         recipeDetailDAO.updateDetailInvalidByRecipeId(recipeId);
         //date  20200529 JRK
         //根据配置项重新设置处方类型和处方药品详情属性类型
-        setMergeDrugType(recipedetails, recipe);
-
+        setMergeDrugType(recipedetails, recipe);*/
+        RecipeServiceSub.setRecipeMoreInfo(recipe,recipedetails,recipeBean,1);
+        //将原先处方单详情的记录都置为无效 status=0
+        recipeDetailDAO.updateDetailInvalidByRecipeId(recipeId);
         Integer dbRecipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, recipedetails, true);
 
         //武昌需求，加入处方扩展信息

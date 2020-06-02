@@ -121,35 +121,8 @@ public class RecipeServiceSub {
         }
         Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
         List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
-        //校验处方和明细保存数据
-        validateRecipeAndDetailData(recipe,details);
 
-        //设置处方默认数据
-        RecipeUtil.setDefaultData(recipe);
-        //设置处方明细数据
-        if(detailBeanList != null && detailBeanList.size() > 0){
-            setReciepeDetailsInfo(flag,recipeBean,recipe,details);
-        }
-
-        //患者数据前面已校验--设置患者姓名医生姓名机构名
-        String mpiId = recipe.getMpiid();
-        PatientDTO patient = patientService.get(recipe.getMpiid());
-        recipe.setPatientName(patient.getPatientName());
-        recipe.setDoctorName(doctorService.getNameById(recipe.getDoctor()));
-        OrganDTO organBean = organService.get(recipe.getClinicOrgan());
-        recipe.setOrganName(organBean.getShortName());
-
-        //武昌机构recipeCode平台生成
-        getRecipeCodeForWuChang(recipeBean,patient,recipe);
-
-        // 根据咨询单特殊来源标识设置处方单特殊来源标识
-        if (null != recipeBean.getClinicId()) {
-            IConsultService consultService = ConsultAPI.getService(IConsultService.class);
-            ConsultBean consultBean = consultService.getById(recipeBean.getClinicId());
-            if ((null != consultBean) && (Integer.valueOf(1).equals(consultBean.getConsultSource()))) {
-                recipe.setRecipeSource(consultBean.getConsultSource());
-            }
-        }
+        setRecipeMoreInfo(recipe,details,recipeBean,flag);
 
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         recipeService.setMergeDrugType(details, recipe);
@@ -166,9 +139,42 @@ public class RecipeServiceSub {
         }
 
         //加入历史患者
+        String mpiId = recipe.getMpiid();
+        PatientDTO patient = patientService.get(mpiId);
         saveOperationRecordsForRecipe(mpiId,patient,recipe);
         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "暂存处方单");
         return recipeId;
+    }
+
+    public static void setRecipeMoreInfo(Recipe recipe, List<Recipedetail> details, RecipeBean recipeBean, Integer flag) {
+        //校验处方和明细保存数据
+        validateRecipeAndDetailData(recipe,details);
+
+        //设置处方默认数据
+        RecipeUtil.setDefaultData(recipe);
+        //设置处方明细数据
+        if(details != null && details.size() > 0){
+            setReciepeDetailsInfo(flag,recipeBean,recipe,details);
+        }
+
+        //患者数据前面已校验--设置患者姓名医生姓名机构名
+        PatientDTO patient = patientService.get(recipe.getMpiid());
+        recipe.setPatientName(patient.getPatientName());
+        recipe.setDoctorName(doctorService.getNameById(recipe.getDoctor()));
+        OrganDTO organBean = organService.get(recipe.getClinicOrgan());
+        recipe.setOrganName(organBean.getShortName());
+
+        //武昌机构recipeCode平台生成
+        getRecipeCodeForWuChang(recipeBean,patient,recipe);
+
+        // 根据咨询单特殊来源标识设置处方单特殊来源标识
+        if (null != recipe.getClinicId()) {
+            IConsultService consultService = ConsultAPI.getService(IConsultService.class);
+            ConsultBean consultBean = consultService.getById(recipe.getClinicId());
+            if ((null != consultBean) && (Integer.valueOf(1).equals(consultBean.getConsultSource()))) {
+                recipe.setRecipeSource(consultBean.getConsultSource());
+            }
+        }
     }
 
     private static void saveOperationRecordsForRecipe(String mpiId, PatientDTO patient, Recipe recipe) {
