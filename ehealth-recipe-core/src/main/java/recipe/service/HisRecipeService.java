@@ -314,8 +314,8 @@ public class HisRecipeService {
                             int useDays = new BigDecimal(recipeDetailTO.getUseDaysB()).setScale(0, BigDecimal.ROUND_UP).intValue();
                             detail.setUseDays(useDays);
                         }
-                        detail.setUseDays(recipeDetailTO.getUseDays());
-                        detail.setUseDaysB(recipeDetailTO.getUseDays().toString());
+//                        detail.setUseDays(recipeDetailTO.getUseDays());
+//                        detail.setUseDaysB(recipeDetailTO.getUseDays().toString());
                         detail.setDrugCode(recipeDetailTO.getDrugCode());
                         detail.setUsingRateText(recipeDetailTO.getUsingRateText());
                         detail.setUsePathwaysText(recipeDetailTO.getUsePathwaysText());
