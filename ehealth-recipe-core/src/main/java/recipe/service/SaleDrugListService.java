@@ -221,4 +221,19 @@ public class SaleDrugListService implements ISaleDrugListService {
         SaleDrugList saleDrugList=saleDrugListDAO.getByDrugIdAndOrganId(drugId,enterprise);
         return ObjectCopyUtils.convert(saleDrugList, SaleDrugListDTO.class);
     }
+
+    /**
+     * 删除药企药品数据
+     *
+     */
+    @RpcService
+    public void deleteSaleDrugListByIds(List<Integer> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "organDrugId is required");
+        }
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        for(Integer id : ids){
+            saleDrugListDAO.remove(id);
+        }
+    }
 }
