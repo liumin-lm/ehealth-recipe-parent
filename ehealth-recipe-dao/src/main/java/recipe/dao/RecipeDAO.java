@@ -1860,14 +1860,16 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         Map<String, Integer> diseaseMap = Maps.newHashMap();
         //循环计算每一个诊断的次数
         for (String s : list) {
-            String[] strings = s.split(";");
-            if (strings != null && strings.length > 0) {
-                for (String s1 : strings) {
-                    Integer i = diseaseMap.get(s1);
-                    if (i == null) {
-                        diseaseMap.put(s1, 1);
-                    } else {
-                        diseaseMap.put(s1, i + 1);
+            if (StringUtils.isNotEmpty(s)){
+                String[] strings = s.split(";");
+                if (strings != null && strings.length > 0) {
+                    for (String s1 : strings) {
+                        Integer i = diseaseMap.get(s1);
+                        if (i == null) {
+                            diseaseMap.put(s1, 1);
+                        } else {
+                            diseaseMap.put(s1, i + 1);
+                        }
                     }
                 }
             }
