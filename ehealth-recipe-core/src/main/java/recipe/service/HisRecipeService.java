@@ -519,6 +519,7 @@ public class HisRecipeService {
                 recipedetail.setUsePathways(organDrugLists.get(0).getUsePathways());
                 recipedetail.setSalePrice(organDrugLists.get(0).getSalePrice());
                 recipedetail.setUseDose(organDrugLists.get(0).getUseDose());
+                recipedetail.setUseDoseUnit(organDrugLists.get(0).getUseDoseUnit());
             }
             recipedetail.setUsingRateTextFromHis(hisRecipeDetail.getUsingRateText());
             recipedetail.setUsePathwaysTextFromHis(hisRecipeDetail.getUsePathwaysText());
