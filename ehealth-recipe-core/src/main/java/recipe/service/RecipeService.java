@@ -750,7 +750,9 @@ public class RecipeService extends RecipeBaseService {
                     CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId, false);
                     //获取签章图片
                     DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
-                    DoctorExtendDTO doctorExtendDTO = doctorExtendService.getByDoctorId(recipe.getDoctor());
+                    //date 20200601
+                    //修改审方签名信息为药师
+                    DoctorExtendDTO doctorExtendDTO = doctorExtendService.getByDoctorId(checker);
                     if (doctorExtendDTO != null && doctorExtendDTO.getSealData() != null) {
                         requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
                     } else {
@@ -806,6 +808,7 @@ public class RecipeService extends RecipeBaseService {
 //                        bl = "success".equals(result) ? true : false;
                     } catch (Exception e) {
                         LOGGER.error("reviewRecipe  signFile 标准化CA签章报错 recipeId={} ,doctor={} ,e={}=============", recipeId, recipe.getDoctor(), e);
+                        bl = false;
                     }
                     //标准化CA进行签名、签章==========================end=====
                 } else {

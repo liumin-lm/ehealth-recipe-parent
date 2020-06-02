@@ -146,7 +146,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
             ebsBean.setProvinceName(province);
             ebsBean.setCityName(city);
             ebsBean.setDistrictName(district);
-            ebsBean.setShippingAddress(getCompleteAddressForSH(recipeOrder));
+            ebsBean.setShippingAddress(recipeOrder.getAddress4());
         }
         ebsBean.setRemark(convertParame(recipe.getMemo()));
         List<EbsDetail> details = new ArrayList<>();
