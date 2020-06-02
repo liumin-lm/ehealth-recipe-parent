@@ -100,8 +100,8 @@ public class TianjinCAImpl implements CAInterface {
     @Override
     @RpcService
     public CaSignResultVo commonCASignAndSeal(CaSealRequestTO requestSealTO, Recipe recipe, Integer organId, String userAccount, String caPassword) {
-        LOGGER.info("TianjinCAImpl commonCASignAndSeal start requestSealTO={},organId={},userAccount={},caPassword={}",
-                JSONUtils.toString(requestSealTO), organId, userAccount, caPassword);
+        LOGGER.info("TianjinCAImpl commonCASignAndSeal start requestSealTO={},recipeId={},organId={},userAccount={},caPassword={}",
+                JSONUtils.toString(requestSealTO),recipe.getRecipeId(), organId, userAccount, caPassword);
         CaSignResultVo signResultVo = new CaSignResultVo();
 
         try {
@@ -163,10 +163,12 @@ public class TianjinCAImpl implements CAInterface {
             }
             signResultVo.setPdfBase64(responseSealTO.getPdfBase64File());
         } catch (Exception e){
-            LOGGER.error("shanghaiCA commonCASignAndSeal 调用前置机失败 requestSealTO={},organId={},userAccount={},caPassword={}",
-                    JSONUtils.toString(requestSealTO), organId, userAccount, caPassword );
+            LOGGER.error("TianjinCAImpl commonCASignAndSeal 调用前置机失败 requestSealTO={},recipeId={},organId={},userAccount={},caPassword={}",
+                    JSONUtils.toString(requestSealTO), recipe.getRecipeId(),organId, userAccount, caPassword,e );
             e.printStackTrace();
         }
+        LOGGER.info("TianjinCAImpl commonCASignAndSeal end recipeId={},params: {}", recipe.getRecipeId(),JSONUtils.toString(signResultVo));
+
         return signResultVo;
     }
 }

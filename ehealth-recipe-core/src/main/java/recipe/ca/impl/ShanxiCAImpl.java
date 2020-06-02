@@ -14,7 +14,6 @@ import ctd.util.annotation.RpcService;
 import eh.base.constant.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ca.CAInterface;
 import recipe.ca.ICommonCAServcie;
 import recipe.ca.vo.CaSignResultVo;
@@ -95,7 +94,8 @@ public class ShanxiCAImpl implements CAInterface {
      */
     @RpcService
     public CaSignResultVo commonCASignAndSeal(CaSealRequestTO requestSealTO, Recipe recipe,Integer organId, String userAccount, String caPassword) {
-        LOGGER.info("ShanxiCAImpl commonCASignAndSeal start requestSealTO={},organId={},userAccount={},caPassword={}", JSONUtils.toString(requestSealTO), organId, userAccount, caPassword);
+        LOGGER.info("ShanxiCAImpl commonCASignAndSeal start requestSealTO={},recipeId={},organId={},userAccount={},caPassword={}",
+                JSONUtils.toString(requestSealTO), recipe.getRecipeId(),organId, userAccount, caPassword);
         CaSignResultVo signResultVo = new CaSignResultVo();
 
         try {
@@ -152,9 +152,10 @@ public class ShanxiCAImpl implements CAInterface {
             signResultVo.setPdfBase64(responseSealTO.getPdfBase64File());
             signResultVo.setCode(200);
         } catch (Exception e){
-            LOGGER.error("ShanxiCAImpl commonCASignAndSeal 调用前置机失败 requestTO={}", requestSealTO.toString());
+            LOGGER.error("ShanxiCAImpl commonCASignAndSeal 调用前置机失败 requestTO={}", requestSealTO.toString(),e);
             e.printStackTrace();
         }
+        LOGGER.info("ShanxiCAImpl commonCASignAndSeal end recipeId={},params: {}", recipe.getRecipeId(),JSONUtils.toString(signResultVo));
         return signResultVo;
     }
 

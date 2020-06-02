@@ -3,9 +3,6 @@ package recipe.ca.impl;
 
 import com.ngari.his.ca.model.*;
 import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.dto.DoctorExtendDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.DoctorExtendService;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.recipe.entity.Recipe;
 import ctd.util.AppContextHolder;
@@ -63,8 +60,8 @@ public class ShanghaiCAImpl implements CAInterface {
      */
     @RpcService
     public CaSignResultVo commonCASignAndSeal(CaSealRequestTO requestSealTO, Recipe recipe, Integer organId, String userAccount, String caPassword) {
-        LOGGER.info("shanghaiCA commonCASignAndSeal start requestSealTO={},organId={},userAccount={},caPassword={}",
-                JSONUtils.toString(requestSealTO), organId, userAccount, caPassword);
+        LOGGER.info("shanghaiCA commonCASignAndSeal start requestSealTO={},recipeId={},organId={},userAccount={},caPassword={}",
+                JSONUtils.toString(requestSealTO), recipe.getRecipeId(),organId, userAccount, caPassword);
         CaSignResultVo signResultVo = new CaSignResultVo();
         try {
             DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
@@ -116,11 +113,11 @@ public class ShanghaiCAImpl implements CAInterface {
             }
             signResultVo.setPdfBase64(responseSealTO.getPdfBase64File());
         } catch (Exception e){
-            LOGGER.error("shanghaiCA commonCASignAndSeal 调用前置机失败 requestSealTO={},organId={},userAccount={},caPassword={}",
-                    JSONUtils.toString(requestSealTO), organId, userAccount, caPassword);
+            LOGGER.error("ShanghaiCAImpl commonCASignAndSeal 调用前置机失败 requestSealTO={},recipeId={},organId={},userAccount={},caPassword={}",
+                    JSONUtils.toString(requestSealTO), recipe.getRecipeId(),organId, userAccount, caPassword);
             LOGGER.error("commonCASignAndSeal Exception", e);
         }
-        LOGGER.info("commonCASignAndSeal params: {}", JSONUtils.toString(signResultVo));
+        LOGGER.info("shanghaiCA commonCASignAndSeal end recipeId={},params: {}", recipe.getRecipeId(),JSONUtils.toString(signResultVo));
         return signResultVo;
     }
 }
