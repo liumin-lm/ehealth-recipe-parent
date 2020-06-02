@@ -47,7 +47,6 @@ import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
-import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -732,10 +731,10 @@ public class RecipeService extends RecipeBaseService {
                 String recipeFileId = MapValueUtil.getString(backMap, "fileId");
                 bl = recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.<String, Object>of("chemistSignFile", recipeFileId));
             } else if (Integer.valueOf(2).equals(code)) {
-                LOGGER.info("reviewRecipe 签名成功. 高州CA模式, recipeId={}", recipe.getRecipeId());
+                LOGGER.info("reviewRecipe 签名成功. 高州CA模式-全SDK对接模式, recipeId={}", recipe.getRecipeId());
                 bl = true;
             } else if (Integer.valueOf(100).equals(code)) {
-                LOGGER.info("reviewRecipe 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
+                LOGGER.info("reviewRecipe 签名成功. 标准对接CA模式-全后台对接模式, recipeId={}", recipe.getRecipeId());
                 try {
                     String loginId = MapValueUtil.getString(backMap, "loginId");
                     Integer organId = recipe.getClinicOrgan();

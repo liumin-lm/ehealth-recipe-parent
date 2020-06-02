@@ -317,8 +317,10 @@ public class HisRecipeService {
                         detail.setUseDays(recipeDetailTO.getUseDays());
                         detail.setUseDaysB(recipeDetailTO.getUseDays().toString());
                         detail.setDrugCode(recipeDetailTO.getDrugCode());
-//                        detail.setUsingRateText(recipeDetailTO.getUsingRateText());
-//                        detail.setUsePathwaysText(recipeDetailTO.getUsePathwaysText());
+                        detail.setUsingRateText(recipeDetailTO.getUsingRateText());
+                        detail.setUsePathwaysText(recipeDetailTO.getUsePathwaysText());
+                        detail.setUseDose(recipeDetailTO.getUseDose());
+                        detail.setUseDoseUnit(recipeDetailTO.getUseDoseUnit());
                         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
                         if (StringUtils.isNotEmpty(detail.getRecipeDeatilCode())) {
                             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(detail.getDrugCode()));
@@ -504,7 +506,8 @@ public class HisRecipeService {
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(hisRecipeDetail.getDrugCode()));
             Recipedetail recipedetail = new Recipedetail();
             recipedetail.setRecipeId(recipeId);
-
+            recipedetail.setUseDose(StringUtils.isEmpty(hisRecipeDetail.getUseDose())?null:Double.valueOf(hisRecipeDetail.getUseDose()));
+            recipedetail.setUseDoseUnit(hisRecipeDetail.getUseDoseUnit());
             if (StringUtils.isNotEmpty(hisRecipeDetail.getUseDose())) {
                 recipedetail.setUseDose(Double.parseDouble(hisRecipeDetail.getUseDose()));
             }
@@ -518,11 +521,11 @@ public class HisRecipeService {
                 recipedetail.setUsingRate(organDrugLists.get(0).getUsingRate());
                 recipedetail.setUsePathways(organDrugLists.get(0).getUsePathways());
                 recipedetail.setSalePrice(organDrugLists.get(0).getSalePrice());
-                recipedetail.setUseDose(organDrugLists.get(0).getUseDose());
+                if(StringUtils.isEmpty(recipedetail.getUseDoseUnit()))  recipedetail.setUseDoseUnit(organDrugLists.get(0).getUseDoseUnit());
+                if(recipedetail.getUseDose()==null)                     recipedetail.setUseDose(organDrugLists.get(0).getUseDose());
             }
             recipedetail.setUsingRateTextFromHis(hisRecipeDetail.getUsingRateText());
             recipedetail.setUsePathwaysTextFromHis(hisRecipeDetail.getUsePathwaysText());
-
             if (hisRecipeDetail.getUseTotalDose() != null) {
                 recipedetail.setUseTotalDose(hisRecipeDetail.getUseTotalDose().doubleValue());
             }

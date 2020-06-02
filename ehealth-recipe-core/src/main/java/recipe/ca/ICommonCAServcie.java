@@ -33,7 +33,7 @@ public interface ICommonCAServcie {
 
 
     /**
-     * CA签章接口
+     * CA签章接口-上传电子手签图片
      * @param requestTO
      * @return
      */
@@ -49,7 +49,7 @@ public interface ICommonCAServcie {
     CaSignResponseTO caSignBusiness(CaSignRequestTO requestTO);
 
     /**
-     * CA电子签章接口
+     * CA电子签章接口-业务数据添加签章
      * @param requestTO
      * @return
      */
