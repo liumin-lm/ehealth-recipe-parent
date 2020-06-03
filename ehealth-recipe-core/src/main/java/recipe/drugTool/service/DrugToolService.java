@@ -467,10 +467,10 @@ public class DrugToolService implements IDrugToolService {
             result.put("code", 609);
             result.put("msg", errDrugListMatchList);
             importDrugRecord.setErrMsg(JSONUtils.toString(errDrugListMatchList));
+            importDrugRecordDAO.save(importDrugRecord);
             return result;
         }
         importDrugRecordDAO.save(importDrugRecord);
-
 
         result.put("addNum",addNum);
         result.put("updateNum",updateNum);
