@@ -751,6 +751,18 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
     @DAOMethod(sql = "from DrugList where drugId in (:drugIds)",limit = 0)
     public abstract List<DrugList> findByDrugIdsWithOutStatus(@DAOParam("drugIds")List<Integer> drugIds);
 
-    @DAOMethod(sql = "from DrugList where drugId=:drugId and status=1")
-    public abstract DrugList findValidByDrugId(@DAOParam("drugId") Integer drugId);
+    public DrugList findValidByDrugId(Integer drugId){
+        HibernateStatelessResultAction<DrugList> action = new AbstractHibernateStatelessResultAction<DrugList>() {
+            @Override
+            public void execute(StatelessSession ss) throws DAOException {
+                StringBuilder hql = new StringBuilder("from DrugList where drugId=:drugId and status=1");
+                Query q = ss.createQuery(hql.toString());
+                q.setParameter("drugId", drugId);
+                DrugList drugList = (DrugList) q.uniqueResult();
+                setResult(drugList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }
