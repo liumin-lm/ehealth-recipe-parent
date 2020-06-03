@@ -25,6 +25,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.base.constant.ErrorCode;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -253,6 +254,7 @@ public class HisRecipeService {
                 hisRecipe.setRecipeFee(queryHisRecipResTO.getRecipeFee());
                 hisRecipe.setRecipeType(queryHisRecipResTO.getRecipeType());
                 hisRecipe.setClinicOrgan(queryHisRecipResTO.getClinicOrgan());
+                hisRecipe.setCreateTime(new Date());
                 if(!StringUtils.isEmpty(queryHisRecipResTO.getDiseaseName())){
                     hisRecipe.setDiseaseName(queryHisRecipResTO.getDiseaseName());
                 }else {
@@ -457,10 +459,14 @@ public class HisRecipeService {
         EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
         if (StringUtils.isNotEmpty(hisRecipe.getDoctorCode())) {
             EmploymentDTO employmentDTO = employmentService.getByJobNumberAndOrganId(hisRecipe.getDoctorCode(), hisRecipe.getClinicOrgan());
-            if (employmentDTO != null) {
+            if (employmentDTO != null && employmentDTO.getDoctorId() != null) {
                 recipe.setDoctor(employmentDTO.getDoctorId());
+            } else {
+                LOGGER.error("请确认医院的医生工号和纳里维护的是否一致:" + hisRecipe.getDoctorCode());
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "请将医院的医生工号和纳里维护的医生工号保持一致");
             }
         }
+
         recipe.setDoctorName(hisRecipe.getDoctorName());
         recipe.setCreateDate(hisRecipe.getCreateDate());
         recipe.setSignDate(hisRecipe.getCreateDate());
@@ -504,6 +510,9 @@ public class HisRecipeService {
             LOGGER.info("hisRecipe.getClinicOrgan(): "+hisRecipe.getClinicOrgan()+"");
             LOGGER.info("Arrays.asList(hisRecipeDetail.getDrugCode()):"+hisRecipeDetail.getDrugCode());
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(hisRecipeDetail.getDrugCode()));
+            if (CollectionUtils.isEmpty(organDrugLists)) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "请将医院的药品信息维护到纳里机构药品目录");
+            }
             Recipedetail recipedetail = new Recipedetail();
             recipedetail.setRecipeId(recipeId);
             recipedetail.setUseDose(StringUtils.isEmpty(hisRecipeDetail.getUseDose())?null:Double.valueOf(hisRecipeDetail.getUseDose()));
@@ -511,16 +520,46 @@ public class HisRecipeService {
             if (StringUtils.isNotEmpty(hisRecipeDetail.getUseDose())) {
                 recipedetail.setUseDose(Double.parseDouble(hisRecipeDetail.getUseDose()));
             }
+            if (StringUtils.isNotEmpty(hisRecipeDetail.getDrugSpec())) {
+                recipedetail.setDrugSpec(hisRecipeDetail.getDrugSpec());
+            } else {
+                if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                    recipedetail.setDrugSpec(organDrugLists.get(0).getDrugSpec());
+                }
+            }
+            if (StringUtils.isNotEmpty(hisRecipeDetail.getDrugName())) {
+                recipedetail.setDrugName(hisRecipeDetail.getDrugName());
+            } else {
+                if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                    recipedetail.setDrugName(organDrugLists.get(0).getDrugName());
+                }
+            }
+            if (StringUtils.isNotEmpty(hisRecipeDetail.getDrugUnit())) {
+                recipedetail.setDrugUnit(hisRecipeDetail.getDrugUnit());
+            } else {
+                if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                    recipedetail.setDrugUnit(organDrugLists.get(0).getUnit());
+                }
+            }
+            if (hisRecipeDetail.getPack() != null) {
+                recipedetail.setPack(hisRecipeDetail.getPack());
+            } else {
+                if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                    recipedetail.setPack(organDrugLists.get(0).getPack());
+                }
+            }
+            if (hisRecipeDetail.getPrice() != null) {
+                recipedetail.setSalePrice(hisRecipeDetail.getPrice());
+            } else {
+                if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                    recipedetail.setSalePrice(organDrugLists.get(0).getSalePrice());
+                }
+            }
             if (CollectionUtils.isNotEmpty(organDrugLists)) {
                 recipedetail.setDrugId(organDrugLists.get(0).getDrugId());
-                recipedetail.setDrugName(organDrugLists.get(0).getDrugName());
-                recipedetail.setDrugSpec(organDrugLists.get(0).getDrugSpec());
-                recipedetail.setDrugUnit(organDrugLists.get(0).getUnit());
-                recipedetail.setPack(organDrugLists.get(0).getPack());
                 recipedetail.setOrganDrugCode(hisRecipeDetail.getDrugCode());
                 recipedetail.setUsingRate(organDrugLists.get(0).getUsingRate());
                 recipedetail.setUsePathways(organDrugLists.get(0).getUsePathways());
-                recipedetail.setSalePrice(organDrugLists.get(0).getSalePrice());
                 if(StringUtils.isEmpty(recipedetail.getUseDoseUnit()))  recipedetail.setUseDoseUnit(organDrugLists.get(0).getUseDoseUnit());
                 if(recipedetail.getUseDose()==null)                     recipedetail.setUseDose(organDrugLists.get(0).getUseDose());
             }
