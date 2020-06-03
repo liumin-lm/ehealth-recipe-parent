@@ -254,6 +254,7 @@ public class HisRecipeService {
                 hisRecipe.setRecipeFee(queryHisRecipResTO.getRecipeFee());
                 hisRecipe.setRecipeType(queryHisRecipResTO.getRecipeType());
                 hisRecipe.setClinicOrgan(queryHisRecipResTO.getClinicOrgan());
+                hisRecipe.setCreateTime(new Date());
                 if(!StringUtils.isEmpty(queryHisRecipResTO.getDiseaseName())){
                     hisRecipe.setDiseaseName(queryHisRecipResTO.getDiseaseName());
                 }else {
@@ -464,7 +465,7 @@ public class HisRecipeService {
                 }
             }
         }catch(Exception e){
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "没有查找到医生工号"+hisRecipe.getDoctorCode());
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "没有查找到医生工号,请确认医院的医生工号和纳里维护的是否一致");
         }
 
         recipe.setDoctorName(hisRecipe.getDoctorName());

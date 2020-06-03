@@ -93,6 +93,8 @@ public class HisRecipe implements Serializable {
     private String orderStatusText;
     @ItemProperty(alias = "处方来源")
     private Integer fromFlag;
+    @ItemProperty(alias = "插入时间")
+    private Date createTime;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -400,6 +402,15 @@ public class HisRecipe implements Serializable {
 
     public void setTotalAmount(BigDecimal totalAmount) {
         this.totalAmount = totalAmount;
+    }
+
+    @Column(name = "createTime")
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
     }
 
     @Transient
