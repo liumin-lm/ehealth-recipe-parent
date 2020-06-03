@@ -289,7 +289,7 @@ public class OrganDrugListService implements IOrganDrugListService {
             req.setNotifyTime(System.currentTimeMillis()-1000);
             req.setOrganId(saveOrganDrugList.getOrganId());
             iRegulationService.notifyData(saveOrganDrugList.getOrganId(),req);
-            busActionLogService.recordBusinessLogRpcNew("机构药品管理","","OrganDrugList","【"+organDTO.getMinkeUnitCretditCode()+"】更新药品【"+saveOrganDrugList.getOrganDrugId()+"-"+saveOrganDrugList.getDrugName()+"】",organDTO.getName());
+            busActionLogService.recordBusinessLogRpcNew("机构药品管理","","OrganDrugList","【"+organDTO.getMinkeUnitCretditCode()+"】新增药品【"+saveOrganDrugList.getOrganDrugId()+"-"+saveOrganDrugList.getDrugName()+"】",organDTO.getName());
             return ObjectCopyUtils.convert(saveOrganDrugList, OrganDrugListDTO.class);
         } else {
             logger.info("修改机构药品服务[updateOrganDrugList]:" + JSONUtils.toString(organDrugList));
@@ -317,7 +317,7 @@ public class OrganDrugListService implements IOrganDrugListService {
                 validateOrganDrugList(target);
                 target = organDrugListDAO.update(target);
                 uploadOrganDrugListToJg(target);
-                busActionLogService.recordBusinessLogRpcNew("机构药品管理","","OrganDrugList","【"+organDTO.getMinkeUnitCretditCode()+"】新增药品【"+target.getOrganDrugId()+"-"+target.getDrugName()+"】",organDTO.getName());
+                busActionLogService.recordBusinessLogRpcNew("机构药品管理","","OrganDrugList","【"+organDTO.getMinkeUnitCretditCode()+"】更新药品【"+target.getOrganDrugId()+"-"+target.getDrugName()+"】",organDTO.getName());
             }
             RegulationNotifyDataReq req = new RegulationNotifyDataReq();
             req.setBussType("drug");
