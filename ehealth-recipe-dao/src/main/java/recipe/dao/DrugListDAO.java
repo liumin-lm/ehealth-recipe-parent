@@ -750,4 +750,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
 
     @DAOMethod(sql = "from DrugList where drugId in (:drugIds)",limit = 0)
     public abstract List<DrugList> findByDrugIdsWithOutStatus(@DAOParam("drugIds")List<Integer> drugIds);
+
+    @DAOMethod(sql = "from DrugList where drugId=:drugId and status=1")
+    public abstract DrugList findValidByDrugId(@DAOParam("drugId") Integer drugId);
 }

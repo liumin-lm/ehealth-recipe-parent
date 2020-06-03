@@ -484,7 +484,7 @@ public class DrugToolService implements IDrugToolService {
         String addrArea = null;
         ProvinceDrugList provinceDrugList = null;
         if (StringUtils.isNotEmpty(drug.getRegulationDrugCode()) || drug.getPlatformDrugId() != null) {
-            drugList = drugListDAO.get(drug.getPlatformDrugId());
+            drugList = drugListDAO.findValidByDrugId(drug.getPlatformDrugId());
             // 如果该机构有省平台关联的话
             if (checkOrganRegulation(drug.getSourceOrgan()) && isHaveReulationId(drug.getSourceOrgan())) {
                 addrArea = checkOrganAddrArea(drug.getSourceOrgan());
