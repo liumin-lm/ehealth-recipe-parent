@@ -87,6 +87,12 @@ public class SaleDrugListService implements ISaleDrugListService {
         if (!drugListDAO.exist(saleDrugList.getDrugId())) {
             throw new DAOException(DAOException.VALUE_NEEDED, "DrugList not exist");
         }
+
+        SaleDrugList saleDrug = dao.getByOrganIdAndDrugId(saleDrugList.getOrganId(),saleDrugList.getDrugId());
+        if (saleDrug != null){
+            throw new DAOException( "添加重复");
+        }
+
         DrugList drugList = drugListDAO.get(saleDrugList.getDrugId());
         if (drugList == null){
             drugList = new DrugList();
