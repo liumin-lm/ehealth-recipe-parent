@@ -459,7 +459,7 @@ public class HisRecipeService {
         EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
         if (StringUtils.isNotEmpty(hisRecipe.getDoctorCode())) {
             EmploymentDTO employmentDTO = employmentService.getByJobNumberAndOrganId(hisRecipe.getDoctorCode(), hisRecipe.getClinicOrgan());
-            if (employmentDTO != null) {
+            if (employmentDTO != null && employmentDTO.getDoctorId() != null) {
                 recipe.setDoctor(employmentDTO.getDoctorId());
             } else {
                 LOGGER.error("请确认医院的医生工号和纳里维护的是否一致:" + hisRecipe.getDoctorCode());
