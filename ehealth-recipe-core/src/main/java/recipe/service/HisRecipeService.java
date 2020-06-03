@@ -464,7 +464,7 @@ public class HisRecipeService {
             } else {
                 LOGGER.error("请确认医院的医生工号和纳里维护的是否一致:" + hisRecipe.getDoctorCode());
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "请将医院的医生工号和纳里维护的医生工号保持一致");
-            } 
+            }
         }
 
         recipe.setDoctorName(hisRecipe.getDoctorName());
