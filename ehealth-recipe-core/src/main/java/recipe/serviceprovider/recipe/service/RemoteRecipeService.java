@@ -947,7 +947,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         ThirdEnterpriseCallService callService = ApplicationUtils.getRecipeService(ThirdEnterpriseCallService.class, "takeDrugService");
         ThirdResultBean thirdResultBean = new ThirdResultBean();
         recipe.bean.ThirdResultBean resultBean = callService.readyToSend(paramMap);
+        LOGGER.info("readyToSend resultBean:{}", JSONUtils.toString(resultBean));
         getResultMsg(thirdResultBean, resultBean);
+        LOGGER.info("readyToSend thirdResultBean:{}", JSONUtils.toString(thirdResultBean));
         return thirdResultBean;
     }
 
@@ -957,7 +959,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         ThirdEnterpriseCallService callService = ApplicationUtils.getRecipeService(ThirdEnterpriseCallService.class, "takeDrugService");
         ThirdResultBean thirdResultBean = new ThirdResultBean();
         recipe.bean.ThirdResultBean resultBean = callService.toSend(paramMap);
+        LOGGER.info("readyToSend resultBean:{}", JSONUtils.toString(resultBean));
         getResultMsg(thirdResultBean, resultBean);
+        LOGGER.info("readyToSend thirdResultBean:{}", JSONUtils.toString(thirdResultBean));
         return thirdResultBean;
     }
 
@@ -967,7 +971,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         ThirdEnterpriseCallService callService = ApplicationUtils.getRecipeService(ThirdEnterpriseCallService.class, "takeDrugService");
         ThirdResultBean thirdResultBean = new ThirdResultBean();
         recipe.bean.ThirdResultBean resultBean = callService.finishRecipe(paramMap);
+        LOGGER.info("readyToSend resultBean:{}", JSONUtils.toString(resultBean));
         getResultMsg(thirdResultBean, resultBean);
+        LOGGER.info("readyToSend thirdResultBean:{}", JSONUtils.toString(thirdResultBean));
         return thirdResultBean;
     }
 
