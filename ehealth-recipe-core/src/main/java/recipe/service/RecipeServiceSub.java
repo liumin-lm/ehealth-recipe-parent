@@ -277,7 +277,17 @@ public class RecipeServiceSub {
 
         if (CollectionUtils.isNotEmpty(drugIds)) {
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-
+            DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+            //判断平台基础库药品是否删除
+            List<DrugList> drugLists = drugListDAO.findByDrugIdsforDel(drugIds);
+            if (CollectionUtils.isNotEmpty(drugLists)){
+                List<String> delDrugName = Lists.newArrayList();
+                for (DrugList drugList :drugLists){
+                    delDrugName.add(drugList.getDrugName());
+                }
+                String errorDrugName = Joiner.on(",").join(delDrugName);
+                throw new DAOException(ErrorCode.SERVICE_ERROR, errorDrugName + "药品已被删除，请重新选择药品");
+            }
             //是否为老的药品兼容方式，老的药品传入方式没有organDrugCode
             boolean oldFlag = organDrugCodes.isEmpty() ? true : false;
             Map<String, OrganDrugList> organDrugListMap = Maps.newHashMap();
