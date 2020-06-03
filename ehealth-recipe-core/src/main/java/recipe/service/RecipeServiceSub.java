@@ -285,8 +285,10 @@ public class RecipeServiceSub {
                 for (DrugList drugList :drugLists){
                     delDrugName.add(drugList.getDrugName());
                 }
-                String errorDrugName = Joiner.on(",").join(delDrugName);
-                throw new DAOException(ErrorCode.SERVICE_ERROR, errorDrugName + "药品已失效，请重新选择药品");
+                if (CollectionUtils.isNotEmpty(delDrugName)){
+                    String errorDrugName = Joiner.on(",").join(delDrugName);
+                    throw new DAOException(ErrorCode.SERVICE_ERROR, errorDrugName + "药品已失效，请重新选择药品");
+                }
             }
             //是否为老的药品兼容方式，老的药品传入方式没有organDrugCode
             boolean oldFlag = organDrugCodes.isEmpty() ? true : false;
@@ -340,6 +342,7 @@ public class RecipeServiceSub {
 
 
                 OrganDrugList organDrug;
+                List<String> delOrganDrugName = Lists.newArrayList();
                 for (Recipedetail detail : recipedetails) {
                     //设置药品基础数据
                     if(oldFlag){
@@ -401,7 +404,12 @@ public class RecipeServiceSub {
                                 .divide(BigDecimal.ONE, 3, RoundingMode.UP);
                         detail.setDrugCost(drugCost);
                         totalMoney = totalMoney.add(drugCost);
+                    }else {
+                        if (StringUtils.isNotEmpty(organDrug.getDrugName())){
+                            delOrganDrugName.add(organDrug.getDrugName());
+                        }
                     }
+
                     //date 202000601
                     //设置处方用药天数字符类型
                     if(StringUtils.isEmpty(detail.getUseDaysB())){
@@ -410,9 +418,14 @@ public class RecipeServiceSub {
 
                     }
                 }
+                if (CollectionUtils.isNotEmpty(delOrganDrugName)){
+                    String errorDrugName = Joiner.on(",").join(delOrganDrugName);
+                    throw new DAOException(ErrorCode.SERVICE_ERROR, errorDrugName + "药品已失效，请重新选择药品");
+                }
                 success = true;
             } else {
                 LOGGER.warn("setDetailsInfo organDrugList. recipeId=[{}], drugIds={}", recipe.getRecipeId(), JSONUtils.toString(drugIds));
+                throw new DAOException("药品已失效，请重新选择药品");
             }
         } else {
             LOGGER.warn("setDetailsInfo 详情里没有药品ID. recipeId=[{}]", recipe.getRecipeId());
