@@ -1,4 +1,3 @@
-
 package recipe.ca.impl;
 
 import com.ngari.his.ca.model.*;
@@ -74,7 +73,6 @@ public class ShanghaiCAImpl implements CAInterface {
             //电子签名
             CaSignRequestTO caSignRequestTO = new CaSignRequestTO();
             caSignRequestTO.setCretMsg(null);
-            caSignRequestTO.setJobnumber(doctorDTO.getJobNumber());
             caSignRequestTO.setOrganId(organId);
             if (!CollectionUtils.isEmpty(jobNumbers)) {
                 caSignRequestTO.setJobnumber(jobNumbers.get(0));
