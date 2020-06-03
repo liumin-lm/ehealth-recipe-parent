@@ -106,7 +106,6 @@ public class ShanghaiCAImpl implements CAInterface {
             // 电子签章
             requestSealTO.setOrganId(organId);
             requestSealTO.setUserPin(caPassword);
-            requestSealTO.setJobnumber(doctorDTO.getJobNumber());
             requestSealTO.setUserAccount(userAccount);
             requestSealTO.setDoctorType(null == recipe.getChecker() ? "0" : "1");
             requestSealTO.setSignMsg(JSONUtils.toString(recipe));
