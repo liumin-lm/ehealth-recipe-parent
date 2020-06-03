@@ -286,7 +286,7 @@ public class RecipeServiceSub {
                     delDrugName.add(drugList.getDrugName());
                 }
                 String errorDrugName = Joiner.on(",").join(delDrugName);
-                throw new DAOException(ErrorCode.SERVICE_ERROR, errorDrugName + "药品已被删除，请重新选择药品");
+                throw new DAOException(ErrorCode.SERVICE_ERROR, errorDrugName + "药品已失效，请重新选择药品");
             }
             //是否为老的药品兼容方式，老的药品传入方式没有organDrugCode
             boolean oldFlag = organDrugCodes.isEmpty() ? true : false;
