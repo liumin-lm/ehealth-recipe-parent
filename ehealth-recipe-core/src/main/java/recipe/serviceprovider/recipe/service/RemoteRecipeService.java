@@ -932,6 +932,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public DrugsEnterpriseBean getDrugsEnterpriseBeanById(Integer depId){
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+        LOGGER.info("getDrugsEnterpriseBeanById:{}.", JSONUtils.toString(drugsEnterprise));
         return ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class);
     }
 
