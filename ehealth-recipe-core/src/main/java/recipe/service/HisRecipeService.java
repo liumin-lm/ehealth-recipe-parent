@@ -323,18 +323,12 @@ public class HisRecipeService {
                         detail.setUsePathwaysText(recipeDetailTO.getUsePathwaysText());
                         detail.setUseDose(recipeDetailTO.getUseDose());
                         detail.setUseDoseUnit(recipeDetailTO.getUseDoseUnit());
+                        detail.setSaleName(recipeDetailTO.getSaleName());
+                        detail.setPack(recipeDetailTO.getPack());
                         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
                         if (StringUtils.isNotEmpty(detail.getRecipeDeatilCode())) {
                             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(detail.getDrugCode()));
-                            if (CollectionUtils.isNotEmpty(organDrugLists)) {
-                                OrganDrugList organDrugList = organDrugLists.get(0);
-                                detail.setDrugName(organDrugList.getDrugName());
-                                detail.setSaleName(organDrugList.getSaleName());
-                                detail.setPack(organDrugList.getPack());
-                                detail.setPrice(organDrugList.getSalePrice());
-                                detail.setUsingRate(organDrugList.getUsingRate());
-                                detail.setUsePathways(organDrugList.getUsePathways());
-                            } else {
+                            if (CollectionUtils.isEmpty(organDrugLists)) {
                                 LOGGER.info("saveHisRecipeInfo organDrugLists his传过来的药品编码没有在对应机构维护,organId:"+hisRecipe.getClinicOrgan()+",organDrugCode:" + detail.getDrugCode());
                             }
                         }
