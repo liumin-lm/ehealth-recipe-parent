@@ -466,6 +466,9 @@ public class DrugToolService implements IDrugToolService {
         if (errDrugListMatchList.size() > 0) {
             result.put("code", 609);
             result.put("msg", errDrugListMatchList);
+            result.put("addNum",addNum);
+            result.put("updateNum",updateNum);
+            result.put("failNum",failNum);
             importDrugRecord.setErrMsg(JSONUtils.toString(errDrugListMatchList));
             importDrugRecordDAO.save(importDrugRecord);
             return result;
