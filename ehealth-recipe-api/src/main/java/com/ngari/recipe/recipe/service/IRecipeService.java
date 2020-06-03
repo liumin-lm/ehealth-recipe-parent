@@ -7,6 +7,9 @@ import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
+import com.ngari.recipe.drugsenterprise.model.ReadjustDrugDTO;
+import com.ngari.recipe.drugsenterprise.model.StandardResultBean;
+import com.ngari.recipe.drugsenterprise.model.ThirdResultBean;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
@@ -421,4 +424,28 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     Boolean saveSignRecipePDF(CaSignResultTo caSignResultTo);
+
+    @RpcService
+    ThirdResultBean readyToSend(Map<String, Object> paramMap);
+
+    @RpcService
+    ThirdResultBean toSend(Map<String, Object> paramMap);
+
+    @RpcService
+    ThirdResultBean finishRecipe(Map<String, Object> paramMap);
+
+    @RpcService
+    StandardResultBean downLoadRecipes(Map<String,Object> parames);
+
+    @RpcService
+    StandardResultBean  recipeDownloadConfirmation(String appKey, List<Integer> recipeIds);
+
+    @RpcService
+    StandardResultBean  synchronizeInventory(Map<String, Object> parames);
+
+    @RpcService
+    ThirdResultBean recordDrugStoreResult(Map<String, Object> paramMap);
+
+    @RpcService
+    List<StandardResultBean> readjustDrugPrice(List<ReadjustDrugDTO> readjustDrugDTOS);
 }

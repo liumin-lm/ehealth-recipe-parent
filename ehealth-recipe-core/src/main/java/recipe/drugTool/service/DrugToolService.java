@@ -245,6 +245,7 @@ public class DrugToolService implements IDrugToolService {
         List<String> errDrugListMatchList = Lists.newArrayList();
         Integer addNum = 0;
         Integer updateNum = 0;
+        Integer failNum = 0;
         for (int rowIndex = 0; rowIndex <= total; rowIndex++) {
             //循环获得每个行
             row = sheet.getRow(rowIndex);
@@ -433,6 +434,7 @@ public class DrugToolService implements IDrugToolService {
                 int showNum = rowIndex + 1;
                 String error = ("【第" + showNum + "行】" + errMsg.substring(0, errMsg.length() - 1));
                 errDrugListMatchList.add(error);
+                failNum++;
             } else {
                 try {
                     AutoMatch(drug);
@@ -459,16 +461,16 @@ public class DrugToolService implements IDrugToolService {
         importDrugRecord.setOrganId(organId);
         importDrugRecord.setAddNum(addNum);
         importDrugRecord.setUpdateNum(updateNum);
-        importDrugRecord.setFailNum(total-addNum-updateNum);
+        importDrugRecord.setFailNum(failNum);
         importDrugRecord.setImportOperator(operator);
         if (errDrugListMatchList.size() > 0) {
             result.put("code", 609);
             result.put("msg", errDrugListMatchList);
             importDrugRecord.setErrMsg(JSONUtils.toString(errDrugListMatchList));
+            importDrugRecordDAO.save(importDrugRecord);
             return result;
         }
         importDrugRecordDAO.save(importDrugRecord);
-
 
         result.put("addNum",addNum);
         result.put("updateNum",updateNum);
