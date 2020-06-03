@@ -22,13 +22,13 @@ import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.ca.mode.CaSignResultTo;
+import com.ngari.platform.recipe.mode.ReadjustDrugDTO;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
-import com.ngari.recipe.drugsenterprise.model.ReadjustDrugDTO;
 import com.ngari.recipe.drugsenterprise.model.StandardResultBean;
 import com.ngari.recipe.drugsenterprise.model.ThirdResultBean;
 import com.ngari.recipe.entity.*;
@@ -945,21 +945,30 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public ThirdResultBean readyToSend(Map<String, Object> paramMap) {
         LOGGER.info("readyToSend:{}", JSONUtils.toString(paramMap));
         ThirdEnterpriseCallService callService = ApplicationUtils.getRecipeService(ThirdEnterpriseCallService.class, "takeDrugService");
-        return ObjectCopyUtils.convert(callService.readyToSend(paramMap), ThirdResultBean.class);
+        ThirdResultBean thirdResultBean = new ThirdResultBean();
+        recipe.bean.ThirdResultBean resultBean = callService.readyToSend(paramMap);
+        getResultMsg(thirdResultBean, resultBean);
+        return thirdResultBean;
     }
 
     @Override
     public ThirdResultBean toSend(Map<String, Object> paramMap) {
         LOGGER.info("toSend:{}", JSONUtils.toString(paramMap));
         ThirdEnterpriseCallService callService = ApplicationUtils.getRecipeService(ThirdEnterpriseCallService.class, "takeDrugService");
-        return ObjectCopyUtils.convert(callService.toSend(paramMap), ThirdResultBean.class);
+        ThirdResultBean thirdResultBean = new ThirdResultBean();
+        recipe.bean.ThirdResultBean resultBean = callService.toSend(paramMap);
+        getResultMsg(thirdResultBean, resultBean);
+        return thirdResultBean;
     }
 
     @Override
     public ThirdResultBean finishRecipe(Map<String, Object> paramMap) {
         LOGGER.info("finishRecipe:{}", JSONUtils.toString(paramMap));
         ThirdEnterpriseCallService callService = ApplicationUtils.getRecipeService(ThirdEnterpriseCallService.class, "takeDrugService");
-        return ObjectCopyUtils.convert(callService.finishRecipe(paramMap), ThirdResultBean.class);
+        ThirdResultBean thirdResultBean = new ThirdResultBean();
+        recipe.bean.ThirdResultBean resultBean = callService.finishRecipe(paramMap);
+        getResultMsg(thirdResultBean, resultBean);
+        return thirdResultBean;
     }
 
     @Override
@@ -987,14 +996,23 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public ThirdResultBean recordDrugStoreResult(Map<String, Object> paramMap) {
         LOGGER.info("recordDrugStoreResult:{}.", JSONUtils.toString(paramMap));
         ThirdEnterpriseCallService callService = ApplicationUtils.getRecipeService(ThirdEnterpriseCallService.class, "takeDrugService");
-        return ObjectCopyUtils.convert(callService.recordDrugStoreResult(paramMap), ThirdResultBean.class);
+        ThirdResultBean thirdResultBean = new ThirdResultBean();
+        recipe.bean.ThirdResultBean resultBean = callService.recordDrugStoreResult(paramMap);
+        getResultMsg(thirdResultBean, resultBean);
+        return thirdResultBean;
     }
 
     @Override
     public List<StandardResultBean> readjustDrugPrice(List<ReadjustDrugDTO> readjustDrugDTOS) {
         LOGGER.info("readjustDrugPrice:{}.", JSONUtils.toString(readjustDrugDTOS));
         StandardEnterpriseCallService callService = ApplicationUtils.getRecipeService(StandardEnterpriseCallService.class, "distributionService");
-        return ObjectCopyUtils.convert(callService.readjustDrugPrice(readjustDrugDTOS), StandardResultBean.class);
+        return ObjectCopyUtils.convert(callService.readjustDrugPrice(ObjectCopyUtils.convert(readjustDrugDTOS, com.ngari.recipe.drugsenterprise.model.ReadjustDrugDTO.class)), StandardResultBean.class);
+    }
+
+    private void getResultMsg(ThirdResultBean thirdResultBean, recipe.bean.ThirdResultBean resultBean) {
+        thirdResultBean.setCode(resultBean.getCode());
+        thirdResultBean.setBusId(resultBean.getBusId());
+        thirdResultBean.setMsg(resultBean.getMsg());
     }
 
     @Autowired

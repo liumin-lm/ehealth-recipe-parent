@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
+import recipe.constant.RecipeBussConstant;
 import recipe.dao.PharmacyDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
@@ -90,6 +91,12 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
         if(null == drugsEnterprise){
             LOGGER.warn("判断当前处方{}查询药企不存在，校验失败！", recipeId);
             return DrugEnterpriseResult.getFail();
+        }
+        //date 20200603
+        //这个自建药企的判断限定于平台，互联网的处方设置成有库存
+        if((RecipeBussConstant.RECIPEMODE_ZJJGPT).equals(recipe.getRecipeMode())){
+            LOGGER.warn("判断当前处方{}，当前处方为互联网处方，默认有库存！", recipeId);
+            return DrugEnterpriseResult.getSuccess();
         }
         //1 药企配送 2 医院配送
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
