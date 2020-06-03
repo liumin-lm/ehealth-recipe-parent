@@ -1,39 +1,58 @@
 package com.ngari.recipe.drugsenterprise.model;
 
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.recipe.model.RecipeBean;
 
 public class ThirdResultBean extends RecipeResultBean {
 
-    private RecipeBean recipe;
+    public static final Integer SUCCESS = 1;
 
-    private String recipeCode;
+    public static final Integer FAIL = 0;
 
-    public ThirdResultBean(Integer code) {
-        setCode(code);
+    private Integer code;
+
+    private String msg;
+
+    private Integer busId;
+
+    private String error;
+
+    @Override
+    public Integer getCode() {
+        return code;
     }
 
-    public RecipeBean getRecipe() {
-        return recipe;
+    @Override
+    public void setCode(Integer code) {
+        this.code = code;
     }
 
-    public void setRecipe(RecipeBean recipe) {
-        this.recipe = recipe;
+    @Override
+    public String getMsg() {
+        return msg;
     }
 
-    public String getRecipeCode() {
-        return recipeCode;
+    @Override
+    public void setMsg(String msg) {
+        this.msg = msg;
     }
 
-    public void setRecipeCode(String recipeCode) {
-        this.recipeCode = recipeCode;
+    @Override
+    public Integer getBusId() {
+        return busId;
     }
 
-    public static ThirdResultBean getSuccess() {
-        return new ThirdResultBean(SUCCESS);
+    @Override
+    public void setBusId(Integer busId) {
+        this.busId = busId;
     }
 
-    public static ThirdResultBean getFail() {
-        return new ThirdResultBean(FAIL);
+    @Override
+    public String getError() {
+        return error;
+    }
+
+    @Override
+    public void setError(String error) {
+        this.error = error;
     }
 }
