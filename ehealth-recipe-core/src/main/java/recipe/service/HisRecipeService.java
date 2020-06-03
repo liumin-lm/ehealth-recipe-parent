@@ -456,16 +456,15 @@ public class HisRecipeService {
         recipe.setRecipeCode(hisRecipe.getRecipeCode());
         recipe.setRecipeType(hisRecipe.getRecipeType());
         recipe.setDepart(Integer.parseInt(hisRecipe.getDepartCode()));
-        try{
-            EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
-            if (StringUtils.isNotEmpty(hisRecipe.getDoctorCode())) {
-                EmploymentDTO employmentDTO = employmentService.getByJobNumberAndOrganId(hisRecipe.getDoctorCode(), hisRecipe.getClinicOrgan());
-                if (employmentDTO != null) {
-                    recipe.setDoctor(employmentDTO.getDoctorId());
-                }
-            }
-        }catch(Exception e){
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "请确认医院的医生工号和纳里维护的是否一致");
+        EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
+        if (StringUtils.isNotEmpty(hisRecipe.getDoctorCode())) {
+            EmploymentDTO employmentDTO = employmentService.getByJobNumberAndOrganId(hisRecipe.getDoctorCode(), hisRecipe.getClinicOrgan());
+            if (employmentDTO != null) {
+                recipe.setDoctor(employmentDTO.getDoctorId());
+            } else {
+                LOGGER.error("请确认医院的医生工号和纳里维护的是否一致:" + hisRecipe.getDoctorCode());
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "请将医院的医生工号和纳里维护的医生工号保持一致");
+            } 
         }
 
         recipe.setDoctorName(hisRecipe.getDoctorName());
