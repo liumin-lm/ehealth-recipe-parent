@@ -3,7 +3,9 @@ package recipe.ca.impl;
 
 import com.ngari.his.ca.model.*;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
+import com.ngari.patient.service.EmploymentService;
 import com.ngari.recipe.entity.Recipe;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -11,10 +13,13 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 import recipe.ApplicationUtils;
 import recipe.ca.CAInterface;
 import recipe.ca.ICommonCAServcie;
 import recipe.ca.vo.CaSignResultVo;
+
+import java.util.List;
 
 /**
  * CA标准化对接文档
@@ -64,10 +69,15 @@ public class ShanghaiCAImpl implements CAInterface {
                 JSONUtils.toString(requestSealTO), recipe.getRecipeId(),organId, userAccount, caPassword);
         CaSignResultVo signResultVo = new CaSignResultVo();
         try {
+            EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
+            List<String> jobNumbers = employmentService.findJobNumberByDoctorIdAndOrganId(recipe.getDoctor(), recipe.getClinicOrgan());
             //电子签名
             CaSignRequestTO caSignRequestTO = new CaSignRequestTO();
             caSignRequestTO.setCretMsg(null);
             caSignRequestTO.setOrganId(organId);
+            if (!CollectionUtils.isEmpty(jobNumbers)) {
+                caSignRequestTO.setJobnumber(jobNumbers.get(0));
+            }
             caSignRequestTO.setSignMsg(JSONUtils.toString(recipe));
             caSignRequestTO.setUserAccount(userAccount);
             CaSignResponseTO responseTO = iCommonCAServcie.caSignBusiness(caSignRequestTO);
@@ -99,6 +109,9 @@ public class ShanghaiCAImpl implements CAInterface {
             requestSealTO.setUserPin(caPassword);
             requestSealTO.setUserAccount(userAccount);
             requestSealTO.setSignMsg(JSONUtils.toString(recipe));
+            if (!CollectionUtils.isEmpty(jobNumbers)) {
+                requestSealTO.setJobnumber(jobNumbers.get(0));
+            }
             CaSealResponseTO responseSealTO = iCommonCAServcie.caSealBusiness(requestSealTO);
 
             if (responseSealTO == null || (responseSealTO.getCode() != 200
