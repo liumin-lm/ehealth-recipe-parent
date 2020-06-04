@@ -71,6 +71,7 @@ import recipe.audit.bean.PAWebMedicines;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.ca.CAInterface;
@@ -1174,6 +1175,11 @@ public class RecipeService extends RecipeBaseService {
             recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMap);
             memo = "签名上传文件成功, fileId=" + recipeFileId;
             LOGGER.info("generateRecipePdfAndSign 签名成功. fileId={}, recipeId={}", recipeFileId, recipe.getRecipeId());
+            //个性化医院处方笺生成条形码
+            Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_BARCODEFORRECIPE_ORGAN_LIST);
+            if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(String.valueOf(recipe.getClinicOrgan()))){
+                RecipeBusiThreadPool.execute(()->generateBarCodeForRecipePdfAndSwap(recipeId,recipeFileId,recipe.getRecipeCode()));
+            }
         } else if (Integer.valueOf(2).equals(code)) {
             memo = "签名成功,高州CA方式";
             LOGGER.info("generateRecipePdfAndSign 签名成功. 高州CA模式, recipeId={}", recipe.getRecipeId());
@@ -1279,6 +1285,29 @@ public class RecipeService extends RecipeBaseService {
         //日志记录
         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), memo);
         return result;
+    }
+
+    /**
+     * 加@RpcService为了测试
+     * 生成条形码在处方pdf文件上
+     * @param recipeId
+     * @param recipeFileId
+     * @param recipeCode
+     */
+    @RpcService
+    public void generateBarCodeForRecipePdfAndSwap(Integer recipeId,String recipeFileId, String recipeCode) {
+        if (StringUtils.isEmpty(recipeCode) || StringUtils.isEmpty(recipeFileId) ){
+            return;
+        }
+        try {
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            String newPfd = CreateRecipePdfUtil.generateBarCodeInRecipePdf(recipeFileId,recipeCode);
+            if (StringUtils.isNotEmpty(newPfd)){
+                recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("signFile",newPfd));
+            }
+        } catch(Exception e) {
+            LOGGER.error("generateBarCodeForRecipePdfAndSwap error. recipeId={}",recipeId,e);
+        }
     }
 
     //重试二次医生审核通过签名
