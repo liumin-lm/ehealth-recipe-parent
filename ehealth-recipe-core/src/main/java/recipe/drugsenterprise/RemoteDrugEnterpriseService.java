@@ -291,7 +291,7 @@ public class RemoteDrugEnterpriseService {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeIds.get(0));
             List<DepDetailBean> depDetailBeans =  recipeHisService.findSupportDep(recipeIds.get(0), drugsEnterprise.getId(), ext, recipe.getClinicOrgan());
-            result.setObject(depDetailBeans);
+            result.setObject(ObjectCopyUtils.convert(depDetailBeans, com.ngari.recipe.drugsenterprise.model.DepDetailBean.class));
             return result;
         }
         if (CollectionUtils.isNotEmpty(recipeIds) && null != drugsEnterprise) {
