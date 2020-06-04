@@ -2,10 +2,16 @@ package recipe.drugsenterprise;
 
 import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.his.recipe.service.IRecipeHisService;
-import com.ngari.platform.recipe.mode.DepDetailBean;
+import com.ngari.patient.dto.DepartmentDTO;
+import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.*;
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.base.mode.DoctorTO;
+import com.ngari.platform.base.mode.PatientTO;
+import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.drugsenterprise.model.Position;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
@@ -23,6 +29,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.service.common.RecipeCacheService;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +70,8 @@ public class RemoteDrugEnterpriseService {
             IRecipeHisService recipeHisService = AppContextHolder.getBean("his.iRecipeHisService",IRecipeHisService.class);
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-            boolean pushResult = recipeHisService.pushSingleRecipeInfo(recipeId, recipe.getClinicOrgan());
+            PushRecipeAndOrder pushRecipeAndOrder = getPushRecipeAndOrder(recipe, enterprise);
+            boolean pushResult = recipeHisService.pushSingleRecipeInfo(pushRecipeAndOrder);
             if (pushResult) {
                 result.setCode(1);
             } else {
@@ -72,6 +80,44 @@ public class RemoteDrugEnterpriseService {
         }
         LOGGER.info("pushSingleRecipeInfo recipeId:{}, result:{}", recipeId, JSONUtils.toString(result));
         return result;
+    }
+
+    private PushRecipeAndOrder getPushRecipeAndOrder(Recipe recipe, DrugsEnterprise enterprise) {
+        PushRecipeAndOrder pushRecipeAndOrder = new PushRecipeAndOrder();
+        //设置处方信息
+        pushRecipeAndOrder.setRecipeBean(ObjectCopyUtils.convert(recipe, RecipeBean.class));
+        //设置订单信息
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        pushRecipeAndOrder.setRecipeOrderBean(ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class));
+        //设置药品详情
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+        List<PushDrugListBean> pushDrugListBeans = new ArrayList<>();
+        //设置配送药品信息
+        for (Recipedetail recipedetail : recipedetails) {
+            PushDrugListBean pushDrugListBean = new PushDrugListBean();
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), enterprise.getId());
+            pushDrugListBean.setSaleDrugListDTO(ObjectCopyUtils.convert(saleDrugList, SaleDrugListDTO.class));
+            pushDrugListBean.setRecipeDetailBean(ObjectCopyUtils.convert(recipedetail, RecipeDetailBean.class));
+            pushDrugListBeans.add(pushDrugListBean);
+        }
+        pushRecipeAndOrder.setPushDrugListBeans(pushDrugListBeans);
+
+        //设置医生信息
+        DoctorService doctorService = BasicAPI.getService(DoctorService.class);
+        DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
+        pushRecipeAndOrder.setDoctorDTO(doctorDTO);
+        //设置患者信息
+        PatientService patientService = BasicAPI.getService(PatientService.class);
+        PatientDTO patientDTO = patientService.getByMpiId(recipe.getMpiid());
+        pushRecipeAndOrder.setPatientDTO(patientDTO);
+        //设置科室信息
+        DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
+        DepartmentDTO departmentDTO = departmentService.get(recipe.getDepart());
+        pushRecipeAndOrder.setDepartmentDTO(departmentDTO);
+        return pushRecipeAndOrder;
     }
 
     /**
@@ -147,7 +193,8 @@ public class RemoteDrugEnterpriseService {
             IRecipeHisService recipeHisService = AppContextHolder.getBean("his.iRecipeHisService",IRecipeHisService.class);
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-            return recipeHisService.scanStock(recipeId, drugsEnterprise.getId(), recipe.getClinicOrgan());
+            ScanRequestBean scanRequestBean = getScanRequestBean(recipe, drugsEnterprise);
+            return recipeHisService.scanStock(scanRequestBean);
         }
         AccessDrugEnterpriseService drugEnterpriseService = null;
         if (null == drugsEnterprise) {
@@ -166,6 +213,27 @@ public class RemoteDrugEnterpriseService {
         }
         LOGGER.info("scanStock recipeId:{}, result:{}", recipeId, JSONUtils.toString(result));
         return result.getCode().equals(DrugEnterpriseResult.SUCCESS) ? true : false;
+    }
+
+    private ScanRequestBean getScanRequestBean(Recipe recipe, DrugsEnterprise drugsEnterprise) {
+        ScanRequestBean scanRequestBean = new ScanRequestBean();
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+        List<ScanDrugListBean> scanDrugListBeans = new ArrayList<>();
+        for (Recipedetail recipedetail : recipedetails) {
+            ScanDrugListBean scanDrugListBean = new ScanDrugListBean();
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
+            scanDrugListBean.setDrugCode(saleDrugList.getOrganDrugCode());
+            scanDrugListBean.setTotal(recipedetail.getUseTotalDose().toString());
+            scanDrugListBean.setUnit(recipedetail.getDrugUnit());
+            scanDrugListBeans.add(scanDrugListBean);
+        }
+        scanRequestBean.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
+        scanRequestBean.setScanDrugListBeans(scanDrugListBeans);
+        scanRequestBean.setOrganId(recipe.getClinicOrgan());
+        LOGGER.info("getScanRequestBean scanRequestBean:{}.", JSONUtils.toString(scanRequestBean));
+        return scanRequestBean;
     }
 
     @RpcService
