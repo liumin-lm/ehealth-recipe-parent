@@ -60,12 +60,9 @@ public class RemoteDrugEnterpriseService {
     public DrugEnterpriseResult pushSingleRecipeInfo(Integer recipeId) {
         DrugEnterpriseResult result = getServiceByRecipeId(recipeId);
         DrugsEnterprise enterprise = result.getDrugsEnterprise();
-        if (DrugEnterpriseResult.SUCCESS.equals(result.getCode()) && null != result.getAccessDrugEnterpriseService()) {
-            result = result.getAccessDrugEnterpriseService().pushRecipeInfo(Collections.singletonList(recipeId), enterprise);
-            if (DrugEnterpriseResult.SUCCESS.equals(result.getCode())) {
-                result.setDrugsEnterprise(enterprise);
-            }
-        } else {
+        RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String drugsEnterpriseList = parameterDao.getByName("drugsEnterpriseList");
+        if (StringUtils.isNotEmpty(drugsEnterpriseList) && enterprise != null && hasDep(enterprise.getCallSys(), drugsEnterpriseList)) {
             //药企对应的service为空，则通过前置机进行推送
             IRecipeHisService recipeHisService = AppContextHolder.getBean("his.iRecipeHisService",IRecipeHisService.class);
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -76,6 +73,13 @@ public class RemoteDrugEnterpriseService {
                 result.setCode(1);
             } else {
                 result.setCode(0);
+            }
+        } else {
+            if (DrugEnterpriseResult.SUCCESS.equals(result.getCode()) && null != result.getAccessDrugEnterpriseService()) {
+                result = result.getAccessDrugEnterpriseService().pushRecipeInfo(Collections.singletonList(recipeId), enterprise);
+                if (DrugEnterpriseResult.SUCCESS.equals(result.getCode())) {
+                    result.setDrugsEnterprise(enterprise);
+                }
             }
         }
         LOGGER.info("pushSingleRecipeInfo recipeId:{}, result:{}", recipeId, JSONUtils.toString(result));
@@ -189,7 +193,7 @@ public class RemoteDrugEnterpriseService {
         DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
         RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         String drugsEnterpriseList = parameterDao.getByName("drugsEnterpriseList");
-        if (StringUtils.isNotEmpty(drugsEnterpriseList) && drugsEnterprise != null && drugsEnterpriseList.contains(drugsEnterprise.getCallSys())) {
+        if (StringUtils.isNotEmpty(drugsEnterpriseList) && drugsEnterprise != null && hasDep(drugsEnterprise.getCallSys(), drugsEnterpriseList)) {
             //通过前置机调用
             IRecipeHisService recipeHisService = AppContextHolder.getBean("his.iRecipeHisService",IRecipeHisService.class);
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -281,7 +285,7 @@ public class RemoteDrugEnterpriseService {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         String drugsEnterpriseList = parameterDao.getByName("drugsEnterpriseList");
-        if (StringUtils.isNotEmpty(drugsEnterpriseList) && drugsEnterprise != null && drugsEnterpriseList.contains(drugsEnterprise.getCallSys())) {
+        if (StringUtils.isNotEmpty(drugsEnterpriseList) && drugsEnterprise != null && hasDep(drugsEnterprise.getCallSys(), drugsEnterpriseList)) {
             //通过前置机调用
             IRecipeHisService recipeHisService = AppContextHolder.getBean("his.iRecipeHisService",IRecipeHisService.class);
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -443,5 +447,17 @@ public class RemoteDrugEnterpriseService {
             backUrl = ysqUrl + "Order/Index?id=0&inbillno=" + recipe.getClinicOrgan() + YsqRemoteService.YSQ_SPLIT + recipe.getRecipeCode();
         }
         return backUrl;
+    }
+
+    private boolean hasDep(String organ, String parames){
+        if (StringUtils.isNotEmpty(parames)) {
+            String[] organs = parames.split(",");
+            for (String o : organs) {
+                if (organ.equals(o)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
