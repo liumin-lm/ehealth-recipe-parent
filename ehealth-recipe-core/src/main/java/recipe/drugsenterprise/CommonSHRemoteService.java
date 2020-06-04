@@ -109,7 +109,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
         String sendInfoStr = JSON.toJSONString(sendInfo, new SerializerFeature[]
                 { SerializerFeature.WriteMapNullValue, SerializerFeature.WriteNullStringAsEmpty });
         String methodName = "TransData";
-        LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
+        //LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
 
         //发送药企信息
         String appId = enterprise.getUserId();
@@ -346,13 +346,13 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
             String sendInfoStr = JSON.toJSONString(sendInfo, new SerializerFeature[]
                     { SerializerFeature.WriteMapNullValue, SerializerFeature.WriteNullStringAsEmpty });
             String methodName = "TransData";
-            LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
+            //LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
 
             //发送药企信息
             String appId = enterprise.getUserId();
             String tocken = enterprise.getToken();
             String resultJson = sendAndDealResult(enterprise, methodName, sendInfoStr, result, appId, tocken);
-            LOGGER.info("scanStockAll resultJson:{}.", resultJson);
+            //LOGGER.info("scanStockAll resultJson:{}.", resultJson);
             JSONObject jsonObject = JSONObject.parseObject(resultJson);
             String transId = jsonObject.getString("transId");
             if(StringUtils.isEmpty(resultJson))
@@ -449,7 +449,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
                 String sendInfoStr = JSON.toJSONString(sendInfo, new SerializerFeature[]
                         { SerializerFeature.WriteMapNullValue, SerializerFeature.WriteNullStringAsEmpty });
                 String methodName = "TransData";
-                LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
+                //LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
 
                 //发送药企信息
                 String appId = enterprise.getUserId();
@@ -553,7 +553,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
         Map<String,String> access_tocken = getSignature(appId,tocken);
         String nameSpaceUri = NAME_SPACE + method;
         String url = wsdlUrl + method + "?appId="+appId+"&token="+tocken+access_tocken+"&data=";
-        System.out.print(url);
+        //System.out.print(url);
         Call call = null;
         try {
             Service s = new Service();
@@ -673,7 +673,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
         String sendInfoStr = JSON.toJSONString(sendInfo, new SerializerFeature[]
                 { SerializerFeature.WriteMapNullValue, SerializerFeature.WriteNullStringAsEmpty });
         String methodName = "TransData";
-        LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
+        //LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
 
         //发送药企信息
         String appId = enterprise.getUserId();
@@ -747,7 +747,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
         String sendInfoStr = JSON.toJSONString(sendInfo, new SerializerFeature[]
                 { SerializerFeature.WriteMapNullValue, SerializerFeature.WriteNullStringAsEmpty });
         String methodName = "TransData";
-        LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
+        //LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
 
         //发送药企信息
         String appId = enterprise.getUserId();
@@ -794,7 +794,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
         String sendInfoStr = JSON.toJSONString(sendInfo, new SerializerFeature[]
                 { SerializerFeature.WriteMapNullValue, SerializerFeature.WriteNullStringAsEmpty });
         String methodName = "TransData";
-        LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
+        //LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
 
         //发送药企信息
         String appId = enterprise.getUserId();
