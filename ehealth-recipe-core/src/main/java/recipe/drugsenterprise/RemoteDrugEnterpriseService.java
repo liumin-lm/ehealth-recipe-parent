@@ -103,7 +103,9 @@ public class RemoteDrugEnterpriseService {
         for (Recipedetail recipedetail : recipedetails) {
             PushDrugListBean pushDrugListBean = new PushDrugListBean();
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), enterprise.getId());
-            pushDrugListBean.setSaleDrugListDTO(ObjectCopyUtils.convert(saleDrugList, SaleDrugListDTO.class));
+            if (saleDrugList != null) {
+                pushDrugListBean.setSaleDrugListDTO(ObjectCopyUtils.convert(saleDrugList, SaleDrugListDTO.class));
+            }
             pushDrugListBean.setRecipeDetailBean(ObjectCopyUtils.convert(recipedetail, RecipeDetailBean.class));
             pushDrugListBeans.add(pushDrugListBean);
         }
@@ -229,10 +231,12 @@ public class RemoteDrugEnterpriseService {
         for (Recipedetail recipedetail : recipedetails) {
             ScanDrugListBean scanDrugListBean = new ScanDrugListBean();
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
-            scanDrugListBean.setDrugCode(saleDrugList.getOrganDrugCode());
-            scanDrugListBean.setTotal(recipedetail.getUseTotalDose().toString());
-            scanDrugListBean.setUnit(recipedetail.getDrugUnit());
-            scanDrugListBeans.add(scanDrugListBean);
+            if (saleDrugList != null) {
+                scanDrugListBean.setDrugCode(saleDrugList.getOrganDrugCode());
+                scanDrugListBean.setTotal(recipedetail.getUseTotalDose().toString());
+                scanDrugListBean.setUnit(recipedetail.getDrugUnit());
+                scanDrugListBeans.add(scanDrugListBean);
+            }
         }
         scanRequestBean.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
         scanRequestBean.setScanDrugListBeans(scanDrugListBeans);
