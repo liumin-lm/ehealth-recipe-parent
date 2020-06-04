@@ -117,6 +117,7 @@ public class RemoteDrugEnterpriseService {
         DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
         DepartmentDTO departmentDTO = departmentService.get(recipe.getDepart());
         pushRecipeAndOrder.setDepartmentDTO(departmentDTO);
+        LOGGER.info("getPushRecipeAndOrder pushRecipeAndOrder:{}.", JSONUtils.toString(pushRecipeAndOrder));
         return pushRecipeAndOrder;
     }
 
