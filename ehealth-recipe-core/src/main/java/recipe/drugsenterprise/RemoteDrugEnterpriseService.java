@@ -115,7 +115,7 @@ public class RemoteDrugEnterpriseService {
         pushRecipeAndOrder.setDoctorDTO(doctorDTO);
         //设置患者信息
         PatientService patientService = BasicAPI.getService(PatientService.class);
-        PatientDTO patientDTO = patientService.getByMpiId(recipe.getMpiid());
+        PatientDTO patientDTO = patientService.get(recipe.getMpiid());
         pushRecipeAndOrder.setPatientDTO(patientDTO);
         //设置科室信息
         DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
