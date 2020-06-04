@@ -9,8 +9,6 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
-import ctd.util.annotation.RpcBean;
-import ctd.util.annotation.RpcService;
 import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -37,7 +35,6 @@ import com.alibaba.fastjson.JSONArray;
 import javax.xml.namespace.QName;
 import java.math.BigDecimal;
 import java.net.URL;
-import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -47,7 +44,6 @@ import java.util.*;
  * @author: 0184/yu_yun
  * @date:2017/3/7.
  */
-@RpcBean("commonSHRemoteService")
 public class CommonSHRemoteService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonSHRemoteService.class);
@@ -60,7 +56,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
 
     }
-    @RpcService
+
     public void test(Integer recipeId){
         List<Integer> recipeIds = Arrays.asList(recipeId);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
@@ -318,7 +314,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
      * @param depId
      * @return
      */
-    @RpcService
+
     public DrugEnterpriseResult scanStockAll(Integer depId) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(depId);
