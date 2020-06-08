@@ -37,6 +37,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.jfree.chart.axis.StandardTickUnitSource;
+import recipe.audit.auditmode.AuditModeContext;
 import recipe.constant.RecipeStatusConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -59,6 +60,7 @@ import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
+import javax.annotation.Resource;
 import java.util.*;
 
 /**
@@ -85,6 +87,9 @@ public class RecipeCheckService {
 
     @Autowired
     private RecipeDAO recipeDAO;
+
+    @Resource
+    private AuditModeContext auditModeContext;
 
     private static final String RECIPEID_SECRET = "1234567890123gmw";
 
@@ -1121,13 +1126,19 @@ public class RecipeCheckService {
      * @throws Exception
      */
     public void autoPassForCheckYs(CheckYsInfoBean result) throws Exception {
-        Map<String, Object> checkParam = Maps.newHashMap();
+       /* Map<String, Object> checkParam = Maps.newHashMap();
         checkParam.put("recipeId", result.getRecipeId());
         checkParam.put("checkOrgan", result.getCheckOrganId());
         checkParam.put("checker", result.getCheckDoctorId());
         checkParam.put("result", 1);
         checkParam.put("failMemo", "");
-        saveCheckResult(checkParam);
+        saveCheckResult(checkParam);*/
+        //武昌项目用到--自动审核通过不走现在的审方逻辑
+        Recipe recipe = recipeDAO.getByRecipeId(result.getRecipeId());
+        int recipeStatus = auditModeContext.getAuditModes(recipe.getReviewType()).afterAuditRecipeChange();
+        recipeDAO.updateRecipeInfoByRecipeId(result.getRecipeId(), recipeStatus, null);
+        LOGGER.info("autoPassForCheckYs recipeId={};status={}",result.getRecipeId(),recipeStatus);
+        auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckPassYs(recipe);
     }
 
     /**
