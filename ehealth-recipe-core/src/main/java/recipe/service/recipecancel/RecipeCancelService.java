@@ -6,6 +6,7 @@ import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
@@ -15,6 +16,7 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 import recipe.ApplicationUtils;
 import recipe.constant.BussTypeConstant;
 import recipe.constant.RecipeBussConstant;
@@ -22,6 +24,7 @@ import recipe.constant.RecipeMsgEnum;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeCheckDAO;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
@@ -31,6 +34,8 @@ import recipe.util.DateConversion;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * created by shiyuping on 2020/4/3
@@ -60,6 +65,7 @@ public class RecipeCancelService {
      * @return Map<String,Object>
      */
     @RpcService
+    @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> cancelRecipeForChecker(Integer recipeId, String message) {
         LOGGER.info("cancelRecipeForChecker recipeId={} cancelReason={}",recipeId,message);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -108,7 +114,22 @@ public class RecipeCancelService {
             }
             RecipeLogService.saveRecipeLog(recipeId,beforeStatus,RecipeStatusConstant.READY_CHECK_YS,"撤销原因："+message);
         }
-        rMap.put("result",result);
+
+        //修改审方医嘱
+        boolean cancelDrugEntrustment=true;
+        try{
+            RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend=recipeExtendDAO.getByRecipeId(recipeId);
+            if(recipeExtend==null)  recipeExtend.setRecipeId(recipeId);//若拓展表不存在此处方
+            recipeExtend.setDrugEntrustment(null);
+            recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
+        }catch (Exception e){
+            cancelDrugEntrustment=false;
+            LOGGER.error("reviewRecipe update RecipeExtend[" + recipeId + "] error!");
+        }
+
+
+        rMap.put("result",result&&cancelDrugEntrustment);
         rMap.put("msg",msg);
         LOGGER.info("cancelRecipeForChecker execute ok! rMap:"+JSONUtils.toString(rMap));
         return rMap;

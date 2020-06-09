@@ -463,6 +463,8 @@ public class RecipeService extends RecipeBaseService {
         Integer checkFlag = MapValueUtil.getInteger(paramMap, "result");
         //是否是线下药师审核标记
         Integer hosAuditFlag = MapValueUtil.getInteger(paramMap, "hosAuditFlag");
+        //审方医嘱
+        String drugEntrustment=MapValueUtil.getString(paramMap, "drugEntrustment");
         CheckYsInfoBean resultBean = new CheckYsInfoBean();
         resultBean.setRecipeId(recipeId);
         resultBean.setCheckResult(checkFlag);
@@ -584,6 +586,21 @@ public class RecipeService extends RecipeBaseService {
             return resultBean;
         }
 
+        //修改审方医嘱
+        boolean updateDrugEntrustment=true;
+        try{
+            RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend=recipeExtendDAO.getByRecipeId(recipeId);
+            if(recipeExtend==null)  recipeExtend.setRecipeId(recipeId);//若拓展表不存在此处方
+            recipeExtend.setDrugEntrustment(drugEntrustment);
+            recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
+        }catch (Exception e){
+            LOGGER.error("reviewRecipe update RecipeExtend[" + recipeId + "] error!");
+            updateDrugEntrustment=false;
+            resultBean.setRs(updateDrugEntrustment);
+            return resultBean;
+        }
+
         //记录日志
         RecipeLogService.saveRecipeLog(recipeId, beforeStatus, recipeStatus, logMemo);
 //        if (1 == checkFlag) {
@@ -699,7 +716,7 @@ public class RecipeService extends RecipeBaseService {
 //            }
 //        }
 
-        resultBean.setRs(bl);
+        resultBean.setRs(bl&&updateDrugEntrustment);
         resultBean.setCheckDetailList(recipeCheckDetails);
         return resultBean;
     }
