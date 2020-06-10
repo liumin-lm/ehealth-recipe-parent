@@ -12,6 +12,7 @@ import ctd.mvc.upload.FileMetaRecord;
 import ctd.mvc.upload.exception.FileRegistryException;
 import ctd.mvc.upload.exception.FileRepositoryException;
 import recipe.ApplicationUtils;
+import recipe.constant.RecipeBussConstant;
 import recipe.third.IFileDownloadService;
 
 import java.io.*;
@@ -45,7 +46,7 @@ public class CreateRecipePdfUtil {
         return fileId;
     }
 
-    public static String generateTotalRecipePdf(String pdfId, String total) throws IOException, DocumentException {
+    public static String generateTotalRecipePdf(String pdfId, String total, Integer type) throws IOException, DocumentException {
         IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
         IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
         InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
@@ -55,7 +56,7 @@ public class CreateRecipePdfUtil {
             File file = new File(fileMetaRecord.getFileName());
             OutputStream output = new FileOutputStream(file);
             //添加价格
-            addTextForRecipePdf(input, output, total);
+            addTextForRecipePdf(input, output, total, type);
             //上传pdf文件
             byte[] bytes = File2byte(file);
             fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
@@ -75,7 +76,7 @@ public class CreateRecipePdfUtil {
      * @throws IOException
      * @throws DocumentException
      */
-    private static void addTextForRecipePdf(InputStream input, OutputStream output, String total) throws IOException, DocumentException {
+    private static void addTextForRecipePdf(InputStream input, OutputStream output, String total, Integer type) throws IOException, DocumentException {
         PdfReader reader = new PdfReader(input);
         PdfStamper stamper = new PdfStamper(reader, output);
         PdfContentByte page = stamper.getOverContent(1);
@@ -84,9 +85,22 @@ public class CreateRecipePdfUtil {
         page.beginText();
         page.setColorFill(BaseColor.BLACK);
         page.setFontAndSize(bf, 8);
-        //设置文字在页面中的坐标
-        page.setTextMatrix(30, 30);
-        page.showText("药品价格 ：" + total);
+
+        if (RecipeBussConstant.RECIPETYPE_TCM.equals(type)) {
+            //设置中药文字在页面中的坐标
+            page.setTextMatrix(20, 177);
+            page.showText("药");
+            page.setLeading(8);
+            page.newlineShowText("品");
+            page.newlineShowText("价");
+            page.newlineShowText("格");
+            page.newlineShowText(" . .");
+            page.newlineShowText(total);
+        } else {
+            //设置西药文字在页面中的坐标
+            page.setTextMatrix(30, 30);
+            page.showText("药品价格 ：" + total);
+        }
         page.endText();
 
         stamper.close();
