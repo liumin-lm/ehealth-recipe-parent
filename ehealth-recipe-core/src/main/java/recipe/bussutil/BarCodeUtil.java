@@ -1,6 +1,8 @@
 package recipe.bussutil;
 
+import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Image;
+import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
@@ -86,12 +88,12 @@ public class BarCodeUtil {
         String msg = "9631457";
         String path = "barcode1.png";
         File file1 = generateFile(msg, path);
-        File file = new File("E:\\\\pdf\\\\testCq2.pdf");
+        File file = new File("/Users/fuzi/Downloads/aaa.pdf");
         OutputStream output = new FileOutputStream(file);
         //获取图片url
         URL url = file1.toURI().toURL();
         //添加图片
-        PdfReader reader = new PdfReader(new FileInputStream(new File("E:\\\\pdf\\\\testCq.pdf")));
+        PdfReader reader = new PdfReader(new FileInputStream(new File("/Users/fuzi/Downloads/bbb.pdf")));
         PdfStamper stamper = new PdfStamper(reader, output);
         PdfContentByte page = stamper.getOverContent(1);
         //将图片贴入pdf
@@ -103,8 +105,19 @@ public class BarCodeUtil {
         //参数r为弧度，如果旋转角度为30度，则参数r= Math.PI/6。
         //image.setRotation((float) (Math.PI/6));
         //设置图片在页面中的坐标
-        image.setAbsolutePosition(285,781);
+        image.setAbsolutePosition(285, 781);
         page.addImage(image);
+
+        //将文字贴入pdf
+        BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED);
+        page.beginText();
+        page.setColorFill(BaseColor.BLACK);
+        page.setFontAndSize(bf, 8);
+        page.setTextMatrix(30, 30); //设置文字在页面中的坐标
+        String s = "药品价格 ： " + " 34";
+        page.showText(s);
+        page.endText();
+
         stamper.close();
         reader.close();
     }
