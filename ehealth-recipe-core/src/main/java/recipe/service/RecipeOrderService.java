@@ -1510,7 +1510,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @return void
      */
     public void getShowAuditFeeAndTips(RecipeResultBean result, RecipeOrder order, List<Recipe> recipeList) {
-
+        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         Map<String, String> ext = result.getExt();
         if(null == ext){
             ext = Maps.newHashMap();
@@ -1521,7 +1521,7 @@ public class RecipeOrderService extends RecipeBaseService {
             if(null != nowRecipe){
                 //判断时候需要展示审方费用：
                 //当不是不需要审核
-                showAuditFee = ReviewTypeConstant.Not_Need_Check != nowRecipe.getReviewType();
+                showAuditFee = ReviewTypeConstant.Not_Need_Check != nowRecipe.getReviewType() && (null != configurationService.getConfiguration(nowRecipe.getClinicOrgan(), "auditFee") || 0 > BigDecimal.ZERO.compareTo(order.getAuditFee()));
                 //添加文案提示的
                 getOrderTips(ext, nowRecipe, order);
                 //设置页面上提示文案的颜色信息
