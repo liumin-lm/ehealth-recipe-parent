@@ -463,6 +463,8 @@ public class RecipeService extends RecipeBaseService {
         Integer checkFlag = MapValueUtil.getInteger(paramMap, "result");
         //是否是线下药师审核标记
         Integer hosAuditFlag = MapValueUtil.getInteger(paramMap, "hosAuditFlag");
+        //审方医嘱
+        String drugEntrustment=MapValueUtil.getString(paramMap, "drugEntrustment");
         CheckYsInfoBean resultBean = new CheckYsInfoBean();
         resultBean.setRecipeId(recipeId);
         resultBean.setCheckResult(checkFlag);
@@ -584,6 +586,21 @@ public class RecipeService extends RecipeBaseService {
             return resultBean;
         }
 
+        //修改审方医嘱
+        boolean updateDrugEntrustment=true;
+        try{
+            RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend=recipeExtendDAO.getByRecipeId(recipeId);
+            if(recipeExtend==null)  recipeExtend.setRecipeId(recipeId);//若拓展表不存在此处方
+            recipeExtend.setDrugEntrustment(drugEntrustment);
+            recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
+        }catch (Exception e){
+            LOGGER.error("reviewRecipe update RecipeExtend[" + recipeId + "] error!");
+            updateDrugEntrustment=false;
+            resultBean.setRs(updateDrugEntrustment);
+            return resultBean;
+        }
+
         //记录日志
         RecipeLogService.saveRecipeLog(recipeId, beforeStatus, recipeStatus, logMemo);
 //        if (1 == checkFlag) {
@@ -699,7 +716,7 @@ public class RecipeService extends RecipeBaseService {
 //            }
 //        }
 
-        resultBean.setRs(bl);
+        resultBean.setRs(bl&&updateDrugEntrustment);
         resultBean.setCheckDetailList(recipeCheckDetails);
         return resultBean;
     }
@@ -3381,6 +3398,8 @@ public class RecipeService extends RecipeBaseService {
 
         if (saveFlag && RecipeResultBean.SUCCESS.equals(result.getCode())) {
             if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(dbRecipe.getFromflag()) || RecipeBussConstant.FROMFLAG_HIS_USE.equals(dbRecipe.getFromflag())) {
+                //异步显示对应的药品金额，
+                RecipeBusiThreadPool.execute(new UpdateTotalRecipePdfRunable(recipeId, (Double) info.get("actualPrice")));
                 //HIS消息发送
                 RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
                 hisService.recipeDrugTake(recipeId, payFlag, result);

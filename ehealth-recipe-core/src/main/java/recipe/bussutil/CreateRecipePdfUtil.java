@@ -1,7 +1,9 @@
 package recipe.bussutil;
 
+import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Image;
+import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
@@ -14,7 +16,6 @@ import recipe.third.IFileDownloadService;
 
 import java.io.*;
 import java.net.URL;
-import java.util.Date;
 
 /**
  * created by shiyuping on 2019/10/18
@@ -28,37 +29,75 @@ public class CreateRecipePdfUtil {
         InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
         FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
         String fileId = null;
-        if (fileMetaRecord != null){
+        if (fileMetaRecord != null) {
             File file = new File(fileMetaRecord.getFileName());
             OutputStream output = new FileOutputStream(file);
             //获取图片url
             URL url = CreateRecipePdfUtil.class.getClassLoader().getResource("drug.png");
             //添加图片
-            addImgForRecipePdf(input,output,url);
+            addImgForRecipePdf(input, output, url);
             //上传pdf文件
             byte[] bytes = File2byte(file);
-            fileId = fileUploadService.uploadFileWithoutUrt(bytes,fileMetaRecord.getFileName());
+            fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
             //删除本地文件
             file.delete();
         }
         return fileId;
-
     }
 
-    private static void addImgForRecipePdf(InputStream input, OutputStream output, URL url) throws IOException, DocumentException {
-        /*BaseFont baseFont = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H",BaseFont.NOT_EMBEDDED);*/
+    public static String generateTotalRecipePdf(String pdfId, String total) throws IOException, DocumentException {
+        IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
+        IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+        InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
+        FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
+        String fileId = null;
+        if (fileMetaRecord != null) {
+            File file = new File(fileMetaRecord.getFileName());
+            OutputStream output = new FileOutputStream(file);
+            //添加价格
+            addTextForRecipePdf(input, output, total);
+            //上传pdf文件
+            byte[] bytes = File2byte(file);
+            fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
+            //删除本地文件
+            file.delete();
+        }
+        return fileId;
+    }
+
+
+    /**
+     * pdf写入 药品价格
+     *
+     * @param input
+     * @param output
+     * @param total
+     * @throws IOException
+     * @throws DocumentException
+     */
+    private static void addTextForRecipePdf(InputStream input, OutputStream output, String total) throws IOException, DocumentException {
         PdfReader reader = new PdfReader(input);
         PdfStamper stamper = new PdfStamper(reader, output);
         PdfContentByte page = stamper.getOverContent(1);
-
         //将文字贴入pdf
-        /*page.beginText();
-        page.setFontAndSize(baseFont,12);
-        Color coler = new Color(255, 0, 0);
-        page.setColorFill(coler);
-        page.setTextMatrix(100,500); //设置文字在页面中的坐标
-        page.showText("添加文字信息");
-        page.endText();*/
+        BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED);
+        page.beginText();
+        page.setColorFill(BaseColor.BLACK);
+        page.setFontAndSize(bf, 8);
+        //设置文字在页面中的坐标
+        page.setTextMatrix(30, 30);
+        page.showText("药品价格 ：" + total);
+        page.endText();
+
+        stamper.close();
+        reader.close();
+        input.close();
+    }
+
+    private static void addImgForRecipePdf(InputStream input, OutputStream output, URL url) throws IOException, DocumentException {
+        PdfReader reader = new PdfReader(input);
+        PdfStamper stamper = new PdfStamper(reader, output);
+        PdfContentByte page = stamper.getOverContent(1);
 
         //将图片贴入pdf
         Image image = Image.getInstance(url);

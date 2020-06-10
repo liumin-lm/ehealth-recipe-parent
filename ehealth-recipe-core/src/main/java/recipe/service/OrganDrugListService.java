@@ -313,6 +313,12 @@ public class OrganDrugListService implements IOrganDrugListService {
                 if (organDrugList.getRecommendedUseDose() == null) {
                     target.setRecommendedUseDose(null);
                 }
+                if (organDrugList.getSmallestUnitUseDose() == null) {
+                    target.setSmallestUnitUseDose(null);
+                }
+                if (organDrugList.getDefaultSmallestUnitUseDose() == null) {
+                    target.setDefaultSmallestUnitUseDose(null);
+                }
                 target.setLastModify(new Date());
                 validateOrganDrugList(target);
                 target = organDrugListDAO.update(target);

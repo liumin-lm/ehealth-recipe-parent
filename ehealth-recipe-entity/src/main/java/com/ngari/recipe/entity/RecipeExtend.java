@@ -104,6 +104,9 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "his返回的处方总金额")
     private String deliveryRecipeFee;
 
+    @ItemProperty(alias = "用药医嘱")
+    private String drugEntrustment;
+
     /**
      * 患者医保类型（编码）
      */
@@ -490,5 +493,13 @@ public class RecipeExtend implements Serializable {
 
     public void setMedicalTypeText(String medicalTypeText) {
         this.medicalTypeText = medicalTypeText;
+    }
+
+    public String getDrugEntrustment() {
+        return drugEntrustment;
+    }
+
+    public void setDrugEntrustment(String drugEntrustment) {
+        this.drugEntrustment = drugEntrustment;
     }
 }

@@ -49,8 +49,20 @@ public class DrugListBean implements Serializable {
     @ItemProperty(alias = "一次剂量")
     private Double useDose;
 
+    @ItemProperty(alias = "推荐单次剂量")
+    private Double recommendedUseDose;
+
     @ItemProperty(alias = "剂量单位")
     private String useDoseUnit;
+
+    @ItemProperty(alias = "实际单位剂量（最小单位）")
+    private Double smallestUnitUseDose;
+
+    @ItemProperty(alias = "默认单位剂量（最小单位）")
+    private Double defaultSmallestUnitUseDose;
+
+    @ItemProperty(alias = "单位剂量单位（最小单位）")
+    private String useDoseSmallestUnit;
 
     @ItemProperty(alias = "使用频率")
     @Dictionary(id = "eh.cdr.dictionary.UsingRate")
@@ -445,5 +457,37 @@ public class DrugListBean implements Serializable {
 
     public void setStandardCode(String standardCode) {
         this.standardCode = standardCode;
+    }
+
+    public Double getRecommendedUseDose() {
+        return recommendedUseDose;
+    }
+
+    public void setRecommendedUseDose(Double recommendedUseDose) {
+        this.recommendedUseDose = recommendedUseDose;
+    }
+
+    public Double getSmallestUnitUseDose() {
+        return smallestUnitUseDose;
+    }
+
+    public void setSmallestUnitUseDose(Double smallestUnitUseDose) {
+        this.smallestUnitUseDose = smallestUnitUseDose;
+    }
+
+    public Double getDefaultSmallestUnitUseDose() {
+        return defaultSmallestUnitUseDose;
+    }
+
+    public void setDefaultSmallestUnitUseDose(Double defaultSmallestUnitUseDose) {
+        this.defaultSmallestUnitUseDose = defaultSmallestUnitUseDose;
+    }
+
+    public String getUseDoseSmallestUnit() {
+        return useDoseSmallestUnit;
+    }
+
+    public void setUseDoseSmallestUnit(String useDoseSmallestUnit) {
+        this.useDoseSmallestUnit = useDoseSmallestUnit;
     }
 }

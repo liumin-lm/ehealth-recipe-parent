@@ -1694,7 +1694,7 @@ public class RecipeOrderService extends RecipeBaseService {
     public RecipeResultBean finishOrderPayImpl(String orderCode, int payFlag, Integer payMode) {
         LOGGER.info("finishOrderPayImpl is get! orderCode={}", orderCode);
         RecipeResultBean result = RecipeResultBean.getSuccess();
-
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
             Map<String, Object> attrMap = Maps.newHashMap();
             attrMap.put("payFlag", payFlag);
@@ -1725,8 +1725,6 @@ public class RecipeOrderService extends RecipeBaseService {
                         sendTfdsMsg(nowRecipe, payMode, orderCode);
                     } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag) {
                         //支付前调用
-                        RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
-                        RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
                         if(null != order){
                             //todo--特殊处理---江苏省健康APP----到院取药线上支付药品费用---后续优化
                             if(0 == order.getActualPrice() && !RecipeServiceSub.isJSOrgan(nowRecipe.getClinicOrgan())){
@@ -1751,10 +1749,12 @@ public class RecipeOrderService extends RecipeBaseService {
         //处理处方单相关
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
             RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-
             Map<String, Object> recipeInfo = Maps.newHashMap();
             recipeInfo.put("payFlag", payFlag);
             recipeInfo.put("payMode", payMode);
+            if (null != order) {
+                recipeInfo.put("actualPrice", order.getActualPrice());
+            }
             List<Integer> recipeIds = recipeDAO.findRecipeIdsByOrderCode(orderCode);
             this.updateRecipeInfo(true, result, recipeIds, recipeInfo);
         }

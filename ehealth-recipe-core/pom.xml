@@ -185,6 +185,10 @@
             <artifactId>itextpdf</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itext-asian</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.sf-express</groupId>
             <artifactId>staxon</artifactId>
         </dependency>
