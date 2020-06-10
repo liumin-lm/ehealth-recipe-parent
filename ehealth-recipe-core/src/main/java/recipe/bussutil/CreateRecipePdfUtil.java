@@ -9,17 +9,19 @@ import com.ngari.upload.service.IFileUploadService;
 import ctd.mvc.upload.FileMetaRecord;
 import ctd.mvc.upload.exception.FileRegistryException;
 import ctd.mvc.upload.exception.FileRepositoryException;
+import lombok.Cleanup;
 import recipe.ApplicationUtils;
+import recipe.constant.RecipeBussConstant;
 import recipe.third.IFileDownloadService;
 
 import java.io.*;
 import java.net.URL;
-import java.util.Date;
 
 /**
  * created by shiyuping on 2019/10/18
  */
 public class CreateRecipePdfUtil {
+
 
     public static String transPdfIdForRecipePdf(String pdfId) throws IOException, DocumentException, FileRegistryException, FileRepositoryException {
 
@@ -28,16 +30,16 @@ public class CreateRecipePdfUtil {
         InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
         FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
         String fileId = null;
-        if (fileMetaRecord != null){
+        if (fileMetaRecord != null) {
             File file = new File(fileMetaRecord.getFileName());
             OutputStream output = new FileOutputStream(file);
             //获取图片url
             URL url = CreateRecipePdfUtil.class.getClassLoader().getResource("drug.png");
             //添加图片
-            addImgForRecipePdf(input,output,url);
+            addImgForRecipePdf(input, output, url);
             //上传pdf文件
             byte[] bytes = File2byte(file);
-            fileId = fileUploadService.uploadFileWithoutUrt(bytes,fileMetaRecord.getFileName());
+            fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
             //删除本地文件
             file.delete();
         }
@@ -79,14 +81,12 @@ public class CreateRecipePdfUtil {
 
     private static byte[] File2byte(File tradeFile){
         byte[] buffer = null;
-        try
-        {
+        try {
             FileInputStream fis = new FileInputStream(tradeFile);
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             byte[] b = new byte[1024];
             int n;
-            while ((n = fis.read(b)) != -1)
-            {
+            while ((n = fis.read(b)) != -1) {
                 bos.write(b, 0, n);
             }
             fis.close();
@@ -139,10 +139,81 @@ public class CreateRecipePdfUtil {
         //显示的大小为原尺寸的20%
         image.scalePercent(50);
         //设置图片在页面中的坐标
-        image.setAbsolutePosition(285,781);
+        image.setAbsolutePosition(285, 781);
         page.addImage(image);
         stamper.close();
         reader.close();
         input.close();
+    }
+
+    /**
+     * 在pdf加盖印章
+     *
+     * @param pdfId       药师签名文件id
+     * @param organSealId 机构配置印章id
+     * @param type        处方类型
+     * @return
+     * @throws Exception
+     */
+    public static String generateSignetRecipePdf(String pdfId, String organSealId, Integer type) throws Exception {
+        IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+
+        //获取印章图片
+        FileMetaRecord organSealRecord = fileDownloadService.downloadAsRecord(organSealId);
+        if (null == organSealRecord) {
+            return null;
+        }
+        //获取图片url
+        File organSealFile = new File(organSealRecord.getFileName());
+        URL url = organSealFile.toURI().toURL();
+        String fileId = null;
+
+        //获取 处方pdf 加印章
+        FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
+        if (null != fileMetaRecord) {
+            File file = new File(fileMetaRecord.getFileName());
+            //添加图片
+            addSignetImgForRecipePdf(file, url, type);
+            //上传pdf文件
+            IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
+            fileId = fileUploadService.uploadFileWithoutUrt(File2byte(file), fileMetaRecord.getFileName());
+            //删除本地文件
+            file.delete();
+        }
+        organSealFile.delete();
+        return fileId;
+    }
+
+    /**
+     * 在pdf追加图片
+     *
+     * @param file 处方pdf 文件
+     * @param url  印章图片
+     * @param type 处方类型
+     * @throws Exception
+     */
+    private static void addSignetImgForRecipePdf(File file, URL url, Integer type) throws Exception {
+        @Cleanup InputStream input = new FileInputStream(file);
+        @Cleanup OutputStream output = new FileOutputStream(file);
+
+        PdfReader reader = new PdfReader(input);
+        PdfStamper stamper = new PdfStamper(reader, output);
+
+        PdfContentByte page = stamper.getOverContent(1);
+        //将图片贴入pdf
+        Image image = Image.getInstance(url);
+        //直接设定显示尺寸
+        image.scaleAbsolute(90, 90);
+        if (RecipeBussConstant.RECIPETYPE_TCM.equals(type)) {
+            //中药
+            image.setAbsolutePosition(500, 200);
+        } else {
+            //西药
+            image.setAbsolutePosition(140, 750);
+        }
+        page.addImage(image);
+
+        stamper.close();
+        reader.close();
     }
 }
