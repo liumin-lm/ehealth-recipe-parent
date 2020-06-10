@@ -107,6 +107,9 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "用药医嘱")
     private String drugEntrustment;
 
+    @ItemProperty(alias = "是否长处方")
+    private String isLongRecipe;
+
     /**
      * 患者医保类型（编码）
      */
@@ -501,5 +504,13 @@ public class RecipeExtend implements Serializable {
 
     public void setDrugEntrustment(String drugEntrustment) {
         this.drugEntrustment = drugEntrustment;
+    }
+
+    public String getIsLongRecipe() {
+        return isLongRecipe;
+    }
+
+    public void setIsLongRecipe(String isLongRecipe) {
+        this.isLongRecipe = isLongRecipe;
     }
 }

@@ -91,6 +91,10 @@ public class RecipeExtendBean implements Serializable {
     private String chronicDiseaseCode;
     @ItemProperty(alias = "慢病病种名称")
     private String chronicDiseaseName;
+    @ItemProperty(alias = "用药医嘱")
+    private String drugEntrustment;
+    @ItemProperty(alias = "是否长处方")
+    private String isLongRecipe;
 
     /**
      * 患者医保类型（编码）
@@ -336,5 +340,21 @@ public class RecipeExtendBean implements Serializable {
 
     public void setMedicalTypeText(String medicalTypeText) {
         this.medicalTypeText = medicalTypeText;
+    }
+
+    public String getDrugEntrustment() {
+        return drugEntrustment;
+    }
+
+    public void setDrugEntrustment(String drugEntrustment) {
+        this.drugEntrustment = drugEntrustment;
+    }
+
+    public String getIsLongRecipe() {
+        return isLongRecipe;
+    }
+
+    public void setIsLongRecipe(String isLongRecipe) {
+        this.isLongRecipe = isLongRecipe;
     }
 }

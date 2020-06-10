@@ -3982,6 +3982,30 @@ public class RecipeService extends RecipeBaseService {
 //        return map;
 //    }
 
+    /**
+     * 根据organid、是否长处方 获取开药天数范围
+     * @return Map<String,Object>
+     */
+    @RpcService
+    public Map<String, Object>   findUseDayRange(Map<String,String> params) {
+        LOGGER.info("findUseDayRange 参数{}",JSONUtils.toString(params));
+        if(StringUtils.isEmpty(params.get("organId")))   throw new DAOException("findUseDayRange organId不允许为空");
+        if(StringUtils.isEmpty(params.get("isLongRecipe")))   throw new DAOException("findUseDayRange isLongRecipe不允许为空");
+        String isLongRecipe= params.get("isLongRecipe");
+        Map<String, Object> map = Maps.newHashMap();
+
+        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+        if("1".equals(isLongRecipe)){
+            Object yesLongRecipe = configService.getConfiguration(Integer.parseInt(params.get("organId")), "yesLongRecipe");
+            LOGGER.info("findUseDayRange 从opbase配置项获取开药天数范围是{}",yesLongRecipe);
+            map.put("useDayRange",yesLongRecipe);
+        }else if("0".equals(isLongRecipe)){
+            Object noLongRecipe = configService.getConfiguration(Integer.parseInt(params.get("organId")), "noLongRecipe");
+            LOGGER.info("findUseDayRange 从opbase配置项获取开药天数范围是{}",noLongRecipe);
+            map.put("useDayRange",noLongRecipe);
+        }
+        return map;
+    }
 
 //    @RpcService
 //    public void synDeliveryRecipeMsgTask(){
