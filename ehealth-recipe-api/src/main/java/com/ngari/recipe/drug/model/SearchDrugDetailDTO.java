@@ -55,6 +55,18 @@ public class SearchDrugDetailDTO implements Serializable {
     @ItemProperty(alias = "剂量单位")
     private String useDoseUnit;
 
+    @ItemProperty(alias = "推荐单次剂量")
+    private Double recommendedUseDose;
+
+    @ItemProperty(alias = "实际单位剂量（最小单位）")
+    private Double smallestUnitUseDose;
+
+    @ItemProperty(alias = "默认单位剂量（最小单位）")
+    private Double defaultSmallestUnitUseDose;
+
+    @ItemProperty(alias = "单位剂量单位（最小单位）")
+    private String useDoseSmallestUnit;
+
     @ItemProperty(alias = "使用频率")
     @Dictionary(id = "eh.cdr.dictionary.UsingRate")
     private String usingRate;
@@ -408,5 +420,37 @@ public class SearchDrugDetailDTO implements Serializable {
 
     public void setDrugInventoryFlag(boolean drugInventoryFlag) {
         this.drugInventoryFlag = drugInventoryFlag;
+    }
+
+    public Double getRecommendedUseDose() {
+        return recommendedUseDose;
+    }
+
+    public void setRecommendedUseDose(Double recommendedUseDose) {
+        this.recommendedUseDose = recommendedUseDose;
+    }
+
+    public Double getSmallestUnitUseDose() {
+        return smallestUnitUseDose;
+    }
+
+    public void setSmallestUnitUseDose(Double smallestUnitUseDose) {
+        this.smallestUnitUseDose = smallestUnitUseDose;
+    }
+
+    public Double getDefaultSmallestUnitUseDose() {
+        return defaultSmallestUnitUseDose;
+    }
+
+    public void setDefaultSmallestUnitUseDose(Double defaultSmallestUnitUseDose) {
+        this.defaultSmallestUnitUseDose = defaultSmallestUnitUseDose;
+    }
+
+    public String getUseDoseSmallestUnit() {
+        return useDoseSmallestUnit;
+    }
+
+    public void setUseDoseSmallestUnit(String useDoseSmallestUnit) {
+        this.useDoseSmallestUnit = useDoseSmallestUnit;
     }
 }
