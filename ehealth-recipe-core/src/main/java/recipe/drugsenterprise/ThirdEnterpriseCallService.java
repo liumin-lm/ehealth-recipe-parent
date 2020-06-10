@@ -1593,6 +1593,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setPharmacyName(convertParame(recipeOrder.getDrugStoreName()));
             if (recipe.getRecipeType() == 3 && recipe.getCopyNum() != null) {
                 orderDetailBean.setTcmNum(convertParame(recipe.getCopyNum()));
+            } else {
+                orderDetailBean.setTcmNum("");
             }
             if (recipe.getPayMode() == 1) {
                 orderDetailBean.setDistributionFlag("1");
@@ -1707,6 +1709,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 if (recipe.getRecipeType() == 3 || recipe.getRecipeType() == 4) {
                     orderDetailBean.setTcmUsePathways(convertParame(recipedetail.getUsePathways()));
                     orderDetailBean.setTcmUsingRate(convertParame(recipedetail.getUsingRate()));
+                } else {
+                    orderDetailBean.setTcmUsePathways("");
+                    orderDetailBean.setTcmUsingRate("");
                 }
                 drugList.setDrugUnit(convertParame(recipedetail.getDrugUnit()));
                 drugList.setPack(convertParame(recipedetail.getPack()));
