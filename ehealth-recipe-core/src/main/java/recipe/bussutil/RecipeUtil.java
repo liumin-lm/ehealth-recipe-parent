@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.*;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -88,9 +89,9 @@ public class RecipeUtil {
      *
      * @param dList
      */
-    public static void getHospitalPrice(Integer organId, List<DrugList> dList) {
+    public static void getHospitalPrice(Integer organId, List<DrugListBean> dList) {
         List drugIds = new ArrayList();
-        for (DrugList drugList : dList) {
+        for (DrugListBean drugList : dList) {
             if (null != drugList) {
                 drugIds.add(drugList.getDrugId());
             }
@@ -99,7 +100,7 @@ public class RecipeUtil {
         OrganDrugListDAO dao = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<OrganDrugList> organDrugList = dao.findByOrganIdAndDrugIds(organId, drugIds);
         // 设置医院价格
-        for (DrugList drugList : dList) {
+        for (DrugListBean drugList : dList) {
             for (OrganDrugList odlist : organDrugList) {
                 if (null != drugList && null != odlist && drugList.getDrugId().equals(odlist.getDrugId())) {
                     drugList.setHospitalPrice(odlist.getSalePrice());
@@ -113,6 +114,14 @@ public class RecipeUtil {
                     }
                     //历史用药入口--默认填充机构的，平台的不填充
                     drugList.setUseDose(odlist.getUseDose());
+                    //剂型
+                    drugList.setDrugForm(odlist.getDrugForm());
+                    drugList.setRecommendedUseDose(odlist.getRecommendedUseDose());
+                    drugList.setSmallestUnitUseDose(odlist.getSmallestUnitUseDose());
+                    //默认最小单位剂量
+                    drugList.setDefaultSmallestUnitUseDose(odlist.getDefaultSmallestUnitUseDose());
+                    //剂量单位最小单位
+                    drugList.setUseDoseSmallestUnit(odlist.getUseDoseSmallestUnit());
                     break;
                 }
             }

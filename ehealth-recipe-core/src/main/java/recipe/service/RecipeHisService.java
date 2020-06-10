@@ -98,12 +98,8 @@ public class RecipeHisService extends RecipeBaseService {
         //中药处方由于不需要跟HIS交互，故读写分离后有可能查询不到数据
         if (skipHis(recipe)) {
             LOGGER.info("skip his!!! recipeId={}", recipeId);
-           /* RecipeCheckPassResult recipeCheckPassResult = new RecipeCheckPassResult();
-            recipeCheckPassResult.setRecipeId(recipeId);
-            recipeCheckPassResult.setRecipeCode(RandomStringUtils.randomAlphanumeric(10));
-            HisCallBackService.checkPassSuccess(recipeCheckPassResult, true);*/
             doHisReturnSuccess(recipe);
-            return result;
+            return true;
         }
 
         Integer sendOrganId = (null == otherOrganId) ? recipe.getClinicOrgan() : otherOrganId;
@@ -134,9 +130,7 @@ public class RecipeHisService extends RecipeBaseService {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        OrganDrugListDAO drugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-        EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
 
         List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
         PatientBean patientBean = iPatientService.get(recipe.getMpiid());
@@ -171,8 +165,8 @@ public class RecipeHisService extends RecipeBaseService {
             }
         }
         //设置医生工号
-        request.setDoctorID(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), sendOrganId, recipe.getDepart()));
-        //查询生产厂家
+        //request.setDoctorID(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), sendOrganId, recipe.getDepart()));
+       /* //查询生产厂家
         List<OrderItemTO> orderItemList = request.getOrderList();
         if (CollectionUtils.isNotEmpty(orderItemList)) {
             List<Integer> drugIdList = FluentIterable.from(orderItemList).transform(new Function<OrderItemTO, Integer>() {
@@ -205,7 +199,7 @@ public class RecipeHisService extends RecipeBaseService {
                 }
             }
 
-        }
+        }*/
         request.setOrganID(sendOrganId.toString());
         // 处方独立出来后,his根据域名来判断回调模块
         service.recipeSend(request);

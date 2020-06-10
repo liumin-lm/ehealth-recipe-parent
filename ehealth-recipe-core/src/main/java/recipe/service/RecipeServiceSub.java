@@ -45,7 +45,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.audit.bean.PAWebRecipeDanger;
@@ -356,7 +355,13 @@ public class RecipeServiceSub {
                         detail.setDrugSpec(organDrug.getDrugSpec());
                         detail.setDrugUnit(organDrug.getUnit());
                         detail.setDefaultUseDose(organDrug.getUseDose());
-                        detail.setUseDoseUnit(organDrug.getUseDoseUnit());
+                        //如果前端传了剂量单位优先用医生选择的剂量单位
+                        //医生端剂量单位可以选择规格单位还是最小单位
+                        if (StringUtils.isNotEmpty(detail.getUseDoseUnit())){
+                            detail.setUseDoseUnit(detail.getUseDoseUnit());
+                        }else {
+                            detail.setUseDoseUnit(organDrug.getUseDoseUnit());
+                        }
                         detail.setDosageUnit(organDrug.getUseDoseUnit());
                         //设置药品包装数量
                         detail.setPack(organDrug.getPack());
@@ -449,24 +454,6 @@ public class RecipeServiceSub {
             resultBean.setMsg(e.getMessage());
             return resultBean;
         }
-        /*//平台增加药品相关校验
-        if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
-
-            DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
-            boolean checkEnterprise = drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan());
-            if (checkEnterprise) {
-                //判断药品能否开在一张处方单上
-                result.putAll(canOpenRecipeDrugsCopy(recipe.getClinicOrgan(),recipe.getRecipeId(),drugIds));
-            }
-        } else if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
-            //浙江省互联网医院模式不需要这么多校验
-//            for (OrganDrugList obj : organDrugList) {
-//                organDrugListMap.put(obj.getOrganDrugCode(), obj);
-//                organDrugListIdMap.put(obj.getDrugId(), obj);
-//            }
-            //无需校验
-            result.put("code", "200");
-        }*/
         return resultBean;
     }
 

@@ -582,11 +582,12 @@ public class DrugListService extends BaseService<DrugListBean> {
                 }
             }
         }
+        List<DrugListBean> drugListBeans = getList(dList, DrugListBean.class);
         // 添加医院价格
-        if (!dList.isEmpty()) {
-            RecipeUtil.getHospitalPrice(organId, dList);
+        if (!drugListBeans.isEmpty()) {
+            RecipeUtil.getHospitalPrice(organId, drugListBeans);
         }
-        return getList(dList, DrugListBean.class);
+        return drugListBeans;
     }
 
     @RpcService
