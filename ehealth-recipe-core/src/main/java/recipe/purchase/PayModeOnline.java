@@ -963,8 +963,8 @@ public class PayModeOnline implements IPurchaseService {
                             List<DepDetailBean> hrList = (List) result;
                             for (DepDetailBean depDetailBean : hrList) {
                                 depDetailBean.setDepId(drugsEnterprise.getId());
-                                depDetailBean.setBelongDepName(depDetailBean.getDepName());
-                                depDetailBean.setDepName(drugsEnterprise.getName());
+                                depDetailBean.setBelongDepName(drugsEnterprise.getName());
+                                depDetailBean.setDepName(depDetailBean.getDepName());
                                 if (RecipeBussConstant.PAYMODE_ONLINE.equals(drugsEnterprise.getPayModeSupport()) || RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS.equals(drugsEnterprise.getPayModeSupport())) {
                                     depDetailBean.setPayModeText("在线支付");
                                     depDetailBean.setPayMode(RecipeBussConstant.PAYMODE_ONLINE);

@@ -568,7 +568,9 @@ public class HisRecipeService {
             recipedetail.setUseDaysB(hisRecipeDetail.getUseDaysB());
             recipedetail.setStatus(1);
 
-            if (hisRecipeDetail.getUseTotalDose() != null && hisRecipeDetail.getPrice() != null && CollectionUtils.isNotEmpty(organDrugLists)) {
+            if (hisRecipeDetail.getUseTotalDose() != null && hisRecipeDetail.getPrice() != null) {
+                recipedetail.setDrugCost(hisRecipeDetail.getUseTotalDose().multiply(hisRecipeDetail.getPrice()));
+            } else {
                 recipedetail.setDrugCost(hisRecipeDetail.getUseTotalDose().multiply(organDrugLists.get(0).getSalePrice()));
             }
             recipeDetailDAO.save(recipedetail);
