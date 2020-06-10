@@ -283,6 +283,7 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
                     detailBean = new DepDetailBean();
                     detailBean.setPharmacyCode(MapValueUtil.getString(storeBean, "pharmacycode"));
                     detailBean.setDepName(MapValueUtil.getString(storeBean, "pharmacyname"));
+                    detailBean.setBelongDepName(enterprise.getName());
                     detailBean.setAddress(MapValueUtil.getString(storeBean, "address"));
                     if (StringUtils.isNotEmpty(MapValueUtil.getString(storeBean, "recipefee"))) {
                         detailBean.setRecipeFee(new BigDecimal(MapValueUtil.getString(storeBean, "recipefee")));
