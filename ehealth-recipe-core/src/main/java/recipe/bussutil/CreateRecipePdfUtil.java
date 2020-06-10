@@ -106,6 +106,7 @@ public class CreateRecipePdfUtil {
         stamper.close();
         reader.close();
         input.close();
+        output.close();
     }
 
     private static void addImgForRecipePdf(InputStream input, OutputStream output, URL url) throws IOException, DocumentException {

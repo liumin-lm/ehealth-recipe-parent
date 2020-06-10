@@ -177,6 +177,9 @@ public class HospitalRecipeDTO implements Serializable {
     @Verify(desc = "药品详情")
     private List<HospitalDrugDTO> drugList;
 
+    @Verify(isNotNull = false, desc = "处方来源类型 1：住院, 2：门诊")
+    private String recipeSourceFlag;
+
     public String getClinicId() {
         return clinicId;
     }
@@ -585,7 +588,15 @@ public class HospitalRecipeDTO implements Serializable {
         this.noSaveRecipeFlag = noSaveRecipeFlag;
     }
 
-    public static HospitalRecipeDTO getTestObject(){
+    public String getRecipeSourceFlag() {
+        return recipeSourceFlag;
+    }
+
+    public void setRecipeSourceFlag(String recipeSourceFlag) {
+        this.recipeSourceFlag = recipeSourceFlag;
+    }
+
+    public static HospitalRecipeDTO getTestObject() {
         HospitalRecipeDTO recipe = new HospitalRecipeDTO();
         recipe.setCertificateType("1");
         recipe.setCertificate("12420106441364790P");
