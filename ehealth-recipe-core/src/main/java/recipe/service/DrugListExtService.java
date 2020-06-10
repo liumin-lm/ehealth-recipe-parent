@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.bussutil.RecipeUtil;
 import recipe.dao.DrugListDAO;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganDrugListDAO;
@@ -80,17 +81,10 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         List<DrugList> dList = drugListDAO.findDrugListsByOrganOrDrugClass(organId, drugType, drugClass, start,
                 10);
-        // 添加医院价格
-        if (!dList.isEmpty()) {
-            getHospitalPrice(organId, dList);
-        }
         List<DrugListBean> drugListBeans = getList(dList, DrugListBean.class);
-        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        for (DrugListBean drugListBean : drugListBeans) {
-            List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugListBean.getDrugId(), organId);
-            if (CollectionUtils.isNotEmpty(organDrugLists)) {
-                drugListBean.setDrugForm(organDrugLists.get(0).getDrugForm());
-            }
+        // 添加医院药品数据
+        if (!drugListBeans.isEmpty()) {
+            getHospitalPrice(organId, drugListBeans);
         }
         //设置岳阳市人民医院药品库存
         setStoreIntroduce(organId, drugListBeans);
@@ -166,15 +160,6 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 drugListBean.setDrugInventoryFlag(drugInventoryFlag);
             }
         }
-        /*try{
-            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-            for (DrugListBean drugListBean : drugListBeans) {
-                List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugListBean.getDrugId(), organId);
-                drugListBean.setDrugForm(organDrugLists.get(0).getDrugForm());
-            }
-        }catch(Exception e){
-            LOGGER.info("DrugListService.findCommonDrugLists 查询机构药品出错, 机构ID:{},{}", organId, e.getMessage());
-        }*/
         //设置岳阳市人民医院药品库存
         setStoreIntroduce(organId, drugListBeans);
         return drugListBeans;

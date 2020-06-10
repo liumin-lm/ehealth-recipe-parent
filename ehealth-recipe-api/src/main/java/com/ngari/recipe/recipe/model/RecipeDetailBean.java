@@ -52,7 +52,7 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias="药物使用次剂量--中文标识-适量")
     private String useDoseStr;
 
-    @ItemProperty(alias="药物使用规格单位")
+    @ItemProperty(alias="药物使用规格单位或者最小单位")
     private String useDoseUnit;
 
     @ItemProperty(alias="药物剂量单位")
