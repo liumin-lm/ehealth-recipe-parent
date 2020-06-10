@@ -309,6 +309,16 @@ public class RecipePreserveService {
     }
 
     /**
+     * 模糊获取key
+     * @param pattern 例如 RCP_NGARI_USEPATHWAYS_*
+     * @return
+     */
+    @RpcService
+    public Set<String> scanLikeKey(String pattern) {
+        return redisClient.scan(pattern);
+    }
+
+    /**
      * Set操作
      *
      * @param key
