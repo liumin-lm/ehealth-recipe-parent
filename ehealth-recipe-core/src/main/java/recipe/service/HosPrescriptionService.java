@@ -186,20 +186,14 @@ public class HosPrescriptionService implements IHosPrescriptionService {
             if (enterpriseResult.getCode() == 1) {
                 //表示推送药企成功,需要查询患者是否已经在平台注册
                 PatientService patientService = BasicAPI.getService(PatientService.class);
-                //查询用户或者当前就诊人绑定的用户
-                PatientDTO patientDTO = patientService.getByIdCard(hospitalRecipeDTO.getCertificate());
-                if (patientDTO != null) {
-                    pushWechatTplForYd(hospitalRecipeDTO, organ, patientDTO);
-                } else {
-                    //如果是为空，则查询是否为绑定的就诊人
-                    List<PatientDTO> patientDTOList = patientService.findByIdCardAndNotOwn(hospitalRecipeDTO.getCertificate());
-                    if (CollectionUtils.isNotEmpty(patientDTOList)) {
-                        PatientDTO patient = patientDTOList.get(0);
-                        if (patient != null) {
-                            pushWechatTplForYd(hospitalRecipeDTO, organ, patient);
-                            return result;
-                        }
+                //需要根据机构和身份证查询当前机构所在的用户组是否存在该身份证的患者
+                List<PatientDTO> patientDTOList = patientService.findByMobileAndIdCard("",hospitalRecipeDTO.getCertificate(), clinicOrgan);
+                if (CollectionUtils.isNotEmpty(patientDTOList)) {
+                    //给该机构这个身份证的用户和绑定了这个就诊人的用户都推送微信消息
+                    for (PatientDTO patient : patientDTOList) {
+                        pushWechatTplForYd(hospitalRecipeDTO, organ, patient);
                     }
+                } else {
                     //用户没有注册,需要给用户发送短信
                     if (StringUtils.isNotEmpty(hospitalRecipeDTO.getPatientTel())) {
                         pushDyInfoForYd(hospitalRecipeDTO);
@@ -245,6 +239,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         map.put("appId", null);
         map.put("openId", null);
         map.put("url", thirdUrl);
+        map.put("patientDTO", patientDTO);
         RecipeMsgService.sendRecipeThirdMsg(map);
     }
 
