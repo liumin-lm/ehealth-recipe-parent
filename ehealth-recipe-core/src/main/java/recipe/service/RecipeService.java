@@ -818,10 +818,10 @@ public class RecipeService extends RecipeBaseService {
                     bl = false;
                 }
             } else {
-                LOGGER.error("reviewRecipe signFile is empty recipeId=" + recipeId);
-                errorMsg = "signFileId is empty. recipeId=" + recipeId;
-                bl = false;
-            }
+            LOGGER.error("reviewRecipe signFile is empty recipeId=" + recipeId);
+            errorMsg = "signFileId is empty. recipeId=" + recipeId;
+            bl = false;
+        }
 
         if (!bl) {
             RecipeLogService.saveRecipeLog(recipeId, beforeStatus, recipeStatus, "reviewRecipe 添加药师签名失败. " + errorMsg);
@@ -830,6 +830,8 @@ public class RecipeService extends RecipeBaseService {
         //这里设置结果值，是由于原先方法也取这个结果集作为返回map中的result
         //当时当前方法不会根据签名和pdf的记过作为签名的结果所以用另一个字段记录结果延续下去
         checkResult.setObject(bl);
+        //审核通过盖章
+        RecipeBusiThreadPool.execute(new GenerateSignetRecipePdfRunable(recipe.getRecipeId(), recipe.getClinicOrgan()));
         return checkResult;
     }
 
