@@ -188,6 +188,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
                 PatientService patientService = BasicAPI.getService(PatientService.class);
                 //需要根据机构和身份证查询当前机构所在的用户组是否存在该身份证的患者
                 List<PatientDTO> patientDTOList = patientService.findByMobileAndIdCard("",hospitalRecipeDTO.getCertificate(), clinicOrgan);
+                LOG.info("createPrescription patientDTOList :{}.", JSONUtils.toString(patientDTOList));
                 if (CollectionUtils.isNotEmpty(patientDTOList)) {
                     //给该机构这个身份证的用户和绑定了这个就诊人的用户都推送微信消息
                     for (PatientDTO patient : patientDTOList) {
