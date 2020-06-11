@@ -38,6 +38,7 @@ import recipe.service.RecipeLogService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * company: ngarihealth
@@ -250,17 +251,12 @@ public class RecipeToHisService {
         request.setOrganId(organId);
         if (CollectionUtils.isEmpty(drugInfoList)) {
             //查询全部药品信息，返回的是医院所有有效的药品信息
-            request.setData(Lists.<DrugInfoTO>newArrayList());
-            request.setDrcode(Lists.<String>newArrayList());
+            request.setData(Lists.newArrayList());
+            request.setDrcode(Lists.newArrayList());
         } else {
             //查询限定范围内容的药品数据，返回的是该医院 无效的药品信息
             request.setData(drugInfoList);
-            List<String> drugIdList = FluentIterable.from(drugInfoList).transform(new Function<DrugInfoTO, String>() {
-                @Override
-                public String apply(DrugInfoTO input) {
-                    return input.getDrcode();
-                }
-            }).toList();
+            List<String> drugIdList = drugInfoList.stream().map(DrugInfoTO::getDrcode).collect(Collectors.toList());
             request.setDrcode(drugIdList);
         }
         LOGGER.info("queryDrugInfo request={}", JSONUtils.toString(request));
@@ -269,7 +265,7 @@ public class RecipeToHisService {
             DrugInfoResponseTO response = hisService.queryDrugInfo(request);
             LOGGER.info("queryDrugInfo response={}", JSONUtils.toString(response));
             if (null != response && Integer.valueOf(200).equals(response.getMsgCode())) {
-                return (null != response.getData()) ? response.getData() : new ArrayList<DrugInfoTO>();
+                return (null != response.getData()) ? response.getData() : new ArrayList<>();
             }
         } catch (Exception e) {
             LOGGER.error("queryDrugInfo error ", e);

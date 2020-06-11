@@ -2,7 +2,6 @@ package recipe.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -101,6 +100,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
 
@@ -2476,65 +2476,57 @@ public class RecipeService extends RecipeBaseService {
             organIds.add(organId);
         }
 
+        if (CollectionUtils.isEmpty(organIds)) {
+            LOGGER.info("drugInfoSynTask organIds is empty.");
+            return;
+        }
+
         OrganDrugListDAO organDrugListDAO = getDAO(OrganDrugListDAO.class);
         Long updateNum = 0L;
-        List<String> unuseDrugs = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(organIds)) {
-            for (int oid : organIds) {
-                //查询起始下标
-                int startIndex = 0;
-                boolean finishFlag = true;
-                //获取纳里机构药品目录
-                List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(oid);
-                if (null == details || 0 >= details.size()) {
-                    LOGGER.info("drugInfoSynTask 当前医院organId=[{}]，平台没有匹配到机构药品.", oid);
-                    continue;
-                }
-                Map<String, OrganDrugList> drugMap = Maps.uniqueIndex(details, new Function<OrganDrugList, String>() {
-                    @Override
-                    public String apply(OrganDrugList input) {
-                        return input.getOrganDrugCode();
-                    }
-                });
-                do {
-                    unuseDrugs.clear();
-                    List<DrugInfoTO> drugInfoList = hisService.getDrugInfoFromHis(oid, false, startIndex);
-                    if (null != drugInfoList) {
-                        //是否有效标志 1-有效 0-无效
-                        for (DrugInfoTO drug : drugInfoList) {
-                            if ("0".equals(drug.getUseflag())) {
-                                unuseDrugs.add(drug.getDrcode());
-                            }
-                            OrganDrugList nowOrganDrug = drugMap.get(drug.getDrcode());
-                            //获取金额
-                            BigDecimal drugPrice = null == drug.getDrugPrice() ? new BigDecimal(-1) : new BigDecimal(drug.getDrugPrice());
 
-                            if (null != nowOrganDrug && !drugPrice.equals(new BigDecimal(-1))) {
-                                if (0 != drugPrice.compareTo(nowOrganDrug.getSalePrice())) {
-                                    //更新当前不匹配的药品价格
-                                    nowOrganDrug.setSalePrice(drugPrice);
-                                    organDrugListDAO.update(nowOrganDrug);
-                                    updateNum++;
-                                    LOGGER.info("drugInfoSynTask organId=[{}] drugCode=[{}] 药品信息价格更新成[{}]结束.", oid, drug.getDrcode(), drugPrice);
-                                }
-                            }
+        for (int oid : organIds) {
+            //获取纳里机构药品目录
+            List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(oid);
+            if (null == details || 0 >= details.size()) {
+                LOGGER.info("drugInfoSynTask 当前医院organId=[{}]，平台没有匹配到机构药品.", oid);
+                continue;
+            }
+            Map<String, OrganDrugList> drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+            //查询起始下标
+            int startIndex = 0;
+            boolean finishFlag = true;
+            while (finishFlag) {
+                List<DrugInfoTO> drugInfoList = hisService.getDrugInfoFromHis(oid, false, startIndex);
+                if (CollectionUtils.isEmpty(drugInfoList)) {
+                    LOGGER.info("drugInfoSynTask organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，药品信息更新结束.", oid, startIndex, updateNum);
+                    finishFlag = false;
+                } else {
+                    //是否有效标志 1-有效 0-无效
+                    for (DrugInfoTO drug : drugInfoList) {
+                        OrganDrugList nowOrganDrug = drugMap.get(drug.getDrcode());
+                        if (null == nowOrganDrug) {
+                            continue;
+                        }
+                        //获取金额
+                        if (StringUtils.isNotEmpty(drug.getDrugPrice())) {
+                            BigDecimal drugPrice = new BigDecimal(drug.getDrugPrice());
+                            nowOrganDrug.setSalePrice(drugPrice);
                         }
 
-//                        if (CollectionUtils.isNotEmpty(unuseDrugs)) {
-                        //暂时不启用自动修改
-//                            organDrugListDAO.updateStatusByOrganDrugCode(unuseDrugs, 0);
-//                        }
-                        startIndex += 1;
-                        //LOGGER.info("drugInfoSynTask organId=[{}] 同步完成. 关闭药品数量[{}], drugCode={}", oid, unuseDrugs.size(), JSONUtils.toString(unuseDrugs));
-                    } else {
-                        LOGGER.info("drugInfoSynTask organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，药品信息更新结束.", oid, startIndex, updateNum);
-                        finishFlag = false;
-                    }
-                } while (finishFlag);
+                        if (StringUtils.isNotEmpty(drug.getDrmodel())) {
+                            nowOrganDrug.setDrugSpec(drug.getDrmodel());
+                        }
+                        if (StringUtils.isNotEmpty(drug.getDrmodel())) {
+                            nowOrganDrug.setDrugSpec(drug.getDrmodel());
+                        }
 
+                        organDrugListDAO.update(nowOrganDrug);
+                        updateNum++;
+                        LOGGER.info("drugInfoSynTask organId=[{}] drug=[{}]", oid, JSONUtils.toString(drug));
+                    }
+                    startIndex++;
+                }
             }
-        } else {
-            LOGGER.info("drugInfoSynTask organIds is empty.");
         }
     }
 
