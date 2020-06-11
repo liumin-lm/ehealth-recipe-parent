@@ -40,12 +40,14 @@ public class GenerateSignetRecipePdfRunable implements Runnable {
         IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         Object organSealId = configurationCenterUtilsService.getConfiguration(organId, "organSeal");
         if (null == organSealId || StringUtils.isEmpty(organSealId.toString())) {
+            logger.info("GenerateSignetRecipePdfRunable organSeal is null");
             return;
         }
         //获取 处方数据
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.get(recipeId);
         if (null == recipe || StringUtils.isEmpty(recipe.getChemistSignFile())) {
+            logger.info("GenerateSignetRecipePdfRunable recipe is null");
             return;
         }
         try {
