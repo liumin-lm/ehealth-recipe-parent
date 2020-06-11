@@ -86,11 +86,12 @@ public class SignToThirdService {
             HisResponseTO<CaSignResponseTO> responseTO = iCaHisService.caSignBusiness(requestTO);
             LOGGER.info("SignToThirdService getCaSignToThird toHis end responseTO={}",JSONUtils.toString(responseTO));
             String signValue = "";
-            if ("200".equals(responseTO.getMsgCode())) {
+            if (responseTO != null && "200".equals(responseTO.getMsgCode())) {
                 signValue = responseTO.getData().getSignValue();
                 saveCaSign(doctorDTO,signValue,paramToThird);
             }
             returnMap.put("signValue",signValue);
+
         }
         return returnMap;
     }

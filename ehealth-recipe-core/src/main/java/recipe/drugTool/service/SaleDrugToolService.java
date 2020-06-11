@@ -187,6 +187,8 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     errMsg.append("价格不能为空").append(";");
                 }
                     drug.setPrice(BigDecimal.valueOf(Integer.parseInt(getStrFromCell(row.getCell(20)))));
+                    drug.setRate(0.00);
+                    drug.setRatePrice(Double.parseDouble(getStrFromCell(row.getCell(20))));
             } catch (Exception e) {
                 errMsg.append("价格有误").append(";");
             }

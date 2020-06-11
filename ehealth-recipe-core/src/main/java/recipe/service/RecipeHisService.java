@@ -1362,9 +1362,6 @@ public class RecipeHisService extends RecipeBaseService {
         IRecipeHisService iRecipeHisService = AppContextHolder.getBean("his.iRecipeHisService", IRecipeHisService.class);
         HisResponseTO<ThirdPartyRationalUseDrugResTO> hisResponseTO = iRecipeHisService.queryThirdPartyRationalUserDurg(reqTO);
         LOGGER.info("queryThirdPartyRationalUserDurg result：{}, idCard: {}", JSONUtils.toString(hisResponseTO), reqTO.getThirdPartyPatientData().getIdCard());
-        if (Objects.nonNull(hisResponseTO) && hisResponseTO.getMsgCode().equals("200")) {
-            return null;
-        }
         if (Objects.isNull(hisResponseTO)) {
             throw new DAOException("前置机调用失败");
         }
