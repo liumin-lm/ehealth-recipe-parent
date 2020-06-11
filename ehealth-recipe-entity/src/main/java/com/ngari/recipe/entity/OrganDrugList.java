@@ -140,7 +140,7 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "最小单位")
     private String miniUnit;
 
-    @ItemProperty(alias = "是否用户自己")
+    @ItemProperty(alias = "是否转化指标用量")
     private Boolean isChangeIndexDose;
 
 
