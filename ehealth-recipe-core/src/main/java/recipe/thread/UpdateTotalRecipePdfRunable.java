@@ -44,12 +44,12 @@ public class UpdateTotalRecipePdfRunable implements Runnable {
 
         try {
             if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
-                String newPfd = CreateRecipePdfUtil.generateTotalRecipePdf(recipe.getChemistSignFile(), actualPrice.toString());
+                String newPfd = CreateRecipePdfUtil.generateTotalRecipePdf(recipe.getChemistSignFile(), actualPrice.toString(), recipe.getRecipeType());
                 if (StringUtils.isNotEmpty(newPfd)) {
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("ChemistSignFile", newPfd));
                 }
             } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
-                String newPfd = CreateRecipePdfUtil.generateTotalRecipePdf(recipe.getChemistSignFile(), actualPrice.toString());
+                String newPfd = CreateRecipePdfUtil.generateTotalRecipePdf(recipe.getChemistSignFile(), actualPrice.toString(), recipe.getRecipeType());
                 if (StringUtils.isNotEmpty(newPfd)) {
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("SignFile", newPfd));
                 }

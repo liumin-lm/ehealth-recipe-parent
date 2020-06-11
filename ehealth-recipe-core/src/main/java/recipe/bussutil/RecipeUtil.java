@@ -1,10 +1,12 @@
 package recipe.bussutil;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.recipe.drug.model.DrugListBean;
+import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.entity.*;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -100,6 +102,7 @@ public class RecipeUtil {
         OrganDrugListDAO dao = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<OrganDrugList> organDrugList = dao.findByOrganIdAndDrugIds(organId, drugIds);
         // 设置医院价格
+        List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList;
         for (DrugListBean drugList : dList) {
             for (OrganDrugList odlist : organDrugList) {
                 if (null != drugList && null != odlist && drugList.getDrugId().equals(odlist.getDrugId())) {
@@ -122,6 +125,14 @@ public class RecipeUtil {
                     drugList.setDefaultSmallestUnitUseDose(odlist.getDefaultSmallestUnitUseDose());
                     //剂量单位最小单位
                     drugList.setUseDoseSmallestUnit(odlist.getUseDoseSmallestUnit());
+                    //设置医生端每次剂量和剂量单位联动关系
+                    useDoseAndUnitRelationList = Lists.newArrayList();
+                    useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(drugList.getRecommendedUseDose(),drugList.getUseDoseUnit()));
+                    if (StringUtils.isNotEmpty(drugList.getUseDoseSmallestUnit())
+                            ||drugList.getDefaultSmallestUnitUseDose()!= null){
+                        useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(drugList.getDefaultSmallestUnitUseDose(),drugList.getUseDoseSmallestUnit()));
+                    }
+                    drugList.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
                     break;
                 }
             }

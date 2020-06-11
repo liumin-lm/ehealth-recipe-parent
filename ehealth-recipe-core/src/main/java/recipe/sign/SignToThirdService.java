@@ -9,9 +9,12 @@ import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.service.ThirdPartyMappingService;
+import com.ngari.recipe.entity.sign.SignDoctorCaInfo;
+import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.logistics.model.RecipeLogisticsBean;
 import com.ngari.recipe.sign.model.ParamToThirdDTO;
 import ctd.account.thirdparty.ThirdPartyMapping;
+import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -21,7 +24,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
+import recipe.dao.sign.SignDoctorCaInfoDAO;
+import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,9 +52,9 @@ public class SignToThirdService {
             String tid = paramToThird.getTid();
             String thirdParty = paramToThird.getThirdParty();
             String signMsg = paramToThird.getSignMsg();
-            String cretMsg = paramToThird.getCretMsg();
+            //String cretMsg = paramToThird.getCretMsg();
             String bussNo = paramToThird.getBussNo();
-            LOGGER.info("SignToThirdService.getCaSignToThird，tid={},thirdParty={},signMsg={},cretMsg={},bussNo={}",tid,thirdParty,signMsg,cretMsg,bussNo);
+            LOGGER.info("SignToThirdService.getCaSignToThird，tid={},thirdParty={},signMsg={},bussNo={}",tid,thirdParty,signMsg,bussNo);
             if(StringUtils.isBlank(tid)){
                 throw new DAOException(DAOException.VALUE_NEEDED, "tid is null");
             }
@@ -79,10 +85,39 @@ public class SignToThirdService {
             LOGGER.info("SignToThirdService getCaSignToThird toHis start requestTO={}",JSONUtils.toString(requestTO));
             HisResponseTO<CaSignResponseTO> responseTO = iCaHisService.caSignBusiness(requestTO);
             LOGGER.info("SignToThirdService getCaSignToThird toHis end responseTO={}",JSONUtils.toString(responseTO));
-            if ("200".equals(responseTO.getMsgCode())) {
-                returnMap.put("signValue",responseTO.getData().getSignValue());
+            String signValue = "";
+            if (responseTO != null && "200".equals(responseTO.getMsgCode())) {
+                signValue = responseTO.getData().getSignValue();
+                saveCaSign(doctorDTO,signValue,paramToThird);
             }
+            returnMap.put("signValue",signValue);
+
         }
         return returnMap;
+    }
+
+    private void saveCaSign(DoctorDTO doctorDTO,String signValue,ParamToThirdDTO paramToThird){
+        SignDoctorCaInfo signDoctorCaInfo = new SignDoctorCaInfo();
+        signDoctorCaInfo.setDoctorId(doctorDTO.getDoctorId());
+        signDoctorCaInfo.setCaType("shanghaiCA");
+        signDoctorCaInfo.setCert_voucher(signValue);
+        signDoctorCaInfo.setCreateDate(new Date());
+        signDoctorCaInfo.setLastmodify(new Date());
+        signDoctorCaInfo.setName(doctorDTO.getName());
+        signDoctorCaInfo.setIdcard(doctorDTO.getIdNumber());
+        SignDoctorCaInfoDAO SignDoctorCaInfoDAO = DAOFactory.getDAO(SignDoctorCaInfoDAO.class);
+        SignDoctorCaInfoDAO.save(signDoctorCaInfo);
+
+        SignDoctorRecipeInfo signDoctorRecipeInfo = new SignDoctorRecipeInfo();
+        signDoctorRecipeInfo.setCreateDate(new Date());
+        signDoctorRecipeInfo.setLastmodify(new Date());
+        signDoctorRecipeInfo.setRecipeId(Integer.parseInt(paramToThird.getBussNo()));
+        signDoctorRecipeInfo.setServerType(1);
+        signDoctorRecipeInfo.setType("shanghaiCA");
+        signDoctorRecipeInfo.setSignBefText(paramToThird.getSignMsg());
+        signDoctorRecipeInfo.setSignCodeDoc(signValue);
+        SignDoctorRecipeInfoDAO signDoctorRecipeInfoDAO = DAOFactory.getDAO(SignDoctorRecipeInfoDAO.class);
+        signDoctorRecipeInfoDAO.save(signDoctorRecipeInfo);
+
     }
 }

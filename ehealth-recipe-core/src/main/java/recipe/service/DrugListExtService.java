@@ -8,6 +8,7 @@ import com.ngari.base.searchcontent.service.ISearchContentService;
 import com.ngari.base.searchservice.model.DrugSearchTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
+import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.OrganDrugList;
@@ -249,7 +250,6 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         DrugSearchService searchService = AppContextHolder.getBean("es.drugSearchService", DrugSearchService.class);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
         DrugSearchTO searchTO = new DrugSearchTO();
         searchTO.setDrugName(StringUtils.isEmpty(drugName) ? "" : drugName.toLowerCase());
@@ -294,6 +294,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
             DrugList drugListNow;
             boolean drugInventoryFlag;
+            List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList;
             for (String s : drugInfo) {
                 try {
                     drugList = JSONUtils.parse(s, SearchDrugDetailDTO.class);
@@ -334,6 +335,14 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     drugInventoryFlag = drugsEnterpriseService.isExistDrugsEnterprise(organId, drugList.getDrugId());
                     drugList.setDrugInventoryFlag(drugInventoryFlag);
                 }
+                //设置医生端每次剂量和剂量单位联动关系
+                useDoseAndUnitRelationList = Lists.newArrayList();
+                useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(drugList.getRecommendedUseDose(),drugList.getUseDoseUnit()));
+                if (StringUtils.isNotEmpty(drugList.getUseDoseSmallestUnit())
+                        ||drugList.getDefaultSmallestUnitUseDose()!= null){
+                    useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(drugList.getDefaultSmallestUnitUseDose(),drugList.getUseDoseSmallestUnit()));
+                }
+                drugList.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
                 dList.add(drugList);
             }
 
