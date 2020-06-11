@@ -95,6 +95,7 @@ public class CreateRecipePdfUtil {
             bos.close();
             buffer = bos.toByteArray();
         }catch (FileNotFoundException e){
+            logger.error("File2byte e", e);
             e.printStackTrace();
         }catch (IOException e){
             e.printStackTrace();
@@ -161,6 +162,7 @@ public class CreateRecipePdfUtil {
         IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
 
         //获取印章图片
+        fileDownloadService.downloadAsByte(organSealId);
         FileMetaRecord organSealRecord = fileDownloadService.downloadAsRecord(organSealId);
         if (null == organSealRecord) {
             return null;
@@ -181,7 +183,8 @@ public class CreateRecipePdfUtil {
             addSignetImgForRecipePdf(output, input, url, type);
             //上传pdf文件
             IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
-            fileId = fileUploadService.uploadFileWithoutUrt(File2byte(file), fileMetaRecord.getFileName());
+            byte[] bytes = File2byte(file);
+            fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
             //删除本地文件
             file.delete();
         }
