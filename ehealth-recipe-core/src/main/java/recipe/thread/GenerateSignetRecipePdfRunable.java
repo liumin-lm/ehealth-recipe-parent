@@ -58,7 +58,7 @@ public class GenerateSignetRecipePdfRunable implements Runnable {
             }
             logger.error("GenerateSignetRecipePdfRunable end newPfd={}, organSealId={}", newPfd, organSealId);
         } catch (Exception e) {
-            logger.error("GenerateSignetRecipePdfRunable start recipeId={}, e={}", recipeId, e);
+            logger.error("GenerateSignetRecipePdfRunable error recipeId={}, e={}", recipeId, e);
         }
     }
 }
