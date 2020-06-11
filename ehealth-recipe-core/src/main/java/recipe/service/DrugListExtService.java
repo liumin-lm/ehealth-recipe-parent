@@ -337,8 +337,11 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 }
                 //设置医生端每次剂量和剂量单位联动关系
                 useDoseAndUnitRelationList = Lists.newArrayList();
-                useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(drugList.getDefaultSmallestUnitUseDose(),drugList.getUseDoseSmallestUnit()));
                 useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(drugList.getRecommendedUseDose(),drugList.getUseDoseUnit()));
+                if (StringUtils.isNotEmpty(drugList.getUseDoseSmallestUnit())
+                        ||drugList.getDefaultSmallestUnitUseDose()!= null){
+                    useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(drugList.getDefaultSmallestUnitUseDose(),drugList.getUseDoseSmallestUnit()));
+                }
                 drugList.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
                 dList.add(drugList);
             }
