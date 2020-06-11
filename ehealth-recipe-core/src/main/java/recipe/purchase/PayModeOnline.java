@@ -782,6 +782,7 @@ public class PayModeOnline implements IPurchaseService {
             recipeOrder.setAddress2(address.getAddress2());
             recipeOrder.setAddress3(address.getAddress3());
             recipeOrder.setAddress4(address.getAddress4());
+            recipeOrder.setStreetAddress(address.getStreetAddress());
         }else{
             LOG.warn("当前确认订单推送没有设置配送地址");
             return null;
