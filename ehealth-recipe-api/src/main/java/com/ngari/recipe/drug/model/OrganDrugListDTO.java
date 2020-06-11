@@ -109,6 +109,18 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "生产厂家")
     private String producer;
 
+    @ItemProperty(alias = "一次剂量/最小单位")
+    private Double doseMiniUnit;
+
+    @ItemProperty(alias = "默认单次剂量/最小单位")
+    private Double defaultDoseMiniUnit;
+
+    @ItemProperty(alias = "最小单位")
+    private String miniUnit;
+
+    @ItemProperty(alias = "是否用户自己")
+    private Boolean isChangeIndexDose;
+
 
 
 
@@ -353,5 +365,38 @@ public class OrganDrugListDTO implements java.io.Serializable {
 
     public void setProducer(String producer) {
         this.producer = producer;
+    }
+
+    public Double getDoseMiniUnit() {
+        return doseMiniUnit;
+    }
+
+    public void setDoseMiniUnit(Double doseMiniUnit) {
+        this.doseMiniUnit = doseMiniUnit;
+    }
+
+    public Double getDefaultDoseMiniUnit() {
+        return defaultDoseMiniUnit;
+    }
+
+    public void setDefaultDoseMiniUnit(Double defaultDoseMiniUnit) {
+        this.defaultDoseMiniUnit = defaultDoseMiniUnit;
+    }
+
+
+    public String getMiniUnit() {
+        return miniUnit;
+    }
+
+    public void setMiniUnit(String miniUnit) {
+        this.miniUnit = miniUnit;
+    }
+
+    public Boolean getChangeIndexDose() {
+        return isChangeIndexDose;
+    }
+
+    public void setChangeIndexDose(Boolean changeIndexDose) {
+        isChangeIndexDose = changeIndexDose;
     }
 }
