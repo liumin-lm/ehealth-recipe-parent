@@ -410,8 +410,8 @@ public class RecipeServiceSub {
                         detail.setDrugCost(drugCost);
                         totalMoney = totalMoney.add(drugCost);
                     }else {
-                        if (StringUtils.isNotEmpty(organDrug.getDrugName())){
-                            delOrganDrugName.add(organDrug.getDrugName());
+                        if (StringUtils.isNotEmpty(detail.getDrugName())){
+                            delOrganDrugName.add(detail.getDrugName());
                         }
                     }
 

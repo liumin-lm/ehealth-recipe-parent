@@ -142,6 +142,9 @@ public class SearchDrugDetailDTO implements Serializable {
     @ItemProperty(alias = "药品库存标志")
     private boolean drugInventoryFlag;
 
+    @ItemProperty(alias = "医生端选择的每次剂量和单位绑定关系")
+    private List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation;
+
     public Integer getDrugId() {
         return drugId;
     }
@@ -452,5 +455,13 @@ public class SearchDrugDetailDTO implements Serializable {
 
     public void setUseDoseSmallestUnit(String useDoseSmallestUnit) {
         this.useDoseSmallestUnit = useDoseSmallestUnit;
+    }
+
+    public List<UseDoseAndUnitRelationBean> getUseDoseAndUnitRelation() {
+        return useDoseAndUnitRelation;
+    }
+
+    public void setUseDoseAndUnitRelation(List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation) {
+        this.useDoseAndUnitRelation = useDoseAndUnitRelation;
     }
 }
