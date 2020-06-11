@@ -10,6 +10,8 @@ import ctd.mvc.upload.FileMetaRecord;
 import ctd.mvc.upload.exception.FileRegistryException;
 import ctd.mvc.upload.exception.FileRepositoryException;
 import lombok.Cleanup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.RecipeBussConstant;
 import recipe.third.IFileDownloadService;
@@ -21,7 +23,7 @@ import java.net.URL;
  * created by shiyuping on 2019/10/18
  */
 public class CreateRecipePdfUtil {
-
+    private static final Logger logger = LoggerFactory.getLogger(CreateRecipePdfUtil.class);
 
     public static String transPdfIdForRecipePdf(String pdfId) throws IOException, DocumentException, FileRegistryException, FileRepositoryException {
 
@@ -169,11 +171,14 @@ public class CreateRecipePdfUtil {
         String fileId = null;
 
         //获取 处方pdf 加印章
+        @Cleanup InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
         FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
+        logger.info("generateSignetRecipePdf pdfId={}, organSealId={}", pdfId, organSealId);
         if (null != fileMetaRecord) {
             File file = new File(fileMetaRecord.getFileName());
             //添加图片
-            addSignetImgForRecipePdf(file, url, type);
+            @Cleanup OutputStream output = new FileOutputStream(file);
+            addSignetImgForRecipePdf(output, input, url, type);
             //上传pdf文件
             IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
             fileId = fileUploadService.uploadFileWithoutUrt(File2byte(file), fileMetaRecord.getFileName());
@@ -192,10 +197,8 @@ public class CreateRecipePdfUtil {
      * @param type 处方类型
      * @throws Exception
      */
-    private static void addSignetImgForRecipePdf(File file, URL url, Integer type) throws Exception {
-        @Cleanup InputStream input = new FileInputStream(file);
-        @Cleanup OutputStream output = new FileOutputStream(file);
-
+    private static void addSignetImgForRecipePdf(OutputStream output, InputStream input, URL url, Integer type) throws Exception {
+        logger.info("addSignetImgForRecipePdf url={}, type={}", url, type);
         PdfReader reader = new PdfReader(input);
         PdfStamper stamper = new PdfStamper(reader, output);
 
