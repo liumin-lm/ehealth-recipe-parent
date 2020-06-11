@@ -179,16 +179,23 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias = "药企药品编码")
 	private String saleDrugCode;
 
-	@ItemProperty(alias="药物使用天数(小数类型)")
+	@ItemProperty(alias = "药物使用天数(小数类型)")
 	private String useDaysB;
 	@ItemProperty(alias = "处方药品详情类型")
-	@Dictionary(id="eh.base.dictionary.DrugType")
+	@Dictionary(id = "eh.base.dictionary.DrugType")
 	private Integer drugType;
+
+	/**
+	 * 医保药品编码
+	 */
+	private String medicalDrugCode;
+
 
 	@Column(name = "UseDaysB")
 	public String getUseDaysB() {
 		return useDaysB;
 	}
+
 	@Column(name = "drugType")
 	public Integer getDrugType() {
 		return drugType;
@@ -689,5 +696,13 @@ public class Recipedetail implements java.io.Serializable {
 
 	public void setUsePathwaysTextFromHis(String usePathwaysTextFromHis) {
 		this.usePathwaysTextFromHis = usePathwaysTextFromHis;
+	}
+
+	public String getMedicalDrugCode() {
+		return medicalDrugCode;
+	}
+
+	public void setMedicalDrugCode(String medicalDrugCode) {
+		this.medicalDrugCode = medicalDrugCode;
 	}
 }

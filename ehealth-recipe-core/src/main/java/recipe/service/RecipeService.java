@@ -2515,9 +2515,6 @@ public class RecipeService extends RecipeBaseService {
                         if (StringUtils.isNotEmpty(drug.getDrmodel())) {
                             nowOrganDrug.setDrugSpec(drug.getDrmodel());
                         }
-                        if (StringUtils.isNotEmpty(drug.getDrmodel())) {
-                            nowOrganDrug.setDrugSpec(drug.getDrmodel());
-                        }
                         if (StringUtils.isNotEmpty(drug.getMedicalDrugCode())) {
                             nowOrganDrug.setMedicalDrugCode(drug.getMedicalDrugCode());
                         }
@@ -3252,24 +3249,6 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.error("wxPayRefundForRecipe " + errorInfo + "*****HIS消息发送异常！recipeId[" + recipeId + "],err[" + e.getMessage() + "]");
         }
 
-    }
-
-    /**
-     * 更新机构相应药品价格
-     *
-     * @param organId  机构ID
-     * @param priceMap 药品价格，key:药品id，value:价格
-     */
-    public void updateDrugPrice(Integer organId, Map<Integer, BigDecimal> priceMap) {
-        if (null != organId && null != priceMap && !priceMap.isEmpty()) {
-            OrganDrugListDAO organDrugListDAO = getDAO(OrganDrugListDAO.class);
-
-            for (Map.Entry<Integer, BigDecimal> entry : priceMap.entrySet()) {
-                if (null != entry.getKey() && null != entry.getValue()) {
-                    organDrugListDAO.updateDrugPrice(organId, entry.getKey(), entry.getValue());
-                }
-            }
-        }
     }
 
     /************************************************患者类接口 END***************************************************/
