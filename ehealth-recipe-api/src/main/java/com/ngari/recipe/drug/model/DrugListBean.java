@@ -147,6 +147,9 @@ public class DrugListBean implements Serializable {
     @ItemProperty(alias = "药品本位码")
     private String standardCode;
 
+    @ItemProperty(alias = "医生端选择的每次剂量和单位绑定关系")
+    private List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation;
+
     public DrugListBean() {
     }
 
@@ -489,5 +492,13 @@ public class DrugListBean implements Serializable {
 
     public void setUseDoseSmallestUnit(String useDoseSmallestUnit) {
         this.useDoseSmallestUnit = useDoseSmallestUnit;
+    }
+
+    public List<UseDoseAndUnitRelationBean> getUseDoseAndUnitRelation() {
+        return useDoseAndUnitRelation;
+    }
+
+    public void setUseDoseAndUnitRelation(List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation) {
+        this.useDoseAndUnitRelation = useDoseAndUnitRelation;
     }
 }
