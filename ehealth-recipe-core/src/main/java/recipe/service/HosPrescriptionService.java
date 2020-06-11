@@ -240,7 +240,7 @@ public class HosPrescriptionService implements IHosPrescriptionService {
         map.put("appId", null);
         map.put("openId", null);
         map.put("url", thirdUrl);
-        map.put("patientDTO", patientDTO);
+        map.put("loginId", patientDTO.getLoginId());
         RecipeMsgService.sendRecipeThirdMsg(map);
     }
 
