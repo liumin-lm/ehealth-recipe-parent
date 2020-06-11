@@ -162,13 +162,22 @@ public class CreateRecipePdfUtil {
         IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
 
         //获取印章图片
-        fileDownloadService.downloadAsByte(organSealId);
+        @Cleanup InputStream organSealInput = new ByteArrayInputStream(fileDownloadService.downloadAsByte(organSealId));
         FileMetaRecord organSealRecord = fileDownloadService.downloadAsRecord(organSealId);
+
         if (null == organSealRecord) {
             return null;
         }
         //获取图片url
         File organSealFile = new File(organSealRecord.getFileName());
+        @Cleanup OutputStream organSealOutput = new FileOutputStream(organSealFile);
+
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        while ((bytesRead = organSealInput.read(buffer)) != -1) {
+            organSealOutput.write(buffer, 0, bytesRead);
+        }
+
         URL url = organSealFile.toURI().toURL();
         String fileId = null;
 
