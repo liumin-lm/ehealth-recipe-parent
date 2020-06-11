@@ -2487,7 +2487,7 @@ public class RecipeService extends RecipeBaseService {
         for (int oid : organIds) {
             //获取纳里机构药品目录
             List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(oid);
-            if (null == details || 0 >= details.size()) {
+            if (CollectionUtils.isEmpty(details)) {
                 LOGGER.info("drugInfoSynTask 当前医院organId=[{}]，平台没有匹配到机构药品.", oid);
                 continue;
             }
@@ -2512,12 +2512,14 @@ public class RecipeService extends RecipeBaseService {
                             BigDecimal drugPrice = new BigDecimal(drug.getDrugPrice());
                             nowOrganDrug.setSalePrice(drugPrice);
                         }
-
                         if (StringUtils.isNotEmpty(drug.getDrmodel())) {
                             nowOrganDrug.setDrugSpec(drug.getDrmodel());
                         }
                         if (StringUtils.isNotEmpty(drug.getDrmodel())) {
                             nowOrganDrug.setDrugSpec(drug.getDrmodel());
+                        }
+                        if (StringUtils.isNotEmpty(drug.getMedicalDrugCode())) {
+                            nowOrganDrug.setMedicalDrugCode(drug.getMedicalDrugCode());
                         }
 
                         organDrugListDAO.update(nowOrganDrug);
