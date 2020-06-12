@@ -698,6 +698,7 @@ public class Recipedetail implements java.io.Serializable {
 		this.usePathwaysTextFromHis = usePathwaysTextFromHis;
 	}
 
+	@Transient
 	public String getMedicalDrugCode() {
 		return medicalDrugCode;
 	}
