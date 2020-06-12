@@ -17,7 +17,7 @@ import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import ctd.controller.exception.ControllerException;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -27,6 +27,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.audit.bean.AutoAuditResult;
 import recipe.audit.bean.Issue;
@@ -46,7 +47,7 @@ import java.util.Optional;
 /**
  * 第三方合理用药
  */
-@RpcBean
+@RpcBean(mvc_authentication = false)
 public class ThirdPartyPrescriptionService implements IntellectJudicialService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ThirdPartyPrescriptionService.class);
@@ -84,9 +85,11 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
             PatientDTO patientDTO = Optional.ofNullable(patientService.getPatientByMpiId(recipeBean.getMpiid())).orElseThrow(() -> new DAOException("找不到患者信息"));
             DoctorBean doctorBean = Optional.ofNullable(doctorService.getBeanByDoctorId(recipeBean.getDoctor())).orElseThrow(() -> new DAOException("找不到医生信息"));
             DepartmentDTO departmentDTO = Optional.ofNullable(departmentService.getById(recipeBean.getDepart())).orElseThrow(() -> new DAOException("找不到部门信息"));
-            RecipeExtend recipeExtend = null;
-            if (Objects.nonNull(recipeBean.getRecipeId())) {
-                recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
+            RecipeExtendBean recipeExtendBean = recipeBean.getRecipeExtend();
+            if (Objects.isNull(recipeExtendBean) && Objects.nonNull(recipeBean.getRecipeId())) {
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
+                recipeExtendBean = new RecipeExtendBean();
+                BeanUtils.copyProperties(recipeExtend, recipeExtendBean);
             }
             ThirdPartyRationalUseDrugReqTO reqTO;
             ConsultExDTO consultExDTO = null;
@@ -95,13 +98,13 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
             reqTO.setDeptCode(Objects.nonNull(departmentDTO) ? departmentDTO.getCode() : StringUtils.EMPTY);
             reqTO.setDeptName(Objects.nonNull(departmentDTO) ? departmentDTO.getName() : StringUtils.EMPTY);
             reqTO.setDoctCode(employmentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipeBean.getDoctor(), recipeBean.getClinicOrgan(), recipeBean.getDepart()));
-            reqTO.setDoctName(recipeBean.getDoctorName());
+            reqTO.setDoctName(doctorBean.getName());
             if (Objects.nonNull(recipeBean.getClinicId())) {
                 consultExDTO = consultExService.getByConsultId(recipeBean.getClinicId());
             }
             reqTO.setThirdPartyBaseData(packThirdPartyBaseData(patientDTO, consultExDTO));
             reqTO.setThirdPartyPatientData(packThirdPartyPatientData(patientDTO));
-            reqTO.setThirdPartyPrescriptionsData(packThirdPartyPrescriptionData(recipeBean, recipeExtend, departmentDTO, doctorBean, recipeDetailBeanList));
+            reqTO.setThirdPartyPrescriptionsData(packThirdPartyPrescriptionData(recipeBean, recipeExtendBean, departmentDTO, doctorBean, recipeDetailBeanList));
             reqTO.setThirdPartyDiagnosisDataList(packThirdPartyDiagnosisData(recipeBean.getOrganDiseaseName(), recipeBean.getOrganDiseaseId()));
             ThirdPartyRationalUseDrugResTO thirdPartyRationalUseDrugResTO = recipeHisService.queryThirdPartyRationalUserDurg(reqTO);
             if (Objects.nonNull(thirdPartyRationalUseDrugResTO)) {
@@ -143,7 +146,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
     private ThirdPartyBaseData packThirdPartyBaseData(PatientDTO patientDTO, ConsultExDTO consultExDTO) {
         ThirdPartyBaseData thirdPartyBaseData = new ThirdPartyBaseData();
         if (Objects.nonNull(consultExDTO)) {
-            thirdPartyBaseData.setAdmNo(consultExDTO.getRegisterNo());
+            thirdPartyBaseData.setAdmNo(StringUtils.defaultIfBlank(consultExDTO.getRegisterNo(), StringUtils.EMPTY));
         }
         thirdPartyBaseData.setName(patientDTO.getPatientName());
         return thirdPartyBaseData;
@@ -160,11 +163,11 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
         thirdPartyPatientData.setIdCard(patientDTO.getIdcard());
         thirdPartyPatientData.setName(patientDTO.getPatientName());
         thirdPartyPatientData.setAddress(patientDTO.getAddress());
-        thirdPartyPatientData.setPhone(patientDTO.getLinkTel());
+        thirdPartyPatientData.setPhone(patientDTO.getMobile());
         thirdPartyPatientData.setGender(patientDTO.getPatientSex());
         thirdPartyPatientData.setAge(String.valueOf(patientDTO.getAge()));
-        thirdPartyPatientData.setHeight(patientDTO.getHeight());
-        thirdPartyPatientData.setWeight(patientDTO.getWeight());
+        thirdPartyPatientData.setHeight(StringUtils.defaultIfBlank(patientDTO.getHeight(), StringUtils.EMPTY));
+        thirdPartyPatientData.setWeight(StringUtils.defaultIfBlank(patientDTO.getWeight(), StringUtils.EMPTY));
         thirdPartyPatientData.setGender(patientDTO.getPatientSex());
         return thirdPartyPatientData;
     }
@@ -173,23 +176,23 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
      * 封装处方信息
      *
      * @param recipeBean
-     * @param recipeExtend
+     * @param recipeExtendBean
      * @param departmentDTO
      * @param doctorBean
      * @param recipeDetailBeanList
      * @return
      */
-    private ThirdPartyPrescriptionsData packThirdPartyPrescriptionData(RecipeBean recipeBean, RecipeExtend recipeExtend, DepartmentDTO departmentDTO,
+    private ThirdPartyPrescriptionsData packThirdPartyPrescriptionData(RecipeBean recipeBean, RecipeExtendBean recipeExtendBean, DepartmentDTO departmentDTO,
                                                                        DoctorBean doctorBean, List<RecipeDetailBean> recipeDetailBeanList) {
         ThirdPartyPrescriptionsData thirdPartyPrescriptionsData = new ThirdPartyPrescriptionsData();
         thirdPartyPrescriptionsData.setId(String.valueOf(recipeBean.getRecipeId()));
-        if (Objects.nonNull(recipeExtend)) {
-            thirdPartyPrescriptionsData.setReason(recipeExtend.getHistoryOfPresentIllness());
+        if (Objects.nonNull(recipeExtendBean)) {
+            thirdPartyPrescriptionsData.setReason(recipeExtendBean.getHistoryOfPresentIllness());
         }
         thirdPartyPrescriptionsData.setDeptCode(departmentDTO.getCode());
         thirdPartyPrescriptionsData.setDeptName(departmentDTO.getName());
         thirdPartyPrescriptionsData.setDoctCode(doctorBean.getIdNumber());
-        thirdPartyPrescriptionsData.setDoctName(recipeBean.getDoctorName());
+        thirdPartyPrescriptionsData.setDoctName(doctorBean.getName());
         try {
             thirdPartyPrescriptionsData.setDoctTitle(DictionaryController.instance().get("eh.base.dictionary.JobTitle").getText(doctorBean.getJobTitle()));
         } catch (Exception e) {
@@ -200,8 +203,8 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
             ThirdPartyMedicinesData thirdPartyMedicinesData = new ThirdPartyMedicinesData();
             thirdPartyMedicinesData.setName(recipeDetailBean.getDrugName());
             thirdPartyMedicinesData.setHisCode(recipeDetailBean.getOrganDrugCode());
-            if (Objects.nonNull(recipeExtend)) {
-                thirdPartyMedicinesData.setReason(recipeExtend.getHistoryOfPresentIllness());
+            if (Objects.nonNull(recipeExtendBean)) {
+                thirdPartyMedicinesData.setReason(recipeExtendBean.getHistoryOfPresentIllness());
             }
             if (StringUtils.isNotEmpty(recipeDetailBean.getUseDoseStr())) {
                 thirdPartyMedicinesData.setDose(recipeDetailBean.getUseDoseStr());
@@ -216,13 +219,11 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
             }
             if (StringUtils.isNotBlank(recipeDetailBean.getUsingRate())) {
                 thirdPartyMedicinesData.setFreq(UsingRateFilter.filterNgari(recipeBean.getClinicOrgan(), recipeDetailBean.getUsingRate()));
-                String freqName = StringUtils.EMPTY;
                 try {
-                    freqName = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(recipeDetailBean.getUsingRate());
-                } catch (ControllerException e) {
-                    LOGGER.error("analysis parse error", e);
+                    thirdPartyMedicinesData.setFreqName(DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(recipeDetailBean.getUsingRate()));
+                } catch (Exception e) {
+                    LOGGER.error("analysis packThirdPartyPrescriptionData error, param: {}", recipeDetailBean.getUsingRate(), e);
                 }
-                thirdPartyMedicinesData.setFreqName(freqName);
             }
             if (StringUtils.isNotBlank(recipeDetailBean.getUsePathways())) {
                 thirdPartyMedicinesData.setPath(UsePathwaysFilter.filterNgari(recipeBean.getClinicOrgan(), recipeDetailBean.getUsePathways()));
@@ -288,7 +289,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
             if (StringUtils.isNotBlank(thirdPartyIssuesData.getHisCodeA()) && StringUtils.isNotBlank(thirdPartyIssuesData.getHisCodeB())) {
                 code = StringUtils.join(thirdPartyIssuesData.getHisCodeA(), "|", thirdPartyIssuesData.getHisCodeB());
             } else {
-                code = StringUtils.isNotBlank(thirdPartyIssuesData.getNameA()) ? thirdPartyIssuesData.getNameA() : thirdPartyIssuesData.getNameB();
+                code = StringUtils.isNotBlank(thirdPartyIssuesData.getHisCodeA()) ? thirdPartyIssuesData.getHisCodeA() : thirdPartyIssuesData.getHisCodeB();
             }
             paWebMedicines.setName(name);
             paWebMedicines.setCode(code);
