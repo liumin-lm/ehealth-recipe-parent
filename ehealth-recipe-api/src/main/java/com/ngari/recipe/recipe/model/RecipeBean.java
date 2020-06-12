@@ -334,6 +334,9 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "主诉")
     private String mainDieaseDescribe;
 
+    @ItemProperty(alias = "处方来源类型 1 平台处方 2 线下转线上的处方")
+    private Integer recipeSourceType;
+
     /**
      * 患者医保类型（编码）
      */
@@ -1247,5 +1250,13 @@ public class RecipeBean implements Serializable {
 
     public void setMedicalTypeText(String medicalTypeText) {
         this.medicalTypeText = medicalTypeText;
+    }
+
+    public Integer getRecipeSourceType() {
+        return recipeSourceType;
+    }
+
+    public void setRecipeSourceType(Integer recipeSourceType) {
+        this.recipeSourceType = recipeSourceType;
     }
 }

@@ -141,7 +141,7 @@ public class RecipePreserveService {
         return doctorService.getBeanByDoctorId(doctorId);
     }
 
-    @RpcService
+    @RpcService(timeout = 5000)
     public Map<String,Object> getHosRecipeList(Integer consultId, Integer organId,String mpiId,Integer daysAgo){
         LOGGER.info("getHosRecipeList consultId={}, organId={},mpiId={}", consultId, organId,mpiId);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
@@ -224,6 +224,7 @@ public class RecipePreserveService {
                 detailBean.setUsePathwaysText(recipeDetailTO.getUsePathWays());
                 detailBean.setUseDays(recipeDetailTO.getDays());
                 detailBean.setUseTotalDose(recipeDetailTO.getAmount());
+                detailBean.setDrugSpec(recipeDetailTO.getDrugSpec());
                 hisRecipeDetailBeans.add(detailBean);
             }
             recipeBean.setDetailData(hisRecipeDetailBeans);

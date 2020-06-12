@@ -41,6 +41,7 @@ import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
 import networkclinic.api.service.INetworkclinicMsgService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -66,6 +67,7 @@ import recipe.util.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -1292,6 +1294,32 @@ public class RecipeServiceSub {
         r.setRecipeDrugName(recipe.getRecipeDrugName());
         r.setRecipeShowTime(recipe.getRecipeShowTime());
         r.setShowTip(recipe.getShowTip());
+        r.setRecipeSourceType(recipe.getRecipeSourceType());
+        r.setRecipeCode(recipe.getRecipeCode());
+        r.setClinicOrgan(recipe.getClinicOrgan());
+        return r;
+    }
+
+    public static RecipeBean convertHisRecipeForRAP(HisRecipeBean recipe) {
+        RecipeBean r = new RecipeBean();
+//        r.setRecipeId(recipe.ge);
+        r.setCreateDate(Timestamp.valueOf(recipe.getSignDate()));
+        r.setRecipeType(Integer.parseInt(recipe.getRecipeType()));
+//        r.setStatus(recipe.getStatus());
+        r.setOrganDiseaseName(recipe.getOrganDiseaseName());
+        StringBuilder stringBuilder = new StringBuilder();
+        for (HisRecipeDetailBean recipedetail : recipe.getDetailData()) {
+            stringBuilder.append(recipedetail.getDrugName());
+            stringBuilder.append(" ").append((recipedetail.getDrugSpec())==null?"":recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit()==null?"":recipedetail.getDrugUnit()).append("、");
+        }
+        stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
+        r.setRecipeDrugName(stringBuilder.toString());
+
+        r.setRecipeShowTime(Timestamp.valueOf(recipe.getSignDate()));
+//        r.setShowTip(recipe.getShowTip());
+        r.setRecipeSourceType(2);
+        r.setRecipeCode(recipe.getRecipeCode());
+        r.setClinicOrgan(recipe.getClinicOrgan());
         return r;
     }
 

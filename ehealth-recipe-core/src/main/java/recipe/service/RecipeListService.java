@@ -26,6 +26,7 @@ import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -42,7 +43,11 @@ import recipe.service.common.RecipeCacheService;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
+import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static recipe.service.RecipeServiceSub.convertPatientForRAP;
@@ -610,6 +615,104 @@ public class RecipeListService extends RecipeBaseService{
         return msg;
     }
 
+
+    /**
+     * 获取历史处方
+     * @param consultId
+     * @param organId
+     * @param doctorId
+     * @param mpiId
+     * @return
+     */
+    @RpcService
+    public List<Map<String, Object>> findHistoryRecipeList(Integer consultId,Integer organId,Integer doctorId, String mpiId) {
+        LOGGER.info("getHosRecipeList consultId={}, organId={},doctorId={},mpiId={}", consultId, organId,doctorId,mpiId);
+        //从Recipe表获取线上、线下处方
+        Future<List<Map<String,Object>>> recipeTask = GlobalEventExecFactory.instance().getExecutor().submit(()->{
+            List<Map<String,Object>> onLineAndUnderLineRecipesByRecipe=findRecipeListByDoctorAndPatient(doctorId,mpiId,0,10000);
+            return onLineAndUnderLineRecipesByRecipe;
+        });
+        RecipePreserveService recipeService = ApplicationUtils.getRecipeService(RecipePreserveService.class);
+        //从his获取线下处方
+        Future<Map<String, Object>> hisTask = GlobalEventExecFactory.instance().getExecutor().submit(()->{
+            Map<String, Object> upderLineRecipesByHis=recipeService.getHosRecipeList(consultId, organId, mpiId, 180);
+            return upderLineRecipesByHis;
+        });
+
+        List<Map<String,Object>> onLineAndUnderLineRecipesByRecipe= new ArrayList<>();
+        try {
+            onLineAndUnderLineRecipesByRecipe = recipeTask.get();
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOGGER.error("findHistoryRecipeList exception:{}",e.getMessage());
+        }
+        Map<String,Object> upderLineRecipesByHis= new ConcurrentHashMap<>();
+        try {
+            upderLineRecipesByHis = hisTask.get();
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOGGER.error("findHistoryRecipeList exception:{}",e.getMessage());
+        }
+
+
+//        //从Recipe表获取线上、线下处方
+//        List<Map<String,Object>> onLineAndUnderLineRecipesByRecipe=findRecipeListByDoctorAndPatient(doctorId,mpiId,0,10000);
+//        //从his获取线下处方
+//        RecipePreserveService recipeService = ApplicationUtils.getRecipeService(RecipePreserveService.class);
+//        Map<String, Object> upderLineRecipesByHis=recipeService.getHosRecipeList(consultId, organId, mpiId, 180);
+        //过滤重复数据
+        List<Map<String,Object>> res=dealRepeatDataAndSort(onLineAndUnderLineRecipesByRecipe,upderLineRecipesByHis);
+        //返回结果集
+        return res;
+    }
+
+    /**
+     * 重复数据处理、数据重新排序
+     * @param onLineAndUnderLineRecipesByRecipe
+     * @param upderLineRecipesByHis
+     * @return
+     */
+    private List<Map<String, Object>> dealRepeatDataAndSort(List<Map<String, Object>> onLineAndUnderLineRecipesByRecipe, Map<String, Object> upderLineRecipesByHis) {
+        List<Map<String, Object>> res=new ArrayList<>();
+        //过滤重复数据
+        List<HisRecipeBean> hisRecipes=(List<HisRecipeBean>)upderLineRecipesByHis.get("hisRecipe");
+        if(hisRecipes==null||hisRecipes.size()<=0) return onLineAndUnderLineRecipesByRecipe;
+        if(onLineAndUnderLineRecipesByRecipe!=null&&onLineAndUnderLineRecipesByRecipe.size()>0){
+            for( Map<String,Object> map:onLineAndUnderLineRecipesByRecipe){
+                RecipeBean recipeBean=(RecipeBean)map.get("recipe");
+                String recipeKey=recipeBean.getRecipeCode()+recipeBean.getClinicOrgan();
+                for (int i = hisRecipes.size() - 1; i >= 0; i--) {
+                    HisRecipeBean hisRecipeBean=hisRecipes.get(i);
+                    String hiskey=hisRecipeBean.getRecipeCode()+hisRecipeBean.getClinicOrgan();
+                    if(recipeKey==hiskey){
+                        hisRecipes.remove(hisRecipeBean);//删除重复元素
+                    }
+                }
+            }
+        }
+
+        //合并数据
+        res.addAll(onLineAndUnderLineRecipesByRecipe);
+        for (int i = hisRecipes.size() - 1; i >= 0; i--) {
+            HisRecipeBean hisRecipeBean=hisRecipes.get(i);
+            Map<String,Object> map=new HashMap<>();
+            map.put("recipe", RecipeServiceSub.convertHisRecipeForRAP(hisRecipeBean));
+            map.put("patient", upderLineRecipesByHis.get("patient"));
+            res.add(map);
+        }
+
+        //根据创建时间降序排序
+        Collections.sort(res, new Comparator<Map<String, Object>>() {
+            public int compare(Map<String, Object> o1, Map<String, Object> o2) {
+                Date date1 = ((RecipeBean)o1.get("recipe")).getCreateDate() ;
+                Date date2 = ((RecipeBean)o2.get("recipe")).getCreateDate() ;
+                return date2.compareTo(date1);
+            }
+        });
+
+        return res;
+    }
+
     /**
      * 查找指定医生和患者间开的处方单列表
      *
@@ -619,20 +722,31 @@ public class RecipeListService extends RecipeBaseService{
      * @param limit
      * @return
      */
-    @RpcService
+    @RpcService(timeout = 5000)
     public List<Map<String, Object>> findRecipeListByDoctorAndPatient(Integer doctorId, String mpiId, int start, int limit) {
         checkUserHasPermissionByDoctorId(doctorId);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
-        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        List<Map<String, Object>> list = new ArrayList<>();
         //List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId, mpiId, start, limit);
         //修改逻辑历史处方中获取的处方列表：只显示未处理、未支付、审核不通过、失败、已完成状态的
         List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatientAndStatusList(doctorId, mpiId, start, limit, new ArrayList<>(Arrays.asList(HistoryRecipeListShowStatusList)));
         PatientDTO patient = RecipeServiceSub.convertPatientForRAP(patientService.get(mpiId));
+        return instanceRecipesAndPatient(recipes,patient);
+    }
+
+    /**
+     *  获取返回对象
+     * @param recipes
+     * @param patient
+     * @return
+     */
+    public List<Map<String, Object>> instanceRecipesAndPatient(List<Recipe> recipes,PatientDTO patient) {
+        List<Map<String, Object>> list = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(recipes)) {
+            RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+
             //date 20200506
             //获取处方对应的订单信息
             Map<String, Integer> orderStatus = new HashMap<>();
