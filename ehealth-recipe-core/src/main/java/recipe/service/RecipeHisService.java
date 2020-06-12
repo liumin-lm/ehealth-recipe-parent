@@ -1,8 +1,6 @@
 package recipe.service;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -66,6 +64,7 @@ import recipe.util.RedisClient;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author yu_yun
@@ -595,15 +594,13 @@ public class RecipeHisService extends RecipeBaseService {
                         requestList.add(drugInfoTO);
                     }
                     List<DrugInfoTO> drugInfoTOs = service.queryDrugInfo(requestList, organId);
-                    List<String> drugCodes = Lists.transform(requestList, new Function<DrugInfoTO, String>() {
-                        @Override
-                        public String apply(DrugInfoTO drugInfoTO) {
-
-                            return drugInfoTO.getDrcode();
-                        }
-                    });
-                    if (null == drugInfoTOs) LOGGER.warn("queryDrugInfo 药品code集合{}未查询到医院药品数据", drugCodes);
-                    backList = null == drugInfoTOs ? new ArrayList<DrugInfoTO>() : drugInfoTOs;
+                    List<String> drugCodes = requestList.stream().map(DrugInfoTO::getDrcode).collect(Collectors.toList());
+                    if (CollectionUtils.isEmpty(drugInfoTOs)) {
+                        LOGGER.warn("queryDrugInfo 药品code集合{}未查询到医院药品数据", drugCodes);
+                        backList = new ArrayList<>();
+                    } else {
+                        backList = drugInfoTOs;
+                    }
                 }
             }
 

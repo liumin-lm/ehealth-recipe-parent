@@ -19,6 +19,7 @@ import com.ngari.recipe.drug.service.IOrganDrugListService;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugProducer;
 import com.ngari.recipe.entity.OrganDrugList;
+import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
@@ -33,6 +34,7 @@ import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
@@ -52,7 +54,8 @@ import java.util.*;
 public class OrganDrugListService implements IOrganDrugListService {
 
     private static Logger logger = Logger.getLogger(OrganDrugListService.class);
-
+    @Autowired
+    private OrganDrugListDAO organDrugListDAO;
 
     /**
      * 把药品添加到对应医院
@@ -624,7 +627,7 @@ public class OrganDrugListService implements IOrganDrugListService {
     @Override
     public List<OrganDrugListBean> findByOrganIdAndDrugIdAndOrganDrugCode(int organId, int drugId, String organDrugCode) {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIdAndOrganDrugCode(organId,drugId,organDrugCode);
+        List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIdAndOrganDrugCode(organId, drugId, organDrugCode);
         return ObjectCopyUtils.convert(organDrugLists, OrganDrugListBean.class);
     }
 
@@ -635,10 +638,40 @@ public class OrganDrugListService implements IOrganDrugListService {
         return ObjectCopyUtils.convert(byOrganId, OrganDrugListBean.class);
     }
 
+    /**
+     * 更新药品最新的价格等
+     *
+     * @param organId      机构id
+     * @param salePrice    药物金额
+     * @param recipeDetail
+     */
+    public void saveOrganDrug(Integer organId, BigDecimal salePrice, Recipedetail recipeDetail) {
+        if (null == recipeDetail || null == organId || null == recipeDetail.getDrugId()) {
+            return;
+        }
+        OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndDrugId(organId, recipeDetail.getDrugId());
+        Boolean isUpdate = false;
+        if (null != salePrice) {
+            organDrug.setSalePrice(salePrice);
+            isUpdate = true;
+        }
+        if (StringUtils.isNotEmpty(recipeDetail.getDrugSpec())) {
+            organDrug.setDrugSpec(recipeDetail.getDrugSpec());
+            isUpdate = true;
+        }
+        if (StringUtils.isNotEmpty(recipeDetail.getMedicalDrugCode())) {
+            organDrug.setMedicalDrugCode(recipeDetail.getMedicalDrugCode());
+            isUpdate = true;
+        }
+        if (isUpdate) {
+            organDrugListDAO.update(organDrug);
+        }
+    }
+
     private List<DrugListAndOrganDrugListDTO> covertData(List<DrugListAndOrganDrugList> dbList) {
         List<DrugListAndOrganDrugListDTO> newList = Lists.newArrayList();
         DrugListAndOrganDrugListDTO backDTO;
-        if (CollectionUtils.isNotEmpty(dbList)){
+        if (CollectionUtils.isNotEmpty(dbList)) {
             for (DrugListAndOrganDrugList daod : dbList) {
                 backDTO = new DrugListAndOrganDrugListDTO();
                 backDTO.setDrugList(ObjectCopyUtils.convert(daod.getDrugList(), DrugListBean.class));
