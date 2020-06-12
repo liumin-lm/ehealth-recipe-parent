@@ -120,10 +120,11 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         List<String> errDrugListMatchList = Lists.newArrayList();
         Integer addNum = 0;
         Integer updateNum = 0;
-        for (int rowIndex = 0; rowIndex <= total; rowIndex++) {
-            row = sheet.getRow(rowIndex);
-            StringBuilder errMsg = new StringBuilder();
+        List<SaleDrugList> drugLists=Lists.newArrayList();
 
+            for (int rowIndex = 0; rowIndex <= total; rowIndex++) {
+            //循环获得每个行
+            row = sheet.getRow(rowIndex);
             // 判断是否是模板
             if (rowIndex == 0) {
                 String drugCode = getStrFromCell(row.getCell(2));
@@ -136,75 +137,15 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     result.put("msg", "模板有误，请确认！");
                     return result;
                 }
-            }
-            if (StringUtils.isEmpty(getStrFromCell(row.getCell(0)))) {
-                errMsg.append("药企药品编码不能为空").append(";");
-            }
-            if (!StringUtils.isEmpty(getStrFromCell(row.getCell(31)))) {
-                SaleDrugList byOrganIdAndDrugId = saleDrugListDAO.getByOrganIdAndDrugId(organId, Integer.parseInt(getStrFromCell(row.getCell(31))));
-                if (byOrganIdAndDrugId!=null){
-                    errMsg.append("药品已存在").append(";");
-                }
-            }
-            if (StringUtils.isEmpty(getStrFromCell(row.getCell(31)))) {
-                errMsg.append("平台药品编号不能为空").append(";");
-            }
-            if (StringUtils.isEmpty(getStrFromCell(row.getCell(20)))) {
-                errMsg.append("价格不能为空").append(";");
-            }
-            if (errMsg.length() > 1) {
-                int showNum = rowIndex + 1;
-                String error = ("【第" + showNum + "行】" + errMsg.substring(0, errMsg.length() - 1));
-                errDrugListMatchList.add(error);
-            }
 
-        }
-        if (errDrugListMatchList.size()>0){
-            //导入药品记录
-            ImportDrugRecord importDrugRecord = new ImportDrugRecord();
-            importDrugRecord.setFileName(originalFilename);
-            importDrugRecord.setOrganId(organId);
-            importDrugRecord.setAddNum(addNum);
-            importDrugRecord.setUpdateNum(updateNum);
-            importDrugRecord.setFailNum(total-addNum-updateNum);
-            importDrugRecord.setImportOperator(operator);
-            importDrugRecord.setErrMsg(JSONUtils.toString(errDrugListMatchList));
-            importDrugRecordDAO.save(importDrugRecord);
-
-            result.put("code", 609);
-            result.put("msg", errDrugListMatchList);
-            result.put("addNum",addNum);
-            result.put("updateNum",updateNum);
-            result.put("failNum",total-addNum-updateNum);
-            LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
-            return result;
-
-        }
-
-            for (int rowIndex = 0; rowIndex <= total; rowIndex++) {
-            //循环获得每个行
-            row = sheet.getRow(rowIndex);
-           /* // 判断是否是模板
-            if (rowIndex == 0) {
-                String drugCode = getStrFromCell(row.getCell(2));
-                String drugName = getStrFromCell(row.getCell(3));
-                String retrievalCode = getStrFromCell(row.getCell(8));
-                if ("药品名".equals(drugCode) && "商品名".equals(drugName) && "默认单次剂量".equals(retrievalCode)) {
-                    continue;
-                } else {
-                    result.put("code", 609);
-                    result.put("msg", "模板有误，请确认！");
-                    return result;
-                }
-
-            }*/
+            }
             drug = new SaleDrugList();
             StringBuilder errMsg = new StringBuilder();
             /*try{*/
             try {
-                /*if (StringUtils.isEmpty(getStrFromCell(row.getCell(0)))) {
+                if (StringUtils.isEmpty(getStrFromCell(row.getCell(0)))) {
                     errMsg.append("药企药品编码不能为空").append(";");
-                }*/
+                }
                 drug.setOrganDrugCode(getStrFromCell(row.getCell(1)));
             } catch (Exception e) {
                 errMsg.append("药品编号有误").append(";");
@@ -229,25 +170,25 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             } catch (Exception e) {
                 errMsg.append("药品规格有误").append(";");
             }
-            /*if (!StringUtils.isEmpty(getStrFromCell(row.getCell(31)))) {
+            if (!StringUtils.isEmpty(getStrFromCell(row.getCell(31)))) {
                 SaleDrugList byOrganIdAndDrugId = saleDrugListDAO.getByOrganIdAndDrugId(organId, Integer.parseInt(getStrFromCell(row.getCell(31))));
                 if (byOrganIdAndDrugId!=null){
                     errMsg.append("药品已存在").append(";");
                 }
-            }*/
+            }
             try {
-                /*if (StringUtils.isEmpty(getStrFromCell(row.getCell(31)))) {
+                if (StringUtils.isEmpty(getStrFromCell(row.getCell(31)))) {
                     errMsg.append("平台药品编号不能为空").append(";");
-                }*/
+                }
                 drug.setDrugId(Integer.parseInt(getStrFromCell(row.getCell(31))));
             } catch (Exception e) {
                 errMsg.append("平台药品编号有误").append(";");
             }
 
             try {
-                /*if (StringUtils.isEmpty(getStrFromCell(row.getCell(20)))) {
+                if (StringUtils.isEmpty(getStrFromCell(row.getCell(20)))) {
                     errMsg.append("价格不能为空").append(";");
-                }*/
+                }
                     drug.setPrice(BigDecimal.valueOf(Integer.parseInt(getStrFromCell(row.getCell(20)))));
                     drug.setRate(0.00);
                     drug.setRatePrice(Double.parseDouble(getStrFromCell(row.getCell(20))));
@@ -261,24 +202,48 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             drug.setCreateDt(new Date());
             drug.setLastModify(new Date());
 
-
-            /*if (errMsg.length() > 1) {
+            if (errMsg.length() > 1) {
                 int showNum = rowIndex + 1;
                 String error = ("【第" + showNum + "行】" + errMsg.substring(0, errMsg.length() - 1));
                 errDrugListMatchList.add(error);
-            } else {*/
+            } else {
+                drugLists.add(drug);
+            }
+            progress = new BigDecimal((float) rowIndex / total).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+            redisClient.set(organId + operator, progress * 100);
+//                    progressMap.put(organId+operator,progress*100);
+        }
+        if (errDrugListMatchList.size()>0){
+            //导入药品记录
+            ImportDrugRecord importDrugRecord = new ImportDrugRecord();
+            importDrugRecord.setFileName(originalFilename);
+            importDrugRecord.setOrganId(organId);
+            importDrugRecord.setAddNum(addNum);
+            importDrugRecord.setUpdateNum(updateNum);
+            importDrugRecord.setFailNum(total-addNum-updateNum);
+            importDrugRecord.setImportOperator(operator);
+            importDrugRecord.setErrMsg(JSONUtils.toString(errDrugListMatchList));
+            importDrugRecordDAO.save(importDrugRecord);
+
+            result.put("code", 609);
+            result.put("msg", errDrugListMatchList);
+            result.put("addNum",addNum);
+            result.put("updateNum",updateNum);
+            result.put("failNum",total-addNum-updateNum);
+            LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
+            return result;
+
+        }else {
+            for (SaleDrugList drugList : drugLists) {
                 try {
-                        //自动匹配功能暂无法提供
-                        saleDrugListDAO.save(drug);
-                        addNum++;
+                    //自动匹配功能暂无法提供
+                    saleDrugListDAO.save(drugList);
+                    addNum++;
 
                 } catch (Exception e) {
                     LOGGER.error("save or update drugListMatch error " + e.getMessage());
                 }
-          /*  }*/
-            progress = new BigDecimal((float) rowIndex / total).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
-            redisClient.set(organId + operator, progress * 100);
-//                    progressMap.put(organId+operator,progress*100);
+            }
         }
 
         //导入药品记录
