@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
+import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.entity.CommonRecipe;
 import com.ngari.recipe.entity.CommonRecipeDrug;
 import com.ngari.recipe.entity.DrugList;
@@ -222,6 +223,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         //是否为老的药品兼容方式，老的药品传入方式没有organDrugCode
         boolean oldFlag = organDrugCodeList.isEmpty() ? true : false;
         List<OrganDrugList> organDrugList = Lists.newArrayList();
+        List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList;
         if (oldFlag){
             organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(commonRecipeDTO.getOrganId(), drugIdList);
             for (CommonRecipeDrugDTO commonRecipeDrug : drugDtoList) {
@@ -237,6 +239,14 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                             commonRecipeDrug.setDrugCost(organDrug.getSalePrice().multiply(
                                     new BigDecimal(commonRecipeDrug.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP));
                         }
+                        //设置医生端每次剂量和剂量单位联动关系
+                        useDoseAndUnitRelationList = Lists.newArrayList();
+                        useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(),organDrug.getUseDoseUnit()));
+                        if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())
+                                ||organDrug.getDefaultSmallestUnitUseDose()!= null){
+                            useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(),organDrug.getUseDoseSmallestUnit()));
+                        }
+                        commonRecipeDrug.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
                         break;
                     }
                 }
@@ -262,6 +272,14 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                             commonRecipeDrug.setDrugCost(organDrug.getSalePrice().multiply(
                                     new BigDecimal(commonRecipeDrug.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP));
                         }
+                        //设置医生端每次剂量和剂量单位联动关系
+                        useDoseAndUnitRelationList = Lists.newArrayList();
+                        useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(),organDrug.getUseDoseUnit()));
+                        if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())
+                                ||organDrug.getDefaultSmallestUnitUseDose()!= null){
+                            useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(),organDrug.getUseDoseSmallestUnit()));
+                        }
+                        commonRecipeDrug.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
                         break;
                     }
                 }

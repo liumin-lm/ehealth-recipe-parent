@@ -32,7 +32,6 @@ import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.StatelessSession;
 import org.hibernate.type.LongType;
-import org.hibernate.type.StandardBasicTypes;
 import org.joda.time.LocalDate;
 import recipe.constant.*;
 import recipe.dao.bean.PatientRecipeBean;
@@ -43,7 +42,6 @@ import recipe.util.SqlOperInfo;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 处方DAO
@@ -99,6 +97,16 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      */
     @DAOMethod(sql = "from Recipe where recipeId in :recipeIds")
     public abstract List<Recipe> findByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
+
+    /**
+     * 审核完成之后，若患者还未支付
+     *
+     * @param payFlag
+     * @param reviewType
+     * @return
+     */
+    @DAOMethod(sql = "from Recipe where OrderCode is not null and Status =2  and PayFlag =:payFlag and ReviewType =:reviewType")
+    public abstract List<Recipe> findByPayFlagAndReviewType(Integer payFlag, Integer reviewType);
 
     /**
      * 通过交易流水号获取

@@ -144,14 +144,14 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             }
         }
 
-        // 添加医院价格
-       /*if (CollectionUtils.isNotEmpty(dList)) {
-            getHospitalPrice(organId, dList);
-        }*/
+
         List<DrugListBean> drugListBeans = getList(dList, DrugListBean.class);
+        // 添加医院数据
+        if (CollectionUtils.isNotEmpty(drugListBeans)) {
+            getHospitalPrice(organId, drugListBeans);
+        }
         if (CollectionUtils.isNotEmpty(drugListBeans)) {
             for (DrugListBean drugListBean : drugListBeans) {
-                drugListBean.setHospitalPrice(drugListBean.getSalePrice());
                 DrugList drugList = drugListDAO.getById(drugListBean.getDrugId());
                 if (drugList != null) {
                     drugListBean.setPrice1(drugList.getPrice1());

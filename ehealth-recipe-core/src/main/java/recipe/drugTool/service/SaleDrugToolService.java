@@ -5,8 +5,11 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.opbase.xls.mode.ImportExcelInfoDTO;
+import com.ngari.opbase.xls.service.IImportExcelInfoService;
 import com.ngari.recipe.drugTool.service.ISaleDrugToolService;
 import com.ngari.recipe.entity.*;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -214,16 +217,22 @@ public class SaleDrugToolService implements ISaleDrugToolService {
 //                    progressMap.put(organId+operator,progress*100);
         }
         if (errDrugListMatchList.size()>0){
+
+            IImportExcelInfoService iImportExcelInfoService = AppContextHolder.getBean("opbase.importExcelInfoService", IImportExcelInfoService.class);
+
+            ImportExcelInfoDTO importExcelInfoDTO=new ImportExcelInfoDTO();
             //导入药品记录
-            ImportDrugRecord importDrugRecord = new ImportDrugRecord();
-            importDrugRecord.setFileName(originalFilename);
-            importDrugRecord.setOrganId(organId);
-            importDrugRecord.setAddNum(addNum);
-            importDrugRecord.setUpdateNum(updateNum);
-            importDrugRecord.setFailNum(total-addNum-updateNum);
-            importDrugRecord.setImportOperator(operator);
-            importDrugRecord.setErrMsg(JSONUtils.toString(errDrugListMatchList));
-            importDrugRecordDAO.save(importDrugRecord);
+            importExcelInfoDTO.setFileName(originalFilename);
+            importExcelInfoDTO.setExcelType(14);
+            importExcelInfoDTO.setUploaderName(operator);
+            importExcelInfoDTO.setUploadDate(new Date());
+            importExcelInfoDTO.setStatus(1);
+            importExcelInfoDTO.setTotal(total);
+            importExcelInfoDTO.setSuccess(addNum);
+            importExcelInfoDTO.setExecuterName(operator);
+            importExcelInfoDTO.setExecuteDate(new Date());
+
+            iImportExcelInfoService.addExcelInfo(importExcelInfoDTO);
 
             result.put("code", 609);
             result.put("msg", errDrugListMatchList);
@@ -247,20 +256,21 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         }
 
         //导入药品记录
-        ImportDrugRecord importDrugRecord = new ImportDrugRecord();
-        importDrugRecord.setFileName(originalFilename);
-        importDrugRecord.setOrganId(organId);
-        importDrugRecord.setAddNum(addNum);
-        importDrugRecord.setUpdateNum(updateNum);
-        importDrugRecord.setFailNum(total-addNum-updateNum);
-        importDrugRecord.setImportOperator(operator);
-        /*if (errDrugListMatchList.size() > 0) {
-            result.put("code", 609);
-            result.put("msg", errDrugListMatchList);
-            importDrugRecord.setErrMsg(JSONUtils.toString(errDrugListMatchList));
-            return result;
-        }*/
-        importDrugRecordDAO.save(importDrugRecord);
+        IImportExcelInfoService iImportExcelInfoService = AppContextHolder.getBean("opbase.importExcelInfoService", IImportExcelInfoService.class);
+
+        ImportExcelInfoDTO importExcelInfoDTO=new ImportExcelInfoDTO();
+        //导入药品记录
+        importExcelInfoDTO.setFileName(originalFilename);
+        importExcelInfoDTO.setExcelType(14);
+        importExcelInfoDTO.setUploaderName(operator);
+        importExcelInfoDTO.setUploadDate(new Date());
+        importExcelInfoDTO.setStatus(3);
+        importExcelInfoDTO.setTotal(total);
+        importExcelInfoDTO.setSuccess(addNum);
+        importExcelInfoDTO.setExecuterName(operator);
+        importExcelInfoDTO.setExecuteDate(new Date());
+
+        iImportExcelInfoService.addExcelInfo(importExcelInfoDTO);
 
 
         result.put("addNum",addNum);
