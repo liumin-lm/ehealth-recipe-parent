@@ -454,4 +454,10 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         LOGGER.info(saveMsg.toString());
         return Boolean.TRUE;
     }
+
+    public void dealUsingRate(){
+        //已存在的对照同步处理
+
+
+    }
 }
