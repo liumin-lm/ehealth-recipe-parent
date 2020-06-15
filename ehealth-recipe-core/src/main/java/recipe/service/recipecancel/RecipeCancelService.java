@@ -65,7 +65,7 @@ public class RecipeCancelService {
      * @return Map<String,Object>
      */
     @RpcService
-    @Transactional(rollbackFor = Exception.class)
+//    @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> cancelRecipeForChecker(Integer recipeId, String message) {
         LOGGER.info("cancelRecipeForChecker recipeId={} cancelReason={}",recipeId,message);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -114,22 +114,6 @@ public class RecipeCancelService {
             }
             RecipeLogService.saveRecipeLog(recipeId,beforeStatus,RecipeStatusConstant.READY_CHECK_YS,"撤销原因："+message);
         }
-
-        //修改审方医嘱
-        boolean cancelDrugEntrustment=true;
-        try{
-            RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
-            RecipeExtend recipeExtend=recipeExtendDAO.getByRecipeId(recipeId);
-            if(recipeExtend==null)  recipeExtend.setRecipeId(recipeId);//若拓展表不存在此处方
-            recipeExtend.setDrugEntrustment(null);
-            recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
-        }catch (Exception e){
-            cancelDrugEntrustment=false;
-            LOGGER.error("reviewRecipe update RecipeExtend[" + recipeId + "] error!");
-        }
-
-
-        rMap.put("result",result&&cancelDrugEntrustment);
         rMap.put("msg",msg);
         LOGGER.info("cancelRecipeForChecker execute ok! rMap:"+JSONUtils.toString(rMap));
         return rMap;
