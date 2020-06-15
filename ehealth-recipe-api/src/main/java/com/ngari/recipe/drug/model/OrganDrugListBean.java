@@ -126,8 +126,6 @@ public class OrganDrugListBean implements java.io.Serializable {
     @ItemProperty(alias = "禁用原因")
     private String disableReason;
 
-    @ItemProperty(alias = "是否转化指标用量")
-    private Boolean isChangeIndexDose;
 
     public OrganDrugListBean() {
     }
@@ -433,12 +431,4 @@ public class OrganDrugListBean implements java.io.Serializable {
         this.useDoseSmallestUnit = useDoseSmallestUnit;
     }
 
-
-    public Boolean getChangeIndexDose() {
-        return isChangeIndexDose;
-    }
-
-    public void setChangeIndexDose(Boolean changeIndexDose) {
-        isChangeIndexDose = changeIndexDose;
-    }
 }

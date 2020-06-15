@@ -110,12 +110,6 @@ public class OrganDrugListDTO implements java.io.Serializable {
     private String producer;
 
 
-    @ItemProperty(alias = "是否转化指标用量")
-    private Boolean isChangeIndexDose;
-
-
-
-
     public OrganDrugListDTO() {
     }
 
@@ -359,11 +353,4 @@ public class OrganDrugListDTO implements java.io.Serializable {
         this.producer = producer;
     }
 
-    public Boolean getChangeIndexDose() {
-        return isChangeIndexDose;
-    }
-
-    public void setChangeIndexDose(Boolean changeIndexDose) {
-        isChangeIndexDose = changeIndexDose;
-    }
 }
