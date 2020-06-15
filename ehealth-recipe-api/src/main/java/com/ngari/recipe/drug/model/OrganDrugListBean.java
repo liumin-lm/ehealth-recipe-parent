@@ -126,15 +126,6 @@ public class OrganDrugListBean implements java.io.Serializable {
     @ItemProperty(alias = "禁用原因")
     private String disableReason;
 
-    @ItemProperty(alias = "一次剂量/最小单位")
-    private Double doseMiniUnit;
-
-    @ItemProperty(alias = "默认单次剂量/最小单位")
-    private Double defaultDoseMiniUnit;
-
-    @ItemProperty(alias = "最小单位")
-    private String miniUnit;
-
     @ItemProperty(alias = "是否转化指标用量")
     private Boolean isChangeIndexDose;
 
@@ -442,29 +433,6 @@ public class OrganDrugListBean implements java.io.Serializable {
         this.useDoseSmallestUnit = useDoseSmallestUnit;
     }
 
-    public Double getDoseMiniUnit() {
-        return doseMiniUnit;
-    }
-
-    public void setDoseMiniUnit(Double doseMiniUnit) {
-        this.doseMiniUnit = doseMiniUnit;
-    }
-
-    public Double getDefaultDoseMiniUnit() {
-        return defaultDoseMiniUnit;
-    }
-
-    public void setDefaultDoseMiniUnit(Double defaultDoseMiniUnit) {
-        this.defaultDoseMiniUnit = defaultDoseMiniUnit;
-    }
-
-    public String getMiniUnit() {
-        return miniUnit;
-    }
-
-    public void setMiniUnit(String miniUnit) {
-        this.miniUnit = miniUnit;
-    }
 
     public Boolean getChangeIndexDose() {
         return isChangeIndexDose;
