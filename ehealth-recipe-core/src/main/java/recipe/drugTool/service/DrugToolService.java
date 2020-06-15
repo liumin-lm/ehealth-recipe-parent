@@ -1078,7 +1078,7 @@ public class DrugToolService implements IDrugToolService {
      * 获取用药频率和用药途径--新
      */
     @RpcService
-    public Map<String, Object> findUsingRateAndUsePathwayNew(Integer organId) {
+    public Map<String, Object> findUsingRateAndUsePathwayByOrganId(Integer organId) {
         Map<String, Object> result = Maps.newHashMap();
         IUsingRateService usingRateService = BaseAPI.getService(IUsingRateService.class);
         IUsePathwaysService usePathwaysService = BaseAPI.getService(IUsePathwaysService.class);
