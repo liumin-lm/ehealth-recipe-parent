@@ -95,6 +95,7 @@ public class RecipeToHisCallbackService {
 
                 detail.setDrugSpec(rep.getDrugSpec());
                 detail.setMedicalDrugCode(rep.getMedicalDrugCode());
+                detail.setPack(rep.getPack());
                 list.add(detail);
             }
             if (!StringUtils.isEmpty(amount)) {

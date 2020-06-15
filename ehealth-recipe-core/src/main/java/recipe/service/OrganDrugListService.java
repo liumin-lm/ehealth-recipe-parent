@@ -663,6 +663,10 @@ public class OrganDrugListService implements IOrganDrugListService {
             organDrug.setMedicalDrugCode(recipeDetail.getMedicalDrugCode());
             isUpdate = true;
         }
+        if (null != recipeDetail.getPack()) {
+            organDrug.setPack(recipeDetail.getPack());
+            isUpdate = true;
+        }
         if (isUpdate) {
             organDrugListDAO.update(organDrug);
         }
