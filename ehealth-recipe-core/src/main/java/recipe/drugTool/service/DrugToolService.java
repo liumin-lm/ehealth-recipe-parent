@@ -6,8 +6,11 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.BaseAPI;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
+import com.ngari.bus.op.service.IUsePathwaysService;
+import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.regulation.service.IRegulationService;
 import com.ngari.opbase.base.service.IBusActionLogService;
@@ -35,6 +38,8 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
+import eh.entity.base.UsePathways;
+import eh.entity.base.UsingRate;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -1066,6 +1071,21 @@ public class DrugToolService implements IDrugToolService {
         }
         result.put("usingRate", usingRateList);
         result.put("usePathway", usePathwayList);
+        return result;
+    }
+
+    /**
+     * 获取用药频率和用药途径--新
+     */
+    @RpcService
+    public Map<String, Object> findUsingRateAndUsePathwayByOrganId(Integer organId) {
+        Map<String, Object> result = Maps.newHashMap();
+        IUsingRateService usingRateService = AppDomainContext.getBean("eh.usingRateService", IUsingRateService.class);
+        IUsePathwaysService usePathwaysService = AppDomainContext.getBean("eh.usePathwaysService", IUsePathwaysService.class);
+        List<UsingRate> usingRates = usingRateService.findAllusingRateByOrganId(organId);
+        List<UsePathways> usePathways = usePathwaysService.findAllUsePathwaysByOrganId(organId);
+        result.put("usingRate", usingRates);
+        result.put("usePathway", usePathways);
         return result;
     }
 
