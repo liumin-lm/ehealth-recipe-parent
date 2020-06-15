@@ -422,12 +422,16 @@ public class HisRequestInit {
                     orderItem.setDrmodel(detail.getDrugSpec());
                     orderItem.setPackUnit(detail.getDrugUnit());
                     orderItem.setDrugId(detail.getDrugId());
-
+                    //存在为了兼容
                     orderItem.setAdmission(UsePathwaysFilter.filterNgari(recipe.getClinicOrgan(), detail.getUsePathways()));
                     orderItem.setFrequency(UsingRateFilter.filterNgari(recipe.getClinicOrgan(), detail.getUsingRate()));
-                    orderItem.setAdmissionName(DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detail.getUsingRate()));
+                    //机构频次代码
+                    orderItem.setOrganUsingRate(detail.getOrganUsingRate());
+                    //机构用法代码
+                    orderItem.setOrganUsePathways(detail.getOrganUsePathways());
+                    orderItem.setAdmissionName(detail.getUsingRateTextFromHis());
                     //频次名称
-                    orderItem.setFrequencyName(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detail.getUsePathways()));
+                    orderItem.setFrequencyName(detail.getUsePathwaysTextFromHis());
                     if (StringUtils.isNotEmpty(detail.getUseDoseStr())) {
                         orderItem.setDosage(detail.getUseDoseStr());
                     } else {

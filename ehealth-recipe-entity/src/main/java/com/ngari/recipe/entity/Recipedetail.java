@@ -64,13 +64,22 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias="药物剂量单位")
 	private String dosageUnit;
 
-	@ItemProperty(alias="药物使用频率代码")
+	@ItemProperty(alias="平台药物使用频率代码")
     @Dictionary(id="eh.cdr.dictionary.UsingRate")
 	private String usingRate;
 
-	@ItemProperty(alias="药物使用途径代码")
+	@ItemProperty(alias="平台药物使用途径代码")
     @Dictionary(id="eh.cdr.dictionary.UsePathways")
 	private String usePathways;
+
+    @ItemProperty(
+            alias = "机构的频次代码"
+    )
+    private String organUsingRate;
+    @ItemProperty(
+            alias = "机构的用法代码"
+    )
+    private String organUsePathways;
 
 	//用药频率说明（来源his）
 	@ItemProperty(alias="用药频率说明")
@@ -706,4 +715,22 @@ public class Recipedetail implements java.io.Serializable {
 	public void setMedicalDrugCode(String medicalDrugCode) {
 		this.medicalDrugCode = medicalDrugCode;
 	}
+
+    @Column(name = "organUsingRate")
+    public String getOrganUsingRate() {
+        return organUsingRate;
+    }
+
+    public void setOrganUsingRate(String organUsingRate) {
+        this.organUsingRate = organUsingRate;
+    }
+
+    @Column(name = "organUsePathways")
+    public String getOrganUsePathways() {
+        return organUsePathways;
+    }
+
+    public void setOrganUsePathways(String organUsePathways) {
+        this.organUsePathways = organUsePathways;
+    }
 }
