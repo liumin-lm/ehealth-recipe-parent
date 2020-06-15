@@ -20,6 +20,7 @@ import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcSupportDAO;
 import io.netty.util.internal.ObjectUtil;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
@@ -30,6 +31,7 @@ import recipe.dao.bean.DrugListAndOrganDrugList;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 医疗机构用药目录dao
@@ -781,6 +783,69 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
 
     @DAOMethod(sql = "from OrganDrugList ")
     public abstract List<OrganDrugList> findOrganDrug(@DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
+
+    @DAOMethod(sql = "select DISTINCT organId from OrganDrugList ")
+    public abstract List<Integer> findOrganIds();
+
+    @DAOMethod(sql = "update OrganDrugList set usingRate=:newUsingRate where usingRate=:oldUsingRate and organId=:organId")
+    public abstract void updateUsingRateByUsingRate(@DAOParam("organId") Integer organId,@DAOParam("oldUsingRate") String oldUsingRate ,@DAOParam("newUsingRate") String newUsingRate);
+
+    @DAOMethod(sql = "update OrganDrugList set usePathways=:newUsePathways where usePathways=:oldUsePathways and organId=:organId")
+    public abstract void updateUsePathwaysByUsePathways(@DAOParam("organId") Integer organId,@DAOParam("oldUsePathways") String oldUsePathways ,@DAOParam("newUsePathways") String newUsePathways);
+
+    public List<Map<String,Object>> findAllUsingRate(){
+        HibernateStatelessResultAction<List<Map<String,Object>>> action = new AbstractHibernateStatelessResultAction<List<Map<String,Object>>>() {
+
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+
+                StringBuilder hql = new StringBuilder("select DISTINCT OrganID,usingRate from OrganDrugList WHERE organId > 0 AND usingRate != '' AND usingRate is NOT NULL ORDER BY organId");
+                Query query = ss.createQuery(hql.toString());
+                List<Object[]> objects = query.list();
+                List<Map<String,Object>> result = Lists.newArrayList();
+                if (!CollectionUtils.isEmpty(objects)){
+                    for (Object[] objects1 : objects){
+                        Integer organId = (Integer) objects1[0];
+                        String usingRate = (String) objects1[1];
+                        Map<String,Object> map = new HashedMap();
+                        map.put("organId",organId);
+                        map.put("usingRate",usingRate);
+                        result.add(map);
+                    }
+                }
+                setResult(result);
+            }
+        };
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        return action.getResult();
+    }
+
+    public List<Map<String,Object>> findAllUsePathways(){
+        HibernateStatelessResultAction<List<Map<String,Object>>> action = new AbstractHibernateStatelessResultAction<List<Map<String,Object>>>() {
+
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+
+                StringBuilder hql = new StringBuilder("select DISTINCT OrganID,usePathways from OrganDrugList WHERE organId > 0 AND usePathways != '' AND usePathways is NOT NULL ORDER BY organId");
+                Query query = ss.createQuery(hql.toString());
+                List<Object[]> objects = query.list();
+                List<Map<String,Object>> result = Lists.newArrayList();
+                if (!CollectionUtils.isEmpty(objects)){
+                    for (Object[] objects1 : objects){
+                        Integer organId = (Integer) objects1[0];
+                        String usePathways = (String) objects1[1];
+                        Map<String,Object> map = new HashedMap();
+                        map.put("organId",organId);
+                        map.put("usePathways",usePathways);
+                        result.add(map);
+                    }
+                }
+                setResult(result);
+            }
+        };
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        return action.getResult();
+    }
 
     /**
      * 药品名称模糊查询
