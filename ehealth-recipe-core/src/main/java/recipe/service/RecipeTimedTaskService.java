@@ -246,6 +246,8 @@ public class RecipeTimedTaskService {
                 smsInfo.setBusType("RecipePushPay");
                 smsInfo.setSmsType("RecipePushPay");
                 smsPushService.pushMsgData2OnsExtendValue(smsInfo);
+
+                LOGGER.info("RecipeTimedTaskService pushPay is end recipe = {}", recipe.getRecipeId());
             }
         }
     }
