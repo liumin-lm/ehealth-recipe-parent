@@ -13,12 +13,15 @@ public class UseDoseAndUnitRelationBean implements Serializable {
     private Double useDose;
     @ItemProperty(alias = "医生端填充剂量单位")
     private String useDoseUnit;
+    @ItemProperty(alias = "医生端药品单位剂量")
+    private Double realUseDose;
 
     public UseDoseAndUnitRelationBean() {}
 
-    public UseDoseAndUnitRelationBean(Double useDose, String useDoseUnit) {
+    public UseDoseAndUnitRelationBean(Double useDose, String useDoseUnit,Double realUseDose) {
         this.useDose = useDose;
         this.useDoseUnit = useDoseUnit;
+        this.realUseDose = realUseDose;
     }
 
     public Double getUseDose() {
@@ -35,5 +38,13 @@ public class UseDoseAndUnitRelationBean implements Serializable {
 
     public void setUseDoseUnit(String useDoseUnit) {
         this.useDoseUnit = useDoseUnit;
+    }
+
+    public Double getRealUseDose() {
+        return realUseDose;
+    }
+
+    public void setRealUseDose(Double realUseDose) {
+        this.realUseDose = realUseDose;
     }
 }
