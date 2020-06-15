@@ -20,6 +20,9 @@
     <reference interface="com.ngari.base.qrinfo.service.INgariQrInfoService" id="eh.ngariQrInfoService"/>
     <reference interface="com.ngari.upload.service.IUrlResourceService" id="eh.urlResourceService"/>
     <reference id="eh.remoteClientConfigService" interface="com.ngari.base.clientconfig.service.IClientConfigService"/>
+    <!--频次用法字典接口 -->
+    <reference id="eh.usingRateService" interface="com.ngari.bus.op.service.IUsingRateService"/>
+    <reference id="eh.usePathwaysService" interface="com.ngari.bus.op.service.IUsePathwaysService"/>
     <!-- 首页待办事件处理-->
     <reference id="eh.remoteAsynDoBussService" interface="com.ngari.home.asyn.service.IAsynDoBussService" />
 
