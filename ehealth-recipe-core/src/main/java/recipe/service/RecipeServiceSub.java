@@ -1297,6 +1297,7 @@ public class RecipeServiceSub {
         r.setRecipeSourceType(recipe.getRecipeSourceType());
         r.setRecipeCode(recipe.getRecipeCode());
         r.setClinicOrgan(recipe.getClinicOrgan());
+        r.setPayFlag(recipe.getPayFlag());
         return r;
     }
 

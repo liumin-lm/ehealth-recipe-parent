@@ -68,11 +68,11 @@ public class OrganDrugList implements java.io.Serializable {
     private String useDoseSmallestUnit;
 
     @ItemProperty(alias = "使用频率")
-    @Dictionary(id = "eh.cdr.dictionary.UsingRate")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
     private String usingRate;
 
     @ItemProperty(alias = "用药途径")
-    @Dictionary(id = "eh.cdr.dictionary.UsePathways")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
     private String usePathways;
 
     @ItemProperty(alias = "生产厂家")
