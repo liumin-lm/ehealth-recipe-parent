@@ -722,7 +722,7 @@ public class RecipeListService extends RecipeBaseService{
      * @param limit
      * @return
      */
-    @RpcService(timeout = 5000)
+    @RpcService
     public List<Map<String, Object>> findRecipeListByDoctorAndPatient(Integer doctorId, String mpiId, int start, int limit) {
         checkUserHasPermissionByDoctorId(doctorId);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);

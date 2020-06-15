@@ -241,10 +241,10 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                         }
                         //设置医生端每次剂量和剂量单位联动关系
                         useDoseAndUnitRelationList = Lists.newArrayList();
-                        useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(),organDrug.getUseDoseUnit()));
+                        useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(),organDrug.getUseDoseUnit(),organDrug.getUseDose()));
                         if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())
                                 ||organDrug.getDefaultSmallestUnitUseDose()!= null){
-                            useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(),organDrug.getUseDoseSmallestUnit()));
+                            useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(),organDrug.getUseDoseSmallestUnit(),organDrug.getSmallestUnitUseDose()));
                         }
                         commonRecipeDrug.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
                         break;
@@ -274,10 +274,10 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                         }
                         //设置医生端每次剂量和剂量单位联动关系
                         useDoseAndUnitRelationList = Lists.newArrayList();
-                        useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(),organDrug.getUseDoseUnit()));
+                        useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(),organDrug.getUseDoseUnit(),organDrug.getUseDose()));
                         if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())
                                 ||organDrug.getDefaultSmallestUnitUseDose()!= null){
-                            useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(),organDrug.getUseDoseSmallestUnit()));
+                            useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(),organDrug.getUseDoseSmallestUnit(),organDrug.getSmallestUnitUseDose()));
                         }
                         commonRecipeDrug.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
                         break;

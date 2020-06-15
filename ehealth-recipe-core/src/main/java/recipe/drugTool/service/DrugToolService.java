@@ -1078,10 +1078,10 @@ public class DrugToolService implements IDrugToolService {
      * 获取用药频率和用药途径--新
      */
     @RpcService
-    public Map<String, Object> findUsingRateAndUsePathwayWithOutKey(Integer organId) {
+    public Map<String, Object> findUsingRateAndUsePathwayByOrganId(Integer organId) {
         Map<String, Object> result = Maps.newHashMap();
-        IUsingRateService usingRateService = BaseAPI.getService(IUsingRateService.class);
-        IUsePathwaysService usePathwaysService = BaseAPI.getService(IUsePathwaysService.class);
+        IUsingRateService usingRateService = AppDomainContext.getBean("eh.usingRateService", IUsingRateService.class);
+        IUsePathwaysService usePathwaysService = AppDomainContext.getBean("eh.usePathwaysService", IUsePathwaysService.class);
         List<UsingRate> usingRates = usingRateService.findAllusingRateByOrganId(organId);
         List<UsePathways> usePathways = usePathwaysService.findAllUsePathwaysByOrganId(organId);
         result.put("usingRate", usingRates);
