@@ -556,7 +556,7 @@ public class RecipePreserveService {
         try {
             for (String usingRateParam : usingRateParams) {
                 String organId = usingRateParam.substring(20);
-                Map<String, Object> map = redisScanForHash(organId, "*");
+                Map<String, Object> map = redisScanForHash(usingRateParam, "*");
                 if (map != null){
                     UsingRateDTO usingRateDTO;
                     for (Map.Entry<String, Object> entry : map.entrySet()) {
@@ -588,7 +588,7 @@ public class RecipePreserveService {
         try {
             for (String usingPathwaysParam : usingPathwaysParams) {
                 String organId = usingPathwaysParam.substring(22);
-                Map<String, Object> map = redisScanForHash(organId, "*");
+                Map<String, Object> map = redisScanForHash(usingPathwaysParam, "*");
                 if (map != null){
                     UsePathwaysDTO usePathwaysDTO;
                     for (Map.Entry<String, Object> entry : map.entrySet()) {
