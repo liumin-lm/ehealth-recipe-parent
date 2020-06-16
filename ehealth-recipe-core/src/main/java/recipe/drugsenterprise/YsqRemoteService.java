@@ -641,6 +641,12 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     } else {
                         recipeMap.put("REPLACEFLY", "0");  //不需代煎
                     }
+                    //医保处方 0：是；1：否
+                    if (new Integer(1).equals(order.getOrderType())) {
+                        recipeMap.put("YIBAOBILL", "1");
+                    } else {
+                        recipeMap.put("YIBAOBILL", "0");
+                    }
                 } else {
                     if ("psysq".equals(drugsEnterprise.getAccount())) {
                         recipeMap.put("METHOD", "0");
@@ -801,8 +807,6 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                         detailMap.put("BILLQTY", getFormatDouble(detail.getUseTotalDose()));
                     }
                     detailMap.put("PRC", detail.getSalePrice().toString());
-                    //医保药 0：是；1：否
-                    detailMap.put("YIBAO", "1");
 
                     //药品使用
                     detailMap.put("DOSAGE", "");

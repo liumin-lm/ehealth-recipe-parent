@@ -47,7 +47,7 @@ import java.util.Optional;
 /**
  * 第三方合理用药
  */
-@RpcBean(mvc_authentication = false)
+@RpcBean
 public class ThirdPartyPrescriptionService implements IntellectJudicialService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ThirdPartyPrescriptionService.class);
@@ -121,7 +121,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
                         result.setHighestDrangeLevel((String) needInterceptLevel);
                     }
                 } else if (StringUtils.isNotBlank(thirdPartyRationalUseDrugResTO.getMsg()) && CollectionUtils.isEmpty(thirdPartyRationalUseDrugResTO.getThirdPartyIssuesDataList())) {
-                    result.setMsg(thirdPartyRationalUseDrugResTO.getIssueTypes());
+                    result.setMsg(thirdPartyRationalUseDrugResTO.getMsg());
                     result.setCode(RecipeCommonBaseTO.FAIL);
                     return result;
                 }
@@ -220,7 +220,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
             if (StringUtils.isNotBlank(recipeDetailBean.getUsingRate())) {
                 thirdPartyMedicinesData.setFreq(UsingRateFilter.filterNgari(recipeBean.getClinicOrgan(), recipeDetailBean.getUsingRate()));
                 try {
-                    thirdPartyMedicinesData.setFreqName(StringUtils.isNotEmpty(recipeDetailBean.getUsingRateTextFromHis())?recipeDetailBean.getUsingRateTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(recipeDetailBean.getUsingRate()));
+                    thirdPartyMedicinesData.setFreqName(StringUtils.isNotEmpty(recipeDetailBean.getUsingRateTextFromHis()) ? recipeDetailBean.getUsingRateTextFromHis() : DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(recipeDetailBean.getUsingRate()));
                 } catch (Exception e) {
                     LOGGER.error("analysis packThirdPartyPrescriptionData error, param: {}", recipeDetailBean.getUsingRate(), e);
                 }
@@ -267,7 +267,6 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
         }
         return thirdPartyDiagnosisDataList;
     }
-
 
     /**
      * 解析问题信息

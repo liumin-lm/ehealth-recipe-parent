@@ -143,7 +143,7 @@ public class RecipePreserveService {
         return doctorService.getBeanByDoctorId(doctorId);
     }
 
-    @RpcService(timeout = 5000)
+    @RpcService
     public Map<String,Object> getHosRecipeList(Integer consultId, Integer organId,String mpiId,Integer daysAgo){
         LOGGER.info("getHosRecipeList consultId={}, organId={},mpiId={}", consultId, organId,mpiId);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
