@@ -474,17 +474,19 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         //查询含有药品的机构
         List<Integer> haveDrugOrgans = organDrugListDAO.findOrganIds();
-        LOGGER.info("查询含有药品的机构{}",haveDrugOrgans);
+        LOGGER.info("查询含有药品的机构{}",JSONUtils.toString(haveDrugOrgans));
         //已存在的对照同步处理
         Set<Integer> contrastOrganIds = Sets.newHashSet();
         List<UsingRateDTO> usingRateDTOs = recipePreserveService.findUsingRateRelationFromRedis();
         if (!CollectionUtils.isEmpty(usingRateDTOs)){
             contrastOrganIds = usingRateDTOs.stream().map(x ->x.getOrganId()).collect(Collectors.toSet());
         }
+        LOGGER.info("查询含有对照的机构{}",contrastOrganIds);
         List<Integer> contrastOrganIdList = new ArrayList<>(contrastOrganIds);
         usingRateService.saveUsingRateBatch(usingRateDTOs);
         //没有对照的机构处理
         List<Integer> noContrastOrganIds = haveDrugOrgans.stream().filter(item -> !contrastOrganIdList.contains(item) && item > 0).collect(Collectors.toList());
+        LOGGER.info("查询没有对照的机构{}",noContrastOrganIds);
         usingRateService.syncPlatToOrgan(noContrastOrganIds);
         //处理平台药品库
         this.dealDrugListUsingRate();
@@ -579,7 +581,7 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
             usePathways.forEach(item -> {
                 Integer organId = (Integer) item.get("organId");
                 String usePathway = (String) item.get("usePathways");
-                UsePathwaysDTO usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organId,usePathway);
+                UsePathwaysDTO usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(0,usePathway);
                 if (usePathway != null){
                     organDrugListDAO.updateUsePathwaysByUsePathways(organId,usePathway,String.valueOf(usePathwaysDTO.getId()));
                 }
