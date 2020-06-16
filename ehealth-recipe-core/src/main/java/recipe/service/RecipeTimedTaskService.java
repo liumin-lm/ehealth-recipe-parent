@@ -50,10 +50,11 @@ public class RecipeTimedTaskService {
 
     private static final String HIS_RECIPE_KEY_PREFIX = "hisRecipe_";
 
+    private static final Long HOUR = 60L;
     /**
      * 在审核成功后的第1小时、第24小时、48小时，处方失效前1小时这几个节点
      */
-    private static final List<Long> HOURS = Arrays.asList(1L, 24L, 48L);
+    private static final List<Long> MINUTES = Arrays.asList(HOUR, HOUR * 24, HOUR * 48);
 
     @Autowired
     private RemoteRecipeService remoteRecipeService;
@@ -217,13 +218,12 @@ public class RecipeTimedTaskService {
      */
     @RpcService
     public void pushPayTask() {
-        LOGGER.info("RecipeTimedTaskService pushPay start");
+        LocalDateTime date = LocalDateTime.now();
         List<Recipe> recipeList = recipeDAO.findByPayFlagAndReviewType(PayConstant.PAY_FLAG_NOT_PAY, ReviewTypeConstant.Preposition_Check);
+        LOGGER.info("RecipeTimedTaskService pushPay recipeList = {}", recipeList.size());
         if (CollectionUtils.isEmpty(recipeList)) {
             return;
         }
-        LOGGER.info("RecipeTimedTaskService pushPay recipeList = {}", recipeList.size());
-        LocalDateTime date = LocalDateTime.now();
 
         for (Recipe recipe : recipeList) {
             if (null == recipe.getCreateDate() || null == recipe.getValueDays()) {
@@ -233,13 +233,13 @@ public class RecipeTimedTaskService {
             //开方时间
             LocalDateTime createDate = Instant.ofEpochMilli(recipe.getCreateDate().getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
             Duration create = Duration.between(date, createDate);
-            Long createHour = create.toHours();
+            Long createHour = create.toMinutes();
             //失效时间计算
             LocalDateTime failureDate = createDate.plusDays(recipe.getValueDays());
             Duration failure = Duration.between(date, failureDate);
-            long failureHour = failure.toHours();
-            if (HOURS.contains(createHour) || 1L == failureHour) {
-                LOGGER.debug("RecipeTimedTaskService pushPay recipe = {}", JSONUtils.toString(recipe));
+            Long failureHour = failure.toMinutes();
+            if (MINUTES.contains(createHour) || HOUR.equals(failureHour)) {
+                LOGGER.debug("RecipeTimedTaskService pushPay recipe = {}", recipe.getRecipeId());
                 //发消息
                 SmsInfoBean smsInfo = new SmsInfoBean();
                 smsInfo.setBusId(recipe.getRecipeId());
