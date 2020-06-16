@@ -199,6 +199,12 @@ public class DrugSyncObserver implements Observer<ShadowMessage> {
                     if (StringUtils.isEmpty(organDrug.getUsingRate())){
                         detailVo.setUsingRate(drug.getUsingRate());
                     }
+                    if (StringUtils.isEmpty(organDrug.getUsePathwaysId())){
+                        detailVo.setUsePathwaysId(drug.getUsePathwaysId());
+                    }
+                    if (StringUtils.isEmpty(organDrug.getUsingRateId())){
+                        detailVo.setUsingRateId(drug.getUsingRateId());
+                    }
                     //重置searchKey
                     searchKey = drug.getSaleName() + ";" + organDrug.getSaleName() + ";" +
                             LocalStringUtil.toString(organDrug.getRetrievalCode());
