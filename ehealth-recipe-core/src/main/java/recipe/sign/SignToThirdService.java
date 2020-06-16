@@ -70,7 +70,7 @@ public class SignToThirdService {
             ThirdPartyMappingService ThirdPartyMappingService = BasicAPI.getService(ThirdPartyMappingService.class);
             //ThirdPartyMapping thirdPartyMapping = ThirdPartyMappingService.getByThirdpartyAndTid(thirdParty,tid);
             DoctorDTO doctorDTO = ThirdPartyMappingService.getDoctorByThirdpartyAndTid(thirdParty,tid);
-            String userAccount = doctorDTO.getLoginId();
+            String userAccount = doctorDTO.getIdNumber();
             Integer organId = doctorDTO.getOrgan();
             EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
             List<String> jobNumbers = employmentService.findJobNumberByDoctorIdAndOrganId(doctorDTO.getDoctorId(), organId);
