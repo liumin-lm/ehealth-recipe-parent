@@ -217,6 +217,7 @@ public class RecipeTimedTaskService {
      */
     @RpcService
     public void pushPayTask() {
+        LOGGER.info("RecipeTimedTaskService pushPay start");
         List<Recipe> recipeList = recipeDAO.findByPayFlagAndReviewType(PayConstant.PAY_FLAG_NOT_PAY, ReviewTypeConstant.Preposition_Check);
         if (CollectionUtils.isEmpty(recipeList)) {
             return;
