@@ -3985,10 +3985,10 @@ public class RecipeService extends RecipeBaseService {
         if((boolean)isCanOpenLongRecipe){//按钮开启
             Object yesLongRecipe = configService.getConfiguration(Integer.parseInt(params.get("organId")), "yesLongRecipe");
             LOGGER.info("findUseDayRange 从opbase配置项获取长处方开药天数范围是{}",yesLongRecipe==null?yesLongRecipe:((String)yesLongRecipe).replace(",","-"));
-            map.put("longTimeRange",yesLongRecipe);
+            map.put("longTimeRange",yesLongRecipe==null?yesLongRecipe:((String)yesLongRecipe).replace(",","-"));
             Object noLongRecipe = configService.getConfiguration(Integer.parseInt(params.get("organId")), "noLongRecipe");
             LOGGER.info("findUseDayRange 从opbase配置项获取非长处方开药天数范围是{}",noLongRecipe==null?noLongRecipe:((String)noLongRecipe).replace(",","-"));
-            map.put("shortTimeRange",noLongRecipe);
+            map.put("shortTimeRange",noLongRecipe==null?noLongRecipe:((String)noLongRecipe).replace(",","-"));
         }
         map.put("canOpenLongRecipe",isCanOpenLongRecipe);
         return map;
