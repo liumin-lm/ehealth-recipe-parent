@@ -98,6 +98,11 @@ public class OrderRepTO implements Serializable {
 
     private String sendFlag;
 
+    /**
+     * 药品包装数量
+     */
+    private Integer pack;
+
     public String getIsDrugStock() {
         return isDrugStock;
     }
@@ -248,5 +253,13 @@ public class OrderRepTO implements Serializable {
 
     public void setMedicalDrugCode(String medicalDrugCode) {
         this.medicalDrugCode = medicalDrugCode;
+    }
+
+    public Integer getPack() {
+        return pack;
+    }
+
+    public void setPack(Integer pack) {
+        this.pack = pack;
     }
 }

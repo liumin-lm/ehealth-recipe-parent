@@ -235,8 +235,8 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
                 String usingRate ;
                 String usePathways ;
                 try {
-                    usingRate = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(recipedetails.get(i).getUsingRate());
-                    usePathways = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipedetails.get(i).getUsePathways());
+                    usingRate = recipedetails.get(i).getUsingRateTextFromHis()!=null?recipedetails.get(i).getUsingRateTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(recipedetails.get(i).getUsingRate());
+                    usePathways = recipedetails.get(i).getUsePathwaysTextFromHis()!=null?recipedetails.get(i).getUsePathwaysTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipedetails.get(i).getUsePathways());
                 } catch (ControllerException e) {
                     return getDrugEnterpriseResult(result, "药物使用频率使用途径获取失败");
                 }

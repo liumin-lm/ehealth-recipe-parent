@@ -494,9 +494,9 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                 drugParam.setSpuid(saleDrugList.getOrganDrugCode());
                 try {
                     //频次
-                    drugParam.setFrequency(DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detailList.get(i).getUsingRate()));
+                    drugParam.setFrequency(StringUtils.isNotEmpty(detailList.get(i).getUsingRateTextFromHis())?detailList.get(i).getUsingRateTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detailList.get(i).getUsingRate()));
                     //用法
-                    drugParam.setDoseUsage(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detailList.get(i).getUsePathways()));
+                    drugParam.setDoseUsage(StringUtils.isNotEmpty(detailList.get(i).getUsePathwaysTextFromHis())?detailList.get(i).getUsePathwaysTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detailList.get(i).getUsePathways()));
                 } catch (ControllerException e) {
                     throw new DAOException("药物使用频率使用途径获取失败");
                 }

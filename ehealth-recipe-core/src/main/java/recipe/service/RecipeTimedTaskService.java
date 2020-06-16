@@ -216,7 +216,8 @@ public class RecipeTimedTaskService {
      * 39462 【杭州市互联网医院】处方审核完成后，患者端增加消息提醒功能
      */
     @RpcService
-    public void pushPay() {
+    public void pushPayTask() {
+        LOGGER.info("RecipeTimedTaskService pushPay start");
         List<Recipe> recipeList = recipeDAO.findByPayFlagAndReviewType(PayConstant.PAY_FLAG_NOT_PAY, ReviewTypeConstant.Preposition_Check);
         if (CollectionUtils.isEmpty(recipeList)) {
             return;
@@ -246,6 +247,8 @@ public class RecipeTimedTaskService {
                 smsInfo.setBusType("RecipePushPay");
                 smsInfo.setSmsType("RecipePushPay");
                 smsPushService.pushMsgData2OnsExtendValue(smsInfo);
+
+                LOGGER.info("RecipeTimedTaskService pushPay is end recipe = {}", recipe.getRecipeId());
             }
         }
     }

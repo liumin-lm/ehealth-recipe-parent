@@ -2526,6 +2526,9 @@ public class RecipeService extends RecipeBaseService {
                         if (StringUtils.isNotEmpty(drug.getMedicalDrugCode())) {
                             nowOrganDrug.setMedicalDrugCode(drug.getMedicalDrugCode());
                         }
+                        if (StringUtils.isNotEmpty(drug.getPack())) {
+                            nowOrganDrug.setPack(Integer.valueOf(drug.getPack()));
+                        }
 
                         organDrugListDAO.update(nowOrganDrug);
                         updateNum++;

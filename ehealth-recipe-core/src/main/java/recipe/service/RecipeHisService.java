@@ -1086,6 +1086,10 @@ public class RecipeHisService extends RecipeBaseService {
                 item.setFrequency(UsingRateFilter.filterNgari(recipeBean.getClinicOrgan(), detail.getUsingRate()));
                 //用法
                 item.setAdmission(UsePathwaysFilter.filterNgari(recipeBean.getClinicOrgan(), detail.getUsePathways()));
+                //机构用法代码
+                item.setOrganUsePathways(detail.getOrganUsePathways());
+                //机构频次代码
+                item.setOrganUsingRate(detail.getOrganUsingRate());
                 //用药天数
                 item.setUseDays(Integer.toString(detail.getUseDays()));
                 //剂量单位

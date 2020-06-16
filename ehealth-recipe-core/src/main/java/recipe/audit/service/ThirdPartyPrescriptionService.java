@@ -220,7 +220,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
             if (StringUtils.isNotBlank(recipeDetailBean.getUsingRate())) {
                 thirdPartyMedicinesData.setFreq(UsingRateFilter.filterNgari(recipeBean.getClinicOrgan(), recipeDetailBean.getUsingRate()));
                 try {
-                    thirdPartyMedicinesData.setFreqName(DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(recipeDetailBean.getUsingRate()));
+                    thirdPartyMedicinesData.setFreqName(StringUtils.isNotEmpty(recipeDetailBean.getUsingRateTextFromHis())?recipeDetailBean.getUsingRateTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(recipeDetailBean.getUsingRate()));
                 } catch (Exception e) {
                     LOGGER.error("analysis packThirdPartyPrescriptionData error, param: {}", recipeDetailBean.getUsingRate(), e);
                 }

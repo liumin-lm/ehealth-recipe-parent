@@ -96,8 +96,8 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
                 if (detail.getRecipeDetailId() != null) {
                     Dictionary usingRateDic = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate");
                     Dictionary usePathwaysDic = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways");
-                    detail.setUsePathways(usePathwaysDic.getText(detail.getUsePathways()));
-                    detail.setUsingRate(usingRateDic.getText(detail.getUsingRate()));
+                    detail.setUsePathways(detail.getUsePathwaysTextFromHis()!=null?detail.getUsePathwaysTextFromHis():usePathwaysDic.getText(detail.getUsePathways()));
+                    detail.setUsingRate(detail.getUsingRateTextFromHis()!=null?detail.getUsingRateTextFromHis():usingRateDic.getText(detail.getUsingRate()));
                 }
                 if (StringUtils.isEmpty(detail.getUsePathways())||StringUtils.isEmpty(detail.getUsingRate())||detail.getUseDose()==null||StringUtils.isEmpty(detail.getUseDoseUnit())){
                     drugUseDTO.setDrugUsed("");

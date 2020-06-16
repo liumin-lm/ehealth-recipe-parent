@@ -494,8 +494,8 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                 String usingRate ;
                 String usePathways ;
                 try {
-                    usingRate = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(recipedetail.getUsingRate());
-                    usePathways = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipedetail.getUsePathways());
+                    usingRate = StringUtils.isNotEmpty(recipedetail.getUsingRateTextFromHis())?recipedetail.getUsingRateTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(recipedetail.getUsingRate());
+                    usePathways = StringUtils.isNotEmpty(recipedetail.getUsePathwaysTextFromHis())?recipedetail.getUsePathwaysTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipedetail.getUsePathways());
                 } catch (ControllerException e) {
                     return getDrugEnterpriseResult(result, "药物使用频率使用途径获取失败");
                 }

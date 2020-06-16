@@ -408,6 +408,10 @@ public class QueryRecipeService implements IQueryRecipeService {
                 orderItem.setAdmission(UsePathwaysFilter.filterNgari(clinicOrgan, detail.getUsePathways()));
                 //频次
                 orderItem.setFrequency(UsingRateFilter.filterNgari(clinicOrgan, detail.getUsingRate()));
+                //机构的频次代码
+                orderItem.setOrganUsingRate(detail.getOrganUsingRate());
+                //机构的用药代码
+                orderItem.setOrganUsePathways(detail.getOrganUsePathways());
                 //医保频次
                 orderItem.setMedicalFrequency(UsingRateFilter.filterNgariByMedical(clinicOrgan, detail.getUsingRate()));
                 //单次剂量
@@ -455,9 +459,9 @@ public class QueryRecipeService implements IQueryRecipeService {
                 orderItem.setUnit(detail.getDrugUnit());
                 //放最后
                 //用法名称
-                orderItem.setAdmissionName(DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detail.getUsingRate()));
+                orderItem.setAdmissionName(detail.getUsePathwaysTextFromHis());
                 //频次名称
-                orderItem.setFrequencyName(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detail.getUsePathways()));
+                orderItem.setFrequencyName(detail.getUsingRateTextFromHis());
                 orderList.add(orderItem);
             }
             recipeDTO.setOrderList(orderList);
