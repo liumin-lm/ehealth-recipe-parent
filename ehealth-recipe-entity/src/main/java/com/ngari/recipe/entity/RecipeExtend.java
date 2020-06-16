@@ -113,7 +113,7 @@ public class RecipeExtend implements Serializable {
 
     //开当前处方的配置项信息
     @ItemProperty(alias = "可开长处方按钮状态、长处方开药天数、非长处方开药天数")
-    private String longRecipeConfig;
+    private String recipeJsonConfig;
 
     /**
      * 患者医保类型（编码）
@@ -519,11 +519,11 @@ public class RecipeExtend implements Serializable {
         this.isLongRecipe = isLongRecipe;
     }
 
-    public String getLongRecipeConfig() {
-        return longRecipeConfig;
+    public String getRecipeJsonConfig() {
+        return recipeJsonConfig;
     }
 
-    public void setLongRecipeConfig(String longRecipeConfig) {
-        this.longRecipeConfig = longRecipeConfig;
+    public void setRecipeJsonConfig(String recipeJsonConfig) {
+        this.recipeJsonConfig = recipeJsonConfig;
     }
 }
