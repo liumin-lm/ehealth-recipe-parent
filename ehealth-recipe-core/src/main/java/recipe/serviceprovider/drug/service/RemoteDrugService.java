@@ -35,6 +35,7 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.omg.CORBA.TIMEOUT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -467,7 +468,7 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         return Boolean.TRUE;
     }
 
-    @RpcService
+    @RpcService(timeout = 600)
     public void dealUsingRate(){
         RecipePreserveService recipePreserveService = AppContextHolder.getBean("eh.recipePreserveService",RecipePreserveService.class);
         IUsingRateService usingRateService = AppContextHolder.getBean("eh.usingRateService",IUsingRateService.class);
