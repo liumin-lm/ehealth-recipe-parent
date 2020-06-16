@@ -139,8 +139,8 @@ public class RecipeService extends RecipeBaseService {
     @Resource
     private AuditModeContext auditModeContext;
 
-    @Autowired
-    private DrugsEnterpriseService drugsEnterpriseService;
+    @Resource
+    private OrganDrugListDAO organDrugListDAO;
 
     @Autowired
     private RecipeCheckDAO recipeCheckDAO;
@@ -2512,26 +2512,11 @@ public class RecipeService extends RecipeBaseService {
                 } else {
                     //是否有效标志 1-有效 0-无效
                     for (DrugInfoTO drug : drugInfoList) {
-                        OrganDrugList nowOrganDrug = drugMap.get(drug.getDrcode());
-                        if (null == nowOrganDrug) {
+                        OrganDrugList organDrug = drugMap.get(drug.getDrcode());
+                        if (null == organDrug) {
                             continue;
                         }
-                        //获取金额
-                        if (StringUtils.isNotEmpty(drug.getDrugPrice())) {
-                            BigDecimal drugPrice = new BigDecimal(drug.getDrugPrice());
-                            nowOrganDrug.setSalePrice(drugPrice);
-                        }
-                        if (StringUtils.isNotEmpty(drug.getDrmodel())) {
-                            nowOrganDrug.setDrugSpec(drug.getDrmodel());
-                        }
-                        if (StringUtils.isNotEmpty(drug.getMedicalDrugCode())) {
-                            nowOrganDrug.setMedicalDrugCode(drug.getMedicalDrugCode());
-                        }
-                        if (StringUtils.isNotEmpty(drug.getPack())) {
-                            nowOrganDrug.setPack(Integer.valueOf(drug.getPack()));
-                        }
-
-                        organDrugListDAO.update(nowOrganDrug);
+                        updateHisDrug(drug, organDrug);
                         updateNum++;
                         LOGGER.info("drugInfoSynTask organId=[{}] drug=[{}]", oid, JSONUtils.toString(drug));
                     }
@@ -3642,31 +3627,45 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public void updateHisDrug(DrugInfoTO drug) {
         //校验药品数据安全
-        if (!checkDrugInfo(drug)) return;
+        if (!checkDrugInfo(drug)) {
+            return;
+        }
         LOGGER.info("updateHisDrug organId=[{}],当前同步药品数据:{}.", drug.getOrganId(), JSONUtils.toString(drug));
 
         Integer oid = drug.getOrganId();
         OrganDrugListDAO organDrugListDAO = getDAO(OrganDrugListDAO.class);
 
-        OrganDrugList nowOrganDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(oid, drug.getDrcode());
-        LOGGER.info("updateHisDrug 更新药品金额,更新前药品信息：{}", JSONUtils.toString(nowOrganDrug));
+        OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(oid, drug.getDrcode());
+        LOGGER.info("updateHisDrug 更新药品金额,更新前药品信息：{}", JSONUtils.toString(organDrug));
+        updateHisDrug(drug, organDrug);
+    }
 
-        //获取金额
-        BigDecimal salePrice = nowOrganDrug.getSalePrice();
-        BigDecimal drugPrice = null == drug.getDrugPrice() ? new BigDecimal(-1) : new BigDecimal(drug.getDrugPrice());
-
-        if (null != nowOrganDrug && !drugPrice.equals(new BigDecimal(-1))) {
-            //判断药品金额是否有改动，有改动更新药品价格
-            if (0 != drugPrice.compareTo(salePrice)) {
-                //更新当前不匹配的药品价格
-                nowOrganDrug.setSalePrice(drugPrice);
-                organDrugListDAO.update(nowOrganDrug);
-                LOGGER.info("updateHisDrug 更新药品金额,更新后药品信息：{},药品已更新", JSONUtils.toString(nowOrganDrug));
-            } else {
-                LOGGER.info("updateHisDrug 当前药品{}价格无变化，无需更新", JSONUtils.toString(nowOrganDrug));
-            }
+    /**
+     * 当前同步药品数据
+     *
+     * @param drug
+     * @param organDrug
+     */
+    private void updateHisDrug(DrugInfoTO drug, OrganDrugList organDrug) {
+        if (null == organDrug) {
+            return;
         }
-
+        //获取金额
+        if (StringUtils.isNotEmpty(drug.getDrugPrice())) {
+            BigDecimal drugPrice = new BigDecimal(drug.getDrugPrice());
+            organDrug.setSalePrice(drugPrice);
+        }
+        if (StringUtils.isNotEmpty(drug.getDrmodel())) {
+            organDrug.setDrugSpec(drug.getDrmodel());
+        }
+        if (StringUtils.isNotEmpty(drug.getMedicalDrugCode())) {
+            organDrug.setMedicalDrugCode(drug.getMedicalDrugCode());
+        }
+        if (StringUtils.isNotEmpty(drug.getPack())) {
+            organDrug.setPack(Integer.valueOf(drug.getPack()));
+        }
+        LOGGER.info("updateHisDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(organDrug));
+        organDrugListDAO.update(organDrug);
     }
 
     private boolean checkDrugInfo(DrugInfoTO drug) {
