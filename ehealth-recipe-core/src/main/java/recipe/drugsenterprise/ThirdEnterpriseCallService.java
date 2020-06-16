@@ -1716,8 +1716,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                     drugList.setDrugTotalFee(convertParame(saleDrugList.getPrice().multiply(new BigDecimal(recipedetail.getUseTotalDose()))));
                 }
                 try {
-                    String usingRate = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(recipedetail.getUsingRate());
-                    String usingPathways = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipedetail.getUsePathways());
+                    String usingRate = recipedetail.getUsingRateTextFromHis()!=null?recipedetail.getUsingRateTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(recipedetail.getUsingRate());
+                    String usingPathways = recipedetail.getUsePathwaysTextFromHis()!=null?recipedetail.getUsePathwaysTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipedetail.getUsePathways());
                     drugList.setUsingRateText(usingRate);
                     drugList.setUsePathwaysText(usingPathways);
                 } catch (ControllerException e) {

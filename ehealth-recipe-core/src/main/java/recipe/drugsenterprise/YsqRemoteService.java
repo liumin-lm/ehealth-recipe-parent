@@ -812,7 +812,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     if (StringUtils.isNotEmpty(userRate)) {
                         if (recipe.getRecipeType() != 3) {
                             try {
-                                detailMap.put("DISEASENAME", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(userRate));
+                                detailMap.put("DISEASENAME", detail.getUsingRateTextFromHis()!=null?detail.getUsingRateTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(userRate));
                             } catch (ControllerException e) {
                                 LOGGER.error("getYsqRecipeInfo 获取用药频次类型失败*****usingRate:" + userRate);
                                 detailMap.put("DISEASENAME", "每日三次");
@@ -829,7 +829,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     if (StringUtils.isNotEmpty(usePathways)) {
                         if (recipe.getRecipeType() != 3) {
                             try {
-                                detailMap.put("DISEASENAME1", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(usePathways));
+                                detailMap.put("DISEASENAME1", detail.getUsePathwaysTextFromHis()!=null?detail.getUsePathwaysTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(usePathways));
                             } catch (ControllerException e) {
                                 LOGGER.error("getYsqRecipeInfo 获取用药途径类型失败*****usePathways:" + usePathways);
                                 detailMap.put("DISEASENAME1", "口服");

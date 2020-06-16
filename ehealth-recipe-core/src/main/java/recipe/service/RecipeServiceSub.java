@@ -691,9 +691,11 @@ public class RecipeServiceSub {
                 //开药总量+药品单位
                 String dTotal = "X" + d.getUseTotalDose() + d.getDrugUnit();
                 //用药频次
-                String dRateName = d.getUsingRate() + "(" + usingRateDic.getText(d.getUsingRate()) + ")";
+                String usingRateText = d.getUsingRateTextFromHis()!=null?d.getUsingRateTextFromHis():usingRateDic.getText(d.getUsingRate());
+                String dRateName = d.getUsingRate() + "(" + usingRateText + ")";
                 //用法
-                String dWay = d.getUsePathways() + "(" + usePathwaysDic.getText(d.getUsePathways()) + ")";
+                String usePathwaysText = d.getUsePathwaysTextFromHis()!=null?d.getUsePathwaysTextFromHis():usePathwaysDic.getText(d.getUsePathways());
+                String dWay = d.getUsePathways() + "(" + usePathwaysText + ")";
                 paramMap.put("drugInfo" + i, dName + dSpec);
                 paramMap.put("dTotal" + i, dTotal);
                 paramMap.put("useInfo" + i, uDose + "    " + dRateName + "    " + dWay + "    " + useDay);

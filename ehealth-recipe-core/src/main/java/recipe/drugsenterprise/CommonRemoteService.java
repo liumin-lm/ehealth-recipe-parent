@@ -264,7 +264,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
                 String userRate = detail.getUsingRate();
                 if (StringUtils.isNotEmpty(userRate)) {
                     try {
-                        detailMap.put("usingratename", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(userRate));
+                        detailMap.put("usingratename", StringUtils.isNotEmpty(detail.getUsingRateTextFromHis())?detail.getUsingRateTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(userRate));
                     } catch (ControllerException e) {
                         LOGGER.error("pushRecipInfo 获取用药频次类型失败*****usingRate:" + userRate);
                         detailMap.put("usingratename", "每日三次");
@@ -276,7 +276,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
                 String usePathways = detail.getUsePathways();
                 if (StringUtils.isNotEmpty(usePathways)) {
                     try {
-                        detailMap.put("usepathwaysname", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(usePathways));
+                        detailMap.put("usepathwaysname", StringUtils.isNotEmpty(detail.getUsePathwaysTextFromHis())?detail.getUsePathwaysTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(usePathways));
                     } catch (ControllerException e) {
                         LOGGER.error("pushRecipInfo 获取用药途径类型失败*****usePathways:" + usePathways);
                         detailMap.put("usepathwaysname", "口服");

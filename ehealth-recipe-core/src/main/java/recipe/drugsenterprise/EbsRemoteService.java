@@ -162,7 +162,8 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
                 try{
                     Dictionary usingRateDic = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate");
                     Dictionary usePathwaysDic = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways");
-                    ebsDetail.setDirections(usingRateDic.getText(recipedetail.getUsingRate()) + usePathwaysDic.getText(recipedetail.getUsePathways()));
+                    ebsDetail.setDirections(StringUtils.isNotEmpty(recipedetail.getUsingRateTextFromHis())?recipedetail.getUsingRateTextFromHis():usingRateDic.getText(recipedetail.getUsingRate())
+                            + (StringUtils.isNotEmpty(recipedetail.getUsePathwaysTextFromHis())?recipedetail.getUsePathwaysTextFromHis():usePathwaysDic.getText(recipedetail.getUsePathways())));
                 }catch(Exception e){
                     LOGGER.error("pushRecipeInfo 用法用量获取失败.");
                 }

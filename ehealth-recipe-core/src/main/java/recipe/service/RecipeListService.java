@@ -860,6 +860,8 @@ public class RecipeListService extends RecipeBaseService{
                 Map<String,String> drugInfo;
                 List<Map<String,String>> drugInfoList = Lists.newArrayList();
                 String useDose;
+                String usingRateText;
+                String usePathwaysText;
                 for (Recipedetail detail : recipedetails){
                     drugInfo = Maps.newHashMap();
                     if (StringUtils.isNotEmpty(detail.getUseDoseStr())){
@@ -871,9 +873,11 @@ public class RecipeListService extends RecipeBaseService{
                     //开药总量+药品单位
                     String dSpec = "*"+detail.getUseTotalDose().intValue() + detail.getDrugUnit();
                     drugInfo.put("drugTotal",dSpec);
+                    usingRateText = StringUtils.isNotEmpty(detail.getUsingRateTextFromHis())?detail.getUsingRateTextFromHis():usingRateDic.getText(detail.getUsingRate());
+                    usePathwaysText = StringUtils.isNotEmpty(detail.getUsePathwaysTextFromHis())?detail.getUsePathwaysTextFromHis():usePathwaysDic.getText(detail.getUsePathways());
                     String useWay = "用法：每次" + useDose + detail.getUseDoseUnit()
-                            +"/"+usingRateDic.getText(detail.getUsingRate())
-                            +"/"+usePathwaysDic.getText(detail.getUsePathways())
+                            +"/"+usingRateText
+                            +"/"+usePathwaysText
                             +detail.getUseDays() + "天";
                     drugInfo.put("useWay",useWay);
                     drugInfoList.add(drugInfo);
