@@ -496,7 +496,8 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
     }
 
     //处理平台药品库
-    private void dealDrugListUsingRate(){
+    @RpcService
+    public void dealDrugListUsingRate(){
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         List<String> usingRates = drugListDAO.findUsingRateOfAll();
         IUsingRateService usingRateService = AppContextHolder.getBean("eh.usingRateService",IUsingRateService.class);
@@ -514,7 +515,8 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         }
     }
 
-    private void dealOrganDrugListUsingRate(){
+    @RpcService
+    public void dealOrganDrugListUsingRate(){
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<Map<String,Object>> usingRates = organDrugListDAO.findAllUsingRate();
         IUsingRateService usingRateService = AppContextHolder.getBean("eh.usingRateService",IUsingRateService.class);
@@ -556,7 +558,8 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
     }
 
     //处理平台药品库
-    private void dealDrugListUsePathways(){
+    @RpcService
+    public void dealDrugListUsePathways(){
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         List<String> usePathways = drugListDAO.findUsePathwaysOfAll();
         IUsePathwaysService usePathwaysService = AppContextHolder.getBean("eh.usePathwaysService",IUsePathwaysService.class);
@@ -574,7 +577,8 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         }
     }
 
-    private void dealOrganDrugListUsePathways(){
+    @RpcService
+    public void dealOrganDrugListUsePathways(){
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<Map<String,Object>> usePathways = organDrugListDAO.findAllUsePathways();
         IUsePathwaysService usePathwaysService = AppContextHolder.getBean("eh.usePathwaysService",IUsePathwaysService.class);
