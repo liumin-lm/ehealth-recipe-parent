@@ -391,13 +391,13 @@ public class RecipeService extends RecipeBaseService {
             docIndex.setDocSummary(docTypeText);
             docIndex.setDoctypeName(docTypeText);
         } catch (ControllerException e) {
-            LOGGER.error("saveRecipeDocIndex DocType dictionary error! docType=" + docType);
+            LOGGER.error("saveRecipeDocIndex DocType dictionary error! docType=" ,docType,e);
         }
         try {
             String recipeTypeText = DictionaryController.instance().get("eh.cdr.dictionary.RecipeType").getText(recipe.getRecipeType());
             docIndex.setDocTitle(recipeTypeText);
         } catch (ControllerException e) {
-            LOGGER.error("saveRecipeDocIndex RecipeType dictionary error! recipeType=" + recipe.getRecipeType());
+            LOGGER.error("saveRecipeDocIndex RecipeType dictionary error! recipeType=", recipe.getRecipeType(),e);
         }
         docIndex.setDocId(recipe.getRecipeId());
         docIndex.setMpiid(recipe.getMpiid());
@@ -603,7 +603,7 @@ public class RecipeService extends RecipeBaseService {
             recipeExtend.setDrugEntrustment(drugEntrustment);
             recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
         }catch (Exception e){
-            LOGGER.error("reviewRecipe update RecipeExtend[" + recipeId + "] error!");
+            LOGGER.error("reviewRecipe update RecipeExtend[" + recipeId + "] error!",e);
             updateDrugEntrustment=false;
             resultBean.setRs(updateDrugEntrustment);
             return resultBean;
@@ -1256,7 +1256,7 @@ public class RecipeService extends RecipeBaseService {
                         signDoctorRecipeInfo.setSignBefText(jsonObject.toJSONString());
                         signRecipeInfoService.update(signDoctorRecipeInfo);
                     } catch (Exception e) {
-                        LOGGER.error("signBefText save error："  + e.getMessage());
+                        LOGGER.error("signBefText save error："  + e.getMessage(),e);
                     }
                 }else{
                     ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
@@ -1300,7 +1300,7 @@ public class RecipeService extends RecipeBaseService {
 //                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, attrMap);
 //                }
             } catch (Exception e) {
-                LOGGER.error("generateRecipePdfAndSign 标准化CA签章报错 recipeId={} ,doctor={} ,e={}=============", recipeId, recipe.getDoctor(), e);
+                LOGGER.error("generateRecipePdfAndSign 标准化CA签章报错 recipeId={} ,doctor={} ,e==============", recipeId, recipe.getDoctor(), e);
             }
             //标准化CA进行签名、签章==========================end=====
         } else {
@@ -1560,7 +1560,7 @@ public class RecipeService extends RecipeBaseService {
                     IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
                     recipeOnLineConsultService.sendRecipeMsg(consultId, 3);
                 } catch (Exception e) {
-                    LOGGER.error("retryDoctorSignCheck sendRecipeMsg error, type:3, consultId:{}, error:{}", consultId, e);
+                    LOGGER.error("retryDoctorSignCheck sendRecipeMsg error, type:3, consultId:{}, error:", consultId, e);
                 }
 
             }
@@ -1607,7 +1607,7 @@ public class RecipeService extends RecipeBaseService {
             paramMap.put("recipeImgId", recipeId);
             /*paramMap.put("recipeImgData",bytes);*/
         } catch (Exception e) {
-            LOGGER.error("uploadRecipeImgSignFile exception:" + e.getMessage());
+            LOGGER.error("uploadRecipeImgSignFile exception:" + e.getMessage(),e);
         }
     }
 
@@ -2186,7 +2186,7 @@ public class RecipeService extends RecipeBaseService {
             //生成pdf并签名
             recipeService.generateRecipePdfAndSign(recipe.getRecipeId());
         } catch (Exception e) {
-            LOGGER.error("doSecondSignRecipe 签名失败. recipeId=[{}], error={}", recipe.getRecipeId(), e.getMessage());
+            LOGGER.error("doSecondSignRecipe 签名失败. recipeId=[{}], error={}", recipe.getRecipeId(), e.getMessage(),e);
         }
 
         LOGGER.info("doSecondSignRecipe execute ok! ");
@@ -3233,7 +3233,7 @@ public class RecipeService extends RecipeBaseService {
             INgariRefundService rufundService = BaseAPI.getService(INgariRefundService.class);
             rufundService.refund(order.getOrderId(), RecipeService.WX_RECIPE_BUSTYPE);
         } catch (Exception e) {
-            LOGGER.error("wxPayRefundForRecipe " + errorInfo + "*****微信退款异常！recipeId[" + recipeId + "],err[" + e.getMessage() + "]");
+            LOGGER.error("wxPayRefundForRecipe " + errorInfo + "*****微信退款异常！recipeId[" + recipeId + "],err[" + e.getMessage() + "]",e);
         }
 
         try {
@@ -3243,7 +3243,7 @@ public class RecipeService extends RecipeBaseService {
                 hisService.recipeRefund(recipeId);
             }
         } catch (Exception e) {
-            LOGGER.error("wxPayRefundForRecipe " + errorInfo + "*****HIS消息发送异常！recipeId[" + recipeId + "],err[" + e.getMessage() + "]");
+            LOGGER.error("wxPayRefundForRecipe " + errorInfo + "*****HIS消息发送异常！recipeId[" + recipeId + "],err[" + e.getMessage() + "]",e);
         }
 
     }
@@ -3910,7 +3910,7 @@ public class RecipeService extends RecipeBaseService {
                 age= ChinaIDNumberUtil.getAgeFromIDNumber(patientList.get(0).getIdcard());
                 LOGGER.info("findCanRecipeByAge 通过证件号码获取患者年龄{}",age);
             } catch (ValidateException e) {
-                LOGGER.error("findCanRecipeByAge 通过证件号码获取患者年龄异常"+e.getMessage());
+                LOGGER.error("findCanRecipeByAge 通过证件号码获取患者年龄异常"+e.getMessage(),e);
                 e.printStackTrace();
             }
             //实际年龄>=配置年龄 设置可开处方
@@ -4078,7 +4078,7 @@ public class RecipeService extends RecipeBaseService {
             }
             signRecipeInfoService.saveSignInfo(recipeId, isDoctor, signResultVo,thirdCASign);
         } catch (Exception e) {
-            LOGGER.info("signRecipeInfoService error recipeId[{}] errorMsg[{}]", recipeId, e.getMessage());
+            LOGGER.info("signRecipeInfoService error recipeId[{}] errorMsg[{}]", recipeId, e.getMessage(),e);
         }
     }
 }

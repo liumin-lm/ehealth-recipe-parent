@@ -6,7 +6,6 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ngari.base.BaseAPI;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.bus.op.service.IUsePathwaysService;
@@ -18,7 +17,6 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.ProvinceDrugListBean;
 import com.ngari.recipe.drugTool.service.IDrugToolService;
@@ -33,7 +31,6 @@ import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResu
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.spring.AppDomainContext;
-import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -232,7 +229,7 @@ public class DrugToolService implements IDrugToolService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.error("readDrugExcel error ," + e.getMessage());
+            LOGGER.error("readDrugExcel error ," + e.getMessage(),e);
             result.put("code", 609);
             result.put("msg", "上传文件格式有问题");
             return result;
@@ -277,6 +274,7 @@ public class DrugToolService implements IDrugToolService {
                 }
                 drug.setOrganDrugCode(getStrFromCell(row.getCell(0)));
             } catch (Exception e) {
+                LOGGER.error("药品编号有误 ," + e.getMessage(),e);
                 errMsg.append("药品编号有误").append(";");
             }
 
@@ -286,17 +284,20 @@ public class DrugToolService implements IDrugToolService {
                 }
                 drug.setDrugName(getStrFromCell(row.getCell(1)));
             } catch (Exception e) {
+                LOGGER.error("药品通用名有误 ," + e.getMessage(),e);
                 errMsg.append("药品通用名有误").append(";");
             }
             try {
                 drug.setSaleName(getStrFromCell(row.getCell(2)));
             } catch (Exception e) {
+                LOGGER.error("药品商品名有误 ," + e.getMessage(),e);
                 errMsg.append("药品商品名有误").append(";");
             }
 
             try {
                 drug.setDrugSpec(getStrFromCell(row.getCell(3)));
             } catch (Exception e) {
+                LOGGER.error("药品规格有误 ," + e.getMessage(),e);
                 errMsg.append("药品规格有误").append(";");
             }
             try {
@@ -310,6 +311,7 @@ public class DrugToolService implements IDrugToolService {
                     errMsg.append("药品类型格式错误").append(";");
                 }
             } catch (Exception e) {
+                LOGGER.error("药品类型有误 ," + e.getMessage(),e);
                 errMsg.append("药品类型有误").append(";");
             }
 
@@ -325,6 +327,7 @@ public class DrugToolService implements IDrugToolService {
                     drug.setUseDose(Double.parseDouble(getStrFromCell(row.getCell(5))));
                 }
             } catch (Exception e) {
+                LOGGER.error("单次剂量有误 ," + e.getMessage(),e);
                 errMsg.append("单次剂量有误").append(";");
             }
 
@@ -336,6 +339,7 @@ public class DrugToolService implements IDrugToolService {
                     drug.setDefaultUseDose(Double.parseDouble(getStrFromCell(row.getCell(6))));
                 }
             } catch (Exception e) {
+                LOGGER.error("默认单次剂量有误 ," + e.getMessage(),e);
                 errMsg.append("默认单次剂量有误").append(";");
             }
 
@@ -350,6 +354,7 @@ public class DrugToolService implements IDrugToolService {
                     drug.setPack(Integer.parseInt(getStrFromCell(row.getCell(8))));
                 }
             } catch (Exception e) {
+                LOGGER.error("转换系数有误 ," + e.getMessage(),e);
                 errMsg.append("转换系数有误").append(";");
             }
             try {
@@ -361,6 +366,7 @@ public class DrugToolService implements IDrugToolService {
                 }
                 drug.setUnit(getStrFromCell(row.getCell(9)));
             } catch (Exception e) {
+                LOGGER.error("药品单位有误 ," + e.getMessage(),e);
                 errMsg.append("药品单位有误").append(";");
             }
             try {
@@ -372,6 +378,7 @@ public class DrugToolService implements IDrugToolService {
                 }
                 drug.setProducer(getStrFromCell(row.getCell(11)));
             } catch (Exception e) {
+                LOGGER.error("生产厂家有误 ," + e.getMessage(),e);
                 errMsg.append("生产厂家有误").append(";");
             }
 
@@ -387,6 +394,7 @@ public class DrugToolService implements IDrugToolService {
                     }
 
                 } catch (Exception e) {
+                    LOGGER.error("是否基药有误 ," + e.getMessage(),e);
                     errMsg.append("是否基药有误").append(";");
                 }
             }
@@ -394,12 +402,14 @@ public class DrugToolService implements IDrugToolService {
             try {
                 drug.setUseDoseUnit(getStrFromCell(row.getCell(7)));
             } catch (Exception e) {
+                LOGGER.error("剂量单位有误 ," + e.getMessage(),e);
                 errMsg.append("剂量单位有误").append(";");
             }
 
             try {
                 drug.setRetrievalCode(getStrFromCell(row.getCell(19)));
             } catch (Exception e) {
+                LOGGER.error("院内检索码有误 ," + e.getMessage(),e);
                 errMsg.append("院内检索码有误").append(";");
             }
 
@@ -411,6 +421,7 @@ public class DrugToolService implements IDrugToolService {
                     drug.setPrice(new BigDecimal(priceCell));
                 }
             } catch (Exception e) {
+                LOGGER.error("药品单价有误 ," + e.getMessage(),e);
                 errMsg.append("药品单价有误").append(";");
             }
             //设置无需判断的数据
@@ -433,6 +444,7 @@ public class DrugToolService implements IDrugToolService {
                     drug.setPlatformDrugId(Integer.parseInt(getStrFromCell(row.getCell(23)).trim()));
                 }
             } catch (Exception e) {
+                LOGGER.error("平台药品编码有误 ," + e.getMessage(),e);
                 errMsg.append("平台药品编码有误").append(";");
             }
             if (errMsg.length() > 1) {
@@ -452,7 +464,7 @@ public class DrugToolService implements IDrugToolService {
                         updateNum++;
                     }
                 } catch (Exception e) {
-                    LOGGER.error("save or update drugListMatch error " + e.getMessage());
+                    LOGGER.error("save or update drugListMatch error " + e.getMessage(),e);
                 }
             }
             progress = new BigDecimal((float) rowIndex / total).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
@@ -642,7 +654,7 @@ public class DrugToolService implements IDrugToolService {
                 drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(), ImmutableMap.of("status", status, "matchDrugId", save.getDrugId()));
             }
         } catch (Exception e) {
-            LOGGER.error("DrugToolService.updateNoMatchData fail,e=[{}]", e);
+            LOGGER.error("DrugToolService.updateNoMatchData fail,", e);
             throw new DAOException(609, "数据自动导入平台药品库失败!");
         }
 
@@ -710,7 +722,7 @@ public class DrugToolService implements IDrugToolService {
                 toollist.add(toolBean);
             }
         } catch (Exception e) {
-            LOGGER.error("findOrganByRecipeTools 药品小工具查询所有机构接口异常");
+            LOGGER.error("findOrganByRecipeTools 药品小工具查询所有机构接口异常",e);
             e.printStackTrace();
         }
         return toollist;
@@ -800,7 +812,7 @@ public class DrugToolService implements IDrugToolService {
         try {
             drugLists = drugListCache.get(str);
         } catch (ExecutionException e) {
-            LOGGER.error("drugMatch:" + e.getMessage());
+            LOGGER.error("drugMatch:" + e.getMessage(),e);
         }
 
         //已匹配状态返回匹配药品id
@@ -933,7 +945,7 @@ public class DrugToolService implements IDrugToolService {
             }
 
         } catch (Exception e) {
-            LOGGER.error("DrugToolService.drugCommit fail,e=[{}]", e);
+            LOGGER.error("DrugToolService.drugCommit fail", e);
             throw new DAOException(609, "药品数据自动导入机构药品库失败！");
         }
         return map;
@@ -1048,7 +1060,7 @@ public class DrugToolService implements IDrugToolService {
             usingRateList = DictionaryController.instance().get("eh.cdr.dictionary.UsingRateWithKey").getSlice(null, 0, "");
             usePathwayList = DictionaryController.instance().get("eh.cdr.dictionary.UsePathwaysWithKey").getSlice(null, 0, "");
         } catch (ControllerException e) {
-            LOGGER.error("getUsingRateAndUsePathway() error : " + e);
+            LOGGER.error("getUsingRateAndUsePathway() error : ", e);
         }
         result.put("usingRate", usingRateList);
         result.put("usePathway", usePathwayList);
@@ -1067,7 +1079,7 @@ public class DrugToolService implements IDrugToolService {
             usingRateList = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getSlice(null, 0, "");
             usePathwayList = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getSlice(null, 0, "");
         } catch (ControllerException e) {
-            LOGGER.error("getUsingRateAndUsePathway() error : " + e);
+            LOGGER.error("getUsingRateAndUsePathway() error : ", e);
         }
         result.put("usingRate", usingRateList);
         result.put("usePathway", usePathwayList);
@@ -1495,7 +1507,7 @@ public class DrugToolService implements IDrugToolService {
                 return true;
             }
         } catch (Exception e) {
-            LOGGER.warn("查询互联网列表失败{}.", e);
+            LOGGER.error("查询互联网列表失败.", e);
         }
 
         //首先判断his配置中机构有没有监管平台。没有就不返回省平台列表

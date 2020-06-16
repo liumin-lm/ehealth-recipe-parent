@@ -85,7 +85,7 @@ public class TianjinCAImpl implements CAInterface {
                 return true;
             }
         } catch (Exception e){
-            LOGGER.error("TianjinCAImpl caUserLoginAndGetCertificate 调用前置机失败 requestTO={},errorInfo={}", JSONUtils.toString(caAccountRequestTO), e.getMessage());
+            LOGGER.error("TianjinCAImpl caUserLoginAndGetCertificate 调用前置机失败 requestTO={},errorInfo={}", JSONUtils.toString(caAccountRequestTO), e.getMessage(),e);
             e.printStackTrace();
         }
         return false;

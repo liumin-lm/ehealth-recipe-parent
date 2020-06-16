@@ -359,7 +359,7 @@ public class OrganDrugListService implements IOrganDrugListService {
                 });
             }
         }catch(Exception e){
-            logger.info("addOrganDrugListToBy 同步到百洋药企药品数据出错："+ e.getMessage());
+            logger.error("addOrganDrugListToBy 同步到百洋药企药品数据出错："+ e.getMessage(),e);
         }
     }
 
@@ -394,7 +394,7 @@ public class OrganDrugListService implements IOrganDrugListService {
             HisResponseTO hisResponseTO = hisService.uploadDrugCatalogue(saveOrganDrugList.getOrganId(),drugCategoryReqs);
             logger.info("hisResponseTO parames:" + JSONUtils.toString(hisResponseTO));
         } catch (Exception e) {
-            logger.info("上传药品到监管平台失败,{"+ JSONUtils.toString(drugCategoryReqs)+"},{"+e.getMessage()+"}.");
+            logger.error("上传药品到监管平台失败,{"+ JSONUtils.toString(drugCategoryReqs)+"},{"+e.getMessage()+"}.",e);
         }
     }
 

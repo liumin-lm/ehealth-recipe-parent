@@ -61,7 +61,7 @@ public class CommonSyncDrugCallable implements Callable<String> {
             backMsg = HttpHelper.doPost(this.drugsEnterprise.getBusinessUrl(), sendInfoStr);
             logger.info("药企返回信息: " + backMsg);
         } catch (IOException e) {
-            logger.error("IOException " + e.getMessage() + "，详细数据：" + sendInfoStr);
+            logger.error("IOException " + e.getMessage() + "，详细数据：" + sendInfoStr,e);
             backMsg = null;
         }
 

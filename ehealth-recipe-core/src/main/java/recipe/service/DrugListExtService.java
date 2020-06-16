@@ -27,7 +27,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
-import recipe.bussutil.RecipeUtil;
 import recipe.dao.DrugListDAO;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganDrugListDAO;
@@ -300,7 +299,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     drugList = JSONUtils.parse(s, SearchDrugDetailDTO.class);
                     drugList.setHospitalPrice(drugList.getSalePrice());
                 } catch (Exception e) {
-                    LOGGER.error("searchDrugListWithES parse error.  String=" + s);
+                    LOGGER.error("searchDrugListWithES parse error.  String=" + s,e);
                 }
                 //该高亮字段给微信端使用:highlightedField
                 //该高亮字段给ios前端使用:highlightedFieldForIos
@@ -377,7 +376,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugList.getDrugId(), organId);
                     drugList.setHospitalPrice(organDrugLists.get(0).getSalePrice());
                 } catch (Exception e) {
-                    LOGGER.error("searchDrugListWithESForPatient parse error. drugInfo={}", s);
+                    LOGGER.error("searchDrugListWithESForPatient parse error. drugInfo={}", s,e);
                 }
                 dList.add(drugList);
             }
@@ -420,7 +419,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             list = DictionaryController.instance().get("eh.base.dictionary.DrugClass")
                     .getSlice(parentKey, sliceType, "");
         } catch (ControllerException e) {
-            LOGGER.error("getDrugClass() error : " + e);
+            LOGGER.error("getDrugClass() error : " , e);
         }
         return list;
     }

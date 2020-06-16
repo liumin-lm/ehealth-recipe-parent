@@ -32,7 +32,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
-import recipe.constant.*;
+import recipe.constant.DrugEnterpriseConstant;
+import recipe.constant.RecipeBussConstant;
+import recipe.constant.RecipeMsgEnum;
+import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.DrugInventoryBean;
 import recipe.drugsenterprise.bean.InventoryDrug;
@@ -555,7 +558,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             try {
                 patient = iPatientService.get(recipe.getMpiid());
             } catch (Exception e) {
-                LOGGER.error("getYsqRecipeInfo patient :" + e.getMessage());
+                LOGGER.error("getYsqRecipeInfo patient :" + e.getMessage(),e);
                 patient = null;
             }
             if (null == patient) {
@@ -712,7 +715,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 try {
                     recipeMap.put("SEX", DictionaryController.instance().get("eh.base.dictionary.Gender").getText(sex));
                 } catch (ControllerException e) {
-                    LOGGER.error("getYsqRecipeInfo 获取性别类型失败*****sex:" + sex);
+                    LOGGER.error("getYsqRecipeInfo 获取性别类型失败*****sex:" + sex,e);
                     recipeMap.put("SEX", "男");
                 }
             } else {
@@ -818,7 +821,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                             try {
                                 detailMap.put("DISEASENAME", detail.getUsingRateTextFromHis()!=null?detail.getUsingRateTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(userRate));
                             } catch (ControllerException e) {
-                                LOGGER.error("getYsqRecipeInfo 获取用药频次类型失败*****usingRate:" + userRate);
+                                LOGGER.error("getYsqRecipeInfo 获取用药频次类型失败*****usingRate:" + userRate,e);
                                 detailMap.put("DISEASENAME", "每日三次");
                             }
                         } else {
@@ -835,7 +838,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                             try {
                                 detailMap.put("DISEASENAME1", detail.getUsePathwaysTextFromHis()!=null?detail.getUsePathwaysTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(usePathways));
                             } catch (ControllerException e) {
-                                LOGGER.error("getYsqRecipeInfo 获取用药途径类型失败*****usePathways:" + usePathways);
+                                LOGGER.error("getYsqRecipeInfo 获取用药途径类型失败*****usePathways:" + usePathways,e);
                                 detailMap.put("DISEASENAME1", "口服");
                             }
                         } else {
@@ -935,7 +938,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             try {
                 return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
             } catch (ControllerException e) {
-                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area);
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
             }
         }
         return "";

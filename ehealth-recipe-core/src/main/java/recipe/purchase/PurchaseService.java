@@ -300,7 +300,7 @@ public class PurchaseService {
                     hisRecipeDAO.updateHisRecieStatus(dbRecipe.getClinicOrgan(), dbRecipe.getRecipeCode(), 2);
                 }
             }catch (Exception e){
-                LOG.info("RecipeOrderService.cancelOrder 来源于HIS的处方单更新hisRecipe的状态失败,recipeId:{},{}.", dbRecipe.getRecipeId(), e.getMessage());
+                LOG.info("RecipeOrderService.cancelOrder 来源于HIS的处方单更新hisRecipe的状态失败,recipeId:{},{}.", dbRecipe.getRecipeId(), e.getMessage(),e);
             }
         }
 

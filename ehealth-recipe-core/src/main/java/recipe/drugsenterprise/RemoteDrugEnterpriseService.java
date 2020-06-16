@@ -1,16 +1,15 @@
 package recipe.drugsenterprise;
 
-import com.ngari.base.sysparamter.service.ISysParamterService;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.*;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.DepartmentService;
+import com.ngari.patient.service.DoctorService;
+import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.platform.base.mode.DoctorTO;
-import com.ngari.platform.base.mode.PatientTO;
 import com.ngari.platform.recipe.mode.*;
-import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
@@ -415,7 +414,7 @@ public class RemoteDrugEnterpriseService {
                 LOGGER.info("getServiceByDep 获取[{}]协议实现.service=[{}]", drugsEnterprise.getName(), beanName);
                 drugEnterpriseService = getBean(beanName, AccessDrugEnterpriseService.class);
             } catch (Exception e) {
-                LOGGER.warn("getServiceByDep 未找到[{}]药企实现，使用通用协议处理. beanName={}", drugsEnterprise.getName(), beanName);
+                LOGGER.warn("getServiceByDep 未找到[{}]药企实现，使用通用协议处理. beanName={}", drugsEnterprise.getName(), beanName,e);
                 drugEnterpriseService = getBean(COMMON_SERVICE, AccessDrugEnterpriseService.class);
             }
         }

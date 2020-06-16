@@ -55,9 +55,9 @@ public class UpdateTotalRecipePdfRunable implements Runnable {
                 }
             }
         } catch (DocumentException e) {
-            logger.error("UpdateTotalRecipePdfRunable error recipeId={},e={}", recipeId, e);
+            logger.error("UpdateTotalRecipePdfRunable error recipeId={},e=", recipeId, e);
         } catch (IOException e) {
-            logger.error("UpdateTotalRecipePdfRunable error recipeId={},e={}", recipeId, e);
+            logger.error("UpdateTotalRecipePdfRunable error recipeId={},e=", recipeId, e);
         }
     }
 }

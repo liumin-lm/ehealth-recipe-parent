@@ -233,7 +233,7 @@ public class HisCallBackService {
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("isMedicarePatient error" + e);
+            LOGGER.error("isMedicarePatient error" , e);
         }
         return false;
     }
@@ -354,7 +354,7 @@ public class HisCallBackService {
                 try {
                     recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
                 } catch (Exception e) {
-                    LOGGER.error("havePayRecipesFromHis HIS获取信息更新处方状态时存在相同处方数据,recipeCode:" + recipeCode + ",clinicOrgan:" + organId);
+                    LOGGER.error("havePayRecipesFromHis HIS获取信息更新处方状态时存在相同处方数据,recipeCode:" + recipeCode + ",clinicOrgan:" + organId,e);
                 }
                 if (null != recipe) {
                     Integer recipeId = recipe.getRecipeId();
@@ -419,7 +419,7 @@ public class HisCallBackService {
                 try {
                     recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
                 } catch (Exception e) {
-                    LOGGER.error("finishRecipesFromHis HIS获取信息更新处方状态时存在相同处方数据,recipeCode:" + recipeCode + ",clinicOrgan:" + organId);
+                    LOGGER.error("finishRecipesFromHis HIS获取信息更新处方状态时存在相同处方数据,recipeCode:" + recipeCode + ",clinicOrgan:" + organId,e);
                 }
                 if (null != recipe) {
                     Integer recipeId = recipe.getRecipeId();

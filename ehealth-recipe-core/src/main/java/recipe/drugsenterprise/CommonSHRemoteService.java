@@ -1,6 +1,8 @@
 package recipe.drugsenterprise;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -14,7 +16,7 @@ import org.apache.axis.client.Service;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.*;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -29,8 +31,6 @@ import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.JSONArray;
 
 import javax.xml.namespace.QName;
 import java.math.BigDecimal;
@@ -382,6 +382,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
                 }
             }
         }catch (Exception e){
+            LOGGER.error("当前药企下没有药品库存",e);
             getFailResult(result, "当前药企下没有药品库存");
         }
         return result;
@@ -518,7 +519,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
 
         }catch (Exception e){
             getFailResult(result, "当前药企下药品库存不够");
-            LOGGER.info("CommonSHRemoteService.syncEnterpriseDrug:药企ID为{},{}.", enterprise.getId(), e.getMessage());
+            LOGGER.error("CommonSHRemoteService.syncEnterpriseDrug:药企ID为{},{}.", enterprise.getId(), e.getMessage(),e);
         }
         return result;
     }

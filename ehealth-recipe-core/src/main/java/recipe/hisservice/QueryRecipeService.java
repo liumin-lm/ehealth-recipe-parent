@@ -25,7 +25,6 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.*;
 import com.ngari.recipe.hisprescription.service.IQueryRecipeService;
 import ctd.controller.exception.ControllerException;
-import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -521,7 +520,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                 clinicOrgan = organList.get(0).getOrganId();
             }
         } catch (Exception e) {
-            LOGGER.warn("queryRecipeInfo 平台未匹配到该组织机构编码. organId={}", organId, e);
+            LOGGER.error("queryRecipeInfo 平台未匹配到该组织机构编码. organId={}", organId, e);
         }
         return clinicOrgan;
     }
@@ -818,7 +817,7 @@ public class QueryRecipeService implements IQueryRecipeService {
             request.setUsingRate(organDrugChangeBean.getUsingRate());
         } catch (Exception e) {
             //抛出异常信息，返回空数组
-            LOGGER.error("updateOrSaveOrganDrug 当前更新操作异常：{}", e);
+            LOGGER.error("updateOrSaveOrganDrug 当前更新操作异常：", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前药品修改请求数据异常！");
         }
         return request;

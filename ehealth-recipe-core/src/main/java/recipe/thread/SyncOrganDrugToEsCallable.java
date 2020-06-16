@@ -132,7 +132,7 @@ public class SyncOrganDrugToEsCallable implements Callable<String> {
                         try {
                             b = searchService.updateDoctorDrugDetail(updateList);
                         } catch (Exception e) {
-                            LOG.warn("SyncOrganDrugToEsCallable update exception! updateList={}", JSONUtils.toString(updateList), e);
+                            LOG.error("SyncOrganDrugToEsCallable update exception! updateList={}", JSONUtils.toString(updateList), e);
                         }
                         if (!b) {
                             LOG.warn("SyncOrganDrugToEsCallable update error! updateList={}", JSONUtils.toString(updateList));

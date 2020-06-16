@@ -38,7 +38,10 @@ import recipe.service.*;
 import recipe.thread.PushRecipeToHisCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.SaveAutoReviewRunable;
-import recipe.util.*;
+import recipe.util.DigestUtil;
+import recipe.util.MapValueUtil;
+import recipe.util.RedisClient;
+import recipe.util.RegexUtils;
 
 import java.util.Calendar;
 import java.util.List;
@@ -180,7 +183,7 @@ public class RecipeSignService {
                     //生成pdf并签名
                     recipeService.generateRecipePdfAndSign(recipeId);
                 } catch (Exception e) {
-                    LOG.warn("sign 签名服务异常，recipeId={}", recipeId, e);
+                    LOG.error("sign 签名服务异常，recipeId={}", recipeId, e);
                 }
                 return null;
             }
@@ -424,7 +427,7 @@ public class RecipeSignService {
                 IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
                 recipeOnLineConsultService.sendRecipeMsg(consultId,2);
             } catch (Exception e){
-                LOG.error("doSignRecipeExt sendRecipeMsg error, type:2, consultId:{}, error:{}", consultId,e);
+                LOG.error("doSignRecipeExt sendRecipeMsg error, type:2, consultId:{}, error:", consultId,e);
             }
 
         }

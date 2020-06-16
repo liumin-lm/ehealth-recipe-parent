@@ -12,21 +12,20 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.common.CommonConstant;
 import recipe.common.response.CommonResponse;
-import recipe.constant.CacheConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.RecipeLogService;
-import recipe.service.RecipeServiceSub;
-import recipe.util.RedisClient;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -120,7 +119,7 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
                 }
             }
         } catch (Exception e) {
-            logger.warn("uploadRecipeIndicators exception recipe={}", JSONUtils.toString(recipe), e);
+            logger.error("uploadRecipeIndicators exception recipe={}", JSONUtils.toString(recipe), e);
         }
         logger.info("uploadRecipeIndicators res={}",response);
         if (response != null){

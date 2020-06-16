@@ -8,9 +8,10 @@ import com.google.common.collect.Maps;
 import com.ngari.opbase.xls.mode.ImportExcelInfoDTO;
 import com.ngari.opbase.xls.service.IImportExcelInfoService;
 import com.ngari.recipe.drugTool.service.ISaleDrugToolService;
-import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.DrugList;
+import com.ngari.recipe.entity.ImportDrugRecord;
+import com.ngari.recipe.entity.SaleDrugList;
 import ctd.util.AppContextHolder;
-import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
@@ -19,7 +20,10 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import recipe.dao.*;
+import recipe.dao.DrugListDAO;
+import recipe.dao.ImportDrugRecordDAO;
+import recipe.dao.OrganDrugListDAO;
+import recipe.dao.SaleDrugListDAO;
 import recipe.service.OrganDrugListService;
 import recipe.util.RedisClient;
 
@@ -27,7 +31,9 @@ import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -105,7 +111,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.error("readDrugExcel error ," + e.getMessage());
+            LOGGER.error("readDrugExcel error ," + e.getMessage(),e);
             result.put("code", 609);
             result.put("msg", "上传文件格式有问题");
             return result;
@@ -151,6 +157,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 }
                 drug.setOrganDrugCode(getStrFromCell(row.getCell(1)));
             } catch (Exception e) {
+                LOGGER.error("药品编号有误 ," + e.getMessage(),e);
                 errMsg.append("药品编号有误").append(";");
             }
 
@@ -159,18 +166,21 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             try {
                 drug.setDrugName(getStrFromCell(row.getCell(2)));
             } catch (Exception e) {
+                LOGGER.error("药品名有误 ," + e.getMessage(),e);
                 errMsg.append("药品名有误").append(";");
             }
 
             try {
                 drug.setSaleName(getStrFromCell(row.getCell(3)));
             } catch (Exception e) {
+                LOGGER.error("药品商品名有误 ," + e.getMessage(),e);
                 errMsg.append("药品商品名有误").append(";");
             }
 
             try {
                     drug.setDrugSpec(getStrFromCell(row.getCell(6)));
             } catch (Exception e) {
+                LOGGER.error("药品规格有误 ," + e.getMessage(),e);
                 errMsg.append("药品规格有误").append(";");
             }
             if (!StringUtils.isEmpty(getStrFromCell(row.getCell(31)))) {
@@ -185,6 +195,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 }
                 drug.setDrugId(Integer.parseInt(getStrFromCell(row.getCell(31))));
             } catch (Exception e) {
+                LOGGER.error("平台药品编号有误 ," + e.getMessage(),e);
                 errMsg.append("平台药品编号有误").append(";");
             }
 
@@ -196,6 +207,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     drug.setRate(0.00);
                     drug.setRatePrice(Double.parseDouble(getStrFromCell(row.getCell(20))));
             } catch (Exception e) {
+                LOGGER.error("价格有误 ," + e.getMessage(),e);
                 errMsg.append("价格有误").append(";");
             }
 
@@ -250,7 +262,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     addNum++;
 
                 } catch (Exception e) {
-                    LOGGER.error("save or update drugListMatch error " + e.getMessage());
+                    LOGGER.error("save or update drugListMatch error " + e.getMessage(),e);
                 }
             }
         }
