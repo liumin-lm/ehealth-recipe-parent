@@ -751,6 +751,7 @@ public class RecipeService extends RecipeBaseService {
             // 添加机构id
             dataMap.put("organId", recipe.getClinicOrgan());
             Map<String, Object> backMap = esignService.signForRecipe(false, checker, dataMap);
+            LOGGER.info("reviewRecipe  esignService backMap:{} ,e=============", JSONUtils.toString(backMap));
             //0表示成功
             Integer code = MapValueUtil.getInteger(backMap, "code");
             if (Integer.valueOf(0).equals(code)) {
@@ -833,9 +834,9 @@ public class RecipeService extends RecipeBaseService {
 
 //                        bl = "success".equals(result) ? true : false;
                     } catch (Exception e) {
-                        LOGGER.error("reviewRecipe  signFile 标准化CA签章报错 recipeId={} ,doctor={} ,e={}=============", recipeId, recipe.getDoctor(), e);
-                        bl = false;
-                    }
+                    LOGGER.error("reviewRecipe  signFile 标准化CA签章报错 recipeId={} ,doctor={} ,e=============", recipeId, recipe.getDoctor(), e);
+                    bl = false;
+                }
                     //标准化CA进行签名、签章==========================end=====
                 } else {
                     LOGGER.error("reviewRecipe signFile error. recipeId={}, result={}", recipeId, JSONUtils.toString(backMap));
