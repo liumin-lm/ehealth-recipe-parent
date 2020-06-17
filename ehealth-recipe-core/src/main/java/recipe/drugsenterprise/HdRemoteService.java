@@ -31,7 +31,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
-import recipe.constant.*;
+import recipe.constant.DrugEnterpriseConstant;
+import recipe.constant.HdFindSupportDepStatusEnum;
+import recipe.constant.HdHttpUrlEnum;
+import recipe.constant.HdPushRecipeStatusEnum;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
 import recipe.service.RecipeLogService;
@@ -158,14 +161,14 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.error("HdRemoteService.tokenUpdateImpl:[{}][{}]更新token异常：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), e.getMessage());
+            LOGGER.error("HdRemoteService.tokenUpdateImpl:[{}][{}]更新token异常：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), e.getMessage(),e);
             getFailResult(result, "更新token异常");
         } finally {
             try {
                 httpclient.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("HdRemoteService.tokenUpdateImpl:http请求资源关闭异常: {}", e.getMessage());
+                LOGGER.error("HdRemoteService.tokenUpdateImpl:http请求资源关闭异常: {}", e.getMessage(),e);
                 getFailResult(result, "http请求资源关闭异常");
             }
         }
@@ -344,7 +347,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                     return;
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("HdRemoteService.pushRecipeInfo:推送异常:{}", e.getMessage());
+                LOGGER.error("HdRemoteService.pushRecipeInfo:推送异常:{}", e.getMessage(),e);
                 getFailResult(result, "组装数据异常");
             }
         }else{
@@ -419,13 +422,13 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            LOGGER.error("HdRemoteService.pushRecipeInfo:[{}][{}]更新token异常：{}", enterprise.getId(), enterprise.getName(), e.getMessage());
+            LOGGER.error("HdRemoteService.pushRecipeInfo:[{}][{}]更新token异常：{}", enterprise.getId(), enterprise.getName(), e.getMessage(),e);
         } finally {
             try {
                 httpClient.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("HdRemoteService.pushRecipeInfo:http请求资源关闭异常: {}！", e.getMessage());
+                LOGGER.error("HdRemoteService.pushRecipeInfo:http请求资源关闭异常: {}！", e.getMessage(),e);
             }
             return pushRecipeResponse;
         }
@@ -512,7 +515,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 sendHdRecipe.setImage(imgStr);
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.warn("HdRemoteService.pushRecipeInfo:{}处方，下载处方笺服务异常：{}.", nowRecipe.getRecipeId(), e.getMessage() );
+                LOGGER.warn("HdRemoteService.pushRecipeInfo:{}处方，下载处方笺服务异常：{}.", nowRecipe.getRecipeId(), e.getMessage(),e );
                 getFailResult(result, "下载处方笺服务异常");
                 return result;
             }
@@ -647,10 +650,10 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             nowHdDrugDTO.setUseDose(nowDetail.getUseDose() + nowDetail.getUseDoseUnit());
 
             try {
-                String usingRate = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(nowDetail.getUsingRate());
+                String usingRate = StringUtils.isNotEmpty(nowDetail.getUsingRateTextFromHis())?nowDetail.getUsingRateTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(nowDetail.getUsingRate());
                 nowHdDrugDTO.setUsingRate(usingRate);
             } catch (ControllerException e) {
-                LOGGER.warn("HdRemoteService.pushRecipeInfo:处方细节ID为{}.", nowDetail.getRecipeDetailId());
+                LOGGER.warn("HdRemoteService.pushRecipeInfo:处方细节ID为{}.", nowDetail.getRecipeDetailId(),e);
                 getFailResult(result, "药品频率出错");
                 return result;
             }
@@ -831,7 +834,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 sendHdRecipe.setAddress(street);
             }
         }catch(Exception e){
-            LOGGER.info("HdRemoteService.assemblePatientMsg error:{}.", e.getMessage());
+            LOGGER.info("HdRemoteService.assemblePatientMsg error:{}.", e.getMessage(),e);
         }
 
         return result;
@@ -933,7 +936,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), msg.toString());
             }
         }catch(Exception e){
-            LOGGER.error("HdRemoteService.checkDrugListByDeil error:{},{}.", recipeId, e.getMessage());
+            LOGGER.error("HdRemoteService.checkDrugListByDeil error:{},{}.", recipeId, e.getMessage(),e);
             return false;
         }
 
@@ -991,7 +994,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                         }catch (Exception e){
                             Integer availableSumQty = (Integer)drugMap.get("availableSumQty");
                             LOGGER.info(drugCode + ":" + availableSumQty);
-                            LOGGER.info("HdRemoteService-scanStock sendScanStock drugCode:{} 库存为0.", drugCode);
+                            LOGGER.error("HdRemoteService-scanStock sendScanStock drugCode:{} 库存为0.", drugCode,e);
                             return false;
                         }
                     }
@@ -1000,14 +1003,14 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.error("HdRemoteService." + methodName + ":查询可用的药店及其药品信息请求异常：{}", e.getMessage());
+            LOGGER.error("HdRemoteService." + methodName + ":查询可用的药店及其药品信息请求异常：{}", e.getMessage(),e);
             getFailResult(result, "请求异常");
         } finally {
             try {
                 httpClient.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("HdRemoteService." + methodName + ":http请求资源关闭异常: {}", e.getMessage());
+                LOGGER.error("HdRemoteService." + methodName + ":http请求资源关闭异常: {}", e.getMessage(),e);
                 getFailResult(result, "http请求资源关闭异常");
             }
         }
@@ -1129,14 +1132,14 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.error("HdRemoteService." + methodName + ":查询可用的药店及其药品信息请求异常：{}", e.getMessage());
+            LOGGER.error("HdRemoteService." + methodName + ":查询可用的药店及其药品信息请求异常：{}", e.getMessage(),e);
             getFailResult(result, "请求异常");
         } finally {
             try {
                 httpClient.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("HdRemoteService." + methodName + ":http请求资源关闭异常: {}", e.getMessage());
+                LOGGER.error("HdRemoteService." + methodName + ":http请求资源关闭异常: {}", e.getMessage(),e);
                 getFailResult(result, "http请求资源关闭异常");
             }
         }
@@ -1195,14 +1198,14 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.error("HdRemoteService.scanStock:查询可用的药店及其药品信息请求异常：{}", e.getMessage());
+            LOGGER.error("HdRemoteService.scanStock:查询可用的药店及其药品信息请求异常：{}", e.getMessage(),e);
             getFailResult(result, "请求异常");
         } finally {
             try {
                 httpClient.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("HdRemoteService.scanStock:http请求资源关闭异常: {}", e.getMessage());
+                LOGGER.error("HdRemoteService.scanStock:http请求资源关闭异常: {}", e.getMessage(),e);
                 getFailResult(result, "http请求资源关闭异常");
             }
         }
@@ -1460,7 +1463,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             try {
                 return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
             } catch (ControllerException e) {
-                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area);
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
             }
         }
         return "";

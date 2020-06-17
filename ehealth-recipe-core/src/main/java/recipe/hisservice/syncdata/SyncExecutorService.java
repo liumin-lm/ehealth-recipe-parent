@@ -70,7 +70,7 @@ public class SyncExecutorService {
                 LOGGER.warn("uploadRecipeIndicators rpc execute error. recipe={}", JSONUtils.toString(recipe));
             }
         } catch (Exception e) {
-            LOGGER.warn("uploadRecipeIndicators rpc exception recipe={}", JSONUtils.toString(recipe), e);
+            LOGGER.error("uploadRecipeIndicators rpc exception recipe={}", JSONUtils.toString(recipe), e);
         }
 
         /* //上传openApi的
@@ -147,7 +147,7 @@ public class SyncExecutorService {
                 LOGGER.warn("uploadRecipeVerificationIndicators execute error. recipe={}", JSONUtils.toString(recipe));
             }
         } catch (Exception e) {
-            LOGGER.warn("uploadRecipeVerificationIndicators exception recipe={}", JSONUtils.toString(recipe), e);
+            LOGGER.error("uploadRecipeVerificationIndicators exception recipe={}", JSONUtils.toString(recipe), e);
         }
 
     }
@@ -205,7 +205,7 @@ public class SyncExecutorService {
                     }
                 }
             } catch (Exception e) {
-                LOGGER.warn("uploadRecipeIndicators exception ", e);
+                LOGGER.error("uploadRecipeIndicators exception ", e);
             }
         }
 

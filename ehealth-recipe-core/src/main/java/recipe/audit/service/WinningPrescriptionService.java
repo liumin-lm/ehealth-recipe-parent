@@ -33,10 +33,12 @@ import recipe.util.DigestUtil;
 import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
 
-import javax.xml.rpc.ServiceException;
 import javax.xml.rpc.holders.IntHolder;
 import javax.xml.rpc.holders.StringHolder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 /**
  * 描述：卫宁智能审方
@@ -400,7 +402,7 @@ public class WinningPrescriptionService implements IntellectJudicialService {
             url = json.get("Link").toString();
             url = PrescriptionConstants.getWeiningPaDetailAddress() + url;
         } catch (Exception e) {
-            LOGGER.warn("getDrugSpecification funId={} covert to Object error.", funId);
+            LOGGER.warn("getDrugSpecification funId={} covert to Object error.", funId,e);
             return null;
         }
 

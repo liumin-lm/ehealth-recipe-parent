@@ -56,13 +56,21 @@ public class DrugList implements java.io.Serializable {
     @ItemProperty(alias = "剂量单位")
     private String useDoseUnit;
 
-    @ItemProperty(alias = "使用频率")
+    @ItemProperty(alias = "使用频率平台")
     @Dictionary(id = "eh.cdr.dictionary.UsingRate")
     private String usingRate;
 
-    @ItemProperty(alias = "用药途径")
+    @ItemProperty(alias = "用药途径平台")
     @Dictionary(id = "eh.cdr.dictionary.UsePathways")
     private String usePathways;
+
+    @ItemProperty(alias = "使用频率id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
+    private String usingRateId;
+
+    @ItemProperty(alias = "用药途径id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
+    private String usePathwaysId;
 
     @ItemProperty(alias = "生产厂家")
     private String producer;
@@ -494,5 +502,23 @@ public class DrugList implements java.io.Serializable {
 
     public void setDrugCode(String drugCode) {
         this.drugCode = drugCode;
+    }
+
+    @Column(name = "usingRateId")
+    public String getUsingRateId() {
+        return usingRateId;
+    }
+
+    public void setUsingRateId(String usingRateId) {
+        this.usingRateId = usingRateId;
+    }
+
+    @Column(name = "usePathwaysId")
+    public String getUsePathwaysId() {
+        return usePathwaysId;
+    }
+
+    public void setUsePathwaysId(String usePathwaysId) {
+        this.usePathwaysId = usePathwaysId;
     }
 }

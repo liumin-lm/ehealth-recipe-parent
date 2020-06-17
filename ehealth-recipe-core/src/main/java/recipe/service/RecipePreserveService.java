@@ -4,6 +4,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.doctor.model.DoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
+import com.ngari.base.dto.UsePathwaysDTO;
+import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.model.ConsultExDTO;
@@ -224,6 +226,7 @@ public class RecipePreserveService {
                 detailBean.setUsePathwaysText(recipeDetailTO.getUsePathWays());
                 detailBean.setUseDays(recipeDetailTO.getDays());
                 detailBean.setUseTotalDose(recipeDetailTO.getAmount());
+                detailBean.setDrugSpec(recipeDetailTO.getDrugSpec());
                 hisRecipeDetailBeans.add(detailBean);
             }
             recipeBean.setDetailData(hisRecipeDetailBeans);
@@ -247,7 +250,7 @@ public class RecipePreserveService {
             try {
                 keys = redisClient.scan("*_" + mpiId + "_1");
             } catch (Exception e) {
-                LOGGER.error("redis error" + e.toString());
+                LOGGER.error("redis error" , e);
                 return;
             }
             if (keys != null && keys.size() > 0) {
@@ -549,5 +552,69 @@ public class RecipePreserveService {
             start += limit;
         }
 
+    }
+
+    /**
+     *
+     * 获取维护到redis里的老的机构用药频次对照数据
+     */
+    @RpcService
+    public List<UsingRateDTO> findUsingRateRelationFromRedis(){
+        Set<String> usingRateParams = redisClient.scan("RCP_NGARI_USINGRATE_*");
+        List<UsingRateDTO> usingRateDTOS = Lists.newArrayList();
+        LOGGER.info("findUsingRateRelationFromRedis init usingRateParams[{}] size[{}]",JSONUtils.toString(usingRateParams),usingRateParams.size());
+        try {
+            for (String usingRateParam : usingRateParams) {
+                String organId = usingRateParam.substring(20);
+                Map<String, Object> map = redisScanForHash(usingRateParam, "*");
+                if (map != null){
+                    UsingRateDTO usingRateDTO;
+                    for (Map.Entry<String, Object> entry : map.entrySet()) {
+                        usingRateDTO = new UsingRateDTO();
+                        usingRateDTO.setRelatedPlatformKey(entry.getKey());
+                        usingRateDTO.setUsingRateKey((String) entry.getValue());
+                        usingRateDTO.setOrganId(Integer.valueOf(organId));
+                        usingRateDTOS.add(usingRateDTO);
+                    }
+                }else {
+                    LOGGER.error("findUsingRateRelationFromRedis null organId[{}]",organId);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("findUsingRateRelationFromRedis error",e);
+        }
+        return usingRateDTOS;
+    }
+
+    /**
+     *
+     * 获取维护到redis里的老的机构用药途径对照数据
+     */
+    @RpcService
+    public List<UsePathwaysDTO> findUsePathwaysRelationFromRedis(){
+        Set<String> usingPathwaysParams = redisClient.scan("RCP_NGARI_USEPATHWAYS_*");
+        List<UsePathwaysDTO> usePathwaysDTOS = Lists.newArrayList();
+        LOGGER.info("findUsePathwaysRelationFromRedis init usingPathwaysParams[{}] size[{}]",JSONUtils.toString(usingPathwaysParams),usingPathwaysParams.size());
+        try {
+            for (String usingPathwaysParam : usingPathwaysParams) {
+                String organId = usingPathwaysParam.substring(22);
+                Map<String, Object> map = redisScanForHash(usingPathwaysParam, "*");
+                if (map != null){
+                    UsePathwaysDTO usePathwaysDTO;
+                    for (Map.Entry<String, Object> entry : map.entrySet()) {
+                        usePathwaysDTO = new UsePathwaysDTO();
+                        usePathwaysDTO.setRelatedPlatformKey(entry.getKey());
+                        usePathwaysDTO.setPathwaysKey((String) entry.getValue());
+                        usePathwaysDTO.setOrganId(Integer.valueOf(organId));
+                        usePathwaysDTOS.add(usePathwaysDTO);
+                    }
+                }else {
+                    LOGGER.error("findUsePathwaysRelationFromRedis null organId[{}]",organId);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("findUsePathwaysRelationFromRedis error",e);
+        }
+        return usePathwaysDTOS;
     }
 }

@@ -368,7 +368,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             try {
                 company = DictionaryController.instance().get("eh.cdr.dictionary.LogisticsCompany").getText(logisticsCompany);
             } catch (ControllerException e) {
-                LOGGER.warn("toSend get logisticsCompany error. logisticsCompany=" + logisticsCompany);
+                LOGGER.warn("toSend get logisticsCompany error. logisticsCompany={}", logisticsCompany,e);
             }
             //记录日志
             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.IN_SEND, "配送中,配送人：" + sender
@@ -1328,7 +1328,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 result.setCode(StandardResultDTO.SUCCESS);
                 result.setMsg("更新药品信息成功");
             } catch (Exception e){
-                LOGGER.info("更新药品信息失败,{} {}.", auditDrugListBean.getOrganDrugCode(), e.getMessage());
+                LOGGER.error("更新药品信息失败,{} {}.", auditDrugListBean.getOrganDrugCode(), e.getMessage(),e);
             }
             return result;
         }
@@ -1536,7 +1536,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipeOrders:{}.", JSONUtils.toString(recipeOrders));
         }catch (Exception e){
             e.printStackTrace();
-            LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipeOrders:{} error : {}.", JSONUtils.toString(recipeOrders), e.getMessage());
+            LOGGER.error("ThirdEnterpriseCallService.downLoadRecipes recipeOrders:{} error : {}.", JSONUtils.toString(recipeOrders), e.getMessage(),e);
         }
 
         List<RecipeAndOrderDetailBean> result = new ArrayList<>();
@@ -1626,7 +1626,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                         orderDetailBean.setRecipeSignImg(imgStr);
                     } catch (Exception e) {
                         e.printStackTrace();
-                        LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:{}处方，下载处方笺服务异常：{}.", recipe.getRecipeId(), e.getMessage() );
+                        LOGGER.error("ThirdEnterpriseCallService.downLoadRecipes:{}处方，下载处方笺服务异常：{}.", recipe.getRecipeId(), e.getMessage(),e );
                     }
                 }
             }
@@ -1721,12 +1721,12 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                     drugList.setDrugTotalFee(convertParame(saleDrugList.getPrice().multiply(new BigDecimal(recipedetail.getUseTotalDose()))));
                 }
                 try {
-                    String usingRate = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(recipedetail.getUsingRate());
-                    String usingPathways = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipedetail.getUsePathways());
+                    String usingRate = recipedetail.getUsingRateTextFromHis()!=null?recipedetail.getUsingRateTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(recipedetail.getUsingRate());
+                    String usingPathways = recipedetail.getUsePathwaysTextFromHis()!=null?recipedetail.getUsePathwaysTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(recipedetail.getUsePathways());
                     drugList.setUsingRateText(usingRate);
                     drugList.setUsePathwaysText(usingPathways);
                 } catch (ControllerException e) {
-                    LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:处方细节ID为{}.", recipedetail.getRecipeDetailId());
+                    LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:处方细节ID为{}.", recipedetail.getRecipeDetailId(),e);
                 }
                 drugList.setMemo(convertParame(recipedetail.getMemo()));
                 drugLists.add(drugList);
@@ -1785,7 +1785,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             try {
                 return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
             } catch (ControllerException e) {
-                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area);
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
             }
         }
         return "";
@@ -1813,7 +1813,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             try {
                 address.append(DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area));
             } catch (ControllerException e) {
-                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area);
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
             }
         }
     }

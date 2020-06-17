@@ -110,8 +110,6 @@ public class OrganDrugListDTO implements java.io.Serializable {
     private String producer;
 
 
-
-
     public OrganDrugListDTO() {
     }
 
@@ -354,4 +352,5 @@ public class OrganDrugListDTO implements java.io.Serializable {
     public void setProducer(String producer) {
         this.producer = producer;
     }
+
 }

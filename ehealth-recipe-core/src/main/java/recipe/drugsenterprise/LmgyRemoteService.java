@@ -2,7 +2,10 @@ package recipe.drugsenterprise;
 
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
-import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.SaleDrugList;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -17,7 +20,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
-import recipe.dao.*;
+import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
+import recipe.dao.SaleDrugListDAO;
 import recipe.util.MapValueUtil;
 
 import javax.xml.namespace.QName;
@@ -160,6 +166,7 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
             }
         }catch(Exception e){
             result.setCode(DrugEnterpriseResult.FAIL);
+            LOGGER.error("getScanResult:异常: {}", e.getMessage(),e);
         }
         return result;
     }

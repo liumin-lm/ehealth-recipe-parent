@@ -52,7 +52,7 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias="药物使用次剂量--中文标识-适量")
     private String useDoseStr;
 
-    @ItemProperty(alias="药物使用规格单位")
+    @ItemProperty(alias="药物使用规格单位或者最小单位")
     private String useDoseUnit;
 
     @ItemProperty(alias="药物剂量单位")
@@ -65,6 +65,15 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias="药物使用途径代码")
     @Dictionary(id="eh.cdr.dictionary.UsePathways")
     private String usePathways;
+
+    @ItemProperty(
+            alias = "机构的频次代码"
+    )
+    private String organUsingRate;
+    @ItemProperty(
+            alias = "机构的用法代码"
+    )
+    private String organUsePathways;
 
     //用药频率说明（来源his）
     @ItemProperty(alias="用药频率说明")
@@ -598,5 +607,21 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setUsePathwaysTextFromHis(String usePathwaysTextFromHis) {
         this.usePathwaysTextFromHis = usePathwaysTextFromHis;
+    }
+
+    public String getOrganUsingRate() {
+        return organUsingRate;
+    }
+
+    public void setOrganUsingRate(String organUsingRate) {
+        this.organUsingRate = organUsingRate;
+    }
+
+    public String getOrganUsePathways() {
+        return organUsePathways;
+    }
+
+    public void setOrganUsePathways(String organUsePathways) {
+        this.organUsePathways = organUsePathways;
     }
 }

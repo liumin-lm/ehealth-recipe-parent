@@ -11,16 +11,15 @@ import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import ngari.openapi.Client;
-import ngari.openapi.Request;
-import ngari.openapi.Response;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
-import recipe.drugsenterprise.bean.*;
+import recipe.drugsenterprise.bean.HdDrugRequestData;
+import recipe.drugsenterprise.bean.HdPosition;
+import recipe.drugsenterprise.bean.YnsPharmacyAndStockRequest;
 import recipe.drugsenterprise.bean.yd.httpclient.HttpsClientUtils;
 import recipe.util.MapValueUtil;
 
@@ -196,7 +195,7 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
         } catch (Exception e) {
                 result.setCode(DrugEnterpriseResult.FAIL);
                 result.setMsg(e.getMessage());
-                LOGGER.error("LxRemoteService.scanStock:[{}][{}]获取药品库存异常：{}",drugsEnterprise.getId(), drugsEnterprise.getName(), e.getMessage());
+                LOGGER.error("LxRemoteService.scanStock:[{}][{}]获取药品库存异常：{}",drugsEnterprise.getId(), drugsEnterprise.getName(), e.getMessage(),e);
                 getFailResult(result,  e.getMessage());
                 return result;
             } finally {
@@ -205,7 +204,7 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
                     result.setCode(DrugEnterpriseResult.FAIL);
                     result.setMsg(e.getMessage());
                     getFailResult(result,  e.getMessage());
-                    LOGGER.error("LxRemoteService.scanStock:http请求资源关闭异常: {}！", e.getMessage());
+                    LOGGER.error("LxRemoteService.scanStock:http请求资源关闭异常: {}！", e.getMessage(),e);
                     return result;
                 }
             }
@@ -312,7 +311,7 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
         } catch (Exception e) {
             result.setCode(DrugEnterpriseResult.FAIL);
             result.setMsg(e.getMessage());
-            LOGGER.error("LxRemoteService.findSupportDep:[{}][{}]获取药店列表异常：{}",enterprise.getId(), enterprise.getName(), e.getMessage());
+            LOGGER.error("LxRemoteService.findSupportDep:[{}][{}]获取药店列表异常：{}",enterprise.getId(), enterprise.getName(), e.getMessage(),e);
             getFailResult(result,  e.getMessage());
         } finally {
             try {
@@ -320,7 +319,7 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
                 result.setCode(DrugEnterpriseResult.FAIL);
                 result.setMsg(e.getMessage());
                 getFailResult(result,  e.getMessage());
-                LOGGER.error("LxRemoteService.findSupportDep:http请求资源关闭异常: {}！", e.getMessage());
+                LOGGER.error("LxRemoteService.findSupportDep:http请求资源关闭异常: {}！", e.getMessage(),e);
             }
         }
         return result;

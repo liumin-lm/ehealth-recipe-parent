@@ -1,7 +1,9 @@
 package recipe.bussutil;
 
+import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Image;
+import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
@@ -46,23 +48,75 @@ public class CreateRecipePdfUtil {
             file.delete();
         }
         return fileId;
-
     }
 
-    private static void addImgForRecipePdf(InputStream input, OutputStream output, URL url) throws IOException, DocumentException {
-        /*BaseFont baseFont = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H",BaseFont.NOT_EMBEDDED);*/
+    public static String generateTotalRecipePdf(String pdfId, String total, Integer type) throws IOException, DocumentException {
+        IFileUploadService fileUploadService = ApplicationUtils.getBaseService(IFileUploadService.class);
+        IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
+        InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
+        FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
+        String fileId = null;
+        if (fileMetaRecord != null) {
+            File file = new File(fileMetaRecord.getFileName());
+            OutputStream output = new FileOutputStream(file);
+            //添加价格
+            addTextForRecipePdf(input, output, total, type);
+            //上传pdf文件
+            byte[] bytes = File2byte(file);
+            fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
+            //删除本地文件
+            file.delete();
+        }
+        return fileId;
+    }
+
+
+    /**
+     * pdf写入 药品价格
+     *
+     * @param input
+     * @param output
+     * @param total
+     * @throws IOException
+     * @throws DocumentException
+     */
+    private static void addTextForRecipePdf(InputStream input, OutputStream output, String total, Integer type) throws IOException, DocumentException {
         PdfReader reader = new PdfReader(input);
         PdfStamper stamper = new PdfStamper(reader, output);
         PdfContentByte page = stamper.getOverContent(1);
-
         //将文字贴入pdf
-        /*page.beginText();
-        page.setFontAndSize(baseFont,12);
-        Color coler = new Color(255, 0, 0);
-        page.setColorFill(coler);
-        page.setTextMatrix(100,500); //设置文字在页面中的坐标
-        page.showText("添加文字信息");
-        page.endText();*/
+        BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED);
+        page.beginText();
+        page.setColorFill(BaseColor.BLACK);
+        page.setFontAndSize(bf, 8);
+
+        if (RecipeBussConstant.RECIPETYPE_TCM.equals(type)) {
+            //设置中药文字在页面中的坐标
+            page.setTextMatrix(20, 177);
+            page.showText("药");
+            page.setLeading(8);
+            page.newlineShowText("品");
+            page.newlineShowText("价");
+            page.newlineShowText("格");
+            page.newlineShowText(" . .");
+            page.newlineShowText(total);
+        } else {
+            //设置西药文字在页面中的坐标
+            page.setTextMatrix(30, 30);
+            page.showText("药品价格 ：" + total);
+        }
+        page.endText();
+
+        stamper.close();
+        reader.close();
+        input.close();
+        output.close();
+    }
+
+    private static void addImgForRecipePdf(InputStream input, OutputStream output, URL url) throws IOException, DocumentException {
+        PdfReader reader = new PdfReader(input);
+        PdfStamper stamper = new PdfStamper(reader, output);
+        PdfContentByte page = stamper.getOverContent(1);
 
         //将图片贴入pdf
         Image image = Image.getInstance(url);

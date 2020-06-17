@@ -156,7 +156,7 @@ public class RecipeOrderService extends RecipeBaseService {
             AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
             remoteService.getJumpUrl(response, recipe, drugsEnterprise);
         } catch (Exception e) {
-            LOGGER.warn("获取跳转实现异常--{}", e);
+            LOGGER.error("获取跳转实现异常--", e);
             response.setCode(CommonConstant.FAIL);
             response.setMsg("获取跳转实现异常--{}" +  e);
             return response;
@@ -742,6 +742,7 @@ public class RecipeOrderService extends RecipeBaseService {
                             }
                         }
                     } catch (Exception e) {
+                        LOGGER.error("setOrderFee--", e);
                         result.setCode(RecipeResultBean.FAIL);
                         result.setMsg(e.getMessage());
                     }
@@ -822,6 +823,10 @@ public class RecipeOrderService extends RecipeBaseService {
                     //如果预结算返回自付金额不为空优先取这个金额做支付，保证能和his对账上
                     if (StringUtils.isNotEmpty(recipeExtend.getPayAmount())) {
                         order.setActualPrice(new BigDecimal(recipeExtend.getPayAmount()).doubleValue());
+                    } else if (StringUtils.isNotEmpty(recipeExtend.getPreSettletotalAmount())){
+                        //如果有预结算返回的金额，则处方实际费用预结算返回的金额代替处方药品金额（his总金额(药品费用+挂号费用)+平台费用(除药品费用以外其他费用的总计)）
+                        BigDecimal priceTemp = totalFee.subtract(order.getRecipeFee());
+                        order.setActualPrice(new BigDecimal(recipeExtend.getPreSettletotalAmount()).add(priceTemp).doubleValue());
                     }
                     //预结算总金额
                     if (StringUtils.isNotEmpty(recipeExtend.getPreSettletotalAmount())){
@@ -877,7 +882,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     //重置药企处方价格
                     recipeFee = total;
                 } catch (Exception e) {
-                    LOGGER.warn("setOrderFee 重新计算药企ID为[{}]的结算价格出错. drugIds={}", enterpriseId,
+                    LOGGER.error("setOrderFee 重新计算药企ID为[{}]的结算价格出错. drugIds={}", enterpriseId,
                             JSONUtils.toString(drugIds), e);
                 }
             }
@@ -1080,7 +1085,7 @@ public class RecipeOrderService extends RecipeBaseService {
             }
             createOrderToDB(order, recipeIds, orderDAO, recipeDAO);
         } catch (DAOException e) {
-            LOGGER.warn("createOrder orderCode={}", order.getOrderCode(), e);
+            LOGGER.error("createOrder orderCode={}", order.getOrderCode(), e);
             saveFlag = false;
         } finally {
             //如果小概率造成orderCode重复，则修改并重试
@@ -1090,7 +1095,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     createOrderToDB(order, recipeIds, orderDAO, recipeDAO);
                     saveFlag = true;
                 } catch (DAOException e) {
-                    LOGGER.warn("createOrder again orderCode={}", order.getOrderCode(), e);
+                    LOGGER.error("createOrder again orderCode={}", order.getOrderCode(), e);
                     saveFlag = false;
                     result.setCode(RecipeResultBean.FAIL);
                     result.setMsg("保存订单系统错误");
@@ -1302,7 +1307,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         couponService.unlockCoupon(order.getCouponId());
                         orderAttrMap.put("couponId", null);
                     } catch (Exception e) {
-                        LOGGER.error("cancelOrder unlock coupon error. couponId={}, error={}", order.getCouponId(), e.getMessage());
+                        LOGGER.error("cancelOrder unlock coupon error. couponId={}, error={}", order.getCouponId(), e.getMessage(),e);
                     }
                 }
                 this.updateOrderInfo(order.getOrderCode(), orderAttrMap, result);
@@ -1328,7 +1333,7 @@ public class RecipeOrderService extends RecipeBaseService {
                             }
                         }
                     }catch (Exception e){
-                        LOGGER.info("RecipeOrderService.cancelOrder 来源于HIS的处方单更新hisRecipe的状态失败,error:{}.", e.getMessage());
+                        LOGGER.info("RecipeOrderService.cancelOrder 来源于HIS的处方单更新hisRecipe的状态失败,error:{}.", e.getMessage(),e);
                     }
                     //date 20200330
                     //调用支付平台取消支付接口
@@ -1690,7 +1695,7 @@ public class RecipeOrderService extends RecipeBaseService {
     public RecipeResultBean finishOrderPayImpl(String orderCode, int payFlag, Integer payMode) {
         LOGGER.info("finishOrderPayImpl is get! orderCode={}", orderCode);
         RecipeResultBean result = RecipeResultBean.getSuccess();
-
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
             Map<String, Object> attrMap = Maps.newHashMap();
             attrMap.put("payFlag", payFlag);
@@ -1721,8 +1726,6 @@ public class RecipeOrderService extends RecipeBaseService {
                         sendTfdsMsg(nowRecipe, payMode, orderCode);
                     } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag) {
                         //支付前调用
-                        RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
-                        RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
                         if(null != order){
                             //todo--特殊处理---江苏省健康APP----到院取药线上支付药品费用---后续优化
                             if(0 == order.getActualPrice() && !RecipeServiceSub.isJSOrgan(nowRecipe.getClinicOrgan())){
@@ -1747,10 +1750,12 @@ public class RecipeOrderService extends RecipeBaseService {
         //处理处方单相关
         if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
             RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-
             Map<String, Object> recipeInfo = Maps.newHashMap();
             recipeInfo.put("payFlag", payFlag);
             recipeInfo.put("payMode", payMode);
+            if (null != order) {
+                recipeInfo.put("actualPrice", order.getActualPrice());
+            }
             List<Integer> recipeIds = recipeDAO.findRecipeIdsByOrderCode(orderCode);
             this.updateRecipeInfo(true, result, recipeIds, recipeInfo);
         }
@@ -2170,7 +2175,7 @@ public class RecipeOrderService extends RecipeBaseService {
         } catch (Exception e) {
             result.setCode(RecipeResultBean.FAIL);
             result.setError("订单更新失败," + e.getMessage());
-            LOGGER.error("订单更新失败,{}", JSONUtils.toString(e.getMessage()));
+            LOGGER.error("订单更新失败,{}", e.getMessage(),e);
         }
 
         return result;
@@ -2286,7 +2291,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     apothecary.getDispensingApothecaryName(), apothecary.getDispensingApothecaryIdCard());
             return true;
         } catch (Exception e) {
-            LOGGER.error("updateApothecaryByOrderId e : {} ,apothecaryVO :{}", e, JSONUtils.toString(apothecary));
+            LOGGER.error("updateApothecaryByOrderId apothecaryVO :{}",JSONUtils.toString(apothecary),e);
             return false;
         }
     }

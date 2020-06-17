@@ -45,7 +45,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.audit.bean.PAWebRecipeDanger;
@@ -67,6 +66,7 @@ import recipe.util.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -356,7 +356,13 @@ public class RecipeServiceSub {
                         detail.setDrugSpec(organDrug.getDrugSpec());
                         detail.setDrugUnit(organDrug.getUnit());
                         detail.setDefaultUseDose(organDrug.getUseDose());
-                        detail.setUseDoseUnit(organDrug.getUseDoseUnit());
+                        //如果前端传了剂量单位优先用医生选择的剂量单位
+                        //医生端剂量单位可以选择规格单位还是最小单位
+                        if (StringUtils.isNotEmpty(detail.getUseDoseUnit())){
+                            detail.setUseDoseUnit(detail.getUseDoseUnit());
+                        }else {
+                            detail.setUseDoseUnit(organDrug.getUseDoseUnit());
+                        }
                         detail.setDosageUnit(organDrug.getUseDoseUnit());
                         //设置药品包装数量
                         detail.setPack(organDrug.getPack());
@@ -405,8 +411,8 @@ public class RecipeServiceSub {
                         detail.setDrugCost(drugCost);
                         totalMoney = totalMoney.add(drugCost);
                     }else {
-                        if (StringUtils.isNotEmpty(organDrug.getDrugName())){
-                            delOrganDrugName.add(organDrug.getDrugName());
+                        if (StringUtils.isNotEmpty(detail.getDrugName())){
+                            delOrganDrugName.add(detail.getDrugName());
                         }
                     }
 
@@ -449,24 +455,6 @@ public class RecipeServiceSub {
             resultBean.setMsg(e.getMessage());
             return resultBean;
         }
-        /*//平台增加药品相关校验
-        if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
-
-            DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
-            boolean checkEnterprise = drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan());
-            if (checkEnterprise) {
-                //判断药品能否开在一张处方单上
-                result.putAll(canOpenRecipeDrugsCopy(recipe.getClinicOrgan(),recipe.getRecipeId(),drugIds));
-            }
-        } else if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
-            //浙江省互联网医院模式不需要这么多校验
-//            for (OrganDrugList obj : organDrugList) {
-//                organDrugListMap.put(obj.getOrganDrugCode(), obj);
-//                organDrugListIdMap.put(obj.getDrugId(), obj);
-//            }
-            //无需校验
-            result.put("code", "200");
-        }*/
         return resultBean;
     }
 
@@ -702,9 +690,11 @@ public class RecipeServiceSub {
                 //开药总量+药品单位
                 String dTotal = "X" + d.getUseTotalDose() + d.getDrugUnit();
                 //用药频次
-                String dRateName = d.getUsingRate() + "(" + usingRateDic.getText(d.getUsingRate()) + ")";
+                String usingRateText = d.getUsingRateTextFromHis()!=null?d.getUsingRateTextFromHis():usingRateDic.getText(d.getUsingRate());
+                String dRateName = d.getUsingRate() + "(" + usingRateText + ")";
                 //用法
-                String dWay = d.getUsePathways() + "(" + usePathwaysDic.getText(d.getUsePathways()) + ")";
+                String usePathwaysText = d.getUsePathwaysTextFromHis()!=null?d.getUsePathwaysTextFromHis():usePathwaysDic.getText(d.getUsePathways());
+                String dWay = d.getUsePathways() + "(" + usePathwaysText + ")";
                 paramMap.put("drugInfo" + i, dName + dSpec);
                 paramMap.put("dTotal" + i, dTotal);
                 paramMap.put("useInfo" + i, uDose + "    " + dRateName + "    " + dWay + "    " + useDay);
@@ -1305,6 +1295,34 @@ public class RecipeServiceSub {
         r.setRecipeDrugName(recipe.getRecipeDrugName());
         r.setRecipeShowTime(recipe.getRecipeShowTime());
         r.setShowTip(recipe.getShowTip());
+        r.setRecipeSourceType(recipe.getRecipeSourceType());
+        r.setRecipeCode(recipe.getRecipeCode());
+        r.setClinicOrgan(recipe.getClinicOrgan());
+        r.setPayFlag(recipe.getPayFlag());
+        return r;
+    }
+
+    public static RecipeBean convertHisRecipeForRAP(HisRecipeBean recipe) {
+        RecipeBean r = new RecipeBean();
+//        r.setRecipeId(recipe.ge);
+        r.setCreateDate(Timestamp.valueOf(recipe.getSignDate()));
+        r.setRecipeType(Integer.parseInt(recipe.getRecipeType()));
+//        r.setStatus(recipe.getStatus());
+        r.setOrganDiseaseName(recipe.getOrganDiseaseName());
+        StringBuilder stringBuilder = new StringBuilder();
+        for (HisRecipeDetailBean recipedetail : recipe.getDetailData()) {
+            stringBuilder.append(recipedetail.getDrugName());
+            stringBuilder.append(" ").append((recipedetail.getDrugSpec())==null?"":recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit()==null?"":recipedetail.getDrugUnit()).append("、");
+        }
+        stringBuilder.deleteCharAt(stringBuilder.lastIndexOf("、"));
+        r.setRecipeDrugName(stringBuilder.toString());
+
+        r.setRecipeShowTime(Timestamp.valueOf(recipe.getSignDate()));
+//        r.setShowTip(recipe.getShowTip());
+        r.setRecipeSourceType(2);
+        r.setRecipeCode(recipe.getRecipeCode());
+        r.setClinicOrgan(recipe.getClinicOrgan());
+        r.setDetailData(recipe.getDetailData());
         return r;
     }
 
@@ -1343,7 +1361,7 @@ public class RecipeServiceSub {
                     guardian.setAge(ChinaIDNumberUtil.getAgeFromIDNumber(patient.getGuardianCertificate()));
                     guardian.setSex(ChinaIDNumberUtil.getSexFromIDNumber(patient.getGuardianCertificate()));
                 } catch (ValidateException exception) {
-                    LOGGER.warn("监护人使用身份证号获取年龄或者性别出错.{}.", exception.getMessage());
+                    LOGGER.warn("监护人使用身份证号获取年龄或者性别出错.{}.", exception.getMessage(),exception);
                 }
                 map.put("guardian", guardian);
             }
@@ -1379,7 +1397,7 @@ public class RecipeServiceSub {
 
             }
         }catch(Exception e){
-            LOGGER.info("RecipeServiceSub.getRecipeAndDetailByIdImpl 查询剂型出错, recipeId:{},{}.", recipeId, e.getMessage());
+            LOGGER.info("RecipeServiceSub.getRecipeAndDetailByIdImpl 查询剂型出错, recipeId:{},{}.", recipeId, e.getMessage(),e);
         }
 
         //中药处方处理

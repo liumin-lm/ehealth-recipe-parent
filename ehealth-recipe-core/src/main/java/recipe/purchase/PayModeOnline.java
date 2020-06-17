@@ -1,6 +1,5 @@
 package recipe.purchase;
 
-import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
@@ -20,25 +19,17 @@ import com.ngari.patient.service.AddressService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
-import com.ngari.platform.recipe.mode.QueryRecipeReqHisDTO;
-import com.ngari.platform.recipe.mode.QueryRecipeResultHisDTO;
-import com.ngari.platform.recipe.service.IRecipePlatformServiceNew;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.hisprescription.model.QueryRecipeReqDTO;
-import com.ngari.recipe.hisprescription.model.QueryRecipeResultDTO;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
-import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import eh.base.constant.ErrorCode;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.map.HashedMap;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,12 +41,10 @@ import recipe.dao.*;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.hisservice.QueryRecipeService;
 import recipe.hisservice.RecipeToHisService;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeOrderService;
 import recipe.service.RecipeServiceSub;
-import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
@@ -228,7 +217,7 @@ public class PayModeOnline implements IPurchaseService {
                                     .divide(BigDecimal.ONE, 3, RoundingMode.UP));
                         }
                     } catch (Exception e) {
-                        LOG.warn("findSupportDepList 重新计算药企ID为[{}]的结算价格出错. drugIds={}", dep.getId(),
+                        LOG.error("findSupportDepList 重新计算药企ID为[{}]的结算价格出错. drugIds={}", dep.getId(),
                                 JSONUtils.toString(drugIds), e);
                         continue;
                     }
@@ -501,7 +490,7 @@ public class PayModeOnline implements IPurchaseService {
                 }
             }
         }catch(Exception e){
-            LOG.info("PayModeOnline.updateRecipeDetail error recipeId:{}.", recipeId);
+            LOG.error("PayModeOnline.updateRecipeDetail error recipeId:{}.", recipeId,e);
         }
     }
 
@@ -1002,7 +991,7 @@ public class PayModeOnline implements IPurchaseService {
                 }
             }
         }catch (Exception e){
-            LOG.info("PayModeOnline.checkStoreForSendToHom:{},{}.", JSONUtils.toString(dbRecipe), e.getMessage());
+            LOG.info("PayModeOnline.checkStoreForSendToHom:{},{}.", JSONUtils.toString(dbRecipe), e.getMessage(),e);
         }
     }
 

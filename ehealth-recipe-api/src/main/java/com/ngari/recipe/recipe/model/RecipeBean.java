@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author yuyun
@@ -333,6 +334,11 @@ public class RecipeBean implements Serializable {
 
     @ItemProperty(alias = "主诉")
     private String mainDieaseDescribe;
+
+    @ItemProperty(alias = "处方来源类型 1 平台处方 2 线下转线上的处方")
+    private Integer recipeSourceType;
+
+    private List<HisRecipeDetailBean> detailData;
 
     /**
      * 患者医保类型（编码）
@@ -1247,5 +1253,21 @@ public class RecipeBean implements Serializable {
 
     public void setMedicalTypeText(String medicalTypeText) {
         this.medicalTypeText = medicalTypeText;
+    }
+
+    public Integer getRecipeSourceType() {
+        return recipeSourceType;
+    }
+
+    public void setRecipeSourceType(Integer recipeSourceType) {
+        this.recipeSourceType = recipeSourceType;
+    }
+
+    public List<HisRecipeDetailBean> getDetailData() {
+        return detailData;
+    }
+
+    public void setDetailData(List<HisRecipeDetailBean> detailData) {
+        this.detailData = detailData;
     }
 }

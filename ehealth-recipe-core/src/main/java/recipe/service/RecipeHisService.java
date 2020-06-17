@@ -1,8 +1,6 @@
 package recipe.service;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -66,6 +64,7 @@ import recipe.util.RedisClient;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author yu_yun
@@ -98,12 +97,8 @@ public class RecipeHisService extends RecipeBaseService {
         //中药处方由于不需要跟HIS交互，故读写分离后有可能查询不到数据
         if (skipHis(recipe)) {
             LOGGER.info("skip his!!! recipeId={}", recipeId);
-           /* RecipeCheckPassResult recipeCheckPassResult = new RecipeCheckPassResult();
-            recipeCheckPassResult.setRecipeId(recipeId);
-            recipeCheckPassResult.setRecipeCode(RandomStringUtils.randomAlphanumeric(10));
-            HisCallBackService.checkPassSuccess(recipeCheckPassResult, true);*/
             doHisReturnSuccess(recipe);
-            return result;
+            return true;
         }
 
         Integer sendOrganId = (null == otherOrganId) ? recipe.getClinicOrgan() : otherOrganId;
@@ -134,9 +129,7 @@ public class RecipeHisService extends RecipeBaseService {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        OrganDrugListDAO drugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-        EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
 
         List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
         PatientBean patientBean = iPatientService.get(recipe.getMpiid());
@@ -171,8 +164,8 @@ public class RecipeHisService extends RecipeBaseService {
             }
         }
         //设置医生工号
-        request.setDoctorID(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), sendOrganId, recipe.getDepart()));
-        //查询生产厂家
+        //request.setDoctorID(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), sendOrganId, recipe.getDepart()));
+       /* //查询生产厂家
         List<OrderItemTO> orderItemList = request.getOrderList();
         if (CollectionUtils.isNotEmpty(orderItemList)) {
             List<Integer> drugIdList = FluentIterable.from(orderItemList).transform(new Function<OrderItemTO, Integer>() {
@@ -205,7 +198,7 @@ public class RecipeHisService extends RecipeBaseService {
                 }
             }
 
-        }
+        }*/
         request.setOrganID(sendOrganId.toString());
         // 处方独立出来后,his根据域名来判断回调模块
         service.recipeSend(request);
@@ -380,7 +373,7 @@ public class RecipeHisService extends RecipeBaseService {
                 cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
             } catch (Exception e) {
                 //打印日志，程序继续执行，不影响支付回调
-                LOGGER.error("recipeDrugTake 获取健康卡失败:{},recipeId:{}.", e.getCause().getMessage(),recipe.getRecipeId());
+                LOGGER.error("recipeDrugTake 获取健康卡失败:{},recipeId:{}.", e.getCause().getMessage(),recipe.getRecipeId(),e);
             }
             DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, details, patientBean, cardBean);
             LOGGER.info("payNotify 请求参数:{}.", JSONUtils.toString(request));
@@ -601,15 +594,13 @@ public class RecipeHisService extends RecipeBaseService {
                         requestList.add(drugInfoTO);
                     }
                     List<DrugInfoTO> drugInfoTOs = service.queryDrugInfo(requestList, organId);
-                    List<String> drugCodes = Lists.transform(requestList, new Function<DrugInfoTO, String>() {
-                        @Override
-                        public String apply(DrugInfoTO drugInfoTO) {
-
-                            return drugInfoTO.getDrcode();
-                        }
-                    });
-                    if (null == drugInfoTOs) LOGGER.warn("queryDrugInfo 药品code集合{}未查询到医院药品数据", drugCodes);
-                    backList = null == drugInfoTOs ? new ArrayList<DrugInfoTO>() : drugInfoTOs;
+                    List<String> drugCodes = requestList.stream().map(DrugInfoTO::getDrcode).collect(Collectors.toList());
+                    if (CollectionUtils.isEmpty(drugInfoTOs)) {
+                        LOGGER.warn("queryDrugInfo 药品code集合{}未查询到医院药品数据", drugCodes);
+                        backList = new ArrayList<>();
+                    } else {
+                        backList = drugInfoTOs;
+                    }
                 }
             }
 
@@ -991,7 +982,7 @@ public class RecipeHisService extends RecipeBaseService {
                 return false;
             }
         } catch (Exception e) {
-            LOGGER.error("skipHis error " + e.getMessage());
+            LOGGER.error("skipHis error " + e.getMessage(),e);
             //按原来流程走-西药中成药默认对接his
             if (!RecipeUtil.isTcmType(recipe.getRecipeType())) {
                 return false;
@@ -1095,6 +1086,10 @@ public class RecipeHisService extends RecipeBaseService {
                 item.setFrequency(UsingRateFilter.filterNgari(recipeBean.getClinicOrgan(), detail.getUsingRate()));
                 //用法
                 item.setAdmission(UsePathwaysFilter.filterNgari(recipeBean.getClinicOrgan(), detail.getUsePathways()));
+                //机构用法代码
+                item.setOrganUsePathways(detail.getOrganUsePathways());
+                //机构频次代码
+                item.setOrganUsingRate(detail.getOrganUsingRate());
                 //用药天数
                 item.setUseDays(Integer.toString(detail.getUseDays()));
                 //剂量单位
@@ -1371,9 +1366,6 @@ public class RecipeHisService extends RecipeBaseService {
         IRecipeHisService iRecipeHisService = AppContextHolder.getBean("his.iRecipeHisService", IRecipeHisService.class);
         HisResponseTO<ThirdPartyRationalUseDrugResTO> hisResponseTO = iRecipeHisService.queryThirdPartyRationalUserDurg(reqTO);
         LOGGER.info("queryThirdPartyRationalUserDurg result：{}, idCard: {}", JSONUtils.toString(hisResponseTO), reqTO.getThirdPartyPatientData().getIdCard());
-        if (Objects.nonNull(hisResponseTO) && hisResponseTO.getMsgCode().equals("200")) {
-            return null;
-        }
         if (Objects.isNull(hisResponseTO)) {
             throw new DAOException("前置机调用失败");
         }

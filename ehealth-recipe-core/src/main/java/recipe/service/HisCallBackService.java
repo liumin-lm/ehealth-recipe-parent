@@ -6,57 +6,37 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
-import com.ngari.consult.common.service.IConsultService;
-import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.his.patient.service.IPatientHisService;
-import com.ngari.home.asyn.model.BussCreateEvent;
-import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
-import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
-import ctd.util.annotation.RpcBean;
-import ctd.util.annotation.RpcService;
-import eh.base.constant.BussTypeConstant;
 import eh.base.constant.ErrorCode;
 import eh.cdr.constant.OrderStatusConstant;
 import eh.cdr.constant.RecipeStatusConstant;
-import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import recipe.ApplicationUtils;
-import recipe.audit.auditmode.AuditMode;
-import recipe.audit.auditmode.AuditModeContext;
 import recipe.bean.RecipeCheckPassResult;
-import recipe.bussutil.RecipeUtil;
 import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeSystemConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.purchase.CommonOrder;
-import recipe.thread.PushRecipeToRegulationCallable;
-import recipe.thread.RecipeBusiThreadPool;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
@@ -74,15 +54,6 @@ import java.util.Map;
 public class HisCallBackService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HisCallBackService.class);
-
-    @Autowired
-    private AuditModeContext auditMode;
-    private static AuditModeContext auditModeContext;
-
-    @PostConstruct
-    public void init() {
-        auditModeContext = auditMode;
-    }
 
     /**
      * 处方HIS审核通过成功
@@ -123,38 +94,18 @@ public class HisCallBackService {
             attrMap.put("actualPrice", result.getTotalMoney());
         }
 
-        String recipeMode = recipe.getRecipeMode();
-        Integer status = RecipeStatusConstant.CHECK_PASS;
-
-        /*if(RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)){
-            status = RecipeStatusConstant.READY_CHECK_YS;
-        }*/
-
         String memo = "HIS审核返回：写入his成功，审核通过";
         if (isCheckPass) {
             // 医保用户
             if (recipe.canMedicalPay()) {
-                /*// 如果是中药或膏方处方不需要药师审核
-                if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
-                    status = RecipeStatusConstant.CHECK_PASS_YS;
-                    memo = "HIS审核返回：写入his成功，药师审核通过";
-                }*/
-
-               /* else {
-                    //可以进行医保支付，先去药师进行审核
-                    status = RecipeStatusConstant.READY_CHECK_YS;
-                    memo = "HIS审核返回：写入his成功，待药师审核";
-                }*/
                 attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_SEND_TO_HOME);
             }
 
             //其他平台处方状态不变
             if (0 == recipe.getFromflag()) {
-                status = recipe.getStatus();
                 memo = "HIS审核返回：写入his成功(其他平台处方)";
             }
         } else {
-            status = RecipeStatusConstant.CHECK_NOT_PASS;
             memo = "HIS审核返回：写入his成功，审核未通过";
         }
         //date 20200526
@@ -167,96 +118,43 @@ public class HisCallBackService {
         updateRecipeRegisterID(recipe,result);
         updateRecipepatientType(recipe);
 
+        OrganDrugListService organDrugListService = ApplicationUtils.getRecipeService(OrganDrugListService.class);
         List<Recipedetail> recipedetails = result.getDetailList();
         if (CollectionUtils.isNotEmpty(recipedetails)) {
-            Map<Integer, BigDecimal> priceMap = Maps.newHashMap();
             Map<String, Object> detailAttrMap;
             for (Recipedetail detail : recipedetails) {
-                if (null != detail.getRecipeDetailId()) {
-                    detailAttrMap = Maps.newHashMap();
-                    detailAttrMap.put("drugGroup", detail.getDrugGroup());
-                    detailAttrMap.put("orderNo", detail.getOrderNo());
-                    detailAttrMap.put("pharmNo", detail.getPharmNo());
-                    //根据医院传入的价格更新药品总价
+                if (null == detail.getRecipeDetailId()) {
+                    continue;
+                }
+                detailAttrMap = Maps.newHashMap();
+                detailAttrMap.put("drugGroup", detail.getDrugGroup());
+                detailAttrMap.put("orderNo", detail.getOrderNo());
+                detailAttrMap.put("pharmNo", detail.getPharmNo());
+                
+                //因为从HIS返回回来的数据不是很全，所以要从DB获取一次
+                Recipedetail recipedetail = detailDAO.getByRecipeDetailId(detail.getRecipeDetailId());
+                //根据医院传入的价格更新药品总价
+                if (null != recipedetail) {
+                    detail.setDrugId(recipedetail.getDrugId());
                     BigDecimal drugCost = detail.getDrugCost();
                     //外带药处方不做处理
                     if (!Integer.valueOf(1).equals(recipe.getTakeMedicine()) && null != drugCost) {
                         detailAttrMap.put("drugCost", drugCost);
-                        //因为从HIS返回回来的数据不是很全，所以要从DB获取一次
-                        Recipedetail recipedetail = detailDAO.getByRecipeDetailId(detail.getRecipeDetailId());
-                        if (recipedetail != null && null != recipedetail.getUseTotalDose()) {
-                            BigDecimal salePrice = drugCost.divide(new BigDecimal(recipedetail.getUseTotalDose()), 2, RoundingMode.UP);
+                        if (null != recipedetail.getUseTotalDose()) {
+                            BigDecimal salePrice = drugCost.divide(BigDecimal.valueOf(recipedetail.getUseTotalDose()), 2, RoundingMode.UP);
                             detailAttrMap.put("salePrice", salePrice);
-                            priceMap.put(recipedetail.getDrugId(), salePrice);
+                            detail.setSalePrice(salePrice);
                         }
                     }
-                    detailDAO.updateRecipeDetailByRecipeDetailId(detail.getRecipeDetailId(), detailAttrMap);
                 }
+                detailDAO.updateRecipeDetailByRecipeDetailId(detail.getRecipeDetailId(), detailAttrMap);
+                /**更新药品最新的价格等*/
+                organDrugListService.saveOrganDrug(recipe.getClinicOrgan(), detail);
             }
-            //更新医院-药品对应表的价格
-            recipeService.updateDrugPrice(recipe.getClinicOrgan(), priceMap);
         }
-//        try {
-//            //写入his成功后，生成pdf并签名
-//            recipeService.generateRecipePdfAndSign(recipe.getRecipeId());
-//            //date 20200424
-//            //判断当前处方的状态为签名失败不走下面逻辑
-//            if(new Integer(28).equals(recipeService.getByRecipeId(recipe.getRecipeId()).getStatus())){
-//                return;
-//            }
-//
-//            //TODO 根据审方模式改变状态
-//            auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(status, recipe, memo);
-//
-//        } catch (Exception e) {
-//            LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. ", e);
-//        }
-//
-//        if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
-//            //配送处方标记 1:只能配送 更改处方取药方式
-//            if (Integer.valueOf(1).equals(recipe.getDistributionFlag())) {
-//                try {
-//                    RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-//                    RecipeResultBean result1 = hisService.recipeDrugTake(recipe.getRecipeId(), PayConstant.PAY_FLAG_NOT_PAY, null);
-//                    if (RecipeResultBean.FAIL.equals(result1.getCode())) {
-//                        LOGGER.warn("checkPassSuccess recipeId=[{}]更改取药方式失败，error=[{}]", recipe.getRecipeId(), result1.getError());
-//                        //不能影响流程去掉异常
-//                        /*throw new DAOException(ErrorCode.SERVICE_ERROR, "更改取药方式失败，错误:" + result1.getError());*/
-//                    }
-//                } catch (Exception e) {
-//                    LOGGER.warn("checkPassSuccess recipeId=[{}]更改取药方式异常", recipe.getRecipeId(), e);
-//                }
-//            }
-//        }
-//        //2019/5/16 互联网模式--- 医生开完处方之后聊天界面系统消息提示
-//        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
-//            /*//根据申请人mpiid，requestMode 获取当前咨询单consultId
-//            IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-//            List<Integer> consultIds = iConsultService.findApplyingConsultByRequestMpiAndDoctorId(recipe.getRequestMpiId(),
-//                    recipe.getDoctor(), RecipeSystemConstant.CONSULT_TYPE_RECIPE);
-//            Integer consultId = null;
-//            if (CollectionUtils.isNotEmpty(consultIds)) {
-//                consultId = consultIds.get(0);
-//            }*/
-//            Integer consultId = recipe.getClinicId();
-//            if (null != consultId) {
-//                try {
-//                    IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
-//                    recipeOnLineConsultService.sendRecipeMsg(consultId, 3);
-//                } catch (Exception e) {
-//                    LOGGER.error("checkPassSuccess sendRecipeMsg error, type:3, consultId:{}, error:{}", consultId, e);
-//                }
-//
-//            }
-//        }
-//        //推送处方到监管平台
-//        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
-
         //date 20200507
         //调用医生重新签名的逻辑
         recipeService.retryDoctorSignCheck(result.getRecipeId());
-
-
     }
 
     private static void updateRecipepatientType(Recipe recipe) {
@@ -339,7 +237,7 @@ public class HisCallBackService {
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("isMedicarePatient error" + e);
+            LOGGER.error("isMedicarePatient error" , e);
         }
         return false;
     }
@@ -460,7 +358,7 @@ public class HisCallBackService {
                 try {
                     recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
                 } catch (Exception e) {
-                    LOGGER.error("havePayRecipesFromHis HIS获取信息更新处方状态时存在相同处方数据,recipeCode:" + recipeCode + ",clinicOrgan:" + organId);
+                    LOGGER.error("havePayRecipesFromHis HIS获取信息更新处方状态时存在相同处方数据,recipeCode:" + recipeCode + ",clinicOrgan:" + organId,e);
                 }
                 if (null != recipe) {
                     Integer recipeId = recipe.getRecipeId();
@@ -525,7 +423,7 @@ public class HisCallBackService {
                 try {
                     recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
                 } catch (Exception e) {
-                    LOGGER.error("finishRecipesFromHis HIS获取信息更新处方状态时存在相同处方数据,recipeCode:" + recipeCode + ",clinicOrgan:" + organId);
+                    LOGGER.error("finishRecipesFromHis HIS获取信息更新处方状态时存在相同处方数据,recipeCode:" + recipeCode + ",clinicOrgan:" + organId,e);
                 }
                 if (null != recipe) {
                     Integer recipeId = recipe.getRecipeId();

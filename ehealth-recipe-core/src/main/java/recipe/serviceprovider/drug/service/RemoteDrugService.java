@@ -1,7 +1,12 @@
 package recipe.serviceprovider.drug.service;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.ngari.base.dto.UsePathwaysDTO;
+import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.bus.op.service.IUsePathwaysService;
+import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
@@ -30,6 +35,7 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.omg.CORBA.TIMEOUT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -40,13 +46,14 @@ import recipe.dao.OrganDrugListDAO;
 import recipe.dao.PriortyDrugsBindDoctorDao;
 import recipe.service.DrugListService;
 import recipe.service.OrganDrugListService;
+import recipe.service.RecipePreserveService;
 import recipe.serviceprovider.BaseService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * company: ngarihealth
@@ -278,6 +285,12 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
             if(null == drugList.getUsingRate()){
                 drugList.setUsingRate(target.getUsingRate());
             }
+            if(null == drugList.getUsePathwaysId()){
+                drugList.setUsePathwaysId(target.getUsePathwaysId());
+            }
+            if(null == drugList.getUsingRateId()){
+                drugList.setUsingRateId(target.getUsingRateId());
+            }
             if(null == drugList.getProducer()){
                 drugList.setProducer(target.getProducer());
             }
@@ -453,5 +466,131 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         LOGGER.info(updateMsg.toString());
         LOGGER.info(saveMsg.toString());
         return Boolean.TRUE;
+    }
+
+    @RpcService(timeout = 600)
+    public void dealUsingRate(){
+        RecipePreserveService recipePreserveService = AppContextHolder.getBean("eh.recipePreserveService",RecipePreserveService.class);
+        IUsingRateService usingRateService = AppContextHolder.getBean("eh.usingRateService",IUsingRateService.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        //查询含有药品的机构
+        List<Integer> haveDrugOrgans = organDrugListDAO.findOrganIds();
+        LOGGER.info("查询含有药品的机构{}",JSONUtils.toString(haveDrugOrgans));
+        //已存在的对照同步处理
+        Set<Integer> contrastOrganIds = Sets.newHashSet();
+        List<UsingRateDTO> usingRateDTOs = recipePreserveService.findUsingRateRelationFromRedis();
+        if (!CollectionUtils.isEmpty(usingRateDTOs)){
+            contrastOrganIds = usingRateDTOs.stream().map(x ->x.getOrganId()).collect(Collectors.toSet());
+        }
+        LOGGER.info("查询含有对照的机构{}",contrastOrganIds);
+        List<Integer> contrastOrganIdList = new ArrayList<>(contrastOrganIds);
+        usingRateService.saveUsingRateBatch(usingRateDTOs);
+        //没有对照的机构处理
+        List<Integer> noContrastOrganIds = haveDrugOrgans.stream().filter(item -> !contrastOrganIdList.contains(item) && item > 0).collect(Collectors.toList());
+        LOGGER.info("查询没有对照的机构{}",noContrastOrganIds);
+        usingRateService.syncPlatToOrgan(noContrastOrganIds);
+        //处理平台药品库
+        this.dealDrugListUsingRate();
+        //处理机构药品库
+        this.dealOrganDrugListUsingRate();
+    }
+
+    //处理平台药品库
+    @RpcService(timeout = 600)
+    public void dealDrugListUsingRate(){
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        List<String> usingRates = drugListDAO.findUsingRateOfAll();
+        IUsingRateService usingRateService = AppContextHolder.getBean("eh.usingRateService",IUsingRateService.class);
+        if (!CollectionUtils.isEmpty(usingRates)){
+            usingRates.stream().filter(item -> !StringUtils.isEmpty(item)).forEach(item -> {
+                UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(0,item);
+                if (usingRateDTO != null){
+                    //存在就替换
+                    drugListDAO.updateUsingRateByUsingRate(item,String.valueOf(usingRateDTO.getId()));
+                }else {
+                    //不存在就移除
+                    drugListDAO.updateUsingRateByUsingRate(item,null);
+                }
+            });
+        }
+    }
+
+    @RpcService(timeout = 600)
+    public void dealOrganDrugListUsingRate(){
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        List<Map<String,Object>> usingRates = organDrugListDAO.findAllUsingRate();
+        IUsingRateService usingRateService = AppContextHolder.getBean("eh.usingRateService",IUsingRateService.class);
+        if (!CollectionUtils.isEmpty(usingRates)){
+            usingRates.forEach(item -> {
+                Integer organId = (Integer) item.get("organId");
+                String usingRate = (String) item.get("usingRate");
+                UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(organId,usingRate);
+                if (usingRateDTO != null){
+                    organDrugListDAO.updateUsingRateByUsingRate(organId,usingRate,String.valueOf(usingRateDTO.getId()));
+                }
+            });
+        }
+    }
+
+    @RpcService(timeout = 600)
+    public void dealUsePathways(){
+        RecipePreserveService recipePreserveService = AppContextHolder.getBean("eh.recipePreserveService",RecipePreserveService.class);
+        IUsePathwaysService usePathwaysService = AppContextHolder.getBean("eh.usePathwaysService",IUsePathwaysService.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        //查询含有药品的机构
+        List<Integer> haveDrugOrgans = organDrugListDAO.findOrganIds();
+        LOGGER.info("查询含有药品的机构{}",haveDrugOrgans);
+        //已存在的对照同步处理
+        Set<Integer> contrastOrganIds = Sets.newHashSet();
+        List<UsePathwaysDTO> usePathwaysDTOs = recipePreserveService.findUsePathwaysRelationFromRedis();
+        if (!CollectionUtils.isEmpty(usePathwaysDTOs)){
+            contrastOrganIds = usePathwaysDTOs.stream().map(x ->x.getOrganId()).collect(Collectors.toSet());
+        }
+        List<Integer> contrastOrganIdList = new ArrayList<>(contrastOrganIds);
+        usePathwaysService.saveUsePathwaysBatch(usePathwaysDTOs);
+        //没有对照的机构处理
+        List<Integer> noContrastOrganIds = haveDrugOrgans.stream().filter(item -> !contrastOrganIdList.contains(item) && item > 0).collect(Collectors.toList());
+        usePathwaysService.syncPlatToOrgan(noContrastOrganIds);
+        //处理平台药品库
+        this.dealDrugListUsePathways();
+        //处理机构药品库
+        this.dealOrganDrugListUsePathways();
+    }
+
+    //处理平台药品库
+    @RpcService(timeout = 600)
+    public void dealDrugListUsePathways(){
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        List<String> usePathways = drugListDAO.findUsePathwaysOfAll();
+        IUsePathwaysService usePathwaysService = AppContextHolder.getBean("eh.usePathwaysService",IUsePathwaysService.class);
+        if (!CollectionUtils.isEmpty(usePathways)){
+            usePathways.stream().filter(item -> !StringUtils.isEmpty(item)).forEach(item -> {
+                 UsePathwaysDTO usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(0,item);
+                if (usePathwaysDTO != null){
+                    //存在就替换
+                    drugListDAO.updateUsePathwaysByUsePathways(item,String.valueOf(usePathwaysDTO.getId()));
+                }else {
+                    //不存在就移除
+                    drugListDAO.updateUsePathwaysByUsePathways(item,null);
+                }
+            });
+        }
+    }
+
+    @RpcService(timeout = 600)
+    public void dealOrganDrugListUsePathways(){
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        List<Map<String,Object>> usePathways = organDrugListDAO.findAllUsePathways();
+        IUsePathwaysService usePathwaysService = AppContextHolder.getBean("eh.usePathwaysService",IUsePathwaysService.class);
+        if (!CollectionUtils.isEmpty(usePathways)){
+            usePathways.forEach(item -> {
+                Integer organId = (Integer) item.get("organId");
+                String usePathway = (String) item.get("usePathways");
+                UsePathwaysDTO usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organId,usePathway);
+                if (usePathway != null){
+                    organDrugListDAO.updateUsePathwaysByUsePathways(organId,usePathway,String.valueOf(usePathwaysDTO.getId()));
+                }
+            });
+        }
     }
 }

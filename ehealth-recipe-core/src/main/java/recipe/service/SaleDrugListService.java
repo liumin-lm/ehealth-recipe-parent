@@ -9,7 +9,6 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.DrugListAndSaleDrugListDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.SaleDrugListDTO;
-import com.ngari.recipe.drug.service.IDrugService;
 import com.ngari.recipe.drug.service.ISaleDrugListService;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugsEnterprise;
@@ -23,9 +22,13 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.constant.ErrorCode;
-import recipe.dao.*;
+import recipe.dao.DrugListDAO;
+import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.OrganAndDrugsepRelationDAO;
+import recipe.dao.SaleDrugListDAO;
 import recipe.dao.bean.DrugListAndSaleDrugList;
 import recipe.serviceprovider.drug.service.RemoteDrugService;
 
@@ -40,18 +43,12 @@ import java.util.List;
 @RpcBean("saleDrugListService")
 public class SaleDrugListService implements ISaleDrugListService {
 
-    private static Logger logger = Logger.getLogger(SaleDrugListService.class);
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private void validateSaleDrugList(SaleDrugList saleDrugList) {
         if (null == saleDrugList) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "药品信息不能为空");
         }
-//        if (StringUtils.isEmpty(saleDrugList.getOrganDrugCode())) {
-//            throw new DAOException(DAOException.VALUE_NEEDED, "organDrugCode is needed");
-//        }
-//        if (null == saleDrugList.getRatePrice()) {
-//            throw new DAOException(DAOException.VALUE_NEEDED, "ratePrice is needed");
-//        }
         if (null == saleDrugList.getDrugId()) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugId is needed");
         }
@@ -136,17 +133,17 @@ public class SaleDrugListService implements ISaleDrugListService {
             target.setLastModify(new Date());
             target = saleDrugListDAO.update(target);
             DrugList drugList = drugListDAO.get(saleDrugList.getDrugId());
-            if (drugList == null){
+            if (drugList == null) {
                 drugList = new DrugList();
             }
-            if (oldStatus != newStatus){
+            if (!oldStatus.equals(newStatus)) {
                 //禁用 启用
                 String type = newStatus == 0 ? "禁用" : "启用";
-                busActionLogService.recordBusinessLogRpcNew("药企药品管理","","SaleDrugList","【"+drugsEnterprise.getName()+"】"+type+"【"+saleDrugList.getOrganDrugId()+" -"+drugList.getDrugName()+"】",drugsEnterprise.getName());
-            }else {
+                busActionLogService.recordBusinessLogRpcNew("药企药品管理", "", "SaleDrugList", "【" + drugsEnterprise.getName() + "】" + type + "【" + saleDrugList.getOrganDrugId() + " -" + drugList.getDrugName() + "】", drugsEnterprise.getName());
+            } else {
                 //更新
-                busActionLogService.recordBusinessLogRpcNew("药企药品管理","","SaleDrugList","【"+drugsEnterprise.getName()+"】更新药品【"+saleDrugList.getOrganDrugId()
-                        +"-"+drugList.getDrugName()+"】",drugsEnterprise.getName());
+                busActionLogService.recordBusinessLogRpcNew("药企药品管理", "", "SaleDrugList", "【" + drugsEnterprise.getName() + "】更新药品【" + saleDrugList.getOrganDrugId()
+                        + "-" + drugList.getDrugName() + "】", drugsEnterprise.getName());
             }
         }
         return ObjectCopyUtils.convert(target, SaleDrugListDTO.class);
@@ -255,12 +252,12 @@ public class SaleDrugListService implements ISaleDrugListService {
         for(Integer id : ids){
             SaleDrugList saleDrugList1 = saleDrugListDAO.get(id);
             DrugList drugList = drugListDAO.get(saleDrugList1.getDrugId());
-            if (drugList == null){
+            if (drugList == null) {
                 drugList = new DrugList();
             }
             saleDrugListDAO.remove(id);
-            msg.append("【"+saleDrugList1.getOrganDrugId()+" -"+drugList.getDrugName()+"】");
+            msg.append("【" + saleDrugList1.getOrganDrugId() + " -" + drugList.getDrugName() + "】");
         }
-        busActionLogService.recordBusinessLogRpcNew("药企药品管理","","SaleDrugList","【"+drugsEnterprise.getName()+"】删除"+msg.toString(),drugsEnterprise.getName());
+        busActionLogService.recordBusinessLogRpcNew("药企药品管理", "", "SaleDrugList", "【" + drugsEnterprise.getName() + "】删除" + msg.toString(), drugsEnterprise.getName());
     }
 }

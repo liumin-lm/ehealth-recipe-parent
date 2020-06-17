@@ -1,11 +1,10 @@
 package recipe.service;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.ngari.opbase.base.service.IPropertyOrganService;
+import com.ngari.base.push.model.SmsInfoBean;
+import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
-import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.hisprescription.model.HosRecipeResult;
@@ -13,20 +12,15 @@ import com.ngari.recipe.hisprescription.model.HospitalStatusUpdateDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
-import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
-import recipe.constant.RecipeBussConstant;
-import recipe.constant.RecipeStatusConstant;
-import recipe.constant.RecipeSystemConstant;
-import recipe.dao.OrganAndDrugsepRelationDAO;
+import recipe.constant.*;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
@@ -38,6 +32,10 @@ import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 /**
@@ -52,9 +50,18 @@ public class RecipeTimedTaskService {
 
     private static final String HIS_RECIPE_KEY_PREFIX = "hisRecipe_";
 
+    private static final Long HOUR = 60L;
+    /**
+     * 在审核成功后的第1小时、第24小时、48小时，处方失效前1小时这几个节点
+     */
+    private static final List<Long> MINUTES = Arrays.asList(HOUR, HOUR * 24, HOUR * 48);
+
     @Autowired
     private RemoteRecipeService remoteRecipeService;
-
+    @Autowired
+    private RecipeDAO recipeDAO;
+    @Autowired
+    private ISmsPushService smsPushService;
 
     /**
      * 定时任务 钥匙圈处方 配送中状态 持续一周后系统自动完成该笔业务
@@ -101,7 +108,7 @@ public class RecipeTimedTaskService {
         try {
             keys = redisClient.scan(HIS_RECIPE_KEY_PREFIX + "*");
         } catch (Exception e) {
-            LOGGER.error("redis error" + e.toString());
+            LOGGER.error("redis error" + e.toString(),e);
             return;
         }
         //取出每一个key对应的map
@@ -121,7 +128,7 @@ public class RecipeTimedTaskService {
                     try {
                         remoteRecipeService.saveRecipeDataFromPayment(recipeBean, recipeDetailBeans);
                     } catch (Exception e) {
-                        LOGGER.error("recipeService.saveRecipeDataFromPayment error" + e.toString());
+                        LOGGER.error("recipeService.saveRecipeDataFromPayment error" + e.toString(),e);
                         flag = false;
                     }finally {
                         if (flag){
@@ -192,7 +199,7 @@ public class RecipeTimedTaskService {
 
         try{
             OrganDrugListDAO drugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-            List<OrganDrugList> organDrugLists = drugListDAO.findOrganDrug(0,1);
+            List<OrganDrugList> organDrugLists = drugListDAO.findOrganDrug(0, 1);
             if (CollectionUtils.isNotEmpty(organDrugLists)) {
                 OrganDrugList organDrugList = organDrugLists.get(0);
                 Date lastModify = organDrugList.getLastModify();
@@ -201,8 +208,48 @@ public class RecipeTimedTaskService {
                 organDrugList.setLastModify(lastModify);
                 drugListDAO.update(organDrugList);
             }
-        }catch(Exception e){
-            LOGGER.info("RecipeTimedTaskService.noticeGetHisCheckStatusTask 更新异常{}", e.getMessage());
+        } catch (Exception e) {
+            LOGGER.info("RecipeTimedTaskService.noticeGetHisCheckStatusTask 更新异常{}", e.getMessage(),e);
+        }
+    }
+
+    /**
+     * 39462 【杭州市互联网医院】处方审核完成后，患者端增加消息提醒功能
+     */
+    @RpcService
+    public void pushPayTask() {
+        LocalDateTime date = LocalDateTime.now();
+        List<Recipe> recipeList = recipeDAO.findByPayFlagAndReviewType(PayConstant.PAY_FLAG_NOT_PAY, ReviewTypeConstant.Preposition_Check);
+        LOGGER.info("RecipeTimedTaskService pushPay recipeList = {}", recipeList.size());
+        if (CollectionUtils.isEmpty(recipeList)) {
+            return;
+        }
+
+        for (Recipe recipe : recipeList) {
+            if (null == recipe.getCreateDate() || null == recipe.getValueDays()) {
+                LOGGER.warn("RecipeTimedTaskService pushPay date is error recipe = {}", JSONUtils.toString(recipe));
+                continue;
+            }
+            //开方时间
+            LocalDateTime createDate = Instant.ofEpochMilli(recipe.getCreateDate().getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
+            Duration create = Duration.between(date, createDate);
+            Long createHour = create.toMinutes();
+            //失效时间计算
+            LocalDateTime failureDate = createDate.plusDays(recipe.getValueDays());
+            Duration failure = Duration.between(date, failureDate);
+            Long failureHour = failure.toMinutes();
+            if (MINUTES.contains(createHour) || HOUR.equals(failureHour)) {
+                LOGGER.debug("RecipeTimedTaskService pushPay recipe = {}", recipe.getRecipeId());
+                //发消息
+                SmsInfoBean smsInfo = new SmsInfoBean();
+                smsInfo.setBusId(recipe.getRecipeId());
+                smsInfo.setOrganId(recipe.getClinicOrgan());
+                smsInfo.setBusType("RecipePushPay");
+                smsInfo.setSmsType("RecipePushPay");
+                smsPushService.pushMsgData2OnsExtendValue(smsInfo);
+
+                LOGGER.info("RecipeTimedTaskService pushPay is end recipe = {}", recipe.getRecipeId());
+            }
         }
     }
 }

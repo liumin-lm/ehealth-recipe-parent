@@ -7,6 +7,8 @@ import com.google.common.collect.Maps;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
+import com.ngari.his.patient.mode.PatientQueryRequestTO;
+import com.ngari.his.patient.service.IPatientHisService;
 import com.ngari.his.recipe.mode.ChronicDiseaseListReqTO;
 import com.ngari.his.recipe.mode.ChronicDiseaseListResTO;
 import com.ngari.his.recipe.mode.PatientChronicDiseaseRes;
@@ -68,24 +70,25 @@ public class RecipePatientService extends RecipeBaseService {
 
     /**
      * 根据取药方式过滤药企
+     *
      * @param recipeIds
      * @param payModes
      * @return
      */
     @RpcService
-    public RecipeResultBean filterSupportDepList(List<Integer> recipeIds, final List<Integer> payModes){
+    public RecipeResultBean filterSupportDepList(List<Integer> recipeIds, final List<Integer> payModes) {
         RecipeResultBean result = this.findSupportDepList(1, recipeIds);
         RecipeResultBean backResult = RecipeResultBean.getSuccess();
         backResult.setCode(result.getCode());
         backResult.setMsg(result.getMsg());
         Object depListObj = result.getObject();
         DepListBean newBean = new DepListBean();
-        if(null != depListObj && depListObj instanceof DepListBean){
-            DepListBean depListBean = (DepListBean)depListObj;
+        if (null != depListObj && depListObj instanceof DepListBean) {
+            DepListBean depListBean = (DepListBean) depListObj;
             newBean.setList(Lists.newArrayList(Collections2.filter(depListBean.getList(), new Predicate<DepDetailBean>() {
                 @Override
                 public boolean apply(@Nullable DepDetailBean input) {
-                    if(payModes.contains(input.getPayMode())){
+                    if (payModes.contains(input.getPayMode())) {
                         return true;
                     }
                     return false;
@@ -170,9 +173,7 @@ public class RecipePatientService extends RecipeBaseService {
             List<DepDetailBean> depDetailList = new ArrayList<>();
             for (DrugsEnterprise dep : depList) {
                 //钥世圈需要从接口获取支持药店列表
-                if (DrugEnterpriseConstant.COMPANY_YSQ.equals(dep.getCallSys()) ||
-                        DrugEnterpriseConstant.COMPANY_PHARMACY.equals(dep.getCallSys())
-                        || DrugEnterpriseConstant.COMPANY_ZFB.equals(dep.getCallSys())) {
+                if (DrugEnterpriseConstant.COMPANY_YSQ.equals(dep.getCallSys()) || DrugEnterpriseConstant.COMPANY_PHARMACY.equals(dep.getCallSys()) || DrugEnterpriseConstant.COMPANY_ZFB.equals(dep.getCallSys())) {
                     //需要从接口获取药店列表
                     DrugEnterpriseResult drugEnterpriseResult = remoteDrugService.findSupportDep(recipeIds, null, dep);
                     if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
@@ -192,21 +193,17 @@ public class RecipePatientService extends RecipeBaseService {
                     //如果是价格自定义的药企，则需要设置单独价格
                     SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
                     List<Integer> drugIds = Lists.newArrayList(drugIdCountRel.keySet());
-                    if (Integer.valueOf(0).equals(dep.getSettlementMode()) &&
-                            (RecipeBussConstant.DEP_SUPPORT_ONLINE.equals(dep.getPayModeSupport())
-                                    || RecipeBussConstant.DEP_SUPPORT_ALL.equals(dep.getPayModeSupport()))) {
+                    if (Integer.valueOf(0).equals(dep.getSettlementMode()) && (RecipeBussConstant.DEP_SUPPORT_ONLINE.equals(dep.getPayModeSupport()) || RecipeBussConstant.DEP_SUPPORT_ALL.equals(dep.getPayModeSupport()))) {
                         List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(dep.getId(), drugIds);
                         if (CollectionUtils.isNotEmpty(saleDrugLists)) {
                             BigDecimal total = BigDecimal.ZERO;
                             try {
                                 for (SaleDrugList saleDrug : saleDrugLists) {
                                     //保留3位小数
-                                    total = total.add(saleDrug.getPrice().multiply(new BigDecimal(drugIdCountRel.get(saleDrug.getDrugId())))
-                                            .divide(BigDecimal.ONE, 3, RoundingMode.UP));
+                                    total = total.add(saleDrug.getPrice().multiply(new BigDecimal(drugIdCountRel.get(saleDrug.getDrugId()))).divide(BigDecimal.ONE, 3, RoundingMode.UP));
                                 }
                             } catch (Exception e) {
-                                LOGGER.warn("findSupportDepList 重新计算药企ID为[{}]的结算价格出错. drugIds={}", dep.getId(),
-                                        JSONUtils.toString(drugIds), e);
+                                LOGGER.error("findSupportDepList 重新计算药企ID为[{}]的结算价格出错. drugIds={}", dep.getId(), JSONUtils.toString(drugIds), e);
                                 //此处应该要把出错的药企从返回列表中剔除
                                 depDetailList.remove(depDetailList.size() - 1);
                                 continue;
@@ -234,8 +231,7 @@ public class RecipePatientService extends RecipeBaseService {
             //有可能钥世圈支持配送，实际从接口处没有获取到药店
             if (CollectionUtils.isEmpty(depDetailList)) {
                 resultBean.setCode(RecipeResultBean.FAIL);
-                resultBean.setMsg("很抱歉，当前库存不足无法购买，请联系客服：" +
-                        cacheService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
+                resultBean.setMsg("很抱歉，当前库存不足无法购买，请联系客服：" + cacheService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
                 return resultBean;
             }
 
@@ -262,8 +258,7 @@ public class RecipePatientService extends RecipeBaseService {
 
         } else {
             resultBean.setCode(RecipeResultBean.FAIL);
-            resultBean.setMsg("很抱歉，未能匹配到可以支持的药企，请联系客服：" +
-                    cacheService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
+            resultBean.setMsg("很抱歉，未能匹配到可以支持的药企，请联系客服：" + cacheService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
         }
 
         return resultBean;
@@ -302,15 +297,15 @@ public class RecipePatientService extends RecipeBaseService {
             payModeList.add(RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS);
             //无法配送时间文案提示
             depDetailBean.setUnSendTitle(cacheService.getParam(ParameterConstant.KEY_RECIPE_UNSEND_TIP));
-        }else if (RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS.equals(supportMode)){
+        } else if (RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS.equals(supportMode)) {
             //配送到家
             payModeList.add(RecipeBussConstant.PAYMODE_ONLINE);
             //药店取药
             payModeList.add(RecipeBussConstant.PAYMODE_TFDS);
-        } else if (RecipeBussConstant.DEP_SUPPORT_UNKNOW.equals(supportMode)){
+        } else if (RecipeBussConstant.DEP_SUPPORT_UNKNOW.equals(supportMode)) {
             payModeList.add(RecipeBussConstant.DEP_SUPPORT_UNKNOW);
         }
-        if (CollectionUtils.isNotEmpty(payModeList)){
+        if (CollectionUtils.isNotEmpty(payModeList)) {
             depDetailBean.setPayMode(payModeList.get(0));
         }
         depDetailBean.setGiveModeText(giveModeText);
@@ -319,24 +314,25 @@ public class RecipePatientService extends RecipeBaseService {
 
     /**
      * 获取患者特慢病病种列表
+     *
      * @return
      */
     @RpcService
-    public List<ChronicDiseaseListResTO> findPatientChronicDiseaseList(Integer organId,String mpiId){
-        LOGGER.info("findPatientChronicDiseaseList organId={},mpiId={}",organId,mpiId);
+    public List<ChronicDiseaseListResTO> findPatientChronicDiseaseList(Integer organId, String mpiId) {
+        LOGGER.info("findPatientChronicDiseaseList organId={},mpiId={}", organId, mpiId);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         PatientDTO patientDTO = patientService.get(mpiId);
-        if (patientDTO == null){
+        if (patientDTO == null) {
             throw new DAOException(609, "找不到该患者");
         }
         List<ChronicDiseaseListResTO> list = Lists.newArrayList();
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         Integer diseaseType = (Integer) configurationService.getConfiguration(organId, "recipeChooseChronicDisease");
-        if(3 == diseaseType){
+        if (3 == diseaseType) {
             List<ChronicDisease> chronicDiseaseList = chronicDiseaseDAO.findChronicDiseasesByOrganId(diseaseType.toString());
-            list = ObjectCopyUtils.convert(chronicDiseaseList,ChronicDiseaseListResTO.class);
+            list = ObjectCopyUtils.convert(chronicDiseaseList, ChronicDiseaseListResTO.class);
             return list;
-        }else {
+        } else {
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
             ChronicDiseaseListReqTO req = new ChronicDiseaseListReqTO();
             PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
@@ -379,5 +375,45 @@ public class RecipePatientService extends RecipeBaseService {
         request.setPatient(patientBaseInfo);
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
         service.findPatientDiagnose(request);
+    }
+
+    /**
+     * 查询线下患者信息接口
+     *
+     * @return
+     */
+    @RpcService
+    public PatientQueryRequestTO queryPatientForHis(Integer organId, String mpiId) {
+        LOGGER.info("queryPatientForHis organId={},mpiId={}", organId, mpiId);
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        IPatientHisService iPatientHisService = AppContextHolder.getBean("his.iPatientHisService", IPatientHisService.class);
+        PatientDTO patient = patientService.get(mpiId);
+        if (patient == null) {
+            throw new DAOException(609, "找不到该患者");
+        }
+        try {
+            PatientQueryRequestTO req = new PatientQueryRequestTO();
+            req.setOrgan(organId);
+            req.setPatientName(patient.getPatientName());
+            req.setCertificateType(patient.getCertificateType());
+            req.setCertificate(patient.getCertificate());
+            LOGGER.info("queryPatientForHis req={}", JSONUtils.toString(req));
+            HisResponseTO<PatientQueryRequestTO> res = iPatientHisService.queryPatient(req);
+            LOGGER.info("queryPatientForHis res={}", JSONUtils.toString(res));
+            if (res != null && !("200".equals(res.getMsgCode()))) {
+                String msg = "查患者信息接口异常";
+                if (StringUtils.isNotEmpty(res.getMsg())) {
+                    msg = msg + ":" + res.getMsg();
+                }
+                throw new DAOException(609, msg);
+            }
+            if (res == null){
+                throw new DAOException(609, "查不到患者线下信息");
+            }
+            return res.getData();
+        } catch (Exception e) {
+            LOGGER.error("queryPatientForHis error", e);
+            throw new DAOException(609, "查患者信息异常:"+e.getMessage());
+        }
     }
 }

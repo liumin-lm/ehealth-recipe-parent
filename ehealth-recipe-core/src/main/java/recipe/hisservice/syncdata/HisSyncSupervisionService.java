@@ -1,7 +1,5 @@
 package recipe.hisservice.syncdata;
 
-import com.ngari.base.BaseAPI;
-import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.common.mode.HisResponseTO;
@@ -96,7 +94,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 commonResponse.setMsg(response.getMsg());
             }
         } catch (Exception e) {
-            LOGGER.warn("uploadRecipeIndicators HIS接口调用失败. request={}", JSONUtils.toString(request), e);
+            LOGGER.error("uploadRecipeIndicators HIS接口调用失败. request={}", JSONUtils.toString(request), e);
             commonResponse.setMsg("HIS接口调用异常");
         }
 
@@ -137,7 +135,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             usingRateDic = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate");
             usePathwaysDic = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways");
         } catch (ControllerException e) {
-            LOGGER.warn("uploadRecipeIndicators dic error.");
+            LOGGER.error("uploadRecipeIndicators dic error.",e);
         }
 
         //业务数据处理
@@ -550,7 +548,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 commonResponse.setMsg(response.getMsg());
             }
         } catch (Exception e) {
-            LOGGER.warn("uploadRecipeCirculationIndicators HIS接口调用失败. request={}", JSONUtils.toString(request), e);
+            LOGGER.error("uploadRecipeCirculationIndicators HIS接口调用失败. request={}", JSONUtils.toString(request), e);
             commonResponse.setMsg("HIS接口调用异常");
         }
         LOGGER.info("uploadRecipeVerificationIndicators commonResponse={}", JSONUtils.toString(commonResponse));
@@ -633,7 +631,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 commonResponse.setMsg(response.getMsg());
             }
         } catch (Exception e) {
-            LOGGER.warn("uploadRecipeAuditIndicators HIS接口调用失败. request={}", JSONUtils.toString(request), e);
+            LOGGER.error("uploadRecipeAuditIndicators HIS接口调用失败. request={}", JSONUtils.toString(request), e);
             commonResponse.setMsg("HIS接口调用异常");
         }
 
@@ -692,7 +690,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 commonResponse.setMsg(response.getMsg());
             }
         } catch (Exception e) {
-            LOGGER.warn("uploadRecipeCirculationIndicators HIS接口调用失败. request={}", JSONUtils.toString(request), e);
+            LOGGER.error("uploadRecipeCirculationIndicators HIS接口调用失败. request={}", JSONUtils.toString(request), e);
             commonResponse.setMsg("HIS接口调用异常");
         }
 
@@ -737,13 +735,13 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             reqDetail.setFrequency(detail.getUsingRate());
             //药品频次名称
             if (null != usingRateDic) {
-                reqDetail.setFrequencyName(usingRateDic.getText(detail.getUsingRate()));
+                reqDetail.setFrequencyName(detail.getUsingRateTextFromHis()!=null?detail.getUsingRateTextFromHis() : usingRateDic.getText(detail.getUsingRate()));
             }
             //用法
             reqDetail.setAdmission(detail.getUsePathways());
             //药品用法名称
             if (null != usePathwaysDic) {
-                reqDetail.setAdmissionName(usePathwaysDic.getText(detail.getUsePathways()));
+                reqDetail.setAdmissionName(detail.getUsePathwaysTextFromHis()!=null?detail.getUsePathwaysTextFromHis():usePathwaysDic.getText(detail.getUsePathways()));
             }
             useDose = detail.getUseDose() == null?detail.getUseDoseStr():String.valueOf(detail.getUseDose());
             reqDetail.setDosage(useDose);
@@ -1052,7 +1050,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                                 .getText(LogisticsInfo.getLogisticsCompany());
                         LogisticsInfo.setLogisticsCompanyName(company);
                     } catch (ControllerException e) {
-                        LOGGER.warn("toSend get logisticsCompany error. logisticsCompany={}",LogisticsInfo.getLogisticsCompany());
+                        LOGGER.error("toSend get logisticsCompany error. logisticsCompany={}",LogisticsInfo.getLogisticsCompany(),e);
                     }
                     req.setLogisticsInfo(LogisticsInfo);
 

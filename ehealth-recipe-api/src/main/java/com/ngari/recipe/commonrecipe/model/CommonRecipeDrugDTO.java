@@ -1,11 +1,13 @@
 package com.ngari.recipe.commonrecipe.model;
 
+import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by  on 2017/5/23.
@@ -93,6 +95,9 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
 
     @ItemProperty(alias = "剂型")
     private String drugForm;
+
+    @ItemProperty(alias = "医生端选择的每次剂量和单位绑定关系")
+    private List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation;
 
     public CommonRecipeDrugDTO() {
     }
@@ -295,5 +300,13 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
 
     public void setUseDoseStr(String useDoseStr) {
         this.useDoseStr = useDoseStr;
+    }
+
+    public List<UseDoseAndUnitRelationBean> getUseDoseAndUnitRelation() {
+        return useDoseAndUnitRelation;
+    }
+
+    public void setUseDoseAndUnitRelation(List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation) {
+        this.useDoseAndUnitRelation = useDoseAndUnitRelation;
     }
 }

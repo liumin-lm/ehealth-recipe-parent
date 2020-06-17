@@ -55,13 +55,33 @@ public class SearchDrugDetailDTO implements Serializable {
     @ItemProperty(alias = "剂量单位")
     private String useDoseUnit;
 
-    @ItemProperty(alias = "使用频率")
+    @ItemProperty(alias = "推荐单次剂量")
+    private Double recommendedUseDose;
+
+    @ItemProperty(alias = "实际单位剂量（最小单位）")
+    private Double smallestUnitUseDose;
+
+    @ItemProperty(alias = "默认单位剂量（最小单位）")
+    private Double defaultSmallestUnitUseDose;
+
+    @ItemProperty(alias = "单位剂量单位（最小单位）")
+    private String useDoseSmallestUnit;
+
+    @ItemProperty(alias = "使用频率平台")
     @Dictionary(id = "eh.cdr.dictionary.UsingRate")
     private String usingRate;
 
-    @ItemProperty(alias = "用药途径")
+    @ItemProperty(alias = "用药途径平台")
     @Dictionary(id = "eh.cdr.dictionary.UsePathways")
     private String usePathways;
+
+    @ItemProperty(alias = "使用频率id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
+    private String usingRateId;
+
+    @ItemProperty(alias = "用药途径id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
+    private String usePathwaysId;
 
     @ItemProperty(alias = "生产厂家")
     private String producer;
@@ -129,6 +149,9 @@ public class SearchDrugDetailDTO implements Serializable {
 
     @ItemProperty(alias = "药品库存标志")
     private boolean drugInventoryFlag;
+
+    @ItemProperty(alias = "医生端选择的每次剂量和单位绑定关系")
+    private List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation;
 
     public Integer getDrugId() {
         return drugId;
@@ -408,5 +431,61 @@ public class SearchDrugDetailDTO implements Serializable {
 
     public void setDrugInventoryFlag(boolean drugInventoryFlag) {
         this.drugInventoryFlag = drugInventoryFlag;
+    }
+
+    public Double getRecommendedUseDose() {
+        return recommendedUseDose;
+    }
+
+    public void setRecommendedUseDose(Double recommendedUseDose) {
+        this.recommendedUseDose = recommendedUseDose;
+    }
+
+    public Double getSmallestUnitUseDose() {
+        return smallestUnitUseDose;
+    }
+
+    public void setSmallestUnitUseDose(Double smallestUnitUseDose) {
+        this.smallestUnitUseDose = smallestUnitUseDose;
+    }
+
+    public Double getDefaultSmallestUnitUseDose() {
+        return defaultSmallestUnitUseDose;
+    }
+
+    public void setDefaultSmallestUnitUseDose(Double defaultSmallestUnitUseDose) {
+        this.defaultSmallestUnitUseDose = defaultSmallestUnitUseDose;
+    }
+
+    public String getUseDoseSmallestUnit() {
+        return useDoseSmallestUnit;
+    }
+
+    public void setUseDoseSmallestUnit(String useDoseSmallestUnit) {
+        this.useDoseSmallestUnit = useDoseSmallestUnit;
+    }
+
+    public List<UseDoseAndUnitRelationBean> getUseDoseAndUnitRelation() {
+        return useDoseAndUnitRelation;
+    }
+
+    public void setUseDoseAndUnitRelation(List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation) {
+        this.useDoseAndUnitRelation = useDoseAndUnitRelation;
+    }
+
+    public String getUsingRateId() {
+        return usingRateId;
+    }
+
+    public void setUsingRateId(String usingRateId) {
+        this.usingRateId = usingRateId;
+    }
+
+    public String getUsePathwaysId() {
+        return usePathwaysId;
+    }
+
+    public void setUsePathwaysId(String usePathwaysId) {
+        this.usePathwaysId = usePathwaysId;
     }
 }

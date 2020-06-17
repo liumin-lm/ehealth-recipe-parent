@@ -84,7 +84,7 @@ public class RecipeToHisCallbackService {
                 if (StringUtils.isNotEmpty(rep.getPrice())) {
                     detail.setDrugCost(new BigDecimal(rep.getPrice()));
                 }
-                if (StringUtils.isNotEmpty(rep.getOrderID())){
+                if (StringUtils.isNotEmpty(rep.getOrderID())) {
                     detail.setRecipeDetailId(Integer.valueOf(rep.getOrderID()));
                 }
                 detail.setOrderNo(LocalStringUtil.toString(rep.getOrderNo()));
@@ -92,6 +92,10 @@ public class RecipeToHisCallbackService {
                 //取药窗口是否都是返回同一窗口
                 detail.setPharmNo(LocalStringUtil.toString(rep.getPharmNo()));
                 detail.setMemo(LocalStringUtil.toString(rep.getRemark()));
+
+                detail.setDrugSpec(rep.getDrugSpec());
+                detail.setMedicalDrugCode(rep.getMedicalDrugCode());
+                detail.setPack(rep.getPack());
                 list.add(detail);
             }
             if (!StringUtils.isEmpty(amount)) {

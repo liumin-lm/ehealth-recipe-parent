@@ -6,7 +6,7 @@
     <parent>
         <groupId>ngari</groupId>
         <artifactId>ehealth-parent</artifactId>
-        <version>2.6.1.0.master-SNAPSHOT</version>
+        <version>2.6.2.0.toB-hotfix-20200609-SNAPSHOT</version>
     </parent>
     <artifactId>ehealth-recipe-parent</artifactId>
     <name>处方</name>
@@ -324,11 +324,20 @@
                 <artifactId>reflections</artifactId>
                 <version>0.9.10</version>
             </dependency>
+
+            <!--pdf操作依赖 -->
             <dependency>
                 <groupId>com.itextpdf</groupId>
                 <artifactId>itextpdf</artifactId>
                 <version>5.5.13</version>
             </dependency>
+
+            <dependency>
+                <groupId>com.itextpdf</groupId>
+                <artifactId>itext-asian</artifactId>
+                <version>5.2.0</version>
+            </dependency>
+
             <dependency>
                 <groupId>com.sf-express</groupId>
                 <artifactId>staxon</artifactId>

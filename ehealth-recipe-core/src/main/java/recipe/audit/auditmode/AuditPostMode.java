@@ -6,7 +6,6 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
-import ctd.persistence.DAOFactory;
 import eh.base.constant.BussTypeConstant;
 import eh.cdr.constant.RecipeStatusConstant;
 import eh.wxpay.constant.PayConstant;
@@ -15,14 +14,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
-import recipe.bussutil.RecipeUtil;
-import recipe.constant.*;
+import recipe.constant.CacheConstant;
+import recipe.constant.RecipeBussConstant;
+import recipe.constant.RecipeMsgEnum;
+import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.recipecheck.HisCheckRecipeService;
 import recipe.recipecheck.RecipeCheckService;
-import recipe.service.*;
+import recipe.service.RecipeLogService;
+import recipe.service.RecipeMsgService;
+import recipe.service.RecipeService;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 
@@ -149,7 +151,7 @@ public class AuditPostMode extends AbstractAuidtMode {
                     try {
                         checkService.autoPassForCheckYs(checkResult);
                     } catch (Exception e) {
-                        LOGGER.error("updateRecipePayResultImplForOrder 药师自动审核失败. recipeId={}", dbRecipe.getRecipeId());
+                        LOGGER.error("updateRecipePayResultImplForOrder 药师自动审核失败. recipeId={}", dbRecipe.getRecipeId(),e);
                         RecipeLogService.saveRecipeLog(dbRecipe.getRecipeId(), dbRecipe.getStatus(), status,
                                 "updateRecipePayResultImplForOrder 药师自动审核失败:" + e.getMessage());
                     }

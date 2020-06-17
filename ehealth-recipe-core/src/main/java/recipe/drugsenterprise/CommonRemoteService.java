@@ -120,7 +120,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
                 backMsg = HttpHelper.doPost(drugsEnterprise.getBusinessUrl(), sendInfoStr);
                 LOGGER.info("调用[{}][{}]结果返回={}", LOGGER.getName(), method, backMsg);
             } catch (IOException e) {
-                LOGGER.error("调用[{}][{}] IOException: " + e.getMessage() + "，详细数据：" + sendInfoStr, drugsEnterprise.getName(), method);
+                LOGGER.error("调用[{}][{}] IOException: " + e.getMessage() + "，详细数据：" + sendInfoStr, drugsEnterprise.getName(), method,e);
             }
         }
     }
@@ -264,9 +264,9 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
                 String userRate = detail.getUsingRate();
                 if (StringUtils.isNotEmpty(userRate)) {
                     try {
-                        detailMap.put("usingratename", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(userRate));
+                        detailMap.put("usingratename", StringUtils.isNotEmpty(detail.getUsingRateTextFromHis())?detail.getUsingRateTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(userRate));
                     } catch (ControllerException e) {
-                        LOGGER.error("pushRecipInfo 获取用药频次类型失败*****usingRate:" + userRate);
+                        LOGGER.error("pushRecipInfo 获取用药频次类型失败*****usingRate:" + userRate,e);
                         detailMap.put("usingratename", "每日三次");
                     }
                 } else {
@@ -276,9 +276,9 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
                 String usePathways = detail.getUsePathways();
                 if (StringUtils.isNotEmpty(usePathways)) {
                     try {
-                        detailMap.put("usepathwaysname", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(usePathways));
+                        detailMap.put("usepathwaysname", StringUtils.isNotEmpty(detail.getUsePathwaysTextFromHis())?detail.getUsePathwaysTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(usePathways));
                     } catch (ControllerException e) {
-                        LOGGER.error("pushRecipInfo 获取用药途径类型失败*****usePathways:" + usePathways);
+                        LOGGER.error("pushRecipInfo 获取用药途径类型失败*****usePathways:" + usePathways,e);
                         detailMap.put("usepathwaysname", "口服");
                     }
                 } else {
@@ -326,7 +326,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
                 try {
                     RecipeBusiThreadPool.submitList(callables);
                 } catch (InterruptedException e) {
-                    LOGGER.error("pushRecipInfo 线程池异常");
+                    LOGGER.error("pushRecipInfo 线程池异常",e);
                 }
             }
         }
@@ -372,6 +372,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
                 return "暂无库存";
             }
         } catch (Exception e) {
+            LOGGER.error("暂无库存",e);
             return "暂无库存";
         }
 
@@ -380,6 +381,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
             try {
                 backMap = JSONUtils.parse(backMsg, Map.class);
             } catch (Exception e) {
+                LOGGER.error("暂无库存",e);
                 return "暂无库存";
             }
             Integer code = MapValueUtil.getInteger(backMap, "code");
@@ -444,7 +446,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
                     RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), msg.toString());
                 }
             }catch(Exception e){
-                LOGGER.error("CommonRemoteService.checkDrugListByDeil error:{},{}.", recipeId, e.getMessage());
+                LOGGER.error("CommonRemoteService.checkDrugListByDeil error:{},{}.", recipeId, e.getMessage(),e);
             }
             sendMap.put("access_token", drugsEnterprise.getToken());
             sendMap.put("action", method);
@@ -465,7 +467,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
                 }
             } catch (Exception e) {
                 backMsg = null;
-                LOGGER.error(drugEpName + " invoke method[{}] error. error={}", method, e.getMessage());
+                LOGGER.error(drugEpName + " invoke method[{}] error. error={}", method, e.getMessage(),e);
                 result.setMsg(drugEpName + "接口[" + method + "]调用出错");
                 result.setCode(DrugEnterpriseResult.FAIL);
             }
@@ -475,7 +477,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
                 try {
                     backMap = JSONUtils.parse(backMsg, Map.class);
                 } catch (Exception e) {
-                    LOGGER.error("调用[{}][{}]结果返回无法转换成MAP. 返回数据={}", drugEpName, method, backMsg);
+                    LOGGER.error("调用[{}][{}]结果返回无法转换成MAP. 返回数据={}", drugEpName, method, backMsg,e);
                     result.setCode(DrugEnterpriseResult.FAIL);
                     result.setMsg("系统对接错误");
                     return result;
@@ -541,7 +543,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
             try {
                 RecipeBusiThreadPool.submitList(callAbles);
             } catch (InterruptedException e) {
-                LOGGER.error("syncDrug 线程池异常");
+                LOGGER.error("syncDrug 线程池异常",e);
             }
         }
 
