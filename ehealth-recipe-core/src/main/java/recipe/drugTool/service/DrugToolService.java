@@ -978,6 +978,7 @@ public class DrugToolService implements IDrugToolService {
                         } else {
                             organDrugList.setSalePrice(drugListMatch.getPrice());
                         }
+                        if (drugListMatch.getDrugType() !=null && drugListMatch.getDrugType() ==3 && drugListMatch.getPack() == null) organDrugList.setPack(1);
                         organDrugList.setDrugName(drugListMatch.getDrugName());
                         if (StringUtils.isEmpty(drugListMatch.getSaleName())) {
                             organDrugList.setSaleName(drugListMatch.getDrugName());
