@@ -130,22 +130,26 @@ public class HisCallBackService {
                 detailAttrMap.put("drugGroup", detail.getDrugGroup());
                 detailAttrMap.put("orderNo", detail.getOrderNo());
                 detailAttrMap.put("pharmNo", detail.getPharmNo());
+                
+                //因为从HIS返回回来的数据不是很全，所以要从DB获取一次
+                Recipedetail recipedetail = detailDAO.getByRecipeDetailId(detail.getRecipeDetailId());
                 //根据医院传入的价格更新药品总价
-                BigDecimal drugCost = detail.getDrugCost();
-                BigDecimal salePrice = null;
-                //外带药处方不做处理
-                if (!Integer.valueOf(1).equals(recipe.getTakeMedicine()) && null != drugCost) {
-                    detailAttrMap.put("drugCost", drugCost);
-                    //因为从HIS返回回来的数据不是很全，所以要从DB获取一次
-                    Recipedetail recipedetail = detailDAO.getByRecipeDetailId(detail.getRecipeDetailId());
-                    if (recipedetail != null && null != recipedetail.getUseTotalDose()) {
-                        salePrice = drugCost.divide(BigDecimal.valueOf(recipedetail.getUseTotalDose()), 2, RoundingMode.UP);
-                        detailAttrMap.put("salePrice", salePrice);
+                if (null != recipedetail) {
+                    detail.setDrugId(recipedetail.getDrugId());
+                    BigDecimal drugCost = detail.getDrugCost();
+                    //外带药处方不做处理
+                    if (!Integer.valueOf(1).equals(recipe.getTakeMedicine()) && null != drugCost) {
+                        detailAttrMap.put("drugCost", drugCost);
+                        if (null != recipedetail.getUseTotalDose()) {
+                            BigDecimal salePrice = drugCost.divide(BigDecimal.valueOf(recipedetail.getUseTotalDose()), 2, RoundingMode.UP);
+                            detailAttrMap.put("salePrice", salePrice);
+                            detail.setSalePrice(salePrice);
+                        }
                     }
                 }
                 detailDAO.updateRecipeDetailByRecipeDetailId(detail.getRecipeDetailId(), detailAttrMap);
                 /**更新药品最新的价格等*/
-                organDrugListService.saveOrganDrug(recipe.getClinicOrgan(), salePrice, detail);
+                organDrugListService.saveOrganDrug(recipe.getClinicOrgan(), detail);
             }
         }
         //date 20200507
