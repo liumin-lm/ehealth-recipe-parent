@@ -1322,6 +1322,7 @@ public class RecipeServiceSub {
         r.setRecipeSourceType(2);
         r.setRecipeCode(recipe.getRecipeCode());
         r.setClinicOrgan(recipe.getClinicOrgan());
+        r.setDetailData(recipe.getDetailData());
         return r;
     }
 

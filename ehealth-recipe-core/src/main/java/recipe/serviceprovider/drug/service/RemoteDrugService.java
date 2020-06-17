@@ -496,7 +496,7 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
     }
 
     //处理平台药品库
-    @RpcService
+    @RpcService(timeout = 600)
     public void dealDrugListUsingRate(){
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         List<String> usingRates = drugListDAO.findUsingRateOfAll();
@@ -515,7 +515,7 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         }
     }
 
-    @RpcService
+    @RpcService(timeout = 600)
     public void dealOrganDrugListUsingRate(){
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<Map<String,Object>> usingRates = organDrugListDAO.findAllUsingRate();
@@ -532,7 +532,7 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         }
     }
 
-    @RpcService
+    @RpcService(timeout = 600)
     public void dealUsePathways(){
         RecipePreserveService recipePreserveService = AppContextHolder.getBean("eh.recipePreserveService",RecipePreserveService.class);
         IUsePathwaysService usePathwaysService = AppContextHolder.getBean("eh.usePathwaysService",IUsePathwaysService.class);
@@ -558,7 +558,7 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
     }
 
     //处理平台药品库
-    @RpcService
+    @RpcService(timeout = 600)
     public void dealDrugListUsePathways(){
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         List<String> usePathways = drugListDAO.findUsePathwaysOfAll();
@@ -577,7 +577,7 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         }
     }
 
-    @RpcService
+    @RpcService(timeout = 600)
     public void dealOrganDrugListUsePathways(){
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<Map<String,Object>> usePathways = organDrugListDAO.findAllUsePathways();
