@@ -584,7 +584,26 @@ public class RecipeService extends RecipeBaseService {
                 });
             }
         } else {
-            recipeCheckDAO.saveRecipeCheckAndDetail(recipeCheck, recipeCheckDetails);
+            RecipeCheck nowCheckResult = recipeCheckDAO.getNowCheckResultByRecipeId(recipeId);
+            if (nowCheckResult == null) {
+                recipeCheckDAO.saveRecipeCheckAndDetail(recipeCheck, recipeCheckDetails);
+            } else {
+                nowCheckResult.setChecker(checker);
+                nowCheckResult.setRecipeId(recipeId);
+                nowCheckResult.setCheckOrgan(checkOrgan);
+                nowCheckResult.setCheckDate(now);
+                nowCheckResult.setMemo((StringUtils.isEmpty(memo)) ? "" : memo);
+                nowCheckResult.setCheckStatus(checkFlag);
+                nowCheckResult.setGrabOrderStatus(null);
+                nowCheckResult.setLocalLimitDate(null);
+                nowCheckResult.setGrabDoctorId(null);
+                recipeCheckDAO.update(nowCheckResult);
+            }
+            if (CollectionUtils.isNotEmpty(recipeCheckDetails)) {
+                recipeCheckDetails.forEach(recipeCheckDetail -> {
+                    recipeCheckDetailDAO.save(recipeCheckDetail);
+                });
+            }
         }
 
         boolean bl = recipeDAO.updateRecipeInfoByRecipeId(recipeId, recipeStatus, attrMap);
