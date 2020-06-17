@@ -3624,7 +3624,12 @@ public class RecipeService extends RecipeBaseService {
 
     }
 
+
+    /**
+     * 过期废弃
+     */
     @RpcService
+    @Deprecated
     public void updateHisDrug(DrugInfoTO drug) {
         //校验药品数据安全
         if (!checkDrugInfo(drug)) {
