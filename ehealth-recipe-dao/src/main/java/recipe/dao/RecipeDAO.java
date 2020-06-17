@@ -106,7 +106,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      * @return
      */
     @DAOMethod(sql = "from Recipe where OrderCode is not null and Status =2  and PayFlag =:payFlag and ReviewType =:reviewType")
-    public abstract List<Recipe> findByPayFlagAndReviewType(Integer payFlag, Integer reviewType);
+    public abstract List<Recipe> findByPayFlagAndReviewType(@DAOParam("payFlag") Integer payFlag, @DAOParam("reviewType") Integer reviewType);
 
     /**
      * 通过交易流水号获取
