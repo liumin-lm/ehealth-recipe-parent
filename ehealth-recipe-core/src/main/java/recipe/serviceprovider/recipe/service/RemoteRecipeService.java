@@ -1011,6 +1011,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return ObjectCopyUtils.convert(callService.readjustDrugPrice(ObjectCopyUtils.convert(readjustDrugDTOS, com.ngari.recipe.drugsenterprise.model.ReadjustDrugDTO.class)), StandardResultBean.class);
     }
 
+    @Override
+    public Integer scanStockEnterpriseForHis(Map<String, Object> paramMap) {
+        LOGGER.info("scanStockEnterpriseForHis:{}.", JSONUtils.toString(paramMap));
+        ThirdEnterpriseCallService callService = ApplicationUtils.getRecipeService(ThirdEnterpriseCallService.class, "takeDrugService");
+        return callService.scanStockEnterpriseForHis(paramMap);
+    }
+
     private void getResultMsg(ThirdResultBean thirdResultBean, recipe.bean.ThirdResultBean resultBean) {
         thirdResultBean.setCode(resultBean.getCode());
         thirdResultBean.setBusId(resultBean.getBusId());
