@@ -339,7 +339,7 @@ public class RecipeListService extends RecipeBaseService{
                                     record.setLogisticsCompany(logComStr);
                                     record.setTrackingNumber(order.getTrackingNumber());
                                 } catch (ControllerException e) {
-                                    LOGGER.warn("processListDate KuaiDiNiaoCode get error. code={}", order.getLogisticsCompany());
+                                    LOGGER.warn("processListDate KuaiDiNiaoCode get error. code={}", order.getLogisticsCompany(),e);
                                 }
                             }
                             List<PatientRecipeDTO> recipeList = (List<PatientRecipeDTO>) order.getList();
@@ -628,30 +628,40 @@ public class RecipeListService extends RecipeBaseService{
     @RpcService
     public List<Map<String, Object>> findHistoryRecipeList(Integer consultId,Integer organId,Integer doctorId, String mpiId) {
         LOGGER.info("getHosRecipeList consultId={}, organId={},doctorId={},mpiId={}", consultId, organId,doctorId,mpiId);
+        //checkUserHasPermissionByDoctorId(doctorId);
         //从Recipe表获取线上、线下处方
-        Future<List<Map<String,Object>>> recipeTask = GlobalEventExecFactory.instance().getExecutor().submit(()->{
-            return findRecipeListByDoctorAndPatient(doctorId,mpiId,0,10000);
-        });
+//        Future<List<Map<String,Object>>> recipeTask = GlobalEventExecFactory.instance().getExecutor().submit(()->{
+//            return findRecipeListByDoctorAndPatient(doctorId,mpiId,0,10000);
+//        });
+
         //从his获取线下处方
         RecipePreserveService recipeService = ApplicationUtils.getRecipeService(RecipePreserveService.class);
         Future<Map<String, Object>> hisTask = GlobalEventExecFactory.instance().getExecutor().submit(()->{
             return recipeService.getHosRecipeList(consultId, organId, mpiId, 180);
         });
 
-        List<Map<String,Object>> onLineAndUnderLineRecipesByRecipe= new ArrayList<>();
-        try {
-            onLineAndUnderLineRecipesByRecipe = recipeTask.get(); ;
-        } catch (Exception e) {
-            e.printStackTrace();
-            LOGGER.error("findHistoryRecipeList recipeTask exception:{}",e.getMessage());
-        }
+        List<Map<String,Object>> onLineAndUnderLineRecipesByRecipe=findRecipeListByDoctorAndPatient(doctorId,mpiId,0,10000);
+
+//        List<Map<String,Object>> onLineAndUnderLineRecipesByRecipe= new ArrayList<>();
+//        try {
+//            onLineAndUnderLineRecipesByRecipe = recipeTask.get(); ;
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            LOGGER.error("findHistoryRecipeList recipeTask exception:{}",e.getMessage());
+//        }
         Map<String,Object> upderLineRecipesByHis= new ConcurrentHashMap<>();
         try {
             upderLineRecipesByHis = hisTask.get(5000, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.error("findHistoryRecipeList hisTask exception:{}",e.getMessage());
+            LOGGER.error("findHistoryRecipeList hisTask exception:{}",e.getMessage(),e);
         }
+
+        //从Recipe表获取线上、线下处方
+//        List<Map<String,Object>> onLineAndUnderLineRecipesByRecipe=findRecipeListByDoctorAndPatient(doctorId,mpiId,0,10000);
+//        //从his获取线下处方
+//        RecipePreserveService recipeService = ApplicationUtils.getRecipeService(RecipePreserveService.class);
+//        Map<String, Object> upderLineRecipesByHis=recipeService.getHosRecipeList(consultId, organId, mpiId, 180);
 
         //过滤重复数据并重新排序
         List<Map<String,Object>> res=dealRepeatDataAndSort(onLineAndUnderLineRecipesByRecipe,upderLineRecipesByHis);
@@ -909,7 +919,7 @@ public class RecipeListService extends RecipeBaseService{
             }
             result.put("list",mapList);
         }catch (Exception e){
-            LOGGER.error("findAllRecipesForPatient error"+e.getMessage());
+            LOGGER.error("findAllRecipesForPatient error"+e.getMessage(),e);
         }
 
         return result;
@@ -950,7 +960,7 @@ public class RecipeListService extends RecipeBaseService{
             List<PatientRecipeBean> backList = recipeDAO.findTabStatusRecipesForPatient(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), specialStatusList, tabStatus);
             return processTabListDate(backList, allMpiIds);
         }catch(Exception e){
-            LOGGER.error("findRecipesForPatientAndTabStatus error :{}.", JSON.toJSONString(e));
+            LOGGER.error("findRecipesForPatientAndTabStatus error :.",e);
         }
         return null;
     }
@@ -1034,7 +1044,7 @@ public class RecipeListService extends RecipeBaseService{
                                     record.setLogisticsCompany(logComStr);
                                     record.setTrackingNumber(order.getTrackingNumber());
                                 } catch (ControllerException e) {
-                                    LOGGER.warn("findRecipesForPatientAndTabStatus: 获取物流信息失败，物流方code={}", order.getLogisticsCompany());
+                                    LOGGER.warn("findRecipesForPatientAndTabStatus: 获取物流信息失败，物流方code={}", order.getLogisticsCompany(),e);
                                 }
                             }
                             List<PatientRecipeDTO> recipeList = (List<PatientRecipeDTO>) order.getList();

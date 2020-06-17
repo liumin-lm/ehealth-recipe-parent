@@ -320,6 +320,12 @@ public class DrugListService extends BaseService<DrugListBean> {
             if(null == drugList.getUsingRate()){
                 drugList.setUsingRate(target.getUsingRate());
             }
+            if(null == drugList.getUsePathwaysId()){
+                drugList.setUsePathwaysId(target.getUsePathwaysId());
+            }
+            if(null == drugList.getUsingRateId()){
+                drugList.setUsingRateId(target.getUsingRateId());
+            }
             if(null == drugList.getProducer()){
                 drugList.setProducer(target.getProducer());
             }

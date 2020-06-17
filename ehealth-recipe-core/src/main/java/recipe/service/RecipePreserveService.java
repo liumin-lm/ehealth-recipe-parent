@@ -250,7 +250,7 @@ public class RecipePreserveService {
             try {
                 keys = redisClient.scan("*_" + mpiId + "_1");
             } catch (Exception e) {
-                LOGGER.error("redis error" + e.toString());
+                LOGGER.error("redis error" , e);
                 return;
             }
             if (keys != null && keys.size() > 0) {
@@ -556,7 +556,7 @@ public class RecipePreserveService {
         try {
             for (String usingRateParam : usingRateParams) {
                 String organId = usingRateParam.substring(20);
-                Map<String, Object> map = redisScanForHash(organId, "*");
+                Map<String, Object> map = redisScanForHash(usingRateParam, "*");
                 if (map != null){
                     UsingRateDTO usingRateDTO;
                     for (Map.Entry<String, Object> entry : map.entrySet()) {
@@ -571,7 +571,7 @@ public class RecipePreserveService {
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("findUsingRateRelationFromRedis error");
+            LOGGER.error("findUsingRateRelationFromRedis error",e);
         }
         return usingRateDTOS;
     }
@@ -588,7 +588,7 @@ public class RecipePreserveService {
         try {
             for (String usingPathwaysParam : usingPathwaysParams) {
                 String organId = usingPathwaysParam.substring(22);
-                Map<String, Object> map = redisScanForHash(organId, "*");
+                Map<String, Object> map = redisScanForHash(usingPathwaysParam, "*");
                 if (map != null){
                     UsePathwaysDTO usePathwaysDTO;
                     for (Map.Entry<String, Object> entry : map.entrySet()) {
@@ -603,7 +603,7 @@ public class RecipePreserveService {
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("findUsePathwaysRelationFromRedis error");
+            LOGGER.error("findUsePathwaysRelationFromRedis error",e);
         }
         return usePathwaysDTOS;
     }

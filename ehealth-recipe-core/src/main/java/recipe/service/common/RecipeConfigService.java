@@ -4,7 +4,6 @@ import com.ngari.base.BaseAPI;
 import com.ngari.base.clientconfig.service.IClientConfigService;
 import com.ngari.base.clientconfig.to.ClientConfigBean;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
-import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -77,7 +76,7 @@ public class RecipeConfigService {
                     redisClient.setEX(CacheConstant.KEY_RECIPEMODE + appKey, 24 * 3600L, val);
                 }
             } catch (Exception e) {
-                LOG.warn("getRecipeMode exception! appKey={}", appKey, e);
+                LOG.error("getRecipeMode exception! appKey={}", appKey, e);
             }
         }
 

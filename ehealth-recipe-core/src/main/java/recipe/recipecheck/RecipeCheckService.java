@@ -36,9 +36,6 @@ import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import org.jfree.chart.axis.StandardTickUnitSource;
-import recipe.audit.auditmode.AuditModeContext;
-import recipe.constant.RecipeStatusConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -48,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
+import recipe.audit.auditmode.AuditModeContext;
 import recipe.audit.bean.PAWebRecipeDanger;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
@@ -209,7 +207,7 @@ public class RecipeCheckService {
                     patient.setAge(null == dbPatient.getBirthday() ? 0 : DateConversion.getAge(dbPatient.getBirthday()));
                     patient.setBirthday(null == dbPatient.getBirthday() ? new Date() : dbPatient.getBirthday());
                 } catch (Exception e) {
-                    LOGGER.warn("covertRecipeListPageInfo patient is error. mpiId={}, ", r.getMpiid(), e);
+                    LOGGER.error("covertRecipeListPageInfo patient is error. mpiId={}, ", r.getMpiid(), e);
                 }
                 //显示一条详情数据
                 List<Recipedetail> details = detailDAO.findByRecipeId(r.getRecipeId());
@@ -252,7 +250,7 @@ public class RecipeCheckService {
 
                     }
                 } catch (Exception e) {
-                    LOGGER.info("covertRecipeListPageInfo recipeId:{},error:{}.", JSONUtils.toString(recipe), e.getMessage());
+                    LOGGER.error("covertRecipeListPageInfo recipeId:{},error:{}.", JSONUtils.toString(recipe), e.getMessage(),e);
                 }
 
                 map.put("dateString", dateString);
@@ -262,7 +260,7 @@ public class RecipeCheckService {
                     String recipeS = AESUtils.encrypt(recipe.getRecipeId() + "", "1234567890123gmw");
                     recipeBean.setRecipeIdE(recipeS);
                 } catch (Exception e) {
-                    LOGGER.error("findRecipeAndDetailsAndCheckById-recipeId加密异常");
+                    LOGGER.error("findRecipeAndDetailsAndCheckById-recipeId加密异常",e);
                 }
                 //checkResult 0:未审核 1:通过 2:不通过
                 Integer checkResult = getCheckResult(r);
@@ -309,7 +307,7 @@ public class RecipeCheckService {
             String recipeS = AESUtils.decrypt(recipeId, "1234567890123gmw");
             reicpeIdI = Integer.valueOf(recipeS);
         } catch (Exception e) {
-            LOGGER.error("findRecipeAndDetailsAndCheckByIdEncrypt-recipeId解密异常");
+            LOGGER.error("findRecipeAndDetailsAndCheckByIdEncrypt-recipeId解密异常",e);
             throw new DAOException("处方号解密异常");
         }
         //20200323 越权检查
@@ -348,7 +346,7 @@ public class RecipeCheckService {
             String recipeS = AESUtils.encrypt(recipe.getRecipeId() + "", "1234567890123gmw");
             r.setRecipeIdE(recipeS);
         } catch (Exception e) {
-            LOGGER.error("findRecipeAndDetailsAndCheckById-recipeId加密异常");
+            LOGGER.error("findRecipeAndDetailsAndCheckById-recipeId加密异常",e);
         }
         r.setRecipeId(recipe.getRecipeId());
         r.setRecipeType(recipe.getRecipeType());
@@ -431,7 +429,7 @@ public class RecipeCheckService {
                         guardian.setAge(ChinaIDNumberUtil.getAgeFromIDNumber(patient.getGuardianCertificate()));
                         guardian.setSex(ChinaIDNumberUtil.getSexFromIDNumber(patient.getGuardianCertificate()));
                     } catch (ValidateException exception) {
-                        LOGGER.warn("监护人使用身份证号获取年龄或者性别出错.{}.", exception.getMessage());
+                        LOGGER.warn("监护人使用身份证号获取年龄或者性别出错.{}.", exception.getMessage(),exception);
                     }
                 }
 
@@ -476,7 +474,7 @@ public class RecipeCheckService {
                 }
             }
         } catch (Exception e) {
-            LOGGER.info("findRecipeAndDetailsAndCheckById recipe:{},{}.", JSONUtils.toString(recipe), e.getMessage());
+            LOGGER.info("findRecipeAndDetailsAndCheckById recipe:{},{}.", JSONUtils.toString(recipe), e.getMessage(),e);
         }
 
         //获取审核不通过详情
@@ -852,7 +850,7 @@ public class RecipeCheckService {
                 }
             }
         } catch (ControllerException e) {
-            LOGGER.error("获取审核不通过原因字典文本出错reasonIds:" + JSONUtils.toString(reList));
+            LOGGER.error("获取审核不通过原因字典文本出错reasonIds:" + JSONUtils.toString(reList),e);
         }
         return reasonList;
     }
@@ -897,7 +895,7 @@ public class RecipeCheckService {
             String recipeS = AESUtils.decrypt(recipeIdE, "1234567890123gmw");
             paramMap.put("recipeId", Integer.valueOf(recipeS));
         } catch (Exception e) {
-            LOGGER.error("saveCheckResultEncrypt-recipeId解密异常");
+            LOGGER.error("saveCheckResultEncrypt-recipeId解密异常",e);
             throw new DAOException("处方号解密异常");
         }
         Map<String, Object> map = saveCheckResult(paramMap);
@@ -1058,7 +1056,7 @@ public class RecipeCheckService {
                         }
                     }
                 } catch (Exception e) {
-                    LOGGER.info("searchRecipeForChecker recipe:{},error:{}.", JSONUtils.toString(recipe), e.getMessage());
+                    LOGGER.info("searchRecipeForChecker recipe:{},error:{}.", JSONUtils.toString(recipe), e.getMessage(),e);
                 }
 
                 //checkResult 0:未审核 1:通过 2:不通过

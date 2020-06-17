@@ -33,7 +33,8 @@ import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
@@ -53,7 +54,7 @@ import java.util.*;
 @RpcBean("organDrugListService")
 public class OrganDrugListService implements IOrganDrugListService {
 
-    private static Logger logger = Logger.getLogger(OrganDrugListService.class);
+    private static final Logger logger = LoggerFactory.getLogger(OrganDrugListService.class);
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
 
@@ -359,7 +360,7 @@ public class OrganDrugListService implements IOrganDrugListService {
                 });
             }
         }catch(Exception e){
-            logger.info("addOrganDrugListToBy 同步到百洋药企药品数据出错："+ e.getMessage());
+            logger.error("addOrganDrugListToBy 同步到百洋药企药品数据出错："+ e.getMessage(),e);
         }
     }
 
@@ -394,7 +395,7 @@ public class OrganDrugListService implements IOrganDrugListService {
             HisResponseTO hisResponseTO = hisService.uploadDrugCatalogue(saveOrganDrugList.getOrganId(),drugCategoryReqs);
             logger.info("hisResponseTO parames:" + JSONUtils.toString(hisResponseTO));
         } catch (Exception e) {
-            logger.info("上传药品到监管平台失败,{"+ JSONUtils.toString(drugCategoryReqs)+"},{"+e.getMessage()+"}.");
+            logger.error("上传药品到监管平台失败,{"+ JSONUtils.toString(drugCategoryReqs)+"},{"+e.getMessage()+"}.",e);
         }
     }
 
@@ -642,17 +643,21 @@ public class OrganDrugListService implements IOrganDrugListService {
      * 更新药品最新的价格等
      *
      * @param organId      机构id
-     * @param salePrice    药物金额
      * @param recipeDetail
      */
-    public void saveOrganDrug(Integer organId, BigDecimal salePrice, Recipedetail recipeDetail) {
+    public void saveOrganDrug(Integer organId, Recipedetail recipeDetail) {
         if (null == recipeDetail || null == organId || null == recipeDetail.getDrugId()) {
+            logger.warn("saveOrganDrug  organId={}, recipeDetail：{}", organId, JSONUtils.toString(recipeDetail));
             return;
         }
         OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndDrugId(organId, recipeDetail.getDrugId());
+        if (null == organDrug) {
+            logger.warn("saveOrganDrug  organDrug is null organId={}, DrugId：{}", organId, recipeDetail.getDrugId());
+            return;
+        }
         Boolean isUpdate = false;
-        if (null != salePrice) {
-            organDrug.setSalePrice(salePrice);
+        if (null != recipeDetail.getSalePrice()) {
+            organDrug.setSalePrice(recipeDetail.getSalePrice());
             isUpdate = true;
         }
         if (StringUtils.isNotEmpty(recipeDetail.getDrugSpec())) {

@@ -41,7 +41,6 @@ import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
 import networkclinic.api.service.INetworkclinicMsgService;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -1323,6 +1322,7 @@ public class RecipeServiceSub {
         r.setRecipeSourceType(2);
         r.setRecipeCode(recipe.getRecipeCode());
         r.setClinicOrgan(recipe.getClinicOrgan());
+        r.setDetailData(recipe.getDetailData());
         return r;
     }
 
@@ -1361,7 +1361,7 @@ public class RecipeServiceSub {
                     guardian.setAge(ChinaIDNumberUtil.getAgeFromIDNumber(patient.getGuardianCertificate()));
                     guardian.setSex(ChinaIDNumberUtil.getSexFromIDNumber(patient.getGuardianCertificate()));
                 } catch (ValidateException exception) {
-                    LOGGER.warn("监护人使用身份证号获取年龄或者性别出错.{}.", exception.getMessage());
+                    LOGGER.warn("监护人使用身份证号获取年龄或者性别出错.{}.", exception.getMessage(),exception);
                 }
                 map.put("guardian", guardian);
             }
@@ -1397,7 +1397,7 @@ public class RecipeServiceSub {
 
             }
         }catch(Exception e){
-            LOGGER.info("RecipeServiceSub.getRecipeAndDetailByIdImpl 查询剂型出错, recipeId:{},{}.", recipeId, e.getMessage());
+            LOGGER.info("RecipeServiceSub.getRecipeAndDetailByIdImpl 查询剂型出错, recipeId:{},{}.", recipeId, e.getMessage(),e);
         }
 
         //中药处方处理

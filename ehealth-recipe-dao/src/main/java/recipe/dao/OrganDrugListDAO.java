@@ -787,10 +787,10 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
     @DAOMethod(sql = "select DISTINCT organId from OrganDrugList ")
     public abstract List<Integer> findOrganIds();
 
-    @DAOMethod(sql = "update OrganDrugList set usingRate=:newUsingRate where usingRate=:oldUsingRate and organId=:organId")
+    @DAOMethod(sql = "update OrganDrugList set usingRateId=:newUsingRate where usingRate=:oldUsingRate and organId=:organId")
     public abstract void updateUsingRateByUsingRate(@DAOParam("organId") Integer organId,@DAOParam("oldUsingRate") String oldUsingRate ,@DAOParam("newUsingRate") String newUsingRate);
 
-    @DAOMethod(sql = "update OrganDrugList set usePathways=:newUsePathways where usePathways=:oldUsePathways and organId=:organId")
+    @DAOMethod(sql = "update OrganDrugList set usePathwaysId=:newUsePathways where usePathways=:oldUsePathways and organId=:organId")
     public abstract void updateUsePathwaysByUsePathways(@DAOParam("organId") Integer organId,@DAOParam("oldUsePathways") String oldUsePathways ,@DAOParam("newUsePathways") String newUsePathways);
 
     public List<Map<String,Object>> findAllUsingRate(){
@@ -799,7 +799,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
             @Override
             public void execute(StatelessSession ss) throws Exception {
 
-                StringBuilder hql = new StringBuilder("select DISTINCT OrganID,usingRate from OrganDrugList WHERE organId > 0 AND usingRate != '' AND usingRate is NOT NULL ORDER BY organId");
+                StringBuilder hql = new StringBuilder("select DISTINCT organId,usingRate from OrganDrugList WHERE organId > 0 AND usingRate != '' AND usingRate is NOT NULL ORDER BY organId");
                 Query query = ss.createQuery(hql.toString());
                 List<Object[]> objects = query.list();
                 List<Map<String,Object>> result = Lists.newArrayList();

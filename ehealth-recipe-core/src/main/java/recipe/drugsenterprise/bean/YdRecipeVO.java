@@ -40,7 +40,7 @@ public class YdRecipeVO {
             recipeVo.setBirthdate(DateConversion.formatDate(birthday));
             recipeVo.setAge(age + "");
         } catch (Exception e) {
-            LOGGER.info("YdRecipeVO  获取身份信息出错");
+            LOGGER.info("YdRecipeVO  获取身份信息出错",e);
         }
 
         //转换组织结构编码

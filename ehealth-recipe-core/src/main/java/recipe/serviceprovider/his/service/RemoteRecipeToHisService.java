@@ -12,8 +12,6 @@ import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.visit.mode.*;
 import com.ngari.his.visit.service.IVisitService;
-import com.ngari.patient.dto.OrganDTO;
-import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeCommonReqTO;
 import com.ngari.recipe.common.RecipeCommonResTO;
 import com.ngari.recipe.his.service.IRecipeToHisService;
@@ -66,7 +64,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         try {
             hisResponse = hisService.canVisit(hisRequest);
         } catch (Exception e) {
-            LOGGER.warn("canVisit his error. request={}", JSONUtils.toString(hisRequest), e);
+            LOGGER.error("canVisit his error. request={}", JSONUtils.toString(hisRequest), e);
         }
         LOGGER.info("canVisit response={}", JSONUtils.toString(hisResponse));
         RecipeCommonResTO response = new RecipeCommonResTO();
@@ -159,7 +157,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         try {
             hisResponse = hisService.visitRegist(hisRequest);
         } catch (Exception e) {
-            LOGGER.warn("visitRegist his error. request={}", JSONUtils.toString(hisRequest), e);
+            LOGGER.error("visitRegist his error. request={}", JSONUtils.toString(hisRequest), e);
         }
         LOGGER.info("visitRegist response={}", JSONUtils.toString(hisResponse));
         RecipeCommonResTO response = new RecipeCommonResTO();
@@ -252,7 +250,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
             try {
                 hisResponse = hisService.queryVisitStatus(hisRequest);
             } catch (Exception e) {
-                LOGGER.info("queryVisitStatus his error. request={}", JSONUtils.toString(hisRequest), e);
+                LOGGER.error("queryVisitStatus his error. request={}", JSONUtils.toString(hisRequest), e);
             }
             LOGGER.info("queryVisitStatus response={}", JSONUtils.toString(hisResponse));
             if(null == hisResponse){
@@ -331,7 +329,7 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
         try {
             cancelResponse = hisService.cancelVisit(cancelRequest);
         } catch (Exception e) {
-            LOGGER.warn("cancelVisit his error. request={}", JSONUtils.toString(cancelRequest));
+            LOGGER.error("cancelVisit his error. request={}", JSONUtils.toString(cancelRequest));
         }
         LOGGER.info("cancelVisit response={}", JSONUtils.toString(cancelResponse));
         if(null == cancelResponse){

@@ -203,7 +203,7 @@ public class RecipePatientService extends RecipeBaseService {
                                     total = total.add(saleDrug.getPrice().multiply(new BigDecimal(drugIdCountRel.get(saleDrug.getDrugId()))).divide(BigDecimal.ONE, 3, RoundingMode.UP));
                                 }
                             } catch (Exception e) {
-                                LOGGER.warn("findSupportDepList 重新计算药企ID为[{}]的结算价格出错. drugIds={}", dep.getId(), JSONUtils.toString(drugIds), e);
+                                LOGGER.error("findSupportDepList 重新计算药企ID为[{}]的结算价格出错. drugIds={}", dep.getId(), JSONUtils.toString(drugIds), e);
                                 //此处应该要把出错的药企从返回列表中剔除
                                 depDetailList.remove(depDetailList.size() - 1);
                                 continue;
@@ -412,7 +412,7 @@ public class RecipePatientService extends RecipeBaseService {
             }
             return res.getData();
         } catch (Exception e) {
-            LOGGER.error("queryPatientForHis error" + e);
+            LOGGER.error("queryPatientForHis error", e);
             throw new DAOException(609, "查患者信息异常:"+e.getMessage());
         }
     }

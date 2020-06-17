@@ -108,7 +108,7 @@ public class RecipeTimedTaskService {
         try {
             keys = redisClient.scan(HIS_RECIPE_KEY_PREFIX + "*");
         } catch (Exception e) {
-            LOGGER.error("redis error" + e.toString());
+            LOGGER.error("redis error" + e.toString(),e);
             return;
         }
         //取出每一个key对应的map
@@ -128,7 +128,7 @@ public class RecipeTimedTaskService {
                     try {
                         remoteRecipeService.saveRecipeDataFromPayment(recipeBean, recipeDetailBeans);
                     } catch (Exception e) {
-                        LOGGER.error("recipeService.saveRecipeDataFromPayment error" + e.toString());
+                        LOGGER.error("recipeService.saveRecipeDataFromPayment error" + e.toString(),e);
                         flag = false;
                     }finally {
                         if (flag){
@@ -209,7 +209,7 @@ public class RecipeTimedTaskService {
                 drugListDAO.update(organDrugList);
             }
         } catch (Exception e) {
-            LOGGER.info("RecipeTimedTaskService.noticeGetHisCheckStatusTask 更新异常{}", e.getMessage());
+            LOGGER.info("RecipeTimedTaskService.noticeGetHisCheckStatusTask 更新异常{}", e.getMessage(),e);
         }
     }
 

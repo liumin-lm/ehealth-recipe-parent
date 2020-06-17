@@ -18,7 +18,6 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
-import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.utils.VerifyUtils;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
@@ -125,7 +124,7 @@ public class DrugDistributionService {
                 return response;
             }
         } catch (Exception e) {
-            LOGGER.warn("purchase 请求对象异常数据. PurchaseRequest={}", JSONUtils.toString(request), e);
+            LOGGER.error("purchase 请求对象异常数据. PurchaseRequest={}", JSONUtils.toString(request), e);
             response.setMsg("请求对象异常数据");
             return response;
         }
@@ -177,7 +176,7 @@ public class DrugDistributionService {
                         wxService.urlJoin()+"/taobao/callBack_code", loginId+"$"+request.getRecipeId()+"$"+request.getAppId()));
                     LOGGER.info("DrugDistributionService.purchase AuthUrl:{}.", response.getAuthUrl());
                 } catch (Exception e) {
-                    LOGGER.warn("purchase 组装授权页出错. loginId={}", loginId, e);
+                    LOGGER.error("purchase 组装授权页出错. loginId={}", loginId, e);
                     response.setCode(CommonConstant.FAIL);
                     response.setMsg("跳转授权页面失败");
                 }
@@ -347,7 +346,7 @@ public class DrugDistributionService {
                 response.setCode(PurchaseResponse.TO_HOS_SUCCESS);
                 LOGGER.info("取药方式更新通知his. param={},result={}", JSONUtils.toString(updateTakeDrugWayReqTO), JSONUtils.toString(hisResult));
             }catch (Exception e){
-                LOGGER.error("取药方式更新 error "+e);
+                LOGGER.error("取药方式更新 error ",e);
             }
         }
         return response;
