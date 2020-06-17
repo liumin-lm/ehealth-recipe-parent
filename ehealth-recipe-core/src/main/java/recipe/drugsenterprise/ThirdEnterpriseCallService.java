@@ -1495,6 +1495,57 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     }
 
     @RpcService
+    public Integer scanStockEnterpriseForHis(Map<String, Object> paramMap) {
+        LOGGER.info("scanStockEnterpriseForHis:{}.", JSONUtils.toString(paramMap));
+        Integer organId = (Integer)paramMap.get("organId");
+        String enterpriseCode = (String)paramMap.get("enterpriseCode");
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAppKey(enterpriseCode);
+        if (drugsEnterprise == null) {
+            LOGGER.info("scanStockEnterpriseForHis 没有查询到对应的药企");
+            return 0;
+        }
+        Integer result = 1;
+        List data = (List)paramMap.get("data");
+        if (data != null) {
+            for (int i = 0; i < data.size(); i++) {
+                Map map = (Map)data.get(i);
+                String drugCode = (String)map.get("drugCode");
+                String total = (String)map.get("total");
+                if (StringUtils.isEmpty(drugCode) || StringUtils.isEmpty(total)) {
+                    return 0;
+                }
+                OrganDrugList organDrugList = null;
+                try {
+                    organDrugList = organDrugListDAO.getByOrganIdAndProducerCode(organId, drugCode);
+                } catch (Exception e) {
+                    LOGGER.error("scanStockEnterpriseForHis 查询机构药品错误 drugCode:{}.", drugCode , e);
+                }
+
+                if (organDrugList != null) {
+                    SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(organDrugList.getDrugId(), drugsEnterprise.getId());
+                    if (saleDrugList != null) {
+                        if (saleDrugList.getInventory() != null) {
+                            if (saleDrugList.getInventory().doubleValue() < Double.parseDouble(total)) {
+                                result = 0;
+                            }
+                        } else {
+                            return 0;
+                        }
+                    } else {
+                        return 0;
+                    }
+                } else {
+                    return 0;
+                }
+            }
+        }
+        return result;
+    }
+
+    @RpcService
     public StandardResultDTO downLoadRecipes(Map<String,Object> parames){
         StandardResultDTO standardResult = new StandardResultDTO();
         standardResult.setCode(StandardResultDTO.SUCCESS);

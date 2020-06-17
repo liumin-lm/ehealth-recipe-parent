@@ -448,4 +448,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     List<StandardResultBean> readjustDrugPrice(List<ReadjustDrugDTO> readjustDrugDTOS);
+
+    @RpcService
+    Integer scanStockEnterpriseForHis(Map<String, Object> paramMap);
 }
