@@ -250,7 +250,7 @@ public class RecipePreserveService {
             try {
                 keys = redisClient.scan("*_" + mpiId + "_1");
             } catch (Exception e) {
-                LOGGER.error("redis error" + e.toString());
+                LOGGER.error("redis error" , e);
                 return;
             }
             if (keys != null && keys.size() > 0) {
@@ -571,7 +571,7 @@ public class RecipePreserveService {
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("findUsingRateRelationFromRedis error");
+            LOGGER.error("findUsingRateRelationFromRedis error",e);
         }
         return usingRateDTOS;
     }
@@ -603,7 +603,7 @@ public class RecipePreserveService {
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("findUsePathwaysRelationFromRedis error");
+            LOGGER.error("findUsePathwaysRelationFromRedis error",e);
         }
         return usePathwaysDTOS;
     }

@@ -35,6 +35,7 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.omg.CORBA.TIMEOUT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -467,24 +468,26 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         return Boolean.TRUE;
     }
 
-    @RpcService
+    @RpcService(timeout = 600)
     public void dealUsingRate(){
         RecipePreserveService recipePreserveService = AppContextHolder.getBean("eh.recipePreserveService",RecipePreserveService.class);
         IUsingRateService usingRateService = AppContextHolder.getBean("eh.usingRateService",IUsingRateService.class);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         //查询含有药品的机构
         List<Integer> haveDrugOrgans = organDrugListDAO.findOrganIds();
-        LOGGER.info("查询含有药品的机构{}",haveDrugOrgans);
+        LOGGER.info("查询含有药品的机构{}",JSONUtils.toString(haveDrugOrgans));
         //已存在的对照同步处理
         Set<Integer> contrastOrganIds = Sets.newHashSet();
         List<UsingRateDTO> usingRateDTOs = recipePreserveService.findUsingRateRelationFromRedis();
         if (!CollectionUtils.isEmpty(usingRateDTOs)){
             contrastOrganIds = usingRateDTOs.stream().map(x ->x.getOrganId()).collect(Collectors.toSet());
         }
+        LOGGER.info("查询含有对照的机构{}",contrastOrganIds);
         List<Integer> contrastOrganIdList = new ArrayList<>(contrastOrganIds);
         usingRateService.saveUsingRateBatch(usingRateDTOs);
         //没有对照的机构处理
         List<Integer> noContrastOrganIds = haveDrugOrgans.stream().filter(item -> !contrastOrganIdList.contains(item) && item > 0).collect(Collectors.toList());
+        LOGGER.info("查询没有对照的机构{}",noContrastOrganIds);
         usingRateService.syncPlatToOrgan(noContrastOrganIds);
         //处理平台药品库
         this.dealDrugListUsingRate();
@@ -493,7 +496,8 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
     }
 
     //处理平台药品库
-    private void dealDrugListUsingRate(){
+    @RpcService(timeout = 600)
+    public void dealDrugListUsingRate(){
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         List<String> usingRates = drugListDAO.findUsingRateOfAll();
         IUsingRateService usingRateService = AppContextHolder.getBean("eh.usingRateService",IUsingRateService.class);
@@ -511,7 +515,8 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         }
     }
 
-    private void dealOrganDrugListUsingRate(){
+    @RpcService(timeout = 600)
+    public void dealOrganDrugListUsingRate(){
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<Map<String,Object>> usingRates = organDrugListDAO.findAllUsingRate();
         IUsingRateService usingRateService = AppContextHolder.getBean("eh.usingRateService",IUsingRateService.class);
@@ -527,7 +532,7 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         }
     }
 
-    @RpcService
+    @RpcService(timeout = 600)
     public void dealUsePathways(){
         RecipePreserveService recipePreserveService = AppContextHolder.getBean("eh.recipePreserveService",RecipePreserveService.class);
         IUsePathwaysService usePathwaysService = AppContextHolder.getBean("eh.usePathwaysService",IUsePathwaysService.class);
@@ -553,7 +558,8 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
     }
 
     //处理平台药品库
-    private void dealDrugListUsePathways(){
+    @RpcService(timeout = 600)
+    public void dealDrugListUsePathways(){
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         List<String> usePathways = drugListDAO.findUsePathwaysOfAll();
         IUsePathwaysService usePathwaysService = AppContextHolder.getBean("eh.usePathwaysService",IUsePathwaysService.class);
@@ -571,7 +577,8 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         }
     }
 
-    private void dealOrganDrugListUsePathways(){
+    @RpcService(timeout = 600)
+    public void dealOrganDrugListUsePathways(){
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<Map<String,Object>> usePathways = organDrugListDAO.findAllUsePathways();
         IUsePathwaysService usePathwaysService = AppContextHolder.getBean("eh.usePathwaysService",IUsePathwaysService.class);

@@ -18,7 +18,10 @@ import recipe.constant.RecipeSystemConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.service.*;
+import recipe.service.RecipeLogService;
+import recipe.service.RecipeMsgService;
+import recipe.service.RecipeService;
+import recipe.service.RecipeServiceSub;
 import recipe.util.MapValueUtil;
 
 import java.util.Map;
@@ -135,6 +138,7 @@ public abstract class AbstractAuidtMode implements IAuditMode{
         } catch (Exception e) {
             result.setCode(RecipeResultBean.FAIL);
             result.setError("更新处方失败，" + e.getMessage());
+            LOGGER.error("更新处方失败",e);
         }
     }
 }

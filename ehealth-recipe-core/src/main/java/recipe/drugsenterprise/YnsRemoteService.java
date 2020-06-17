@@ -20,7 +20,9 @@ import org.slf4j.LoggerFactory;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
-import recipe.drugsenterprise.bean.*;
+import recipe.drugsenterprise.bean.HdDrugRequestData;
+import recipe.drugsenterprise.bean.HdPosition;
+import recipe.drugsenterprise.bean.YnsPharmacyAndStockRequest;
 import recipe.util.MapValueUtil;
 
 import java.util.*;
@@ -151,7 +153,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
         } catch (Exception e) {
                 result.setCode(DrugEnterpriseResult.FAIL);
                 result.setMsg(e.getMessage());
-                LOGGER.error("YnsRemoteService.scanStock:[{}][{}]获取药品库存异常：{}",drugsEnterprise.getId(), drugsEnterprise.getName(), e.getMessage());
+                LOGGER.error("YnsRemoteService.scanStock:[{}][{}]获取药品库存异常：{}",drugsEnterprise.getId(), drugsEnterprise.getName(), e.getMessage(),e);
                 getFailResult(result,  e.getMessage());
             } finally {
                 try {
@@ -159,7 +161,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
                     result.setCode(DrugEnterpriseResult.FAIL);
                     result.setMsg(e.getMessage());
                     getFailResult(result,  e.getMessage());
-                    LOGGER.error("YnsRemoteService.scanStock:http请求资源关闭异常: {}！", e.getMessage());
+                    LOGGER.error("YnsRemoteService.scanStock:http请求资源关闭异常: {}！", e.getMessage(),e);
                 }
             }
             return result;
@@ -252,7 +254,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
         } catch (Exception e) {
             result.setCode(DrugEnterpriseResult.FAIL);
             result.setMsg(e.getMessage());
-            LOGGER.error("YnsRemoteService.findSupportDep:[{}][{}]获取药店列表异常：{}",enterprise.getId(), enterprise.getName(), e.getMessage());
+            LOGGER.error("YnsRemoteService.findSupportDep:[{}][{}]获取药店列表异常：{}",enterprise.getId(), enterprise.getName(), e.getMessage(),e);
             getFailResult(result,  e.getMessage());
         } finally {
             try {
@@ -260,7 +262,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
                 result.setCode(DrugEnterpriseResult.FAIL);
                 result.setMsg(e.getMessage());
                 getFailResult(result,  e.getMessage());
-                LOGGER.error("YnsRemoteService.findSupportDep:http请求资源关闭异常: {}！", e.getMessage());
+                LOGGER.error("YnsRemoteService.findSupportDep:http请求资源关闭异常: {}！", e.getMessage(),e);
             }
         }
         return result;

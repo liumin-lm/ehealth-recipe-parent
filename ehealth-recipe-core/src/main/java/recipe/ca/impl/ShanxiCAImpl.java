@@ -59,7 +59,7 @@ public class ShanxiCAImpl implements CAInterface {
                 return isSuccess;
             }
         } catch (Exception e){
-            LOGGER.error("ShanxiCAImpl caUserLoginAndGetCertificate 调用前置机失败 requestTO={}", JSONUtils.toString(requestTO));
+            LOGGER.error("ShanxiCAImpl caUserLoginAndGetCertificate 调用前置机失败 requestTO={}", JSONUtils.toString(requestTO),e);
             e.printStackTrace();
             return false;
         }

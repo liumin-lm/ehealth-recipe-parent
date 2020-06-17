@@ -63,7 +63,7 @@ public class HisprescriptionService extends BaseService<HisprescriptionTO> imple
                 response.setCode(RecipeCommonResTO.SUCCESS);
             } catch (DAOException e) {
                 response.setMsg("存储失败");
-                LOGGER.warn("createPrescription error. hisprescription={}", JSONUtils.toString(hisprescription), e);
+                LOGGER.error("createPrescription error. hisprescription={}", JSONUtils.toString(hisprescription), e);
             }
         } else {
             response.setMsg("对象为空");

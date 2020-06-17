@@ -373,7 +373,7 @@ public class RecipeHisService extends RecipeBaseService {
                 cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
             } catch (Exception e) {
                 //打印日志，程序继续执行，不影响支付回调
-                LOGGER.error("recipeDrugTake 获取健康卡失败:{},recipeId:{}.", e.getCause().getMessage(),recipe.getRecipeId());
+                LOGGER.error("recipeDrugTake 获取健康卡失败:{},recipeId:{}.", e.getCause().getMessage(),recipe.getRecipeId(),e);
             }
             DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, details, patientBean, cardBean);
             LOGGER.info("payNotify 请求参数:{}.", JSONUtils.toString(request));
@@ -982,7 +982,7 @@ public class RecipeHisService extends RecipeBaseService {
                 return false;
             }
         } catch (Exception e) {
-            LOGGER.error("skipHis error " + e.getMessage());
+            LOGGER.error("skipHis error " + e.getMessage(),e);
             //按原来流程走-西药中成药默认对接his
             if (!RecipeUtil.isTcmType(recipe.getRecipeType())) {
                 return false;

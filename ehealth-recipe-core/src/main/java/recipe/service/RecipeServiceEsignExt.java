@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import com.ngari.base.esign.service.IESignBaseService;
 import com.ngari.his.ca.model.CaSealRequestTO;
-import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.service.IRecipeService;
@@ -104,11 +103,11 @@ public class RecipeServiceEsignExt {
                     byteData = out.toByteArray();
                 }
             } catch (FileRegistryException e) {
-                LOGGER.error("RecipeServiceEsignExt download signFile occur FileRegistryException signFileId=" + recipe.getSignFile());
+                LOGGER.error("RecipeServiceEsignExt download signFile occur FileRegistryException signFileId=" + recipe.getSignFile(),e);
             } catch (FileRepositoryException e) {
-                LOGGER.error("RecipeServiceEsignExt download signFile occur FileRepositoryException signFileId=" + recipe.getSignFile());
+                LOGGER.error("RecipeServiceEsignExt download signFile occur FileRepositoryException signFileId=" + recipe.getSignFile(),e);
             } catch (IOException e) {
-                LOGGER.error("RecipeServiceEsignExt download signFile occur IOException signFileId=" + recipe.getSignFile());
+                LOGGER.error("RecipeServiceEsignExt download signFile occur IOException signFileId=" + recipe.getSignFile(),e);
             } finally {
                 if (null != bis) {
                     try {
@@ -234,6 +233,7 @@ public class RecipeServiceEsignExt {
             return reuslt;
         } catch (Exception e){
             e.printStackTrace();
+            LOGGER.error("saveSignRecipePDF 保存签名 ",e);
             return null;
         }
     }
@@ -252,6 +252,7 @@ public class RecipeServiceEsignExt {
                 try {
                     data = d.decodeBuffer(pdfBase64);
                 } catch (IOException e) {
+                    LOGGER.error("上传文件失败",e);
                     e.printStackTrace();
                 }
                 fileId = uploadRecipeSignFile(data, fileName, loginId);
@@ -296,6 +297,7 @@ public class RecipeServiceEsignExt {
             String reuslt = upResult?"success":"fail";
             return reuslt;
         } catch (Exception e){
+            LOGGER.error("saveSignRecipePDF2 保存签名",e);
             e.printStackTrace();
             return null;
         }
@@ -340,12 +342,12 @@ public class RecipeServiceEsignExt {
             file.delete();
             return meta.getFileId();
         } catch (Exception e) {
-            LOGGER.error("uploadRecipeSignFile exception:" + e.getMessage());
+            LOGGER.error("uploadRecipeSignFile exception:" + e.getMessage(),e);
         } finally {
             try {
                 fileOutputStream.close();
             } catch (Exception e) {
-                LOGGER.error("uploadRecipeSignFile exception:" + e.getMessage());
+                LOGGER.error("uploadRecipeSignFile exception:" + e.getMessage(),e);
             }
         }
         return null;

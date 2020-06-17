@@ -156,7 +156,7 @@ public class RecipeOrderService extends RecipeBaseService {
             AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
             remoteService.getJumpUrl(response, recipe, drugsEnterprise);
         } catch (Exception e) {
-            LOGGER.warn("获取跳转实现异常--{}", e);
+            LOGGER.error("获取跳转实现异常--", e);
             response.setCode(CommonConstant.FAIL);
             response.setMsg("获取跳转实现异常--{}" +  e);
             return response;
@@ -742,6 +742,7 @@ public class RecipeOrderService extends RecipeBaseService {
                             }
                         }
                     } catch (Exception e) {
+                        LOGGER.error("setOrderFee--", e);
                         result.setCode(RecipeResultBean.FAIL);
                         result.setMsg(e.getMessage());
                     }
@@ -881,7 +882,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     //重置药企处方价格
                     recipeFee = total;
                 } catch (Exception e) {
-                    LOGGER.warn("setOrderFee 重新计算药企ID为[{}]的结算价格出错. drugIds={}", enterpriseId,
+                    LOGGER.error("setOrderFee 重新计算药企ID为[{}]的结算价格出错. drugIds={}", enterpriseId,
                             JSONUtils.toString(drugIds), e);
                 }
             }
@@ -1084,7 +1085,7 @@ public class RecipeOrderService extends RecipeBaseService {
             }
             createOrderToDB(order, recipeIds, orderDAO, recipeDAO);
         } catch (DAOException e) {
-            LOGGER.warn("createOrder orderCode={}", order.getOrderCode(), e);
+            LOGGER.error("createOrder orderCode={}", order.getOrderCode(), e);
             saveFlag = false;
         } finally {
             //如果小概率造成orderCode重复，则修改并重试
@@ -1094,7 +1095,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     createOrderToDB(order, recipeIds, orderDAO, recipeDAO);
                     saveFlag = true;
                 } catch (DAOException e) {
-                    LOGGER.warn("createOrder again orderCode={}", order.getOrderCode(), e);
+                    LOGGER.error("createOrder again orderCode={}", order.getOrderCode(), e);
                     saveFlag = false;
                     result.setCode(RecipeResultBean.FAIL);
                     result.setMsg("保存订单系统错误");
@@ -1306,7 +1307,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         couponService.unlockCoupon(order.getCouponId());
                         orderAttrMap.put("couponId", null);
                     } catch (Exception e) {
-                        LOGGER.error("cancelOrder unlock coupon error. couponId={}, error={}", order.getCouponId(), e.getMessage());
+                        LOGGER.error("cancelOrder unlock coupon error. couponId={}, error={}", order.getCouponId(), e.getMessage(),e);
                     }
                 }
                 this.updateOrderInfo(order.getOrderCode(), orderAttrMap, result);
@@ -1332,7 +1333,7 @@ public class RecipeOrderService extends RecipeBaseService {
                             }
                         }
                     }catch (Exception e){
-                        LOGGER.info("RecipeOrderService.cancelOrder 来源于HIS的处方单更新hisRecipe的状态失败,error:{}.", e.getMessage());
+                        LOGGER.info("RecipeOrderService.cancelOrder 来源于HIS的处方单更新hisRecipe的状态失败,error:{}.", e.getMessage(),e);
                     }
                     //date 20200330
                     //调用支付平台取消支付接口
@@ -2174,7 +2175,7 @@ public class RecipeOrderService extends RecipeBaseService {
         } catch (Exception e) {
             result.setCode(RecipeResultBean.FAIL);
             result.setError("订单更新失败," + e.getMessage());
-            LOGGER.error("订单更新失败,{}", JSONUtils.toString(e.getMessage()));
+            LOGGER.error("订单更新失败,{}", e.getMessage(),e);
         }
 
         return result;
@@ -2290,7 +2291,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     apothecary.getDispensingApothecaryName(), apothecary.getDispensingApothecaryIdCard());
             return true;
         } catch (Exception e) {
-            LOGGER.error("updateApothecaryByOrderId e : {} ,apothecaryVO :{}", e, JSONUtils.toString(apothecary));
+            LOGGER.error("updateApothecaryByOrderId apothecaryVO :{}",JSONUtils.toString(apothecary),e);
             return false;
         }
     }

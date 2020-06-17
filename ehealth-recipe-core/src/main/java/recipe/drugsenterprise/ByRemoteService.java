@@ -140,13 +140,13 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    LOGGER.error("ByRemoteService.corresPondingHospDrugByOrganIdHttpRequest:[{}][{}]同步药品异常：{}",enterprise.getId(), enterprise.getName(), e.getMessage());
+                    LOGGER.error("ByRemoteService.corresPondingHospDrugByOrganIdHttpRequest:[{}][{}]同步药品异常：{}",enterprise.getId(), enterprise.getName(), e.getMessage(),e);
                 } finally {
                     try {
                         httpClient.close();
                     } catch (Exception e) {
                         e.printStackTrace();
-                        LOGGER.error("ByRemoteService.syncEnterpriseDrug:http请求资源关闭异常: {}！", e.getMessage());
+                        LOGGER.error("ByRemoteService.syncEnterpriseDrug:http请求资源关闭异常: {}！", e.getMessage(),e);
                     }
                 }
 
@@ -226,13 +226,13 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("ByRemoteService.syncEnterpriseDrug:[{}][{}]同步药品异常：{}",enterprise.getId(), enterprise.getName(), e.getMessage());
+                LOGGER.error("ByRemoteService.syncEnterpriseDrug:[{}][{}]同步药品异常：{}",enterprise.getId(), enterprise.getName(), e.getMessage(),e);
             } finally {
                 try {
                     httpClient.close();
                 } catch (Exception e) {
                     e.printStackTrace();
-                    LOGGER.error("ByRemoteService.syncEnterpriseDrug:http请求资源关闭异常: {}！", e.getMessage());
+                    LOGGER.error("ByRemoteService.syncEnterpriseDrug:http请求资源关闭异常: {}！", e.getMessage(),e);
                 }
             }
         }
@@ -545,13 +545,13 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("ByRemoteService.pushRecipeInfo:[{}][{}]推送处方异常：{}",enterprise.getId(), enterprise.getName(), e.getMessage());
+                LOGGER.error("ByRemoteService.pushRecipeInfo:[{}][{}]推送处方异常：{}",enterprise.getId(), enterprise.getName(), e.getMessage(),e);
             } finally {
                 try {
                     httpClient.close();
                 } catch (Exception e) {
                     e.printStackTrace();
-                    LOGGER.error("ByRemoteService.pushRecipeInfo:http请求资源关闭异常: {}！", e.getMessage());
+                    LOGGER.error("ByRemoteService.pushRecipeInfo:http请求资源关闭异常: {}！", e.getMessage(),e);
                 }
             }
 
@@ -598,13 +598,13 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.error("ByRemoteService.scanStock:[{}][{}]同步药品异常：{}",recipe.getDepart(), recipe.getDoctor(), e.getMessage());
+            LOGGER.error("ByRemoteService.scanStock:[{}][{}]同步药品异常：{}",recipe.getDepart(), recipe.getDoctor(), e.getMessage(),e);
         } finally {
             try {
                 httpClient.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("ByRemoteService.scanStock:http请求资源关闭异常: {}！", e.getMessage());
+                LOGGER.error("ByRemoteService.scanStock:http请求资源关闭异常: {}！", e.getMessage(),e);
             }
         }
         return result;

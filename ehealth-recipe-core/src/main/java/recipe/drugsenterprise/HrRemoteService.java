@@ -606,7 +606,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
             try {
                return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
             } catch (ControllerException e) {
-                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area);
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
             }
         }
         return "";
@@ -617,7 +617,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
         try {
             query = new String(queryString.getBytes("ISO-8859-1"), "utf-8");
         } catch (Exception e) {
-            LOGGER.info("getUtf8Str error.");
+            LOGGER.info("getUtf8Str error.",e);
         }
         return query;
     }

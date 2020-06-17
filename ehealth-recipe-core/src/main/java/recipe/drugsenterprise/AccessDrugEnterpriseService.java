@@ -3,7 +3,10 @@ package recipe.drugsenterprise;
 import com.google.common.collect.Maps;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
-import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.Pharmacy;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.controller.exception.ControllerException;
@@ -19,8 +22,10 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.DrugEnterpriseConstant;
-import recipe.dao.*;
-import recipe.purchase.IPurchaseService;
+import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.PharmacyDAO;
+import recipe.dao.RecipeDAO;
+import recipe.dao.SaleDrugListDAO;
 import recipe.purchase.PayModeOnline;
 import recipe.purchase.PurchaseService;
 import recipe.service.RecipeOrderService;
@@ -73,7 +78,7 @@ public abstract class AccessDrugEnterpriseService {
                 try {
                     RecipeBusiThreadPool.submitList(callables);
                 } catch (InterruptedException e) {
-                    LOGGER.error("updateAccessToken 线程池异常");
+                    LOGGER.error("updateAccessToken 线程池异常",e);
                 }
             }
         }
@@ -121,7 +126,7 @@ public abstract class AccessDrugEnterpriseService {
             try {
                 address.append(DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area));
             } catch (ControllerException e) {
-                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area);
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
             }
         }
     }

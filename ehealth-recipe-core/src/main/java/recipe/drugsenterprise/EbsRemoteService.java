@@ -31,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
-import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
@@ -41,6 +40,7 @@ import recipe.drugsenterprise.bean.EsbWebService;
 import recipe.service.RecipeLogService;
 import recipe.util.AppSiganatureUtils;
 import recipe.util.DateConversion;
+
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -165,7 +165,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
                     ebsDetail.setDirections(StringUtils.isNotEmpty(recipedetail.getUsingRateTextFromHis())?recipedetail.getUsingRateTextFromHis():usingRateDic.getText(recipedetail.getUsingRate())
                             + (StringUtils.isNotEmpty(recipedetail.getUsePathwaysTextFromHis())?recipedetail.getUsePathwaysTextFromHis():usePathwaysDic.getText(recipedetail.getUsePathways())));
                 }catch(Exception e){
-                    LOGGER.error("pushRecipeInfo 用法用量获取失败.");
+                    LOGGER.error("pushRecipeInfo 用法用量获取失败.",e);
                 }
                 ebsDetail.setUnitName(recipedetail.getDrugUnit());
                 if (flag == 1) {
@@ -472,7 +472,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
             try {
                 return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
             } catch (ControllerException e) {
-                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area);
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
             }
         }
         return "";

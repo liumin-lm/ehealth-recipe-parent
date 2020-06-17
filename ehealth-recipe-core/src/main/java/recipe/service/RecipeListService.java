@@ -339,7 +339,7 @@ public class RecipeListService extends RecipeBaseService{
                                     record.setLogisticsCompany(logComStr);
                                     record.setTrackingNumber(order.getTrackingNumber());
                                 } catch (ControllerException e) {
-                                    LOGGER.warn("processListDate KuaiDiNiaoCode get error. code={}", order.getLogisticsCompany());
+                                    LOGGER.warn("processListDate KuaiDiNiaoCode get error. code={}", order.getLogisticsCompany(),e);
                                 }
                             }
                             List<PatientRecipeDTO> recipeList = (List<PatientRecipeDTO>) order.getList();
@@ -654,7 +654,7 @@ public class RecipeListService extends RecipeBaseService{
             upderLineRecipesByHis = hisTask.get(5000, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.error("findHistoryRecipeList hisTask exception:{}",e.getMessage());
+            LOGGER.error("findHistoryRecipeList hisTask exception:{}",e.getMessage(),e);
         }
 
         //从Recipe表获取线上、线下处方
@@ -919,7 +919,7 @@ public class RecipeListService extends RecipeBaseService{
             }
             result.put("list",mapList);
         }catch (Exception e){
-            LOGGER.error("findAllRecipesForPatient error"+e.getMessage());
+            LOGGER.error("findAllRecipesForPatient error"+e.getMessage(),e);
         }
 
         return result;
@@ -960,7 +960,7 @@ public class RecipeListService extends RecipeBaseService{
             List<PatientRecipeBean> backList = recipeDAO.findTabStatusRecipesForPatient(allMpiIds, index, limit, recipeStatusList.getStatusList(), orderStatusList.getStatusList(), specialStatusList, tabStatus);
             return processTabListDate(backList, allMpiIds);
         }catch(Exception e){
-            LOGGER.error("findRecipesForPatientAndTabStatus error :{}.", JSON.toJSONString(e));
+            LOGGER.error("findRecipesForPatientAndTabStatus error :.",e);
         }
         return null;
     }
@@ -1044,7 +1044,7 @@ public class RecipeListService extends RecipeBaseService{
                                     record.setLogisticsCompany(logComStr);
                                     record.setTrackingNumber(order.getTrackingNumber());
                                 } catch (ControllerException e) {
-                                    LOGGER.warn("findRecipesForPatientAndTabStatus: 获取物流信息失败，物流方code={}", order.getLogisticsCompany());
+                                    LOGGER.warn("findRecipesForPatientAndTabStatus: 获取物流信息失败，物流方code={}", order.getLogisticsCompany(),e);
                                 }
                             }
                             List<PatientRecipeDTO> recipeList = (List<PatientRecipeDTO>) order.getList();

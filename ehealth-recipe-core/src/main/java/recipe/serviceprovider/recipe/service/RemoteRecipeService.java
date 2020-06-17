@@ -391,7 +391,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                     newRecipeMap.add(recipeMsgMap);
 
                 } catch (Exception e) {
-                    LOGGER.error("查询关联信息异常{}，对应的处方id{}", e, nowRecipeId);
+                    LOGGER.error("查询关联信息异常，对应的处方id{}", nowRecipeId,e);
                     e.printStackTrace();
                     throw new DAOException("查询处方信息异常！");
                 }
@@ -647,6 +647,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             return true;
         }catch (Exception e){
             e.printStackTrace();
+            LOGGER.error("updateRecipeInfoByRecipeId -{},error.",recipeId,e);
             return false;
         }
     }
