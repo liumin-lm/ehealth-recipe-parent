@@ -579,23 +579,25 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
 
     @RpcService(timeout = 600)
     public void dealOrganDrugListUsePathways(){
-        LOGGER.info("dealOrganDrugListUsePathways---1");
+        try {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<Map<String,Object>> usePathways = organDrugListDAO.findAllUsePathways();
         IUsePathwaysService usePathwaysService = AppContextHolder.getBean("eh.usePathwaysService",IUsePathwaysService.class);
-        LOGGER.info("dealOrganDrugListUsePathways---2");
         if (!CollectionUtils.isEmpty(usePathways)){
             usePathways.forEach(item -> {
-                LOGGER.info("dealOrganDrugListUsePathways---3");
                 Integer organId = (Integer) item.get("organId");
                 String usePathway = (String) item.get("usePathways");
                 LOGGER.info("dealOrganDrugListUsePathways---4");
                 UsePathwaysDTO usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organId,usePathway);
-                LOGGER.info("dealOrganDrugListUsePathways---4");
+                LOGGER.info("dealOrganDrugListUsePathways---5");
                 if (usePathway != null){
                     organDrugListDAO.updateUsePathwaysByUsePathways(organId,usePathway,String.valueOf(usePathwaysDTO.getId()));
                 }
             });
         }
+        }catch (Exception e){
+            LOGGER.error("dealOrganDrugListUsePathways",e);
+        }
+
     }
 }
