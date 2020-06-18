@@ -826,7 +826,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
             @Override
             public void execute(StatelessSession ss) throws Exception {
 
-                StringBuilder hql = new StringBuilder("select DISTINCT OrganID,usePathways from OrganDrugList WHERE organId > 0 AND usePathways != '' AND usePathways is NOT NULL ORDER BY organId");
+                StringBuilder hql = new StringBuilder("select DISTINCT organId,usePathways from OrganDrugList WHERE organId > 0 AND usePathways != '' AND usePathways is NOT NULL ORDER BY organId");
                 Query query = ss.createQuery(hql.toString());
                 List<Object[]> objects = query.list();
                 List<Map<String,Object>> result = Lists.newArrayList();

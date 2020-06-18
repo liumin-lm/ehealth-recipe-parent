@@ -22,6 +22,7 @@ import recipe.ca.ICommonCAServcie;
 import recipe.ca.factory.CommonCAFactory;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.dao.sign.SignDoctorCaInfoDAO;
+import recipe.service.RecipeService;
 
 import java.util.Date;
 
@@ -30,6 +31,7 @@ public class TianjinCAImpl implements CAInterface {
     private static final Logger LOGGER = LoggerFactory.getLogger(TianjinCAImpl.class);
     private ICommonCAServcie iCommonCAServcie= AppContextHolder.getBean("iCommonCAServcie", ICommonCAServcie.class);
     private DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
+    private RecipeService recipeService = AppContextHolder.getBean("recipeService", RecipeService.class);
     @Autowired
     private SignDoctorCaInfoDAO signDoctorCaInfoDAO;
 
@@ -103,6 +105,7 @@ public class TianjinCAImpl implements CAInterface {
         LOGGER.info("TianjinCAImpl commonCASignAndSeal start requestSealTO={},recipeId={},organId={},userAccount={},caPassword={}",
                 JSONUtils.toString(requestSealTO),recipe.getRecipeId(), organId, userAccount, caPassword);
         CaSignResultVo signResultVo = new CaSignResultVo();
+        signResultVo.setRecipeId(recipe.getRecipeId());
 
         try {
             //电子签名
@@ -119,6 +122,7 @@ public class TianjinCAImpl implements CAInterface {
             if (responseTO == null || responseTO.getCode() != 200) {
                 signResultVo.setCode(responseTO.getCode());
                 signResultVo.setMsg(responseTO.getMsg());
+                signResultVo.setResultCode(0);
                 LOGGER.error("caSignBusiness Romote error, signResultVo={}", JSONUtils.toString(signResultVo));
                 return signResultVo;
             }
@@ -133,6 +137,7 @@ public class TianjinCAImpl implements CAInterface {
             CaSignDateResponseTO responseDateTO = iCommonCAServcie.caSignDateBusiness(caSignDateRequestTO);
             if (responseDateTO == null || responseDateTO.getCode() != 200) {
                 signResultVo.setCode(responseDateTO.getCode());
+                signResultVo.setResultCode(0);
                 signResultVo.setMsg(responseDateTO.getMsg());
                 LOGGER.error("caSignDateBusiness Romote error, signResultVo={}", JSONUtils.toString(signResultVo));
                 return signResultVo;
@@ -156,19 +161,32 @@ public class TianjinCAImpl implements CAInterface {
             LOGGER.info("caSealBusiness end responseSealTO={}", JSONUtils.toString(responseTO));
 
             if (responseSealTO == null || responseSealTO.getCode() != 200){
+                signResultVo.setResultCode(0);
                 signResultVo.setCode(responseSealTO.getCode());
                 signResultVo.setMsg(responseSealTO.getMsg());
                 LOGGER.error("caSealBusiness Romote error, signResultVo={}", JSONUtils.toString(signResultVo));
                 return signResultVo;
             }
             signResultVo.setPdfBase64(responseSealTO.getPdfBase64File());
+            signResultVo.setResultCode(1);
         } catch (Exception e){
             LOGGER.error("TianjinCAImpl commonCASignAndSeal 调用前置机失败 requestSealTO={},recipeId={},organId={},userAccount={},caPassword={}",
                     JSONUtils.toString(requestSealTO), recipe.getRecipeId(),organId, userAccount, caPassword,e );
-            e.printStackTrace();
+            signResultVo.setResultCode(0);
+        }finally {
+            LOGGER.error("TianjinCAImpl finally callback signResultVo={}", JSONUtils.toString(signResultVo));
+            this.callbackRecipe(signResultVo, null == recipe.getChecker());
         }
-        LOGGER.info("TianjinCAImpl commonCASignAndSeal end recipeId={},params: {}", recipe.getRecipeId(),JSONUtils.toString(signResultVo));
 
+        LOGGER.info("TianjinCAImpl commonCASignAndSeal end recipeId={},params: {}", recipe.getRecipeId(),JSONUtils.toString(signResultVo));
         return signResultVo;
+    }
+
+    private void callbackRecipe(CaSignResultVo signResultVo, boolean isDoctor) {
+        if (isDoctor) {
+            recipeService.retryCaDoctorCallBackToRecipe(signResultVo);
+        }else {
+            recipeService.retryCaPharmacistCallBackToRecipe(signResultVo);
+        }
     }
 }

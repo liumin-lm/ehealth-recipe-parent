@@ -40,8 +40,10 @@ public class QueryRecipeInfoDTO implements Serializable {
     private String doctorIDCard;
     @ItemProperty(alias="处方医生姓名")
     private String doctorName;
-    @ItemProperty(alias="开单科室")
+    @ItemProperty(alias="开单行政科室代码")
     private String deptID;
+    @ItemProperty(alias="开单挂号科室代码")
+    private String deptCode;
     @ItemProperty(alias="开单科室名称")
     private String deptName;
     @ItemProperty(alias="处方审核医生")
@@ -442,5 +444,13 @@ public class QueryRecipeInfoDTO implements Serializable {
 
     public void setDoctorIDCard(String doctorIDCard) {
         this.doctorIDCard = doctorIDCard;
+    }
+
+    public String getDeptCode() {
+        return deptCode;
+    }
+
+    public void setDeptCode(String deptCode) {
+        this.deptCode = deptCode;
     }
 }

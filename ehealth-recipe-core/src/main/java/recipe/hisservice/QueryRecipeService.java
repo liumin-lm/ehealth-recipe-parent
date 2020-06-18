@@ -11,12 +11,10 @@ import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
+import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.DepartmentService;
-import com.ngari.patient.service.DoctorService;
-import com.ngari.patient.service.EmploymentService;
+import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.OrganDrugChangeBean;
 import com.ngari.recipe.common.RecipeResultBean;
@@ -229,6 +227,9 @@ public class QueryRecipeService implements IQueryRecipeService {
                 recipeDTO.setDeptID(departmentDTO.getCode());
                 //科室名
                 recipeDTO.setDeptName(departmentDTO.getName());
+                AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
+                AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
+                recipeDTO.setDeptCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
             }
             //处方类型
             recipeDTO.setRecipeType((null != recipe.getRecipeType()) ? recipe.getRecipeType().toString() : null);

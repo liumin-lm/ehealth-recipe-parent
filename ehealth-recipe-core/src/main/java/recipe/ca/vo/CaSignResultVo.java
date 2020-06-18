@@ -21,6 +21,29 @@ public class CaSignResultVo {
 
     private String msg;
 
+    //当前ca关联的处方id
+    private Integer recipeId;
+
+    //添加字段ca结果（-1: 当前ca操作未结束；0：当前ca已结束，结果失败; 1：当前ca已结束，结果成功）
+    //date 20200617
+    private Integer resultCode;
+
+    public Integer getRecipeId() {
+        return recipeId;
+    }
+
+    public void setRecipeId(Integer recipeId) {
+        this.recipeId = recipeId;
+    }
+
+    public Integer getResultCode() {
+        return resultCode;
+    }
+
+    public void setResultCode(Integer resultCode) {
+        this.resultCode = resultCode;
+    }
+
     public Integer getCode() {
         return code;
     }

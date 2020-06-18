@@ -1,6 +1,6 @@
 package recipe.drugsenterprise;
 
-import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -63,11 +63,11 @@ public class RemoteDrugEnterpriseService {
         String drugsEnterpriseList = parameterDao.getByName("drugsEnterpriseList");
         if (StringUtils.isNotEmpty(drugsEnterpriseList) && enterprise != null && hasDep(enterprise.getCallSys(), drugsEnterpriseList)) {
             //药企对应的service为空，则通过前置机进行推送
-            IRecipeHisService recipeHisService = AppContextHolder.getBean("his.iRecipeHisService",IRecipeHisService.class);
+            IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             PushRecipeAndOrder pushRecipeAndOrder = getPushRecipeAndOrder(recipe, enterprise);
-            boolean pushResult = recipeHisService.pushSingleRecipeInfo(pushRecipeAndOrder);
+            boolean pushResult = recipeEnterpriseService.pushSingleRecipeInfo(pushRecipeAndOrder);
             if (pushResult) {
                 result.setCode(1);
             } else {
@@ -196,11 +196,11 @@ public class RemoteDrugEnterpriseService {
         String drugsEnterpriseList = parameterDao.getByName("drugsEnterpriseList");
         if (StringUtils.isNotEmpty(drugsEnterpriseList) && drugsEnterprise != null && hasDep(drugsEnterprise.getCallSys(), drugsEnterpriseList)) {
             //通过前置机调用
-            IRecipeHisService recipeHisService = AppContextHolder.getBean("his.iRecipeHisService",IRecipeHisService.class);
+            IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             ScanRequestBean scanRequestBean = getScanRequestBean(recipe, drugsEnterprise);
-            return recipeHisService.scanStock(scanRequestBean);
+            return recipeEnterpriseService.scanStock(scanRequestBean);
         }
         AccessDrugEnterpriseService drugEnterpriseService = null;
         if (null == drugsEnterprise) {
@@ -290,10 +290,11 @@ public class RemoteDrugEnterpriseService {
         String drugsEnterpriseList = parameterDao.getByName("drugsEnterpriseList");
         if (StringUtils.isNotEmpty(drugsEnterpriseList) && drugsEnterprise != null && hasDep(drugsEnterprise.getCallSys(), drugsEnterpriseList)) {
             //通过前置机调用
-            IRecipeHisService recipeHisService = AppContextHolder.getBean("his.iRecipeHisService",IRecipeHisService.class);
+            IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeIds.get(0));
-            List<DepDetailBean> depDetailBeans =  recipeHisService.findSupportDep(recipeIds.get(0), drugsEnterprise.getId(), ext, recipe.getClinicOrgan());
+            ScanRequestBean scanRequestBean = getScanRequestBean(recipe, drugsEnterprise);
+            List<DepDetailBean> depDetailBeans =  recipeEnterpriseService.findSupportDep(scanRequestBean, ext);
             result.setObject(ObjectCopyUtils.convert(depDetailBeans, com.ngari.recipe.drugsenterprise.model.DepDetailBean.class));
             return result;
         }

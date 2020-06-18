@@ -53,6 +53,10 @@ public class CommonRecipe implements Serializable{
         this.organId = organId;
     }
 
+    //开当前处方的配置项信息
+    @ItemProperty(alias = "可开长处方按钮状态、长处方开药天数、非长处方开药天数")
+    private String recipeJsonConfig;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "CommonRecipeId", nullable = false)
@@ -107,6 +111,14 @@ public class CommonRecipe implements Serializable{
 
     public void setLastModify(Date lastModify) {
         this.lastModify = lastModify;
+    }
+
+    public String getRecipeJsonConfig() {
+        return recipeJsonConfig;
+    }
+
+    public void setRecipeJsonConfig(String recipeJsonConfig) {
+        this.recipeJsonConfig = recipeJsonConfig;
     }
 
     @Override

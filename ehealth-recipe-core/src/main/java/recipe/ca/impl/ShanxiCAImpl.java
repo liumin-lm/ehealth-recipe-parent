@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import recipe.ca.CAInterface;
 import recipe.ca.ICommonCAServcie;
 import recipe.ca.vo.CaSignResultVo;
+import recipe.service.RecipeService;
 import recipe.util.RedisClient;
 
 /**
@@ -26,6 +27,7 @@ import recipe.util.RedisClient;
 public class ShanxiCAImpl implements CAInterface {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShanxiCAImpl.class);
     private ICommonCAServcie iCommonCAServcie= AppContextHolder.getBean("iCommonCAServcie", ICommonCAServcie.class);
+    private RecipeService recipeService = AppContextHolder.getBean("recipeService", RecipeService.class);
     /**
      * CA用户注册、申请证书接口
      * @param doctorId
@@ -97,7 +99,7 @@ public class ShanxiCAImpl implements CAInterface {
         LOGGER.info("ShanxiCAImpl commonCASignAndSeal start requestSealTO={},recipeId={},organId={},userAccount={},caPassword={}",
                 JSONUtils.toString(requestSealTO), recipe.getRecipeId(),organId, userAccount, caPassword);
         CaSignResultVo signResultVo = new CaSignResultVo();
-
+        signResultVo.setRecipeId(recipe.getRecipeId());
         try {
             //电子签名（暂不实现）
 
@@ -128,6 +130,7 @@ public class ShanxiCAImpl implements CAInterface {
             CaSignDateResponseTO responseDateTO = iCommonCAServcie.caSignDateBusiness(caSignDateRequestTO);
             if (responseDateTO == null || responseDateTO.getCode() != 200) {
                 signResultVo.setCode(responseDateTO.getCode());
+                signResultVo.setResultCode(0);
                 signResultVo.setMsg(responseDateTO.getMsg());
                 return signResultVo;
             }
@@ -145,21 +148,32 @@ public class ShanxiCAImpl implements CAInterface {
             CaSealResponseTO responseSealTO = iCommonCAServcie.caSealBusiness(requestSealTO);
 
             if (responseSealTO == null || responseSealTO.getCode() != 200){
-                signResultVo.setCode(responseSealTO.getCode());
-                signResultVo.setMsg(responseSealTO.getMsg());
+                signResultVo.setResultCode(0);
+                signResultVo.setCode(responseDateTO.getCode());
+                signResultVo.setMsg(responseDateTO.getMsg());
                 return signResultVo;
             }
             signResultVo.setPdfBase64(responseSealTO.getPdfBase64File());
             signResultVo.setCode(200);
+            signResultVo.setResultCode(1);
         } catch (Exception e){
             LOGGER.error("ShanxiCAImpl commonCASignAndSeal 调用前置机失败 requestTO={}", requestSealTO.toString(),e);
-            e.printStackTrace();
+            signResultVo.setResultCode(0);
+        }finally {
+            LOGGER.error("ShanxiCAImpl finally callback signResultVo={}", JSONUtils.toString(signResultVo));
+            this.callbackRecipe(signResultVo, null == recipe.getChecker());
         }
         LOGGER.info("ShanxiCAImpl commonCASignAndSeal end recipeId={},params: {}", recipe.getRecipeId(),JSONUtils.toString(signResultVo));
         return signResultVo;
     }
 
-
+    private void callbackRecipe(CaSignResultVo signResultVo, boolean isDoctor) {
+        if (isDoctor) {
+            recipeService.retryCaDoctorCallBackToRecipe(signResultVo);
+        }else {
+            recipeService.retryCaPharmacistCallBackToRecipe(signResultVo);
+        }
+    }
 
 
 }
