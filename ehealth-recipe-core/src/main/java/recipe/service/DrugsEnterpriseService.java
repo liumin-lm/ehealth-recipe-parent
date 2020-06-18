@@ -450,7 +450,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
     }
 
     @RpcService
-    public String getTrackingNumber(String logisticsCompany) {
+    public String getTrackingNumberText(String logisticsCompany) {
         try{
             return DictionaryController.instance().get("eh.cdr.dictionary.KuaiDiNiaoCode")
                     .getText(logisticsCompany);
