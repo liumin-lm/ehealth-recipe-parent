@@ -8,18 +8,19 @@ package com.ngari.recipe.sign.model;
  **/
 public class ParamToThirdDTO {
 
-    private String tid;
+    private String jobNumber;
     private String thirdParty;
     private String signMsg;
     private String cretMsg;
     private String bussNo;
+    private String organizeCode;
 
-    public String getTid() {
-        return tid;
+    public String getJobNumber() {
+        return jobNumber;
     }
 
-    public void setTid(String tid) {
-        this.tid = tid;
+    public void setJobNumber(String jobNumber) {
+        this.jobNumber = jobNumber;
     }
 
     public String getThirdParty() {
@@ -52,5 +53,13 @@ public class ParamToThirdDTO {
 
     public void setBussNo(String bussNo) {
         this.bussNo = bussNo;
+    }
+
+    public String getOrganizeCode() {
+        return organizeCode;
+    }
+
+    public void setOrganizeCode(String organizeCode) {
+        this.organizeCode = organizeCode;
     }
 }
