@@ -534,6 +534,10 @@ public class HisRequestInit {
             RecipeOrder order = orderDAO.getByOrderCode(recipe.getOrderCode());
 
             if (order != null) {
+                //如果预结算有值则直接返回预结算的金额
+                if(order.getPreSettletotalAmount() != null) {
+                    requestTO.setAmount(order.getPreSettletotalAmount().toString());
+                }
                 //省医保订单新增逻辑
                 switch (order.getOrderType()) {
                     case 0:
