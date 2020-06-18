@@ -74,6 +74,9 @@ public class SignToThirdService {
             OrganDTO organDTO = organService.getOrganByOrganizeCode(organizeCode);
             EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
             EmploymentDTO employmentDTO = employmentService.getByJobNumberAndOrganId(jobNumber,organDTO.getOrganId());
+            if(employmentDTO == null){
+                throw new DAOException(DAOException.VALUE_NEEDED, "未在该机构下找到该医生");
+            }
             DoctorService doctorService = BasicAPI.getService(DoctorService.class);
             DoctorDTO doctorDTO = doctorService.getByDoctorId(employmentDTO.getDoctorId());
             String userAccount = doctorDTO.getIdNumber();
