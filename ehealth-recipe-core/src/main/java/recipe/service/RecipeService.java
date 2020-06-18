@@ -1704,7 +1704,7 @@ public class RecipeService extends RecipeBaseService {
 
         //首先判断当前ca是否是有结束结果的
         if(-1 == resultVo.getResultCode()){
-            LOGGER.info("当期医生ca签名异步调用接口返回：没有结果，");
+            LOGGER.info("当期处方{}医生ca签名异步调用接口返回：未触发处方业务结果", recipeId);
             return;
         }
 
@@ -1872,7 +1872,7 @@ public class RecipeService extends RecipeBaseService {
 
         //首先判断当前ca是否是有结束结果的
         if(-1 == resultVo.getResultCode()){
-            LOGGER.info("当期医生ca签名异步调用接口返回：没有结果，");
+            LOGGER.info("当期处方{}药师ca签名异步调用接口返回：未触发处方业务结果", recipeId);
             return;
         }
 
