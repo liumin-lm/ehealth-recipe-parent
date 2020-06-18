@@ -6,6 +6,7 @@ import com.ngari.patient.service.OrganConfigService;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
 import ctd.account.UserRoleToken;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
@@ -21,6 +22,7 @@ import recipe.constant.ErrorCode;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.serviceprovider.BaseService;
+import recipe.util.DictionaryUtil;
 
 import java.util.*;
 
@@ -445,5 +447,16 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         DrugsEnterprise enterprise = enterpriseDAO.getByManageUnit(ur.getManageUnit());
         list.add(enterprise);
         return list;
+    }
+
+    @RpcService
+    public String getTrackingNumber(String logisticsCompany) {
+        try{
+            return DictionaryController.instance().get("eh.cdr.dictionary.KuaiDiNiaoCode")
+                    .getText(logisticsCompany);
+        }catch (Exception e){
+            LOGGER.info("getTrackingNumber error msg:{}.", e.getMessage());
+        }
+        return "";
     }
 }
