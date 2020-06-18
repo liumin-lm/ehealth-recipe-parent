@@ -579,7 +579,6 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
 
     @RpcService(timeout = 600)
     public void dealOrganDrugListUsePathways(){
-        try {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<Map<String,Object>> usePathways = organDrugListDAO.findAllUsePathways();
         IUsePathwaysService usePathwaysService = AppContextHolder.getBean("eh.usePathwaysService",IUsePathwaysService.class);
@@ -595,9 +594,5 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
                 }
             });
         }
-        }catch (Exception e){
-            LOGGER.error("dealOrganDrugListUsePathways",e);
-        }
-
     }
 }
