@@ -808,35 +808,35 @@ public class RecipeService extends RecipeBaseService {
                     //通过工厂获取对应的实现CA类
                     CAInterface caInterface = commonCAFactory.useCAFunction(organId);
                     CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
-                    if(-1 == resultVo.getResultCode()){
-                        checkResult.setCode(RecipeResultBean.NO_ADDRESS);
-                        return checkResult;
-                    }
-                    String fileId = null;
-                    checkResult.setMsg(resultVo.getMsg());
-                    //date20200617
-                    //添加异步操作
-                    if(-1 == resultVo.getCode()){
-                        checkResult.setCode(RecipeResultBean.NO_ADDRESS);
-                        return checkResult;
-                    }
-                    if (resultVo != null && 200 == resultVo.getCode()) {
-                        //保存签名值、时间戳、电子签章文件
-                        checkResult.setCode(RecipeResultBean.SUCCESS);
-                        RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
-                        resultVo.setFileId(fileId);
-                        signRecipeInfoSave(recipeId, false, resultVo, organId);
-                    }else{
-                        ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
-                        SmsInfoBean smsInfo = new SmsInfoBean();
-                        smsInfo.setBusId(0);
-                        smsInfo.setOrganId(0);
-                        smsInfo.setBusType("PhaSignNotify");
-                        smsInfo.setSmsType("PhaSignNotify");
-                        smsInfo.setExtendValue(doctorDTOn.getUrt() + "|" + recipeId + "|" + doctorDTOn.getLoginId());
-                        smsPushService.pushMsgData2OnsExtendValue(smsInfo);
-                        checkResult.setCode(RecipeResultBean.FAIL);
-                    }
+                    //date 20200618
+                    //修改标准ca成异步操作，原先逻辑不做任何处理，抽出单独的异步实现接口
+                    checkResult.setCode(RecipeResultBean.NO_ADDRESS);
+                    return checkResult;
+//                    String fileId = null;
+//                    checkResult.setMsg(resultVo.getMsg());
+//                    //date20200617
+//                    //添加异步操作
+//                    if(-1 == resultVo.getCode()){
+//                        checkResult.setCode(RecipeResultBean.NO_ADDRESS);
+//                        return checkResult;
+//                    }
+//                    if (resultVo != null && 200 == resultVo.getCode()) {
+//                        //保存签名值、时间戳、电子签章文件
+//                        checkResult.setCode(RecipeResultBean.SUCCESS);
+//                        RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
+//                        resultVo.setFileId(fileId);
+//                        signRecipeInfoSave(recipeId, false, resultVo, organId);
+//                    }else{
+//                        ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
+//                        SmsInfoBean smsInfo = new SmsInfoBean();
+//                        smsInfo.setBusId(0);
+//                        smsInfo.setOrganId(0);
+//                        smsInfo.setBusType("PhaSignNotify");
+//                        smsInfo.setSmsType("PhaSignNotify");
+//                        smsInfo.setExtendValue(doctorDTOn.getUrt() + "|" + recipeId + "|" + doctorDTOn.getLoginId());
+//                        smsPushService.pushMsgData2OnsExtendValue(smsInfo);
+//                        checkResult.setCode(RecipeResultBean.FAIL);
+//                    }
 //                        else {
 //                            RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
 //                            RecipeLog recipeLog = new RecipeLog();
@@ -1276,41 +1276,45 @@ public class RecipeService extends RecipeBaseService {
                 CAInterface caInterface = commonCAFactory.useCAFunction(organId);
                 CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
 //                RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true);
-                String fileId = null;
-                result.setMsg(resultVo.getMsg());
-                //date20200617
-                //添加异步操作
-                if(-1 == resultVo.getCode()){
-                    result.setCode(RecipeResultBean.NO_ADDRESS);
-                    return result;
-                }
-                if (resultVo != null && 200 == resultVo.getCode()) {
-                    result.setCode(RecipeResultBean.SUCCESS);
-                    //保存签名值、时间戳、电子签章文件
-                    RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
-                    resultVo.setFileId(fileId);
-                    signRecipeInfoSave(recipeId, true, resultVo, organId);
-                    try {
-                        SignDoctorRecipeInfo signDoctorRecipeInfo = signRecipeInfoService.get(recipeId);
-                        JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("recipeBean", JSONObject.toJSONString(recipe));
-                        jsonObject.put("details", JSONObject.toJSONString(details));
-                        signDoctorRecipeInfo.setSignBefText(jsonObject.toJSONString());
-                        signRecipeInfoService.update(signDoctorRecipeInfo);
-                    } catch (Exception e) {
-                        LOGGER.error("signBefText save error："  + e.getMessage(),e);
-                    }
-                }else{
-                    ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
-                    SmsInfoBean smsInfo = new SmsInfoBean();
-                    smsInfo.setBusId(0);
-                    smsInfo.setOrganId(0);
-                    smsInfo.setBusType("DocSignNotify");
-                    smsInfo.setSmsType("DocSignNotify");
-                    smsInfo.setExtendValue(doctorDTO.getUrt() + "|" + recipeId + "|" + doctorDTO.getLoginId());
-                    smsPushService.pushMsgData2OnsExtendValue(smsInfo);
-                    result.setCode(RecipeResultBean.FAIL);
-                }
+                //date 20200618
+                //修改标准ca成异步操作，原先逻辑不做任何处理，抽出单独的异步实现接口
+                result.setCode(RecipeResultBean.NO_ADDRESS);
+                return result;
+//                String fileId = null;
+//                result.setMsg(resultVo.getMsg());
+//                //date20200617
+//                //添加异步操作
+//                if(-1 == resultVo.getCode()){
+//                    result.setCode(RecipeResultBean.NO_ADDRESS);
+//                    return result;
+//                }
+//                if (resultVo != null && 200 == resultVo.getCode()) {
+//                    result.setCode(RecipeResultBean.SUCCESS);
+//                    //保存签名值、时间戳、电子签章文件
+//                    RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
+//                    resultVo.setFileId(fileId);
+//                    signRecipeInfoSave(recipeId, true, resultVo, organId);
+//                    try {
+//                        SignDoctorRecipeInfo signDoctorRecipeInfo = signRecipeInfoService.get(recipeId);
+//                        JSONObject jsonObject = new JSONObject();
+//                        jsonObject.put("recipeBean", JSONObject.toJSONString(recipe));
+//                        jsonObject.put("details", JSONObject.toJSONString(details));
+//                        signDoctorRecipeInfo.setSignBefText(jsonObject.toJSONString());
+//                        signRecipeInfoService.update(signDoctorRecipeInfo);
+//                    } catch (Exception e) {
+//                        LOGGER.error("signBefText save error："  + e.getMessage(),e);
+//                    }
+//                }else{
+//                    ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
+//                    SmsInfoBean smsInfo = new SmsInfoBean();
+//                    smsInfo.setBusId(0);
+//                    smsInfo.setOrganId(0);
+//                    smsInfo.setBusType("DocSignNotify");
+//                    smsInfo.setSmsType("DocSignNotify");
+//                    smsInfo.setExtendValue(doctorDTO.getUrt() + "|" + recipeId + "|" + doctorDTO.getLoginId());
+//                    smsPushService.pushMsgData2OnsExtendValue(smsInfo);
+//                    result.setCode(RecipeResultBean.FAIL);
+//                }
 //                else {
 //                    RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
 //                    RecipeLog recipeLog = new RecipeLog();

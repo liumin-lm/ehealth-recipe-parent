@@ -628,27 +628,15 @@ public class RecipeListService extends RecipeBaseService{
     @RpcService
     public List<Map<String, Object>> findHistoryRecipeList(Integer consultId,Integer organId,Integer doctorId, String mpiId) {
         LOGGER.info("getHosRecipeList consultId={}, organId={},doctorId={},mpiId={}", consultId, organId,doctorId,mpiId);
-        //checkUserHasPermissionByDoctorId(doctorId);
-        //从Recipe表获取线上、线下处方
-//        Future<List<Map<String,Object>>> recipeTask = GlobalEventExecFactory.instance().getExecutor().submit(()->{
-//            return findRecipeListByDoctorAndPatient(doctorId,mpiId,0,10000);
-//        });
 
         //从his获取线下处方
         RecipePreserveService recipeService = ApplicationUtils.getRecipeService(RecipePreserveService.class);
         Future<Map<String, Object>> hisTask = GlobalEventExecFactory.instance().getExecutor().submit(()->{
             return recipeService.getHosRecipeList(consultId, organId, mpiId, 180);
         });
-
+        //从Recipe表获取线上、线下处方
         List<Map<String,Object>> onLineAndUnderLineRecipesByRecipe=findRecipeListByDoctorAndPatient(doctorId,mpiId,0,10000);
 
-//        List<Map<String,Object>> onLineAndUnderLineRecipesByRecipe= new ArrayList<>();
-//        try {
-//            onLineAndUnderLineRecipesByRecipe = recipeTask.get(); ;
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            LOGGER.error("findHistoryRecipeList recipeTask exception:{}",e.getMessage());
-//        }
         Map<String,Object> upderLineRecipesByHis= new ConcurrentHashMap<>();
         try {
             upderLineRecipesByHis = hisTask.get(5000, TimeUnit.MILLISECONDS);
@@ -656,12 +644,6 @@ public class RecipeListService extends RecipeBaseService{
             e.printStackTrace();
             LOGGER.error("findHistoryRecipeList hisTask exception:{}",e.getMessage(),e);
         }
-
-        //从Recipe表获取线上、线下处方
-//        List<Map<String,Object>> onLineAndUnderLineRecipesByRecipe=findRecipeListByDoctorAndPatient(doctorId,mpiId,0,10000);
-//        //从his获取线下处方
-//        RecipePreserveService recipeService = ApplicationUtils.getRecipeService(RecipePreserveService.class);
-//        Map<String, Object> upderLineRecipesByHis=recipeService.getHosRecipeList(consultId, organId, mpiId, 180);
 
         //过滤重复数据并重新排序
         List<Map<String,Object>> res=dealRepeatDataAndSort(onLineAndUnderLineRecipesByRecipe,upderLineRecipesByHis);

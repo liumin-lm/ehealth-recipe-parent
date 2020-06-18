@@ -2,6 +2,10 @@ package recipe.service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.dto.UsePathwaysDTO;
+import com.ngari.base.dto.UsingRateDTO;
+import com.ngari.bus.op.service.IUsePathwaysService;
+import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
@@ -13,6 +17,7 @@ import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.organdrugsep.model.OrganAndDrugsepRelationBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -47,8 +52,8 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
     /**
      * 新增或更新常用方
      *
-     * @param commonRecipe
-     * @param drugList
+     * @param commonRecipeDTO
+     * @param drugListDTO
      */
     @RpcService
     public void addCommonRecipe(CommonRecipeDTO commonRecipeDTO, List<CommonRecipeDrugDTO> drugListDTO) {
@@ -224,6 +229,10 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         boolean oldFlag = organDrugCodeList.isEmpty() ? true : false;
         List<OrganDrugList> organDrugList = Lists.newArrayList();
         List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList;
+        IUsingRateService usingRateService = AppDomainContext.getBean("eh.usingRateService", IUsingRateService.class);
+        IUsePathwaysService usePathwaysService = AppDomainContext.getBean("eh.usePathwaysService", IUsePathwaysService.class);
+        UsingRateDTO usingRateDTO;
+        UsePathwaysDTO usePathwaysDTO;
         if (oldFlag){
             organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(commonRecipeDTO.getOrganId(), drugIdList);
             for (CommonRecipeDrugDTO commonRecipeDrug : drugDtoList) {
@@ -246,7 +255,19 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                                 ||organDrug.getDefaultSmallestUnitUseDose()!= null){
                             useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(),organDrug.getUseDoseSmallestUnit(),organDrug.getSmallestUnitUseDose()));
                         }
-                        commonRecipeDrug.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
+                        try {
+                            commonRecipeDrug.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
+                            usingRateDTO = usingRateService.getUsingRateDTOByOrganAndPlatformKey(organDrug.getOrganId(), commonRecipeDrug.getUsingRate());
+                            if (usingRateDTO!=null){
+                                commonRecipeDrug.setUsingRateId(String.valueOf(usingRateDTO.getId()));
+                            }
+                            usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndPlatformKey(organDrug.getOrganId(), commonRecipeDrug.getUsePathways());
+                            if (usePathwaysDTO!=null){
+                                commonRecipeDrug.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
+                            }
+                        } catch (Exception e) {
+                            LOGGER.info("getCommonRecipeDetails error,commonRecipeId={}", commonRecipeId,e);
+                        }
                         break;
                     }
                 }
@@ -280,6 +301,19 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                             useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(),organDrug.getUseDoseSmallestUnit(),organDrug.getSmallestUnitUseDose()));
                         }
                         commonRecipeDrug.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
+                        try {
+                            commonRecipeDrug.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
+                            usingRateDTO = usingRateService.getUsingRateDTOByOrganAndPlatformKey(organDrug.getOrganId(), commonRecipeDrug.getUsingRate());
+                            if (usingRateDTO!=null){
+                                commonRecipeDrug.setUsingRateId(String.valueOf(usingRateDTO.getId()));
+                            }
+                            usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndPlatformKey(organDrug.getOrganId(), commonRecipeDrug.getUsePathways());
+                            if (usePathwaysDTO!=null){
+                                commonRecipeDrug.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
+                            }
+                        } catch (Exception e) {
+                            LOGGER.info("getCommonRecipeDetails error,commonRecipeId={}", commonRecipeId,e);
+                        }
                         break;
                     }
                 }
