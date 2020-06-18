@@ -213,7 +213,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
             }
             thirdPartyMedicinesData.setUnit(recipeDetailBean.getUseDoseUnit());
             thirdPartyMedicinesData.setPack(recipeDetailBean.getPack());
-            OrganDrugList organDrugList = organDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), recipeBean.getClinicOrgan());
+            OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCode(recipeBean.getClinicOrgan(), recipeDetailBean.getOrganDrugCode());
             if (Objects.nonNull(organDrugList)) {
                 thirdPartyMedicinesData.setPackUnit(organDrugList.getUnit());
             }

@@ -13,10 +13,12 @@ import ctd.util.annotation.RpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import recipe.ApplicationUtils;
 import recipe.ca.CAInterface;
 import recipe.ca.ICommonCAServcie;
 import recipe.ca.vo.CaSignResultVo;
+import recipe.service.RecipeService;
 
 import java.util.List;
 
@@ -30,6 +32,8 @@ public class ShanghaiCAImpl implements CAInterface {
     private ICommonCAServcie iCommonCAServcie= AppContextHolder.getBean("iCommonCAServcie", ICommonCAServcie.class);
 
     private DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
+    private RecipeService recipeService = AppContextHolder.getBean("recipeService", RecipeService.class);
+
     /**
      * CA用户注册、申请证书接口
      * @param doctorId
@@ -57,6 +61,8 @@ public class ShanghaiCAImpl implements CAInterface {
 
     /**
      * 标准化CA签名及签章接口
+     * 上海胸科有签章，而且签名、签章都是异步推送。
+     * 上海其他地方只有签名
      * @param requestSealTO
      * @param organId
      * @param userAccount
@@ -67,6 +73,7 @@ public class ShanghaiCAImpl implements CAInterface {
         LOGGER.info("shanghaiCA commonCASignAndSeal start requestSealTO={},recipeId={},organId={},userAccount={},caPassword={}",
                 JSONUtils.toString(requestSealTO), recipe.getRecipeId(),organId, userAccount, caPassword);
         CaSignResultVo signResultVo = new CaSignResultVo();
+        signResultVo.setRecipeId(recipe.getRecipeId());
         try {
             EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
             List<String> jobNumbers = employmentService.findJobNumberByDoctorIdAndOrganId(recipe.getDoctor(), recipe.getClinicOrgan());
@@ -83,6 +90,7 @@ public class ShanghaiCAImpl implements CAInterface {
             if (responseTO == null || responseTO.getCode() != 200) {
                 signResultVo.setCode(responseTO.getCode());
                 signResultVo.setMsg(responseTO.getMsg());
+                signResultVo.setResultCode(0);
                 return signResultVo;
             }
             signResultVo.setSignRecipeCode(responseTO.getSignValue());
@@ -96,8 +104,9 @@ public class ShanghaiCAImpl implements CAInterface {
 
             CaSignDateResponseTO responseDateTO = iCommonCAServcie.caSignDateBusiness(caSignDateRequestTO);
             if (responseDateTO == null || responseDateTO.getCode() != 200) {
-                signResultVo.setCode(responseDateTO.getCode());
+                signResultVo.setResultCode(0);
                 signResultVo.setMsg(responseDateTO.getMsg());
+                signResultVo.setCode(responseDateTO.getCode());
                 return signResultVo;
             }
             signResultVo.setSignCADate(responseDateTO.getSignDate());
@@ -117,16 +126,34 @@ public class ShanghaiCAImpl implements CAInterface {
             if (responseSealTO == null || (responseSealTO.getCode() != 200
                     && requestSealTO.getCode() != 404 && requestSealTO.getCode() != 405)){
                 signResultVo.setCode(responseSealTO.getCode());
+                signResultVo.setResultCode(0);
                 signResultVo.setMsg(responseSealTO.getMsg());
                 return signResultVo;
             }
             signResultVo.setPdfBase64(responseSealTO.getPdfBase64File());
+            if (StringUtils.isEmpty(signResultVo.getSignRecipeCode()) && StringUtils.isEmpty(signResultVo.getPdfBase64())) {
+                // 上海胸科异步推送返回的签名签章都为空
+                signResultVo.setResultCode(-1);
+            }else {
+                signResultVo.setResultCode(1);
+            }
         } catch (Exception e){
             LOGGER.error("ShanghaiCAImpl commonCASignAndSeal 调用前置机失败 requestSealTO={},recipeId={},organId={},userAccount={},caPassword={}",
                     JSONUtils.toString(requestSealTO), recipe.getRecipeId(),organId, userAccount, caPassword,e);
             LOGGER.error("commonCASignAndSeal Exception", e);
+        }finally {
+            LOGGER.error("ShanxiCAImpl finally callback signResultVo={}", JSONUtils.toString(signResultVo));
+            this.callbackRecipe(signResultVo, null == recipe.getChecker());
         }
         LOGGER.info("shanghaiCA commonCASignAndSeal end recipeId={},params: {}", recipe.getRecipeId(),JSONUtils.toString(signResultVo));
         return signResultVo;
+    }
+
+    private void callbackRecipe(CaSignResultVo signResultVo, boolean isDoctor) {
+        if (isDoctor) {
+            recipeService.retryCaDoctorCallBackToRecipe(signResultVo);
+        }else {
+            recipeService.retryCaPharmacistCallBackToRecipe(signResultVo);
+        }
     }
 }
