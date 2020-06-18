@@ -5,7 +5,7 @@
        			http://www.ngarihealth.com/schema/ssdev http://www.ngarihealth.com/schema/ssdev/ssdev.xsd">
 
     <!-- service register center -->
-    <ssdev:applicationDomain name="eh" registryAddress="zookeeper://zk.ngarihealth.com:9999" serverId="recipe" region="jrk16"/>
+    <ssdev:applicationDomain name="eh" registryAddress="${zk}" serverId="recipe"/>
     <ssdev:connector url="${url}">
         <ssdev:filter id="json"/>
         <ssdev:filter id="urt"/>
@@ -19,7 +19,6 @@
         <ssdev:serverNodeExDataBuilder id="datasourceExData"/>
         <ssdev:serverNodePerfLogExDataBuilder id="datasourcePerfLogExData"/>
     </ssdev:logger>
-    <ssdev:mvcServer port="9902"/>
 
     <!-- remote loader -->
     <ssdev:reference interface="ctd.controller.ConfigurableLoader" id="eh.userRemoteLoader"/>
@@ -116,4 +115,13 @@
 
     <!-- session updater -->
     <bean class="ctd.account.session.SessionItemManager"/>
+    <!-- parameter store -->
+    <ssdev:reference id="eh.paramLoader" interface="eh.utils.params.ParamLoader"/>
+
+    <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="staticMethod" value="eh.utils.params.ParamUtils.setParamLoader"/>
+        <property name="arguments">
+            <list><ref bean="eh.paramLoader"/></list>
+        </property>
+    </bean>
 </beans>
