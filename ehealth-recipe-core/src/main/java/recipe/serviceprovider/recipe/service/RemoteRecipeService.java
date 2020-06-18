@@ -1026,27 +1026,46 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public Boolean saveSignRecipePDF(CaSignResultTo caSignResultTo) {
         LOGGER.info("saveSignRecipePDF caSignResultTo:{}", JSONUtils.toString(caSignResultTo));
+        CaSignResultVo signResultVo = new CaSignResultVo();
         Integer recipeId = caSignResultTo.getRecipeId();
         String errorMsg = caSignResultTo.getMsg();
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        if (null == recipe) {
-            return false;
-        }
-        if (!StringUtils.isEmpty(errorMsg)){
-            LOGGER.info("当前审核处方{}签名失败！errorMsg: {}", recipeId, errorMsg);
-            RecipeLogDAO recipeLogDAO = getDAO(RecipeLogDAO.class);
-            recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_PHA, null);
-            recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), errorMsg);
-            return true;
+        signResultVo.setRecipeId(recipeId);
+        boolean isDoctor = false;
+        // 注意这里根据是否有药师的信息，有则为药师签章，没有则为医生签章
+        if (null == recipe.getChecker()) {
+            isDoctor = true;
         }
 
         try {
-            boolean isDoctor = false;
-            if (null == recipe.getCheckDateYs()) { // 注意这里在RecipeServiceEsignExt.saveSignRecipePDF判断时药师还是医生，那边改动会有影响
-                isDoctor = true;
+            if (null == recipe) {
+                signResultVo.setCode(0);
+                signResultVo.setResultCode(0);
+                signResultVo.setMsg("未找到处方信息");
+                return false;
+            }
+            if (!StringUtils.isEmpty(errorMsg)){
+                LOGGER.info("当前审核处方{}签名失败！errorMsg: {}", recipeId, errorMsg);
+                signResultVo.setCode(0);
+                signResultVo.setResultCode(0);
+                signResultVo.setMsg(errorMsg);
+                /*RecipeLogDAO recipeLogDAO = getDAO(RecipeLogDAO.class);
+                recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_PHA, null);
+                recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), errorMsg);*/
+                return true;
             }
 
-            DoctorService doctorService = AppDomainContext
+            signResultVo.setPdfBase64(caSignResultTo.getPdfBase64());
+            signResultVo.setSignRecipeCode(caSignResultTo.getSignRecipeCode());
+            // 如果签章数据为空，则表示CA未结束。目前只有上海胸科有签名签章，
+            // 如果有异步的签名签章不全的，可以另外实现一个只有签名或只要签章的回调接口
+            if (StringUtils.isEmpty(caSignResultTo.getPdfBase64())) {
+                signResultVo.setResultCode(-1);
+            }else {
+                signResultVo.setResultCode(1);
+            }
+
+            /*DoctorService doctorService = AppDomainContext
                     .getBean("basic.doctorService", DoctorService.class);
             DoctorDTO doctor = doctorService.getBeanByDoctorId(recipe.getDoctor());
             String loginId = doctor.getLoginId();
@@ -1063,10 +1082,17 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 return false;
             }
             resultVo.setFileId(fileId);
-            recipeService.signRecipeInfoSave(recipeId, isDoctor, resultVo, recipe.getClinicOrgan());
+            recipeService.signRecipeInfoSave(recipeId, isDoctor, resultVo, recipe.getClinicOrgan());*/
         }catch (Exception e) {
             LOGGER.error("saveSignRecipePDF error", e);
             return false;
+        }finally {
+            LOGGER.error("saveSignRecipePDF finally callback signResultVo={}", JSONUtils.toString(signResultVo));
+            if (isDoctor) {
+                recipeService.retryCaDoctorCallBackToRecipe(signResultVo);
+            }else {
+                recipeService.retryCaPharmacistCallBackToRecipe(signResultVo);
+            }
         }
         return true;
     }
