@@ -646,13 +646,13 @@ public class OrganDrugListService implements IOrganDrugListService {
      * @param recipeDetail
      */
     public void saveOrganDrug(Integer organId, Recipedetail recipeDetail) {
+        logger.info("saveOrganDrug  organId={}, recipeDetail：{}", organId, JSONUtils.toString(recipeDetail));
         if (null == recipeDetail || null == organId || null == recipeDetail.getDrugId()) {
-            logger.warn("saveOrganDrug  organId={}, recipeDetail：{}", organId, JSONUtils.toString(recipeDetail));
             return;
         }
         OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndDrugId(organId, recipeDetail.getDrugId());
         if (null == organDrug) {
-            logger.warn("saveOrganDrug  organDrug is null organId={}, DrugId：{}", organId, recipeDetail.getDrugId());
+            logger.warn("saveOrganDrug  organDrug is null organId={}, recipeDetail：{}", organId, JSONUtils.toString(recipeDetail));
             return;
         }
         Boolean isUpdate = false;
@@ -673,6 +673,7 @@ public class OrganDrugListService implements IOrganDrugListService {
             isUpdate = true;
         }
         if (isUpdate) {
+            logger.info("saveOrganDrug  organDrug：{}", JSONUtils.toString(organDrug));
             organDrugListDAO.update(organDrug);
         }
     }
