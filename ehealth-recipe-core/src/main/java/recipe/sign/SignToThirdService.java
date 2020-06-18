@@ -6,9 +6,9 @@ import com.ngari.his.ca.model.CaSignResponseTO;
 import com.ngari.his.ca.model.CertMsgBo;
 import com.ngari.his.ca.service.ICaHisService;
 import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.EmploymentService;
-import com.ngari.patient.service.ThirdPartyMappingService;
+import com.ngari.patient.dto.EmploymentDTO;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.*;
 import com.ngari.recipe.entity.sign.SignDoctorCaInfo;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.logistics.model.RecipeLogisticsBean;
@@ -49,14 +49,15 @@ public class SignToThirdService {
     public Map<String,Object> getCaSignToThird(ParamToThirdDTO paramToThird){
         Map<String,Object> returnMap = new HashMap<>();
         if(paramToThird != null){
-            String tid = paramToThird.getTid();
+            String jobNumber = paramToThird.getJobNumber();
             String thirdParty = paramToThird.getThirdParty();
             String signMsg = paramToThird.getSignMsg();
+            String organizeCode = paramToThird.getOrganizeCode();
             //String cretMsg = paramToThird.getCretMsg();
             String bussNo = paramToThird.getBussNo();
-            LOGGER.info("SignToThirdService.getCaSignToThird，tid={},thirdParty={},signMsg={},bussNo={}",tid,thirdParty,signMsg,bussNo);
-            if(StringUtils.isBlank(tid)){
-                throw new DAOException(DAOException.VALUE_NEEDED, "tid is null");
+            LOGGER.info("SignToThirdService.getCaSignToThird，jobNumber={},thirdParty={},signMsg={},bussNo={},organizeCode={}",jobNumber,thirdParty,signMsg,bussNo,organizeCode);
+            if(StringUtils.isBlank(jobNumber)){
+                throw new DAOException(DAOException.VALUE_NEEDED, "jobNumber is null");
             }
             if(StringUtils.isBlank(thirdParty)){
                 throw new DAOException(DAOException.VALUE_NEEDED, "thirdParty is null");
@@ -67,21 +68,27 @@ public class SignToThirdService {
             if(StringUtils.isBlank(bussNo)){
                 throw new DAOException(DAOException.VALUE_NEEDED, "bussNo is null");
             }
-            ThirdPartyMappingService ThirdPartyMappingService = BasicAPI.getService(ThirdPartyMappingService.class);
-            //ThirdPartyMapping thirdPartyMapping = ThirdPartyMappingService.getByThirdpartyAndTid(thirdParty,tid);
-            DoctorDTO doctorDTO = ThirdPartyMappingService.getDoctorByThirdpartyAndTid(thirdParty,tid);
+            //ThirdPartyMappingService ThirdPartyMappingService = BasicAPI.getService(ThirdPartyMappingService.class);
+            //ThirdPartyMapping thirdPartyMapping =
+            OrganService organService = BasicAPI.getService(OrganService.class);
+            OrganDTO organDTO = organService.getOrganByOrganizeCode(organizeCode);
+            EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
+            EmploymentDTO employmentDTO = employmentService.getByJobNumberAndOrganId(jobNumber,organDTO.getOrganId());
+            if(employmentDTO == null){
+                throw new DAOException(DAOException.VALUE_NEEDED, "未在该机构下找到该医生");
+            }
+            DoctorService doctorService = BasicAPI.getService(DoctorService.class);
+            DoctorDTO doctorDTO = doctorService.getByDoctorId(employmentDTO.getDoctorId());
             String userAccount = doctorDTO.getIdNumber();
             Integer organId = doctorDTO.getOrgan();
-            EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
-            List<String> jobNumbers = employmentService.findJobNumberByDoctorIdAndOrganId(doctorDTO.getDoctorId(), organId);
+
             CaSignRequestTO requestTO = new CaSignRequestTO();
             requestTO.setUserAccount(userAccount);
             requestTO.setCretMsg(null);
             requestTO.setSignMsg(signMsg);
             requestTO.setOrganId(organId);
-            if (!CollectionUtils.isEmpty(jobNumbers)) {
-                requestTO.setJobnumber(jobNumbers.get(0));
-            }
+            requestTO.setJobnumber(jobNumber);
+
             LOGGER.info("SignToThirdService getCaSignToThird toHis start requestTO={}",JSONUtils.toString(requestTO));
             HisResponseTO<CaSignResponseTO> responseTO = iCaHisService.caSignBusiness(requestTO);
             LOGGER.info("SignToThirdService getCaSignToThird toHis end responseTO={}",JSONUtils.toString(responseTO));
