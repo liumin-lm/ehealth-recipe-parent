@@ -14,6 +14,7 @@ import com.ngari.recipe.entity.SaleDrugList;
 import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.io.output.StringBuilderWriter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
@@ -74,6 +75,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
     @Override
     public synchronized Map<String, Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator) {
         LOGGER.info(operator + "开始 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
+        StringBuilder errMsgAll = new StringBuilder();
         progress = 0;
         String key = organId + operator;
         if (redisClient.exists(key)) {
@@ -219,7 +221,8 @@ public class SaleDrugToolService implements ISaleDrugToolService {
 
             if (errMsg.length() > 1) {
                 int showNum = rowIndex + 1;
-                String error = ("【第" + showNum + "行】" + errMsg.substring(0, errMsg.length() - 1));
+                String error = ("【第" + showNum + "行】" + errMsg.substring(0, errMsg.length() - 1)+"\n");
+                errMsgAll.append(error);
                 errDrugListMatchList.add(error);
             } else {
                 drugLists.add(drug);
@@ -243,7 +246,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             importExcelInfoDTO.setSuccess(addNum);
             importExcelInfoDTO.setExecuterName(operator);
             importExcelInfoDTO.setExecuteDate(new Date());
-
+            importExcelInfoDTO.setErrMsg(errMsgAll.toString());
             iImportExcelInfoService.addExcelInfo(importExcelInfoDTO);
 
             result.put("code", 609);
