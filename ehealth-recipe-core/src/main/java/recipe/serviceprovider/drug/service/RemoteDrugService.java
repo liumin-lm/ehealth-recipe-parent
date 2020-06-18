@@ -589,8 +589,8 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
                 String usePathway = (String) item.get("usePathways");
                 LOGGER.info("dealOrganDrugListUsePathways---4");
                 UsePathwaysDTO usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organId,usePathway);
-                LOGGER.info("dealOrganDrugListUsePathways---5");
-                if (usePathway != null){
+                LOGGER.info("dealOrganDrugListUsePathways---"+organId+"--"+usePathway);
+                if (usePathwaysDTO != null){
                     organDrugListDAO.updateUsePathwaysByUsePathways(organId,usePathway,String.valueOf(usePathwaysDTO.getId()));
                 }
             });
