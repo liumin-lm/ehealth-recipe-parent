@@ -241,7 +241,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             importExcelInfoDTO.setExcelType(14);
             importExcelInfoDTO.setUploaderName(operator);
             importExcelInfoDTO.setUploadDate(new Date());
-            importExcelInfoDTO.setStatus(1);
+            importExcelInfoDTO.setStatus(0);
             importExcelInfoDTO.setTotal(total);
             importExcelInfoDTO.setSuccess(addNum);
             importExcelInfoDTO.setExecuterName(operator);
@@ -279,7 +279,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         importExcelInfoDTO.setExcelType(14);
         importExcelInfoDTO.setUploaderName(operator);
         importExcelInfoDTO.setUploadDate(new Date());
-        importExcelInfoDTO.setStatus(3);
+        importExcelInfoDTO.setStatus(1);
         importExcelInfoDTO.setTotal(total);
         importExcelInfoDTO.setSuccess(addNum);
         importExcelInfoDTO.setExecuterName(operator);
