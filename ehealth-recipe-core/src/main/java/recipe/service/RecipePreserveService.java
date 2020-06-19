@@ -560,24 +560,32 @@ public class RecipePreserveService {
      */
     @RpcService
     public List<UsingRateDTO> findUsingRateRelationFromRedis(){
-        Set<String> usingRateParams = redisClient.scan("RCP_NGARI_USINGRATE_*");
+
+        Set<String> usingRateParams = null;
+        try {
+            usingRateParams = redisClient.scan("RCP_NGARI_USINGRATE_*");
+        } catch (Exception e) {
+            LOGGER.error("findUsingRateRelationFromRedis redis scan error",e);
+        }
         List<UsingRateDTO> usingRateDTOS = Lists.newArrayList();
         LOGGER.info("findUsingRateRelationFromRedis init usingRateParams[{}] size[{}]",JSONUtils.toString(usingRateParams),usingRateParams.size());
         try {
-            for (String usingRateParam : usingRateParams) {
-                String organId = usingRateParam.substring(20);
-                Map<String, Object> map = redisScanForHash(usingRateParam, "*");
-                if (map != null){
-                    UsingRateDTO usingRateDTO;
-                    for (Map.Entry<String, Object> entry : map.entrySet()) {
-                        usingRateDTO = new UsingRateDTO();
-                        usingRateDTO.setRelatedPlatformKey(entry.getKey());
-                        usingRateDTO.setUsingRateKey((String) entry.getValue());
-                        usingRateDTO.setOrganId(Integer.valueOf(organId));
-                        usingRateDTOS.add(usingRateDTO);
+            if (CollectionUtils.isNotEmpty(usingRateParams)){
+                for (String usingRateParam : usingRateParams) {
+                    String organId = usingRateParam.substring(20);
+                    Map<String, Object> map = redisScanForHash(usingRateParam, "*");
+                    if (map != null){
+                        UsingRateDTO usingRateDTO;
+                        for (Map.Entry<String, Object> entry : map.entrySet()) {
+                            usingRateDTO = new UsingRateDTO();
+                            usingRateDTO.setRelatedPlatformKey(entry.getKey());
+                            usingRateDTO.setUsingRateKey((String) entry.getValue());
+                            usingRateDTO.setOrganId(Integer.valueOf(organId));
+                            usingRateDTOS.add(usingRateDTO);
+                        }
+                    }else {
+                        LOGGER.error("findUsingRateRelationFromRedis null organId[{}]",organId);
                     }
-                }else {
-                    LOGGER.error("findUsingRateRelationFromRedis null organId[{}]",organId);
                 }
             }
         } catch (Exception e) {
@@ -592,24 +600,31 @@ public class RecipePreserveService {
      */
     @RpcService
     public List<UsePathwaysDTO> findUsePathwaysRelationFromRedis(){
-        Set<String> usingPathwaysParams = redisClient.scan("RCP_NGARI_USEPATHWAYS_*");
+        Set<String> usingPathwaysParams = null;
+        try {
+            usingPathwaysParams = redisClient.scan("RCP_NGARI_USEPATHWAYS_*");
+        } catch (Exception e) {
+            LOGGER.error("findUsePathwaysRelationFromRedis redis scan error",e);
+        }
         List<UsePathwaysDTO> usePathwaysDTOS = Lists.newArrayList();
         LOGGER.info("findUsePathwaysRelationFromRedis init usingPathwaysParams[{}] size[{}]",JSONUtils.toString(usingPathwaysParams),usingPathwaysParams.size());
         try {
-            for (String usingPathwaysParam : usingPathwaysParams) {
-                String organId = usingPathwaysParam.substring(22);
-                Map<String, Object> map = redisScanForHash(usingPathwaysParam, "*");
-                if (map != null){
-                    UsePathwaysDTO usePathwaysDTO;
-                    for (Map.Entry<String, Object> entry : map.entrySet()) {
-                        usePathwaysDTO = new UsePathwaysDTO();
-                        usePathwaysDTO.setRelatedPlatformKey(entry.getKey());
-                        usePathwaysDTO.setPathwaysKey((String) entry.getValue());
-                        usePathwaysDTO.setOrganId(Integer.valueOf(organId));
-                        usePathwaysDTOS.add(usePathwaysDTO);
+            if (CollectionUtils.isNotEmpty(usingPathwaysParams)){
+                for (String usingPathwaysParam : usingPathwaysParams) {
+                    String organId = usingPathwaysParam.substring(22);
+                    Map<String, Object> map = redisScanForHash(usingPathwaysParam, "*");
+                    if (map != null){
+                        UsePathwaysDTO usePathwaysDTO;
+                        for (Map.Entry<String, Object> entry : map.entrySet()) {
+                            usePathwaysDTO = new UsePathwaysDTO();
+                            usePathwaysDTO.setRelatedPlatformKey(entry.getKey());
+                            usePathwaysDTO.setPathwaysKey((String) entry.getValue());
+                            usePathwaysDTO.setOrganId(Integer.valueOf(organId));
+                            usePathwaysDTOS.add(usePathwaysDTO);
+                        }
+                    }else {
+                        LOGGER.error("findUsePathwaysRelationFromRedis null organId[{}]",organId);
                     }
-                }else {
-                    LOGGER.error("findUsePathwaysRelationFromRedis null organId[{}]",organId);
                 }
             }
         } catch (Exception e) {
