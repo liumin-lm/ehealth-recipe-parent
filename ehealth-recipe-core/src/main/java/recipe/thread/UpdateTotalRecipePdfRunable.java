@@ -25,9 +25,9 @@ public class UpdateTotalRecipePdfRunable implements Runnable {
     /**
      * 实际支付费用
      */
-    private Double actualPrice;
+    private String actualPrice;
 
-    public UpdateTotalRecipePdfRunable(Integer recipeId, Double actualPrice) {
+    public UpdateTotalRecipePdfRunable(Integer recipeId, String actualPrice) {
         this.recipeId = recipeId;
         this.actualPrice = actualPrice;
     }
@@ -44,12 +44,12 @@ public class UpdateTotalRecipePdfRunable implements Runnable {
 
         try {
             if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
-                String newPfd = CreateRecipePdfUtil.generateTotalRecipePdf(recipe.getChemistSignFile(), actualPrice.toString(), recipe.getRecipeType());
+                String newPfd = CreateRecipePdfUtil.generateTotalRecipePdf(recipe.getChemistSignFile(), actualPrice, recipe.getRecipeType());
                 if (StringUtils.isNotEmpty(newPfd)) {
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("ChemistSignFile", newPfd));
                 }
             } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
-                String newPfd = CreateRecipePdfUtil.generateTotalRecipePdf(recipe.getChemistSignFile(), actualPrice.toString(), recipe.getRecipeType());
+                String newPfd = CreateRecipePdfUtil.generateTotalRecipePdf(recipe.getChemistSignFile(), actualPrice, recipe.getRecipeType());
                 if (StringUtils.isNotEmpty(newPfd)) {
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("SignFile", newPfd));
                 }

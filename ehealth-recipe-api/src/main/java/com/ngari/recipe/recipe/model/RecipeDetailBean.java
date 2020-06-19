@@ -1,5 +1,6 @@
 package com.ngari.recipe.recipe.model;
 
+import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
@@ -7,6 +8,7 @@ import ctd.schema.annotation.Schema;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author yuyun
@@ -178,6 +180,8 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     @ItemProperty(alias="药物使用天数小数型")
     private String useDaysB;
+    @ItemProperty(alias = "医生端选择的每次剂量和单位绑定关系")
+    private List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation;
 
     public String getUseDaysB() {
         return useDaysB;
@@ -623,5 +627,13 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setOrganUsePathways(String organUsePathways) {
         this.organUsePathways = organUsePathways;
+    }
+
+    public List<UseDoseAndUnitRelationBean> getUseDoseAndUnitRelation() {
+        return useDoseAndUnitRelation;
+    }
+
+    public void setUseDoseAndUnitRelation(List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation) {
+        this.useDoseAndUnitRelation = useDoseAndUnitRelation;
     }
 }
