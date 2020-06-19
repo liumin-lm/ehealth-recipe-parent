@@ -214,12 +214,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             }
 
             if (!drugListDAO.exist(drug.getDrugId())) {
-                errMsg.append("平台药品编号不存在").append(";");
-            }
-
-            SaleDrugList saleDrug = saleDrugListDAO.getByOrganIdAndDrugId(organId,drug.getDrugId());
-            if (saleDrug != null){
-                errMsg.append("添加重复").append(";");
+                errMsg.append("平台药品编号错误！").append(";");
             }
 
 
