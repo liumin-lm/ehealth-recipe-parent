@@ -627,7 +627,7 @@ public class RecipeListService extends RecipeBaseService{
      */
     @RpcService
     public List<Map<String, Object>> findHistoryRecipeList(Integer consultId,Integer organId,Integer doctorId, String mpiId) {
-        LOGGER.info("getHosRecipeList consultId={}, organId={},doctorId={},mpiId={}", consultId, organId,doctorId,mpiId);
+        LOGGER.info("findHistoryRecipeList consultId={}, organId={},doctorId={},mpiId={}", consultId, organId,doctorId,mpiId);
 
         //从his获取线下处方
         RecipePreserveService recipeService = ApplicationUtils.getRecipeService(RecipePreserveService.class);
@@ -669,7 +669,8 @@ public class RecipeListService extends RecipeBaseService{
                 for (int i = hisRecipes.size() - 1; i >= 0; i--) {
                     HisRecipeBean hisRecipeBean=hisRecipes.get(i);
                     String hiskey=hisRecipeBean.getRecipeCode()+hisRecipeBean.getClinicOrgan();
-                    if(recipeKey==hiskey){
+                    if(StringUtils.isEmpty(hiskey)) continue;
+                    if(hiskey.equals(recipeKey)){
                         hisRecipes.remove(hisRecipeBean);//删除重复元素
                     }
                 }
