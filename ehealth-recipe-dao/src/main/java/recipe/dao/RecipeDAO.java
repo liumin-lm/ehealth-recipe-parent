@@ -21,6 +21,7 @@ import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
 import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResultAction;
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
+import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcSupportDAO;
 import org.apache.commons.collections.CollectionUtils;
@@ -1070,8 +1071,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                                 //处方审核状态处理
                                 Integer checkStatus2 = getCheckResultByPending(recipe);
                                 recipe.setCheckStatus(checkStatus2);
-                                //BeanUtils.map(recipe, map);
-                                map.putAll(JSONObject.parseObject(JSON.toJSONString(recipe)));
+                                BeanUtils.map(recipe, map);
+                                //map.putAll(JSONObject.parseObject(JSON.toJSONString(recipe)));
 
                                 map.put("recipeOrder", order);
                                 map.put("detailCount", recipeDetailDAO.getCountByRecipeId(recipe.getRecipeId()));
@@ -1200,8 +1201,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                             PatientDTO patient = patientBeanMap.get(mpiId);
                             DoctorDTO doctor = doctorBeanMap.get(doctorId);
                             Map<String, Object> map = Maps.newHashMap();
-                            //BeanUtils.map(recipe, map);
-                            map.putAll(JSONObject.parseObject(JSON.toJSONString(recipe)));
+                            BeanUtils.map(recipe, map);
+                            //map.putAll(JSONObject.parseObject(JSON.toJSONString(recipe)));
 
                             RecipeOrder order = (RecipeOrder)obj[1];
                             map.put("recipeOrder", order);
@@ -1793,8 +1794,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                     RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
                     for (Recipe recipe : recipeList) {
                         Map<String, Object> map = Maps.newHashMap();
-                        //BeanUtils.map(recipe, map);
-                        map.putAll(JSONObject.parseObject(JSON.toJSONString(recipe)));
+                        BeanUtils.map(recipe, map);
+                        //map.putAll(JSONObject.parseObject(JSON.toJSONString(recipe)));
                         map.put("detailCount", recipeDetailDAO.getCountByRecipeId(recipe.getRecipeId()));
                         //map.put("patient",patientService.get(recipe.getMpiid()));
                         maps.add(map);
