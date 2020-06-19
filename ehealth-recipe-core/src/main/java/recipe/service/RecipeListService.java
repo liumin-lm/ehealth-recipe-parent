@@ -636,10 +636,12 @@ public class RecipeListService extends RecipeBaseService{
         });
         //从Recipe表获取线上、线下处方
         List<Map<String,Object>> onLineAndUnderLineRecipesByRecipe=findRecipeListByDoctorAndPatient(doctorId,mpiId,0,10000);
+        LOGGER.info("findHistoryRecipeList 从recipe表获取处方信息:{}",onLineAndUnderLineRecipesByRecipe);
 
         Map<String,Object> upderLineRecipesByHis= new ConcurrentHashMap<>();
         try {
             upderLineRecipesByHis = hisTask.get(5000, TimeUnit.MILLISECONDS);
+            LOGGER.info("findHistoryRecipeList 从his获取已缴费处方信息:{}",upderLineRecipesByHis);
         } catch (Exception e) {
             e.printStackTrace();
             LOGGER.error("findHistoryRecipeList hisTask exception:{}",e.getMessage(),e);
@@ -658,6 +660,7 @@ public class RecipeListService extends RecipeBaseService{
      * @return
      */
     private List<Map<String, Object>> dealRepeatDataAndSort(List<Map<String, Object>> onLineAndUnderLineRecipesByRecipe, Map<String, Object> upderLineRecipesByHis) {
+        LOGGER.info("dealRepeatDataAndSort参数onLineAndUnderLineRecipesByRecipe:{},upderLineRecipesByHis:{}",JSONUtils.toString(upderLineRecipesByHis),JSONUtils.toString(upderLineRecipesByHis));
         List<Map<String, Object>> res=new ArrayList<>();
         //过滤重复数据
         List<HisRecipeBean> hisRecipes=(List<HisRecipeBean>)upderLineRecipesByHis.get("hisRecipe");
@@ -671,6 +674,7 @@ public class RecipeListService extends RecipeBaseService{
                     String hiskey=hisRecipeBean.getRecipeCode()+hisRecipeBean.getClinicOrgan();
                     if(StringUtils.isEmpty(hiskey)) continue;
                     if(hiskey.equals(recipeKey)){
+                        LOGGER.info("dealRepeatDataAndSort删除线下处方:recipeCode{},clinicOrgan{}",hisRecipeBean.getRecipeCode(),hisRecipeBean.getClinicOrgan());
                         hisRecipes.remove(hisRecipeBean);//删除重复元素
                     }
                 }
