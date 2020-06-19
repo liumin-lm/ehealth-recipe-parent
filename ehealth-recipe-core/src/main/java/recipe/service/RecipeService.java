@@ -1674,7 +1674,7 @@ public class RecipeService extends RecipeBaseService {
         try{
             String fileId = null;
             result.setMsg(resultVo.getMsg());
-            if (resultVo != null && 200 == resultVo.getCode()) {
+            if (resultVo != null && new Integer(200).equals(resultVo.getCode())) {
                 result.setCode(RecipeResultBean.SUCCESS);
                 //保存签名值、时间戳、电子签章文件
                 RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
@@ -1851,7 +1851,7 @@ public class RecipeService extends RecipeBaseService {
                 LOGGER.warn("当前处方{}审核药师为空，请检查处方相关信息", recipeId);
                 return;
             }
-            if (resultVo != null && 200 == resultVo.getCode()) {
+            if (resultVo != null && new Integer(200).equals(resultVo.getCode())) {
                 //保存签名值、时间戳、电子签章文件
                 checkResult.setCode(RecipeResultBean.SUCCESS);
                 RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
