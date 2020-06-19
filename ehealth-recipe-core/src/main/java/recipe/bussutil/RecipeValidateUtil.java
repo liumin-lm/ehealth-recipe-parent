@@ -2,13 +2,17 @@ package recipe.bussutil;
 
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import org.apache.commons.collections.CollectionUtils;
@@ -134,17 +138,18 @@ public class RecipeValidateUtil {
 
     }
 
-    public static List<Recipedetail> validateDrugsImpl(Recipe recipe) {
+    public static List<RecipeDetailBean> validateDrugsImpl(Recipe recipe) {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
 
         Integer organId = recipe.getClinicOrgan();
         Integer recipeId = recipe.getRecipeId();
-        List<Recipedetail> backDetailList = new ArrayList<>();
+        List<RecipeDetailBean> backDetailList = new ArrayList<>();
         List<Recipedetail> details = detailDAO.findByRecipeId(recipeId);
         if (CollectionUtils.isEmpty(details)) {
             return backDetailList;
         }
+        List<RecipeDetailBean> detailBeans = ObjectCopyUtils.convert(details, RecipeDetailBean.class);
         List<Integer> drugIdList = FluentIterable.from(details).transform(new Function<Recipedetail, Integer>() {
             @Override
             public Integer apply(Recipedetail input) {
@@ -160,21 +165,32 @@ public class RecipeValidateUtil {
 
         //2边长度一致直接返回
         if (organDrugList.size() == drugIdList.size()) {
-            return details;
+            return detailBeans;
         }
 
-        Map<Integer, Recipedetail> drugIdAndDetailMap = Maps.uniqueIndex(details, new Function<Recipedetail, Integer>() {
+        Map<Integer, RecipeDetailBean> drugIdAndDetailMap = Maps.uniqueIndex(detailBeans, new Function<RecipeDetailBean, Integer>() {
             @Override
-            public Integer apply(Recipedetail input) {
+            public Integer apply(RecipeDetailBean input) {
                 return input.getDrugId();
             }
         });
 
-        Recipedetail mapDetail;
+        RecipeDetailBean mapDetail;
+        //包装返回app端剂量单位最小单位选择关系
+        List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList;
+        // TODO: 2020/6/19 很多需要返回药品信息的地方可以让前端根据药品id反查具体的药品信息统一展示；后端涉及返回药品信息的接口太多。返回对象也不一样
         for (OrganDrugList organDrug : organDrugList) {
             mapDetail = drugIdAndDetailMap.get(organDrug.getDrugId());
             if (null != mapDetail) {
                 mapDetail.setDrugForm(organDrug.getDrugForm());
+                //设置医生端每次剂量和剂量单位联动关系
+                useDoseAndUnitRelationList = Lists.newArrayList();
+                useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(),organDrug.getUseDoseUnit(),organDrug.getUseDose()));
+                if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())
+                        ||organDrug.getDefaultSmallestUnitUseDose()!= null){
+                    useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(),organDrug.getUseDoseSmallestUnit(),organDrug.getSmallestUnitUseDose()));
+                }
+                mapDetail.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
                 backDetailList.add(mapDetail);
             }
         }
