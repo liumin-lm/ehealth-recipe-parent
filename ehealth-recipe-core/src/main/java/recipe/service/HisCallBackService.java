@@ -196,8 +196,12 @@ public class HisCallBackService {
         if (recipeExtend != null) {
             if (StringUtils.isNotEmpty(result.getRegisterID())) {
                 map.put("registerID", result.getRegisterID());
-                map.put("medicalType", result.getMedicalType());
-                map.put("medicalTypeText", result.getMedicalTypeText());
+                if (StringUtils.isNotEmpty(result.getMedicalType()) && StringUtils.isEmpty(recipeExtend.getMedicalType())){
+                    map.put("medicalType", result.getMedicalType());
+                }
+                if (StringUtils.isNotEmpty(result.getMedicalTypeText()) && StringUtils.isEmpty(recipeExtend.getMedicalTypeText())){
+                    map.put("medicalTypeText", result.getMedicalTypeText());
+                }
                 recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), map);
             }
         } else {
