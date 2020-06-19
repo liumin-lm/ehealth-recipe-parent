@@ -345,7 +345,7 @@ public class OrganDrugListService implements IOrganDrugListService {
     }
 
     private void setOldRateAndWays(OrganDrugList organDrugList){
-        try {
+        /*try {
             IUsingRateService usingRateService = AppContextHolder.getBean("eh.usingRateService",IUsingRateService.class);
             IUsePathwaysService usePathwaysService = AppContextHolder.getBean("eh.usePathwaysService",IUsePathwaysService.class);
             if (organDrugList != null && !StringUtils.isEmpty(organDrugList.getUsingRateId())){
@@ -360,7 +360,7 @@ public class OrganDrugListService implements IOrganDrugListService {
             }
         }catch (Exception e){
             logger.error("设置老使用频率失败",e);
-        }
+        }*/
 
     }
 
