@@ -104,7 +104,7 @@ public class SignToThirdService {
     }
 
     private void saveCaSign(DoctorDTO doctorDTO,String signValue,ParamToThirdDTO paramToThird){
-        SignDoctorCaInfo signDoctorCaInfo = new SignDoctorCaInfo();
+        /*SignDoctorCaInfo signDoctorCaInfo = new SignDoctorCaInfo();
         signDoctorCaInfo.setDoctorId(doctorDTO.getDoctorId());
         signDoctorCaInfo.setCaType("shanghaiCA");
         signDoctorCaInfo.setCert_voucher(signValue);
@@ -113,7 +113,7 @@ public class SignToThirdService {
         signDoctorCaInfo.setName(doctorDTO.getName());
         signDoctorCaInfo.setIdcard(doctorDTO.getIdNumber());
         SignDoctorCaInfoDAO SignDoctorCaInfoDAO = DAOFactory.getDAO(SignDoctorCaInfoDAO.class);
-        SignDoctorCaInfoDAO.save(signDoctorCaInfo);
+        SignDoctorCaInfoDAO.save(signDoctorCaInfo);*/
 
         SignDoctorRecipeInfo signDoctorRecipeInfo = new SignDoctorRecipeInfo();
         signDoctorRecipeInfo.setCreateDate(new Date());
