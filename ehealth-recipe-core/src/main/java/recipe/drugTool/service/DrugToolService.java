@@ -449,7 +449,7 @@ public class DrugToolService implements IDrugToolService {
             }
             if (errMsg.length() > 1) {
                 int showNum = rowIndex + 1;
-                String error = ("【第" + showNum + "行】" + errMsg.substring(0, errMsg.length() - 1));
+                String error = ("【第" + showNum + "行】" + errMsg.substring(0, errMsg.length() - 1)+"\n");
                 errDrugListMatchList.add(error);
                 failNum++;
             } else {
