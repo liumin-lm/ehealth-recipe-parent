@@ -808,10 +808,7 @@ public class RecipeService extends RecipeBaseService {
                     CommonCAFactory caFactory = new CommonCAFactory();
                     //通过工厂获取对应的实现CA类
                     CAInterface caInterface = commonCAFactory.useCAFunction(organId);
-                    if(null != caInterface){
-
-                        CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
-                    }
+                    CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
                     //date 20200618
                     //修改标准ca成异步操作，原先逻辑不做任何处理，抽出单独的异步实现接口
                     checkResult.setCode(RecipeResultBean.NO_ADDRESS);
@@ -1278,9 +1275,7 @@ public class RecipeService extends RecipeBaseService {
 //                CommonCAFactory caFactory = new CommonCAFactory();
                 //通过工厂获取对应的实现CA类
                 CAInterface caInterface = commonCAFactory.useCAFunction(organId);
-                if(null != caInterface){
-                    CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
-                }
+                CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe, organId, userAccount, caPassword);
 //                RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, loginId, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true);
                 //date 20200618
                 //修改标准ca成异步操作，原先逻辑不做任何处理，抽出单独的异步实现接口
