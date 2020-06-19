@@ -1753,8 +1753,8 @@ public class RecipeOrderService extends RecipeBaseService {
             Map<String, Object> recipeInfo = Maps.newHashMap();
             recipeInfo.put("payFlag", payFlag);
             recipeInfo.put("payMode", payMode);
-            if (null != order) {
-                recipeInfo.put("actualPrice", order.getActualPrice());
+            if (null != order && null != order.getActualPrice()) {
+                recipeInfo.put("actualPrice", BigDecimal.valueOf(order.getActualPrice()));
             }
             List<Integer> recipeIds = recipeDAO.findRecipeIdsByOrderCode(orderCode);
             this.updateRecipeInfo(true, result, recipeIds, recipeInfo);
