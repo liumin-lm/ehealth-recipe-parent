@@ -163,10 +163,10 @@ public class RecipeValidateUtil {
             return backDetailList;
         }
 
-        //2边长度一致直接返回
+        /*//2边长度一致直接返回
         if (organDrugList.size() == drugIdList.size()) {
             return detailBeans;
-        }
+        }*/
 
         Map<Integer, RecipeDetailBean> drugIdAndDetailMap = Maps.uniqueIndex(detailBeans, new Function<RecipeDetailBean, Integer>() {
             @Override
