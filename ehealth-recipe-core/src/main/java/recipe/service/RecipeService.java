@@ -31,6 +31,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
@@ -1164,8 +1165,8 @@ public class RecipeService extends RecipeBaseService {
 
         //根据审方模式改变--审核未通过处理
         auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckNotPassYs(dbRecipe);
-        List<Recipedetail> detailBeanList = RecipeValidateUtil.validateDrugsImpl(dbRecipe);
-        return ObjectCopyUtils.convert(detailBeanList, RecipeDetailBean.class);
+        List<RecipeDetailBean> detailBeanList = RecipeValidateUtil.validateDrugsImpl(dbRecipe);
+        return detailBeanList;
     }
 
     /**
@@ -1182,8 +1183,8 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.error("validateDrugs 平台无该处方对象. recipeId=[{}] error={}", recipeId, JSONUtils.toString(resultBean));
             return Lists.newArrayList();
         }
-        List<Recipedetail> detailBeanList = RecipeValidateUtil.validateDrugsImpl(dbRecipe);
-        return ObjectCopyUtils.convert(detailBeanList, RecipeDetailBean.class);
+        List<RecipeDetailBean> detailBeans = RecipeValidateUtil.validateDrugsImpl(dbRecipe);
+        return detailBeans;
     }
 
     /**
