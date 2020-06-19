@@ -1,5 +1,6 @@
 package recipe.drugsenterprise;
 
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
@@ -67,8 +68,8 @@ public class RemoteDrugEnterpriseService {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             PushRecipeAndOrder pushRecipeAndOrder = getPushRecipeAndOrder(recipe, enterprise);
-            boolean pushResult = recipeEnterpriseService.pushSingleRecipeInfo(pushRecipeAndOrder);
-            if (pushResult) {
+            HisResponseTO responseTO = recipeEnterpriseService.pushSingleRecipeInfo(pushRecipeAndOrder);
+            if (responseTO.isSuccess()) {
                 result.setCode(1);
             } else {
                 result.setCode(0);
@@ -200,7 +201,12 @@ public class RemoteDrugEnterpriseService {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             ScanRequestBean scanRequestBean = getScanRequestBean(recipe, drugsEnterprise);
-            return recipeEnterpriseService.scanStock(scanRequestBean);
+            HisResponseTO responseTO = recipeEnterpriseService.scanStock(scanRequestBean);
+            if (responseTO.isSuccess()) {
+                return true;
+            } else {
+                return false;
+            }
         }
         AccessDrugEnterpriseService drugEnterpriseService = null;
         if (null == drugsEnterprise) {
@@ -294,7 +300,8 @@ public class RemoteDrugEnterpriseService {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeIds.get(0));
             ScanRequestBean scanRequestBean = getScanRequestBean(recipe, drugsEnterprise);
-            List<DepDetailBean> depDetailBeans =  recipeEnterpriseService.findSupportDep(scanRequestBean, ext);
+            scanRequestBean.setExt(ext);
+            List<DepDetailBean> depDetailBeans =  recipeEnterpriseService.findSupportDep(scanRequestBean);
             result.setObject(ObjectCopyUtils.convert(depDetailBeans, com.ngari.recipe.drugsenterprise.model.DepDetailBean.class));
             return result;
         }
