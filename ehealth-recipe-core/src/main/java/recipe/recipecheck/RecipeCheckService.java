@@ -1325,7 +1325,7 @@ public class RecipeCheckService {
         String recipeS = null;
         try {
             RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeIdAndCheckStatus(recipeId);
-            if (null == recipeCheck || recipeCheck.getGrabOrderStatus().equals(GrabOrderStatusConstant.GRAB_ORDER_NO)) {
+            if (null == recipeCheck || GrabOrderStatusConstant.GRAB_ORDER_NO.equals(recipeCheck.getGrabOrderStatus())) {
                 resultMap.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDER_NO);
                 resultMap.put("lockLimitTime", 10); //未抢单默认返回10
                 return resultMap;
