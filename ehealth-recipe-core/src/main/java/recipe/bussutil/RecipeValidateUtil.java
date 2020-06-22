@@ -201,7 +201,7 @@ public class RecipeValidateUtil {
                 }
                 mapDetail.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
                 mapDetail.setUsingRateId(organDrug.getUsingRateId());
-                mapDetail.setUsePathways(organDrug.getUsePathwaysId());
+                mapDetail.setUsePathwaysId(organDrug.getUsePathwaysId());
                 backDetailList.add(mapDetail);
             }
         }
