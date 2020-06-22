@@ -146,11 +146,11 @@ public class RecipePreserveService {
 
     @RpcService
     public Map<String,Object> getHosRecipeList(Integer consultId, Integer organId,String mpiId,Integer daysAgo){
-        try {
-            Thread.sleep(60000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            Thread.sleep(60000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
         LOGGER.info("getHosRecipeList consultId={}, organId={},mpiId={}", consultId, organId,mpiId);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         Map<String,Object> result = Maps.newHashMap();
