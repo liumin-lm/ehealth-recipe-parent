@@ -86,7 +86,7 @@ public class RemoteDrugEnterpriseService {
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             PushRecipeAndOrder pushRecipeAndOrder = getPushRecipeAndOrder(recipe, enterprise);
             HisResponseTO responseTO = recipeEnterpriseService.pushSingleRecipeInfo(pushRecipeAndOrder);
-            if (responseTO.isSuccess()) {
+            if (responseTO != null && responseTO.isSuccess()) {
                 result.setCode(1);
             } else {
                 result.setCode(0);
@@ -221,7 +221,8 @@ public class RemoteDrugEnterpriseService {
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             ScanRequestBean scanRequestBean = getScanRequestBean(recipe, drugsEnterprise);
             HisResponseTO responseTO = recipeEnterpriseService.scanStock(scanRequestBean);
-            if (responseTO.isSuccess()) {
+            LOGGER.info("scanStock responseTO:{}.", JSONUtils.toString(responseTO));
+            if (responseTO != null && responseTO.isSuccess()) {
                 return true;
             } else {
                 return false;
