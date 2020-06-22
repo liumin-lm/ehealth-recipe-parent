@@ -315,7 +315,7 @@ public class RecipeTimedTaskService {
             LOGGER.info("updateRecipeOrderInfoTask hisResponseTO:{}.", JSONUtils.toString(hisResponseTO));
             if (hisResponseTO != null && hisResponseTO.isSuccess()) {
                 Map extend = hisResponseTO.getExtend();
-                if ("1".equals(extend.get("sendStatus"))) {
+                if ("1".equals(extend.get("sendStatus").toString())) {
                     //配送完成
                     Map<String, Object> toSendParamMap = new HashMap<>();
                     toSendParamMap.put("recipeId", recipe.getRecipeId());
