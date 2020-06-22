@@ -5,6 +5,7 @@ import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.EmploymentService;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -122,9 +123,14 @@ public class ShanghaiCAImpl implements CAInterface {
                 requestSealTO.setJobnumber(jobNumbers.get(0));
             }
             CaSealResponseTO responseSealTO = iCommonCAServcie.caSealBusiness(requestSealTO);
-
-            if (responseSealTO == null || (responseSealTO.getCode() != 200
-                    && requestSealTO.getCode() != 404 && requestSealTO.getCode() != 405)){
+            if (responseSealTO == null){
+                signResultVo.setCode(RecipeResultBean.FAIL);
+                signResultVo.setResultCode(-1);
+                signResultVo.setMsg("caSealBusiness res is null");
+                return signResultVo;
+            }
+            if (responseSealTO.getCode() != 200
+                    && requestSealTO.getCode() != 404 && requestSealTO.getCode() != 405){
                 signResultVo.setCode(responseSealTO.getCode());
                 signResultVo.setResultCode(0);
                 signResultVo.setMsg(responseSealTO.getMsg());
