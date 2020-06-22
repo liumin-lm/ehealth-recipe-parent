@@ -56,7 +56,7 @@ public class RemoteDrugEnterpriseService {
         PushRecipeAndOrder pushRecipeAndOrder = getPushRecipeAndOrder(recipe, enterprise);
         HisResponseTO responseTO = recipeEnterpriseService.pushSingleRecipeInfo(pushRecipeAndOrder);
         LOGGER.info("pushRecipeInfoForThird responseTO:{}.", JSONUtils.toString(responseTO));
-        if (responseTO.isSuccess()) {
+        if (responseTO != null && responseTO.isSuccess()) {
             String prescId = (String)responseTO.getExtend().get("prescId");
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
