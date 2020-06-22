@@ -823,10 +823,12 @@ public class RecipeOrderService extends RecipeBaseService {
                     //如果预结算返回自付金额不为空优先取这个金额做支付，保证能和his对账上
                     if (StringUtils.isNotEmpty(recipeExtend.getPayAmount())) {
                         order.setActualPrice(new BigDecimal(recipeExtend.getPayAmount()).doubleValue());
+                        order.setTotalFee(new BigDecimal(recipeExtend.getPayAmount()));
                     } else if (StringUtils.isNotEmpty(recipeExtend.getPreSettletotalAmount())){
                         //如果有预结算返回的金额，则处方实际费用预结算返回的金额代替处方药品金额（his总金额(药品费用+挂号费用)+平台费用(除药品费用以外其他费用的总计)）
                         BigDecimal priceTemp = totalFee.subtract(order.getRecipeFee());
-                        order.setActualPrice(new BigDecimal(recipeExtend.getPreSettletotalAmount()).add(priceTemp).doubleValue());
+                        order.setTotalFee(new BigDecimal(recipeExtend.getPreSettletotalAmount()).add(priceTemp));
+                        order.setTotalFee(new BigDecimal(recipeExtend.getPreSettletotalAmount()).add(priceTemp));
                     }
                     //预结算总金额
                     if (StringUtils.isNotEmpty(recipeExtend.getPreSettletotalAmount())){
