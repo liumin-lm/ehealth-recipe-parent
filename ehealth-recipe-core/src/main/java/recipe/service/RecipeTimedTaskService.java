@@ -282,7 +282,8 @@ public class RecipeTimedTaskService {
             LOGGER.info("updateRecipeOrderInfoTask hisResponseTO:{}.", JSONUtils.toString(hisResponseTO));
             if (hisResponseTO != null && hisResponseTO.isSuccess()) {
                 Map extend = hisResponseTO.getExtend();
-                if ("0".equals(extend.get("sendStatus")) && StringUtils.isNotEmpty((String)extend.get("sendNo"))) {
+                if ("0".equals(extend.get("sendStatus").toString()) && StringUtils.isNotEmpty(extend.get("sendNo").toString())) {
+                    LOGGER.info("updateRecipeOrderInfoTask 开始推送配送信息.");
                     //已配送
                     Map<String, Object> paramMap = new HashMap<>();
                     paramMap.put("recipeId", recipe.getRecipeId());
