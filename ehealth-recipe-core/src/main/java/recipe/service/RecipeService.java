@@ -1846,7 +1846,7 @@ public class RecipeService extends RecipeBaseService {
         try {
             String fileId = null;
             DoctorDTO doctorDTOn = doctorService.getByDoctorId(recipe.getChecker());
-            if(null != doctorDTOn){
+            if(null == doctorDTOn){
                 LOGGER.warn("当前处方{}审核药师为空，请检查处方相关信息", recipeId);
                 return;
             }
@@ -1873,7 +1873,7 @@ public class RecipeService extends RecipeBaseService {
         }
 
         //首先判断当前ca是否是有结束结果的
-        if(-1 == resultVo.getResultCode()){
+        if(-1 == resultVo.getResultCode() && RecipeResultBean.FAIL.equals(resultVo.getCode())){
             LOGGER.info("当期处方{}药师ca签名异步调用接口返回：未触发处方业务结果", recipeId);
             return;
         }

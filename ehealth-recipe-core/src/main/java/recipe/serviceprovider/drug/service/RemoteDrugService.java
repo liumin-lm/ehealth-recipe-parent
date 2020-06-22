@@ -522,9 +522,15 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         IUsingRateService usingRateService = AppContextHolder.getBean("eh.usingRateService",IUsingRateService.class);
         if (!CollectionUtils.isEmpty(usingRates)){
             usingRates.forEach(item -> {
+                UsingRateDTO usingRateDTO = null;
                 Integer organId = (Integer) item.get("organId");
                 String usingRate = (String) item.get("usingRate");
-                UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(organId,usingRate);
+                try {
+                    usingRateDTO  = usingRateService.findUsingRateDTOByOrganAndKey(organId,usingRate);
+                }catch (Exception e){
+                    LOGGER.error("查询失败",organId+"----"+usingRate);
+                }
+
                 if (usingRateDTO != null){
                     organDrugListDAO.updateUsingRateByUsingRate(organId,usingRate,String.valueOf(usingRateDTO.getId()));
                 }

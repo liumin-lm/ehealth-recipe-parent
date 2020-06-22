@@ -1,5 +1,6 @@
 package com.ngari.recipe.hisprescription.model;
 
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
@@ -107,6 +108,7 @@ public class QueryRecipeInfoDTO implements Serializable {
     //date 20200222杭州市互联网 审方时间
     @ItemProperty(alias="审方时间")
     private Date checkDate;
+    private RecipeExtendBean recipeExtendBean;
 
     public Date getCheckDate() {
         return checkDate;
@@ -452,5 +454,13 @@ public class QueryRecipeInfoDTO implements Serializable {
 
     public void setDeptCode(String deptCode) {
         this.deptCode = deptCode;
+    }
+
+    public RecipeExtendBean getRecipeExtendBean() {
+        return recipeExtendBean;
+    }
+
+    public void setRecipeExtendBean(RecipeExtendBean recipeExtendBean) {
+        this.recipeExtendBean = recipeExtendBean;
     }
 }

@@ -22,6 +22,7 @@ import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.*;
 import com.ngari.recipe.hisprescription.service.IQueryRecipeService;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.controller.exception.ControllerException;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
@@ -293,6 +294,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                     //处理方法
                     recipeDTO.setCLFF(recipeExtend.getHandleMethod());
                 }
+                recipeDTO.setRecipeExtendBean(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
             }
 
             if (null != patient) {

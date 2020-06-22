@@ -253,13 +253,13 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             importExcelInfoDTO.setExecuteDate(new Date());
             importExcelInfoDTO.setErrMsg(errMsgAll.toString());
             importExcelInfoDTO.setOssId(ossId);
-            iImportExcelInfoService.addExcelInfo(importExcelInfoDTO);
-
+            importExcelInfoDTO = iImportExcelInfoService.addExcelInfo(importExcelInfoDTO);
             result.put("code", 609);
             result.put("msg", errDrugListMatchList);
             result.put("addNum",addNum);
             result.put("updateNum",updateNum);
             result.put("failNum",total-addNum-updateNum);
+            result.put("ImportExcelInfoId",importExcelInfoDTO.getId());
             LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
             return result;
 
@@ -291,11 +291,8 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         importExcelInfoDTO.setExecuterName(operator);
         importExcelInfoDTO.setExecuteDate(new Date());
         importExcelInfoDTO.setOssId(ossId);
-
-
-        iImportExcelInfoService.addExcelInfo(importExcelInfoDTO);
-
-
+        importExcelInfoDTO = iImportExcelInfoService.addExcelInfo(importExcelInfoDTO);
+        result.put("ImportExcelInfoId",importExcelInfoDTO.getId());
         result.put("addNum",addNum);
         result.put("updateNum",updateNum);
         result.put("failNum",total-addNum-updateNum);
