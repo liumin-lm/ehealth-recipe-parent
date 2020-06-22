@@ -277,6 +277,7 @@ public class RecipeTimedTaskService {
             enterpriseResTo.setRid(recipeExtend.getRxid());
             enterpriseResTo.setDepId(drugsEnterprise.getId().toString());
             enterpriseResTo.setOrganId(recipe.getClinicOrgan());
+            LOGGER.info("updateRecipeOrderInfoTask enterpriseResTo:{}.", JSONUtils.toString(enterpriseResTo));
             HisResponseTO hisResponseTO = recipeEnterpriseService.getRecipeInfo(enterpriseResTo);
             LOGGER.info("updateRecipeOrderInfoTask hisResponseTO:{}.", JSONUtils.toString(hisResponseTO));
             if (hisResponseTO != null && hisResponseTO.isSuccess()) {
