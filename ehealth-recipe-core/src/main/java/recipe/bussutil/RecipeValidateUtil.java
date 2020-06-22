@@ -205,11 +205,11 @@ public class RecipeValidateUtil {
                 }
                 mapDetail.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
                 try {
-                    usingRateDTO = usingRateService.getUsingRateDTOByOrganAndPlatformKey(organDrug.getOrganId(), mapDetail.getUsingRate());
+                    usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(organDrug.getOrganId(), mapDetail.getOrganUsingRate());
                     if (usingRateDTO!=null){
                         mapDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
                     }
-                    usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndPlatformKey(organDrug.getOrganId(), mapDetail.getUsePathways());
+                    usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organDrug.getOrganId(), mapDetail.getOrganUsePathways());
                     if (usePathwaysDTO!=null){
                         mapDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
                     }
