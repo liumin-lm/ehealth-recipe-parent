@@ -138,6 +138,7 @@ public class ShanghaiCAImpl implements CAInterface {
                 signResultVo.setResultCode(1);
             }
         } catch (Exception e){
+            signResultVo.setResultCode(0);
             LOGGER.error("ShanghaiCAImpl commonCASignAndSeal 调用前置机失败 requestSealTO={},recipeId={},organId={},userAccount={},caPassword={}",
                     JSONUtils.toString(requestSealTO), recipe.getRecipeId(),organId, userAccount, caPassword,e);
             LOGGER.error("commonCASignAndSeal Exception", e);
