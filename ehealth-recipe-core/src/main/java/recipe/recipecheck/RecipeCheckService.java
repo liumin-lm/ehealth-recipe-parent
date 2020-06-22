@@ -91,6 +91,8 @@ public class RecipeCheckService {
 
     private static final String RECIPEID_SECRET = "1234567890123gmw";
 
+    private static final Integer GRABORDER_STATUS_YES = 1;
+
     /**
      * zhongzx
      * 根据flag查询处方列表   for phone
@@ -270,11 +272,11 @@ public class RecipeCheckService {
 
                 if (null != urt && null != urt.getProperty("doctor")) {
                     DoctorDTO loginDoctor = BeanUtils.map(urt.getProperty("doctor"), DoctorDTO.class);
-                    if(4 != checkResult && null != recipeCheck && recipeCheck.getGrabOrderStatus().equals(1) && null == recipeCheck.getChecker()
-                            &&recipeCheck.getGrabDoctorId().equals(loginDoctor.getDoctorId())){ //已抢单,不考虑排除撤销状态
+                    if(4 != checkResult && null != recipeCheck && GRABORDER_STATUS_YES.equals(recipeCheck.getGrabOrderStatus()) && null == recipeCheck.getChecker()
+                            &&loginDoctor.getDoctorId().equals(recipeCheck.getGrabDoctorId())){ //已抢单,不考虑排除撤销状态
                         checkResult = 6;
-                    }else if(4 != checkResult && null != recipeCheck && recipeCheck.getGrabOrderStatus().equals(1) && null == recipeCheck.getChecker()
-                            &&!recipeCheck.getGrabDoctorId().equals(loginDoctor.getDoctorId())){ //已被抢单,不考虑撤销状态
+                    }else if(4 != checkResult && null != recipeCheck && GRABORDER_STATUS_YES.equals(recipeCheck.getGrabOrderStatus()) && null == recipeCheck.getChecker()
+                            &&!loginDoctor.getDoctorId().equals(recipeCheck.getGrabDoctorId())){ //已被抢单,不考虑撤销状态
                         checkResult = 5;
                     }
                 }
@@ -1067,11 +1069,11 @@ public class RecipeCheckService {
 
                 if (null != urt && null != urt.getProperty("doctor")) {
                     DoctorDTO loginDoctor = BeanUtils.map(urt.getProperty("doctor"), DoctorDTO.class);
-                    if(4 != checkResult && null != recipeCheck && recipeCheck.getGrabOrderStatus().equals(1) && null == recipeCheck.getChecker()
-                            &&recipeCheck.getGrabDoctorId().equals(loginDoctor.getDoctorId())){ //已抢单,不考虑排除撤销状态
+                    if(4 != checkResult && null != recipeCheck && GRABORDER_STATUS_YES.equals(recipeCheck.getGrabOrderStatus()) && null == recipeCheck.getChecker()
+                            &&loginDoctor.getDoctorId().equals(recipeCheck.getGrabDoctorId())){ //已抢单,不考虑排除撤销状态
                         checkResult = 6;
-                    }else if(4 != checkResult && null != recipeCheck && recipeCheck.getGrabOrderStatus().equals(1) && null == recipeCheck.getChecker()
-                            &&!recipeCheck.getGrabDoctorId().equals(loginDoctor.getDoctorId())){ //已被抢单,不考虑撤销状态
+                    }else if(4 != checkResult && null != recipeCheck && GRABORDER_STATUS_YES.equals(recipeCheck.getGrabOrderStatus()) && null == recipeCheck.getChecker()
+                            &&!loginDoctor.getDoctorId().equals(recipeCheck.getGrabDoctorId())){ //已被抢单,不考虑撤销状态
                         checkResult = 5;
                     }
                 }

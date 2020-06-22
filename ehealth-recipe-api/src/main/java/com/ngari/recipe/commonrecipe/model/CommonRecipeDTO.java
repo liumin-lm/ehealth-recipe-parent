@@ -40,6 +40,10 @@ public class CommonRecipeDTO implements Serializable {
     @ItemProperty(alias = "机构代码")
     private Integer organId;
 
+    //开当前处方的配置项信息
+    @ItemProperty(alias = "可开长处方按钮状态、长处方开药天数、非长处方开药天数")
+    private String recipeJsonConfig;
+
     public CommonRecipeDTO() {
     }
 
@@ -97,5 +101,13 @@ public class CommonRecipeDTO implements Serializable {
 
     public void setOrganId(Integer organId) {
         this.organId = organId;
+    }
+
+    public String getRecipeJsonConfig() {
+        return recipeJsonConfig;
+    }
+
+    public void setRecipeJsonConfig(String recipeJsonConfig) {
+        this.recipeJsonConfig = recipeJsonConfig;
     }
 }

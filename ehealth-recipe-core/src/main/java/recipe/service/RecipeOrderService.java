@@ -823,10 +823,12 @@ public class RecipeOrderService extends RecipeBaseService {
                     //如果预结算返回自付金额不为空优先取这个金额做支付，保证能和his对账上
                     if (StringUtils.isNotEmpty(recipeExtend.getPayAmount())) {
                         order.setActualPrice(new BigDecimal(recipeExtend.getPayAmount()).doubleValue());
+                        order.setTotalFee(new BigDecimal(recipeExtend.getPayAmount()));
                     } else if (StringUtils.isNotEmpty(recipeExtend.getPreSettletotalAmount())){
                         //如果有预结算返回的金额，则处方实际费用预结算返回的金额代替处方药品金额（his总金额(药品费用+挂号费用)+平台费用(除药品费用以外其他费用的总计)）
                         BigDecimal priceTemp = totalFee.subtract(order.getRecipeFee());
                         order.setActualPrice(new BigDecimal(recipeExtend.getPreSettletotalAmount()).add(priceTemp).doubleValue());
+                        order.setTotalFee(new BigDecimal(recipeExtend.getPreSettletotalAmount()).add(priceTemp));
                     }
                     //预结算总金额
                     if (StringUtils.isNotEmpty(recipeExtend.getPreSettletotalAmount())){
@@ -1114,7 +1116,7 @@ public class RecipeOrderService extends RecipeBaseService {
             recipeInfo.put("payFlag", PayConstant.PAY_FLAG_NOT_PAY);
             recipeInfo.put("enterpriseId", order.getEnterpriseId());
             //更新处方信息
-            this.updateRecipeInfo(false, result, recipeIds, recipeInfo);
+            this.updateRecipeInfo(false, result, recipeIds, recipeInfo, null);
         }
 
         return saveFlag;
@@ -1753,11 +1755,8 @@ public class RecipeOrderService extends RecipeBaseService {
             Map<String, Object> recipeInfo = Maps.newHashMap();
             recipeInfo.put("payFlag", payFlag);
             recipeInfo.put("payMode", payMode);
-            if (null != order) {
-                recipeInfo.put("actualPrice", order.getActualPrice());
-            }
             List<Integer> recipeIds = recipeDAO.findRecipeIdsByOrderCode(orderCode);
-            this.updateRecipeInfo(true, result, recipeIds, recipeInfo);
+            this.updateRecipeInfo(true, result, recipeIds, recipeInfo, order.getRecipeFee());
         }
 
         return result;
@@ -2191,7 +2190,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @return
      */
     private RecipeResultBean updateRecipeInfo(boolean saveFlag, RecipeResultBean result,
-                                              List<Integer> recipeIds, Map<String, Object> recipeInfo) {
+                                              List<Integer> recipeIds, Map<String, Object> recipeInfo, BigDecimal recipeFee) {
         if (null == result) {
             result = RecipeResultBean.getSuccess();
         }
@@ -2203,7 +2202,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 if (Integer.valueOf(PayConstant.PAY_FLAG_PAY_SUCCESS).equals(payFlag)
                         || Integer.valueOf(PayConstant.PAY_FLAG_NOT_PAY).equals(payFlag)) {
 
-                    resultBean = recipeService.updateRecipePayResultImplForOrder(saveFlag, recipeId, payFlag, recipeInfo);
+                    resultBean = recipeService.updateRecipePayResultImplForOrder(saveFlag, recipeId, payFlag, recipeInfo, recipeFee);
                     if (RecipeResultBean.FAIL.equals(resultBean.getCode())) {
                         result.setCode(RecipeResultBean.FAIL);
                         result.setError(resultBean.getError());

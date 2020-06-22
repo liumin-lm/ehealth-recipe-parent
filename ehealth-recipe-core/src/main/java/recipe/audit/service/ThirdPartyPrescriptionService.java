@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.audit.bean.AutoAuditResult;
 import recipe.audit.bean.Issue;
 import recipe.audit.bean.PAWebMedicines;
+import recipe.audit.bean.PAWebRecipeDanger;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
 import recipe.dao.OrganDrugListDAO;
@@ -115,6 +116,8 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
                 } else if (CollectionUtils.isNotEmpty(thirdPartyRationalUseDrugResTO.getThirdPartyIssuesDataList())) {
                     List<PAWebMedicines> paWebMedicinesList = getPAWebMedicines(thirdPartyRationalUseDrugResTO.getThirdPartyIssuesDataList());
                     result.setMedicines(paWebMedicinesList);
+                    List<PAWebRecipeDanger> paWebRecipeDangerList = getPAWebRecipeDangers(thirdPartyRationalUseDrugResTO.getThirdPartyIssuesDataList());
+                    result.setRecipeDangers(paWebRecipeDangerList);
                     result.setCode(RecipeCommonBaseTO.FAIL);
                     Object needInterceptLevel = configService.getConfiguration(recipeBean.getClinicOrgan(), "needInterceptLevel");
                     if (Objects.nonNull(needInterceptLevel)) {
@@ -213,7 +216,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
             }
             thirdPartyMedicinesData.setUnit(recipeDetailBean.getUseDoseUnit());
             thirdPartyMedicinesData.setPack(recipeDetailBean.getPack());
-            OrganDrugList organDrugList = organDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), recipeBean.getClinicOrgan());
+            OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCode(recipeBean.getClinicOrgan(), recipeDetailBean.getOrganDrugCode());
             if (Objects.nonNull(organDrugList)) {
                 thirdPartyMedicinesData.setPackUnit(organDrugList.getUnit());
             }
@@ -269,7 +272,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
     }
 
     /**
-     * 解析问题信息
+     * 解析药品信息
      *
      * @param thirdPartyIssuesDatas
      * @return
@@ -303,6 +306,26 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
             paWebMedicinesList.add(paWebMedicines);
         });
         return paWebMedicinesList;
+    }
+
+    /**
+     * 解析风险信息
+     *
+     * @param thirdPartyIssuesDatas
+     * @return
+     */
+    private List<PAWebRecipeDanger> getPAWebRecipeDangers(List<ThirdPartyIssuesData> thirdPartyIssuesDatas) {
+        List<PAWebRecipeDanger> paWebRecipeDangerList = new ArrayList<>();
+        thirdPartyIssuesDatas.forEach(thirdPartyIssuesData -> {
+            PAWebRecipeDanger paWebRecipeDanger = new PAWebRecipeDanger();
+            paWebRecipeDanger.setDangerDesc(thirdPartyIssuesData.getSummary());
+            paWebRecipeDanger.setDangerDrug(thirdPartyIssuesData.getNameA());
+            paWebRecipeDanger.setDangerLevel(thirdPartyIssuesData.getLvlNo());
+            paWebRecipeDanger.setDangerType(thirdPartyIssuesData.getType());
+            paWebRecipeDanger.setDetailUrl(StringUtils.EMPTY);
+            paWebRecipeDangerList.add(paWebRecipeDanger);
+        });
+        return paWebRecipeDangerList;
     }
 
     @Override

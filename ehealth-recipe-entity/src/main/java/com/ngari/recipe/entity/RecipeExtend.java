@@ -125,6 +125,11 @@ public class RecipeExtend implements Serializable {
      */
     private String medicalTypeText;
 
+    /**
+     * 第三方处方ID
+     */
+    private String rxid;
+
 //    @ItemProperty(alias = "处方创建状态  0：未进行，1：已生成订单 ，2.已创建处方，3. 已预支付处方")
 //    private String orderMakeStatus;
 //
@@ -525,5 +530,14 @@ public class RecipeExtend implements Serializable {
 
     public void setRecipeJsonConfig(String recipeJsonConfig) {
         this.recipeJsonConfig = recipeJsonConfig;
+    }
+
+    @Column(name = "rxid")
+    public String getRxid() {
+        return rxid;
+    }
+
+    public void setRxid(String rxid) {
+        this.rxid = rxid;
     }
 }

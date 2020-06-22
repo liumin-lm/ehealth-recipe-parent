@@ -14,6 +14,7 @@ import com.ngari.recipe.entity.SaleDrugList;
 import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.io.output.StringBuilderWriter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
@@ -72,8 +73,9 @@ public class SaleDrugToolService implements ISaleDrugToolService {
     });
 
     @Override
-    public synchronized Map<String, Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator) {
+    public synchronized Map<String, Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator, String ossId) {
         LOGGER.info(operator + "开始 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
+        StringBuilder errMsgAll = new StringBuilder();
         progress = 0;
         String key = organId + operator;
         if (redisClient.exists(key)) {
@@ -211,6 +213,11 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 errMsg.append("价格有误").append(";");
             }
 
+            if (!drugListDAO.exist(drug.getDrugId())) {
+                errMsg.append("平台药品编号错误！").append(";");
+            }
+
+
             drug.setStatus(1);
             drug.setOrganId(organId);
             drug.setInventory(new BigDecimal(100));
@@ -219,7 +226,8 @@ public class SaleDrugToolService implements ISaleDrugToolService {
 
             if (errMsg.length() > 1) {
                 int showNum = rowIndex + 1;
-                String error = ("【第" + showNum + "行】" + errMsg.substring(0, errMsg.length() - 1));
+                String error = ("【第" + showNum + "行】" + errMsg.substring(0, errMsg.length() - 1)+"\n");
+                errMsgAll.append(error);
                 errDrugListMatchList.add(error);
             } else {
                 drugLists.add(drug);
@@ -238,19 +246,20 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             importExcelInfoDTO.setExcelType(14);
             importExcelInfoDTO.setUploaderName(operator);
             importExcelInfoDTO.setUploadDate(new Date());
-            importExcelInfoDTO.setStatus(1);
+            importExcelInfoDTO.setStatus(0);
             importExcelInfoDTO.setTotal(total);
             importExcelInfoDTO.setSuccess(addNum);
             importExcelInfoDTO.setExecuterName(operator);
             importExcelInfoDTO.setExecuteDate(new Date());
-
-            iImportExcelInfoService.addExcelInfo(importExcelInfoDTO);
-
+            importExcelInfoDTO.setErrMsg(errMsgAll.toString());
+            importExcelInfoDTO.setOssId(ossId);
+            importExcelInfoDTO = iImportExcelInfoService.addExcelInfo(importExcelInfoDTO);
             result.put("code", 609);
             result.put("msg", errDrugListMatchList);
             result.put("addNum",addNum);
             result.put("updateNum",updateNum);
             result.put("failNum",total-addNum-updateNum);
+            result.put("ImportExcelInfoId",importExcelInfoDTO.getId());
             LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
             return result;
 
@@ -276,15 +285,14 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         importExcelInfoDTO.setExcelType(14);
         importExcelInfoDTO.setUploaderName(operator);
         importExcelInfoDTO.setUploadDate(new Date());
-        importExcelInfoDTO.setStatus(3);
+        importExcelInfoDTO.setStatus(1);
         importExcelInfoDTO.setTotal(total);
         importExcelInfoDTO.setSuccess(addNum);
         importExcelInfoDTO.setExecuterName(operator);
         importExcelInfoDTO.setExecuteDate(new Date());
-
-        iImportExcelInfoService.addExcelInfo(importExcelInfoDTO);
-
-
+        importExcelInfoDTO.setOssId(ossId);
+        importExcelInfoDTO = iImportExcelInfoService.addExcelInfo(importExcelInfoDTO);
+        result.put("ImportExcelInfoId",importExcelInfoDTO.getId());
         result.put("addNum",addNum);
         result.put("updateNum",updateNum);
         result.put("failNum",total-addNum-updateNum);

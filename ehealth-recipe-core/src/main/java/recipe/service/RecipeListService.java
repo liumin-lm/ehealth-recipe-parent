@@ -627,41 +627,25 @@ public class RecipeListService extends RecipeBaseService{
      */
     @RpcService
     public List<Map<String, Object>> findHistoryRecipeList(Integer consultId,Integer organId,Integer doctorId, String mpiId) {
-        LOGGER.info("getHosRecipeList consultId={}, organId={},doctorId={},mpiId={}", consultId, organId,doctorId,mpiId);
-        //checkUserHasPermissionByDoctorId(doctorId);
-        //从Recipe表获取线上、线下处方
-//        Future<List<Map<String,Object>>> recipeTask = GlobalEventExecFactory.instance().getExecutor().submit(()->{
-//            return findRecipeListByDoctorAndPatient(doctorId,mpiId,0,10000);
-//        });
+        LOGGER.info("findHistoryRecipeList consultId={}, organId={},doctorId={},mpiId={}", consultId, organId,doctorId,mpiId);
 
         //从his获取线下处方
         RecipePreserveService recipeService = ApplicationUtils.getRecipeService(RecipePreserveService.class);
         Future<Map<String, Object>> hisTask = GlobalEventExecFactory.instance().getExecutor().submit(()->{
             return recipeService.getHosRecipeList(consultId, organId, mpiId, 180);
         });
-
+        //从Recipe表获取线上、线下处方
         List<Map<String,Object>> onLineAndUnderLineRecipesByRecipe=findRecipeListByDoctorAndPatient(doctorId,mpiId,0,10000);
+        LOGGER.info("findHistoryRecipeList 从recipe表获取处方信息:{}",onLineAndUnderLineRecipesByRecipe);
 
-//        List<Map<String,Object>> onLineAndUnderLineRecipesByRecipe= new ArrayList<>();
-//        try {
-//            onLineAndUnderLineRecipesByRecipe = recipeTask.get(); ;
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            LOGGER.error("findHistoryRecipeList recipeTask exception:{}",e.getMessage());
-//        }
         Map<String,Object> upderLineRecipesByHis= new ConcurrentHashMap<>();
         try {
             upderLineRecipesByHis = hisTask.get(5000, TimeUnit.MILLISECONDS);
+            LOGGER.info("findHistoryRecipeList 从his获取已缴费处方信息:{}",upderLineRecipesByHis);
         } catch (Exception e) {
             e.printStackTrace();
             LOGGER.error("findHistoryRecipeList hisTask exception:{}",e.getMessage(),e);
         }
-
-        //从Recipe表获取线上、线下处方
-//        List<Map<String,Object>> onLineAndUnderLineRecipesByRecipe=findRecipeListByDoctorAndPatient(doctorId,mpiId,0,10000);
-//        //从his获取线下处方
-//        RecipePreserveService recipeService = ApplicationUtils.getRecipeService(RecipePreserveService.class);
-//        Map<String, Object> upderLineRecipesByHis=recipeService.getHosRecipeList(consultId, organId, mpiId, 180);
 
         //过滤重复数据并重新排序
         List<Map<String,Object>> res=dealRepeatDataAndSort(onLineAndUnderLineRecipesByRecipe,upderLineRecipesByHis);
@@ -676,6 +660,7 @@ public class RecipeListService extends RecipeBaseService{
      * @return
      */
     private List<Map<String, Object>> dealRepeatDataAndSort(List<Map<String, Object>> onLineAndUnderLineRecipesByRecipe, Map<String, Object> upderLineRecipesByHis) {
+        LOGGER.info("dealRepeatDataAndSort参数onLineAndUnderLineRecipesByRecipe:{},upderLineRecipesByHis:{}",JSONUtils.toString(upderLineRecipesByHis),JSONUtils.toString(upderLineRecipesByHis));
         List<Map<String, Object>> res=new ArrayList<>();
         //过滤重复数据
         List<HisRecipeBean> hisRecipes=(List<HisRecipeBean>)upderLineRecipesByHis.get("hisRecipe");
@@ -687,7 +672,9 @@ public class RecipeListService extends RecipeBaseService{
                 for (int i = hisRecipes.size() - 1; i >= 0; i--) {
                     HisRecipeBean hisRecipeBean=hisRecipes.get(i);
                     String hiskey=hisRecipeBean.getRecipeCode()+hisRecipeBean.getClinicOrgan();
-                    if(recipeKey==hiskey){
+                    if(StringUtils.isEmpty(hiskey)) continue;
+                    if(hiskey.equals(recipeKey)){
+                        LOGGER.info("dealRepeatDataAndSort删除线下处方:recipeCode{},clinicOrgan{}",hisRecipeBean.getRecipeCode(),hisRecipeBean.getClinicOrgan());
                         hisRecipes.remove(hisRecipeBean);//删除重复元素
                     }
                 }

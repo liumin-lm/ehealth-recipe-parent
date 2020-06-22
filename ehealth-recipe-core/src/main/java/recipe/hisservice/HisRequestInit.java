@@ -20,6 +20,7 @@ import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.RecipeExtendBean;
+import com.ngari.platform.recipe.mode.RecipeOrderBean;
 import com.ngari.recipe.entity.*;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -534,6 +535,8 @@ public class HisRequestInit {
             RecipeOrder order = orderDAO.getByOrderCode(recipe.getOrderCode());
 
             if (order != null) {
+                //新参数-把整个订单信息传给前置机
+                requestTO.setRecipeOrderBean(ObjectCopyUtils.convert(order, RecipeOrderBean.class));
                 //如果预结算有值则直接返回预结算的金额
                 if(order.getPreSettletotalAmount() != null) {
                     requestTO.setAmount(order.getPreSettletotalAmount().toString());

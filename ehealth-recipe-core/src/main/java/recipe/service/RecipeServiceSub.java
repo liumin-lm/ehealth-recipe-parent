@@ -1409,7 +1409,7 @@ public class RecipeServiceSub {
             }
         }
         map.put("patient", patient);
-        map.put("recipedetails", ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class));
+        map.put("recipedetails", RecipeValidateUtil.validateDrugsImpl(recipe));
         if (isDoctor) {
             ConsultSetService consultSetService = ApplicationUtils.getBasicService(ConsultSetService.class);
             IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);

@@ -1,6 +1,10 @@
 package recipe.service;
 
 import com.google.common.collect.Lists;
+import com.ngari.base.dto.UsePathwaysDTO;
+import com.ngari.base.dto.UsingRateDTO;
+import com.ngari.bus.op.service.IUsePathwaysService;
+import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.regulation.entity.RegulationDrugCategoryReq;
 import com.ngari.his.regulation.entity.RegulationNotifyDataReq;
@@ -264,6 +268,8 @@ public class OrganDrugListService implements IOrganDrugListService {
         Integer organId = organDrugList.getOrganId();
         OrganService organService = BasicAPI.getService(OrganService.class);
         OrganDTO organDTO = organService.getByOrganId(organId);
+        //tong步赋值老的途径与频率
+        setOldRateAndWays(organDrugList);
         IRegulationService iRegulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
         IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
         if (organDrugList.getOrganDrugId() == null || organDrugList.getOrganDrugId() == 0) {
@@ -337,6 +343,27 @@ public class OrganDrugListService implements IOrganDrugListService {
             return ObjectCopyUtils.convert(target, OrganDrugListDTO.class);
         }
     }
+
+    private void setOldRateAndWays(OrganDrugList organDrugList){
+        try {
+            IUsingRateService usingRateService = AppContextHolder.getBean("eh.usingRateService",IUsingRateService.class);
+            IUsePathwaysService usePathwaysService = AppContextHolder.getBean("eh.usePathwaysService",IUsePathwaysService.class);
+            if (organDrugList != null && !StringUtils.isEmpty(organDrugList.getUsingRateId())){
+                Integer usingRateId = Integer.valueOf(organDrugList.getUsingRateId());
+                UsingRateDTO usingRateDTO = usingRateService.getById(usingRateId);
+                organDrugList.setUsingRate(usingRateDTO.getRelatedPlatformKey());
+            }
+            if (organDrugList != null && !StringUtils.isEmpty(organDrugList.getUsePathwaysId())){
+                Integer usePathwaysId = Integer.valueOf(organDrugList.getUsePathwaysId());
+                UsePathwaysDTO usePathwaysDTO = usePathwaysService.getById(usePathwaysId);
+                organDrugList.setUsePathways(usePathwaysDTO.getRelatedPlatformKey());
+            }
+        }catch (Exception e){
+            logger.error("设置老使用频率失败",e);
+        }
+
+    }
+
 
     //上海六院的新增药品信息同步到百洋
     private void addOrganDrugListToBy(OrganDrugList organDrugList){
@@ -646,13 +673,13 @@ public class OrganDrugListService implements IOrganDrugListService {
      * @param recipeDetail
      */
     public void saveOrganDrug(Integer organId, Recipedetail recipeDetail) {
+        logger.info("saveOrganDrug  organId={}, recipeDetail：{}", organId, JSONUtils.toString(recipeDetail));
         if (null == recipeDetail || null == organId || null == recipeDetail.getDrugId()) {
-            logger.warn("saveOrganDrug  organId={}, recipeDetail：{}", organId, JSONUtils.toString(recipeDetail));
             return;
         }
         OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndDrugId(organId, recipeDetail.getDrugId());
         if (null == organDrug) {
-            logger.warn("saveOrganDrug  organDrug is null organId={}, DrugId：{}", organId, recipeDetail.getDrugId());
+            logger.warn("saveOrganDrug  organDrug is null organId={}, recipeDetail：{}", organId, JSONUtils.toString(recipeDetail));
             return;
         }
         Boolean isUpdate = false;
@@ -673,6 +700,7 @@ public class OrganDrugListService implements IOrganDrugListService {
             isUpdate = true;
         }
         if (isUpdate) {
+            logger.info("saveOrganDrug  organDrug：{}", JSONUtils.toString(organDrug));
             organDrugListDAO.update(organDrug);
         }
     }

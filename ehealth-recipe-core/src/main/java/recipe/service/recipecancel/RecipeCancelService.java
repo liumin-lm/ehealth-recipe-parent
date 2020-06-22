@@ -114,6 +114,7 @@ public class RecipeCancelService {
             }
             RecipeLogService.saveRecipeLog(recipeId,beforeStatus,RecipeStatusConstant.READY_CHECK_YS,"撤销原因："+message);
         }
+        rMap.put("result",result);
         rMap.put("msg",msg);
         LOGGER.info("cancelRecipeForChecker execute ok! rMap:"+JSONUtils.toString(rMap));
         return rMap;

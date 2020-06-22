@@ -3,15 +3,18 @@ package recipe.service;
 import com.google.common.collect.Maps;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
+import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
-import com.ngari.recipe.entity.OrganDrugList;
-import com.ngari.recipe.entity.Recipe;
+import com.ngari.platform.recipe.mode.EnterpriseResTo;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HosRecipeResult;
 import com.ngari.recipe.hisprescription.model.HospitalStatusUpdateDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -21,8 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.constant.*;
-import recipe.dao.OrganDrugListDAO;
-import recipe.dao.RecipeDAO;
+import recipe.dao.*;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.recipecheck.HisCheckRecipeService;
 import recipe.service.common.RecipeCacheService;
@@ -252,4 +254,29 @@ public class RecipeTimedTaskService {
             }
         }
     }
+
+    /**
+     * 定时更新处方订单信息
+     */
+    /*@RpcService
+    public void updateRecipeOrderInfoTask(){
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAccount("cqfe");
+        //查询配送到家待配送的订单
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        List<RecipeOrder> recipeOrdersReadyToSend = recipeOrderDAO.findRecipeOrderByStatusAndEnterpriseId(3, drugsEnterprise.getId());
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        for (RecipeOrder recipeOrder : recipeOrdersReadyToSend) {
+            Recipe recipe = recipeDAO.getByOrderCode(recipeOrder.getOrderCode());
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
+            EnterpriseResTo enterpriseResTo = new EnterpriseResTo();
+            enterpriseResTo.setRid(recipeExtend.getRxid());
+            enterpriseResTo.setDepId(drugsEnterprise.getId().toString());
+            enterpriseResTo.setOrganId(recipe.getClinicOrgan());
+            HisResponseTO hisResponseTO = recipeEnterpriseService.getRecipeInfo(enterpriseResTo);
+            LOGGER.info("updateRecipeOrderInfoTask hisResponseTO:{}.", JSONUtils.toString(hisResponseTO));
+        }
+    }*/
 }
