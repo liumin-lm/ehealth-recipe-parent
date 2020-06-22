@@ -38,6 +38,7 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.formula.functions.T;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -145,6 +146,11 @@ public class RecipePreserveService {
 
     @RpcService
     public Map<String,Object> getHosRecipeList(Integer consultId, Integer organId,String mpiId,Integer daysAgo){
+        try {
+            Thread.sleep(60000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         LOGGER.info("getHosRecipeList consultId={}, organId={},mpiId={}", consultId, organId,mpiId);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         Map<String,Object> result = Maps.newHashMap();
