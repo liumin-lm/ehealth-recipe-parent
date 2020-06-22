@@ -220,6 +220,7 @@ public class RemoteDrugEnterpriseService {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             ScanRequestBean scanRequestBean = getScanRequestBean(recipe, drugsEnterprise);
+            LOGGER.info("scanStock scanRequestBean:{}.", JSONUtils.toString(scanRequestBean));
             HisResponseTO responseTO = recipeEnterpriseService.scanStock(scanRequestBean);
             LOGGER.info("scanStock responseTO:{}.", JSONUtils.toString(responseTO));
             if (responseTO != null && responseTO.isSuccess()) {
