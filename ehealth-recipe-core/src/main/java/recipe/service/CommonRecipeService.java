@@ -229,6 +229,10 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
             boolean oldFlag = organDrugCodeList.isEmpty() ? true : false;
             List<OrganDrugList> organDrugList = Lists.newArrayList();
             List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList;
+            IUsingRateService usingRateService = AppDomainContext.getBean("eh.usingRateService", IUsingRateService.class);
+            IUsePathwaysService usePathwaysService = AppDomainContext.getBean("eh.usePathwaysService", IUsePathwaysService.class);
+            UsingRateDTO usingRateDTO;
+            UsePathwaysDTO usePathwaysDTO;
             if (oldFlag){
                 organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(commonRecipeDTO.getOrganId(), drugIdList);
                 for (CommonRecipeDrugDTO commonRecipeDrug : drugDtoList) {
@@ -251,8 +255,19 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                                     ||organDrug.getDefaultSmallestUnitUseDose()!= null){
                                 useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(),organDrug.getUseDoseSmallestUnit(),organDrug.getSmallestUnitUseDose()));
                             }
-                            commonRecipeDrug.setUsingRateId(organDrug.getUsingRateId());
-                            commonRecipeDrug.setUsePathwaysId(organDrug.getUsePathwaysId());
+                            try {
+                                commonRecipeDrug.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
+                                usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(organDrug.getOrganId(), commonRecipeDrug.getUsingRate());
+                                if (usingRateDTO!=null){
+                                    commonRecipeDrug.setUsingRateId(String.valueOf(usingRateDTO.getId()));
+                                }
+                                usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndPlatformKey(organDrug.getOrganId(), commonRecipeDrug.getUsePathways());
+                                if (usePathwaysDTO!=null){
+                                    commonRecipeDrug.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
+                                }
+                            } catch (Exception e) {
+                                LOGGER.info("getCommonRecipeDetails error,commonRecipeId={}", commonRecipeId,e);
+                            }
                             break;
                         }
                     }
@@ -286,8 +301,19 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                                 useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(),organDrug.getUseDoseSmallestUnit(),organDrug.getSmallestUnitUseDose()));
                             }
                             commonRecipeDrug.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
-                            commonRecipeDrug.setUsingRateId(organDrug.getUsingRateId());
-                            commonRecipeDrug.setUsePathwaysId(organDrug.getUsePathwaysId());
+                            try {
+                                commonRecipeDrug.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
+                                usingRateDTO = usingRateService.getUsingRateDTOByOrganAndPlatformKey(organDrug.getOrganId(), commonRecipeDrug.getUsingRate());
+                                if (usingRateDTO!=null){
+                                    commonRecipeDrug.setUsingRateId(String.valueOf(usingRateDTO.getId()));
+                                }
+                                usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndPlatformKey(organDrug.getOrganId(), commonRecipeDrug.getUsePathways());
+                                if (usePathwaysDTO!=null){
+                                    commonRecipeDrug.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
+                                }
+                            } catch (Exception e) {
+                                LOGGER.info("getCommonRecipeDetails error,commonRecipeId={}", commonRecipeId,e);
+                            }
                             break;
                         }
                     }
