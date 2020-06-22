@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
@@ -19,7 +20,9 @@ import recipe.constant.BussTypeConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeMsgEnum;
 import recipe.constant.RecipecCheckStatusConstant;
+import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeDAO;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.*;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
@@ -27,6 +30,7 @@ import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -110,7 +114,25 @@ public class PlatRecipeCheckService implements IRecipeCheckService{
 //        });
 //        //推送处方到监管平台(审核后数据)
 //        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(),2));
+        //对重庆附二进行处理,审核通过将处方信息推送第三方
+        pushRecipeForThird(recipe);
         return resMap;
+    }
+
+    private void pushRecipeForThird(Recipe recipe) {
+        try{
+            OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+            RemoteDrugEnterpriseService drugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+            //需要特殊处理 1003498
+            if (new Integer(1).equals(recipe.getClinicOrgan())) {
+                List<DrugsEnterprise> retList = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
+                for (DrugsEnterprise drugsEnterprise : retList) {
+                    drugEnterpriseService.pushRecipeInfoForThird(recipe, drugsEnterprise);
+                }
+            }
+        }catch(Exception e){
+            LOGGER.info("pushRecipeForThird error msg:{}.", e.getMessage(), e);
+        }
     }
 
     public void doAfterCheckNotPassYs(Recipe recipe) {
