@@ -315,13 +315,38 @@ public class RecipeTimedTaskService {
             LOGGER.info("updateRecipeOrderInfoTask hisResponseTO:{}.", JSONUtils.toString(hisResponseTO));
             if (hisResponseTO != null && hisResponseTO.isSuccess()) {
                 Map extend = hisResponseTO.getExtend();
-                if ("1".equals(extend.get("sendStatus"))) {
+                if ("1".equals(extend.get("sendStatus").toString())) {
                     //配送完成
                     Map<String, Object> toSendParamMap = new HashMap<>();
                     toSendParamMap.put("recipeId", recipe.getRecipeId());
                     toSendParamMap.put("sendDate", DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
                     toSendParamMap.put("sender", "重庆附二");
                     thirdEnterpriseCallService.finishRecipe(toSendParamMap);
+                }
+            }
+        }
+        //查询药店取药的订单
+        List<RecipeOrder> recipeOrdersToYd = recipeOrderDAO.findRecipeOrderByStatusAndEnterpriseId(12, drugsEnterprise.getId());
+        for (RecipeOrder recipeOrder : recipeOrdersToYd) {
+            Recipe recipe = recipeDAO.getByOrderCode(recipeOrder.getOrderCode());
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
+            EnterpriseResTo enterpriseResTo = new EnterpriseResTo();
+            enterpriseResTo.setRid(recipeExtend.getRxid());
+            enterpriseResTo.setDepId(drugsEnterprise.getId().toString());
+            enterpriseResTo.setOrganId(recipe.getClinicOrgan());
+            HisResponseTO hisResponseTO = recipeEnterpriseService.getRecipeInfo(enterpriseResTo);
+            LOGGER.info("updateRecipeOrderInfoTask hisResponseTO:{}.", JSONUtils.toString(hisResponseTO));
+            if (hisResponseTO != null && hisResponseTO.isSuccess()) {
+                Map extend = hisResponseTO.getExtend();
+                if ("EXTRACT".equals(extend.get("prescStatus").toString())) {
+                    //表示患者已经取药完成
+                    Map<String, Object> paramMap = new HashMap<>();
+                    paramMap.put("recipeId", recipe.getRecipeId());
+                    paramMap.put("sendDate", DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
+                    paramMap.put("sender", "重庆附二");
+                    paramMap.put("result", 1);
+                    thirdEnterpriseCallService.recordDrugStoreResult(paramMap);
                 }
             }
         }
