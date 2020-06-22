@@ -187,10 +187,6 @@ public class RecipeValidateUtil {
         RecipeDetailBean mapDetail;
         //包装返回app端剂量单位最小单位选择关系
         List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList;
-        UsingRateDTO usingRateDTO;
-        UsePathwaysDTO usePathwaysDTO;
-        IUsingRateService usingRateService = AppDomainContext.getBean("eh.usingRateService", IUsingRateService.class);
-        IUsePathwaysService usePathwaysService = AppDomainContext.getBean("eh.usePathwaysService", IUsePathwaysService.class);
         // TODO: 2020/6/19 很多需要返回药品信息的地方可以让前端根据药品id反查具体的药品信息统一展示；后端涉及返回药品信息的接口太多。返回对象也不一样
         for (OrganDrugList organDrug : organDrugList) {
             mapDetail = drugIdAndDetailMap.get(organDrug.getDrugId());
@@ -204,18 +200,8 @@ public class RecipeValidateUtil {
                     useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(),organDrug.getUseDoseSmallestUnit(),organDrug.getSmallestUnitUseDose()));
                 }
                 mapDetail.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
-                try {
-                    usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(organDrug.getOrganId(), mapDetail.getOrganUsingRate());
-                    if (usingRateDTO!=null){
-                        mapDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
-                    }
-                    usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organDrug.getOrganId(), mapDetail.getOrganUsePathways());
-                    if (usePathwaysDTO!=null){
-                        mapDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
-                    }
-                } catch (Exception e) {
-                    LOGGER.info("validateDrugsImpl error,recipeId={}", recipeId,e);
-                }
+                mapDetail.setUsingRateId(organDrug.getUsingRateId());
+                mapDetail.setUsePathways(organDrug.getUsePathwaysId());
                 backDetailList.add(mapDetail);
             }
         }
