@@ -381,7 +381,7 @@ public class RemoteDrugEnterpriseService {
         AccessDrugEnterpriseService drugEnterpriseService = getBean(COMMON_SERVICE, AccessDrugEnterpriseService.class);
         return drugEnterpriseService.updateAccessToken(drugsEnterpriseIds);
     }
-
+    @RpcService
     public void updateAccessTokenByDep(DrugsEnterprise drugsEnterprise) {
         AccessDrugEnterpriseService service = getServiceByDep(drugsEnterprise);
         service.tokenUpdateImpl(drugsEnterprise);

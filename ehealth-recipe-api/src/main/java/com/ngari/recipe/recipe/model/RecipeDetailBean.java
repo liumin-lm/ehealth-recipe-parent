@@ -180,6 +180,13 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     @ItemProperty(alias="药物使用天数小数型")
     private String useDaysB;
+    @ItemProperty(alias = "使用频率id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
+    private String usingRateId;
+
+    @ItemProperty(alias = "用药途径id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
+    private String usePathwaysId;
     @ItemProperty(alias = "医生端选择的每次剂量和单位绑定关系")
     private List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation;
 
@@ -635,5 +642,21 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setUseDoseAndUnitRelation(List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation) {
         this.useDoseAndUnitRelation = useDoseAndUnitRelation;
+    }
+
+    public String getUsingRateId() {
+        return usingRateId;
+    }
+
+    public void setUsingRateId(String usingRateId) {
+        this.usingRateId = usingRateId;
+    }
+
+    public String getUsePathwaysId() {
+        return usePathwaysId;
+    }
+
+    public void setUsePathwaysId(String usePathwaysId) {
+        this.usePathwaysId = usePathwaysId;
     }
 }
