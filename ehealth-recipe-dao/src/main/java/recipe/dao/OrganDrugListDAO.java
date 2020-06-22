@@ -784,7 +784,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
     @DAOMethod(sql = "from OrganDrugList ")
     public abstract List<OrganDrugList> findOrganDrug(@DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
 
-    @DAOMethod(sql = "select DISTINCT organId from OrganDrugList ")
+    @DAOMethod(sql = "select DISTINCT organId from OrganDrugList ",limit = 0)
     public abstract List<Integer> findOrganIds();
 
     @DAOMethod(sql = "update OrganDrugList set usingRateId=:newUsingRate where usingRate=:oldUsingRate and organId=:organId")
