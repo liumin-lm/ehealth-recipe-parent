@@ -11,6 +11,7 @@ import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.dao.RecipeDAO;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 
 /**
  * 修改pdf 添加费用
@@ -25,16 +26,19 @@ public class UpdateTotalRecipePdfRunable implements Runnable {
     /**
      * 实际支付费用
      */
-    private String actualPrice;
+    private BigDecimal recipeFee;
 
-    public UpdateTotalRecipePdfRunable(Integer recipeId, String actualPrice) {
+    public UpdateTotalRecipePdfRunable(Integer recipeId, BigDecimal recipeFee) {
         this.recipeId = recipeId;
-        this.actualPrice = actualPrice;
+        this.recipeFee = recipeFee;
     }
 
     @Override
     public void run() {
-        logger.info("UpdateTotalRecipePdfRunable start. recipeId={},actualPrice={}", recipeId, actualPrice);
+        logger.info("UpdateTotalRecipePdfRunable start. recipeId={},actualPrice={}", recipeId, recipeFee);
+        if (null == recipeFee) {
+            return;
+        }
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.get(recipeId);
         //更新pdf
@@ -42,14 +46,15 @@ public class UpdateTotalRecipePdfRunable implements Runnable {
             return;
         }
 
+
         try {
             if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
-                String newPfd = CreateRecipePdfUtil.generateTotalRecipePdf(recipe.getChemistSignFile(), actualPrice, recipe.getRecipeType());
+                String newPfd = CreateRecipePdfUtil.generateTotalRecipePdf(recipe.getChemistSignFile(), String.valueOf(recipeFee), recipe.getRecipeType());
                 if (StringUtils.isNotEmpty(newPfd)) {
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("ChemistSignFile", newPfd));
                 }
             } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
-                String newPfd = CreateRecipePdfUtil.generateTotalRecipePdf(recipe.getChemistSignFile(), actualPrice, recipe.getRecipeType());
+                String newPfd = CreateRecipePdfUtil.generateTotalRecipePdf(recipe.getChemistSignFile(), String.valueOf(recipeFee), recipe.getRecipeType());
                 if (StringUtils.isNotEmpty(newPfd)) {
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("SignFile", newPfd));
                 }
