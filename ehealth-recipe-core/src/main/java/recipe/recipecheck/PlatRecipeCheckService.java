@@ -124,7 +124,7 @@ public class PlatRecipeCheckService implements IRecipeCheckService{
             OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
             RemoteDrugEnterpriseService drugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
             //需要特殊处理 1003498
-            if (new Integer(1000017).equals(recipe.getClinicOrgan())) {
+            if (new Integer(1003498).equals(recipe.getClinicOrgan())) {
                 List<DrugsEnterprise> retList = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
                 for (DrugsEnterprise drugsEnterprise : retList) {
                     drugEnterpriseService.pushRecipeInfoForThird(recipe, drugsEnterprise);
