@@ -1530,6 +1530,12 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                         if (saleDrugList.getInventory() != null) {
                             if (saleDrugList.getInventory().doubleValue() < Double.parseDouble(total)) {
                                 result = 0;
+                            } else {
+                                try{
+                                    saleDrugListDAO.updateInventoryByOrganIdAndDrugId(drugsEnterprise.getId(), saleDrugList.getDrugId(), new BigDecimal(total));
+                                }catch(Exception e){
+                                    LOGGER.error("scanStockEnterpriseForHis 扣库存失败,msg:{}.", e.getMessage(), e);
+                                }
                             }
                         } else {
                             return 0;
