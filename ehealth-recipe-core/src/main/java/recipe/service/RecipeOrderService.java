@@ -1116,7 +1116,7 @@ public class RecipeOrderService extends RecipeBaseService {
             recipeInfo.put("payFlag", PayConstant.PAY_FLAG_NOT_PAY);
             recipeInfo.put("enterpriseId", order.getEnterpriseId());
             //更新处方信息
-            this.updateRecipeInfo(false, result, recipeIds, recipeInfo);
+            this.updateRecipeInfo(false, result, recipeIds, recipeInfo, null);
         }
 
         return saveFlag;
@@ -1755,11 +1755,8 @@ public class RecipeOrderService extends RecipeBaseService {
             Map<String, Object> recipeInfo = Maps.newHashMap();
             recipeInfo.put("payFlag", payFlag);
             recipeInfo.put("payMode", payMode);
-            if (null != order && null != order.getActualPrice()) {
-                recipeInfo.put("actualPrice", BigDecimal.valueOf(order.getActualPrice()));
-            }
             List<Integer> recipeIds = recipeDAO.findRecipeIdsByOrderCode(orderCode);
-            this.updateRecipeInfo(true, result, recipeIds, recipeInfo);
+            this.updateRecipeInfo(true, result, recipeIds, recipeInfo, order.getRecipeFee());
         }
 
         return result;
@@ -2193,7 +2190,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @return
      */
     private RecipeResultBean updateRecipeInfo(boolean saveFlag, RecipeResultBean result,
-                                              List<Integer> recipeIds, Map<String, Object> recipeInfo) {
+                                              List<Integer> recipeIds, Map<String, Object> recipeInfo, BigDecimal recipeFee) {
         if (null == result) {
             result = RecipeResultBean.getSuccess();
         }
@@ -2205,7 +2202,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 if (Integer.valueOf(PayConstant.PAY_FLAG_PAY_SUCCESS).equals(payFlag)
                         || Integer.valueOf(PayConstant.PAY_FLAG_NOT_PAY).equals(payFlag)) {
 
-                    resultBean = recipeService.updateRecipePayResultImplForOrder(saveFlag, recipeId, payFlag, recipeInfo);
+                    resultBean = recipeService.updateRecipePayResultImplForOrder(saveFlag, recipeId, payFlag, recipeInfo, recipeFee);
                     if (RecipeResultBean.FAIL.equals(resultBean.getCode())) {
                         result.setCode(RecipeResultBean.FAIL);
                         result.setError(resultBean.getError());
