@@ -73,7 +73,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
     });
 
     @Override
-    public synchronized Map<String, Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator) {
+    public synchronized Map<String, Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator, String ossId) {
         LOGGER.info(operator + "开始 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         StringBuilder errMsgAll = new StringBuilder();
         progress = 0;
@@ -252,6 +252,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             importExcelInfoDTO.setExecuterName(operator);
             importExcelInfoDTO.setExecuteDate(new Date());
             importExcelInfoDTO.setErrMsg(errMsgAll.toString());
+            importExcelInfoDTO.setOssId(ossId);
             iImportExcelInfoService.addExcelInfo(importExcelInfoDTO);
 
             result.put("code", 609);
@@ -289,6 +290,8 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         importExcelInfoDTO.setSuccess(addNum);
         importExcelInfoDTO.setExecuterName(operator);
         importExcelInfoDTO.setExecuteDate(new Date());
+        importExcelInfoDTO.setOssId(ossId);
+
 
         iImportExcelInfoService.addExcelInfo(importExcelInfoDTO);
 
