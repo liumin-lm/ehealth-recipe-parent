@@ -19,6 +19,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -258,7 +259,7 @@ public class RecipeTimedTaskService {
     /**
      * 定时更新处方订单信息
      */
-    /*@RpcService
+    @RpcService
     public void updateRecipeOrderInfoTask(){
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAccount("cqfe");
@@ -267,7 +268,41 @@ public class RecipeTimedTaskService {
         List<RecipeOrder> recipeOrdersReadyToSend = recipeOrderDAO.findRecipeOrderByStatusAndEnterpriseId(3, drugsEnterprise.getId());
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        ThirdEnterpriseCallService thirdEnterpriseCallService = ApplicationUtils.getService(ThirdEnterpriseCallService.class, "takeDrugService");
         for (RecipeOrder recipeOrder : recipeOrdersReadyToSend) {
+            Recipe recipe = recipeDAO.getByOrderCode(recipeOrder.getOrderCode());
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
+            EnterpriseResTo enterpriseResTo = new EnterpriseResTo();
+            enterpriseResTo.setRid(recipeExtend.getRxid());
+            enterpriseResTo.setDepId(drugsEnterprise.getId().toString());
+            enterpriseResTo.setOrganId(recipe.getClinicOrgan());
+            LOGGER.info("updateRecipeOrderInfoTask enterpriseResTo:{}.", JSONUtils.toString(enterpriseResTo));
+            HisResponseTO hisResponseTO = recipeEnterpriseService.getRecipeInfo(enterpriseResTo);
+            LOGGER.info("updateRecipeOrderInfoTask hisResponseTO:{}.", JSONUtils.toString(hisResponseTO));
+            if (hisResponseTO != null && hisResponseTO.isSuccess()) {
+                Map extend = hisResponseTO.getExtend();
+                if ("0".equals(extend.get("sendStatus")) && StringUtils.isNotEmpty((String)extend.get("sendNo"))) {
+                    //已配送
+                    Map<String, Object> paramMap = new HashMap<>();
+                    paramMap.put("recipeId", recipe.getRecipeId());
+                    paramMap.put("sendDate", DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
+                    paramMap.put("sender", "重庆附二");
+                    thirdEnterpriseCallService.readyToSend(paramMap);
+                    //配送中
+                    Map<String, Object> toSendParamMap = new HashMap<>();
+                    toSendParamMap.put("recipeId", recipe.getRecipeId());
+                    toSendParamMap.put("sendDate", DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
+                    toSendParamMap.put("sender", "重庆附二");
+                    toSendParamMap.put("logisticsCompany", 1);
+                    toSendParamMap.put("trackingNumber", extend.get("sendNo"));
+                    thirdEnterpriseCallService.toSend(toSendParamMap);
+                }
+            }
+        }
+        //查询配送中订单
+        List<RecipeOrder> recipeOrdersToSend = recipeOrderDAO.findRecipeOrderByStatusAndEnterpriseId(4, drugsEnterprise.getId());
+        for (RecipeOrder recipeOrder : recipeOrdersToSend) {
             Recipe recipe = recipeDAO.getByOrderCode(recipeOrder.getOrderCode());
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
@@ -277,6 +312,17 @@ public class RecipeTimedTaskService {
             enterpriseResTo.setOrganId(recipe.getClinicOrgan());
             HisResponseTO hisResponseTO = recipeEnterpriseService.getRecipeInfo(enterpriseResTo);
             LOGGER.info("updateRecipeOrderInfoTask hisResponseTO:{}.", JSONUtils.toString(hisResponseTO));
+            if (hisResponseTO != null && hisResponseTO.isSuccess()) {
+                Map extend = hisResponseTO.getExtend();
+                if ("1".equals(extend.get("sendStatus"))) {
+                    //配送完成
+                    Map<String, Object> toSendParamMap = new HashMap<>();
+                    toSendParamMap.put("recipeId", recipe.getRecipeId());
+                    toSendParamMap.put("sendDate", DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
+                    toSendParamMap.put("sender", "重庆附二");
+                    thirdEnterpriseCallService.finishRecipe(toSendParamMap);
+                }
+            }
         }
-    }*/
+    }
 }
