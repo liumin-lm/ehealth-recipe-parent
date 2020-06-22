@@ -1330,7 +1330,7 @@ public class RecipeCheckService {
                 resultMap.put("lockLimitTime", 10); //未抢单默认返回10
                 return resultMap;
             }
-            if (recipeCheck.getGrabOrderStatus().equals(1) && doctorId.equals(recipeCheck.getGrabDoctorId())) {//本人抢单
+            if (GRABORDER_STATUS_YES.equals(recipeCheck.getGrabOrderStatus()) && recipeCheck.getGrabDoctorId().equals(doctorId)) {//本人抢单
                 resultMap.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDERED_OWN);
                 long now = new Date().getTime();
                 long localLimeDate = recipeCheck.getLocalLimitDate().getTime();
@@ -1346,7 +1346,7 @@ public class RecipeCheckService {
                     resultMap.put("lockLimitTime", localLimitTime + 1);
                 }
 
-            } else if (recipeCheck.getGrabOrderStatus().equals(1) && !doctorId.equals(recipeCheck.getGrabDoctorId())) { //他人抢单
+            } else if (GRABORDER_STATUS_YES.equals(recipeCheck.getGrabOrderStatus()) && !recipeCheck.getGrabDoctorId().equals(doctorId)) { //他人抢单
                 resultMap.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDERED_OTHER);
                 resultMap.put("lockLimitTime", 10); //他人抢单默认返回10
             }
