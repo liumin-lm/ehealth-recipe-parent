@@ -257,7 +257,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                             }
                             try {
                                 commonRecipeDrug.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
-                                usingRateDTO = usingRateService.getUsingRateDTOByOrganAndPlatformKey(organDrug.getOrganId(), commonRecipeDrug.getUsingRate());
+                                usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(organDrug.getOrganId(), commonRecipeDrug.getUsingRate());
                                 if (usingRateDTO!=null){
                                     commonRecipeDrug.setUsingRateId(String.valueOf(usingRateDTO.getId()));
                                 }

@@ -170,9 +170,9 @@ public class TianjinCAImpl implements CAInterface {
             signResultVo.setPdfBase64(responseSealTO.getPdfBase64File());
             signResultVo.setResultCode(1);
         } catch (Exception e){
+            signResultVo.setResultCode(0);
             LOGGER.error("TianjinCAImpl commonCASignAndSeal 调用前置机失败 requestSealTO={},recipeId={},organId={},userAccount={},caPassword={}",
                     JSONUtils.toString(requestSealTO), recipe.getRecipeId(),organId, userAccount, caPassword,e );
-            signResultVo.setResultCode(0);
         }finally {
             LOGGER.error("TianjinCAImpl finally callback signResultVo={}", JSONUtils.toString(signResultVo));
             this.callbackRecipe(signResultVo, null == recipe.getChecker());

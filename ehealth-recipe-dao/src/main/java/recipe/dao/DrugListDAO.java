@@ -775,10 +775,10 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
         return action.getResult();
     }
 
-    @DAOMethod(sql = "SELECT DISTINCT usingRate FROM DrugList WHERE (sourceOrgan = '' OR sourceOrgan IS NULL)")
+    @DAOMethod(sql = "SELECT DISTINCT usingRate FROM DrugList WHERE (sourceOrgan = '' OR sourceOrgan IS NULL)",limit = 0)
     public abstract List<String> findUsingRateOfAll();
 
-    @DAOMethod(sql = "SELECT DISTINCT usePathways FROM DrugList WHERE (sourceOrgan = '' OR sourceOrgan IS NULL)")
+    @DAOMethod(sql = "SELECT DISTINCT usePathways FROM DrugList WHERE (sourceOrgan = '' OR sourceOrgan IS NULL)",limit = 0)
     public abstract List<String> findUsePathwaysOfAll();
 
     @DAOMethod(sql = "update DrugList set usingRateId=:newUsingRate where usingRate=:oldUsingRate")

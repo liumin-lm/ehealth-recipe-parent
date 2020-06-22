@@ -4,6 +4,10 @@ import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.dto.UsePathwaysDTO;
+import com.ngari.base.dto.UsingRateDTO;
+import com.ngari.bus.op.service.IUsePathwaysService;
+import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -15,14 +19,18 @@ import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.service.CommonRecipeService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +42,7 @@ import java.util.Map;
  * @author yu_yun
  */
 public class RecipeValidateUtil {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RecipeValidateUtil.class);
 
     /**
      * 保存处方前进行校验前段输入数据
@@ -178,6 +187,10 @@ public class RecipeValidateUtil {
         RecipeDetailBean mapDetail;
         //包装返回app端剂量单位最小单位选择关系
         List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList;
+        UsingRateDTO usingRateDTO;
+        UsePathwaysDTO usePathwaysDTO;
+        IUsingRateService usingRateService = AppDomainContext.getBean("eh.usingRateService", IUsingRateService.class);
+        IUsePathwaysService usePathwaysService = AppDomainContext.getBean("eh.usePathwaysService", IUsePathwaysService.class);
         // TODO: 2020/6/19 很多需要返回药品信息的地方可以让前端根据药品id反查具体的药品信息统一展示；后端涉及返回药品信息的接口太多。返回对象也不一样
         for (OrganDrugList organDrug : organDrugList) {
             mapDetail = drugIdAndDetailMap.get(organDrug.getDrugId());
@@ -191,6 +204,18 @@ public class RecipeValidateUtil {
                     useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(),organDrug.getUseDoseSmallestUnit(),organDrug.getSmallestUnitUseDose()));
                 }
                 mapDetail.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
+                try {
+                    usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(organDrug.getOrganId(), mapDetail.getOrganUsingRate());
+                    if (usingRateDTO!=null){
+                        mapDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
+                    }
+                    usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organDrug.getOrganId(), mapDetail.getOrganUsePathways());
+                    if (usePathwaysDTO!=null){
+                        mapDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
+                    }
+                } catch (Exception e) {
+                    LOGGER.info("validateDrugsImpl error,recipeId={}", recipeId,e);
+                }
                 backDetailList.add(mapDetail);
             }
         }

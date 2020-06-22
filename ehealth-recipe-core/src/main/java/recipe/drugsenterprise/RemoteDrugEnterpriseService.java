@@ -85,7 +85,9 @@ public class RemoteDrugEnterpriseService {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             PushRecipeAndOrder pushRecipeAndOrder = getPushRecipeAndOrder(recipe, enterprise);
+            LOGGER.info("pushSingleRecipeInfo pushRecipeAndOrder:{}.", JSONUtils.toString(pushRecipeAndOrder));
             HisResponseTO responseTO = recipeEnterpriseService.pushSingleRecipeInfo(pushRecipeAndOrder);
+            LOGGER.info("pushSingleRecipeInfo responseTO:{}.", JSONUtils.toString(responseTO));
             if (responseTO != null && responseTO.isSuccess()) {
                 result.setCode(1);
             } else {
@@ -220,6 +222,7 @@ public class RemoteDrugEnterpriseService {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             ScanRequestBean scanRequestBean = getScanRequestBean(recipe, drugsEnterprise);
+            LOGGER.info("scanStock scanRequestBean:{}.", JSONUtils.toString(scanRequestBean));
             HisResponseTO responseTO = recipeEnterpriseService.scanStock(scanRequestBean);
             LOGGER.info("scanStock responseTO:{}.", JSONUtils.toString(responseTO));
             if (responseTO != null && responseTO.isSuccess()) {
@@ -380,7 +383,7 @@ public class RemoteDrugEnterpriseService {
         AccessDrugEnterpriseService drugEnterpriseService = getBean(COMMON_SERVICE, AccessDrugEnterpriseService.class);
         return drugEnterpriseService.updateAccessToken(drugsEnterpriseIds);
     }
-
+    @RpcService
     public void updateAccessTokenByDep(DrugsEnterprise drugsEnterprise) {
         AccessDrugEnterpriseService service = getServiceByDep(drugsEnterprise);
         service.tokenUpdateImpl(drugsEnterprise);

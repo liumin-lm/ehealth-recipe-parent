@@ -157,8 +157,8 @@ public class ShanxiCAImpl implements CAInterface {
             signResultVo.setCode(200);
             signResultVo.setResultCode(1);
         } catch (Exception e){
-            LOGGER.error("ShanxiCAImpl commonCASignAndSeal 调用前置机失败 requestTO={}", requestSealTO.toString(),e);
             signResultVo.setResultCode(0);
+            LOGGER.error("ShanxiCAImpl commonCASignAndSeal 调用前置机失败 requestTO={}", requestSealTO.toString(),e);
         }finally {
             LOGGER.error("ShanxiCAImpl finally callback signResultVo={}", JSONUtils.toString(signResultVo));
             this.callbackRecipe(signResultVo, null == recipe.getChecker());
