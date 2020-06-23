@@ -324,7 +324,9 @@ public class RemoteDrugEnterpriseService {
             Recipe recipe = recipeDAO.getByRecipeId(recipeIds.get(0));
             ScanRequestBean scanRequestBean = getScanRequestBean(recipe, drugsEnterprise);
             scanRequestBean.setExt(ext);
+            LOGGER.info("findSupportDep scanRequestBean:{}.", JSONUtils.toString(scanRequestBean));
             List<DepDetailBean> depDetailBeans =  recipeEnterpriseService.findSupportDep(scanRequestBean);
+            LOGGER.info("findSupportDep depDetailBeans:{}.", JSONUtils.toString(depDetailBeans));
             result.setObject(ObjectCopyUtils.convert(depDetailBeans, com.ngari.recipe.drugsenterprise.model.DepDetailBean.class));
             return result;
         }
