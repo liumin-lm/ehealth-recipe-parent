@@ -237,6 +237,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
             if (Objects.nonNull(organDrugList)) {
                 thirdPartyMedicinesData.setSpecNum(String.valueOf(organDrugList.getUseDose()));
                 thirdPartyMedicinesData.setPrepForm(organDrugList.getDrugForm());
+                thirdPartyMedicinesData.setAreaCode(organDrugList.getProducerCode());
             }
             thirdPartyMedicinesData.setAdminMethod(recipeDetailBean.getMemo());
             thirdPartyMedicinesDataList.add(thirdPartyMedicinesData);
