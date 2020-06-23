@@ -219,6 +219,12 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
             OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCode(recipeBean.getClinicOrgan(), recipeDetailBean.getOrganDrugCode());
             if (Objects.nonNull(organDrugList)) {
                 thirdPartyMedicinesData.setPackUnit(organDrugList.getUnit());
+                thirdPartyMedicinesData.setSpecNum(String.valueOf(organDrugList.getUseDose()));
+                thirdPartyMedicinesData.setPrepForm(organDrugList.getDrugForm());
+                thirdPartyMedicinesData.setAreaCode(organDrugList.getProducerCode());
+                if (StringUtils.isBlank(thirdPartyMedicinesData.getUnit())) {
+                    thirdPartyMedicinesData.setUnit(organDrugList.getUseDoseUnit());
+                }
             }
             if (StringUtils.isNotBlank(recipeDetailBean.getUsingRate())) {
                 thirdPartyMedicinesData.setFreq(UsingRateFilter.filterNgari(recipeBean.getClinicOrgan(), recipeDetailBean.getUsingRate()));
@@ -234,11 +240,6 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
             thirdPartyMedicinesData.setTotalQty(new BigDecimal(recipeDetailBean.getUseTotalDose()));
             thirdPartyMedicinesData.setDays(String.valueOf(recipeDetailBean.getUseDays()));
             thirdPartyMedicinesData.setSpec(recipeDetailBean.getDrugSpec());
-            if (Objects.nonNull(organDrugList)) {
-                thirdPartyMedicinesData.setSpecNum(String.valueOf(organDrugList.getUseDose()));
-                thirdPartyMedicinesData.setPrepForm(organDrugList.getDrugForm());
-                thirdPartyMedicinesData.setAreaCode(organDrugList.getProducerCode());
-            }
             thirdPartyMedicinesData.setAdminMethod(recipeDetailBean.getMemo());
             thirdPartyMedicinesDataList.add(thirdPartyMedicinesData);
         });
