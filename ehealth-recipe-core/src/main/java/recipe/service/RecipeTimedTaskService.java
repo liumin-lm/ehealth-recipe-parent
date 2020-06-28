@@ -242,7 +242,6 @@ public class RecipeTimedTaskService {
                 LocalDateTime failureDate = createDate.plusDays(recipe.getValueDays());
                 Duration failure = Duration.between(date, failureDate);
                 Long failureHour = failure.toMinutes();
-                LOGGER.info("RecipeTimedTaskService pushPay recipe= {},createHour = {},failureHour={}", recipe.getRecipeId(), createHour, failureHour);
                 if (MINUTES.contains(createHour) || HOUR.equals(failureHour)) {
                     LOGGER.info("RecipeTimedTaskService pushPay recipe = {}", recipe.getRecipeId());
                     //发消息
