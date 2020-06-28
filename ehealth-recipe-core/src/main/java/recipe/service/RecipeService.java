@@ -4190,15 +4190,7 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public String queryRecipeGetUrl(Integer recipeId) {
         //根据选中的处方信息，获取对应处方的处方笺医院的url
-//        QueryRecipeService service =
-//                ApplicationUtils.getRecipeService(QueryRecipeService.class);
-//        QueryPlatRecipeInfoByDateDTO req = new QueryPlatRecipeInfoByDateDTO();
-//        req.setRecipeId(recipeId.toString());
-//        QueryRecipeResultDTO recipeResult = service.queryPlatRecipeByRecipeId(req);
-//        LOGGER.info("queryRecipeGetUrl params: {}", JSONUtils.toString(recipeResult));
-//        IRecipeHisService iRecipeHisService = AppContextHolder.getBean("his.iRecipeHisService", IRecipeHisService.class);
-//        HisResponseTO<String> downResult = iRecipeHisService.queryRecipeGetUrl(ObjectCopyUtils.convert(recipeResult.getData(), QueryRecipeInfoHisDTO.class));
-//        LOGGER.info("queryRecipeGetUrl result：{}", JSONUtils.toString(downResult));
+
         //根据当前机构配置的pdfurl组装处方信息到动态外链上
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
