@@ -236,13 +236,13 @@ public class RecipeTimedTaskService {
             try {
                 //开方时间
                 LocalDateTime createDate = Instant.ofEpochMilli(recipe.getCreateDate().getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
-                Duration create = Duration.between(date, createDate);
+                Duration create = Duration.between(createDate, date);
                 Long createHour = create.toMinutes();
                 //失效时间计算
                 LocalDateTime failureDate = createDate.plusDays(recipe.getValueDays());
                 Duration failure = Duration.between(date, failureDate);
                 Long failureHour = failure.toMinutes();
-                LOGGER.info("RecipeTimedTaskService pushPay recipeJSON= {},createHour = {},failureHour={}", JSONUtils.toString(recipe), createHour, failureHour);
+                LOGGER.info("RecipeTimedTaskService pushPay recipe= {},createHour = {},failureHour={}", recipe.getRecipeId(), createHour, failureHour);
                 if (MINUTES.contains(createHour) || HOUR.equals(failureHour)) {
                     LOGGER.info("RecipeTimedTaskService pushPay recipe = {}", recipe.getRecipeId());
                     //发消息
