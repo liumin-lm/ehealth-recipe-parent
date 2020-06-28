@@ -242,8 +242,9 @@ public class RecipeTimedTaskService {
                 LocalDateTime failureDate = createDate.plusDays(recipe.getValueDays());
                 Duration failure = Duration.between(date, failureDate);
                 Long failureHour = failure.toMinutes();
+                LOGGER.info("RecipeTimedTaskService pushPay recipeJSON= {},createHour = {},failureHour={}", JSONUtils.toString(recipe), createHour, failureHour);
                 if (MINUTES.contains(createHour) || HOUR.equals(failureHour)) {
-                    LOGGER.debug("RecipeTimedTaskService pushPay recipe = {}", recipe.getRecipeId());
+                    LOGGER.info("RecipeTimedTaskService pushPay recipe = {}", recipe.getRecipeId());
                     //发消息
                     SmsInfoBean smsInfo = new SmsInfoBean();
                     smsInfo.setBusId(recipe.getRecipeId());
@@ -251,7 +252,6 @@ public class RecipeTimedTaskService {
                     smsInfo.setBusType("RecipePushPay");
                     smsInfo.setSmsType("RecipePushPay");
                     smsPushService.pushMsgData2OnsExtendValue(smsInfo);
-
                     LOGGER.info("RecipeTimedTaskService pushPay is end recipe = {}", recipe.getRecipeId());
                 }
             } catch (Exception e) {
