@@ -18,22 +18,28 @@ import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
+import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
+import com.ngari.patient.utils.LocalStringUtil;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import com.ngari.recipe.hisprescription.model.QueryPlatRecipeInfoByDateDTO;
+import com.ngari.recipe.hisprescription.model.QueryRecipeResultDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderInfoBean;
@@ -53,6 +59,7 @@ import ctd.util.event.GlobalEventExecFactory;
 import eh.base.constant.ErrorCode;
 import eh.base.constant.PageConstant;
 import eh.cdr.constant.OrderStatusConstant;
+import eh.utils.*;
 import eh.utils.params.ParamUtils;
 import eh.utils.params.ParameterConstant;
 import eh.wxpay.constant.PayConstant;
@@ -83,6 +90,7 @@ import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
+import recipe.hisservice.QueryRecipeService;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
@@ -92,6 +100,9 @@ import recipe.service.common.RecipeCacheService;
 import recipe.sign.SignRecipeInfoService;
 import recipe.thread.*;
 import recipe.util.*;
+import recipe.util.ChinaIDNumberUtil;
+import recipe.util.DateConversion;
+import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -4175,4 +4186,47 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.info("signRecipeInfoService error recipeId[{}] errorMsg[{}]", recipeId, e.getMessage(),e);
         }
     }
+
+    @RpcService
+    public String queryRecipeGetUrl(Integer recipeId) {
+        //根据选中的处方信息，获取对应处方的处方笺医院的url
+//        QueryRecipeService service =
+//                ApplicationUtils.getRecipeService(QueryRecipeService.class);
+//        QueryPlatRecipeInfoByDateDTO req = new QueryPlatRecipeInfoByDateDTO();
+//        req.setRecipeId(recipeId.toString());
+//        QueryRecipeResultDTO recipeResult = service.queryPlatRecipeByRecipeId(req);
+//        LOGGER.info("queryRecipeGetUrl params: {}", JSONUtils.toString(recipeResult));
+//        IRecipeHisService iRecipeHisService = AppContextHolder.getBean("his.iRecipeHisService", IRecipeHisService.class);
+//        HisResponseTO<String> downResult = iRecipeHisService.queryRecipeGetUrl(ObjectCopyUtils.convert(recipeResult.getData(), QueryRecipeInfoHisDTO.class));
+//        LOGGER.info("queryRecipeGetUrl result：{}", JSONUtils.toString(downResult));
+        //根据当前机构配置的pdfurl组装处方信息到动态外链上
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if(null == recipe){
+            LOGGER.warn("queryRecipeGetUrl-当前处方{}不存在", recipeId);
+            return null;
+        }
+        RecipeExtendDAO extendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = extendDAO.getByRecipeId(recipeId);
+        if(null == recipeExtend){
+            LOGGER.warn("queryRecipeGetUrl-当前处方扩展信息{}不存在", recipeId);
+        }
+        //获取当前机构配置的处方笺下载链接
+        Object downPrescriptionUrl = configService.getConfiguration(recipe.getClinicOrgan(), "downPrescriptionUrl");
+        if(null == downPrescriptionUrl){
+            LOGGER.warn("queryRecipeGetUrl-当前机构下{}获取处方笺url的配置为空", recipe.getClinicOrgan());
+            return null;
+        }
+        //根据recipe信息组装url的动态链接
+        Map<String, Object> paramMap = Maps.newHashMap();
+        paramMap.put("registerID", recipeExtend.getRegisterID());
+        paramMap.put("recipeCode", recipe.getRecipeCode());
+        paramMap.put("patientID", recipe.getPatientID());
+        paramMap.put("cardNo", recipeExtend.getCardNo());
+        paramMap.put("cardType", recipeExtend.getCardType());
+        String resultUrl = LocalStringUtil.processTemplate((String) downPrescriptionUrl, paramMap);
+        return resultUrl;
+    }
+
+
 }
