@@ -108,6 +108,28 @@ public class SignInfoService implements ISignInfoService {
     }
 
     @RpcService
+    public String getTaskCode(Recipe recipe,Integer doctorId,boolean isDoctor){
+        logger.info("getTaskCode info recipe={}=doctorId={}=isDoctor={}=", recipe , doctorId,isDoctor);
+        DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
+
+        HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+        List<RegulationRecipeIndicatorsReq> request = new ArrayList<>();
+        service.splicingBackRecipeData(Arrays.asList(recipe),request);
+
+        CaAccountRequestTO caAccountRequestTO = new CaAccountRequestTO();
+        caAccountRequestTO.setOrganId(doctorDTO.getOrgan());
+        caAccountRequestTO.setRegulationRecipeIndicatorsReq(request);
+        caAccountRequestTO.setBusType(isDoctor?4:5);
+        ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService",ICaHisService.class);
+        HisResponseTO<CaAccountResponseTO> responseTO = iCaHisService.caUserBusiness(caAccountRequestTO);
+        logger.info("getTaskCode result info={}=", JSONObject.toJSONString(responseTO));
+        if ("200".equals(responseTO.getMsgCode())) {
+            return responseTO.getData().getMsg();
+        }
+        return null;
+    }
+
+    @RpcService
     public String getUserCode(Integer doctorId) {
         logger.info("getUserCode doctorId={}=", doctorId);
         DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
