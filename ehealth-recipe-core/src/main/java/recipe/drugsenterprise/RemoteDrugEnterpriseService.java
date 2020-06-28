@@ -13,7 +13,10 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -24,15 +27,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.constant.ErrorCode;
 import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.service.common.RecipeCacheService;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static ctd.util.AppContextHolder.getBean;
 
@@ -114,6 +115,14 @@ public class RemoteDrugEnterpriseService {
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             pushRecipeAndOrder.setRecipeOrderBean(ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class));
+            String province = getAddressDic(recipeOrder.getAddress1());
+            String city = getAddressDic(recipeOrder.getAddress2());
+            String district = getAddressDic(recipeOrder.getAddress3());
+            AddressBean addressBean = new AddressBean();
+            addressBean.setProvince(province);
+            addressBean.setCity(city);
+            addressBean.setDistrict(district);
+            pushRecipeAndOrder.setAddressBean(addressBean);
         }
         //设置药品详情
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
@@ -321,12 +330,17 @@ public class RemoteDrugEnterpriseService {
             //通过前置机调用
             IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeIds.get(0));
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             ScanRequestBean scanRequestBean = getScanRequestBean(recipe, drugsEnterprise);
             scanRequestBean.setExt(ext);
-            LOGGER.info("findSupportDep scanRequestBean:{}.", JSONUtils.toString(scanRequestBean));
+            if (recipeExtend != null && StringUtils.isNotEmpty(recipeExtend.getRxid())) {
+                scanRequestBean.setRxid(recipeExtend.getRxid());
+            }
+            LOGGER.info("findSupportDep 发给前置机入参:{}.", JSONUtils.toString(scanRequestBean));
             List<DepDetailBean> depDetailBeans =  recipeEnterpriseService.findSupportDep(scanRequestBean);
-            LOGGER.info("findSupportDep depDetailBeans:{}.", JSONUtils.toString(depDetailBeans));
+            LOGGER.info("findSupportDep 前置机出参:{}.", JSONUtils.toString(depDetailBeans));
             result.setObject(ObjectCopyUtils.convert(depDetailBeans, com.ngari.recipe.drugsenterprise.model.DepDetailBean.class));
             return result;
         }
@@ -495,5 +509,80 @@ public class RemoteDrugEnterpriseService {
             }
         }
         return false;
+    }
+
+    /**
+     *  获取运费
+     * @return
+     */
+    @RpcService
+    public Map<String, Object> getExpressFee(Map<String, Object> parames) {
+        LOGGER.info("getExpressFee parames:{}.", JSONUtils.toString(parames));
+        Map<String, Object> result = new HashMap<>();
+        if (parames == null) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "获取运费参数不能为空");
+        }
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        Integer depId = (Integer) parames.get("depId"); //获取药企ID
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+        if (drugsEnterprise == null) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "获取药企失败");
+        }
+        if (new Integer(1).equals(drugsEnterprise.getExpressFeeType())) {
+            //此时运费为从第三方获取
+            Integer recipeId = (Integer) parames.get("recipeId"); //获取处方ID
+            String province = (String) parames.get("province"); //获取省份
+            String city = (String) parames.get("city"); //获取市
+            String district = (String) parames.get("district"); //获取区县
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            String rxid = recipeExtend.getRxid();
+            //通过前置机调用
+            IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
+            EnterpriseResTo enterpriseResTo = new EnterpriseResTo();
+            enterpriseResTo.setOrganId(recipe.getClinicOrgan());
+            enterpriseResTo.setDepId(depId.toString());
+            enterpriseResTo.setRid(rxid);
+            enterpriseResTo.setProvince(province);
+            enterpriseResTo.setCity(city);
+            enterpriseResTo.setDistrict(district);
+            LOGGER.info("getExpressFee enterpriseResTo:{}.", JSONUtils.toString(enterpriseResTo));
+            HisResponseTO hisResponseTO = recipeEnterpriseService.getEnterpriseExpress(enterpriseResTo);
+            LOGGER.info("getExpressFee hisResponseTO:{}.", JSONUtils.toString(hisResponseTO));
+            if (hisResponseTO != null && hisResponseTO.isSuccess()) {
+                //表示获取第三方运费成功
+                Map<String, Object> extend = hisResponseTO.getExtend();
+                Boolean expressFeeFlag = (Boolean)extend.get("result");
+                String expressFee = (String)extend.get("postagePrice");
+                if (expressFeeFlag) {
+                    result.put("expressFee", expressFee);
+                } else {
+                    result.put("expressFee", 0);
+                }
+                result.put("expressFeeType", 1);
+            } else {
+                //获取第三方失败 默认从平台获取
+                LOGGER.info("getExpressFee 获取第三方运费失败,默认从平台获取");
+                result.put("expressFeeType", 0);
+            }
+
+        } else {
+            //此时运费从平台获取
+            result.put("expressFeeType", 0);
+        }
+        return result;
+    }
+
+    private String getAddressDic(String area) {
+        if (StringUtils.isNotEmpty(area)) {
+            try {
+                return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
+            } catch (ControllerException e) {
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
+            }
+        }
+        return "";
     }
 }
