@@ -4219,11 +4219,12 @@ public class RecipeService extends RecipeBaseService {
         }
         //根据recipe信息组装url的动态链接
         Map<String, Object> paramMap = Maps.newHashMap();
-        paramMap.put("registerID", recipeExtend.getRegisterID());
+        paramMap.put("registerID", null != recipeExtend ? recipeExtend.getRegisterID() : null);
         paramMap.put("recipeCode", recipe.getRecipeCode());
         paramMap.put("patientID", recipe.getPatientID());
-        paramMap.put("cardNo", recipeExtend.getCardNo());
-        paramMap.put("cardType", recipeExtend.getCardType());
+        paramMap.put("cardNo", null != recipeExtend ? recipeExtend.getCardNo() : null);
+        paramMap.put("cardType", null != recipeExtend ? recipeExtend.getCardType() : null);
+        LOGGER.info("queryRecipeGetUrl-当前处方动态外链组装的入参{}", JSONObject.toJSONString(paramMap));
         String resultUrl = LocalStringUtil.processTemplate((String) downPrescriptionUrl, paramMap);
         return resultUrl;
     }
