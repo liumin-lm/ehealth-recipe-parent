@@ -2667,4 +2667,25 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
 
     @DAOMethod
     public abstract Recipe getByOrderCode(String orderCode);
+
+    /**
+     * 根据需要变更的状态获取处方ID集合
+     *
+     * @param cancelStatus
+     * @return
+     */
+    public List<Recipe> getRecipeListForSignCancelRecipe(final String startDt, final String endDt) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("from Recipe where status in (31, 30, 26, 27) and signDate between '" + startDt + "' and '" + endDt + "' ");
+                Query q = ss.createQuery(hql.toString());
+                setResult(q.list());
+            }
+        };
+
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
 }
