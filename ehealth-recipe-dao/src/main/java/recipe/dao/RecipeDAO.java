@@ -1,7 +1,5 @@
 package recipe.dao;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -106,7 +104,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      * @param reviewType
      * @return
      */
-    @DAOMethod(sql = "from Recipe where OrderCode is not null and Status =2  and PayFlag =:payFlag and ReviewType =:reviewType")
+    @DAOMethod(sql = "from Recipe where TO_DAYS(NOW()) - TO_DAYS(createDate) <= valueDays and Status =2  and PayFlag =:payFlag and ReviewType =:reviewType", limit = 0)
     public abstract List<Recipe> findByPayFlagAndReviewType(@DAOParam("payFlag") Integer payFlag, @DAOParam("reviewType") Integer reviewType);
 
     /**
@@ -2669,4 +2667,25 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
 
     @DAOMethod
     public abstract Recipe getByOrderCode(String orderCode);
+
+    /**
+     * 根据需要变更的状态获取处方ID集合
+     *
+     * @param cancelStatus
+     * @return
+     */
+    public List<Recipe> getRecipeListForSignCancelRecipe(final String startDt, final String endDt) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("from Recipe where status in (31, 30, 26, 27) and signDate between '" + startDt + "' and '" + endDt + "' ");
+                Query q = ss.createQuery(hql.toString());
+                setResult(q.list());
+            }
+        };
+
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
 }

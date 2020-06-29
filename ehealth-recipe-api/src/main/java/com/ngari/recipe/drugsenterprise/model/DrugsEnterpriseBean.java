@@ -111,6 +111,12 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "药企下载处方签类型")
     private Integer downSignImgType;
 
+    @ItemProperty(alias = "运费的获取方式 0 平台 1 第三方")
+    private Integer expressFeeType;
+
+    @ItemProperty(alias = "药企对接方式 0 平台 1 前置机")
+    private Integer operationType;
+
 
     public DrugsEnterpriseBean() {
     }
@@ -349,5 +355,21 @@ public class DrugsEnterpriseBean implements Serializable {
 
     public void setDownSignImgType(Integer downSignImgType) {
         this.downSignImgType = downSignImgType;
+    }
+
+    public Integer getExpressFeeType() {
+        return expressFeeType;
+    }
+
+    public void setExpressFeeType(Integer expressFeeType) {
+        this.expressFeeType = expressFeeType;
+    }
+
+    public Integer getOperationType() {
+        return operationType;
+    }
+
+    public void setOperationType(Integer operationType) {
+        this.operationType = operationType;
     }
 }
