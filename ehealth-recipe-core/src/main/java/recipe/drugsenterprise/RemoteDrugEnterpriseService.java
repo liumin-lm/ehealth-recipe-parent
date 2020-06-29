@@ -31,6 +31,7 @@ import recipe.constant.ErrorCode;
 import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
+import recipe.service.RecipeLogService;
 import recipe.service.common.RecipeCacheService;
 
 import java.util.*;
@@ -78,9 +79,7 @@ public class RemoteDrugEnterpriseService {
     public DrugEnterpriseResult pushSingleRecipeInfo(Integer recipeId) {
         DrugEnterpriseResult result = getServiceByRecipeId(recipeId);
         DrugsEnterprise enterprise = result.getDrugsEnterprise();
-        RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-        String drugsEnterpriseList = parameterDao.getByName("drugsEnterpriseList");
-        if (StringUtils.isNotEmpty(drugsEnterpriseList) && enterprise != null && hasDep(enterprise.getCallSys(), drugsEnterpriseList)) {
+        if (enterprise != null && new Integer(1).equals(enterprise.getOperationType())) {
             //药企对应的service为空，则通过前置机进行推送
             IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -90,8 +89,11 @@ public class RemoteDrugEnterpriseService {
             HisResponseTO responseTO = recipeEnterpriseService.pushSingleRecipeInfo(pushRecipeAndOrder);
             LOGGER.info("pushSingleRecipeInfo responseTO:{}.", JSONUtils.toString(responseTO));
             if (responseTO != null && responseTO.isSuccess()) {
+                //推送药企处方成功
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给"+enterprise.getName()+"推送处方成功");
                 result.setCode(1);
             } else {
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给"+enterprise.getName()+"推送处方失败");
                 result.setCode(0);
             }
         } else {
@@ -227,9 +229,7 @@ public class RemoteDrugEnterpriseService {
             return true;
         }
         DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
-        RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-        String drugsEnterpriseList = parameterDao.getByName("drugsEnterpriseList");
-        if (StringUtils.isNotEmpty(drugsEnterpriseList) && drugsEnterprise != null && hasDep(drugsEnterprise.getCallSys(), drugsEnterpriseList)) {
+        if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getOperationType())) {
             //通过前置机调用
             IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -328,9 +328,7 @@ public class RemoteDrugEnterpriseService {
     @RpcService
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise drugsEnterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-        RecipeParameterDao parameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-        String drugsEnterpriseList = parameterDao.getByName("drugsEnterpriseList");
-        if (StringUtils.isNotEmpty(drugsEnterpriseList) && drugsEnterprise != null && hasDep(drugsEnterprise.getCallSys(), drugsEnterpriseList)) {
+        if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getOperationType())) {
             //通过前置机调用
             IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -501,18 +499,6 @@ public class RemoteDrugEnterpriseService {
             backUrl = ysqUrl + "Order/Index?id=0&inbillno=" + recipe.getClinicOrgan() + YsqRemoteService.YSQ_SPLIT + recipe.getRecipeCode();
         }
         return backUrl;
-    }
-
-    private boolean hasDep(String organ, String parames){
-        if (StringUtils.isNotEmpty(parames)) {
-            String[] organs = parames.split(",");
-            for (String o : organs) {
-                if (organ.equals(o)) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     /**
