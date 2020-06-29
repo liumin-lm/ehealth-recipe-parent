@@ -121,7 +121,7 @@ public class SignInfoService implements ISignInfoService {
 
     @RpcService
     public String getTaskCode2(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, boolean isDoctor){
-        logger.info("getTaskCode info RecipeBean={}=detailBeanList={}=", JSONUtils.toString(recipeBean) , JSONUtils.toString(detailBeanList));
+        logger.info("getTaskCode2 info RecipeBean={}=detailBeanList={}=", JSONUtils.toString(recipeBean) , JSONUtils.toString(detailBeanList));
         EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
         OrganDrugListDAO organDrugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
         PatientService patientService = BasicAPI.getService(PatientService.class);
@@ -200,9 +200,10 @@ public class SignInfoService implements ISignInfoService {
         caAccountRequestTO.setOrganId(recipeBean.getClinicOrgan());
         caAccountRequestTO.setBusType(isDoctor?4:5);
         caAccountRequestTO.setRegulationRecipeIndicatorsReq(Arrays.asList(request));
+        logger.info("getTaskCode2 request info={}=", JSONObject.toJSONString(caAccountRequestTO));
         ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService",ICaHisService.class);
         HisResponseTO<CaAccountResponseTO> responseTO = iCaHisService.caUserBusiness(caAccountRequestTO);
-        logger.info("getTaskCode result info={}=", JSONObject.toJSONString(responseTO));
+        logger.info("getTaskCode2 result info={}=", JSONObject.toJSONString(responseTO));
         if ("200".equals(responseTO.getMsgCode())) {
             return responseTO.getData().getMsg();
         }
