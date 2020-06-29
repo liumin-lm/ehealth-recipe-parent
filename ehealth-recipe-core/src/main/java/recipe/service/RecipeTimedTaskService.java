@@ -298,7 +298,7 @@ public class RecipeTimedTaskService {
                     toSendParamMap.put("recipeId", recipe.getRecipeId());
                     toSendParamMap.put("sendDate", DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
                     toSendParamMap.put("sender", "重庆附二");
-                    toSendParamMap.put("logisticsCompany", "1");
+                    toSendParamMap.put("logisticsCompany", extend.get("sendCompany"));
                     toSendParamMap.put("trackingNumber", extend.get("sendNo"));
                     thirdEnterpriseCallService.toSend(toSendParamMap);
                 }
