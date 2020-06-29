@@ -588,7 +588,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
                 //表示获取第三方运费成功
                 Map<String, Object> extend = hisResponseTO.getExtend();
                 Boolean expressFeeFlag = (Boolean)extend.get("result");
-                String expressFee = (String)extend.get("postagePrice");
+                Object expressFee = extend.get("postagePrice");
                 if (expressFeeFlag) {
                     result.put("expressFee", expressFee);
                 } else {
