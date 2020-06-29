@@ -1,7 +1,6 @@
 package recipe.thread;
 
 import com.google.common.collect.ImmutableMap;
-import com.itextpdf.text.DocumentException;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.DAOFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -10,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.dao.RecipeDAO;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 
 /**
@@ -35,8 +33,9 @@ public class UpdateTotalRecipePdfRunable implements Runnable {
 
     @Override
     public void run() {
-        logger.info("UpdateTotalRecipePdfRunable start. recipeId={},actualPrice={}", recipeId, recipeFee);
+        logger.info("UpdateTotalRecipePdfRunable start. recipeId={},recipeFee={}", recipeId, recipeFee);
         if (null == recipeFee) {
+            logger.warn("UpdateTotalRecipePdfRunable recipeFee is null  recipeFee={}", recipeFee);
             return;
         }
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -63,7 +62,7 @@ public class UpdateTotalRecipePdfRunable implements Runnable {
             if (StringUtils.isNotEmpty(newPfd) && StringUtils.isNotEmpty(key)) {
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of(key, newPfd));
             }
-        } catch (DocumentException | IOException e) {
+        } catch (Exception e) {
             logger.error("UpdateTotalRecipePdfRunable error recipeId={},e=", recipeId, e);
         }
     }

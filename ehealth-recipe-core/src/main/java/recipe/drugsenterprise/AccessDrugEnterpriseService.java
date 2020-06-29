@@ -333,7 +333,8 @@ public abstract class AccessDrugEnterpriseService {
                     dbRecipe.getRecipeId(), dep.getId(), dep.getName(), JSONUtils.toString(drugIds));
         } else {
             //通过查询该药企库存，最终确定能否配送
-            succFlag = remoteDrugService.scanStock(dbRecipe.getRecipeId(), dep);
+            DrugEnterpriseResult result = remoteDrugService.scanStock(dbRecipe.getRecipeId(), dep);
+            succFlag = result.getCode().equals(DrugEnterpriseResult.SUCCESS) ? true : false;
             if (!succFlag) {
                 LOGGER.warn("scanStock 药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}], 药企名称=[{}]",
                         dbRecipe.getRecipeId(), dep.getId(), dep.getName());

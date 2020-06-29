@@ -46,7 +46,7 @@ import static ctd.util.AppContextHolder.getBean;
  * @date:2017/3/7.
  */
 @RpcBean("remoteDrugEnterpriseService")
-public class RemoteDrugEnterpriseService {
+public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RemoteDrugEnterpriseService.class);
 
@@ -223,12 +223,14 @@ public class RemoteDrugEnterpriseService {
      * @return
      */
     @RpcService
-    public boolean scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
+    @Override
+    public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         LOGGER.info("scanStock recipeId:{}, drugsEnterprise:{}", recipeId, JSONUtils.toString(drugsEnterprise));
-        if (drugsEnterprise != null && drugsEnterprise.getCheckInventoryFlag() != null && drugsEnterprise.getCheckInventoryFlag() == 0) {
-            return true;
-        }
         DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
+        if (drugsEnterprise != null && drugsEnterprise.getCheckInventoryFlag() != null && drugsEnterprise.getCheckInventoryFlag() == 0) {
+            result.setCode(DrugEnterpriseResult.SUCCESS);
+            return result;
+        }
         if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getOperationType())) {
             //通过前置机调用
             IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
@@ -239,9 +241,11 @@ public class RemoteDrugEnterpriseService {
             HisResponseTO responseTO = recipeEnterpriseService.scanStock(scanRequestBean);
             LOGGER.info("scanStock responseTO:{}.", JSONUtils.toString(responseTO));
             if (responseTO != null && responseTO.isSuccess()) {
-                return true;
+                result.setCode(DrugEnterpriseResult.SUCCESS);
+                return result;
             } else {
-                return false;
+                result.setCode(DrugEnterpriseResult.FAIL);
+                return result;
             }
         }
         AccessDrugEnterpriseService drugEnterpriseService = null;
@@ -260,7 +264,17 @@ public class RemoteDrugEnterpriseService {
             result = drugEnterpriseService.scanStock(recipeId, drugsEnterprise);
         }
         LOGGER.info("scanStock recipeId:{}, result:{}", recipeId, JSONUtils.toString(result));
-        return result.getCode().equals(DrugEnterpriseResult.SUCCESS) ? true : false;
+        return result;
+    }
+
+    @Override
+    public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
+        return null;
+    }
+
+    @Override
+    public DrugEnterpriseResult pushCheckResult(Integer recipeId, Integer checkFlag, DrugsEnterprise enterprise) {
+        return null;
     }
 
     private ScanRequestBean getScanRequestBean(Recipe recipe, DrugsEnterprise drugsEnterprise) {
@@ -357,6 +371,11 @@ public class RemoteDrugEnterpriseService {
         return result;
     }
 
+    @Override
+    public String getDrugEnterpriseCallSys() {
+        return null;
+    }
+
     /**
      * 药品库存同步
      *
@@ -401,6 +420,27 @@ public class RemoteDrugEnterpriseService {
         AccessDrugEnterpriseService drugEnterpriseService = getBean(COMMON_SERVICE, AccessDrugEnterpriseService.class);
         return drugEnterpriseService.updateAccessToken(drugsEnterpriseIds);
     }
+
+    @Override
+    public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
+
+    }
+
+    @Override
+    public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
+        return null;
+    }
+
+    @Override
+    public DrugEnterpriseResult pushRecipe(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
+        return null;
+    }
+
+    @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
+        return null;
+    }
+
     @RpcService
     public void updateAccessTokenByDep(DrugsEnterprise drugsEnterprise) {
         AccessDrugEnterpriseService service = getServiceByDep(drugsEnterprise);
@@ -452,6 +492,9 @@ public class RemoteDrugEnterpriseService {
      */
     public AccessDrugEnterpriseService getServiceByDep(DrugsEnterprise drugsEnterprise) {
         AccessDrugEnterpriseService drugEnterpriseService = null;
+        if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getOperationType())) {
+            return ApplicationUtils.getService(RemoteDrugEnterpriseService.class, "remoteDrugEnterpriseService");
+        }
         if (null != drugsEnterprise) {
             //先获取指定实现标识，没有指定则根据帐号名称来获取
             String callSys = StringUtils.isEmpty(drugsEnterprise.getCallSys()) ? drugsEnterprise.getAccount() : drugsEnterprise.getCallSys();

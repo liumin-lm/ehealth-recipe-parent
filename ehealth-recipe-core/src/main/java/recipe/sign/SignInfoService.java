@@ -5,13 +5,20 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.ca.model.CaAccountRequestTO;
 import com.ngari.his.ca.model.CaAccountResponseTO;
 import com.ngari.his.ca.service.ICaHisService;
+import com.ngari.his.regulation.entity.RegulationRecipeDetailIndicatorsReq;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
+import com.ngari.patient.service.EmploymentService;
+import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.sign.SignDoctorCaInfo;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.sign.ISignInfoService;
+import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -23,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.ca.ICommonCAServcie;
+import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.sign.SignDoctorCaInfoDAO;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
@@ -85,7 +93,7 @@ public class SignInfoService implements ISignInfoService {
     }
 
     @RpcService
-    public String getTaskCode(Integer recipeId,Integer doctorId,boolean isDoctor){
+    public String getTaskCode(Integer recipeId,Integer doctorId, boolean isDoctor){
         logger.info("getTaskCode info recipeId={}=doctorId={}=isDoctor={}=", recipeId , doctorId,isDoctor);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
@@ -98,6 +106,71 @@ public class SignInfoService implements ISignInfoService {
         caAccountRequestTO.setOrganId(doctorDTO.getOrgan());
         caAccountRequestTO.setRegulationRecipeIndicatorsReq(request);
         caAccountRequestTO.setBusType(isDoctor?4:5);
+        ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService",ICaHisService.class);
+        HisResponseTO<CaAccountResponseTO> responseTO = iCaHisService.caUserBusiness(caAccountRequestTO);
+        logger.info("getTaskCode result info={}=", JSONObject.toJSONString(responseTO));
+        if ("200".equals(responseTO.getMsgCode())) {
+            return responseTO.getData().getMsg();
+        }
+        return null;
+    }
+
+    @RpcService
+    public String getTaskCode2(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList){
+        logger.info("getTaskCode info RecipeBean={}=detailBeanList={}=", JSONUtils.toString(recipeBean) , JSONUtils.toString(detailBeanList));
+        EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
+        OrganDrugListDAO organDrugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
+        RegulationRecipeIndicatorsReq request = new RegulationRecipeIndicatorsReq();
+        request.setDoctorId(null == recipeBean.getDoctor() ? "" : recipeBean.getDoctor().toString());
+        request.setDoctorName(recipeBean.getDoctorName());
+        if (recipeBean.getChecker() != null) {
+            DoctorDTO doctorDTO = doctorService.get(recipeBean.getChecker());
+            if (null == doctorDTO) {
+                logger.warn("uploadRecipeIndicators checker is null. recipe.checker={}", recipeBean.getChecker());
+            }
+            request.setAuditDoctorCertID(doctorDTO.getIdNumber());
+            request.setAuditDoctor(doctorDTO.getName());
+            request.setAuditDoctorId(recipeBean.getChecker().toString());
+            request.setAuditProTitle(doctorDTO.getProTitle());
+            //工号：医生取开方机构的工号，药师取第一职业点的工号
+            EmploymentDTO employment=iEmploymentService.getPrimaryEmpByDoctorId(recipeBean.getChecker());
+            if(employment!=null){
+                request.setAuditDoctorNo(employment.getJobNumber());
+            }
+        }
+        request.setIcdCode(recipeBean.getOrganDiseaseId().replaceAll("；", "|"));
+        request.setIcdName(recipeBean.getOrganDiseaseName());
+        List<RegulationRecipeDetailIndicatorsReq> list = new ArrayList(detailBeanList.size());
+        for (RecipeDetailBean detail : detailBeanList) {
+            RegulationRecipeDetailIndicatorsReq reqDetail = new RegulationRecipeDetailIndicatorsReq();
+            OrganDrugList organDrugList = organDrugDao.getByOrganIdAndDrugId(recipeBean.getClinicOrgan(), detail.getDrugId());
+            if (organDrugList == null) {
+                reqDetail.setDrcode(detail.getOrganDrugCode());
+            } else {
+                reqDetail.setDrcode(StringUtils.isNotEmpty(organDrugList.getRegulationDrugCode()) ? organDrugList.getRegulationDrugCode() : organDrugList.getOrganDrugCode());
+                reqDetail.setLicenseNumber(organDrugList.getLicenseNumber());
+                reqDetail.setDosageFormCode(organDrugList.getDrugFormCode());
+                reqDetail.setMedicalDrugCode(organDrugList.getMedicalDrugCode());
+                reqDetail.setMedicalDrugFormCode(organDrugList.getMedicalDrugFormCode());
+                reqDetail.setDrugFormCode(organDrugList.getDrugFormCode());
+            }
+
+            reqDetail.setDrmodel(detail.getDrugSpec());
+            reqDetail.setPack(detail.getPack());
+            reqDetail.setPackUnit(detail.getDrugUnit());
+            reqDetail.setDrname(detail.getDrugName());
+            //单价
+            reqDetail.setPrice(detail.getSalePrice());
+            //总价
+            reqDetail.setTotalPrice(detail.getDrugCost());
+            reqDetail.setDrunit(detail.getUseDoseUnit());
+            list.add(reqDetail);
+        }
+        request.setOrderList(list);
+
+        CaAccountRequestTO caAccountRequestTO = new CaAccountRequestTO();
+        caAccountRequestTO.setOrganId(recipeBean.getClinicOrgan());
+        caAccountRequestTO.setRegulationRecipeIndicatorsReq(Arrays.asList(request));
         ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService",ICaHisService.class);
         HisResponseTO<CaAccountResponseTO> responseTO = iCaHisService.caUserBusiness(caAccountRequestTO);
         logger.info("getTaskCode result info={}=", JSONObject.toJSONString(responseTO));
