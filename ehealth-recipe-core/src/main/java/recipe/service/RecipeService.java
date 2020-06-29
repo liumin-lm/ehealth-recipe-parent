@@ -2542,7 +2542,8 @@ public class RecipeService extends RecipeBaseService {
                     LOGGER.info("审方后置-药店取药-药企为空");
                 } else {
                     DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
-                    boolean scanFlag = remoteDrugService.scanStock(recipe.getRecipeId(), drugsEnterprise);
+                    DrugEnterpriseResult result = remoteDrugService.scanStock(recipeId, drugsEnterprise);
+                    boolean scanFlag = result.getCode().equals(DrugEnterpriseResult.SUCCESS) ? true : false;
                     LOGGER.info("AuditPostMode afterCheckPassYs scanFlag:{}.", scanFlag);
                     if (scanFlag) {
                         //表示需要进行库存校验并且有库存
@@ -3325,7 +3326,8 @@ public class RecipeService extends RecipeBaseService {
                 } else {
                     //通过查询该药企库存，最终确定能否配送
                     //todo--返回具体的没库存的药--新写个接口
-                    succFlag = remoteDrugService.scanStock(recipeId, dep);
+                    DrugEnterpriseResult result = remoteDrugService.scanStock(recipeId, dep);
+                    succFlag = result.getCode().equals(DrugEnterpriseResult.SUCCESS) ? true : false;
                     if (succFlag || dep.getCheckInventoryFlag() == 2) {
                         subDepList.add(dep);
                         //只需要查询单供应商就返回
@@ -4029,7 +4031,9 @@ public class RecipeService extends RecipeBaseService {
 
                 } else {
                     LOGGER.error("recipeCanDelivery 处方[{}]请求药企{}库存", recipeId, drugsEnterprise.getCallSys());
-                    if (service.scanStock(recipeId, drugsEnterprise)) {
+                    DrugEnterpriseResult result = service.scanStock(recipeId, drugsEnterprise);
+                    boolean succFlag = result.getCode().equals(DrugEnterpriseResult.SUCCESS) ? true : false;
+                    if (succFlag) {
                         flag = true;
                         break;
                     }
