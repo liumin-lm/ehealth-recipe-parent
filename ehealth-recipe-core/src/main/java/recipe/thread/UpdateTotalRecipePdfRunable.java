@@ -35,8 +35,9 @@ public class UpdateTotalRecipePdfRunable implements Runnable {
 
     @Override
     public void run() {
-        logger.info("UpdateTotalRecipePdfRunable start. recipeId={},actualPrice={}", recipeId, recipeFee);
+        logger.info("UpdateTotalRecipePdfRunable start. recipeId={},recipeFee={}", recipeId, recipeFee);
         if (null == recipeFee) {
+            logger.warn("UpdateTotalRecipePdfRunable recipeFee is null  recipeFee={}", recipeFee);
             return;
         }
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
