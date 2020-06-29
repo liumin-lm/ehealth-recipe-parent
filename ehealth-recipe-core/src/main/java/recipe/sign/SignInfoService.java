@@ -9,9 +9,11 @@ import com.ngari.his.regulation.entity.RegulationRecipeDetailIndicatorsReq;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.EmploymentDTO;
+import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.EmploymentService;
+import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.sign.SignDoctorCaInfo;
@@ -34,6 +36,8 @@ import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.sign.SignDoctorCaInfoDAO;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
+import recipe.util.DateConversion;
+import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
 
 import java.util.ArrayList;
@@ -120,6 +124,7 @@ public class SignInfoService implements ISignInfoService {
         logger.info("getTaskCode info RecipeBean={}=detailBeanList={}=", JSONUtils.toString(recipeBean) , JSONUtils.toString(detailBeanList));
         EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
         OrganDrugListDAO organDrugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
+        PatientService patientService = BasicAPI.getService(PatientService.class);
         RegulationRecipeIndicatorsReq request = new RegulationRecipeIndicatorsReq();
         request.setDoctorId(null == recipeBean.getDoctor() ? "" : recipeBean.getDoctor().toString());
         request.setDoctorName(recipeBean.getDoctorName());
@@ -127,19 +132,42 @@ public class SignInfoService implements ISignInfoService {
             DoctorDTO doctorDTO = doctorService.get(recipeBean.getChecker());
             if (null == doctorDTO) {
                 logger.warn("uploadRecipeIndicators checker is null. recipe.checker={}", recipeBean.getChecker());
-            }
-            request.setAuditDoctorCertID(doctorDTO.getIdNumber());
-            request.setAuditDoctor(doctorDTO.getName());
-            request.setAuditDoctorId(recipeBean.getChecker().toString());
-            request.setAuditProTitle(doctorDTO.getProTitle());
-            //工号：医生取开方机构的工号，药师取第一职业点的工号
-            EmploymentDTO employment=iEmploymentService.getPrimaryEmpByDoctorId(recipeBean.getChecker());
-            if(employment!=null){
-                request.setAuditDoctorNo(employment.getJobNumber());
+            }else {
+                request.setAuditDoctorCertID(doctorDTO.getIdNumber());
+                request.setAuditDoctor(doctorDTO.getName());
+                request.setAuditDoctorId(recipeBean.getChecker().toString());
+                request.setAuditProTitle(doctorDTO.getProTitle());
+                //工号：医生取开方机构的工号，药师取第一职业点的工号
+                EmploymentDTO employment=iEmploymentService.getPrimaryEmpByDoctorId(recipeBean.getChecker());
+                if(employment!=null){
+                    request.setAuditDoctorNo(employment.getJobNumber());
+                }
             }
         }
         request.setIcdCode(recipeBean.getOrganDiseaseId().replaceAll("；", "|"));
         request.setIcdName(recipeBean.getOrganDiseaseName());
+
+        // 患者信息
+        PatientDTO patientDTO = patientService.get(recipeBean.getMpiid());
+        if (null == patientDTO) {
+            logger.warn("uploadRecipeIndicators patient is null. recipe.patient={}", recipeBean.getMpiid());
+        }else {
+            request.setMpiId(patientDTO.getMpiId());
+            String organDiseaseName = recipeBean.getOrganDiseaseName().replaceAll("；", "|");
+            request.setOriginalDiagnosis(organDiseaseName);
+            request.setPatientCardType(LocalStringUtil.toString(patientDTO.getCertificateType()));
+            request.setPatientCertID(LocalStringUtil.toString(patientDTO.getCertificate()));
+            request.setPatientName(patientDTO.getPatientName());
+            request.setNation(patientDTO.getNation());
+            request.setMobile(LocalStringUtil.toString(patientDTO.getMobile()));
+            request.setSex(patientDTO.getPatientSex());
+            request.setAge(DateConversion.calculateAge(patientDTO.getBirthday()));
+            request.setBirthDay(patientDTO.getBirthday());
+            //陪诊人信息
+            request.setGuardianName(patientDTO.getGuardianName());
+            request.setGuardianCertID(patientDTO.getGuardianCertificate());
+        }
+
         List<RegulationRecipeDetailIndicatorsReq> list = new ArrayList(detailBeanList.size());
         for (RecipeDetailBean detail : detailBeanList) {
             RegulationRecipeDetailIndicatorsReq reqDetail = new RegulationRecipeDetailIndicatorsReq();
