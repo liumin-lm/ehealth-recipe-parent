@@ -43,9 +43,9 @@ public class UpdateTotalRecipePdfRunable implements Runnable {
         Recipe recipe = recipeDAO.get(recipeId);
         //更新pdf
         if (null == recipe) {
+            logger.warn("UpdateTotalRecipePdfRunable recipe is null  recipeId={}", recipeId);
             return;
         }
-
 
         try {
             if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
@@ -58,10 +58,10 @@ public class UpdateTotalRecipePdfRunable implements Runnable {
                 if (StringUtils.isNotEmpty(newPfd)) {
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("SignFile", newPfd));
                 }
+            } else {
+                logger.warn("UpdateTotalRecipePdfRunable file is null  recipeId={}", recipeId);
             }
-        } catch (DocumentException e) {
-            logger.error("UpdateTotalRecipePdfRunable error recipeId={},e=", recipeId, e);
-        } catch (IOException e) {
+        } catch (DocumentException | IOException e) {
             logger.error("UpdateTotalRecipePdfRunable error recipeId={},e=", recipeId, e);
         }
     }
