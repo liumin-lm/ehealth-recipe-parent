@@ -53,7 +53,7 @@ public class UpdateTotalRecipePdfRunable implements Runnable {
                 newPfd = CreateRecipePdfUtil.generateTotalRecipePdf(recipe.getChemistSignFile(), String.valueOf(recipeFee), recipe.getRecipeType());
                 key = "ChemistSignFile";
             } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
-                newPfd = CreateRecipePdfUtil.generateTotalRecipePdf(recipe.getChemistSignFile(), String.valueOf(recipeFee), recipe.getRecipeType());
+                newPfd = CreateRecipePdfUtil.generateTotalRecipePdf(recipe.getSignFile(), String.valueOf(recipeFee), recipe.getRecipeType());
                 key = "SignFile";
             } else {
                 logger.warn("UpdateTotalRecipePdfRunable file is null  recipeId={}", recipeId);
