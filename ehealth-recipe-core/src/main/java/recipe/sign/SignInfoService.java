@@ -116,7 +116,7 @@ public class SignInfoService implements ISignInfoService {
     }
 
     @RpcService
-    public String getTaskCode2(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList){
+    public String getTaskCode2(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, boolean isDoctor){
         logger.info("getTaskCode info RecipeBean={}=detailBeanList={}=", JSONUtils.toString(recipeBean) , JSONUtils.toString(detailBeanList));
         EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
         OrganDrugListDAO organDrugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
@@ -170,6 +170,7 @@ public class SignInfoService implements ISignInfoService {
 
         CaAccountRequestTO caAccountRequestTO = new CaAccountRequestTO();
         caAccountRequestTO.setOrganId(recipeBean.getClinicOrgan());
+        caAccountRequestTO.setBusType(isDoctor?4:5);
         caAccountRequestTO.setRegulationRecipeIndicatorsReq(Arrays.asList(request));
         ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService",ICaHisService.class);
         HisResponseTO<CaAccountResponseTO> responseTO = iCaHisService.caUserBusiness(caAccountRequestTO);
