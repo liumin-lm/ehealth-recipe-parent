@@ -43,25 +43,27 @@ public class UpdateTotalRecipePdfRunable implements Runnable {
         Recipe recipe = recipeDAO.get(recipeId);
         //更新pdf
         if (null == recipe) {
+            logger.warn("UpdateTotalRecipePdfRunable recipe is null  recipeId={}", recipeId);
             return;
         }
 
-
         try {
+            String newPfd = null;
+            String key = null;
             if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
-                String newPfd = CreateRecipePdfUtil.generateTotalRecipePdf(recipe.getChemistSignFile(), String.valueOf(recipeFee), recipe.getRecipeType());
-                if (StringUtils.isNotEmpty(newPfd)) {
-                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("ChemistSignFile", newPfd));
-                }
+                newPfd = CreateRecipePdfUtil.generateTotalRecipePdf(recipe.getChemistSignFile(), String.valueOf(recipeFee), recipe.getRecipeType());
+                key = "ChemistSignFile";
             } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
-                String newPfd = CreateRecipePdfUtil.generateTotalRecipePdf(recipe.getChemistSignFile(), String.valueOf(recipeFee), recipe.getRecipeType());
-                if (StringUtils.isNotEmpty(newPfd)) {
-                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("SignFile", newPfd));
-                }
+                newPfd = CreateRecipePdfUtil.generateTotalRecipePdf(recipe.getChemistSignFile(), String.valueOf(recipeFee), recipe.getRecipeType());
+                key = "SignFile";
+            } else {
+                logger.warn("UpdateTotalRecipePdfRunable file is null  recipeId={}", recipeId);
             }
-        } catch (DocumentException e) {
-            logger.error("UpdateTotalRecipePdfRunable error recipeId={},e=", recipeId, e);
-        } catch (IOException e) {
+            logger.info("UpdateTotalRecipePdfRunable file newPfd ={},key ={}", newPfd, key);
+            if (StringUtils.isNotEmpty(newPfd) && StringUtils.isNotEmpty(key)) {
+                recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of(key, newPfd));
+            }
+        } catch (DocumentException | IOException e) {
             logger.error("UpdateTotalRecipePdfRunable error recipeId={},e=", recipeId, e);
         }
     }
