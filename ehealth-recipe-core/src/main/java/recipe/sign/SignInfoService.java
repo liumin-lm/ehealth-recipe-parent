@@ -130,7 +130,7 @@ public class SignInfoService implements ISignInfoService {
             DoctorDTO doctorDTO = doctorService.get(recipeBean.getDoctor());
             request.setDoctorId(recipeBean.getDoctor().toString());
             request.setDoctorName(doctorDTO.getName());
-            EmploymentDTO employment=iEmploymentService.getPrimaryEmpByDoctorId(recipeBean.getChecker());
+            EmploymentDTO employment=iEmploymentService.getPrimaryEmpByDoctorId(recipeBean.getDoctor());
             if(employment!=null){
                 request.setDoctorNo(employment.getJobNumber());
             }
