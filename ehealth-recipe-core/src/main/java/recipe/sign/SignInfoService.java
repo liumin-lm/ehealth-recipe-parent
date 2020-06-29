@@ -126,12 +126,22 @@ public class SignInfoService implements ISignInfoService {
         OrganDrugListDAO organDrugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
         PatientService patientService = BasicAPI.getService(PatientService.class);
         RegulationRecipeIndicatorsReq request = new RegulationRecipeIndicatorsReq();
-        request.setDoctorId(null == recipeBean.getDoctor() ? "" : recipeBean.getDoctor().toString());
-        request.setDoctorName(recipeBean.getDoctorName());
+        if(null != recipeBean.getDoctor()) {
+            DoctorDTO doctorDTO = doctorService.get(recipeBean.getDoctor());
+            request.setDoctorId(recipeBean.getDoctor().toString());
+            request.setDoctorName(doctorDTO.getName());
+            EmploymentDTO employment=iEmploymentService.getPrimaryEmpByDoctorId(recipeBean.getChecker());
+            if(employment!=null){
+                request.setDoctorNo(employment.getJobNumber());
+            }
+        }else {
+            logger.warn("getTaskCode2 RecipeBean doctor is null.");
+        }
+
         if (recipeBean.getChecker() != null) {
             DoctorDTO doctorDTO = doctorService.get(recipeBean.getChecker());
             if (null == doctorDTO) {
-                logger.warn("uploadRecipeIndicators checker is null. recipe.checker={}", recipeBean.getChecker());
+                logger.warn("getTaskCode2 RecipeBean checker is null. recipe.checker={}", recipeBean.getChecker());
             }else {
                 request.setAuditDoctorCertID(doctorDTO.getIdNumber());
                 request.setAuditDoctor(doctorDTO.getName());
@@ -143,6 +153,8 @@ public class SignInfoService implements ISignInfoService {
                     request.setAuditDoctorNo(employment.getJobNumber());
                 }
             }
+        }else {
+            logger.warn("getTaskCode2 RecipeBean checker is null");
         }
         request.setIcdCode(recipeBean.getOrganDiseaseId().replaceAll("；", "|"));
         request.setIcdName(recipeBean.getOrganDiseaseName());
@@ -150,7 +162,7 @@ public class SignInfoService implements ISignInfoService {
         // 患者信息
         PatientDTO patientDTO = patientService.get(recipeBean.getMpiid());
         if (null == patientDTO) {
-            logger.warn("uploadRecipeIndicators patient is null. recipe.patient={}", recipeBean.getMpiid());
+            logger.warn("getTaskCode2 patient is null. recipe.patient={}", recipeBean.getMpiid());
         }else {
             request.setMpiId(patientDTO.getMpiId());
             String organDiseaseName = recipeBean.getOrganDiseaseName().replaceAll("；", "|");
