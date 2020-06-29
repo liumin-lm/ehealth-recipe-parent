@@ -216,8 +216,10 @@ public class SignInfoService implements ISignInfoService {
         ICaHisService iCaHisService = AppContextHolder.getBean("his.iCaHisService",ICaHisService.class);
         HisResponseTO<CaAccountResponseTO> responseTO = iCaHisService.caUserBusiness(caAccountRequestTO);
         logger.info("getTaskCode2 result info={}=", JSONObject.toJSONString(responseTO));
-        if ("200".equals(responseTO.getMsgCode())) {
+        if (null != responseTO && "200".equals(responseTO.getMsgCode())) {
             return responseTO.getData().getMsg();
+        }else {
+            logger.error("前置机未返回数据");
         }
         return null;
     }
