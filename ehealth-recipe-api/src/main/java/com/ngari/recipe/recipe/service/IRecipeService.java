@@ -41,13 +41,13 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     /**
      * HIS回调BASE接口，处方写入失败消息
      *
+     * 判断医生是否具有开处方权限
      * @param request HIS返回数据
      */
     @RpcService
     void sendFail(RecipeBussReqTO request);
 
     /**
-     * 判断医生是否具有开处方权限
      *
      * @param doctorId 医生ID
      * @return boolean true:有开处方权限
@@ -451,4 +451,15 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     Integer scanStockEnterpriseForHis(Map<String, Object> paramMap);
+
+    /**
+     * 根据审核状态查询处方列表
+     * @param organ 机构集合
+     * @param flag  审核标记
+     * @param start 当前页
+     * @param limit 页数
+     * @return
+     */
+    @RpcService
+    List<RecipeBean> findRecipeByFlag(List<Integer> organ, int flag,  int start,  int limit);
 }
