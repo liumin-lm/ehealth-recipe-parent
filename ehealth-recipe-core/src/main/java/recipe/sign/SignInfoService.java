@@ -2,6 +2,9 @@ package recipe.sign;
 
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.consult.ConsultAPI;
+import com.ngari.consult.common.model.ConsultExDTO;
+import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.his.ca.model.CaAccountRequestTO;
 import com.ngari.his.ca.model.CaAccountResponseTO;
 import com.ngari.his.ca.service.ICaHisService;
@@ -16,6 +19,7 @@ import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.sign.SignDoctorCaInfo;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -25,20 +29,18 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.utils.params.ParamUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
-import recipe.ca.ICommonCAServcie;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.dao.sign.SignDoctorCaInfoDAO;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
-import recipe.util.RedisClient;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,6 +57,9 @@ public class SignInfoService implements ISignInfoService {
 
     @Autowired
     private RecipeDAO recipeDAO;
+
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
 
     @Autowired
     private DoctorService doctorService;
@@ -126,6 +131,26 @@ public class SignInfoService implements ISignInfoService {
         OrganDrugListDAO organDrugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
         PatientService patientService = BasicAPI.getService(PatientService.class);
         RegulationRecipeIndicatorsReq request = new RegulationRecipeIndicatorsReq();
+
+        String registerId="";
+        Integer recipeId=recipeBean.getRecipeId();
+        if(recipeId!=null){
+            RecipeExtend recipeExtend=recipeExtendDAO.getByRecipeId(recipeId);
+            registerId=recipeExtend.getRegisterID();
+        }
+
+        if(StringUtils.isEmpty(registerId)&& recipeBean.getClinicId()!=null && recipeBean.getBussSource()!=null){
+            //在线复诊
+            if( new Integer(2).equals(recipeBean.getBussSource()) ){
+                IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
+                ConsultExDTO consultExDTO = exService.getByConsultId(recipeBean.getClinicId());
+                if (null != consultExDTO) {
+                    registerId=consultExDTO.getRegisterNo();
+                }
+            }
+
+        }
+
         if(null != recipeBean.getDoctor()) {
             DoctorDTO doctorDTO = doctorService.get(recipeBean.getDoctor());
             request.setDoctorId(recipeBean.getDoctor().toString());
