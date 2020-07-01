@@ -136,7 +136,10 @@ public class SignInfoService implements ISignInfoService {
         Integer recipeId=recipeBean.getRecipeId();
         if(recipeId!=null){
             RecipeExtend recipeExtend=recipeExtendDAO.getByRecipeId(recipeId);
-            registerId=recipeExtend.getRegisterID();
+            if(recipeExtend!=null){
+                registerId=recipeExtend.getRegisterID();
+            }
+
         }
 
         if(StringUtils.isEmpty(registerId)&& recipeBean.getClinicId()!=null && recipeBean.getBussSource()!=null){
