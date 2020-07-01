@@ -233,6 +233,27 @@ public class RecipeServiceSub {
             recipe.setTotalMoney(totalMoney);
             recipe.setActualPrice(totalMoney);
         }
+
+        //保存开处方时的单位剂量【规格单位】|单位【规格单位】|单位剂量【最小单位】|单位【最小单位】,各个字段用|隔开
+        for (Recipedetail detail : details) {
+            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+            OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndDrugId(recipe.getClinicOrgan(), detail.getDrugId());
+            String unitDoseForSpecificationUnit="";
+            String unitForSpecificationUnit="";
+            String unitDoseForSmallUnit="";
+            String unitForSmallUnit="";
+            String drugUnitdoseAndUnit="";
+            if(organDrugList!=null){
+                unitDoseForSpecificationUnit=organDrugList.getUseDose()==null?"":organDrugList.getUseDose().toString();
+                unitForSpecificationUnit=organDrugList.getUseDoseUnit();
+                unitDoseForSmallUnit=organDrugList.getSmallestUnitUseDose()==null?"":organDrugList.getSmallestUnitUseDose().toString();
+                unitForSmallUnit=organDrugList.getUseDoseSmallestUnit();
+            }
+            drugUnitdoseAndUnit=unitDoseForSpecificationUnit+"|"+unitForSpecificationUnit+"|"+unitDoseForSmallUnit+"|"+unitForSmallUnit;
+            LOGGER.info("setReciepeDetailsInfo drugUnitdoseAndUnit:{}",drugUnitdoseAndUnit);
+            detail.setDrugUnitdoseAndUnit(drugUnitdoseAndUnit);
+        }
+        LOGGER.info("setReciepeDetailsInfo recipedetails:{}",JSONUtils.toString(details));
     }
 
     private static void validateRecipeAndDetailData(Recipe recipe, List<Recipedetail> details) {
@@ -274,7 +295,6 @@ public class RecipeServiceSub {
                 organDrugCodes.add(detail.getOrganDrugCode());
             }
         }
-
         if (CollectionUtils.isNotEmpty(drugIds)) {
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
@@ -1379,22 +1399,6 @@ public class RecipeServiceSub {
                 if (CollectionUtils.isNotEmpty(organDrugLists)) {
                     recipedetail.setDrugForm(organDrugLists.get(0).getDrugForm());
                 }
-
-                //处方来源：线下 从his获取用药频率说明、用药方式说明
-//                if(recipe.getRecipeSourceType()==2){
-//                    HisRecipeDetailDAO hisRecipeDetailDAO = DAOFactory.getDAO(HisRecipeDetailDAO.class);
-//                    List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(recipeId);
-//                    for (HisRecipeDetail hisRecipeDetail : hisRecipeDetails) {
-//                        if(!StringUtils.isEmpty(hisRecipeDetail.getDrugCode())
-//                                &&hisRecipeDetail.getDrugCode().equals(recipedetail.getDrugCode())){
-//                            recipedetail.setUsingRateTextFromHis(hisRecipeDetail.getUsingRateText());
-//                            recipedetail.setUsePathwaysTextFromHis(hisRecipeDetail.getUsePathwaysText());
-//                            break;
-//                        }
-//                    }
-//                }
-
-
             }
         }catch(Exception e){
             LOGGER.info("RecipeServiceSub.getRecipeAndDetailByIdImpl 查询剂型出错, recipeId:{},{}.", recipeId, e.getMessage(),e);
@@ -1409,7 +1413,7 @@ public class RecipeServiceSub {
             }
         }
         map.put("patient", patient);
-        map.put("recipedetails", RecipeValidateUtil.validateDrugsImpl(recipe));
+        map.put("recipedetails", RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImpl(recipe),isDoctor,recipe.getClinicOrgan()));
         if (isDoctor) {
             ConsultSetService consultSetService = ApplicationUtils.getBasicService(ConsultSetService.class);
             IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);

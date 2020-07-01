@@ -4,8 +4,10 @@ import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.BaseAPI;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.patient.dto.PatientDTO;
@@ -20,6 +22,7 @@ import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
+import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -249,5 +252,49 @@ public class RecipeValidateUtil {
         }
 
         return dbRecipe;
+    }
+
+    /**
+     *
+     * @param recipeDetailBeans
+     * @param isDoctor
+     * @param organId
+     * @return
+     */
+    public static List<RecipeDetailBean> covertDrugUnitdoseAndUnit(List<RecipeDetailBean> recipeDetailBeans,boolean isDoctor,Integer organId) {
+        LOGGER.info("covertDrugUnitdoseAndUnit 参数 recipeDetailBeans:{}isDoctor:{}organId:{}", JSONUtils.toString(recipeDetailBeans),isDoctor,organId);
+        if(isDoctor) return recipeDetailBeans;
+        //如果开关关闭：患者处方单每次剂量是否展示最小单位 TODO
+        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+        Object useDoseSmallUnit = configService.getConfiguration(organId, "useDoseSmallUnit");
+        if(!(boolean) useDoseSmallUnit) return recipeDetailBeans;
+        //患者端一次剂量和剂量单位（若医生添加药品使用的是规格单位，患者端展示的处方单和电子处方笺都需要根据以下公式进行转化,显示最小单位。每次剂量(最小单位)/单位剂量(最小单位)=每次剂量(规格单位)/单位剂量(规格单位)）
+        for(int i=0;i<recipeDetailBeans.size();i++){
+            String drugUnitdoseAndUnit=recipeDetailBeans.get(i).getDrugUnitdoseAndUnit();
+            if(StringUtils.isEmpty(drugUnitdoseAndUnit)) continue;
+            //单位剂量【规格单位】|单位【规格单位】|单位剂量【最小单位】|单位【最小单位】
+            String [] drugUnitdoseAndUnitArr=drugUnitdoseAndUnit.split("|");
+            String unitDoseForSpecificationUnit=drugUnitdoseAndUnitArr[0];
+            String unitForSpecificationUnit=drugUnitdoseAndUnitArr[1];
+            String unitDoseForSmallUnit=drugUnitdoseAndUnitArr[2];
+            String unitForSmallUnit=drugUnitdoseAndUnitArr[3];
+            if(StringUtils.isEmpty(unitDoseForSpecificationUnit)
+                    ||StringUtils.isEmpty(unitDoseForSmallUnit)
+                    ||StringUtils.isEmpty(unitForSmallUnit)
+                    ||StringUtils.isEmpty(unitForSpecificationUnit)) continue;
+            //如果单位【最小单位】eq 处方详情的剂量单位useDoseUnit 或者单位【规格单位】！eq 处方详情的剂量单位useDoseUnit
+            if(StringUtils.isEmpty(recipeDetailBeans.get(i).getUseDoseUnit())|| unitForSmallUnit.equals(recipeDetailBeans.get(i).getUseDoseUnit())
+                    ||!unitForSpecificationUnit.equals(recipeDetailBeans.get(i).getUseDoseUnit())) continue;
+            //转换
+            try{
+                Double useDose=Double.parseDouble(unitDoseForSmallUnit)*recipeDetailBeans.get(i).getUseDose()/Double.parseDouble(unitDoseForSpecificationUnit);
+                LOGGER.info("covertDrugUnitdoseAndUnit i:{} useDose:{} ",i,useDose);
+                recipeDetailBeans.get(i).setUseDose(useDose);
+                recipeDetailBeans.get(i).setUseDoseUnit(unitForSmallUnit);
+            }catch (Exception e){
+                LOGGER.error("method covertDrugUnitdoseAndUnit error "+e.getMessage());
+            }
+        }
+        return recipeDetailBeans;
     }
 }

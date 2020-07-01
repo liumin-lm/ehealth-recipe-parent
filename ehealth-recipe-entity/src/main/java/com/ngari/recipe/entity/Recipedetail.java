@@ -210,6 +210,9 @@ public class Recipedetail implements java.io.Serializable {
 		return drugType;
 	}
 
+	@ItemProperty(alias = "开处方时保存单位剂量【规格单位】|单位【规格单位】|单位剂量【最小单位】|单位【最小单位】,各个字段用|隔开，用来计算患者端显示实际每次剂量")
+	private String drugUnitdoseAndUnit;
+
 	public void setUseDaysB(String useDaysB) {
 		this.useDaysB = useDaysB;
 	}
@@ -733,4 +736,12 @@ public class Recipedetail implements java.io.Serializable {
     public void setOrganUsePathways(String organUsePathways) {
         this.organUsePathways = organUsePathways;
     }
+
+	public String getDrugUnitdoseAndUnit() {
+		return drugUnitdoseAndUnit;
+	}
+
+	public void setDrugUnitdoseAndUnit(String drugUnitdoseAndUnit) {
+		this.drugUnitdoseAndUnit = drugUnitdoseAndUnit;
+	}
 }
