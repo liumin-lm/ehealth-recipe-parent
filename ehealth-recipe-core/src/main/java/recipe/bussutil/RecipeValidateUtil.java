@@ -198,9 +198,11 @@ public class RecipeValidateUtil {
                 mapDetail.setDrugForm(organDrug.getDrugForm());
                 //设置医生端每次剂量和剂量单位联动关系
                 useDoseAndUnitRelationList = Lists.newArrayList();
-                useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(),organDrug.getUseDoseUnit(),organDrug.getUseDose()));
-                if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())
-                        ||organDrug.getDefaultSmallestUnitUseDose()!= null){
+                //用药单位不为空时才返回给前端
+                if (StringUtils.isNotEmpty(organDrug.getUseDoseUnit())) {
+                    useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(), organDrug.getUseDoseUnit(), organDrug.getUseDose()));
+                }
+                if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())){
                     useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(),organDrug.getUseDoseSmallestUnit(),organDrug.getSmallestUnitUseDose()));
                 }
                 mapDetail.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
