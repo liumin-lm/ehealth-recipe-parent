@@ -4143,24 +4143,36 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Map<String, Object>   findisCanOpenLongRecipeAndUseDayRange(Map<String,String> params) {
-        LOGGER.info("findUseDayRange 参数{}",JSONUtils.toString(params));
+        LOGGER.info("findisCanOpenLongRecipeAndUseDayRange 参数{}",JSONUtils.toString(params));
         if(StringUtils.isEmpty(params.get("organId")))   throw new DAOException("findUseDayRange organId不允许为空");
         Map<String, Object> map = Maps.newHashMap();
 
+        //获取长处方配置
         IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
         Object isCanOpenLongRecipe = configService.getConfiguration(Integer.parseInt(params.get("organId")), "isCanOpenLongRecipe");
-        LOGGER.info("findUseDayRange 从opbase配置项获取是否能开长处方{}",isCanOpenLongRecipe);
+        LOGGER.info("findisCanOpenLongRecipeAndUseDayRange 从opbase配置项获取是否能开长处方{}",isCanOpenLongRecipe);
         if(isCanOpenLongRecipe==null||!(boolean)isCanOpenLongRecipe){//按钮没配置或关闭
         }
         if((boolean)isCanOpenLongRecipe){//按钮开启
             Object yesLongRecipe = configService.getConfiguration(Integer.parseInt(params.get("organId")), "yesLongRecipe");
-            LOGGER.info("findUseDayRange 从opbase配置项获取长处方开药天数范围是{}",yesLongRecipe==null?yesLongRecipe:((String)yesLongRecipe).replace(",","-"));
+            LOGGER.info("findisCanOpenLongRecipeAndUseDayRange 从opbase配置项获取长处方开药天数范围是{}",yesLongRecipe==null?yesLongRecipe:((String)yesLongRecipe).replace(",","-"));
             map.put("longTimeRange",yesLongRecipe==null?yesLongRecipe:((String)yesLongRecipe).replace(",","-"));
             Object noLongRecipe = configService.getConfiguration(Integer.parseInt(params.get("organId")), "noLongRecipe");
-            LOGGER.info("findUseDayRange 从opbase配置项获取非长处方开药天数范围是{}",noLongRecipe==null?noLongRecipe:((String)noLongRecipe).replace(",","-"));
+            LOGGER.info("findisCanOpenLongRecipeAndUseDayRange 从opbase配置项获取非长处方开药天数范围是{}",noLongRecipe==null?noLongRecipe:((String)noLongRecipe).replace(",","-"));
             map.put("shortTimeRange",noLongRecipe==null?noLongRecipe:((String)noLongRecipe).replace(",","-"));
         }
         map.put("canOpenLongRecipe",isCanOpenLongRecipe);
+
+        //获取用药天数配置
+        Object isLimitUseDays = configService.getConfiguration(Integer.parseInt(params.get("organId")), "isLimitUseDays");
+        LOGGER.info("findisCanOpenLongRecipeAndUseDayRange 从opbase配置项获取是否开启用药天数配置{}",isLimitUseDays);
+        if((boolean)isLimitUseDays){//按钮开启
+            Object useDaysRange = configService.getConfiguration(Integer.parseInt(params.get("organId")), "useDaysRange");
+            LOGGER.info("findisCanOpenLongRecipeAndUseDayRange 从opbase配置项获取用药天数配置天数范围是{}",useDaysRange==null?useDaysRange:((String)useDaysRange).replace(",","-"));
+            map.put("useDaysRange",useDaysRange==null?useDaysRange:((String)useDaysRange).replace(",","-"));
+        }
+        map.put("limitUseDays",isLimitUseDays);
+
         return map;
     }
 
