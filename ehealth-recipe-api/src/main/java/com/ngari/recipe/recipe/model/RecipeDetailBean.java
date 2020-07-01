@@ -190,6 +190,9 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias = "医生端选择的每次剂量和单位绑定关系")
     private List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation;
 
+    @ItemProperty(alias = "开处方时保存单位剂量【规格单位】|单位【规格单位】|单位剂量【最小单位】|单位【最小单位】,各个字段用|隔开，用来计算患者端显示实际每次剂量")
+    private String drugUnitdoseAndUnit;
+
     public String getUseDaysB() {
         return useDaysB;
     }
@@ -658,5 +661,13 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setUsePathwaysId(String usePathwaysId) {
         this.usePathwaysId = usePathwaysId;
+    }
+
+    public String getDrugUnitdoseAndUnit() {
+        return drugUnitdoseAndUnit;
+    }
+
+    public void setDrugUnitdoseAndUnit(String drugUnitdoseAndUnit) {
+        this.drugUnitdoseAndUnit = drugUnitdoseAndUnit;
     }
 }

@@ -1021,14 +1021,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      * @return QueryResult<Map>
      */
     public QueryResult<Map> findRecipesByInfo(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType,
-                                              final Integer depart, final int start, final int limit, List<Integer> organIds, Integer giveMode, Integer fromflag, Integer recipeId, Integer enterpriseId,Integer checkStatus,Integer payFlag,Integer orderType) {
+                                              final Integer depart, final int start, final int limit, List<Integer> organIds, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType) {
         this.validateOptionForStatistics(status, doctor, patientName, bDate, eDate, dateType, start, limit);
-        final StringBuilder preparedHql = this.generateRecipeOderHQLforStatistics(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, fromflag, recipeId,enterpriseId,checkStatus,payFlag,orderType);
+        final StringBuilder sbHql = this.generateRecipeOderHQLforStatistics(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType);
         final PatientService patientService = BasicAPI.getService(PatientService.class);
         HibernateStatelessResultAction<QueryResult<Map>> action =
                 new AbstractHibernateStatelessResultAction<QueryResult<Map>>() {
                     public void execute(StatelessSession ss) throws Exception {
-                        StringBuilder sbHql = preparedHql;
                         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                         SQLQuery sqlQuery = ss.createSQLQuery("SELECT count(*) AS count FROM (" + sbHql + ") k").addScalar("count", LongType.INSTANCE);
                         sqlQuery.setParameter("startTime", sdf.format(bDate));
@@ -1432,9 +1431,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     }
 
     private StringBuilder generateRecipeOderHQLforStatistics(Integer organId,
-                                                   Integer status, Integer doctor, String mpiId, Integer dateType,
-                                                   Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer fromflag, Integer recipeId ,
-                                                   Integer enterpriseId,Integer checkStatus,Integer payFlag,Integer orderType
+                                                             Integer status, Integer doctor, String mpiId, Integer dateType,
+                                                             Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId,
+                                                             Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType
 
     ) {
         StringBuilder hql = new StringBuilder("select r.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode LEFT JOIN cdr_recipecheck c ON r.recipeID=c.recipeId where 1=1");
@@ -1506,6 +1505,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         if (giveMode != null) {
             hql.append(" and r.giveMode=").append(giveMode);
         }
+        if (null != sendType) {
+            hql.append(" and o.send_type=").append(sendType);
+        }
+
         if (fromflag != null) {
             hql.append(" and r.fromflag=").append(fromflag);
         }
@@ -1514,7 +1517,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         }
 
         if (mpiId != null) {
-            hql.append(" and r.mpiid='").append(mpiId+"'");
+            hql.append(" and r.mpiid='").append(mpiId + "'");
         }
         if (enterpriseId != null) {
             hql.append(" and r.enterpriseId=").append(enterpriseId);
