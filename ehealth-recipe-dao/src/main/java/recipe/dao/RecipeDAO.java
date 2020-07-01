@@ -25,13 +25,13 @@ import ctd.util.annotation.RpcSupportDAO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.StatelessSession;
 import org.hibernate.type.LongType;
 import org.joda.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.constant.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.dao.bean.RecipeRollingInfo;
@@ -50,8 +50,7 @@ import java.util.*;
 @RpcSupportDAO
 public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
 
-    private static final Log LOGGER = LogFactory.getLog(RecipeDAO.class);
-
+    private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
     public RecipeDAO() {
         super();
         this.setEntityName(Recipe.class.getName());
@@ -1290,12 +1289,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     public List<Object[]> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType,
                                                final Integer depart, List<Integer> organIds, Integer giveMode, Integer fromflag, Integer recipeId,Integer enterpriseId,Integer checkStatus,Integer payFlag,Integer orderType) {
         this.validateOptionForStatistics(status, doctor, patientName, bDate, eDate, dateType, 0, Integer.MAX_VALUE);
-        final StringBuilder preparedHql = this.generateRecipeMsgHQLforStatistics(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, fromflag, recipeId,enterpriseId,checkStatus,payFlag,orderType);
+        final StringBuilder sbHql = this.generateRecipeMsgHQLforStatistics(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType);
         HibernateStatelessResultAction<List<Object[]>> action =
                 new AbstractHibernateStatelessResultAction<List<Object[]>>() {
                     public void execute(StatelessSession ss) {
-                        StringBuilder sbHql = preparedHql;
-                        System.out.println(preparedHql);
+                        LOGGER.info("RecipeDAO findRecipesByInfoForExcel sbHql = {} ", sbHql);
                         Query query = ss.createSQLQuery(sbHql.append(" GROUP BY r.recipeId order by r.recipeId DESC").toString());
                         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                         query.setParameter("startTime", sdf.format(bDate));
@@ -1563,13 +1561,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     }
 
     private StringBuilder generateRecipeMsgHQLforStatistics(Integer organId,
-                                                             Integer status, Integer doctor, String mpiId, Integer dateType,
-                                                             Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer fromflag, Integer recipeId ,
-                                                             Integer enterpriseId,Integer checkStatus,Integer payFlag,Integer orderType
-
-    ) {
-        StringBuilder hql = //new StringBuilder("select r.*,o.*,sum(cr.useTotalDose) sumDose from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode LEFT JOIN cdr_recipecheck c ON r.recipeID=c.recipeId left join cdr_recipedetail cr on cr.recipeId = r.recipeId and cr.status =1 where 1=1 ");
-                new StringBuilder("select r.recipeId,r.patientName,r.Mpiid,r.organName,r.depart,r.doctor,r.organDiseaseName,r.totalMoney,r.checker,r.checkDateYs,r.fromflag,r.status,o.payTime, r.doctorName, sum(cr.useTotalDose) sumDose from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode LEFT JOIN cdr_recipecheck c ON r.recipeID=c.recipeId left join cdr_recipedetail cr on cr.recipeId = r.recipeId and cr.status =1  where 1=1 ");
+                                                            Integer status, Integer doctor, String mpiId, Integer dateType,
+                                                            Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer fromflag, Integer recipeId,
+                                                            Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType) {
+        StringBuilder hql = new StringBuilder("select r.recipeId,r.patientName,r.Mpiid,r.organName,r.depart,r.doctor,r.organDiseaseName,r.totalMoney,r.checker,r.checkDateYs,r.fromflag,r.status,o.payTime,o.send_type sendType , r.doctorName, sum(cr.useTotalDose) sumDose from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode LEFT JOIN cdr_recipecheck c ON r.recipeID=c.recipeId left join cdr_recipedetail cr on cr.recipeId = r.recipeId and cr.status =1  where 1=1 ");
 
         //默认查询所有
         if (CollectionUtils.isNotEmpty(requestOrgans)) {

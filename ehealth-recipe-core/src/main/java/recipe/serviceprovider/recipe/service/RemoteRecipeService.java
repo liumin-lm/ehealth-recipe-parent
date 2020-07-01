@@ -18,7 +18,6 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.ca.mode.CaSignResultTo;
 import com.ngari.platform.recipe.mode.ReadjustDrugDTO;
-import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
@@ -360,7 +359,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                                                Date eDate, Integer dateType, Integer depart, Integer giveMode,
                                                Integer fromflag,Integer recipeId){
         LOGGER.info("findRecipeOrdersByInfoForExcel查询处方订单导出信息入参:{},{},{},{},{},{},{},{},{},{},{},{}",organId, organIds, status, doctor, patientName, bDate, eDate, dateType, depart, giveMode, fromflag, recipeId);
-        IRecipeService recipeService = RecipeAPI.getService(IRecipeService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         List<Map> recipeMap = recipeDAO.findRecipesByInfoForExcelN(organId, status, doctor, patientName, bDate, eDate, dateType, depart, organIds, giveMode, fromflag, recipeId);
 
@@ -406,6 +404,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         if(null != order){
             //收货人
             recipeMsg.put("receiver", order.getReceiver());
+            recipeMsg.put("sendType", order.getSendType());
             //收货人联系方式
             recipeMsg.put("recMobile", order.getRecMobile());
             //下单时间
