@@ -765,6 +765,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return commonRemoteService.getCompleteAddress(getBean(orderBean, RecipeOrder.class));
     }
 
+    @Override
+    public String getRecipeOrderCompleteAddressByRecipeId(Integer recipeId) {
+        RecipeService recipeService = AppContextHolder.getBean("recipeService", RecipeService.class);
+        return recipeService.getCompleteAddress(recipeId);
+    }
+
     @RpcService
     @Override
     public Map<String, Object> noticePlatRecipeAuditResult(NoticeNgariAuditResDTO req) {
@@ -1111,6 +1117,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         return true;
     }
+
     @RpcService
     @Override
     public List<RecipeBean> findRecipeByFlag(List<Integer> organ, int flag, int start, int limit) {

@@ -81,6 +81,15 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
     RecipeOrderBean getByOutTradeNo(String outTradeNo);
 
     /**
+     * 根据订单编号获取订单
+     *
+     * @param orderCode 订单号
+     * @return RecipeOrderBean
+     */
+    @RpcService
+    RecipeOrderBean getByOrderCode(String orderCode);
+
+    /**
      * 查询某一支付状态下的订单
      *
      * @param request 查询条件
