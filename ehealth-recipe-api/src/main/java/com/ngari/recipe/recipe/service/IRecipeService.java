@@ -1,6 +1,7 @@
 package com.ngari.recipe.recipe.service;
 
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.platform.ca.mode.CaSignResultTo;
 import com.ngari.platform.recipe.mode.ReadjustDrugDTO;
 import com.ngari.recipe.IBaseService;
@@ -82,6 +83,17 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     boolean changeRecipeStatus(int recipeId, int afterStatus);
+
+    /**
+     * 更新处方信息
+     *
+     * @param recipeId    处方ID
+     * @param afterStatus 变更后状态 (参考RecipeStatusConstant)
+     * @param changeAttr  需要级联修改的其他字段
+     * @return
+     */
+    @RpcService
+    boolean updateRecipeInfoByRecipeId(int recipeId, int afterStatus, Map<String, ?> changeAttr);
 
     /**
      * 获取处方信息
@@ -329,6 +341,14 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     RecipeExtendBean findRecipeExtendByRecipeId(Integer recipeId);
 
+    /**
+     *  保存处方扩展信息
+     * @param recipeExtendBean
+     * @return
+     */
+    @RpcService
+    boolean saveOrUpdateRecipeExtend(RecipeExtendBean recipeExtendBean);
+
     @RpcService
     List<Integer> findReadyAuditRecipeIdsByOrganIds(List<Integer> organIds);
 
@@ -447,6 +467,29 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     Boolean saveSignRecipePDF(CaSignResultTo caSignResultTo);
+
+    /**
+     *  取签章pdf数据。签名原文
+     * @param recipeId
+     * @param isDoctor
+     * @return
+     */
+    @RpcService
+    CaSealRequestTO signCreateRecipePDF(Integer recipeId, boolean isDoctor);
+
+    /**
+     * 根据机构id去标准化CA签名及签章接口
+     *
+     * @param organId
+     */
+    CaSignResultBean   commonCASignAndSealOrganId(CaSealRequestTO requestSealTO, RecipeBean recipe, Integer organId, String userAccount, String caPassword);
+
+    /**
+     *  生成签名处方pdf
+     * @param recipeId
+     * @param organId
+     */
+   void  generateSignetRecipePdf(Integer recipeId, Integer organId);
 
     @RpcService
     ThirdResultBean readyToSend(Map<String, Object> paramMap);

@@ -9,6 +9,7 @@ import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
+import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.QueryRecipeRequestTO;
 import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
@@ -54,6 +55,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
+import recipe.ca.CAInterface;
+import recipe.ca.factory.CommonCAFactory;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
@@ -68,6 +71,8 @@ import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.recipecheck.RecipeCheckService;
 import recipe.service.*;
 import recipe.serviceprovider.BaseService;
+import recipe.thread.GenerateSignetRecipePdfRunable;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
@@ -91,6 +96,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * LOGGER
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(RemoteRecipeService.class);
+    @Autowired
+    private CommonCAFactory commonCAFactory;
 
     @RpcService
     @Override
@@ -156,6 +163,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public boolean changeRecipeStatus(int recipeId, int afterStatus) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         return recipeDAO.updateRecipeInfoByRecipeId(recipeId, afterStatus, null);
+    }
+
+    @Override
+    public boolean updateRecipeInfoByRecipeId(int recipeId, int afterStatus, Map<String, ?> changeAttr) {
+        return recipeDAO.updateRecipeInfoByRecipeId(recipeId, afterStatus, changeAttr);
     }
 
     @RpcService
@@ -383,7 +395,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
 
         //组装处方相关联的数据
-
         for (Map<String, Object> recipeMsg : recipeMap) {
             nowRecipeId = recipeMsg.get("recipeId");
             if (null != nowRecipeId) {
@@ -508,6 +519,19 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeExtendDAO RecipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = RecipeExtendDAO.getByRecipeId(recipeId);
         return ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
+    }
+
+    @Override
+    public boolean saveOrUpdateRecipeExtend(RecipeExtendBean recipeExtendBean) {
+        try {
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeExtendBean, RecipeExtend.class);
+            recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
+            return true;
+        } catch (Exception e) {
+            LOGGER.error("saveOrUpdateRecipeExtend error", e);
+            return false;
+        }
     }
 
     @Override
@@ -1116,6 +1140,25 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             }
         }
         return true;
+    }
+
+    @Override
+    public CaSealRequestTO signCreateRecipePDF(Integer recipeId, boolean isDoctor) {
+        CaSealRequestTO caSealRequestTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId, isDoctor);
+        return caSealRequestTO;
+    }
+
+    @Override
+    public CaSignResultBean commonCASignAndSealOrganId(CaSealRequestTO requestSealTO, RecipeBean recipe, Integer organId, String userAccount, String caPassword) {
+        CAInterface caInterface = commonCAFactory.useCAFunction(organId);
+        Recipe recipe1 = ObjectCopyUtils.convert(recipe, Recipe.class);
+        CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe1, organId, userAccount, caPassword);
+        return ObjectCopyUtils.convert(resultVo, CaSignResultBean.class);
+    }
+
+    @Override
+    public void generateSignetRecipePdf(Integer recipeId, Integer organId) {
+        RecipeBusiThreadPool.execute(new GenerateSignetRecipePdfRunable(recipeId, organId));
     }
 
     @RpcService

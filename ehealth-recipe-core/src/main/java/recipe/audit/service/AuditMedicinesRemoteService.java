@@ -2,9 +2,11 @@ package recipe.audit.service;
 
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
 import com.ngari.recipe.audit.service.IAuditMedicinesService;
+import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import recipe.ApplicationUtils;
+import recipe.audit.auditmode.AuditModeContext;
 import recipe.service.RecipeService;
 
 import java.util.List;
@@ -21,5 +23,11 @@ public class AuditMedicinesRemoteService implements IAuditMedicinesService {
     public List<AuditMedicinesDTO> getAuditmedicinesResult(int recipeId) {
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         return recipeService.getAuditMedicineIssuesByRecipeId(recipeId);
+    }
+
+    @Override
+    public int getAuditStatusByReviewType(int reviewType) {
+        AuditModeContext auditModeContext = AppContextHolder.getBean("auditModeContext", AuditModeContext.class);
+        return auditModeContext.getAuditModes(reviewType).afterAuditRecipeChange();
     }
 }
