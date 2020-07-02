@@ -668,6 +668,9 @@ public class HisRecipeService {
             case RecipeStatusConstant.FINISH:
                 tips = "已完成";
                 break;
+            case RecipeStatusConstant.IN_SEND:
+                tips = "配送中";
+                break;
             case RecipeStatusConstant.CHECK_PASS:
                 if (null == payMode || null == giveMode) {
                     tips = "待处理";
