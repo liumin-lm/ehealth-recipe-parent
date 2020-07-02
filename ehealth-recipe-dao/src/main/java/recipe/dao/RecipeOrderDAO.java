@@ -1014,6 +1014,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 sql.append(" FROM cdr_recipe r INNER JOIN cdr_recipeorder o ON (r.OrderCode = o.OrderCode) LEFT JOIN cdr_drugsenterprise d ON (r.EnterpriseId = d.id) ");
                 sql.append(" WHERE r.OrderCode = o.OrderCode AND o.Effective = 1 AND o.PayFlag=1 ");
                 sql.append(" AND PayTime >= :startTime AND PayTime < :endTime ");
+                sql.append(" AND r.enterpriseId is not null ");
                 sql.append(" GROUP BY r.ClinicOrgan, r.enterpriseId, d.name, r.RecipeType");
                 Query sqlQuery = ss.createSQLQuery(sql.toString());
                 sqlQuery.setParameter("startTime", recipeBillRequest.getStartTime());

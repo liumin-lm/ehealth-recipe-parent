@@ -245,9 +245,9 @@ public class RecipeServiceSub {
             String drugUnitdoseAndUnit="";
             if(organDrugList!=null){
                 unitDoseForSpecificationUnit=organDrugList.getUseDose()==null?"":organDrugList.getUseDose().toString();
-                unitForSpecificationUnit=organDrugList.getUseDoseUnit();
+                unitForSpecificationUnit=organDrugList.getUseDoseUnit()==null?"":organDrugList.getUseDoseUnit();
                 unitDoseForSmallUnit=organDrugList.getSmallestUnitUseDose()==null?"":organDrugList.getSmallestUnitUseDose().toString();
-                unitForSmallUnit=organDrugList.getUseDoseSmallestUnit();
+                unitForSmallUnit=organDrugList.getUseDoseSmallestUnit()==null?"":organDrugList.getUseDoseSmallestUnit();
             }
             drugUnitdoseAndUnit=unitDoseForSpecificationUnit+"|"+unitForSpecificationUnit+"|"+unitDoseForSmallUnit+"|"+unitForSmallUnit;
             LOGGER.info("setReciepeDetailsInfo drugUnitdoseAndUnit:{}",drugUnitdoseAndUnit);
