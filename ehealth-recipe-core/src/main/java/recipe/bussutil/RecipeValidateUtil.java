@@ -35,6 +35,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.service.CommonRecipeService;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -272,8 +273,9 @@ public class RecipeValidateUtil {
         for(int i=0;i<recipeDetailBeans.size();i++){
             String drugUnitdoseAndUnit=recipeDetailBeans.get(i).getDrugUnitdoseAndUnit();
             if(StringUtils.isEmpty(drugUnitdoseAndUnit)) continue;
+            LOGGER.info("covertDrugUnitdoseAndUnit recipeid:{} drugUnitdoseAndUnit:{}",recipeDetailBeans.get(i).getRecipeId(),drugUnitdoseAndUnit);
             //单位剂量【规格单位】|单位【规格单位】|单位剂量【最小单位】|单位【最小单位】
-            String [] drugUnitdoseAndUnitArr=drugUnitdoseAndUnit.split("|");
+            String [] drugUnitdoseAndUnitArr=drugUnitdoseAndUnit.split("\\|");
             String unitDoseForSpecificationUnit=drugUnitdoseAndUnitArr[0];
             String unitForSpecificationUnit=drugUnitdoseAndUnitArr[1];
             String unitDoseForSmallUnit=drugUnitdoseAndUnitArr[2];
@@ -288,7 +290,9 @@ public class RecipeValidateUtil {
             //转换
             try{
                 Double useDose=Double.parseDouble(unitDoseForSmallUnit)*recipeDetailBeans.get(i).getUseDose()/Double.parseDouble(unitDoseForSpecificationUnit);
-                LOGGER.info("covertDrugUnitdoseAndUnit i:{} useDose:{} ",i,useDose);
+                BigDecimal useDoseBigDecimal = new BigDecimal(useDose);
+                useDose = useDoseBigDecimal.setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+                LOGGER.info("covertDrugUnitdoseAndUnit i:{} ,useDose:{} ,计算公式Double.parseDouble(unitDoseForSmallUnit){},*recipeDetailBeans.get(i).getUseDose(){},/Double.parseDouble(unitDoseForSpecificationUnit){} ",i,useDose,Double.parseDouble(unitDoseForSmallUnit),recipeDetailBeans.get(i).getUseDose(),Double.parseDouble(unitDoseForSpecificationUnit));
                 recipeDetailBeans.get(i).setUseDose(useDose);
                 recipeDetailBeans.get(i).setUseDoseUnit(unitForSmallUnit);
             }catch (Exception e){
