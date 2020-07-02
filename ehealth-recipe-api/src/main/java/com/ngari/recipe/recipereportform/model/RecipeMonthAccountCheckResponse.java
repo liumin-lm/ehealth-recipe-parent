@@ -1,20 +1,19 @@
-package recipe.service.recipereportforms.bean;
+package com.ngari.recipe.recipereportform.model;
 
 import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.Date;
 
 @Data
-public class RecipeAccountCheckDetailResponse implements Serializable{
-    private static final long serialVersionUID = 5501099787443188752L;
+public class RecipeMonthAccountCheckResponse implements Serializable{
+    private static final long serialVersionUID = 8599154333590559939L;
 
-    private Integer recipeId; //处方单号
+    private Integer organId; //机构id
 
-    private String patientName; //患者姓名
+    private String organName; //机构名称
 
-    private Date payDate; //支付时间
+    private Integer totalOrderNum; //总订单数
 
     private BigDecimal totalFee; //总费用
 
@@ -36,5 +35,5 @@ public class RecipeAccountCheckDetailResponse implements Serializable{
 
     private BigDecimal organRecivedDiffFee; //医院实收应付差额
 
-    private String tradeNo; //商户订单号
+
 }

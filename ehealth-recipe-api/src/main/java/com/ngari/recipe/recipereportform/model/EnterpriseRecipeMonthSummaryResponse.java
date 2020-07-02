@@ -1,4 +1,4 @@
-package recipe.service.recipereportforms.bean;
+package com.ngari.recipe.recipereportform.model;
 
 import lombok.Data;
 

@@ -27,6 +27,12 @@
             <version>${ngari.bill.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.20</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>ngari</groupId>
             <artifactId>ehealth-his-api</artifactId>
             <version>${ngari.hisapi.version}</version>
