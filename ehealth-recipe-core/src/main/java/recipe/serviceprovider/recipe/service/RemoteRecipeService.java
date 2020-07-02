@@ -27,6 +27,7 @@ import com.ngari.recipe.drugsenterprise.model.ThirdResultBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.constant.RecipePayTextEnum;
+import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
@@ -404,7 +405,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         if(null != order){
             //收货人
             recipeMsg.put("receiver", order.getReceiver());
-            recipeMsg.put("sendType", order.getSendType());
+            recipeMsg.put("sendType", RecipeSendTypeEnum.getSendText(order.getSendType()));
             //收货人联系方式
             recipeMsg.put("recMobile", order.getRecMobile());
             //下单时间
@@ -424,14 +425,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             //添加药企信息和期望配送时间
             if(null != order.getEnterpriseId()){
                 //匹配上药企，获取药企名
-                //DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                 DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
                 if(null != enterprise && null != enterprise.getName()){
                     recipeMsg.put("enterpriseName", enterprise.getName());
                 }else{
                     LOGGER.warn("findRecipeOrdersByInfoForExcel 当前处方{}关联的药企id:{}信息不全", order.getRecipeIdList(), order.getEnterpriseId());
                 }
-
             }
             //date 20200303
             //添加期望配送时间
