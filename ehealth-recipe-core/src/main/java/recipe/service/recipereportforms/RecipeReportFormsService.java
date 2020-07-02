@@ -22,7 +22,7 @@ public class RecipeReportFormsService {
      * @return
      */
     @RpcService
-    public Map<String,Object> drugReceivedAndDispatchedAndBalanceList(){
+    public Map<String,Object> drugReceivedDispatchedBalanceList(){
         return null;
     }
 
