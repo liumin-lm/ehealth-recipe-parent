@@ -255,6 +255,7 @@ public class HisRecipeService {
                 hisRecipe.setRecipeType(queryHisRecipResTO.getRecipeType());
                 hisRecipe.setClinicOrgan(queryHisRecipResTO.getClinicOrgan());
                 hisRecipe.setCreateTime(new Date());
+                hisRecipe.setRecipePayType(queryHisRecipResTO.getExtensionFlag()); //设置外延处方的标志
                 if(!StringUtils.isEmpty(queryHisRecipResTO.getDiseaseName())){
                     hisRecipe.setDiseaseName(queryHisRecipResTO.getDiseaseName());
                 }else {
@@ -487,6 +488,7 @@ public class HisRecipeService {
         recipe.setValueDays(3);
         recipe.setFromflag(1);
         recipe.setRecipeSourceType(2);
+        recipe.setRecipePayType(hisRecipe.getRecipePayType());
         recipe.setRequestMpiId(hisRecipe.getMpiId());
 
         return recipeDAO.saveRecipe(recipe);
@@ -670,7 +672,11 @@ public class HisRecipeService {
                 if (null == payMode || null == giveMode) {
                     tips = "待处理";
                 } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(payMode)) {
-                    tips = "待取药";
+                    if (new Integer(1).equals(recipe.getRecipePayType()) && payFlag == 1) {
+                        tips = "已支付";
+                    } else {
+                        tips = "待取药";
+                    }
                 } else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(giveMode)) {
                     if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
                         if (payFlag == 0) {

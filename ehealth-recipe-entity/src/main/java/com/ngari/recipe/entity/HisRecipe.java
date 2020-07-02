@@ -95,6 +95,8 @@ public class HisRecipe implements Serializable {
     private Integer fromFlag;
     @ItemProperty(alias = "插入时间")
     private Date createTime;
+    @ItemProperty(alias = "处方支付类型 0 普通支付 1 不选择购药方式直接去支付")
+    private Integer recipePayType;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -411,6 +413,15 @@ public class HisRecipe implements Serializable {
 
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
+    }
+
+    @Column(name = "recipePayType")
+    public Integer getRecipePayType() {
+        return recipePayType;
+    }
+
+    public void setRecipePayType(Integer recipePayType) {
+        this.recipePayType = recipePayType;
     }
 
     @Transient
