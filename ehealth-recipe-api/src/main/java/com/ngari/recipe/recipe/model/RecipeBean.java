@@ -338,6 +338,9 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "处方来源类型 1 平台处方 2 线下转线上的处方")
     private Integer recipeSourceType;
 
+    @ItemProperty(alias = "处方支付类型 0 普通支付 1 不选择购药方式直接去支付")
+    private Integer recipePayType;
+
     private List<HisRecipeDetailBean> detailData;
 
     /**
@@ -1261,6 +1264,14 @@ public class RecipeBean implements Serializable {
 
     public void setRecipeSourceType(Integer recipeSourceType) {
         this.recipeSourceType = recipeSourceType;
+    }
+
+    public Integer getRecipePayType() {
+        return recipePayType;
+    }
+
+    public void setRecipePayType(Integer recipePayType) {
+        this.recipePayType = recipePayType;
     }
 
     public List<HisRecipeDetailBean> getDetailData() {

@@ -347,6 +347,9 @@ public class Recipe implements Serializable {
     @ItemProperty(alias="药师处方数字签名可信服务器时间")
     private String signPharmacistCADate;
 
+    @ItemProperty(alias = "处方支付类型 0 普通支付 1 不选择购药方式直接去支付")
+    private Integer recipePayType;
+
     public Recipe() {
     }
 
@@ -1384,5 +1387,14 @@ public class Recipe implements Serializable {
 
     public void setRecipeSourceType(Integer recipeSourceType) {
         this.recipeSourceType = recipeSourceType;
+    }
+
+    @Column(name = "recipePayType")
+    public Integer getRecipePayType() {
+        return recipePayType;
+    }
+
+    public void setRecipePayType(Integer recipePayType) {
+        this.recipePayType = recipePayType;
     }
 }
