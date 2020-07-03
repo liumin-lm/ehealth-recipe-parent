@@ -2045,11 +2045,15 @@ public class RecipeService extends RecipeBaseService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该患者还未填写身份证信息，不能开处方");
         }
         // 就诊人改造：为了确保删除就诊人后历史处方不会丢失，加入主账号用户id
-        PatientDTO requestPatient = patientService.getOwnPatientForOtherProject(patient.getLoginId());
-        if (null != requestPatient && null != requestPatient.getMpiId()) {
-            recipe.setRequestMpiId(requestPatient.getMpiId());
-            // urt用于系统消息推送
-            recipe.setRequestUrt(requestPatient.getUrt());
+        //bug#46436 本人就诊人被删除保存不了导致后续微信模板消息重复推送多次
+        List<PatientDTO> requestPatients = patientService.findOwnPatient(patient.getLoginId());
+        if (CollectionUtils.isNotEmpty(requestPatients)){
+            PatientDTO requestPatient = requestPatients.get(0);
+            if (null != requestPatient && null != requestPatient.getMpiId()) {
+                recipe.setRequestMpiId(requestPatient.getMpiId());
+                // urt用于系统消息推送
+                recipe.setRequestUrt(requestPatient.getUrt());
+            }
         }
         //如果前端没有传入咨询id则从进行中的复诊或者咨询里取
         //获取咨询单id,有进行中的复诊则优先取复诊，若没有则取进行中的图文咨询
