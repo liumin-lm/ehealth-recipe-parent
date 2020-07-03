@@ -26,6 +26,8 @@ public class RecipeReportFormsRequest implements Serializable{
 
     private String patientName; //患者姓名
 
+    private String mpiId; //患者id
+
     private String tradeNo; //商户订单号
 
     private Integer enterpriseId; //药企

@@ -9,8 +9,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.recipereportform.model.RecipeMonthAccountCheckResponse;
-import com.ngari.recipe.recipereportform.model.RecivedDispatchedBalanceResponse;
+import com.ngari.recipe.recipereportform.model.*;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
@@ -1060,9 +1059,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     @DAOMethod(sql = "from RecipeOrder where status =:status and effective = 1 and payFlag = 1 and enterpriseId =:enterpriseId ")
     public abstract List<RecipeOrder> findRecipeOrderByStatusAndEnterpriseId(@DAOParam("status") Integer status, @DAOParam("enterpriseId") Integer enterpriseId);
 
-    public List<RecivedDispatchedBalanceResponse> findDrugReceivedDispatchedBalanceList(final List<Integer> organIdList,final Date startTime,final Date endTime,
-                                                                                        final Integer start,final Integer limit) {
-        if(CollectionUtils.isEmpty(organIdList)){
+    public List<RecivedDispatchedBalanceResponse> findDrugReceivedDispatchedBalanceList(final List<Integer> organIdList, final Date startTime, final Date endTime,
+                                                                                        final Integer start, final Integer limit) {
+        if (CollectionUtils.isEmpty(organIdList)) {
             return Collections.emptyList();
         }
         HibernateStatelessResultAction<List<RecivedDispatchedBalanceResponse>> action = new AbstractHibernateStatelessResultAction<List<RecivedDispatchedBalanceResponse>>() {
@@ -1080,15 +1079,15 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 query.setMaxResults(limit);
                 List<Object[]> queryList = query.list();
                 List<RecivedDispatchedBalanceResponse> resultList = new ArrayList<>(limit);
-                if(CollectionUtils.isNotEmpty(queryList)){
-                    for(Object[] item : queryList){
+                if (CollectionUtils.isNotEmpty(queryList)) {
+                    for (Object[] item : queryList) {
                         RecivedDispatchedBalanceResponse response = new RecivedDispatchedBalanceResponse();
-                        response.setOrganId(ConversionUtils.convert(item[0],Integer.class));
-                        response.setEnterpriseName(ConversionUtils.convert(item[1],String.class));
-                        response.setLastBalance(ConversionUtils.convert(item[2],BigDecimal.class));
-                        response.setThisRecived(ConversionUtils.convert(item[3],BigDecimal.class));
-                        response.setThisDispatched(ConversionUtils.convert(item[4],BigDecimal.class));
-                        response.setThisBalance(ConversionUtils.convert(item[5],BigDecimal.class));
+                        response.setOrganId(ConversionUtils.convert(item[0], Integer.class));
+                        response.setEnterpriseName(ConversionUtils.convert(item[1], String.class));
+                        response.setLastBalance(ConversionUtils.convert(item[2], BigDecimal.class));
+                        response.setThisRecived(ConversionUtils.convert(item[3], BigDecimal.class));
+                        response.setThisDispatched(ConversionUtils.convert(item[4], BigDecimal.class));
+                        response.setThisBalance(ConversionUtils.convert(item[5], BigDecimal.class));
                         resultList.add(response);
                     }
                 }
@@ -1101,13 +1100,13 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
     public List<RecipeMonthAccountCheckResponse> findRecipeMonthAccountCheckList(final List<Integer> organIdList, final String year, final String month,
                                                                                  final Integer start, final Integer limit) {
-        if(CollectionUtils.isEmpty(organIdList)){
+        if (CollectionUtils.isEmpty(organIdList)) {
             return Collections.emptyList();
         }
         HibernateStatelessResultAction<List<RecipeMonthAccountCheckResponse>> action = new AbstractHibernateStatelessResultAction<List<RecipeMonthAccountCheckResponse>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder queryhql = new StringBuilder("SELECT er.ClinicOrgan ,er.OrganName ,count( * ),IFNULL( sum( ero.TotalFee ), 0.00 ),"+
+                StringBuilder queryhql = new StringBuilder("SELECT er.ClinicOrgan ,er.OrganName ,count( * ),IFNULL( sum( ero.TotalFee ), 0.00 )," +
                         "IFNULL( sum( ero.RecipeFee ),0.00 ) ,IFNULL( sum( ero.registerFee ), 0.00 )," +
                         "IFNULL( sum( ero.auditFee ), 0.00 )  ,IFNULL( sum( ero.expressFee ), 0.00 )," +
                         "sum( IF ( ero.payeeCode = 1, IFNULL( ero.TotalFee, 0.00 ), 0.00 ) ) ,IFNULL( cast(sum( cre.fundAmount ) AS decimal(15,2)), 0.00 )," +
@@ -1121,7 +1120,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         " WHERE er.clinicOrgan IN :organIdList" +
                         " AND YEAR(ero.PayTime) =:year and MONTH(ero.PayTime) =:month" +
                         " GROUP BY er.ClinicOrgan" +
-                        " ORDER BY er.ClinicOrgan" );
+                        " ORDER BY er.ClinicOrgan");
                 Query query = ss.createSQLQuery(queryhql.append(sql).toString());
                 query.setParameter("year", year);
                 query.setParameter("month", month);
@@ -1130,22 +1129,146 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 query.setMaxResults(limit);
                 List<Object[]> queryList = query.list();
                 List<RecipeMonthAccountCheckResponse> resultList = new ArrayList<>(limit);
-                if(CollectionUtils.isNotEmpty(queryList)){
-                    for(Object[] item: queryList){
+                if (CollectionUtils.isNotEmpty(queryList)) {
+                    for (Object[] item : queryList) {
                         RecipeMonthAccountCheckResponse response = new RecipeMonthAccountCheckResponse();
+                        response.setOrganId(ConversionUtils.convert(item[0], Integer.class));
+                        response.setOrganName(ConversionUtils.convert(item[1], String.class));
+                        response.setTotalOrderNum(ConversionUtils.convert(item[2], Integer.class));
+                        response.setTotalFee(ConversionUtils.convert(item[3], BigDecimal.class));
+                        response.setDrugFee(ConversionUtils.convert(item[4], BigDecimal.class));
+                        response.setRegisterFee(ConversionUtils.convert(item[5], BigDecimal.class));
+                        response.setCheckFee(ConversionUtils.convert(item[6], BigDecimal.class));
+                        response.setDeliveryFee(ConversionUtils.convert(item[7], BigDecimal.class));
+                        response.setOrganActualRecivedFee(ConversionUtils.convert(item[8], BigDecimal.class));
+                        response.setMedicalInsurancePlanningFee(ConversionUtils.convert(item[9], BigDecimal.class));
+                        response.setOrganAccountRecivedFee(ConversionUtils.convert(item[10], BigDecimal.class));
+                        response.setNgariAccountRecivedFee(ConversionUtils.convert(item[11], BigDecimal.class));
+                        response.setOrganRecivedDiffFee(ConversionUtils.convert(item[12], BigDecimal.class));
+                        resultList.add(response);
+                    }
+                }
+                setResult(resultList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    public List<RecipeAccountCheckDetailResponse> findRecipeAccountCheckDetailList(final RecipeReportFormsRequest request) {
+        if (CollectionUtils.isEmpty(request.getOrganIdList())) {
+            return Collections.emptyList();
+        }
+        HibernateStatelessResultAction<List<RecipeAccountCheckDetailResponse>> action = new AbstractHibernateStatelessResultAction<List<RecipeAccountCheckDetailResponse>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder queryhql = new StringBuilder("SELECT er.recipeId ,er.patientName ,er.MPIID ,ero.paytime ," +
+                        "IFNULL(ero.TotalFee ,0.00),IFNULL(ero.RecipeFee  ,0.00),IFNULL(ero.registerFee ,0.00) ," +
+                        "IFNULL(ero.auditFee  ,0.00) ,IFNULL(ero.expressFee  ,0.00) ,IF ( ero.payeeCode = 1, " +
+                        "IFNULL( ero.TotalFee, 0.00 ), 0.00 ) ,IFNULL(cre.fundAmount  ,0.00) ," +
+                        "IF ( ero.payeeCode = 1, IFNULL( ero.TotalFee, 0.00 ), 0.00 ) - cast(IFNULL(cre.fundAmount  ,0.00) AS decimal(15,2)) ," +
+                        "IF ( ero.payeeCode = 2, IFNULL( ero.TotalFee, 0.00 ), 0.00 )   ," +
+                        "IFNULL(ero.TotalFee ,0.00) - IFNULL(ero.auditFee  ,0.00) - IFNULL(ero.expressFee  ,0.00) - IF ( ero.payeeCode = 1, IFNULL( ero.TotalFee, 0.00 ), 0.00 ),ero.outTradeNo");
+                StringBuilder sql = new StringBuilder(" FROM cdr_recipe er" +
+                        " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode" +
+                        " INNER JOIN cdr_drugsenterprise ds ON ero.enterpriseId = ds.id " +
+                        " AND ds.sendType = 2" +
+                        " INNER JOIN cdr_recipe_ext cre ON er.RecipeID = cre.RecipeID " +
+                        " WHERE er.clinicOrgan in :organIdList" +
+                        " AND ero.paytime BETWEEN :startTime AND :endTime");
+                StringBuilder querySql = queryhql.append(sql);
+                if (null != request.getRecipeId()) {
+                    querySql.append(" And er.recipeId =:recipeId");
+                }
+                if (StringUtils.isNotEmpty(request.getMpiId())) {
+                    querySql.append(" And er.mpiid =:mpiId");
+                }
+                if (StringUtils.isNotEmpty(request.getTradeNo())) {
+                    querySql.append(" And ero.outTradeNo =:outTradeNo");
+                }
+                Query query = ss.createSQLQuery(querySql.toString());
+                query.setParameterList("organIdList", request.getOrganIdList());
+                query.setFirstResult(request.getStart());
+                query.setMaxResults(request.getLimit());
+                query.setParameter("startTime", request.getStartTime());
+                query.setParameter("endTime", request.getEndTime());
+                if (null != request.getRecipeId()) {
+                    query.setParameter("recipeId", request.getRecipeId());
+                }
+                if (StringUtils.isNotEmpty(request.getMpiId())) {
+                    query.setParameter("mpiId", request.getMpiId());
+                }
+                if (StringUtils.isNotEmpty(request.getTradeNo())) {
+                    query.setParameter("outTradeNo", request.getTradeNo());
+                }
+                List<Object[]> queryList = query.list();
+                List<RecipeAccountCheckDetailResponse> resultList = new ArrayList<>(request.getLimit());
+                if (CollectionUtils.isNotEmpty(queryList)) {
+                    for (Object[] item : queryList) {
+                        RecipeAccountCheckDetailResponse response = new RecipeAccountCheckDetailResponse();
+                        response.setRecipeId(ConversionUtils.convert(item[0], Integer.class));
+                        response.setPatientName(ConversionUtils.convert(item[1], String.class));
+                        response.setPayDate(ConversionUtils.convert(item[3], Date.class));
+                        response.setTotalFee(ConversionUtils.convert(item[4], BigDecimal.class));
+                        response.setDrugFee(ConversionUtils.convert(item[5], BigDecimal.class));
+                        response.setRegisterFee(ConversionUtils.convert(item[6], BigDecimal.class));
+                        response.setCheckFee(ConversionUtils.convert(item[7], BigDecimal.class));
+                        response.setDeliveryFee(ConversionUtils.convert(item[8], BigDecimal.class));
+                        response.setOrganActualRecivedFee(ConversionUtils.convert(item[9], BigDecimal.class));
+                        response.setMedicalInsurancePlanningFee(ConversionUtils.convert(item[10], BigDecimal.class));
+                        response.setOrganAccountRecivedFee(ConversionUtils.convert(item[11], BigDecimal.class));
+                        response.setNgariAccountRecivedFee(ConversionUtils.convert(item[12], BigDecimal.class));
+                        response.setOrganRecivedDiffFee(ConversionUtils.convert(item[13], BigDecimal.class));
+                        response.setTradeNo(ConversionUtils.convert(item[14], String.class));
+                        resultList.add(response);
+                    }
+                }
+                setResult(resultList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    public List<EnterpriseRecipeMonthSummaryResponse> findEnterpriseRecipeMonthSummaryList(final RecipeReportFormsRequest request) {
+        if (CollectionUtils.isEmpty(request.getOrganIdList())) {
+            return Collections.emptyList();
+        }
+        HibernateStatelessResultAction<List<EnterpriseRecipeMonthSummaryResponse>> action = new AbstractHibernateStatelessResultAction<List<EnterpriseRecipeMonthSummaryResponse>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder queryhql = new StringBuilder("SELECT c.OrganId,r.organName,d.`Name`, COUNT(c.OrderId), SUM(c.ActualPrice), SUM(c.RecipeFee), IFNULL(SUM(IF(c.expressFeePayWay in (2,3),0,c.ExpressFee)),0), 0");
+                StringBuilder sql = new StringBuilder(" from cdr_recipeorder c, cdr_drugsenterprise d, cdr_recipe r" +
+                        " where c.EnterpriseId = d.Id and c.OrderCode = r.OrderCode and r.GiveMode =1 and c.payflag = 1 and c.Effective =1 and c.payeeCode in (1,2) " +
+                        " and YEAR(c.PayTime) =:year and MONTH(c.PayTime) =:month and c.OrganId =:organIdList");
+                if(null != request.getEnterpriseId()){
+                    sql.append(" and c.EnterpriseId =:enterpriseId");
+                }
+                sql.append(" GROUP BY c.OrganId,c.EnterpriseId");
+                StringBuilder querySql = queryhql.append(sql);
+                Query query = ss.createSQLQuery(querySql.toString());
+                query.setParameterList("organIdList", request.getOrganIdList());
+                query.setFirstResult(request.getStart());
+                query.setMaxResults(request.getLimit());
+                query.setParameter("year", request.getYear());
+                query.setParameter("month", request.getMonth());
+                if(null != request.getEnterpriseId()){
+                    query.setParameter("enterpriseId", request.getEnterpriseId());
+                }
+                List<Object[]> queryList = query.list();
+                List<EnterpriseRecipeMonthSummaryResponse> resultList = new ArrayList<>(request.getLimit());
+                if (CollectionUtils.isNotEmpty(queryList)) {
+                    for (Object[] item : queryList) {
+                        EnterpriseRecipeMonthSummaryResponse response = new EnterpriseRecipeMonthSummaryResponse();
                         response.setOrganId(ConversionUtils.convert(item[0],Integer.class));
                         response.setOrganName(ConversionUtils.convert(item[1],String.class));
-                        response.setTotalOrderNum(ConversionUtils.convert(item[2],Integer.class));
-                        response.setTotalFee(ConversionUtils.convert(item[3],BigDecimal.class));
-                        response.setDrugFee(ConversionUtils.convert(item[4],BigDecimal.class));
-                        response.setRegisterFee(ConversionUtils.convert(item[5],BigDecimal.class));
-                        response.setCheckFee(ConversionUtils.convert(item[6],BigDecimal.class));
-                        response.setDeliveryFee(ConversionUtils.convert(item[7],BigDecimal.class));
-                        response.setOrganActualRecivedFee(ConversionUtils.convert(item[8],BigDecimal.class));
-                        response.setMedicalInsurancePlanningFee(ConversionUtils.convert(item[9],BigDecimal.class));
-                        response.setOrganAccountRecivedFee(ConversionUtils.convert(item[10],BigDecimal.class));
-                        response.setNgariAccountRecivedFee(ConversionUtils.convert(item[11],BigDecimal.class));
-                        response.setOrganRecivedDiffFee(ConversionUtils.convert(item[12],BigDecimal.class));
+                        response.setEnterpriseName(ConversionUtils.convert(item[2],String.class));
+                        response.setTotalOrderNum(ConversionUtils.convert(item[3],Integer.class));
+                        response.setTotalFee(ConversionUtils.convert(item[4],BigDecimal.class));
+                        response.setDrugFee(ConversionUtils.convert(item[5],BigDecimal.class));
+                        response.setDeliveryFee(ConversionUtils.convert(item[6],BigDecimal.class));
+                        response.setNgariRecivedFee(ConversionUtils.convert(item[7],BigDecimal.class));
+                        response.setOrganRecivedDiffFee(ConversionUtils.convert(item[6],BigDecimal.class));
                         resultList.add(response);
                     }
                 }
