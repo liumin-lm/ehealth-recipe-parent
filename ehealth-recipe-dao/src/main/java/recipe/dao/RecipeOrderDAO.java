@@ -9,6 +9,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.recipereportform.model.RecivedDispatchedBalanceResponse;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
@@ -1057,4 +1058,30 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
     @DAOMethod(sql = "from RecipeOrder where status =:status and effective = 1 and payFlag = 1 and enterpriseId =:enterpriseId ")
     public abstract List<RecipeOrder> findRecipeOrderByStatusAndEnterpriseId(@DAOParam("status") Integer status, @DAOParam("enterpriseId") Integer enterpriseId);
+
+    public List<RecivedDispatchedBalanceResponse> findDrugReceivedDispatchedBalanceList(final List<Integer> organIdList,final Date startTime,final Date endTime,
+                                                                                        final Integer start,final Integer limit) {
+        HibernateStatelessResultAction<List<RecivedDispatchedBalanceResponse>> action = new AbstractHibernateStatelessResultAction<List<RecivedDispatchedBalanceResponse>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("SELECT enterpriseName, lastBalance, thisRecived, thisDispatched from (" +
+                        "select d.Name enterpriseName,sum(if(c.status !=5 and c.PayTime < :startTime,ActualPrice,0.00)) lastBalance,sum( if(c.PayTime between :startTime and :endTime , ActualPrice,0.00) ) thisRecived,sum(if(c.status =5 and c.PayTime between :startTime and :endTime  , ActualPrice,0.00)) thisDispatched" +
+                        " from RecipeOrder c, DrugsEnterprise d");
+                hql.append(" where c.EnterpriseId = d.Id and c.OrganId in :organIdList and c.payflag = 1 and c.Effective =1  GROUP BY c.EnterpriseId) t;");
+                Query query = ss.createQuery(hql.toString());
+                query.setParameter("startTime", startTime);
+                query.setParameter("endTime", endTime);
+                if (CollectionUtils.isNotEmpty(organIdList)) {
+                    query.setParameterList("organIdList", organIdList);
+                }
+                query.setFirstResult(start);
+                query.setMaxResults(limit);
+                List<RecivedDispatchedBalanceResponse> resultList = query.list();
+                setResult(resultList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
 }

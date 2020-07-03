@@ -32,5 +32,9 @@ public class RecipeReportFormsRequest implements Serializable{
 
     private String buyMedicWay; //购药方式
 
+    private Integer start;
+
+    private Integer limit;
+
 
 }
