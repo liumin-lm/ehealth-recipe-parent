@@ -682,6 +682,8 @@ public class HisRecipeService {
                 } else if (RecipeBussConstant.PAYMODE_TO_HOS.equals(payMode)) {
                     if (new Integer(1).equals(recipe.getRecipePayType()) && payFlag == 1) {
                         tips = "已支付";
+                    } else if (payFlag == 0){
+                        tips = "待支付";
                     } else {
                         tips = "待取药";
                     }
