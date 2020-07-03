@@ -1,13 +1,16 @@
-package recipe.service.recipereportforms.bean;
+package com.ngari.recipe.recipereportform.model;
 
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class RecipeReportFormsRequest implements Serializable{
     private static final long serialVersionUID = -2063260885851045109L;
+
+    private List<Integer> organIdList;
 
     private Integer organId; //机构id
 
