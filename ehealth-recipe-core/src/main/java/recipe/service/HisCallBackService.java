@@ -90,8 +90,13 @@ public class HisCallBackService {
         }
         //处方总金额， 外带药处方不做处理
         if (!Integer.valueOf(1).equals(recipe.getTakeMedicine()) && null != result.getTotalMoney()) {
-            attrMap.put("totalMoney", result.getTotalMoney());
-            attrMap.put("actualPrice", result.getTotalMoney());
+            List<Recipedetail> recipedetailList = detailDAO.findByRecipeId(result.getRecipeId());
+            if (CollectionUtils.isNotEmpty(recipedetailList) && CollectionUtils.isNotEmpty(result.getDetailList())){
+                if (recipedetailList.size() == result.getDetailList().size()){
+                    attrMap.put("totalMoney", result.getTotalMoney());
+                    attrMap.put("actualPrice", result.getTotalMoney());
+                }
+            }
         }
 
         String memo = "HIS审核返回：写入his成功，审核通过";
