@@ -205,7 +205,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 if (StringUtils.isEmpty(getStrFromCell(row.getCell(20)))) {
                     errMsg.append("价格不能为空").append(";");
                 }
-                    drug.setPrice(BigDecimal.valueOf(Integer.parseInt(getStrFromCell(row.getCell(20)))));
+                    drug.setPrice(BigDecimal.valueOf(Double.parseDouble(getStrFromCell(row.getCell(20)))));
                     drug.setRate(0.00);
                     drug.setRatePrice(Double.parseDouble(getStrFromCell(row.getCell(20))));
             } catch (Exception e) {
