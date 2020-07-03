@@ -154,6 +154,9 @@ public class SignInfoService implements ISignInfoService {
 
         }
 
+        request.setRegisterId(registerId);
+        request.setRegisterNo(registerId);
+
         if(null != recipeBean.getDoctor()) {
             DoctorDTO doctorDTO = doctorService.get(recipeBean.getDoctor());
             request.setDoctorId(recipeBean.getDoctor().toString());
