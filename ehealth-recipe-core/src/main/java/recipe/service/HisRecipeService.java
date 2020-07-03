@@ -249,13 +249,17 @@ public class HisRecipeService {
                 hisRecipe.setDoctorName(queryHisRecipResTO.getDoctorName());
                 hisRecipe.setCreateDate(queryHisRecipResTO.getCreateDate());
                 hisRecipe.setStatus(queryHisRecipResTO.getStatus());
-                hisRecipe.setExtensionFlag(1);
                 hisRecipe.setMedicalType(1);
                 hisRecipe.setRecipeFee(queryHisRecipResTO.getRecipeFee());
                 hisRecipe.setRecipeType(queryHisRecipResTO.getRecipeType());
                 hisRecipe.setClinicOrgan(queryHisRecipResTO.getClinicOrgan());
                 hisRecipe.setCreateTime(new Date());
-                hisRecipe.setRecipePayType(queryHisRecipResTO.getExtensionFlag()); //设置外延处方的标志
+                if (queryHisRecipResTO.getExtensionFlag() == null) {
+                    hisRecipe.setRecipePayType(0); //设置外延处方的标志
+                } else {
+                    hisRecipe.setRecipePayType(queryHisRecipResTO.getExtensionFlag()); //设置外延处方的标志
+                }
+
                 if(!StringUtils.isEmpty(queryHisRecipResTO.getDiseaseName())){
                     hisRecipe.setDiseaseName(queryHisRecipResTO.getDiseaseName());
                 }else {
