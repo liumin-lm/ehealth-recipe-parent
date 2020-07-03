@@ -9,6 +9,8 @@ import java.math.BigDecimal;
 public class RecipeMonthAccountCheckResponse implements Serializable{
     private static final long serialVersionUID = 8599154333590559939L;
 
+    private Integer total; //总计
+
     private Integer organId; //机构id
 
     private String organName; //机构名称

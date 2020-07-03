@@ -10,6 +10,8 @@ import java.util.Date;
 public class EnterpriseRecipeDetailResponse implements Serializable{
     private static final long serialVersionUID = -1050580939377832253L;
 
+    private Integer total; //总计
+
     private Integer organId; //机构id
 
     private String organName; //机构名称

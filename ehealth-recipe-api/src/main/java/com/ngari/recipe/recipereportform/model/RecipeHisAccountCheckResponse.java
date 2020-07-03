@@ -10,6 +10,8 @@ import java.util.Date;
 public class RecipeHisAccountCheckResponse implements Serializable{
     private static final long serialVersionUID = -6587243463310827837L;
 
+    private Integer total; //总计
+
     private Integer recipeId; //处方单号
 
     private String patientName; //患者姓名
