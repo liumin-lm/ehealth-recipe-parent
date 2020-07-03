@@ -2026,7 +2026,277 @@ public class RecipeService extends RecipeBaseService {
     }
 
     /**
-     * 签名服务
+     * 签名服务（新）
+     *
+     * @param recipeBean  处方
+     * @param detailBeanList 详情
+     * @param continueFlag 校验标识
+     * @return Map<String ,   Object>
+     */
+    @RpcService
+    public Map<String, Object> doSignRecipeNew(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, int continueFlag) {
+        LOGGER.info("doSignRecipeNew param: recipeBean={} detailBean={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList));
+        //将密码放到redis中
+        redisClient.set("caPassword", recipeBean.getCaPassword());
+        Map<String, Object> rMap = null;
+        try {
+            //上海肺科个性化处理--智能审方重要警示弹窗处理
+            doforShangHaiFeiKe(recipeBean, detailBeanList);
+            //第一步暂存处方（处方状态未签名）
+            doSignRecipeSave(recipeBean, detailBeanList);
+            //第二步预校验
+            if(continueFlag == 0 && continueFlag == 4){
+
+            }
+            //第三步校验库存
+            if(-1 < continueFlag && continueFlag <= 4){
+                rMap = doSignRecipeCheck(recipeBean);
+                continueFlag = Integer.valueOf(rMap.get("canContinueFlag").toString());
+                if("-1".equals(rMap.get("canContinueFlag")+"")){
+
+                }
+            }
+            //第四步签名（发送his前更新处方状态---医院确认中）
+            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+            recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), RecipeStatusConstant.CHECKING_HOS, null);
+            //HIS消息发送--异步处理
+            RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
+
+            //获取处方签名结果
+            Boolean result = Boolean.parseBoolean(rMap.get("signResult").toString());
+            if (result) {
+                //非可使用省医保的处方立即发送处方卡片，使用省医保的处方需要在药师审核通过后显示
+                if (!recipeBean.canMedicalPay()) {
+                    //发送卡片
+                    Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
+                    List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
+                    RecipeServiceSub.sendRecipeTagToPatient(recipe, details, rMap, false);
+                }
+                //个性化医院特殊处理，开完处方模拟his成功返回数据（假如前置机不提供默认返回数据）
+                doHisReturnSuccessForOrgan(recipeBean, rMap);
+            }
+            PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
+            if (prescriptionService.getIntellectJudicialFlag(recipeBean.getClinicOrgan()) == 1) {
+                //更新审方信息
+                RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
+            }
+        } catch (Exception e) {
+            LOGGER.error("doSignRecipeNew error", e);
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+        LOGGER.info("doSignRecipeNew execute ok! rMap:" + JSONUtils.toString(rMap));
+
+        rMap.put("signResult", true);
+        rMap.put("recipeId", recipeBean.getRecipeId());
+        rMap.put("consultId", recipeBean.getClinicId());
+        rMap.put("errorFlag", false);
+        LOGGER.info("doSignRecipe execute ok! rMap:" + JSONUtils.toString(rMap));
+        return rMap;
+    }
+
+
+    /**
+     * 签名服务（处方存储）
+     *
+     * @param recipe  处方
+     * @param details 详情
+     * @return
+     */
+    @RpcService
+    public void doSignRecipeSave(RecipeBean recipe, List<RecipeDetailBean> details) {
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        PatientDTO patient = patientService.get(recipe.getMpiid());
+        //解决旧版本因为wx2.6患者身份证为null，而业务申请不成功
+        if (patient == null || StringUtils.isEmpty(patient.getCertificate())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "该患者还未填写身份证信息，不能开处方");
+        }
+        // 就诊人改造：为了确保删除就诊人后历史处方不会丢失，加入主账号用户id
+        PatientDTO requestPatient = patientService.getOwnPatientForOtherProject(patient.getLoginId());
+        if (null != requestPatient && null != requestPatient.getMpiId()) {
+            recipe.setRequestMpiId(requestPatient.getMpiId());
+            // urt用于系统消息推送
+            recipe.setRequestUrt(requestPatient.getUrt());
+        }
+        //如果前端没有传入咨询id则从进行中的复诊或者咨询里取
+        //获取咨询单id,有进行中的复诊则优先取复诊，若没有则取进行中的图文咨询
+        if (recipe.getClinicId() == null) {
+            getConsultIdForRecipeSource(recipe);
+        }
+        recipe.setStatus(RecipeStatusConstant.UNSIGN);
+        recipe.setSignDate(DateTime.now().toDate());
+        Integer recipeId = recipe.getRecipeId();
+        //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
+        if (null != recipeId && recipeId > 0) {
+            Integer status = recipeDAO.getStatusByRecipeId(recipeId);
+            if (null == status || status > RecipeStatusConstant.UNSIGN) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "处方单已处理,不能重复签名");
+            }
+
+            updateRecipeAndDetail(recipe, details);
+        } else {
+            recipeId = saveRecipeData(recipe, details);
+            recipe.setRecipeId(recipeId);
+        }
+    }
+
+    /**
+     * 处方签名校验服务
+     *
+     * @param recipe  处方
+     * @return Map<String, Object>
+     */
+    @RpcService
+    public Map<String, Object> doSignRecipeCheck(RecipeBean recipe) {
+        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+        DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
+
+        Map<String, Object> rMap = Maps.newHashMap();
+        Integer recipeId = recipe.getRecipeId();
+        //获取配置项
+        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
+        //添加按钮配置项key
+        Object payModeDeploy = configService.getConfiguration(recipe.getClinicOrgan(), "payModeDeploy");
+
+        int checkFlag = 0;
+        if(null != payModeDeploy){
+            List<String> configurations = new ArrayList<>(Arrays.asList((String[])payModeDeploy));
+            //收集按钮信息用于判断校验哪边库存 0是什么都没有，1是指配置了到院取药，2是配置到药企相关，3是医院药企都配置了
+            for (String configuration : configurations) {
+                switch (configuration){
+                    case "supportTFDS":
+                        if(checkFlag == 0 || checkFlag == 1){
+                            checkFlag = 1;
+                        }else{
+                            checkFlag = 3;
+                        }
+                        break;
+                    case "supportOnline":
+                    case "supportToHos":
+                        if(checkFlag == 0 || checkFlag == 2){
+                            checkFlag = 2;
+                        }else{
+                            checkFlag = 3;
+                        }
+                        break;
+                }
+
+            }
+        }
+
+        rMap.put("recipeId", recipeId);
+        switch (checkFlag){
+            case 1:
+                //只校验医院库存医院库存不校验药企，如无库存不允许开，直接弹出提示
+                //HIS消息发送
+                RecipeResultBean scanResult = hisService.scanDrugStockByRecipeId(recipeId);
+                if (RecipeResultBean.FAIL.equals(scanResult.getCode())) {
+                    rMap.put("signResult", false);
+                    rMap.put("errorFlag", true);
+                    List<String> nameList = (List<String>) scanResult.getObject();
+                    rMap.put("msg", "【库存不足】由于" + Joiner.on(",").join(nameList) + "门诊药房库存不足，请更换其他药品后再试。");
+                    rMap.put("canContinueFlag", "-1");
+                    LOGGER.info("doSignRecipeCheck recipeId={},msg={}",recipeId,rMap.get("msg"));
+                    return rMap;
+                }
+                break;
+            case 2:
+                //只校验处方药品药企配送以及库存信息，不校验医院库存
+                boolean checkEnterprise = drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan());
+                if (checkEnterprise) {
+                    //验证能否药品配送以及能否开具到一张处方单上
+                    RecipeResultBean recipeResult1 = RecipeServiceSub.validateRecipeSendDrugMsg(recipe);
+                    if (RecipeResultBean.FAIL.equals(recipeResult1.getCode())){
+                        rMap.put("signResult", false);
+                        rMap.put("errorFlag", true);
+                        rMap.put("canContinueFlag", "-1");
+                        rMap.put("msg", recipeResult1.getMsg());
+                        LOGGER.info("doSignRecipeCheck recipeId={},msg={}",recipeId,rMap.get("msg"));
+                        return rMap;
+                    }
+                    //药企库存实时查询判断药企库存
+                    RecipePatientService recipePatientService = ApplicationUtils.getRecipeService(RecipePatientService.class);
+                    RecipeResultBean recipeResultBean = recipePatientService.findSupportDepList(0, Arrays.asList(recipeId));
+                    if (RecipeResultBean.FAIL.equals(recipeResultBean.getCode())) {
+                        rMap.put("signResult", false);
+                        rMap.put("errorFlag", true);
+                        rMap.put("canContinueFlag", "-1");
+                        rMap.put("msg", "很抱歉，当前库存不足无法开处方，请联系客服：" + cacheService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
+                        //药品医院有库存的情况
+                        LOGGER.info("doSignRecipeCheck recipeId={},msg={}",recipeId,rMap.get("msg"));
+                        return rMap;
+                    }
+                }
+                break;
+            case 3:
+                //药企和医院库存都要校验
+                //HIS消息发送
+                RecipeResultBean scanResult3 = hisService.scanDrugStockByRecipeId(recipeId);
+                boolean checkEnterprise3 = drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan());
+                int errFlag = 0;
+                if (checkEnterprise3) {
+                    //验证能否药品配送以及能否开具到一张处方单上
+                    RecipeResultBean recipeResult3 = RecipeServiceSub.validateRecipeSendDrugMsg(recipe);
+                    if (RecipeResultBean.FAIL.equals(recipeResult3.getCode())){
+                        errFlag = 1;
+                        rMap.put("msg", recipeResult3.getError());
+                    }else {
+                        //药企库存实时查询判断药企库存
+                        RecipePatientService recipePatientService = ApplicationUtils.getRecipeService(RecipePatientService.class);
+                        RecipeResultBean recipeResultBean = recipePatientService.findSupportDepList(0, Arrays.asList(recipeId));
+                        if (RecipeResultBean.FAIL.equals(recipeResultBean.getCode())) {
+                            errFlag = 1;
+                            rMap.put("msg", recipeResultBean.getError());
+                        }
+                    }
+                } else {
+                    errFlag = 1;
+                }
+                if (RecipeResultBean.FAIL.equals(scanResult3.getCode()) && errFlag == 1) {
+                    //医院药企都无库存
+                    rMap.put("signResult", false);
+                    rMap.put("errorFlag", true);
+                    if (recipe.getClinicOrgan() == 1000899) {
+                        List<String> nameList = (List<String>) scanResult3.getObject();
+                        rMap.put("msg", "【库存不足】由于" + Joiner.on(",").join(nameList) + "门诊药房库存不足，请更换其他药品后再试。");
+                    } else {
+                        rMap.put("msg", "很抱歉，当前库存不足无法开处方，请联系客服：" + cacheService.getParam(ParameterConstant.KEY_CUSTOMER_TEL, RecipeSystemConstant.CUSTOMER_TEL));
+                    }
+                    rMap.put("canContinueFlag", "-1");
+                    LOGGER.info("doSignRecipeCheck recipeId={},msg={}",recipeId,rMap.get("msg"));
+                    return rMap;
+                } else if(RecipeResultBean.FAIL.equals(scanResult3.getCode()) && errFlag == 0){
+                    //医院有库存药企无库存
+                    rMap.put("signResult", false);
+                    rMap.put("errorFlag", true);
+                    if (recipe.getClinicOrgan() == 1000899) {
+                        rMap.put("canContinueFlag", "-1");
+                        List<String> nameList = (List<String>) scanResult3.getObject();
+                        rMap.put("msg", "【库存不足】由于" + Joiner.on(",").join(nameList) + "门诊药房库存不足，请更换其他药品后再试。");
+                    } else {
+                        rMap.put("canContinueFlag", "1");
+                        rMap.put("msg", "由于该处方单上的药品医院库存不足，该处方仅支持药企配送，无法到院取药，是否继续？");
+                    }
+                    LOGGER.info("doSignRecipeCheck recipeId={},msg={}",recipeId,rMap.get("msg"));
+                    return rMap;
+                } else if(RecipeResultBean.SUCCESS.equals(scanResult3.getCode()) && errFlag == 1){
+                    //医院无库存药企有库存
+                    rMap.put("signResult", false);
+                    rMap.put("errorFlag", true);
+                    rMap.put("canContinueFlag", "2");
+                    rMap.put("msg", "由于该处方单上的药品配送药企库存不足，该处方仅支持到院取药，无法药企配送，是否继续？");
+                    LOGGER.info("doSignRecipe recipeId={},msg={}",recipeId,rMap.get("msg"));
+                    return rMap;
+                }
+                break;
+        }
+        rMap.put("signResult", true);
+        rMap.put("errorFlag", false);
+        LOGGER.info("doSignRecipe execute ok! rMap:" + JSONUtils.toString(rMap));
+        return rMap;
+    }
+
+    /**
+     * 签名服务（该方法已经已经拆为校验和存储两个子方法）
      *
      * @param recipe  处方
      * @param details 详情
