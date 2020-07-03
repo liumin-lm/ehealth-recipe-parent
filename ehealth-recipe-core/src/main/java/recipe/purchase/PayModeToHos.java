@@ -154,7 +154,7 @@ public class PayModeToHos implements IPurchaseService{
                 //先判断是否需要支付，再判断有没有支付
                 if (StringUtils.isNotEmpty(orderCode)) {
                     //上海马陆医院线下转线上处方直接去支付文案特殊化处理
-                    if (new Integer(1).equals(recipe.getRecipePayType())) {
+                    if (new Integer(1).equals(recipe.getRecipePayType()) && order.getPayFlag() == 1) {
                         tips = "处方已支付，具体配送情况请咨询您的开方医生。";
                     } else {
                         if(0d >= order.getActualPrice()){
