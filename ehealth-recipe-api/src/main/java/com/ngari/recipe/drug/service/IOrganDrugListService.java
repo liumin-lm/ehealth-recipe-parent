@@ -31,4 +31,13 @@ public interface IOrganDrugListService {
 
     @RpcService
     List<OrganDrugListBean> findByDrugIdAndOrganId(int drugId,int organId);
+
+    /**
+     * 根据医院药品编码 和机构编码查询 医院药品
+     * @param organId
+     * @param organDrugCode
+     * @return
+     */
+    @RpcService
+    OrganDrugListBean getByOrganIdAndOrganDrugCode( int organId, String organDrugCode);
 }

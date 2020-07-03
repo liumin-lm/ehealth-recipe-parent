@@ -68,6 +68,7 @@ import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.drugsenterprise.TmdyfRemoteService;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.medicationguide.service.WinningMedicationGuideService;
+import recipe.recipecheck.PlatRecipeCheckService;
 import recipe.recipecheck.RecipeCheckService;
 import recipe.service.*;
 import recipe.serviceprovider.BaseService;
@@ -505,6 +506,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
         return ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class);
+    }
+
+    @Override
+    public List<Integer> findDrugIdByRecipeId(Integer recipeId) {
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        List<Integer> recipedetails = recipeDetailDAO.findDrugIdByRecipeId(recipeId);
+        return recipedetails;
     }
 
     @Override
@@ -1175,5 +1183,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             }).collect(Collectors.toList());
         }
         return recipeBeans;
+    }
+
+    @Override
+    public void doAfterCheckNotPassYs(RecipeBean recipeBean) {
+        RecipeService recipeService=   ApplicationUtils.getRecipeService(RecipeService.class);
+        Recipe recipe= ObjectCopyUtils.convert(recipeBean,Recipe.class);
+        recipeService.doAfterCheckNotPassYs(recipe);
     }
 }

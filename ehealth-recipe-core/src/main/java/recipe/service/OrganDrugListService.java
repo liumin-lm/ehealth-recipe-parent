@@ -177,6 +177,7 @@ public class OrganDrugListService implements IOrganDrugListService {
         organDrugListDAO.remove(organDrugListId);
 
     }
+
     /**
      * 批量删除机构药品数据
      *
@@ -193,23 +194,23 @@ public class OrganDrugListService implements IOrganDrugListService {
         OrganDrugList organDul = organDrugListDAO.get(organDu);
         OrganService organService = BasicAPI.getService(OrganService.class);
         OrganDTO organDTO = organService.getByOrganId(organDul.getOrganId());
-        StringBuilder msg = new StringBuilder("【"+organDTO.getName()+"】删除药品");
+        StringBuilder msg = new StringBuilder("【" + organDTO.getName() + "】删除药品");
         for (Integer organDrugListId : organDrugListIds) {
             OrganDrugList organDrugList = organDrugListDAO.get(organDrugListId);
-            msg.append("【"+organDrugList.getOrganDrugId()+"-"+organDrugList.getDrugName()+"】");
+            msg.append("【" + organDrugList.getOrganDrugId() + "-" + organDrugList.getDrugName() + "】");
             deleteOrganDrugListById(organDrugListId);
         }
-        busActionLogService.recordBusinessLogRpcNew("机构药品管理","","OrganDrugList",msg.toString(),organDTO.getName());
+        busActionLogService.recordBusinessLogRpcNew("机构药品管理", "", "OrganDrugList", msg.toString(), organDTO.getName());
     }
 
     /**
      * 删除药品在医院中的信息
      *
      * @param organDrugListId 入参药品参数
-     * @param status 入参药品参数
+     * @param status          入参药品参数
      */
     @RpcService
-    public void updateOrganDrugListStatusById(Integer organDrugListId, Integer status,String disableReason) {
+    public void updateOrganDrugListStatusById(Integer organDrugListId, Integer status, String disableReason) {
         if (organDrugListId == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "organDrugId is required");
         }
@@ -220,7 +221,7 @@ public class OrganDrugListService implements IOrganDrugListService {
         OrganDTO organDTO = organService.getByOrganId(organDrugList.getOrganId());
         organDrugList.setStatus(status);
         String msg = "启用";
-        if (status.equals(0)){
+        if (status.equals(0)) {
             if (ObjectUtils.isEmpty(disableReason)) {
                 throw new DAOException(DAOException.VALUE_NEEDED, "disableReason is required");
             }
@@ -229,13 +230,13 @@ public class OrganDrugListService implements IOrganDrugListService {
         }
         organDrugList.setLastModify(new Date());
         organDrugListDAO.update(organDrugList);
-        busActionLogService.recordBusinessLogRpcNew("机构药品管理","","OrganDrugList","【"+organDTO.getName()+"】"+msg+"【"+organDrugList.getOrganDrugId()+"-"+organDrugList.getDrugName()+"】",organDTO.getName());
+        busActionLogService.recordBusinessLogRpcNew("机构药品管理", "", "OrganDrugList", "【" + organDTO.getName() + "】" + msg + "【" + organDrugList.getOrganDrugId() + "-" + organDrugList.getDrugName() + "】", organDTO.getName());
         IRegulationService iRegulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
         RegulationNotifyDataReq req = new RegulationNotifyDataReq();
         req.setBussType("drug");
-        req.setNotifyTime(System.currentTimeMillis()-1000);
+        req.setNotifyTime(System.currentTimeMillis() - 1000);
         req.setOrganId(organDrugList.getOrganId());
-        iRegulationService.notifyData(organDrugList.getOrganId(),req);
+        iRegulationService.notifyData(organDrugList.getOrganId(), req);
     }
 
     /**
@@ -258,9 +259,9 @@ public class OrganDrugListService implements IOrganDrugListService {
         drugCodes.add(organDrugList.getOrganDrugCode());
         if (StringUtils.isEmpty(organDrugList.getSaleName())) {
             organDrugList.setSaleName(organDrugList.getDrugName());
-        }else if (organDrugList.getSaleName().indexOf(organDrugList.getDrugName())!=-1){
+        } else if (organDrugList.getSaleName().indexOf(organDrugList.getDrugName()) != -1) {
             organDrugList.setSaleName(organDrugList.getSaleName());
-        }else {
+        } else {
             if (StringUtils.isNotEmpty(organDrugList.getDrugName()) && !organDrugList.getSaleName().equals(organDrugList.getDrugName())) {
                 organDrugList.setSaleName(organDrugList.getSaleName() + " " + organDrugList.getDrugName());
             }
@@ -288,7 +289,7 @@ public class OrganDrugListService implements IOrganDrugListService {
             DrugList drugList = drugListDAO.getById(organDrugList.getDrugId());
             organDrugList.setOrganDrugId(null);
             organDrugList.setProducer(drugList.getProducer());
-            if (StringUtils.isEmpty(organDrugList.getProducerCode())){
+            if (StringUtils.isEmpty(organDrugList.getProducerCode())) {
                 organDrugList.setProducerCode("");
             }
             OrganDrugList saveOrganDrugList = organDrugListDAO.save(organDrugList);
@@ -296,10 +297,10 @@ public class OrganDrugListService implements IOrganDrugListService {
             uploadOrganDrugListToJg(saveOrganDrugList);
             RegulationNotifyDataReq req = new RegulationNotifyDataReq();
             req.setBussType("drug");
-            req.setNotifyTime(System.currentTimeMillis()-1000);
+            req.setNotifyTime(System.currentTimeMillis() - 1000);
             req.setOrganId(saveOrganDrugList.getOrganId());
-            iRegulationService.notifyData(saveOrganDrugList.getOrganId(),req);
-            busActionLogService.recordBusinessLogRpcNew("机构药品管理","","OrganDrugList","【"+organDTO.getName()+"】新增药品【"+saveOrganDrugList.getOrganDrugId()+"-"+saveOrganDrugList.getDrugName()+"】",organDTO.getName());
+            iRegulationService.notifyData(saveOrganDrugList.getOrganId(), req);
+            busActionLogService.recordBusinessLogRpcNew("机构药品管理", "", "OrganDrugList", "【" + organDTO.getName() + "】新增药品【" + saveOrganDrugList.getOrganDrugId() + "-" + saveOrganDrugList.getDrugName() + "】", organDTO.getName());
             return ObjectCopyUtils.convert(saveOrganDrugList, OrganDrugListDTO.class);
         } else {
             logger.info("修改机构药品服务[updateOrganDrugList]:" + JSONUtils.toString(organDrugList));
@@ -333,41 +334,41 @@ public class OrganDrugListService implements IOrganDrugListService {
                 validateOrganDrugList(target);
                 target = organDrugListDAO.update(target);
                 uploadOrganDrugListToJg(target);
-                busActionLogService.recordBusinessLogRpcNew("机构药品管理","","OrganDrugList","【"+organDTO.getName()+"】更新药品【"+target.getOrganDrugId()+"-"+target.getDrugName()+"】",organDTO.getName());
+                busActionLogService.recordBusinessLogRpcNew("机构药品管理", "", "OrganDrugList", "【" + organDTO.getName() + "】更新药品【" + target.getOrganDrugId() + "-" + target.getDrugName() + "】", organDTO.getName());
             }
             RegulationNotifyDataReq req = new RegulationNotifyDataReq();
             req.setBussType("drug");
-            req.setNotifyTime(System.currentTimeMillis()-1000);
+            req.setNotifyTime(System.currentTimeMillis() - 1000);
             req.setOrganId(target.getOrganId());
-            iRegulationService.notifyData(target.getOrganId(),req);
+            iRegulationService.notifyData(target.getOrganId(), req);
             return ObjectCopyUtils.convert(target, OrganDrugListDTO.class);
         }
     }
 
-    private void setOldRateAndWays(OrganDrugList organDrugList){
+    private void setOldRateAndWays(OrganDrugList organDrugList) {
         try {
-            IUsingRateService usingRateService = AppContextHolder.getBean("eh.usingRateService",IUsingRateService.class);
-            IUsePathwaysService usePathwaysService = AppContextHolder.getBean("eh.usePathwaysService",IUsePathwaysService.class);
-            if (organDrugList != null && !StringUtils.isEmpty(organDrugList.getUsingRateId())){
+            IUsingRateService usingRateService = AppContextHolder.getBean("eh.usingRateService", IUsingRateService.class);
+            IUsePathwaysService usePathwaysService = AppContextHolder.getBean("eh.usePathwaysService", IUsePathwaysService.class);
+            if (organDrugList != null && !StringUtils.isEmpty(organDrugList.getUsingRateId())) {
                 Integer usingRateId = Integer.valueOf(organDrugList.getUsingRateId());
                 UsingRateDTO usingRateDTO = usingRateService.getById(usingRateId);
                 organDrugList.setUsingRate(usingRateDTO.getRelatedPlatformKey());
             }
-            if (organDrugList != null && !StringUtils.isEmpty(organDrugList.getUsePathwaysId())){
+            if (organDrugList != null && !StringUtils.isEmpty(organDrugList.getUsePathwaysId())) {
                 Integer usePathwaysId = Integer.valueOf(organDrugList.getUsePathwaysId());
                 UsePathwaysDTO usePathwaysDTO = usePathwaysService.getById(usePathwaysId);
                 organDrugList.setUsePathways(usePathwaysDTO.getRelatedPlatformKey());
             }
-        }catch (Exception e){
-            logger.error("设置老使用频率失败",e);
+        } catch (Exception e) {
+            logger.error("设置老使用频率失败", e);
         }
 
     }
 
 
     //上海六院的新增药品信息同步到百洋
-    private void addOrganDrugListToBy(OrganDrugList organDrugList){
-        try{
+    private void addOrganDrugListToBy(OrganDrugList organDrugList) {
+        try {
             if (organDrugList != null) {
                 //(异步的过程，不影响主流程)
                 GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
@@ -386,13 +387,13 @@ public class OrganDrugListService implements IOrganDrugListService {
                     }
                 });
             }
-        }catch(Exception e){
-            logger.error("addOrganDrugListToBy 同步到百洋药企药品数据出错："+ e.getMessage(),e);
+        } catch (Exception e) {
+            logger.error("addOrganDrugListToBy 同步到百洋药企药品数据出错：" + e.getMessage(), e);
         }
     }
 
     /**
-     *  上传机构药品到监管平台
+     * 上传机构药品到监管平台
      */
     private void uploadOrganDrugListToJg(final OrganDrugList saveOrganDrugList) {
         //机构药品目录保存成功,异步上传到监管平台
@@ -409,29 +410,31 @@ public class OrganDrugListService implements IOrganDrugListService {
 
     /**
      * 两个地方需要上传---1.运营平台添加机构药品 2.药品工具提交机构药品数据
+     *
      * @param saveOrganDrugList
      */
-    public void uploadDrugToRegulation(OrganDrugList saveOrganDrugList){
+    public void uploadDrugToRegulation(OrganDrugList saveOrganDrugList) {
         List<RegulationDrugCategoryReq> drugCategoryReqs = new ArrayList<>();
-        try{
+        try {
             //使用最新的上传方式，兼容互联网环境和平台环境上传 旧his.provinceDataUploadService
             IRegulationService hisService =
                     AppDomainContext.getBean("his.regulationService", IRegulationService.class);
             RegulationDrugCategoryReq drugCategoryReq = packingDrugCategoryReq(saveOrganDrugList);
             drugCategoryReqs.add(drugCategoryReq);
-            HisResponseTO hisResponseTO = hisService.uploadDrugCatalogue(saveOrganDrugList.getOrganId(),drugCategoryReqs);
+            HisResponseTO hisResponseTO = hisService.uploadDrugCatalogue(saveOrganDrugList.getOrganId(), drugCategoryReqs);
             logger.info("hisResponseTO parames:" + JSONUtils.toString(hisResponseTO));
         } catch (Exception e) {
-            logger.error("上传药品到监管平台失败,{"+ JSONUtils.toString(drugCategoryReqs)+"},{"+e.getMessage()+"}.",e);
+            logger.error("上传药品到监管平台失败,{" + JSONUtils.toString(drugCategoryReqs) + "},{" + e.getMessage() + "}.", e);
         }
     }
 
     /**
      * 包装监管平台数据
+     *
      * @param organDrugList
      * @return
      */
-    private RegulationDrugCategoryReq packingDrugCategoryReq(OrganDrugList organDrugList){
+    private RegulationDrugCategoryReq packingDrugCategoryReq(OrganDrugList organDrugList) {
         OrganService organService = BasicAPI.getService(OrganService.class);
         IMinkeOrganService minkeOrganService = AppContextHolder.getBean("jgpt.minkeOrganService", IMinkeOrganService.class);
         OrganDTO organDTO = organService.getByOrganId(organDrugList.getOrganId());
@@ -446,9 +449,9 @@ public class OrganDrugListService implements IOrganDrugListService {
         drugCategoryReq.setOrganName(organDTO.getName());
         //如果存在 转换省平台药品id
         Integer targetDrugId = compareDrugDAO.findTargetDrugIdByOriginalDrugId(organDrugList.getDrugId());
-        if (targetDrugId != null){
+        if (targetDrugId != null) {
             drugCategoryReq.setPlatDrugCode(targetDrugId.toString());
-        }else {
+        } else {
             drugCategoryReq.setPlatDrugCode(organDrugList.getDrugId().toString());
         }
         drugCategoryReq.setPlatDrugName(organDrugList.getDrugName());
@@ -475,7 +478,7 @@ public class OrganDrugListService implements IOrganDrugListService {
             drugCategoryReq.setHospDrugManuf(drugList.getProducer());
         }
 
-        drugCategoryReq.setUseFlag(organDrugList.getStatus()+"");
+        drugCategoryReq.setUseFlag(organDrugList.getStatus() + "");
         drugCategoryReq.setDrugClass(drugList.getDrugClass());
         drugCategoryReq.setUpdateTime(new Date());
         drugCategoryReq.setCreateTime(new Date());
@@ -562,18 +565,18 @@ public class OrganDrugListService implements IOrganDrugListService {
      * @return
      */
     @Override
-    public QueryResult<DrugListAndOrganDrugListDTO> queryOrganDrugAndSaleForOp(final Date startTime, final Date endTime,final Integer organId,
-                                                                                               final String drugClass,
-                                                                                               final String keyword, final Integer status,
-                                                                                               final int start, final int limit,Boolean canDrugSend) {
+    public QueryResult<DrugListAndOrganDrugListDTO> queryOrganDrugAndSaleForOp(final Date startTime, final Date endTime, final Integer organId,
+                                                                               final String drugClass,
+                                                                               final String keyword, final Integer status,
+                                                                               final int start, final int limit, Boolean canDrugSend) {
         QueryResult result = null;
         try {
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-            result = organDrugListDAO.queryOrganDrugAndSaleForOp(startTime,endTime,organId, drugClass, keyword, status, start, limit,canDrugSend);
+            result = organDrugListDAO.queryOrganDrugAndSaleForOp(startTime, endTime, organId, drugClass, keyword, status, start, limit, canDrugSend);
             result.setItems(covertData(result.getItems()));
         } catch (Exception e) {
-            logger.error("queryOrganDrugAndSaleForOp error",e);
-            throw new DAOException(609,e.getMessage());
+            logger.error("queryOrganDrugAndSaleForOp error", e);
+            throw new DAOException(609, e.getMessage());
         }
         return result;
     }
@@ -581,27 +584,27 @@ public class OrganDrugListService implements IOrganDrugListService {
 
     @Override
     public List<RegulationDrugCategoryBean> queryRegulationDrug(Map<String, Object> params) {
-        ProvUploadOrganService provUploadOrganService = AppContextHolder.getBean("basic.provUploadOrganService",ProvUploadOrganService.class);
+        ProvUploadOrganService provUploadOrganService = AppContextHolder.getBean("basic.provUploadOrganService", ProvUploadOrganService.class);
         List<RegulationDoctorIndicatorsBean> regulationDoctorIndicatorsReqList = new ArrayList<>();
         List drugList = HqlUtils.execHqlFindList("select a.organDrugId,a.organId,a.drugName,a.status,a.medicalDrugCode,a.drugForm, a.producer," +
                 "a.baseDrug,a.licenseNumber,b.drugClass,a.regulationDrugCode,a.organDrugCode,a.saleName,a.drugSpec,a.salePrice,a.drugFormCode" +
                 " from OrganDrugList a, DrugList b where a.drugId = b.drugId and a.lastModify>=:startDate and a.lastModify<=:endDate and a.organId IN :organIds", params);
         List<RegulationDrugCategoryBean> result = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(drugList)){
+        if (CollectionUtils.isNotEmpty(drugList)) {
             logger.info("机构药品信息数据总数：" + drugList.size());
             Map<Integer, String[]> organMsg = new HashMap<>();
             RegulationDrugCategoryBean bean;
             OrganService organService = AppContextHolder.getBean("basic.organService", OrganService.class);
             for (Object o : drugList) {
                 bean = new RegulationDrugCategoryBean();
-                Object[] obj =  (Object[]) o;
-                Integer organId =(Integer) obj[1];
+                Object[] obj = (Object[]) o;
+                Integer organId = (Integer) obj[1];
                 String[] str;
                 String proOrganId = "";
                 String proUnitID = "";
                 String organName = "";
-                if (organMsg.containsKey(organId)){
-                    str = organMsg.get(organId) == null? new String[3] : organMsg.get(organId);
+                if (organMsg.containsKey(organId)) {
+                    str = organMsg.get(organId) == null ? new String[3] : organMsg.get(organId);
                     proOrganId = str[0];
                     proUnitID = str[1];
                     organName = str[2];
@@ -609,7 +612,7 @@ public class OrganDrugListService implements IOrganDrugListService {
                     str = new String[3];
                     organName = organService.getNameById(organId);
                     ProvUploadOrganDTO provUploadOrganDTO = provUploadOrganService.getByNgariOrganId(organId);
-                    if(provUploadOrganDTO != null){
+                    if (provUploadOrganDTO != null) {
                         proOrganId = provUploadOrganDTO.getOrganId();
                         proUnitID = provUploadOrganDTO.getUnitId();
                     }
@@ -669,7 +672,7 @@ public class OrganDrugListService implements IOrganDrugListService {
     @Override
     public List<OrganDrugListBean> findByDrugIdAndOrganId(int drugId, int organId) {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        List<OrganDrugList> organDrugList = organDrugListDAO.findByDrugIdAndOrganId(drugId,organId);
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
         return ObjectCopyUtils.convert(organDrugList, OrganDrugListBean.class);
     }
 
@@ -728,4 +731,10 @@ public class OrganDrugListService implements IOrganDrugListService {
         return newList;
     }
 
+    @Override
+    public OrganDrugListBean getByOrganIdAndOrganDrugCode(int organId, String organDrugCode) {
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId, organDrugCode);
+        return ObjectCopyUtils.convert(organDrugList, OrganDrugListBean.class);
+    }
 }

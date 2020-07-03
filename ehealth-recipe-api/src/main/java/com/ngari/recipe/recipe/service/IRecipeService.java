@@ -334,6 +334,15 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     List<RecipeDetailBean> findRecipeDetailsByRecipeId(Integer recipeId);
 
+    /**
+     * 查询药品id 根据处方id
+     *
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    List<Integer> findDrugIdByRecipeId(Integer recipeId);
+
     @RpcService
     RecipeDetailBean getRecipeDetailByDetailId(Integer detailId);
 
@@ -342,7 +351,8 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     RecipeExtendBean findRecipeExtendByRecipeId(Integer recipeId);
 
     /**
-     *  保存处方扩展信息
+     * 保存处方扩展信息
+     *
      * @param recipeExtendBean
      * @return
      */
@@ -469,7 +479,8 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     Boolean saveSignRecipePDF(CaSignResultTo caSignResultTo);
 
     /**
-     *  取签章pdf数据。签名原文
+     * 取签章pdf数据。签名原文
+     *
      * @param recipeId
      * @param isDoctor
      * @return
@@ -482,14 +493,15 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      *
      * @param organId
      */
-    CaSignResultBean   commonCASignAndSealOrganId(CaSealRequestTO requestSealTO, RecipeBean recipe, Integer organId, String userAccount, String caPassword);
+    CaSignResultBean commonCASignAndSealOrganId(CaSealRequestTO requestSealTO, RecipeBean recipe, Integer organId, String userAccount, String caPassword);
 
     /**
-     *  生成签名处方pdf
+     * 生成签名处方pdf
+     *
      * @param recipeId
      * @param organId
      */
-   void  generateSignetRecipePdf(Integer recipeId, Integer organId);
+    void generateSignetRecipePdf(Integer recipeId, Integer organId);
 
     @RpcService
     ThirdResultBean readyToSend(Map<String, Object> paramMap);
@@ -529,4 +541,9 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     List<RecipeBean> findRecipeByFlag(List<Integer> organ, int flag, int start, int limit);
+
+    /**
+     * 审核不通过后处理
+     */
+    void doAfterCheckNotPassYs(RecipeBean recipeBean);
 }
