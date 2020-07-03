@@ -254,6 +254,7 @@ public class HisRecipeService {
                 hisRecipe.setRecipeType(queryHisRecipResTO.getRecipeType());
                 hisRecipe.setClinicOrgan(queryHisRecipResTO.getClinicOrgan());
                 hisRecipe.setCreateTime(new Date());
+                hisRecipe.setExtensionFlag(1);
                 if (queryHisRecipResTO.getExtensionFlag() == null) {
                     hisRecipe.setRecipePayType(0); //设置外延处方的标志
                 } else {
