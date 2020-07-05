@@ -10,7 +10,7 @@ import java.util.Date;
 public class EnterpriseRecipeDetailResponse implements Serializable{
     private static final long serialVersionUID = -1050580939377832253L;
 
-    private Integer total; //总计
+    private Long total; //总计
 
     private Integer organId; //机构id
 
@@ -35,4 +35,6 @@ public class EnterpriseRecipeDetailResponse implements Serializable{
     private BigDecimal enterpriseReceivableFee; //药企应收
 
     private String tradeNo; //商户订单号
+
+    private String mpiId;
 }

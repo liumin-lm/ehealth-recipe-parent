@@ -1,6 +1,8 @@
 package recipe.service.recipereportforms;
 
+import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.OrganService;
+import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.recipereportform.model.*;
 import ctd.account.UserRoleToken;
 import ctd.util.JSONUtils;
@@ -25,8 +27,11 @@ public class RecipeReportFormsService {
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
     private OrganService organService;
+    @Autowired
+    private PatientService patientService;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeReportFormsService.class);
+
 
     @RpcService
     public void recipeReportFormsService() {
@@ -67,6 +72,11 @@ public class RecipeReportFormsService {
         try {
             List<RecivedDispatchedBalanceResponse> drugReceivedDispatchedBalanceList = recipeOrderDAO.
                     findDrugReceivedDispatchedBalanceList(organIdList, request.getStartTime(), request.getEndTime(), request.getStart(), request.getLimit());
+            if (CollectionUtils.isNotEmpty(drugReceivedDispatchedBalanceList)) {
+                resultMap.put("total", drugReceivedDispatchedBalanceList.get(0).getTotal());
+            } else {
+                resultMap.put("total", 0);
+            }
             resultMap.put("data", drugReceivedDispatchedBalanceList);
         } catch (Exception e) {
             LOGGER.error("drugReceivedDispatchedBalanceList error,request = {}", JSONUtils.toString(request), e);
@@ -88,10 +98,15 @@ public class RecipeReportFormsService {
         Args.notNull(request.getStart(), "start");
         Args.notNull(request.getLimit(), "limit");
         List<Integer> organIdList = getQueryOrganIdList(request);
-        try{
-            List<RecipeMonthAccountCheckResponse> responses = recipeOrderDAO.findRecipeMonthAccountCheckList(organIdList,request.getYear(),request.getMonth(),request.getStart(),request.getLimit());
-            resultMap.put("data",responses);
-        }catch (Exception e){
+        try {
+            List<RecipeMonthAccountCheckResponse> responses = recipeOrderDAO.findRecipeMonthAccountCheckList(organIdList, request.getYear(), request.getMonth(), request.getStart(), request.getLimit());
+            if (CollectionUtils.isNotEmpty(responses)) {
+                resultMap.put("total", responses.get(0).getTotal());
+            } else {
+                resultMap.put("total", 0);
+            }
+            resultMap.put("data", responses);
+        } catch (Exception e) {
             LOGGER.error("recipeMonthAccountCheckList error,request = {}", JSONUtils.toString(request), e);
             resultMap.put("data", Collections.emptyList());
         }
@@ -111,11 +126,16 @@ public class RecipeReportFormsService {
         Args.notNull(request.getStart(), "start");
         Args.notNull(request.getLimit(), "limit");
         List<Integer> organIdList = getQueryOrganIdList(request);
-        try{
+        try {
             request.setOrganIdList(organIdList);
             List<RecipeAccountCheckDetailResponse> responses = recipeOrderDAO.findRecipeAccountCheckDetailList(request);
-            resultMap.put("data",responses);
-        }catch (Exception e){
+            if (CollectionUtils.isNotEmpty(responses)) {
+                resultMap.put("total", responses.get(0).getTotal());
+            } else {
+                resultMap.put("total", 0);
+            }
+            resultMap.put("data", responses);
+        } catch (Exception e) {
             LOGGER.error("recipeAccountCheckDetailList error,request = {}", JSONUtils.toString(request), e);
             resultMap.put("data", Collections.emptyList());
         }
@@ -135,11 +155,16 @@ public class RecipeReportFormsService {
         Args.notNull(request.getStart(), "start");
         Args.notNull(request.getLimit(), "limit");
         List<Integer> organIdList = getQueryOrganIdList(request);
-        try{
+        try {
             request.setOrganIdList(organIdList);
             List<EnterpriseRecipeMonthSummaryResponse> responses = recipeOrderDAO.findEnterpriseRecipeMonthSummaryList(request);
-            resultMap.put("data",responses);
-        }catch (Exception e){
+            if (CollectionUtils.isNotEmpty(responses)) {
+                resultMap.put("total", responses.get(0).getTotal());
+            } else {
+                resultMap.put("total", 0);
+            }
+            resultMap.put("data", responses);
+        } catch (Exception e) {
             LOGGER.error("enterpriseRecipeMonthSummaryList error,request = {}", JSONUtils.toString(request), e);
             resultMap.put("data", Collections.emptyList());
         }
@@ -152,8 +177,31 @@ public class RecipeReportFormsService {
      * @return
      */
     @RpcService
-    public Map<String, Object> enterpriseRecipeDetailList() {
-        return null;
+    public Map<String, Object> enterpriseRecipeDetailList(RecipeReportFormsRequest request) {
+        Map<String, Object> resultMap = new HashMap<>();
+        Args.notNull(request.getStartTime(), "startTime");
+        Args.notNull(request.getEndTime(), "endTime");
+        Args.notNull(request.getStart(), "start");
+        Args.notNull(request.getLimit(), "limit");
+        List<Integer> organIdList = getQueryOrganIdList(request);
+        request.setOrganIdList(organIdList);
+        try {
+            List<EnterpriseRecipeDetailResponse> responses = recipeOrderDAO.findEnterpriseRecipeDetailList(request);
+            if (CollectionUtils.isNotEmpty(responses)) {
+                responses.forEach(item -> {
+                    PatientDTO patient = patientService.getPatientByMpiId(item.getMpiId());
+                    item.setPatientName(patient.getPatientName());
+                });
+                resultMap.put("total", responses.get(0).getTotal());
+            } else {
+                resultMap.put("total", 0);
+            }
+            resultMap.put("data", responses);
+        } catch (Exception e) {
+            LOGGER.error("enterpriseRecipeDetailList error,request = {}", JSONUtils.toString(request), e);
+            resultMap.put("data", Collections.emptyList());
+        }
+        return resultMap;
     }
 
     /**
@@ -162,8 +210,27 @@ public class RecipeReportFormsService {
      * @return
      */
     @RpcService
-    public Map<String, Object> recipeHisAccountCheckList() {
-        return null;
+    public Map<String, Object> recipeHisAccountCheckList(RecipeReportFormsRequest request) {
+        Map<String, Object> resultMap = new HashMap<>();
+        Args.notNull(request.getStartTime(), "startTime");
+        Args.notNull(request.getEndTime(), "endTime");
+        Args.notNull(request.getStart(), "start");
+        Args.notNull(request.getLimit(), "limit");
+        List<Integer> organIdList = getQueryOrganIdList(request);
+        request.setOrganIdList(organIdList);
+        try {
+            List<RecipeHisAccountCheckResponse> responses = recipeOrderDAO.findRecipeHisAccountCheckList(request);
+            if (CollectionUtils.isNotEmpty(responses)) {
+                resultMap.put("total", responses.get(0).getTotal());
+            } else {
+                resultMap.put("total", 0);
+            }
+            resultMap.put("data", responses);
+        } catch (Exception e) {
+            LOGGER.error("recipeHisAccountCheckList error,request = {}", JSONUtils.toString(request), e);
+            resultMap.put("data", Collections.emptyList());
+        }
+        return resultMap;
     }
 
 }

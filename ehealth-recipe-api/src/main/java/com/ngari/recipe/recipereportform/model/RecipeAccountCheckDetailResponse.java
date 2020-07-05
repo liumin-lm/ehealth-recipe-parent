@@ -10,7 +10,7 @@ import java.util.Date;
 public class RecipeAccountCheckDetailResponse implements Serializable{
     private static final long serialVersionUID = 5501099787443188752L;
 
-    private Integer total; //总计
+    private Long total; //总计
 
     private Integer recipeId; //处方单号
 

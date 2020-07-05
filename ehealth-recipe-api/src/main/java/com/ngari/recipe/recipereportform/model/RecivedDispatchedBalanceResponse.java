@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 public class RecivedDispatchedBalanceResponse implements Serializable{
     private static final long serialVersionUID = -2710572383200102535L;
 
-    private Integer total; //总计
+    private Long total; //总计
 
     private Integer organId;
 

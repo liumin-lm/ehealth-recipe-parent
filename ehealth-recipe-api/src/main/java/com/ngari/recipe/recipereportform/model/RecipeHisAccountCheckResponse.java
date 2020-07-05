@@ -10,7 +10,7 @@ import java.util.Date;
 public class RecipeHisAccountCheckResponse implements Serializable{
     private static final long serialVersionUID = -6587243463310827837L;
 
-    private Integer total; //总计
+    private Long total; //总计
 
     private Integer recipeId; //处方单号
 
@@ -20,23 +20,25 @@ public class RecipeHisAccountCheckResponse implements Serializable{
 
     private Date payDate; //支付时间
 
+    private BigDecimal totalFee; //总费用
+
     private BigDecimal medicalInsurancePlanningFee; //医保统筹
 
     private BigDecimal selfPayFee; //自费金额
 
-//    private BigDecimal hisRecipeId; //his处方号
-//
-//    private BigDecimal hisTotalFee; //his总金额
-//
-//    private BigDecimal hisMedicalInsuranceFee; //his医保金额
-//
-//    private BigDecimal hiselfPayFee; //his医保金额
-
     private String tradeNo; //商户订单号
 
-//    private String reason; //产生原因
-//
-//    private String status; //状态
+    //    private BigDecimal hiselfPayFee; //his医保金额
+    //
+    //    private BigDecimal hisMedicalInsuranceFee; //his医保金额
+    //
+    //    private BigDecimal hisTotalFee; //his总金额
+    //
+    private String hisRecipeId; //his处方号
 
-//    private Date checkAccountDate; //对账时间
+    //    private String reason; //产生原因
+    //
+    //    private String status; //状态
+
+    //    private Date checkAccountDate; //对账时间
 }
