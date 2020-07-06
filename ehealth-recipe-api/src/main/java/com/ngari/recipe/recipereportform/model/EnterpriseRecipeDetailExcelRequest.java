@@ -19,10 +19,10 @@ public class EnterpriseRecipeDetailExcelRequest implements Serializable{
     private List<Integer> organIdList;
 
     //开始时间
-    private Date bDate;
+    private Date startTime;
 
     //结束时间
-    private Date eDate;
+    private Date endTime;
 
     //药企id
     private Integer enterpriseId;
