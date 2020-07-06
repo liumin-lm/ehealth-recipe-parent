@@ -2648,7 +2648,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 StringBuilder sql = new StringBuilder("select * from cdr_recipe where status in (30, 26) and signDate between '" + startDt + "' and '" + endDt + "' ");
                 sql.append("UNION ALL ");
                 sql.append("select * from cdr_recipe where status in (31, 27) and reviewType = 1  and signDate between '" + startDt + "' and '" + endDt + "' ");
-                Query q = ss.createSQLQuery(sql.toString());
+                Query q = ss.createSQLQuery(sql.toString()).addEntity(Recipe.class);
                 setResult(q.list());
             }
         };
