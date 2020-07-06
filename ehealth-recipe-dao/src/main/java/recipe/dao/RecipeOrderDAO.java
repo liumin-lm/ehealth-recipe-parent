@@ -1249,7 +1249,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         response.setTotal(total);
                         response.setRecipeId(ConversionUtils.convert(item[0], Integer.class));
                         response.setPatientName(ConversionUtils.convert(item[1], String.class));
-                        response.setMpiId(ConversionUtils.convert(item[14], String.class));
+                        response.setMpiId(ConversionUtils.convert(item[2], String.class));
                         response.setPayDate(ConversionUtils.convert(item[3], Date.class));
                         response.setTotalFee(ConversionUtils.convert(item[4], BigDecimal.class));
                         response.setDrugFee(ConversionUtils.convert(item[5], BigDecimal.class));
