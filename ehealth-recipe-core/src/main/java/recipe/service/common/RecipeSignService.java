@@ -379,6 +379,9 @@ public class RecipeSignService {
                 //his处方预检查
                 boolean b = hisRecipeCheck(rMap, recipeBean);
                 if (!b){
+                    rMap.put("signResult", false);
+                    rMap.put("recipeId", recipeBean.getRecipeId());
+                    rMap.put("errorFlag", true);
                     return rMap;
                 }
             }
@@ -571,6 +574,7 @@ public class RecipeSignService {
         return rMap;
     }
 
+    @RpcService
     public boolean hisRecipeCheck(Map<String, Object> rMap, RecipeBean recipeBean) {
         //判断机构是否需要his处方检查 ---运营平台机构配置
         try {
