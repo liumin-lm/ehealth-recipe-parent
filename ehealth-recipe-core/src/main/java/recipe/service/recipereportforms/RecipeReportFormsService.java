@@ -121,8 +121,8 @@ public class RecipeReportFormsService {
     @RpcService
     public Map<String, Object> recipeAccountCheckDetailList(RecipeReportFormsRequest request) {
         Map<String, Object> resultMap = new HashMap<>();
-        Args.notNull(request.getMonth(), "month");
-        Args.notNull(request.getYear(), "year");
+        Args.notNull(request.getStartTime(), "startTime");
+        Args.notNull(request.getEndTime(), "endTime");
         Args.notNull(request.getStart(), "start");
         Args.notNull(request.getLimit(), "limit");
         List<Integer> organIdList = getQueryOrganIdList(request);
