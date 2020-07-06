@@ -23,6 +23,7 @@ import com.ngari.follow.service.IRelationPatientService;
 import com.ngari.follow.vo.RelationDoctorVO;
 import com.ngari.home.asyn.model.BussCancelEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
+import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -1284,8 +1285,37 @@ public class RecipeServiceSub {
         patient.setLabelNames(labelNames);
     }
 
+    /**
+    * 兼容脱敏，做预备方案
+    * @author zhangx
+    * @create 2020-07-06 10:46
+    * @param patient
+    * @return
+    **/
+    @Deprecated
     public static PatientDTO convertPatientForRAP(PatientDTO patient) {
         PatientDTO p = new PatientDTO();
+        p.setPatientName(patient.getPatientName());
+        p.setPatientSex(patient.getPatientSex());
+        p.setBirthday(patient.getBirthday());
+        p.setPatientType(patient.getPatientType());
+        p.setIdcard(patient.getCertificate());
+        p.setStatus(patient.getStatus());
+//        p.setMobile(patient.getMobile());
+        p.setMpiId(patient.getMpiId());
+        p.setPhoto(patient.getPhoto());
+        p.setSignFlag(patient.getSignFlag());
+        p.setRelationFlag(patient.getRelationFlag());
+        p.setLabelNames(patient.getLabelNames());
+        p.setGuardianFlag(patient.getGuardianFlag());
+        p.setGuardianCertificate(patient.getGuardianCertificate());
+        p.setGuardianName(patient.getGuardianName());
+        p.setAge(null == patient.getBirthday() ? 0 : DateConversion.getAge(patient.getBirthday()));
+        return p;
+    }
+
+    public static PatientDS convertSensitivePatientForRAP(PatientDTO patient) {
+        PatientDS p = new PatientDS();
         p.setPatientName(patient.getPatientName());
         p.setPatientSex(patient.getPatientSex());
         p.setBirthday(patient.getBirthday());
@@ -1368,11 +1398,11 @@ public class RecipeServiceSub {
         map.put("checkEnterprise", drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan()));
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         PatientDTO patientBean = patientService.get(recipe.getMpiid());
-        PatientDTO patient = null;
+        PatientDS patient = null;
         if (patientBean != null) {
             //添加患者标签和关注这些字段
             RecipeServiceSub.setPatientMoreInfo(patientBean, recipe.getDoctor());
-            patient = RecipeServiceSub.convertPatientForRAP(patientBean);
+            patient = RecipeServiceSub.convertSensitivePatientForRAP(patientBean);
             //判断该就诊人是否为儿童就诊人
             if (patient.getAge() <= 5 && !ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
                 GuardianBean guardian = new GuardianBean();

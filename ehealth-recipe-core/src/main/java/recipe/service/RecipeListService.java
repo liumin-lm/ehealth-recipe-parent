@@ -5,10 +5,10 @@ import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
-import com.ngari.base.doctor.service.IDoctorService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
@@ -43,16 +43,14 @@ import recipe.service.common.RecipeCacheService;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
-import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static recipe.service.RecipeServiceSub.convertPatientForRAP;
 import static recipe.service.RecipeServiceSub.convertRecipeForRAP;
+import static recipe.service.RecipeServiceSub.convertSensitivePatientForRAP;
 
 /**
  * 处方业务一些列表查询
@@ -161,14 +159,14 @@ public class RecipeListService extends RecipeBaseService{
                 recipeMap.put(recipe.getRecipeId(), convertRecipeForRAP(recipe));
             }
 
-            Map<String, PatientDTO> patientMap = Maps.newHashMap();
+            Map<String, PatientDS> patientMap = Maps.newHashMap();
             if (CollectionUtils.isNotEmpty(patientIds)) {
                 List<PatientDTO> patientList = patientService.findByMpiIdIn(patientIds);
                 if (CollectionUtils.isNotEmpty(patientList)) {
                     for (PatientDTO patient : patientList) {
                         //设置患者数据
                         RecipeServiceSub.setPatientMoreInfo(patient, doctorId);
-                        patientMap.put(patient.getMpiId(), convertPatientForRAP(patient));
+                        patientMap.put(patient.getMpiId(), convertSensitivePatientForRAP(patient));
                     }
                 }
             }
@@ -720,7 +718,7 @@ public class RecipeListService extends RecipeBaseService{
         //List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId, mpiId, start, limit);
         //修改逻辑历史处方中获取的处方列表：只显示未处理、未支付、审核不通过、失败、已完成状态的
         List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatientAndStatusList(doctorId, mpiId, start, limit, new ArrayList<>(Arrays.asList(HistoryRecipeListShowStatusList)));
-        PatientDTO patient = RecipeServiceSub.convertPatientForRAP(patientService.get(mpiId));
+        PatientDS patient = RecipeServiceSub.convertSensitivePatientForRAP(patientService.get(mpiId));
         return instanceRecipesAndPatient(recipes,patient);
     }
 
@@ -730,7 +728,7 @@ public class RecipeListService extends RecipeBaseService{
      * @param patient
      * @return
      */
-    public List<Map<String, Object>> instanceRecipesAndPatient(List<Recipe> recipes,PatientDTO patient) {
+    public List<Map<String, Object>> instanceRecipesAndPatient(List<Recipe> recipes,PatientDS patient) {
         List<Map<String, Object>> list = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(recipes)) {
             RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -1402,14 +1400,14 @@ public class RecipeListService extends RecipeBaseService{
                 recipeMap.put(recipe.getRecipeId(), convertRecipeForRAP(recipe));
             }
 
-            Map<String, PatientDTO> patientMap = Maps.newHashMap();
+            Map<String, PatientDS> patientMap = Maps.newHashMap();
             if (CollectionUtils.isNotEmpty(patientIds)) {
                 List<PatientDTO> patientList = patientService.findByMpiIdIn(patientIds);
                 if (CollectionUtils.isNotEmpty(patientList)) {
                     for (PatientDTO patient : patientList) {
                         //设置患者数据
                         RecipeServiceSub.setPatientMoreInfo(patient, doctorId);
-                        patientMap.put(patient.getMpiId(), convertPatientForRAP(patient));
+                        patientMap.put(patient.getMpiId(), convertSensitivePatientForRAP(patient));
                     }
                 }
             }
