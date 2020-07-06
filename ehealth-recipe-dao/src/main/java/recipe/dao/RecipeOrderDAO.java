@@ -1244,6 +1244,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         response.setTotal(total);
                         response.setRecipeId(ConversionUtils.convert(item[0], Integer.class));
                         response.setPatientName(ConversionUtils.convert(item[1], String.class));
+                        response.setMpiId(ConversionUtils.convert(item[14], String.class));
                         response.setPayDate(ConversionUtils.convert(item[3], Date.class));
                         response.setTotalFee(ConversionUtils.convert(item[4], BigDecimal.class));
                         response.setDrugFee(ConversionUtils.convert(item[5], BigDecimal.class));
@@ -1391,6 +1392,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         return action.getResult();
     }
 
+    //当前接口不需要进行分页
     public List<RecipeHisAccountCheckResponse> findRecipeHisAccountCheckList(final RecipeReportFormsRequest request) {
         if (CollectionUtils.isEmpty(request.getOrganIdList())) {
             return Collections.emptyList();
@@ -1403,17 +1405,19 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         "cr.GiveMode,cro.paytime,IFNULL(cro.TotalFee,0.00),IFNULL(ret.fundAmount,0.00),IFNULL(cro.TotalFee,0.00) - IFNULL(ret.fundAmount,0.00),cr.RecipeCode,cro.outTradeNo,cr.ClinicOrgan");
                 StringBuilder sql = new StringBuilder(" FROM cdr_recipe cr" +
                         " INNER JOIN cdr_recipeorder cro ON cr.orderCode = cro.ordercode" +
-                        " INNER JOIN cdr_recipe_ext ret ON cr.recipeId = ret.recipeId" +
-                        " WHERE cro.paytime BETWEEN :startTime AND :endTime AND cro.OrganId in :organIdList");
-                if(StringUtils.isNotEmpty(request.getBuyMedicWay())){
+                        " INNER JOIN cdr_recipe_ext ret ON cr.recipeId = ret.recipeId ");
+                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                    sql.append(" AND cro.OrganId in :organIdList ");
+                }
+                if(null != request.getBuyMedicWay()){
                     sql.append(" and cr.GiveMode =:giveMode");
                 }
 //                sql.append(" GROUP BY c.OrganId,c.EnterpriseId");
                 StringBuilder querySql = queryhql.append(sql);
                 Query query = ss.createSQLQuery(querySql.toString());
-                query.setParameterList("organIdList", request.getOrganIdList());
-                query.setFirstResult(request.getStart());
-                query.setMaxResults(request.getLimit());
+                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                    query.setParameterList("organIdList", request.getOrganIdList());
+                }
                 query.setParameter("startTime", request.getStartTime());
                 query.setParameter("endTime", request.getEndTime());
                 if(StringUtils.isNotEmpty(request.getBuyMedicWay())){
@@ -1421,30 +1425,33 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 }
 
                 //count
-                Query countQuery = ss.createSQLQuery(countSql.append(sql).toString());
-                countQuery.setParameterList("organIdList", request.getOrganIdList());
-                countQuery.setParameter("startTime", request.getStartTime());
-                countQuery.setParameter("endTime", request.getEndTime());
-                if(null != request.getBuyMedicWay()){
-                    countQuery.setParameter("giveMode", request.getBuyMedicWay());
-                }
-                Long count = ConversionUtils.convert(countQuery.uniqueResult(),Long.class);
+//                Query countQuery = ss.createSQLQuery(countSql.append(sql).toString());
+//                countQuery.setParameterList("organIdList", request.getOrganIdList());
+//                countQuery.setParameter("startTime", request.getStartTime());
+//                countQuery.setParameter("endTime", request.getEndTime());
+//                if(null != request.getBuyMedicWay()){
+//                    countQuery.setParameter("giveMode", request.getBuyMedicWay());
+//                }
+//                Long count = ConversionUtils.convert(countQuery.uniqueResult(),Long.class);
 
                 List<Object[]> queryList = query.list();
-                List<RecipeHisAccountCheckResponse> resultList = new ArrayList<>(request.getLimit());
+                List<RecipeHisAccountCheckResponse> resultList = new ArrayList<>();
                 if (CollectionUtils.isNotEmpty(queryList)) {
                     for (Object[] item : queryList) {
                         RecipeHisAccountCheckResponse response = new RecipeHisAccountCheckResponse();
                         response.setRecipeId(ConversionUtils.convert(item[0],Integer.class));
                         response.setPatientName(ConversionUtils.convert(item[1],String.class));
+                        response.setMpiId(ConversionUtils.convert(item[2],String.class));
                         response.setBuyMedicineWay(ConversionUtils.convert(item[3],String.class));
+                        response.setGiverMode(ConversionUtils.convert(item[4],Integer.class));
                         response.setPayDate(ConversionUtils.convert(item[5],Date.class));
                         response.setTotalFee(ConversionUtils.convert(item[6],BigDecimal.class));
                         response.setMedicalInsurancePlanningFee(ConversionUtils.convert(item[7],BigDecimal.class));
                         response.setSelfPayFee(ConversionUtils.convert(item[8],BigDecimal.class));
                         response.setHisRecipeId(ConversionUtils.convert(item[9], String.class));
                         response.setTradeNo(ConversionUtils.convert(item[10], String.class));
-                        response.setTotal(count);
+                        response.setOrganId(ConversionUtils.convert(item[11], Integer.class));
+                        //response.setTotal(count);
                         resultList.add(response);
                     }
                 }
