@@ -582,15 +582,17 @@ public class RecipeSignService {
                 RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
                 checkResult = hisService.hisRecipeCheck(rMap, recipeBean);
                 if(checkResult){
-                    rMap.put("allowContinue", 0);
+                    rMap.put("canContinueFlag", 0);
                 }else{
                     allowContinueMakeFlag = (Boolean)configurationService.getConfiguration(recipeBean.getClinicOrgan(), "allowContinueMakeRecipe ");
                     //date 20200706
                     //允许继续处方:不进行校验/进行校验且校验通过0 ，进行校验校验不通过允许通过1，进行校验校验不通过不允许通过2
                     if(allowContinueMakeFlag){
-                        rMap.put("allowContinue", 1);
+                        rMap.put("canContinueFlag", 4);
+                        rMap.put("msg", rMap.get("errorMsg"));
                     }else{
-                        rMap.put("allowContinue", 2);
+                        rMap.put("canContinueFlag", -1);
+                        rMap.put("msg", rMap.get("errorMsg"));
                     }
                 }
                 return checkResult;
@@ -600,10 +602,11 @@ public class RecipeSignService {
             rMap.put("signResult", false);
             rMap.put("errorFlag",true);
             rMap.put("errorMsg", "his处方检查异常");
-            rMap.put("allowContinue", 2);
+            rMap.put("canContinueFlag", -1);
+            rMap.put("msg", "his处方检查异常");
             return false;
         }
-        rMap.put("allowContinue", 0);
+        rMap.put("canContinueFlag", 0);
         return true;
     }
 
