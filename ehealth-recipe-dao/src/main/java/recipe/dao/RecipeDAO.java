@@ -9,6 +9,7 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.RecipesQueryVO;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
@@ -883,7 +884,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         return action.getResult();
     }
 
-
+    @Deprecated
     private void validateOptionForStatistics(Integer status, Integer doctor, String patientName, Date bDate, Date eDate, Integer dateType,
                                              final int start, final int limit) {
         if (dateType == null) {
@@ -893,6 +894,19 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             throw new DAOException(DAOException.VALUE_NEEDED, "统计开始时间不能为空");
         }
         if (eDate == null) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "统计结束时间不能为空");
+        }
+
+    }
+
+    private void validateOptionForStatistics(RecipesQueryVO recipesQueryVO) {
+        if (null == recipesQueryVO.getDateType()) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "dateType is required");
+        }
+        if (null == recipesQueryVO.getBDate()) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "统计开始时间不能为空");
+        }
+        if (null == recipesQueryVO.getEDate()) {
             throw new DAOException(DAOException.VALUE_NEEDED, "统计结束时间不能为空");
         }
 
@@ -1286,18 +1300,17 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      * @param dateType    时间类型（0：开方时间，1：审核时间）
      * @return QueryResult<Map>
      */
-    public List<Object[]> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType,
-                                               final Integer depart, List<Integer> organIds, Integer giveMode, Integer fromflag, Integer recipeId,Integer enterpriseId,Integer checkStatus,Integer payFlag,Integer orderType) {
-        this.validateOptionForStatistics(status, doctor, patientName, bDate, eDate, dateType, 0, Integer.MAX_VALUE);
-        final StringBuilder sbHql = this.generateRecipeMsgHQLforStatistics(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType);
+    public List<Object[]> findRecipesByInfoForExcel(RecipesQueryVO recipesQueryVO) {
+        this.validateOptionForStatistics(recipesQueryVO);
+        final StringBuilder sbHql = this.generateRecipeMsgHQLforStatistics(recipesQueryVO);
         HibernateStatelessResultAction<List<Object[]>> action =
                 new AbstractHibernateStatelessResultAction<List<Object[]>>() {
                     public void execute(StatelessSession ss) {
                         LOGGER.info("RecipeDAO findRecipesByInfoForExcel sbHql = {} ", sbHql);
                         Query query = ss.createSQLQuery(sbHql.append(" GROUP BY r.recipeId order by r.recipeId DESC").toString());
                         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                        query.setParameter("startTime", sdf.format(bDate));
-                        query.setParameter("endTime", sdf.format(eDate));
+                        query.setParameter("startTime", sdf.format(recipesQueryVO.getBDate()));
+                        query.setParameter("endTime", sdf.format(recipesQueryVO.getEDate()));
                         List<Object[]> list = query.list();
                         setResult(list);
                     }
@@ -1327,7 +1340,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             @SuppressWarnings("unchecked")
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                long total = 0;
                 StringBuilder hql = preparedHql;
                 hql.append(" group by r.status ");
                 Query query = ss.createQuery("select r.status, count(r.recipeId) as count " + hql.toString());
@@ -1380,16 +1392,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             hql.append(" and r.clinicOrgan =" + organId);
         }
         switch (dateType) {
-//            case 0:
-//                //开方时间
-//                hql.append(" and DATE_FORMAT(r.createDate,'yyyy-MM-dd HH:mm:ss') >= DATE_FORMAT(:startTime,'yyyy-MM-dd HH:mm:ss')"
-//                        + " and DATE_FORMAT(r.createDate,'yyyy-MM-dd HH:mm:ss') <= DATE_FORMAT(:endTime,'yyyy-MM-dd HH:mm:ss') ");
-//                break;
-//            case 1:
-//                //审核时间
-//                hql.append(" and DATE_FORMAT(r.checkDate,'yyyy-MM-dd HH:mm:ss') >= DATE_FORMAT(:startTime,'yyyy-MM-dd HH:mm:ss')"
-//                        + " and DATE_FORMAT(r.checkDate,'yyyy-MM-dd HH:mm:ss') <= DATE_FORMAT(:endTime,'yyyy-MM-dd HH:mm:ss') ");
-//                break;
             case 0:
                 //开方时间
                 hql.append(" and r.createDate >= :startTime"
@@ -1560,17 +1562,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         return hql;
     }
 
-    private StringBuilder generateRecipeMsgHQLforStatistics(Integer organId,
-                                                            Integer status, Integer doctor, String mpiId, Integer dateType,
-                                                            Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer fromflag, Integer recipeId,
-                                                            Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType) {
+    private StringBuilder generateRecipeMsgHQLforStatistics(RecipesQueryVO recipesQueryVO) {
         StringBuilder hql = new StringBuilder("select r.recipeId,r.patientName,r.Mpiid,r.organName,r.depart,r.doctor,r.organDiseaseName,r.totalMoney,r.checker,r.checkDateYs,r.fromflag,r.status,o.payTime, r.doctorName, sum(cr.useTotalDose) sumDose ,o.send_type sendType  from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode LEFT JOIN cdr_recipecheck c ON r.recipeID=c.recipeId left join cdr_recipedetail cr on cr.recipeId = r.recipeId and cr.status =1  where 1=1 ");
-
         //默认查询所有
-        if (CollectionUtils.isNotEmpty(requestOrgans)) {
+        if (CollectionUtils.isNotEmpty(recipesQueryVO.getOrganIds())) {
             // 添加申请机构条件
             boolean flag = true;
-            for (Integer i : requestOrgans) {
+            for (Integer i : recipesQueryVO.getOrganIds()) {
                 if (i != null) {
                     if (flag) {
                         hql.append(" and r.clinicOrgan in(");
@@ -1584,20 +1582,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                         hql.length() - 1) + ") ");
             }
         }
-        if (organId != null) {
-            hql.append(" and r.clinicOrgan =" + organId);
+        if (null != recipesQueryVO.getOrganId()) {
+            hql.append(" and r.clinicOrgan =" + recipesQueryVO.getOrganId());
         }
-        switch (dateType) {
-//            case 0:
-//                //开方时间
-//                hql.append(" and DATE_FORMAT(r.createDate,'yyyy-MM-dd HH:mm:ss') >= DATE_FORMAT(:startTime,'yyyy-MM-dd HH:mm:ss')"
-//                        + " and DATE_FORMAT(r.createDate,'yyyy-MM-dd HH:mm:ss') <= DATE_FORMAT(:endTime,'yyyy-MM-dd HH:mm:ss') ");
-//                break;
-//            case 1:
-//                //审核时间
-//                hql.append(" and DATE_FORMAT(r.checkDate,'yyyy-MM-dd HH:mm:ss') >= DATE_FORMAT(:startTime,'yyyy-MM-dd HH:mm:ss')"
-//                        + " and DATE_FORMAT(r.checkDate,'yyyy-MM-dd HH:mm:ss') <= DATE_FORMAT(:endTime,'yyyy-MM-dd HH:mm:ss') ");
-//                break;
+        switch (recipesQueryVO.getDateType()) {
             case 0:
                 //开方时间
                 hql.append(" and r.createDate BETWEEN :startTime"
@@ -1616,39 +1604,34 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             default:
                 break;
         }
-        if (status != null) {
-            hql.append(" and r.status =").append(status);
+        if (null != recipesQueryVO.getStatus()) {
+            hql.append(" and r.status =").append(recipesQueryVO.getStatus());
         }
-        if (doctor != null) {
-            hql.append(" and r.doctor=").append(doctor);
+        if (null != recipesQueryVO.getDoctor()) {
+            hql.append(" and r.doctor=").append(recipesQueryVO.getDoctor());
         }
-        //根据患者姓名  精确查询
-//        if (patientName != null && !StringUtils.isEmpty(patientName.trim())) {
-//            hql.append(" and r.patientName='").append(patientName).append("'");
-//        }
-        if (depart != null) {
-            hql.append(" and r.depart=").append(depart);
+        if (null != recipesQueryVO.getDepart()) {
+            hql.append(" and r.depart=").append(recipesQueryVO.getDepart());
         }
-        if (giveMode != null) {
-            hql.append(" and r.giveMode=").append(giveMode);
+        if (null != recipesQueryVO.getGiveMode()) {
+            hql.append(" and r.giveMode=").append(recipesQueryVO.getGiveMode());
         }
-        if (fromflag != null) {
-            hql.append(" and r.fromflag=").append(fromflag);
+        if (null != recipesQueryVO.getFromFlag()) {
+            hql.append(" and r.fromflag=").append(recipesQueryVO.getFromFlag());
         }
-        if (recipeId != null) {
-            hql.append(" and r.recipeId=").append(recipeId);
+        if (null != recipesQueryVO.getRecipeId()) {
+            hql.append(" and r.recipeId=").append(recipesQueryVO.getRecipeId());
         }
 
-        if (mpiId != null) {
-            hql.append(" and r.mpiid='").append(mpiId+"'");
+        if (null != recipesQueryVO.getPatientName()) {
+            hql.append(" and r.mpiid='").append(recipesQueryVO.getPatientName() + "'");
         }
-        if (enterpriseId != null) {
-            hql.append(" and r.enterpriseId=").append(enterpriseId);
+        if (null != recipesQueryVO.getEnterpriseId()) {
+            hql.append(" and r.enterpriseId=").append(recipesQueryVO.getEnterpriseId());
         }
-
-        if (checkStatus != null) {
-//            checkResult 0:未审核 1:通过 2:不通过 3:二次签名 4:失效
-            switch (checkStatus){
+        //checkResult 0:未审核 1:通过 2:不通过 3:二次签名 4:失效
+        if (null != recipesQueryVO.getCheckStatus()) {
+            switch (recipesQueryVO.getCheckStatus()) {
                 case 0:
                     hql.append(" and r.status =").append(8);
                     break;
@@ -1667,20 +1650,19 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
             }
         }
 
-        if (payFlag != null) {
-            if(payFlag==0){
-                hql.append(" and r.payFlag=").append(payFlag);
-            }else{
-                hql.append(" and o.payFlag=").append(payFlag);
+        if (null != recipesQueryVO.getPayFlag()) {
+            if (recipesQueryVO.getPayFlag() == 0) {
+                hql.append(" and r.payFlag=").append(recipesQueryVO.getPayFlag());
+            } else {
+                hql.append(" and o.payFlag=").append(recipesQueryVO.getPayFlag());
             }
         }
-        if (orderType != null) {
-            if(orderType==0){
+        if (recipesQueryVO.getOrderType() != null) {
+            if (recipesQueryVO.getOrderType() == 0) {
                 hql.append(" and o.orderType=").append(0);
-            }else{
+            } else {
                 hql.append(" and o.orderType in (1,2,3,4) ");
             }
-
         }
         return hql;
     }
