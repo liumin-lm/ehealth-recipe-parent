@@ -18,13 +18,11 @@ import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
-import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
-import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.ds.PatientDS;
@@ -32,14 +30,12 @@ import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.LocalStringUtil;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
+import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import com.ngari.recipe.hisprescription.model.QueryPlatRecipeInfoByDateDTO;
-import com.ngari.recipe.hisprescription.model.QueryRecipeResultDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderInfoBean;
@@ -59,7 +55,6 @@ import ctd.util.event.GlobalEventExecFactory;
 import eh.base.constant.ErrorCode;
 import eh.base.constant.PageConstant;
 import eh.cdr.constant.OrderStatusConstant;
-import eh.utils.*;
 import eh.utils.params.ParamUtils;
 import eh.utils.params.ParameterConstant;
 import eh.wxpay.constant.PayConstant;
@@ -90,7 +85,6 @@ import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
-import recipe.hisservice.QueryRecipeService;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
@@ -100,9 +94,6 @@ import recipe.service.common.RecipeCacheService;
 import recipe.sign.SignRecipeInfoService;
 import recipe.thread.*;
 import recipe.util.*;
-import recipe.util.ChinaIDNumberUtil;
-import recipe.util.DateConversion;
-import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -2966,7 +2957,12 @@ public class RecipeService extends RecipeBaseService {
     public Map<String, Object> findRecipeAndDetailById(int recipeId) {
         //bug#30596医生患者电子病历下方处方单，点击非本医生开具的处方单，打开页面显示错误----去掉越权
         /*checkUserHasPermission(recipeId);*/
-        return RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, true);
+
+        Map<String, Object> result = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, true);
+        PatientDTO patient = (PatientDTO) result.get("patient");
+        result.put("patient", ObjectCopyUtils.convert(patient, PatientVO.class));
+
+        return result;
     }
 
     /**
