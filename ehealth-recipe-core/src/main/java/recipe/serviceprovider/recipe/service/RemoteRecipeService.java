@@ -372,7 +372,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @RpcService(timeout = 600000)
     @Override
-    public List<Object[]> findRecipesByInfoForExcel(RecipesQueryVO recipesQueryVO) {
+    public List<Object[]> findRecipesByInfoForExcel2(RecipesQueryVO recipesQueryVO) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         List<Object[]> result = recipeDAO.findRecipesByInfoForExcel(recipesQueryVO);
         return result;
@@ -412,13 +412,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         recipesQueryVO.setRecipeId(recipeId);
         recipesQueryVO.setStatus(status);
         recipesQueryVO.setPatientName(patientName);
-        return findRecipeOrdersByInfoForExcel(recipesQueryVO);
+        return findRecipeOrdersByInfoForExcel2(recipesQueryVO);
     }
 
 
     @RpcService(timeout = 600000)
     @Override
-    public List<Map> findRecipeOrdersByInfoForExcel(RecipesQueryVO recipesQueryVO) {
+    public List<Map> findRecipeOrdersByInfoForExcel2(RecipesQueryVO recipesQueryVO) {
         LOGGER.info("findRecipeOrdersByInfoForExcel查询处方订单导出信息入参:{}", JSONUtils.toString(recipesQueryVO));
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         List<Map> recipeMap = recipeDAO.findRecipesByInfoForExcelN(recipesQueryVO);
