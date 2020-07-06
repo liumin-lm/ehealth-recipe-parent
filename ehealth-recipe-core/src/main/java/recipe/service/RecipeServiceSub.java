@@ -238,7 +238,7 @@ public class RecipeServiceSub {
         //保存开处方时的单位剂量【规格单位】|单位【规格单位】|单位剂量【最小单位】|单位【最小单位】,各个字段用|隔开
         for (Recipedetail detail : details) {
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-            OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndDrugId(recipe.getClinicOrgan(), detail.getDrugId());
+            OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCode(recipe.getClinicOrgan(), detail.getOrganDrugCode());
             String unitDoseForSpecificationUnit="";
             String unitForSpecificationUnit="";
             String unitDoseForSmallUnit="";

@@ -677,7 +677,7 @@ public class OrganDrugListService implements IOrganDrugListService {
         if (null == recipeDetail || null == organId || null == recipeDetail.getDrugId()) {
             return;
         }
-        OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndDrugId(organId, recipeDetail.getDrugId());
+        OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId, recipeDetail.getOrganDrugCode());
         if (null == organDrug) {
             logger.warn("saveOrganDrug  organDrug is null organId={}, recipeDetail：{}", organId, JSONUtils.toString(recipeDetail));
             return;
