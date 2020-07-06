@@ -2645,8 +2645,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("from Recipe where status in (31, 30, 26, 27) and signDate between '" + startDt + "' and '" + endDt + "' ");
-                Query q = ss.createQuery(hql.toString());
+                StringBuilder sql = new StringBuilder("select * from cdr_recipe where status in (30, 26) and signDate between '" + startDt + "' and '" + endDt + "' ");
+                sql.append("UNION ALL ");
+                sql.append("select * from cdr_recipe where status in (31, 27) and reviewType = 1  and signDate between '" + startDt + "' and '" + endDt + "' ");
+                Query q = ss.createSQLQuery(sql.toString());
                 setResult(q.list());
             }
         };
