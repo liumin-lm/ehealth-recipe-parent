@@ -156,9 +156,21 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @return
      */
     @RpcService
+    @Deprecated
     QueryResult<Map> findRecipesByInfo(Integer organId, Integer status,
                                        Integer doctor, String mpiid, Date bDate, Date eDate, Integer dateType,
                                        Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType);
+
+    /**
+     * 运营平台使用
+     * 处方查询
+     *
+     * @param recipesQueryVO
+     * @return
+     */
+    @RpcService
+    QueryResult<Map> findRecipesByInfo(RecipesQueryVO recipesQueryVO);
+
 
     /**
      * 运营平台使用
