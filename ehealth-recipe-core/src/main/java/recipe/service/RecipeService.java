@@ -18,13 +18,11 @@ import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
-import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
-import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.ds.PatientDS;
@@ -32,14 +30,12 @@ import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.LocalStringUtil;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
+import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import com.ngari.recipe.hisprescription.model.QueryPlatRecipeInfoByDateDTO;
-import com.ngari.recipe.hisprescription.model.QueryRecipeResultDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderInfoBean;
@@ -59,7 +55,6 @@ import ctd.util.event.GlobalEventExecFactory;
 import eh.base.constant.ErrorCode;
 import eh.base.constant.PageConstant;
 import eh.cdr.constant.OrderStatusConstant;
-import eh.utils.*;
 import eh.utils.params.ParamUtils;
 import eh.utils.params.ParameterConstant;
 import eh.wxpay.constant.PayConstant;
@@ -90,7 +85,6 @@ import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
-import recipe.hisservice.QueryRecipeService;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
@@ -100,9 +94,6 @@ import recipe.service.common.RecipeCacheService;
 import recipe.sign.SignRecipeInfoService;
 import recipe.thread.*;
 import recipe.util.*;
-import recipe.util.ChinaIDNumberUtil;
-import recipe.util.DateConversion;
-import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -2041,12 +2032,14 @@ public class RecipeService extends RecipeBaseService {
         Map<String, Object> rMap = new HashMap<String, Object>();
         rMap.put("signResult", true);
         try {
+            recipeBean.setDistributionFlag(continueFlag);
             //上海肺科个性化处理--智能审方重要警示弹窗处理
             doforShangHaiFeiKe(recipeBean, detailBeanList);
             //第一步暂存处方（处方状态未签名）
             doSignRecipeSave(recipeBean, detailBeanList);
+
             //第二步预校验
-            if(-1 < continueFlag && continueFlag < 4){
+            if(continueFlag == 0){
 
             }
             //第三步校验库存
@@ -2162,6 +2155,14 @@ public class RecipeService extends RecipeBaseService {
         if(null != payModeDeploy){
             List<String> configurations = new ArrayList<>(Arrays.asList((String[])payModeDeploy));
             //收集按钮信息用于判断校验哪边库存 0是什么都没有，1是指配置了到院取药，2是配置到药企相关，3是医院药企都配置了
+            if(configurations == null || configurations.size() == 0){
+                rMap.put("signResult", false);
+                rMap.put("errorFlag", true);
+                rMap.put("msg", "抱歉，机构未配置购药方式，无法开处方。");
+                rMap.put("canContinueFlag", "-1");
+                LOGGER.info("doSignRecipeCheck recipeId={},msg={}",recipeId,rMap.get("msg"));
+                return rMap;
+            }
             for (String configuration : configurations) {
                 switch (configuration){
                     case "supportTFDS":
@@ -2182,6 +2183,13 @@ public class RecipeService extends RecipeBaseService {
                 }
 
             }
+        } else {
+            rMap.put("signResult", false);
+            rMap.put("errorFlag", true);
+            rMap.put("msg", "抱歉，机构未配置购药方式，无法开处方。");
+            rMap.put("canContinueFlag", "-1");
+            LOGGER.info("doSignRecipeCheck recipeId={},msg={}",recipeId,rMap.get("msg"));
+            return rMap;
         }
 
         rMap.put("recipeId", recipeId);
@@ -2949,7 +2957,12 @@ public class RecipeService extends RecipeBaseService {
     public Map<String, Object> findRecipeAndDetailById(int recipeId) {
         //bug#30596医生患者电子病历下方处方单，点击非本医生开具的处方单，打开页面显示错误----去掉越权
         /*checkUserHasPermission(recipeId);*/
-        return RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, true);
+
+        Map<String, Object> result = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, true);
+        PatientDTO patient = (PatientDTO) result.get("patient");
+        result.put("patient", ObjectCopyUtils.convert(patient, PatientVO.class));
+
+        return result;
     }
 
     /**

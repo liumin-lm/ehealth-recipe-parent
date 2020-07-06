@@ -715,7 +715,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         String useDose;
         for (Recipedetail detail : detailList) {
             reqDetail = new RegulationRecipeDetailIndicatorsReq();
-            organDrugList = organDrugDao.getByOrganIdAndDrugId(recipe.getClinicOrgan(), detail.getDrugId());
+            organDrugList = organDrugDao.getByOrganIdAndOrganDrugCode(recipe.getClinicOrgan(), detail.getOrganDrugCode());
             if (organDrugList == null) {
                 reqDetail.setDrcode(detail.getOrganDrugCode());
             } else {

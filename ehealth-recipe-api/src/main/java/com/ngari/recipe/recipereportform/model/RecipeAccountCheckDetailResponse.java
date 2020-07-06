@@ -39,4 +39,6 @@ public class RecipeAccountCheckDetailResponse implements Serializable{
     private BigDecimal organRecivedDiffFee; //医院实收应付差额
 
     private String tradeNo; //商户订单号
+
+    private String mpiId; //用户mpiid
 }
