@@ -31,6 +31,7 @@ import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
+import com.ngari.recipe.recipereportform.model.*;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -63,6 +64,7 @@ import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.recipecheck.RecipeCheckService;
 import recipe.service.*;
+import recipe.service.recipereportforms.RecipeReportFormsService;
 import recipe.serviceprovider.BaseService;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
@@ -505,6 +507,50 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             recipeMsg.put("payStatusText", RecipePayTextEnum.Default.getPayText());
         }
     }
+
+//
+//    @RpcService(timeout = 600000)
+//    public List<Map> findRecipeOrdersByInfoForExcelNT(Integer organId, List<Integer> organIds, Integer status, Integer doctor, String patientName, Date bDate,
+//                                                      Date eDate, Integer dateType, Integer depart, Integer giveMode,
+//                                                      Integer fromflag,Integer recipeId){
+//        LOGGER.info("findRecipeOrdersByInfoForExcelNT查询处方订单导出信息入参:{},{},{},{},{},{},{},{},{},{},{},{}",organId, organIds, status, doctor, patientName, bDate, eDate, dateType, depart, giveMode, fromflag, recipeId);
+//        IRecipeService recipeService = RecipeAPI.getService(IRecipeService.class);
+//        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+//        List<Map> recipeMap = recipeDAO.findRecipesByInfoForExcelN(organId, status, doctor, patientName, bDate, eDate, dateType, depart, organIds, giveMode, fromflag, recipeId);
+//
+//        //组装数据准备
+//        Object nowRecipeId;
+//        RecipeOrder order;
+//        List<Map> newRecipeMap = new ArrayList<>();
+//        Map<String, Object> recipeMsgMap;
+//        CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
+//
+//        //组装处方相关联的数据
+//
+//        LOGGER.info("当前查询出来条数：{}", recipeMap.size());
+//        for(Map<String, Object> recipeMsg: recipeMap){
+//            nowRecipeId = recipeMsg.get("recipeId");
+//            if(null != nowRecipeId){
+//                try {
+//                    //订单数据
+//                    order = (RecipeOrder)recipeMsg.get("recipeOrder");
+//
+//                    recipeMsgMap = new HashMap();
+//                    recipeMsgMap.putAll(recipeMsg);
+//                    recipeAndOrderMsg(order, commonRemoteService, recipeMsgMap);
+//                    recipeMsgMap.put("recipeOrder",null);
+//                    newRecipeMap.add(recipeMsgMap);
+//
+//                } catch (Exception e) {
+//                    LOGGER.error("查询关联信息异常{}，对应的处方id{}", e, nowRecipeId);
+//                    e.printStackTrace();
+//                    throw new DAOException("查询处方信息异常！");
+//                }
+//            }
+//        }
+//        LOGGER.info("findRecipeOrdersByInfoForExcelNT查询处方订单导出信息结果:{}", newRecipeMap);
+//        return newRecipeMap;
+//    }
 
     @RpcService
     @Override
@@ -1150,4 +1196,21 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return true;
     }
 
+
+    @Override
+    public List<EnterpriseRecipeDetailResponse> findRecipesPharmaceuticalDetailsByInfoForExcel(EnterpriseRecipeDetailExcelRequest req) {
+        return null;
+    }
+
+    @Override
+    public List<RecipeAccountCheckDetailResponse> findRecipesAccountCheckDetailsByInfoForExcel(RecipeAccountCheckDetailExcelRequest req) {
+        return null;
+    }
+
+    @Override
+    public List<RecipeHisAccountCheckResponse> recipeHisAccountCheckList(RecipeReportFormsRequest request) {
+        RecipeReportFormsService reportFormsService = ApplicationUtils.getRecipeService(RecipeReportFormsService.class);
+        Map<String, Object> result = reportFormsService.recipeHisAccountCheckList(request);
+        return null != result ? (List<RecipeHisAccountCheckResponse>)result.get("date") : new ArrayList<RecipeHisAccountCheckResponse>();
+    }
 }

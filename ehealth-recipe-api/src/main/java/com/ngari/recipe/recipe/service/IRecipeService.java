@@ -13,6 +13,7 @@ import com.ngari.recipe.drugsenterprise.model.ThirdResultBean;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
+import com.ngari.recipe.recipereportform.model.*;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
 
@@ -482,4 +483,14 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     Integer scanStockEnterpriseForHis(Map<String, Object> paramMap);
+
+    @RpcService
+    List<EnterpriseRecipeDetailResponse> findRecipesPharmaceuticalDetailsByInfoForExcel(EnterpriseRecipeDetailExcelRequest req);
+
+    @RpcService
+    List<RecipeAccountCheckDetailResponse> findRecipesAccountCheckDetailsByInfoForExcel(RecipeAccountCheckDetailExcelRequest req);
+
+    @RpcService
+    List<RecipeHisAccountCheckResponse> recipeHisAccountCheckList(RecipeReportFormsRequest request);
+
 }

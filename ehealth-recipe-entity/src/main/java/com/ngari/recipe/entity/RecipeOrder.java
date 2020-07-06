@@ -298,6 +298,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "配送主体类型 1 药企配送 2 医院配送")
     private Integer sendType;
 
+    @ItemProperty(alias = "支付用户类型:0平台，1机构，2药企")
+    private Integer payeeCode;
+
     @Column(name = "cancelReason")
     public String getCancelReason() {
         return cancelReason;
@@ -329,6 +332,14 @@ public class RecipeOrder implements Serializable {
         this.setLastModifyTime(now);
         this.setAuditFee(zero);
         this.setOtherFee(zero);
+    }
+
+    public Integer getPayeeCode() {
+        return payeeCode;
+    }
+
+    public void setPayeeCode(Integer payeeCode) {
+        this.payeeCode = payeeCode;
     }
 
     public String getCouponDesc() {
