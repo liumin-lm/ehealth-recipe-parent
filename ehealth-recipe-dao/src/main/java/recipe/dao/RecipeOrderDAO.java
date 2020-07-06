@@ -1067,10 +1067,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         HibernateStatelessResultAction<List<RecivedDispatchedBalanceResponse>> action = new AbstractHibernateStatelessResultAction<List<RecivedDispatchedBalanceResponse>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder sql = new StringBuilder("SELECT  OrganId,enterpriseName, lastBalance, thisRecived, thisDispatched, lastBalance+thisRecived-thisDispatched from (" +
+                StringBuilder sql = new StringBuilder("SELECT OrganId,enterpriseName, lastBalance, thisRecived, thisDispatched, lastBalance+thisRecived-thisDispatched from(" +
                         "select d.Name enterpriseName,c.OrganId,sum(if(c.status !=5 and c.PayTime < :startTime,ActualPrice,0.00)) lastBalance,sum( if(c.PayTime between :startTime and :endTime , ActualPrice,0.00) ) thisRecived,sum(if(c.status =5 and c.PayTime between :startTime and :endTime  , ActualPrice,0.00)) thisDispatched");
                 StringBuilder searchSql = new StringBuilder(" from cdr_recipeorder c, cdr_drugsenterprise d where c.EnterpriseId = d.Id and c.OrganId in :organIdList and c.payflag = 1 and c.Effective =1 AND c.PayTime between :startTime and :endTime GROUP BY c.EnterpriseId) t");
-                StringBuilder searchCountSql = new StringBuilder(" from cdr_recipeorder c, cdr_drugsenterprise d where c.EnterpriseId = d.Id and c.OrganId in :organIdList and c.payflag = 1 and c.Effective =1 AND c.PayTime between :startTime and :endTime");
                 Query query = ss.createSQLQuery(sql.append(searchSql).toString());
                 query.setParameter("startTime", startTime);
                 query.setParameter("endTime", endTime);
@@ -1078,8 +1077,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
 
-                StringBuilder countSql = new StringBuilder("select count(*)");
-                Query countQuery = ss.createSQLQuery(countSql.append(searchCountSql).toString());
+                StringBuilder countSql = new StringBuilder("select count(*) from(select count(c.EnterpriseId)");
+                Query countQuery = ss.createSQLQuery(countSql.append(searchSql).toString());
                 countQuery.setParameter("startTime", startTime);
                 countQuery.setParameter("endTime", endTime);
                 countQuery.setParameterList("organIdList", organIdList);
@@ -1129,8 +1128,14 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         " INNER JOIN cdr_recipe_ext cre ON er.RecipeID = cre.RecipeID" +
                         " WHERE er.clinicOrgan IN :organIdList" +
                         " AND YEAR(ero.PayTime) =:year and MONTH(ero.PayTime) =:month" +
-                        " GROUP BY er.ClinicOrgan" +
-                        " ORDER BY er.ClinicOrgan");
+                        " GROUP BY er.ClinicOrgan ORDER BY er.ClinicOrgan");
+                String queryCount = new String(" FROM cdr_recipe er" +
+                        " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode" +
+                        " INNER JOIN cdr_drugsenterprise ds ON ero.enterpriseId = ds.id AND ds.sendType = 2" +
+                        " INNER JOIN cdr_recipe_ext cre ON er.RecipeID = cre.RecipeID" +
+                        " WHERE er.clinicOrgan IN :organIdList" +
+                        " AND YEAR(ero.PayTime) =:year and MONTH(ero.PayTime) =:month" +
+                        " GROUP BY er.ClinicOrgan ORDER BY er.ClinicOrgan) t");
                 Query query = ss.createSQLQuery(queryhql.append(sql).toString());
                 query.setParameter("year", year);
                 query.setParameter("month", month);
@@ -1138,8 +1143,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
 
-                StringBuilder countSql = new StringBuilder("SELECT count(*)");
-                Query countQuery = ss.createSQLQuery(countSql.append(sql).toString());
+                StringBuilder countSql = new StringBuilder("select count(*) from(select count(er.ClinicOrgan)");
+                Query countQuery = ss.createSQLQuery(countSql.append(queryCount).toString());
                 countQuery.setParameter("year", year);
                 countQuery.setParameter("month", month);
                 countQuery.setParameterList("organIdList", organIdList);
@@ -1195,7 +1200,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         " INNER JOIN cdr_recipe_ext cre ON er.RecipeID = cre.RecipeID " +
                         " WHERE er.clinicOrgan in :organIdList" +
                         " AND ero.paytime BETWEEN :startTime AND :endTime");
-                if (null != request.getRecipeId()) {
+                if (StringUtils.isNotEmpty(request.getRecipeId())) {
                     sql.append(" And er.recipeId =:recipeId");
                 }
                 if (StringUtils.isNotEmpty(request.getMpiId())) {
@@ -1210,7 +1215,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 query.setMaxResults(request.getLimit());
                 query.setParameter("startTime", request.getStartTime());
                 query.setParameter("endTime", request.getEndTime());
-                if (null != request.getRecipeId()) {
+                if (StringUtils.isNotEmpty(request.getRecipeId())) {
                     query.setParameter("recipeId", request.getRecipeId());
                 }
                 if (StringUtils.isNotEmpty(request.getMpiId())) {
@@ -1225,7 +1230,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 countQuery.setParameterList("organIdList", request.getOrganIdList());
                 countQuery.setParameter("startTime", request.getStartTime());
                 countQuery.setParameter("endTime", request.getEndTime());
-                if (null != request.getRecipeId()) {
+                if (StringUtils.isNotEmpty(request.getRecipeId())) {
                     countQuery.setParameter("recipeId", request.getRecipeId());
                 }
                 if (StringUtils.isNotEmpty(request.getMpiId())) {
@@ -1244,6 +1249,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         response.setTotal(total);
                         response.setRecipeId(ConversionUtils.convert(item[0], Integer.class));
                         response.setPatientName(ConversionUtils.convert(item[1], String.class));
+                        response.setMpiId(ConversionUtils.convert(item[2], String.class));
                         response.setPayDate(ConversionUtils.convert(item[3], Date.class));
                         response.setTotalFee(ConversionUtils.convert(item[4], BigDecimal.class));
                         response.setDrugFee(ConversionUtils.convert(item[5], BigDecimal.class));
@@ -1276,11 +1282,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 StringBuilder queryhql = new StringBuilder("SELECT c.OrganId,r.organName,d.`Name`, COUNT(c.OrderId), SUM(c.ActualPrice), SUM(c.RecipeFee), IFNULL(SUM(IF(c.expressFeePayWay in (2,3),0,c.ExpressFee)),0), 0");
                 StringBuilder sql = new StringBuilder(" from cdr_recipeorder c, cdr_drugsenterprise d, cdr_recipe r" +
                         " where c.EnterpriseId = d.Id and c.OrderCode = r.OrderCode and r.GiveMode =1 and c.payflag = 1 and c.Effective =1 and c.payeeCode in (1,2) " +
-                        " and YEAR(c.PayTime) =:year and MONTH(c.PayTime) =:month and c.OrganId =:organIdList");
+                        " and YEAR(c.PayTime) =:year and MONTH(c.PayTime) =:month and c.OrganId =:organIdList GROUP BY c.OrganId,c.EnterpriseId");
                 if(null != request.getEnterpriseId()){
                     sql.append(" and c.EnterpriseId =:enterpriseId");
                 }
-                sql.append(" GROUP BY c.OrganId,c.EnterpriseId");
                 StringBuilder querySql = queryhql.append(sql);
                 Query query = ss.createSQLQuery(querySql.toString());
                 query.setParameterList("organIdList", request.getOrganIdList());
@@ -1293,8 +1298,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 }
                 List<Object[]> queryList = query.list();
 
-                StringBuilder countSql = new StringBuilder("SELECT count(*)");
-                Query countQuery = ss.createSQLQuery(countSql.append(sql).toString());
+                StringBuilder countSql = new StringBuilder("select count(*) from(select count(c.EnterpriseId)");
+                Query countQuery = ss.createSQLQuery(countSql.append(sql).append(")t").toString());
                 countQuery.setParameterList("organIdList", request.getOrganIdList());
                 countQuery.setParameter("year", request.getYear());
                 countQuery.setParameter("month", request.getMonth());
@@ -1391,6 +1396,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         return action.getResult();
     }
 
+    //当前接口不需要进行分页
     public List<RecipeHisAccountCheckResponse> findRecipeHisAccountCheckList(final RecipeReportFormsRequest request) {
         if (CollectionUtils.isEmpty(request.getOrganIdList())) {
             return Collections.emptyList();
@@ -1403,48 +1409,53 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         "cr.GiveMode,cro.paytime,IFNULL(cro.TotalFee,0.00),IFNULL(ret.fundAmount,0.00),IFNULL(cro.TotalFee,0.00) - IFNULL(ret.fundAmount,0.00),cr.RecipeCode,cro.outTradeNo,cr.ClinicOrgan");
                 StringBuilder sql = new StringBuilder(" FROM cdr_recipe cr" +
                         " INNER JOIN cdr_recipeorder cro ON cr.orderCode = cro.ordercode" +
-                        " INNER JOIN cdr_recipe_ext ret ON cr.recipeId = ret.recipeId" +
-                        " WHERE cro.paytime BETWEEN :startTime AND :endTime AND cro.OrganId in :organIdList");
+                        " INNER JOIN cdr_recipe_ext ret ON cr.recipeId = ret.recipeId ");
+                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                    sql.append(" AND cro.OrganId in :organIdList ");
+                }
                 if(null != request.getBuyMedicWay()){
                     sql.append(" and cr.GiveMode =:giveMode");
                 }
 //                sql.append(" GROUP BY c.OrganId,c.EnterpriseId");
                 StringBuilder querySql = queryhql.append(sql);
                 Query query = ss.createSQLQuery(querySql.toString());
-                query.setParameterList("organIdList", request.getOrganIdList());
-                query.setFirstResult(request.getStart());
-                query.setMaxResults(request.getLimit());
+                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                    query.setParameterList("organIdList", request.getOrganIdList());
+                }
                 query.setParameter("startTime", request.getStartTime());
                 query.setParameter("endTime", request.getEndTime());
-                if(null != request.getBuyMedicWay()){
+                if(StringUtils.isNotEmpty(request.getBuyMedicWay())){
                     query.setParameter("giveMode", request.getBuyMedicWay());
                 }
 
                 //count
-                Query countQuery = ss.createSQLQuery(countSql.append(sql).toString());
-                countQuery.setParameterList("organIdList", request.getOrganIdList());
-                countQuery.setParameter("startTime", request.getStartTime());
-                countQuery.setParameter("endTime", request.getEndTime());
-                if(null != request.getBuyMedicWay()){
-                    countQuery.setParameter("giveMode", request.getBuyMedicWay());
-                }
-                Long count = ConversionUtils.convert(countQuery.uniqueResult(),Long.class);
+//                Query countQuery = ss.createSQLQuery(countSql.append(sql).toString());
+//                countQuery.setParameterList("organIdList", request.getOrganIdList());
+//                countQuery.setParameter("startTime", request.getStartTime());
+//                countQuery.setParameter("endTime", request.getEndTime());
+//                if(null != request.getBuyMedicWay()){
+//                    countQuery.setParameter("giveMode", request.getBuyMedicWay());
+//                }
+//                Long count = ConversionUtils.convert(countQuery.uniqueResult(),Long.class);
 
                 List<Object[]> queryList = query.list();
-                List<RecipeHisAccountCheckResponse> resultList = new ArrayList<>(request.getLimit());
+                List<RecipeHisAccountCheckResponse> resultList = new ArrayList<>();
                 if (CollectionUtils.isNotEmpty(queryList)) {
                     for (Object[] item : queryList) {
                         RecipeHisAccountCheckResponse response = new RecipeHisAccountCheckResponse();
                         response.setRecipeId(ConversionUtils.convert(item[0],Integer.class));
                         response.setPatientName(ConversionUtils.convert(item[1],String.class));
+                        response.setMpiId(ConversionUtils.convert(item[2],String.class));
                         response.setBuyMedicineWay(ConversionUtils.convert(item[3],String.class));
+                        response.setGiverMode(ConversionUtils.convert(item[4],Integer.class));
                         response.setPayDate(ConversionUtils.convert(item[5],Date.class));
                         response.setTotalFee(ConversionUtils.convert(item[6],BigDecimal.class));
                         response.setMedicalInsurancePlanningFee(ConversionUtils.convert(item[7],BigDecimal.class));
                         response.setSelfPayFee(ConversionUtils.convert(item[8],BigDecimal.class));
                         response.setHisRecipeId(ConversionUtils.convert(item[9], String.class));
                         response.setTradeNo(ConversionUtils.convert(item[10], String.class));
-                        response.setTotal(count);
+                        response.setOrganId(ConversionUtils.convert(item[11], Integer.class));
+                        //response.setTotal(count);
                         resultList.add(response);
                     }
                 }

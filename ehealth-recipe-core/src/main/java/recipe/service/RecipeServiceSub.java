@@ -28,6 +28,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.audit.model.AuditMedicineIssueDTO;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
+import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
@@ -234,24 +235,30 @@ public class RecipeServiceSub {
             recipe.setActualPrice(totalMoney);
         }
 
-        //保存开处方时的单位剂量【规格单位】|单位【规格单位】|单位剂量【最小单位】|单位【最小单位】,各个字段用|隔开
-        for (Recipedetail detail : details) {
-            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-            OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndDrugId(recipe.getClinicOrgan(), detail.getDrugId());
-            String unitDoseForSpecificationUnit="";
-            String unitForSpecificationUnit="";
-            String unitDoseForSmallUnit="";
-            String unitForSmallUnit="";
-            String drugUnitdoseAndUnit="";
-            if(organDrugList!=null){
-                unitDoseForSpecificationUnit=organDrugList.getUseDose()==null?"":organDrugList.getUseDose().toString();
-                unitForSpecificationUnit=organDrugList.getUseDoseUnit()==null?"":organDrugList.getUseDoseUnit();
-                unitDoseForSmallUnit=organDrugList.getSmallestUnitUseDose()==null?"":organDrugList.getSmallestUnitUseDose().toString();
-                unitForSmallUnit=organDrugList.getUseDoseSmallestUnit()==null?"":organDrugList.getUseDoseSmallestUnit();
+        //保存开处方时的单位剂量【规格单位】，单位【规格单位】，单位剂量【最小单位】，单位【最小单位】,以json对象的方式存储
+        LOGGER.info("setReciepeDetailsInfo recipedetails:{}",JSONUtils.toString(details));
+        if(details!=null&&details.size()>0) {
+            for (Recipedetail detail : details) {
+                OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+                OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCode(recipe.getClinicOrgan(), detail.getOrganDrugCode());
+                String unitDoseForSpecificationUnit = "";
+                String unitForSpecificationUnit = "";
+                String unitDoseForSmallUnit = "";
+                String unitForSmallUnit = "";
+                Map<String, String> drugUnitdoseAndUnitMap = new HashMap<>();
+                if (organDrugList != null) {
+                    unitDoseForSpecificationUnit = organDrugList.getUseDose() == null ? "" : organDrugList.getUseDose().toString();
+                    unitForSpecificationUnit = organDrugList.getUseDoseUnit() == null ? "" : organDrugList.getUseDoseUnit();
+                    unitDoseForSmallUnit = organDrugList.getSmallestUnitUseDose() == null ? "" : organDrugList.getSmallestUnitUseDose().toString();
+                    unitForSmallUnit = organDrugList.getUseDoseSmallestUnit() == null ? "" : organDrugList.getUseDoseSmallestUnit();
+                }
+                drugUnitdoseAndUnitMap.put("unitDoseForSpecificationUnit", unitDoseForSpecificationUnit);
+                drugUnitdoseAndUnitMap.put("unitForSpecificationUnit", unitForSpecificationUnit);
+                drugUnitdoseAndUnitMap.put("unitDoseForSmallUnit", unitDoseForSmallUnit);
+                drugUnitdoseAndUnitMap.put("unitForSmallUnit", unitForSmallUnit);
+                LOGGER.info("setReciepeDetailsInfo drugUnitdoseAndUnitMap:{}", JSONUtils.writeValueAsString(drugUnitdoseAndUnitMap));
+                detail.setDrugUnitdoseAndUnit(JSONUtils.toString(drugUnitdoseAndUnitMap));
             }
-            drugUnitdoseAndUnit=unitDoseForSpecificationUnit+"|"+unitForSpecificationUnit+"|"+unitDoseForSmallUnit+"|"+unitForSmallUnit;
-            LOGGER.info("setReciepeDetailsInfo drugUnitdoseAndUnit:{}",drugUnitdoseAndUnit);
-            detail.setDrugUnitdoseAndUnit(drugUnitdoseAndUnit);
         }
         LOGGER.info("setReciepeDetailsInfo recipedetails:{}",JSONUtils.toString(details));
     }
@@ -910,12 +917,12 @@ public class RecipeServiceSub {
         if (!patientIds.isEmpty()) {
             patientList = patientService.findByMpiIdIn(patientIds);
         }
-        Map<String, PatientDTO> patientMap = Maps.newHashMap();
+        Map<String, PatientVO> patientMap = Maps.newHashMap();
         if (null != patientList && !patientList.isEmpty()) {
             for (PatientDTO patient : patientList) {
                 //设置患者数据
                 setPatientMoreInfo(patient, doctorId);
-                patientMap.put(patient.getMpiId(), convertPatientForRAP(patient));
+                patientMap.put(patient.getMpiId(), convertSensitivePatientForRAP(patient));
             }
         }
 
@@ -1284,8 +1291,46 @@ public class RecipeServiceSub {
         patient.setLabelNames(labelNames);
     }
 
+    /**
+    * 兼容脱敏，做预备方案
+    * @author zhangx
+    * @create 2020-07-06 10:46
+    * @param patient
+    * @return
+    **/
+    @Deprecated
     public static PatientDTO convertPatientForRAP(PatientDTO patient) {
         PatientDTO p = new PatientDTO();
+        p.setPatientName(patient.getPatientName());
+        p.setPatientSex(patient.getPatientSex());
+        p.setBirthday(patient.getBirthday());
+        p.setPatientType(patient.getPatientType());
+        p.setIdcard(patient.getCertificate());
+        p.setStatus(patient.getStatus());
+//        p.setMobile(patient.getMobile());
+        p.setMpiId(patient.getMpiId());
+        p.setPhoto(patient.getPhoto());
+        p.setSignFlag(patient.getSignFlag());
+        p.setRelationFlag(patient.getRelationFlag());
+        p.setLabelNames(patient.getLabelNames());
+        p.setGuardianFlag(patient.getGuardianFlag());
+        p.setGuardianCertificate(patient.getGuardianCertificate());
+        p.setGuardianName(patient.getGuardianName());
+        p.setAge(null == patient.getBirthday() ? 0 : DateConversion.getAge(patient.getBirthday()));
+        return p;
+    }
+
+    /**
+    * 医生端信息脱敏：对身份证，手机号进行脱敏，返回前端对象使用PatientVO
+     * 患者端脱敏需求（脱敏身份证，手机号，姓名）：返回前端对象使用PatientDS，医生app4.1.7、健康端5.1、医生PC5.2、运营平台4.9、健康app2.8,
+     *
+    * @author zhangx
+    * @create   14:43
+    * @param patient
+    * @return
+    **/
+    public static PatientVO convertSensitivePatientForRAP(PatientDTO patient) {
+        PatientVO p = new PatientVO();
         p.setPatientName(patient.getPatientName());
         p.setPatientSex(patient.getPatientSex());
         p.setBirthday(patient.getBirthday());

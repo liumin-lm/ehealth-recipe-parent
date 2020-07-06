@@ -1,6 +1,7 @@
 package recipe.service.recipereportforms;
 
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.recipereportform.model.*;
@@ -121,14 +122,27 @@ public class RecipeReportFormsService {
     @RpcService
     public Map<String, Object> recipeAccountCheckDetailList(RecipeReportFormsRequest request) {
         Map<String, Object> resultMap = new HashMap<>();
-        Args.notNull(request.getMonth(), "month");
-        Args.notNull(request.getYear(), "year");
+        Args.notNull(request.getStartTime(), "startTime");
+        Args.notNull(request.getEndTime(), "endTime");
         Args.notNull(request.getStart(), "start");
         Args.notNull(request.getLimit(), "limit");
         List<Integer> organIdList = getQueryOrganIdList(request);
         try {
             request.setOrganIdList(organIdList);
             List<RecipeAccountCheckDetailResponse> responses = recipeOrderDAO.findRecipeAccountCheckDetailList(request);
+            PatientService patientService = BasicAPI.getService(PatientService.class);
+            PatientDTO patientDTO;
+            for(RecipeAccountCheckDetailResponse recipeAccountCheckDetailResponse : responses){
+                if(null != recipeAccountCheckDetailResponse.getMpiId()){
+                    patientDTO = patientService.getPatientBeanByMpiId(recipeAccountCheckDetailResponse.getMpiId());
+                    if(null != patientDTO){
+                        recipeAccountCheckDetailResponse.setPatientName(patientDTO.getPatientName() + "\n" + patientDTO.getMobile());
+                    }else{
+                        LOGGER.error("recipeHisAccountCheckList 当前患者{}不存在", recipeAccountCheckDetailResponse.getMpiId());
+                    }
+                }
+
+            }
             if (CollectionUtils.isNotEmpty(responses)) {
                 resultMap.put("total", responses.get(0).getTotal());
             } else {
@@ -214,16 +228,22 @@ public class RecipeReportFormsService {
         Map<String, Object> resultMap = new HashMap<>();
         Args.notNull(request.getStartTime(), "startTime");
         Args.notNull(request.getEndTime(), "endTime");
-        Args.notNull(request.getStart(), "start");
-        Args.notNull(request.getLimit(), "limit");
         List<Integer> organIdList = getQueryOrganIdList(request);
         request.setOrganIdList(organIdList);
         try {
             List<RecipeHisAccountCheckResponse> responses = recipeOrderDAO.findRecipeHisAccountCheckList(request);
-            if (CollectionUtils.isNotEmpty(responses)) {
-                resultMap.put("total", responses.get(0).getTotal());
-            } else {
-                resultMap.put("total", 0);
+            PatientService patientService = BasicAPI.getService(PatientService.class);
+            PatientDTO patientDTO;
+            for(RecipeHisAccountCheckResponse recipeHisAccountCheckResponse : responses){
+                if(null != recipeHisAccountCheckResponse.getMpiId()){
+                    patientDTO = patientService.getByMpiId(recipeHisAccountCheckResponse.getMpiId());
+                    if(null != patientDTO){
+                        recipeHisAccountCheckResponse.setPatientName(patientDTO.getPatientName() + "\n" + patientDTO.getMobile());
+                    }else{
+                        LOGGER.error("recipeHisAccountCheckList 当前患者{}不存在", recipeHisAccountCheckResponse.getMpiId());
+                    }
+                }
+
             }
             resultMap.put("data", responses);
         } catch (Exception e) {

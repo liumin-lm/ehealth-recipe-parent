@@ -18,13 +18,11 @@ import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
-import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
-import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.ds.PatientDS;
@@ -32,14 +30,12 @@ import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.LocalStringUtil;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.platform.recipe.mode.QueryRecipeInfoHisDTO;
 import com.ngari.recipe.audit.model.AuditMedicinesDTO;
+import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import com.ngari.recipe.hisprescription.model.QueryPlatRecipeInfoByDateDTO;
-import com.ngari.recipe.hisprescription.model.QueryRecipeResultDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderInfoBean;
@@ -59,7 +55,6 @@ import ctd.util.event.GlobalEventExecFactory;
 import eh.base.constant.ErrorCode;
 import eh.base.constant.PageConstant;
 import eh.cdr.constant.OrderStatusConstant;
-import eh.utils.*;
 import eh.utils.params.ParamUtils;
 import eh.utils.params.ParameterConstant;
 import eh.wxpay.constant.PayConstant;
@@ -90,19 +85,16 @@ import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
-import recipe.hisservice.QueryRecipeService;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.purchase.PurchaseService;
 import recipe.recipecheck.PlatRecipeCheckService;
 import recipe.service.common.RecipeCacheService;
+import recipe.service.common.RecipeSignService;
 import recipe.sign.SignRecipeInfoService;
 import recipe.thread.*;
 import recipe.util.*;
-import recipe.util.ChinaIDNumberUtil;
-import recipe.util.DateConversion;
-import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -2038,22 +2030,33 @@ public class RecipeService extends RecipeBaseService {
         LOGGER.info("doSignRecipeNew param: recipeBean={} detailBean={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList));
         //将密码放到redis中
         redisClient.set("caPassword", recipeBean.getCaPassword());
-        Map<String, Object> rMap = null;
+        Map<String, Object> rMap = new HashMap<String, Object>();
+        rMap.put("signResult", true);
         try {
+            recipeBean.setDistributionFlag(continueFlag);
             //上海肺科个性化处理--智能审方重要警示弹窗处理
             doforShangHaiFeiKe(recipeBean, detailBeanList);
             //第一步暂存处方（处方状态未签名）
             doSignRecipeSave(recipeBean, detailBeanList);
-            //第二步预校验
-            if(continueFlag == 0 && continueFlag == 4){
 
+            //第二步预校验
+            if(continueFlag == 0){
+                //his处方预检查
+                RecipeSignService recipeSignService = AppContextHolder.getBean("eh.recipeSignService", RecipeSignService.class);
+                boolean b = recipeSignService.hisRecipeCheck(rMap, recipeBean);
+                if (!b){
+                    rMap.put("signResult", false);
+                    rMap.put("recipeId", recipeBean.getRecipeId());
+                    rMap.put("errorFlag", true);
+                    return rMap;
+                }
             }
             //第三步校验库存
-            if(-1 < continueFlag && continueFlag <= 4){
+            if(continueFlag == 0 || continueFlag == 4){
                 rMap = doSignRecipeCheck(recipeBean);
-                continueFlag = Integer.valueOf(rMap.get("canContinueFlag").toString());
-                if("-1".equals(rMap.get("canContinueFlag")+"")){
-
+                Boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
+                if(signResult != null && false == signResult){
+                    return rMap;
                 }
             }
             //第四步签名（发送his前更新处方状态---医院确认中）
@@ -2084,13 +2087,13 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.error("doSignRecipeNew error", e);
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
         }
-        LOGGER.info("doSignRecipeNew execute ok! rMap:" + JSONUtils.toString(rMap));
 
         rMap.put("signResult", true);
         rMap.put("recipeId", recipeBean.getRecipeId());
         rMap.put("consultId", recipeBean.getClinicId());
         rMap.put("errorFlag", false);
-        LOGGER.info("doSignRecipe execute ok! rMap:" + JSONUtils.toString(rMap));
+        rMap.put("canContinueFlag", "0");
+        LOGGER.info("doSignRecipeNew execute ok! rMap:" + JSONUtils.toString(rMap));
         return rMap;
     }
 
@@ -2161,6 +2164,14 @@ public class RecipeService extends RecipeBaseService {
         if(null != payModeDeploy){
             List<String> configurations = new ArrayList<>(Arrays.asList((String[])payModeDeploy));
             //收集按钮信息用于判断校验哪边库存 0是什么都没有，1是指配置了到院取药，2是配置到药企相关，3是医院药企都配置了
+            if(configurations == null || configurations.size() == 0){
+                rMap.put("signResult", false);
+                rMap.put("errorFlag", true);
+                rMap.put("msg", "抱歉，机构未配置购药方式，无法开处方。");
+                rMap.put("canContinueFlag", "-1");
+                LOGGER.info("doSignRecipeCheck recipeId={},msg={}",recipeId,rMap.get("msg"));
+                return rMap;
+            }
             for (String configuration : configurations) {
                 switch (configuration){
                     case "supportTFDS":
@@ -2181,6 +2192,13 @@ public class RecipeService extends RecipeBaseService {
                 }
 
             }
+        } else {
+            rMap.put("signResult", false);
+            rMap.put("errorFlag", true);
+            rMap.put("msg", "抱歉，机构未配置购药方式，无法开处方。");
+            rMap.put("canContinueFlag", "-1");
+            LOGGER.info("doSignRecipeCheck recipeId={},msg={}",recipeId,rMap.get("msg"));
+            return rMap;
         }
 
         rMap.put("recipeId", recipeId);
@@ -2284,14 +2302,14 @@ public class RecipeService extends RecipeBaseService {
                     rMap.put("errorFlag", true);
                     rMap.put("canContinueFlag", "2");
                     rMap.put("msg", "由于该处方单上的药品配送药企库存不足，该处方仅支持到院取药，无法药企配送，是否继续？");
-                    LOGGER.info("doSignRecipe recipeId={},msg={}",recipeId,rMap.get("msg"));
+                    LOGGER.info("doSignRecipeCheck recipeId={},msg={}",recipeId,rMap.get("msg"));
                     return rMap;
                 }
                 break;
         }
         rMap.put("signResult", true);
         rMap.put("errorFlag", false);
-        LOGGER.info("doSignRecipe execute ok! rMap:" + JSONUtils.toString(rMap));
+        LOGGER.info("doSignRecipeCheck execute ok! rMap:" + JSONUtils.toString(rMap));
         return rMap;
     }
 
@@ -2948,7 +2966,12 @@ public class RecipeService extends RecipeBaseService {
     public Map<String, Object> findRecipeAndDetailById(int recipeId) {
         //bug#30596医生患者电子病历下方处方单，点击非本医生开具的处方单，打开页面显示错误----去掉越权
         /*checkUserHasPermission(recipeId);*/
-        return RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, true);
+
+        Map<String, Object> result = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, true);
+        PatientDTO patient = (PatientDTO) result.get("patient");
+        result.put("patient", ObjectCopyUtils.convert(patient, PatientVO.class));
+
+        return result;
     }
 
     /**

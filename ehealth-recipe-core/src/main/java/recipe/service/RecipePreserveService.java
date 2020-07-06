@@ -38,7 +38,6 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.formula.functions.T;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +65,7 @@ import java.math.BigDecimal;
 import java.util.*;
 
 import static ctd.persistence.DAOFactory.getDAO;
-import static recipe.service.RecipeServiceSub.convertPatientForRAP;
+import static recipe.service.RecipeServiceSub.convertSensitivePatientForRAP;
 
 
 /**
@@ -241,7 +240,7 @@ public class RecipePreserveService {
             recipes.add(recipeBean);
         }
         result.put("hisRecipe",recipes);
-        result.put("patient",convertPatientForRAP(patientDTO));
+        result.put("patient",convertSensitivePatientForRAP(patientDTO));
         return result;
     }
 
