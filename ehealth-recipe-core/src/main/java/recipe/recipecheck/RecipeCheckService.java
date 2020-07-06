@@ -399,6 +399,7 @@ public class RecipeCheckService {
         DoctorDTO doctor = new DoctorDTO();
         try {
             doctor = doctorService.get(doctorId);
+            doctor.setIdNumber(hideIdCard(doctor.getIdNumber()));
 //            if (null != doctor) {
 //                doc.setMobile(doctor.getMobile());
 //            }
