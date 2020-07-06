@@ -169,7 +169,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @return
      */
     @RpcService
-    QueryResult<Map> findRecipesByInfo(RecipesQueryVO recipesQueryVO);
+    QueryResult<Map> findRecipesByInfo2(RecipesQueryVO recipesQueryVO);
 
 
     /**
