@@ -2038,18 +2038,19 @@ public class RecipeService extends RecipeBaseService {
         LOGGER.info("doSignRecipeNew param: recipeBean={} detailBean={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList));
         //将密码放到redis中
         redisClient.set("caPassword", recipeBean.getCaPassword());
-        Map<String, Object> rMap = null;
+        Map<String, Object> rMap = new HashMap<String, Object>();
+        rMap.put("signResult", true);
         try {
             //上海肺科个性化处理--智能审方重要警示弹窗处理
             doforShangHaiFeiKe(recipeBean, detailBeanList);
             //第一步暂存处方（处方状态未签名）
             doSignRecipeSave(recipeBean, detailBeanList);
             //第二步预校验
-            if(continueFlag == 0 || continueFlag == 4){
+            if(-1 < continueFlag && continueFlag < 4){
 
             }
             //第三步校验库存
-            if(-1 < continueFlag && continueFlag <= 4){
+            if(continueFlag == 0 || continueFlag == 4){
                 rMap = doSignRecipeCheck(recipeBean);
                 Boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
                 if(signResult != null && false == signResult){
@@ -2084,13 +2085,13 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.error("doSignRecipeNew error", e);
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
         }
-        LOGGER.info("doSignRecipeNew execute ok! rMap:" + JSONUtils.toString(rMap));
 
         rMap.put("signResult", true);
         rMap.put("recipeId", recipeBean.getRecipeId());
         rMap.put("consultId", recipeBean.getClinicId());
         rMap.put("errorFlag", false);
-        LOGGER.info("doSignRecipe execute ok! rMap:" + JSONUtils.toString(rMap));
+        rMap.put("canContinueFlag", "0");
+        LOGGER.info("doSignRecipeNew execute ok! rMap:" + JSONUtils.toString(rMap));
         return rMap;
     }
 
