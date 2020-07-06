@@ -2041,12 +2041,14 @@ public class RecipeService extends RecipeBaseService {
         Map<String, Object> rMap = new HashMap<String, Object>();
         rMap.put("signResult", true);
         try {
+            recipeBean.setDistributionFlag(continueFlag);
             //上海肺科个性化处理--智能审方重要警示弹窗处理
             doforShangHaiFeiKe(recipeBean, detailBeanList);
             //第一步暂存处方（处方状态未签名）
             doSignRecipeSave(recipeBean, detailBeanList);
+
             //第二步预校验
-            if(-1 < continueFlag && continueFlag < 4){
+            if(continueFlag == 0){
 
             }
             //第三步校验库存
@@ -2162,6 +2164,14 @@ public class RecipeService extends RecipeBaseService {
         if(null != payModeDeploy){
             List<String> configurations = new ArrayList<>(Arrays.asList((String[])payModeDeploy));
             //收集按钮信息用于判断校验哪边库存 0是什么都没有，1是指配置了到院取药，2是配置到药企相关，3是医院药企都配置了
+            if(configurations == null || configurations.size() == 0){
+                rMap.put("signResult", false);
+                rMap.put("errorFlag", true);
+                rMap.put("msg", "抱歉，机构未配置购药方式，无法开处方。");
+                rMap.put("canContinueFlag", "-1");
+                LOGGER.info("doSignRecipeCheck recipeId={},msg={}",recipeId,rMap.get("msg"));
+                return rMap;
+            }
             for (String configuration : configurations) {
                 switch (configuration){
                     case "supportTFDS":
@@ -2182,6 +2192,13 @@ public class RecipeService extends RecipeBaseService {
                 }
 
             }
+        } else {
+            rMap.put("signResult", false);
+            rMap.put("errorFlag", true);
+            rMap.put("msg", "抱歉，机构未配置购药方式，无法开处方。");
+            rMap.put("canContinueFlag", "-1");
+            LOGGER.info("doSignRecipeCheck recipeId={},msg={}",recipeId,rMap.get("msg"));
+            return rMap;
         }
 
         rMap.put("recipeId", recipeId);
