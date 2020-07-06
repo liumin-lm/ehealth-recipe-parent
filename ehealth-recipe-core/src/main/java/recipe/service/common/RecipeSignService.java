@@ -571,22 +571,41 @@ public class RecipeSignService {
         return rMap;
     }
 
-    private boolean hisRecipeCheck(Map<String, Object> rMap, RecipeBean recipeBean) {
+    public boolean hisRecipeCheck(Map<String, Object> rMap, RecipeBean recipeBean) {
         //判断机构是否需要his处方检查 ---运营平台机构配置
         try {
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
             Boolean hisRecipeCheckFlag = (Boolean)configurationService.getConfiguration(recipeBean.getClinicOrgan(), "hisRecipeCheckFlag");
+            Boolean allowContinueMakeFlag;
+            boolean checkResult;
             if(hisRecipeCheckFlag){
                 RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-                return hisService.hisRecipeCheck(rMap, recipeBean);
+                checkResult = hisService.hisRecipeCheck(rMap, recipeBean);
+                if(checkResult){
+                    rMap.put("allowContinue", 0);
+                }else{
+                    allowContinueMakeFlag = (Boolean)configurationService.getConfiguration(recipeBean.getClinicOrgan(), "allowContinueMakeRecipe ");
+                    //date 20200706
+                    //允许继续处方:不进行校验/进行校验且校验通过0 ，进行校验校验不通过允许通过1，进行校验校验不通过不允许通过2
+                    if(allowContinueMakeFlag){
+                        rMap.put("allowContinue", 1);
+                        rMap.put("allowContinueMsg", rMap.get("errorMsg"));
+                    }else{
+                        rMap.put("allowContinue", 2);
+                        rMap.put("allowContinueMsg", rMap.get("errorMsg"));
+                    }
+                }
+                return checkResult;
             }
         } catch (Exception e) {
             LOG.error("hisRecipeCheck error",e);
             rMap.put("signResult", false);
             rMap.put("errorFlag",true);
             rMap.put("errorMsg", "his处方检查异常");
+            rMap.put("allowContinue", 2);
             return false;
         }
+        rMap.put("allowContinue", 0);
         return true;
     }
 
