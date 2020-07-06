@@ -10,6 +10,8 @@ public class EnterpriseRecipeMonthSummaryResponse implements Serializable{
 
     private static final long serialVersionUID = 1971446018605579905L;
 
+    private Long total; //总计
+
     private Integer organId; //机构id
 
     private String organName; //机构名称

@@ -1,13 +1,16 @@
-package recipe.service.recipereportforms.bean;
+package com.ngari.recipe.recipereportform.model;
 
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class RecipeReportFormsRequest implements Serializable{
     private static final long serialVersionUID = -2063260885851045109L;
+
+    private List<Integer> organIdList;
 
     private Integer organId; //机构id
 
@@ -23,11 +26,17 @@ public class RecipeReportFormsRequest implements Serializable{
 
     private String patientName; //患者姓名
 
+    private String mpiId; //患者id
+
     private String tradeNo; //商户订单号
 
     private Integer enterpriseId; //药企
 
     private String buyMedicWay; //购药方式
+
+    private Integer start;
+
+    private Integer limit;
 
 
 }

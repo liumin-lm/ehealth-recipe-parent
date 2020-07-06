@@ -46,8 +46,6 @@ public class SaleDrugToolService implements ISaleDrugToolService {
     private static final Logger LOGGER = LoggerFactory.getLogger(SaleDrugToolService.class);
     private static final String SUFFIX_2003 = ".xls";
     private static final String SUFFIX_2007 = ".xlsx";
-    private double progress;
-    private RedisClient redisClient = RedisClient.instance();
 
     @Resource
     private DrugListDAO drugListDAO;
@@ -56,31 +54,13 @@ public class SaleDrugToolService implements ISaleDrugToolService {
     private SaleDrugListDAO saleDrugListDAO;
 
     @Resource
-    private OrganDrugListDAO organDrugListDAO;
-
-    @Resource
-    private OrganDrugListService organDrugListService;
-
-    @Resource
     private ImportDrugRecordDAO importDrugRecordDAO;
 
 
-    private LoadingCache<String, List<DrugList>> drugListCache = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(new CacheLoader<String, List<DrugList>>() {
-        @Override
-        public List<DrugList> load(String str) throws Exception {
-            return drugListDAO.findBySaleNameLike(str);
-        }
-    });
-
     @Override
-    public synchronized Map<String, Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator, String ossId) {
+    public Map<String, Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator, String ossId) {
         LOGGER.info(operator + "开始 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         StringBuilder errMsgAll = new StringBuilder();
-        progress = 0;
-        String key = organId + operator;
-        if (redisClient.exists(key)) {
-            redisClient.del(key);
-        }
         Map<String, Object> result = Maps.newHashMap();
         if (StringUtils.isEmpty(operator)) {
             result.put("code", 609);
@@ -205,7 +185,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 if (StringUtils.isEmpty(getStrFromCell(row.getCell(20)))) {
                     errMsg.append("价格不能为空").append(";");
                 }
-                    drug.setPrice(BigDecimal.valueOf(Integer.parseInt(getStrFromCell(row.getCell(20)))));
+                    drug.setPrice(BigDecimal.valueOf(Double.parseDouble(getStrFromCell(row.getCell(20)))));
                     drug.setRate(0.00);
                     drug.setRatePrice(Double.parseDouble(getStrFromCell(row.getCell(20))));
             } catch (Exception e) {
@@ -232,9 +212,6 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             } else {
                 drugLists.add(drug);
             }
-            progress = new BigDecimal((float) rowIndex / total).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
-            redisClient.set(organId + operator, progress * 100);
-//                    progressMap.put(organId+operator,progress*100);
         }
         if (errDrugListMatchList.size()>0){
 

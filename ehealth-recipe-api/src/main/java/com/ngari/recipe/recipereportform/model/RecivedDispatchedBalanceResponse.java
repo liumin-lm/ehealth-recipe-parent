@@ -9,6 +9,8 @@ import java.math.BigDecimal;
 public class RecivedDispatchedBalanceResponse implements Serializable{
     private static final long serialVersionUID = -2710572383200102535L;
 
+    private Long total; //总计
+
     private Integer organId;
 
     private String enterpriseName; //药企名称
