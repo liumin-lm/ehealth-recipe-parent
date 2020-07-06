@@ -40,7 +40,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * created by renfuhao on 2020/6/11
  */
-@RpcBean(value = "saleDrugToolService", mvc_authentication = false)
 public class SaleDrugToolService implements ISaleDrugToolService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SaleDrugToolService.class);
