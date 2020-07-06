@@ -233,6 +233,12 @@
             <version>2.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-message-api</artifactId>
+            <version>${ngari.message.version}</version>
+        </dependency>
+
     </dependencies>
     <profiles>
         <profile>
