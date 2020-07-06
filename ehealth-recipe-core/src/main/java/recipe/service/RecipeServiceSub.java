@@ -235,24 +235,30 @@ public class RecipeServiceSub {
             recipe.setActualPrice(totalMoney);
         }
 
-        //保存开处方时的单位剂量【规格单位】|单位【规格单位】|单位剂量【最小单位】|单位【最小单位】,各个字段用|隔开
-        for (Recipedetail detail : details) {
-            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-            OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCode(recipe.getClinicOrgan(), detail.getOrganDrugCode());
-            String unitDoseForSpecificationUnit="";
-            String unitForSpecificationUnit="";
-            String unitDoseForSmallUnit="";
-            String unitForSmallUnit="";
-            String drugUnitdoseAndUnit="";
-            if(organDrugList!=null){
-                unitDoseForSpecificationUnit=organDrugList.getUseDose()==null?"":organDrugList.getUseDose().toString();
-                unitForSpecificationUnit=organDrugList.getUseDoseUnit()==null?"":organDrugList.getUseDoseUnit();
-                unitDoseForSmallUnit=organDrugList.getSmallestUnitUseDose()==null?"":organDrugList.getSmallestUnitUseDose().toString();
-                unitForSmallUnit=organDrugList.getUseDoseSmallestUnit()==null?"":organDrugList.getUseDoseSmallestUnit();
+        //保存开处方时的单位剂量【规格单位】，单位【规格单位】，单位剂量【最小单位】，单位【最小单位】,以json对象的方式存储
+        LOGGER.info("setReciepeDetailsInfo recipedetails:{}",JSONUtils.toString(details));
+        if(details!=null&&details.size()>0) {
+            for (Recipedetail detail : details) {
+                OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+                OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCode(recipe.getClinicOrgan(), detail.getOrganDrugCode());
+                String unitDoseForSpecificationUnit = "";
+                String unitForSpecificationUnit = "";
+                String unitDoseForSmallUnit = "";
+                String unitForSmallUnit = "";
+                Map<String, String> drugUnitdoseAndUnitMap = new HashMap<>();
+                if (organDrugList != null) {
+                    unitDoseForSpecificationUnit = organDrugList.getUseDose() == null ? "" : organDrugList.getUseDose().toString();
+                    unitForSpecificationUnit = organDrugList.getUseDoseUnit() == null ? "" : organDrugList.getUseDoseUnit();
+                    unitDoseForSmallUnit = organDrugList.getSmallestUnitUseDose() == null ? "" : organDrugList.getSmallestUnitUseDose().toString();
+                    unitForSmallUnit = organDrugList.getUseDoseSmallestUnit() == null ? "" : organDrugList.getUseDoseSmallestUnit();
+                }
+                drugUnitdoseAndUnitMap.put("unitDoseForSpecificationUnit", unitDoseForSpecificationUnit);
+                drugUnitdoseAndUnitMap.put("unitForSpecificationUnit", unitForSpecificationUnit);
+                drugUnitdoseAndUnitMap.put("unitDoseForSmallUnit", unitDoseForSmallUnit);
+                drugUnitdoseAndUnitMap.put("unitForSmallUnit", unitForSmallUnit);
+                LOGGER.info("setReciepeDetailsInfo drugUnitdoseAndUnitMap:{}", JSONUtils.writeValueAsString(drugUnitdoseAndUnitMap));
+                detail.setDrugUnitdoseAndUnit(JSONUtils.toString(drugUnitdoseAndUnitMap));
             }
-            drugUnitdoseAndUnit=unitDoseForSpecificationUnit+"|"+unitForSpecificationUnit+"|"+unitDoseForSmallUnit+"|"+unitForSmallUnit;
-            LOGGER.info("setReciepeDetailsInfo drugUnitdoseAndUnit:{}",drugUnitdoseAndUnit);
-            detail.setDrugUnitdoseAndUnit(drugUnitdoseAndUnit);
         }
         LOGGER.info("setReciepeDetailsInfo recipedetails:{}",JSONUtils.toString(details));
     }
