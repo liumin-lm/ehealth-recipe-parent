@@ -309,8 +309,12 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @return
      */
     @RpcService(timeout = 600000)
+    @Deprecated
     List<Map> findRecipeOrdersByInfoForExcel(Integer organId, List<Integer> organIds, Integer status, Integer doctor, String patientName, Date bDate, Date eDate, Integer dateType,
-                                        Integer depart, Integer giveMode,Integer fromflag,Integer recipeId);
+                                             Integer depart, Integer giveMode, Integer fromflag, Integer recipeId);
+
+    @RpcService(timeout = 600000)
+    List<Map> findRecipeOrdersByInfoForExcel(RecipesQueryVO recipesQueryVO);
 
     @RpcService
     HashMap<Integer, Long> getCountGroupByOrgan();
