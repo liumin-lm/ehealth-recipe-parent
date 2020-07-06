@@ -53,6 +53,7 @@ import org.spockframework.util.CollectionUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.audit.auditmode.AuditModeContext;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.ca.CAInterface;
@@ -73,6 +74,7 @@ import recipe.recipecheck.RecipeCheckService;
 import recipe.service.*;
 import recipe.serviceprovider.BaseService;
 import recipe.thread.GenerateSignetRecipePdfRunable;
+import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
@@ -1169,12 +1171,23 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RecipeBusiThreadPool.execute(new GenerateSignetRecipePdfRunable(recipeId, organId));
     }
 
+    @Override
+    public void pushRecipeToRegulation(Integer recipeId, Integer status) {
+        //推送处方到监管平台(审核后数据)
+        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipeId, status));
+    }
+
     @RpcService
     @Override
     public List<RecipeBean> findRecipeByFlag(List<Integer> organ, int flag, int start, int limit) {
         List<Recipe> recipes = recipeDAO.findRecipeByFlag(organ, flag, start, limit);
-        List<RecipeBean> recipeBeans = null;
         //转换前端的展示实体类
+        List<RecipeBean> recipeBeans = getRecipeBeans(recipes);
+        return recipeBeans;
+    }
+
+    private List<RecipeBean> getRecipeBeans(List<Recipe> recipes) {
+        List<RecipeBean> recipeBeans = null;
         if (CollectionUtils.isNotEmpty(recipes)) {
             recipeBeans = recipes.stream().map(recipe -> {
                 RecipeBean recipeBean = new RecipeBean();
@@ -1187,8 +1200,51 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public void doAfterCheckNotPassYs(RecipeBean recipeBean) {
-        RecipeService recipeService=   ApplicationUtils.getRecipeService(RecipeService.class);
-        Recipe recipe= ObjectCopyUtils.convert(recipeBean,Recipe.class);
+        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+        Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
         recipeService.doAfterCheckNotPassYs(recipe);
+    }
+
+    @Override
+    public void afterCheckPassYs(Integer auditMode, RecipeBean recipeBean) {
+        AuditModeContext auditModeContext = AppContextHolder.getBean("auditModeContext", AuditModeContext.class);
+        Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
+        auditModeContext.getAuditModes(auditMode).afterCheckPassYs(recipe);
+    }
+
+    @Override
+    public void afterCheckNotPassYs(Integer auditMode, RecipeBean recipeBean) {
+        AuditModeContext auditModeContext = AppContextHolder.getBean("auditModeContext", AuditModeContext.class);
+        Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
+        auditModeContext.getAuditModes(auditMode).afterCheckNotPassYs(recipe);
+    }
+
+    @Override
+    public int getAuditStatusByReviewType(int reviewType) {
+        AuditModeContext auditModeContext = AppContextHolder.getBean("auditModeContext", AuditModeContext.class);
+        return auditModeContext.getAuditModes(reviewType).afterAuditRecipeChange();
+    }
+
+
+    @Override
+    public void batchSendMsg(RecipeBean recipe, int afterStatus) {
+        Recipe recipe1 = ObjectCopyUtils.convert(recipe, Recipe.class);
+        RecipeMsgService.batchSendMsg(recipe1, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
+    }
+
+    @Override
+    public List<RecipeBean> searchRecipe(Set<Integer> organs, Integer searchFlag, String searchString, Integer start, Integer limit) {
+        List<Recipe> recipes = recipeDAO.searchRecipe(organs, searchFlag, searchString, start, limit);
+        //转换前端的展示实体类
+        List<RecipeBean> recipeBeans = getRecipeBeans(recipes);
+        return recipeBeans;
+    }
+
+    @Override
+    public List<RecipeBean> findByRecipeAndOrganId(List<Integer> recipeIds, Set<Integer> organIds) {
+        List<Recipe> recipes = recipeDAO.findByRecipeAndOrganId(recipeIds, organIds);
+        //转换前端的展示实体类
+        List<RecipeBean> recipeBeans = getRecipeBeans(recipes);
+        return recipeBeans;
     }
 }

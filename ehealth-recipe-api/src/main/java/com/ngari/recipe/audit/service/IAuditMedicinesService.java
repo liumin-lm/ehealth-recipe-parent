@@ -13,11 +13,4 @@ public interface IAuditMedicinesService {
     @RpcService
     List<AuditMedicinesDTO> getAuditmedicinesResult(int recipeId);
 
-    /**
-     * 获取审核处方状态
-     * @param reviewType
-     * @return
-     */
-    @RpcService
-    int getAuditStatusByReviewType(int reviewType);
 }

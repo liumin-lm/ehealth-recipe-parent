@@ -14,15 +14,13 @@ import com.ngari.recipe.drugsenterprise.model.ThirdResultBean;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
+import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
 
 import java.beans.ConstructorProperties;
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @company: ngarihealth
@@ -493,6 +491,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      *
      * @param organId
      */
+    @RpcService
     CaSignResultBean commonCASignAndSealOrganId(CaSealRequestTO requestSealTO, RecipeBean recipe, Integer organId, String userAccount, String caPassword);
 
     /**
@@ -501,7 +500,17 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @param recipeId
      * @param organId
      */
+    @RpcService
     void generateSignetRecipePdf(Integer recipeId, Integer organId);
+
+
+    /**
+     * 推送处方到监管平台(审核后数据)
+     * @param recipeId
+     * @param status
+     */
+    @RpcService
+    void pushRecipeToRegulation(Integer recipeId,Integer status);
 
     @RpcService
     ThirdResultBean readyToSend(Map<String, Object> paramMap);
@@ -545,5 +554,57 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     /**
      * 审核不通过后处理
      */
+    @RpcService
     void doAfterCheckNotPassYs(RecipeBean recipeBean);
+
+    /**
+     * 处方药师审核通过后处理
+     */
+    @RpcService
+    void afterCheckPassYs(Integer auditMode,RecipeBean recipeBean);
+
+    /**
+     * 处方药师审核不通过后处理
+     * @param auditMode
+     * @param recipeBean
+     */
+    @RpcService
+    void afterCheckNotPassYs(Integer auditMode,RecipeBean recipeBean);
+
+    /**
+     * 获取审核处方状态
+     * @param reviewType
+     * @return
+     */
+    @RpcService
+    int getAuditStatusByReviewType(int reviewType);
+
+    /**
+     * 单个处方信息推送
+     * @param recipe
+     * @param afterStatus
+     */
+    @RpcService
+    void batchSendMsg(RecipeBean recipe, int afterStatus);
+
+    /**
+     * 审方处方列表全文检索查询
+     * @param organs  机构id
+     * @param searchFlag 检索类型
+     * @param searchString  检索内容
+     * @param start
+     * @param limit
+     * @return
+     */
+    @RpcService
+    List<RecipeBean> searchRecipe( Set<Integer> organs, Integer searchFlag,  String searchString,
+                                    Integer start,  Integer limit);
+
+    /**
+     *  审方处方列表
+     * @param recipeIds
+     * @param organIds
+     * @return
+     */
+    List<RecipeBean> findByRecipeAndOrganId( List<Integer> recipeIds, Set<Integer> organIds);
 }

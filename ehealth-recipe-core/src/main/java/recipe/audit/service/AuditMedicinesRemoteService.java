@@ -25,9 +25,4 @@ public class AuditMedicinesRemoteService implements IAuditMedicinesService {
         return recipeService.getAuditMedicineIssuesByRecipeId(recipeId);
     }
 
-    @Override
-    public int getAuditStatusByReviewType(int reviewType) {
-        AuditModeContext auditModeContext = AppContextHolder.getBean("auditModeContext", AuditModeContext.class);
-        return auditModeContext.getAuditModes(reviewType).afterAuditRecipeChange();
-    }
 }
