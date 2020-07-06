@@ -1407,11 +1407,11 @@ public class RecipeServiceSub {
         map.put("checkEnterprise", drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan()));
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         PatientDTO patientBean = patientService.get(recipe.getMpiid());
-        PatientVO patient = null;
+        PatientDTO patient = null;
         if (patientBean != null) {
             //添加患者标签和关注这些字段
             RecipeServiceSub.setPatientMoreInfo(patientBean, recipe.getDoctor());
-            patient = RecipeServiceSub.convertSensitivePatientForRAP(patientBean);
+            patient = RecipeServiceSub.convertPatientForRAP(patientBean);
             //判断该就诊人是否为儿童就诊人
             if (patient.getAge() <= 5 && !ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
                 GuardianBean guardian = new GuardianBean();
