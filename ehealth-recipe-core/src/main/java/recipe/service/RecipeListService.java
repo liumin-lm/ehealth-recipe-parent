@@ -49,7 +49,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static recipe.service.RecipeServiceSub.*;
+import static recipe.service.RecipeServiceSub.convertRecipeForRAP;
+import static recipe.service.RecipeServiceSub.convertSensitivePatientForRAP;
 
 /**
  * 处方业务一些列表查询
@@ -158,14 +159,14 @@ public class RecipeListService extends RecipeBaseService{
                 recipeMap.put(recipe.getRecipeId(), convertRecipeForRAP(recipe));
             }
 
-            Map<String, PatientDTO> patientMap = Maps.newHashMap();
+            Map<String, PatientDS> patientMap = Maps.newHashMap();
             if (CollectionUtils.isNotEmpty(patientIds)) {
                 List<PatientDTO> patientList = patientService.findByMpiIdIn(patientIds);
                 if (CollectionUtils.isNotEmpty(patientList)) {
                     for (PatientDTO patient : patientList) {
                         //设置患者数据
                         RecipeServiceSub.setPatientMoreInfo(patient, doctorId);
-                        patientMap.put(patient.getMpiId(), convertPatientForRAP(patient));
+                        patientMap.put(patient.getMpiId(), convertSensitivePatientForRAP(patient));
                     }
                 }
             }
