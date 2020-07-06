@@ -35,6 +35,8 @@ import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
 import com.ngari.wxpay.service.INgariPayService;
 import coupon.api.service.ICouponBaseService;
 import coupon.api.vo.Coupon;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
@@ -703,7 +705,30 @@ public class RecipeOrderService extends RecipeBaseService {
                     if (StringUtils.isNotEmpty(paramExpressFee)) {
                         expressFee = new BigDecimal(paramExpressFee);
                     } else {
-                        expressFee = getExpressFee(order.getEnterpriseId(), address.getAddress3());
+                        //优化快递费用获取，当费用是从第三方获取需要取第三方接口返回的快递费用
+                        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+                        if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getExpressFeeType())) {
+                            //获取地址信息
+                            String address1 = address.getAddress1();  //省
+                            String address2 = address.getAddress2();  //市
+                            String address3 = address.getAddress3();  //区
+                            Map<String, Object> parames = new HashMap<>();
+                            parames.put("province", getAddressDic(address1));
+                            parames.put("city", getAddressDic(address2));
+                            parames.put("district", getAddressDic(address3));
+                            parames.put("depId", order.getEnterpriseId());
+                            parames.put("recipeId", recipeIds.get(0));
+                            RemoteDrugEnterpriseService drugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+                            Map<String, Object> expressFeeResult = drugEnterpriseService.getExpressFee(parames);
+                            if ("0".equals(expressFeeResult.get("expressFeeType"))) {
+                                //需要从平台获取
+                                expressFee = getExpressFee(order.getEnterpriseId(), address.getAddress3());
+                            } else {
+                                expressFee = new BigDecimal(expressFeeResult.get("expressFee").toString());
+                            }
+                        } else {
+                            expressFee = getExpressFee(order.getEnterpriseId(), address.getAddress3());
+                        }
                     }
                     order.setExpressFee(expressFee);
                     order.setReceiver(address.getReceiver());
@@ -2241,5 +2266,16 @@ public class RecipeOrderService extends RecipeBaseService {
             LOGGER.error("updateApothecaryByOrderId apothecaryVO :{}",JSONUtils.toString(apothecary),e);
             return false;
         }
+    }
+
+    private String getAddressDic(String area) {
+        if (StringUtils.isNotEmpty(area)) {
+            try {
+                return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
+            } catch (ControllerException e) {
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
+            }
+        }
+        return "";
     }
 }
