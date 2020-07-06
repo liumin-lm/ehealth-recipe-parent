@@ -3375,7 +3375,7 @@ public class RecipeService extends RecipeBaseService {
 
         Map<String, Object> result = RecipeServiceSub.getRecipeAndDetailByIdImpl(recipeId, false);
         PatientDTO patient = (PatientDTO) result.get("patient");
-        result.put("patient", ObjectCopyUtils.convert(patient, PatientDS.class));
+        result.put("patient", ObjectCopyUtils.convert(patient, PatientBean.class));
         return result;
     }
 
