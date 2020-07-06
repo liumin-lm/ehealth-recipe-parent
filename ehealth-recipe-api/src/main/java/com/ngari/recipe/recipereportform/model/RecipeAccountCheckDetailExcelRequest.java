@@ -19,10 +19,10 @@ public class RecipeAccountCheckDetailExcelRequest implements Serializable{
     private List<Integer> organIdList;
 
     //开始时间
-    private Date bDate;
+    private Date startTime;
 
     //结束时间
-    private Date eDate;
+    private Date endTime;
 
     //处方id
     private Integer recipeId;
