@@ -1195,7 +1195,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         " INNER JOIN cdr_recipe_ext cre ON er.RecipeID = cre.RecipeID " +
                         " WHERE er.clinicOrgan in :organIdList" +
                         " AND ero.paytime BETWEEN :startTime AND :endTime");
-                if (null != request.getRecipeId()) {
+                if (StringUtils.isNotEmpty(request.getRecipeId())) {
                     sql.append(" And er.recipeId =:recipeId");
                 }
                 if (StringUtils.isNotEmpty(request.getMpiId())) {
@@ -1210,7 +1210,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 query.setMaxResults(request.getLimit());
                 query.setParameter("startTime", request.getStartTime());
                 query.setParameter("endTime", request.getEndTime());
-                if (null != request.getRecipeId()) {
+                if (StringUtils.isNotEmpty(request.getRecipeId())) {
                     query.setParameter("recipeId", request.getRecipeId());
                 }
                 if (StringUtils.isNotEmpty(request.getMpiId())) {
@@ -1225,7 +1225,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 countQuery.setParameterList("organIdList", request.getOrganIdList());
                 countQuery.setParameter("startTime", request.getStartTime());
                 countQuery.setParameter("endTime", request.getEndTime());
-                if (null != request.getRecipeId()) {
+                if (StringUtils.isNotEmpty(request.getRecipeId())) {
                     countQuery.setParameter("recipeId", request.getRecipeId());
                 }
                 if (StringUtils.isNotEmpty(request.getMpiId())) {
@@ -1405,7 +1405,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         " INNER JOIN cdr_recipeorder cro ON cr.orderCode = cro.ordercode" +
                         " INNER JOIN cdr_recipe_ext ret ON cr.recipeId = ret.recipeId" +
                         " WHERE cro.paytime BETWEEN :startTime AND :endTime AND cro.OrganId in :organIdList");
-                if(null != request.getBuyMedicWay()){
+                if(StringUtils.isNotEmpty(request.getBuyMedicWay())){
                     sql.append(" and cr.GiveMode =:giveMode");
                 }
 //                sql.append(" GROUP BY c.OrganId,c.EnterpriseId");
@@ -1416,7 +1416,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 query.setMaxResults(request.getLimit());
                 query.setParameter("startTime", request.getStartTime());
                 query.setParameter("endTime", request.getEndTime());
-                if(null != request.getBuyMedicWay()){
+                if(StringUtils.isNotEmpty(request.getBuyMedicWay())){
                     query.setParameter("giveMode", request.getBuyMedicWay());
                 }
 
