@@ -2045,15 +2045,15 @@ public class RecipeService extends RecipeBaseService {
             //第一步暂存处方（处方状态未签名）
             doSignRecipeSave(recipeBean, detailBeanList);
             //第二步预校验
-            if(continueFlag == 0 && continueFlag == 4){
+            if(continueFlag == 0 || continueFlag == 4){
 
             }
             //第三步校验库存
             if(-1 < continueFlag && continueFlag <= 4){
                 rMap = doSignRecipeCheck(recipeBean);
-                continueFlag = Integer.valueOf(rMap.get("canContinueFlag").toString());
-                if("-1".equals(rMap.get("canContinueFlag")+"")){
-
+                Boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
+                if(signResult != null && false == signResult){
+                    return rMap;
                 }
             }
             //第四步签名（发送his前更新处方状态---医院确认中）
@@ -2284,14 +2284,14 @@ public class RecipeService extends RecipeBaseService {
                     rMap.put("errorFlag", true);
                     rMap.put("canContinueFlag", "2");
                     rMap.put("msg", "由于该处方单上的药品配送药企库存不足，该处方仅支持到院取药，无法药企配送，是否继续？");
-                    LOGGER.info("doSignRecipe recipeId={},msg={}",recipeId,rMap.get("msg"));
+                    LOGGER.info("doSignRecipeCheck recipeId={},msg={}",recipeId,rMap.get("msg"));
                     return rMap;
                 }
                 break;
         }
         rMap.put("signResult", true);
         rMap.put("errorFlag", false);
-        LOGGER.info("doSignRecipe execute ok! rMap:" + JSONUtils.toString(rMap));
+        LOGGER.info("doSignRecipeCheck execute ok! rMap:" + JSONUtils.toString(rMap));
         return rMap;
     }
 
