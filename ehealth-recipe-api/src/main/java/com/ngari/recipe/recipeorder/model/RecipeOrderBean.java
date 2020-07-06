@@ -264,6 +264,20 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "支付平台回写支付信息")
     private String payBackInfo;
 
+    @ItemProperty(alias = "配送主体类型 1 药企配送 2 医院配送")
+    private Integer sendType;
+
+    @ItemProperty(alias = "支付用户类型:0平台，1机构，2药企")
+    private Integer payeeCode;
+
+    public Integer getPayeeCode() {
+        return payeeCode;
+    }
+
+    public void setPayeeCode(Integer payeeCode) {
+        this.payeeCode = payeeCode;
+    }
+
     public RecipeOrderBean() {
         initData();
     }
@@ -908,5 +922,13 @@ public class RecipeOrderBean implements Serializable {
 
     public void setTcmFee(BigDecimal tcmFee) {
         this.tcmFee = tcmFee;
+    }
+
+    public Integer getSendType() {
+        return sendType;
+    }
+
+    public void setSendType(Integer sendType) {
+        this.sendType = sendType;
     }
 }

@@ -1,7 +1,9 @@
 package recipe.service.common;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
@@ -21,6 +23,7 @@ import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.utils.params.ParameterConstant;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -28,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
 import recipe.constant.*;
 import recipe.dao.*;
@@ -43,10 +47,7 @@ import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 import recipe.util.RegexUtils;
 
-import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
@@ -352,6 +353,136 @@ public class RecipeSignService {
 
     }
 
+
+    /**
+     * 签名服务（新）
+     *
+     * @param recipeBean  处方
+     * @param detailBeanList 详情
+     * @param continueFlag 校验标识
+     * @return Map<String ,   Object>
+     */
+    @RpcService
+    public Map<String, Object> doSignRecipeNew(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, int continueFlag) {
+        LOG.info("doSignRecipeNew param: recipeBean={} detailBean={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList));
+        //将密码放到redis中
+        redisClient.set("caPassword", recipeBean.getCaPassword());
+        Map<String, Object> rMap = new HashMap<String, Object>();
+        rMap.put("signResult", true);
+        try {
+            recipeBean.setDistributionFlag(continueFlag);
+            //第一步暂存处方（处方状态未签名）
+            doSignRecipeSave(recipeBean, detailBeanList);
+
+            //第二步预校验
+            if(continueFlag == 0){
+                //his处方预检查
+                boolean b = hisRecipeCheck(rMap, recipeBean);
+                if (!b){
+                    return rMap;
+                }
+            }
+            //第三步校验库存
+            if(continueFlag == 0 || continueFlag == 4){
+                RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+                rMap = recipeService.doSignRecipeCheck(recipeBean);
+                Boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
+                if(signResult != null && false == signResult){
+                    return rMap;
+                }
+            }
+
+            //更新审方信息
+            RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
+            recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), RecipeStatusConstant.CHECKING_HOS, null);
+
+            //发送HIS处方开具消息
+            sendRecipeToHIS(recipeBean);
+            //处方开完后发送聊天界面消息 -医院确认中
+            Integer consultId = recipeBean.getClinicId();
+            if(null != consultId && !RecipeBussConstant.BUSS_SOURCE_WLZX.equals(recipeBean.getBussSource())){
+                try {
+                    IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
+                    recipeOnLineConsultService.sendRecipeMsg(consultId,2);
+                } catch (Exception e){
+                    LOG.error("doSignRecipeExt sendRecipeMsg error, type:2, consultId:{}, error:", consultId,e);
+                }
+
+            }
+        } catch (Exception e) {
+            LOG.error("doSignRecipeNew error", e);
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+
+        rMap.put("signResult", true);
+        rMap.put("recipeId", recipeBean.getRecipeId());
+        rMap.put("consultId", recipeBean.getClinicId());
+        rMap.put("errorFlag", false);
+        rMap.put("canContinueFlag", "0");
+        LOG.info("doSignRecipeNew execute ok! rMap:" + JSONUtils.toString(rMap));
+        return rMap;
+    }
+
+    /**
+     * 签名服务（处方存储）
+     *
+     * @param recipeBean  处方
+     * @param details 详情
+     * @return
+     */
+    @RpcService
+    public void doSignRecipeSave(RecipeBean recipeBean, List<RecipeDetailBean> details) {
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+        PatientService patientService = BasicAPI.getService(PatientService.class);
+
+        Map<String, Object> rMap = Maps.newHashMap();
+        PatientDTO patient = patientService.get(recipeBean.getMpiid());
+        //解决旧版本因为wx2.6患者身份证为null，而业务申请不成功
+        if (patient == null || StringUtils.isEmpty(patient.getCertificate())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "该患者还未填写身份证信息，不能开处方");
+        }
+        // 就诊人改造：为了确保删除就诊人后历史处方不会丢失，加入主账号用户id
+        //bug#46436 本人就诊人被删除保存不了导致后续微信模板消息重复推送多次
+        List<PatientDTO> requestPatients = patientService.findOwnPatient(patient.getLoginId());
+        if (CollectionUtils.isNotEmpty(requestPatients)){
+            PatientDTO requestPatient = requestPatients.get(0);
+            if (null != requestPatient && null != requestPatient.getMpiId()) {
+                recipeBean.setRequestMpiId(requestPatient.getMpiId());
+                // urt用于系统消息推送
+                recipeBean.setRequestUrt(requestPatient.getUrt());
+            }
+        }
+
+        recipeBean.setStatus(RecipeStatusConstant.UNSIGN);
+        recipeBean.setSignDate(DateTime.now().toDate());
+        recipeBean.setRecipeMode(RecipeBussConstant.RECIPEMODE_ZJJGPT);
+        Integer recipeId = recipeBean.getRecipeId();
+
+        //生成处方编号，不需要通过HIS去产生
+        String recipeCodeStr = "ngari" + DigestUtil.md5For16(recipeBean.getClinicOrgan() +
+            recipeBean.getMpiid() + Calendar.getInstance().getTimeInMillis());
+        recipeBean.setRecipeCode(recipeCodeStr);
+        //如果前端没有传入咨询id则从进行中的复诊或者咨询里取
+        //获取咨询单id,有进行中的复诊则优先取复诊，若没有则取进行中的图文咨询
+        if (recipeBean.getClinicId()==null){
+            recipeService.getConsultIdForRecipeSource(recipeBean);
+        }
+        //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
+        if (null != recipeId && recipeId > 0) {
+            Integer status = recipeDAO.getStatusByRecipeId(recipeId);
+            if (null == status || status > RecipeStatusConstant.UNSIGN) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "处方单已处理,不能重复签名");
+            }
+            recipeService.updateRecipeAndDetail(recipeBean, details);
+        } else {
+            recipeId = recipeService.saveRecipeData(recipeBean, details);
+            recipeBean.setRecipeId(recipeId);
+        }
+        rMap.put("recipeId", recipeId);
+
+    }
+
     /**
      * 互联网医院项目模式-签名
      *
@@ -372,12 +503,17 @@ public class RecipeSignService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该患者还未填写身份证信息，不能开处方");
         }
         // 就诊人改造：为了确保删除就诊人后历史处方不会丢失，加入主账号用户id
-        PatientDTO requestPatient = patientService.getOwnPatientForOtherProject(patient.getLoginId());
-        if (null != requestPatient && null != requestPatient.getMpiId()) {
-            recipeBean.setRequestMpiId(requestPatient.getMpiId());
-            // urt用于系统消息推送
-            recipeBean.setRequestUrt(requestPatient.getUrt());
+        //bug#46436 本人就诊人被删除保存不了导致后续微信模板消息重复推送多次
+        List<PatientDTO> requestPatients = patientService.findOwnPatient(patient.getLoginId());
+        if (CollectionUtils.isNotEmpty(requestPatients)){
+            PatientDTO requestPatient = requestPatients.get(0);
+            if (null != requestPatient && null != requestPatient.getMpiId()) {
+                recipeBean.setRequestMpiId(requestPatient.getMpiId());
+                // urt用于系统消息推送
+                recipeBean.setRequestUrt(requestPatient.getUrt());
+            }
         }
+
         recipeBean.setStatus(RecipeStatusConstant.UNSIGN);
         recipeBean.setSignDate(DateTime.now().toDate());
         recipeBean.setRecipeMode(RecipeBussConstant.RECIPEMODE_ZJJGPT);
@@ -385,7 +521,7 @@ public class RecipeSignService {
 
         //生成处方编号，不需要通过HIS去产生
         String recipeCodeStr = "ngari" + DigestUtil.md5For16(recipeBean.getClinicOrgan() +
-                recipeBean.getMpiid() + Calendar.getInstance().getTimeInMillis());
+            recipeBean.getMpiid() + Calendar.getInstance().getTimeInMillis());
         recipeBean.setRecipeCode(recipeCodeStr);
         //如果前端没有传入咨询id则从进行中的复诊或者咨询里取
         //获取咨询单id,有进行中的复诊则优先取复诊，若没有则取进行中的图文咨询
@@ -435,22 +571,42 @@ public class RecipeSignService {
         return rMap;
     }
 
-    private boolean hisRecipeCheck(Map<String, Object> rMap, RecipeBean recipeBean) {
+    public boolean hisRecipeCheck(Map<String, Object> rMap, RecipeBean recipeBean) {
         //判断机构是否需要his处方检查 ---运营平台机构配置
         try {
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
             Boolean hisRecipeCheckFlag = (Boolean)configurationService.getConfiguration(recipeBean.getClinicOrgan(), "hisRecipeCheckFlag");
+            Boolean allowContinueMakeFlag;
+            boolean checkResult;
             if(hisRecipeCheckFlag){
                 RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-                return hisService.hisRecipeCheck(rMap, recipeBean);
+                checkResult = hisService.hisRecipeCheck(rMap, recipeBean);
+                if(checkResult){
+                    rMap.put("canContinueFlag", 0);
+                }else{
+                    allowContinueMakeFlag = (Boolean)configurationService.getConfiguration(recipeBean.getClinicOrgan(), "allowContinueMakeRecipe ");
+                    //date 20200706
+                    //允许继续处方:不进行校验/进行校验且校验通过0 ，进行校验校验不通过允许通过1，进行校验校验不通过不允许通过2
+                    if(allowContinueMakeFlag){
+                        rMap.put("canContinueFlag", 4);
+                        rMap.put("msg", rMap.get("errorMsg"));
+                    }else{
+                        rMap.put("canContinueFlag", -1);
+                        rMap.put("msg", rMap.get("errorMsg"));
+                    }
+                }
+                return checkResult;
             }
         } catch (Exception e) {
             LOG.error("hisRecipeCheck error",e);
             rMap.put("signResult", false);
             rMap.put("errorFlag",true);
             rMap.put("errorMsg", "his处方检查异常");
+            rMap.put("canContinueFlag", -1);
+            rMap.put("msg", "his处方检查异常");
             return false;
         }
+        rMap.put("canContinueFlag", 0);
         return true;
     }
 
