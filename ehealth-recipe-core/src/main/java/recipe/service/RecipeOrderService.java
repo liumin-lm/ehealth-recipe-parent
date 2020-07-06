@@ -720,7 +720,7 @@ public class RecipeOrderService extends RecipeBaseService {
                             parames.put("recipeId", recipeIds.get(0));
                             RemoteDrugEnterpriseService drugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
                             Map<String, Object> expressFeeResult = drugEnterpriseService.getExpressFee(parames);
-                            if ("0".equals(expressFeeResult.get("expressFeeType"))) {
+                            if ("0".equals(expressFeeResult.get("expressFeeType").toString())) {
                                 //需要从平台获取
                                 expressFee = getExpressFee(order.getEnterpriseId(), address.getAddress3());
                             } else {
