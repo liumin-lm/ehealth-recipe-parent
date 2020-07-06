@@ -287,8 +287,12 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @return
      */
     @RpcService(timeout = 600000)
+    @Deprecated
     List<Object[]> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType,
-                                               final Integer depart, List<Integer> organIds, Integer giveMode,Integer fromflag,Integer recipeId,Integer enterpriseId,Integer checkStatus,Integer payFlag,Integer orderType);
+                                             final Integer depart, List<Integer> organIds, Integer giveMode, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType);
+
+    @RpcService(timeout = 600000)
+    List<Object[]> findRecipesByInfoForExcel(RecipesQueryVO recipesQueryVO);
 
     /**
      *处方订单导出Excel

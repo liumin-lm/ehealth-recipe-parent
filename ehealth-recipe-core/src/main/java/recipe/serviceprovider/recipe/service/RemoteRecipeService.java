@@ -344,11 +344,37 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      */
     @RpcService(timeout = 600000)
     @Override
+    @Deprecated
     public List<Object[]> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate,
-                                        final Date eDate, final Integer dateType, final Integer depart, List<Integer> organIds, Integer giveMode,
-                                        Integer fromflag,Integer recipeId,Integer enterpriseId,Integer checkStatus,Integer payFlag,Integer orderType){
+                                                    final Date eDate, final Integer dateType, final Integer depart, List<Integer> organIds, Integer giveMode,
+                                                    Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        List<Object[]> result = recipeDAO.findRecipesByInfoForExcel(organId,status,doctor,patientName,bDate,eDate,dateType,depart,organIds,giveMode,fromflag,recipeId,enterpriseId,checkStatus,payFlag,orderType);
+        RecipesQueryVO recipesQueryVO = new RecipesQueryVO();
+        recipesQueryVO.setOrganIds(organIds);
+        recipesQueryVO.setOrganId(organId);
+        recipesQueryVO.setBDate(bDate);
+        recipesQueryVO.setCheckStatus(checkStatus);
+        recipesQueryVO.setDateType(dateType);
+        recipesQueryVO.setDepart(depart);
+        recipesQueryVO.setDoctor(doctor);
+        recipesQueryVO.setEDate(eDate);
+        recipesQueryVO.setEnterpriseId(enterpriseId);
+        recipesQueryVO.setFromFlag(fromflag);
+        recipesQueryVO.setGiveMode(giveMode);
+        recipesQueryVO.setRecipeId(recipeId);
+        recipesQueryVO.setPayFlag(payFlag);
+        recipesQueryVO.setOrderType(orderType);
+        recipesQueryVO.setStatus(status);
+        recipesQueryVO.setPatientName(patientName);
+        List<Object[]> result = recipeDAO.findRecipesByInfoForExcel(recipesQueryVO);
+        return result;
+    }
+
+    @RpcService(timeout = 600000)
+    @Override
+    public List<Object[]> findRecipesByInfoForExcel(RecipesQueryVO recipesQueryVO) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        List<Object[]> result = recipeDAO.findRecipesByInfoForExcel(recipesQueryVO);
         return result;
     }
 
