@@ -589,10 +589,8 @@ public class RecipeSignService {
                     //允许继续处方:不进行校验/进行校验且校验通过0 ，进行校验校验不通过允许通过1，进行校验校验不通过不允许通过2
                     if(allowContinueMakeFlag){
                         rMap.put("allowContinue", 1);
-                        rMap.put("allowContinueMsg", rMap.get("errorMsg"));
                     }else{
                         rMap.put("allowContinue", 2);
-                        rMap.put("allowContinueMsg", rMap.get("errorMsg"));
                     }
                 }
                 return checkResult;
