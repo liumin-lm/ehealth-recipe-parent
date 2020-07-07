@@ -162,6 +162,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                     keyHql.append("," + key + "=:" + key);
                 }
                 hql.append(keyHql.toString().substring(1)).append(" where orderCode=:orderCode");
+                logger.info("updateByOrdeCode-sql：{}", hql.toString());
                 Query q = ss.createQuery(hql.toString());
 
                 q.setParameter("orderCode", orderCode);
