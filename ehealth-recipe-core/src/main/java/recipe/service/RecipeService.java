@@ -2175,7 +2175,7 @@ public class RecipeService extends RecipeBaseService {
             }
             for (String configuration : configurations) {
                 switch (configuration){
-                    case "supportTFDS":
+                    case "supportToHos":
                         if(checkFlag == 0 || checkFlag == 1){
                             checkFlag = 1;
                         }else{
@@ -2183,7 +2183,7 @@ public class RecipeService extends RecipeBaseService {
                         }
                         break;
                     case "supportOnline":
-                    case "supportToHos":
+                    case "supportTFDS":
                         if(checkFlag == 0 || checkFlag == 2){
                             checkFlag = 2;
                         }else{
