@@ -2658,6 +2658,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     }
 
     @DAOMethod(sql = "select count(*) from Recipe")
-    public abstract Long countByRecipe();
+    public abstract Long getCountByAll();
 
 }
