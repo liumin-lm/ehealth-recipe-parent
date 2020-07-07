@@ -1281,7 +1281,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder queryhql = new StringBuilder("SELECT c.OrganId,r.organName,d.`Name`, COUNT(c.OrderId), SUM(c.ActualPrice), SUM(c.RecipeFee), IFNULL(SUM(IF(c.expressFeePayWay in (2,3),0,c.ExpressFee)),0), 0");
                 StringBuilder sql = new StringBuilder(" from cdr_recipeorder c, cdr_drugsenterprise d, cdr_recipe r" +
-                        " where c.EnterpriseId = d.Id and c.OrderCode = r.OrderCode and r.GiveMode =1 and c.payflag = 1 and c.Effective =1 and c.payeeCode in (1,2) " +
+                        " where c.EnterpriseId = d.Id and c.OrderCode = r.OrderCode and r.GiveMode =1 and c.sendType = 2 and c.payflag = 1 and c.Effective =1 and c.payeeCode in (1,0) " +
                         " and YEAR(c.PayTime) =:year and MONTH(c.PayTime) =:month and c.OrganId =:organIdList GROUP BY c.OrganId,c.EnterpriseId");
                 if(null != request.getEnterpriseId()){
                     sql.append(" and c.EnterpriseId =:enterpriseId");
