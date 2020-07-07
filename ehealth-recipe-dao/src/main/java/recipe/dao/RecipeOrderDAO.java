@@ -16,6 +16,7 @@ import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
 import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResultAction;
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcSupportDAO;
 import ctd.util.converter.ConversionUtils;
 import eh.billcheck.constant.BillBusFeeTypeEnum;
@@ -172,6 +173,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
                 int flag = q.executeUpdate();
                 setResult(flag == 1);
+                RecipeOrder byOrderCode = getByOrderCode(orderCode);
+                logger.info("updateByOrdeCode result,{}", JSONUtils.toString(byOrderCode));
             }
         };
         HibernateSessionTemplate.instance().execute(action);
