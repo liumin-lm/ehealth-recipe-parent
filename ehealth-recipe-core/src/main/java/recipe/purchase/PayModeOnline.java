@@ -446,9 +446,17 @@ public class PayModeOnline implements IPurchaseService {
             SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
             if (recipe.getEnterpriseId() != null) {
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
+                int settlementMode = 0;
+                if(drugsEnterprise != null && drugsEnterprise.getSettlementMode() != null && drugsEnterprise.getSettlementMode() == 1){
+                    settlementMode = 1;
+                }
                 for (Recipedetail recipedetail : recipedetails) {
                     SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
                     LOG.info("PayModeOnline.updateRecipeDetail recipeId:{},saleDrugList:{}.", recipeId, JSONUtils.toString(saleDrugList));
+
+                    //记录药企购药时用的医院目录的价格还是用的药企目录的价格
+                    recipedetail.setSettlementMode(settlementMode);
+
                     if (saleDrugList != null) {
                         recipedetail.setActualSalePrice(saleDrugList.getPrice());
                         if (StringUtils.isEmpty(saleDrugList.getOrganDrugCode())) {

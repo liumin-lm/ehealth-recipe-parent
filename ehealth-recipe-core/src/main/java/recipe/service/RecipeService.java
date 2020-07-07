@@ -2,6 +2,7 @@ package recipe.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.aliyun.openservices.shade.io.netty.util.Timeout;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -2174,7 +2175,7 @@ public class RecipeService extends RecipeBaseService {
             }
             for (String configuration : configurations) {
                 switch (configuration){
-                    case "supportTFDS":
+                    case "supportToHos":
                         if(checkFlag == 0 || checkFlag == 1){
                             checkFlag = 1;
                         }else{
@@ -2182,7 +2183,7 @@ public class RecipeService extends RecipeBaseService {
                         }
                         break;
                     case "supportOnline":
-                    case "supportToHos":
+                    case "supportTFDS":
                         if(checkFlag == 0 || checkFlag == 2){
                             checkFlag = 2;
                         }else{
@@ -4637,7 +4638,7 @@ public class RecipeService extends RecipeBaseService {
     /**
      * 取消ca处方过期包含过期时间
      */
-    @RpcService
+    @RpcService(timeout = 600000)
     public void cancelSignRecipe(Integer endDate, Integer startDate) {
         RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
