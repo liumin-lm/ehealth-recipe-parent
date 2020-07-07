@@ -1120,18 +1120,16 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         "IFNULL( sum( ero.auditFee ), 0.00 )  ,IFNULL( sum( ero.expressFee ), 0.00 )," +
                         "sum( IF ( ero.payeeCode = 1, IFNULL( ero.TotalFee, 0.00 ), 0.00 ) ) ,IFNULL( cast(sum( cre.fundAmount ) AS decimal(15,2)), 0.00 )," +
                         "sum( IF ( ero.payeeCode = 1, IFNULL( ero.TotalFee, 0.00 ), 0.00 ) ) - IFNULL( cast(sum( cre.fundAmount ) AS decimal(15,2)), 0.00 )," +
-                        "sum( IF ( ero.payeeCode = 2, IFNULL( ero.TotalFee, 0.00 ), 0.00 ) ) ," +
+                        "sum( IF ( ero.payeeCode = 0, IFNULL( ero.TotalFee, 0.00 ), 0.00 ) ) ," +
                         "IFNULL( sum(ero.TotalFee), 0.00 ) - IFNULL( sum(ero.auditFee), 0.00 ) - IFNULL( sum( ero.expressFee ), 0.00 ) -sum( IF ( ero.payeeCode = 1, IFNULL( ero.TotalFee, 0.00 ), 0.00 ) )");
                 String sql = new String(" FROM cdr_recipe er" +
-                        " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode" +
-                        " INNER JOIN cdr_drugsenterprise ds ON ero.enterpriseId = ds.id AND ds.sendType = 2" +
+                        " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode and ero.send_type = 2 " +
                         " INNER JOIN cdr_recipe_ext cre ON er.RecipeID = cre.RecipeID" +
                         " WHERE er.clinicOrgan IN :organIdList" +
                         " AND YEAR(ero.PayTime) =:year and MONTH(ero.PayTime) =:month" +
                         " GROUP BY er.ClinicOrgan ORDER BY er.ClinicOrgan");
                 String queryCount = new String(" FROM cdr_recipe er" +
-                        " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode" +
-                        " INNER JOIN cdr_drugsenterprise ds ON ero.enterpriseId = ds.id AND ds.sendType = 2" +
+                        " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode and ero.send_type = 2 " +
                         " INNER JOIN cdr_recipe_ext cre ON er.RecipeID = cre.RecipeID" +
                         " WHERE er.clinicOrgan IN :organIdList" +
                         " AND YEAR(ero.PayTime) =:year and MONTH(ero.PayTime) =:month" +
@@ -1191,12 +1189,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         "IFNULL(ero.auditFee  ,0.00) ,IFNULL(ero.expressFee  ,0.00) ,IF ( ero.payeeCode = 1, " +
                         "IFNULL( ero.TotalFee, 0.00 ), 0.00 ) ,IFNULL(cre.fundAmount  ,0.00) ," +
                         "IF ( ero.payeeCode = 1, IFNULL( ero.TotalFee, 0.00 ), 0.00 ) - cast(IFNULL(cre.fundAmount  ,0.00) AS decimal(15,2)) ," +
-                        "IF ( ero.payeeCode = 2, IFNULL( ero.TotalFee, 0.00 ), 0.00 )   ," +
+                        "IF ( ero.payeeCode = 0, IFNULL( ero.TotalFee, 0.00 ), 0.00 )   ," +
                         "IFNULL(ero.TotalFee ,0.00) - IFNULL(ero.auditFee  ,0.00) - IFNULL(ero.expressFee  ,0.00) - IF ( ero.payeeCode = 1, IFNULL( ero.TotalFee, 0.00 ), 0.00 ),ero.outTradeNo");
                 StringBuilder sql = new StringBuilder(" FROM cdr_recipe er" +
-                        " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode" +
-                        " INNER JOIN cdr_drugsenterprise ds ON ero.enterpriseId = ds.id " +
-                        " AND ds.sendType = 2" +
+                        " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode and ero.send_type = 2" +
                         " INNER JOIN cdr_recipe_ext cre ON er.RecipeID = cre.RecipeID " +
                         " WHERE er.clinicOrgan in :organIdList" +
                         " AND ero.paytime BETWEEN :startTime AND :endTime");
@@ -1281,7 +1277,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder queryhql = new StringBuilder("SELECT c.OrganId,r.organName,d.`Name`, COUNT(c.OrderId), SUM(c.ActualPrice), SUM(c.RecipeFee), IFNULL(SUM(IF(c.expressFeePayWay in (2,3),0,c.ExpressFee)),0), 0");
                 StringBuilder sql = new StringBuilder(" from cdr_recipeorder c, cdr_drugsenterprise d, cdr_recipe r" +
-                        " where c.EnterpriseId = d.Id and c.OrderCode = r.OrderCode and r.GiveMode =1 and c.payflag = 1 and c.Effective =1 and c.payeeCode in (1,2) " +
+                        " where c.EnterpriseId = d.Id and c.OrderCode = r.OrderCode and r.GiveMode =1 and c.sendType = 2 and c.payflag = 1 and c.Effective =1 and c.payeeCode in (1,0) " +
                         " and YEAR(c.PayTime) =:year and MONTH(c.PayTime) =:month and c.OrganId =:organIdList GROUP BY c.OrganId,c.EnterpriseId");
                 if(null != request.getEnterpriseId()){
                     sql.append(" and c.EnterpriseId =:enterpriseId");
