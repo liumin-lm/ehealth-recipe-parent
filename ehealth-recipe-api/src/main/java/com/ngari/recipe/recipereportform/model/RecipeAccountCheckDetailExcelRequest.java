@@ -25,12 +25,12 @@ public class RecipeAccountCheckDetailExcelRequest implements Serializable{
     private Date endTime;
 
     //处方id
-    private Integer recipeId;
+    private String recipeId;
 
     //用户mpiid
     private String mpiid;
 
     //商户订单号
-    private String outTradeNo;
+    private String tradeNo;
 
 }
