@@ -18,12 +18,13 @@ import com.ngari.common.dto.RecipeTagMsgBean;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.service.IConsultService;
-import com.ngari.consult.message.service.IConsultMessageService;
 import com.ngari.follow.service.IRelationPatientService;
 import com.ngari.follow.vo.RelationDoctorVO;
 import com.ngari.home.asyn.model.BussCancelEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.message.api.MessageAPI;
+import com.ngari.message.api.service.ConsultMessageService;
+import com.ngari.message.api.service.INetworkclinicMsgService;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -40,7 +41,6 @@ import ctd.schema.exception.ValidateException;
 import ctd.util.AppContextHolder;
 import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
-import com.ngari.message.api.service.INetworkclinicMsgService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -2244,7 +2244,7 @@ public class RecipeServiceSub {
     private static void sendRecipeMsgTag(String requestMpiId, Recipe recipe, RecipeTagMsgBean recipeTagMsg,
                                          Map<String, Object> rMap, boolean send) {
         INetworkclinicMsgService iNetworkclinicMsgService = MessageAPI.getService(INetworkclinicMsgService.class);
-        IConsultMessageService iConsultMessageService = ApplicationUtils.getConsultService(IConsultMessageService.class);
+        ConsultMessageService iConsultMessageService = MessageAPI.getService(ConsultMessageService.class);
         //11月大版本改造--咨询id由前端传入
         /*//根据申请人mpiid，requestMode 获取当前咨询单consultId
         Integer consultId = null;
