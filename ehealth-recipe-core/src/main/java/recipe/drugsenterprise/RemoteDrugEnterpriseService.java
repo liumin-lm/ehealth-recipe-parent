@@ -52,6 +52,18 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
 
     private static final String COMMON_SERVICE = "commonRemoteService";
 
+    //手动推送给第三方
+    @RpcService
+    public void pushRecipeInfoForThirdSd(Integer recipeId, Integer depId){
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+        pushRecipeInfoForThird(recipe, drugsEnterprise);
+
+    }
+
     public void pushRecipeInfoForThird(Recipe recipe, DrugsEnterprise enterprise){
         //药企对应的service为空，则通过前置机进行推送
         IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
