@@ -1217,7 +1217,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         Long sum = recipeDAO.getCountByAll();
         request.setStart(0);
         request.setLimit(null != sum ? sum.intValue() : 0);
-        LOGGER.info("findRecipesAccountCheckDetailsByInfoForExcel 导出");
         Map<String, Object> resultMap = reportFormsService.recipeAccountCheckDetailList(request);
         return (null != resultMap && !resultMap.isEmpty()) ? (List<RecipeAccountCheckDetailResponse>)resultMap.get("data") : new ArrayList<RecipeAccountCheckDetailResponse>();
     }

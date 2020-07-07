@@ -15,7 +15,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.dao.RecipeOrderDAO;
+import recipe.util.DateConversion;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -69,6 +72,8 @@ public class RecipeReportFormsService {
         Args.notNull(request.getEndTime(), "endTime");
         Args.notNull(request.getStart(), "start");
         Args.notNull(request.getLimit(), "limit");
+        //将结束时间+1计算
+        request.setEndTime(DateConversion.getDateAftXDays(request.getEndTime(), 1));
         List<Integer> organIdList = getQueryOrganIdList(request);
         try {
             List<RecivedDispatchedBalanceResponse> drugReceivedDispatchedBalanceList = recipeOrderDAO.
@@ -126,6 +131,8 @@ public class RecipeReportFormsService {
         Args.notNull(request.getEndTime(), "endTime");
         Args.notNull(request.getStart(), "start");
         Args.notNull(request.getLimit(), "limit");
+        //将结束时间+1计算
+        request.setEndTime(DateConversion.getDateAftXDays(request.getEndTime(), 1));
         List<Integer> organIdList = getQueryOrganIdList(request);
         try {
             request.setOrganIdList(organIdList);
@@ -197,6 +204,8 @@ public class RecipeReportFormsService {
         Args.notNull(request.getEndTime(), "endTime");
         Args.notNull(request.getStart(), "start");
         Args.notNull(request.getLimit(), "limit");
+        //将结束时间+1计算
+        request.setEndTime(DateConversion.getDateAftXDays(request.getEndTime(), 1));
         List<Integer> organIdList = getQueryOrganIdList(request);
         request.setOrganIdList(organIdList);
         try {
@@ -228,6 +237,8 @@ public class RecipeReportFormsService {
         Map<String, Object> resultMap = new HashMap<>();
         Args.notNull(request.getStartTime(), "startTime");
         Args.notNull(request.getEndTime(), "endTime");
+        //将结束时间+1计算
+        request.setEndTime(DateConversion.getDateAftXDays(request.getEndTime(), 1));
         List<Integer> organIdList = getQueryOrganIdList(request);
         request.setOrganIdList(organIdList);
         try {
