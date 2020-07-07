@@ -4654,7 +4654,7 @@ public class RecipeService extends RecipeBaseService {
         //这里要取消处方的首先判断处方的状态是
         //取消处方的步骤：1.判断处方
         LOGGER.info("cancelSignRecipeTask 取消的ca签名处方列表{}", JSONUtils.toString(recipeList));
-        RecipeOrder order = new RecipeOrder();
+        RecipeOrder order = null;
         StringBuilder memo = new StringBuilder();
         Integer status;
         if (CollectionUtils.isNotEmpty(recipeList)) {
@@ -4728,6 +4728,94 @@ public class RecipeService extends RecipeBaseService {
                 //保存处方状态变更日志
                 RecipeLogService.saveRecipeLog(recipeId, status, RecipeStatusConstant.DELETE, memo.toString());
 
+            }
+        }
+
+        //处理过期取消的处方
+        List<Integer> statusList = Arrays.asList(RecipeStatusConstant.NO_PAY, RecipeStatusConstant.NO_OPERATOR);
+        for (Integer statusCancel : statusList) {
+            List<Recipe> recipeCancelList = recipeDAO.getRecipeListForCancelRecipe(statusCancel, startDt, endDt);
+            LOGGER.info("cancelRecipeTask 状态=[{}], 取消数量=[{}], 详情={}", statusCancel, recipeCancelList.size(), JSONUtils.toString(recipeCancelList));
+            if (CollectionUtils.isNotEmpty(recipeCancelList)) {
+                for (Recipe recipe : recipeCancelList) {
+                    if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
+                        OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+                        List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
+                        for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+                            if ("aldyf".equals(drugsEnterprise.getCallSys()) || ("tmdyf".equals(drugsEnterprise.getCallSys()) && recipe.getPushFlag() == 1)) {
+                                //向药企推送处方过期的通知
+                                RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+                                try {
+                                    AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+                                    DrugEnterpriseResult drugEnterpriseResult = remoteService.updatePrescriptionStatus(recipe.getRecipeCode(), AlDyfRecipeStatusConstant.EXPIRE);
+                                    LOGGER.info("向药企推送处方过期通知,{}", JSONUtils.toString(drugEnterpriseResult));
+                                } catch (Exception e) {
+                                    LOGGER.info("向药企推送处方过期通知有问题{}", recipe.getRecipeId(), e);
+                                }
+                            }
+
+
+                        }
+                    }
+                    memo.delete(0, memo.length());
+                    int recipeId = recipe.getRecipeId();
+                    //相应订单处理
+                    order = orderDAO.getOrderByRecipeId(recipeId);
+                    orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
+                    if (recipe.getFromflag().equals(RecipeBussConstant.FROMFLAG_HIS_USE)) {
+                        if(null != order){
+                            orderDAO.updateByOrdeCode(order.getOrderCode(), ImmutableMap.of("cancelReason", "患者未在规定时间内支付，该处方单已失效"));
+                        }
+                        //发送超时取消消息
+                        //${sendOrgan}：抱歉，您的处方单由于超过${overtime}未处理，处方单已失效。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
+                        RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_CANCEL_4HIS, recipe);
+                    }
+
+                    //变更处方状态
+                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, statusCancel, ImmutableMap.of("chooseFlag", 1));
+                    RecipeMsgService.batchSendMsg(recipe, statusCancel);
+                    if (RecipeStatusConstant.NO_PAY == statusCancel) {
+                        memo.append("已取消,超过3天未支付");
+                    } else if (RecipeStatusConstant.NO_OPERATOR == statusCancel) {
+                        memo.append("已取消,超过3天未操作");
+                    } else {
+                        memo.append("未知状态:" + statusCancel);
+                    }
+                    if (RecipeStatusConstant.NO_PAY == statusCancel) {
+                        //未支付，三天后自动取消后，优惠券自动释放
+                        RecipeCouponService recipeCouponService = ApplicationUtils.getRecipeService(RecipeCouponService.class);
+                        recipeCouponService.unuseCouponByRecipeId(recipeId);
+                    }
+                    //推送处方到监管平台
+                    RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
+                    //HIS消息发送
+                    boolean succFlag = hisService.recipeStatusUpdate(recipeId);
+                    if (succFlag) {
+                        memo.append(",HIS推送成功");
+                    } else {
+                        memo.append(",HIS推送失败");
+                    }
+                    //保存处方状态变更日志
+                    RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, statusCancel, memo.toString());
+                    //date 20200330
+                    //调用支付平台取消支付接口
+                    INgariPayService payService = AppDomainContext.getBean("eh.payService", INgariPayService.class);
+                    if(null != order){
+
+                        if (null != recipe) {
+                            //判断订单是否是单边账的
+                            if(0 == order.getPayFlag() && StringUtils.isNotEmpty(order.getOutTradeNo()) && StringUtils.isNotEmpty(order.getWxPayWay()) && StringUtils.isNotEmpty(order.getPayOrganId())){
+                                Map<String, Object> backResult = payService.payCancel(BusTypeEnum.RECIPE.getCode(), order.getOrderId().toString());
+                                if(null != backResult && eh.wxpay.constant.PayConstant.RESULT_SUCCESS.equals(backResult.get("code"))){
+                                    LOGGER.info("RecipeService.cancelRecipeTask 取消的订单对应的处方{}成功.", recipe.getRecipeId());
+                                    RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方"+ recipe.getRecipeId() +"取消的订单对应的接口成功");
+                                }
+                            }
+                        }else{
+                            LOGGER.info("RecipeService.cancelRecipeTask 取消的订单对应的处方为空.");
+                        }
+                    }
+                }
             }
         }
 
