@@ -1199,18 +1199,33 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public List<EnterpriseRecipeDetailResponse> findRecipesPharmaceuticalDetailsByInfoForExcel(EnterpriseRecipeDetailExcelRequest req) {
-        return null;
+        RecipeReportFormsService reportFormsService = ApplicationUtils.getRecipeService(RecipeReportFormsService.class);
+        RecipeReportFormsRequest request = ObjectCopyUtils.convert(req, RecipeReportFormsRequest.class);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Long sum = recipeDAO.getCountByAll();
+        request.setStart(0);
+        request.setLimit(null != sum ? sum.intValue() : 0);
+        Map<String, Object> resultMap = reportFormsService.enterpriseRecipeDetailList(request);
+        return (null != resultMap && !resultMap.isEmpty()) ? (List<EnterpriseRecipeDetailResponse>)resultMap.get("data") : new ArrayList<EnterpriseRecipeDetailResponse>();
     }
 
     @Override
     public List<RecipeAccountCheckDetailResponse> findRecipesAccountCheckDetailsByInfoForExcel(RecipeAccountCheckDetailExcelRequest req) {
-        return null;
+        RecipeReportFormsService reportFormsService = ApplicationUtils.getRecipeService(RecipeReportFormsService.class);
+        RecipeReportFormsRequest request = ObjectCopyUtils.convert(req, RecipeReportFormsRequest.class);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Long sum = recipeDAO.getCountByAll();
+        request.setStart(0);
+        request.setLimit(null != sum ? sum.intValue() : 0);
+        LOGGER.info("findRecipesAccountCheckDetailsByInfoForExcel 导出");
+        Map<String, Object> resultMap = reportFormsService.recipeAccountCheckDetailList(request);
+        return (null != resultMap && !resultMap.isEmpty()) ? (List<RecipeAccountCheckDetailResponse>)resultMap.get("data") : new ArrayList<RecipeAccountCheckDetailResponse>();
     }
 
     @Override
     public List<RecipeHisAccountCheckResponse> recipeHisAccountCheckList(RecipeReportFormsRequest request) {
         RecipeReportFormsService reportFormsService = ApplicationUtils.getRecipeService(RecipeReportFormsService.class);
         Map<String, Object> result = reportFormsService.recipeHisAccountCheckList(request);
-        return null != result ? (List<RecipeHisAccountCheckResponse>)result.get("date") : new ArrayList<RecipeHisAccountCheckResponse>();
+        return null != result ? (List<RecipeHisAccountCheckResponse>)result.get("data") : new ArrayList<RecipeHisAccountCheckResponse>();
     }
 }
