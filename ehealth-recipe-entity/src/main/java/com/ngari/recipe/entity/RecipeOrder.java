@@ -333,7 +333,7 @@ public class RecipeOrder implements Serializable {
         this.setAuditFee(zero);
         this.setOtherFee(zero);
     }
-
+    @Column(name = "payeeCode")
     public Integer getPayeeCode() {
         return payeeCode;
     }
