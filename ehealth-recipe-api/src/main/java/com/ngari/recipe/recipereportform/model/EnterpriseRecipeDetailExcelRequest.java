@@ -26,4 +26,6 @@ public class EnterpriseRecipeDetailExcelRequest implements Serializable{
 
     //药企id
     private Integer enterpriseId;
+
+    private String manageUnit;
 }
