@@ -713,7 +713,7 @@ public class RecipeServiceSub {
                 }
                 //每次剂量+剂量单位
                 String uDose = "Sig: " + "每次" + useDose + (StringUtils.isEmpty(d.getUseDoseUnit()) ?
-                        "" : d.getUseDoseUnit());
+                        "" : (StringUtils.isNotEmpty(d.getUseDoseStr()) ? "" :d.getUseDoseUnit()));
                 //开药总量+药品单位
                 String dTotal = "X" + d.getUseTotalDose() + d.getDrugUnit();
                 //用药频次
