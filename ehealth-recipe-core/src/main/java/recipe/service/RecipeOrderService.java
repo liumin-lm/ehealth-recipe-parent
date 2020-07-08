@@ -1728,7 +1728,7 @@ public class RecipeOrderService extends RecipeBaseService {
 
         //处理处方单相关
         if (RecipeResultBean.SUCCESS.equals(result.getCode()) && CollectionUtils.isNotEmpty(recipes)) {
-            if (PayConstant.PAY_FLAG_NOT_PAY == payFlag && null != order && 0 < order.getActualPrice()) {
+            if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag && null != order && 0 < order.getActualPrice()) {
                 RecipeMsgService.batchSendMsg(recipes.get(0), RecipeStatusConstant.HAVE_PAY);
             }
             Map<String, Object> recipeInfo = Maps.newHashMap();
