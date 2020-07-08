@@ -1686,7 +1686,7 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     public RecipeResultBean finishOrderPayImpl(String orderCode, int payFlag, Integer payMode) {
-        LOGGER.info("finishOrderPayImpl is get! orderCode={}", orderCode);
+        LOGGER.info("finishOrderPayImpl is get! orderCode={} ,payFlag = {}", orderCode, payFlag);
         RecipeResultBean result = RecipeResultBean.getSuccess();
         RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
         Map<String, Object> attrMap = Maps.newHashMap();
@@ -1728,7 +1728,7 @@ public class RecipeOrderService extends RecipeBaseService {
 
         //处理处方单相关
         if (RecipeResultBean.SUCCESS.equals(result.getCode()) && CollectionUtils.isNotEmpty(recipes)) {
-            if (null != order && 0 < order.getActualPrice()) {
+            if (PayConstant.PAY_FLAG_NOT_PAY == payFlag && null != order && 0 < order.getActualPrice()) {
                 RecipeMsgService.batchSendMsg(recipes.get(0), RecipeStatusConstant.HAVE_PAY);
             }
             Map<String, Object> recipeInfo = Maps.newHashMap();
