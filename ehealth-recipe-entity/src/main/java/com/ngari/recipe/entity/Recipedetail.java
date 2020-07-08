@@ -188,6 +188,9 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias = "药企药品编码")
 	private String saleDrugCode;
 
+	@ItemProperty(alias = "结算方式 0:药店价格 1:医院价格")
+	private Integer settlementMode;
+
 	@ItemProperty(alias = "药物使用天数(小数类型)")
 	private String useDaysB;
 	@ItemProperty(alias = "处方药品详情类型")
@@ -743,5 +746,13 @@ public class Recipedetail implements java.io.Serializable {
 
 	public void setDrugUnitdoseAndUnit(String drugUnitdoseAndUnit) {
 		this.drugUnitdoseAndUnit = drugUnitdoseAndUnit;
+	}
+
+	public Integer getSettlementMode() {
+		return settlementMode;
+	}
+
+	public void setSettlementMode(Integer settlementMode) {
+		this.settlementMode = settlementMode;
 	}
 }

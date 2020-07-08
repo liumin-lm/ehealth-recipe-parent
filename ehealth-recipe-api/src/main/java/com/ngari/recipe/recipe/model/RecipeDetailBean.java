@@ -193,6 +193,12 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias = "开处方时保存单位剂量【规格单位】|单位【规格单位】|单位剂量【最小单位】|单位【最小单位】,各个字段用|隔开，用来计算患者端显示实际每次剂量")
     private String drugUnitdoseAndUnit;
 
+    @ItemProperty(alias = "实际销售价格")
+    private BigDecimal actualSalePrice;
+
+    @ItemProperty(alias = "结算方式 0:药店价格 1:医院价格")
+    private Integer settlementMode;
+
     public String getUseDaysB() {
         return useDaysB;
     }
@@ -669,5 +675,21 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setDrugUnitdoseAndUnit(String drugUnitdoseAndUnit) {
         this.drugUnitdoseAndUnit = drugUnitdoseAndUnit;
+    }
+
+    public BigDecimal getActualSalePrice() {
+        return actualSalePrice;
+    }
+
+    public void setActualSalePrice(BigDecimal actualSalePrice) {
+        this.actualSalePrice = actualSalePrice;
+    }
+
+    public Integer getSettlementMode() {
+        return settlementMode;
+    }
+
+    public void setSettlementMode(Integer settlementMode) {
+        this.settlementMode = settlementMode;
     }
 }

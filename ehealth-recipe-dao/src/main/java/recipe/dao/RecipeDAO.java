@@ -694,13 +694,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
                 if (cancelStatus == RecipeStatusConstant.NO_PAY) {
                     //超过3天未支付，支付模式修改
                     //添加状态列表判断，从状态待处理添加签名失败，签名中
-                    hql.append(" and fromflag in (1,2) and status in （2, 31, 30, 26, 27)"
+                    hql.append(" and fromflag in (1,2) and status =" + RecipeStatusConstant.CHECK_PASS
                             + " and payFlag=0 and payMode is not null and orderCode is not null ");
                 } else if (cancelStatus == RecipeStatusConstant.NO_OPERATOR) {
                     //超过3天未操作,添加前置未操作的判断 后置待处理或者前置待审核和医保上传确认中
                     //添加状态列表判断，从状态待处理添加签名失败，签名中
-                    hql.append(" and fromflag = 1 and status in (2, 31, 30, 26, 27) and payMode is null " +
-                            "or ( status in (8,24) and reviewType = 1 and signDate between '" + startDt + "' and '" + endDt + "' )");
+                    hql.append(" and fromflag = 1 and status =" + RecipeStatusConstant.CHECK_PASS +
+                            " and payMode is null or ( status in (8,24) and reviewType = 1 and signDate between '" + startDt + "' and '" + endDt + "' )");
                 }
                 Query q = ss.createQuery(hql.toString());
                 setResult(q.list());
@@ -2645,8 +2645,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("from Recipe where status in (31, 30, 26, 27) and signDate between '" + startDt + "' and '" + endDt + "' ");
-                Query q = ss.createQuery(hql.toString());
+                StringBuilder sql = new StringBuilder("select * from cdr_recipe where status in (30, 26) and signDate between '" + startDt + "' and '" + endDt + "' ");
+                sql.append("UNION ALL ");
+                sql.append("select * from cdr_recipe where status in (31, 27) and reviewType = 1  and signDate between '" + startDt + "' and '" + endDt + "' ");
+                Query q = ss.createSQLQuery(sql.toString()).addEntity(Recipe.class);
                 setResult(q.list());
             }
         };
@@ -2654,5 +2656,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
+    @DAOMethod(sql = "select count(*) from Recipe")
+    public abstract Long getCountByAll();
 
 }

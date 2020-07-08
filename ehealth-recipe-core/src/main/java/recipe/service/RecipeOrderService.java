@@ -257,6 +257,11 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setExpressFeePayWay(drugsEnterprise.getExpressFeePayWay());
             }
         }
+        //货到付款设置配送费为线下支付
+        if (RecipeBussConstant.PAYMODE_COD.equals(payMode)){
+            //设置配送费支付方式
+            order.setExpressFeePayWay(2);
+        }
         if(null == remoteService){
             remoteService = getBean("commonRemoteService", CommonRemoteService.class);
         }

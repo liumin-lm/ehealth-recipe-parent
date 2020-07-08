@@ -8,11 +8,11 @@ import com.ngari.base.BaseAPI;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
-import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
@@ -159,7 +159,7 @@ public class RecipeListService extends RecipeBaseService{
                 recipeMap.put(recipe.getRecipeId(), convertRecipeForRAP(recipe));
             }
 
-            Map<String, PatientDS> patientMap = Maps.newHashMap();
+            Map<String, PatientVO> patientMap = Maps.newHashMap();
             if (CollectionUtils.isNotEmpty(patientIds)) {
                 List<PatientDTO> patientList = patientService.findByMpiIdIn(patientIds);
                 if (CollectionUtils.isNotEmpty(patientList)) {
@@ -633,8 +633,13 @@ public class RecipeListService extends RecipeBaseService{
             return recipeService.getHosRecipeList(consultId, organId, mpiId, 180);
         });
         //从Recipe表获取线上、线下处方
-        List<Map<String,Object>> onLineAndUnderLineRecipesByRecipe=findRecipeListByDoctorAndPatient(doctorId,mpiId,0,10000);
-        LOGGER.info("findHistoryRecipeList 从recipe表获取处方信息:{}",onLineAndUnderLineRecipesByRecipe);
+        List<Map<String,Object>> onLineAndUnderLineRecipesByRecipe=new ArrayList<>();
+        try{
+            onLineAndUnderLineRecipesByRecipe=findRecipeListByDoctorAndPatient(doctorId,mpiId,0,10000);
+            LOGGER.info("findHistoryRecipeList 从recipe表获取处方信息success:{}",onLineAndUnderLineRecipesByRecipe);
+        }catch (Exception e){
+            LOGGER.info("findHistoryRecipeList 从recipe表获取处方信息error:{}",e.getMessage());
+        }
 
         Map<String,Object> upderLineRecipesByHis= new ConcurrentHashMap<>();
         try {
@@ -718,7 +723,7 @@ public class RecipeListService extends RecipeBaseService{
         //List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId, mpiId, start, limit);
         //修改逻辑历史处方中获取的处方列表：只显示未处理、未支付、审核不通过、失败、已完成状态的
         List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatientAndStatusList(doctorId, mpiId, start, limit, new ArrayList<>(Arrays.asList(HistoryRecipeListShowStatusList)));
-        PatientDS patient = RecipeServiceSub.convertSensitivePatientForRAP(patientService.get(mpiId));
+        PatientVO patient = RecipeServiceSub.convertSensitivePatientForRAP(patientService.get(mpiId));
         return instanceRecipesAndPatient(recipes,patient);
     }
 
@@ -728,7 +733,7 @@ public class RecipeListService extends RecipeBaseService{
      * @param patient
      * @return
      */
-    public List<Map<String, Object>> instanceRecipesAndPatient(List<Recipe> recipes,PatientDS patient) {
+    public List<Map<String, Object>> instanceRecipesAndPatient(List<Recipe> recipes,PatientVO patient) {
         List<Map<String, Object>> list = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(recipes)) {
             RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -1400,7 +1405,7 @@ public class RecipeListService extends RecipeBaseService{
                 recipeMap.put(recipe.getRecipeId(), convertRecipeForRAP(recipe));
             }
 
-            Map<String, PatientDS> patientMap = Maps.newHashMap();
+            Map<String, PatientVO> patientMap = Maps.newHashMap();
             if (CollectionUtils.isNotEmpty(patientIds)) {
                 List<PatientDTO> patientList = patientService.findByMpiIdIn(patientIds);
                 if (CollectionUtils.isNotEmpty(patientList)) {

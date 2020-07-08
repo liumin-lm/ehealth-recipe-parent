@@ -36,6 +36,12 @@ public class RecipeHisAccountCheckResponse implements Serializable{
     //
     private String hisRecipeId; //his处方号
 
+    private Integer organId;
+
+    private String mpiId;
+
+    private Integer giverMode;
+
     //    private String reason; //产生原因
     //
     //    private String status; //状态
