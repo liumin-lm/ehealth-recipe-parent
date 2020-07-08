@@ -1339,7 +1339,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 StringBuilder countSql = new StringBuilder("SELECT count(*)");
                 StringBuilder queryhql = new StringBuilder("SELECT c.OrganId,r.organName,d.`Name`, r.RecipeID,c.MPIID, c.PayTime , IFNULL(c.ActualPrice,0) , IFNULL(c.RecipeFee,0), IF(c.expressFeePayWay in (2,3),0,c.ExpressFee), 0,c.outTradeNo");
                 StringBuilder sql = new StringBuilder(" from cdr_recipeorder c, cdr_drugsenterprise d, cdr_recipe r" +
-                        " where c.EnterpriseId = d.Id and c.OrderCode = r.OrderCode and r.GiveMode =1 and c.payflag = 1 and c.Effective =1 and c.PayTime between :startTime and :endTime and c.OrganId =:organIdList");
+                        " where c.EnterpriseId = d.Id and c.OrderCode = r.OrderCode and r.GiveMode =1 and c.send_type = 2 and c.payflag = 1 and c.Effective =1 and c.PayTime between :startTime and :endTime and c.OrganId =:organIdList");
                 if(null != request.getEnterpriseId()){
                     sql.append(" and c.EnterpriseId =:enterpriseId");
                 }
