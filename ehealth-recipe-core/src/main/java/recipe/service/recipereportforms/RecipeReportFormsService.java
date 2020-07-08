@@ -10,6 +10,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,19 +45,23 @@ public class RecipeReportFormsService {
 
     private List<Integer> getQueryOrganIdList(RecipeReportFormsRequest request) {
         List<Integer> organIdList = new ArrayList<>();
-        if (null == request.getOrganId() && CollectionUtils.isEmpty(request.getOrganIdList())) {
-            UserRoleToken urt = UserRoleToken.getCurrent();
-            LOGGER.info("opbase get urt = {}", JSONUtils.toString(urt));
-            String manageUnit = urt.getManageUnit();
-            List<Integer> organIds = new ArrayList<>();
-            if (!"eh".equals(manageUnit)) {
-                organIds = organService.findOrganIdsByManageUnit(manageUnit + "%");
-            }
-            organIdList = organIds;
-        } else if (null != request.getOrganId()) {
+        if (null != request.getOrganId()) {
             organIdList = Arrays.asList(request.getOrganId());
-        } else if (null == request.getOrganId() && CollectionUtils.isNotEmpty(request.getOrganIdList())) {
-            organIdList = request.getOrganIdList();
+            return organIdList;
+        }
+        if (StringUtils.isNotEmpty(request.getManageUnit())) {
+            if (!"eh".equals(request.getManageUnit())) {
+                organIdList = organService.findOrganIdsByManageUnit(request.getManageUnit() + "%");
+            }
+            return organIdList;
+        }
+        if (null == request.getOrganId() && CollectionUtils.isEmpty(request.getOrganIdList()) && StringUtils.isEmpty(request.getManageUnit())) {
+            UserRoleToken urt = UserRoleToken.getCurrent();
+            String manageUnit = urt.getManageUnit();
+            if (!"eh".equals(manageUnit)) {
+                organIdList = organService.findOrganIdsByManageUnit(manageUnit + "%");
+            }
+            return organIdList;
         }
         return organIdList;
     }
@@ -78,7 +83,7 @@ public class RecipeReportFormsService {
         List<Integer> organIdList = getQueryOrganIdList(request);
         try {
             List<RecivedDispatchedBalanceResponse> drugReceivedDispatchedBalanceList = recipeOrderDAO.
-                    findDrugReceivedDispatchedBalanceList(organIdList, request.getStartTime(), request.getEndTime(), request.getStart(), request.getLimit());
+                    findDrugReceivedDispatchedBalanceList(request.getManageUnit(), organIdList, request.getStartTime(), request.getEndTime(), request.getStart(), request.getLimit());
             if (CollectionUtils.isNotEmpty(drugReceivedDispatchedBalanceList)) {
                 resultMap.put("total", drugReceivedDispatchedBalanceList.get(0).getTotal());
             } else {
@@ -140,12 +145,12 @@ public class RecipeReportFormsService {
             List<RecipeAccountCheckDetailResponse> responses = recipeOrderDAO.findRecipeAccountCheckDetailList(request);
             PatientService patientService = BasicAPI.getService(PatientService.class);
             PatientDTO patientDTO;
-            for(RecipeAccountCheckDetailResponse recipeAccountCheckDetailResponse : responses){
-                if(null != recipeAccountCheckDetailResponse.getMpiId()){
+            for (RecipeAccountCheckDetailResponse recipeAccountCheckDetailResponse : responses) {
+                if (null != recipeAccountCheckDetailResponse.getMpiId()) {
                     patientDTO = patientService.getPatientBeanByMpiId(recipeAccountCheckDetailResponse.getMpiId());
-                    if(null != patientDTO){
+                    if (null != patientDTO) {
                         recipeAccountCheckDetailResponse.setPatientName(patientDTO.getPatientName() + "\n" + patientDTO.getMobile());
-                    }else{
+                    } else {
                         LOGGER.error("recipeHisAccountCheckList 当前患者{}不存在", recipeAccountCheckDetailResponse.getMpiId());
                     }
                 }
@@ -251,7 +256,7 @@ public class RecipeReportFormsService {
                     patientDTO = patientService.getPatientByMpiId(recipeHisAccountCheckResponse.getMpiId());
                     if(null != patientDTO){
                         recipeHisAccountCheckResponse.setPatientName(patientDTO.getPatientName() + "\n" + patientDTO.getMobile());
-                    }else{
+                    } else {
                         LOGGER.error("recipeHisAccountCheckList 当前患者{}不存在", recipeHisAccountCheckResponse.getMpiId());
                     }
                 }
