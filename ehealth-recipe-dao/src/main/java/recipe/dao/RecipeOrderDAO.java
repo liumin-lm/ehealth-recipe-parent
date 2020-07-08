@@ -7,9 +7,11 @@ import com.google.common.collect.Sets;
 import com.ngari.his.regulation.entity.RegulationChargeDetailReqTo;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipereportform.model.*;
+import ctd.account.UserRoleToken;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
@@ -30,6 +32,7 @@ import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.constant.RecipeBussConstant;
 
 import java.math.BigDecimal;
@@ -1060,21 +1063,33 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     @DAOMethod(sql = "from RecipeOrder where status =:status and effective = 1 and payFlag = 1 and enterpriseId =:enterpriseId ")
     public abstract List<RecipeOrder> findRecipeOrderByStatusAndEnterpriseId(@DAOParam("status") Integer status, @DAOParam("enterpriseId") Integer enterpriseId);
 
-    public List<RecivedDispatchedBalanceResponse> findDrugReceivedDispatchedBalanceList(final List<Integer> organIdList, final Date startTime, final Date endTime,
-                                                                                        final Integer start, final Integer limit) {
-        if (CollectionUtils.isEmpty(organIdList)) {
-            return Collections.emptyList();
+    private String getManageUnit(String manageUnit){
+        if(StringUtils.isNotEmpty(manageUnit)){
+            return manageUnit;
         }
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        return urt.getManageUnit();
+    }
+
+    public List<RecivedDispatchedBalanceResponse> findDrugReceivedDispatchedBalanceList(final String manageUnit, final List<Integer> organIdList, final Date startTime, final Date endTime,
+                                                                                        final Integer start, final Integer limit) {
         HibernateStatelessResultAction<List<RecivedDispatchedBalanceResponse>> action = new AbstractHibernateStatelessResultAction<List<RecivedDispatchedBalanceResponse>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder sql = new StringBuilder("SELECT OrganId,enterpriseName, lastBalance, thisRecived, thisDispatched, lastBalance+thisRecived-thisDispatched from(" +
-                        "select d.Name enterpriseName,c.OrganId,sum(if(c.status !=5 and c.PayTime < :startTime,ActualPrice,0.00)) lastBalance,sum( if(c.PayTime between :startTime and :endTime , ActualPrice,0.00) ) thisRecived,sum(if(c.status =5 and c.PayTime between :startTime and :endTime  , ActualPrice,0.00)) thisDispatched");
-                StringBuilder searchSql = new StringBuilder(" from cdr_recipeorder c, cdr_drugsenterprise d where c.EnterpriseId = d.Id and c.OrganId in :organIdList and c.payflag = 1 and c.Effective =1 AND c.PayTime between :startTime and :endTime GROUP BY c.EnterpriseId) t");
+                        "select d.Name enterpriseName,c.OrganId,sum(if(c.status !=5 and c.PayTime < :startTime,ActualPrice,0.00)) lastBalance,sum( if(c.PayTime between :startTime and :endTime , ActualPrice,0.00) ) thisRecived,sum(if(c.status =5 and c.PayTime between :startTime and :endTime  , ActualPrice,0.00)) thisDispatched ");
+                StringBuilder searchSql = new StringBuilder(" from cdr_recipeorder c, cdr_drugsenterprise d where c.EnterpriseId = d.Id");
+                if (CollectionUtils.isNotEmpty(organIdList)) {
+                    searchSql.append(" and c.OrganId in :organIdList");
+                }
+                searchSql.append(" and c.payflag = 1 and c.Effective =1 AND c.PayTime between :startTime and :endTime GROUP BY c.EnterpriseId) t");
                 Query query = ss.createSQLQuery(sql.append(searchSql).toString());
                 query.setParameter("startTime", startTime);
                 query.setParameter("endTime", endTime);
-                query.setParameterList("organIdList", organIdList);
+
+                if (CollectionUtils.isNotEmpty(organIdList)){
+                    query.setParameterList("organIdList", organIdList);
+                }
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
 
@@ -1082,7 +1097,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 Query countQuery = ss.createSQLQuery(countSql.append(searchSql).toString());
                 countQuery.setParameter("startTime", startTime);
                 countQuery.setParameter("endTime", endTime);
-                countQuery.setParameterList("organIdList", organIdList);
+                if (CollectionUtils.isNotEmpty(organIdList)) {
+                    countQuery.setParameterList("organIdList", organIdList);
+                }
                 Long count = ConversionUtils.convert(countQuery.uniqueResult(), Long.class);
 
                 List<Object[]> queryList = query.list();
@@ -1110,9 +1127,6 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
     public List<RecipeMonthAccountCheckResponse> findRecipeMonthAccountCheckList(final List<Integer> organIdList, final String year, final String month,
                                                                                  final Integer start, final Integer limit) {
-        if (CollectionUtils.isEmpty(organIdList)) {
-            return Collections.emptyList();
-        }
         HibernateStatelessResultAction<List<RecipeMonthAccountCheckResponse>> action = new AbstractHibernateStatelessResultAction<List<RecipeMonthAccountCheckResponse>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -1123,22 +1137,31 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         "sum( IF ( ero.payeeCode = 1, IFNULL( ero.TotalFee, 0.00 ), 0.00 ) ) - IFNULL( cast(sum( cre.fundAmount ) AS decimal(15,2)), 0.00 )," +
                         "sum( IF ( ero.payeeCode = 0, IFNULL( ero.TotalFee, 0.00 ), 0.00 ) ) ," +
                         "IFNULL( sum(ero.TotalFee), 0.00 ) - IFNULL( sum(ero.auditFee), 0.00 ) - IFNULL( sum( ero.expressFee ), 0.00 ) -sum( IF ( ero.payeeCode = 1, IFNULL( ero.TotalFee, 0.00 ), 0.00 ) )");
-                String sql = new String(" FROM cdr_recipe er" +
+                StringBuilder sql = new StringBuilder(" FROM cdr_recipe er" +
                         " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode and ero.send_type = 2 " +
                         " INNER JOIN cdr_recipe_ext cre ON er.RecipeID = cre.RecipeID" +
-                        " WHERE ero.payeeCode is not null And er.clinicOrgan IN :organIdList" +
-                        " AND YEAR(ero.PayTime) =:year and MONTH(ero.PayTime) =:month" +
-                        " GROUP BY er.ClinicOrgan ORDER BY er.ClinicOrgan");
-                String queryCount = new String(" FROM cdr_recipe er" +
+                        " WHERE ero.payeeCode is not null");
+                StringBuilder queryCount = new StringBuilder(" FROM cdr_recipe er" +
                         " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode and ero.send_type = 2 " +
                         " INNER JOIN cdr_recipe_ext cre ON er.RecipeID = cre.RecipeID" +
-                        " WHERE ero.payeeCode is not null And er.clinicOrgan IN :organIdList" +
-                        " AND YEAR(ero.PayTime) =:year and MONTH(ero.PayTime) =:month" +
-                        " GROUP BY er.ClinicOrgan ORDER BY er.ClinicOrgan) t");
+                        " WHERE ero.payeeCode is not null");
+
+                if (CollectionUtils.isNotEmpty(organIdList)) {
+                    sql.append(" And er.clinicOrgan IN :organIdList");
+                }
+                sql.append(" AND YEAR(ero.PayTime) =:year and MONTH(ero.PayTime) =:month GROUP BY er.ClinicOrgan ORDER BY er.ClinicOrgan");
+
+                if(CollectionUtils.isNotEmpty(organIdList)){
+                    queryCount.append(" And er.clinicOrgan IN :organIdList");
+                }
+
+                queryCount.append(" AND YEAR(ero.PayTime) =:year and MONTH(ero.PayTime) =:month GROUP BY er.ClinicOrgan ORDER BY er.ClinicOrgan) t");
                 Query query = ss.createSQLQuery(queryhql.append(sql).toString());
                 query.setParameter("year", year);
                 query.setParameter("month", month);
-                query.setParameterList("organIdList", organIdList);
+                if(CollectionUtils.isNotEmpty(organIdList)){
+                    query.setParameterList("organIdList", organIdList);
+                }
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
 
@@ -1146,7 +1169,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 Query countQuery = ss.createSQLQuery(countSql.append(queryCount).toString());
                 countQuery.setParameter("year", year);
                 countQuery.setParameter("month", month);
-                countQuery.setParameterList("organIdList", organIdList);
+                if(CollectionUtils.isNotEmpty(organIdList)){
+                    countQuery.setParameterList("organIdList", organIdList);
+                }
                 Long total = ConversionUtils.convert(countQuery.uniqueResult(), Long.class);
 
                 List<Object[]> queryList = query.list();
@@ -1179,9 +1204,6 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     }
 
     public List<RecipeAccountCheckDetailResponse> findRecipeAccountCheckDetailList(final RecipeReportFormsRequest request) {
-        if (CollectionUtils.isEmpty(request.getOrganIdList())) {
-            return Collections.emptyList();
-        }
         HibernateStatelessResultAction<List<RecipeAccountCheckDetailResponse>> action = new AbstractHibernateStatelessResultAction<List<RecipeAccountCheckDetailResponse>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -1195,8 +1217,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 StringBuilder sql = new StringBuilder(" FROM cdr_recipe er" +
                         " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode and ero.send_type = 2" +
                         " INNER JOIN cdr_recipe_ext cre ON er.RecipeID = cre.RecipeID " +
-                        " WHERE ero.payeeCode is not null And er.clinicOrgan in :organIdList" +
-                        " AND ero.paytime BETWEEN :startTime AND :endTime");
+                        " WHERE ero.payeeCode is not null AND ero.paytime BETWEEN :startTime AND :endTime");
                 if (StringUtils.isNotEmpty(request.getRecipeId())) {
                     sql.append(" And er.recipeId =:recipeId");
                 }
@@ -1206,8 +1227,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if (StringUtils.isNotEmpty(request.getTradeNo())) {
                     sql.append(" And ero.outTradeNo =:outTradeNo");
                 }
+                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                    sql.append(" And er.clinicOrgan in :organIdList");
+                }
                 Query query = ss.createSQLQuery(queryhql.append(sql).toString());
-                query.setParameterList("organIdList", request.getOrganIdList());
                 query.setFirstResult(request.getStart());
                 query.setMaxResults(request.getLimit());
                 query.setParameter("startTime", request.getStartTime());
@@ -1221,10 +1244,12 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if (StringUtils.isNotEmpty(request.getTradeNo())) {
                     query.setParameter("outTradeNo", request.getTradeNo());
                 }
+                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                    query.setParameterList("organIdList", request.getOrganIdList());
+                }
 
                 StringBuilder countSql = new StringBuilder("SELECT count(*)");
                 Query countQuery = ss.createSQLQuery(countSql.append(sql).toString());
-                countQuery.setParameterList("organIdList", request.getOrganIdList());
                 countQuery.setParameter("startTime", request.getStartTime());
                 countQuery.setParameter("endTime", request.getEndTime());
                 if (StringUtils.isNotEmpty(request.getRecipeId())) {
@@ -1236,6 +1261,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if (StringUtils.isNotEmpty(request.getTradeNo())) {
                     countQuery.setParameter("outTradeNo", request.getTradeNo());
                 }
+                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                    countQuery.setParameterList("organIdList", request.getOrganIdList());
+                }
+
                 Long total = ConversionUtils.convert(countQuery.uniqueResult(), Long.class);
 
                 List<Object[]> queryList = query.list();
@@ -1270,22 +1299,25 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     }
 
     public List<EnterpriseRecipeMonthSummaryResponse> findEnterpriseRecipeMonthSummaryList(final RecipeReportFormsRequest request) {
-        if (CollectionUtils.isEmpty(request.getOrganIdList())) {
-            return Collections.emptyList();
-        }
         HibernateStatelessResultAction<List<EnterpriseRecipeMonthSummaryResponse>> action = new AbstractHibernateStatelessResultAction<List<EnterpriseRecipeMonthSummaryResponse>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder queryhql = new StringBuilder("SELECT c.OrganId,r.organName,d.`Name`, COUNT(c.OrderId), SUM(c.ActualPrice), SUM(c.RecipeFee), IFNULL(SUM(IF(c.expressFeePayWay in (2,3),0,c.ExpressFee)),0), 0");
                 StringBuilder sql = new StringBuilder(" from cdr_recipeorder c, cdr_drugsenterprise d, cdr_recipe r" +
                         " where c.EnterpriseId = d.Id and c.OrderCode = r.OrderCode and r.GiveMode =1 and c.send_type = 2 and c.payflag = 1 and c.Effective =1 and c.payeeCode in (1,0) " +
-                        " and YEAR(c.PayTime) =:year and MONTH(c.PayTime) =:month and c.OrganId =:organIdList GROUP BY c.OrganId,c.EnterpriseId");
+                        " and YEAR(c.PayTime) =:year and MONTH(c.PayTime) =:month");
                 if(null != request.getEnterpriseId()){
                     sql.append(" and c.EnterpriseId =:enterpriseId");
                 }
+                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                    sql.append(" and c.OrganId =:organIdList");
+                }
+                sql.append(" GROUP BY c.OrganId,c.EnterpriseId");
                 StringBuilder querySql = queryhql.append(sql);
                 Query query = ss.createSQLQuery(querySql.toString());
-                query.setParameterList("organIdList", request.getOrganIdList());
+                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                    query.setParameterList("organIdList", request.getOrganIdList());
+                }
                 query.setFirstResult(request.getStart());
                 query.setMaxResults(request.getLimit());
                 query.setParameter("year", request.getYear());
@@ -1297,7 +1329,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
                 StringBuilder countSql = new StringBuilder("select count(*) from(select count(c.EnterpriseId)");
                 Query countQuery = ss.createSQLQuery(countSql.append(sql).append(")t").toString());
-                countQuery.setParameterList("organIdList", request.getOrganIdList());
+                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                    countQuery.setParameterList("organIdList", request.getOrganIdList());
+                }
                 countQuery.setParameter("year", request.getYear());
                 countQuery.setParameter("month", request.getMonth());
                 if(null != request.getEnterpriseId()){
@@ -1330,23 +1364,25 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     }
 
     public List<EnterpriseRecipeDetailResponse> findEnterpriseRecipeDetailList(final RecipeReportFormsRequest request) {
-        if (CollectionUtils.isEmpty(request.getOrganIdList())) {
-            return Collections.emptyList();
-        }
         HibernateStatelessResultAction<List<EnterpriseRecipeDetailResponse>> action = new AbstractHibernateStatelessResultAction<List<EnterpriseRecipeDetailResponse>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder countSql = new StringBuilder("SELECT count(*)");
                 StringBuilder queryhql = new StringBuilder("SELECT c.OrganId,r.organName,d.`Name`, r.RecipeID,c.MPIID, c.PayTime , IFNULL(c.ActualPrice,0) , IFNULL(c.RecipeFee,0), IF(c.expressFeePayWay in (2,3),0,c.ExpressFee), 0,c.outTradeNo");
                 StringBuilder sql = new StringBuilder(" from cdr_recipeorder c, cdr_drugsenterprise d, cdr_recipe r" +
-                        " where c.EnterpriseId = d.Id and c.OrderCode = r.OrderCode and r.GiveMode =1 and c.send_type = 2 and c.payflag = 1 and c.Effective =1 and c.PayTime between :startTime and :endTime and c.OrganId =:organIdList");
+                        " where c.EnterpriseId = d.Id and c.OrderCode = r.OrderCode and r.GiveMode =1 and c.send_type = 2 and c.payflag = 1 and c.Effective =1 and c.PayTime between :startTime and :endTime");
+                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                    sql.append(" and c.OrganId =:organIdList");
+                }
                 if(null != request.getEnterpriseId()){
                     sql.append(" and c.EnterpriseId =:enterpriseId");
                 }
 //                sql.append(" GROUP BY c.OrganId,c.EnterpriseId");
                 StringBuilder querySql = queryhql.append(sql);
                 Query query = ss.createSQLQuery(querySql.toString());
-                query.setParameterList("organIdList", request.getOrganIdList());
+                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                    query.setParameterList("organIdList", request.getOrganIdList());
+                }
                 query.setFirstResult(request.getStart());
                 query.setMaxResults(request.getLimit());
                 query.setParameter("startTime", request.getStartTime());
@@ -1357,7 +1393,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
                 //count
                 Query countQuery = ss.createSQLQuery(countSql.append(sql).toString());
-                countQuery.setParameterList("organIdList", request.getOrganIdList());
+                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                    countQuery.setParameterList("organIdList", request.getOrganIdList());
+                }
                 countQuery.setParameter("startTime", request.getStartTime());
                 countQuery.setParameter("endTime", request.getEndTime());
                 if(null != request.getEnterpriseId()){
@@ -1395,9 +1433,6 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
     //当前接口不需要进行分页
     public List<RecipeHisAccountCheckResponse> findRecipeHisAccountCheckList(final RecipeReportFormsRequest request) {
-        if (CollectionUtils.isEmpty(request.getOrganIdList())) {
-            return Collections.emptyList();
-        }
         HibernateStatelessResultAction<List<RecipeHisAccountCheckResponse>> action = new AbstractHibernateStatelessResultAction<List<RecipeHisAccountCheckResponse>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
