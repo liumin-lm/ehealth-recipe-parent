@@ -14,9 +14,7 @@ import com.ngari.his.recipe.mode.QueryRecipeRequestTO;
 import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
-import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.ca.mode.CaSignResultTo;
@@ -49,7 +47,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spockframework.util.CollectionUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
@@ -69,7 +66,6 @@ import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.drugsenterprise.TmdyfRemoteService;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.medicationguide.service.WinningMedicationGuideService;
-import recipe.recipecheck.PlatRecipeCheckService;
 import recipe.recipecheck.RecipeCheckService;
 import recipe.service.*;
 import recipe.serviceprovider.BaseService;
@@ -78,13 +74,10 @@ import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
-
 import java.math.BigDecimal;
-import java.sql.Connection;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * company: ngarihealth
@@ -169,7 +162,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @Override
-    public boolean updateRecipeInfoByRecipeId(int recipeId, int afterStatus, Map<String, ?> changeAttr) {
+    public boolean updateRecipeInfoByRecipeIdAndAfterStatus(int recipeId, int afterStatus, Map<String, Object> changeAttr) {
         return recipeDAO.updateRecipeInfoByRecipeId(recipeId, afterStatus, changeAttr);
     }
 
@@ -1186,17 +1179,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return recipeBeans;
     }
 
-    private List<RecipeBean> getRecipeBeans(List<Recipe> recipes) {
-        List<RecipeBean> recipeBeans = null;
-        if (CollectionUtils.isNotEmpty(recipes)) {
-            recipeBeans = recipes.stream().map(recipe -> {
-                RecipeBean recipeBean = new RecipeBean();
-                BeanUtils.copyProperties(recipe, recipeBean);
-                return recipeBean;
-            }).collect(Collectors.toList());
-        }
-        return recipeBeans;
-    }
+
 
     @Override
     public void doAfterCheckNotPassYs(RecipeBean recipeBean) {
@@ -1245,6 +1228,18 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         List<Recipe> recipes = recipeDAO.findByRecipeAndOrganId(recipeIds, organIds);
         //转换前端的展示实体类
         List<RecipeBean> recipeBeans = getRecipeBeans(recipes);
+        return recipeBeans;
+    }
+
+    private List<RecipeBean> getRecipeBeans(List<Recipe> recipes) {
+        List<RecipeBean> recipeBeans = null;
+        if (CollectionUtils.isNotEmpty(recipes)) {
+            recipeBeans = recipes.stream().map(recipe -> {
+                RecipeBean recipeBean = new RecipeBean();
+                BeanUtils.copyProperties(recipe, recipeBean);
+                return recipeBean;
+            }).collect(Collectors.toList());
+        }
         return recipeBeans;
     }
 }

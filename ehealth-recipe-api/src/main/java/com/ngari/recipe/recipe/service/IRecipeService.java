@@ -91,7 +91,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @return
      */
     @RpcService
-    boolean updateRecipeInfoByRecipeId(int recipeId, int afterStatus, Map<String, ?> changeAttr);
+    boolean updateRecipeInfoByRecipeIdAndAfterStatus(int recipeId, int afterStatus, Map<String, Object> changeAttr);
 
     /**
      * 获取处方信息
@@ -606,5 +606,6 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @param organIds
      * @return
      */
+    @RpcService
     List<RecipeBean> findByRecipeAndOrganId( List<Integer> recipeIds, Set<Integer> organIds);
 }
