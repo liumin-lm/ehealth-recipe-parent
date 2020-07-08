@@ -394,6 +394,9 @@ public class HisRecipeService {
     public Map<String, Object> getHisRecipeDetail(Integer hisRecipeId){
         //将线下处方转化成线上处方
         HisRecipe hisRecipe = hisRecipeDAO.get(hisRecipeId);
+        if (hisRecipe == null) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "没有查询到来自医院的处方单");
+        }
         Recipe recipe = saveRecipeFromHisRecipe(hisRecipe);
         if (recipe != null) {
             saveRecipeExt(recipe.getRecipeId(),hisRecipe);
