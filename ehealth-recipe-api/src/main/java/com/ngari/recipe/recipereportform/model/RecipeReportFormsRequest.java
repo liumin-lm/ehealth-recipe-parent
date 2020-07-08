@@ -38,5 +38,7 @@ public class RecipeReportFormsRequest implements Serializable{
 
     private Integer limit;
 
+    private String manageUnit;
+
 
 }

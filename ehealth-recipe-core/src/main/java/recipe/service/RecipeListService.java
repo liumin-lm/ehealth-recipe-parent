@@ -633,8 +633,13 @@ public class RecipeListService extends RecipeBaseService{
             return recipeService.getHosRecipeList(consultId, organId, mpiId, 180);
         });
         //从Recipe表获取线上、线下处方
-        List<Map<String,Object>> onLineAndUnderLineRecipesByRecipe=findRecipeListByDoctorAndPatient(doctorId,mpiId,0,10000);
-        LOGGER.info("findHistoryRecipeList 从recipe表获取处方信息:{}",onLineAndUnderLineRecipesByRecipe);
+        List<Map<String,Object>> onLineAndUnderLineRecipesByRecipe=new ArrayList<>();
+        try{
+            onLineAndUnderLineRecipesByRecipe=findRecipeListByDoctorAndPatient(doctorId,mpiId,0,10000);
+            LOGGER.info("findHistoryRecipeList 从recipe表获取处方信息success:{}",onLineAndUnderLineRecipesByRecipe);
+        }catch (Exception e){
+            LOGGER.info("findHistoryRecipeList 从recipe表获取处方信息error:{}",e.getMessage());
+        }
 
         Map<String,Object> upderLineRecipesByHis= new ConcurrentHashMap<>();
         try {
