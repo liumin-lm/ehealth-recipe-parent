@@ -207,10 +207,10 @@ public class RecipePreserveService {
         } catch (Exception e) {
             LOGGER.warn("getHosRecipeList his error. ", e);
         }
+        LOGGER.info("getHosRecipeList res={}", JSONUtils.toString(response));
         if(null == response){
             return result;
         }
-        LOGGER.info("getHosRecipeList res={}", JSONUtils.toString(response));
         List<RecipeInfoTO> data = response.getData();
         //转换平台字段
         if (CollectionUtils.isEmpty(data)){
