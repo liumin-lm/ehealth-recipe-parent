@@ -46,6 +46,7 @@ public class RecipeReportFormsService {
         List<Integer> organIdList = new ArrayList<>();
         if (null == request.getOrganId() && CollectionUtils.isEmpty(request.getOrganIdList())) {
             UserRoleToken urt = UserRoleToken.getCurrent();
+            LOGGER.info("opbase get urt = {}", JSONUtils.toString(urt));
             String manageUnit = urt.getManageUnit();
             List<Integer> organIds = new ArrayList<>();
             if (!"eh".equals(manageUnit)) {
