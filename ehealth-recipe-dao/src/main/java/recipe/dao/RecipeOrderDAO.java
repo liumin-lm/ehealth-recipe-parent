@@ -1406,7 +1406,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         "cr.GiveMode,cro.paytime,IFNULL(cro.TotalFee,0.00),IFNULL(ret.fundAmount,0.00),IFNULL(cro.TotalFee,0.00) - IFNULL(ret.fundAmount,0.00),cr.RecipeCode,cro.outTradeNo,cr.ClinicOrgan");
                 StringBuilder sql = new StringBuilder(" FROM cdr_recipe cr" +
                         " INNER JOIN cdr_recipeorder cro ON cr.orderCode = cro.ordercode" +
-                        " INNER JOIN cdr_recipe_ext ret ON cr.recipeId = ret.recipeId ");
+                        " INNER JOIN cdr_recipe_ext ret ON cr.recipeId = ret.recipeId WHERE cro.paytime BETWEEN :startTime AND :endTime");
                 if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
                     sql.append(" AND cro.OrganId in :organIdList ");
                 }

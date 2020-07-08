@@ -248,7 +248,7 @@ public class RecipeReportFormsService {
             PatientDTO patientDTO;
             for(RecipeHisAccountCheckResponse recipeHisAccountCheckResponse : responses){
                 if(null != recipeHisAccountCheckResponse.getMpiId()){
-                    patientDTO = patientService.getByMpiId(recipeHisAccountCheckResponse.getMpiId());
+                    patientDTO = patientService.getPatientByMpiId(recipeHisAccountCheckResponse.getMpiId());
                     if(null != patientDTO){
                         recipeHisAccountCheckResponse.setPatientName(patientDTO.getPatientName() + "\n" + patientDTO.getMobile());
                     }else{

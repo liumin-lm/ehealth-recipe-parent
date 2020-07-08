@@ -33,4 +33,6 @@ public class RecipeAccountCheckDetailExcelRequest implements Serializable{
     //商户订单号
     private String tradeNo;
 
+    private String manageUnit;
+
 }
