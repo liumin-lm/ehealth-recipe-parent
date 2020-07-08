@@ -1126,13 +1126,13 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 String sql = new String(" FROM cdr_recipe er" +
                         " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode and ero.send_type = 2 " +
                         " INNER JOIN cdr_recipe_ext cre ON er.RecipeID = cre.RecipeID" +
-                        " WHERE er.clinicOrgan IN :organIdList" +
+                        " WHERE ero.payeeCode is not null And er.clinicOrgan IN :organIdList" +
                         " AND YEAR(ero.PayTime) =:year and MONTH(ero.PayTime) =:month" +
                         " GROUP BY er.ClinicOrgan ORDER BY er.ClinicOrgan");
                 String queryCount = new String(" FROM cdr_recipe er" +
                         " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode and ero.send_type = 2 " +
                         " INNER JOIN cdr_recipe_ext cre ON er.RecipeID = cre.RecipeID" +
-                        " WHERE er.clinicOrgan IN :organIdList" +
+                        " WHERE ero.payeeCode is not null And er.clinicOrgan IN :organIdList" +
                         " AND YEAR(ero.PayTime) =:year and MONTH(ero.PayTime) =:month" +
                         " GROUP BY er.ClinicOrgan ORDER BY er.ClinicOrgan) t");
                 Query query = ss.createSQLQuery(queryhql.append(sql).toString());
@@ -1195,7 +1195,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 StringBuilder sql = new StringBuilder(" FROM cdr_recipe er" +
                         " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode and ero.send_type = 2" +
                         " INNER JOIN cdr_recipe_ext cre ON er.RecipeID = cre.RecipeID " +
-                        " WHERE er.clinicOrgan in :organIdList" +
+                        " WHERE ero.payeeCode is not null And er.clinicOrgan in :organIdList" +
                         " AND ero.paytime BETWEEN :startTime AND :endTime");
                 if (StringUtils.isNotEmpty(request.getRecipeId())) {
                     sql.append(" And er.recipeId =:recipeId");
