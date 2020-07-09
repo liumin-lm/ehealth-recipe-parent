@@ -761,7 +761,7 @@ public class RecipeListService extends RecipeBaseService{
 
                 for (Recipedetail recipedetail : recipedetails) {
                     List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipedetail.getDrugId(), recipe.getClinicOrgan());
-                    if (organDrugLists != null) {
+                    if (organDrugLists != null&&organDrugLists.size()>0) {
                         stringBuilder.append(organDrugLists.get(0).getSaleName());
                         if (StringUtils.isNotEmpty(organDrugLists.get(0).getDrugForm())) {
                             stringBuilder.append(organDrugLists.get(0).getDrugForm());

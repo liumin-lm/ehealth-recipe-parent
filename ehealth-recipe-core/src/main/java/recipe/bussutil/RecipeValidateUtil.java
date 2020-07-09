@@ -163,19 +163,22 @@ public class RecipeValidateUtil {
             return backDetailList;
         }
         List<RecipeDetailBean> detailBeans = ObjectCopyUtils.convert(details, RecipeDetailBean.class);
-        List<Integer> drugIdList = FluentIterable.from(details).transform(new Function<Recipedetail, Integer>() {
+        List<String> drugCodeList = FluentIterable.from(details).transform(new Function<Recipedetail, String>() {
             @Override
-            public Integer apply(Recipedetail input) {
-                return input.getDrugId();
+            public String apply(Recipedetail input) {
+                return input.getOrganDrugCode();
             }
         }).toList();
 
         //校验当前机构可开具药品是否满足
-        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(organId, drugIdList);
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, drugCodeList);
         if (CollectionUtils.isEmpty(organDrugList)) {
             return backDetailList;
         }
 
+        if (organDrugList.size() != drugCodeList.size()) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品编码重复");
+        }
         /*//2边长度一致直接返回
         if (organDrugList.size() == drugIdList.size()) {
             return detailBeans;
