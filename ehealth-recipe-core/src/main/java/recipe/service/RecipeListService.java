@@ -638,7 +638,7 @@ public class RecipeListService extends RecipeBaseService{
             onLineAndUnderLineRecipesByRecipe=findRecipeListByDoctorAndPatient(doctorId,mpiId,0,10000);
             LOGGER.info("findHistoryRecipeList 从recipe表获取处方信息success:{}",onLineAndUnderLineRecipesByRecipe);
         }catch (Exception e){
-            LOGGER.info("findHistoryRecipeList 从recipe表获取处方信息error:{}",e.getMessage());
+            LOGGER.info("findHistoryRecipeList 从recipe表获取处方信息error:{}",e);
         }
 
         Map<String,Object> upderLineRecipesByHis= new ConcurrentHashMap<>();
@@ -723,7 +723,9 @@ public class RecipeListService extends RecipeBaseService{
         //List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId, mpiId, start, limit);
         //修改逻辑历史处方中获取的处方列表：只显示未处理、未支付、审核不通过、失败、已完成状态的
         List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatientAndStatusList(doctorId, mpiId, start, limit, new ArrayList<>(Arrays.asList(HistoryRecipeListShowStatusList)));
+        LOGGER.info("findRecipeListByDoctorAndPatient mpiId:{} ,recipes:{} ",mpiId,JSONUtils.toString(recipes));
         PatientVO patient = RecipeServiceSub.convertSensitivePatientForRAP(patientService.get(mpiId));
+        LOGGER.info("findRecipeListByDoctorAndPatient mpiId:{} ,patient:{} ",mpiId,JSONUtils.toString(patient));
         return instanceRecipesAndPatient(recipes,patient);
     }
 
@@ -734,6 +736,7 @@ public class RecipeListService extends RecipeBaseService{
      * @return
      */
     public List<Map<String, Object>> instanceRecipesAndPatient(List<Recipe> recipes,PatientVO patient) {
+        LOGGER.info("instanceRecipesAndPatient recipes:{} ,patient:{} ",JSONUtils.toString(recipes),JSONUtils.toString(patient));
         List<Map<String, Object>> list = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(recipes)) {
             RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -753,6 +756,7 @@ public class RecipeListService extends RecipeBaseService{
                 Map<String, Object> map = Maps.newHashMap();
                 //设置处方具体药品名称
                 List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+                LOGGER.info("instanceRecipesAndPatient recipeid:{} ,recipedetails:{} ",recipe.getRecipeId(),JSONUtils.toString(recipedetails));
                 StringBuilder stringBuilder = new StringBuilder();
 
                 for (Recipedetail recipedetail : recipedetails) {
