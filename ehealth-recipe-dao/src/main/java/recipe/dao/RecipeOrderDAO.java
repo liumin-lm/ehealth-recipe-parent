@@ -1082,7 +1082,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if (CollectionUtils.isNotEmpty(organIdList)) {
                     searchSql.append(" and c.OrganId in :organIdList");
                 }
-                searchSql.append(" and c.payflag = 1 and c.Effective =1 AND c.PayTime between :startTime and :endTime GROUP BY c.EnterpriseId) t");
+                searchSql.append(" and c.payflag = 1 and c.Effective =1 GROUP BY c.EnterpriseId) t");
                 Query query = ss.createSQLQuery(sql.append(searchSql).toString());
                 query.setParameter("startTime", startTime);
                 query.setParameter("endTime", endTime);
@@ -1093,21 +1093,11 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
 
-                StringBuilder countSql = new StringBuilder("select count(*) from(select count(c.EnterpriseId)");
-                Query countQuery = ss.createSQLQuery(countSql.append(searchSql).toString());
-                countQuery.setParameter("startTime", startTime);
-                countQuery.setParameter("endTime", endTime);
-                if (CollectionUtils.isNotEmpty(organIdList)) {
-                    countQuery.setParameterList("organIdList", organIdList);
-                }
-                Long count = ConversionUtils.convert(countQuery.uniqueResult(), Long.class);
-
                 List<Object[]> queryList = query.list();
                 List<RecivedDispatchedBalanceResponse> resultList = new ArrayList<>(limit);
                 if (CollectionUtils.isNotEmpty(queryList)) {
                     for (Object[] item : queryList) {
                         RecivedDispatchedBalanceResponse response = new RecivedDispatchedBalanceResponse();
-                        response.setTotal(count);
                         response.setOrganId(ConversionUtils.convert(item[0], Integer.class));
                         response.setEnterpriseName(ConversionUtils.convert(item[1], String.class));
                         response.setLastBalance(ConversionUtils.convert(item[2], BigDecimal.class));
