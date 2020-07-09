@@ -2059,12 +2059,24 @@ public class RecipeOrderService extends RecipeBaseService {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
 
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
+
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         //状态转化
         Integer status2 = RecipeStatusToOrderEnum.getValue((Integer)attrMap.get("status"));
         attrMap.put("sender", "system");
         attrMap.put("sendTime", new Date());
         attrMap.put("recipeId", recipeId);
+        String trackingNumber = MapValueUtil.getString(attrMap, "trackingNumber");
+        if (StringUtils.isNotEmpty(trackingNumber)) {
+            RecipeOrder recipeOrder = recipeOrderDAO.getByTrackingNumber(trackingNumber);
+            if (recipeOrder != null) {
+                //说明已经存在则无法保存
+                resultBean.setCode(RecipeResultBean.FAIL);
+                resultBean.setMsg("该物流单号已经存在，请确认重新填写!");
+                return resultBean;
+            }
+        }
         ThirdEnterpriseCallService thirdEnterpriseCallService = new ThirdEnterpriseCallService();
         if(1 == recipe.getGiveMode() && status2 != null){
             if(RecipeStatusConstant.IN_SEND == status2){
