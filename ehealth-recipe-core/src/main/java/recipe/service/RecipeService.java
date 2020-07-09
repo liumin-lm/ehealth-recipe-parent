@@ -3124,7 +3124,7 @@ public class RecipeService extends RecipeBaseService {
                 INgariPayService payService = AppDomainContext.getBean("eh.payService", INgariPayService.class);
                 if (null != recipe) {
                     //判断订单是否是单边账的
-                    if(0 == order.getPayFlag() && StringUtils.isNotEmpty(order.getOutTradeNo()) && StringUtils.isNotEmpty(order.getWxPayWay()) && StringUtils.isNotEmpty(order.getPayOrganId())){
+                    if(null != order && 0 == order.getPayFlag() && StringUtils.isNotEmpty(order.getOutTradeNo()) && StringUtils.isNotEmpty(order.getWxPayWay()) && StringUtils.isNotEmpty(order.getPayOrganId())){
                         Map<String, Object> backResult = payService.payCancel(BusTypeEnum.RECIPE.getCode(), order.getOrderId().toString());
                         if(null != backResult && eh.wxpay.constant.PayConstant.RESULT_SUCCESS.equals(backResult.get("code"))){
                             LOGGER.info("RecipeService.cancelRecipeTask 取消的订单对应的处方{}成功.", recipe.getRecipeId());
@@ -3166,7 +3166,9 @@ public class RecipeService extends RecipeBaseService {
                     order = orderDAO.getOrderByRecipeId(recipeId);
                     orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO);
                     if (recipe.getFromflag().equals(RecipeBussConstant.FROMFLAG_HIS_USE)) {
-                        orderDAO.updateByOrdeCode(order.getOrderCode(), ImmutableMap.of("cancelReason", "患者未在规定时间内支付，该处方单已失效"));
+                        if(null != order){
+                            orderDAO.updateByOrdeCode(order.getOrderCode(), ImmutableMap.of("cancelReason", "患者未在规定时间内支付，该处方单已失效"));
+                        }
                         //发送超时取消消息
                         //${sendOrgan}：抱歉，您的处方单由于超过${overtime}未处理，处方单已失效。如有疑问，请联系开方医生或拨打${customerTel}联系小纳。
                         RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_CANCEL_4HIS, recipe);
@@ -3204,7 +3206,7 @@ public class RecipeService extends RecipeBaseService {
                     INgariPayService payService = AppDomainContext.getBean("eh.payService", INgariPayService.class);
                     if (null != recipe) {
                         //判断订单是否是单边账的
-                        if(0 == order.getPayFlag() && StringUtils.isNotEmpty(order.getOutTradeNo()) && StringUtils.isNotEmpty(order.getWxPayWay()) && StringUtils.isNotEmpty(order.getPayOrganId())){
+                        if(null != order && 0 == order.getPayFlag() && StringUtils.isNotEmpty(order.getOutTradeNo()) && StringUtils.isNotEmpty(order.getWxPayWay()) && StringUtils.isNotEmpty(order.getPayOrganId())){
                             Map<String, Object> backResult = payService.payCancel(BusTypeEnum.RECIPE.getCode(), order.getOrderId().toString());
                             if(null != backResult && eh.wxpay.constant.PayConstant.RESULT_SUCCESS.equals(backResult.get("code"))){
                                 LOGGER.info("RecipeService.cancelRecipeTask 取消的订单对应的处方{}成功.", recipe.getRecipeId());
