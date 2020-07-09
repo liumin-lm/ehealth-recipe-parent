@@ -49,6 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.bean.DrugEnterpriseResult;
@@ -93,6 +94,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(RemoteRecipeService.class);
     @Autowired
+    @Qualifier(value = "commonCAFactory")
     private CommonCAFactory commonCAFactory;
 
     @RpcService
