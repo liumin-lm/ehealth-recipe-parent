@@ -4612,7 +4612,12 @@ public class RecipeService extends RecipeBaseService {
 
                 //变更处方状态
                 status = recipe.getStatus();
-                recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.DELETE, ImmutableMap.of("chooseFlag", 1));
+                //date 20200709 修改前置的处方药师ca签名中签名失败，处方状态未处理
+                if(ReviewTypeConstant.Preposition_Check.equals(recipe.getReviewType()) && (RecipeStatusConstant.SIGN_ING_CODE_PHA == status || RecipeStatusConstant.SIGN_ERROR_CODE_PHA == status)){
+                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_OPERATOR, ImmutableMap.of("chooseFlag", 1));
+                }else{
+                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.DELETE, ImmutableMap.of("chooseFlag", 1));
+                }
 
                 memo.append("当前处方ca操作超时没处理，失效删除");
                 //未支付，三天后自动取消后，优惠券自动释放
