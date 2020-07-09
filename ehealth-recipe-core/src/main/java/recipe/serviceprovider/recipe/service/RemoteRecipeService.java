@@ -94,7 +94,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(RemoteRecipeService.class);
     @Autowired
-    @Qualifier(value = "commonCAFactory")
+    @Qualifier(value = "eh.commonCAFactory")
     private CommonCAFactory commonCAFactory;
 
     @RpcService
