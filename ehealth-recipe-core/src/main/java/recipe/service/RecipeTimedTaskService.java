@@ -268,7 +268,7 @@ public class RecipeTimedTaskService {
      */
     @RpcService
     public void updateRecipeOrderInfoTask(){
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        /*DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAccount("cqfe");
         //查询配送到家待配送的订单
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -356,6 +356,6 @@ public class RecipeTimedTaskService {
                     thirdEnterpriseCallService.recordDrugStoreResult(paramMap);
                 }
             }
-        }
+        }*/
     }
 }

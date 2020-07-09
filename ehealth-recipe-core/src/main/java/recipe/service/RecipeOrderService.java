@@ -2073,7 +2073,7 @@ public class RecipeOrderService extends RecipeBaseService {
             if (recipeOrder != null) {
                 //说明已经存在则无法保存
                 resultBean.setCode(RecipeResultBean.FAIL);
-                resultBean.setMsg("改物流单号已经存在，请确认重新填写!");
+                resultBean.setMsg("该物流单号已经存在，请确认重新填写!");
                 return resultBean;
             }
         }
