@@ -1094,7 +1094,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 query.setMaxResults(limit);
 
                 List<Object[]> queryList = query.list();
-                List<RecivedDispatchedBalanceResponse> resultList = new ArrayList<>(limit);
+                List<RecivedDispatchedBalanceResponse> resultList = Lists.newArrayList();
                 if (CollectionUtils.isNotEmpty(queryList)) {
                     for (Object[] item : queryList) {
                         RecivedDispatchedBalanceResponse response = new RecivedDispatchedBalanceResponse();
