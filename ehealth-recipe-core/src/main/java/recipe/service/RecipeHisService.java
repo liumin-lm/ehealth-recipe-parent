@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -1028,7 +1029,7 @@ public class RecipeHisService extends RecipeBaseService {
                 LOGGER.info("当前处方{}的复诊{}信息为空", recipeBean.getRecipeId(), recipeBean.getClinicId());
             }
         }
-        hisCheckRecipeReqTO.setRecipeID(recipeBean.getRecipeCode());
+        hisCheckRecipeReqTO.setRecipeID(null != recipeBean.getRecipeCode() ? recipeBean.getRecipeCode() : recipeBean.getRecipeId().toString());
         hisCheckRecipeReqTO.setPlatRecipeID(recipeBean.getRecipeId());
         hisCheckRecipeReqTO.setIsLongRecipe(recipeBean.getRecipeExtend().getIsLongRecipe());
         IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
