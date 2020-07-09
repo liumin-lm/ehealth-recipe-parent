@@ -1130,13 +1130,13 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         HibernateStatelessResultAction<List<RecipeMonthAccountCheckResponse>> action = new AbstractHibernateStatelessResultAction<List<RecipeMonthAccountCheckResponse>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder queryhql = new StringBuilder("SELECT er.ClinicOrgan ,er.OrganName ,count( * ),IFNULL( sum( ero.TotalFee ), 0.00 )," +
+                StringBuilder queryhql = new StringBuilder("SELECT er.ClinicOrgan ,er.OrganName ,count( * ),IFNULL( sum( ero.ActualPrice ), 0.00 )," +
                         "IFNULL( sum( ero.RecipeFee ),0.00 ) ,IFNULL( sum( ero.registerFee ), 0.00 )," +
                         "IFNULL( sum( ero.auditFee ), 0.00 )  ,IFNULL( sum( ero.expressFee ), 0.00 )," +
-                        "sum( IF ( ero.payeeCode = 1, IFNULL( ero.TotalFee, 0.00 ), 0.00 ) ) ,IFNULL( cast(sum( cre.fundAmount ) AS decimal(15,2)), 0.00 )," +
-                        "sum( IF ( ero.payeeCode = 1, IFNULL( ero.TotalFee, 0.00 ), 0.00 ) ) - IFNULL( cast(sum( cre.fundAmount ) AS decimal(15,2)), 0.00 )," +
-                        "sum( IF ( ero.payeeCode = 0, IFNULL( ero.TotalFee, 0.00 ), 0.00 ) ) ," +
-                        "IFNULL( sum(ero.TotalFee), 0.00 ) - IFNULL( sum(ero.auditFee), 0.00 ) - IFNULL( sum( ero.expressFee ), 0.00 ) -sum( IF ( ero.payeeCode = 1, IFNULL( ero.TotalFee, 0.00 ), 0.00 ) )");
+                        "sum( IF ( ero.payeeCode = 1, IFNULL( ero.ActualPrice, 0.00 ), 0.00 ) ) ,IFNULL( cast(sum( cre.fundAmount ) AS decimal(15,2)), 0.00 )," +
+                        "sum( IF ( ero.payeeCode = 1, IFNULL( ero.ActualPrice, 0.00 ), 0.00 ) ) - IFNULL( cast(sum( cre.fundAmount ) AS decimal(15,2)), 0.00 )," +
+                        "sum( IF ( ero.payeeCode = 0, IFNULL( ero.ActualPrice, 0.00 ), 0.00 ) ) ," +
+                        "IFNULL( sum(ero.ActualPrice), 0.00 ) - IFNULL( sum(ero.auditFee), 0.00 ) - IFNULL( sum( ero.expressFee ), 0.00 ) -sum( IF ( ero.payeeCode = 1, IFNULL( ero.ActualPrice, 0.00 ), 0.00 ) )");
                 StringBuilder sql = new StringBuilder(" FROM cdr_recipe er" +
                         " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode and ero.send_type = 2 " +
                         " INNER JOIN cdr_recipe_ext cre ON er.RecipeID = cre.RecipeID" +
@@ -1208,12 +1208,12 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder queryhql = new StringBuilder("SELECT er.recipeId ,er.patientName ,er.MPIID ,ero.paytime ," +
-                        "IFNULL(ero.TotalFee ,0.00),IFNULL(ero.RecipeFee  ,0.00),IFNULL(ero.registerFee ,0.00) ," +
+                        "IFNULL(ero.ActualPrice ,0.00),IFNULL(ero.RecipeFee  ,0.00),IFNULL(ero.registerFee ,0.00) ," +
                         "IFNULL(ero.auditFee  ,0.00) ,IFNULL(ero.expressFee  ,0.00) ,IF ( ero.payeeCode = 1, " +
-                        "IFNULL( ero.TotalFee, 0.00 ), 0.00 ) ,IFNULL(cre.fundAmount  ,0.00) ," +
-                        "IF ( ero.payeeCode = 1, IFNULL( ero.TotalFee, 0.00 ), 0.00 ) - cast(IFNULL(cre.fundAmount  ,0.00) AS decimal(15,2)) ," +
-                        "IF ( ero.payeeCode = 0, IFNULL( ero.TotalFee, 0.00 ), 0.00 )   ," +
-                        "IFNULL(ero.TotalFee ,0.00) - IFNULL(ero.auditFee  ,0.00) - IFNULL(ero.expressFee  ,0.00) - IF ( ero.payeeCode = 1, IFNULL( ero.TotalFee, 0.00 ), 0.00 ),ero.outTradeNo");
+                        "IFNULL( ero.ActualPrice, 0.00 ), 0.00 ) ,IFNULL(cre.fundAmount  ,0.00) ," +
+                        "IF ( ero.payeeCode = 1, IFNULL( ero.ActualPrice, 0.00 ), 0.00 ) - cast(IFNULL(cre.fundAmount  ,0.00) AS decimal(15,2)) ," +
+                        "IF ( ero.payeeCode = 0, IFNULL( ero.ActualPrice, 0.00 ), 0.00 )   ," +
+                        "IFNULL(ero.ActualPrice ,0.00) - IFNULL(ero.auditFee  ,0.00) - IFNULL(ero.expressFee  ,0.00) - IF ( ero.payeeCode = 1, IFNULL( ero.ActualPrice, 0.00 ), 0.00 ),ero.outTradeNo");
                 StringBuilder sql = new StringBuilder(" FROM cdr_recipe er" +
                         " INNER JOIN cdr_recipeorder ero ON er.orderCode = ero.orderCode and ero.send_type = 2" +
                         " INNER JOIN cdr_recipe_ext cre ON er.RecipeID = cre.RecipeID " +
@@ -1438,7 +1438,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder countSql = new StringBuilder("SELECT count(*)");
                 StringBuilder queryhql = new StringBuilder("SELECT cr.recipeId ,cr.patientName ,cr.MPIID ,( CASE cr.GiveMode WHEN 1 THEN \"配送到家\" WHEN 2 THEN \"医院取药\" WHEN 3 THEN \"药店取药\" WHEN 4 THEN \"患者自选\" else \"\" END )," +
-                        "cr.GiveMode,cro.paytime,IFNULL(cro.TotalFee,0.00),IFNULL(ret.fundAmount,0.00),IFNULL(cro.TotalFee,0.00) - IFNULL(ret.fundAmount,0.00),cr.RecipeCode,cro.outTradeNo,cr.ClinicOrgan");
+                        "cr.GiveMode,cro.paytime,IFNULL(cro.ActualPrice,0.00),IFNULL(ret.fundAmount,0.00),IFNULL(cro.ActualPrice,0.00) - IFNULL(ret.fundAmount,0.00),cr.RecipeCode,cro.outTradeNo,cr.ClinicOrgan");
                 StringBuilder sql = new StringBuilder(" FROM cdr_recipe cr" +
                         " INNER JOIN cdr_recipeorder cro ON cr.orderCode = cro.ordercode" +
                         " INNER JOIN cdr_recipe_ext ret ON cr.recipeId = ret.recipeId WHERE cro.paytime BETWEEN :startTime AND :endTime AND cro.outTradeNo is not null ");
