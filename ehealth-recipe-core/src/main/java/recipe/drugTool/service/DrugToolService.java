@@ -190,13 +190,9 @@ public class DrugToolService implements IDrugToolService {
     }
 
     @Override
-    public synchronized Map<String, Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator) {
+    public Map<String, Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator) {
         LOGGER.info(operator + "开始 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
-        progress = 0;
         String key = organId + operator;
-        if (redisClient.exists(key)) {
-            redisClient.del(key);
-        }
         Map<String, Object> result = Maps.newHashMap();
         if (StringUtils.isEmpty(operator)) {
             result.put("code", 609);
@@ -467,9 +463,6 @@ public class DrugToolService implements IDrugToolService {
                     LOGGER.error("save or update drugListMatch error " + e.getMessage(),e);
                 }
             }
-            progress = new BigDecimal((float) rowIndex / total).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
-            redisClient.set(organId + operator, progress * 100);
-//                    progressMap.put(organId+operator,progress*100);
         }
 
         //导入药品记录

@@ -97,6 +97,7 @@ public class SaleDrugListService implements ISaleDrugListService {
         //验证药品必要信息
         validateSaleDrugList(saleDrugList);
         saleDrugList.setCreateDt(new Date());
+        saleDrugList.setLastModify(new Date());
         saleDrugList.setStatus(1);
         dao.save(saleDrugList);
         busActionLogService.recordBusinessLogRpcNew("药企药品管理","","SaleDrugList","【"+drugsEnterprise.getName()+"】新增药品【"+saleDrugList.getOrganDrugId()+"-"+drugList.getDrugName()+"】",drugsEnterprise.getName());

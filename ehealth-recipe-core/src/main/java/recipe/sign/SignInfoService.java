@@ -214,7 +214,7 @@ public class SignInfoService implements ISignInfoService {
         List<RegulationRecipeDetailIndicatorsReq> list = new ArrayList(detailBeanList.size());
         for (RecipeDetailBean detail : detailBeanList) {
             RegulationRecipeDetailIndicatorsReq reqDetail = new RegulationRecipeDetailIndicatorsReq();
-            OrganDrugList organDrugList = organDrugDao.getByOrganIdAndDrugId(recipeBean.getClinicOrgan(), detail.getDrugId());
+            OrganDrugList organDrugList = organDrugDao.getByOrganIdAndOrganDrugCode(recipeBean.getClinicOrgan(), detail.getOrganDrugCode());
             if (organDrugList == null) {
                 reqDetail.setDrcode(detail.getOrganDrugCode());
             } else {

@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -13,9 +14,15 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.consult.ConsultAPI;
+import com.ngari.consult.ConsultBean;
+import com.ngari.consult.common.model.ConsultExDTO;
+import com.ngari.consult.common.service.IConsultExService;
+import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.DepartmentDTO;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -25,6 +32,7 @@ import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.model.HisSendResTO;
 import com.ngari.recipe.recipe.model.OrderRepTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -1013,16 +1021,17 @@ public class RecipeHisService extends RecipeBaseService {
         hisCheckRecipeReqTO.setClinicOrgan(recipeBean.getClinicOrgan());
         hisCheckRecipeReqTO.setOrganID(organService.getOrganizeCodeByOrganId(recipeBean.getClinicOrgan()));
         if (recipeBean.getClinicId() != null) {
-            hisCheckRecipeReqTO.setClinicID(recipeBean.getClinicId().toString());
-            IHosrelationService hosrelationService = BaseAPI.getService(IHosrelationService.class);
-            //挂号记录
-            HosrelationBean hosrelation = hosrelationService.getByBusIdAndBusType(recipeBean.getClinicId(), BusTypeEnum.CONSULT.getId());
-            if (hosrelation != null && StringUtils.isNotEmpty(hosrelation.getRegisterId())) {
-                hisCheckRecipeReqTO.setClinicID(hosrelation.getRegisterId());
+            IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
+            ConsultExDTO exDTO = exService.getByConsultId(recipeBean.getClinicId());
+            if(null != exDTO){
+                hisCheckRecipeReqTO.setClinicID(exDTO.getRegisterNo());
+            }else{
+                LOGGER.info("当前处方{}的复诊{}信息为空", recipeBean.getRecipeId(), recipeBean.getClinicId());
             }
         }
-        hisCheckRecipeReqTO.setRecipeID(recipeBean.getRecipeCode());
+        hisCheckRecipeReqTO.setRecipeID(null != recipeBean.getRecipeCode() ? recipeBean.getRecipeCode() : recipeBean.getRecipeId().toString());
         hisCheckRecipeReqTO.setPlatRecipeID(recipeBean.getRecipeId());
+        hisCheckRecipeReqTO.setIsLongRecipe(recipeBean.getRecipeExtend().getIsLongRecipe());
         IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
         //患者信息
         PatientBean patientBean = iPatientService.get(recipeBean.getMpiid());
@@ -1042,6 +1051,8 @@ public class RecipeHisService extends RecipeBaseService {
         if (recipeBean.getDoctor() != null) {
             String jobNumber = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipeBean.getDoctor(), recipeBean.getClinicOrgan(), recipeBean.getDepart());
             hisCheckRecipeReqTO.setDoctorID(jobNumber);
+            DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
+            hisCheckRecipeReqTO.setDoctorName(recipeBean.getDoctorName());
         }
         //处方数量
         hisCheckRecipeReqTO.setRecipeNum("1");
@@ -1053,6 +1064,7 @@ public class RecipeHisService extends RecipeBaseService {
         DepartmentDTO departmentDTO = departmentService.getById(recipeBean.getDepart());
         if (departmentDTO != null) {
             hisCheckRecipeReqTO.setDeptCode(departmentDTO.getCode());
+            hisCheckRecipeReqTO.setDeptName(departmentDTO.getName());
         }
         //开单时间
         hisCheckRecipeReqTO.setRecipeDate(DateConversion.formatDateTimeWithSec(recipeBean.getSignDate()));
@@ -1109,6 +1121,8 @@ public class RecipeHisService extends RecipeBaseService {
                 item.setRemark(detail.getMemo());
                 //date 20200222 杭州市互联网添加字段
                 item.setDrugID(detail.getDrugId());
+                //date 20200701 预校验添加平台药品医嘱ID
+                item.setOrderID(detail.getRecipeDetailId().toString());
                 list.add(item);
             }
             hisCheckRecipeReqTO.setOrderList(list);

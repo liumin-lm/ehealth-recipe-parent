@@ -188,6 +188,9 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias = "药企药品编码")
 	private String saleDrugCode;
 
+	@ItemProperty(alias = "结算方式 0:药店价格 1:医院价格")
+	private Integer settlementMode;
+
 	@ItemProperty(alias = "药物使用天数(小数类型)")
 	private String useDaysB;
 	@ItemProperty(alias = "处方药品详情类型")
@@ -209,6 +212,9 @@ public class Recipedetail implements java.io.Serializable {
 	public Integer getDrugType() {
 		return drugType;
 	}
+
+	@ItemProperty(alias = "开处方时保存单位剂量【规格单位】|单位【规格单位】|单位剂量【最小单位】|单位【最小单位】,各个字段用|隔开，用来计算患者端显示实际每次剂量")
+	private String drugUnitdoseAndUnit;
 
 	public void setUseDaysB(String useDaysB) {
 		this.useDaysB = useDaysB;
@@ -733,4 +739,20 @@ public class Recipedetail implements java.io.Serializable {
     public void setOrganUsePathways(String organUsePathways) {
         this.organUsePathways = organUsePathways;
     }
+
+	public String getDrugUnitdoseAndUnit() {
+		return drugUnitdoseAndUnit;
+	}
+
+	public void setDrugUnitdoseAndUnit(String drugUnitdoseAndUnit) {
+		this.drugUnitdoseAndUnit = drugUnitdoseAndUnit;
+	}
+
+	public Integer getSettlementMode() {
+		return settlementMode;
+	}
+
+	public void setSettlementMode(Integer settlementMode) {
+		this.settlementMode = settlementMode;
+	}
 }

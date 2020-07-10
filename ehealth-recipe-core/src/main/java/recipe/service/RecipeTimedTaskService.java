@@ -199,15 +199,19 @@ public class RecipeTimedTaskService {
             HisCheckRecipeService hisCheckRecipeService = ApplicationUtils.getRecipeService(HisCheckRecipeService.class);
             hisCheckRecipeService.sendCheckRecipeInfo(recipe);
         }
+    }
 
+    /**
+     * 更新机构药品目录方便运维做shadow心跳检测
+     */
+    @RpcService
+    public void updateOrganDrugListInfoTask(){
         try{
             OrganDrugListDAO drugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             List<OrganDrugList> organDrugLists = drugListDAO.findOrganDrug(0, 1);
             if (CollectionUtils.isNotEmpty(organDrugLists)) {
                 OrganDrugList organDrugList = organDrugLists.get(0);
                 Date lastModify = organDrugList.getLastModify();
-                organDrugList.setLastModify(new Date());
-                drugListDAO.update(organDrugList);
                 organDrugList.setLastModify(lastModify);
                 drugListDAO.update(organDrugList);
             }
@@ -264,7 +268,7 @@ public class RecipeTimedTaskService {
      */
     @RpcService
     public void updateRecipeOrderInfoTask(){
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        /*DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAccount("cqfe");
         //查询配送到家待配送的订单
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -352,6 +356,6 @@ public class RecipeTimedTaskService {
                     thirdEnterpriseCallService.recordDrugStoreResult(paramMap);
                 }
             }
-        }
+        }*/
     }
 }

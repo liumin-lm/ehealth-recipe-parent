@@ -186,12 +186,6 @@ public class RecipeTestService {
     }
 
     @RpcService
-    public boolean insertSaleDrugListBySql(String sql){
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        return saleDrugListDAO.insertSaleDrugListBySql(sql);
-    }
-
-    @RpcService
     public void insertDrugCategoryByOrganId(Integer organId, String createDate){
         List<RegulationDrugCategoryReq> drugCategoryReqs = new ArrayList<>();
         IRegulationService hisService =
