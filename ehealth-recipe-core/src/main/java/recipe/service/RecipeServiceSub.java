@@ -2593,6 +2593,23 @@ public class RecipeServiceSub {
     }
 
     /**
+     * 是否配置了走扁鹊处方流转平台
+     *
+     * @param clinicOrgan
+     * @return
+     */
+    public static boolean isBQEnterprise(Integer clinicOrgan) {
+        OrganAndDrugsepRelationDAO dao = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+        List<DrugsEnterprise> enterprises = dao.findDrugsEnterpriseByOrganIdAndStatus(clinicOrgan, 1);
+        if (CollectionUtils.isNotEmpty(enterprises)) {
+            if ("bqEnterprise".equals(enterprises.get(0).getAccount())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 是否是配置了江苏监管平台的机构
      *
      * @param clinicOrgan
