@@ -208,13 +208,16 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
     @RpcService
     public Map getSignInfoByRegisterID(Integer recipeId, String type){
         logger.info("getSignInfoByRegisterID start recipeId={}=,type={}=", recipeId, type);
-        SignDoctorRecipeInfo signDoctorRecipeInfo =signDoctorRecipeInfoDAO.getRecipeInfoByRecipeIdAndType(recipeId, type);
-        Map map = new HashMap();
-        if (signDoctorRecipeInfo != null) {
-            map.put("signCodeDoc",signDoctorRecipeInfo.getSignCodeDoc());
-            map.put("signRemarkDoc",signDoctorRecipeInfo.getSignRemarkDoc());
-            map.put("signCodePha",signDoctorRecipeInfo.getSignCodePha());
-            map.put("signRemarkPha",signDoctorRecipeInfo.getSignRemarkPha());
+        SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getRecipeInfoByRecipeIdAndType(recipeId, type);
+        if (null == signDoctorRecipeInfo) {
+            signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getRecipeInfoByRecipeId(recipeId);
+        }
+        Map map = new HashMap(4);
+        if (null != signDoctorRecipeInfo) {
+            map.put("signCodeDoc", signDoctorRecipeInfo.getSignCodeDoc());
+            map.put("signRemarkDoc", signDoctorRecipeInfo.getSignRemarkDoc());
+            map.put("signCodePha", signDoctorRecipeInfo.getSignCodePha());
+            map.put("signRemarkPha", signDoctorRecipeInfo.getSignRemarkPha());
         }
         return map;
     }
