@@ -2610,6 +2610,21 @@ public class RecipeServiceSub {
     }
 
     /**
+     * 是否配置了走扁鹊处方流转平台
+     *
+     * @param depId 药企id
+     * @return
+     */
+    public static boolean isBQEnterpriseBydepId(Integer depId) {
+        DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = dao.getById(depId);
+        if (drugsEnterprise != null && "bqEnterprise".equals(drugsEnterprise.getAccount())) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * 是否是配置了江苏监管平台的机构
      *
      * @param clinicOrgan
