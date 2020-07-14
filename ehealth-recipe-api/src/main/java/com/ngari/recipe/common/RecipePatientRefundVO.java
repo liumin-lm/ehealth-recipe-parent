@@ -54,6 +54,18 @@ public class RecipePatientRefundVO implements java.io.Serializable {
      *  患者退款状态文案
      */
     private String refundStatusMsg;
+    /**
+     *  医生退款不通过原因
+     */
+    private String doctorNoPassReason;
+
+    public String getDoctorNoPassReason() {
+        return doctorNoPassReason;
+    }
+
+    public void setDoctorNoPassReason(String doctorNoPassReason) {
+        this.doctorNoPassReason = doctorNoPassReason;
+    }
 
     public String getRefundStatusMsg() {
         return refundStatusMsg;

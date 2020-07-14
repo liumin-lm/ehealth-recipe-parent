@@ -37,6 +37,7 @@ import coupon.api.service.ICouponBaseService;
 import coupon.api.vo.Coupon;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
+import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
@@ -1856,7 +1857,7 @@ public class RecipeOrderService extends RecipeBaseService {
 
     /**
      * 从微信模板消息跳转时 先获取一下是否需要跳转第三方地址
-     *
+     * 或者处方审核成功后推送处方卡片消息时点击跳转(互联网)
      * @return
      */
     @RpcService
@@ -1867,15 +1868,19 @@ public class RecipeOrderService extends RecipeBaseService {
         }
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
-        RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        //RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
 
         Recipe recipe = recipeDAO.get(recipeId);
         if (null != recipe) {
+            DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+            DrugsEnterprise drugsEnterprise = dao.getById(recipe.getEnterpriseId());
+            if (drugsEnterprise != null && "bqEnterprise".equals(drugsEnterprise.getAccount())) {
+                return drugsEnterprise.getBusinessUrl();
+            }
             RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipeId);
             if (null == order) {
                 return thirdUrl;
             }
-
             //钥世圈处理
             /*if (DrugEnterpriseConstant.COMPANY_YSQ.equals(remoteDrugEnterpriseService.getDepAccount(order.getEnterpriseId()))) {
                 thirdUrl = remoteDrugEnterpriseService.getYsqOrderInfoUrl(recipe);
