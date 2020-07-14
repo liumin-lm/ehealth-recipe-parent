@@ -295,7 +295,7 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "支付平台回写支付信息")
     private String payBackInfo;
 
-    @ItemProperty(alias = "配送主体类型 1 药企配送 2 医院配送")
+    @ItemProperty(alias = "配送主体类型 1医院配送 2药企配送")
     private Integer sendType;
 
     @ItemProperty(alias = "支付用户类型:0平台，1机构，2药企")

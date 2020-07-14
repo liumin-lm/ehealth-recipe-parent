@@ -6,18 +6,19 @@ import java.util.stream.Collectors;
 
 /**
  * 配送主体类型
+ * 1医院配送 2 药企配送
  */
 public enum RecipeSendTypeEnum {
 
     /**
      * 药企配送
      */
-    NO_PAY("药企配送", 1),
+    NO_PAY("药企配送", 2),
 
     /**
      * 医院配送
      */
-    ALRAEDY_PAY("医院配送", 2),
+    ALRAEDY_PAY("医院配送", 1),
     ;
 
     /**
