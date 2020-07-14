@@ -12,7 +12,6 @@
     <reference interface="com.ngari.consult.common.service.IConsultService" id="consult.consultService"/>
     <reference interface="com.ngari.consult.common.service.IConsultExService" id="consult.consultExService"/>
     <reference interface="com.ngari.consult.common.service.IConsultInfoService" id="consult.consultInfoService"/>
-    <reference interface="com.ngari.consult.message.service.IConsultMessageService" id="consult.consultMessageService"/>
     <reference interface="com.ngari.consult.process.service.ICommonConsultService" id="consult.commonConsultService"/>
     <reference interface="com.ngari.consult.process.service.IRecipeOnLineConsultService" id="consult.recipeOnLineConsultService"/>
 
