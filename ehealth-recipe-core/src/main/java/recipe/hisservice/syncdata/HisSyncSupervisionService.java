@@ -62,6 +62,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
     private static String HIS_SUCCESS = "200";
 
+
     /**
      * 同步处方数据
      *
@@ -1075,38 +1076,37 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         return commonResponse;
     }
 
-
     /**
-    * 医生信息
-    **/
-    private RegulationBusDocReq getRegulationBusDocReq(Integer doctorId,Integer organId,Integer deptId){
+     * 医生信息
+     **/
+    private RegulationBusDocReq getRegulationBusDocReq(Integer doctorId, Integer organId, Integer deptId) {
         DoctorService doctorService = BasicAPI.getService(DoctorService.class);
-        RegulationBusDocReq regulationBusDocReq=new RegulationBusDocReq();
+        RegulationBusDocReq regulationBusDocReq = new RegulationBusDocReq();
 
-        if(null==doctorId){
+        if (null == doctorId) {
             return regulationBusDocReq;
         }
 
-        DoctorDTO doctor=doctorService.getByDoctorId(doctorId);
-        if(null==doctor){
+        DoctorDTO doctor = doctorService.getByDoctorId(doctorId);
+        if (null == doctor) {
             return regulationBusDocReq;
         }
 
         //医生基础信息
-        regulationBusDocReq=ObjectCopyUtils.convert(doctor, RegulationBusDocReq.class);
+        regulationBusDocReq = ObjectCopyUtils.convert(doctor, RegulationBusDocReq.class);
 
         //工号：医生取开方机构的工号，药师取第一职业点的工号
         EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
-        if(null==organId){
-            EmploymentDTO  employment=employmentService.getPrimaryEmpByDoctorId(doctorId);
-            if(null!=employment){
+        if (null == organId) {
+            EmploymentDTO employment = employmentService.getPrimaryEmpByDoctorId(doctorId);
+            if (null != employment) {
                 regulationBusDocReq.setJobNum(employment.getJobNumber());
             }
-        }else{
+        } else {
             regulationBusDocReq.setJobNum(employmentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(
                     doctorId, organId, deptId));
         }
 
-        return  regulationBusDocReq;
+        return regulationBusDocReq;
     }
 }
