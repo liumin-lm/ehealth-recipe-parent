@@ -41,7 +41,7 @@ public class RegulationRecipeQueryService implements IRegulationRecipeQueryServi
     @Override
     public Integer findUnfinishedRecipe(Integer organId) {
         logger.info("findUnfinishedRecipe organId={}", organId);
-        Integer size = recipeDAO.getUnfinishedRecipe(organId, PayConstant.PAY_FLAG_NOT_PAY);
-        return size;
+        Long size = recipeDAO.getUnfinishedRecipe(organId, PayConstant.PAY_FLAG_NOT_PAY);
+        return size.intValue();
     }
 }
