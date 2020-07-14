@@ -24,13 +24,13 @@ import java.util.*;
 
 
 /**
- * 处方业务一些列表查询
+ * 处方退费
  * company: ngarihealth
  *
- * @author: 0184/yu_yun
- * @date:2017/2/13.
+ * @author: gaomw
+ * @date:20200714
  */
-@RpcBean("recipeListService")
+@RpcBean("recipeRefundService")
 public class RecipeRefundService extends RecipeBaseService{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeRefundService.class);
