@@ -4828,4 +4828,55 @@ public class RecipeService extends RecipeBaseService {
         }
 
     }
+
+    /**
+     * 根据clinicId 查询复诊处方能否退费
+     * select clinicid,count(*),group_concat(status) from cdr_recipe  c group by clinicid
+     * @return Map<String,Object>
+     */
+    @RpcService
+    public Map<String, Object>   findRecipeCanRefundByClinicId(Map<String,String> params) {
+        LOGGER.info("findRecipeCanRefundByClinicId 参数{}",JSONUtils.toString(params));
+        if(StringUtils.isEmpty(params.get("clinicId"))) {
+            throw new DAOException("findRecipeCanRefundByClinicId clinicId不允许为空");
+        }
+        RecipeDAO recipeDAO=DAOFactory.getDAO(RecipeDAO.class);
+        List<Recipe> recipes =recipeDAO.findByClinicId(Integer.parseInt(params.get("clinicId")));
+        Map<String, Object> map = Maps.newHashMap();
+        String msg="";
+        String recipeStatusText="";
+        boolean canRefund=false;//默认不能申请退款
+        //除已取消状态之外的处方是不能申请退款的  只有已取消状态的处方返回true  其余返回false
+        try {
+            if(recipes!=null&&recipes.size()>0){
+                for(Recipe recipe:recipes){
+                    LOGGER.info("findRecipeCanRefundByClinicId status:[{}]",recipe.getStatus());
+                    if(!(recipe.getStatus()==RecipeStatusConstant.HIS_FAIL          //11
+                            ||recipe.getStatus()==RecipeStatusConstant.NO_DRUG      //12
+                            ||recipe.getStatus()==RecipeStatusConstant.NO_PAY       //13
+                            ||recipe.getStatus()==RecipeStatusConstant.NO_OPERATOR  //14
+                            ||recipe.getStatus()==RecipeStatusConstant.EXPIRED//20
+                            ||recipe.getStatus()==RecipeStatusConstant.RECIPE_FAIL//17
+                            ||recipe.getStatus()==RecipeStatusConstant.RECIPE_MEDICAL_FAIL//19
+                            ||recipe.getStatus()==RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN)){//25
+                            String recipeStatusTextTmp=DictionaryController.instance().get("eh.cdr.dictionary.RecipeStatus").getText(recipe.getStatus());
+                            if(StringUtils.isEmpty(recipeStatusText)||(!StringUtils.isEmpty(recipeStatusText)&&!recipeStatusText.contains(recipeStatusTextTmp))){
+                                recipeStatusText+= recipeStatusTextTmp+"、";
+                            }
+                    }
+                }
+                if(!StringUtils.isEmpty(recipeStatusText)){
+                    msg+="当前有处方处于"+recipeStatusText.substring(0,recipeStatusText.length()-1)+"状态，不能退费";
+                }
+            }
+        } catch (ControllerException e) {
+            LOGGER.info("findRecipeCanRefundByClinicId {}",e);
+        }
+        if(StringUtils.isEmpty(msg)){
+            canRefund=true;
+        }
+        map.put("canRefund",canRefund);
+        map.put("msg",msg);
+        return map;
+    }
 }
