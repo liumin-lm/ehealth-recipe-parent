@@ -96,6 +96,28 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "0:不支付药品费用，1:全部支付")
     private Integer storePayFlag;
 
+    @ItemProperty(alias = "配送主体类型 1 药企配送 2 医院配送")
+    private Integer sendType;
+
+    @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付 3-第三方支付")
+    private Integer expressFeePayWay;
+
+    @ItemProperty(alias = "管理单元")
+    private String manageUnit;
+
+    @ItemProperty(alias = "展示配送药店标识")
+    private Integer showStoreFlag;
+
+    @ItemProperty(alias = "药企下载处方签类型")
+    private Integer downSignImgType;
+
+    @ItemProperty(alias = "运费的获取方式 0 平台 1 第三方")
+    private Integer expressFeeType;
+
+    @ItemProperty(alias = "药企对接方式 0 平台 1 前置机")
+    private Integer operationType;
+
+
     public DrugsEnterpriseBean() {
     }
 
@@ -293,5 +315,61 @@ public class DrugsEnterpriseBean implements Serializable {
 
     public void setStorePayFlag(Integer storePayFlag) {
         this.storePayFlag = storePayFlag;
+    }
+
+    public Integer getSendType() {
+        return sendType;
+    }
+
+    public void setSendType(Integer sendType) {
+        this.sendType = sendType;
+    }
+
+    public Integer getExpressFeePayWay() {
+        return expressFeePayWay;
+    }
+
+    public void setExpressFeePayWay(Integer expressFeePayWay) {
+        this.expressFeePayWay = expressFeePayWay;
+    }
+
+    public String getManageUnit() {
+        return manageUnit;
+    }
+
+    public void setManageUnit(String manageUnit) {
+        this.manageUnit = manageUnit;
+    }
+
+    public Integer getShowStoreFlag() {
+        return showStoreFlag;
+    }
+
+    public void setShowStoreFlag(Integer showStoreFlag) {
+        this.showStoreFlag = showStoreFlag;
+    }
+
+    public Integer getDownSignImgType() {
+        return downSignImgType;
+    }
+
+    public void setDownSignImgType(Integer downSignImgType) {
+        this.downSignImgType = downSignImgType;
+    }
+
+    public Integer getExpressFeeType() {
+        return expressFeeType;
+    }
+
+    public void setExpressFeeType(Integer expressFeeType) {
+        this.expressFeeType = expressFeeType;
+    }
+
+    public Integer getOperationType() {
+        return operationType;
+    }
+
+    public void setOperationType(Integer operationType) {
+        this.operationType = operationType;
     }
 }

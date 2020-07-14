@@ -1,6 +1,8 @@
 package recipe.drugsenterprise;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -9,14 +11,12 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
-import ctd.util.annotation.RpcBean;
-import ctd.util.annotation.RpcService;
 import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.*;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -31,13 +31,10 @@ import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.JSONArray;
 
 import javax.xml.namespace.QName;
 import java.math.BigDecimal;
 import java.net.URL;
-import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -47,7 +44,6 @@ import java.util.*;
  * @author: 0184/yu_yun
  * @date:2017/3/7.
  */
-@RpcBean("commonSHRemoteService")
 public class CommonSHRemoteService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonSHRemoteService.class);
@@ -60,7 +56,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
 
     }
-    @RpcService
+
     public void test(Integer recipeId){
         List<Integer> recipeIds = Arrays.asList(recipeId);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
@@ -109,7 +105,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
         String sendInfoStr = JSON.toJSONString(sendInfo, new SerializerFeature[]
                 { SerializerFeature.WriteMapNullValue, SerializerFeature.WriteNullStringAsEmpty });
         String methodName = "TransData";
-        LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
+        //LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
 
         //发送药企信息
         String appId = enterprise.getUserId();
@@ -201,7 +197,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
         if (saleDrugList.getInventory().intValue() == 1) {
@@ -318,7 +314,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
      * @param depId
      * @return
      */
-    @RpcService
+
     public DrugEnterpriseResult scanStockAll(Integer depId) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(depId);
@@ -346,13 +342,13 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
             String sendInfoStr = JSON.toJSONString(sendInfo, new SerializerFeature[]
                     { SerializerFeature.WriteMapNullValue, SerializerFeature.WriteNullStringAsEmpty });
             String methodName = "TransData";
-            LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
+            //LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
 
             //发送药企信息
             String appId = enterprise.getUserId();
             String tocken = enterprise.getToken();
             String resultJson = sendAndDealResult(enterprise, methodName, sendInfoStr, result, appId, tocken);
-            LOGGER.info("scanStockAll resultJson:{}.", resultJson);
+            //LOGGER.info("scanStockAll resultJson:{}.", resultJson);
             JSONObject jsonObject = JSONObject.parseObject(resultJson);
             String transId = jsonObject.getString("transId");
             if(StringUtils.isEmpty(resultJson))
@@ -386,6 +382,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
                 }
             }
         }catch (Exception e){
+            LOGGER.error("当前药企下没有药品库存",e);
             getFailResult(result, "当前药企下没有药品库存");
         }
         return result;
@@ -449,7 +446,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
                 String sendInfoStr = JSON.toJSONString(sendInfo, new SerializerFeature[]
                         { SerializerFeature.WriteMapNullValue, SerializerFeature.WriteNullStringAsEmpty });
                 String methodName = "TransData";
-                LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
+                //LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
 
                 //发送药企信息
                 String appId = enterprise.getUserId();
@@ -522,7 +519,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
 
         }catch (Exception e){
             getFailResult(result, "当前药企下药品库存不够");
-            LOGGER.info("CommonSHRemoteService.syncEnterpriseDrug:药企ID为{},{}.", enterprise.getId(), e.getMessage());
+            LOGGER.error("CommonSHRemoteService.syncEnterpriseDrug:药企ID为{},{}.", enterprise.getId(), e.getMessage(),e);
         }
         return result;
     }
@@ -553,7 +550,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
         Map<String,String> access_tocken = getSignature(appId,tocken);
         String nameSpaceUri = NAME_SPACE + method;
         String url = wsdlUrl + method + "?appId="+appId+"&token="+tocken+access_tocken+"&data=";
-        System.out.print(url);
+        //System.out.print(url);
         Call call = null;
         try {
             Service s = new Service();
@@ -673,7 +670,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
         String sendInfoStr = JSON.toJSONString(sendInfo, new SerializerFeature[]
                 { SerializerFeature.WriteMapNullValue, SerializerFeature.WriteNullStringAsEmpty });
         String methodName = "TransData";
-        LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
+        //LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
 
         //发送药企信息
         String appId = enterprise.getUserId();
@@ -747,7 +744,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
         String sendInfoStr = JSON.toJSONString(sendInfo, new SerializerFeature[]
                 { SerializerFeature.WriteMapNullValue, SerializerFeature.WriteNullStringAsEmpty });
         String methodName = "TransData";
-        LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
+        //LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
 
         //发送药企信息
         String appId = enterprise.getUserId();
@@ -794,7 +791,7 @@ public class CommonSHRemoteService extends AccessDrugEnterpriseService {
         String sendInfoStr = JSON.toJSONString(sendInfo, new SerializerFeature[]
                 { SerializerFeature.WriteMapNullValue, SerializerFeature.WriteNullStringAsEmpty });
         String methodName = "TransData";
-        LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
+        //LOGGER.info("发送[{}][{}]内容：{}", depName, methodName, sendInfoStr);
 
         //发送药企信息
         String appId = enterprise.getUserId();

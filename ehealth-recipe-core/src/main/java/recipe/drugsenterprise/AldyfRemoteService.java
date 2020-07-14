@@ -293,8 +293,8 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                         drugParam.setDoseUnit(detailList.get(i).getDrugUnit());      //开具单位(盒)
                         drugParam.setDrugName(saleDrugList.getSaleName());    //商品名称
                         try {
-                            drugParam.setDoseUsageAdvice(DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detailList.get(i).getUsingRate()));
-                            drugParam.setDoseUsage(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detailList.get(i).getUsePathways()));
+                            drugParam.setDoseUsageAdvice(StringUtils.isNotEmpty(detailList.get(i).getUsingRateTextFromHis())?detailList.get(i).getUsingRateTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detailList.get(i).getUsingRate()));
+                            drugParam.setDoseUsage(StringUtils.isNotEmpty(detailList.get(i).getUsingRateTextFromHis())?detailList.get(i).getUsingRateTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detailList.get(i).getUsePathways()));
                         } catch (ControllerException e) {
                             return getDrugEnterpriseResult(result, "药物使用频率使用途径获取失败");
                         }
@@ -329,7 +329,7 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
     }
 
     @Override
-    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         return "暂不支持库存查询";
     }
 

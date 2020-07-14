@@ -55,20 +55,40 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias="默认每次剂量")
 	private Double defaultUseDose;
 
+    @ItemProperty(alias="药物使用次剂量--中文标识-适量")
+    private String useDoseStr;
+
 	@ItemProperty(alias="药物使用规格单位")
 	private String useDoseUnit;
 
 	@ItemProperty(alias="药物剂量单位")
 	private String dosageUnit;
 
-	@ItemProperty(alias="药物使用频率代码")
+	@ItemProperty(alias="平台药物使用频率代码")
     @Dictionary(id="eh.cdr.dictionary.UsingRate")
 	private String usingRate;
 
-	@ItemProperty(alias="药物使用途径代码")
+	@ItemProperty(alias="平台药物使用途径代码")
     @Dictionary(id="eh.cdr.dictionary.UsePathways")
 	private String usePathways;
-	
+
+    @ItemProperty(
+            alias = "机构的频次代码"
+    )
+    private String organUsingRate;
+    @ItemProperty(
+            alias = "机构的用法代码"
+    )
+    private String organUsePathways;
+
+	//用药频率说明（来源his）
+	@ItemProperty(alias="用药频率说明")
+	private String usingRateTextFromHis;
+
+	//用药方式说明（来源his）
+	@ItemProperty(alias="用药方式说明")
+	private String usePathwaysTextFromHis;
+
 	@ItemProperty(alias="药物使用总数量")
 	private Double useTotalDose;
 	
@@ -168,8 +188,40 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias = "药企药品编码")
 	private String saleDrugCode;
 
+	@ItemProperty(alias = "结算方式 0:药店价格 1:医院价格")
+	private Integer settlementMode;
+
+	@ItemProperty(alias = "药物使用天数(小数类型)")
+	private String useDaysB;
+	@ItemProperty(alias = "处方药品详情类型")
+	@Dictionary(id = "eh.base.dictionary.DrugType")
+	private Integer drugType;
+
+	/**
+	 * 医保药品编码
+	 */
+	private String medicalDrugCode;
 
 
+	@Column(name = "UseDaysB")
+	public String getUseDaysB() {
+		return useDaysB;
+	}
+
+	@Column(name = "drugType")
+	public Integer getDrugType() {
+		return drugType;
+	}
+
+	@ItemProperty(alias = "开处方时保存单位剂量【规格单位】|单位【规格单位】|单位剂量【最小单位】|单位【最小单位】,各个字段用|隔开，用来计算患者端显示实际每次剂量")
+	private String drugUnitdoseAndUnit;
+
+	public void setUseDaysB(String useDaysB) {
+		this.useDaysB = useDaysB;
+	}
+	public void setDrugType(Integer drugType) {
+		this.drugType = drugType;
+	}
 
 	public Recipedetail() {
 	}
@@ -632,5 +684,75 @@ public class Recipedetail implements java.io.Serializable {
 
 	public void setSaleDrugCode(String saleDrugCode) {
 		this.saleDrugCode = saleDrugCode;
+	}
+
+    @Column(name = "useDoseStr")
+    public String getUseDoseStr() {
+        return useDoseStr;
+    }
+
+    public void setUseDoseStr(String useDoseStr) {
+        this.useDoseStr = useDoseStr;
+    }
+
+	@Column(name = "usingRateText")
+	public String getUsingRateTextFromHis() {
+		return usingRateTextFromHis;
+	}
+
+	@Column(name = "usePathwaysText")
+	public String getUsePathwaysTextFromHis() {
+		return usePathwaysTextFromHis;
+	}
+
+	public void setUsingRateTextFromHis(String usingRateTextFromHis) {
+		this.usingRateTextFromHis = usingRateTextFromHis;
+	}
+
+	public void setUsePathwaysTextFromHis(String usePathwaysTextFromHis) {
+		this.usePathwaysTextFromHis = usePathwaysTextFromHis;
+	}
+
+	@Transient
+	public String getMedicalDrugCode() {
+		return medicalDrugCode;
+	}
+
+	public void setMedicalDrugCode(String medicalDrugCode) {
+		this.medicalDrugCode = medicalDrugCode;
+	}
+
+    @Column(name = "organUsingRate")
+    public String getOrganUsingRate() {
+        return organUsingRate;
+    }
+
+    public void setOrganUsingRate(String organUsingRate) {
+        this.organUsingRate = organUsingRate;
+    }
+
+    @Column(name = "organUsePathways")
+    public String getOrganUsePathways() {
+        return organUsePathways;
+    }
+
+    public void setOrganUsePathways(String organUsePathways) {
+        this.organUsePathways = organUsePathways;
+    }
+
+	public String getDrugUnitdoseAndUnit() {
+		return drugUnitdoseAndUnit;
+	}
+
+	public void setDrugUnitdoseAndUnit(String drugUnitdoseAndUnit) {
+		this.drugUnitdoseAndUnit = drugUnitdoseAndUnit;
+	}
+
+	public Integer getSettlementMode() {
+		return settlementMode;
+	}
+
+	public void setSettlementMode(Integer settlementMode) {
+		this.settlementMode = settlementMode;
 	}
 }

@@ -111,4 +111,24 @@ public class DrugEnterpriseConstant {
      * 昆明市第一人民医院
      */
     public static final String COMPANY_KMS = "kms";
+
+    /**
+     * 罗欣药企
+     */
+    public static final String COMPANY_LY = "lx";
+
+    /**
+     * 上海胸科ebs
+     */
+    public static final String COMPANY_EBS = "ebs";
+
+    /**
+     * 临沐国药
+     */
+    public static final String COMPANY_LMGY = "lmgy";
+
+    /**
+     * 华宇
+     */
+    public static final String COMPANY_HY = "hy";
 }

@@ -4,6 +4,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.doctor.model.DoctorBean;
 import com.ngari.base.doctor.service.IDoctorService;
+import com.ngari.base.dto.UsePathwaysDTO;
+import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.model.ConsultExDTO;
@@ -63,7 +65,7 @@ import java.math.BigDecimal;
 import java.util.*;
 
 import static ctd.persistence.DAOFactory.getDAO;
-import static recipe.service.RecipeServiceSub.convertPatientForRAP;
+import static recipe.service.RecipeServiceSub.convertSensitivePatientForRAP;
 
 
 /**
@@ -143,6 +145,11 @@ public class RecipePreserveService {
 
     @RpcService
     public Map<String,Object> getHosRecipeList(Integer consultId, Integer organId,String mpiId,Integer daysAgo){
+//        try {
+//            Thread.sleep(60000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
         LOGGER.info("getHosRecipeList consultId={}, organId={},mpiId={}", consultId, organId,mpiId);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         Map<String,Object> result = Maps.newHashMap();
@@ -156,6 +163,7 @@ public class RecipePreserveService {
             throw new DAOException(609, "找不到该机构");
         }
         String cardId = null;
+        String cardType = null;
         IConsultService service = ConsultAPI.getService(IConsultService.class);
         if (consultId == null){
             List<ConsultBean> consultBeans = service.findConsultByMpiId(Arrays.asList(mpiId));
@@ -170,6 +178,7 @@ public class RecipePreserveService {
                 ConsultExDTO consultExDTO = exService.getByConsultId(consultId);
                 if(null != consultExDTO && StringUtils.isNotEmpty(consultExDTO.getCardId())){
                     cardId = consultExDTO.getCardId();
+                    cardType = consultExDTO.getCardType();
                 }
             }
         }
@@ -185,6 +194,8 @@ public class RecipePreserveService {
         patientBaseInfo.setPatientID(cardId);
         patientBaseInfo.setCertificate(patientDTO.getCertificate());
         patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
+        patientBaseInfo.setCardID(cardId);
+        patientBaseInfo.setCardType(cardType);
         request.setPatientInfo(patientBaseInfo);
         request.setStartDate(startDate);
         request.setEndDate(endDate);
@@ -196,10 +207,10 @@ public class RecipePreserveService {
         } catch (Exception e) {
             LOGGER.warn("getHosRecipeList his error. ", e);
         }
+        LOGGER.info("getHosRecipeList res={}", JSONUtils.toString(response));
         if(null == response){
             return result;
         }
-        LOGGER.info("getHosRecipeList res={}", JSONUtils.toString(response));
         List<RecipeInfoTO> data = response.getData();
         //转换平台字段
         if (CollectionUtils.isEmpty(data)){
@@ -220,6 +231,7 @@ public class RecipePreserveService {
                 detailBean.setUsePathwaysText(recipeDetailTO.getUsePathWays());
                 detailBean.setUseDays(recipeDetailTO.getDays());
                 detailBean.setUseTotalDose(recipeDetailTO.getAmount());
+                detailBean.setDrugSpec(recipeDetailTO.getDrugSpec());
                 hisRecipeDetailBeans.add(detailBean);
             }
             recipeBean.setDetailData(hisRecipeDetailBeans);
@@ -228,7 +240,7 @@ public class RecipePreserveService {
             recipes.add(recipeBean);
         }
         result.put("hisRecipe",recipes);
-        result.put("patient",convertPatientForRAP(patientDTO));
+        result.put("patient",convertSensitivePatientForRAP(patientDTO));
         return result;
     }
 
@@ -243,7 +255,7 @@ public class RecipePreserveService {
             try {
                 keys = redisClient.scan("*_" + mpiId + "_1");
             } catch (Exception e) {
-                LOGGER.error("redis error" + e.toString());
+                LOGGER.error("redis error" , e);
                 return;
             }
             if (keys != null && keys.size() > 0) {
@@ -302,6 +314,16 @@ public class RecipePreserveService {
     @RpcService
     public Long redisDelForHash(String key, String filed) {
         return redisClient.hdel(key, filed);
+    }
+
+    /**
+     * 模糊获取key
+     * @param pattern 例如 RCP_NGARI_USEPATHWAYS_*
+     * @return
+     */
+    @RpcService
+    public Set<String> scanLikeKey(String pattern) {
+        return redisClient.scan(pattern);
     }
 
     /**
@@ -436,6 +458,20 @@ public class RecipePreserveService {
     }
 
     /**
+     * 机构用药频次初始化，缓存内数据结构应该为 key为xxx_organId， map的key为平台内编码，value为频次医保编码
+     *  平台转his
+     * @param organId
+     * @param map
+     */
+    @RpcService
+    public void initMedicalUsingRateForNagri(String organId, Map<String, String> map) {
+        Set<Map.Entry<String, String>> set = map.entrySet();
+        for (Map.Entry<String, String> entry : set) {
+            redisAddForHash(CacheConstant.KEY_MEDICAL_NGARI_USINGRATE + organId, entry.getKey(), entry.getValue());
+        }
+    }
+
+    /**
      * 更新his药品药房名称
      * @param organId
      * @param pharmacy
@@ -521,5 +557,84 @@ public class RecipePreserveService {
             start += limit;
         }
 
+    }
+
+    /**
+     *
+     * 获取维护到redis里的老的机构用药频次对照数据
+     */
+    @RpcService
+    public List<UsingRateDTO> findUsingRateRelationFromRedis(){
+
+        Set<String> usingRateParams = null;
+        try {
+            usingRateParams = redisClient.scan("RCP_NGARI_USINGRATE_*");
+        } catch (Exception e) {
+            LOGGER.error("findUsingRateRelationFromRedis redis scan error",e);
+        }
+        List<UsingRateDTO> usingRateDTOS = Lists.newArrayList();
+        LOGGER.info("findUsingRateRelationFromRedis init usingRateParams[{}] size[{}]",JSONUtils.toString(usingRateParams),usingRateParams.size());
+        try {
+            if (CollectionUtils.isNotEmpty(usingRateParams)){
+                for (String usingRateParam : usingRateParams) {
+                    String organId = usingRateParam.substring(20);
+                    Map<String, Object> map = redisScanForHash(usingRateParam, "*");
+                    if (map != null){
+                        UsingRateDTO usingRateDTO;
+                        for (Map.Entry<String, Object> entry : map.entrySet()) {
+                            usingRateDTO = new UsingRateDTO();
+                            usingRateDTO.setRelatedPlatformKey(entry.getKey());
+                            usingRateDTO.setUsingRateKey((String) entry.getValue());
+                            usingRateDTO.setOrganId(Integer.valueOf(organId));
+                            usingRateDTOS.add(usingRateDTO);
+                        }
+                    }else {
+                        LOGGER.error("findUsingRateRelationFromRedis null organId[{}]",organId);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("findUsingRateRelationFromRedis error",e);
+        }
+        return usingRateDTOS;
+    }
+
+    /**
+     *
+     * 获取维护到redis里的老的机构用药途径对照数据
+     */
+    @RpcService
+    public List<UsePathwaysDTO> findUsePathwaysRelationFromRedis(){
+        Set<String> usingPathwaysParams = null;
+        try {
+            usingPathwaysParams = redisClient.scan("RCP_NGARI_USEPATHWAYS_*");
+        } catch (Exception e) {
+            LOGGER.error("findUsePathwaysRelationFromRedis redis scan error",e);
+        }
+        List<UsePathwaysDTO> usePathwaysDTOS = Lists.newArrayList();
+        LOGGER.info("findUsePathwaysRelationFromRedis init usingPathwaysParams[{}] size[{}]",JSONUtils.toString(usingPathwaysParams),usingPathwaysParams.size());
+        try {
+            if (CollectionUtils.isNotEmpty(usingPathwaysParams)){
+                for (String usingPathwaysParam : usingPathwaysParams) {
+                    String organId = usingPathwaysParam.substring(22);
+                    Map<String, Object> map = redisScanForHash(usingPathwaysParam, "*");
+                    if (map != null){
+                        UsePathwaysDTO usePathwaysDTO;
+                        for (Map.Entry<String, Object> entry : map.entrySet()) {
+                            usePathwaysDTO = new UsePathwaysDTO();
+                            usePathwaysDTO.setRelatedPlatformKey(entry.getKey());
+                            usePathwaysDTO.setPathwaysKey((String) entry.getValue());
+                            usePathwaysDTO.setOrganId(Integer.valueOf(organId));
+                            usePathwaysDTOS.add(usePathwaysDTO);
+                        }
+                    }else {
+                        LOGGER.error("findUsePathwaysRelationFromRedis null organId[{}]",organId);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("findUsePathwaysRelationFromRedis error",e);
+        }
+        return usePathwaysDTOS;
     }
 }

@@ -31,8 +31,8 @@ public class TestRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
-        return "暂不支持库存查询";
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
+        return "20.0";
     }
 
     @Override

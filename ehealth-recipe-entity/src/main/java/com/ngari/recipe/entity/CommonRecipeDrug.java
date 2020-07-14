@@ -53,6 +53,9 @@ public class CommonRecipeDrug implements java.io.Serializable{
     @ItemProperty(alias="药物使用次剂量")
     private Double useDose;
 
+    @ItemProperty(alias="药物使用次剂量--中文标识-适量")
+    private String useDoseStr;
+
     @ItemProperty(alias="默认每次剂量")
     private Double defaultUseDose;
 
@@ -287,6 +290,15 @@ public class CommonRecipeDrug implements java.io.Serializable{
 
     public void setSaleName(String saleName) {
         this.saleName = saleName;
+    }
+
+    @Column(name = "useDoseStr")
+    public String getUseDoseStr() {
+        return useDoseStr;
+    }
+
+    public void setUseDoseStr(String useDoseStr) {
+        this.useDoseStr = useDoseStr;
     }
 
     @Override

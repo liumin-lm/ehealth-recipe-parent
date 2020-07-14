@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>1.17.16.master-SNAPSHOT</version>
+        <version>2.6.2.3.master-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -48,11 +48,16 @@
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
+            <artifactId>ehealth-follow-up-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-base-api</artifactId>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-his-api</artifactId>
+            <version>${ngari.hisapi.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
@@ -180,6 +185,14 @@
             <artifactId>itextpdf</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itext-asian</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.sf-express</groupId>
             <artifactId>staxon</artifactId>
         </dependency>
@@ -212,6 +225,12 @@
             <groupId>cglib</groupId>
             <artifactId>cglib-nodep</artifactId>
             <version>3.2.10</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.sf.barcode4j</groupId>
+            <artifactId>barcode4j-light</artifactId>
+            <version>2.0</version>
         </dependency>
 
     </dependencies>

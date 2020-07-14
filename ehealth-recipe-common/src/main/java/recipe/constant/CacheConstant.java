@@ -41,11 +41,21 @@ public class CacheConstant {
      */
     public static final String KEY_NGARI_SENDRECIPETOHIS_LIST = "KEY_NGARI_SENDRECIPETOHIS_LIST";
 
+    /**
+     * 个性化医院处方笺生成条形码
+     */
+    public static final String KEY_BARCODEFORRECIPE_ORGAN_LIST = "KEY_BARCODEFORRECIPE_ORGAN_LIST";
+
 
     /**
      * 开处方跳过his对接organId列表
      */
     public static final String KEY_SKIP_HISRECIPE_LIST = "RCP_SKIP_HISRECIPE_LIST";
+
+    /**
+     * 开处方智能审方重要警示弹窗处理organId列表
+     */
+    public static final String KEY_AUDIT_TIP_LIST = "RCP_AUDIT_TIP_LIST";
 
     /**
      * 上传监管平台 开完处方就上传organId列表

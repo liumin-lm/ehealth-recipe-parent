@@ -1,11 +1,13 @@
 package com.ngari.recipe.commonrecipe.model;
 
+import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by  on 2017/5/23.
@@ -50,6 +52,9 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
     @ItemProperty(alias = "药物使用次剂量")
     private Double useDose;
 
+    @ItemProperty(alias="药物使用次剂量--中文标识-适量")
+    private String useDoseStr;
+
     @ItemProperty(alias = "默认每次剂量")
     private Double defaultUseDose;
 
@@ -79,6 +84,14 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
     @Dictionary(id = "eh.cdr.dictionary.UsePathways")
     private String usePathways;
 
+    @ItemProperty(alias = "使用频率id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
+    private String usingRateId;
+
+    @ItemProperty(alias = "用药途径id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
+    private String usePathwaysId;
+
     @ItemProperty(alias = "药物使用天数")
     private Integer useDays;
 
@@ -90,6 +103,9 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
 
     @ItemProperty(alias = "剂型")
     private String drugForm;
+
+    @ItemProperty(alias = "医生端选择的每次剂量和单位绑定关系")
+    private List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation;
 
     public CommonRecipeDrugDTO() {
     }
@@ -284,5 +300,37 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
 
     public void setDrugForm(String drugForm) {
         this.drugForm = drugForm;
+    }
+
+    public String getUseDoseStr() {
+        return useDoseStr;
+    }
+
+    public void setUseDoseStr(String useDoseStr) {
+        this.useDoseStr = useDoseStr;
+    }
+
+    public List<UseDoseAndUnitRelationBean> getUseDoseAndUnitRelation() {
+        return useDoseAndUnitRelation;
+    }
+
+    public void setUseDoseAndUnitRelation(List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation) {
+        this.useDoseAndUnitRelation = useDoseAndUnitRelation;
+    }
+
+    public String getUsingRateId() {
+        return usingRateId;
+    }
+
+    public void setUsingRateId(String usingRateId) {
+        this.usingRateId = usingRateId;
+    }
+
+    public String getUsePathwaysId() {
+        return usePathwaysId;
+    }
+
+    public void setUsePathwaysId(String usePathwaysId) {
+        this.usePathwaysId = usePathwaysId;
     }
 }

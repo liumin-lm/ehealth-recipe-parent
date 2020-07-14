@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
 import com.ngari.recipe.hisprescription.model.HosRecipeResult;
 import com.ngari.recipe.hisprescription.model.HospitalStatusUpdateDTO;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.net.broadcast.Observer;
 import ctd.util.JSONUtils;
 import eh.msg.constant.MqConstant;
@@ -13,6 +14,8 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.HisBussConstant;
 import recipe.constant.RecipeStatusConstant;
+import recipe.service.RecipeLogService;
+import recipe.service.RecipeService;
 import recipe.service.hospitalrecipe.PrescribeService;
 import recipe.util.LocalStringUtil;
 
@@ -50,7 +53,9 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
         //处方状态 1 处方保存 2 处方收费 3 处方发药 4处方退费 5处方退药 6处方拒绝接收 7已申请配送 8已配送
         switch (recipeStatus) {
             case HisBussConstant.FROMHIS_RECIPE_STATUS_ADD:
-                otherInfo.put("cardTypeName", getCardTypeName(notice.getCardTypeName()));
+                if(null != notice.getCardTypeName()){
+                    otherInfo.put("cardTypeName", getCardTypeName(notice.getCardTypeName()));
+                }
                 otherInfo.put("cardNo", notice.getCardNo());
                 //自费 0 商保 1 省医保33 杭州市医保3301 衢州市医保3308 巨化医保3308A
                 otherInfo.put("patientType", notice.getPatientType());
@@ -77,6 +82,21 @@ public class RecipeStatusFromHisObserver implements Observer<NoticeNgariRecipeIn
                 break;
 
             case HisBussConstant.FROMHIS_RECIPE_STATUS_REFUND:
+                //date 20200221 更新处方推送日志
+                RecipeLogService service = ApplicationUtils.getRecipeService(RecipeLogService.class);
+                RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+                if(StringUtils.isNotEmpty(notice.getPlatRecipeID())){
+
+                    RecipeBean recipe = recipeService.getByRecipeId(Integer.parseInt(notice.getPlatRecipeID()));
+                    if(null != recipe){
+                        service.saveRecipeLog(Integer.parseInt(notice.getPlatRecipeID()), recipe.getStatus(), recipe.getStatus(), "his进行线下退费");
+                    }else{
+                        LOGGER.error("线下退费当前处方id{}没有对应处方信息", notice.getPlatRecipeID());
+                    }
+                }else{
+                    LOGGER.error("线下退费当前处方信息不足");
+                }
+
                 hospitalStatusUpdateDTO.setStatus(LocalStringUtil.toString(RecipeStatusConstant.REVOKE));
                 break;
 

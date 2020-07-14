@@ -8,12 +8,15 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
+import com.ngari.bus.op.service.IUsePathwaysService;
+import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.regulation.service.IRegulationService;
+import com.ngari.opbase.base.service.IBusActionLogService;
 import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.ProvinceDrugListBean;
 import com.ngari.recipe.drugTool.service.IDrugToolService;
@@ -28,11 +31,12 @@ import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResu
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.spring.AppDomainContext;
-import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
+import eh.entity.base.UsePathways;
+import eh.entity.base.UsingRate;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -65,37 +69,29 @@ import java.util.concurrent.TimeUnit;
 @RpcBean(value = "drugToolService", mvc_authentication = false)
 public class DrugToolService implements IDrugToolService {
 
+    /**
+     * 修改匹配中的原状态（已提交，已匹配）
+     */
+    public static final Integer[] Change_Matching_StatusList = {DrugMatchConstant.ALREADY_MATCH, DrugMatchConstant.SUBMITED};
+    /**
+     * 修改匹配中的原状态（已提交，已匹配）
+     */
+    public static final Integer[] Ready_Match_StatusList = {DrugMatchConstant.ALREADY_MATCH, DrugMatchConstant.SUBMITED};
     private static final Logger LOGGER = LoggerFactory.getLogger(DrugToolService.class);
-
-    private double progress;
-
-    private RedisClient redisClient = RedisClient.instance();
-
     private static final String SUFFIX_2003 = ".xls";
     private static final String SUFFIX_2007 = ".xlsx";
+    /*平台类型*/
+    private static final int Platform_Type = 0;
+    /*省平台类型*/
+    private static final int Province_Platform_Type = 1;
+    private double progress;
+    private RedisClient redisClient = RedisClient.instance();
     //全局map
     private ConcurrentHashMap<String, Double> progressMap = new ConcurrentHashMap<>();
     /**
      * 用于药品小工具搜索历史记录缓存
      */
     private ConcurrentHashMap<String, ArrayBlockingQueue> cmap = new ConcurrentHashMap<>();
-
-    /**
-     * 修改匹配中的原状态（已提交，已匹配）
-     */
-    public static final Integer[] Change_Matching_StatusList = {DrugMatchConstant.ALREADY_MATCH, DrugMatchConstant.SUBMITED};
-
-    /**
-     * 修改匹配中的原状态（已提交，已匹配）
-     */
-    public static final Integer[] Ready_Match_StatusList = {DrugMatchConstant.ALREADY_MATCH, DrugMatchConstant.SUBMITED};
-
-    /*平台类型*/
-    private static final int Platform_Type = 0;
-
-    /*省平台类型*/
-    private static final int Province_Platform_Type = 1;
-
     @Resource
     private DrugListMatchDAO drugListMatchDAO;
 
@@ -118,6 +114,9 @@ public class DrugToolService implements IDrugToolService {
 
     @Resource
     private ProvinceDrugListDAO provinceDrugListDAO;
+
+    @Resource
+    private ImportDrugRecordDAO importDrugRecordDAO;
 
     private LoadingCache<String, List<DrugList>> drugListCache = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.MINUTES).build(new CacheLoader<String, List<DrugList>>() {
         @Override
@@ -191,13 +190,9 @@ public class DrugToolService implements IDrugToolService {
     }
 
     @Override
-    public synchronized Map<String, Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator) {
+    public Map<String, Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator) {
         LOGGER.info(operator + "开始 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
-        progress = 0;
         String key = organId + operator;
-        if (redisClient.exists(key)) {
-            redisClient.del(key);
-        }
         Map<String, Object> result = Maps.newHashMap();
         if (StringUtils.isEmpty(operator)) {
             result.put("code", 609);
@@ -230,7 +225,7 @@ public class DrugToolService implements IDrugToolService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.error("readDrugExcel error ," + e.getMessage());
+            LOGGER.error("readDrugExcel error ," + e.getMessage(),e);
             result.put("code", 609);
             result.put("msg", "上传文件格式有问题");
             return result;
@@ -246,6 +241,9 @@ public class DrugToolService implements IDrugToolService {
         DrugListMatch drug;
         Row row;
         List<String> errDrugListMatchList = Lists.newArrayList();
+        Integer addNum = 0;
+        Integer updateNum = 0;
+        Integer failNum = 0;
         for (int rowIndex = 0; rowIndex <= total; rowIndex++) {
             //循环获得每个行
             row = sheet.getRow(rowIndex);
@@ -272,6 +270,7 @@ public class DrugToolService implements IDrugToolService {
                 }
                 drug.setOrganDrugCode(getStrFromCell(row.getCell(0)));
             } catch (Exception e) {
+                LOGGER.error("药品编号有误 ," + e.getMessage(),e);
                 errMsg.append("药品编号有误").append(";");
             }
 
@@ -281,17 +280,20 @@ public class DrugToolService implements IDrugToolService {
                 }
                 drug.setDrugName(getStrFromCell(row.getCell(1)));
             } catch (Exception e) {
+                LOGGER.error("药品通用名有误 ," + e.getMessage(),e);
                 errMsg.append("药品通用名有误").append(";");
             }
             try {
                 drug.setSaleName(getStrFromCell(row.getCell(2)));
             } catch (Exception e) {
+                LOGGER.error("药品商品名有误 ," + e.getMessage(),e);
                 errMsg.append("药品商品名有误").append(";");
             }
 
             try {
                 drug.setDrugSpec(getStrFromCell(row.getCell(3)));
             } catch (Exception e) {
+                LOGGER.error("药品规格有误 ," + e.getMessage(),e);
                 errMsg.append("药品规格有误").append(";");
             }
             try {
@@ -305,6 +307,7 @@ public class DrugToolService implements IDrugToolService {
                     errMsg.append("药品类型格式错误").append(";");
                 }
             } catch (Exception e) {
+                LOGGER.error("药品类型有误 ," + e.getMessage(),e);
                 errMsg.append("药品类型有误").append(";");
             }
 
@@ -320,6 +323,7 @@ public class DrugToolService implements IDrugToolService {
                     drug.setUseDose(Double.parseDouble(getStrFromCell(row.getCell(5))));
                 }
             } catch (Exception e) {
+                LOGGER.error("单次剂量有误 ," + e.getMessage(),e);
                 errMsg.append("单次剂量有误").append(";");
             }
 
@@ -331,6 +335,7 @@ public class DrugToolService implements IDrugToolService {
                     drug.setDefaultUseDose(Double.parseDouble(getStrFromCell(row.getCell(6))));
                 }
             } catch (Exception e) {
+                LOGGER.error("默认单次剂量有误 ," + e.getMessage(),e);
                 errMsg.append("默认单次剂量有误").append(";");
             }
 
@@ -345,6 +350,7 @@ public class DrugToolService implements IDrugToolService {
                     drug.setPack(Integer.parseInt(getStrFromCell(row.getCell(8))));
                 }
             } catch (Exception e) {
+                LOGGER.error("转换系数有误 ," + e.getMessage(),e);
                 errMsg.append("转换系数有误").append(";");
             }
             try {
@@ -356,6 +362,7 @@ public class DrugToolService implements IDrugToolService {
                 }
                 drug.setUnit(getStrFromCell(row.getCell(9)));
             } catch (Exception e) {
+                LOGGER.error("药品单位有误 ," + e.getMessage(),e);
                 errMsg.append("药品单位有误").append(";");
             }
             try {
@@ -367,6 +374,7 @@ public class DrugToolService implements IDrugToolService {
                 }
                 drug.setProducer(getStrFromCell(row.getCell(11)));
             } catch (Exception e) {
+                LOGGER.error("生产厂家有误 ," + e.getMessage(),e);
                 errMsg.append("生产厂家有误").append(";");
             }
 
@@ -382,6 +390,7 @@ public class DrugToolService implements IDrugToolService {
                     }
 
                 } catch (Exception e) {
+                    LOGGER.error("是否基药有误 ," + e.getMessage(),e);
                     errMsg.append("是否基药有误").append(";");
                 }
             }
@@ -389,12 +398,14 @@ public class DrugToolService implements IDrugToolService {
             try {
                 drug.setUseDoseUnit(getStrFromCell(row.getCell(7)));
             } catch (Exception e) {
+                LOGGER.error("剂量单位有误 ," + e.getMessage(),e);
                 errMsg.append("剂量单位有误").append(";");
             }
 
             try {
                 drug.setRetrievalCode(getStrFromCell(row.getCell(19)));
             } catch (Exception e) {
+                LOGGER.error("院内检索码有误 ," + e.getMessage(),e);
                 errMsg.append("院内检索码有误").append(";");
             }
 
@@ -406,6 +417,7 @@ public class DrugToolService implements IDrugToolService {
                     drug.setPrice(new BigDecimal(priceCell));
                 }
             } catch (Exception e) {
+                LOGGER.error("药品单价有误 ," + e.getMessage(),e);
                 errMsg.append("药品单价有误").append(";");
             }
             //设置无需判断的数据
@@ -428,12 +440,14 @@ public class DrugToolService implements IDrugToolService {
                     drug.setPlatformDrugId(Integer.parseInt(getStrFromCell(row.getCell(23)).trim()));
                 }
             } catch (Exception e) {
+                LOGGER.error("平台药品编码有误 ," + e.getMessage(),e);
                 errMsg.append("平台药品编码有误").append(";");
             }
             if (errMsg.length() > 1) {
                 int showNum = rowIndex + 1;
-                String error = ("【第" + showNum + "行】" + errMsg.substring(0, errMsg.length() - 1));
+                String error = ("【第" + showNum + "行】" + errMsg.substring(0, errMsg.length() - 1)+"\n");
                 errDrugListMatchList.add(error);
+                failNum++;
             } else {
                 try {
                     AutoMatch(drug);
@@ -441,21 +455,39 @@ public class DrugToolService implements IDrugToolService {
                     if (!isSuccess) {
                         //自动匹配功能暂无法提供
                         drugListMatchDAO.save(drug);
+                        addNum++;
+                    }else {
+                        updateNum++;
                     }
                 } catch (Exception e) {
-                    LOGGER.error("save or update drugListMatch error " + e.getMessage());
+                    LOGGER.error("save or update drugListMatch error " + e.getMessage(),e);
                 }
             }
-            progress = new BigDecimal((float) rowIndex / total).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
-            redisClient.set(organId + operator, progress * 100);
-//                    progressMap.put(organId+operator,progress*100);
         }
+
+        //导入药品记录
+        ImportDrugRecord importDrugRecord = new ImportDrugRecord();
+        importDrugRecord.setFileName(originalFilename);
+        importDrugRecord.setOrganId(organId);
+        importDrugRecord.setAddNum(addNum);
+        importDrugRecord.setUpdateNum(updateNum);
+        importDrugRecord.setFailNum(failNum);
+        importDrugRecord.setImportOperator(operator);
         if (errDrugListMatchList.size() > 0) {
             result.put("code", 609);
             result.put("msg", errDrugListMatchList);
+            result.put("addNum",addNum);
+            result.put("updateNum",updateNum);
+            result.put("failNum",failNum);
+            importDrugRecord.setErrMsg(JSONUtils.toString(errDrugListMatchList));
+            importDrugRecordDAO.save(importDrugRecord);
             return result;
         }
+        importDrugRecordDAO.save(importDrugRecord);
 
+        result.put("addNum",addNum);
+        result.put("updateNum",updateNum);
+        result.put("failNum",total-addNum-updateNum);
         LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         result.put("code", 200);
         return result;
@@ -467,7 +499,7 @@ public class DrugToolService implements IDrugToolService {
         String addrArea = null;
         ProvinceDrugList provinceDrugList = null;
         if (StringUtils.isNotEmpty(drug.getRegulationDrugCode()) || drug.getPlatformDrugId() != null) {
-            drugList = drugListDAO.get(drug.getPlatformDrugId());
+            drugList = drugListDAO.findValidByDrugId(drug.getPlatformDrugId());
             // 如果该机构有省平台关联的话
             if (checkOrganRegulation(drug.getSourceOrgan()) && isHaveReulationId(drug.getSourceOrgan())) {
                 addrArea = checkOrganAddrArea(drug.getSourceOrgan());
@@ -479,7 +511,6 @@ public class DrugToolService implements IDrugToolService {
                 } else if (drugList == null && provinceDrugList == null) {
                     //未匹配
                     drug.setStatus(DrugMatchConstant.UNMATCH);
-                    drug.setRegulationDrugCode(null);
                     drug.setPlatformDrugId(null);
                 } else if (drugList != null && provinceDrugList == null) {
                     //匹配中
@@ -491,7 +522,6 @@ public class DrugToolService implements IDrugToolService {
                     drug.setPlatformDrugId(null);
                 }
             } else {
-                drug.setRegulationDrugCode(null);
                 if (drugList != null) {
                     drug.setStatus(DrugMatchConstant.ALREADY_MATCH);
                     drug.setMatchDrugId(drugList.getDrugId());
@@ -542,7 +572,8 @@ public class DrugToolService implements IDrugToolService {
      */
     @RpcService
     public QueryResult<DrugListMatch> findData(int organId, int start, int limit) {
-        return drugListMatchDAO.findMatchDataByOrgan(organId, start, limit);
+        int status=2;
+        return drugListMatchDAO.findMatchDataByOrgan(organId, start, limit,status);
     }
 
     /**
@@ -553,11 +584,13 @@ public class DrugToolService implements IDrugToolService {
         if (StringUtils.isEmpty(operator)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "operator is required");
         }
+
         DrugListMatch drugListMatch = drugListMatchDAO.get(drugId);
         //如果是已匹配的取消匹配
         if (drugListMatch.getStatus().equals(DrugMatchConstant.ALREADY_MATCH)) {
             drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("status", DrugMatchConstant.UNMATCH, "operator", operator));
         }
+        IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
         drugListMatchDAO.updateDrugListMatchInfoById(drugId, ImmutableMap.of("isNew", 1, "status", DrugMatchConstant.MARKED, "operator", operator));
         LOGGER.info("updateNoMatchData 操作人->{}更新无匹配数据,drugId={};status ->before={},after=3", operator, drugId, drugListMatch.getStatus());
         //updata by maoly on 2020/03/16 自动同步至平台药品库
@@ -572,8 +605,8 @@ public class DrugToolService implements IDrugToolService {
         drugList.setUseDoseUnit(drugListMatch.getUseDoseUnit());
         //规格
         drugList.setDrugSpec(drugListMatch.getDrugSpec());
-        //药品包装数量
-        drugList.setPack(drugListMatch.getPack());
+        //药品包装数量---默认1
+        drugList.setPack(drugListMatch.getPack()==null?1:drugListMatch.getPack());
         //药品单位
         drugList.setUnit(drugListMatch.getUnit());
         //药品类型
@@ -595,7 +628,9 @@ public class DrugToolService implements IDrugToolService {
         Integer status = drugListMatch.getStatus();
         try {
             DrugList save = drugListDAO.save(drugList);
+            busActionLogService.recordBusinessLogRpcNew("通用药品管理","","DrugList","(药品小工具)新增通用药品【"+save.getDrugId()+"-"+save.getDrugName()+"】","平台");
             if (save != null) {
+                drugListDAO.updateDrugListInfoById(save.getDrugId(),ImmutableMap.of("drugCode",String.valueOf(save.getDrugId())));
                 //更新为已匹配，将已标记上传的药品自动关联上
                 //判断更新成已匹配还是匹配中
                 if (checkOrganRegulation(drugListMatch.getSourceOrgan()) && isHaveReulationId(drugListMatch.getSourceOrgan()) && StringUtils.isEmpty(drugListMatch.getRegulationDrugCode())) {
@@ -612,7 +647,7 @@ public class DrugToolService implements IDrugToolService {
                 drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(), ImmutableMap.of("status", status, "matchDrugId", save.getDrugId()));
             }
         } catch (Exception e) {
-            LOGGER.error("DrugToolService.updateNoMatchData fail,e=[{}]", e);
+            LOGGER.error("DrugToolService.updateNoMatchData fail,", e);
             throw new DAOException(609, "数据自动导入平台药品库失败!");
         }
 
@@ -680,7 +715,7 @@ public class DrugToolService implements IDrugToolService {
                 toollist.add(toolBean);
             }
         } catch (Exception e) {
-            LOGGER.error("findOrganByRecipeTools 药品小工具查询所有机构接口异常");
+            LOGGER.error("findOrganByRecipeTools 药品小工具查询所有机构接口异常",e);
             e.printStackTrace();
         }
         return toollist;
@@ -770,7 +805,7 @@ public class DrugToolService implements IDrugToolService {
         try {
             drugLists = drugListCache.get(str);
         } catch (ExecutionException e) {
-            LOGGER.error("drugMatch:" + e.getMessage());
+            LOGGER.error("drugMatch:" + e.getMessage(),e);
         }
 
         //已匹配状态返回匹配药品id
@@ -881,6 +916,9 @@ public class DrugToolService implements IDrugToolService {
         Map<String, Integer> map = new HashMap<>();
         Integer result = 0;
         try {
+            if(CollectionUtils.isEmpty(lists)){
+                lists = drugListMatchDAO.findMatchDataByOrgan(organ);
+            }
             if (lists.size() > 0) {
                 for (DrugListMatch drugListMatch : lists) {
                     DrugListMatch db = drugListMatchDAO.get(drugListMatch.getDrugId());
@@ -900,7 +938,7 @@ public class DrugToolService implements IDrugToolService {
             }
 
         } catch (Exception e) {
-            LOGGER.error("DrugToolService.drugCommit fail,e=[{}]", e);
+            LOGGER.error("DrugToolService.drugCommit fail", e);
             throw new DAOException(609, "药品数据自动导入机构药品库失败！");
         }
         return map;
@@ -908,6 +946,14 @@ public class DrugToolService implements IDrugToolService {
     }
 
     private Integer drugManualCommitNew(List<DrugListMatch> lists) {
+        IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
+        DrugListMatch drugListMatch = lists.get(0);
+        OrganService organService = BasicAPI.getService(OrganService.class);
+        OrganDTO organDTO = organService.getByOrganId(drugListMatch.getSourceOrgan());
+        //【机构名称】批量新增药品【编码-药品名】……
+        StringBuilder saveMsg = new StringBuilder("【"+organDTO.getName()+"】批量新增药品");
+        //【机构名称】更新药品【编码-药品名】……
+        StringBuilder updateMsg = new StringBuilder("【"+organDTO.getName()+"】更新药品");
         final HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
             @SuppressWarnings("unchecked")
             @Override
@@ -925,6 +971,7 @@ public class DrugToolService implements IDrugToolService {
                         } else {
                             organDrugList.setSalePrice(drugListMatch.getPrice());
                         }
+                        if (drugListMatch.getDrugType() !=null && drugListMatch.getDrugType() ==3 && drugListMatch.getPack() == null) organDrugList.setPack(1);
                         organDrugList.setDrugName(drugListMatch.getDrugName());
                         if (StringUtils.isEmpty(drugListMatch.getSaleName())) {
                             organDrugList.setSaleName(drugListMatch.getDrugName());
@@ -965,12 +1012,16 @@ public class DrugToolService implements IDrugToolService {
                         Boolean isSuccess = organDrugListDAO.updateData(organDrugList);
                         if (!isSuccess) {
                             organDrugListDAO.save(organDrugList);
+                            saveMsg.append("【"+organDrugList.getDrugId()+"-"+organDrugList.getDrugName()+"】");
                             //同步药品到监管备案
                             RecipeBusiThreadPool.submit(() -> {
                                 organDrugListService.uploadDrugToRegulation(organDrugList);
                                 return null;
                             });
                             num = num + 1;
+                        }else {
+                            //更新
+                            updateMsg.append("【"+organDrugList.getDrugId()+"-"+organDrugList.getDrugName()+"】");
                         }
                     }
                 }
@@ -978,6 +1029,8 @@ public class DrugToolService implements IDrugToolService {
             }
         };
         HibernateSessionTemplate.instance().executeTrans(action);
+        busActionLogService.recordBusinessLogRpcNew("机构药品管理","","OrganDrugList",saveMsg.toString(),organDTO.getName());
+        busActionLogService.recordBusinessLogRpcNew("机构药品管理","","OrganDrugList",updateMsg.toString(),organDTO.getName());
         return action.getResult();
     }
 
@@ -1001,7 +1054,7 @@ public class DrugToolService implements IDrugToolService {
             usingRateList = DictionaryController.instance().get("eh.cdr.dictionary.UsingRateWithKey").getSlice(null, 0, "");
             usePathwayList = DictionaryController.instance().get("eh.cdr.dictionary.UsePathwaysWithKey").getSlice(null, 0, "");
         } catch (ControllerException e) {
-            LOGGER.error("getUsingRateAndUsePathway() error : " + e);
+            LOGGER.error("getUsingRateAndUsePathway() error : ", e);
         }
         result.put("usingRate", usingRateList);
         result.put("usePathway", usePathwayList);
@@ -1020,17 +1073,36 @@ public class DrugToolService implements IDrugToolService {
             usingRateList = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getSlice(null, 0, "");
             usePathwayList = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getSlice(null, 0, "");
         } catch (ControllerException e) {
-            LOGGER.error("getUsingRateAndUsePathway() error : " + e);
+            LOGGER.error("getUsingRateAndUsePathway() error : ", e);
         }
         result.put("usingRate", usingRateList);
         result.put("usePathway", usePathwayList);
         return result;
     }
 
+    /**
+     * 获取用药频率和用药途径--新
+     */
+    @RpcService
+    public Map<String, Object> findUsingRateAndUsePathwayByOrganId(Integer organId) {
+        Map<String, Object> result = Maps.newHashMap();
+        IUsingRateService usingRateService = AppDomainContext.getBean("eh.usingRateService", IUsingRateService.class);
+        IUsePathwaysService usePathwaysService = AppDomainContext.getBean("eh.usePathwaysService", IUsePathwaysService.class);
+        List<UsingRate> usingRates = usingRateService.findAllusingRateByOrganId(organId);
+        List<UsePathways> usePathways = usePathwaysService.findAllUsePathwaysByOrganId(organId);
+        result.put("usingRate", usingRates);
+        result.put("usePathway", usePathways);
+        return result;
+    }
+
     @RpcService
     public void deleteDrugMatchData(Integer id, Boolean isOrganId) {
+        IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
+        OrganService organService = BasicAPI.getService(OrganService.class);
         if (isOrganId) {
+            OrganDTO organDTO = organService.getByOrganId(id);
             drugListMatchDAO.deleteByOrganId(id);
+            busActionLogService.recordBusinessLogRpcNew("机构药品管理","","drugListMatch","一键清除【"+organDTO.getName()+"】药品匹配表的数据",organDTO.getName());
         } else {
             drugListMatchDAO.deleteById(id);
         }
@@ -1161,6 +1233,7 @@ public class DrugToolService implements IDrugToolService {
                 }
                 DrugList save = drugListDAO.save(drugList);
                 if (save != null) {
+                    drugListDAO.updateDrugListInfoById(save.getDrugId(),ImmutableMap.of("drugCode",String.valueOf(save.getDrugId())));
                     //更新为已匹配，将已标记上传的药品自动关联上
                     //判断更新成已匹配还是匹配中
                     Integer status;
@@ -1428,7 +1501,7 @@ public class DrugToolService implements IDrugToolService {
                 return true;
             }
         } catch (Exception e) {
-            LOGGER.warn("查询互联网列表失败{}.", e);
+            LOGGER.error("查询互联网列表失败.", e);
         }
 
         //首先判断his配置中机构有没有监管平台。没有就不返回省平台列表
@@ -1585,5 +1658,15 @@ public class DrugToolService implements IDrugToolService {
             return  true;
         }
         return false;
+    }
+
+    /**
+     * 判断该机构是否关联省平台（包括互联网医院）供前端调用
+     * @param organId
+     * @return
+     */
+    @RpcService
+    public List<ImportDrugRecord> findImportDrugRecordByOrganId(Integer organId){
+        return importDrugRecordDAO.findImportDrugRecordByOrganId(organId);
     }
 }

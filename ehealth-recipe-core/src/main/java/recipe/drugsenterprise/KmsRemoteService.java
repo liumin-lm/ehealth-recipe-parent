@@ -1,15 +1,11 @@
 package recipe.drugsenterprise;
 
-import com.alibaba.fastjson.JSONObject;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.entity.SaleDrugList;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -25,7 +21,6 @@ import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.HdDrugRequestData;
 import recipe.drugsenterprise.bean.HdPosition;
-import recipe.drugsenterprise.bean.ScanStockBean;
 import recipe.drugsenterprise.bean.YnsPharmacyAndStockRequest;
 import recipe.drugsenterprise.bean.yd.httpclient.HttpsClientUtils;
 import recipe.util.MapValueUtil;
@@ -64,8 +59,51 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
-        return null;
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        String goodsqtyMethod = recipeParameterDao.getByName("kms-goodsqty");
+        //发送请求，获得推送的结果
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        try{
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
+            List<HdDrugRequestData> list = new ArrayList<>();
+            if (saleDrugList != null) {
+                HdDrugRequestData drugBean = new HdDrugRequestData();
+                drugBean.setDrugCode(saleDrugList.getOrganDrugCode());
+                drugBean.setTotal("5");
+                DrugList drugList = drugListDAO.getById(drugId);
+                drugBean.setUnit(drugList.getUnit());
+                list.add(drugBean);
+            }
+            Map<String, List<HdDrugRequestData>> map = new HashMap<>();
+            map.put("drugList", list);
+            String requestParames = JSONUtils.toString(map);
+            LOGGER.info("getDrugInventory requestParames:{}.", requestParames);
+            String outputData = HttpsClientUtils.doPost(drugsEnterprise.getBusinessUrl() + goodsqtyMethod, requestParames);
+            LOGGER.info("getDrugInventory outputData:{}.", outputData);
+            Map resultMap = JSONUtils.parse(outputData, Map.class);
+            if (requestSuccessCode.equals(MapValueUtil.getString(resultMap, "code"))) {
+                List<Map<String, Object>> drugList = MapValueUtil.getList(resultMap, "drugList");
+                if (CollectionUtils.isNotEmpty(drugList) && drugList.size() > 0) {
+                    for (Map<String, Object> drugBean : drugList) {
+                        String inventory = MapValueUtil.getObject(drugBean, "inventory").toString();
+                        if ("true".equals(inventory)) {
+                            return "有库存";
+                        }
+                    }
+                } else {
+                    return "无库存";
+                }
+
+            } else {
+                return "无库存";
+            }
+        }catch(Exception e){
+            LOGGER.info("getDrugInventory error:{}.", e.getMessage(), e);
+            return "无库存";
+        }
+        return "无库存";
     }
 
     @RpcService
@@ -100,7 +138,7 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
             //根据药品请求华东旗下的所有可用药店，当有一个可用说明库存是足够的
             Map<String, HdDrugRequestData> drugResultMap = new HashMap<>();
             List<HdDrugRequestData> drugRequestDataList = getDrugRequestList(drugResultMap, detailList, drugsEnterprise, result);
-            if (DrugEnterpriseResult.FAIL == result.getCode()) return null;
+            if (DrugEnterpriseResult.FAIL == result.getCode()) return result;
             Map<String, Object> requestMap = new HashMap<>();
             requestMap.put("drugList", drugRequestDataList);
             String requestStr = JSONUtils.toString(requestMap);
@@ -113,16 +151,14 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
             Map resultMap = JSONUtils.parse(outputData, Map.class);
             if (requestSuccessCode.equals(MapValueUtil.getString(resultMap, "code"))) {
                 List<Map<String, Object>> drugList = MapValueUtil.getList(resultMap, "drugList");
-                ScanStockBean detailBean;
-                List<ScanStockBean> scanStockList = new ArrayList<>();
-                if (drugList.size() > 0) {
+                if (CollectionUtils.isNotEmpty(drugList) && drugList.size() > 0) {
                     for (Map<String, Object> drugBean : drugList) {
-                        detailBean = new ScanStockBean();
-                        detailBean.setInventory(MapValueUtil.getObject(drugBean, "inventory").toString());
-                        detailBean.setDrugCode(MapValueUtil.getString(drugBean, "drugCode"));
-                        scanStockList.add(detailBean);
+                        String inventory = MapValueUtil.getObject(drugBean, "inventory").toString();
+                        if ("false".equals(inventory)) {
+                            getFailResult(result, "当前药企下没有药店的药品库存足够");
+                            return result;
+                        }
                     }
-                    result.setObject(scanStockList);
                     LOGGER.info("KmsRemoteService.findSupportDep:[{}][{}]获取药品库存请求，返回前端result消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), JSONUtils.toString(result));
                 } else {
                     getFailResult(result, "当前药企下没有药店的药品库存足够");
@@ -135,14 +171,14 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
         } catch (Exception e) {
             result.setCode(DrugEnterpriseResult.FAIL);
             result.setMsg(e.getMessage());
-            LOGGER.error("KmsRemoteService.scanStock:[{}][{}]获取药品库存异常：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), e.getMessage());
+            LOGGER.error("KmsRemoteService.scanStock:[{}][{}]获取药品库存异常：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), e.getMessage(),e);
             getFailResult(result, e.getMessage());
         } finally {
             try {
                 httpClient.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("KmsRemoteService.scanStock:http请求资源关闭异常: {}！", e.getMessage());
+                LOGGER.error("KmsRemoteService.scanStock:http请求资源关闭异常: {}！", e.getMessage(),e);
             }
         }
         return result;
@@ -189,7 +225,7 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
             YnsPharmacyAndStockRequest hdPharmacyAndStockRequest = new YnsPharmacyAndStockRequest();
             if (ext != null && null != ext.get(searchMapRANGE) && null != ext.get(searchMapLongitude) && null != ext.get(searchMapLatitude)) {
                 List<HdDrugRequestData> drugRequestList = getDrugRequestList(drugResultMap, detailList, enterprise, result);
-                if (DrugEnterpriseResult.FAIL == result.getCode()) return null;
+                if (DrugEnterpriseResult.FAIL == result.getCode()) return result;
                 hdPharmacyAndStockRequest.setDrugList(drugRequestList);
                 hdPharmacyAndStockRequest.setRange("20");
                 hdPharmacyAndStockRequest.setPosition(new HdPosition(MapValueUtil.getString(ext, searchMapLongitude), MapValueUtil.getString(ext, searchMapLatitude)));
@@ -197,7 +233,7 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
             } else {
                 LOGGER.warn("KmsRemoteService.findSupportDep:请求的搜索参数不健全");
             }
-            if (DrugEnterpriseResult.FAIL == result.getCode()) return null;
+            if (DrugEnterpriseResult.FAIL == result.getCode()) return result;
 
             String requestStr = JSONUtils.toString(hdPharmacyAndStockRequest);
             ////根据处方信息发送药企药店列表查询请求，判断是否企药店列表
@@ -240,14 +276,14 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
         } catch (Exception e) {
             result.setCode(DrugEnterpriseResult.FAIL);
             result.setMsg(e.getMessage());
-            LOGGER.error("KmsRemoteService.scanStock:[{}][{}]获取药品库存异常：{}", enterprise.getId(), enterprise.getName(), e.getMessage());
+            LOGGER.error("KmsRemoteService.scanStock:[{}][{}]获取药品库存异常：{}", enterprise.getId(), enterprise.getName(), e.getMessage(),e);
             getFailResult(result, e.getMessage());
         } finally {
             try {
                 httpClient.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("KmsRemoteService.scanStock:http请求资源关闭异常: {}！", e.getMessage());
+                LOGGER.error("KmsRemoteService.scanStock:http请求资源关闭异常: {}！", e.getMessage(),e);
             }
         }
         return result;
@@ -276,7 +312,7 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
                 LOGGER.warn("KmsRemoteService.pushRecipeInfo:药品id:{},药企id:{}的药企药品信息不存在",
                         recipedetail.getDrugId(), drugsEnterprise.getId());
                 getFailResult(finalResult, "对接的药品信息为空");
-                return null;
+                return new ArrayList<>();
             }
             hdDrugRequestData = result.get(saleDrug.getOrganDrugCode());
 

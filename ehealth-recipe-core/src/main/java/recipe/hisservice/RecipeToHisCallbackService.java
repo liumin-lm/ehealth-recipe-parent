@@ -62,6 +62,8 @@ public class RecipeToHisCallbackService {
             String amount = repList.get(0).getAmount();
             String registerId = repList.get(0).getRegisterID();
             String sendFlag = repList.get(0).getSendFlag();
+            String medicalType = repList.get(0).getMedicalType();
+            String medicalTypeText = repList.get(0).getMedicalTypeText();
             boolean isWuChang = false;
             //是否武昌模式
             if (StringUtils.isNotEmpty(repList.get(0).getIsDrugStock())){
@@ -82,7 +84,7 @@ public class RecipeToHisCallbackService {
                 if (StringUtils.isNotEmpty(rep.getPrice())) {
                     detail.setDrugCost(new BigDecimal(rep.getPrice()));
                 }
-                if (StringUtils.isNotEmpty(rep.getOrderID())){
+                if (StringUtils.isNotEmpty(rep.getOrderID())) {
                     detail.setRecipeDetailId(Integer.valueOf(rep.getOrderID()));
                 }
                 detail.setOrderNo(LocalStringUtil.toString(rep.getOrderNo()));
@@ -90,6 +92,10 @@ public class RecipeToHisCallbackService {
                 //取药窗口是否都是返回同一窗口
                 detail.setPharmNo(LocalStringUtil.toString(rep.getPharmNo()));
                 detail.setMemo(LocalStringUtil.toString(rep.getRemark()));
+
+                detail.setDrugSpec(rep.getDrugSpec());
+                detail.setMedicalDrugCode(rep.getMedicalDrugCode());
+                detail.setPack(rep.getPack());
                 list.add(detail);
             }
             if (!StringUtils.isEmpty(amount)) {
@@ -100,6 +106,8 @@ public class RecipeToHisCallbackService {
             result.setRecipeCode(recipeNo);
             result.setPatientID(patientId);
             result.setRegisterID(registerId);
+            result.setMedicalType(medicalType);
+            result.setMedicalTypeText(medicalTypeText);
             result.setDetailList(list);
             LOGGER.info("recipeSend recive success. recipeId={}, checkPassSuccess result={}", response.getRecipeId(), JSONUtils.toString(result));
             HisCallBackService.checkPassSuccess(result, true);

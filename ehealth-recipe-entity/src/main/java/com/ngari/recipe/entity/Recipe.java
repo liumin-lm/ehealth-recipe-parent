@@ -320,6 +320,9 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "审核途径 1平台审核 2his审核")
     private Integer checkMode;
 
+    @ItemProperty(alias = "处方来源类型 1 平台处方 2 线下转线上的处方")
+    private Integer recipeSourceType;
+
 
     /**
      * 添加属性 2019/10/10
@@ -343,6 +346,9 @@ public class Recipe implements Serializable {
 
     @ItemProperty(alias="药师处方数字签名可信服务器时间")
     private String signPharmacistCADate;
+
+    @ItemProperty(alias = "处方支付类型 0 普通支付 1 不选择购药方式直接去支付")
+    private Integer recipePayType;
 
     public Recipe() {
     }
@@ -1372,5 +1378,23 @@ public class Recipe implements Serializable {
 
     public void setSignPharmacistCADate(String signPharmacistCADate) {
         this.signPharmacistCADate = signPharmacistCADate;
+    }
+
+    @Column(name = "recipeSourceType")
+    public Integer getRecipeSourceType() {
+        return recipeSourceType;
+    }
+
+    public void setRecipeSourceType(Integer recipeSourceType) {
+        this.recipeSourceType = recipeSourceType;
+    }
+
+    @Column(name = "recipePayType")
+    public Integer getRecipePayType() {
+        return recipePayType;
+    }
+
+    public void setRecipePayType(Integer recipePayType) {
+        this.recipePayType = recipePayType;
     }
 }

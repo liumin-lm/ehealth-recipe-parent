@@ -41,6 +41,9 @@ public class AuditMedicineIssueDTO implements Serializable {
     @ItemProperty(alias = "逻辑删除")
     private Integer logicalDeleted;
 
+    @ItemProperty(alias = "处方分析详情")
+    private Integer detailUrl;
+
     public Integer getIssueId() {
         return issueId;
     }
@@ -119,5 +122,13 @@ public class AuditMedicineIssueDTO implements Serializable {
 
     public void setRecipeId(Integer recipeId) {
         this.recipeId = recipeId;
+    }
+
+    public Integer getDetailUrl() {
+        return detailUrl;
+    }
+
+    public void setDetailUrl(Integer detailUrl) {
+        this.detailUrl = detailUrl;
     }
 }

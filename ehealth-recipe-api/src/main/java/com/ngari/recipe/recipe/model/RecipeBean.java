@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author yuyun
@@ -20,6 +21,9 @@ public class RecipeBean implements Serializable {
 
     @ItemProperty(alias = "处方序号")
     private Integer recipeId;
+
+    @ItemProperty(alias = "处方序号(加密后)")
+    private String recipeIdE;
 
     @ItemProperty(alias = "订单编号")
     private String orderCode;
@@ -259,7 +263,7 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "医保支付标志，1：可以用医保")
     private Integer medicalPayFlag;
 
-    @ItemProperty(alias = "配送处方标记 默认0，1: 只能配送")
+    @ItemProperty(alias = "配送处方标记 默认0，1: 只能配送,2:只能到院取药")
     private Integer distributionFlag;
 
     @ItemProperty(alias = "处方备注")
@@ -321,6 +325,33 @@ public class RecipeBean implements Serializable {
 
     @ItemProperty(alias = "药师处方签名生成的时间戳结构体，由院方服务器获取")
     private String signPharmacistCADate;
+
+    @ItemProperty(alias = "医生处方数字签名值")
+    private String signRecipeCode;
+
+    @ItemProperty(alias = "医生处方签名生成的时间戳结构体，由院方服务器获取")
+    private String signCADate;
+
+    @ItemProperty(alias = "主诉")
+    private String mainDieaseDescribe;
+
+    @ItemProperty(alias = "处方来源类型 1 平台处方 2 线下转线上的处方")
+    private Integer recipeSourceType;
+
+    @ItemProperty(alias = "处方支付类型 0 普通支付 1 不选择购药方式直接去支付")
+    private Integer recipePayType;
+
+    private List<HisRecipeDetailBean> detailData;
+
+    /**
+     * 患者医保类型（编码）
+     */
+    private String medicalType;
+
+    /**
+     * 患者医保类型（名称）
+     */
+    private String medicalTypeText;
 
     public RecipeBean() {
     }
@@ -416,6 +447,14 @@ public class RecipeBean implements Serializable {
             this.setTakeMedicine(0);
         }
 
+    }
+
+    public String getRecipeIdE() {
+        return recipeIdE;
+    }
+
+    public void setRecipeIdE(String recipeIdE) {
+        this.recipeIdE = recipeIdE;
     }
 
     public Integer getReviewType() {
@@ -1178,4 +1217,68 @@ public class RecipeBean implements Serializable {
     public String getSignPharmacistCADate() { return signPharmacistCADate; }
 
     public void setSignPharmacistCADate(String signPharmacistCADate) { this.signPharmacistCADate = signPharmacistCADate; }
+
+    public String getSignRecipeCode() {
+        return signRecipeCode;
+    }
+
+    public void setSignRecipeCode(String signRecipeCode) {
+        this.signRecipeCode = signRecipeCode;
+    }
+
+    public String getSignCADate() {
+        return signCADate;
+    }
+
+    public void setSignCADate(String signCADate) {
+        this.signCADate = signCADate;
+    }
+
+    public String getMainDieaseDescribe() {
+        return mainDieaseDescribe;
+    }
+
+    public void setMainDieaseDescribe(String mainDieaseDescribe) {
+        this.mainDieaseDescribe = mainDieaseDescribe;
+    }
+
+    public String getMedicalType() {
+        return medicalType;
+    }
+
+    public void setMedicalType(String medicalType) {
+        this.medicalType = medicalType;
+    }
+
+    public String getMedicalTypeText() {
+        return medicalTypeText;
+    }
+
+    public void setMedicalTypeText(String medicalTypeText) {
+        this.medicalTypeText = medicalTypeText;
+    }
+
+    public Integer getRecipeSourceType() {
+        return recipeSourceType;
+    }
+
+    public void setRecipeSourceType(Integer recipeSourceType) {
+        this.recipeSourceType = recipeSourceType;
+    }
+
+    public Integer getRecipePayType() {
+        return recipePayType;
+    }
+
+    public void setRecipePayType(Integer recipePayType) {
+        this.recipePayType = recipePayType;
+    }
+
+    public List<HisRecipeDetailBean> getDetailData() {
+        return detailData;
+    }
+
+    public void setDetailData(List<HisRecipeDetailBean> detailData) {
+        this.detailData = detailData;
+    }
 }

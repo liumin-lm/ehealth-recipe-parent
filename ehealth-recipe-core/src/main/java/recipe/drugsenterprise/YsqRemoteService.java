@@ -32,13 +32,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
-import recipe.constant.*;
+import recipe.constant.DrugEnterpriseConstant;
+import recipe.constant.RecipeBussConstant;
+import recipe.constant.RecipeMsgEnum;
+import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.DrugInventoryBean;
 import recipe.drugsenterprise.bean.InventoryDrug;
 import recipe.drugsenterprise.bean.YsqDrugResponse;
 import recipe.drugsenterprise.bean.yd.httpclient.HttpsClientUtils;
 import recipe.service.RecipeLogService;
+import recipe.service.RecipeMsgService;
 import recipe.service.RecipeOrderService;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.DateConversion;
@@ -82,7 +86,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         return "暂不支持库存查询";
     }
 
@@ -129,7 +133,12 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             for (Integer recipeId : recipeIds) {
                 orderService.updateOrderInfo(recipeOrderDAO.getOrderCodeByRecipeIdWithoutCheck(recipeId), ImmutableMap.of("pushFlag", 1, "depSn", result.getDepSn()), null);
                 RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.CHECK_PASS, "药企推送成功:" + drugsEnterprise.getName());
+                if (new Integer(3).equals(drugsEnterprise.getExpressFeePayWay())){
+                    //推送处方运费待支付消息提醒
+                    RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_EXPRESSFEE_REMIND_NOPAY,recipeId);
+                }
             }
+
         } else {
             for (Integer recipeId : recipeIds) {
                 orderService.updateOrderInfo(recipeOrderDAO.getOrderCodeByRecipeIdWithoutCheck(recipeId), ImmutableMap.of("pushFlag", -1), null);
@@ -549,7 +558,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             try {
                 patient = iPatientService.get(recipe.getMpiid());
             } catch (Exception e) {
-                LOGGER.error("getYsqRecipeInfo patient :" + e.getMessage());
+                LOGGER.error("getYsqRecipeInfo patient :" + e.getMessage(),e);
                 patient = null;
             }
             if (null == patient) {
@@ -585,10 +594,6 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 if (order != null ) {
                     //配送到家的方式
                     recipeMap.put("METHOD", "0");
-                    /*RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-                    String ysq_store_code = recipe.getClinicOrgan() + "_" + "ysq_store_code";
-                    String store_code = recipeParameterDao.getByName(ysq_store_code);*/
-
                     recipeMap.put("PATIENTSENDADDR", getCompleteAddress(order));
                     recipeMap.put("STORECODE", order.getDrugStoreCode());
                     recipeMap.put("SENDNAME", order.getReceiver());
@@ -600,8 +605,60 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     } else if (order.getPayFlag() != null && 0 == order.getPayFlag()){
                         recipeMap.put("ISPAYMENT", "0");
                     }
-                }
+                    //快递费用
+                    if (new Integer(1).equals(order.getExpressFeePayWay())) {
+                        //已经支付快递费
+                        recipeMap.put("DELIVERYFLAG", 1);
+                    } else {
+                        recipeMap.put("DELIVERYFLAG", 0);
+                    }
+                    //添加省市区信息
+                    String province = getAddressDic(order.getAddress1());
+                    String city = getAddressDic(order.getAddress2());
+                    String district = getAddressDic(order.getAddress3());
+                    recipeMap.put("PROVINCE", province);
+                    recipeMap.put("CITY", city);
+                    recipeMap.put("DISTRICT", district);
+                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+                    if (recipeExtend != null) {
+                        //添加挂号序号
+                        recipeMap.put("REGISTRATIONNUMBER", recipeExtend.getRegisterID());
+                    }
+                    RecipeCheckDAO recipeCheckDAO = DAOFactory.getDAO(RecipeCheckDAO.class);
+                    RecipeCheck recipeCheck = recipeCheckDAO.getByRecipeId(recipeId);
+                    if (recipeCheck != null) {
+                        recipeMap.put("REVIEWUSER", recipeCheck.getCheckerName());
+                        recipeMap.put("REVIEWSTATE", "true");
+                        recipeMap.put("REVIEWMSG", recipeCheck.getMemo());
+                        recipeMap.put("REVIEWTIME", recipeCheck.getCheckDate());
+                    }
 
+                    recipeMap.put("DELIVERYCASH", order.getExpressFee());
+                    //添加代煎相关
+                    if (recipe.getRecipeType() == 3 && order.getDecoctionFee() != null && order.getDecoctionFee().compareTo(BigDecimal.ZERO) == 1 ) {
+                        //代煎费不为空
+                        recipeMap.put("REPLACEFLY", "1");  //需要代煎
+                        recipeMap.put("REPLACEFLYQTY", recipe.getCopyNum());  //代煎数量
+                        recipeMap.put("REPLACEFLYPRC", order.getDecoctionFee().divide(new BigDecimal(recipe.getCopyNum())));  //代煎单价
+                        recipeMap.put("REPLACEFLYAMOUNT", order.getDecoctionFee());  //代煎金额
+                    } else {
+                        recipeMap.put("REPLACEFLY", "0");  //不需代煎
+                    }
+                    //医保处方 0：是；1：否
+                    if (new Integer(1).equals(order.getOrderType())) {
+                        recipeMap.put("YIBAOBILL", "1");
+                    } else {
+                        recipeMap.put("YIBAOBILL", "0");
+                    }
+                } else {
+                    if ("psysq".equals(drugsEnterprise.getAccount())) {
+                        recipeMap.put("METHOD", "0");
+                        recipeMap.put("PATIENTSENDADDR", "");
+                    } else {
+                        recipeMap.put("METHOD", "1");
+                        recipeMap.put("PATIENTSENDADDR", "");
+                    }
+                }
             } else {
                 if ("psysq".equals(drugsEnterprise.getAccount())) {
                     recipeMap.put("METHOD", "0");
@@ -610,6 +667,22 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     recipeMap.put("METHOD", "1");
                     recipeMap.put("PATIENTSENDADDR", "");
                 }
+            }
+            //icd10
+            recipeMap.put("ICD10", recipe.getOrganDiseaseId());
+            //中药贴数
+            if (recipe.getRecipeType() == 3 && recipe.getCopyNum() != null) {
+                recipeMap.put("COUNTTIENUM", recipe.getCopyNum());
+            }
+            //处方类型
+            if (recipe.getRecipeType() == 1 || recipe.getRecipeType() == 2) {
+                recipeMap.put("PRESCRIPTIONTYPE", "1");
+            } else {
+                recipeMap.put("PRESCRIPTIONTYPE", "2");
+            }
+            //医嘱
+            if (StringUtils.isNotEmpty(recipe.getRecipeMemo())) {
+                recipeMap.put("DCTTIPS", recipe.getRecipeMemo());
             }
             if (RecipeBussConstant.PAYMODE_TFDS.equals(recipe.getPayMode())) {
                 order = orderDAO.getByOrderCode(recipe.getOrderCode());
@@ -642,7 +715,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 try {
                     recipeMap.put("SEX", DictionaryController.instance().get("eh.base.dictionary.Gender").getText(sex));
                 } catch (ControllerException e) {
-                    LOGGER.error("getYsqRecipeInfo 获取性别类型失败*****sex:" + sex);
+                    LOGGER.error("getYsqRecipeInfo 获取性别类型失败*****sex:" + sex,e);
                     recipeMap.put("SEX", "男");
                 }
             } else {
@@ -671,8 +744,9 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 //有些医院不提供身份证号,年龄提供默认值
                 recipeMap.put("AGE", 25);
             }
+            recipeMap.put("BINGLINUMBER", recipe.getPatientID());
             //身份信息使用原始身份证号，暂定空
-            recipeMap.put("IDENTIFICATION", "");
+            recipeMap.put("IDENTIFICATION", patient.getCertificate());
             recipeMap.put("USERID", recipe.getPatientID());
             recipeMap.put("TELPHONE", patient.getMobile());
             if (sendRecipe) {
@@ -695,7 +769,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 recipeMap.put("GYSNAME", order.getDrugStoreName());
             }
             //处理过期时间
-            String validateDays = cacheService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS, "14");
+            String validateDays = "7";
             Date validate = DateConversion.getDateAftXDays(recipe.getSignDate(), Integer.parseInt(validateDays));
             recipeMap.put("VALIDDATE", DateConversion.getDateFormatter(validate, DateConversion.DEFAULT_DATE_TIME));
             recipeMap.put("DIAGNOSIS", recipe.getOrganDiseaseName());
@@ -732,10 +806,10 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     detailMap.put("SPEC", drug.getDrugSpec());
                     detailMap.put("PRODUCER", drug.getProducer());
                     detailMap.put("MSUNITNO", drug.getUnit());
-                    detailMap.put("BILLQTY", getFormatDouble(detail.getUseTotalDose()));
+                    if (detail.getUseTotalDose() != null) {
+                        detailMap.put("BILLQTY", getFormatDouble(detail.getUseTotalDose()));
+                    }
                     detailMap.put("PRC", detail.getSalePrice().toString());
-                    //医保药 0：是；1：否
-                    detailMap.put("YIBAO", "1");
 
                     //药品使用
                     detailMap.put("DOSAGE", "");
@@ -743,11 +817,15 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     String userRate = detail.getUsingRate();
                     detailMap.put("DISEASE", userRate);
                     if (StringUtils.isNotEmpty(userRate)) {
-                        try {
-                            detailMap.put("DISEASENAME", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(userRate));
-                        } catch (ControllerException e) {
-                            LOGGER.error("getYsqRecipeInfo 获取用药频次类型失败*****usingRate:" + userRate);
-                            detailMap.put("DISEASENAME", "每日三次");
+                        if (recipe.getRecipeType() != 3) {
+                            try {
+                                detailMap.put("DISEASENAME", detail.getUsingRateTextFromHis()!=null?detail.getUsingRateTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(userRate));
+                            } catch (ControllerException e) {
+                                LOGGER.error("getYsqRecipeInfo 获取用药频次类型失败*****usingRate:" + userRate,e);
+                                detailMap.put("DISEASENAME", "每日三次");
+                            }
+                        } else {
+                            detailMap.put("DISEASENAME", userRate);
                         }
                     } else {
                         LOGGER.error("getYsqRecipeInfo usingRate为null");
@@ -756,12 +834,17 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                     String usePathways = detail.getUsePathways();
                     detailMap.put("DISEASE1", usePathways);
                     if (StringUtils.isNotEmpty(usePathways)) {
-                        try {
-                            detailMap.put("DISEASENAME1", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(usePathways));
-                        } catch (ControllerException e) {
-                            LOGGER.error("getYsqRecipeInfo 获取用药途径类型失败*****usePathways:" + usePathways);
-                            detailMap.put("DISEASENAME1", "口服");
+                        if (recipe.getRecipeType() != 3) {
+                            try {
+                                detailMap.put("DISEASENAME1", detail.getUsePathwaysTextFromHis()!=null?detail.getUsePathwaysTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(usePathways));
+                            } catch (ControllerException e) {
+                                LOGGER.error("getYsqRecipeInfo 获取用药途径类型失败*****usePathways:" + usePathways,e);
+                                detailMap.put("DISEASENAME1", "口服");
+                            }
+                        } else {
+                            detailMap.put("DISEASENAME1", usePathways);
                         }
+
                     } else {
                         LOGGER.error("getYsqRecipeInfo usePathways为null");
                         detailMap.put("DISEASENAME1", "口服");
@@ -845,4 +928,19 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         return result;
     }
 
+    /**
+     * 获取区域文本
+     * @param area 区域
+     * @return     区域文本
+     */
+    private String getAddressDic(String area) {
+        if (StringUtils.isNotEmpty(area)) {
+            try {
+                return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
+            } catch (ControllerException e) {
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
+            }
+        }
+        return "";
+    }
 }

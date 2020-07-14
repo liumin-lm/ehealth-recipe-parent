@@ -81,6 +81,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "实际支付费用")
     private Double actualPrice;
 
+    @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付 3-第三方支付")
+    private Integer expressFeePayWay;
+
     @ItemProperty(alias = "交易流水号")
     private String tradeNo;
 
@@ -128,6 +131,10 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "地址（区县）")
     @Dictionary(id = "eh.base.dictionary.AddrArea")
     private String address3;
+
+    @ItemProperty(alias = "地址（区县）")
+    @Dictionary(id = "eh.base.dictionary.AddrArea")
+    private String streetAddress;
 
     @ItemProperty(alias = "详细地址")
     private String address4;
@@ -233,6 +240,34 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "处方预结算返回自费金额")
     private Double cashAmount;
 
+    //date 20200311
+    //存储his预校验的用户选中的药企code
+    @ItemProperty(alias = "his推送药企code")
+    private String hisEnterpriseCode;
+
+    //date 20200311
+    //存储his预校验的用户选中的药企名
+    @ItemProperty(alias = "his推送药企名")
+    private String hisEnterpriseName;
+
+    @Column(name = "HisEnterpriseCode")
+    public String getHisEnterpriseCode() {
+        return hisEnterpriseCode;
+    }
+
+    public void setHisEnterpriseCode(String hisEnterpriseCode) {
+        this.hisEnterpriseCode = hisEnterpriseCode;
+    }
+
+    @Column(name = "HisEnterpriseName")
+    public String getHisEnterpriseName() {
+        return hisEnterpriseName;
+    }
+
+    public void setHisEnterpriseName(String hisEnterpriseName) {
+        this.hisEnterpriseName = hisEnterpriseName;
+    }
+
     @ItemProperty(alias = "订单退款标识")
     private Integer refundFlag;
 
@@ -248,6 +283,23 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "卫宁付下的支付方式(卫宁的字典)ybpay=全医保支付 1支付宝手机支付 7微信公众号支付 随申办支付宝支付126 随申办微信支付127 随申办银联支付128")
     private String wnPayWay;
 
+    @ItemProperty(alias = "发药药师姓名")
+    private String dispensingApothecaryName;
+
+    @ItemProperty(alias = "发药药师身份证")
+    private String dispensingApothecaryIdCard;
+
+    @ItemProperty(alias = "中医辨证论治费")
+    private BigDecimal tcmFee;
+
+    @ItemProperty(alias = "支付平台回写支付信息")
+    private String payBackInfo;
+
+    @ItemProperty(alias = "配送主体类型 1 药企配送 2 医院配送")
+    private Integer sendType;
+
+    @ItemProperty(alias = "支付用户类型:0平台，1机构，2药企")
+    private Integer payeeCode;
 
     @Column(name = "cancelReason")
     public String getCancelReason() {
@@ -271,6 +323,7 @@ public class RecipeOrder implements Serializable {
         this.setCouponFee(zero);
         this.setExpressFee(zero);
         this.setDecoctionFee(zero);
+        this.setTcmFee(zero);
         this.setTotalFee(zero);
         this.setActualPrice(0d);
         this.setPushFlag(0);
@@ -279,6 +332,14 @@ public class RecipeOrder implements Serializable {
         this.setLastModifyTime(now);
         this.setAuditFee(zero);
         this.setOtherFee(zero);
+    }
+    @Column(name = "payeeCode")
+    public Integer getPayeeCode() {
+        return payeeCode;
+    }
+
+    public void setPayeeCode(Integer payeeCode) {
+        this.payeeCode = payeeCode;
     }
 
     public String getCouponDesc() {
@@ -595,6 +656,15 @@ public class RecipeOrder implements Serializable {
 
     public void setAddress3(String address3) {
         this.address3 = address3;
+    }
+
+    @Column(name = "streetAddress")
+    public String getStreetAddress() {
+        return streetAddress;
+    }
+
+    public void setStreetAddress(String streetAddress) {
+        this.streetAddress = streetAddress;
     }
 
     @Column(name = "Address4")
@@ -920,5 +990,58 @@ public class RecipeOrder implements Serializable {
 
     public void setWnPayWay(String wnPayWay) {
         this.wnPayWay = wnPayWay;
+    }
+
+
+    public String getDispensingApothecaryName() {
+        return dispensingApothecaryName;
+    }
+
+    public void setDispensingApothecaryName(String dispensingApothecaryName) {
+        this.dispensingApothecaryName = dispensingApothecaryName;
+    }
+
+    public String getDispensingApothecaryIdCard() {
+        return dispensingApothecaryIdCard;
+    }
+
+    public void setDispensingApothecaryIdCard(String dispensingApothecaryIdCard) {
+        this.dispensingApothecaryIdCard = dispensingApothecaryIdCard;
+    }
+
+    @Column(name = "expressFeePayWay")
+    public Integer getExpressFeePayWay() {
+        return expressFeePayWay;
+    }
+
+    public void setExpressFeePayWay(Integer expressFeePayWay) {
+        this.expressFeePayWay = expressFeePayWay;
+    }
+
+    @Column(name = "TCMFee")
+    public BigDecimal getTcmFee() {
+        return tcmFee;
+    }
+
+    public void setTcmFee(BigDecimal tcmFee) {
+        this.tcmFee = tcmFee;
+    }
+
+    @Column(name = "payBackInfo")
+    public String getPayBackInfo() {
+        return payBackInfo;
+    }
+
+    public void setPayBackInfo(String payBackInfo) {
+        this.payBackInfo = payBackInfo;
+    }
+
+    @Column(name = "send_type")
+    public Integer getSendType() {
+        return sendType;
+    }
+
+    public void setSendType(Integer sendType) {
+        this.sendType = sendType;
     }
 }

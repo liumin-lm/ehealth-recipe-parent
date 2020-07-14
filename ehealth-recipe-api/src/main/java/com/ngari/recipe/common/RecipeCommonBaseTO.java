@@ -13,5 +13,7 @@ public class RecipeCommonBaseTO implements Serializable{
 
     public static final Integer FAIL = 1;
 
+    public static final Integer ERROR = 2;
+
     private static final long serialVersionUID = -4200999264462661122L;
 }

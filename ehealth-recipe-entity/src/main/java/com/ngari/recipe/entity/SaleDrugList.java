@@ -65,6 +65,8 @@ public class SaleDrugList implements java.io.Serializable {
     @ItemProperty(alias = "最后修改时间")
     private Date lastModify;
 
+    @ItemProperty(alias = "禁用原因")
+    private String disableReason;
 
     public SaleDrugList() {
     }
@@ -212,5 +214,14 @@ public class SaleDrugList implements java.io.Serializable {
 
     public void setLastModify(Date lastModify) {
         this.lastModify = lastModify;
+    }
+
+    @Column(name = "disableReason")
+    public String getDisableReason() {
+        return disableReason;
+    }
+
+    public void setDisableReason(String disableReason) {
+        this.disableReason = disableReason;
     }
 }

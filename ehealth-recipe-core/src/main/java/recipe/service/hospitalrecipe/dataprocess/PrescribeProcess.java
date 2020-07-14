@@ -4,6 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
@@ -19,11 +20,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.ApplicationUtils;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeSystemConstant;
+import recipe.constant.ReviewTypeConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeOrderDAO;
@@ -120,6 +123,23 @@ public class PrescribeProcess {
         recipe.setGiveFlag(0);
         recipe.setChooseFlag(0);
         recipe.setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);
+        //设置运营平台设置的审方模式
+        if (recipe.getReviewType() == null){
+            try {
+                IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+                Integer reviewType = (Integer)configurationService.getConfiguration(recipe.getClinicOrgan(), "reviewType");
+                if (reviewType == null){
+                    //默认审方后置
+                    recipe.setReviewType(ReviewTypeConstant.Postposition_Check);
+                }else {
+                    recipe.setReviewType(reviewType);
+                }
+            }catch (Exception e){
+                LOG.error("获取运营平台审方方式配置异常",e);
+                //默认审方后置
+                recipe.setReviewType(ReviewTypeConstant.Postposition_Check);
+            }
+        }
     }
 
     /**
@@ -236,6 +256,14 @@ public class PrescribeProcess {
                         BigDecimal.ZERO : new BigDecimal(hosDetail.getDrugFee()));
                 recipedetail.setDrugCost(StringUtils.isEmpty(hosDetail.getDrugTotalFee()) ?
                         BigDecimal.ZERO : new BigDecimal(hosDetail.getDrugTotalFee()));
+
+                //date 202000601
+                //设置处方用药天数字符类型
+                if(StringUtils.isEmpty(recipedetail.getUseDaysB())){
+
+                    recipedetail.setUseDaysB(null != recipedetail.getUseDays() ? recipedetail.getUseDays().toString() : "0");
+
+                }
 
                 recipeDetails.add(recipedetail);
             }

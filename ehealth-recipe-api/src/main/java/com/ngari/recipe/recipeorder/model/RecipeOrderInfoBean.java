@@ -172,6 +172,9 @@ public class RecipeOrderInfoBean implements Serializable {
     @ItemProperty(alias = "机构代煎单价")
     private BigDecimal decoctionUnitPrice;
 
+    @ItemProperty(alias = "中医辨证论治费")
+    private BigDecimal tcmFee;
+
     @ItemProperty(alias = "剂数")
     private Integer copyNum;
 
@@ -664,5 +667,13 @@ public class RecipeOrderInfoBean implements Serializable {
 
     public void setEnterpriseName(String enterpriseName) {
         this.enterpriseName = enterpriseName;
+    }
+
+    public BigDecimal getTcmFee() {
+        return tcmFee;
+    }
+
+    public void setTcmFee(BigDecimal tcmFee) {
+        this.tcmFee = tcmFee;
     }
 }

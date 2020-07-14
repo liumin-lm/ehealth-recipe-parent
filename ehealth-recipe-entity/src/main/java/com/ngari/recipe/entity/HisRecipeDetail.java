@@ -46,6 +46,8 @@ public class HisRecipeDetail implements Serializable{
     private String drugUnit; // varchar(10) DEFAULT NULL COMMENT '包装单位',
     @ItemProperty(alias = "每次使用剂量")
     private String useDose;// varchar(20) DEFAULT NULL COMMENT '每次使用剂量',
+    @ItemProperty(alias = "每次使用剂量单位")
+    private String useDoseUnit;// varchar(20) DEFAULT NULL COMMENT '每次使用剂量单位',
     @ItemProperty(alias = "包装数量")
     private Integer pack; // int(10) DEFAULT NULL COMMENT '包装数量',
     @ItemProperty(alias = "药品单价")
@@ -68,6 +70,21 @@ public class HisRecipeDetail implements Serializable{
     private Integer status; // tinyint(1) DEFAULT NULL COMMENT '0 不可在互联网流转 1 可以流转',
     @ItemProperty(alias = "使用天数")
     private Integer useDays;
+    @ItemProperty(alias = "药品编码")
+    private String drugCode;
+    //date 20200526
+    //设置药品使用天数为String，
+    @ItemProperty(alias = "使用天数(小数类型)")
+    private String useDaysB;
+
+    @Column(name = "UseDaysB")
+    public String getUseDaysB() {
+        return useDaysB;
+    }
+
+    public void setUseDaysB(String useDaysB) {
+        this.useDaysB = useDaysB;
+    }
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -188,6 +205,15 @@ public class HisRecipeDetail implements Serializable{
         this.useDose = useDose;
     }
 
+    @Column(name = "useDoseUnit")
+    public String getUseDoseUnit() {
+        return useDoseUnit;
+    }
+
+    public void setUseDoseUnit(String useDoseUnit) {
+        this.useDoseUnit = useDoseUnit;
+    }
+
     @Column(name = "pack")
     public Integer getPack() {
         return pack;
@@ -285,5 +311,14 @@ public class HisRecipeDetail implements Serializable{
 
     public void setUseDays(Integer useDays) {
         this.useDays = useDays;
+    }
+
+    @Column(name = "drugCode")
+    public String getDrugCode() {
+        return drugCode;
+    }
+
+    public void setDrugCode(String drugCode) {
+        this.drugCode = drugCode;
     }
 }

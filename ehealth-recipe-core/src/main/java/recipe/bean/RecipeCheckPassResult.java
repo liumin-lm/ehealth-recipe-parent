@@ -46,6 +46,16 @@ public class RecipeCheckPassResult {
      */
     private List<Recipedetail> detailList;
 
+    /**
+     * 患者医保类型（编码）
+     */
+    private String medicalType;
+
+    /**
+     * 患者医保类型（名称）
+     */
+    private String medicalTypeText;
+
     public Integer getRecipeId() {
         return recipeId;
     }
@@ -92,5 +102,21 @@ public class RecipeCheckPassResult {
 
     public void setRegisterID(String registerID) {
         this.registerID = registerID;
+    }
+
+    public String getMedicalType() {
+        return medicalType;
+    }
+
+    public void setMedicalType(String medicalType) {
+        this.medicalType = medicalType;
+    }
+
+    public String getMedicalTypeText() {
+        return medicalTypeText;
+    }
+
+    public void setMedicalTypeText(String medicalTypeText) {
+        this.medicalTypeText = medicalTypeText;
     }
 }

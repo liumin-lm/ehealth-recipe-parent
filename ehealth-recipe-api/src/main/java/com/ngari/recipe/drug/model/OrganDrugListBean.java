@@ -53,13 +53,30 @@ public class OrganDrugListBean implements java.io.Serializable {
     @ItemProperty(alias = "单次剂量单位")
     private String useDoseUnit;
 
-    @ItemProperty(alias = "使用频率")
+    @ItemProperty(alias = "实际单位剂量（最小单位）")
+    private Double smallestUnitUseDose;
+
+    @ItemProperty(alias = "默认单位剂量（最小单位）")
+    private Double defaultSmallestUnitUseDose;
+
+    @ItemProperty(alias = "单位剂量单位（最小单位）")
+    private String useDoseSmallestUnit;
+
+    @ItemProperty(alias = "使用频率平台")
     @Dictionary(id = "eh.cdr.dictionary.UsingRate")
     private String usingRate;
 
-    @ItemProperty(alias = "用药途径")
+    @ItemProperty(alias = "用药途径平台")
     @Dictionary(id = "eh.cdr.dictionary.UsePathways")
     private String usePathways;
+
+    @ItemProperty(alias = "使用频率id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
+    private String usingRateId;
+
+    @ItemProperty(alias = "用药途径id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
+    private String usePathwaysId;
 
     @ItemProperty(alias = "生产厂家")
     private String producer;
@@ -113,6 +130,10 @@ public class OrganDrugListBean implements java.io.Serializable {
     private String drugFormCode;
     @ItemProperty(alias = "医保剂型编码")
     private String medicalDrugFormCode;
+
+    @ItemProperty(alias = "禁用原因")
+    private String disableReason;
+
 
     public OrganDrugListBean() {
     }
@@ -384,5 +405,53 @@ public class OrganDrugListBean implements java.io.Serializable {
 
     public void setPackingMaterials(String packingMaterials) {
         this.packingMaterials = packingMaterials;
+    }
+
+    public String getDisableReason() {
+        return disableReason;
+    }
+
+    public void setDisableReason(String disableReason) {
+        this.disableReason = disableReason;
+    }
+
+    public Double getSmallestUnitUseDose() {
+        return smallestUnitUseDose;
+    }
+
+    public void setSmallestUnitUseDose(Double smallestUnitUseDose) {
+        this.smallestUnitUseDose = smallestUnitUseDose;
+    }
+
+    public Double getDefaultSmallestUnitUseDose() {
+        return defaultSmallestUnitUseDose;
+    }
+
+    public void setDefaultSmallestUnitUseDose(Double defaultSmallestUnitUseDose) {
+        this.defaultSmallestUnitUseDose = defaultSmallestUnitUseDose;
+    }
+
+    public String getUseDoseSmallestUnit() {
+        return useDoseSmallestUnit;
+    }
+
+    public void setUseDoseSmallestUnit(String useDoseSmallestUnit) {
+        this.useDoseSmallestUnit = useDoseSmallestUnit;
+    }
+
+    public String getUsingRateId() {
+        return usingRateId;
+    }
+
+    public void setUsingRateId(String usingRateId) {
+        this.usingRateId = usingRateId;
+    }
+
+    public String getUsePathwaysId() {
+        return usePathwaysId;
+    }
+
+    public void setUsePathwaysId(String usePathwaysId) {
+        this.usePathwaysId = usePathwaysId;
     }
 }

@@ -1,11 +1,19 @@
 package com.ngari.recipe.recipe.service;
 
+import com.ngari.common.mode.HisResponseTO;
+import com.ngari.platform.ca.mode.CaSignResultTo;
+import com.ngari.platform.recipe.mode.ReadjustDrugDTO;
 import com.ngari.recipe.IBaseService;
 import com.ngari.recipe.common.RecipeBussReqTO;
 import com.ngari.recipe.common.RecipeListReqTO;
 import com.ngari.recipe.common.RecipeListResTO;
+import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
+import com.ngari.recipe.drugsenterprise.model.StandardResultBean;
+import com.ngari.recipe.drugsenterprise.model.ThirdResultBean;
+import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
+import com.ngari.recipe.recipereportform.model.*;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
 
@@ -149,9 +157,21 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @return
      */
     @RpcService
+    @Deprecated
     QueryResult<Map> findRecipesByInfo(Integer organId, Integer status,
                                        Integer doctor, String mpiid, Date bDate, Date eDate, Integer dateType,
-                                       Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode,Integer fromflag,Integer recipeId);
+                                       Integer depart, int start, int limit, List<Integer> organIds, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType);
+
+    /**
+     * 运营平台使用
+     * 处方查询
+     *
+     * @param recipesQueryVO
+     * @return
+     */
+    @RpcService
+    QueryResult<Map> findRecipesByInfo2(RecipesQueryVO recipesQueryVO);
+
 
     /**
      * 运营平台使用
@@ -267,9 +287,19 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @param fromflag
      * @return
      */
-    @RpcService
-    List<Map> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType,
-                                               final Integer depart, List<Integer> organIds, Integer giveMode,Integer fromflag,Integer recipeId);
+    @RpcService(timeout = 600000)
+    @Deprecated
+    List<Object[]> findRecipesByInfoForExcel(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType,
+                                             final Integer depart, List<Integer> organIds, Integer giveMode, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType);
+
+    /**
+     * 处方导出Excel
+     *
+     * @param recipesQueryVO
+     * @return
+     */
+    @RpcService(timeout = 600000)
+    List<Object[]> findRecipesByInfoForExcel2(RecipesQueryVO recipesQueryVO);
 
     /**
      *处方订单导出Excel
@@ -286,8 +316,18 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @return
      */
     @RpcService(timeout = 600000)
+    @Deprecated
     List<Map> findRecipeOrdersByInfoForExcel(Integer organId, List<Integer> organIds, Integer status, Integer doctor, String patientName, Date bDate, Date eDate, Integer dateType,
-                                        Integer depart, Integer giveMode,Integer fromflag,Integer recipeId);
+                                             Integer depart, Integer giveMode, Integer fromflag, Integer recipeId);
+
+    /**
+     * 处方订单导出Excel
+     *
+     * @param recipesQueryVO
+     * @return
+     */
+    @RpcService(timeout = 600000)
+    List<Map> findRecipeOrdersByInfoForExcel2(RecipesQueryVO recipesQueryVO);
 
     @RpcService
     HashMap<Integer, Long> getCountGroupByOrgan();
@@ -300,6 +340,10 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     List<RecipeDetailBean> findRecipeDetailsByRecipeId(Integer recipeId);
+
+    @RpcService
+    RecipeDetailBean getRecipeDetailByDetailId(Integer detailId);
+
 
     @RpcService
     RecipeExtendBean findRecipeExtendByRecipeId(Integer recipeId);
@@ -393,4 +437,60 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     @RpcService
     BigDecimal getRecipeCostCountByOrganIdAndDepartIds(Integer organId, Date startDate, Date endDate, List<Integer> deptIds);
+
+    @RpcService
+    HisResponseTO syncEinvoiceNumberToPay(SyncEinvoiceNumberDTO syncEinvoiceNumberDTO);
+
+    @RpcService
+    Map<String, String> findMsgByparameters(Date startTime, Date endTime, Integer organId);
+
+    @RpcService
+    public List<RecipeBean> findByMpiId(String mpiId);
+
+    @RpcService
+    DrugsEnterpriseBean getDrugsEnterpriseBeanById(Integer depId);
+
+    /**
+     * CA异步回调接口
+     * @return
+     */
+    @RpcService
+    Boolean saveSignRecipePDF(CaSignResultTo caSignResultTo);
+
+    @RpcService
+    ThirdResultBean readyToSend(Map<String, Object> paramMap);
+
+    @RpcService
+    ThirdResultBean toSend(Map<String, Object> paramMap);
+
+    @RpcService
+    ThirdResultBean finishRecipe(Map<String, Object> paramMap);
+
+    @RpcService
+    StandardResultBean downLoadRecipes(Map<String,Object> parames);
+
+    @RpcService
+    StandardResultBean  recipeDownloadConfirmation(String appKey, List<Integer> recipeIds);
+
+    @RpcService
+    StandardResultBean  synchronizeInventory(Map<String, Object> parames);
+
+    @RpcService
+    ThirdResultBean recordDrugStoreResult(Map<String, Object> paramMap);
+
+    @RpcService
+    List<StandardResultBean> readjustDrugPrice(List<ReadjustDrugDTO> readjustDrugDTOS);
+
+    @RpcService
+    Integer scanStockEnterpriseForHis(Map<String, Object> paramMap);
+
+    @RpcService
+    List<EnterpriseRecipeDetailResponse> findRecipesPharmaceuticalDetailsByInfoForExcel(EnterpriseRecipeDetailExcelRequest req);
+
+    @RpcService
+    List<RecipeAccountCheckDetailResponse> findRecipesAccountCheckDetailsByInfoForExcel(RecipeAccountCheckDetailExcelRequest req);
+
+    @RpcService
+    List<RecipeHisAccountCheckResponse> recipeHisAccountCheckList(RecipeReportFormsRequest request);
+
 }

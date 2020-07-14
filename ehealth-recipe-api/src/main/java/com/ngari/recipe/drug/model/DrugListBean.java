@@ -49,16 +49,36 @@ public class DrugListBean implements Serializable {
     @ItemProperty(alias = "一次剂量")
     private Double useDose;
 
+    @ItemProperty(alias = "推荐单次剂量")
+    private Double recommendedUseDose;
+
     @ItemProperty(alias = "剂量单位")
     private String useDoseUnit;
 
-    @ItemProperty(alias = "使用频率")
+    @ItemProperty(alias = "实际单位剂量（最小单位）")
+    private Double smallestUnitUseDose;
+
+    @ItemProperty(alias = "默认单位剂量（最小单位）")
+    private Double defaultSmallestUnitUseDose;
+
+    @ItemProperty(alias = "单位剂量单位（最小单位）")
+    private String useDoseSmallestUnit;
+
+    @ItemProperty(alias = "使用频率平台")
     @Dictionary(id = "eh.cdr.dictionary.UsingRate")
     private String usingRate;
 
-    @ItemProperty(alias = "用药途径")
+    @ItemProperty(alias = "用药途径平台")
     @Dictionary(id = "eh.cdr.dictionary.UsePathways")
     private String usePathways;
+
+    @ItemProperty(alias = "使用频率id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
+    private String usingRateId;
+
+    @ItemProperty(alias = "用药途径id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
+    private String usePathwaysId;
 
     @ItemProperty(alias = "生产厂家")
     private String producer;
@@ -81,6 +101,9 @@ public class DrugListBean implements Serializable {
     @ItemProperty(alias = "使用状态")
     @Dictionary(id = "eh.base.dictionary.DrugListStatus")
     private Integer status;
+
+    @ItemProperty(alias = "药品来源机构，null表示基础库数据")
+    private Integer sourceOrgan;
 
     @ItemProperty(alias = "适用症状")
     private String indications;
@@ -117,21 +140,41 @@ public class DrugListBean implements Serializable {
     @ItemProperty(alias = "是否是匹配的药品(药品工具返回前端用)")
     private boolean isMatched = false;
 
+    @ItemProperty(alias = "基药标识")
+    private Integer baseDrug;
+
+    @ItemProperty(alias = "药品编码")
+    private String drugCode;
+    @ItemProperty(alias = "药品库存")
+    private BigDecimal inventory;
+    @ItemProperty(alias = "剂型")
+    private String drugForm;
+    @ItemProperty(alias = "药品库存标志")
+    private boolean drugInventoryFlag;
+
+    @ItemProperty(alias = "药品本位码")
+    private String standardCode;
+
+    @ItemProperty(alias = "医生端选择的每次剂量和单位绑定关系")
+    private List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation;
+
+    public DrugListBean() {
+    }
+
+    public Integer getBaseDrug() {
+        return baseDrug;
+    }
+
+    public void setBaseDrug(Integer baseDrug) {
+        this.baseDrug = baseDrug;
+    }
+
     public boolean getIsMatched() {
         return isMatched;
     }
 
     public void setIsMatched(boolean matched) {
         isMatched = matched;
-    }
-
-    @ItemProperty(alias = "药品库存")
-    private BigDecimal inventory;
-
-    @ItemProperty(alias = "剂型")
-    private String drugForm;
-
-    public DrugListBean() {
     }
 
     public Integer getDrugId() {
@@ -393,5 +436,93 @@ public class DrugListBean implements Serializable {
 
     public void setDrugForm(String drugForm) {
         this.drugForm = drugForm;
+    }
+
+    public boolean isDrugInventoryFlag() {
+        return drugInventoryFlag;
+    }
+
+    public void setDrugInventoryFlag(boolean drugInventoryFlag) {
+        this.drugInventoryFlag = drugInventoryFlag;
+    }
+
+    public String getDrugCode() {
+        return drugCode;
+    }
+
+    public void setDrugCode(String drugCode) {
+        this.drugCode = drugCode;
+    }
+
+    public Integer getSourceOrgan() {
+        return sourceOrgan;
+    }
+
+    public void setSourceOrgan(Integer sourceOrgan) {
+        this.sourceOrgan = sourceOrgan;
+    }
+
+    public String getStandardCode() {
+        return standardCode;
+    }
+
+    public void setStandardCode(String standardCode) {
+        this.standardCode = standardCode;
+    }
+
+    public Double getRecommendedUseDose() {
+        return recommendedUseDose;
+    }
+
+    public void setRecommendedUseDose(Double recommendedUseDose) {
+        this.recommendedUseDose = recommendedUseDose;
+    }
+
+    public Double getSmallestUnitUseDose() {
+        return smallestUnitUseDose;
+    }
+
+    public void setSmallestUnitUseDose(Double smallestUnitUseDose) {
+        this.smallestUnitUseDose = smallestUnitUseDose;
+    }
+
+    public Double getDefaultSmallestUnitUseDose() {
+        return defaultSmallestUnitUseDose;
+    }
+
+    public void setDefaultSmallestUnitUseDose(Double defaultSmallestUnitUseDose) {
+        this.defaultSmallestUnitUseDose = defaultSmallestUnitUseDose;
+    }
+
+    public String getUseDoseSmallestUnit() {
+        return useDoseSmallestUnit;
+    }
+
+    public void setUseDoseSmallestUnit(String useDoseSmallestUnit) {
+        this.useDoseSmallestUnit = useDoseSmallestUnit;
+    }
+
+    public List<UseDoseAndUnitRelationBean> getUseDoseAndUnitRelation() {
+        return useDoseAndUnitRelation;
+    }
+
+    public void setUseDoseAndUnitRelation(List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation) {
+        this.useDoseAndUnitRelation = useDoseAndUnitRelation;
+    }
+
+    public String getUsingRateId() {
+        return usingRateId;
+    }
+
+    public void setUsingRateId(String usingRateId) {
+        this.usingRateId = usingRateId;
+    }
+
+    public String getUsePathwaysId() {
+        return usePathwaysId;
+    }
+
+    public void setUsePathwaysId(String usePathwaysId) {
+        this.usePathwaysId = usePathwaysId;
     }
 }

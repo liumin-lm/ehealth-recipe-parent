@@ -1,11 +1,15 @@
 package recipe.serviceprovider.recipelog.service;
 
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.RecipeLog;
 import com.ngari.recipe.recipelog.model.RecipeLogBean;
 import com.ngari.recipe.recipelog.service.IRecipeLogService;
+import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import recipe.ApplicationUtils;
+import recipe.constant.RecipeStatusConstant;
+import recipe.dao.RecipeLogDAO;
 import recipe.service.RecipeLogService;
 import recipe.serviceprovider.BaseService;
 
@@ -39,5 +43,12 @@ public class RemoteRecipeLogService extends BaseService<RecipeLogBean> implement
     public List<RecipeLogBean> findByRecipeId(Integer recipeId){
         RecipeLogService service = ApplicationUtils.getRecipeService(RecipeLogService.class);
         return service.findByRecipeId(recipeId);
+    }
+
+    @Override
+    public List<RecipeLogBean> findByRecipeIdAndAfterStatus(Integer recipeId, Integer afterStatus) {
+        RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, afterStatus);
+        return ObjectCopyUtils.convert(recipeLogs,RecipeLogBean.class);
     }
 }

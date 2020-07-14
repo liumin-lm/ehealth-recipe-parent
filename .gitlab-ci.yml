@@ -1,0 +1,16 @@
+variables:
+  AppName: "ehealth-recipe"
+
+package:
+  stage: build
+  only:
+    - branches
+  except:
+    - develop
+  script:
+    - 'mvn clean deploy -Dpackaging=jar -e -U -Dmaven.test.skip=true -Ppro'
+    - '/bin/bash /usr/bin/build_image.sh ${AppName} ${CI_COMMIT_SHORT_SHA}'
+    - 'python /usr/bin/push_to_xops.py ${AppName} ${CI_COMMIT_REF_NAME} ${CI_COMMIT_SHORT_SHA} ${CI_PIPELINE_ID}'
+  tags:
+    - image-build
+  allow_failure: true 

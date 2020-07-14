@@ -1,9 +1,9 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Maps;
 import com.ngari.base.esign.service.IESignBaseService;
-import com.ngari.his.ca.model.*;
-import com.ngari.recipe.entity.Recipe;
+import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.service.IRecipeService;
@@ -16,20 +16,20 @@ import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.base.constant.ErrorCode;
+import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Base64;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
-import recipe.dao.RecipeDAO;
+import recipe.audit.auditmode.AuditModeContext;
+import recipe.constant.RecipeStatusConstant;
 import sun.misc.BASE64Decoder;
 
 import java.io.*;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * CA标准化对接文档
@@ -63,7 +63,7 @@ public class RecipeServiceEsignExt {
         //组装生成pdf的参数
         String fileName;
         RecipeBean recipe = recipeService.getByRecipeId(recipeId);
-        String pdf;
+        String pdf = "";
         if (isDoctor) {
             fileName = "recipe_" + recipeId + ".pdf";
             List<RecipeDetailBean> details = recipeService.findRecipeDetailsByRecipeId(recipeId);
@@ -103,11 +103,11 @@ public class RecipeServiceEsignExt {
                     byteData = out.toByteArray();
                 }
             } catch (FileRegistryException e) {
-                LOGGER.error("RecipeServiceEsignExt download signFile occur FileRegistryException signFileId=" + recipe.getSignFile());
+                LOGGER.error("RecipeServiceEsignExt download signFile occur FileRegistryException signFileId=" + recipe.getSignFile(),e);
             } catch (FileRepositoryException e) {
-                LOGGER.error("RecipeServiceEsignExt download signFile occur FileRepositoryException signFileId=" + recipe.getSignFile());
+                LOGGER.error("RecipeServiceEsignExt download signFile occur FileRepositoryException signFileId=" + recipe.getSignFile(),e);
             } catch (IOException e) {
-                LOGGER.error("RecipeServiceEsignExt download signFile occur IOException signFileId=" + recipe.getSignFile());
+                LOGGER.error("RecipeServiceEsignExt download signFile occur IOException signFileId=" + recipe.getSignFile(),e);
             } finally {
                 if (null != bis) {
                     try {
@@ -131,8 +131,10 @@ public class RecipeServiceEsignExt {
                     }
                 }
             }
-
-            pdf = new String(Base64.encode(byteData));
+            LOGGER.info("signCreateRecipePDF pdf is success");
+            if (null != byteData) {
+                pdf = new String(Base64.encode(byteData));
+            }
             fileName = "recipecheck_" + recipeId + ".pdf";
             //中药
             if (TCM_TEMPLATETYPE.equals(recipe.getRecipeType())) {
@@ -152,6 +154,7 @@ public class RecipeServiceEsignExt {
         caBean.setPdfName(fileName);
         caBean.setPdfMd5("");
         caBean.setMode(1);
+        LOGGER.info("signCreateRecipePDF caBean is [{}]", JSONObject.toJSONString(caBean));
         return caBean;
     }
     /**
@@ -162,10 +165,10 @@ public class RecipeServiceEsignExt {
      */
     @RpcService
     public static String saveSignRecipePDF(String pdfBase64,Integer recipeId, String loginId,String signCADate,
-                                    String signRecipeCode,Boolean isDoctor){
+                                           String signRecipeCode,Boolean isDoctor, String fileId){
         LOGGER.info("saveSignRecipePDF start in pdfBase64={}, recipeId={}, loginId={},signCADate={},signRecipeCode={},isDoctor={}",
                 pdfBase64, recipeId, loginId, signCADate, signRecipeCode, isDoctor);
-        String fileId = null;
+//        String fileId = null;
         try {
             if (null != pdfBase64) {
                 //组装生成pdf的参数
@@ -184,21 +187,43 @@ public class RecipeServiceEsignExt {
             }
 
             Map<String, Object> attrMap = Maps.newHashMap();
-
             if (isDoctor) {
                 //医生签名时间戳
-                attrMap.put("signCADate", signCADate);
+                if (!StringUtils.isEmpty(signCADate)) {
+                    attrMap.put("signCADate", signCADate);
+                }
                 //医生签名值
-                attrMap.put("signRecipeCode", signRecipeCode);
-                attrMap.put("signFile", fileId);
+                if (!StringUtils.isEmpty(signRecipeCode)) {
+                    attrMap.put("signRecipeCode", signRecipeCode);
+                }
+                if (!StringUtils.isEmpty(fileId)) {
+                    attrMap.put("signFile", fileId);
+                }
                 attrMap.put("signDate", new Date());
+                attrMap.put("Status", RecipeStatusConstant.CHECK_PASS);
             } else {
                 //药师签名时间戳
-                attrMap.put("signPharmacistCADate", signCADate);
+                if (!StringUtils.isEmpty(signCADate)) {
+                    attrMap.put("signPharmacistCADate", signCADate);
+                }
+
                 //药师签名值
-                attrMap.put("signPharmacistCode", signRecipeCode);
-                attrMap.put("chemistSignFile", fileId);
+                if (!StringUtils.isEmpty(signRecipeCode)) {
+                    attrMap.put("signPharmacistCode", signRecipeCode);
+                }
+                if (!StringUtils.isEmpty(fileId)) {
+                    attrMap.put("chemistSignFile", fileId);
+                }
                 attrMap.put("CheckDateYs", new Date());
+
+                RecipeBean recipe =recipeService.get(recipeId);
+                AuditModeContext auditModeContext = new AuditModeContext();
+                int recipeStatus = auditModeContext.getAuditModes(recipe.getReviewType()).afterAuditRecipeChange();
+                if (recipe.canMedicalPay()) {
+                    //如果是可医保支付的单子，审核是在用户看到之前，所以审核通过之后变为待处理状态
+                    recipeStatus = RecipeStatusConstant.CHECK_PASS;
+                }
+                attrMap.put("Status", recipeStatus);
             }
 
             //保存签名值
@@ -207,6 +232,72 @@ public class RecipeServiceEsignExt {
             String reuslt = upResult?"success":"fail";
             return reuslt;
         } catch (Exception e){
+            e.printStackTrace();
+            LOGGER.error("saveSignRecipePDF 保存签名 ",e);
+            return null;
+        }
+    }
+
+    public static String saveSignRecipePDF2(String pdfBase64,Integer recipeId, String loginId,String signCADate,
+                                           String signRecipeCode,Boolean isDoctor, String fileId){
+        LOGGER.info("saveSignRecipePDF start in pdfBase64={}, recipeId={}, loginId={},signCADate={},signRecipeCode={},isDoctor={}",
+                pdfBase64, recipeId, loginId, signCADate, signRecipeCode, isDoctor);
+//        String fileId = null;
+        try {
+            if (!StringUtils.isEmpty(pdfBase64)) {
+                //组装生成pdf的参数
+                String fileName = "recipe_" + recipeId + ".pdf";
+                BASE64Decoder d = new BASE64Decoder();
+                byte[] data = new byte[0];
+                try {
+                    data = d.decodeBuffer(pdfBase64);
+                } catch (IOException e) {
+                    LOGGER.error("上传文件失败",e);
+                    e.printStackTrace();
+                }
+                fileId = uploadRecipeSignFile(data, fileName, loginId);
+                if (null == fileId) {
+                    LOGGER.info("上传文件失败,fileName=" + fileName);
+                }
+            }
+
+            Map<String, Object> attrMap = Maps.newHashMap();
+            if (isDoctor) {
+                //医生签名时间戳
+                if (!StringUtils.isEmpty(signCADate)) {
+                    attrMap.put("signCADate", signCADate);
+                }
+                //医生签名值
+                if (!StringUtils.isEmpty(signRecipeCode)) {
+                    attrMap.put("signRecipeCode", signRecipeCode);
+                }
+                if (!StringUtils.isEmpty(fileId)) {
+                    attrMap.put("signFile", fileId);
+                }
+                attrMap.put("signDate", new Date());
+            } else {
+                //药师签名时间戳
+                if (!StringUtils.isEmpty(signCADate)) {
+                    attrMap.put("signPharmacistCADate", signCADate);
+                }
+
+                //药师签名值
+                if (!StringUtils.isEmpty(signRecipeCode)) {
+                    attrMap.put("signPharmacistCode", signRecipeCode);
+                }
+                if (!StringUtils.isEmpty(fileId)) {
+                    attrMap.put("chemistSignFile", fileId);
+                }
+                attrMap.put("CheckDateYs", new Date());
+            }
+
+            //保存签名值
+            boolean upResult = recipeService.updateRecipeInfoByRecipeId(recipeId, attrMap);
+            LOGGER.info("saveSignRecipePDF2 保存签名  upResult={}=recipeId={}=attrMap={}=", upResult,recipeId,attrMap.toString());
+            String reuslt = upResult?"success":"fail";
+            return reuslt;
+        } catch (Exception e){
+            LOGGER.error("saveSignRecipePDF2 保存签名",e);
             e.printStackTrace();
             return null;
         }
@@ -251,12 +342,12 @@ public class RecipeServiceEsignExt {
             file.delete();
             return meta.getFileId();
         } catch (Exception e) {
-            LOGGER.error("uploadRecipeSignFile exception:" + e.getMessage());
+            LOGGER.error("uploadRecipeSignFile exception:" + e.getMessage(),e);
         } finally {
             try {
                 fileOutputStream.close();
             } catch (Exception e) {
-                LOGGER.error("uploadRecipeSignFile exception:" + e.getMessage());
+                LOGGER.error("uploadRecipeSignFile exception:" + e.getMessage(),e);
             }
         }
         return null;

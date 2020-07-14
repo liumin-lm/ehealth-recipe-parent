@@ -66,7 +66,7 @@ public class SyncOrganDrugToEsCallable implements Callable<String> {
                     }
 
                     DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
-                    List<DrugList> drugList = drugListDAO.findByDrugIds(drugIdList);
+                    List<DrugList> drugList = drugListDAO.findByDrugIdsWithOutStatus(drugIdList);
 
                     //基础数据为空的话则存在问题
                     if (CollectionUtils.isEmpty(drugList)) {
@@ -105,6 +105,12 @@ public class SyncOrganDrugToEsCallable implements Callable<String> {
                             if (StringUtils.isEmpty(organDrug.getUsingRate())){
                                 detailVo.setUsingRate(drug.getUsingRate());
                             }
+                            if (StringUtils.isEmpty(organDrug.getUsePathwaysId())){
+                                detailVo.setUsePathwaysId(drug.getUsePathwaysId());
+                            }
+                            if (StringUtils.isEmpty(organDrug.getUsingRateId())){
+                                detailVo.setUsingRateId(drug.getUsingRateId());
+                            }
                             //重置searchKey
                             searchKey = drug.getSaleName() + ";" + organDrug.getSaleName() + ";" +
                                     LocalStringUtil.toString(organDrug.getRetrievalCode());
@@ -126,7 +132,7 @@ public class SyncOrganDrugToEsCallable implements Callable<String> {
                         try {
                             b = searchService.updateDoctorDrugDetail(updateList);
                         } catch (Exception e) {
-                            LOG.warn("SyncOrganDrugToEsCallable update exception! updateList={}", JSONUtils.toString(updateList), e);
+                            LOG.error("SyncOrganDrugToEsCallable update exception! updateList={}", JSONUtils.toString(updateList), e);
                         }
                         if (!b) {
                             LOG.warn("SyncOrganDrugToEsCallable update error! updateList={}", JSONUtils.toString(updateList));

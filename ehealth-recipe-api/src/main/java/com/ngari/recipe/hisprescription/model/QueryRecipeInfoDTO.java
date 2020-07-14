@@ -1,5 +1,6 @@
 package com.ngari.recipe.hisprescription.model;
 
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
@@ -40,8 +41,10 @@ public class QueryRecipeInfoDTO implements Serializable {
     private String doctorIDCard;
     @ItemProperty(alias="处方医生姓名")
     private String doctorName;
-    @ItemProperty(alias="开单科室")
+    @ItemProperty(alias="开单行政科室代码")
     private String deptID;
+    @ItemProperty(alias="开单挂号科室代码")
+    private String deptCode;
     @ItemProperty(alias="开单科室名称")
     private String deptName;
     @ItemProperty(alias="处方审核医生")
@@ -95,6 +98,41 @@ public class QueryRecipeInfoDTO implements Serializable {
 
     @ItemProperty(alias="自付比例")
     private String payScale;
+
+    //date 20200222杭州市互联网 诊断信息
+    private List<DiseaseInfo> diseaseInfo;
+
+    //date 20200222杭州市互联网 配送信息
+    private List<DeliveryInfo> deliveryInfo;
+
+    //date 20200222杭州市互联网 审方时间
+    @ItemProperty(alias="审方时间")
+    private Date checkDate;
+    private RecipeExtendBean recipeExtendBean;
+
+    public Date getCheckDate() {
+        return checkDate;
+    }
+
+    public void setCheckDate(Date checkDate) {
+        this.checkDate = checkDate;
+    }
+
+    public List<DiseaseInfo> getDiseaseInfo() {
+        return diseaseInfo;
+    }
+
+    public void setDiseaseInfo(List<DiseaseInfo> diseaseInfo) {
+        this.diseaseInfo = diseaseInfo;
+    }
+
+    public List<DeliveryInfo> getDeliveryInfo() {
+        return deliveryInfo;
+    }
+
+    public void setDeliveryInfo(List<DeliveryInfo> deliveryInfo) {
+        this.deliveryInfo = deliveryInfo;
+    }
 
     public QueryRecipeInfoDTO() {}
 
@@ -408,5 +446,21 @@ public class QueryRecipeInfoDTO implements Serializable {
 
     public void setDoctorIDCard(String doctorIDCard) {
         this.doctorIDCard = doctorIDCard;
+    }
+
+    public String getDeptCode() {
+        return deptCode;
+    }
+
+    public void setDeptCode(String deptCode) {
+        this.deptCode = deptCode;
+    }
+
+    public RecipeExtendBean getRecipeExtendBean() {
+        return recipeExtendBean;
+    }
+
+    public void setRecipeExtendBean(RecipeExtendBean recipeExtendBean) {
+        this.recipeExtendBean = recipeExtendBean;
     }
 }

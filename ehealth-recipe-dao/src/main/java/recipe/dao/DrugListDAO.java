@@ -22,6 +22,7 @@ import org.springframework.util.ObjectUtils;
 import recipe.util.DateConversion;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -356,6 +357,15 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
     public abstract List<DrugList> findByDrugIds(@DAOParam("drugIds") List<Integer> drugIds);
 
     /**
+     *
+     * 查询平台基础库删除的药
+     * @param drugIds
+     * @return
+     */
+    @DAOMethod(sql = "from DrugList where drugId in (:drugIds) and status=0")
+    public abstract List<DrugList> findByDrugIdsforDel(@DAOParam("drugIds") List<Integer> drugIds);
+
+    /**
      * ps:调用该方法不会设置用药频次等默认值
      *
      * @return
@@ -492,7 +502,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                         drugId = null;
                     }
                     hql.append(" and (");
-                    hql.append(" drugName like :keyword or producer like :keyword or saleName like :keyword or approvalNumber like :keyword ");
+                    hql.append(" drugName like :keyword or producer like :keyword or saleName like :keyword or approvalNumber like :keyword or drugCode like :keyword ");
                     if (drugId != null) {
                         hql.append(" or drugId =:drugId");
                     }
@@ -746,4 +756,35 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
     @DAOMethod(sql = "from DrugList where sourceOrgan =:sourceOrgan")
     public abstract List<DrugList> findDrugListBySourceOrgan(@DAOParam("sourceOrgan") int sourceOrgan,@DAOParam(pageStart = true) int start,
                                                              @DAOParam(pageLimit = true) int limit);
+
+    @DAOMethod(sql = "from DrugList where drugId in (:drugIds)",limit = 0)
+    public abstract List<DrugList> findByDrugIdsWithOutStatus(@DAOParam("drugIds")List<Integer> drugIds);
+
+    public DrugList findValidByDrugId(Integer drugId){
+        HibernateStatelessResultAction<DrugList> action = new AbstractHibernateStatelessResultAction<DrugList>() {
+            @Override
+            public void execute(StatelessSession ss) throws DAOException {
+                StringBuilder hql = new StringBuilder("from DrugList where drugId=:drugId and status=1");
+                Query q = ss.createQuery(hql.toString());
+                q.setParameter("drugId", drugId);
+                DrugList drugList = (DrugList) q.uniqueResult();
+                setResult(drugList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    @DAOMethod(sql = "SELECT DISTINCT usingRate FROM DrugList WHERE (sourceOrgan = '' OR sourceOrgan IS NULL)",limit = 0)
+    public abstract List<String> findUsingRateOfAll();
+
+    @DAOMethod(sql = "SELECT DISTINCT usePathways FROM DrugList WHERE (sourceOrgan = '' OR sourceOrgan IS NULL)",limit = 0)
+    public abstract List<String> findUsePathwaysOfAll();
+
+    @DAOMethod(sql = "update DrugList set usingRateId=:newUsingRate where usingRate=:oldUsingRate")
+    public abstract void updateUsingRateByUsingRate(@DAOParam("oldUsingRate") String oldUsingRate ,@DAOParam("newUsingRate") String newUsingRate);
+
+
+    @DAOMethod(sql = "update DrugList set usePathwaysId=:newUsePathways where usePathways=:oldUsePathways")
+    public abstract void updateUsePathwaysByUsePathways(@DAOParam("oldUsePathways") String oldUsePathways ,@DAOParam("newUsePathways") String newUsePathways);
 }

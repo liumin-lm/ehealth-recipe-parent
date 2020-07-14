@@ -37,6 +37,15 @@ public class OrderItemDTO implements Serializable {
     private String frequency;
     @ItemProperty(alias="用品使用频度名称")
     private String frequencyName;
+
+    /**为了兼容老数据从平台字典转换的admission、frequency字段
+     * 特此新增了两种机构的频次用法代码，机构可以在运营平台维护后开处方选择了机构频次用法用该字段传入
+     * */
+    @ItemProperty(alias="机构的频次代码")
+    private String organUsingRate;
+    @ItemProperty(alias="机构的用法代码")
+    private String organUsePathways;
+
     @ItemProperty(alias="医保频次编码")
     private String medicalFrequency;
     @ItemProperty(alias="每次剂量")
@@ -257,5 +266,21 @@ public class OrderItemDTO implements Serializable {
 
     public void setMedicalDrugFormCode(String medicalDrugFormCode) {
         this.medicalDrugFormCode = medicalDrugFormCode;
+    }
+
+    public String getOrganUsingRate() {
+        return organUsingRate;
+    }
+
+    public void setOrganUsingRate(String organUsingRate) {
+        this.organUsingRate = organUsingRate;
+    }
+
+    public String getOrganUsePathways() {
+        return organUsePathways;
+    }
+
+    public void setOrganUsePathways(String organUsePathways) {
+        this.organUsePathways = organUsePathways;
     }
 }

@@ -1,6 +1,12 @@
 package com.ngari.recipe.hisprescription.service;
 
-import com.ngari.recipe.hisprescription.model.*;
+import com.ngari.platform.recipe.mode.OrganDrugChangeBean;
+import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.drug.model.DrugListBean;
+import com.ngari.recipe.hisprescription.model.QueryPlatRecipeInfoByDateDTO;
+import com.ngari.recipe.hisprescription.model.QueryRecipeReqDTO;
+import com.ngari.recipe.hisprescription.model.QueryRecipeResultDTO;
+import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import ctd.util.annotation.RpcService;
 
 import java.util.Date;
@@ -32,4 +38,25 @@ public interface IQueryRecipeService {
      */
     @RpcService
     List<RegulationRecipeIndicatorsDTO> queryRegulationRecipeData(Integer organId, Date startDate, Date endDate, Boolean checkFlag);
+
+    /**
+     * 上海监管平台处方反查接口
+     * @param organId
+     * @param startDate
+     * @param endDate
+     * @param updateFlag
+     * @return
+     */
+    @RpcService
+    List<RegulationRecipeIndicatorsDTO> queryRegulationRecipeDataForSH(Integer organId, Date startDate, Date endDate, Boolean updateFlag);
+
+
+    @RpcService
+    List<DrugListBean> getDrugList(String organId, String organName, Integer start, Integer limit);
+
+    @RpcService
+    RecipeResultBean updateOrSaveOrganDrug(OrganDrugChangeBean organDrugChangeBean);
+
+    @RpcService
+    Boolean updateSuperviseRecipecodeToRecipe(Integer recipeId, String superviseRecipecode);
 }

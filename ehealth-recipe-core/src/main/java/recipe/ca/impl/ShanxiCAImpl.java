@@ -14,10 +14,10 @@ import ctd.util.annotation.RpcService;
 import eh.base.constant.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ca.CAInterface;
 import recipe.ca.ICommonCAServcie;
 import recipe.ca.vo.CaSignResultVo;
+import recipe.service.RecipeService;
 import recipe.util.RedisClient;
 
 /**
@@ -27,6 +27,7 @@ import recipe.util.RedisClient;
 public class ShanxiCAImpl implements CAInterface {
     private static final Logger LOGGER = LoggerFactory.getLogger(ShanxiCAImpl.class);
     private ICommonCAServcie iCommonCAServcie= AppContextHolder.getBean("iCommonCAServcie", ICommonCAServcie.class);
+    private RecipeService recipeService = AppContextHolder.getBean("recipeService", RecipeService.class);
     /**
      * CA用户注册、申请证书接口
      * @param doctorId
@@ -60,7 +61,7 @@ public class ShanxiCAImpl implements CAInterface {
                 return isSuccess;
             }
         } catch (Exception e){
-            LOGGER.error("ShanxiCAImpl caUserLoginAndGetCertificate 调用前置机失败 requestTO={}", JSONUtils.toString(requestTO));
+            LOGGER.error("ShanxiCAImpl caUserLoginAndGetCertificate 调用前置机失败 requestTO={}", JSONUtils.toString(requestTO),e);
             e.printStackTrace();
             return false;
         }
@@ -95,9 +96,10 @@ public class ShanxiCAImpl implements CAInterface {
      */
     @RpcService
     public CaSignResultVo commonCASignAndSeal(CaSealRequestTO requestSealTO, Recipe recipe,Integer organId, String userAccount, String caPassword) {
-        LOGGER.info("ShanxiCAImpl commonCASignAndSeal start requestSealTO={},organId={},userAccount={},caPassword={}", JSONUtils.toString(requestSealTO), organId, userAccount, caPassword);
+        LOGGER.info("ShanxiCAImpl commonCASignAndSeal start requestSealTO={},recipeId={},organId={},userAccount={},caPassword={}",
+                JSONUtils.toString(requestSealTO), recipe.getRecipeId(),organId, userAccount, caPassword);
         CaSignResultVo signResultVo = new CaSignResultVo();
-
+        signResultVo.setRecipeId(recipe.getRecipeId());
         try {
             //电子签名（暂不实现）
 
@@ -126,9 +128,13 @@ public class ShanxiCAImpl implements CAInterface {
             caSignDateRequestTO.setSignMsg(JSONUtils.toString(recipe));
             caSignDateRequestTO.setUserAccount(userAccount);
             CaSignDateResponseTO responseDateTO = iCommonCAServcie.caSignDateBusiness(caSignDateRequestTO);
-            if (responseDateTO != null) {
-                signResultVo.setSignCADate(responseDateTO.getSignDate());
+            if (responseDateTO == null || responseDateTO.getCode() != 200) {
+                signResultVo.setCode(responseDateTO.getCode());
+                signResultVo.setResultCode(0);
+                signResultVo.setMsg(responseDateTO.getMsg());
+                return signResultVo;
             }
+            signResultVo.setSignCADate(responseDateTO.getSignDate());
 
             //电子签章业务
             requestSealTO.setOrganId(organId);
@@ -141,17 +147,33 @@ public class ShanxiCAImpl implements CAInterface {
             requestSealTO.setSzIndexes(0);
             CaSealResponseTO responseSealTO = iCommonCAServcie.caSealBusiness(requestSealTO);
 
-            if (responseSealTO != null){
-                signResultVo.setPdfBase64(responseSealTO.getPdfBase64File());
+            if (responseSealTO == null || responseSealTO.getCode() != 200){
+                signResultVo.setResultCode(0);
+                signResultVo.setCode(responseDateTO.getCode());
+                signResultVo.setMsg(responseDateTO.getMsg());
+                return signResultVo;
             }
+            signResultVo.setPdfBase64(responseSealTO.getPdfBase64File());
+            signResultVo.setCode(200);
+            signResultVo.setResultCode(1);
         } catch (Exception e){
-            LOGGER.error("ShanxiCAImpl commonCASignAndSeal 调用前置机失败 requestTO={}", requestSealTO.toString());
-            e.printStackTrace();
+            signResultVo.setResultCode(0);
+            LOGGER.error("ShanxiCAImpl commonCASignAndSeal 调用前置机失败 requestTO={}", requestSealTO.toString(),e);
+        }finally {
+            LOGGER.error("ShanxiCAImpl finally callback signResultVo={}", JSONUtils.toString(signResultVo));
+            this.callbackRecipe(signResultVo, null == recipe.getChecker());
         }
+        LOGGER.info("ShanxiCAImpl commonCASignAndSeal end recipeId={},params: {}", recipe.getRecipeId(),JSONUtils.toString(signResultVo));
         return signResultVo;
     }
 
-
+    private void callbackRecipe(CaSignResultVo signResultVo, boolean isDoctor) {
+        if (isDoctor) {
+            recipeService.retryCaDoctorCallBackToRecipe(signResultVo);
+        }else {
+            recipeService.retryCaPharmacistCallBackToRecipe(signResultVo);
+        }
+    }
 
 
 }

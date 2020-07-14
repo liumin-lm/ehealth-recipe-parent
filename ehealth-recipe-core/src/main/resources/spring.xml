@@ -94,6 +94,18 @@
 	<!--昆明市第一人民医院-->
 	<bean id="kmsRemoteService" class="recipe.drugsenterprise.KmsRemoteService"/>
 
+	<!--纳里罗欣 临沂-->
+	<bean id="lxRemoteService" class="recipe.drugsenterprise.LxRemoteService"/>
+
+	<!--ebs药企对接-->
+	<bean id="ebsRemoteService" class="recipe.drugsenterprise.EbsRemoteService"/>
+
+	<!--临沐国药药企对接-->
+	<bean id="lmgyRemoteService" class="recipe.drugsenterprise.LmgyRemoteService"/>
+
+	<!--华宇药企对接-->
+	<bean id="hyRemoteService" class="recipe.drugsenterprise.HyRemoteService"/>
+
 	<bean id="busTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" destroy-method="shutdown">
 		<!-- 线程池活跃的线程数 -->
 		<property name="corePoolSize" value="5" />
@@ -101,6 +113,10 @@
 		<property name="maxPoolSize" value="100" />
 		<!-- 队列的最大容量 -->
 		<property name="queueCapacity" value="300" />
+        <!-- 是否允许空闲核心线程超时 一旦超时便销毁线程 -->
+        <property name="allowCoreThreadTimeOut" value="true" />
+        <!-- 线程池中空闲线程等待工作的超时时间300s -->
+        <property name="keepAliveSeconds" value="300" />
 	</bean>
 
     <!--合理用药设置-->

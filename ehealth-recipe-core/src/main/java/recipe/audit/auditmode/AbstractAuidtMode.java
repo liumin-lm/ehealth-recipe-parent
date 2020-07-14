@@ -10,13 +10,18 @@ import ctd.persistence.DAOFactory;
 import eh.base.constant.BussTypeConstant;
 import eh.cdr.constant.RecipeStatusConstant;
 import eh.wxpay.constant.PayConstant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.service.*;
+import recipe.service.RecipeLogService;
+import recipe.service.RecipeMsgService;
+import recipe.service.RecipeService;
+import recipe.service.RecipeServiceSub;
 import recipe.util.MapValueUtil;
 
 import java.util.Map;
@@ -27,6 +32,8 @@ import static ctd.persistence.DAOFactory.getDAO;
  * created by shiyuping on 2019/9/3
  */
 public abstract class AbstractAuidtMode implements IAuditMode{
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractAuidtMode.class);
     @Override
     public void afterHisCallBackChange(Integer status, Recipe recipe,String memo) {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
@@ -79,10 +86,10 @@ public abstract class AbstractAuidtMode implements IAuditMode{
         if (saveFlag) {
             attrMap.put("chooseFlag", 1);
             String memo = "";
-            if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.toString().equals(giveMode)) {
+            if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(giveMode)) {
                 if (RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
                     //线上支付
-                    if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
+                    if (new Integer(PayConstant.PAY_FLAG_PAY_SUCCESS).equals(payFlag)) {
                         //配送到家-线上支付
                         memo = "配送到家-线上支付成功";
                     } else {
@@ -95,7 +102,7 @@ public abstract class AbstractAuidtMode implements IAuditMode{
                 } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode)) {
                     memo = "货到付款-待配送";
                 }
-            } else if (RecipeBussConstant.GIVEMODE_TFDS.toString().equals(giveMode)) {
+            } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode)) {
                 memo = "药店取药-待取药";
             }
             //记录日志
@@ -109,7 +116,8 @@ public abstract class AbstractAuidtMode implements IAuditMode{
         }
 
         updateRecipeInfoByRecipeId(recipe.getRecipeId(),status,attrMap,result);
-        if (saveFlag) {
+        LOGGER.info("AbstractAuidtMode.afterPayChange saveFlag:{}, payFlag:{}.", saveFlag, payFlag);
+        if (saveFlag && new Integer(PayConstant.PAY_FLAG_PAY_SUCCESS).equals(payFlag)) {
             //处方推送到药企
             RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
             remoteDrugEnterpriseService.pushSingleRecipeInfo(recipe.getRecipeId());
@@ -130,6 +138,7 @@ public abstract class AbstractAuidtMode implements IAuditMode{
         } catch (Exception e) {
             result.setCode(RecipeResultBean.FAIL);
             result.setError("更新处方失败，" + e.getMessage());
+            LOGGER.error("更新处方失败",e);
         }
     }
 }

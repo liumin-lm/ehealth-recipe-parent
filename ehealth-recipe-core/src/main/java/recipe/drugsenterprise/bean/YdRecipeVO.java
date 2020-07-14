@@ -31,15 +31,16 @@ public class YdRecipeVO {
         recipeVo.setIdnumber(hospitalRecipeDTO.getCertificate());
         recipeVo.setMobile(hospitalRecipeDTO.getPatientTel());
         recipeVo.setOuthospno(hospitalRecipeDTO.getRegisterId());
-        recipeVo.setEmpsex("1".equals(hospitalRecipeDTO.getPatientSex())?"男":"女");
-        try{
+        recipeVo.setEmpsex("1".equals(hospitalRecipeDTO.getPatientSex()) ? "男" : "女");
+        recipeVo.setRecipe_source_flag(hospitalRecipeDTO.getRecipeSourceFlag());
+        try {
             String certificate = ChinaIDNumberUtil.convert15To18(hospitalRecipeDTO.getCertificate());
             Integer age = ChinaIDNumberUtil.getAgeFromIDNumber(certificate);
             Date birthday = ChinaIDNumberUtil.getBirthFromIDNumber(certificate);
             recipeVo.setBirthdate(DateConversion.formatDate(birthday));
-            recipeVo.setAge(age+"");
-        }catch(Exception e){
-            LOGGER.info("YdRecipeVO  获取身份信息出错");
+            recipeVo.setAge(age + "");
+        } catch (Exception e) {
+            LOGGER.info("YdRecipeVO  获取身份信息出错",e);
         }
 
         //转换组织结构编码

@@ -4,6 +4,8 @@ package com.ngari.recipe.drug.model;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
 
 /**
  * company: ngarihealth
@@ -17,6 +19,18 @@ public class DrugListAndOrganDrugListDTO implements Serializable {
 
     private DrugListBean drugList;
     private OrganDrugListDTO organDrugList;
+    /**药品药企配送信息--药企名-药企编码*/
+    private List<DepSaleDrugInfo> depSaleDrugInfos;
+    /**是否可配送*/
+    private Boolean canDrugSend;
+
+    public List<DepSaleDrugInfo> getDepSaleDrugInfos() {
+        return depSaleDrugInfos;
+    }
+
+    public void setDepSaleDrugInfos(List<DepSaleDrugInfo> depSaleDrugInfos) {
+        this.depSaleDrugInfos = depSaleDrugInfos;
+    }
 
     public DrugListAndOrganDrugListDTO() {
     }
@@ -36,5 +50,13 @@ public class DrugListAndOrganDrugListDTO implements Serializable {
 
     public void setOrganDrugList(OrganDrugListDTO organDrugList) {
         this.organDrugList = organDrugList;
+    }
+
+    public Boolean getCanDrugSend() {
+        return canDrugSend;
+    }
+
+    public void setCanDrugSend(Boolean canDrugSend) {
+        this.canDrugSend = canDrugSend;
     }
 }

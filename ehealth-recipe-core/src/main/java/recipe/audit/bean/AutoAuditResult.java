@@ -15,7 +15,19 @@ public class AutoAuditResult extends RecipeCommonResTO implements Serializable {
 
     private static final long serialVersionUID = 3728542412956781881L;
 
+    private String highestDrangeLevel;
+
     private List<PAWebMedicines> medicines;
+
+    private List<PAWebRecipeDanger> recipeDangers;
+
+    public List<PAWebRecipeDanger> getRecipeDangers() {
+        return recipeDangers;
+    }
+
+    public void setRecipeDangers(List<PAWebRecipeDanger> recipeDangers) {
+        this.recipeDangers = recipeDangers;
+    }
 
     public List<PAWebMedicines> getMedicines() {
         return medicines;
@@ -23,5 +35,13 @@ public class AutoAuditResult extends RecipeCommonResTO implements Serializable {
 
     public void setMedicines(List<PAWebMedicines> medicines) {
         this.medicines = medicines;
+    }
+
+    public String getHighestDrangeLevel() {
+        return highestDrangeLevel;
+    }
+
+    public void setHighestDrangeLevel(String highestDrangeLevel) {
+        this.highestDrangeLevel = highestDrangeLevel;
     }
 }

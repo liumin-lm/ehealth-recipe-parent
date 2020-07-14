@@ -11,6 +11,8 @@
         <ssdev:filter id="urt"/>
     </ssdev:connector>
 
+    <!--<ssdev:mvcServer port="8899"/>-->
+
     <!-- pub/sub -->
     <ssdev:publisher id="publisher"/>
 
@@ -29,6 +31,7 @@
     <ssdev:reference interface="ctd.controller.ConfigurableLoader" id="eh.categoryNodeRemoteLoader"/>
     <ssdev:reference interface="ctd.controller.ConfigurableLoader" id="eh.schemaRemoteLoader"/>
     <ssdev:reference id="eh.tenantRemoteLoader" interface="ctd.controller.ConfigurableLoader"/>
+    <ssdev:reference id="eh.dictionaryService" interface="ctd.dictionary.service.DictionaryLocalService" />
 
     <!-- remote updater -->
     <ssdev:reference interface="ctd.controller.updater.ConfigurableItemUpdater" id="eh.userUpdater"/>
@@ -114,4 +117,13 @@
 
     <!-- session updater -->
     <bean class="ctd.account.session.SessionItemManager"/>
+    <!-- parameter store -->
+    <ssdev:reference id="eh.paramLoader" interface="eh.utils.params.ParamLoader"/>
+
+    <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="staticMethod" value="eh.utils.params.ParamUtils.setParamLoader"/>
+        <property name="arguments">
+            <list><ref bean="eh.paramLoader"/></list>
+        </property>
+    </bean>
 </beans>

@@ -1,5 +1,6 @@
 package com.ngari.recipe.recipe.model;
 
+import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
@@ -7,6 +8,7 @@ import ctd.schema.annotation.Schema;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author yuyun
@@ -49,7 +51,10 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias="默认每次剂量")
     private Double defaultUseDose;
 
-    @ItemProperty(alias="药物使用规格单位")
+    @ItemProperty(alias="药物使用次剂量--中文标识-适量")
+    private String useDoseStr;
+
+    @ItemProperty(alias="药物使用规格单位或者最小单位")
     private String useDoseUnit;
 
     @ItemProperty(alias="药物剂量单位")
@@ -62,6 +67,23 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias="药物使用途径代码")
     @Dictionary(id="eh.cdr.dictionary.UsePathways")
     private String usePathways;
+
+    @ItemProperty(
+            alias = "机构的频次代码"
+    )
+    private String organUsingRate;
+    @ItemProperty(
+            alias = "机构的用法代码"
+    )
+    private String organUsePathways;
+
+    //用药频率说明（来源his）
+    @ItemProperty(alias="用药频率说明")
+    private String usingRateTextFromHis;
+
+    //用药方式说明（来源his）
+    @ItemProperty(alias="用药方式说明")
+    private String usePathwaysTextFromHis;
 
     @ItemProperty(alias="药物使用总数量")
     private Double useTotalDose;
@@ -155,6 +177,35 @@ public class RecipeDetailBean implements java.io.Serializable {
     //同步机构药品信息新添字段
     @ItemProperty(alias = "生产厂家代码")
     private String producerCode;
+
+    @ItemProperty(alias="药物使用天数小数型")
+    private String useDaysB;
+    @ItemProperty(alias = "使用频率id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
+    private String usingRateId;
+
+    @ItemProperty(alias = "用药途径id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
+    private String usePathwaysId;
+    @ItemProperty(alias = "医生端选择的每次剂量和单位绑定关系")
+    private List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation;
+
+    @ItemProperty(alias = "开处方时保存单位剂量【规格单位】|单位【规格单位】|单位剂量【最小单位】|单位【最小单位】,各个字段用|隔开，用来计算患者端显示实际每次剂量")
+    private String drugUnitdoseAndUnit;
+
+    @ItemProperty(alias = "实际销售价格")
+    private BigDecimal actualSalePrice;
+
+    @ItemProperty(alias = "结算方式 0:药店价格 1:医院价格")
+    private Integer settlementMode;
+
+    public String getUseDaysB() {
+        return useDaysB;
+    }
+
+    public void setUseDaysB(String useDaysB) {
+        this.useDaysB = useDaysB;
+    }
 
     public RecipeDetailBean() {
     }
@@ -552,5 +603,93 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setDrugForm(String drugForm) {
         this.drugForm = drugForm;
+    }
+
+    public String getUseDoseStr() {
+        return useDoseStr;
+    }
+
+    public void setUseDoseStr(String useDoseStr) {
+        this.useDoseStr = useDoseStr;
+    }
+
+    public String getUsingRateTextFromHis() {
+        return usingRateTextFromHis;
+    }
+
+    public void setUsingRateTextFromHis(String usingRateTextFromHis) {
+        this.usingRateTextFromHis = usingRateTextFromHis;
+    }
+
+    public String getUsePathwaysTextFromHis() {
+        return usePathwaysTextFromHis;
+    }
+
+    public void setUsePathwaysTextFromHis(String usePathwaysTextFromHis) {
+        this.usePathwaysTextFromHis = usePathwaysTextFromHis;
+    }
+
+    public String getOrganUsingRate() {
+        return organUsingRate;
+    }
+
+    public void setOrganUsingRate(String organUsingRate) {
+        this.organUsingRate = organUsingRate;
+    }
+
+    public String getOrganUsePathways() {
+        return organUsePathways;
+    }
+
+    public void setOrganUsePathways(String organUsePathways) {
+        this.organUsePathways = organUsePathways;
+    }
+
+    public List<UseDoseAndUnitRelationBean> getUseDoseAndUnitRelation() {
+        return useDoseAndUnitRelation;
+    }
+
+    public void setUseDoseAndUnitRelation(List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation) {
+        this.useDoseAndUnitRelation = useDoseAndUnitRelation;
+    }
+
+    public String getUsingRateId() {
+        return usingRateId;
+    }
+
+    public void setUsingRateId(String usingRateId) {
+        this.usingRateId = usingRateId;
+    }
+
+    public String getUsePathwaysId() {
+        return usePathwaysId;
+    }
+
+    public void setUsePathwaysId(String usePathwaysId) {
+        this.usePathwaysId = usePathwaysId;
+    }
+
+    public String getDrugUnitdoseAndUnit() {
+        return drugUnitdoseAndUnit;
+    }
+
+    public void setDrugUnitdoseAndUnit(String drugUnitdoseAndUnit) {
+        this.drugUnitdoseAndUnit = drugUnitdoseAndUnit;
+    }
+
+    public BigDecimal getActualSalePrice() {
+        return actualSalePrice;
+    }
+
+    public void setActualSalePrice(BigDecimal actualSalePrice) {
+        this.actualSalePrice = actualSalePrice;
+    }
+
+    public Integer getSettlementMode() {
+        return settlementMode;
+    }
+
+    public void setSettlementMode(Integer settlementMode) {
+        this.settlementMode = settlementMode;
     }
 }

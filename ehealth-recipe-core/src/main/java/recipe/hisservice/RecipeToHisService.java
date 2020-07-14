@@ -14,8 +14,12 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.hisprescription.model.*;
+import com.ngari.recipe.hisprescription.model.HosPatientDTO;
+import com.ngari.recipe.hisprescription.model.HosPatientRecipeDTO;
+import com.ngari.recipe.hisprescription.model.HosRecipeDTO;
+import com.ngari.recipe.hisprescription.model.HosRecipeDetailDTO;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -23,16 +27,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
-import recipe.service.HisCallBackService;
 import recipe.recipecheck.RecipeCheckService;
+import recipe.service.HisCallBackService;
 import recipe.service.RecipeLogService;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * company: ngarihealth
@@ -245,17 +251,12 @@ public class RecipeToHisService {
         request.setOrganId(organId);
         if (CollectionUtils.isEmpty(drugInfoList)) {
             //查询全部药品信息，返回的是医院所有有效的药品信息
-            request.setData(Lists.<DrugInfoTO>newArrayList());
-            request.setDrcode(Lists.<String>newArrayList());
+            request.setData(Lists.newArrayList());
+            request.setDrcode(Lists.newArrayList());
         } else {
             //查询限定范围内容的药品数据，返回的是该医院 无效的药品信息
             request.setData(drugInfoList);
-            List<String> drugIdList = FluentIterable.from(drugInfoList).transform(new Function<DrugInfoTO, String>() {
-                @Override
-                public String apply(DrugInfoTO input) {
-                    return input.getDrcode();
-                }
-            }).toList();
+            List<String> drugIdList = drugInfoList.stream().map(DrugInfoTO::getDrcode).collect(Collectors.toList());
             request.setDrcode(drugIdList);
         }
         LOGGER.info("queryDrugInfo request={}", JSONUtils.toString(request));
@@ -264,7 +265,7 @@ public class RecipeToHisService {
             DrugInfoResponseTO response = hisService.queryDrugInfo(request);
             LOGGER.info("queryDrugInfo response={}", JSONUtils.toString(response));
             if (null != response && Integer.valueOf(200).equals(response.getMsgCode())) {
-                return (null != response.getData()) ? response.getData() : new ArrayList<DrugInfoTO>();
+                return (null != response.getData()) ? response.getData() : new ArrayList<>();
             }
         } catch (Exception e) {
             LOGGER.error("queryDrugInfo error ", e);
@@ -485,9 +486,56 @@ public class RecipeToHisService {
         return hisService.recipeCashPreSettle(request);
     }
 
-    public HisResponseTO<MedicInsurSettleApplyResTO>  recipeMedicInsurPreSettle(MedicInsurSettleApplyReqTO reqTO){
+    /**
+     * 处方药品配送信息查询接口
+     *
+     * @param recipeSendMsgRequestTO p配送信息请求获取
+     * @return
+     */
+    private RecipeSendMsgResTO recipeSendMsg(RecipeSendMsgRequestTO recipeSendMsgRequestTO) {
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        return hisService.recipeSendMsg(recipeSendMsgRequestTO);
+    }
+
+    public HisResponseTO<MedicInsurSettleApplyResTO> recipeMedicInsurPreSettle(MedicInsurSettleApplyReqTO reqTO){
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.recipeMedicInsurPreSettle(reqTO);
     }
 
+    /**
+     * 获取患者特慢病病种列表
+     * @return
+     */
+    public HisResponseTO<PatientChronicDiseaseRes> findPatientChronicDiseaseList(ChronicDiseaseListReqTO request){
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        LOGGER.info("findPatientChronicDiseaseList request={}", JSONUtils.toString(request));
+        HisResponseTO<PatientChronicDiseaseRes> response = null;
+        try {
+            response = hisService.findPatientChronicDiseaseList(request);
+            LOGGER.info("findPatientChronicDiseaseList response={}", JSONUtils.toString(response));
+        } catch (Exception e) {
+            LOGGER.error("findPatientChronicDiseaseList error ", e);
+        }
+        return response;
+    }
+
+    public void findPatientDiagnose(PatientDiagnoseTO request) {
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        LOGGER.info("findPatientDiagnose request={}", JSONUtils.toString(request));
+        HisResponseTO<String> response;
+        try {
+            response = hisService.findPatientDiagnose(request);
+            LOGGER.info("findPatientDiagnose response={}", JSONUtils.toString(response));
+        } catch (Exception e) {
+            LOGGER.error("findPatientDiagnose error ", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+        if (null == response) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "接口返回异常");
+        } else {
+            if (!"200".equals(response.getMsgCode())) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, response.getMsg());
+            }
+        }
+    }
 }

@@ -50,6 +50,18 @@ public class RecipeCheck implements Serializable{
     @ItemProperty(alias = "审核结果")
     private Integer checkStatus;
 
+    @ItemProperty(alias = "抢单医生id")
+    private Integer grabDoctorId;
+
+    @ItemProperty(alias = "抢单状态 0:未抢单 1:已抢单")
+    private Integer grabOrderStatus;
+
+    @ItemProperty(alias = "抢单自动解锁时间")
+    private Date localLimitDate;
+
+    @ItemProperty(alias = "更新时间")
+    private Date updateTime;
+
     @Id
     @GeneratedValue(strategy=IDENTITY)
     @Column(name = "CheckId", unique = true, nullable = false)
@@ -122,5 +134,41 @@ public class RecipeCheck implements Serializable{
 
     public void setCheckDate(Date checkDate) {
         this.checkDate = checkDate;
+    }
+
+    @Column(name = "grabDoctorId")
+    public Integer getGrabDoctorId() {
+        return grabDoctorId;
+    }
+
+    public void setGrabDoctorId(Integer grabDoctorId) {
+        this.grabDoctorId = grabDoctorId;
+    }
+
+    @Column(name = "grabOrderStatus")
+    public Integer getGrabOrderStatus() {
+        return grabOrderStatus;
+    }
+
+    public void setGrabOrderStatus(Integer grabOrderStatus) {
+        this.grabOrderStatus = grabOrderStatus;
+    }
+
+    @Column(name = "localLimitDate")
+    public Date getLocalLimitDate() {
+        return localLimitDate;
+    }
+
+    public void setLocalLimitDate(Date localLimitDate) {
+        this.localLimitDate = localLimitDate;
+    }
+
+    @Column(name = "updateTime")
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
     }
 }

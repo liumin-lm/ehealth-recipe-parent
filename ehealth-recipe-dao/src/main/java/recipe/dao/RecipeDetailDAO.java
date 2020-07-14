@@ -59,7 +59,7 @@ public abstract class RecipeDetailDAO extends
      * @return List<Recipedetail>
      * @author luf
      */
-    @DAOMethod(sql = "from Recipedetail where recipeId=:recipeId and status=1")
+    @DAOMethod(sql = "from Recipedetail where recipeId=:recipeId and status=1", limit = 0)
     public abstract List<Recipedetail> findByRecipeId(@DAOParam("recipeId") int recipeId);
 
     /**
@@ -104,6 +104,15 @@ public abstract class RecipeDetailDAO extends
      */
     @DAOMethod(sql = "select sum(useTotalDose) from Recipedetail where recipeId in :recipeIds and status=1")
     public abstract Double getUseTotalDoseByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
+
+    /**
+     * 获取处方总剂量
+     *
+     * @param recipeIds
+     * @return
+     */
+    @DAOMethod(sql = "select recipeId, sum(useTotalDose) from Recipedetail where recipeId in :recipeIds and status=1 group by recipeId", limit = 0)
+    public abstract List<Object[]> findUseTotalsDoseByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
 
     /**
      * 新处方详情自定义字段 by recipeId
@@ -216,4 +225,30 @@ public abstract class RecipeDetailDAO extends
     @DAOMethod(sql = "delete from Recipedetail where recipeId =:recipeId")
     public abstract void deleteByRecipeId(@DAOParam("recipeId") int recipeId);
 
+    /**
+     * 根据机构id和HIS结算单据号查询对应处方id
+     *
+     * @return
+     */
+    public Integer getRecipeIdByOrganIdAndInvoiceNo(final int organId, final String invoiceNo) {
+        StringBuilder drugNames = new StringBuilder();
+        HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
+            public void execute(StatelessSession ss) throws DAOException {
+                StringBuilder hql = new StringBuilder();
+                hql.append("select cd.* From cdr_recipedetail cd left join cdr_recipe cr on cd.RecipeID = cr.RecipeID " +
+                        "where cr.clinicOrgan =:organId and cd.status=1 and cd.invoiceNo = :invoiceNo");
+                Query q = ss.createSQLQuery(hql.toString()).addEntity(Recipedetail.class);
+                q.setParameter("organId", organId);
+                q.setParameter("invoiceNo", invoiceNo);
+                List<Recipedetail> list = q.list();
+                Integer recipeId = null;
+                if(null != list && 0 < list.size()){
+                    recipeId = list.get(0).getRecipeId();
+                }
+                setResult(recipeId);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }

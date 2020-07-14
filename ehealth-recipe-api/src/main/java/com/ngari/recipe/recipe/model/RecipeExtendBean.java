@@ -52,6 +52,9 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "HIS处方关联的卡号")
     private String  cardNo;
 
+    @ItemProperty(alias = "患者类型 自费 0 商保 1 普通医保 2 慢病医保 3 省医保33 杭州市医保3301 衢州市医保3308 巨化医保3308A")
+    private String patientType;
+
     @ItemProperty(alias = "his返回的配送药企代码")
     private String deliveryCode;
 
@@ -81,6 +84,32 @@ public class RecipeExtendBean implements Serializable {
 
     @ItemProperty(alias = "处方预结算返回自费金额")
     private String cashAmount;
+
+    @ItemProperty(alias = "慢病病种标识")
+    private String chronicDiseaseFlag;
+    @ItemProperty(alias = "慢病病种代码")
+    private String chronicDiseaseCode;
+    @ItemProperty(alias = "慢病病种名称")
+    private String chronicDiseaseName;
+    @ItemProperty(alias = "用药医嘱")
+    private String drugEntrustment;
+    //用户页面选择
+    @ItemProperty(alias = "是否长处方")
+    private String isLongRecipe;
+
+    //开当前处方的配置项信息
+    @ItemProperty(alias = "可开长处方按钮状态、长处方开药天数、非长处方开药天数")
+    private String recipeJsonConfig;
+
+    /**
+     * 患者医保类型（编码）
+     */
+    private String medicalType;
+
+    /**
+     * 患者医保类型（名称）
+     */
+    private String medicalTypeText;
 
     public RecipeExtendBean() {
     }
@@ -268,5 +297,77 @@ public class RecipeExtendBean implements Serializable {
 
     public void setCashAmount(String cashAmount) {
         this.cashAmount = cashAmount;
+    }
+
+    public String getChronicDiseaseFlag() {
+        return chronicDiseaseFlag;
+    }
+
+    public void setChronicDiseaseFlag(String chronicDiseaseFlag) {
+        this.chronicDiseaseFlag = chronicDiseaseFlag;
+    }
+
+    public String getChronicDiseaseCode() {
+        return chronicDiseaseCode;
+    }
+
+    public void setChronicDiseaseCode(String chronicDiseaseCode) {
+        this.chronicDiseaseCode = chronicDiseaseCode;
+    }
+
+    public String getChronicDiseaseName() {
+        return chronicDiseaseName;
+    }
+
+    public void setChronicDiseaseName(String chronicDiseaseName) {
+        this.chronicDiseaseName = chronicDiseaseName;
+    }
+
+    public String getPatientType() {
+        return patientType;
+    }
+
+    public void setPatientType(String patientType) {
+        this.patientType = patientType;
+    }
+
+    public String getMedicalType() {
+        return medicalType;
+    }
+
+    public void setMedicalType(String medicalType) {
+        this.medicalType = medicalType;
+    }
+
+    public String getMedicalTypeText() {
+        return medicalTypeText;
+    }
+
+    public void setMedicalTypeText(String medicalTypeText) {
+        this.medicalTypeText = medicalTypeText;
+    }
+
+    public String getDrugEntrustment() {
+        return drugEntrustment;
+    }
+
+    public void setDrugEntrustment(String drugEntrustment) {
+        this.drugEntrustment = drugEntrustment;
+    }
+
+    public String getIsLongRecipe() {
+        return isLongRecipe;
+    }
+
+    public void setIsLongRecipe(String isLongRecipe) {
+        this.isLongRecipe = isLongRecipe;
+    }
+
+    public String getRecipeJsonConfig() {
+        return recipeJsonConfig;
+    }
+
+    public void setRecipeJsonConfig(String recipeJsonConfig) {
+        this.recipeJsonConfig = recipeJsonConfig;
     }
 }

@@ -18,8 +18,12 @@ import com.qimencloud.api.sceneqimen.response.AlibabaAlihealthPrescriptionStatus
 import com.taobao.api.ApiException;
 import com.taobao.api.DefaultTaobaoClient;
 import com.taobao.api.TaobaoClient;
-import com.taobao.api.request.*;
-import com.taobao.api.response.*;
+import com.taobao.api.request.AlibabaAlihealthOutflowPrescriptionCreateRequest;
+import com.taobao.api.request.AlibabaAlihealthOutflowPrescriptionSyncstatusRequest;
+import com.taobao.api.request.AlibabaAlihealthOutflowPrescriptionUpdateRequest;
+import com.taobao.api.response.AlibabaAlihealthOutflowPrescriptionCreateResponse;
+import com.taobao.api.response.AlibabaAlihealthOutflowPrescriptionSyncstatusResponse;
+import com.taobao.api.response.AlibabaAlihealthOutflowPrescriptionUpdateResponse;
 import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -29,6 +33,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.entity.mpi.Patient;
 import eh.utils.DateConversion;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,15 +45,16 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
 import recipe.constant.*;
-import recipe.dao.*;
+import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
+import recipe.dao.RecipeExtendDAO;
+import recipe.dao.SaleDrugListDAO;
 import recipe.drugsenterprise.bean.StandardResultDTO;
 import recipe.drugsenterprise.bean.StandardStateDTO;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.service.common.RecipeCacheService;
-import recipe.thread.RecipeBusiThreadPool;
 
-import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -81,7 +87,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
     }
 
     @Override
-    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         return "暂不支持库存查询";
     }
 
@@ -256,7 +262,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                     //药品详情
                     getDetailInfo(dbRecipe, requestParam,depId);
                 }catch (Exception e){
-                    LOGGER.error("pushRecipeInfo splicingData error{}.", e);
+                    LOGGER.error("pushRecipeInfo splicingData error.", e);
                     return getDrugEnterpriseResult(result, e.getMessage());
                 }
                 LOGGER.info("requestParam 处方信息:{}.", getJsonLog(requestParam));
@@ -493,9 +499,9 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                 drugParam.setSpuid(saleDrugList.getOrganDrugCode());
                 try {
                     //频次
-                    drugParam.setFrequency(DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detailList.get(i).getUsingRate()));
+                    drugParam.setFrequency(StringUtils.isNotEmpty(detailList.get(i).getUsingRateTextFromHis())?detailList.get(i).getUsingRateTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detailList.get(i).getUsingRate()));
                     //用法
-                    drugParam.setDoseUsage(DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detailList.get(i).getUsePathways()));
+                    drugParam.setDoseUsage(StringUtils.isNotEmpty(detailList.get(i).getUsePathwaysTextFromHis())?detailList.get(i).getUsePathwaysTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detailList.get(i).getUsePathways()));
                 } catch (ControllerException e) {
                     throw new DAOException("药物使用频率使用途径获取失败");
                 }
@@ -558,7 +564,7 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
 
     private void getPatientInfo(Recipe dbRecipe, AlibabaAlihealthOutflowPrescriptionCreateRequest.PrescriptionOutflowUpdateRequest requestParam) {
         //操作人手机号
-        PatientDTO patient2 = UserRoleToken.getCurrent().getProperty("patient", PatientDTO.class);
+        Patient patient2 = UserRoleToken.getCurrent().getProperty("patient", Patient.class);
         if(patient2!=null && null != patient2.getMobile()){
             requestParam.setMobilePhone(patient2.getMobile());
         } else {

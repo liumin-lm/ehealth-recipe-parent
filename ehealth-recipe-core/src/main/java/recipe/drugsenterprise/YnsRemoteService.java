@@ -5,10 +5,7 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.entity.SaleDrugList;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -23,7 +20,9 @@ import org.slf4j.LoggerFactory;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
-import recipe.drugsenterprise.bean.*;
+import recipe.drugsenterprise.bean.HdDrugRequestData;
+import recipe.drugsenterprise.bean.HdPosition;
+import recipe.drugsenterprise.bean.YnsPharmacyAndStockRequest;
 import recipe.util.MapValueUtil;
 
 import java.util.*;
@@ -61,9 +60,57 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
-        return null;
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        String appKey=recipeParameterDao.getByName("ynsyy-key");
+        String pharmacyStock=recipeParameterDao.getByName("ynsyy-pharmacyStockMethod");
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        try{
+            Client client = new Client(drugsEnterprise.getBusinessUrl()+pharmacyStock, appKey, drugsEnterprise.getToken(), encodingAesKey);
+            ////根据处方信息发送药企库存查询请求，判断有药店是否满足库存
+            //X-Service-Id对应的值
+            String serviceId = "CallYygsService";
+            //X-Service-Method对应的值
+            String method = recipeParameterDao.getByName("ynsyy-pharmacyStockMethod");
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
+
+            List list = new ArrayList<>();
+            YnsPharmacyAndStockRequest hdPharmacyAndStockRequest = new YnsPharmacyAndStockRequest();
+            List<HdDrugRequestData> drugRequestDataList = new ArrayList<>();
+
+            if (saleDrugList != null) {
+                HdDrugRequestData drugBean = new HdDrugRequestData();
+                drugBean.setDrugCode(saleDrugList.getOrganDrugCode());
+                drugBean.setTotal("5");
+
+                DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+                DrugList drugList = drugListDAO.getById(drugId);
+                drugBean.setUnit(drugList.getUnit());
+                drugRequestDataList.add(drugBean);
+                hdPharmacyAndStockRequest.setDrugList(drugRequestDataList);
+            }
+            list.add(hdPharmacyAndStockRequest);
+            LOGGER.info("getDrugInventory request:{}.", JSONUtils.toString(list));
+            Request request =  new Request(serviceId,method,list);
+            Response response = client.execute(request);
+            LOGGER.info("getDrugInventory response:{}.", JSONUtils.toString(response));
+            Map resultMap = JSONUtils.parse(response.getBody(), Map.class);
+            if (requestSuccessCode.equals(MapValueUtil.getString(resultMap, "code"))) {
+                String inventory = MapValueUtil.getObject(resultMap, "inventory").toString();
+                if ("true".equals(inventory)) {
+                    return "有库存";
+                } else {
+                    return "无库存";
+                }
+            }else{
+                return "无库存";
+            }
+        }catch (Exception e){
+            LOGGER.info("getDrugInventory error:{}.", e.getMessage(), e);
+            return "无库存";
+        }
     }
+
     @RpcService
     public void test(Integer recipeId){
         List<Integer> recipeIds = Arrays.asList(recipeId);
@@ -73,7 +120,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
         ext.put("longitude","31.2553210000");
         ext.put("latitude","121.4620020000");
         ext.put("range","20");
-        findSupportDep(recipeIds,ext,drugsEnterprise);
+        getDrugInventory(749, drugsEnterprise, 11);
 //        scanStock(recipeId,drugsEnterprise);
     }
     @Override
@@ -91,10 +138,14 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
             LOGGER.info("YnsRemoteService.scanStock:[{}][{}]获取药企库存查询请求，获取响应getBody消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), response.getBody());
             Map resultMap = JSONUtils.parse(response.getBody(), Map.class);
             if (requestSuccessCode.equals(MapValueUtil.getString(resultMap, "code"))) {
-                YnsScanStockBean detailBean=new YnsScanStockBean();
-                detailBean.setInventory(MapValueUtil.getString(resultMap, "inventory"));
-                result.setObject(detailBean);
-                LOGGER.info("YnsRemoteService.findSupportDep:[{}][{}]获取药店列表请求，返回前端result消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), JSONUtils.toString(result));
+                String inventory = MapValueUtil.getObject(resultMap, "inventory").toString();
+                if ("true".equals(inventory)) {
+                    result.setCode(DrugEnterpriseResult.SUCCESS);
+                    return result;
+                } else {
+                    result.setCode(DrugEnterpriseResult.FAIL);
+                    return result;
+                }
             }else{
                 getFailResult(result, "当前药企下没有药店的药品库存足够");
             }
@@ -102,7 +153,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
         } catch (Exception e) {
                 result.setCode(DrugEnterpriseResult.FAIL);
                 result.setMsg(e.getMessage());
-                LOGGER.error("YnsRemoteService.scanStock:[{}][{}]获取药品库存异常：{}",drugsEnterprise.getId(), drugsEnterprise.getName(), e.getMessage());
+                LOGGER.error("YnsRemoteService.scanStock:[{}][{}]获取药品库存异常：{}",drugsEnterprise.getId(), drugsEnterprise.getName(), e.getMessage(),e);
                 getFailResult(result,  e.getMessage());
             } finally {
                 try {
@@ -110,7 +161,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
                     result.setCode(DrugEnterpriseResult.FAIL);
                     result.setMsg(e.getMessage());
                     getFailResult(result,  e.getMessage());
-                    LOGGER.error("YnsRemoteService.scanStock:http请求资源关闭异常: {}！", e.getMessage());
+                    LOGGER.error("YnsRemoteService.scanStock:http请求资源关闭异常: {}！", e.getMessage(),e);
                 }
             }
             return result;
@@ -133,6 +184,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
         YnsPharmacyAndStockRequest hdPharmacyAndStockRequest = new YnsPharmacyAndStockRequest();
         hdPharmacyAndStockRequest.setDrugList(drugRequestDataList);
         bodyList.add(hdPharmacyAndStockRequest);
+        LOGGER.info("YnsRemoteService.findScanStockBussReq:获取药企库存查询请求药品数据:{}.", JSONUtils.toString(bodyList));
         //X-Service-Id对应的值
         String serviceId = "CallYygsService";
         //X-Service-Method对应的值
@@ -197,12 +249,12 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
                 result.setMsg(responseData);
                 LOGGER.error("YnsRemoteService.findSupportDep: msg [{}][{}]获取药店列表异常：{}",enterprise.getId(), enterprise.getName(), responseData);
                 getFailResult(result, responseData);
-                return null;
+                return result;
             }
         } catch (Exception e) {
             result.setCode(DrugEnterpriseResult.FAIL);
             result.setMsg(e.getMessage());
-            LOGGER.error("YnsRemoteService.findSupportDep:[{}][{}]获取药店列表异常：{}",enterprise.getId(), enterprise.getName(), e.getMessage());
+            LOGGER.error("YnsRemoteService.findSupportDep:[{}][{}]获取药店列表异常：{}",enterprise.getId(), enterprise.getName(), e.getMessage(),e);
             getFailResult(result,  e.getMessage());
         } finally {
             try {
@@ -210,7 +262,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
                 result.setCode(DrugEnterpriseResult.FAIL);
                 result.setMsg(e.getMessage());
                 getFailResult(result,  e.getMessage());
-                LOGGER.error("YnsRemoteService.findSupportDep:http请求资源关闭异常: {}！", e.getMessage());
+                LOGGER.error("YnsRemoteService.findSupportDep:http请求资源关闭异常: {}！", e.getMessage(),e);
             }
         }
         return result;
@@ -272,7 +324,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
      * @return java.util.List<recipe.drugsenterprise.bean.HdDrugRequestData>请求药店下药品信息列表
      */
     private List<HdDrugRequestData> getDrugRequestList(Map<String, HdDrugRequestData> result, List<Recipedetail> detailList, DrugsEnterprise drugsEnterprise, DrugEnterpriseResult finalResult) {
-        LOGGER.info("YnsRemoteService.getDrugRequestList:[{}][{}]获取请求药店下药品信息接口下的药品总量（根据药品的code分组）的list：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), detailList);
+        LOGGER.info("YnsRemoteService.getDrugRequestList:[{}][{}]获取请求药店下药品信息接口下的药品总量（根据药品的code分组）的list：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), JSONUtils.toString(detailList));
         HdDrugRequestData hdDrugRequestData;
         Double sum;
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);

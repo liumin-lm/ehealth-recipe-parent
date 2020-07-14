@@ -28,6 +28,7 @@ public class RecipeAndOrderDetailBean implements Serializable{
     private String actualFee;
     private String couponFee;
     private String decoctionFee;
+    private String tcmFee;
     private String auditFee;
     private String registerFee;
     private String medicalFee;
@@ -58,6 +59,8 @@ public class RecipeAndOrderDetailBean implements Serializable{
     private String pharmacyCode;
     private String pharmacyName;
     private String recipeSignImg;
+    private String recipeSignImgUrl;
+    private String decoctionFlag;
     private List<DrugListForThreeBean> drugList;
 
     public String getMsg() {
@@ -258,6 +261,14 @@ public class RecipeAndOrderDetailBean implements Serializable{
 
     public void setMedicalFee(String medicalFee) {
         this.medicalFee = medicalFee;
+    }
+
+    public String getTcmFee() {
+        return tcmFee;
+    }
+
+    public void setTcmFee(String tcmFee) {
+        this.tcmFee = tcmFee;
     }
 
     public String getProvince() {
@@ -474,6 +485,22 @@ public class RecipeAndOrderDetailBean implements Serializable{
 
     public void setRecipeSignImg(String recipeSignImg) {
         this.recipeSignImg = recipeSignImg;
+    }
+
+    public String getRecipeSignImgUrl() {
+        return recipeSignImgUrl;
+    }
+
+    public void setRecipeSignImgUrl(String recipeSignImgUrl) {
+        this.recipeSignImgUrl = recipeSignImgUrl;
+    }
+
+    public String getDecoctionFlag() {
+        return decoctionFlag;
+    }
+
+    public void setDecoctionFlag(String decoctionFlag) {
+        this.decoctionFlag = decoctionFlag;
     }
 
     public List<DrugListForThreeBean> getDrugList() {

@@ -258,7 +258,8 @@ public class PayModeTFDS implements IPurchaseService{
             }
         }
 
-        succFlag = remoteDrugService.scanStock(recipeId, dep);
+        DrugEnterpriseResult result = remoteDrugService.scanStock(recipeId, dep);
+        succFlag = result.getCode().equals(DrugEnterpriseResult.SUCCESS) ? true : false;
         if (!succFlag) {
             LOGGER.warn("findSupportDepList 药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}], 药企名称=[{}]", recipeId, dep.getId(), dep.getName());
         }

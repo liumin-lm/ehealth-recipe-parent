@@ -1,11 +1,12 @@
 package recipe.service;
 
+import com.google.common.collect.Lists;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganConfigService;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Pharmacy;
-import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.*;
+import ctd.account.UserRoleToken;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
@@ -18,17 +19,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
-import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.OrganAndDrugsepRelationDAO;
-import recipe.dao.PharmacyDAO;
-import recipe.dao.RecipeDAO;
+import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.serviceprovider.BaseService;
+import recipe.util.DictionaryUtil;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 药企相关接口
@@ -92,10 +88,14 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
         drugsEnterprise.setCheckInventoryFlag(1);
         drugsEnterprise.setSettlementMode(0);
         drugsEnterprise.setStorePayFlag(0);
+        drugsEnterprise.setShowStoreFlag(0);
+        drugsEnterprise.setSendType(drugsEnterpriseBean.getSendType());
 
         //存储药企信息
         DrugsEnterprise newDrugsEnterprise = drugsEnterpriseDAO.save(drugsEnterprise);
-
+        //更新管理单元
+        String manageUnit = "yq"+newDrugsEnterprise.getId();
+        drugsEnterpriseDAO.updateManageUnitById(newDrugsEnterprise.getId(),manageUnit);
         if( 0 == drugsEnterpriseBean.getCreateType()){
             //自建药企要存储药店信息
 
@@ -153,6 +153,9 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
 
         BeanUtils.map(drugsEnterprise, target);
         target.setLastModify(new Date());
+        if (drugsEnterpriseBean.getExpressFeePayWay() == null){
+            target.setExpressFeePayWay(null);
+        }
         target = drugsEnterpriseDAO.update(target);
 
 
@@ -335,5 +338,125 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean>{
                 service.pushSingleRecipeInfoWithDepId(recipeId, dep.getId());
             }
         }
+    }
+
+    /**
+     * 根据机构获取是否配置配送药企
+     * @param organId  机构
+     * @return         true 是 false 否
+     */
+    @RpcService
+    public boolean isExistDrugsEnterprise(Integer organId, Integer drugId){
+        LOGGER.info("isExistDrugsEnterpriseByOrgan organId:{}, drugId:{}.", organId, drugId);
+        try{
+            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+            OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+            List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
+            if (CollectionUtils.isEmpty(drugsEnterprises)) {
+                return false;
+            }
+            List<DrugsEnterprise> drugsEnterpriseList = new ArrayList<>();
+            for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
+                if (drugsEnterprise.getPayModeSupport() == 1 || drugsEnterprise.getPayModeSupport() == 7 || drugsEnterprise.getPayModeSupport() == 9) {
+                    drugsEnterpriseList.add(drugsEnterprise);
+                }
+            }
+            //如果药企不存在在任何一家可配送药企则不显示按钮
+            for (DrugsEnterprise drugsEnterprise : drugsEnterpriseList) {
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganIdAndStatus(drugId, drugsEnterprise.getId());
+                if (saleDrugList != null) {
+                    return true;
+                }
+            }
+            return false;
+        }catch (Exception e){
+            LOGGER.error("isExistDrugsEnterpriseByOrgan error:{}", e.getMessage(), e);
+            return false;
+        }
+    }
+
+    /**
+     * 展示药企药品库存
+     * @param drugId   药品编码
+     * @param organId  机构编码
+     * @return         库存情况
+     */
+    @RpcService
+    public Map<String, Object> showDrugsEnterpriseInventory(Integer drugId, Integer organId){
+        LOGGER.info("showDrugsEnterpriseInventory drugId:{},organId:{}.", drugId, organId);
+        Map<String, Object> result = new HashMap<>();
+        //查询当前药品数据
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
+        if (CollectionUtils.isEmpty(organDrugLists)) {
+            throw new DAOException("没有查询到药品数据");
+        }
+        //查询当前机构配置的药企
+        OrganAndDrugsepRelationDAO drugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+        List<DrugsEnterprise> drugsEnterprises = drugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
+        RemoteDrugEnterpriseService enterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        List<DrugsEnterprise> enterprises = new ArrayList<>();
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        for (DrugsEnterprise enterprise : drugsEnterprises) {
+            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganIdAndStatus(drugId, enterprise.getId());
+            if (saleDrugList != null) {
+                enterprises.add(enterprise);
+            }
+        }
+        List<List<String>> inventoryList = new ArrayList<>();
+        for (DrugsEnterprise drugsEnterprise : enterprises) {
+            List<String> inventoryData = new ArrayList<>();
+            String inventory = enterpriseService.getDrugInventory(drugsEnterprise.getId(), drugId, organId);
+            if ("有库存".equals(inventory) || "无库存".equals(inventory) || "暂不支持库存查询".equals(inventory)) {
+                inventoryData.add(drugsEnterprise.getName());
+                inventoryData.add(inventory);
+            } else {
+                try{
+                    inventoryData.add(drugsEnterprise.getName());
+                    Integer number;
+                    if (inventory.contains(".")) {
+                        String num = inventory.substring(0, inventory.indexOf("."));
+                        number = Integer.parseInt(num);
+                    } else {
+                        number = Integer.parseInt(inventory);
+                    }
+                    if (number > 0) {
+                        inventoryData.add("有库存");
+                        inventoryData.add(number + "");
+                    } else {
+                        inventoryData.add("无库存");
+                        inventoryData.add("0");
+                    }
+                } catch (Exception e) {
+                    inventoryData.add("无库存");
+                    inventoryData.add("0");
+                    LOGGER.info("showDrugsEnterpriseInventory drugId:{},organId:{},err:{}.", drugId, organId, e.getMessage(), e);
+                }
+            }
+            inventoryList.add(inventoryData);
+        }
+        result.put("enterpriseInventory", inventoryList);
+        return result;
+    }
+
+    @RpcService
+    public List<DrugsEnterprise> findDrugsEnterpriseForOpUser(){
+        List<DrugsEnterprise> list = Lists.newArrayList();
+        UserRoleToken ur = UserRoleToken.getCurrent();
+        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise enterprise = enterpriseDAO.getByManageUnit(ur.getManageUnit());
+        list.add(enterprise);
+        return list;
+    }
+
+    @RpcService
+    public String getLogisticsCompanyName(String logisticsCompany) {
+        try{
+            return DictionaryController.instance().get("eh.cdr.dictionary.KuaiDiNiaoCode")
+                    .getText(logisticsCompany);
+        }catch (Exception e){
+            LOGGER.info("getTrackingNumber error msg:{}.", e.getMessage());
+        }
+        return "";
     }
 }

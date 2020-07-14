@@ -49,8 +49,11 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "体格检查")
     private String physicalCheck;
 
-    @ItemProperty(alias = "HIS处方关联的卡类型")
+    @ItemProperty(alias = "HIS处方关联的卡类型名称")
     private String  cardTypeName;
+
+    @ItemProperty(alias = "HIS处方关联的卡类型")
+    private String  cardType;
 
     @ItemProperty(alias = "HIS处方关联的卡号")
     private String  cardNo;
@@ -58,7 +61,7 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "医保备案号")
     private String putOnRecordID;
 
-    @ItemProperty(alias = "患者类型 自费 0 省医保33 杭州市医保3301 衢州市医保3308 衢化医保3308A")
+    @ItemProperty(alias = "患者类型 自费 0 商保 1 普通医保 2 慢病医保 3 省医保33 杭州市医保3301 衢州市医保3308 巨化医保3308A")
     private String patientType;
     /**互联网医院字段*/
 
@@ -98,13 +101,94 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "处方预结算返回自费金额")
     private String cashAmount;
 
+    @ItemProperty(alias = "his返回的处方总金额")
+    private String deliveryRecipeFee;
+
+    @ItemProperty(alias = "用药医嘱")
+    private String drugEntrustment;
+
+    //用户页面选择
+    @ItemProperty(alias = "是否长处方")
+    private String isLongRecipe;
+
+    //开当前处方的配置项信息
+    @ItemProperty(alias = "可开长处方按钮状态、长处方开药天数、非长处方开药天数")
+    private String recipeJsonConfig;
+
+    /**
+     * 患者医保类型（编码）
+     */
+    private String medicalType;
+
+    /**
+     * 患者医保类型（名称）
+     */
+    private String medicalTypeText;
+
+    /**
+     * 第三方处方ID
+     */
+    private String rxid;
+
+//    @ItemProperty(alias = "处方创建状态  0：未进行，1：已生成订单 ，2.已创建处方，3. 已预支付处方")
+//    private String orderMakeStatus;
+//
+//    @ItemProperty(alias = "处方")
+//    private String deliverySendTag;
+
+//    public String getOrderMakeStatus() {
+//        return orderMakeStatus;
+//    }
+//
+//    public void setOrderMakeStatus(String orderMakeStatus) {
+//        this.orderMakeStatus = orderMakeStatus;
+//    }
+
+    @Column(name = "deliveryRecipeFee")
+    public String getDeliveryRecipeFee() {
+        return deliveryRecipeFee;
+    }
+
+    public void setDeliveryRecipeFee(String deliveryRecipeFee) {
+        this.deliveryRecipeFee = deliveryRecipeFee;
+    }
+
     @ItemProperty(alias = "处方预结算返回应付金额")
     private String payAmount;
 
     @ItemProperty(alias = "处方来源 0 线下his同步 1 平台处方")
     private Integer fromFlag;
 
+    @ItemProperty(alias = "慢病病种标识")
+    private String chronicDiseaseFlag;
+    @ItemProperty(alias = "慢病病种代码")
+    private String chronicDiseaseCode;
+    @ItemProperty(alias = "慢病病种名称")
+    private String chronicDiseaseName;
 
+    @ItemProperty(alias = "电子票号")
+    private String einvoiceNumber;
+
+    @ItemProperty(alias = "电子处方监管平台流水号")
+    private String superviseRecipecode;
+
+    @Column(name = "superviseRecipecode")
+    public String getSuperviseRecipecode() {
+        return superviseRecipecode;
+    }
+
+    public void setSuperviseRecipecode(String superviseRecipecode) {
+        this.superviseRecipecode = superviseRecipecode;
+    }
+
+    @Column(name = "einvoiceNumber")
+    public String getEinvoiceNumber() {
+        return einvoiceNumber;
+    }
+
+    public void setEinvoiceNumber(String einvoiceNumber) {
+        this.einvoiceNumber = einvoiceNumber;
+    }
 
     public RecipeExtend() {
     }
@@ -370,5 +454,90 @@ public class RecipeExtend implements Serializable {
 
     public void setFromFlag(Integer fromFlag) {
         this.fromFlag = fromFlag;
+    }
+
+    @Column(name = "cardType")
+    public String getCardType() {
+        return cardType;
+    }
+
+    public void setCardType(String cardType) {
+        this.cardType = cardType;
+    }
+
+    @Column(name = "chronicDiseaseFlag")
+    public String getChronicDiseaseFlag() {
+        return chronicDiseaseFlag;
+    }
+
+    public void setChronicDiseaseFlag(String chronicDiseaseFlag) {
+        this.chronicDiseaseFlag = chronicDiseaseFlag;
+    }
+
+    @Column(name = "chronicDiseaseCode")
+    public String getChronicDiseaseCode() {
+        return chronicDiseaseCode;
+    }
+
+    public void setChronicDiseaseCode(String chronicDiseaseCode) {
+        this.chronicDiseaseCode = chronicDiseaseCode;
+    }
+
+    @Column(name = "chronicDiseaseName")
+    public String getChronicDiseaseName() {
+        return chronicDiseaseName;
+    }
+
+    public void setChronicDiseaseName(String chronicDiseaseName) {
+        this.chronicDiseaseName = chronicDiseaseName;
+    }
+
+    public String getMedicalType() {
+        return medicalType;
+    }
+
+    public void setMedicalType(String medicalType) {
+        this.medicalType = medicalType;
+    }
+
+    public String getMedicalTypeText() {
+        return medicalTypeText;
+    }
+
+    public void setMedicalTypeText(String medicalTypeText) {
+        this.medicalTypeText = medicalTypeText;
+    }
+
+    public String getDrugEntrustment() {
+        return drugEntrustment;
+    }
+
+    public void setDrugEntrustment(String drugEntrustment) {
+        this.drugEntrustment = drugEntrustment;
+    }
+
+    public String getIsLongRecipe() {
+        return isLongRecipe;
+    }
+
+    public void setIsLongRecipe(String isLongRecipe) {
+        this.isLongRecipe = isLongRecipe;
+    }
+
+    public String getRecipeJsonConfig() {
+        return recipeJsonConfig;
+    }
+
+    public void setRecipeJsonConfig(String recipeJsonConfig) {
+        this.recipeJsonConfig = recipeJsonConfig;
+    }
+
+    @Column(name = "rxid")
+    public String getRxid() {
+        return rxid;
+    }
+
+    public void setRxid(String rxid) {
+        this.rxid = rxid;
     }
 }

@@ -11,7 +11,6 @@ import com.ngari.base.patient.service.IPatientExtendService;
 import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.EmploymentService;
-import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeCommonResTO;
 import com.ngari.recipe.common.utils.VerifyUtils;
@@ -37,11 +36,17 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.service.*;
+import recipe.service.HisCallBackService;
+import recipe.service.RecipeHisService;
+import recipe.service.RecipeLogService;
+import recipe.service.RecipeOrderService;
 import recipe.service.hospitalrecipe.dataprocess.PrescribeProcess;
 import recipe.util.RedisClient;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author： 0184/yu_yun
@@ -242,7 +247,7 @@ public class PrescribeService {
                         details= PrescribeProcess.convertNgariDetail(hospitalRecipeDTO);
                     }
                 } catch (Exception e) {
-                    LOG.warn("createPrescription 药品详情转换异常, hospitalRecipeDTO={},{}", JSONUtils.toString(hospitalRecipeDTO),e);
+                    LOG.error("createPrescription 药品详情转换异常, hospitalRecipeDTO={},{}", JSONUtils.toString(hospitalRecipeDTO),e);
                     result.setMsg("药品详情转换异常,请检查药品数据是否正确");
                     return result;
                 }
@@ -307,7 +312,7 @@ public class PrescribeService {
                     return result;
                 }
             } catch (Exception e) {
-                LOG.warn("updateRecipeStatus 参数对象异常数据，HospitalStatusUpdateDTO={}", JSONUtils.toString(request), e);
+                LOG.error("updateRecipeStatus 参数对象异常数据，HospitalStatusUpdateDTO={}", JSONUtils.toString(request), e);
                 result.setMsg("参数对象异常数据");
                 return result;
             }
@@ -333,7 +338,7 @@ public class PrescribeService {
                         clinicOrgan = organ.getOrganId();
                     }
                 } catch (Exception e) {
-                    LOG.warn("updateRecipeStatus 查询机构异常，organId={}", request.getOrganId(), e);
+                    LOG.error("updateRecipeStatus 查询机构异常，organId={}", request.getOrganId(), e);
                 } finally {
                     if (null == clinicOrgan) {
                         LOG.warn("updateRecipeStatus 平台未匹配到该组织机构编码，organId={}", request.getOrganId());
@@ -391,30 +396,32 @@ public class PrescribeService {
                     HisCallBackService.checkPassSuccess(recipeCheckPassResult, true);
                     result.setCode(HosRecipeResult.SUCCESS);
 
-                    OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-                    List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(clinicOrgan, 1);
-                    if (CollectionUtils.isEmpty(drugsEnterprises)){
-                        return result;
-                    }
-                    DrugsEnterprise drugsEnterprise = drugsEnterprises.get(0);
-                    if ("aldyf".equals(drugsEnterprise.getCallSys())) {
-                        //判断用户是否已鉴权
-                        if (StringUtils.isNotEmpty(dbRecipe.getRequestMpiId())) {
-                            DrugDistributionService drugDistributionService = ApplicationUtils.getRecipeService(DrugDistributionService.class);
-                            PatientService patientService = BasicAPI.getService(PatientService.class);
-                            String loginId = patientService.getLoginIdByMpiId(dbRecipe.getRequestMpiId());
-                            if (drugDistributionService.authorization(loginId)) {
-                                //推送阿里处方推片和信息
-                                if (null == drugsEnterprise) {
-                                    LOG.warn("updateRecipeStatus aldyf 药企不存在");
-                                }
-                                RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-                                DrugEnterpriseResult deptResult =
-                                    remoteDrugEnterpriseService.pushSingleRecipeInfoWithDepId(recipeId, drugsEnterprise.getId());
-                                LOG.info("updateRecipeStatus 推送药企处方，result={}", JSONUtils.toString(deptResult));
-                            }
-                        }
-                    }
+                    //date 20200507
+                    //移动到医生签名尝试重试中
+//                    OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+//                    List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(clinicOrgan, 1);
+//                    if (CollectionUtils.isEmpty(drugsEnterprises)){
+//                        return result;
+//                    }
+//                    DrugsEnterprise drugsEnterprise = drugsEnterprises.get(0);
+//                    if ("aldyf".equals(drugsEnterprise.getCallSys())) {
+//                        //判断用户是否已鉴权
+//                        if (StringUtils.isNotEmpty(dbRecipe.getRequestMpiId())) {
+//                            DrugDistributionService drugDistributionService = ApplicationUtils.getRecipeService(DrugDistributionService.class);
+//                            PatientService patientService = BasicAPI.getService(PatientService.class);
+//                            String loginId = patientService.getLoginIdByMpiId(dbRecipe.getRequestMpiId());
+//                            if (drugDistributionService.authorization(loginId)) {
+//                                //推送阿里处方推片和信息
+//                                if (null == drugsEnterprise) {
+//                                    LOG.warn("updateRecipeStatus aldyf 药企不存在");
+//                                }
+//                                RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+//                                DrugEnterpriseResult deptResult =
+//                                    remoteDrugEnterpriseService.pushSingleRecipeInfoWithDepId(recipeId, drugsEnterprise.getId());
+//                                LOG.info("updateRecipeStatus 推送药企处方，result={}", JSONUtils.toString(deptResult));
+//                            }
+//                        }
+//                    }
 
                     break;
                 case RecipeStatusConstant.HAVE_PAY:
@@ -495,7 +502,7 @@ public class PrescribeService {
                                     DrugEnterpriseResult drugEnterpriseResult = remoteService.updatePrescriptionStatus(dbRecipe.getRecipeCode(), RecipeStatusConstant.FINISH);
                                     LOG.info("向药企推送处方医院取药完成通知,{}", JSONUtils.toString(drugEnterpriseResult));
                                 } catch (Exception e) {
-                                    LOG.info("向药企推送处方医院取药完成通知有问题{}", dbRecipe.getRecipeId(), e);
+                                    LOG.error("向药企推送处方医院取药完成通知有问题{}", dbRecipe.getRecipeId(), e);
                                 }
 
                             }
@@ -543,10 +550,18 @@ public class PrescribeService {
         String hospOrgCodeFromMedical = otherInfo.get("areaCode");
         String insuredArea = otherInfo.get("insuredArea");
         Map<String,String> updateMap = new HashMap<>(4);
-        updateMap.put("cardTypeName",cardTypeName);
-        updateMap.put("cardNo",cardNo);
-        updateMap.put("patientType",patientType);
-        updateMap.put("putOnRecordID",putOnRecordID);
+        if (StringUtils.isNotEmpty(cardTypeName)){
+            updateMap.put("cardTypeName",cardTypeName);
+        }
+        if (StringUtils.isNotEmpty(cardNo)){
+            updateMap.put("cardNo",cardNo);
+        }
+        if (StringUtils.isNotEmpty(patientType)){
+            updateMap.put("patientType",patientType);
+        }
+        if (StringUtils.isNotEmpty(putOnRecordID)){
+            updateMap.put("putOnRecordID",putOnRecordID);
+        }
         if (StringUtils.isNotEmpty(hospOrgCodeFromMedical)){
             updateMap.put("hospOrgCodeFromMedical",hospOrgCodeFromMedical);
         }
@@ -586,7 +601,7 @@ public class PrescribeService {
                 INgariRefundService rufundService = BaseAPI.getService(INgariRefundService.class);
                 rufundService.refund(order.getOrderId(), "recipe");
             } catch (Exception e) {
-                LOG.warn("updateRecipeStatus 退款异常，orderId={}", order.getOrderId(), e);
+                LOG.error("updateRecipeStatus 退款异常，orderId={}", order.getOrderId(), e);
                 recipeLogDAO.saveRecipeLog(dbRecipe.getRecipeId(), RecipeStatusConstant.UNKNOW,
                         RecipeStatusConstant.UNKNOW, "医院处方-退款异常");
             } finally {

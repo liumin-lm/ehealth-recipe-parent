@@ -1,19 +1,15 @@
 package recipe.purchase;
 
-import com.google.common.collect.ImmutableMap;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.consult.common.model.ConsultExDTO;
-import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.his.patient.service.IPatientHisService;
 import com.ngari.his.recipe.mode.MedicInsurSettleApplyReqTO;
 import com.ngari.his.recipe.mode.MedicInsurSettleApplyResTO;
-import com.ngari.his.recipe.mode.MedicInsurSettleSuccNoticNgariReqTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
@@ -25,7 +21,6 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
-import coupon.api.service.ICouponBaseService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -47,8 +42,6 @@ import recipe.service.RecipeHisService;
 import recipe.service.RecipeListService;
 import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
-import recipe.thread.PushRecipeToHisCallable;
-import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 
@@ -150,10 +143,15 @@ public class PurchaseService {
             return resultBean;
         }
 
-        for (Integer i : payModes) {
-            IPurchaseService purchaseService = getService(i);
-            //如果涉及到多种购药方式合并成一个列表，此处需要进行合并
-            resultBean = purchaseService.findSupportDepList(dbRecipe, extInfo);
+        try {
+            for (Integer i : payModes) {
+                IPurchaseService purchaseService = getService(i);
+                //如果涉及到多种购药方式合并成一个列表，此处需要进行合并
+                resultBean = purchaseService.findSupportDepList(dbRecipe, extInfo);
+            }
+        } catch (Exception e) {
+            LOG.error("filterSupportDepList error", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
         return resultBean;
     }
@@ -302,7 +300,7 @@ public class PurchaseService {
                     hisRecipeDAO.updateHisRecieStatus(dbRecipe.getClinicOrgan(), dbRecipe.getRecipeCode(), 2);
                 }
             }catch (Exception e){
-                LOG.info("RecipeOrderService.cancelOrder 来源于HIS的处方单更新hisRecipe的状态失败,recipeId:{},{}.", dbRecipe.getRecipeId(), e.getMessage());
+                LOG.info("RecipeOrderService.cancelOrder 来源于HIS的处方单更新hisRecipe的状态失败,recipeId:{},{}.", dbRecipe.getRecipeId(), e.getMessage(),e);
             }
         }
 
@@ -368,6 +366,13 @@ public class PurchaseService {
      */
     private boolean checkRecipeIsDeal(Recipe dbRecipe, RecipeResultBean result, Map<String, String> extInfo) {
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
+        if (dbRecipe.getStatus() == RecipeStatusConstant.REVOKE){
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "处方单已被撤销");
+        }
+        //此时如果处方状态为待审核则说明药师端已经撤销了处方审核结果
+        if (dbRecipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS){
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "处方审核结果已被撤销");
+        }
         if (RecipeStatusConstant.CHECK_PASS != dbRecipe.getStatus()
                 || 1 == dbRecipe.getChooseFlag()) {
             result.setCode(RecipeResultBean.FAIL);
@@ -398,6 +403,7 @@ public class PurchaseService {
      * @return 文案
      */
     public String getTipsByStatusForPatient(Recipe recipe, RecipeOrder order) {
+        RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
         Integer status = recipe.getStatus();
         Integer payMode = recipe.getPayMode();
         Integer payFlag = recipe.getPayFlag();
@@ -410,12 +416,18 @@ public class PurchaseService {
         switch (status) {
             case RecipeStatusConstant.READY_CHECK_YS:
                 tips = "请耐心等待药师审核";
+                if (ReviewTypeConstant.Preposition_Check.equals(recipe.getReviewType())){
+                    String reason = RecipeServiceSub.getCancelReasonForChecker(recipe.getRecipeId());
+                    if (StringUtils.isNotEmpty(reason)){
+                        tips = reason;
+                    }
+                }
                 break;
             case RecipeStatusConstant.CHECK_PASS:
                 if (StringUtils.isNotEmpty(orderCode) && payFlag == 0 && order.getActualPrice() > 0) {
-                    tips = "订单待支付，请于收到处方的3日内处理完成，否则处方将失效";
+                    tips = "订单待支付，请于收到处方的3日内完成购药，否则处方将失效";
                 } else if (StringUtils.isEmpty(orderCode)) {
-                    tips = "处方单待处理，请于收到处方的3日内处理完成，否则处方将失效";
+                    tips = "处方单待处理，请于收到处方的3日内完成购药，否则处方将失效";
                 } else {
                     IPurchaseService purchaseService = getService(payMode);
                     tips = purchaseService.getTipsByStatusForPatient(recipe, order);
@@ -437,6 +449,11 @@ public class PurchaseService {
                 }
             case RecipeStatusConstant.REVOKE:
                 tips = "由于医生已撤销，该处方单已失效，请联系医生";
+                //20200519 zhangx 是否展示退款按钮(重庆大学城退款流程)，前端调用patientRefundForRecipe
+                //原设计：处方单待处理状态，患者未下单时可撤销，重庆大学城流程，支付完未配送可撤销，
+                if(order!=null){
+                    tips = "该处方单已失效";
+                }
                 break;
             case RecipeStatusConstant.RECIPE_DOWNLOADED:
                 tips = "已下载处方笺";
@@ -492,6 +509,13 @@ public class PurchaseService {
      * @return true 已被处理
      */
     private boolean checkRecipeIsUser(Recipe dbRecipe, RecipeResultBean result) {
+        if (dbRecipe.getStatus() == RecipeStatusConstant.REVOKE){
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "处方单已被撤销");
+        }
+        //此时如果处方状态为待审核则说明药师端已经撤销了处方审核结果
+        if (dbRecipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS){
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "处方审核结果已被撤销");
+        }
         if (RecipeStatusConstant.CHECK_PASS != dbRecipe.getStatus()
                 || 1 == dbRecipe.getChooseFlag()) {
             result.setCode(RecipeResultBean.FAIL);
@@ -550,6 +574,23 @@ public class PurchaseService {
 
     private boolean unLock(Integer recipeId) {
         return redisClient.setex(CacheConstant.KEY_RCP_BUSS_PURCHASE_LOCK + recipeId, 1L);
+    }
+
+    /**
+     * 判断是否是慢病医保患者
+     * @param recipeId
+     * @return
+     */
+    public Boolean isMedicareSlowDiseasePatient(Integer recipeId){
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if (recipeExtend !=null){
+            //3慢病医保
+            if ("3".equals(recipeExtend.getPatientType())){
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

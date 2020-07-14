@@ -118,25 +118,27 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.error("YtRemoteService.tokenUpdateImpl:[{}][{}]更新token异常：{}", depId, depName, e.getMessage());
+            LOGGER.error("YtRemoteService.tokenUpdateImpl:[{}][{}]更新token异常：{}", depId, depName, e.getMessage(),e);
         } finally {
             try {
                 httpclient.close();
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("YtRemoteService.tokenUpdateImpl:http请求资源关闭异常: {}", e.getMessage());
+                LOGGER.error("YtRemoteService.tokenUpdateImpl:http请求资源关闭异常: {}", e.getMessage(),e);
             }
         }
-
     }
 
     @Override
-    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise) {
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         SaleDrugList saleDrug = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
         Pharmacy pharmacy = new Pharmacy();
         if ("yt".equals(drugsEnterprise.getAccount())) {
-            pharmacy.setPharmacyCode("YMO0111470");
+            //设置指定药店配送
+            RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+            String store = recipeParameterDao.getByName(organId + "_yt_store_code");
+            pharmacy.setPharmacyCode(store);
         }
         if ("yt_sy".equals(drugsEnterprise.getAccount())) {
             pharmacy.setPharmacyCode("YK45286");
@@ -152,7 +154,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 return stockResponse.getStock().toString();
             }
         }catch (Exception e){
-            LOGGER.info("YtRemoteService.getDrugInventory:运营平台查询药品库存失败, {},{},{}", drugId, drugsEnterprise.getName(), e.getMessage());
+            LOGGER.info("YtRemoteService.getDrugInventory:运营平台查询药品库存失败, {},{},{}", drugId, drugsEnterprise.getName(), e.getMessage(),e);
         }
         return "暂不支持库存查询";
     }
@@ -261,13 +263,13 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("YtRemoteService.pushRecipeInfo:[{}][{}]推送处方异常：{}", depId, depName, e.getMessage());
+                LOGGER.error("YtRemoteService.pushRecipeInfo:[{}][{}]推送处方异常：{}", depId, depName, e.getMessage(),e);
             } finally {
                 try {
                     httpClient.close();
                 } catch (Exception e) {
                     e.printStackTrace();
-                    LOGGER.error("YtRemoteService.pushRecipeInfo:http请求资源关闭异常: {}！", e.getMessage());
+                    LOGGER.error("YtRemoteService.pushRecipeInfo:http请求资源关闭异常: {}！", e.getMessage(),e);
                 }
             }
 
@@ -409,7 +411,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 sendYtRecipe.setImage(imgStr);
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.warn("YtRemoteService.pushRecipeInfo:{}处方，下载处方笺服务异常：{}.", nowRecipe.getRecipeId(), e.getMessage() );
+                LOGGER.warn("YtRemoteService.pushRecipeInfo:{}处方，下载处方笺服务异常：{}.", nowRecipe.getRecipeId(), e.getMessage(),e );
                 getFailResult(result, "下载处方笺服务异常");
                 return result;
             }
@@ -454,6 +456,17 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 } else {
                     sendYtRecipe.setCostType(1);
                 }
+                if (recipeOrder.getOrderType() == 1) {
+                    RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(nowRecipe.getRecipeId());
+                    if (recipeExtend != null && recipeExtend.getFundAmount() != null) {
+                        sendYtRecipe.setFundAmount(Double.parseDouble(recipeExtend.getFundAmount()));
+                    } else {
+                        sendYtRecipe.setFundAmount(0.0);
+                    }
+                } else {
+                    sendYtRecipe.setFundAmount(0.0);
+                }
                 if (1 == nowRecipe.getGiveMode()) {
                     sendYtRecipe.setGiveModel(1);
                 } else if (3 == nowRecipe.getGiveMode()) {
@@ -486,7 +499,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             try {
                 return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
             } catch (ControllerException e) {
-                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area);
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
             }
         }
         return "";
@@ -555,7 +568,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 String peroral = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(nowDetail.getUsePathways());
                 usepathWays+="("+peroral+")";
             } catch (ControllerException e) {
-                LOGGER.warn("YtRemoteService.pushRecipeInfo:处方细节ID为{},药品的单价为空", nowDetail.getRecipeDetailId());
+                LOGGER.error("YtRemoteService.pushRecipeInfo:处方细节ID为{},药品的单价为空", nowDetail.getRecipeDetailId(),e);
                 getFailResult(result, "药品用法出错");
                 return result;
             }
@@ -768,7 +781,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             }
         }catch (Exception e){
             getFailResult(result, "当前药企下没有药店的药品库存足够");
-            LOGGER.info("YtRemoteService.scanStock:处方ID为{},{}.", recipeId, e.getMessage());
+            LOGGER.error("YtRemoteService.scanStock:处方ID为{},{}.", recipeId, e.getMessage(),e);
         }
         return result;
     }
@@ -819,7 +832,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), msg);
                             }
                         }catch(Exception e){
-                            LOGGER.error("YtRemoteService.checkDrugListByDeil error:{},{}.", recipeId, e.getMessage());
+                            LOGGER.error("YtRemoteService.checkDrugListByDeil error:{},{}.", recipeId, e.getMessage(),e);
                         }
                         if(entry.getValue().getSumUsage() <= stockResponse.getStock()){
                             groupSumResult.setComplacentNum(groupSumResult.getComplacentNum() + 1);
@@ -837,13 +850,13 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                LOGGER.error("YtRemoteService.scanStock:[{}]门店该[{}]药品查询库存异常：{}", pharmacy.getPharmacyCode(), saleDrug.getOrganDrugCode(), e.getMessage());
+                LOGGER.error("YtRemoteService.scanStock:[{}]门店该[{}]药品查询库存异常：{}", pharmacy.getPharmacyCode(), saleDrug.getOrganDrugCode(), e.getMessage(),e);
             } finally {
                 try {
                     httpClient.close();
                 } catch (Exception e) {
                     e.printStackTrace();
-                    LOGGER.error("YtRemoteService.scanStock:http请求资源关闭异常: {}", e.getMessage());
+                    LOGGER.error("YtRemoteService.scanStock:http请求资源关闭异常: {}", e.getMessage(),e);
                 }
             }
         }

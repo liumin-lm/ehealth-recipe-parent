@@ -8,11 +8,11 @@ package recipe.constant;
  */
 public enum RecipeMsgEnum {
     /**
-     *
      * 参考 RecipeStatusConstant
      */
     RECIPE_CHECK_NOT_PASS(-1, "RecipeCheckNotPass"),
     RECIPE_CHECK_PASS(2, "RecipeCheckPass"),
+    RECIPE_HAVE_PAY(3, "RecipeHavePay"),
     RECIPE_IN_SEND(4, "RecipeInSend"),
     RECIPE_CHECK_PASS_YS(7, "RecipeCheckPassYs"),
     RECIPE_READY_CHECK_YS(8, "RecipeReadyCheckYs"),
@@ -95,6 +95,16 @@ public enum RecipeMsgEnum {
      * 药店取药-已完成
      */
     RECIPE_TAKE_MEDICINE_FINISH(124, "RecipeTakeMedicineFinish"),
+
+    /**
+     * 药师撤销处方
+     */
+    RECIPE_REVOKE_YS(125, "RecipeRevokeYs"),
+
+    /**
+     * 处方未支付运费提醒
+     */
+    RECIPE_EXPRESSFEE_REMIND_NOPAY(126, "RecipeExpressFeeRemindNoPay"),
 
     /**
      * 默认消息

@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
@@ -19,7 +20,9 @@ import recipe.constant.BussTypeConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeMsgEnum;
 import recipe.constant.RecipecCheckStatusConstant;
+import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeDAO;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.*;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
@@ -27,6 +30,7 @@ import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -78,39 +82,61 @@ public class PlatRecipeCheckService implements IRecipeCheckService{
         //把审核结果再返回前端 0:未审核 1:通过 2:不通过
         resMap.put("check", (1 == result) ? 1 : 2);
 
-        //审核成功往药厂发消息
-        //审方做异步处理
-        GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
-            @Override
-            public void run() {
-                if (1 == result) {
-                    //审方成功
-                    auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckPassYs(recipe);
-                } else {
-                    //审核不通过后处理
-                    doAfterCheckNotPassYs(recipe);
-                }
-                //将审核结果推送HIS
-                try {
-                    RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-                    hisService.recipeAudit(recipe, resultBean);
-                } catch (Exception e) {
-                    LOGGER.warn("saveCheckResult send recipeAudit to his error. recipeId={}", recipeId, e);
-                }
-                if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
-                    //增加药师首页待处理任务---完成任务
-                    ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussFinishEvent(recipeId, BussTypeConstant.RECIPE));
-                }
-            }
-        });
-        //推送处方到监管平台(审核后数据)
-        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(),2));
+        //date 20200507
+        //将签名从不那个审核处方的逻辑中拆分出来
+        recipeService.retryPharmacistSignCheck(recipeId, recipe.getChecker(), resMap);
+        //签名失败，设置审核结果为失败
+
+//        //审核成功往药厂发消息
+//        //审方做异步处理
+//        GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
+//            @Override
+//            public void run() {
+//                if (1 == result) {
+//                    //审方成功
+//                    auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckPassYs(recipe);
+//                } else {
+//                    //审核不通过后处理
+//                    doAfterCheckNotPassYs(recipe);
+//                }
+//                //将审核结果推送HIS
+//                try {
+//                    RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+//                    hisService.recipeAudit(recipe, resultBean);
+//                } catch (Exception e) {
+//                    LOGGER.warn("saveCheckResult send recipeAudit to his error. recipeId={}", recipeId, e);
+//                }
+//                if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+//                    //增加药师首页待处理任务---完成任务
+//                    ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussFinishEvent(recipeId, BussTypeConstant.RECIPE));
+//                }
+//            }
+//        });
+//        //推送处方到监管平台(审核后数据)
+//        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(),2));
+        //对重庆附二进行处理,审核通过将处方信息推送第三方
+        pushRecipeForThird(recipe);
         return resMap;
     }
 
-    private void doAfterCheckNotPassYs(Recipe recipe) {
-        IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
-        boolean secondsignflag = iOrganConfigService.getEnableSecondsignByOrganId(recipe.getClinicOrgan());
+    private void pushRecipeForThird(Recipe recipe) {
+        try{
+            OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+            RemoteDrugEnterpriseService drugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+
+            List<DrugsEnterprise> retList = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
+            for (DrugsEnterprise drugsEnterprise : retList) {
+                drugEnterpriseService.pushRecipeInfoForThird(recipe, drugsEnterprise);
+            }
+        }catch(Exception e){
+            LOGGER.info("pushRecipeForThird error msg:{}.", e.getMessage(), e);
+        }
+    }
+
+    public void doAfterCheckNotPassYs(Recipe recipe) {
+        boolean secondsignflag = RecipeServiceSub.canSecondAudit(recipe.getClinicOrgan());
+        /*IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
+        boolean secondsignflag = iOrganConfigService.getEnableSecondsignByOrganId(recipe.getClinicOrgan());*/
         //不支持二次签名的机构直接执行后续操作
         if (!secondsignflag) {
             //一次审核不通过的需要将优惠券释放

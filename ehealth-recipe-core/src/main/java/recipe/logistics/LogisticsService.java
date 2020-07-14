@@ -4,9 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.logistics.model.RecipeLogisticsBean;
 import com.sf.csim.express.service.CallExpressServiceTools;
+import ctd.mvc.support.HttpClientUtils;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -17,10 +18,21 @@ import de.odysseus.staxon.json.JsonXMLInputFactory;
 import de.odysseus.staxon.json.JsonXMLOutputFactory;
 import de.odysseus.staxon.xml.util.PrettyXMLEventWriter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.dao.RecipeParameterDao;
+import recipe.drugsenterprise.bean.EsbWebService;
+import recipe.util.AppSiganatureUtils;
+import recipe.util.DictionaryUtil;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLEventWriter;
@@ -46,7 +58,7 @@ import java.util.*;
  * ID和Key请到官网申请：http://www.kdniao.com/ServiceApply.aspx
  */
 
-@RpcBean("logisticsService")
+@RpcBean(value = "logisticsService")
 public class LogisticsService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LogisticsService.class);
@@ -91,6 +103,11 @@ public class LogisticsService {
             //根据公司业务处理返回的信息......
             LOGGER.info("getOrderTracesByJson result={}", result);
             return result;
+        } else if(StringUtils.equals("SHSY", expCode)){
+            //上海上药物流信息
+            String result = getShsyTracesByJson(expCode,expNo);
+            LOGGER.info("getOrderTracesByJson result={}", result);
+            return result;
         } else {
             String requestData = "{'OrderCode':'','ShipperCode':'" + expCode + "','LogisticCode':'" + expNo + "'}";
             Map<String, String> params = new HashMap<String, String>();
@@ -107,6 +124,7 @@ public class LogisticsService {
         }
 
     }
+
 
     /**
      * 前端调用查询物流轨迹
@@ -454,5 +472,139 @@ public class LogisticsService {
             }
         }
         return output.toString();
+    }
+
+    private static boolean hasOrgan(String organ, String parames){
+        if (StringUtils.isNotEmpty(parames)) {
+            String[] organs = parames.split(",");
+            for (String o : organs) {
+                if (organ.equals(o)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    /**
+     * 根据物流code与物流单号查询物流轨迹（目前仅针对上海市中医院）
+     * @param expCode
+     * @param expNo
+     * @return
+     * @throws Exception
+     */
+    @RpcService
+    public String getShsyTracesByJson(String expCode,String expNo) throws Exception{
+        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+
+        String item = DictionaryUtil.getKeyByValue("eh.cdr.dictionary.KuaiDiNiaoCode",expCode);
+        String ebs_organ = recipeParameterDao.getByName("ebs_organ");
+        Recipe recipe = new Recipe();
+        if(StringUtils.isNotBlank(item)){
+            Integer logisticsCompany = Integer.parseInt(item);
+            String orderCode = recipeOrderDAO.getOrderCodeByLogisticsCompanyAndTrackingNumber(logisticsCompany,expNo);
+            if(orderCode != null){
+                List<Recipe> recipeList = recipeDAO.findRecipeListByOrderCode(orderCode);
+                if(recipeList.size() > 0){
+                    recipe = recipeList.get(0);
+                }
+            }
+        }
+        if (hasOrgan(recipe.getClinicOrgan().toString(), ebs_organ)) {
+            String prescripNo = recipe.getRecipeCode();
+            String hospitalName = recipeParameterDao.getByName(recipe.getClinicOrgan()+"_shyy-organname");
+            Map<String, Object> params = new HashMap<>();
+            params.put("prescripNo",prescripNo);
+            params.put("hospitalName",hospitalName);
+            params.put("prescribeDate","");
+            String request = jsonToXml(params);
+            EsbWebService xkyyHelper = new EsbWebService();
+            Map<String, String> param=new HashMap<String, String>();
+            String url = recipeParameterDao.getByName("logistics_shxk_url");
+            param.put("url", url);
+            String fetchLogisticsProcessMethod = "fetchLogisticsProcess";
+            xkyyHelper.initConfig(param);
+            String webServiceResult = xkyyHelper.HXCFZT(request, fetchLogisticsProcessMethod);
+            LOGGER.info("getDrugInventory webServiceResult:{}. ", webServiceResult);
+            Map maps = (Map)JSON.parse(webServiceResult);
+
+            LogisticsTraceResponse logisticsTraceResponse = new LogisticsTraceResponse();
+            Boolean success = (Boolean) maps.get("success");
+            String code = (String) maps.get("code");
+            List<LogisticsTrace> traces = new ArrayList<>();
+            if("0".equals(code)){
+                List<Map> list = (List)maps.get("result");
+                if(list.size() > 0){
+                    for(Map shsyTrace : list){
+                        LogisticsTrace logisticsTrace = new LogisticsTrace();
+                        logisticsTrace.setAcceptStation((String)shsyTrace.get("processRemark"));
+                        logisticsTrace.setAcceptTime((String)shsyTrace.get("processTime"));
+                        traces.add(logisticsTrace);
+                    }
+                }
+            }
+            logisticsTraceResponse.setSuccess(success);
+            logisticsTraceResponse.setTraces(traces);
+            logisticsTraceResponse.setLogisticCode(expNo);
+            logisticsTraceResponse.setShipperCode(expCode);
+            return JSON.toJSONString(logisticsTraceResponse);
+        } else {
+            String prescripNo = recipe.getRecipeCode();
+            String hospitalName = recipeParameterDao.getByName(recipe.getClinicOrgan()+"_shyy-organname");
+            String appId = recipeParameterDao.getByName(recipe.getClinicOrgan()+"_logistics_shsy_app_id");
+            String appSecret = recipeParameterDao.getByName(recipe.getClinicOrgan()+"_logistics_shsy_app_secret");
+            Map<String, Object> params = new HashMap<>();
+            params.put("prescripNo",prescripNo);
+            params.put("hospitalName",hospitalName);
+            String json = JSONObject.toJSONString(params);
+            LOGGER.info("上海上药物流信息查询，签名认证参数：APP_ID={},APP_SECRET={},json={}",appId,appSecret,json);
+            long timestamp = System.currentTimeMillis();
+            String url = recipeParameterDao.getByName(recipe.getClinicOrgan()+"_logistics_shsy_url");
+            HttpPost method = new HttpPost(url);
+            method.addHeader("ACCESS_APPID", appId);
+            method.addHeader("ACCESS_TIMESTAMP", String.valueOf(timestamp));
+            method.addHeader("ACCESS_SIGANATURE", AppSiganatureUtils.createSiganature(json, appId, appSecret,
+                    timestamp));
+            method.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));
+            HttpClient httpClient = HttpClientUtils.getHttpClient();
+            HttpResponse httpResponse = httpClient.execute(method);
+            HttpEntity entity = httpResponse.getEntity();
+            String response = EntityUtils.toString(entity);
+            JSONObject jsonObject = JSON.parseObject(response);
+            LogisticsTraceResponse logisticsTraceResponse = new LogisticsTraceResponse();
+            Boolean success = jsonObject.getBoolean("success");
+            String code = jsonObject.getString("code");
+            List<LogisticsTrace> traces = new ArrayList<>();
+            if("0".equals(code)){
+                JSONArray jsonArray = jsonObject.getJSONArray("result");
+                List<ShsyTrace> list = jsonArray.toJavaList(ShsyTrace.class);
+                if(list.size() > 0){
+                    for(ShsyTrace shsyTrace : list){
+                        LogisticsTrace logisticsTrace = new LogisticsTrace();
+                        logisticsTrace.setAcceptStation(shsyTrace.getProcessRemark());
+                        logisticsTrace.setAcceptTime(shsyTrace.getProcessTime());
+                        traces.add(logisticsTrace);
+                    }
+                }
+            }
+            logisticsTraceResponse.setSuccess(success);
+            logisticsTraceResponse.setTraces(traces);
+            logisticsTraceResponse.setLogisticCode(expNo);
+            logisticsTraceResponse.setShipperCode(expCode);
+            return JSON.toJSONString(logisticsTraceResponse);
+        }
+
+    }
+
+    private String jsonToXml(Map<String, Object> params){
+        StringBuilder result = new StringBuilder("<root><body><params>");
+        if (params != null) {
+            for (Map.Entry<String, Object> entry : params.entrySet()) {
+                result.append("<").append(entry.getKey()).append(">").append(entry.getValue()).append("</").append(entry.getKey()).append(">");
+            }
+        }
+        result.append("</params></body></root>");
+        return result.toString();
     }
 }
