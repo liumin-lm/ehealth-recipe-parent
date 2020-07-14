@@ -825,7 +825,7 @@ public class HisRecipeService {
             Map<String, BigDecimal> drugTotalDoseMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, HisRecipeDetail::getUseTotalDose));
             for (RecipeDetailTO recipeDetailTO : a.getDrugList()) {
                 BigDecimal useTotalDose = drugTotalDoseMap.get(recipeDetailTO.getDrugCode());
-                if (null == useTotalDose || !useTotalDose.equals(recipeDetailTO.getUseTotalDose())) {
+                if (null == useTotalDose || 0 != useTotalDose.compareTo(recipeDetailTO.getUseTotalDose())) {
                     deleteSetRecipeCode.add(recipeCode);
                     break;
                 }
