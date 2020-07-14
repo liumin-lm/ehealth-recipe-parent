@@ -176,6 +176,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
     public abstract Recipe getByRecipeCodeAndClinicOrganWithAll(@DAOParam("recipeCode") String recipeCode,
                                                                 @DAOParam("clinicOrgan") Integer clinicOrgan);
 
+    @DAOMethod(sql = "from Recipe where recipeCode in (:recipeCodeList) and clinicOrgan=:clinicOrgan")
+    public abstract List<Recipe> findByRecipeCodeAndClinicOrgan(@DAOParam("recipeCodeList") List<String> recipeCodeList,
+                                                                @DAOParam("clinicOrgan") Integer clinicOrgan);
+
     /**
      * 根据处方来源源处方号及处方来源机构查询处方详情
      *
@@ -223,6 +227,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> {
      */
     @DAOMethod(sql = "update Recipe set orderCode=null ,chooseFlag=0, status = 2, giveMode = null, payMode = null where orderCode=:orderCode")
     public abstract void updateOrderCodeToNullByOrderCodeAndClearChoose(@DAOParam("orderCode") String orderCode);
+
+    /**
+     * 根据处方id批量删除
+     *
+     * @param recipeIds
+     */
+    @DAOMethod(sql = "delete from Recipe where recipeId in (:recipeIds)")
+    public abstract void deleteByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
+
 
     public List<Integer> findDoctorIdSortByCount(final String startDt, final String endDt,
                                                  final List<Integer> organs, final List<Integer> testDocIds,

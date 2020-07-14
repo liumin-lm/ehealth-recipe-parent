@@ -1,19 +1,18 @@
 package recipe.thread;
 
-import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.patient.dto.PatientDTO;
 import ctd.util.AppContextHolder;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import recipe.service.HisRecipeService;
 
-import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
  * Created by Erek on 2020/3/26.
  */
 public class QueryHisRecipeCallable implements Callable<String> {
-
+    private static final Log LOGGER = LogFactory.getLog(QueryHisRecipeCallable.class);
     private Integer organId;
     private String mpiId;
     private Integer timeQuantum;
@@ -28,13 +27,12 @@ public class QueryHisRecipeCallable implements Callable<String> {
     }
 
     @Override
-    public String call() throws Exception {
-        HisRecipeService hisRecipeService = AppContextHolder.getBean("eh.hisRecipeService",HisRecipeService.class);
-        HisResponseTO<List<QueryHisRecipResTO>> responseTO = hisRecipeService.queryHisRecipeInfo(organId,patientDTO,timeQuantum,flag);
-        if(null != responseTO){
-            if(null != responseTO.getData()){
-                hisRecipeService.saveHisRecipeInfo(responseTO,patientDTO,flag);
-            }
+    public String call() {
+        HisRecipeService hisRecipeService = AppContextHolder.getBean("eh.hisRecipeService", HisRecipeService.class);
+        try {
+            hisRecipeService.queryHisRecipeInfo(organId, patientDTO, timeQuantum, flag);
+        } catch (Exception e) {
+            LOGGER.error("查询his线下处方数据 error ", e);
         }
         return null;
     }

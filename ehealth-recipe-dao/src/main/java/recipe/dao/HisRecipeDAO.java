@@ -31,8 +31,24 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
     @DAOMethod(sql = " From HisRecipe where clinicOrgan=:clinicOrgan and recipeCode=:recipeCode")
     public abstract HisRecipe getHisRecipeByRecipeCodeAndClinicOrgan(@DAOParam("clinicOrgan") int clinicOrgan, @DAOParam("recipeCode") String recipeCode);
 
+    /**
+     * 根据 机构编号 和 处方单号 批量查询数据
+     *
+     * @param clinicOrgan    机构编号
+     * @param recipeCodeList 处方单号
+     * @return
+     */
+    @DAOMethod(sql = " From HisRecipe where clinicOrgan=:clinicOrgan and recipeCode in (:recipeCodeList)")
+    public abstract List<HisRecipe> findHisRecipeByRecipeCodeAndClinicOrgan(@DAOParam("clinicOrgan") int clinicOrgan, @DAOParam("recipeCodeList") List<String> recipeCodeList);
+
     @DAOMethod(sql = " From HisRecipe where mpiId=:mpiId and clinicOrgan=:clinicOrgan and recipeCode=:recipeCode")
-    public abstract HisRecipe getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(@DAOParam("mpiId") String mpiId,@DAOParam("clinicOrgan") int clinicOrgan, @DAOParam("recipeCode") String recipeCode);
+    public abstract HisRecipe getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(@DAOParam("mpiId") String mpiId, @DAOParam("clinicOrgan") int clinicOrgan, @DAOParam("recipeCode") String recipeCode);
 
-
+    /**
+     * 根据处方id批量删除
+     *
+     * @param hisRecipeIds
+     */
+    @DAOMethod(sql = "delete from HisRecipe where hisRecipeId in (:hisRecipeIds)")
+    public abstract void deleteByHisRecipeIds(@DAOParam("hisRecipeIds") List<Integer> hisRecipeIds);
 }
